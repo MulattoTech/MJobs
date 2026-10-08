@@ -1,3 +1,13 @@
+## 2026-10-08T07:03:20Z — #192 integrated; #178 child active
+
+Local `main`, `origin/main`, and GitHub main are synchronized at `908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0` (tree `d2e191922230b2ab6ba55229d8889414c5fc5268`). Issue #192 / MJ-REQ-191 bounded save/restore-current-Jobs-filters is integrated PARTIAL; user can persist q/location/source/sort to a named active-profile saved search and restore connected results after reload. Evidence `docs/evidence/2026-10-08-saved-job-filters.json`. Root exact-tree checks: 12 related API/integration/browser tests PASS; dedicated save-filter integration/browser 3 PASS; web 94/94 and TypeScript/Vite build PASS; lane/diff checks PASS. Vitest ran on unsupported Node 25.9.0. Full Python discovery, PostgreSQL, hosted checks/review NOT_RUN. Issue #192 remains OPEN/PARTIAL; filter-sidebar and scheduler cadence remain incomplete; parent MJ-PR-052 dependencies MJ-PR-051/MJ-PR-043 unchanged. Integration receipt https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054442666; child release https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054443936.
+
+Child #178 / MJ-REQ-177 is now actively claimed for a bounded APPLY_MOCK persisted-route ATS log context slice. Branch `codex/mj-req177-ats-context-logs-20261008`, worktree `.worktrees/codex-mj-req177-ats-context-logs-20261008`, base `908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0`, unique owned paths recorded in the queue and lane state. Claim: https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313. Broader #178 remains OPEN/PARTIAL; no provider calls, application submission, hosted checks, or Actions.
+
+Five independent read-only issue reconciliations were delegated: #121 is queue/path blocked by #192 and PR-032; #167 has no distinct safe SQLite-only slice (PostgreSQL/backup gates remain); #178 found the ATS logging slice above; #180 found only a synthetic screenshot/package redaction test gap while real ATS browser support remains unavailable; #517’s capture/review capabilities already cover the safe TalentHop example, while new source ingestion overlaps active Antigravity #302 and Ollama #318 claims. Antigravity #302 and Ollama #318 claims remain preserved. External submission OFF.
+
+---
+
 ## 2026-10-08T06:53:07Z — issue #192 / MJ-REQ-191 saved Jobs filters assigned
 
 Issue #192 is OPEN, unassigned and without existing comments before this claim. Branch `codex/mj-req191-save-filters-20261008` and worktree `.worktrees/codex-mj-req191-save-filters-20261008` are based on synchronized main `bce7866e87aa71b7658d7000e2e8b66452187254`. Local child claim key `codex:req191-saved-filters`; GitHub claim: https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693.

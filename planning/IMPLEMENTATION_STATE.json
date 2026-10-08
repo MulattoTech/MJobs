@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T06:53:07Z",
+  "generated_at": "2026-10-08T07:03:20Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-191-SAVED-JOB-FILTERS-CLAIMED-20261008",
+  "current_milestone": "MJ-REQ-177-APPLY-MOCK-ATS-CONTEXT-CLAIMED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -131,7 +131,8 @@
     "Issue #104 / MJ-REQ-103 answer bank acceptance is PASS (docs/evidence/2026-10-08-answer-bank-acceptance.json); parent MJ-PR-028 requirements MJ-REQ-100..102 and MJ-REQ-104..107 are not promoted. Aggregate core workflow/release remain PARTIAL.",
     "Issue #199 / MJ-REQ-198 comparison increment locally integrated PASS at 41513c0f3c2c75970bfc8173f0ca8576acb63519; evidence docs/evidence/2026-10-08-cover-letter-history-comparison.json. Full requirement remains PARTIAL; no change to MJ-PR-054 dependencies, core workflow, or release acceptance.",
     "MJ-REQ-095: selected approved experience facts now support the existing individually reviewed, user-authored rewrite flow with source identity, immutable history, reload and comparison; this is a scoped local PASS, not full tailoring or semantic-equivalence proof.",
-    "MJ-REQ-274: due discovery operation scheduling survives actual SQLite scheduler process restart; second tick deduplicates; a separate synthetic worker completes the single operation. Compose/PostgreSQL and broader persistence/application restart remain unverified."
+    "MJ-REQ-274: due discovery operation scheduling survives actual SQLite scheduler process restart; second tick deduplicates; a separate synthetic worker completes the single operation. Compose/PostgreSQL and broader persistence/application restart remain unverified.",
+    "MJ-REQ-191: current supported Jobs filters (query, location, source, sort) save and restore through profile-scoped persistence with reload/readback and scheduler-disabled behavior; broader filter sidebar/saved-search cadence remains open."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -396,7 +397,8 @@
     "Issue #105 / MJ-REQ-104 exact candidate e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on main 2b3c1996a121af5584caa79653896dc572d46ac8: root reran 21 Python unit/integration tests, 2 connected Chromium/API tests, 5 focused Vitest tests and TypeScript/Vite build; all PASS. Seven evidence source hashes and Git blob IDs match. LOCAL_DELEGATED_REVIEW on exact head found no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json; issue #105 remains OPEN/PARTIAL.",
     "Issue #191 exact integrated-tree API sorting suite: 3/3 PASS; root rerun after non-force fast-forward at 0bb8e5048b45bd8324e938b197e39a9242cdaa1f.",
     "Issue #191 exact integrated-tree connected synthetic browser test: 1/1 PASS after TypeScript/Vite production build.",
-    "Issue #191 candidate frontend suite: 94/94 PASS; production build PASS; validators PASS; local delegated review PASS."
+    "Issue #191 candidate frontend suite: 94/94 PASS; production build PASS; validators PASS; local delegated review PASS.",
+    "Integrated issue #192/MJ-REQ-191 saved-filter acceptance: related API/integration/browser regressions 12 PASS; dedicated saved-filter integration and connected browser checks 3 PASS; web 94/94 and TypeScript/Vite build PASS at 908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -489,7 +491,8 @@
     "Issue #199 full Python suite and hosted checks/review NOT_RUN; this is a scoped comparison condition and MJ-REQ-198 remains PARTIAL.",
     "MJ-REQ-116 PostgreSQL not applicable to this display-only increment; hosted checks/review NOT_RUN_BY_USER_POLICY; matching aggregate/release remain PARTIAL.",
     "Issue #178 / MJ-REQ-177: PostgreSQL worker recovery, live Redis/RQ, full Python suite, hosted checks/review NOT_RUN_BY_USER_POLICY; new discovery context remains a narrow local acceptance and broader requirement PARTIAL.",
-    "Issue #105 / MJ-REQ-104: PostgreSQL and hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 executed on Node 25.9.0 outside its declared supported Node range. Broad semantic matching/configurable thresholds remain incomplete; external submission OFF."
+    "Issue #105 / MJ-REQ-104: PostgreSQL and hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 executed on Node 25.9.0 outside its declared supported Node range. Broad semantic matching/configurable thresholds remain incomplete; external submission OFF.",
+    "Issue #192 full Python discovery and PostgreSQL validation NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY. Vitest 5 ran on Node 25.9.0 outside its declared supported range."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -506,7 +509,8 @@
     "MJ-REQ-004 AI evaluation cancellation waits for an already-running provider request to hit its bounded timeout; real transport disconnect and provider inference were not exercised in synthetic acceptance (docs/evidence/2026-10-07-ai-evaluation-disconnect-cancellation.json).",
     "MJ-REQ-008 process-crash recovery is verified for a synthetic SQLite rescore operation; physical host restart, browser-process crash, all worker operation types and live PostgreSQL remain unverified (docs/evidence/2026-10-07-product-worker-crash-recovery.json).",
     "MJ-REQ-177 worker logging currently covers durable operation terminal outcomes only; posting/source/ATS and other contexts plus live Redis/RQ/PostgreSQL remain unverified (docs/evidence/2026-10-07-structured-worker-operation-logs.json).",
-    "Issue #517 source catalogue currently captures only manual job and external application reports; existing provider/browser discovery entry points and documented source integration evaluation remain incomplete."
+    "Issue #517 source catalogue currently captures only manual job and external application reports; existing provider/browser discovery entry points and documented source integration evaluation remain incomplete.",
+    "Issue #192 / MJ-REQ-191 remains OPEN/PARTIAL: scheduler cadence and broader filter-sidebar acceptance are not implemented; hosted checks/review and PostgreSQL NOT_RUN_BY_USER_POLICY."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -528,11 +532,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
-    "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
-    "result": "PARTIAL — Newest-only slice locally verified and integrated; full Python discovery incomplete after F/ss; issue remains OPEN/PARTIAL.",
-    "evidence": "docs/evidence/2026-10-08-job-sorting-newest.json",
-    "verified_at_utc": "2026-10-08T06:50:23Z"
+    "commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+    "tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
+    "result": "PARTIAL — MJ-REQ-191 current Jobs filter save/restore slice locally verified and integrated; broader scheduler/filter acceptance remains incomplete.",
+    "evidence": "docs/evidence/2026-10-08-saved-job-filters.json",
+    "verified_at_utc": "2026-10-08T07:03:20Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -10120,16 +10124,109 @@
         "issue_state": "OPEN",
         "at_utc": "2026-10-08T06:53:07Z"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-191-SAVED-JOB-FILTERS-INTEGRATED-20261008",
+      "timestamp": "2026-10-08T07:03:20Z",
+      "current_phase": "MJ_REQ_191_SUPPORTED_JOBS_FILTER_SAVE_RESTORE_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Implemented profile-scoped persistence for supported Jobs controls (query, work location, source, sort) while preserving saved-search semantic criteria and disabling saved-filter records for source scheduling.",
+        "Connected Jobs UI can save, reload and restore controls/results; clearing resets controls; cross-profile and malformed requests reject; synthetic FIXTURE browser verifies no external requests, worker operation, or scheduled discovery.",
+        "Fast-forward integrated source commit and synchronized local/GitHub main at 908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0. Root reran focused API/integration/browser regressions, full web suite, build, evidence and lane checks. Issue remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "docs/evidence/2026-10-08-saved-job-filters.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/discovery/search_profiles.py"
+      ],
+      "tests_completed": [
+        ".venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters tests.integration.test_source_policy_scheduler tests.integration.test_job_sorting tests.browser.test_search_profile_selection -v — PASS, 12 tests on integrated tree.",
+        ".venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters -v — PASS, 3 tests on integrated tree.",
+        "npm test --prefix apps/web -- --run — PASS, 94 tests across 16 files.",
+        "npm run build --prefix apps/web — PASS, TypeScript check and Vite production build.",
+        "Evidence JSON, diff, and lane validation PASS; issue #192 integration/release receipts posted."
+      ],
+      "tests_remaining": [
+        "Full Python discovery and PostgreSQL validation NOT_RUN.",
+        "Vitest executed using Node 25.9.0 outside its declared supported engine range.",
+        "Broader MJ-REQ-191 filter-sidebar and independent saved-search scheduler acceptance remains incomplete; parent MJ-PR-052 remains QUEUED with MJ-PR-051 and MJ-PR-043 dependencies.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; release readiness remains PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated synthetic SQLite, loopback API and Chromium in FIXTURE mode; no external requests or provider calls; application submission OFF."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #192 remains OPEN/PARTIAL; this slice does not prove scheduler cadence or the complete requirement.",
+        "Node 25.9.0 is outside Vitest declared support.",
+        "PostgreSQL and hosted checks/review NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+        "tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
+        "source_commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+        "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+        "integration_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054442666",
+        "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054443936",
+        "issue_state_after_readback": "OPEN/PARTIAL"
+      }
+    },
+    {
+      "milestone_id": "MJ-REQ-177-APPLY-MOCK-ATS-CONTEXT-CLAIMED-20261008",
+      "timestamp": "2026-10-08T07:03:20Z",
+      "current_phase": "MJ_REQ_177_APPLY_MOCK_ATS_CONTEXT_CLAIMED",
+      "completed_steps": [
+        "Reconciled prior integrated structured worker logging and confirmed the remaining candidate gap is allowlisted persisted ATS/provider context for APPLY_MOCK terminal logs.",
+        "Created isolated child branch/worktree at the synchronized source checkpoint, established non-overlapping Codex child claim, and posted sanitized GitHub issue claim.",
+        "Child reproduced the expected RED regression: persisted terminal log currently omits ATS; implementation and focused tests remain pending."
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "Assigned child test-first reproduction observed expected assertion failure: record.get(\"ats\") was None; implementation not yet changed."
+      ],
+      "tests_remaining": [
+        "Implement best-effort provider lookup from persisted application route and emit only known identifiers.",
+        "Prove unknown/missing provider and lookup failure are omitted without affecting operation results.",
+        "Prove private parameters, URLs, credentials and payload values never enter JSON logs; terminal record is emitted after durable state.",
+        "Run scoped structured-logging and worker lifecycle tests; hosted/PostgreSQL/live Redis/RQ remain NOT_RUN unless separately available under policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #178 / MJ-REQ-177 remains OPEN/PARTIAL; this claimed slice does not complete all operational log fields or live Redis/RQ/PostgreSQL acceptance."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+        "tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
+        "worktree": ".worktrees/codex-mj-req177-ats-context-logs-20261008",
+        "branch": "codex/mj-req177-ats-context-logs-20261008",
+        "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313",
+        "issue_state": "OPEN",
+        "at_utc": "2026-10-08T07:03:20Z",
+        "note": "Current code checkpoint for new #178 claim; assigned slice evidence is pending."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_191_SAVED_JOB_FILTERS_CLAIMED",
+  "current_phase": "MJ_REQ_177_APPLY_MOCK_ATS_CONTEXT_CLAIMED",
   "last_safe_checkpoint": {
-    "git_commit": "bce7866e87aa71b7658d7000e2e8b66452187254",
-    "tree": "973442af06d62f5104dcdd36cc4cca62b31c1ccc",
+    "git_commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+    "tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
+    "worktree": ".worktrees/codex-mj-req177-ats-context-logs-20261008",
+    "branch": "codex/mj-req177-ats-context-logs-20261008",
     "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
-    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
+    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313",
     "issue_state": "OPEN",
-    "at_utc": "2026-10-08T06:53:07Z"
+    "at_utc": "2026-10-08T07:03:20Z",
+    "note": "Current code checkpoint for new #178 claim; assigned slice evidence is pending."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

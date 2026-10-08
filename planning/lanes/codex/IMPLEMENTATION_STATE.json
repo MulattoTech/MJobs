@@ -2,23 +2,23 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE",
-  "base_main": "bce7866e87aa71b7658d7000e2e8b66452187254",
-  "current_issue": 192,
-  "requirement_id": "MJ-REQ-191",
-  "branch": "codex/mj-req191-save-filters-20261008",
+  "base_main": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+  "current_issue": 178,
+  "requirement_id": "MJ-REQ-177",
+  "branch": "codex/mj-req177-ats-context-logs-20261008",
   "head": null,
-  "worktree": ".worktrees/codex-mj-req191-save-filters-20261008",
-  "result": "ACTIVE_LOCAL_CLAIMED; narrow saved Jobs-filter persistence and reload slice; parent dependencies preserved.",
-  "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+  "worktree": ".worktrees/codex-mj-req177-ats-context-logs-20261008",
+  "result": "ACTIVE_LOCAL_CLAIMED; bounded APPLY_MOCK persisted ATS/provider context logging slice.",
+  "evidence_path": "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
   "last_completed": {
-    "issue": 191,
-    "requirement_id": "MJ-REQ-190",
-    "integrated_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
-    "integrated_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+    "issue": 192,
+    "requirement_id": "MJ-REQ-191",
+    "integrated_main": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+    "integrated_tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
     "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
-    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275"
+    "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054442666",
+    "release_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054443936"
   },
   "next_candidates": [],
   "do_not_overlap": [
@@ -26,7 +26,7 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Issue #192 / MJ-REQ-191 is claimed on codex/mj-req191-save-filters-20261008 in .worktrees/codex-mj-req191-save-filters-20261008, based on synchronized main bce7866e87aa71b7658d7000e2e8b66452187254. Implement only saving/restoring supported Jobs controls (q, remote type, provider, sort) in profile-scoped saved search, with durable readback/reload and negative profile/malformed controls. No scheduler cadence or provider/submission calls. Preserve MJ-PR-052 dependencies MJ-PR-051/MJ-PR-043. Claim: https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693. Issue is OPEN; no tests run yet.",
+  "resume_instruction": "Issue #178 / MJ-REQ-177: active child claim req177-apply-mock-ats, branch codex/mj-req177-ats-context-logs-20261008, worktree .worktrees/codex-mj-req177-ats-context-logs-20261008, base 908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0. Add allowlisted persisted route-provider context to APPLY_MOCK terminal logs only; best effort, omit invalid/missing values, and preserve durable outcome. Test secrets/private params/URLs are excluded and terminal order is durable. No external requests, submission, Actions or hosted review; issue remains PARTIAL.",
   "last_verified_head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
   "last_verified_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
   "last_verified_at_utc": "2026-10-08T06:50:23Z",
@@ -63,14 +63,13 @@
   "current_requirement": "MJ-REQ-190",
   "last_integrated_tree": "3d7733e26c5d4d097518d3c911d6029c7f1c5e86",
   "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184",
-  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
+  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313",
   "owned_paths": [
-    "apps/api/main.py",
-    "apps/web/src/main.tsx",
-    "services/discovery/search_profiles.py",
-    "tests/integration/test_saved_search_filters.py",
-    "tests/browser/test_saved_search_filters.py",
-    "docs/evidence/2026-10-08-saved-job-filters.json"
+    "workers/tasks.py",
+    "workers/structured_logging.py",
+    "tests/unit/test_structured_logging.py",
+    "tests/integration/test_worker_lifecycle.py",
+    "docs/evidence/2026-10-08-apply-mock-ats-logs.json"
   ],
-  "acceptance": "User can save the currently supported Jobs controls (q, work location, source and sort) with a named saved search for the active career profile; after reload, selecting it restores those controls and connected results. Verify profile isolation, malformed/cross-profile rejection, clear selection, and no discovery scheduling side effect. Preserve semantic search criteria. Scheduler cadence and broader MJ-REQ-191 are outside this child."
+  "acceptance": "Allowlisted provider identifier resolved from persisted application route for APPLY_MOCK terminal log only; best effort; omit unknown/malformed values; no private parameters/URLs; log after durable terminal persistence. Preserve broader requirement as PARTIAL."
 }

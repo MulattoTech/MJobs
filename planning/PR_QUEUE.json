@@ -1303,7 +1303,26 @@
       "latest_slice_base": "c0ea57bca0e4a7c37b71f19d9cdd07bb062113a1",
       "latest_slice_branch": "codex/mj-req176-company-source-setting-audit-20261007",
       "latest_slice_scope_complete": false,
-      "latest_slice_tests": "21 focused integration tests; 2 connected Chromium tests; frontend 63/build; full Python 968 run/8 skipped; validators PASS"
+      "latest_slice_tests": "21 focused integration tests; 2 connected Chromium tests; frontend 63/build; full Python 968 run/8 skipped; validators PASS",
+      "active_slice": {
+        "name": "Add allowlisted persisted ATS/provider context to APPLY_MOCK terminal logs",
+        "issue": 178,
+        "requirement_id": "MJ-REQ-177",
+        "status": "ACTIVE_LOCAL_CLAIMED",
+        "depends_on": [],
+        "owned_paths": [
+          "workers/tasks.py",
+          "workers/structured_logging.py",
+          "tests/unit/test_structured_logging.py",
+          "tests/integration/test_worker_lifecycle.py",
+          "docs/evidence/2026-10-08-apply-mock-ats-logs.json"
+        ],
+        "acceptance": "Resolve provider from the persisted application route and emit only known/allowlisted ATS IDs in APPLY_MOCK terminal logs. Missing, invalid or unavailable context is omitted and never changes outcome. Test private/secret/URL/parameter omission and logging only after durable terminal persistence. This narrow slice does not complete MJ-REQ-177.",
+        "branch": "codex/mj-req177-ats-context-logs-20261008",
+        "worktree": ".worktrees/codex-mj-req177-ats-context-logs-20261008",
+        "base": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054437313"
+      }
     },
     {
       "id": "MJ-PR-049",
@@ -1397,7 +1416,7 @@
         "name": "Save and restore supported Jobs filters in a profile-scoped saved search",
         "issue": 192,
         "requirement_id": "MJ-REQ-191",
-        "status": "ACTIVE_LOCAL_CLAIMED",
+        "status": "INTEGRATED_PARTIAL",
         "depends_on": [],
         "parent_dependencies_preserved": [
           "MJ-PR-051",
@@ -1415,8 +1434,26 @@
         "rationale": "Existing profile-scoped saved-search persistence and Jobs controls are already present; this narrow user action stores/restores current controls without claiming the queued broader filter-sidebar/scheduler bundle. Parent dependencies remain unchanged.",
         "branch": "codex/mj-req191-save-filters-20261008",
         "worktree": ".worktrees/codex-mj-req191-save-filters-20261008",
-        "base": "bce7866e87aa71b7658d7000e2e8b66452187254",
-        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693"
+        "base": "4532b35d196cba120c5a0de3b6137651dd968c2d",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
+        "head": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+        "tree": "d2e191922230b2ab6ba55229d8889414c5fc5268",
+        "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+        "integration_method": "NON_FORCE_FAST_FORWARD",
+        "integration_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054442666",
+        "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054443936",
+        "issue_state": "OPEN/PARTIAL",
+        "validation": {
+          "api_integration_browser_regressions": "PASS 12/12 on integrated tree",
+          "saved_filter_integration_and_browser": "PASS 3/3 on integrated tree",
+          "frontend": "PASS 94/94 across 16 files",
+          "build": "PASS TypeScript and Vite production build",
+          "hosted": "NOT_RUN_BY_USER_POLICY",
+          "postgresql": "NOT_RUN",
+          "full_python_discovery": "NOT_RUN",
+          "limitation": "Vitest 5 ran with Node 25.9.0 outside declared support; broader scheduler/filter-sidebar acceptance remains incomplete"
+        },
+        "notes": "Implemented and integrated PARTIAL. Root exact integrated-tree checks: API/integration/browser regressions 12 PASS; dedicated saved-filter integration/browser 3 PASS; web 94/94 and TypeScript/Vite build PASS. Issue #192 remains OPEN/PARTIAL; broader saved-search cadence/filter sidebar, PostgreSQL, full suite, and hosted checks remain NOT_RUN/incomplete."
       },
       "slice_history": [
         {
@@ -3973,5 +4010,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T06:53:07Z"
+  "generated_at": "2026-10-08T07:03:20Z"
 }

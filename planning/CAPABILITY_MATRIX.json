@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T06:53:07Z",
+  "timestamp": "2026-10-08T07:03:20Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1630,9 +1630,11 @@
     },
     {
       "requirement_id": "MJ-REQ-191",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Issue #192 narrow save/restore-current-Jobs-filters slice is claimed on an isolated branch; implementation and verification are pending. Overall requirement remains NOT_RUN until evidence is recorded; scheduler and broader acceptance are not claimed."
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-saved-job-filters.json"
+      ],
+      "note": "Bounded locally verified slice: save and restore currently supported Jobs controls in a profile-scoped durable saved search with connected reload/results and scheduling disabled. Broader filter-sidebar criteria and an independent saved-search scheduler remain incomplete; issue #192 remains OPEN/PARTIAL; hosted/PostgreSQL NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-192",
