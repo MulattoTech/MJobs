@@ -16,8 +16,9 @@ _UNEXPECTED_SENSITIVE_QUESTION = re.compile(
     r"\b(race|ethnic\w*|gender|sex|sexual orientation|disabilit\w*|veteran\w*|relig\w*|"
     r"date of birth|birth date|social security(?: number)?|ssn|national id|national origin|"
     r"age|marital|citizenship|citizen|authoriz\w*|work authorization|"
-    r"eligible to work|work eligibility|right to work|visa|sponsorship|criminal|convict\w*|"
-    r"felon\w*|background check|legally authorized|salary expectation\w*|salary range|"
+    r"eligible to work|work eligibility|right to work|permi(?:tted|ssion) to work|allow\w* to work|"
+    r"visa|sponsorship|criminal|convict\w*|felon\w*|background (?:check|screen\w*)|"
+    r"legally authorized|salary expectation\w*|salary range|"
     r"desired compensation|compensation expectation\w*|non[ -]?compete|conflict\w* of interest|"
     r"minimum age|attest\w*|certif\w* under penalty)\b", re.IGNORECASE)
 _PROFILE_PATHS = {"name", "email"}

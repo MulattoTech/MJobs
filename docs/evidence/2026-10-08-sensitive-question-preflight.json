@@ -1,13 +1,14 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-08T09:43:17Z",
+  "recorded_at_utc": "2026-10-08T09:48:14Z",
   "requirement_id": "MJ-REQ-135",
   "issue": 136,
   "scope": "Bounded fail-closed validation for required structured ATS questions recognized as sensitive or legal.",
   "result": "PASS",
   "requirement_status": "PARTIAL",
   "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
-  "base_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "base_commit": "760271a9a1205858cda2e99980e37783f49dedc6",
+  "tested_parent_commit": "0d6c3890b4be6cd7b299f208279dd12659a0b90e",
   "test_environment": {
     "os": "Windows",
     "python": "repository .venv Python 3.12",
@@ -15,15 +16,24 @@
     "ats": "local synthetic mock fixture"
   },
   "source_inputs_sha256": {
-    "services/applications/preflight.py": "2FB9F26584FE6C3D2FC08AFCFA4D4E60FEA64E12C89A3E691A73284E566D2854",
-    "tests/integration/test_application_preflight.py": "EBDE77C6A183B0DEFA88CDEEE07FAC5CACDF46A1D31CE2DA12366F0D139443BE",
+    "services/applications/preflight.py": "5EB3D42BD20943E672B88E952F5A95837EEF88AFB25B8E7AE0BEEADA248B7CB4",
+    "tests/integration/test_application_preflight.py": "D8E869A9F2089CC9B880E90AD9881E0104BAB14A05FD7D80A5FF9C4132CF5417",
     "tests/browser/test_mock_application.py": "103F7F2D4BEE90124FC939171E61CB5770BA1DCF264FD4400E53A15503B74890"
+  },
+  "test_first": {
+    "red_command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight.ApplicationPreflightTests.test_legal_work_and_background_screening_paraphrases_fail_closed -v",
+    "red_result": "Expected failure: all three paraphrases fell through to PASS before the classifier update: legal permission to work, permitted to work, and background screening."
   },
   "validations": [
     {
       "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight tests.browser.test_mock_application tests.integration.test_application_answer_export tests.browser.test_application_review_queue -v",
       "result": "PASS",
-      "summary": "47 tests run; 46 passed; 1 skipped because the browser review-queue test requires an apps/web build."
+      "summary": "48 tests run; 47 passed; 1 skipped because the browser review-queue test requires an apps/web build."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preflight.ApplicationPreflightTests.test_legal_work_and_background_screening_paraphrases_fail_closed tests.integration.test_application_preflight.ApplicationPreflightTests.test_required_sensitive_question_is_unknown_even_with_valid_mapping_and_no_answer_values tests.integration.test_application_preflight.ApplicationPreflightTests.test_sensitive_identity_questions_are_classified_without_answer_evaluation tests.integration.test_application_preflight.ApplicationPreflightTests.test_missing_optional_answer_does_not_fail_required_question_preflight tests.browser.test_mock_application.MockApplicationTests.test_sensitive_required_question_persists_review_and_stops_before_browser -v",
+      "result": "PASS",
+      "summary": "5 focused acceptance/control tests passed."
     },
     {
       "command": ".venv\\Scripts\\python.exe -m py_compile services/applications/preflight.py tests/integration/test_application_preflight.py tests/browser/test_mock_application.py",
@@ -39,7 +49,7 @@
     }
   ],
   "acceptance_observations": {
-    "sensitive_required_question": "Persisted UNKNOWN with stable reason UNEXPECTED_SENSITIVE_REQUIRED_QUESTION even when answer mapping is valid.",
+    "sensitive_required_question": "Persisted UNKNOWN with stable reason UNEXPECTED_SENSITIVE_REQUIRED_QUESTION even when answer mapping is valid. Deterministic wording checks now include legal permission/permitted to work and background screening phrasing.",
     "candidate_answer_values": "Absent from preflight result and audit event; tests use synthetic sentinel text.",
     "application_lifecycle": "MOCK apply transitions to REVIEW_REQUIRED and exposes the question and reason in application detail.",
     "browser_and_attempts": "Playwright launch was not called; zero application attempts were created; mock receipt remained not_found.",

@@ -175,6 +175,24 @@ class ApplicationPreflightTests(unittest.TestCase):
                 self.assertEqual(result["result"], "UNKNOWN")
                 self.assertEqual(result["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
 
+    def test_legal_work_and_background_screening_paraphrases_fail_closed(self):
+        route = {"provider": "mock-ats", "tenant": "example", "requisition": "B"}
+        for question_id, label in (
+            ("legal-permission", "Do you have legal permission to work in the United States?"),
+            ("permitted-work", "Are you permitted to work in the United States?"),
+            ("background-screen", "Have you undergone a background screening?"),
+        ):
+            with self.subTest(label=label):
+                questionnaire = {
+                    "provider": "mock-ats", "tenant": "example", "requisition": "B", "revision": 1,
+                    "questions": [{"id": question_id, "label": label, "required": True,
+                                   "requirements": {"answer_ids": ["country"]}}],
+                }
+                result = build_preflight_result(PROFILE, route, questionnaire,
+                                                {"resume", "cover-letter"})
+                self.assertEqual(result["result"], "UNKNOWN")
+                self.assertEqual(result["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+
     def test_preflight_is_persisted_and_readable_without_answer_values(self):
         with fixture_server() as origin:
             discover(self.store, origin, "fixture")
