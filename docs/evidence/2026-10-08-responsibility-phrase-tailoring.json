@@ -6,15 +6,15 @@
   "result": "PARTIAL",
   "recorded_at_utc": "2026-10-08T09:18:22Z",
   "branch": "codex/mj-req095-responsibility-phrases-20261008",
-  "base_commit": "41f5fb7eb8b6d802a1f9e8c84365a0d526d448a9",
-  "implementation_commit": "68a5748235c6a2565284ff4fb8ed6768d0fe4041",
-  "implementation_tree": "5c710d652dff63e02b92fc0e2a681e06cc8c75ca",
+  "base_commit": "a1de18b8ab9538f0441c8f4ac95aff480f9916ea",
+  "implementation_commit": "63576cb2a81eee5a9a6252ea1d449947f1962747",
+  "implementation_tree": "007f31c714bb3d4b4d455bb225cfd74855a56c48",
   "input_sha256": {
     "services/documents/tailor.py": "6fe6c3b8243aef6b0496c535857f02c09143ec37393b6dfe298a444ca9ab2ccf",
     "services/documents/comparison.py": "d82bdc9603d7144eeacc1ee9583a22add9be47c762c9f18f5abdc87d3c1fd313",
     "services/documents/history.py": "5af2fc8dcbb374ee1121cb41870c4ac7cfb2a92585774fcff22acdb760dc9244",
-    "apps/web/src/document-history.tsx": "35d815755fed8536ee505c1f8e2d02bc054f985e50d81e8ce060320a3a9e436d",
-    "apps/web/src/document-history.test.tsx": "ee2054176b25b93755dbd0f7f22350dc81a19c0c2d559b4553fce8555868e27f",
+    "apps/web/src/document-history.tsx": "48baa129828d7f96df8d6bb28b62a6cb75ed686621a53b7c6b4ce4791429b6a4",
+    "apps/web/src/document-history.test.tsx": "5750fe3410fe3eef0fb5a574671bf441b143b01cd6646ebe594a6d5f41d6e384",
     "tests/integration/test_responsibility_tailoring.py": "5d775b19382baec9830bfd7d886c876df8e9004b2b587ad7347bf0059dae451d",
     "tests/browser/test_responsibility_tailoring.py": "75f067635d88de3cf2a1d19591044c9bc87ecc45920b340ff0f38b80ca867b16"
   },
@@ -60,5 +60,46 @@
     "Hosted CI and external review remain NOT_RUN_BY_USER_POLICY.",
     "This is a bounded tailoring slice; issue #96 remains OPEN/PARTIAL and has not been promoted to requirement PASS."
   ],
-  "external_submission": "OFF"
+  "external_submission": "OFF",
+  "root_verification": {
+    "verified_at_utc": "2026-10-08T09:21:30.069748Z",
+    "tested_commit": "ffe9fad9b9efb47479e000ebf087262bf5eaadb5",
+    "tested_tree": "ae0cd0d4f81936d52862957de6fe361a515dfb44",
+    "base_commit": "a1de18b8ab9538f0441c8f4ac95aff480f9916ea",
+    "rebase_note": "Rebased onto current local main after the original worker evidence commit; root reran exact-head checks on this candidate.",
+    "checks": [
+      {
+        "command": "python -m unittest tests.unit.test_resume_comparison tests.integration.test_resume_comparison tests.integration.test_responsibility_tailoring tests.browser.test_responsibility_tailoring -q",
+        "result": "PASS",
+        "tests": 21,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "command": "npm test -- --run src/document-history.test.tsx",
+        "result": "PASS",
+        "tests": 10,
+        "failures": 0
+      },
+      {
+        "command": "npm run build",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m py_compile <changed Python modules and tests>",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN"
+  }
 }
