@@ -8,7 +8,7 @@ async function render(rows: unknown[]) {
   const { CompanySources } = await modules['./company-sources.tsx']();
   return renderToStaticMarkup(<CompanySources rows={rows} busy={false} profileSelected={true} onSet={async()=>{}} />);
 }
-const source = {id:'source-1', company_id:'acme', company_name:'Acme', official_domain:null,
+const source = {id:'source-1', company_id:'acme', profile_id:'fixture', profile_company_associated:true, company_name:'Acme', official_domain:null,
   career_url:'https://careers.example/jobs', provider:'rss', tenant:'acme', collection_strategy:'RSS',
   confidence:0.45, priority:'NORMAL', enabled:true, origin:'AUTO_DISCOVERED', discovered_automatically:true,
   status:'COMPANY_SOURCE_REVIEW_REQUIRED', jobs_found:2, relevant_jobs:1, last_checked:null, next_check:null,
@@ -20,6 +20,7 @@ describe('Companies/Sources view', () => {
     for (const label of ['Company','Official Domain','Careers URL','ATS','Source Type','Confidence','Priority',
       'Status','Jobs Found','Relevant Jobs','Last Checked','Next Check','Not scheduled','Not verified',
       'Pin','Disable','Watch','View Evidence','Run Now','Rediscover','Verify','Edit','unavailable']) expect(html).toContain(label);
+    expect(html).toContain('Company notes');
     expect(html).toContain('COMPANY_SOURCE_REVIEW_REQUIRED');
     expect(html).toContain('45%');
     expect(html).toContain('data-source-id="source-1"');

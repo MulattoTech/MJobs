@@ -362,6 +362,20 @@ class JobNoteInput(BaseModel):
         return self
 
 
+class CompanyNoteInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    text: str = Field(min_length=1, max_length=4000)
+    request_id: str = Field(min_length=1, max_length=64)
+
+    @model_validator(mode="after")
+    def bounded_note_and_request_id(self):
+        if not self.text.strip():
+            raise ValueError("Company note must contain 1 to 4000 characters")
+        if self.request_id != self.request_id.strip():
+            raise ValueError("Tracking request identifier cannot have surrounding whitespace")
+        return self
+
+
 class ApplicationPipelineStatusInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     status: Literal["SAVED", "READY", "APPLIED", "RECRUITER_CONTACT", "INTERVIEW",
@@ -1276,6 +1290,25 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def job_note_create(profile_id: str, job_id: str, value: JobNoteInput):
         from services.tracking.jobs import add_job_note
         return add_job_note(store, profile_id, job_id, value.text, value.request_id)
+
+    @app.get("/profiles/{profile_id}/companies/{company_id}/tracking")
+    def company_tracking_read(profile_id: str, company_id: str):
+        from services.tracking.companies import read_company_tracking
+        try:
+            return read_company_tracking(store, profile_id, company_id)
+        except LookupError as error:
+            raise HTTPException(404, str(error)) from None
+
+    @app.post("/profiles/{profile_id}/companies/{company_id}/tracking/notes", status_code=201)
+    def company_note_create(profile_id: str, company_id: str, value: CompanyNoteInput):
+        from services.tracking.companies import add_company_note
+        try:
+            return add_company_note(store, profile_id, company_id, value.text, value.request_id)
+        except LookupError as error:
+            raise HTTPException(404, str(error)) from None
+        except ValueError as error:
+            status = 409 if "already used for different content" in str(error) else 422
+            raise HTTPException(status, str(error)) from None
 
     @app.get("/duplicate-reviews")
     def duplicate_reviews(state: str | None = Query(default=None, max_length=64)):

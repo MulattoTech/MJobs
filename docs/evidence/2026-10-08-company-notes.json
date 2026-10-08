@@ -1,0 +1,79 @@
+{
+  "requirement_id": "MJ-REQ-239",
+  "issue": 240,
+  "scope": "profile-scoped company notes through CompanySources UI and API",
+  "result": "PASS",
+  "recorded_at_utc": "2026-10-08T05:08:08Z",
+  "base_commit": "f5800086b5cf8d4a92876a94d6fee2ad63f5d89d",
+  "candidate_commit": null,
+  "worktree": ".worktrees/codex-mj-req239-company-notes-20261008",
+  "branch": "codex/mj-req239-company-notes-20261008",
+  "source_manifest_sha256": "654258874014143970d256316515944273182bee26cc3385e3edde331d1ebe65",
+  "source_git_blob_hashes": {
+    "apps/api/main.py": "8058e3dab8003555c8e985d76c3e8693c68d92b1",
+    "apps/web/src/company-sources.tsx": "637e08e65646b68be3164ab9d77d23402f8b7b2d",
+    "apps/web/src/company-sources.test.tsx": "9897527e9860dbad90f7b1cf95a42d251b7d1ee4",
+    "services/company_discovery/sources.py": "231d2d565a387f1594416886653ba08a5c590554",
+    "services/tracking/companies.py": "74b30746712af8e4bec76ffea194ef93b34c13a8",
+    "tests/integration/test_company_tracking.py": "a2eee3494ea3aabd0c9f953c87c9e2a460f20aed",
+    "tests/browser/test_company_tracking.py": "8549f3f322a6a7e88f9fb627b476bfb963b23a6d"
+  },
+  "environment": {
+    "platform": "Windows",
+    "database": "isolated SQLite fixtures",
+    "browser": "local Playwright Chromium",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_requests": 0,
+    "application_submission": "OFF"
+  },
+  "validations": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_tracking tests.integration.test_company_source_view",
+      "result": "PASS",
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run src/company-sources.test.tsx",
+      "result": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "typescript": "PASS",
+      "vite": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_tracking",
+      "result": "PASS",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "acceptance_observed": [
+    "profile-associated read/write and cross-profile isolation",
+    "wrong-profile and unassociated-company requests return 404",
+    "blank and oversized notes rejected",
+    "identical request replay is idempotent; conflicting replay returns 409",
+    "eight concurrent distinct writes receive unique ordered sequence numbers",
+    "browser note creation reads back after page reload",
+    "switching profiles clears drafts and isolates note history",
+    "delayed old-profile response does not appear in the selected profile",
+    "CompanySources row listing semantics preserved; profile association is explicit"
+  ],
+  "migration": "NOT_REQUIRED; existing append-only audit_events store is used",
+  "limitations": [
+    "PostgreSQL concurrency was not run in this isolated SQLite validation.",
+    "Hosted checks were not run by local-only policy.",
+    "Working tree is uncommitted; candidate commit and remote head are not applicable."
+  ]
+}

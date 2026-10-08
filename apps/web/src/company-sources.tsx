@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { api } from './api';
 import { discoveryActivity } from './company-activity';
 import { SourceLinkEvidence, type LinkVerification } from './source-link-evidence';
 import { CompanySourceMonitoring, type Monitoring } from './company-source-monitoring';
@@ -7,6 +8,8 @@ import { SourceQuality, type SourceQualityValue } from './source-quality';
 export type CompanySourceView = {
   id: string;
   company_id: string;
+  profile_id?: string | null;
+  profile_company_associated?: boolean;
   company_name: string;
   official_domain: string | null;
   career_url: string | null;
@@ -36,6 +39,8 @@ export type CompanySourceView = {
     source_linked_history_available: boolean;
   };
 };
+type CompanyNote = {id: string; text: string; sequence: number; timestamp: string};
+type CompanyTracking = {notes: CompanyNote[]; history: {type: 'note'; id: string; text: string; sequence: number; timestamp: string}[]};
 export type SourceControl = 'pin' | 'enabled' | 'watch';
 type Props = {
   rows: CompanySourceView[];
@@ -60,6 +65,64 @@ function timestamp(value: string | null): string {
   return Number.isNaN(parsed.getTime()) ? 'Unknown' : parsed.toLocaleString();
 }
 
+function CompanyNotes({row}: {row: CompanySourceView}) {
+  const [notes, setNotes] = useState<CompanyNote[]>([]);
+  const [draft, setDraft] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const requestId = useRef<string | null>(null);
+  const path = `/profiles/${encodeURIComponent(row.profile_id || '')}/companies/${encodeURIComponent(row.company_id)}/tracking`;
+
+  useEffect(() => {
+    let current = true;
+    setNotes([]);
+    setDraft('');
+    setError('');
+    setLoading(true);
+    requestId.current = null;
+    void api<CompanyTracking>(path).then(value => {
+      if (current) setNotes(value.notes);
+    }).catch(reason => {
+      if (current) setError(reason instanceof Error ? reason.message : 'Company notes could not be loaded.');
+    }).finally(() => { if (current) setLoading(false); });
+    return () => { current = false; };
+  }, [path]);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    const text = draft.trim();
+    if (!row.profile_id || !text || text.length > 4000 || saving) return;
+    requestId.current ||= crypto.randomUUID();
+    setSaving(true);
+    setError('');
+    try {
+      const value = await api<CompanyTracking>(path + '/notes', {method: 'POST', body: JSON.stringify({
+        text, request_id: requestId.current,
+      })});
+      setNotes(value.notes);
+      setDraft('');
+      requestId.current = null;
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : 'Company note could not be saved.');
+    } finally { setSaving(false); }
+  }
+
+  return <section className="company-notes" aria-label={`Notes for ${row.company_name}`}>
+    <h4>Company notes</h4>
+    {loading ? <p role="status">Loading company notes…</p> : notes.length === 0
+      ? <p className="muted">No notes saved for this profile and company.</p>
+      : <ol>{notes.map(note => <li key={note.id}><p>{note.text}</p>
+          <small>Note {note.sequence} · {timestamp(note.timestamp)}</small></li>)}</ol>}
+    <form onSubmit={event => void submit(event)}>
+      <label>Add a private note<textarea aria-label={`Add a note for ${row.company_name}`} maxLength={4000}
+        value={draft} onChange={event => setDraft(event.target.value)} disabled={saving || loading}/></label>
+      <button type="submit" disabled={saving || loading || !draft.trim()}>Save note</button>
+    </form>
+    {error && <p role="alert">{error}</p>}
+  </section>;
+}
+
 export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, onRun}: Props) {
   return <section className="panel company-sources" aria-labelledby="company-sources-heading">
     <div className="toolbar">
@@ -80,7 +143,7 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
       const activity = discoveryActivity(row.provenance.events);
       const confidence = row.confidence !== null && Number.isFinite(row.confidence)
         ? `${Math.round(row.confidence * 100)}%` : 'Unknown';
-      return <article className="company-source-card" key={row.id} data-source-id={row.id} aria-label={`${row.company_name} source`}>
+      return <article className="company-source-card" key={`${row.profile_id || ''}:${row.company_id}:${row.id}`} data-source-id={row.id} aria-label={`${row.company_name} source`}>
         <h3>{row.company_name}</h3>
         <dl className="company-source-facts">
           <div><dt>Company</dt><dd>{row.company_name}</dd></div>
@@ -120,6 +183,9 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
               <small>{event.timestamp ? <time dateTime={event.timestamp}>{timestamp(event.timestamp)}</time> : 'Time not recorded'}</small>
             </li>)}</ol>}
         </section>
+        {row.profile_id && row.profile_company_associated !== false
+          ? <CompanyNotes key={`${row.profile_id}:${row.company_id}`} row={row} />
+          : row.profile_id && <p className="muted">Company notes are available after this company is associated with the selected profile.</p>}
         <details className="company-source-evidence">
           <summary>View Evidence</summary>
           {!row.provenance.source_linked_history_available && <p>No source-linked discovery history is available for this record. Historical evidence has not been inferred.</p>}

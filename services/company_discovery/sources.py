@@ -368,9 +368,16 @@ def list_company_source_view(store, profile_id=None):
     from services.company_discovery.quality import company_source_quality
     profile = store.profile(profile_id) if profile_id is not None else None
     with store.engine.connect() as c:
-        rows = list(c.execute(select(m.company_sources, m.companies.c.name.label("company_name"))
+        profile_company_ids = None
+        if profile_id is not None:
+            profile_company_ids = set(c.execute(select(
+                m.audit.c.payload["company_id"].as_string()).where(
+                    m.audit.c.entity_id == profile_id,
+                    m.audit.c.action.in_(("COMPANY_DISCOVERED", "COMPANY_SOURCE_ENROLLED")),
+                )).scalars())
+        rows_query = select(m.company_sources, m.companies.c.name.label("company_name")) \
             .join(m.companies, m.company_sources.c.company_id == m.companies.c.id)
-            .order_by(m.companies.c.name, m.company_sources.c.id)).mappings())
+        rows = list(c.execute(rows_query.order_by(m.companies.c.name, m.company_sources.c.id)).mappings())
         if not rows:
             return []
         ids = [row["id"] for row in rows]
@@ -432,6 +439,8 @@ def list_company_source_view(store, profile_id=None):
         review = not valid_confidence or confidence < 0.75
         result.append({
             "id": row["id"], "company_id": row["company_id"], "company_name": row["company_name"],
+            "profile_id": profile_id,
+            "profile_company_associated": profile_company_ids is None or row["company_id"] in profile_company_ids,
             "official_domain": domain["domain"] if domain else None,
             "career_url": _view_url(row["career_url"]), "provider": row["provider"], "tenant": row["tenant"],
             "collection_strategy": row["collection_strategy"], "confidence": confidence if valid_confidence else None,
