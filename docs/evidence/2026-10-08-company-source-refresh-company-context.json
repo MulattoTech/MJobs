@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T07:31:28Z",
+  "issue": 178,
+  "requirement_id": "MJ-REQ-177",
+  "result": "PARTIAL",
+  "scoped_acceptance": "PASS",
+  "base_commit": "7ea461ab02cbdfd314e9be07970b96765fba4e6f",
+  "tested_candidate_commit": "634190c8acc7574ee0bdc225599082ac7db5c28d",
+  "tested_candidate_tree": "20a8718ee118d3fa2303e5c832a91483cd40485e",
+  "tested_source_sha256": {
+    "workers/tasks.py": "2a3c94ac126d30b86a34c8370ec2404ebd639f6e26a38df9f144c86bff75df9d",
+    "workers/structured_logging.py": "fd2d5a3f3470d50e5ade48796c0ddd6b13358b927094ac5043f159bba76f2e5d",
+    "tests/unit/test_structured_logging.py": "f12db1e9dd69b1e5d5ead868c2e1f8f95999f4380f998e0096dd07ac5d3b4636",
+    "tests/integration/test_worker_lifecycle.py": "32bad89cb88bda5c98767294bb6163b5968888fc86b7591ceaca634ac8da0876"
+  },
+  "acceptance_oracle": "For COMPANY_SOURCE_REFRESH terminal records, resolve company_id only by reading company_job_sources.company_id from the persisted source row selected by the operation entity_id, after terminal-state persistence. Emit the value only after the existing opaque-identifier validation and secret-shaped-value rejection. Missing, malformed, secret-shaped, or unavailable context is omitted without changing the durable result. No operation params, company name, URL, tenant, provider, or exception diagnostics are logged.",
+  "implementation": [
+    "After the terminal operation transaction commits, the worker best-effort reads only company_job_sources.company_id for COMPANY_SOURCE_REFRESH.",
+    "Lookup errors are suppressed as optional logging-enrichment failures; the persisted operation outcome is unchanged.",
+    "The logger accepts the enriched company_id only for COMPANY_SOURCE_REFRESH and omits malformed, missing, or secret-shaped identifiers.",
+    "Unit tests cover kind gating, missing/malformed/secret-shaped values, and exclusion of company/source private fields. Worker lifecycle tests verify persisted FK provenance, terminal persistence before logging, and lookup-failure isolation."
+  ],
+  "test_first": {
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_structured_logging.StructuredOperationLoggingTests.test_company_source_refresh_logs_only_validated_company_id_context tests.unit.test_structured_logging.StructuredOperationLoggingTests.test_company_id_context_is_refresh_only_and_rejects_malformed_or_secret_shaped_ids tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_company_source_refresh_logs_persisted_company_fk_after_terminal_persistence tests.integration.test_worker_lifecycle.WorkerLifecycleTests.test_company_source_refresh_context_lookup_failure_preserves_result_and_omits_diagnostics -v",
+    "result": "EXPECTED_FAILURE_BEFORE_IMPLEMENTATION",
+    "observed": "The valid COMPANY_SOURCE_REFRESH company_id was absent and the worker did not invoke a source-company resolver."
+  },
+  "validation": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_structured_logging tests.integration.test_worker_lifecycle -v",
+      "result": "PASS",
+      "counts": {
+        "ran": 33,
+        "passed": 32,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 1
+      },
+      "skip_detail": "PostgreSQLWorkerCrashRecoveryTests skipped because MJOBS_WORKER_RECOVERY_POSTGRES_URL is unset."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m compileall -q workers/tasks.py workers/structured_logging.py tests/unit/test_structured_logging.py tests/integration/test_worker_lifecycle.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows 11",
+    "python": "CPython 3.12.10",
+    "database": "Temporary SQLite databases; worker refresh network function stubbed in lifecycle tests",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "This adds company_id context only for durable COMPANY_SOURCE_REFRESH operations; MJ-REQ-177 remains OPEN/PARTIAL.",
+    "Live Redis/RQ worker, PostgreSQL runtime, public feed/network path, full Python suite, and hosted checks were NOT_RUN."
+  ]
+}
