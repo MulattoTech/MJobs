@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-189",
+  "issue": 190,
+  "scope": "Title and company substring filters only",
+  "scope_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "base_commit": "13426c6d5f9630133dfdf8184c84005cc01436b9",
+  "verified_source_head": "ce0e6ce3ba81345e7191e93d7c4bb97da342d86b",
+  "verified_source_tree": "39fb840acd24e607a7a455391c5bb8279fd41a7e",
+  "verified_at_utc": "2026-10-08T09:32:15Z",
+  "environment": {
+    "python": "Repository virtual environment at C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+    "node": "v25.9.0",
+    "npm": "11.12.1",
+    "database": "Isolated SQLite fixture databases",
+    "browser": "Local Chromium through Playwright",
+    "frontend_dependencies": "Existing main-checkout node_modules linked into this worktree for local validation"
+  },
+  "source_sha256": {
+    "apps/api/main.py": "8F7C914E9B2CC60EE733E7DBEAD122A20DD6EFB59B422D30897BE17EA7E052B7",
+    "apps/web/src/main.tsx": "D07039A311F45A827EABB0A3C93B4A0AC390CA08517BDB483D8B4A958780EB0F",
+    "packages/persistence/store.py": "57450AE6AF21EB848028CF26263058F4227F4CD125E9A1BCE70D562E1162D71B",
+    "services/discovery/search_profiles.py": "4B03A5B814EEFEF4537AE13B4B2AEF76033C5E03FC3AC35AE334BBCEFBFC8A04",
+    "tests/integration/test_saved_search_filters.py": "5B50A6B03BBB7D900192BF911D73DFAC77E06616D3ED5BFE4EBFF72618A61296",
+    "tests/browser/test_saved_search_filters.py": "36CDAB6FC35E20F8A444FD37210171BCF1C7664C16AE8E5596C13FB68CB612A1"
+  },
+  "checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters tests.integration.test_job_full_text_search",
+      "result": "PASS",
+      "summary": "4 tests passed; includes literal wildcard handling, case-insensitive matching, AND combination, pre-limit filtering, saved-filter round trip, and existing q search compatibility."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_saved_search_filters tests.browser.test_search_profile_selection",
+      "result": "PASS",
+      "summary": "2 connected browser tests passed; saved title/company values restored after reload, cleared on reset, isolated by profile, no off-origin requests observed, and no discovery scheduling occurred."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "summary": "16 test files and 96 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "git diff --check origin/main..HEAD",
+      "result": "PASS",
+      "summary": "No whitespace errors."
+    }
+  ],
+  "safety_and_limits": {
+    "external_application_submission": "OFF; none attempted",
+    "discovery_scheduling": "No new schedule created; saved Jobs search remains disabled for provider scheduling",
+    "database_migration": "None",
+    "postgresql_validation": "NOT_RUN",
+    "hosted_ci_and_reviews": "NOT_RUN by local-only policy",
+    "remaining_requirement": "Other MJ-REQ-189 filters such as salary, experience, skills, education, clearance, application state, and capability are outside this slice."
+  }
+}
