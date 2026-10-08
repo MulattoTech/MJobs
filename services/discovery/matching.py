@@ -1,10 +1,13 @@
 """Recalculate deterministic matches against stored jobs without provider requests."""
+import re
+
 from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, upsert
 from services.company_discovery.requests import record_discovery_requests
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
+from services.discovery.requirement_parsers import CERTIFICATION_PATTERNS, parse_certifications
 from services.discovery.search_semantics import normalize_title
 from services.audit_history import record_job_discovered, record_match_scored
 
@@ -30,6 +33,85 @@ def _strings(values):
 def _title_key(value):
     normalized = normalize_title(value)
     return normalized["title_family"] or normalized["normalized_title"].casefold()
+
+
+def _certification_fact_is_explicitly_negative(clause, mention):
+    folded = str(clause or "").casefold()
+    negative = bool(re.search(
+        r"\b(?:do\s+not|don't|does\s+not|doesn't|did\s+not|didn't|have\s+not|haven't|has\s+not|hasn't)"
+        r"\s+(?:currently\s+)?(?:hold|have|possess|earned?|obtained?)\b|"
+        r"\b(?:am|is|are|was|were)\s+not\s+(?:currently\s+)?certified\b|"
+        r"\bnot\s+a\s+holder\s+of\b|"
+        r"\b(?:expired|lapsed|inactive|revoked)\b",
+        folded,
+    ))
+    no_named_certification = bool(re.search(
+        r"\bno\s+(?:(?:valid|current|active)\s+)?" + re.escape(str(mention or "").casefold()) + r"\b",
+        folded,
+    ))
+    return negative or no_named_certification
+
+
+def _certification_fit_factors(job, profile):
+    """Compare locally parsed job certifications with approved certification facts."""
+    attributes = job.get("attributes") or {}
+    rows = attributes.get("certifications")
+    if not isinstance(rows, list) or not rows:
+        return []
+
+    eligible_certification_ids = set()
+    for fact in profile.get("facts", []):
+        if not isinstance(fact, dict) or fact.get("kind") != "certification":
+            continue
+        confidence = fact.get("confidence")
+        if (fact.get("verified") is not True or fact.get("user_approved") is not True
+                or type(confidence) not in (int, float) or confidence < 80
+                or not isinstance(fact.get("source"), str) or not fact["source"].strip()
+                or not isinstance(fact.get("text"), str) or not fact["text"].strip()):
+            continue
+        for mention in parse_certifications(fact["text"]):
+            if not _certification_fact_is_explicitly_negative(
+                    mention.get("clause"), mention.get("raw")):
+                eligible_certification_ids.add(mention["id"])
+
+    names_by_id = {identifier: name for identifier, name, _ in CERTIFICATION_PATTERNS}
+    factors_by_id = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        identifier = row.get("id")
+        if identifier not in names_by_id:
+            continue
+        strength = row.get("strength")
+        if strength not in {"REQUIRED", "PREFERRED", "NICE_TO_HAVE", "UNKNOWN"}:
+            strength = "UNKNOWN"
+        name = str(row.get("name") or names_by_id[identifier]).strip()
+        if not name:
+            name = names_by_id[identifier]
+        prior = factors_by_id.get(identifier)
+        if prior is not None:
+            if prior["strength"] != strength:
+                prior["strength"] = "UNKNOWN"
+            continue
+        aligned = identifier in eligible_certification_ids
+        factors_by_id[identifier] = {
+            "id": f"certification:{identifier}",
+            "name": name,
+            "strength": strength,
+            "status": "ALIGNS" if aligned else "NO_DIRECT_MATCH",
+            "explanation": (
+                "An approved career fact contains the same locally parsed certification identity. "
+                "This is informational evidence and does not validate the credential with an issuer."
+                if aligned else
+                "No approved evidence for this certification is present in career facts; "
+                "this does not establish that the person lacks it."
+            ),
+            "score_effect": "NONE",
+        }
+    return [{
+        **factor,
+        "label": f"Certification: {factor['name']} ({factor['strength'].replace('_', ' ')})",
+    } for factor in factors_by_id.values()]
 
 
 def _fit_factors(job, profile):
@@ -89,6 +171,7 @@ def _fit_factors(job, profile):
         explanation = f"The known job employment type ({employment_type.lower().replace('_', ' ')}) is not among the configured preferences; no score penalty is applied."
     factors.append({"id": "employment_type", "label": "Employment type", "status": status,
                     "explanation": explanation, "score_effect": "NONE"})
+    factors.extend(_certification_fit_factors(job, profile))
     return factors
 
 

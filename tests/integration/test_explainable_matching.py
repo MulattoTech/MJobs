@@ -101,6 +101,130 @@ class ExplainableMatchingTests(unittest.TestCase):
             {"CCNA": "UNKNOWN", "COMPTIA_SECURITY_PLUS": "REQUIRED"},
         )
 
+    def test_certification_fit_factors_use_approved_canonical_facts_and_preserve_strength(self):
+        profile = copy.deepcopy(self.profile)
+        profile["facts"].extend([
+            {
+                "id": "approved-ccna", "kind": "certification", "text": "CCNA",
+                "source": "user-confirmed certification record", "confidence": 90,
+                "verified": True, "user_approved": True,
+            },
+            {
+                "id": "pending-security-plus", "kind": "certification",
+                "text": "CompTIA Security+", "source": "imported record", "confidence": 100,
+                "verified": False, "user_approved": False,
+            },
+            {
+                "id": "skill-az104", "kind": "skill", "text": "AZ-104",
+                "source": "user-confirmed skill fact", "confidence": 100,
+                "verified": True, "user_approved": True,
+            },
+            {
+                "id": "low-confidence-itil", "kind": "certification", "text": "ITIL",
+                "source": "user-confirmed certification record", "confidence": 79,
+                "verified": True, "user_approved": True,
+            },
+            {
+                "id": "negative-mcsa", "kind": "certification", "text": "I don't hold MCSA",
+                "source": "user-confirmed certification record", "confidence": 100,
+                "verified": True, "user_approved": True,
+            },
+        ])
+        self.store.save_profile(profile)
+        captured = capture_manual_job(self.store, {
+            "request_id": "certification-fit-factor-test", "title": "Systems Administrator",
+            "company": "Example Infrastructure",
+            "description": (
+                "CCNA is required. Security+ preferred. AZ-104 is not required. ITIL. MCSA is not required."
+            ),
+            "reference_url": "https://jobs.example.invalid/certifications/match",
+            "profile_id": "fixture",
+        })["job"]
+
+        recalculate(self.store, "fixture")
+        result = self.store.job(captured["id"], profile_id="fixture")["match"]
+        factors = {
+            row["id"]: row
+            for row in result["components"]["fit_factors"]
+            if row["id"].startswith("certification:")
+        }
+
+        self.assertEqual(result["score"], 0)
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in captured["attributes"]["certifications"]},
+            {"CCNA": "REQUIRED", "COMPTIA_SECURITY_PLUS": "PREFERRED",
+             "AZ_104": "UNKNOWN", "ITIL": "UNKNOWN", "MCSA": "UNKNOWN"},
+        )
+        self.assertEqual(factors["certification:CCNA"]["status"], "ALIGNS")
+        self.assertIn("approved", factors["certification:CCNA"]["explanation"].lower())
+        self.assertEqual(factors["certification:COMPTIA_SECURITY_PLUS"]["status"], "NO_DIRECT_MATCH")
+        self.assertEqual(factors["certification:AZ_104"]["status"], "NO_DIRECT_MATCH")
+        self.assertEqual(factors["certification:ITIL"]["status"], "NO_DIRECT_MATCH")
+        self.assertEqual(factors["certification:MCSA"]["status"], "NO_DIRECT_MATCH")
+        for certification_id, strength in (
+            ("CCNA", "REQUIRED"),
+            ("COMPTIA_SECURITY_PLUS", "PREFERRED"),
+            ("AZ_104", "UNKNOWN"),
+            ("ITIL", "UNKNOWN"),
+            ("MCSA", "UNKNOWN"),
+        ):
+            factor = factors[f"certification:{certification_id}"]
+            self.assertIn(strength, factor["label"])
+            self.assertEqual(factor["score_effect"], "NONE")
+        for certification_id in ("COMPTIA_SECURITY_PLUS", "AZ_104", "ITIL", "MCSA"):
+            self.assertIn("no approved evidence", factors[f"certification:{certification_id}"]["explanation"].lower())
+            self.assertIn("does not establish", factors[f"certification:{certification_id}"]["explanation"].lower())
+
+    def test_certification_factor_is_durably_rescored_after_approval_is_revoked(self):
+        profile = copy.deepcopy(self.profile)
+        profile["facts"].append({
+            "id": "rescore-ccna", "kind": "certification", "text": "Cisco Certified Network Associate (CCNA)",
+            "source": "user-confirmed certification record", "confidence": 100,
+            "verified": True, "user_approved": True,
+        })
+        self.store.save_profile(profile)
+        captured = capture_manual_job(self.store, {
+            "request_id": "certification-rescore-test", "title": "Systems Administrator",
+            "company": "Example Infrastructure", "description": "CCNA preferred.",
+            "reference_url": "https://jobs.example.invalid/certifications/rescore",
+            "profile_id": "fixture",
+        })["job"]
+
+        recalculate(self.store, "fixture")
+        before = self.store.job(captured["id"], profile_id="fixture")["match"]
+        before_factor = next(
+            row for row in before["components"]["fit_factors"]
+            if row["id"] == "certification:CCNA"
+        )
+        self.assertEqual(before_factor["status"], "ALIGNS")
+        self.assertEqual(before_factor["score_effect"], "NONE")
+
+        profile["facts"] = [
+            {**fact, "verified": False, "user_approved": False}
+            if fact["id"] == "rescore-ccna" else fact
+            for fact in profile["facts"]
+        ]
+        current_version = self.store.save_profile(profile)
+        recalculate(self.store, "fixture")
+
+        self.store.engine.dispose()
+        reopened = Store(self.store.url)
+        try:
+            after = reopened.job(captured["id"], profile_id="fixture")["match"]
+        finally:
+            reopened.engine.dispose()
+
+        after_factor = next(
+            row for row in after["components"]["fit_factors"]
+            if row["id"] == "certification:CCNA"
+        )
+        self.assertEqual(after["profile_version"], current_version)
+        self.assertEqual(after["score"], before["score"])
+        self.assertEqual(after_factor["status"], "NO_DIRECT_MATCH")
+        self.assertIn("no approved evidence", after_factor["explanation"].lower())
+        self.assertIn("does not establish", after_factor["explanation"].lower())
+        self.assertEqual(after_factor["score_effect"], "NONE")
+
     def test_manual_skill_strengths_survive_reopen_and_weight_explainable_match(self):
         description = (
             "Windows Server is required. Active Directory is preferred. "
