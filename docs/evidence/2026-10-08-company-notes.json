@@ -3,12 +3,12 @@
   "issue": 240,
   "scope": "profile-scoped company notes through CompanySources UI and API",
   "result": "PASS",
-  "recorded_at_utc": "2026-10-08T05:11:40Z",
+  "recorded_at_utc": "2026-10-08T05:16:10Z",
   "base_commit": "bba96c0cac3d81d579bf2819eb7b48e4e5392e86",
-  "candidate_commit": "c72e88a2abdcefa213c2b8f0686af6bd108490aa",
+  "candidate_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
   "worktree": ".worktrees/codex-mj-req239-company-notes-20261008",
   "branch": "codex/mj-req239-company-notes-20261008",
-  "source_manifest_sha256": "654258874014143970d256316515944273182bee26cc3385e3edde331d1ebe65",
+  "source_manifest_sha256": "e5d7a12c105cfe927bde0761faa0740133d39aebbd3999e9e18a99298486cd35",
   "source_git_blob_hashes": {
     "apps/api/main.py": "8058e3dab8003555c8e985d76c3e8693c68d92b1",
     "apps/web/src/company-sources.tsx": "637e08e65646b68be3164ab9d77d23402f8b7b2d",
@@ -16,7 +16,7 @@
     "services/company_discovery/sources.py": "231d2d565a387f1594416886653ba08a5c590554",
     "services/tracking/companies.py": "74b30746712af8e4bec76ffea194ef93b34c13a8",
     "tests/integration/test_company_tracking.py": "a2eee3494ea3aabd0c9f953c87c9e2a460f20aed",
-    "tests/browser/test_company_tracking.py": "8549f3f322a6a7e88f9fb627b476bfb963b23a6d"
+    "tests/browser/test_company_tracking.py": "2c05d34858d5aaaedc1994e8ec9d954b05a7db52"
   },
   "environment": {
     "platform": "Windows",
@@ -28,53 +28,43 @@
   },
   "validations": [
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_tracking tests.integration.test_company_source_view",
-      "result": "PASS",
-      "passed": 9,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "command": "npm --prefix apps/web test -- --run src/company-sources.test.tsx",
-      "result": "PASS",
-      "passed": 4,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "command": "npm --prefix apps/web run build",
-      "result": "PASS",
-      "typescript": "PASS",
-      "vite": "PASS"
-    },
-    {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_company_tracking",
-      "result": "PASS",
-      "passed": 1,
-      "failed": 0,
-      "skipped": 0
-    },
-    {
-      "command": "git diff --check",
-      "result": "PASS"
-    },
-    {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_tracking tests.integration.test_company_source_view tests.browser.test_company_tracking -v",
       "result": "PASS",
       "passed": 10,
       "failed": 0,
       "skipped": 0,
-      "source_commit": "c72e88a2abdcefa213c2b8f0686af6bd108490aa",
-      "rerun_at_utc": "2026-10-08T05:11:40Z"
+      "source_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
+      "source_tree": "bf1400d35701eedaf60bbc569881d622692cb3fb",
+      "rerun_at_utc": "2026-10-08T05:16:10Z"
     },
     {
-      "command": "npm --prefix apps/web test -- --run src/company-sources.test.tsx; npm --prefix apps/web run build",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_company_tracking tests.integration.test_company_source_view tests.browser.test_company_tracking tests.browser.test_manual_job_capture -v",
+      "result": "PASS",
+      "passed": 11,
+      "failed": 0,
+      "skipped": 0,
+      "source_tree": "bf1400d35701eedaf60bbc569881d622692cb3fb",
+      "rerun_at_utc": "2026-10-08T05:16:10Z"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run src/company-sources.test.tsx",
       "result": "PASS_EXECUTED_RUNTIME_UNSUPPORTED_FOR_VITEST",
-      "frontend_tests": 4,
-      "frontend_build": "PASS",
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
       "node": "v25.9.0",
-      "vitest_engine_range": "^22.12.0 || ^24.0.0 || >=26.0.0",
-      "limitation": "Vitest warns current Node version is outside its declared engine range; results are executed but not supported-runtime acceptance."
+      "vitest_engine_range": "^22.12.0 || ^24.0.0 || >=26.0.0"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "typescript": "PASS",
+      "vite": "PASS",
+      "node": "v25.9.0"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
     }
   ],
   "acceptance_observed": [
@@ -90,10 +80,11 @@
   ],
   "migration": "NOT_REQUIRED; existing append-only audit_events store is used",
   "limitations": [
-    "PostgreSQL concurrency was not run in this isolated SQLite validation.",
+    "PostgreSQL concurrency was not run; storage proof uses isolated SQLite.",
     "Hosted checks were not run by local-only policy.",
-    "Vitest 5.0.3 ran on Node 25.9.0, outside its declared engine range; its test result is recorded as executed, not supported-runtime acceptance."
+    "Vitest 5.0.3 tests executed on Node 25.9.0, outside its declared engine range; executed results are not supported-runtime acceptance."
   ],
-  "candidate_tree": "d425e3e528b391eacbf28aa0939830f1c4e90371",
-  "evidence_scope": "The candidate_commit identifies the tested code/test source checkpoint; this evidence metadata update is a descendant commit."
+  "candidate_tree": "bf1400d35701eedaf60bbc569881d622692cb3fb",
+  "evidence_scope": "candidate_commit identifies the tested source and test tree; the evidence metadata update is a descendant commit.",
+  "source_manifest_format": "SHA-256 of UTF-8 LF-joined, ordinal-path-sorted lines: <path><space><SHA-256 of file bytes>."
 }
