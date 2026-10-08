@@ -1,11 +1,19 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-08T07:05:57Z",
+  "recorded_at_utc": "2026-10-08T07:07:53Z",
   "issue": 178,
   "requirement_id": "MJ-REQ-177",
   "result": "PARTIAL",
   "scoped_acceptance": "PASS",
-  "base_commit": "908e5de2cfcbf1cfbd1ca10388e90a3cdf9bbef0",
+  "base_commit": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+  "tested_candidate_commit": "bb95130c45d927cc3cf671b4d698f5183dcb6bb1",
+  "tested_candidate_tree": "3632ab2dfe815d8c8bac93d999acf41710b9a9a9",
+  "rebase_validation": {
+    "previous_commit": "33d2617095de80f62bce3c3f88fccad0dd14dc3a",
+    "current_main": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+    "source_test_blobs_unchanged": true,
+    "hosted_automation_used": false
+  },
   "acceptance_oracle": "For APPLY_MOCK terminal records, emit the ATS provider only when resolved from the persisted application-to-route relationship and recognized by the existing ATS provider registry. Provider lookup is best effort after durable terminal-state persistence; missing, unknown, malformed, or unavailable context is omitted without changing the operation outcome. Never serialize operation params, application content, credentials, URLs, or exception diagnostics.",
   "implementation": [
     "Resolve application_routes.provider through the persisted applications.route_id relation after the worker terminal-state transaction commits.",
@@ -44,6 +52,12 @@
     "workers/structured_logging.py": "a9981795bb6809440e7073d0d599fda89bd27a7c219c5b9c36cd7ee4ff1ffa98",
     "tests/unit/test_structured_logging.py": "d0f6a8f48c627f7591d02f557c4357be22a0448d68757797fc6453c37cc69487",
     "tests/integration/test_worker_lifecycle.py": "60cee8cba9b61f878b30ea189ae2697b453baebfaebad69930fc81dd51a2cd70"
+  },
+  "tested_source_git_blobs": {
+    "workers/tasks.py": "b492db950cc37e41fd19d3a79c787b78de37939e",
+    "workers/structured_logging.py": "dc5a5b133e3874ff2e4a8e245fdd0e01aa176928",
+    "tests/unit/test_structured_logging.py": "cc4dd28ffad92ccd077db08358aeed68b99dee52",
+    "tests/integration/test_worker_lifecycle.py": "98793ef6b996d6930480bde15fc44431a93f6372"
   },
   "environment": {
     "os": "Windows 11",
