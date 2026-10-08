@@ -28,6 +28,18 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
                "application_capability": {"", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"},
                "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
+DEFAULT_SEARCH_SCHEDULER = {"enabled": False, "interval_seconds": 3600}
+
+
+def _clean_search_scheduler(value):
+    if not isinstance(value, dict) or set(value) != {"enabled", "interval_seconds"}:
+        raise ValueError("Saved search scheduler must include enabled and interval_seconds")
+    if type(value["enabled"]) is not bool:
+        raise ValueError("Saved search scheduler enabled must be boolean")
+    interval_seconds = value["interval_seconds"]
+    if type(interval_seconds) is not int or not 300 <= interval_seconds <= 604800:
+        raise ValueError("Saved search scheduler interval must be an integer from 300 to 604800 seconds")
+    return {"enabled": value["enabled"], "interval_seconds": interval_seconds}
 
 
 def _clean_job_filters(value):
@@ -217,7 +229,7 @@ def save_search_profile(store, data):
     elif date_start is not None or date_end is not None:
         raise ValueError("Custom date bounds require date_window=CUSTOM")
 
-    criteria = {
+    new_criteria = {
         "include_titles": _clean_strings(data.get("include_titles", [])),
         "exclude_titles": _clean_strings(data.get("exclude_titles", [])),
         "required_keywords": _clean_strings(data.get("required_keywords", [])),
@@ -256,8 +268,8 @@ def save_search_profile(store, data):
         "radius_longitude": _bounded_float(data.get("radius_longitude"), -180, 180, "Search longitude"),
     }
     if job_filters is not None:
-        criteria["job_filters"] = job_filters
-    radius_values = (criteria["radius_miles"], criteria["radius_latitude"], criteria["radius_longitude"])
+        new_criteria["job_filters"] = job_filters
+    radius_values = (new_criteria["radius_miles"], new_criteria["radius_latitude"], new_criteria["radius_longitude"])
     if any(value is not None for value in radius_values) and any(value is None for value in radius_values):
         raise ValueError("Radius filtering requires miles, latitude, and longitude together")
 
@@ -274,6 +286,29 @@ def save_search_profile(store, data):
             m.search_profiles.c.id == data["id"])).mappings().one_or_none()
         if existing and existing["profile_id"] != data["profile_id"]:
             raise ValueError("Search profile belongs to a different career profile")
+        if "scheduler" in data:
+            scheduler = _clean_search_scheduler(data["scheduler"])
+            if existing:
+                # Scheduler-only updates must not erase the saved search criteria.
+                # Full saves still update each criterion explicitly present in data.
+                criteria = dict(existing["criteria"])
+                for key in new_criteria:
+                    if key in data:
+                        criteria[key] = new_criteria[key]
+                if "job_filters" in data:
+                    if job_filters is None:
+                        criteria.pop("job_filters", None)
+                    else:
+                        criteria["job_filters"] = job_filters
+            else:
+                criteria = new_criteria
+        else:
+            scheduler = _clean_search_scheduler(
+                (existing["criteria"].get("scheduler") if existing else None)
+                or DEFAULT_SEARCH_SCHEDULER.copy()
+            )
+            criteria = new_criteria
+        criteria["scheduler"] = scheduler
         created_at = existing["created_at"] if existing else timestamp
         changed = existing is not None and any((
             existing["profile_id"] != data["profile_id"],
