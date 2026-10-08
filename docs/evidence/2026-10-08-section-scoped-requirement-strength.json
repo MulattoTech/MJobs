@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-08T13:37:24Z",
+  "timestamp": "2026-10-08T13:38:37Z",
   "result": "PARTIAL",
   "scope": "MJ-REQ-115 / issue #116 section-scoped skill qualification strength",
   "branch": "codex/mj-req115-section-scoped-strength-20261008",
@@ -21,7 +21,7 @@
     "red_command": ".venv/Scripts/python.exe -m unittest tests.unit.test_requirement_parsers.RequirementParserTests.test_qualification_section_headings_scope_unqualified_skill_bullets tests.unit.test_requirement_parsers.RequirementParserTests.test_qualification_heading_scope_stops_at_next_heading_and_unknown_heading tests.unit.test_requirement_parsers.RequirementParserTests.test_heading_inference_fails_closed_for_unlabelled_conflicting_and_inline_text",
     "red_result": "FAIL as expected before parser implementation: three new tests reported four assertion failures for missing section inference, an inline section-label phrase being treated as a cue, and missing boundary behavior.",
     "green_result": "All three new parser cases and the subsequent integration/browser assertions passed on verified_source_commit.",
-    "review_followup": "Addressed root LOCAL_DELEGATED_REVIEW findings: skill-containing title-case unknown headings now terminate inherited scope; recognized inline heading labels establish scope after the colon; skill bullets and conflicting/prose cases are covered."
+    "review_followup": "Root LOCAL_DELEGATED_REVIEW identified untested title-case unknown headings containing recognized skill text and inline recognized heading+skill. Red-first regressions reproduced both inheritance/UNKNOWN errors and a conflicting inline strength case. Corrected candidate fixes these while preserving one/two-word skill bullets, prose-reference UNKNOWN behavior, and section boundaries. Follow-up LOCAL_DELEGATED_REVIEW on exact corrected source found no material remaining findings; reviewer ran no tests."
   },
   "runtime": {
     "os": "Windows PowerShell",
@@ -36,34 +36,34 @@
       "tests": 50,
       "failures": 0,
       "skips": 0,
-      "result": "PASS"
+      "result": "PASS on exact corrected rebased source, independently rerun by root"
     },
     {
       "command": "npm test --prefix apps/web -- --run",
       "tests": 103,
       "failures": 0,
       "skips": 0,
-      "result": "PASS"
+      "result": "PASS, independently rerun by root"
     },
     {
       "command": "npm run build --prefix apps/web",
-      "result": "PASS"
+      "result": "PASS, independently rerun by root"
     },
     {
       "command": ".venv/Scripts/python.exe -m py_compile services/discovery/requirement_parsers.py services/discovery/manual_capture.py tests/unit/test_requirement_parsers.py tests/integration/test_explainable_matching.py tests/browser/test_manual_requirement_section_strength.py",
-      "result": "PASS"
+      "result": "PASS, independently rerun by root"
     },
     {
       "command": ".venv/Scripts/python.exe -m tools.verification.agent_skills",
-      "result": "PASS"
+      "result": "PASS, independently rerun by root"
     },
     {
       "command": ".venv/Scripts/python.exe -m tools.coordination.lane_coordination validate",
-      "result": "PASS"
+      "result": "PASS, independently rerun by root"
     },
     {
       "command": "git diff --check",
-      "result": "PASS"
+      "result": "PASS, independently rerun by root"
     }
   ],
   "source_sha256": {
