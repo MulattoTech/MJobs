@@ -26,6 +26,7 @@ const preview: BrowserJobExtractionResponse = {
   unknown_fields: ['description', 'date_posted', 'valid_through', 'source_job_id'],
   review_required: ['location', 'listing_url'],
 };
+const allAcknowledgements = ['title', 'company', 'location', 'listing_url', 'application_url'] as const;
 
 function props(overrides: Partial<BrowserJobExtractionConfirmationStepProps> = {}): BrowserJobExtractionConfirmationStepProps {
   return {
@@ -70,7 +71,7 @@ describe('browser job extraction confirmation step', () => {
   it('blocks confirmation while the extracted description is missing', () => {
     const onConfirm = vi.fn();
     const tree = BrowserJobExtractionConfirmationStep(props({
-      confirmedFields: ['location', 'listing_url'],
+      confirmedFields: [...allAcknowledgements],
       onConfirm,
     }));
 
@@ -84,7 +85,7 @@ describe('browser job extraction confirmation step', () => {
     const onConfirm = vi.fn();
     const tree = BrowserJobExtractionConfirmationStep(props({
       description: 'Maintain Linux systems and internal services.',
-      confirmedFields: ['location', 'listing_url'],
+      confirmedFields: [...allAcknowledgements],
       onConfirm,
     }));
 
@@ -101,7 +102,74 @@ describe('browser job extraction confirmation step', () => {
 
     expect(html).toContain('aria-label="Confirm low-confidence Location"');
     expect(html).toContain('aria-label="Confirm low-confidence Listing URL"');
+    expect(html).toContain('aria-label="Confirm extracted Title"');
+    expect(html).toContain('aria-label="Confirm extracted Company"');
+    expect(html).toContain('aria-label="Confirm extracted Application URL"');
     expect(controlProps(confirmButton(tree)).disabled).toBe(true);
+  });
+
+  it('requires explicit acknowledgements for title, company, provided routes, and low-confidence fields', () => {
+    const tree = BrowserJobExtractionConfirmationStep(props({
+      description: 'Manual description.',
+      confirmedFields: ['location', 'listing_url'],
+    }));
+    expect(controlProps(confirmButton(tree)).disabled).toBe(true);
+
+    const allReviewed = BrowserJobExtractionConfirmationStep(props({
+      description: 'Manual description.',
+      confirmedFields: [...allAcknowledgements],
+    }));
+    expect(controlProps(confirmButton(allReviewed)).disabled).toBe(false);
+  });
+
+  it.each([
+    ['title', 'Correction for Title', 'Corrected title'],
+    ['company', 'Correction for Company', 'Corrected employer'],
+    ['listing_url', 'Correction for Listing URL', 'https://jobs.example.test/new-listing'],
+    ['application_url', 'Correction for Application URL', 'https://jobs.example.test/new-application'],
+  ] as const)('resets the %s acknowledgement when a correction changes', (field, label, value) => {
+    const onReviewFieldChange = vi.fn();
+    const tree = BrowserJobExtractionConfirmationStep(props({
+      description: 'Manual description.',
+      confirmedFields: [...allAcknowledgements],
+      onReviewFieldChange,
+    }));
+    controlProps(fieldInput(tree, label)).onChange?.({ currentTarget: { value } });
+    expect(onReviewFieldChange).toHaveBeenCalledWith(field, false);
+
+    const afterEdit = BrowserJobExtractionConfirmationStep(props({
+      description: 'Manual description.',
+      corrections: { [field]: value },
+      confirmedFields: allAcknowledgements.filter(acknowledged => acknowledged !== field),
+    }));
+    expect(controlProps(confirmButton(afterEdit)).disabled).toBe(true);
+  });
+
+  it('requires acknowledgement when a route is added and omits acknowledgement for absent routes', () => {
+    const noRoutes: BrowserJobExtractionResponse = {
+      ...preview,
+      fields: {
+        ...preview.fields,
+        listing_url: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false },
+        application_url: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false },
+      },
+      unknown_fields: [...preview.unknown_fields, 'listing_url', 'application_url'],
+      review_required: ['location'],
+    };
+    const absent = BrowserJobExtractionConfirmationStep(props({
+      preview: noRoutes,
+      description: 'Manual description.',
+      confirmedFields: ['title', 'company', 'location'],
+    }));
+    expect(controlProps(confirmButton(absent)).disabled).toBe(false);
+
+    const added = BrowserJobExtractionConfirmationStep(props({
+      preview: noRoutes,
+      description: 'Manual description.',
+      corrections: { application_url: 'https://jobs.example.test/apply' },
+      confirmedFields: ['title', 'company', 'location'],
+    }));
+    expect(controlProps(confirmButton(added)).disabled).toBe(true);
   });
 
   it('emits the edited description and identity/routes with safe extraction provenance', () => {
@@ -111,7 +179,7 @@ describe('browser job extraction confirmation step', () => {
     const initial = props({
       description: '',
       corrections: {},
-      confirmedFields: ['location', 'listing_url'],
+      confirmedFields: [...allAcknowledgements],
       onDescriptionChange,
       onCorrectionChange,
       onConfirm,
@@ -137,7 +205,7 @@ describe('browser job extraction confirmation step', () => {
         listing_url: 'https://jobs.example.test/updated-listing',
         application_url: 'https://jobs.example.test/updated-apply',
       },
-      confirmedFields: ['location', 'listing_url'],
+      confirmedFields: [...allAcknowledgements],
       onConfirm,
     }));
     controlProps(confirmButton(edited)).onClick?.();
@@ -150,7 +218,7 @@ describe('browser job extraction confirmation step', () => {
         listing_url: 'https://jobs.example.test/updated-listing',
         application_url: 'https://jobs.example.test/updated-apply',
       },
-      reviewed_fields: ['location', 'listing_url'],
+      reviewed_fields: ['title', 'company', 'location', 'listing_url', 'application_url'],
       manualDetails: { description: 'Edited role description.' },
     });
     const html = renderToStaticMarkup(edited);

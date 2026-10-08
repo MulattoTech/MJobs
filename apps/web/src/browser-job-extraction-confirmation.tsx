@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  browserJobExtractionFields,
   buildBrowserJobExtractionConfirmation,
   validateBrowserJobExtractionCorrections,
   type BrowserJobExtractionConfirmation,
@@ -48,6 +49,23 @@ function displayName(field: BrowserJobExtractionFieldName): string {
   return names[field];
 }
 
+function requiredAcknowledgements(
+  preview: BrowserJobExtractionResponse,
+  corrections: BrowserJobExtractionCorrections,
+): BrowserJobExtractionFieldName[] {
+  const required = new Set<BrowserJobExtractionFieldName>(['title', 'company']);
+  for (const field of preview.review_required) {
+    if ((browserJobExtractionFields as readonly string[]).includes(field)) required.add(field as BrowserJobExtractionFieldName);
+  }
+  for (const route of ['listing_url', 'application_url'] as const) {
+    const value = Object.prototype.hasOwnProperty.call(corrections, route)
+      ? corrections[route]
+      : preview.fields[route].value;
+    if (value?.trim()) required.add(route);
+  }
+  return browserJobExtractionFields.filter(field => required.has(field));
+}
+
 export function BrowserJobExtractionConfirmationStep({
   preview,
   description: suppliedDescription,
@@ -61,7 +79,8 @@ export function BrowserJobExtractionConfirmationStep({
 }: BrowserJobExtractionConfirmationStepProps) {
   const description = suppliedDescription ?? preview.fields.description.value ?? '';
   const correctionErrors = validateBrowserJobExtractionCorrections(preview, corrections);
-  const missingReviews = preview.review_required.filter(field => !confirmedFields.includes(field as BrowserJobExtractionFieldName));
+  const requiredFields = requiredAcknowledgements(preview, corrections);
+  const missingReviews = requiredFields.filter(field => !confirmedFields.includes(field));
   const missingDescription = !description.trim();
   const canConfirm = !pending && !missingDescription && missingReviews.length === 0 && Object.keys(correctionErrors).length === 0;
 
@@ -72,7 +91,11 @@ export function BrowserJobExtractionConfirmationStep({
       if (Object.prototype.hasOwnProperty.call(corrections, field)) safeCorrections[field] = corrections[field] ?? '';
     }
     const reviewed = buildBrowserJobExtractionConfirmation(preview, safeCorrections, confirmedFields);
-    onConfirm({ ...reviewed, manualDetails: { description: description.trim() } });
+    onConfirm({
+      ...reviewed,
+      reviewed_fields: requiredFields,
+      manualDetails: { description: description.trim() },
+    });
   };
 
   return <section aria-labelledby="job-extraction-confirmation-heading" data-profile-id={preview.profile_id} data-job-id={preview.job_id}>
@@ -97,12 +120,21 @@ export function BrowserJobExtractionConfirmationStep({
                 value={corrections[field] ?? ''}
                 onChange={event => {
                   onCorrectionChange(field, event.currentTarget.value);
-                  if (preview.fields[field].review_required) onReviewFieldChange(field, false);
+                  onReviewFieldChange(field, false);
                 }}
                 disabled={pending}
               />
             </label>
             {correctionErrors[field] && <p role="alert">{correctionErrors[field]}</p>}
+            {requiredFields.includes(field) && <label><input
+              type="checkbox"
+              aria-label={preview.fields[field].review_required
+                ? `Confirm low-confidence ${fieldLabels[field]}`
+                : `Confirm extracted ${fieldLabels[field]}`}
+              checked={confirmedFields.includes(field)}
+              onChange={event => onReviewFieldChange(field, event.currentTarget.checked)}
+              disabled={pending}
+            />I reviewed this value</label>}
           </dd>
         </React.Fragment>;
       })}
@@ -125,17 +157,16 @@ export function BrowserJobExtractionConfirmationStep({
     <h3>Fields requiring review</h3>
     {preview.review_required.length === 0
       ? <p>No extracted fields were flagged for low confidence.</p>
-      : <ul>{preview.review_required.map(rawField => {
-        const field = rawField as BrowserJobExtractionFieldName;
+      : <ul>{requiredFields.filter(field => !editableFields.includes(field as EditableField)).map(field => {
         const extracted = preview.fields[field];
-        const value = editableFields.includes(field as EditableField)
-          ? displayValue(preview, field as EditableField, corrections)
-          : extracted.value ?? 'Unknown';
+        const value = extracted.value ?? 'Unknown';
         return <li key={field}>
           <p>{displayName(field)}: {value} · {extracted.source} · {Math.round(extracted.confidence * 100)}% confidence</p>
           <label><input
             type="checkbox"
-            aria-label={`Confirm low-confidence ${displayName(field)}`}
+            aria-label={preview.fields[field].review_required
+              ? `Confirm low-confidence ${displayName(field)}`
+              : `Confirm extracted ${displayName(field)}`}
             checked={confirmedFields.includes(field)}
             onChange={event => onReviewFieldChange(field, event.currentTarget.checked)}
             disabled={pending}
