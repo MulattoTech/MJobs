@@ -1,59 +1,80 @@
-/** Present only recorded source activity; missing or corrupt counts are never invented. */
+/** Render only the API's allowlisted summaries, never raw audit payloads. */
 export type DiscoveryActivity = {id: string; message: string; timestamp: string | null};
+
+type ActivityKind =
+  | 'COMPANY_DISCOVERED'
+  | 'COMPANY_SOURCE_ENROLLED'
+  | 'COMPANY_DOMAIN_RESOLVED'
+  | 'COMPANY_ATS_DETECTED'
+  | 'FEED_IMPORT_COMPLETE'
+  | 'COMPANY_FEED_MATCHES'
+  | 'COMPANY_SOURCE_REFRESHED'
+  | 'COMPANY_SOURCE_REFRESH_FAILED'
+  | 'COMPANY_SOURCE_MIGRATION_REVIEW'
+  | 'COMPANY_SOURCE_MONITORING_REVIEWED';
+
+const FIXED_SUMMARIES: Partial<Record<ActivityKind, ReadonlySet<string>>> = {
+  COMPANY_SOURCE_ENROLLED: new Set(['Added a direct employer source']),
+  COMPANY_SOURCE_REFRESHED: new Set(['Refreshed the reviewed employer feed.']),
+  COMPANY_SOURCE_REFRESH_FAILED: new Set(['The source refresh did not complete; review monitoring status.']),
+  COMPANY_SOURCE_MIGRATION_REVIEW: new Set(['Detected changed career infrastructure; the previous source was preserved for review.']),
+  COMPANY_SOURCE_MONITORING_REVIEWED: new Set(['Saved the reviewed source monitoring policy.']),
+};
+
 function record(value: unknown): Record<string, unknown> | null {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
     ? value as Record<string, unknown> : null;
 }
-function count(value: unknown): number | null {
-  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value <= 1_000_000_000
-    ? value : null;
-}
-function eventTime(value: unknown): string | null {
+
+function timestamp(value: unknown): string | null {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T.*(?:Z|[+-]\d{2}:\d{2})$/.test(value)) return null;
-  const milliseconds=Date.parse(value);
+  const milliseconds = Date.parse(value);
   return Number.isFinite(milliseconds) ? new Date(milliseconds).toISOString() : null;
 }
-function providerLabel(value: unknown): string | null {
-  if (typeof value !== 'string' || !/^[a-z0-9_-]{1,50}$/i.test(value)) return null;
-  return value.split(/[_-]/).map(part => part.toUpperCase() === 'RSS' ? 'RSS' : part.slice(0, 1).toUpperCase() + part.slice(1).toLowerCase()).join(' ');
+
+function safeName(value: string): boolean {
+  return value.length > 0 && value.length <= 80 && /^[\p{L}\p{N}][\p{L}\p{N} .&'()_-]*$/u.test(value);
 }
-function discoveryMethodLabel(value: unknown): string | null {
-  return value === 'SAME_ORIGIN_MACHINE_READABLE_FEED' ? 'Found a feed on the careers site.' : null;
+
+function summaryFor(kind: unknown, summary: unknown): string | null {
+  if (typeof kind !== 'string' || typeof summary !== 'string' || summary.length > 220 || /[\r\n\t\u0000-\u001f\u007f<>]/.test(summary)) return null;
+  if (FIXED_SUMMARIES[kind as ActivityKind]?.has(summary)) return summary;
+
+  if (kind === 'COMPANY_DISCOVERED') {
+    const match = /^Discovered (.+?)(?: from (.+))?$/.exec(summary);
+    return match && safeName(match[1]) && (match[2] === undefined || safeName(match[2])) ? summary : null;
+  }
+  if (kind === 'COMPANY_DOMAIN_RESOLVED') return summary === 'Resolved official domain' ? summary : null;
+  if (kind === 'COMPANY_ATS_DETECTED') {
+    const match = /^Detected (.+)$/.exec(summary);
+    return match && safeName(match[1]) ? summary : null;
+  }
+  if (kind === 'FEED_IMPORT_COMPLETE') {
+    if (summary === 'Feed import completed.') return summary;
+    const match = /^Imported (0|[1-9]\d{0,9}) active openings$/.exec(summary);
+    return match && Number(match[1]) <= 1_000_000_000 ? summary : null;
+  }
+  if (kind === 'COMPANY_FEED_MATCHES') {
+    const match = /^(0|[1-9]\d{0,9}) openings match this profile$/.exec(summary);
+    return match && Number(match[1]) <= 1_000_000_000 ? summary : null;
+  }
+  return null;
 }
+
+/**
+ * The server returns profile-scoped events newest first. Preserve that stable
+ * order, including equal timestamps, and ignore every field outside the
+ * sanitized event contract.
+ */
 export function discoveryActivity(events: unknown): DiscoveryActivity[] {
   if (!Array.isArray(events)) return [];
-  const output: DiscoveryActivity[]=[];
-  for (const candidate of events.slice(0,20)) {
-    const row=record(candidate);
-    if (!row || typeof row.id !== 'string' || !row.id) continue;
-    const details=record(row.details) || {};
-    let message: string;
-    if (row.action === 'COMPANY_SOURCE_DISCOVERED') {
-      const provider=typeof details.provider === 'string' && /^[a-z0-9_-]{1,50}$/i.test(details.provider)
-        ? ` (${details.provider})` : '';
-      const detected=providerLabel(details.provider);
-      const imported=count(details.jobs_imported);
-      message=`Added a careers source${provider}.${detected ? ` Recorded source provider ${detected}.` : ''}${imported !== null ? ` Imported ${imported} jobs.` : ''}`;
-    } else if (row.action === 'COMPANY_FEED_IMPORT_COMPLETE') {
-      const imported=count(details.jobs_imported), enumerated=count(details.jobs_enumerated);
-      if (imported === null) message='Feed import recorded; job count unavailable.';
-      else if (enumerated !== null && imported > enumerated) message='Feed import recorded; inconsistent counts need review.';
-      else {
-        const matched=count(details.matched_jobs);
-        message=`Imported ${imported} jobs${enumerated === null ? '' : ` from ${enumerated} feed records`}.${matched !== null && matched <= imported ? ` ${matched} imported jobs had skill matches at import.` : ''}`;
-      }
-    } else if (row.action === 'COMPANY_SOURCE_REFRESHED') {
-      message='Refreshed the reviewed employer feed.';
-    } else if (row.action === 'COMPANY_SOURCE_REFRESH_FAILED') {
-      message='The source refresh did not complete; review monitoring status.';
-    } else if (row.action === 'COMPANY_SOURCE_MIGRATION_REVIEW') {
-      message='Detected changed career infrastructure; the previous source was preserved for review.';
-    } else if (row.action === 'COMPANY_SOURCE_MONITORING_REVIEWED') {
-      message='Saved the reviewed source monitoring policy.';
-    } else continue;
-    const method=discoveryMethodLabel(details.discovery_method);
-    if (method && row.action === 'COMPANY_SOURCE_DISCOVERED') message += ` ${method}`;
-    output.push({id:row.id.slice(0,128), message, timestamp:eventTime(row.timestamp)});
+  const output: DiscoveryActivity[] = [];
+  for (const candidate of events.slice(0, 20)) {
+    const row = record(candidate);
+    if (!row || typeof row.id !== 'string' || !row.id || row.id.length > 128) continue;
+    const message = summaryFor(row.event_type, row.summary);
+    if (!message) continue;
+    output.push({id: row.id, message, timestamp: timestamp(row.timestamp)});
   }
   return output;
 }

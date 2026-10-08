@@ -1,55 +1,80 @@
 import { describe, expect, it } from 'vitest';
-const modules=import.meta.glob<{discoveryActivity: (events: unknown)=>{id:string; message:string; timestamp:string|null}[]}>('./company-activity.ts');
-async function activity(events: unknown) {
-  expect(modules['./company-activity.ts'], 'Readable discovery activity formatter is required').toBeTypeOf('function');
-  return (await modules['./company-activity.ts']()).discoveryActivity(events);
-}
+import { discoveryActivity } from './company-activity';
+
 describe('source-linked discovery activity', () => {
-  it('describes exact known imports without claiming active or eligible jobs', async () => {
-    const result=await activity([{id:'one', action:'COMPANY_FEED_IMPORT_COMPLETE', timestamp:'2026-10-02T10:00:00Z', details:{jobs_imported:3,jobs_enumerated:5,secret:'PRIVATE'}}]);
-    expect(result[0].message).toBe('Imported 3 jobs from 5 feed records.');
-    expect(JSON.stringify(result)).not.toContain('PRIVATE');
-    expect(result[0].message).not.toContain('active');
-  });
-  it('retains zero but does not invent counts from absent or invalid values', async () => {
-    const rows=await activity([
-      {id:'zero',action:'COMPANY_FEED_IMPORT_COMPLETE',details:{jobs_imported:0,jobs_enumerated:2}},
-      {id:'absent',action:'COMPANY_FEED_IMPORT_COMPLETE',details:{}},
-      {id:'invalid',action:'COMPANY_FEED_IMPORT_COMPLETE',details:{jobs_imported:-1}},
-      {id:'conflict',action:'COMPANY_FEED_IMPORT_COMPLETE',details:{jobs_imported:4,jobs_enumerated:3}},
+  it('maps known event types to safe summaries and ignores raw event details', () => {
+    const rows = discoveryActivity([
+      {
+        id: 'evt-discovered', event_type: 'COMPANY_DISCOVERED',
+        summary: 'Discovered Acme from Remote Rocketship',
+        timestamp: '2026-10-08T12:00:00Z',
+        details: {company_name: 'PRIVATE', payload: 'PRIVATE', profile_id: 'other-profile'},
+      },
+      {
+        id: 'evt-import', event_type: 'FEED_IMPORT_COMPLETE',
+        summary: 'Imported 4 active openings', timestamp: '2026-10-08T11:00:00Z',
+        details: {jobs_imported: 4, matched_jobs: 99, profile_id: 'other-profile'},
+      },
+      {
+        id: 'evt-matches', event_type: 'COMPANY_FEED_MATCHES',
+        summary: '6 openings match this profile', timestamp: '2026-10-08T10:00:00Z',
+      },
     ]);
-    expect(rows[0].message).toBe('Imported 0 jobs from 2 feed records.');
-    expect(rows[1].message).toBe('Feed import recorded; job count unavailable.');
-    expect(rows[2].message).toBe('Feed import recorded; job count unavailable.');
-    expect(rows[3].message).toBe('Feed import recorded; inconsistent counts need review.');
+
+    expect(rows.map(({id, message}) => [id, message])).toEqual([
+      ['evt-discovered', 'Discovered Acme from Remote Rocketship'],
+      ['evt-import', 'Imported 4 active openings'],
+      ['evt-matches', '6 openings match this profile'],
+    ]);
+    expect(JSON.stringify(rows)).not.toContain('PRIVATE');
+    expect(JSON.stringify(rows)).not.toContain('other-profile');
+    expect(JSON.stringify(rows)).not.toContain('99');
   });
-  it('describes source enrollment without falsely verifying employer identity', async () => {
-    const result=await activity([{id:'source',action:'COMPANY_SOURCE_DISCOVERED',details:{provider:'rss'}}]);
-    expect(result[0].message).toBe('Added a careers source (rss). Recorded source provider RSS.');
-    expect(result[0].timestamp).toBeNull();
+
+  it('omits events with unknown types or unsafe summaries', () => {
+    expect(discoveryActivity([
+      {id: 'unknown', event_type: 'SECRET_DUMP', summary: 'PRIVATE details', timestamp: '2026-10-08T12:00:00Z'},
+      {id: 'control', event_type: 'COMPANY_SOURCE_ENROLLED', summary: 'Added\nPRIVATE source', timestamp: '2026-10-08T11:00:00Z'},
+      {id: 'missing-summary', event_type: 'FEED_IMPORT_COMPLETE', timestamp: '2026-10-08T10:00:00Z'},
+    ])).toEqual([]);
   });
-  it('includes recorded provider and import facts in discovery activity', async () => {
-    const result=await activity([{id:'source',action:'COMPANY_SOURCE_DISCOVERED',timestamp:'2026-10-02T10:00:00Z',details:{provider:'lever',jobs_imported:4}}]);
-    expect(result[0].message).toContain('Recorded source provider Lever');
-    expect(result[0].message).toContain('Imported 4 jobs');
+
+  it('formats resolved domain, detected ATS, and direct source enrollment events', () => {
+    expect(discoveryActivity([
+      {id: 'domain', event_type: 'COMPANY_DOMAIN_RESOLVED', summary: 'Resolved official domain', timestamp: null},
+      {id: 'ats', event_type: 'COMPANY_ATS_DETECTED', summary: 'Detected Lever', timestamp: null},
+      {id: 'source', event_type: 'COMPANY_SOURCE_ENROLLED', summary: 'Added a direct employer source', timestamp: null},
+    ]).map(row => row.message)).toEqual([
+      'Resolved official domain', 'Detected Lever', 'Added a direct employer source',
+    ]);
   });
-  it('explains recorded feed discovery and current-profile matches', async () => {
-    const result=await activity([{id:'source',action:'COMPANY_SOURCE_DISCOVERED',details:{discovery_method:'SAME_ORIGIN_MACHINE_READABLE_FEED'}},
-      {id:'import',action:'COMPANY_FEED_IMPORT_COMPLETE',details:{jobs_imported:3,jobs_enumerated:3,matched_jobs:2}}]);
-    expect(result[0].message).toContain('Found a feed on the careers site');
-    expect(result[1].message).toContain('2 imported jobs had skill matches at import');
+
+  it('keeps the server-provided newest-first order and stable equal-time order', () => {
+    const rows = discoveryActivity([
+      {id: 'newest', event_type: 'COMPANY_DISCOVERED', summary: 'Discovered Acme', timestamp: '2026-10-08T12:00:00Z'},
+      {id: 'tie-first', event_type: 'COMPANY_SOURCE_ENROLLED', summary: 'Added a direct employer source', timestamp: '2026-10-08T11:00:00Z'},
+      {id: 'tie-second', event_type: 'FEED_IMPORT_COMPLETE', summary: 'Imported 2 active openings', timestamp: '2026-10-08T11:00:00Z'},
+    ]);
+    expect(rows.map(row => row.id)).toEqual(['newest', 'tie-first', 'tie-second']);
+    expect(rows.map(row => row.timestamp)).toEqual([
+      '2026-10-08T12:00:00.000Z', '2026-10-08T11:00:00.000Z', '2026-10-08T11:00:00.000Z',
+    ]);
   });
-  it('omits a match claim when no evaluated count was recorded', async () => {
-    const result=await activity([{id:'import',action:'COMPANY_FEED_IMPORT_COMPLETE',details:{jobs_imported:1,jobs_enumerated:1}}]);
-    expect(result[0].message).toBe('Imported 1 jobs from 1 feed records.');
-  });
-  it('bounds history and ignores malformed or unrelated actions', async () => {
-    expect(await activity(null)).toEqual([]);
-    expect(await activity([null, {}, {id:'x', action:'PROFILE_SAVED',details:{secret:'PRIVATE'}}])).toEqual([]);
-    const rows=Array.from({length:30},(_,i)=>({id:String(i), action:'COMPANY_SOURCE_DISCOVERED', timestamp:'invalid', details:{}}));
-    const result=await activity(rows);
-    expect(result).toHaveLength(20);
-    expect(result[0].id).toBe('0');
-    expect(result[0].timestamp).toBeNull();
+
+  it('does not invent counts, accepts zero only from a recorded summary, and bounds history', () => {
+    expect(discoveryActivity([
+      {id: 'absent', event_type: 'FEED_IMPORT_COMPLETE', summary: 'Feed import completed.', timestamp: null},
+      {id: 'zero', event_type: 'FEED_IMPORT_COMPLETE', summary: 'Imported 0 active openings', timestamp: null},
+      {id: 'invalid-count', event_type: 'FEED_IMPORT_COMPLETE', summary: 'Imported -1 active openings', timestamp: null},
+    ]).map(row => row.message)).toEqual(['Feed import completed.', 'Imported 0 active openings']);
+
+    const history = Array.from({length: 30}, (_, index) => ({
+      id: `event-${index}`, event_type: 'COMPANY_SOURCE_ENROLLED',
+      summary: 'Added a direct employer source', timestamp: 'invalid',
+    }));
+    const bounded = discoveryActivity(history);
+    expect(bounded).toHaveLength(20);
+    expect(bounded.map(row => row.id)).toEqual(history.slice(0, 20).map(row => row.id));
+    expect(bounded[0].timestamp).toBeNull();
   });
 });
