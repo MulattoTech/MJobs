@@ -31,7 +31,7 @@ _BACHELOR_NEGATION = re.compile(
 )
 _BACHELOR_NONCOMPLETION = re.compile(
     r"\b(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})"
-    r"[^.;\n]{0,80}\b(?:not\s+(?:yet\s+)?(?:completed|complete|earned|finished|obtained)|incomplete|unfinished)\b|"
+    r"[^.;\n]{0,80}\b(?:(?:not\s+(?:yet\s+)?|never\s+)(?:completed|complete|earned|finished|obtained)|incomplete|unfinished)\b|"
     r"\b(?:incomplete|unfinished)\s+(?:a\s+)?(?:bachelor(?:'s|s)?(?:\s+degree)?|bachelor\s+of\s+[a-z][a-z -]{0,40})\b",
     re.I,
 )

@@ -256,6 +256,9 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertIn("explicitly states", explicit_mismatch["explanation"].lower())
         for text in (
             "Bachelor's degree not completed.",
+            "Bachelor's degree never completed.",
+            "Bachelor's degree not finished.",
+            "Bachelor's degree not earned.",
             "Bachelor's degree incomplete.",
             "Bachelor's degree unfinished.",
         ):
