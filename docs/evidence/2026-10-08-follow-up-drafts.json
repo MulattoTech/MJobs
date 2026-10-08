@@ -8,10 +8,10 @@
   "branch": "codex/mj-ref024-follow-up-tests-20261008",
   "tested_candidate": {
     "branch": "codex/root-mj-ref024-follow-up-review-20261008",
-    "source_sha": "15be9f2e6eae4c8dd1488f631693dea07ea36568",
-    "source_tree": "19561d56ed035434597cbff9864cf2efc0d04243"
+    "source_sha": "95977e5924c122abecd7bc95db48874333baf170",
+    "source_tree": "a91f5e93977afa6b5a51cd2d7f748d63cbf16be5"
   },
-  "tested_at_utc": "2026-10-08T15:27:42Z",
+  "tested_at_utc": "2026-10-08T15:31:54Z",
   "tested_inputs": [
     {
       "path": "apps/api/main.py",
@@ -42,19 +42,36 @@
     "integration_tests": {
       "result": "PASS",
       "count": 3,
-      "command": "..\\..\\.venv\\Scripts\\python.exe -c \"import importlib.util,sys,unittest; sys.path.insert(0, r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-root-mj-ref024-follow-up-review-20261008'); spec=importlib.util.spec_from_file_location('test_application_follow_up_drafts', r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-mj-ref024-follow-up-tests-20261008\\tests\\integration\\test_application_follow_up_drafts.py'); module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module); suite=unittest.defaultTestLoader.loadTestsFromModule(module); result=unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(not result.wasSuccessful())\"",
-      "summary": "3 passed, 0 failed, 0 skipped"
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_follow_up_drafts",
+      "summary": "3 passed, 0 failed, 0 skipped on the exact tested candidate."
     },
     "browser_test": {
       "result": "PASS",
       "count": 1,
-      "command": "$env:MJOBS_TEST_ROOT = 'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-root-mj-ref024-follow-up-review-20261008'; ..\\..\\.venv\\Scripts\\python.exe -c \"import importlib.util,sys,unittest; sys.path.insert(0, r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-root-mj-ref024-follow-up-review-20261008'); spec=importlib.util.spec_from_file_location('test_application_follow_up_drafts_browser', r'C:\\Tools\\Dev\\MJobs\\.worktrees\\codex-mj-ref024-follow-up-tests-20261008\\tests\\browser\\test_application_follow_up_drafts.py'); module=importlib.util.module_from_spec(spec); spec.loader.exec_module(module); suite=unittest.defaultTestLoader.loadTestsFromModule(module); result=unittest.TextTestRunner(verbosity=2).run(suite); sys.exit(not result.wasSuccessful())\"",
-      "summary": "1 passed, 0 failed, 0 skipped"
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_follow_up_drafts",
+      "summary": "1 connected local Chromium test passed after building apps/web; synthetic profile/database and loopback API only."
     },
-    "py_compile": "PASS for both owned test modules",
+    "py_compile": "PASS for API, service, and all focused unit, integration and browser modules.",
     "evidence_json_parse": "PASS",
-    "six_input_sha256_check": "PASS",
-    "git_diff_check": "PASS"
+    "six_input_sha256_check": "PASS against exact checked-out bytes; canonical Git blob IDs separately recorded for each input.",
+    "git_diff_check": "PASS",
+    "unit_tests": {
+      "result": "PASS",
+      "count": 15,
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_follow_up_drafts tests.unit.test_application_follow_up_drafts_route",
+      "summary": "15 passed, 0 failed, 0 skipped."
+    },
+    "frontend_tests": {
+      "result": "PASS",
+      "count": 110,
+      "command": "npm --prefix apps/web test -- --reporter=dot",
+      "summary": "19 files and 110 tests passed under Node v25.9.0; version is outside the declared Vitest supported Node range."
+    },
+    "frontend_build": {
+      "result": "PASS",
+      "command": "npm --prefix apps/web run build",
+      "summary": "TypeScript check and Vite production build passed."
+    }
   },
   "privacy": {
     "data": "synthetic only",
@@ -62,5 +79,16 @@
     "external_network": "NOT_USED",
     "submission": "SYNTHETIC_MOCK_ONLY",
     "send_path": "NOT_USED"
-  }
+  },
+  "input_hash_domain": "tested_inputs sha256 values hash the exact checked-out worktree bytes used by the Windows local test run; source_sha/source_tree pin the exact tested candidate, and canonical_git_blob_oid separately pins Git blob content.",
+  "canonical_git_blob_oid": {
+    "apps/api/main.py": "94cebd6da147fd7466f4a1671df6b2b4e92d9647",
+    "services/tracking/follow_up_drafts.py": "c6af0acc66d3938e1eceb6ca82599858c81ce6aa",
+    "apps/web/src/main.tsx": "cd7ec5572ec43dedd77b03cee8a2028190ed4d37",
+    "apps/web/src/application-follow-up-drafts.tsx": "ad4ad90ecb30fabe10cb069dbd5c0193cb48e888",
+    "tests/integration/test_application_follow_up_drafts.py": "c77fab59dc35d6f6dccea469ffbce2aef5a34031",
+    "tests/browser/test_application_follow_up_drafts.py": "a083413e71ddf4b5916ee109674733bba7d3d4bb"
+  },
+  "review": "LOCAL_DELEGATED_REVIEW: no material code findings. Initial review detected a SHA-256 domain mismatch for two CRLF-checked-out UI files; evidence now records checked-out worktree SHA-256 values and canonical Git blob IDs separately. Exact tested candidate head/tree recorded above.",
+  "integration": "Candidate committed locally on the root-owned review branch. Not yet merged or pushed; local-only route remains a non-force fast-forward after review and exact candidate verification."
 }
