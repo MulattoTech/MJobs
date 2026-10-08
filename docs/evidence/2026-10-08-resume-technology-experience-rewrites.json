@@ -4,7 +4,7 @@
   "issue": 96,
   "slice": "reviewed rewrites for selected approved technology_experience facts",
   "result": "PARTIAL",
-  "verified_at_utc": "2026-10-08T04:40:37Z",
+  "verified_at_utc": "2026-10-08T04:49:57Z",
   "platform": {
     "os": "Windows",
     "shell": "PowerShell",
@@ -14,12 +14,15 @@
   },
   "git": {
     "branch": "codex/mj-req095-technology-rewrite-20261008",
-    "base_commit": "920e679aaedee1a580085f75c635ee81a25439fb",
-    "source_tree_sha256": "423a58ba6ceb8fa79709187a0d175e6ba4ac29ec9672ae315f65c25f698bee35",
+    "base_commit": "2c7e2f28dda14a4c9ebb31d7b4b18d5911b3e262",
+    "base_tree": "cc9d262c393e48995564d14f9bf8f25e303f1f12",
+    "rebased_source_commit": "77aeabea448dfd33fdbf528e9d9f251b87eca93e",
+    "rebased_source_tree": "eb9d459022ede953cd3d49b3e6376b7dca4b6afe",
+    "source_tree_sha256": "dbec3821fe6d753adc8855131b8728947c1d17774c86b31a4a3400ef152bd6eb",
     "source_files_sha256": {
-      "apps/web/src/resume-fact-selection.tsx": "4f3e7f8aa22f8d440e35b439969b345805508a70094fc61d67fa2857d62964d6",
+      "apps/web/src/resume-fact-selection.tsx": "cd5230fdb40baa3d57b2f526ae36fad77d77777dfb3b3e305f1d23f130e2a07b",
       "services/documents/tailor.py": "5c3bf36f890919a7a43fa3105990e780d4d41eade603a8ec39b7178d9acf95d4",
-      "tests/browser/test_skill_order.py": "41c11a04658d0ef3915527f00240df2c2b9406f84f7391f837bcafc12513c73a",
+      "tests/browser/test_skill_order.py": "7fa57eb861ae26731421d889e32c3245deb154d9b175446f56e913f9e05e01cc",
       "tests/integration/test_resume_comparison.py": "bb3ed8549f57fc0ff9742c15ae728222435ecf42331976a37f2cf43229e935ca",
       "tests/unit/test_resume_comparison.py": "88f727340a19416e49259779ee05b5d1335aaaff38ef8ebbd48b572c5e10f4c9"
     }
@@ -37,7 +40,7 @@
       "No external application was submitted."
     ]
   },
-  "checks": [
+  "historical_checks_before_rebase": [
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_comparison.ResumeComparisonUnitTests.test_user_reviewed_technology_experience_rewrite_is_source_bound_and_fact_safe",
       "result": "PASS_TO_TDD_RED",
@@ -87,15 +90,49 @@
       "result": "PASS"
     }
   ],
+  "rebased_followup": {
+    "scope_result": "PASS",
+    "browser_fixture_migration": "The synthetic temporary SQLite database is initialized with Alembic command.upgrade(Config('alembic.ini'), 'head') under MJOBS_DATABASE_URL; no Store.migrate() call, wrapper, or migration target override is used.",
+    "checks": [
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_skill_order.SkillOrderBrowserTests.test_user_reviewed_technology_experience_rewrite_survives_reload",
+        "result": "PASS",
+        "count": "1 connected Chromium test",
+        "detail": "Normal Alembic migration path applied both merged migration histories to the isolated synthetic database; UI rewrite, durable document preparation, reload, and comparison passed."
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_comparison tests.integration.test_resume_comparison.ResumeComparisonTests.test_user_reviewed_project_and_accomplishment_rewrites_survive_reload_and_comparison",
+        "result": "PASS",
+        "count": "6 tests: 5 unit and 1 integration",
+        "detail": "The integration test setup used its ordinary Alembic upgrade-to-head path."
+      },
+      {
+        "command": "npm run build --prefix apps/web",
+        "result": "NOT_RUN",
+        "detail": "Only Node v25.9.0 is installed. No Node 22.12, 24, or 26+ executable or version manager is available; the build was not rerun under an unsupported runtime. This follow-up changes only the browser test and evidence."
+      }
+    ],
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "rebased_base_commit": "2c7e2f28dda14a4c9ebb31d7b4b18d5911b3e262",
+    "rebased_base_tree": "cc9d262c393e48995564d14f9bf8f25e303f1f12",
+    "pre_followup_source_commit": "77aeabea448dfd33fdbf528e9d9f251b87eca93e",
+    "pre_followup_source_tree": "eb9d459022ede953cd3d49b3e6376b7dca4b6afe",
+    "source_input_sha256": {
+      "apps/web/src/resume-fact-selection.tsx": "cd5230fdb40baa3d57b2f526ae36fad77d77777dfb3b3e305f1d23f130e2a07b",
+      "services/documents/tailor.py": "5c3bf36f890919a7a43fa3105990e780d4d41eade603a8ec39b7178d9acf95d4",
+      "tests/unit/test_resume_comparison.py": "88f727340a19416e49259779ee05b5d1335aaaff38ef8ebbd48b572c5e10f4c9",
+      "tests/integration/test_resume_comparison.py": "bb3ed8549f57fc0ff9742c15ae728222435ecf42331976a37f2cf43229e935ca",
+      "tests/browser/test_skill_order.py": "7fa57eb861ae26731421d889e32c3245deb154d9b175446f56e913f9e05e01cc"
+    }
+  },
   "not_run": [
     "Full Python and browser suites.",
-    "Integration/browser acceptance under the repository Alembic migration path; blocked by the two unresolved migration heads.",
     "Hosted Actions, hosted CI, and external review; NOT_RUN by local-only project policy.",
     "Full MJ-REQ-095 acceptance, including remaining tailoring modes and semantic equivalence beyond user attestation."
   ],
   "limitations": [
-    "The ordinary Alembic `head` integration command remains blocked by two repository migration heads; the focused test passed through a process-local harness selecting both heads.",
-    "Neither the wrapper integration run nor the browser harness is counted as acceptance evidence for this slice.",
+    "Before the Alembic merge revision was integrated, the ordinary `head` target had two heads. The rebased browser and integration checks now use the ordinary single-head target and pass.",
     "User review is an attestation and is not automated semantic-equivalence proof.",
     "Issue #96 / MJ-REQ-095 remains OPEN/PARTIAL."
   ]

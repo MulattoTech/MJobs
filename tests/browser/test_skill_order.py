@@ -217,10 +217,14 @@ class SkillOrderBrowserTests(unittest.TestCase):
                 server.should_exit=True;thread.join(timeout=10);sock.close();store.engine.dispose()
                 self.assertFalse(thread.is_alive())
 
-    def test_user_reviewed_summary_project_and_accomplishment_adjustments_survive_reload(self):
+    def test_user_reviewed_technology_experience_rewrite_survives_reload(self):
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory);store=Store(f"sqlite:///{(root/'summary.db').as_posix()}")
-            store.migrate();store.bind_workspace_mode('FIXTURE')
+            from alembic import command
+            from alembic.config import Config
+            with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url):
+                command.upgrade(Config('alembic.ini'),'head')
+            store.bind_workspace_mode('FIXTURE')
             summary=dict(PROFILE['facts'][0],id='linux-summary',kind='summary',
                 text='Systems engineer with 12 years of Linux experience, 2012-2024.')
             project=dict(PROFILE['facts'][0],id='recovery-project',kind='project',
