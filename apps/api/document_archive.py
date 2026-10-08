@@ -56,6 +56,7 @@ def _change_document(store, action, profile_id: str, document_id: str,
         raise HTTPException(422, {"code": "DOCUMENT_ARCHIVE_REQUEST_INVALID"}) from None
 
     return {
+        "profile_id": profile_id,
         "document_id": result["document_id"],
         "archived": metadata["archived"],
         "archived_at": metadata["archived_at"],
