@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T05:21:23Z",
+  "timestamp": "2026-10-08T05:35:59Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -969,12 +969,13 @@
     },
     {
       "requirement_id": "MJ-REQ-103",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json",
-        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
+        "docs/evidence/2026-10-08-answer-bank-acceptance.json"
       ],
-      "note": "Combined journey reuses an exact approved answer only after explicit per-job review and exports an immutable artifact; broader sensitive/legal acceptance remains PARTIAL."
+      "note": "Issue #104 reusable-answer criterion locally accepted on exact test snapshot 77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66; verification input hashes match current main d8caa9093138faba04d62f4f6474b4d19bcb02ae. Per-job deliberate review, guarded immutable export, profile history/reload and sensitive/unverified/unapproved denial passed. Example metadata fields are not individually mandatory; MJ-REQ-104..107, the aggregate core workflow and release remain PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-104",

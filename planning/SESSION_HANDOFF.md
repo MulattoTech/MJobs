@@ -1130,3 +1130,12 @@ Integration checkpoint: https://github.com/MulattoTech/MJobs/issues/517#issuecom
 - Queue carve-out: the UI comparison child slice has no technical dependency on MJ-PR-053 or MJ-PR-043; parent MJ-PR-054 stays QUEUED and retains both original dependencies. No umbrella completion or denominator change.
 - Scope: same-application selection of two valid cover-letter revisions, readable diff, and fail-closed behavior if preview integrity/avoid-list validation fails. Preserve immutable previews/downloads and existing resume comparison.
 - Base: `2c7e2f28dda14a4c9ebb31d7b4b18d5911b3e262`. Owned paths are recorded in the MJ-PR-054 `active_slice`.
+
+
+## 2026-10-08 answer-bank issue #104 / MJ-REQ-103 checkpoint
+
+- Current base: synchronized `main`/`origin/main` `d8caa9093138faba04d62f4f6474b4d19bcb02ae` before this evidence/planning commit.
+- Scoped result: **PASS** for MJ-REQ-103 only. Evidence: `docs/evidence/2026-10-08-answer-bank-acceptance.json`; tested source snapshot `77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66e` with no executable/test/build input changes through current main. Fifteen integration, two connected synthetic Chromium tests, and web build PASS. Node 25.9 is outside Vitest 5 supported engines.
+- PostgreSQL and hosted checks/review NOT_RUN; core workflow and release remain PARTIAL. External requests/submission NONE/OFF. Issue #104 closeout receipt is pending evidence checkpoint and GitHub readback.
+- Active implementation claims: #96 reviewed experience rewrite; #117 match categories; #199 readable validated cover-letter diff. Five Luna High task leads are refreshing matching, tracking, discovery, documents and recovery issue readiness read-only. Antigravity #302 and Ollama #318 remain active; no overlap assigned.
+- Next integration: serialize one exact-head candidate at a time under the local lock; preserve all parent queue dependencies and issue denominators.

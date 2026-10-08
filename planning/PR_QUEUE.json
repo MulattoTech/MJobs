@@ -3316,7 +3316,7 @@
       "branch": "codex/core-workflow-trial-answers-20261005",
       "draft_until_verified": true,
       "scope_complete": false,
-      "notes": "Question-aware reusable answer snapshots, explicit per-job review/export, immutable answer document history and strict versioned saves merged in PR #511 at fb8ab73de6f666ed2644f9d1cc271eee25aef7f7. Requirements MJ-REQ-103..107 remain PARTIAL for broader answer matching/sensitive policy and combined workflow acceptance.",
+      "notes": "Question-aware reusable answer snapshots, explicit per-job review/export, immutable answer document history and strict versioned saves merged in PR #511 at fb8ab73de6f666ed2644f9d1cc271eee25aef7f7. Requirements MJ-REQ-103..107 remain PARTIAL for broader answer matching/sensitive policy and combined workflow acceptance. Issue #104 / MJ-REQ-103 independently accepted PASS with local evidence docs/evidence/2026-10-08-answer-bank-acceptance.json after exact-input revalidation; broader MJ-REQ-104..107/core workflow remain PARTIAL. Original MJ-PR-028 remains QUEUED with MJ-PR-027/MJ-PR-024 dependencies intact.",
       "evidence_path": "docs/evidence/2026-10-05-reviewed-application-answers.json",
       "pr_number": 511,
       "pr_url": "https://github.com/MulattoTech/MJobs/pull/511",

@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-103-ANSWER-BANK-LOCAL-20261008",
+  "recorded_at_utc": "2026-10-08T05:34:00Z",
+  "result": "PASS",
+  "issue": 104,
+  "requirement_id": "MJ-REQ-103",
+  "scope": "Reusable application answer bank with profile persistence, deliberate per-job review, guarded immutable export, and reload/history.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_url": "https://github.com/MulattoTech/MJobs/issues/104",
+    "test_snapshot_commit": "77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66e",
+    "test_snapshot_tree": "f143c2367df10b9ba755e45218e7fdeeb899d49b",
+    "current_main_before_evidence_commit": "d8caa9093138faba04d62f4f6474b4d19bcb02ae",
+    "current_main_tree_before_evidence_commit": "8534bf7f475811acf79c0bae05c3dce3f94c884b",
+    "issue_state_during_test": "OPEN"
+  },
+  "acceptance": {
+    "profile_answer_create_and_persist": "PASS; answer question/text, provenance, confidence and verification/approval fields persist in immutable profile versions and are read through profile-owned routes.",
+    "deliberate_per_application_review": "PASS; exact question matches are suggestions only; user must select, review the specific answer for the job, and approve export.",
+    "negative_policy": "PASS; unmatched, unverified, unapproved, low-confidence, unanswered, unreviewed and sensitive/legal answer reuse is blocked.",
+    "immutable_export_and_reload": "PASS; profile-scoped hash-verified TXT exports and answer history survive reload/restart; no employer form fill or submission.",
+    "illustrative_fields": "Issue says example fields might include tags/last_used/usage_count/allowed_for_auto_use/requires_review; these are not individually required, and the implementation uses explicit verification, approval, confidence and review gates."
+  },
+  "verification_window_utc": {
+    "start": "2026-10-08T05:31:06Z",
+    "end": "2026-10-08T05:31:50Z"
+  },
+  "environment": {
+    "platform": "Windows PowerShell",
+    "python": "3.12.10 via repository .venv",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "node_limit": "Vitest 5.0.3 declares ^22.12.0 || ^24.0.0 || >=26.0.0; Node 25 is outside its supported range."
+  },
+  "checks": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export",
+      "target": "temporary synthetic SQLite profile/application store",
+      "result": "PASS",
+      "tests": 15,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm ci --no-audit --no-fund --prefer-offline (apps/web)",
+      "target": "locked web dependencies",
+      "result": "PASS",
+      "details": "44 packages; EBADENGINE warning for Vitest on Node 25."
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "target": "TypeScript and Vite production build",
+      "result": "PASS",
+      "details": "31 modules transformed."
+    },
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_application_answer_export",
+      "target": "isolated synthetic profile, loopback API, Chromium",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "worktree status and input-diff verification",
+      "target": "test snapshot 77a7d36 to current main d8caa90",
+      "result": "PASS",
+      "details": "No tracked/staged changes in verifier worktree; no changed executable/test inputs. Intervening changes are canonical planning/handoff only."
+    }
+  ],
+  "source_inputs": {
+    "apps/api/main.py": {
+      "git_blob": "8058e3dab8003555c8e985d76c3e8693c68d92b1",
+      "git_object_content_sha256": "509383459e0df3b5e31f89136be182a22e14fc2314f61d1fc398b53f43e0309c"
+    },
+    "apps/web/src/main.tsx": {
+      "git_blob": "0f5bbb5810305ede8f8331cf853aac777221f451",
+      "git_object_content_sha256": "47ad3aea1a88babdaf1ee60c095d461ec3cf8b285265f00e4e42180d552408d3"
+    },
+    "apps/web/src/api.ts": {
+      "git_blob": "238ff1dcc8bf0d2838d570c6d809cfaf6d9362ca",
+      "git_object_content_sha256": "bdb787c153ce889d68c2b9ab7832797a8fe0cbbc9e34c3170b399eb79db919dd"
+    },
+    "services/documents/answers.py": {
+      "git_blob": "ed3142af3eefcedf3bbc2507269ac63c3b29ccd2",
+      "git_object_content_sha256": "9a2a489895885f2e9fadb6c01ee24381652795f53b84bd6de2e3c7a1546b02a8"
+    },
+    "services/documents/history.py": {
+      "git_blob": "77aafd36eee3a77d2bfa852f4df803acbe111e6c",
+      "git_object_content_sha256": "a06a2689d26fd0c8296018ed5ed50bc363de65e45569aa6468994ab9d26c4c7c"
+    },
+    "packages/persistence/store.py": {
+      "git_blob": "2e20bceadf358b8681a606896692f8a48f0e4970",
+      "git_object_content_sha256": "1da21094778fe726618ff5629f279da750d8ee3e53680547577a69312d761f59"
+    },
+    "tests/integration/test_application_answer_export.py": {
+      "git_blob": "f027c865584bf4c28333f294008ad4321ff10ab5",
+      "git_object_content_sha256": "ff3fb5e0b581079890bdd89596f68ccc23ae993521693eeebddeec2b892c61f7"
+    },
+    "tests/browser/test_application_answer_export.py": {
+      "git_blob": "56a618ded1b13149d65dae3b7e3126a1bdc33c86",
+      "git_object_content_sha256": "7d14b9506abae81664b6e7e49cdfe5101c992d8c8cdab2f68762299d3c27ffa4"
+    },
+    "apps/web/package-lock.json": {
+      "git_blob": "ac7c6d49726f1e29ad3a4060b22d7b061fbf41b0",
+      "git_object_content_sha256": "453d036596f964fc6a3c19ed0682a34d08c5eec4e64dbaf8c5898046d9c4358a"
+    }
+  },
+  "changed_paths_since_test_snapshot": [
+    "planning/IMPLEMENTATION_STATE.json",
+    "planning/PR_QUEUE.json",
+    "planning/SESSION_HANDOFF.md"
+  ],
+  "limitations": {
+    "postgresql": "NOT_RUN",
+    "hosted_actions_review_ci": "NOT_RUN_BY_USER_POLICY",
+    "node_runtime": "Tests/build executed successfully, but Node 25 is outside the declared Vitest engine range.",
+    "overall_release_readiness": "NOT_ESTABLISHED; this evidence accepts MJ-REQ-103 only."
+  },
+  "safety": {
+    "external_requests": "NONE",
+    "external_application_submission": "OFF",
+    "personal_data": "NOT_USED; isolated synthetic fixtures only"
+  }
+}
