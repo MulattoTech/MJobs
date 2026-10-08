@@ -39,7 +39,7 @@ class BrowserJobExtractionApplicationApiTests(unittest.TestCase):
         self.client = TestClient(create_app(
             self.store, "http://127.0.0.1:1", self.root,
             "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
-        ))
+        ), raise_server_exceptions=False)
         self.addCleanup(self.client.close)
 
     def _seed_job(self, job_id, profile_id):
@@ -161,7 +161,7 @@ class BrowserJobExtractionApplicationApiTests(unittest.TestCase):
         extract.assert_not_called()
         self.assertEqual(self._snapshot(), before)
 
-    def test_transient_extraction_error_can_be_retried_without_persistence(self):
+    def test_duplicate_preview_retries_return_same_result_without_duplicate_writes(self):
         before = self._snapshot()
         from services.applications.job_extraction import extract_job_capture as real_extract
 
@@ -169,12 +169,76 @@ class BrowserJobExtractionApplicationApiTests(unittest.TestCase):
                 patch.object(HTTPConnection, "connect", side_effect=AssertionError("network forbidden")), \
                 patch("urllib.request.urlopen", side_effect=AssertionError("network forbidden")), \
                 patch("services.applications.job_extraction.extract_job_capture",
-                      side_effect=[ValueError("transient local extraction failure"), real_extract]) as extract:
+                      wraps=real_extract) as extract:
+            first = self.client.post(self._url(), json=self._capture())
+            duplicate = self.client.post(self._url(), json=self._capture())
+
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(duplicate.status_code, 200, duplicate.text)
+        self.assertEqual(duplicate.json(), first.json())
+        self.assertEqual(extract.call_count, 2)
+        self.assertEqual(self._snapshot(), before)
+        self.assertEqual(self.store.count("applications"), 0)
+        self.assertEqual(self.store.count("source_candidates"), 0)
+
+    def test_missing_invalid_cross_profile_and_stale_job_scopes_fail_before_extraction(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(
+                m.matches.update().where(m.matches.c.id == "match-fixture-job")
+                .values(profile_version="stale-profile-version"),
+            )
+        before = self._snapshot()
+        with patch("services.applications.job_extraction.extract_job_capture") as extract:
+            missing_profile = self.client.post(
+                self._url("missing-profile", "fixture-job"), json=self._capture(),
+            )
+            missing_job = self.client.post(
+                self._url("fixture", "missing-job"), json=self._capture(),
+            )
+            invalid_job = self.client.post(
+                self._url("fixture", "%20"), json=self._capture(),
+            )
+            foreign_job = self.client.post(
+                self._url("fixture", "other-job"), json=self._capture(),
+            )
+            stale_match = self.client.post(
+                self._url("fixture", "fixture-job"), json=self._capture(),
+            )
+
+        self.assertEqual(missing_profile.status_code, 404, missing_profile.text)
+        self.assertEqual(
+            missing_profile.json()["detail"]["code"],
+            "BROWSER_JOB_EXTRACTION_PROFILE_NOT_FOUND",
+        )
+        for response in (missing_job, invalid_job, foreign_job, stale_match):
+            self.assertEqual(response.status_code, 404, response.text)
+            self.assertEqual(
+                response.json()["detail"]["code"],
+                "BROWSER_JOB_EXTRACTION_JOB_NOT_FOUND",
+            )
+        extract.assert_not_called()
+        self.assertEqual(self._snapshot(), before)
+
+    def test_unavailable_extractor_can_be_retried_without_persistence(self):
+        before = self._snapshot()
+        from services.applications.job_extraction import extract_job_capture as real_extract
+        attempts = []
+
+        def unavailable_once(capture):
+            attempts.append(capture)
+            if len(attempts) == 1:
+                raise RuntimeError("temporary extractor unavailable")
+            return real_extract(capture)
+
+        with patch.object(socket, "create_connection", side_effect=AssertionError("network forbidden")), \
+                patch.object(HTTPConnection, "connect", side_effect=AssertionError("network forbidden")), \
+                patch("urllib.request.urlopen", side_effect=AssertionError("network forbidden")), \
+                patch("services.applications.job_extraction.extract_job_capture",
+                      side_effect=unavailable_once) as extract:
             failed = self.client.post(self._url(), json=self._capture())
             recovered = self.client.post(self._url(), json=self._capture())
 
-        self.assertEqual(failed.status_code, 422, failed.text)
-        self.assertEqual(failed.json()["detail"]["code"], "BROWSER_JOB_EXTRACTION_CAPTURE_INVALID")
+        self.assertEqual(failed.status_code, 500, failed.text)
         self.assertEqual(recovered.status_code, 200, recovered.text)
         self.assertEqual(recovered.json()["fields"]["title"]["source"], "PROVIDER_FIELDS")
         self.assertEqual(extract.call_count, 2)
