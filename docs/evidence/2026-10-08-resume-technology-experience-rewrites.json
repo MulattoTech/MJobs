@@ -135,5 +135,39 @@
     "Before the Alembic merge revision was integrated, the ordinary `head` target had two heads. The rebased browser and integration checks now use the ordinary single-head target and pass.",
     "User review is an attestation and is not automated semantic-equivalence proof.",
     "Issue #96 / MJ-REQ-095 remains OPEN/PARTIAL."
-  ]
+  ],
+  "root_integration_reconciliation": {
+    "verified_at_utc": "2026-10-08T04:58:19Z",
+    "candidate_branch": "codex/mj-req095-technology-rewrite-20261008",
+    "candidate_commit": "0e303b5c1ff6806cf98f2323f5b87f6958bfde63",
+    "candidate_tree": "9abaf05c3b84ffaaa20be7489986fdad2d865da6",
+    "base_commit": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
+    "scope": "The rebase adds the already-integrated planning-only main checkpoint. All five executable/test input SHA-256 values in rebased_followup.source_input_sha256 were recomputed and match exactly.",
+    "build": {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite 8.3.1 production build passed on Node 25.9.0; Vite declared engines include >=22.12. Vitest was not run."
+    },
+    "focused_test_revalidation": [
+      {
+        "command": "pytest tests/unit/test_resume_comparison.py tests/integration/test_resume_comparison.py -q",
+        "result": "BLOCKED_ENVIRONMENT",
+        "count": "0 tests collected",
+        "detail": "The available Python 3.12.10 interpreter lacks SQLAlchemy, so both test modules failed import during collection."
+      },
+      {
+        "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_resume_comparison.py tests/integration/test_resume_comparison.py -q",
+        "result": "BLOCKED_ENVIRONMENT",
+        "count": "0 tests collected",
+        "detail": "The repository virtual environment has no pytest module. No dependencies were installed."
+      }
+    ],
+    "prior_same_source_input_results": "The child recorded 5 unit plus 1 integration tests PASS and 1 connected Chromium browser test PASS against the exact five input hashes listed in rebased_followup.source_input_sha256. Those hashes were independently recomputed at candidate commit 0e303b5; the base-only planning checkpoint changed no executable/test inputs.",
+    "review": {
+      "classification": "LOCAL_DELEGATED_REVIEW",
+      "reviewer_commit": "0e303b5c1ff6806cf98f2323f5b87f6958bfde63",
+      "result": "No code blocker; evidence lineage updated here to state the final candidate and base explicitly."
+    },
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+  }
 }
