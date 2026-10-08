@@ -577,7 +577,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #199 / MJ-REQ-198: rebase the reviewed cover-letter comparison candidate from its older base onto current main, refresh exact source/evidence metadata, rerun the connected browser and affected frontend checks, then serialize integration. Keep #240 / MJ-REQ-239 PASS separate from CORE-WORKFLOW-TRIAL and release readiness, which remain PARTIAL. #117 remains behind PR-031/PR-025. Reconcile #517 after active Antigravity #302 and Ollama #318 claims; do not overlap their adapter/ATS paths. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external submission OFF.",
+  "recommended_resume_step": "Continue issue #199 / MJ-REQ-198: rebase the reviewed cover-letter comparison candidate onto synchronized main 1e8dca63d37849ead245dd34c9c1374d52c0089a, refresh exact source/evidence metadata, rerun connected browser and affected frontend checks, then serialize integration. Issue #240 / MJ-REQ-239 is CLOSED and local PASS; core-workflow trial and release readiness remain PARTIAL. #117 remains behind PR-031/PR-025. Reconcile #517 after active Antigravity #302 and Ollama #318 claims; do not overlap their adapter/ATS paths. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9619,7 +9619,9 @@
         "Verified blank/oversize input rejection, wrong-profile/unassociated denial, idempotent and conflicting replay handling, concurrent note ordering, and profile/company draft and stale-response isolation.",
         "Replaced test-only JavaScript evaluation with CSP-compatible Playwright route interception; product CSP and code behavior were not weakened.",
         "Re-ran job, company, and application note integration/browser suites on the combined tree: 18 PASS; company UI tests 4 executed PASS; TypeScript/Vite build PASS.",
-        "Marked only MJ-REQ-239 PASS; broader tracking, core workflow, additive references, and release readiness remain separately classified."
+        "Marked only MJ-REQ-239 PASS; broader tracking, core workflow, additive references, and release readiness remain separately classified.",
+        "Published the local acceptance receipt, read back issue #240 as CLOSED, and synchronized main at 1e8dca63d37849ead245dd34c9c1374d52c0089a; parent MJ-PR-065 dependencies remain unchanged.",
+        "Released child claim after CLOSED readback; release note: https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052969166."
       ],
       "files_added": [
         "docs/evidence/2026-10-08-company-notes.json",
@@ -9642,7 +9644,7 @@
         "Six issue-scope integration/browser modules for job, company and application notes: 18 PASS on integrated tree 5f3d7364e0cbe2edccbfee05386a1e9591c791f3.",
         "CompanySources UI: 4 tests executed PASS on Node 25.9.0; Vitest declares ^22.12.0 || ^24.0.0 || >=26.0.0, so this is not supported-runtime acceptance.",
         "TypeScript and Vite production build PASS on Node 25.9.0.",
-        "Lane coordination validation, progress validation, JSON checks and git diff --check to run after canonical update."
+        "Canonical progress/lane validators, JSON checks and git diff --check PASS after the issue-close metadata checkpoint; no executable/test inputs changed."
       ],
       "tests_remaining": [
         "PostgreSQL concurrency NOT_RUN.",
@@ -9662,17 +9664,21 @@
         "Hosted checks/review NOT_RUN_BY_USER_POLICY; core-workflow and release acceptance remain PARTIAL."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a",
+        "git_commit": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
+        "tree": "f7147089ec56f29148327ca484afa479ba4c6643",
         "source_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
-        "evidence_path": "docs/evidence/2026-10-08-company-notes.json"
+        "evidence_path": "docs/evidence/2026-10-08-company-notes.json",
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052950378"
       }
     }
   ],
   "current_phase": "MJ_REQ_239_ALL_THREE_NOTE_ENTITIES_LOCAL_ACCEPTANCE_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a",
+    "git_commit": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
+    "tree": "f7147089ec56f29148327ca484afa479ba4c6643",
     "source_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
-    "evidence_path": "docs/evidence/2026-10-08-company-notes.json"
+    "evidence_path": "docs/evidence/2026-10-08-company-notes.json",
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052950378"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -9989,7 +9995,7 @@
     "state": "OPEN / CANDIDATE_REVALIDATION",
     "candidate": "1d9493f734e35107248267940fe6b4332bb1a52c",
     "candidate_original_base": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
-    "target_main": "aa777e3a243c55fbde54df9af57d4dc33f16bbf9",
+    "target_main": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
     "branch": "codex/mj-req198-cover-letter-comparison-20261008",
     "worktree": ".worktrees/codex-mj-req198-cover-letter-comparison-20261008",
     "next_action": "Rebase and rerun exact-head checks; no integration yet."
@@ -11137,5 +11143,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T05:21:23Z"
+  "updated_at": "2026-10-08T05:24:02Z"
 }

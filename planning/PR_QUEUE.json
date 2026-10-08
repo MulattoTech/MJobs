@@ -1648,11 +1648,11 @@
         "result": "PASS",
         "source_commit": "1173bf792f0bd4092d638662d982c9bf8e225f9a",
         "source_tree": "bf1400d35701eedaf60bbc569881d622692cb3fb",
-        "integration_commit": "bed4f3e6aff9639a30d6ba3f1ded640a5b2dc77a",
-        "integration_tree": "88df6fa5709efa0daadf139385ce83a7aabfc8fe",
+        "integration_commit": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
+        "integration_tree": "f7147089ec56f29148327ca484afa479ba4c6643",
         "integration_method": "NON_FORCE_FAST_FORWARD",
         "evidence_path": "docs/evidence/2026-10-08-company-notes.json",
-        "issue_state_at_checkpoint": "OPEN; local acceptance verified before issue readback",
+        "issue_state_at_checkpoint": "CLOSED; acceptance receipt https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052950378",
         "local_validation": {
           "python_integration_browser_tests": "18 PASS",
           "company_ui_tests": "4 executed PASS; Node 25.9.0 is outside Vitest 5.0.3 declared engine range",
@@ -1660,7 +1660,9 @@
           "hosted_checks": "NOT_RUN_BY_USER_POLICY",
           "postgresql": "NOT_RUN"
         },
-        "tested_tree": "5f3d7364e0cbe2edccbfee05386a1e9591c791f3"
+        "tested_tree": "5f3d7364e0cbe2edccbfee05386a1e9591c791f3",
+        "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052950378",
+        "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052969166"
       }
     },
     {
