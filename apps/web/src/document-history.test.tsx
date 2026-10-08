@@ -28,6 +28,12 @@ describe('document provenance',()=>{
       facts_used:[{fact_id:'duty',kind:'responsibility',text:'Maintain nightly database backups for four clinics.',source:'Reviewed profile fact',confidence:100,verified:true,user_approved:true}]}]}/>);
     expect(html).toContain('Selected for this job responsibility: maintain nightly database backups for four clinics');
   });
+  it('keeps the selected role-lens name, version, reason, and evidence count in document history',()=>{
+    const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,generation_context:{mode:'APPROVED_SKILL_ORDER',job_title:'Systems Administrator',
+      role_lens:{id:'systems',version:1,display_name:'Systems',selection_reason:'EXPLICIT',fact_ids:['linux','iam'],emphasized_fact_ids:['linux'],story_ids:['story-1'],emphasized_story_ids:['story-1']}}}]}/>);
+    expect(html).toContain('Role lens: Systems · v1 · explicitly selected for this job');
+    expect(html).toContain('2 approved facts and 1 approved story');
+  });
   it('shows missing historical evidence without invented timestamps or dead format links',()=>{
     const html=renderToStaticMarkup(<DocumentHistory documents={[historical]}/>);
     expect(html).toContain('Not recorded for this historical document');

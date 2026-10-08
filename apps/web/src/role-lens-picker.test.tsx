@@ -119,7 +119,12 @@ describe('role lens picker', () => {
   });
 
   it('shows loading and retryable catalog errors accessibly', () => {
-    const loading = renderToStaticMarkup(<RoleLensPicker {...baseProps} loading />);
+    const loading = renderToStaticMarkup(<RoleLensPicker
+      {...baseProps}
+      roleLenses={[]}
+      suggestedResponse={null}
+      loading
+    />);
     expect(loading).toContain('Loading supported role lenses');
     expect(loading).toContain('role="status"');
 

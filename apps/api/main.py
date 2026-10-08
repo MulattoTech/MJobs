@@ -205,6 +205,9 @@ class ApplicationInput(DiscoveryInput):
     expected_profile_version: str | None = Field(default=None,min_length=64,max_length=64)
     expected_job_fingerprint: str | None = Field(default=None,min_length=64,max_length=64,pattern=r'^[0-9a-f]{64}$')
     ai_evaluation_run_id: str | None = Field(default=None, min_length=1, max_length=128)
+    role_lens_id: str | None = Field(default=None, strict=True, min_length=1, max_length=32,
+                                     pattern=r'^[a-z][a-z0-9_]{0,31}$')
+    expected_role_lens_version: int | None = Field(default=None, strict=True, ge=1, le=2147483647)
 
     @model_validator(mode='after')
     def selected_facts_require_tailoring_and_snapshot(self):
@@ -215,6 +218,8 @@ class ApplicationInput(DiscoveryInput):
             raise ValueError('Reviewed resume rewrites require selected facts, tailoring and the observed profile version')
         if self.expected_job_fingerprint is not None and (not self.tailor_resume or not self.expected_profile_version):
             raise ValueError('A resume alignment snapshot requires tailoring and the observed profile version')
+        if (self.role_lens_id is None) != (self.expected_role_lens_version is None):
+            raise ValueError('A role lens requires its observed version')
         return self
 
 
@@ -593,6 +598,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_career_story_bank_router(store))
     from apps.api.career_story_selection import create_career_story_selection_router
     app.include_router(create_career_story_selection_router(store))
+    from apps.api.role_lenses import create_role_lenses_router
+    app.include_router(create_role_lenses_router(store))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
@@ -1691,6 +1698,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "cover_letter_style": value.cover_letter_style,
             **({'tailor_fact_ids':value.tailor_fact_ids} if value.tailor_fact_ids is not None else {}),
             **({'tailor_fact_rewrites':[rewrite.model_dump() for rewrite in value.tailor_fact_rewrites]} if value.tailor_fact_rewrites is not None else {}),
+            **({'role_lens_id': value.role_lens_id,
+                'expected_role_lens_version': value.expected_role_lens_version}
+               if value.role_lens_id is not None else {}),
         })
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}

@@ -144,7 +144,7 @@ class RoleLensGenerationBrowserTests(unittest.TestCase):
                     navigation.get_by_role("button", name="Jobs", exact=False).click()
                     page.locator(".job-card").filter(has_text="Data Engineer").click()
                     lens_picker = page.get_by_label("Role lens for this job", exact=True)
-                    lens_picker.select_option(label="Systems · v1")
+                    lens_picker.select_option(label="Systems · version 1")
                     expect(page.get_by_text(
                         "Selected lens: Systems (version 1) is confirmed for this job.",
                         exact=True,

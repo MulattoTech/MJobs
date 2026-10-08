@@ -184,7 +184,7 @@ class RoleLensGenerationTests(unittest.TestCase):
         before_document_count = self.store.count("documents")
         cases = (
             ("not a lens id", 1, "ROLE_LENS_ID_INVALID"),
-            ("not-configured", 1, "ROLE_LENS_NOT_FOUND"),
+            ("not_configured", 1, "ROLE_LENS_NOT_FOUND"),
             ("systems", "one", "ROLE_LENS_VERSION_INVALID"),
             ("systems", 999, "ROLE_LENS_VERSION_CONFLICT"),
         )

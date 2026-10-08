@@ -213,7 +213,9 @@ def execute_operation(operation_id):
                         tailor_fact_rewrites=operation['params'].get('tailor_fact_rewrites'),
                         include_resume_contact=operation['params'].get('include_resume_contact',False),
                         cover_letter_style=operation['params'].get('cover_letter_style','professional'),
-                        cover_letter_length=operation['params'].get('cover_letter_length','normal'))
+                        cover_letter_length=operation['params'].get('cover_letter_length','normal'),
+                        role_lens_id=operation['params'].get('role_lens_id'),
+                        expected_role_lens_version=operation['params'].get('expected_role_lens_version'))
             elif operation["kind"] == "APPLY_MOCK":
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check,
