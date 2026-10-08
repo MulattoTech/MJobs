@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T15:49:20Z",
+  "timestamp": "2026-10-08T16:21:29Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2144,9 +2144,11 @@
     },
     {
       "requirement_id": "MJ-REQ-261",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-source-ats-separation.json"
+      ],
+      "note": "Bounded connected Jobs provenance slice integrated at local source e337115700a23b0d5d7b1e50abb1ffc26983e292: persisted discovery sources appear separately from the application-route provider; route filter has a truthful Application provider label; route strings do not qualify ATS filtering without separate persisted evidence. API/browser 2/2, frontend 124/124 and build PASS. Parent MJ-PR-071 remains QUEUED behind MJ-PR-070 and MJ-PR-063; no detector, collection or application side effects. PostgreSQL/live providers/full suite/hosted checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-262",

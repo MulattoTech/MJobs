@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "issue": 262,
+  "requirement_id": "MJ-REQ-261",
+  "slice": "connected Jobs display separating discovery source from application-route provider",
+  "result": "PARTIAL",
+  "base_commit": "6b69a5aa06611468db5f7cbfbaf3e44fab3a12a2",
+  "source_commit": "e337115700a23b0d5d7b1e50abb1ffc26983e292",
+  "source_tree": "9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636",
+  "validated_at_utc": "2026-10-08T16:21:07Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "node": "v25.9.0",
+    "database": "temporary synthetic SQLite",
+    "browser": "local Chromium"
+  },
+  "behavior": {
+    "implemented": [
+      "Jobs list responses include the distinct persisted posting source identifiers separately from the route provider.",
+      "Each Jobs card visibly labels DISCOVERY SOURCE and APPLICATION PROVIDER; URLs in source values are reduced to a host/path label and the provider is displayed as route metadata.",
+      "The route-provider selector is labeled Application provider and continues to use the existing provider filter/saved-search key; ATS selection remains a separate evidence-qualified facet.",
+      "The UI explicitly states route-provider metadata does not prove verified ATS support; a route string without qualifying ATS evidence remains excluded by the ATS filter."
+    ],
+    "remaining": "The slice does not add discovery-source filtering or modify source/ATS detectors, collection, or application behavior. MJ-REQ-261 broader acceptance and parent MJ-PR-071 dependencies remain incomplete.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": ".\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_job_route_provenance tests.browser.test_job_source_ats_separation -v",
+      "result": "PASS",
+      "detail": "One API contract and one connected Chromium workflow passed; verified independent discovery-source/route-provider values, reload, saved provider filtering and evidence-qualified ATS behavior."
+    },
+    {
+      "command": "npm test --prefix apps/web",
+      "result": "PASS",
+      "detail": "124 frontend tests passed across 22 files."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "python compileall apps/api/main.py; git diff --check",
+      "result": "PASS",
+      "detail": "API compilation and source whitespace validation passed."
+    }
+  ],
+  "input_hashes": {
+    "apps/api/main.py": {
+      "checkout_sha256": "902621b02431957b6be07b17a09fd3089dca98c1d21acaf868dd413d31870c7b",
+      "git_blob_oid": "92aa3a3178dceef5f54638117e72d3389e654cb3"
+    },
+    "apps/web/src/main.tsx": {
+      "checkout_sha256": "7b437a0bc4564b0e8ec273217a4ee2853b0c99cc82db5576900e59ada31aa0a0",
+      "git_blob_oid": "28fc2d98e8697530685c1dea5f7f34b70ec8d017"
+    },
+    "apps/web/src/job-route-provenance.tsx": {
+      "checkout_sha256": "dd68a7b770ec27b608eaa83b654092384bcb1d71910f1185b74cf2247df3cb0e",
+      "git_blob_oid": "383afd213fd382de1e61d16cac5ba5aa0d0b9921"
+    },
+    "apps/web/src/job-route-provenance.test.tsx": {
+      "checkout_sha256": "460c44e46e6cfb0081bb41b742e1b0cdabff3b58da16efde2c487ce3c199586a",
+      "git_blob_oid": "f9f3dfacfc2d7e08f07ad8295b28456fe2eafb32"
+    },
+    "tests/integration/test_job_route_provenance.py": {
+      "checkout_sha256": "f20b998fbb3f0f1f981924659b81aa775b0dc7717f8b0890b6a77daaa7ea3398",
+      "git_blob_oid": "377aaa7dd824a4ab9d0431300aeae59d97e8b8b0"
+    },
+    "tests/browser/test_job_source_ats_separation.py": {
+      "checkout_sha256": "a6baf311de10e27f1aafe74846f90e36cf533e2389459a3c2075c8cf37124f84",
+      "git_blob_oid": "da3e7b4119a4c3dadd0e0857ee05948f08cfa4db"
+    }
+  },
+  "not_run": [
+    "PostgreSQL runtime",
+    "Live job-source providers",
+    "Full repository test suite",
+    "Hosted checks/reviews (disabled by local-only policy)"
+  ],
+  "review": "Root integration review verified list-source persistence comes from postings and is not inferred from route.provider or ATS evidence. Local tests are not hosted verification.",
+  "integration": "Integrated to local main through non-force fast-forwards for the four isolated Rogue component/API-test/UI-test/browser-test branches and root wiring commit. GitHub synchronization and the issue receipt remain pending."
+}

@@ -2576,7 +2576,45 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-071-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Bounded issue #262 / MJ-REQ-261 source-vs-ATS UI slice integrated at local source e337115700a23b0d5d7b1e50abb1ffc26983e292; evidence docs/evidence/2026-10-08-source-ats-separation.json; API/browser 2/2, web 124/124 and build PASS. MJ-PR-071 remains QUEUED behind MJ-PR-070 and MJ-PR-063; broader requirement incomplete.",
+      "slice_history": [
+        {
+          "name": "Connected Jobs discovery-source and route-provider separation",
+          "issue": 262,
+          "requirement_id": "MJ-REQ-261",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-070",
+            "MJ-PR-063"
+          ],
+          "owned_paths": [
+            "apps/api/main.py",
+            "apps/web/src/main.tsx",
+            "apps/web/src/job-route-provenance.tsx",
+            "apps/web/src/job-route-provenance.test.tsx",
+            "tests/integration/test_job_route_provenance.py",
+            "tests/browser/test_job_source_ats_separation.py",
+            "docs/evidence/2026-10-08-source-ats-separation.json"
+          ],
+          "acceptance": "The connected Jobs list separately presents persisted posting discovery sources and application-route provider; provider selector preserves its persisted criterion under a truthful label; ATS filter still requires separately qualified evidence; synthetic browser reload and no side-effect checks pass.",
+          "base_head": "6b69a5aa06611468db5f7cbfbaf3e44fab3a12a2",
+          "source_head": "e337115700a23b0d5d7b1e50abb1ffc26983e292",
+          "source_tree": "9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636",
+          "integrated_main": "e337115700a23b0d5d7b1e50abb1ffc26983e292",
+          "evidence_path": "docs/evidence/2026-10-08-source-ats-separation.json",
+          "validation": {
+            "api_and_connected_browser": "PASS 2/2",
+            "frontend": "PASS 124/124",
+            "typescript_vite_build": "PASS",
+            "postgresql_runtime": "NOT_RUN",
+            "hosted": "NOT_RUN_BY_USER_POLICY",
+            "full_repository_suite": "NOT_RUN"
+          },
+          "issue_state": "OPEN/PARTIAL",
+          "external_submission": "OFF"
+        }
+      ]
     },
     {
       "id": "MJ-PR-072",
@@ -4640,5 +4678,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T16:14:07Z"
+  "generated_at": "2026-10-08T16:21:29Z"
 }
