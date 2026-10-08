@@ -76,6 +76,52 @@ class FollowUpDraftTests(unittest.TestCase):
         self.history["app-1"] = {"history": [status(attribution="AUTOMATION") ]}
         self.assertEqual(self.run_drafts()["candidates"], [])
 
+    def test_external_report_applied_at_drives_quiet_age_when_linked_by_sequence(self):
+        applied_at = NOW - timedelta(days=10)
+        self.history["app-1"] = {"history": [
+            {"type": "external_application", "sequence": 1,
+             "applied_at": applied_at.isoformat(), "timestamp": applied_at.isoformat()},
+            status(attribution="EXTERNAL_USER_REPORTED", at=NOW - timedelta(days=1),
+                   sequence=2),
+        ]}
+
+        candidate = self.run_drafts(quiet_days=7)["candidates"][0]
+
+        self.assertEqual(candidate["days_quiet"], 10)
+        self.assertEqual(candidate["reported_at"], applied_at.isoformat())
+
+    def test_malformed_linked_external_applied_at_fails_closed(self):
+        self.history["app-1"] = {"history": [
+            {"type": "external_application", "sequence": 1,
+             "applied_at": "not-a-date", "timestamp": (NOW - timedelta(days=10)).isoformat()},
+            status(attribution="EXTERNAL_USER_REPORTED", at=NOW - timedelta(days=10),
+                   sequence=2),
+        ]}
+
+        self.assertEqual(self.run_drafts(quiet_days=7)["candidates"], [])
+
+    def test_future_linked_external_applied_at_is_not_quiet(self):
+        self.history["app-1"] = {"history": [
+            {"type": "external_application", "sequence": 1,
+             "applied_at": (NOW + timedelta(days=1)).isoformat(),
+             "timestamp": (NOW - timedelta(days=10)).isoformat()},
+            status(attribution="EXTERNAL_USER_REPORTED", at=NOW - timedelta(days=10),
+                   sequence=2),
+        ]}
+
+        self.assertEqual(self.run_drafts(quiet_days=7)["candidates"], [])
+
+    def test_unlinked_external_report_does_not_override_status_timestamp(self):
+        self.history["app-1"] = {"history": [
+            {"type": "external_application", "sequence": 1,
+             "applied_at": (NOW - timedelta(days=30)).isoformat(),
+             "timestamp": (NOW - timedelta(days=30)).isoformat()},
+            status(attribution="EXTERNAL_USER_REPORTED", at=NOW - timedelta(days=1),
+                   sequence=3),
+        ]}
+
+        self.assertEqual(self.run_drafts(quiet_days=7)["candidates"], [])
+
     def test_quiet_period_boundary_is_inclusive_and_future_status_is_excluded(self):
         self.history["app-1"] = {"history": [status(at=NOW - timedelta(days=7))]}
         self.assertEqual(len(self.run_drafts(quiet_days=7)["candidates"]), 1)

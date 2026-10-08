@@ -53,6 +53,37 @@ def _latest_status(history):
     return statuses[-1]
 
 
+def _reported_time(status, history):
+    """Resolve an external report's durable application date by adjacent sequence."""
+    if status.get("attribution") != "EXTERNAL_USER_REPORTED":
+        value = status.get("timestamp")
+        return _aware_datetime(value, label="reported_at"), value
+
+    status_sequence = status.get("sequence")
+    linked_reports = []
+    if isinstance(status_sequence, int) and not isinstance(status_sequence, bool):
+        linked_reports = [
+            event for event in history
+            if isinstance(event, dict)
+            and event.get("type") == "external_application"
+            and isinstance(event.get("sequence"), int)
+            and not isinstance(event.get("sequence"), bool)
+            and event["sequence"] + 1 == status_sequence
+        ]
+    if linked_reports:
+        # Duplicate matching sequence entries are corrupt/ambiguous. Fail closed.
+        if len(linked_reports) != 1:
+            raise ValueError("External applied event sequence is ambiguous")
+        value = linked_reports[0].get("applied_at")
+        if not isinstance(value, str):
+            raise ValueError("Linked external applied_at must be a timestamp")
+        return _aware_datetime(value, label="reported_at"), value
+
+    # Older/synthetic EXTERNAL_USER_REPORTED status rows may have no linked report.
+    value = status.get("timestamp")
+    return _aware_datetime(value, label="reported_at"), value
+
+
 def _bounded(value, limit):
     return value[:limit]
 
@@ -87,7 +118,8 @@ def draft_follow_up_candidates(store, profile_id, quiet_days, *, now=None):
                 or latest.get("attribution") not in _ALLOWED_ATTRIBUTIONS):
             continue
         try:
-            reported_at = _aware_datetime(latest.get("timestamp"), label="reported_at")
+            reported_at, reported_at_value = _reported_time(
+                latest, tracking.get("history", []))
         except ValueError:
             continue
         elapsed = clock - reported_at
@@ -115,7 +147,7 @@ def draft_follow_up_candidates(store, profile_id, quiet_days, *, now=None):
             "job_title": title,
             "company": company,
             "days_quiet": elapsed.days,
-            "reported_at": latest["timestamp"],
+            "reported_at": reported_at_value,
             "attribution": latest["attribution"],
             "verified": False,
             "email_subject": subject,
