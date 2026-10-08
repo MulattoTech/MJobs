@@ -3,13 +3,12 @@
   "issue": 180,
   "requirement_id": "MJ-REQ-179",
   "status": "PASS for this local regression; overall requirement remains PARTIAL",
-  "recorded_at_utc": "2026-10-08T07:10:54Z",
+  "recorded_at_utc": "2026-10-08T07:12:08Z",
   "branch": "codex/mj-req179-debug-package-privacy-20261008",
   "claim_id": "codex:req179-debug-package-privacy",
-  "base_commit_before_rebase": "691fcae2969ad1a8407588b34ddfd44fc294b147",
-  "tested_head_before_rebase": "691fcae2969ad1a8407588b34ddfd44fc294b147",
-  "base_tree_before_changes": "081aea2ede15eb85845375e61733573eb272500d",
-  "latest_main_observed_before_rebase": "17f0170841c2fa089e10b700deea11dbfd7e8167",
+  "base_commit": "3760eb6d05c6cc8c9d0e22bbdfa02e59ae8ee86d",
+  "validated_head": "6dcbe88121b76b28fc844decd9aa3dd4ecde3239",
+  "validated_tree": "5b66af70cf1afd9243c122bae64b8ae67267ca50",
   "scope": "One synthetic FIXTURE-mode Chromium regression through the existing mock ATS adapter failure handler and debug capture package writer. No production code changed.",
   "input_sha256": {
     "tests/browser/test_debug_capture_privacy.py": "ef703071a2a4bdef22fd67083733f4130102487f0e7b926defbdbf8d0fd29652",
@@ -20,6 +19,7 @@
   },
   "validation": {
     "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_debug_capture_privacy -v",
+    "recorded_at_utc": "2026-10-08T07:12:08Z",
     "result": "PASS: 1 test, 0 failures, 0 errors",
     "environment": "Windows; Python 3.12.10; Playwright 1.63.0; Chromium 153.0.8010.12 headless; isolated temporary SQLite database and local fictional mock ATS fixture server",
     "diff_check": "PASS: git diff --check",
@@ -28,12 +28,12 @@
   "assertions": [
     "FIXTURE-mode application flow reaches the existing browser failure handler and writes exactly metadata.json, dom.json, and screenshot.png in one capture package.",
     "Synthetic contact, token, profile name, form value, exception and failure canaries do not appear in metadata or DOM JSON; raw HTML is absent.",
-    "Fixture screenshots taken before and during capture show the canary regions were visually populated before capture; captured canary regions contain only solid black or white pixels, and input values are masked black.",
+    "Fixture screenshots taken before and during capture show the canary regions were visually populated before capture; captured canary regions contain only black or white pixels, and input values are masked black.",
     "URL path identifiers are redacted, current step and bounded retention metadata remain present, application state is REVIEW_REQUIRED, and the mock ATS has no submission receipt."
   ],
   "privacy": "All inputs and browser content were synthetic fixture data. The temporary database, baseline image and capture package were removed with the test temporary directory. No real browser profile, ATS, resume, credentials, or user data was accessed.",
   "limitations": [
     "This test covers the already-supported local mock ATS adapter only; no real ATS/browser adapter support is added or claimed.",
-    "Overall MJ-REQ-179 remains PARTIAL. The test was run before rebasing onto the then-current main; the required post-rebase focused rerun and final source hashes must be recorded before integration."
+    "Overall MJ-REQ-179 remains PARTIAL because there is no real ATS/browser adapter; hosted checks are not run by policy."
   ]
 }
