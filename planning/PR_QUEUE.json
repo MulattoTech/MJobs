@@ -1377,7 +1377,28 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-054-web-api-analytics",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "active_slice": {
+        "name": "Compare two integrity-validated cover-letter revisions in Documents history",
+        "issue": 199,
+        "requirement_id": "MJ-REQ-198",
+        "status": "ACTIVE",
+        "publication_state": "LOCAL_WORK_IN_PROGRESS",
+        "base_commit": "2c7e2f28dda14a4c9ebb31d7b4b18d5911b3e262",
+        "depends_on": [],
+        "parent_dependencies_preserved": [
+          "MJ-PR-053",
+          "MJ-PR-043"
+        ],
+        "owned_paths": [
+          "apps/web/src/document-history.tsx",
+          "apps/web/src/document-history.test.tsx",
+          "tests/browser/test_document_history.py",
+          "docs/evidence/2026-10-08-cover-letter-history-comparison.json"
+        ],
+        "acceptance": "Select two cover-letter revisions for the same application, load integrity/avoid-list validated previews from the existing application-documents endpoint, display a readable text difference, and disable comparison when either source is invalid or unavailable. Preserve downloads, hashes, immutable history, profile isolation and resume comparison.",
+        "rationale": "Read-only code/issue/spec audit confirmed the comparison increment needs only existing endpoints and data; it does not consume MJ-PR-053 or MJ-PR-043. The parent MJ-PR-054 remains QUEUED with its original dependencies intact; this slice does not promote the umbrella or change any denominator."
+      }
     },
     {
       "id": "MJ-PR-055",

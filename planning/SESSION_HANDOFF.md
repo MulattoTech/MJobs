@@ -1087,3 +1087,11 @@ Integration checkpoint: https://github.com/MulattoTech/MJobs/issues/517#issuecom
 - Validation on integrated source: `tests.integration.test_migration_graph` plus `tests.integration.test_resume_comparison` — 7 PASS, 0 failures/skips. A normal temporary SQLite `upgrade('head')` confirms one final Alembic head and expected schema. Migration recovery was 2 PASS / 2 PostgreSQL skips before integration.
 - PostgreSQL index runtime, Docker, destructive migration backup/restore, full suite, hosted checks/review NOT_RUN; external submission OFF.
 - Next: publish and verify main, release #167 claim, then select next dependency-ready issue. Current independent work: #116 parser correction and #96 reviewed technology-experience rewrite; both remain unintegrated pending their exact-base migration/browser verification.
+
+
+## 2026-10-08 active narrow slice — #199 / MJ-REQ-198 cover-letter revision comparison
+
+- An independent read-only issue/spec/API audit confirmed that the Documents history can compare cover-letter revisions through the existing application-documents API, which supplies validated previews. The library-only projection omits preview text and must not be diffed.
+- Queue carve-out: the UI comparison child slice has no technical dependency on MJ-PR-053 or MJ-PR-043; parent MJ-PR-054 stays QUEUED and retains both original dependencies. No umbrella completion or denominator change.
+- Scope: same-application selection of two valid cover-letter revisions, readable diff, and fail-closed behavior if preview integrity/avoid-list validation fails. Preserve immutable previews/downloads and existing resume comparison.
+- Base: `2c7e2f28dda14a4c9ebb31d7b4b18d5911b3e262`. Owned paths are recorded in the MJ-PR-054 `active_slice`.
