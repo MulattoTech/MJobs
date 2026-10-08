@@ -221,7 +221,86 @@ def generate_resume_page_fit_preview(store, profile_id, job_id, output_dir, prev
         discard_resume_page_fit_preview(output_dir, preview)
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None):
+def _resolved_role_lens(store, profile, job, profile_id, role_lens_id,
+                        expected_role_lens_version, eligible):
+    if role_lens_id is None and expected_role_lens_version is None:
+        return None
+    if role_lens_id is None or expected_role_lens_version is None:
+        raise PreparationError(
+            "ROLE_LENS_VERSION_INVALID",
+            "Select a supported role lens and its current version together",
+        )
+    from services.career_profile.role_lenses import RoleLensError, select_role_lens
+    try:
+        selection = select_role_lens(
+            store, profile_id, job.get("title"), role_lens_id=role_lens_id,
+            expected_role_lens_version=expected_role_lens_version,
+        )
+    except RoleLensError as error:
+        raise PreparationError(error.code, str(error)) from error
+
+    eligible_ids = {row["fact_id"] for row in eligible}
+    fact_ids = selection.get("fact_ids")
+    emphasized_fact_ids = selection.get("emphasized_fact_ids")
+    story_ids = selection.get("story_ids")
+    emphasized_story_ids = selection.get("emphasized_story_ids")
+    stories = selection.get("stories")
+    source_refs = selection.get("source_refs")
+    if (selection.get("profile_id") != profile_id
+            or selection.get("profile_version") != profile.get("version")
+            or not isinstance(fact_ids, list)
+            or len(set(fact_ids)) != len(fact_ids)
+            or not set(fact_ids).issubset(eligible_ids)
+            or not isinstance(emphasized_fact_ids, list)
+            or not set(emphasized_fact_ids).issubset(set(fact_ids))
+            or not isinstance(story_ids, list)
+            or len(set(story_ids)) != len(story_ids)
+            or not isinstance(emphasized_story_ids, list)
+            or not set(emphasized_story_ids).issubset(set(story_ids))
+            or not isinstance(stories, list)
+            or [row.get("story_id") for row in stories if isinstance(row, dict)] != story_ids
+            or not isinstance(source_refs, dict)
+            or [row.get("fact_id") for row in source_refs.get("facts", [])
+                if isinstance(row, dict)] != fact_ids
+            or [row.get("story_id") for row in source_refs.get("stories", [])
+                if isinstance(row, dict)] != story_ids):
+        raise PreparationError(
+            "ROLE_LENS_CONTEXT_STALE",
+            "Role-lens evidence changed; reload the profile and job before preparing documents",
+        )
+    lens = selection.get("lens")
+    if (not isinstance(lens, dict) or lens.get("id") != role_lens_id
+            or lens.get("version") != expected_role_lens_version
+            or not isinstance(lens.get("display_name"), str)
+            or not lens["display_name"].strip()):
+        raise PreparationError(
+            "ROLE_LENS_CONTEXT_STALE",
+            "Role-lens evidence changed; reload the profile and job before preparing documents",
+        )
+
+    return {
+        "schema_version": selection["schema_version"],
+        "id": lens["id"],
+        "version": lens["version"],
+        "display_name": lens["display_name"],
+        "description": lens.get("description"),
+        "selection_reason": selection.get("selection_reason"),
+        "profile_id": profile_id,
+        "profile_version": profile["version"],
+        "job_id": job["id"],
+        "job_fingerprint": tailor.target_fingerprint(job),
+        "fact_ids": list(fact_ids),
+        "emphasized_fact_ids": list(emphasized_fact_ids),
+        "story_ids": list(story_ids),
+        "emphasized_story_ids": list(emphasized_story_ids),
+        "source_refs": {
+            "facts": [dict(row) for row in source_refs["facts"]],
+            "stories": [dict(row) for row in source_refs["stories"]],
+        },
+    }
+
+
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
@@ -271,6 +350,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         job_attributes["approved_company_context"] = approved_company_context_for_job(
             connection, job_id, job["company_id"])
         job["attributes"] = job_attributes
+        role_lens = _resolved_role_lens(
+            store, profile, job, profile_id, role_lens_id,
+            expected_role_lens_version, eligible,
+        )
         try:
             require_route_review(connection, job_id, route_mode, route_id)
         except ValueError as error:
@@ -280,6 +363,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         route = route_plan["selected"][0]["preferred_route"]
         cover_letter_paragraphs, cover_letter_context = build_cover_letter(
             profile, job, profile["facts"], cover_letter_style, cover_letter_length)
+        if role_lens:
+            cover_letter_context["role_lens"] = role_lens
+            cover_letter_context["job_snapshot"]["role_lens"] = role_lens
         prior = connection.execute(select(m.applications).where(m.applications.c.job_id == job_id, m.applications.c.profile_id == profile_id).with_for_update()).mappings().one_or_none()
         if prior:
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
@@ -351,6 +437,23 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                     fact_id for fact_id in context['emphasized_fact_ids'] if fact_id in selected_fit_ids]
             context = context or {'mode': 'APPROVED_FACT_PAGE_FIT'}
             context['page_fit'] = page_fit
+        if role_lens:
+            rows_by_id = {row['fact_id']: row for row in ordered_rows}
+            lens_order = [fact_id for fact_id in role_lens['fact_ids'] if fact_id in rows_by_id]
+            ordered_rows = ([rows_by_id[fact_id] for fact_id in lens_order]
+                            + [row for row in ordered_rows if row['fact_id'] not in set(lens_order)])
+            included_ids = {row['fact_id'] for row in ordered_rows}
+            emphasized = list(dict.fromkeys([
+                *(fact_id for fact_id in emphasized if fact_id in included_ids),
+                *(fact_id for fact_id in role_lens['emphasized_fact_ids']
+                  if fact_id in included_ids),
+            ]))
+            role_lens['document_fact_ids'] = [row['fact_id'] for row in ordered_rows]
+            role_lens['document_emphasized_fact_ids'] = list(emphasized)
+            context = context or {'mode': 'ROLE_LENS_PRESENTATION'}
+            context['ordered_fact_ids'] = [row['fact_id'] for row in ordered_rows]
+            context['emphasized_fact_ids'] = emphasized
+            context['role_lens'] = role_lens
         resume_ids=[row['fact_id'] for row in ordered_rows]
         if include_resume_contact:
             context=context or {'mode':'APPROVED_CONTACT_HEADER'}
