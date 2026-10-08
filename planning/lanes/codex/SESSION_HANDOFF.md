@@ -1,3 +1,9 @@
+## 2026-10-08T06:53:07Z — #192 / MJ-REQ-191 assigned
+
+Active claim `codex/mj-req191-save-filters-20261008` / `.worktrees/codex-mj-req191-save-filters-20261008` based on `bce7866e87aa71b7658d7000e2e8b66452187254`. User action: save current Jobs controls (`q`, work location, source, sort) into a named profile-scoped saved search and restore after reload; verify connected results, profile isolation, malformed/cross-profile rejection, clearing selection, and no scheduling side effect. Tests pending. Parent queue dependencies MJ-PR-051 and MJ-PR-043 stay queued. Claim: https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693. External submission OFF.
+
+---
+
 ## 2026-10-08T06:50:23Z — #191 Newest-only sorting integrated PARTIAL
 
 Main/source checkpoint: `0bb8e5048b45bd8324e938b197e39a9242cdaa1f` tree `3cd995f118a3dfa2ee88dc5af3aee7ab542dd361`; pushed and synchronized. Evidence `docs/evidence/2026-10-08-job-sorting-newest.json`. Exact integrated API 3/3, TypeScript/Vite build, connected synthetic browser 1/1 PASS; frontend 94/94, validators and local delegated review PASS. Full Python discovery stopped after 600 seconds with `F` and `ss`, no traceback/count: PARTIAL_NOT_COMPLETE. PostgreSQL and hosted checks NOT_RUN. Issue remains OPEN/PARTIAL and parent dependencies remain unchanged. Claim released.

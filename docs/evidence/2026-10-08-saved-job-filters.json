@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-08T06:53:07Z",
+  "issue": 192,
+  "requirement": "MJ-REQ-191",
+  "result": "NOT_RUN",
+  "slice": "Persist and restore supported current Jobs filters",
+  "branch": "codex/mj-req191-save-filters-20261008",
+  "worktree": ".worktrees/codex/mj-req191-save-filters-20261008",
+  "base": {
+    "commit": "bce7866e87aa71b7658d7000e2e8b66452187254",
+    "tree": "973442af06d62f5104dcdd36cc4cca62b31c1ccc"
+  },
+  "acceptance": "Save q, work location, source and sort in a named active-profile saved search; restore controls and connected results after reload; prove profile isolation, malformed/cross-profile rejection, clearing selection and no scheduler side effect. Preserve semantic criteria.",
+  "validation": {
+    "result": "NOT_RUN",
+    "tests": [],
+    "limitations": [
+      "Implementation and verification pending; no PASS claimed.",
+      "Scheduler cadence and broader MJ-REQ-191 acceptance are outside this slice.",
+      "Parent MJ-PR-052 remains QUEUED with MJ-PR-051 and MJ-PR-043 dependencies unchanged."
+    ]
+  },
+  "safety": {
+    "operation_mode": "FIXTURE for browser tests",
+    "external_requests": "NONE expected",
+    "external_submission": "OFF"
+  }
+}

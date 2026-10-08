@@ -402,6 +402,33 @@
       "head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
       "integrated_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
       "integrated_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361"
+    },
+    {
+      "issue": 192,
+      "requirement_id": "MJ-REQ-191",
+      "status": "ACTIVE_LOCAL_CLAIMED",
+      "priority": 5,
+      "target_area": "services/discovery/search_profiles.py; apps/api/main.py; apps/web/src/main.tsx",
+      "depends_on": [],
+      "parent_dependencies_preserved": [
+        "MJ-PR-051",
+        "MJ-PR-043"
+      ],
+      "branch": "codex/mj-req191-save-filters-20261008",
+      "worktree": ".worktrees/codex-mj-req191-save-filters-20261008",
+      "base": "bce7866e87aa71b7658d7000e2e8b66452187254",
+      "owned_paths": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/discovery/search_profiles.py",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "docs/evidence/2026-10-08-saved-job-filters.json"
+      ],
+      "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+      "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
+      "scope_complete": false,
+      "note": "User can save the currently supported Jobs controls (q, work location, source and sort) with a named saved search for the active career profile; after reload, selecting it restores those controls and connected results. Verify profile isolation, malformed/cross-profile rejection, clear selection, and no discovery scheduling side effect. Preserve semantic search criteria. Scheduler cadence and broader MJ-REQ-191 are outside this child."
     }
   ],
   "generated_at": "2026-10-08T06:27:03Z"

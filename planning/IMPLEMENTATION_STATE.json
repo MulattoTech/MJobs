@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T06:50:23Z",
+  "generated_at": "2026-10-08T06:53:07Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-190-NEWEST-SORT-20261008",
+  "current_milestone": "MJ-REQ-191-SAVED-JOB-FILTERS-CLAIMED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -146,7 +146,8 @@
     "MJ-REQ-177",
     "MJ-REQ-115",
     "MJ-REQ-274",
-    "MJ-REQ-104"
+    "MJ-REQ-104",
+    "MJ-REQ-191"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -10087,17 +10088,48 @@
         "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
         "issue_state_after_readback": "OPEN"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-191-SAVED-JOB-FILTERS-CLAIMED-20261008",
+      "timestamp": "2026-10-08T06:53:07Z",
+      "current_phase": "MJ_REQ_191_SAVED_JOB_FILTERS_CLAIMED",
+      "completed_steps": [
+        "Reconciled live issue #192 and area specification; confirmed issue OPEN with no prior comments/claim and no existing branch/worktree or active local overlap.",
+        "Carved a narrow current-filter save/restore slice; preserved the queued MJ-PR-052 dependencies MJ-PR-051 and MJ-PR-043.",
+        "Created an isolated branch/worktree from synchronized main and recorded a unique local child claim plus GitHub issue claim."
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [],
+      "tests_remaining": [
+        "User can save the currently supported Jobs controls (q, work location, source and sort) with a named saved search for the active career profile; after reload, selecting it restores those controls and connected results. Verify profile isolation, malformed/cross-profile rejection, clear selection, and no discovery scheduling side effect. Preserve semantic search criteria. Scheduler cadence and broader MJ-REQ-191 are outside this child.",
+        "No tests have run; implementation and readback evidence are pending."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "The parent MJ-PR-052 remains QUEUED; this child must not imply PR-051/PR-043 completion.",
+        "No scheduler cadence, external provider call, or application submission is included."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bce7866e87aa71b7658d7000e2e8b66452187254",
+        "tree": "973442af06d62f5104dcdd36cc4cca62b31c1ccc",
+        "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
+        "issue_state": "OPEN",
+        "at_utc": "2026-10-08T06:53:07Z"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_190_NEWEST_ONLY_INTEGRATED_PARTIAL",
+  "current_phase": "MJ_REQ_191_SAVED_JOB_FILTERS_CLAIMED",
   "last_safe_checkpoint": {
-    "git_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
-    "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
-    "source_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
-    "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
-    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
-    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
-    "issue_state_after_readback": "OPEN"
+    "git_commit": "bce7866e87aa71b7658d7000e2e8b66452187254",
+    "tree": "973442af06d62f5104dcdd36cc4cca62b31c1ccc",
+    "evidence_path": "docs/evidence/2026-10-08-saved-job-filters.json",
+    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
+    "issue_state": "OPEN",
+    "at_utc": "2026-10-08T06:53:07Z"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10423,28 +10455,24 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 191,
-    "requirement_id": "MJ-REQ-190",
-    "title": "Job Sorting",
-    "state": "INTEGRATED PARTIAL; GitHub issue OPEN/PARTIAL",
-    "branch": "codex/mj-req190-newest-20261008",
-    "worktree": ".worktrees/codex-mj-req190-newest-20261008",
-    "base_commit": "d0f594fc77e6f70e441738992ce70889034b22f1",
-    "source_commit": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
-    "integrated_main": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
-    "integrated_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+    "issue": 192,
+    "requirement_id": "MJ-REQ-191",
+    "title": "Saved Searches",
+    "state": "ACTIVE / CLAIMED — save and restore supported Jobs controls; implementation not yet verified",
+    "branch": "codex/mj-req191-save-filters-20261008",
+    "worktree": ".worktrees/codex-mj-req191-save-filters-20261008",
+    "base_commit": "bce7866e87aa71b7658d7000e2e8b66452187254",
     "owned_paths": [
       "apps/api/main.py",
       "apps/web/src/main.tsx",
-      "packages/persistence/store.py",
-      "tests/integration/test_job_sorting.py",
-      "tests/browser/test_job_sorting.py",
-      "docs/evidence/2026-10-08-job-sorting-newest.json"
+      "services/discovery/search_profiles.py",
+      "tests/integration/test_saved_search_filters.py",
+      "tests/browser/test_saved_search_filters.py",
+      "docs/evidence/2026-10-08-saved-job-filters.json"
     ],
-    "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
-    "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
-    "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
-    "next_action": "Reconcile current dependencies/claims, then select the next independent user-visible slice. Preserve MJ-PR-052 dependencies and keep external submission OFF."
+    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693",
+    "acceptance": "User can save the currently supported Jobs controls (q, work location, source and sort) with a named saved search for the active career profile; after reload, selecting it restores those controls and connected results. Verify profile isolation, malformed/cross-profile rejection, clear selection, and no discovery scheduling side effect. Preserve semantic search criteria. Scheduler cadence and broader MJ-REQ-191 are outside this child.",
+    "next_action": "Implement API/service/UI/persistence readback and focused integration/browser tests. Keep the broad scheduler optionality and MJ-PR-052 dependencies unchanged; record failures honestly."
   },
   "historical_control_snapshots": [
     {

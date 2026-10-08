@@ -1,3 +1,11 @@
+## 2026-10-08T06:53:07Z — issue #192 / MJ-REQ-191 saved Jobs filters assigned
+
+Issue #192 is OPEN, unassigned and without existing comments before this claim. Branch `codex/mj-req191-save-filters-20261008` and worktree `.worktrees/codex-mj-req191-save-filters-20261008` are based on synchronized main `bce7866e87aa71b7658d7000e2e8b66452187254`. Local child claim key `codex:req191-saved-filters`; GitHub claim: https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693.
+
+Narrow acceptance: save current supported Jobs controls (`q`, work location, source and sort) as a named saved search for the active career profile; after reload, selecting it restores the controls and the connected results. Verify malformed/cross-profile rejection, profile isolation, clearing selection and no discovery scheduling side effect. Preserve current semantic search criteria. Scheduler cadence is outside this slice. No tests have run yet. Parent `MJ-PR-052` remains QUEUED with `MJ-PR-051` and `MJ-PR-043` dependencies unchanged. External submission OFF.
+
+---
+
 ## 2026-10-08T06:50:23Z — issue #191 / MJ-REQ-190 Newest-only sort integrated PARTIAL
 
 Source commit `0bb8e5048b45bd8324e938b197e39a9242cdaa1f` (tree `3cd995f118a3dfa2ee88dc5af3aee7ab542dd361`) was non-force fast-forwarded from `d0f594fc77e6f70e441738992ce70889034b22f1` and pushed to GitHub main. Evidence: `docs/evidence/2026-10-08-job-sorting-newest.json`. The user can select Newest in Jobs; ordering uses persisted effective posted time, first-seen fallback, unknown dates last, stable job-ID ties, and limits after sorting. Best Match and Title remain unchanged. The candidate branch/worktree is preserved as a clean historical pointer.

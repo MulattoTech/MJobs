@@ -1394,10 +1394,10 @@
       "draft_until_verified": true,
       "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
       "active_slice": {
-        "name": "Add deterministic Newest ordering to Jobs results",
-        "issue": 191,
-        "requirement_id": "MJ-REQ-190",
-        "status": "INTEGRATED_PARTIAL",
+        "name": "Save and restore supported Jobs filters in a profile-scoped saved search",
+        "issue": 192,
+        "requirement_id": "MJ-REQ-191",
+        "status": "ACTIVE_LOCAL_CLAIMED",
         "depends_on": [],
         "parent_dependencies_preserved": [
           "MJ-PR-051",
@@ -1406,35 +1406,62 @@
         "owned_paths": [
           "apps/api/main.py",
           "apps/web/src/main.tsx",
-          "packages/persistence/store.py",
-          "tests/integration/test_job_sorting.py",
-          "tests/browser/test_job_sorting.py",
-          "docs/evidence/2026-10-08-job-sorting-newest.json"
+          "services/discovery/search_profiles.py",
+          "tests/integration/test_saved_search_filters.py",
+          "tests/browser/test_saved_search_filters.py",
+          "docs/evidence/2026-10-08-saved-job-filters.json"
         ],
-        "acceptance": "Newest uses persisted effective posted timestamp (reported_posted_at then first_seen_at fallback), unknown/unparseable last, stable job-ID ties, and applies limit after order. Browser proves connected order after reload; Best Match and Title unchanged. This bounded child does not complete Application Priority, Salary or MJ-REQ-190 and does not promote the parent.",
-        "rationale": "Locally verified and non-force fast-forward integrated; broad suite incomplete and hosted/PostgreSQL remain unavailable/not run.",
-        "branch": "codex/mj-req190-newest-20261008",
-        "worktree": ".worktrees/codex-mj-req190-newest-20261008",
-        "base": "d0f594fc77e6f70e441738992ce70889034b22f1",
-        "head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
-        "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
-        "integration_method": "NON_FORCE_FAST_FORWARD",
-        "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
-        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467",
-        "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
-        "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
-        "issue_state": "OPEN/PARTIAL",
-        "validation": {
-          "api": "PASS 3/3 on integrated tree",
-          "browser": "PASS 1/1 on integrated tree after build",
-          "frontend": "PASS 94/94 on candidate",
-          "build": "PASS",
-          "full_python_discovery": "PARTIAL_NOT_COMPLETE: 600s, F ss observed, no traceback/count",
-          "hosted": "NOT_RUN_BY_USER_POLICY",
-          "postgresql": "NOT_RUN",
-          "review": "LOCAL_DELEGATED_REVIEW PASS"
+        "acceptance": "User can save the currently supported Jobs controls (q, work location, source and sort) with a named saved search for the active career profile; after reload, selecting it restores those controls and connected results. Verify profile isolation, malformed/cross-profile rejection, clear selection, and no discovery scheduling side effect. Preserve semantic search criteria. Scheduler cadence and broader MJ-REQ-191 are outside this child.",
+        "rationale": "Existing profile-scoped saved-search persistence and Jobs controls are already present; this narrow user action stores/restores current controls without claiming the queued broader filter-sidebar/scheduler bundle. Parent dependencies remain unchanged.",
+        "branch": "codex/mj-req191-save-filters-20261008",
+        "worktree": ".worktrees/codex-mj-req191-save-filters-20261008",
+        "base": "bce7866e87aa71b7658d7000e2e8b66452187254",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693"
+      },
+      "slice_history": [
+        {
+          "name": "Add deterministic Newest ordering to Jobs results",
+          "issue": 191,
+          "requirement_id": "MJ-REQ-190",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-051",
+            "MJ-PR-043"
+          ],
+          "owned_paths": [
+            "apps/api/main.py",
+            "apps/web/src/main.tsx",
+            "packages/persistence/store.py",
+            "tests/integration/test_job_sorting.py",
+            "tests/browser/test_job_sorting.py",
+            "docs/evidence/2026-10-08-job-sorting-newest.json"
+          ],
+          "acceptance": "Newest uses persisted effective posted timestamp (reported_posted_at then first_seen_at fallback), unknown/unparseable last, stable job-ID ties, and applies limit after order. Browser proves connected order after reload; Best Match and Title unchanged. This bounded child does not complete Application Priority, Salary or MJ-REQ-190 and does not promote the parent.",
+          "rationale": "Locally verified and non-force fast-forward integrated; broad suite incomplete and hosted/PostgreSQL remain unavailable/not run.",
+          "branch": "codex/mj-req190-newest-20261008",
+          "worktree": ".worktrees/codex-mj-req190-newest-20261008",
+          "base": "d0f594fc77e6f70e441738992ce70889034b22f1",
+          "head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
+          "tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "evidence_path": "docs/evidence/2026-10-08-job-sorting-newest.json",
+          "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6053825467",
+          "integration_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054211064",
+          "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6054214275",
+          "issue_state": "OPEN/PARTIAL",
+          "validation": {
+            "api": "PASS 3/3 on integrated tree",
+            "browser": "PASS 1/1 on integrated tree after build",
+            "frontend": "PASS 94/94 on candidate",
+            "build": "PASS",
+            "full_python_discovery": "PARTIAL_NOT_COMPLETE: 600s, F ss observed, no traceback/count",
+            "hosted": "NOT_RUN_BY_USER_POLICY",
+            "postgresql": "NOT_RUN",
+            "review": "LOCAL_DELEGATED_REVIEW PASS"
+          }
         }
-      }
+      ]
     },
     {
       "id": "MJ-PR-053",
@@ -3946,5 +3973,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T06:50:23Z"
+  "generated_at": "2026-10-08T06:53:07Z"
 }

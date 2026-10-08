@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T06:50:23Z",
+  "timestamp": "2026-10-08T06:53:07Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1632,7 +1632,7 @@
       "requirement_id": "MJ-REQ-191",
       "result": "NOT_RUN",
       "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "note": "Issue #192 narrow save/restore-current-Jobs-filters slice is claimed on an isolated branch; implementation and verification are pending. Overall requirement remains NOT_RUN until evidence is recorded; scheduler and broader acceptance are not claimed."
     },
     {
       "requirement_id": "MJ-REQ-192",
