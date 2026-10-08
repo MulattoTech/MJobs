@@ -7,13 +7,13 @@
   "branch": "codex/mj-req198-cover-letter-comparison-20261008",
   "base_commit": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
   "source_inputs": {
-    "apps/web/src/document-history.tsx": "1f5161bc674647cff1ac9ac0c59669b678b5a3d82b4b8745aa703aa0aff6a08b",
+    "apps/web/src/document-history.tsx": "ca88c12c12dc49c60e5e1593c392bf707c3883f0eb29b6577400468c593a750d",
     "apps/web/src/document-history.test.tsx": "4e178dae5268e428ebddd2ad92231435cb70c6734e455c9a08ac651b57a0f485",
-    "tests/browser/test_document_history.py": "b177e9db6a889750642f865e08ee156a298e773a370265f17c09051a67ffa852"
+    "tests/browser/test_document_history.py": "1ecb5cf9f643accd95dd6ec2e4f225d1ec76d882787c5e316c4cb22ca8b13cdb"
   },
-  "combined_source_sha256": "731fbd8ce4fd441a9eb525c86c4a94a50316f34694d399f89f1565067e31850d",
-  "working_diff_sha256_before_evidence": "1974eddc949e768197feceebe83f214dc9a49e6f524227496662ee7a374327a3",
-  "verified_at_utc": "2026-10-08T05:00:59Z",
+  "combined_source_sha256": "4031da8ca2dee73bf8fff92c017cb5bcb0a33f221b17dce1c495c2bd3f248ca2",
+  "working_diff_sha256_before_evidence": "88dce113c6e34342cd442f4a221f49338ff78909c68000fd110818e33e49720a",
+  "verified_at_utc": "2026-10-08T05:04:42Z",
   "environment": {
     "os": "Windows PowerShell",
     "node": "v25.9.0",
@@ -45,7 +45,7 @@
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v",
       "result": "PASS",
-      "details": "2 connected Chromium browser tests passed, covering same-application options, validated revision previews, other-application exclusion, endpoint read failure, corrupted and missing previews, and unchanged prior TXT download bytes."
+      "details": "2 connected Chromium browser tests passed, covering same-application options, validated revision previews, application switching while a comparison is displayed, avoid-list-blocked previews, endpoint read failure, corrupted and missing previews, and unchanged prior TXT download bytes."
     },
     {
       "command": "git diff --check",
@@ -59,11 +59,20 @@
     "No file checksum, generation metadata, or unchecked client-side text is used as comparison content; the endpoint constructs preview text after its existing checksum, assertion, format, and avoid-list validation.",
     "Cover-letter revisions remain immutable and existing downloads and resume comparison behavior are unchanged.",
     "An in-flight comparison response is ignored if the document history switches to another application or a newer request supersedes it.",
+    "Comparison component state is remounted when profile/application scope changes, clearing previously displayed text.",
     "External application submission remains off."
   ],
   "not_run": {
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "full_python_suite": "NOT_RUN",
     "external_submission": "NOT_APPLICABLE; no submission action is part of this slice."
+  },
+  "follow_up_review": {
+    "privacy_display_regression": "CONFIRMED before follow-up fix: after comparing application A, switching to application B left one comparison result region rendered until another comparison ran.",
+    "fix": "Key the comparison component by its profile/application scope so React resets its local selection, error, busy state, and rendered text on scope change.",
+    "negative_controls": [
+      "The application-switch browser assertion failed against the prior UI because one stale result region remained; after the scope key fix it passed for A-to-B and B-to-A switches.",
+      "The browser test adds current-profile avoid term 'Application'; the existing endpoint returns avoid_list_error, comparison refuses to render, then succeeds after the synthetic preference is cleared."
+    ]
   }
 }

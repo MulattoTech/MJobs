@@ -44,6 +44,10 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
             other_application_id = prepare(store, other_job['id'], 'fixture', root)
             other_letter = next(row for row in application_documents(store, other_application_id, root)
                                 if row['kind'] == 'cover-letter')
+            prepare(store, other_job['id'], 'fixture', root, cover_letter_style='warm', cover_letter_length='detailed')
+            other_revisions = [row for row in application_documents(store, other_application_id, root)
+                               if row['kind'] == 'cover-letter']
+            other_second_letter = next(row for row in other_revisions if row['version'] == 2)
             app = create_app(store, 'http://127.0.0.1:1', root, 'redis://127.0.0.1:1/0', operation_mode='FIXTURE')
             sock = bound_browser_socket()
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
@@ -86,6 +90,39 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                     with page.expect_download() as event:
                         page.get_by_role('region',name='cover-letter version 1',exact=True).get_by_role('link',name='Download TXT',exact=True).click()
                     self.assertEqual(Path(event.value.path()).read_bytes(),first_text)
+
+                    page.locator('.job-card').filter(has_text=other_job['title']).first.click()
+                    other_result=page.get_by_role('region',name='Cover-letter comparison result',exact=True)
+                    expect(other_result).to_have_count(0)
+                    self.assertNotIn(first_letter['preview_text'],page.locator('body').inner_text())
+                    expect(page.get_by_label('Earlier cover-letter version',exact=True).locator('option')).to_have_count(2)
+                    page.get_by_label('Earlier cover-letter version',exact=True).select_option(other_letter['id'])
+                    page.get_by_label('Later cover-letter version',exact=True).select_option(other_second_letter['id'])
+                    page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
+                    expect(other_result).to_contain_text(other_letter['preview_text'])
+                    expect(other_result).to_contain_text(other_second_letter['preview_text'])
+                    page.locator('.job-card').filter(has_text=first_job['title']).first.click()
+                    result=page.get_by_role('region',name='Cover-letter comparison result',exact=True)
+                    expect(result).to_have_count(0)
+                    self.assertNotIn(other_letter['preview_text'],page.locator('body').inner_text())
+                    page.get_by_label('Earlier cover-letter version',exact=True).select_option(first_letter['id'])
+                    page.get_by_label('Later cover-letter version',exact=True).select_option(second_letter['id'])
+                    page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
+                    expect(result).to_contain_text(first_letter['preview_text'])
+
+                    current_profile=store.profile('fixture')
+                    current_profile['preferences']={**current_profile.get('preferences',{}),'avoid_terms':['Application']}
+                    store.save_profile(current_profile)
+                    validated_history=context.request.get(f'{origin}/profiles/fixture/applications/{application_id}/documents').json()['documents']
+                    self.assertTrue(next(row for row in validated_history if row['id']==second_letter['id'])['avoid_list_error'])
+                    page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
+                    expect(page.get_by_role('alert')).to_contain_text('Cover-letter validation failed')
+                    expect(result).to_have_count(0)
+                    current_profile=store.profile('fixture')
+                    current_profile['preferences']={**current_profile.get('preferences',{}),'avoid_terms':[]}
+                    store.save_profile(current_profile)
+                    page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
+                    expect(result).to_contain_text(first_letter['preview_text'])
 
                     endpoint=f'**/profiles/fixture/applications/{application_id}/documents'
                     page.route(endpoint,lambda route: route.fulfill(status=503,content_type='application/json',body='{"detail":"history read unavailable"}'))
