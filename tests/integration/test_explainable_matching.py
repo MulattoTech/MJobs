@@ -62,6 +62,36 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertIn("does not state", requirements[0]["explanation"].lower())
         self.assertEqual(match["missing"], ["Windows Server"])
 
+    def test_manual_capture_section_strengths_survive_reopen_and_explain_match(self):
+        description = (
+            "Required Qualifications:\nWindows Server\n"
+            "Preferred Qualifications:\nActive Directory"
+        )
+        captured = capture_manual_job(self.store, {
+            "request_id": "qualification-section-reopen-test",
+            "title": "Systems Administrator", "company": "Example Infrastructure",
+            "description": description,
+            "reference_url": "https://jobs.example.invalid/qualification-sections/1",
+            "profile_id": "fixture",
+        })["job"]
+        recalculate(self.store, "fixture")
+        self.store.engine.dispose()
+
+        reopened = Store(self.store.url)
+        try:
+            job = reopened.job(captured["id"], profile_id="fixture")
+            self.assertEqual(
+                job["attributes"]["required_skills"], ["Windows Server"]
+            )
+            self.assertEqual(job["attributes"]["preferred_skills"], ["Active Directory"])
+            requirements = {row["skill"]: row for row in job["match"]["components"]["requirements"]}
+            self.assertEqual(requirements["Windows Server"]["strength"], "REQUIRED")
+            self.assertEqual(requirements["Active Directory"]["strength"], "PREFERRED")
+            self.assertIn("approved career fact", requirements["Active Directory"]["explanation"].lower())
+            self.assertIn("no approved career fact", requirements["Windows Server"]["explanation"].lower())
+        finally:
+            reopened.engine.dispose()
+
     def test_manual_capture_persists_certification_strengths_for_reloaded_job(self):
         captured = capture_manual_job(self.store, {
             "request_id": "certification-strength-test", "title": "Systems Administrator",

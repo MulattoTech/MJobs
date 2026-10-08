@@ -70,6 +70,43 @@ class RequirementParserTests(unittest.TestCase):
             {"WINDOWS_SERVER": "REQUIRED", "ACTIVE_DIRECTORY": "UNKNOWN"},
         )
 
+    def test_qualification_section_headings_scope_unqualified_skill_bullets(self):
+        description = (
+            "Required Qualifications:\nWindows Server\nActive Directory\n\n"
+            "Preferred Qualifications:\nPowerShell\nPython"
+        )
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"WINDOWS_SERVER": "REQUIRED", "ACTIVE_DIRECTORY": "REQUIRED",
+             "POWERSHELL": "PREFERRED", "PYTHON": "PREFERRED"},
+        )
+
+    def test_qualification_heading_scope_stops_at_next_heading_and_unknown_heading(self):
+        description = (
+            "Required Qualifications\nWindows Server\n"
+            "Preferred Qualifications\nPowerShell\n"
+            "Additional Information\nPython"
+        )
+        rows = parse_skill_requirements(description, extract_skill_mentions(description))
+        self.assertEqual(
+            {row["id"]: row["strength"] for row in rows},
+            {"WINDOWS_SERVER": "REQUIRED", "POWERSHELL": "PREFERRED",
+             "PYTHON": "UNKNOWN"},
+        )
+
+    def test_heading_inference_fails_closed_for_unlabelled_conflicting_and_inline_text(self):
+        descriptions = (
+            ("Windows Server\nPowerShell", {"WINDOWS_SERVER": "UNKNOWN", "POWERSHELL": "UNKNOWN"}),
+            ("Required Qualifications:\nWindows Server is preferred", {"WINDOWS_SERVER": "UNKNOWN"}),
+            ("The role includes a Required Qualifications heading and Windows Server.",
+             {"WINDOWS_SERVER": "UNKNOWN"}),
+        )
+        for description, expected in descriptions:
+            with self.subTest(description=description):
+                rows = parse_skill_requirements(description, extract_skill_mentions(description))
+                self.assertEqual({row["id"]: row["strength"] for row in rows}, expected)
+
     def test_individually_qualified_comma_list_stays_per_skill(self):
         for description, expected in (
             ("Windows Server required, Active Directory preferred.",

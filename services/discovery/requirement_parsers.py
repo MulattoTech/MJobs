@@ -123,6 +123,9 @@ def _skill_cue_records(value):
     records = []
     for strength, pattern in _SKILL_STRENGTH_PATTERNS:
         for match in pattern.finditer(value):
+            # A prose reference to a section label is not a qualification cue.
+            if re.match(r"\s+qualifications\b", value[match.end():], re.I):
+                continue
             prefix = value[max(0, match.start() - 50):match.start()]
             suffix = value[match.end():match.end() + 12]
             is_negated = bool(re.search(
@@ -192,12 +195,62 @@ def _skill_clause_rows(clause, occurrences):
     return per_id
 
 
+_QUALIFICATION_HEADINGS = {
+    "required qualifications": "REQUIRED",
+    "minimum qualifications": "REQUIRED",
+    "basic qualifications": "REQUIRED",
+    "preferred qualifications": "PREFERRED",
+    "desired qualifications": "PREFERRED",
+}
+
+
+def _qualification_sections(text, occurrences):
+    """Return recognized qualification scopes, ending at every standalone heading."""
+    headings = []
+    for match in re.finditer(r"(?m)^[^\r\n]*", text):
+        raw = match.group(0).strip()
+        if not raw:
+            continue
+        markdown = bool(re.match(r"^#{1,6}\s+", raw))
+        title = re.sub(r"^#{1,6}\s+", "", raw).strip()
+        title = re.sub(r"^(?:\*\*|__)(.*?)(?:\*\*|__)$", r"\1", title)
+        title = title.rstrip(":").strip()
+        strength = _QUALIFICATION_HEADINGS.get(title.casefold())
+        contains_skill = any(
+            occurrence["start"] < match.end() and occurrence["end"] > match.start()
+            for occurrence in occurrences
+        )
+        title_words = title.split()
+        title_case_heading = (
+            2 <= len(title_words) <= 8
+            and not re.search(r"[.!?]$", title)
+            and all(word[0].isupper() or word.casefold() in {"and", "of", "for", "to"}
+                    for word in title_words if word)
+        )
+        explicit_heading = markdown or raw.endswith(":")
+        if strength is not None or (not contains_skill and (explicit_heading or title_case_heading)):
+            headings.append((match.start(), match.end(), strength))
+
+    sections = []
+    for index, (start, end, strength) in enumerate(headings):
+        boundary = headings[index + 1][0] if index + 1 < len(headings) else len(text)
+        if strength is not None and end <= boundary:
+            sections.append((end, boundary, strength))
+    return sections
+
+
+def _section_strength_at(sections, position):
+    return next((strength for start, end, strength in sections
+                 if start <= position < end), None)
+
+
 def parse_skill_requirements(text, recognized_skills):
     """Classify detected taxonomy skills only when nearby wording is unambiguous."""
     value = str(text or "")
     occurrences = _skill_occurrences(value, recognized_skills)
     if not occurrences:
         return []
+    sections = _qualification_sections(value, occurrences)
     boundaries = [match.start() for match in re.finditer(r"[.!?;\n]", value)
                   if not any(row["start"] <= match.start() < row["end"]
                              for row in occurrences)]
@@ -214,8 +267,22 @@ def parse_skill_requirements(text, recognized_skills):
             continue
         relative = [{**row, "start": row["start"] - start,
                      "end": row["end"] - start} for row in local_occurrences]
-        for identifier, strengths in _skill_clause_rows(clause, relative).items():
-            strengths_by_id.setdefault(identifier, []).extend(strengths)
+        clause_strengths = _skill_clause_rows(clause, relative)
+        indices = {}
+        cue_present = bool(_skill_cue_records(clause))
+        for occurrence in local_occurrences:
+            identifier = occurrence["id"]
+            index = indices.get(identifier, 0)
+            indices[identifier] = index + 1
+            local_strength = clause_strengths.get(identifier, ["UNKNOWN"] * indices[identifier])
+            strength = local_strength[index] if index < len(local_strength) else "UNKNOWN"
+            section_strength = _section_strength_at(sections, occurrence["start"])
+            if section_strength is not None:
+                if not cue_present:
+                    strength = section_strength
+                elif strength != section_strength:
+                    strength = "UNKNOWN"
+            strengths_by_id.setdefault(identifier, []).append(strength)
     rows = []
     for identifier in dict.fromkeys(row["id"] for row in occurrences):
         strengths = strengths_by_id.get(identifier, ["UNKNOWN"])
