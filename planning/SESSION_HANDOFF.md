@@ -1,11 +1,11 @@
 # MJobs session handoff — 2026-10-08 17:02Z
 
-Current local main: `d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88` (tree `d07d273c49f330b1573f0b032a73d9749224fc8b`); `origin/main` remains `22f2ca4e007f14b5fb44bd21eae3f0ab6333eefc` pending tracker checkpoint and ordinary non-force synchronization. The Codex integration lock is live. Preserve Antigravity #302 and Ollama #318 claims. GitHub Actions disabled; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.
+Current local/origin/GitHub main: `88f408c57a5fd09ca1b4f5da15fcd28640bfe012` (source commit `d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88`, tree `d07d273c49f330b1573f0b032a73d9749224fc8b`); synchronized by ordinary non-force fast-forward. The Codex integration lock is live. Preserve Antigravity #302 and Ollama #318 claims. GitHub Actions disabled; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.
 
 ## Accepted feature checkpoint
 
 - #62 / MJ-REQ-061 now follows bounded same-origin sitemap hints and conventional `/sitemap.xml`, parses bounded urlsets/indexes, corroborates career pages before normal feed discovery, and retains existing fallbacks. Connected synthetic browser discovery displayed the imported job and source after reload. Evidence: `docs/evidence/2026-10-08-career-page-sitemap-discovery.json`. Focused Python discovery: 49/49 PASS; connected browser: 1/1 PASS; compilation and diff checks PASS. The broad original requirement remains PARTIAL; real employer coverage and PostgreSQL are unverified.
-- Four Rogue Squadron source/test commits are integrated locally; all four claims are released. Root-owned source and tracker checkpoint is awaiting remote synchronization.
+- Four Rogue Squadron source/test commits are integrated locally; all four claims are released. Root-owned source and tracker checkpoint is synchronized to GitHub main at `88f408c57a5fd09ca1b4f5da15fcd28640bfe012`; issue receipt posted.
 
 ## Star Wars squad staffing
 

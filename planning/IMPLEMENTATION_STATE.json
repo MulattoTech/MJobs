@@ -11983,7 +11983,7 @@
         "branch": "main",
         "issue": "#62 / MJ-REQ-061 same-origin sitemap career discovery",
         "evidence_path": "docs/evidence/2026-10-08-career-page-sitemap-discovery.json",
-        "note": "The exact product source passed 49 focused Python discovery tests, connected synthetic Chromium 1/1, py_compile and diff check. Broad requirement remains PARTIAL; remote synchronization pending."
+        "note": "The exact product source passed 49 focused Python discovery tests, connected synthetic Chromium 1/1, py_compile and diff check. Tracker/dashboard validators pass. Local, origin and GitHub main synchronize at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. Broad requirement remains PARTIAL."
       }
     }
   ],
@@ -11994,7 +11994,7 @@
     "branch": "main",
     "issue": "#62 / MJ-REQ-061 same-origin sitemap career discovery",
     "evidence_path": "docs/evidence/2026-10-08-career-page-sitemap-discovery.json",
-    "note": "The exact product source passed 49 focused Python discovery tests, connected synthetic Chromium 1/1, py_compile and diff check. Broad requirement remains PARTIAL; remote synchronization pending."
+    "note": "The exact product source passed 49 focused Python discovery tests, connected synthetic Chromium 1/1, py_compile and diff check. Tracker/dashboard validators pass. Local, origin and GitHub main synchronize at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. Broad requirement remains PARTIAL."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13519,5 +13519,5 @@
   },
   "updated_at": "2026-10-08T17:02:26Z",
   "current_verified_local_state": "Local main is d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88 (tree d07d273c49f330b1573f0b032a73d9749224fc8b); #62/MJ-REQ-061 now reads same-origin sitemap hints and bounded conventional /sitemap.xml, accepts only corroborated careers pages, preserves safe route fallback, and imports a synthetic employer job visible after UI reload. 49 focused Python discovery tests, connected synthetic Chromium, py_compile and diff check PASS. Evidence: docs/evidence/2026-10-08-career-page-sitemap-discovery.json. Requirement PARTIAL.",
-  "current_verified_github_state": "origin/main is 22f2ca4e007f14b5fb44bd21eae3f0ab6333eefc; #62 source and tracker checkpoint are local and awaiting ordinary non-force synchronization. Actions remain disabled, main unprotected, hosted checks NOT_RUN_BY_USER_POLICY."
+  "current_verified_github_state": "Local main, origin/main and GitHub main are synchronized at 88f408c57a5fd09ca1b4f5da15fcd28640bfe012. #62 issue receipt posted with exact evidence and checks; Actions disabled, hosted checks NOT_RUN_BY_USER_POLICY, external application submission OFF."
 }
