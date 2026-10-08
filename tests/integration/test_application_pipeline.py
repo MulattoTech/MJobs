@@ -240,6 +240,12 @@ class ApplicationStepTraceTests(unittest.TestCase):
                 private_values.extend(row["text"] for row in PROFILE.get("answers", []))
                 self.assertTrue(all(value not in serialized for value in private_values if value),
                                 "attempt trace must not echo candidate answer or contact values")
+                with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                           operation_mode="FIXTURE")) as client:
+                    response = client.get(
+                        f"/profiles/fixture/applications/{application_id}")
+                    self.assertEqual(response.status_code, 200, response.text)
+                    self.assertEqual(response.json()["attempts"][0]["steps"], expected)
                 receipt = origin + "/ats/receipts/" + application_id
                 self.assertEqual(__import__("httpx").get(receipt).json()["submission_count"], 1)
             finally:

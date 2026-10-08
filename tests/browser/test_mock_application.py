@@ -80,7 +80,7 @@ class MockApplicationTests(unittest.TestCase):
             metadata_path = captures[0]
             metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
             dom_path = metadata_path.with_name("dom.json")
-            self.assertEqual(metadata["current_step"], "DETECT_FORM")
+            self.assertEqual(metadata["current_step"], "FILL_CONTACT")
             self.assertEqual(metadata["error"]["type"], "RuntimeError")
             self.assertTrue((metadata_path.parent / "screenshot.png").is_file())
             serialized = metadata_path.read_text(encoding="utf-8") + dom_path.read_text(encoding="utf-8")

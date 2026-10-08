@@ -15,6 +15,24 @@ from services.applications.debug_capture import (
 
 
 class BrowserDebugCaptureTests(unittest.TestCase):
+    def test_fixed_application_trace_phases_are_allowed_in_failure_metadata(self):
+        phases = ("FILL_LOCATION", "ANSWER_STANDARD", "ANSWER_CUSTOM")
+        with tempfile.TemporaryDirectory() as directory:
+            for index, phase in enumerate(phases):
+                with self.subTest(phase=phase):
+                    capture = capture_browser_failure(
+                        None,
+                        Path(directory) / phase,
+                        attempt_id=f"{index:032x}",
+                        step=phase,
+                        configured_url="http://127.0.0.1:8090/ats/apply/B",
+                        error=RuntimeError("SYNTHETIC_FAILURE"),
+                    )
+                    self.assertIsNotNone(capture)
+                    metadata = json.loads(
+                        (capture / "metadata.json").read_text(encoding="utf-8"))
+                    self.assertEqual(metadata["current_step"], phase)
+
     def test_failure_capture_contains_only_bounded_structural_and_hashed_data(self):
         class Page:
             url = "http://user:password@127.0.0.1:8090/ats/apply/private-id?token=secret#answer"

@@ -285,10 +285,10 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             nonlocal browser_failure_handled
             current = store.application(application_id)["state"]
             trace = store.application(application_id).get("trace") or []
-            # Keep opt-in diagnostic capture's established transition-label
-            # semantics; the exact in-flight phase and its FAILED status live
-            # only in the sanitized attempt trace below.
-            failed_step = trace[-1] if trace else "UNKNOWN"
+            # The in-flight phase identifies where this attempt actually
+            # stopped; fall back to the last transition for failures between
+            # recorded phases.
+            failed_step = active_step or (trace[-1] if trace else "UNKNOWN")
             if active_step is not None:
                 finish_step("FAILED")
             if current == "SUBMITTING":

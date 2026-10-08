@@ -106,7 +106,7 @@ class DebugCapturePackagePrivacyTests(unittest.TestCase):
                     self.assertNotIn(canary, serialized)
                 self.assertNotIn("<html", serialized.lower())
                 self.assertNotIn("message", metadata["error"])
-                self.assertEqual(metadata["current_step"], "DETECT_FORM")
+                self.assertEqual(metadata["current_step"], "FILL_CONTACT")
                 self.assertEqual(metadata["current_url"], origin + "/:redacted/:redacted/:redacted")
                 self.assertEqual(metadata["retention_days"], 30)
                 self.assertEqual(metadata["max_captures_per_application"], 20)
