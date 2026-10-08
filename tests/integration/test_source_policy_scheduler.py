@@ -1,6 +1,9 @@
 """Source capability, policy, search-profile and scheduler acceptance."""
 from datetime import datetime, timedelta, timezone
+import os
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -168,6 +171,83 @@ class SourcePolicySchedulerTests(unittest.TestCase):
         self.assertEqual(collect.call_args.args[1:3], (source_id, "fixture"))
         recalculate.assert_called_once()
         self.assertEqual(recalculate.call_args.args[1], second_profile)
+
+    def test_due_discovery_survives_store_restart_and_completes_once(self):
+        source_id = configure_source(self.store, "restart-synthetic", jitter_seconds=0)
+        save_search_profile(self.store, {
+            "id": "restart-synthetic", "profile_id": "fixture", "name": "Restart synthetic",
+            "enabled": True, "include_titles": ["Engineer"], "remote": "ANY",
+            "employment_types": [], "source_ids": [source_id],
+        })
+        at = datetime(2026, 10, 8, 12, 0, tzinfo=timezone.utc)
+
+        initial = schedule_due_sources(self.store, at)
+        self.assertEqual(len(initial["scheduled"]), 1)
+        operation_id = initial["scheduled"][0]["operation_id"]
+        self.store.engine.dispose()
+
+        scheduler_once = """
+from services.discovery import scheduler
+def stop_after_tick(_seconds):
+    raise SystemExit(0)
+scheduler.time.sleep = stop_after_tick
+scheduler.run_forever()
+"""
+        environment = {
+            key: os.environ[key]
+            for key in ("PATH", "SYSTEMROOT", "WINDIR", "TEMP", "TMP")
+            if key in os.environ
+        }
+        environment.update({
+            "MJOBS_DATABASE_URL": self.store.url,
+            "MJOBS_OPERATION_MODE": "PERSONAL",
+            "MJOBS_SCHEDULER_TICK_SECONDS": "5",
+        })
+        project_root = Path(__file__).resolve().parents[2]
+
+        def run_scheduler_process():
+            completed = subprocess.run(
+                [sys.executable, "-c", scheduler_once], cwd=project_root, env=environment,
+                capture_output=True, text=True, timeout=15,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+
+        run_scheduler_process()
+        restarted = Store(self.store.url)
+        try:
+            run_scheduler_process()
+            self.assertEqual(restarted.count("worker_operations"), 1)
+
+            environment = {
+                "MJOBS_DATABASE_URL": restarted.url,
+                "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:8090",
+                "MJOBS_OUTPUT_DIR": str(self.root),
+                "MJOBS_OPERATION_MODE": "PERSONAL",
+            }
+            with patch.dict("os.environ", environment), \
+                    patch("workers.tasks.collect_source") as collect, \
+                    patch("workers.tasks.recalculate") as recalculate:
+                collect.return_value = {"status": "synthetic"}
+                result = execute_operation(operation_id)
+
+            self.assertEqual(result["status"], "COMPLETED")
+            collect.assert_called_once()
+            recalculate.assert_not_called()
+            with restarted.engine.connect() as connection:
+                saved = connection.execute(select(m.operations).where(
+                    m.operations.c.id == operation_id)).mappings().one()
+            self.assertEqual(saved["state"], "COMPLETED")
+        finally:
+            restarted.engine.dispose()
+
+    def test_compose_recovery_restarts_scheduler_service(self):
+        from cli.compose_recovery import RECOVERY_RESTART_SERVICES, restart_recovery_services
+
+        with patch("cli.compose_recovery.compose") as compose:
+            restart_recovery_services()
+
+        self.assertIn("scheduler", RECOVERY_RESTART_SERVICES)
+        compose.assert_called_once_with("restart", *RECOVERY_RESTART_SERVICES)
 
 
 if __name__ == "__main__":

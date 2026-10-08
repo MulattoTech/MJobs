@@ -16,6 +16,9 @@ from tests.integration.test_spine import PROFILE
 
 MAX_CAPTURED_OUTPUT_BYTES = 2 * 1024 * 1024
 _OUTPUT_CHUNK_BYTES = 64 * 1024
+RECOVERY_RESTART_SERVICES = (
+    "postgres", "redis", "mock", "api", "scheduler", "worker", "source-worker", "document-worker",
+)
 
 
 def _run_bounded(command, *, timeout, action, environment=None):
@@ -113,6 +116,11 @@ def compose(*arguments):
                         environment=environment, timeout=90, action="Project Compose action")
 
 
+def restart_recovery_services():
+    """Restart every stateful service, including the durable discovery scheduler."""
+    return compose("restart", *RECOVERY_RESTART_SERVICES)
+
+
 def run(baseline_path, evidence_path):
     baseline = json.loads(Path(baseline_path).read_text(encoding="utf-8"))
     for key in ("application_id", "operation_id", "confirmation"):
@@ -157,7 +165,7 @@ def run(baseline_path, evidence_path):
             until(lambda: request("GET", "/operations/" + queued["operation_id"])["state"] == "COMPLETED")
             until(lambda: client.get("/readiness").status_code == 200)
             actions.append({"action": "Worker supervision and durable outbox recovered after Redis returned", "result": "PASS"})
-            compose("restart", "postgres", "redis", "mock", "api", "worker", "source-worker", "document-worker")
+            restart_recovery_services()
             until(lambda: client.get("/readiness").status_code == 200)
             application = request("GET", "/profiles/" + baseline["profile_id"] + "/applications/" + baseline["application_id"])
             assert application["state"] == "CONFIRMED"
