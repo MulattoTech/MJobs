@@ -92,6 +92,7 @@ class SkillOrderIntegrationTests(unittest.TestCase):
         facts=[
             dict(PROFILE['facts'][0],id='summary-duty',kind='summary',text=f'Infrastructure administrator. {duty}.'),
             dict(PROFILE['facts'][0],id='summary-sales',kind='summary',text='Experienced retail sales associate.'),
+            dict(PROFILE['facts'][0],id='summary-python',kind='summary',text='Python automation engineer.'),
             PROFILE['facts'][0],PROFILE['facts'][1],
         ]
         self.store.save_profile(dict(PROFILE,facts=facts))
@@ -113,12 +114,13 @@ class SkillOrderIntegrationTests(unittest.TestCase):
         letter=next(row for row in rows if row['kind']=='cover-letter')
         adjustment=tailored['generation_context']['summary_adjustment']
 
-        self.assertEqual(tailored['fact_ids'],['summary-duty','python','sql'])
-        self.assertEqual(adjustment['mode'],'EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS')
-        self.assertEqual(adjustment['selected_summary_fact_ids'],['summary-duty'])
+        self.assertEqual(tailored['fact_ids'],['summary-duty','summary-python','python','sql'])
+        self.assertEqual(adjustment['mode'],'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS')
+        self.assertEqual(adjustment['selected_summary_fact_ids'],['summary-duty','summary-python'])
         self.assertEqual(adjustment['omitted_summary_fact_ids'],['summary-sales'])
         self.assertEqual(adjustment['matched_responsibilities'],
-                         {'summary-duty':[duty.casefold()],'summary-sales':[]})
+                         {'summary-duty':[duty.casefold()],'summary-sales':[],'summary-python':[]})
+        self.assertEqual(adjustment['matched_skills']['summary-python'],['Python'])
         self.assertEqual(letter['sha256']['txt'],base_letter['sha256']['txt'])
         self.assertEqual(self.store.profile('fixture'),before_profile)
 

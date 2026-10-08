@@ -195,6 +195,7 @@ class ResumeComparisonTests(unittest.TestCase):
         facts=[
             dict(PROFILE['facts'][0],id='summary-duty',kind='summary',text=f'Infrastructure administrator. {duty}.'),
             dict(PROFILE['facts'][0],id='summary-other',kind='summary',text='Experienced retail sales associate.'),
+            dict(PROFILE['facts'][0],id='summary-python',kind='summary',text='Python automation engineer.'),
             PROFILE['facts'][0],PROFILE['facts'][1],
         ]
         self.store.save_profile(dict(PROFILE,facts=facts))
@@ -212,10 +213,12 @@ class ResumeComparisonTests(unittest.TestCase):
         tailored=next(row for row in rows if row['kind']=='resume' and row['version']==2)
         context=tailored['generation_context']
         adjustment=context['summary_adjustment']
-        self.assertEqual(tailored['fact_ids'],['summary-duty','python','sql'])
+        self.assertEqual(tailored['fact_ids'],['summary-duty','summary-python','python','sql'])
+        self.assertEqual(context['summary_adjustment']['mode'],
+                         'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS')
 
         tampered={**context,'summary_adjustment':{**adjustment,
-            'matched_responsibilities':{'summary-duty':[],'summary-other':[]}}}
+            'matched_responsibilities':{'summary-duty':[],'summary-other':[],'summary-python':[]}}}
         with self.store.engine.begin() as connection:
             connection.execute(update(m.documents).where(m.documents.c.id==tailored['id']).values(
                 generation_context=tampered))

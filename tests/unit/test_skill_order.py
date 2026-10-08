@@ -74,6 +74,26 @@ class SkillOrderTests(unittest.TestCase):
         self.assertEqual(context['selected_summary_fact_ids'],['summary-paraphrase','summary-other'])
         self.assertEqual(context['omitted_summary_fact_ids'],[])
 
+    def test_summary_selection_unions_exact_skill_and_responsibility_matches_in_source_order(self):
+        duty='Manage backup systems across regional offices and document recovery plans'
+        rows=[
+            {'fact_id':'summary-duty','kind':'summary','text':f'Infrastructure administrator. {duty}.'},
+            {'fact_id':'summary-python','kind':'summary','text':'Python automation engineer.'},
+            {'fact_id':'summary-other','kind':'summary','text':'Experienced retail sales associate.'},
+        ]
+        job={'id':'job-3','title':'Infrastructure manager','skills':['Python'],
+             'description':f'Responsibilities:\n- {duty}\nRequirements:\n- Five years of experience.'}
+        selected,context=self.select_summary_rows(rows,job)
+
+        self.assertEqual([row['fact_id'] for row in selected],['summary-duty','summary-python'])
+        self.assertEqual(context['mode'],'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS')
+        self.assertEqual(context['matched_skills'],{'summary-duty':[],'summary-python':['Python'],
+            'summary-other':[]})
+        self.assertEqual(context['matched_responsibilities'],{'summary-duty':[duty.casefold()],
+            'summary-python':[],'summary-other':[]})
+        self.assertEqual(context['omitted_summary_fact_ids'],['summary-other'])
+        self.assertEqual(set(context['source_fact_fingerprints']),{'summary-duty','summary-python','summary-other'})
+
     def test_only_skill_slots_move_and_all_text_is_unchanged(self):
         rows=[{'fact_id':str(i),'kind':kind,'text':text} for i,(kind,text) in enumerate([
             ('skill','SQL'),('experience','Example | Engineer | 2020-2024'),

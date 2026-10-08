@@ -282,7 +282,11 @@ def select_summary_rows(facts, job):
     responsibility_matches=matched_responsibility_phrases(summaries,responsibility_phrases)
     responsibility_selected=[row['fact_id'] for row in summaries
                              if responsibility_matches[row['fact_id']]]
-    if skill_selected:
+    if skill_selected and responsibility_selected:
+        selected_ids=[row['fact_id'] for row in summaries
+                      if row['fact_id'] in set(skill_selected)|set(responsibility_selected)]
+        mode='EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS'
+    elif skill_selected:
         selected_ids=skill_selected
         mode='EXACT_TARGET_SKILL_SUMMARY_FACTS'
     elif responsibility_selected:
@@ -302,7 +306,8 @@ def select_summary_rows(facts, job):
         'omitted_summary_fact_ids':[row['fact_id'] for row in summaries if row['fact_id'] not in selected],
         'matched_skills':matches,
     }
-    if mode=='EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS':
+    if mode in ('EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS',
+            'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS'):
         context.update(
             target_responsibilities=responsibility_phrases,
             matched_responsibilities=responsibility_matches,

@@ -130,9 +130,12 @@ def tailored_context(target, target_source_facts=None):
         original=adjustment.get('original_summary_fact_ids');selected=adjustment.get('selected_summary_fact_ids')
         omitted=adjustment.get('omitted_summary_fact_ids');summary_matches=adjustment.get('matched_skills')
         target_summaries=[row['fact_id'] for row in target['facts_used'] if row['kind']=='summary']
-        responsibility_mode=adjustment.get('mode')=='EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS'
+        summary_mode=adjustment.get('mode')
+        responsibility_mode=summary_mode in ('EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS',
+            'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS')
         if (adjustment.get('mode') not in ('EXACT_TARGET_SKILL_SUMMARY_FACTS',
-                'EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS') or
+                'EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS',
+                'EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS') or
             type(adjustment.get('adjusted')) is not bool or not isinstance(original,list) or
             not isinstance(selected,list) or not isinstance(omitted,list) or
             any(not isinstance(value,str) for value in [*original,*selected,*omitted]) or
@@ -173,11 +176,17 @@ def tailored_context(target, target_source_facts=None):
                 source_skills=tailor.matched_labels(source_summaries,{'skills':skills})
                 source_responsibilities=tailor.matched_responsibility_phrases(
                     source_summaries,target_responsibilities)
+                has_skill=any(source_skills.values())
+                has_responsibility=any(source_responsibilities.values())
                 expected_selected=[row['fact_id'] for row in source_summaries
-                                   if source_responsibilities[row['fact_id']]]
+                                   if source_skills[row['fact_id']] or source_responsibilities[row['fact_id']]]
                 expected_fingerprints={row['fact_id']:tailor.source_fact_fingerprint(row)
                                        for row in source_summaries}
-                if (source_ids!=original or any(source_skills.values()) or not expected_selected or
+                mode_mismatch=(summary_mode=='EXACT_TARGET_RESPONSIBILITY_PHRASE_SUMMARY_FACTS' and
+                    (has_skill or not has_responsibility)) or (
+                    summary_mode=='EXACT_TARGET_SKILL_AND_RESPONSIBILITY_SUMMARY_FACTS' and
+                    (not has_skill or not has_responsibility))
+                if (source_ids!=original or not has_responsibility or mode_mismatch or
                     adjustment['adjusted']!=(expected_selected!=source_ids) or
                     selected!=expected_selected or omitted!=[value for value in source_ids if value not in set(expected_selected)] or
                     summary_matches!=source_skills or recorded_responsibilities!=source_responsibilities or
