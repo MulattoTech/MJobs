@@ -17,7 +17,7 @@ export function ApplicationLinkFilter({
     <label htmlFor="application-link-availability">Application link availability</label>
     <select
       id="application-link-availability"
-      aria-label="Application link availability"
+      aria-label="Application link"
       value={value}
       disabled={disabled}
       onChange={event => onChange(event.target.value as ApplicationLinkStatusFilter)}

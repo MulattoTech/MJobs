@@ -10,7 +10,7 @@ describe('application link availability filter', () => {
     );
 
     expect(html).toContain('<label for="application-link-availability">Application link availability</label>');
-    expect(html).toContain('id="application-link-availability" aria-label="Application link availability"');
+    expect(html).toContain('id="application-link-availability" aria-label="Application link"');
     expect(html).toContain('<option value="" selected="">All availability</option>');
     expect(html).toContain('<option value="AVAILABLE">Available</option>');
     expect(html).toContain('<option value="UNAVAILABLE">Unavailable</option>');
@@ -24,7 +24,7 @@ describe('application link availability filter', () => {
       <ApplicationLinkFilter value="UNAVAILABLE" onChange={() => {}} disabled />,
     );
 
-    expect(html).toContain('aria-label="Application link availability" disabled=""');
+    expect(html).toContain('aria-label="Application link" disabled=""');
     expect(html).toContain('<option value="UNAVAILABLE" selected="">Unavailable</option>');
   });
 
