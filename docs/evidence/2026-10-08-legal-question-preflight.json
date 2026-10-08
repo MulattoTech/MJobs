@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-107-LEGAL-QUESTION-PREFLIGHT-20261008",
-  "recorded_at_utc": "2026-10-08T10:14:26Z",
+  "recorded_at_utc": "2026-10-08T10:15:58Z",
   "result": "PARTIAL",
   "issue": 108,
   "requirement_id": "MJ-REQ-107",
@@ -11,7 +11,10 @@
     "issue_state": "OPEN",
     "branch": "codex/mj-req107-legal-question-profile-values-20261008",
     "worktree": ".worktrees/codex-mj-req107-legal-question-profile-values-20261008",
-    "base_head": "347a46a62f80159d6f9a8ffb1a6c75aeb169bd4f"
+    "base_head": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
+    "base_tree": "543046df156f6c9c4597b7cdae0050b70592c05c",
+    "source_head": "fb8d82ce0c2d66d383b71bfa9980ac29dae65366",
+    "source_tree": "335665ca086d1b1483e8a9d856e0838bf80b7d81"
   },
   "scope": "Preflight supports only exact structured mappings from work-authorization and sponsorship questions to their explicit saved career-profile preference fields. It does not infer, echo, or fill either response.",
   "acceptance": {
@@ -63,5 +66,13 @@
     "Only the bounded preflight behavior is covered; broader application automation and all other legally significant profile fields remain outside this slice.",
     "A passing preflight does not populate or submit legal responses; values remain private profile state and require downstream user handling.",
     "Hosted checks and live employer ATS validation were not run."
-  ]
+  ],
+  "root_verification": {
+    "recorded_at_utc": "2026-10-08T10:15:58Z",
+    "candidate_source_head": "fb8d82ce0c2d66d383b71bfa9980ac29dae65366",
+    "candidate_source_tree": "335665ca086d1b1483e8a9d856e0838bf80b7d81",
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_legal_question_preflight tests.integration.test_application_preflight -v",
+    "result": "PASS: 16/16 tests on exact rebased candidate and latest integrated main base.",
+    "evidence_input_hashes": "PASS: both source_sha256 values match candidate source/test bytes."
+  }
 }
