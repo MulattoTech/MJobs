@@ -1,0 +1,91 @@
+{
+  "evidence_version": 1,
+  "requirement": "MJ-REQ-095 / GitHub issue #96",
+  "scope": "When tailored resume generation has no explicit fact IDs, retain approved responsibility, experience, project, and accomplishment facts with exact matched job-skill evidence. If no eligible bullet matches, preserve all eligible bullets. Explicit fact selection remains authoritative.",
+  "result": "PASS",
+  "issue_status": "PARTIAL",
+  "release_eligibility": "NOT_RUN",
+  "verified_at_utc": "2026-10-08T07:53:22Z",
+  "candidate": {
+    "branch": "codex/mj-req095-target-relevant-bullets-20261008",
+    "tested_source_head": "18263e4fa0b29b4b9fbda51ea1c2b3f8882782a9",
+    "tested_source_tree": "cbe65103fb9c6037c06413e731f75543d3b5272e",
+    "base_main": "01ad8cfccf80eed94f5b6673693a5c94f0a129ae",
+    "worktree_clean_before_evidence": true
+  },
+  "changed_input_sha256": {
+    "apps/web/src/resume-comparison.test.tsx": "900F2E9351E24EA87609FE930DA41D5090E352B4F83B38AD2A4BE1C510D3A0A0",
+    "apps/web/src/resume-comparison.tsx": "98070C37325159F25DF7E45CF94A8F3D5E2B0585647BAF822C8604A86E23EDB6",
+    "services/documents/comparison.py": "76A71C5B92080A5D0D152BAE8129B460BC9F84B2057082DE7CD0C31C655FCE49",
+    "services/documents/generate.py": "087DC9FCA64C0B304EA6C39C879A770B426A447A9857B522C5630B750BD4838F",
+    "services/documents/tailor.py": "1923F98DC87CE6F1B664EB358B002BA9610B3BD7912E0D43B618CC6B4118DC4A",
+    "services/documents/templates.py": "3CBE450C01EACF9171E96699521BD4E7A5338EECE77B500FE7A9FBBF2133ED30",
+    "tests/browser/test_skill_order.py": "76E159F3251798763DA982CA5D657D29466F1FD48172BA2436338DD8CF05925A",
+    "tests/integration/test_resume_comparison.py": "DEDF4DB95F4F9E3CA5FFE8354C8C1EAE6ED98318B796950A8F2E5D296993931A",
+    "tests/unit/test_resume_comparison.py": "6E7C4C6B0B8C8D9DB53CF8CB313F779A0BA63C9F820039E984EF56FFDA9E61FF"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "Python 3.12 from C:\\Tools\\Dev\\MJobs\\.venv",
+    "node": "v25.9.0",
+    "npm": "11.12.1",
+    "web_dependencies": "Installed with npm ci --offline using apps/web/package-lock.json",
+    "browser": "Playwright Chromium headless",
+    "database": "Temporary SQLite fixture databases",
+    "mode": "FIXTURE; synthetic profiles and fixture jobs only"
+  },
+  "verification": [
+    {
+      "command": "python -m unittest tests.unit.test_resume_comparison tests.integration.test_resume_comparison tests.browser.test_skill_order -q",
+      "executable": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "result": "PASS",
+      "count": {"tests": 19, "passed": 19, "failed": 0, "errors": 0},
+      "duration_seconds": 41.659,
+      "coverage": [
+        "exact canonical skill match selects responsibility, experience, project, and accomplishment bullets",
+        "Pythonic is not treated as the exact Python skill token",
+        "no matching bullet preserves every eligible bullet",
+        "explicit fact IDs override automatic bullet filtering",
+        "unapproved facts remain excluded; non-bullet skill, technology, summary, and certification facts remain",
+        "generated facts and adjustment provenance survive store reopen and comparison reports omissions",
+        "source text or fact identity changes fail generated-source validation",
+        "browser workflow generates, reloads, downloads, and visibly compares immutable revisions",
+        "profile state and cover-letter bytes remain unchanged"
+      ]
+    },
+    {
+      "command": "npm run build",
+      "working_directory": "apps/web",
+      "result": "PASS",
+      "count": {"typescript_check": 1, "vite_build": 1},
+      "duration_seconds": 1.059
+    },
+    {
+      "command": "npm test -- --run src/resume-comparison.test.tsx",
+      "working_directory": "apps/web",
+      "result": "PASS",
+      "count": {"test_files": 1, "tests": 3, "passed": 3, "failed": 0},
+      "duration_seconds": 0.180,
+      "coverage": ["new automatic and contact-enabled v4 template/model pairs remain selectable for comparison"]
+    },
+    {
+      "check": "test-first integration regression",
+      "result": "FAIL",
+      "classification": "EXPECTED_RED_BEFORE_IMPLEMENTATION",
+      "observation": "The initial new integration fixture failed on the four unmatched approved bullets still being included in automatic tailored output. The implemented selection then passed the same fixture."
+    }
+  ],
+  "compatibility": {
+    "historical_template_versions_preserved": true,
+    "contact_enabled_v4_has_distinct_template_and_model": true,
+    "generated_base_comparison_validation": "Full exact bullet selection validation uses the target generation-time profile snapshot, even when the generated base uses an older snapshot.",
+    "uploaded_original_comparison_validation": "Validates immutable saved partition and recomputes exact matches for included target bullets; no generated-base fact snapshot is supplied by that comparison path."
+  },
+  "limitations": [
+    "Node 25.9.0 is locally installed; repository CI pins Node 24 and the locked Vitest package excludes Node 25 in its declared engine range. Build and focused Vitest passed locally, but these are not Node 24 results.",
+    "No hosted Actions, hosted CI, or external review was run by local-only policy.",
+    "No real profile, production provider, employer system, or application submission was used; external submission remained off.",
+    "This is a bounded MJ-REQ-095 slice and does not establish completion of all requirements in issue #96."
+  ],
+  "publication": "Local commit only; not pushed, opened as a PR, or merged."
+}
