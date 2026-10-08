@@ -4,10 +4,12 @@
   "issue": 275,
   "requirement_id": "MJ-REQ-274",
   "result": "PARTIAL",
-  "recorded_at_utc": "2026-10-08T05:51:13Z",
-  "base_commit": "f34131a4047467284bb25b37138f872bf5f14a42",
-  "implementation_commit": "73431cc7de10965fa71fde15383b7379e797e614",
-  "implementation_tree": "71c9360ef905799cbbcc685458287bd82b4144ae",
+  "recorded_at_utc": "2026-10-08T05:53:52Z",
+  "base_commit": "33fcafb820317a7917e97d1753b00d068feacde7",
+  "previous_base_commit": "f34131a4047467284bb25b37138f872bf5f14a42",
+  "rebased_from_commit": "d5421edcc72ea408302f45dcc01ecb396b0f4a9e",
+  "implementation_commit": "bc547e251eef7ed7a97556fde3396cc2655eb718",
+  "implementation_tree": "e777d5ca9fe78dde71c9a78fed731a90bb8dc870",
   "input_sha256": {
     "cli/compose_recovery.py": "b556f3b4dd72cf0742b1ba5761fec12faecbd310eb680244e24eb97b77e0e6dd",
     "tests/integration/test_source_policy_scheduler.py": "5399c494e8a2b425023e981dc2bef91013861da7c13ffd50a7864a6ae9494daf"
@@ -25,7 +27,7 @@
   },
   "validation": {
     "focused_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_source_policy_scheduler -v",
-    "focused_result": "PASS - 6 tests, 0 failures, 0 errors, 0 skips. The restart test uses isolated child processes and a temporary SQLite database.",
+    "focused_result": "PASS on rebased candidate bc547e251eef7ed7a97556fde3396cc2655eb718 (tree e777d5ca9fe78dde71c9a78fed731a90bb8dc870) - 6 tests, 0 failures, 0 errors, 0 skips. The restart test uses isolated child processes and a temporary SQLite database.",
     "development_runs": "The first revised focused run exposed a missing json import; the next exposed an assertion that did not allow the scheduler's additional due_at field. Both test-harness issues were corrected before the final focused command, which passed.",
     "agent_skills": "PASS - C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
     "lane_coordination": "PASS - C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.coordination.lane_coordination validate",
