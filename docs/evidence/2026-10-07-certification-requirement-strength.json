@@ -5,7 +5,7 @@
   "status": "PARTIAL",
   "base_sha": "b94999bb66537eb2b28df26e648db96e36d0d6b2",
   "target": "codex/mj-req115-certification-strength-20261007",
-  "observed_at_utc": "2026-10-08T04:50:32Z",
+  "observed_at_utc": "2026-10-08T04:52:23Z",
   "behavior": {
     "unqualified_certification": "UNKNOWN",
     "negated_strength_wording": {
@@ -17,6 +17,7 @@
       "no_named_certification_required": "UNKNOWN",
       "no_named_certification_is_required": "UNKNOWN",
       "positive_named_certification_required": "REQUIRED",
+      "comma_separated_but_clauses": "Strength is scoped to each certification mention in either ordering.",
       "not_required_but_preferred": "PREFERRED",
       "not_required_but_bonus_or_nice_to_have": "NICE_TO_HAVE"
     },
@@ -30,6 +31,11 @@
     "scope_note": "This is one narrow MJ-REQ-115 slice; the broader matching requirement group remains incomplete."
   },
   "verification": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "summary": "Latest focused run: 21 tests passed. Test-first cases failed in both orderings before the change: 'Security+ required, but CCNA preferred.' and 'CCNA preferred, but Security+ required.' The parser now classifies each certification using its contrastive comma clause; standalone negation and nice-to-have controls remain green."
+    },
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
       "result": "PASS",

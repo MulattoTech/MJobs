@@ -31,10 +31,19 @@ def _number(value):
     number = float(value)
     return int(number) if number.is_integer() else number
 
-def _sentence(text, start, end):
+def _sentence(text, start, end, *, split_commas=False):
     value = str(text or "")
-    left = max(value.rfind(".", 0, start), value.rfind("\n", 0, start), value.rfind(";", 0, start))
-    right_candidates = [index for index in (value.find(".", end), value.find("\n", end), value.find(";", end)) if index >= 0]
+    delimiters = (".", "\n", ";")
+    left_candidates = [value.rfind(delimiter, 0, start) for delimiter in delimiters]
+    right_candidates = [
+        index for index in (value.find(delimiter, end) for delimiter in delimiters)
+        if index >= 0
+    ]
+    if split_commas:
+        contrastive = list(re.finditer(r",\s*but\b", value, re.I))
+        left_candidates.extend(match.start() for match in contrastive if match.start() < start)
+        right_candidates.extend(match.start() for match in contrastive if match.start() >= end)
+    left = max(left_candidates)
     right = min(right_candidates) if right_candidates else len(value)
     return _clean(value[left + 1:right])
 def parse_experience_requirements(text):
@@ -121,7 +130,7 @@ def parse_certifications(text):
     seen = set()
     for identifier, name, pattern in CERTIFICATION_PATTERNS:
         for match in re.finditer(pattern, value, re.I):
-            clause = _sentence(value, match.start(), match.end())
+            clause = _sentence(value, match.start(), match.end(), split_commas=True)
             key = (identifier, match.start())
             if key in seen:
                 continue

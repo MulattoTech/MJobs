@@ -91,6 +91,17 @@ class RequirementParserTests(unittest.TestCase):
         self.assertEqual(ccna, ["REQUIRED", "UNKNOWN"])
         self.assertEqual([row["strength"] for row in security_plus], ["UNKNOWN"])
 
+    def test_comma_separated_certification_strengths_are_scoped_per_mention(self):
+        for description in (
+            "Security+ required, but CCNA preferred.",
+            "CCNA preferred, but Security+ required.",
+        ):
+            with self.subTest(description=description):
+                rows = parse_certifications(description)
+                by_id = {row["id"]: row for row in rows}
+                self.assertEqual(by_id["COMPTIA_SECURITY_PLUS"]["strength"], "REQUIRED")
+                self.assertEqual(by_id["CCNA"]["strength"], "PREFERRED")
+
     def test_clearance_distinguishes_levels_and_none_stated(self):
         self.assertEqual(parse_clearance("Active TS/SCI clearance required.")["level"], "TS_SCI")
         self.assertEqual(parse_clearance("Ability to obtain a Public Trust.")["level"], "PUBLIC_TRUST")
