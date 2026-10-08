@@ -81,6 +81,16 @@ class ApplicationFormAnalysisTests(unittest.TestCase):
         self.assertEqual(result["fields"], [])
         self.assertNotIn("PRIVATE_CURRENT_VALUE", json.dumps(result))
 
+    def test_dynamic_text_context_fails_closed_without_returning_text(self):
+        result = analyze_controls([{
+            "tag": "input", "id": "current-answer",
+            "unsafe_text_context": True,
+        }])
+
+        self.assertEqual(result["status"], "UNKNOWN")
+        self.assertEqual(result["reason"], "UNSAFE_TEXT_CONTEXT")
+        self.assertEqual(result["fields"], [])
+
     def test_duplicate_stable_identifiers_are_marked_ambiguous(self):
         result = analyze_controls([
             {"tag": "input", "id": "duplicate", "name": "given_name", "labels": ["First"]},

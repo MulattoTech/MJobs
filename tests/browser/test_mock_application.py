@@ -91,7 +91,7 @@ class MockApplicationTests(unittest.TestCase):
                 self.assertEqual(person["placeholder"], "Enter your name")
                 self.assertEqual(person["aria_label"], "Applicant name")
                 self.assertEqual(person["input_type"], "text")
-                self.assertIn("Use the name on your resume", person["nearby_text"])
+                self.assertIsNone(person["nearby_text"])
                 self.assertEqual(person["section_heading"], "Contact details")
                 self.assertEqual(person["fieldset_legend"], "Applicant identity")
                 self.assertEqual(by_id["country"]["options"], ["United States", "Canada"])
@@ -104,6 +104,79 @@ class MockApplicationTests(unittest.TestCase):
                 self.assertEqual(page.evaluate("window.formEvents"), 0)
             finally:
                 browser.close()
+
+    def test_read_only_form_analysis_does_not_capture_rendered_sibling_answers(self):
+        from playwright.sync_api import sync_playwright
+
+        html = """<!doctype html><html><body><form>
+          <div><input id="span-answer" name="span_answer">
+               <span>PRIVATE_SIBLING_SPAN_ANSWER</span></div>
+          <div><input id="output-answer" name="output_answer">
+               <output>PRIVATE_SIBLING_OUTPUT_ANSWER</output></div>
+        </form></body></html>"""
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.set_content(html)
+                result = analyze_form_page(page)
+                self.assertEqual(result["status"], "PASS")
+                serialized = json.dumps(result)
+                for rendered_answer in (
+                        "PRIVATE_SIBLING_SPAN_ANSWER", "PRIVATE_SIBLING_OUTPUT_ANSWER"):
+                    self.assertNotIn(rendered_answer, serialized)
+            finally:
+                browser.close()
+
+    def test_read_only_form_analysis_fails_closed_on_dynamic_label_text(self):
+        from playwright.sync_api import sync_playwright
+
+        html = """<!doctype html><html><body><form>
+          <label for="labeled">Preferred location <span>PRIVATE_LABEL_RENDERED_ANSWER</span></label>
+          <input id="labeled" name="labeled">
+        </form></body></html>"""
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.set_content(html)
+                result = analyze_form_page(page)
+                self.assertEqual(result["status"], "UNKNOWN")
+                self.assertEqual(result["reason"], "UNSAFE_TEXT_CONTEXT")
+                self.assertNotIn("PRIVATE_LABEL_RENDERED_ANSWER", json.dumps(result))
+            finally:
+                browser.close()
+
+    def test_unknown_optional_form_analysis_blocks_before_browser_start(self):
+        from unittest.mock import patch
+
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            original_get = MockClient.get
+
+            def malformed_optional_control(client, url):
+                response = original_get(client, url)
+                if "/ats/questions/" not in url:
+                    return response
+                questionnaire = response.json()
+                optional = next(row for row in questionnaire["questions"]
+                                if row["id"] == "optional_note")
+                optional["options"] = {"malformed": True}
+                return httpx.Response(response.status_code, json=questionnaire,
+                                      request=response.request)
+
+            with patch.object(MockClient, "get", malformed_optional_control):
+                with patch("services.applications.mock_adapter.sync_playwright") as browser_start:
+                    result = apply_mock(self.store, app_id, origin, self.root)
+                    browser_start.assert_not_called()
+
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            with self.store.engine.connect() as connection:
+                attempts = connection.execute(select(m.attempts.c.id).where(
+                    m.attempts.c.application_id == app_id)).all()
+            self.assertEqual(attempts, [])
+            self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(),
+                             {"status": "not_found"})
 
     def test_dry_run_fills_two_pages_uploads_and_stops_before_submit(self):
         with fixture_server() as origin:

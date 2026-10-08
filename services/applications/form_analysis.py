@@ -12,6 +12,7 @@ _CONTROL_TAGS = {"input", "select", "textarea"}
 _CONTROL_KEYS = {
     "tag", "label", "labels", "name", "id", "placeholder", "aria_label",
     "input_type", "nearby_text", "section_heading", "fieldset_legend", "options",
+    "unsafe_text_context",
 }
 _FORBIDDEN_KEYS = {
     "value", "current_value", "selected_value", "checked", "secret", "cookie",
@@ -34,14 +35,17 @@ _DOM_METADATA_SCRIPT = r"""form => {
   const cleanText = node => {
     if (!node) return null;
     const clone = node.cloneNode(true);
-    clone.querySelectorAll('input,select,textarea,button,[contenteditable="true"]').forEach(child => child.remove());
+    clone.querySelectorAll('input,select,textarea,button,[contenteditable="true"],span,output,[aria-live],[role="status"],[role="alert"]').forEach(child => child.remove());
     const text = String(clone.innerText || clone.textContent || '').replace(/\s+/g, ' ').trim();
     return text ? text.slice(0, 501) : null;
   };
+  const hasDynamicText = node => Boolean(node && node.querySelector(
+    'span,output,[aria-live],[role="status"],[role="alert"]'));
   const controls = Array.from(form.querySelectorAll('input,select,textarea')).slice(0, 101);
   return controls.map(element => {
     const tag = element.tagName.toLowerCase();
-    const labels = Array.from(element.labels || []).map(cleanText).filter(Boolean).slice(0, 20);
+    const labelNodes = Array.from(element.labels || []);
+    const labels = labelNodes.map(cleanText).filter(Boolean).slice(0, 20);
     const fieldset = element.closest('fieldset');
     let section = element.parentElement;
     let heading = null;
@@ -52,11 +56,8 @@ _DOM_METADATA_SCRIPT = r"""form => {
       }
       section = section.parentElement;
     }
-    const ownLabel = element.closest('label');
-    const nearbyParts = ownLabel ? [cleanText(ownLabel)] : [element.previousElementSibling, element.nextElementSibling]
-      .filter(node => node && !node.matches('label'))
-      .map(cleanText)
-      .filter(Boolean);
+    const legend = fieldset && fieldset.querySelector('legend');
+    const unsafeText = labelNodes.some(hasDynamicText) || hasDynamicText(heading) || hasDynamicText(legend);
     return {
       tag,
       labels,
@@ -65,9 +66,10 @@ _DOM_METADATA_SCRIPT = r"""form => {
       placeholder: element.getAttribute('placeholder'),
       aria_label: element.getAttribute('aria-label'),
       input_type: tag === 'input' ? (element.getAttribute('type') || 'text') : null,
-      nearby_text: nearbyParts.join(' ').slice(0, 501) || null,
+      nearby_text: null,
       section_heading: cleanText(heading),
-      fieldset_legend: cleanText(fieldset && fieldset.querySelector('legend')),
+      fieldset_legend: cleanText(legend),
+      unsafe_text_context: unsafeText,
       options: tag === 'select'
         ? Array.from(element.options).slice(0, 101).map(option => option.label)
         : []
@@ -144,6 +146,8 @@ def analyze_controls(controls) -> dict:
                 return _unknown("FORBIDDEN_VALUE_METADATA")
             if not keys.issubset(_CONTROL_KEYS):
                 raise ValueError("INVALID_CONTROL_METADATA")
+            if control.get("unsafe_text_context") is True:
+                return _unknown("UNSAFE_TEXT_CONTEXT")
             tag = control.get("tag")
             if not isinstance(tag, str) or tag.casefold() not in _CONTROL_TAGS:
                 raise ValueError("INVALID_CONTROL_METADATA")
