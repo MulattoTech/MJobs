@@ -1,3 +1,22 @@
+## 2026-10-08 — parallel Codex claims enabled; delivery roster checkpoint
+
+Root/local `main` and `origin/main` are synchronized at `920e679aaedee1a580085f75c635ee81a25439fb`. This checkpoint adds per-child Codex claims to the machine-local common-Git bus while retaining legacy lane claims. Claim transactions use a cross-process lock; active overlaps (including same-lane overlaps) and duplicate child IDs are rejected; child releases do not remove other claims. The Codex root owns shared `planning/lanes/codex/**` files while children work only in exclusive source/test/evidence paths.
+
+Coordination source checkpoint `dbe433301cdbe2ef954107f844f592ffc07c81ce` passed `python -m unittest tests.unit.test_lane_coordination -v` (7 PASS), concurrent eight-process claim updates, `python -m tools.coordination.lane_coordination validate`, `python -m tools.verification.agent_skills`, targeted compileall, and `git diff --check`. Follow-up `920e679aaedee1a580085f75c635ee81a25439fb` changed only `planning/lanes/README.md`; lane validation and diff check passed. Hosted checks/reviews NOT_RUN_BY_USER_POLICY.
+
+### Active delivery roster
+
+| Issue | Requirement | Owner / branch / worktree | State and exact checkpoint | Next action |
+|---|---|---|---|---|
+| #116 | MJ-REQ-115 certification strength | Root integration; `codex/mj-req115-certification-strength-20261007`; `.worktrees/codex-mj-req115-certification-strength-20261007` | Candidate `ca422e50a9e884f294de1196cdccb8d380973caf`, base `b94999bb66537eb2b28df26e648db96e36d0d6b2`. 15 focused Python, connected Chromium 1, frontend 63/build and validators PASS. Full Python run 971 tests, 59 errors, 8 skipped; errors report Alembic multiple heads `9b6d40aaf163` and `f37a0c2e91b5`. Preserve untracked zero-byte `events.jsonl`; issue remains OPEN/PARTIAL. | Root inspect exact diff and base failure context; preserve the full-suite limitation. Reconcile the candidate onto current main before integration; no duplicate full-suite run. |
+| #96 | MJ-REQ-095 technology-experience rewrite | Luna High child `req095-technology-experience`; `codex/mj-req095-technology-rewrite-20261008`; `.worktrees/codex-mj-req095-technology-rewrite-20261008` | ACTIVE at base `920e679aaedee1a580085f75c635ee81a25439fb`; exclusive claim and issue comment recorded. | Implement selected, approved, user-authored reviewed technology-experience rewrite with factual and history safeguards; focused tests/browser/build; return commit/tree. |
+| #302 | MJ-REQ-017.S01 Dice discovery | Antigravity active claim | Separate source-adapter and Dice-test ownership; untouched. | Reconcile via lane claim before integration. |
+| #318 | MJ-REQ-063.D01 ATS detection | Ollama active claim | Separate ATS detector ownership; untouched. | Reconcile via lane claim before integration. |
+
+Additive #517 remains OPEN/PARTIAL at the prior integrated structured-review checkpoint; provider/browser capture integration and bounded integration-task linkage remain. Hosted checks/review, PostgreSQL/Docker where not separately evidenced, and live external-source access remain NOT_RUN. External submission remains OFF. Original requirements, additive reference progress and release readiness remain separate.
+
+---
+
 ## Issue #177 / MJ-REQ-176 — mock submission history — integrated PARTIAL — 2026-10-07
 
 Integrated by non-force fast-forward at `bd251813996deac05010d1d080a7ec5671a0dbd9` from base `5ec8f8bdb5cc37841043e8041bab7e40f02545f3`; implementation source `382db126a1b504754ec2ad748bb543df586d976b`. Evidence: `docs/evidence/2026-10-07-application-submit-audit.json`. Local MOCK ATS now records an idempotent `APPLICATION_SUBMITTED` only after click return or valid local receipt recovery; `APPLICATION_CONFIRMED` remains distinct. Missing receipt stays `SUBMISSION_UNCONFIRMED`; a reservation/pre-click timeout emits no submitted event. Connected Chromium verified both Activity summaries after reload and profile isolation.
