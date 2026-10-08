@@ -78,6 +78,38 @@ class AnswerMatchingTests(unittest.TestCase):
 
         self.assertEqual(result, {"method": "CURATED_SEMANTIC", "score": 0.95})
 
+    def test_weekend_availability_wording_is_a_curated_ordinary_match(self):
+        result = self.matcher()(
+            "Are you available to work weekends?",
+            "Can you work on weekends?",
+        )
+
+        self.assertEqual(result, {"method": "CURATED_SEMANTIC", "score": 0.95})
+
+    def test_weekend_availability_does_not_match_weekday_availability(self):
+        self.assertIsNone(self.matcher()(
+            "Are you available to work weekends?",
+            "Can you work on weekdays?",
+        ))
+
+    def test_weekend_availability_does_not_match_opposite_polarity(self):
+        self.assertIsNone(self.matcher()(
+            "Are you available to work weekends?",
+            "Are you unavailable to work weekends?",
+        ))
+
+    def test_weekend_semantics_do_not_expand_to_legal_or_sensitive_questions(self):
+        matcher = self.matcher()
+        weekend = "Are you available to work weekends?"
+        for restricted in (
+            "Are you legally authorized to work in the United States?",
+            "Are you authorized to work in the US?",
+            "What is your ethnic origin?",
+            "Do you have a disability?",
+        ):
+            with self.subTest(restricted=restricted):
+                self.assertIsNone(matcher(weekend, restricted))
+
     def test_itsm_acronym_and_expansion_are_a_curated_ordinary_match(self):
         result = self.matcher()(
             "Which ITSM tools have you used?",

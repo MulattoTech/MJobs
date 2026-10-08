@@ -414,6 +414,97 @@ class ApplicationAnswerExportTests(unittest.TestCase):
         still_historical = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
         self.assertEqual(hashlib.sha256(still_historical.content).hexdigest(), row['sha256']['txt'])
 
+    def test_weekend_answer_export_persists_reviewed_semantic_match_provenance(self):
+        profile = dict(PROFILE, answers=[{
+            'id': 'synthetic-weekend-availability',
+            'question': 'Can you work on weekends?',
+            'text': 'Synthetic fixture answer: weekend shifts are possible.',
+            'source': 'Synthetic profile fixture',
+            'verified': True, 'user_approved': True, 'confidence': 96,
+        }])
+        saved = self.put_profile(profile)
+        self.assertEqual(saved.status_code, 200, saved.text)
+
+        response = self.client.post(self.export_url, json={
+            'profile_id': 'fixture',
+            'items': [{
+                'question': 'Are you available to work weekends?',
+                'answer_id': 'synthetic-weekend-availability',
+                'text': profile['answers'][0]['text'],
+                'reviewed': True,
+            }],
+        })
+        self.assertEqual(response.status_code, 201, response.text)
+        document_id = response.json()['document_id']
+        self.assertEqual(response.json()['external_submission'], 'OFF')
+
+        documents = self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents'
+        ).json()['documents']
+        row = next(item for item in documents if item['id'] == document_id)
+        item = row['generation_context']['items'][0]
+        self.assertEqual(row['kind'], 'application-answer-export')
+        self.assertEqual(row['profile_version'], saved.json()['version'])
+        self.assertEqual(item['answer_mode'], 'REVIEWED_REUSE')
+        self.assertEqual(item['answer_id'], 'synthetic-weekend-availability')
+        self.assertEqual(item['saved_question'], 'Can you work on weekends?')
+        self.assertEqual(item['match_method'], 'CURATED_SEMANTIC')
+        self.assertEqual(item['match_score'], 0.95)
+        self.assertEqual(item['source'], 'Synthetic profile fixture')
+        self.assertEqual(item['confidence'], 96)
+        self.assertEqual(item['minimum_question_match_confidence'], 0.75)
+
+        exported = self.client.get(f'/profiles/fixture/documents/{document_id}/txt')
+        self.assertEqual(exported.status_code, 200)
+        self.assertEqual(row['sha256']['txt'], hashlib.sha256(exported.content).hexdigest())
+        self.assertIn('Synthetic fixture answer:', exported.text)
+
+        restarted = Store(self.store.url)
+        try:
+            with restarted.engine.connect() as connection:
+                persisted = connection.execute(select(m.documents).where(
+                    m.documents.c.id == document_id)).mappings().one()
+            self.assertEqual(persisted['generation_context']['items'][0], item)
+            self.assertEqual(persisted['sha256']['txt'], row['sha256']['txt'])
+        finally:
+            restarted.engine.dispose()
+
+    def test_api_recomputes_weekend_match_threshold_before_any_export_write(self):
+        profile = dict(PROFILE, answers=[{
+            'id': 'synthetic-weekend-availability',
+            'question': 'Can you work on weekends?',
+            'text': 'Synthetic fixture answer: weekend shifts are possible.',
+            'source': 'Synthetic profile fixture',
+            'verified': True, 'user_approved': True, 'confidence': 96,
+        }])
+        self.assertEqual(self.put_profile(profile).status_code, 200)
+        policy_url = '/profiles/fixture/application-answer-confidence-thresholds'
+        policy = self.client.put(policy_url, json={
+            'minimum_saved_answer_confidence': 80,
+            'minimum_question_match_confidence': 0.96,
+        })
+        self.assertEqual(policy.status_code, 200, policy.text)
+        before_count = self.store.count('documents')
+
+        rejected = self.client.post(self.export_url, json={
+            'profile_id': 'fixture',
+            'items': [{
+                'question': 'Are you available to work weekends?',
+                'answer_id': 'synthetic-weekend-availability',
+                'text': profile['answers'][0]['text'],
+                'reviewed': True,
+            }],
+        })
+
+        self.assertEqual(rejected.status_code, 422, rejected.text)
+        self.assertEqual(self.store.count('documents'), before_count)
+        documents = self.client.get(
+            f'/profiles/fixture/applications/{self.application_id}/documents'
+        ).json()['documents']
+        self.assertFalse(any(row['kind'] == 'application-answer-export' for row in documents))
+        answers_root = self.root / self.application_id / 'answers'
+        self.assertFalse(answers_root.exists() and any(path.is_file() for path in answers_root.rglob('*')))
+
     def test_avoid_list_blocks_reviewed_answer_before_export_and_does_not_leak_other_answers(self):
         profile = dict(PROFILE, preferences={'avoid_terms': ['North Star']}, answers=[{
             'id': 'years-experience', 'question': 'How many years of experience?',
