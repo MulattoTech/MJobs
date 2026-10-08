@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-189",
+  "issue": 190,
+  "slice": "normalized experience-level Jobs filter",
+  "acceptance_status": "PARTIAL",
+  "branch": "codex/mj-req189-experience-level-filter-20261008",
+  "worktree": ".worktrees/codex-mj-req189-experience-level-filter-20261008",
+  "base_commit": "048633be5e4cea6178c5e67cc11d9791262e71f5",
+  "tested_source_commit": "0e25757d0537f6103d3b97dfbc698673e2dc780d",
+  "tested_source_tree": "7de02eb79037dbf51bf4f1d21de305ed75e109df",
+  "validation_started_at_utc": "2026-10-08T11:51:08Z",
+  "validation_completed_at_utc": "2026-10-08T11:51:46Z",
+  "local_environment": {
+    "python": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+    "database": "temporary SQLite fixtures",
+    "browser": "local Chromium via Playwright",
+    "frontend_runtime": "Node v25.9.0",
+    "external_submission": "OFF",
+    "external_requests": "none; browser requests restricted to isolated local API"
+  },
+  "validation": [
+    {
+      "command": "python -m unittest tests.integration.test_saved_search_filters",
+      "result": "PASS",
+      "detail": "10 tests passed; direct filtering precedes LIMIT, supported UNKNOWN matches only normalized UNKNOWN, unrecognized stored values are excluded, unsupported query values return 422, legacy saved filters load, profile ownership is enforced, and job rows, scores, scheduler output, and worker-operation counts are unchanged."
+    },
+    {
+      "command": "python -m unittest tests.browser.test_saved_search_filters",
+      "result": "PASS",
+      "detail": "1 connected browser test passed; experience-level control sends its value, saves, reloads, reselects and clears; saved search remains isolated from another profile."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "detail": "18 test files, 103 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript check and Vite production build passed."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m compileall -q apps/api/main.py packages/persistence/store.py services/discovery/search_profiles.py tests/integration/test_saved_search_filters.py tests/browser/test_saved_search_filters.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "inline Python cross-check of evidence input SHA256 hashes and tested source commit/tree",
+      "result": "PASS"
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "6fa0af5313e98bed0466c941b421f7a326de4a18248ce95f4f98df3d9d2bc303",
+    "apps/web/src/main.tsx": "5d0bf1b70cc266ae9b669c1333d3cd47e1ffa7a995f9a3b9e96c408436419497",
+    "packages/persistence/store.py": "10da35871b544cc85b6cbc99905640db0ba0f5c47799e33bb0e19d64799a81e6",
+    "services/discovery/search_profiles.py": "04a493d6958e9800254fb8d42fad242fd4343d57b2e172da3f66a946fabd6c61",
+    "tests/integration/test_saved_search_filters.py": "2367473c4d4e1c5480d404f7f1ef8ae1cef2612418ea912947b52f7d4250824b",
+    "tests/browser/test_saved_search_filters.py": "7fa34bd74becb448f4bb70ec261c138f94edc844d576dd53cbca3d06d6c0c9b7"
+  },
+  "database_migration": "NOT_REQUIRED; canonical job attributes already persist normalized experience_level JSON values.",
+  "postgresql": "NOT_RUN",
+  "hosted_checks_and_reviews": "NOT_RUN_BY_POLICY",
+  "known_scope_limit": "Other MJ-REQ-189 sidebar facets remain incomplete; this bounded experience-level slice does not promote the parent requirement."
+}
