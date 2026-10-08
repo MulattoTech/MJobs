@@ -87,5 +87,5 @@
     "Full repository test suite"
   ],
   "review": "Local delegated review not run; root owns serialized review and integration.",
-  "integration": "Rebased cleanly onto synchronized main aab39b9b5dda190b59346f4176a3f513027768e8. Exact rebased-source focused API/Chromium suite 21/21, frontend 103/103, build, compilation, agent-skill/catalogue/lane validators, source hashes, and diff checks passed. Not pushed or merged; root owns integration."
+  "integration": "Rebased onto synchronized main aab39b9b5dda190b59346f4176a3f513027768e8 and integrated by non-force fast-forward at 9823b00479a5d9157e74ea84d3485ecca835a52c (tree 84944fb02a3f8e7275a473879974eb24481e2618); local/origin/GitHub default main read back at the same SHA. Root exact-source tests and evidence hashes passed; local delegated review found no material findings. Receipt: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061279336"
 }
