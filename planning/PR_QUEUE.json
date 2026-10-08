@@ -800,16 +800,22 @@
         "owned_paths": [
           "services/documents/tailor.py",
           "services/documents/generate.py",
+          "services/documents/templates.py",
+          "services/documents/comparison.py",
           "tests/unit/test_skill_order.py",
           "tests/integration/test_skill_order.py",
+          "tests/integration/test_resume_comparison.py",
           "tests/browser/test_skill_order.py",
           "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
         ],
-        "acceptance": "When tailored generation has no explicit user fact selection, deterministically select approved responsibility/experience/project/accomplishment bullet facts with exact target-job skill matches; if none match, preserve all eligible bullets. Explicit user selection takes precedence. Preserve summary behavior, skills ordering/emphasis, immutable source facts and history/comparison omission provenance; profile and cover letter unchanged. No inferred wording or provider calls.",
+        "acceptance": "When tailored generation has no explicit user fact selection, deterministically select approved responsibility/experience/project/accomplishment bullet facts with exact target-job skill matches; if none match, preserve all eligible bullets. Explicit user selection takes precedence. Preserve summary behavior, skills ordering/emphasis, immutable fact IDs/content and generated history/comparison omission provenance, plus profile/cover-letter data. Update versioned template identity and comparison validation. No inferred wording or provider calls.",
         "rationale": "Current-source audit found tailored generation keeps every approved bullet absent explicit selection. Issue/spec authorize target-relevant bullet choice; deterministic exact skill matching permits safe selection without inventing wording. Keep all eligible bullets on no-match fallback and honor deliberate explicit selection.",
         "branch": "codex/mj-req095-target-relevant-bullets-20261008",
         "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
-        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589"
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589",
+        "child_id": "req095-target-relevant-bullets-v2",
+        "issue_claim_comment_update": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+        "scope_update_reason": "Versioned output identity and immutable comparison validation require owned template and comparison-validator paths; child paused after initial claim mismatch and root reconciled current lane claims before resuming."
       },
       "latest_slice_source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
       "latest_slice_integration_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
@@ -4033,5 +4039,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T07:21:00Z"
+  "generated_at": "2026-10-08T07:24:38Z"
 }

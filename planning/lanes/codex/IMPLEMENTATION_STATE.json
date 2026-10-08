@@ -8,7 +8,7 @@
   "branch": "codex/mj-req095-target-relevant-bullets-20261008",
   "head": null,
   "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
-  "result": "ACTIVE_LOCAL_CLAIMED; #96 target-relevant bullet selection implementation in isolated worktree.",
+  "result": "ACTIVE_LOCAL_CLAIMED; exact target-bullet selection acceptance is being implemented after a reconciled claim-path extension for versioning/comparison integrity.",
   "evidence_path": "docs/evidence/2026-10-08-resume-target-bullet-selection.json",
   "last_completed": {
     "issue": 180,
@@ -28,7 +28,7 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Continue #96 / MJ-REQ-095 child `req095-target-relevant-bullets` on its isolated branch/worktree, owned paths and claim listed in active_children. It was based on ef47fc9; root planning checkpoint moved main to 89b9a5e, so the child must finish owned edits, commit cleanly, then rebase once to latest synchronized main and rerun focused tests/evidence checks. Expected behavior: exact matched-target-skill approved bullet selection on default tailored generation; preserve all eligible bullet facts on no match; explicit selection wins. Keep profile/cover-letter facts unchanged and record immutable omission provenance. Parent MJ-PR-026 dependencies remain unchanged; issue #96 stays OPEN/PARTIAL. Root remains sole integrator.",
+  "resume_instruction": "Continue #96 child req095-target-relevant-bullets-v2 on the isolated worktree. Exact issue-comment scope update and all owned paths are listed under active_children and PR_QUEUE MJ-PR-026 active_slice. The child paused when necessary generation-version/comparison validation changes were found outside the original claim; root verified no active overlap and re-established ownership before resuming. Complete only approved exact-skill bullet selection with no-match all-facts fallback and explicit-selection precedence, run focused tests, commit cleanly, rebase once from original base ef47 onto current synchronized main, rerun affected tests, then report exact hashes. Parent dependencies MJ-PR-025/MJ-PR-024 remain preserved; issue stays OPEN/PARTIAL. Root remains sole integrator.",
   "last_verified_head": "0bb8e5048b45bd8324e938b197e39a9242cdaa1f",
   "last_verified_tree": "3cd995f118a3dfa2ee88dc5af3aee7ab542dd361",
   "last_verified_at_utc": "2026-10-08T06:50:23Z",
@@ -45,7 +45,7 @@
   },
   "last_integrated_head": "89b9a5e24087183717c4359282db544bb48b8fef",
   "last_verified_result": "PARTIAL (bounded Newest slice integrated; full discovery incomplete F/ss at 600s).",
-  "updated_at": "2026-10-08T07:21:00Z",
+  "updated_at": "2026-10-08T07:24:38Z",
   "integrated_main": "dbc9e573680fcf32498131afe3bee75e72213371",
   "last_integrated_issue": 517,
   "last_integrated_requirement": "MJ-FEATURE-517",
@@ -76,22 +76,26 @@
   "acceptance": "Allowlisted provider identifier resolved from persisted application route for APPLY_MOCK terminal log only; best effort; omit unknown/malformed values; no private parameters/URLs; log after durable terminal persistence. Preserve broader requirement as PARTIAL.",
   "active_children": [
     {
-      "child_id": "req095-target-relevant-bullets",
+      "child_id": "req095-target-relevant-bullets-v2",
       "issue": 96,
       "requirement_id": "MJ-REQ-095",
-      "status": "ACTIVE_LOCAL_CLAIMED",
+      "status": "ACTIVE_LOCAL_CLAIMED_SCOPE_RECONCILED",
       "branch": "codex/mj-req095-target-relevant-bullets-20261008",
       "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
       "base": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
       "owned_paths": [
         "services/documents/tailor.py",
         "services/documents/generate.py",
+        "services/documents/templates.py",
+        "services/documents/comparison.py",
         "tests/unit/test_skill_order.py",
         "tests/integration/test_skill_order.py",
+        "tests/integration/test_resume_comparison.py",
         "tests/browser/test_skill_order.py",
         "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
       ],
-      "claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589"
+      "claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+      "previous_claim_released": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589"
     }
   ]
 }

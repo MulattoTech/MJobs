@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T07:21:00Z",
+  "generated_at": "2026-10-08T07:24:38Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-179-DEBUG-CAPTURE-PRIVACY-REGRESSION-INTEGRATED-20261008",
+  "current_milestone": "MJ-REQ-095-TARGET-RELEVANT-BULLETS-OWNERSHIP-EXPANDED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -10421,20 +10421,55 @@
         "at_utc": "2026-10-08T07:21:00Z",
         "note": "Synthetic mock-adapter regression only; real adapter support remains unavailable."
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-TARGET-RELEVANT-BULLETS-OWNERSHIP-EXPANDED-20261008",
+      "timestamp": "2026-10-08T07:24:38Z",
+      "current_phase": "MJ_REQ_095_TARGET_RELEVANT_BULLETS_OWNERSHIP_EXPANDED",
+      "completed_steps": [
+        "Child reported required edits to version identity, comparison validation and an adjacent integration test outside the first claimed path set; root instructed child to pause all writes and preserve the diff.",
+        "Root reconciled current lane claims and confirmed the added document template/comparison/test paths had no active overlap.",
+        "Released the old local child ID, established the replacement `req095-target-relevant-bullets-v2` claim over the complete exact path set, and posted an issue-comment scope update before resuming implementation."
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "Existing assigned integration fixture reproduced the missing behavior on base: unmatched approved bullets remained in tailored resume output. Child reports the initial implementation assertion passes; these changes remain uncommitted and require full scoped revalidation after ownership update/rebase."
+      ],
+      "tests_remaining": [
+        "Complete negative controls and unit/integration/browser verification after scope reconciliation.",
+        "Commit cleanly, rebase once onto current synchronized main, rerun affected checks and refresh evidence."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "The worker initially changed three paths outside its claim, then paused immediately; the root preserved all bytes, verified no competing local claim, and re-established complete unique ownership before writes resumed. No outside-claim changes were merged or published."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "4dbbaa0a0dacb52299fab5c129bf3663b5ef6cb6",
+        "tree": "bdd134e1654ed9a8954e64169e2d0449c4f34fc8",
+        "branch": "main",
+        "issue": "#96 / MJ-REQ-095",
+        "issue_state": "OPEN",
+        "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+        "at_utc": "2026-10-08T07:24:38Z",
+        "note": "The writer paused when edits were observed outside the initial claim. Root verified no conflicting claims, established new complete local ownership with a new child ID, and updated the issue comment before work resumes."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_179_DEBUG_CAPTURE_PRIVACY_REGRESSION_INTEGRATED",
+  "current_phase": "MJ_REQ_095_TARGET_RELEVANT_BULLETS_OWNERSHIP_EXPANDED",
   "last_safe_checkpoint": {
-    "git_commit": "89b9a5e24087183717c4359282db544bb48b8fef",
+    "git_commit": "4dbbaa0a0dacb52299fab5c129bf3663b5ef6cb6",
     "tree": "bdd134e1654ed9a8954e64169e2d0449c4f34fc8",
     "branch": "main",
-    "issue": "#180 / MJ-REQ-179",
-    "issue_state": "OPEN/PARTIAL",
-    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054793512",
-    "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054799151",
-    "evidence_path": "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
-    "at_utc": "2026-10-08T07:21:00Z",
-    "note": "Synthetic mock-adapter regression only; real adapter support remains unavailable."
+    "issue": "#96 / MJ-REQ-095",
+    "issue_state": "OPEN",
+    "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+    "at_utc": "2026-10-08T07:24:38Z",
+    "note": "The writer paused when edits were observed outside the initial claim. Root verified no conflicting claims, established new complete local ownership with a new child ID, and updated the issue comment before work resumes."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10763,20 +10798,24 @@
     "issue": 96,
     "requirement_id": "MJ-REQ-095",
     "title": "Resume Tailoring Engine",
-    "state": "ACTIVE_LOCAL_CLAIMED; deterministic target-relevant bullet selection implementation in progress.",
+    "state": "ACTIVE_LOCAL_CLAIMED after ownership scope reconciliation; implementation continues with the same exact behavioral acceptance.",
     "branch": "codex/mj-req095-target-relevant-bullets-20261008",
     "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
     "base_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
     "owned_paths": [
       "services/documents/tailor.py",
       "services/documents/generate.py",
+      "services/documents/templates.py",
+      "services/documents/comparison.py",
       "tests/unit/test_skill_order.py",
       "tests/integration/test_skill_order.py",
+      "tests/integration/test_resume_comparison.py",
       "tests/browser/test_skill_order.py",
       "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
     ],
-    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589",
-    "acceptance": "Default tailored generation selects only approved exact target-skill-matching responsibility/experience/project/accomplishment bullets; all eligible bullets remain if none match; explicit user selection takes precedence. Preserve immutable facts/history/comparison and profile/cover-letter data; no generated wording/provider use."
+    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
+    "acceptance": "Default tailored generation selects only approved exact target-skill-matching responsibility/experience/project/accomplishment bullets; all eligible bullets remain if none match; explicit user selection takes precedence. Preserve immutable facts/history/comparison and profile/cover-letter data; no generated wording/provider use.",
+    "child_id": "req095-target-relevant-bullets-v2"
   },
   "historical_control_snapshots": [
     {
@@ -11924,5 +11963,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T07:21:00Z"
+  "updated_at": "2026-10-08T07:24:38Z"
 }
