@@ -141,7 +141,8 @@
     "MJ-REQ-177",
     "MJ-REQ-198",
     "MJ-REQ-239",
-    "MJ-REQ-115"
+    "MJ-REQ-115",
+    "MJ-REQ-116"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -577,7 +578,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #199 / MJ-REQ-198: rebase the reviewed cover-letter comparison candidate onto synchronized main 1e8dca63d37849ead245dd34c9c1374d52c0089a, refresh exact source/evidence metadata, rerun connected browser and affected frontend checks, then serialize integration. Issue #240 / MJ-REQ-239 is CLOSED and local PASS; core-workflow trial and release readiness remain PARTIAL. #117 remains behind PR-031/PR-025. Reconcile #517 after active Antigravity #302 and Ollama #318 claims; do not overlap their adapter/ATS paths. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external submission OFF.",
+  "recommended_resume_step": "Serialize the reviewed #199 / MJ-REQ-198 comparison candidate on current main after metadata-only source-hash reconciliation. In parallel, #117 / MJ-REQ-116 match categories is claimed on disjoint Jobs UI paths and must retain MJ-PR-032 dependencies MJ-PR-031/MJ-PR-025. Read-only exact-head acceptance checks are underway for #104 / MJ-REQ-103 and #116 / MJ-REQ-115; #96 / MJ-REQ-095 is under current-source acceptance audit. Issue #240 / MJ-REQ-239 is CLOSED/PASS; core workflow and overall release remain PARTIAL. #517 remains blocked from provider/ATS/UI ownership conflicts. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL checks as recorded; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9995,7 +9996,7 @@
     "state": "OPEN / CANDIDATE_REVALIDATION",
     "candidate": "1d9493f734e35107248267940fe6b4332bb1a52c",
     "candidate_original_base": "9aa502a9df222dc517e6e9a3f46ed5ad4002cd00",
-    "target_main": "1e8dca63d37849ead245dd34c9c1374d52c0089a",
+    "target_main": "77a7d3670d7cbe3c3fb771dc2e8083b9fbaca66e",
     "branch": "codex/mj-req198-cover-letter-comparison-20261008",
     "worktree": ".worktrees/codex-mj-req198-cover-letter-comparison-20261008",
     "next_action": "Rebase and rerun exact-head checks; no integration yet."
@@ -11143,5 +11144,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T05:24:02Z"
+  "updated_at": "2026-10-08T05:28:40Z"
 }
