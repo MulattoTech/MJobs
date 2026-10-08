@@ -1,3 +1,11 @@
+## 2026-10-08T10:36:50Z — connected legal preflight and application preview synchronized
+
+Local and origin main are synchronized at `347d4e7e53058135246f734aa1c7e850be25e51d` (tree `3b34163e8ec9c6d72ecda9c04604e4b7055d3af3`). #108/MJ-REQ-107 exact legal profile-value preflight and #137/MJ-REQ-136 connected read-only application preview are integrated, evidence-backed, and remain OPEN/PARTIAL. Root exact combined preflight/preview suite 22/22 PASS; frontend 96/96 and TypeScript/Vite build PASS; py_compile, evidence hashes, diff check and skills validator PASS. Local delegated reviews found no remaining material issues. Original totals now: 83 PASS, 89 PARTIAL, 194 NOT_RUN; release remains UNKNOWN. Hosted Actions/review and live ATS are NOT_RUN; external submission OFF.
+
+Active Codex Luna High writers: #101/MJ-REQ-100 verified company-context cover-letter work on company-context/service/migration/document paths, and #129/MJ-REQ-128 read-only synthetic mock form analysis. Also preserve active Antigravity #302 and Ollama #318 claims. Root remains sole integrator and holds the integration lock. Next: review and exact-test active candidates, integrate only qualified slices, update tracker/dashboard at the next meaningful batch.
+
+---
+
 ## 2026-10-08T09:38:20.747897Z — connected search filters integrated; two core slices active
 
 Local `main` is at `a33ecc497c412a3ee547ac35930b43de6fe274d4` (tree `9f4d23b024e2746c1ac1448464cd344ee847007a`); origin is at `13426c6d5f9630133dfdf8184c84005cc01436b9` before this tracker checkpoint push. #190/MJ-REQ-189 has separate case-insensitive title/company filters in the connected Jobs UI/API; they compose with existing query/location/source/sort, filter before limits, and persist/restore in profile-scoped saved searches. Company sort is saveable and restorable. Root verified API integration 4, connected browser 2, frontend 96/96, build, hashes and diff; local delegated review found no material issue. Requirement remains PARTIAL. Current original matrix: 83 PASS, 87 PARTIAL, 196 NOT_RUN. PostgreSQL/hosted checks and overall release remain NOT_RUN; external submission OFF.

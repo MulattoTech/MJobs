@@ -1094,12 +1094,14 @@
         "tests/browser/test_debug_capture_privacy.py",
         "docs/evidence/2026-10-08-application-step-trace.json"
       ],
-      "status": "INTEGRATED_PARTIAL_PENDING_SYNC",
+      "status": "RELEASED",
       "evidence_path": "docs/evidence/2026-10-08-application-step-trace.json",
-      "integrated_main": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
-      "result": "Root exact-source and combined-main suite 36/36 PASS; local delegated review no material findings; issue #140/MJ-REQ-139 remains OPEN/PARTIAL; pending origin sync and issue receipt.",
+      "integrated_main": "347d4e7e53058135246f734aa1c7e850be25e51d",
+      "result": "INTEGRATED_PARTIAL and synchronized; exact combined suite and local review passed; hosted/manual UI acceptance remains NOT_RUN.",
       "local_review": "PASS; no material findings",
-      "integrated_at": "2026-10-08T10:14:44Z"
+      "integrated_at": "2026-10-08T10:14:44Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/140#issuecomment-6057690871",
+      "released_at": "2026-10-08T10:36:50Z"
     },
     {
       "issue": 190,
@@ -1116,12 +1118,107 @@
         "tests/browser/test_saved_search_filters.py",
         "docs/evidence/2026-10-08-salary-job-search-filter.json"
       ],
-      "status": "INTEGRATED_PARTIAL_PENDING_SYNC",
+      "status": "RELEASED",
       "evidence_path": "docs/evidence/2026-10-08-salary-job-search-filter.json",
-      "integrated_main": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
-      "result": "Root exact-main combined suite 44/44 PASS; frontend 96/96/build PASS; local delegated review no material findings; issue #190/MJ-REQ-189 remains OPEN/PARTIAL; pending origin sync and issue receipt.",
+      "integrated_main": "347d4e7e53058135246f734aa1c7e850be25e51d",
+      "result": "INTEGRATED_PARTIAL and synchronized; root exact search/application/frontend/build checks and local review passed; PostgreSQL/hosted checks NOT_RUN.",
       "local_review": "PASS; no material findings",
-      "integrated_at": "2026-10-08T10:14:44Z"
+      "integrated_at": "2026-10-08T10:14:44Z",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6057691198",
+      "released_at": "2026-10-08T10:36:50Z"
+    },
+    {
+      "issue": 108,
+      "requirement_id": "MJ-REQ-107",
+      "branch": "codex/mj-req107-legal-question-profile-values-20261008",
+      "worktree": ".worktrees/codex-mj-req107-legal-question-profile-values-20261008",
+      "head": "1020cd10444caded2bc3d7aa40dc91ce2ad20102",
+      "paths": [
+        "services/applications/preflight.py",
+        "tests/integration/test_legal_question_preflight.py",
+        "docs/evidence/2026-10-08-legal-question-preflight.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T10:10:57Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/108#issuecomment-6057593085",
+      "acceptance": "Only exact unambiguous saved work-authorization and current/future sponsorship mappings pass preflight; composite, unrelated, historical, hedged and unsupported required legal questions remain UNKNOWN before Playwright without echoing values.",
+      "evidence_path": "docs/evidence/2026-10-08-legal-question-preflight.json",
+      "integrated_main": "347d4e7e53058135246f734aa1c7e850be25e51d",
+      "result": "INTEGRATED_PARTIAL; issue #108 remains OPEN/PARTIAL; root exact combined preflight/preview suite 22 PASS; frontend 96 PASS/build; local delegated review no material findings; hosted/live ATS NOT_RUN.",
+      "local_review": "PASS; no material findings",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/108#issuecomment-6058001356",
+      "released_at": "2026-10-08T10:36:50Z"
+    },
+    {
+      "issue": 137,
+      "requirement_id": "MJ-REQ-136",
+      "branch": "codex/mj-req136-application-preview-20261008",
+      "worktree": ".worktrees/codex-mj-req136-application-preview-20261008",
+      "head": "347d4e7e53058135246f734aa1c7e850be25e51d",
+      "paths": [
+        "apps/web/src/main.tsx",
+        "tests/integration/test_application_preview.py",
+        "tests/browser/test_application_preview.py",
+        "docs/evidence/2026-10-08-application-preview.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T10:18:07Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/137#issuecomment-6057709746",
+      "acceptance": "Profile-scoped selected application review reads durable job/company/route/documents/answers/blockers/confidence, restores after reload, shows UNKNOWN where missing and has no automation/submission side effects.",
+      "evidence_path": "docs/evidence/2026-10-08-application-preview.json",
+      "integrated_main": "347d4e7e53058135246f734aa1c7e850be25e51d",
+      "result": "INTEGRATED_PARTIAL; issue #137 remains OPEN/PARTIAL; root exact preview integration/browser 3 PASS and combined suite 22 PASS; frontend 96/build PASS; local delegated review no material findings; hosted/manual NOT_RUN.",
+      "local_review": "PASS; no material findings",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/137#issuecomment-6058001677",
+      "released_at": "2026-10-08T10:36:50Z"
+    },
+    {
+      "issue": 129,
+      "requirement_id": "MJ-REQ-128",
+      "branch": "codex/mj-req128-generic-form-engine-20261008",
+      "worktree": ".worktrees/codex-mj-req128-generic-form-engine-20261008",
+      "head": "010764caf6720ca2ea946268473b6c03ed89d3cc",
+      "paths": [
+        "services/applications/form_analysis.py",
+        "services/applications/mock_adapter.py",
+        "tests/unit/test_application_form_analysis.py",
+        "tests/integration/test_application_form_analysis.py",
+        "tests/browser/test_mock_application.py",
+        "docs/evidence/2026-10-08-generic-form-engine.json"
+      ],
+      "status": "RELEASED",
+      "claimed_at": "2026-10-08T10:24:24Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/129#issuecomment-6057811167",
+      "acceptance": "Read-only reusable form metadata analysis connected only to the synthetic mock ATS path; no user values, clicks, filling or submission; malformed/ambiguous data remains safe.",
+      "evidence_path": "docs/evidence/2026-10-08-generic-form-engine.json",
+      "released_at": "2026-10-08T10:59:00Z",
+      "release_receipt": "https://github.com/MulattoTech/MJobs/issues/129#issuecomment-6058382205"
+    },
+    {
+      "issue": 101,
+      "requirement_id": "MJ-REQ-100",
+      "branch": "codex/mj-req100-verified-company-context-20261008",
+      "worktree": ".worktrees/codex-mj-req100-verified-company-context-20261008",
+      "head": null,
+      "paths": [
+        "services/company_discovery/company_context.py",
+        "packages/persistence/models.py",
+        "migrations/versions/*company_context*.py",
+        "apps/api/main.py",
+        "apps/web/src/company-sources.tsx",
+        "apps/web/src/company-sources.test.tsx",
+        "services/documents/cover_letter.py",
+        "services/documents/generate.py",
+        "services/documents/validation.py",
+        "tests/integration/test_verified_company_context.py",
+        "tests/browser/test_verified_company_context.py",
+        "docs/evidence/2026-10-08-verified-company-context.json"
+      ],
+      "status": "ACTIVE",
+      "claimed_at": "2026-10-08T10:31:52Z",
+      "claim_comment": "https://github.com/MulattoTech/MJobs/issues/101#issuecomment-6057933252",
+      "acceptance": "Persist/review provenance-backed context tied to an unambiguous verified company/source; arbitrary user input stays USER_PROVIDED/UNVERIFIED; only approved, verified-source context may appear in immutable job-specific letter history; absent/unverified context adds no employer claims.",
+      "evidence_path": "docs/evidence/2026-10-08-verified-company-context.json"
     }
   ]
 }

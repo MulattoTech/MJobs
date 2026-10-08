@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T10:14:44Z",
+  "generated_at": "2026-10-08T11:03:14Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Core feature batch D source at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; tracker and evidence receipt checkpoint da52067f3278a5415d05c4631b280d407ca26037; three scoped slices integrated PARTIAL.",
-    "current_verified_github_state": "Local main, origin/main, and GitHub default main synchronized at da52067f3278a5415d05c4631b280d407ca26037; issue receipts posted for #115, #136, and #190 location slice.",
-    "current_verified_at": "2026-10-08T10:06:44Z"
+    "current_verified_local_state": "Product source is exact-main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc (tree cdc7abf97ecf51007be25e4b07504ef775bdac67); answer matching and generic mock-form analysis scoped slices accepted PARTIAL. Local tracker integration is in progress.",
+    "current_verified_github_state": "origin/main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc; answer-matching and generic mock-form-analysis receipts posted. Tracker publication pending.",
+    "current_verified_at": "2026-10-08T11:03:14Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-D",
+  "current_milestone": "CORE-FEATURE-BATCH-20261008-G",
   "current_objective": "Advance connected jobseeker search, explainable matching, truthful documents, and consent-safe application preparation through dependency-ready vertical slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -77,7 +77,9 @@
     "MJ-REQ-195 / issue #196 application tracker: all ten documented stages in a user-reported Kanban pipeline with profile-scoped durable status/history and explicit no-submission distinction; evidence docs/evidence/2026-10-08-application-tracker-current-main.json.",
     "MJ-REQ-194 / issue #195 Companies Screen: all eight exact fields, profile-scoped durable Applications count, persisted User Preference; full issue acceptance verified and issue closed PASS. Aggregate MJ-PR-053 remains queued.",
     "Connected location search filter, certification-fit explanation, and sensitive-question preflight slices integrated on local main e5fee45c0c3e074154ef523d252a2e78a2ffa2de; all requirements remain PARTIAL.",
-    "Durable privacy-safe application step trace and annual USD salary search filters integrated on tested local main source 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; scoped issues #140/MJ-REQ-139 and #190/MJ-REQ-189 remain PARTIAL."
+    "Durable privacy-safe application step trace and annual USD salary search filters integrated on tested local main source 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; scoped issues #140/MJ-REQ-139 and #190/MJ-REQ-189 remain PARTIAL.",
+    "MJ-REQ-104 bounded ITSM semantic match with explicit per-job review and durable export provenance; PARTIAL acceptance only.",
+    "MJ-REQ-128 read-only safe metadata analysis for synthetic mock application forms; ambiguous rendered context fails closed; PARTIAL acceptance only."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -138,7 +140,9 @@
     "MJ-REQ-274: due discovery operation scheduling survives actual SQLite scheduler process restart; second tick deduplicates; a separate synthetic worker completes the single operation. Compose/PostgreSQL and broader persistence/application restart remain unverified.",
     "MJ-REQ-191: current supported Jobs filters (query, location, source, sort) save and restore through profile-scoped persistence with reload/readback and scheduler-disabled behavior; broader filter sidebar/saved-search cadence remains open.",
     "MJ-REQ-177 / issue #178: APPLY_MOCK logs now include validated persisted application/job/company IDs and allowlisted ATS after terminal persistence; failure isolation and privacy validated; broader logging context remains PARTIAL.",
-    "MJ-REQ-143 / issue #144: MOCK-only timestamp, local confirmation URL, observed text and reference persist/read back; invalid receipts remain SUBMISSION_UNCONFIRMED; real ATS confirmation remains PARTIAL."
+    "MJ-REQ-143 / issue #144: MOCK-only timestamp, local confirmation URL, observed text and reference persist/read back; invalid receipts remain SUBMISSION_UNCONFIRMED; real ATS confirmation remains PARTIAL.",
+    "MJ-REQ-107: exact mapped work-authorization and current/future sponsorship values are supported only as private preflight checks; mixed, hedged, historical or unrelated legal questions remain UNKNOWN before Playwright. Broader legal fields remain PARTIAL.",
+    "MJ-REQ-136: durable job/company/route/resume/cover-letter/reviewed-answer application preview with visible UNKNOWN blockers/confidence; selection survives reload and viewing performs only local GET reads. Broader automation remains PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -158,7 +162,10 @@
     "MJ-REQ-179",
     "MJ-REQ-100",
     "MJ-REQ-139",
-    "MJ-REQ-189"
+    "MJ-REQ-189",
+    "MJ-REQ-107",
+    "MJ-REQ-136",
+    "MJ-REQ-101"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -422,7 +429,10 @@
     "Root exact-main application preflight/mock-browser/answer-export/review-queue suite: 48/48 PASS after building current apps/web; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json.",
     "Root exact-main combined search, salary, application trace, browser, and privacy suite: 44/44 PASS.",
     "Root exact-main frontend suite: 96/96 PASS; TypeScript/Vite production build PASS.",
-    "Local delegated review of #140 trace and #190 salary slices: no material findings."
+    "Local delegated review of #140 trace and #190 salary slices: no material findings.",
+    "Exact integrated-main combined legal preflight + application preview suite: 22/22 PASS; synthetic SQLite and local Chromium.",
+    "Exact integrated-main frontend suite: 96/96 PASS; TypeScript check and Vite production build PASS.",
+    "Legal profile preflight py_compile, evidence SHA-256 comparisons, and diff check PASS; application preview evidence hashes and local delegated review PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -565,14 +575,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56",
-    "tree": "543046df156f6c9c4597b7cdae0050b70592c05c",
-    "result": "PASS scoped exact-main integration for durable application step tracing and annual USD saved-search salary bounds; broader product/release remains PARTIAL; hosted checks NOT_RUN.",
+    "commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
+    "tree": "cdc7abf97ecf51007be25e4b07504ef775bdac67",
+    "result": "PASS scoped exact-main answer semantic-match refinement and mock form analyzer; original requirements remain PARTIAL; live ATS and hosted checks NOT_RUN by policy.",
     "evidence": [
-      "docs/evidence/2026-10-08-application-step-trace.json",
-      "docs/evidence/2026-10-08-salary-job-search-filter.json"
+      "docs/evidence/2026-10-08-answer-semantic-match-refinement.json",
+      "docs/evidence/2026-10-08-generic-form-engine.json"
     ],
-    "verified_at_utc": "2026-10-08T10:14:44Z"
+    "verified_at_utc": "2026-10-08T11:03:14Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -639,7 +649,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue active #115/MJ-REQ-114 certification explanations and #136/MJ-REQ-135 sensitive-question preflight gate in isolated worktrees; reconcile, verify and integrate sequentially.",
+  "recommended_resume_step": "Continue the core-feature sprint by finishing exact-main verification and integration of #101/MJ-REQ-100 company-context cover letters; then select the next dependency-ready discovery/filter, document, or supported application-preparation gap. Refresh the tracker only at the next accepted batch.",
   "release_readiness": "NOT_RUN",
   "migrations_applied": [
     "92f0997f753e",
@@ -673,16 +683,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
+  "last_implementation_commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
   "publication": {
-    "result": "PASS - scoped local product slices integrated; overall release remains PARTIAL/NOT_RUN",
-    "integration_method": "NON_FORCE_FAST_FORWARD with exact worker commits cherry-picked where needed",
-    "integration_commit": "b96700264ac660c91b5be0093b979607ddfd6267",
-    "prior_main": "1f4c7771d01b5918943cb1569c5aae84a9e53181",
+    "result": "PASS - bounded local feature batch integrated and synchronized; overall release remains PARTIAL/UNKNOWN",
+    "integration_method": "NON_FORCE_FAST_FORWARD; exact tested worker commits integrated under the root lock",
+    "integration_commit": "347d4e7e53058135246f734aa1c7e850be25e51d",
+    "prior_main": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Three bounded product slices integrated locally under Codex integration lock: cover-letter fact relevance, one curated cloud answer paraphrase, and title/work-arrangement/employment fit explanation. Root exact candidate checks: combined Python 47, frontend 95, TypeScript/Vite build, connected Chromium 1, and source hashes PASS. Full requirements stay PARTIAL; hosted checks/review and overall release eligibility NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "note": "Two user-visible slices (#108/#107 safe legal preflight, #137/#136 connected application preview) integrated and synchronized at origin/main 347d4e7e53058135246f734aa1c7e850be25e51d. Root exact combined tests, frontend/build, evidence/hash and diff checks PASS; local reviews have no material findings. Hosted/manual/live ATS and whole-product eligibility NOT_RUN/PARTIAL; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -11100,14 +11110,104 @@
         "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
         "note": "Accepted bounded connected job-filter slice. Broader sidebar and release remain PARTIAL/NOT_RUN."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-F",
+      "timestamp": "2026-10-08T10:36:50Z",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "completed_steps": [
+        "Integrated fail-closed legal preflight for exact saved work-authorization/sponsorship values; composite, hedged, historical and unrelated legal questions remain UNKNOWN before browser launch.",
+        "Integrated connected read-only application review showing job/company/route/resume/cover letter/reviewed answer export/blockers/confidence with reload restoration and no automation side effect.",
+        "Re-reviewed exact rebased candidates, corrected review findings, ran the combined local Python/frontend/build checks, recorded issue receipts, and synchronized main using a non-force fast-forward."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-legal-question-preflight.json",
+        "tests/integration/test_legal_question_preflight.py",
+        "docs/evidence/2026-10-08-application-preview.json",
+        "tests/integration/test_application_preview.py",
+        "tests/browser/test_application_preview.py"
+      ],
+      "files_modified": [
+        "services/applications/preflight.py",
+        "apps/web/src/main.tsx",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/lanes/codex/CLAIMS.json",
+        "planning/lanes/codex/CONTINUATION.json"
+      ],
+      "tests_completed": [
+        "Exact synchronized main legal + application preflight + preview integration/browser suite: 22/22 PASS.",
+        "Frontend suite: 96/96 PASS; TypeScript/Vite production build PASS.",
+        "Legal preflight py_compile, preview py_compile, source/evidence hashes, git diff --check and lane/skills validators PASS.",
+        "LOCAL_DELEGATED_REVIEW: no material findings after red-first fixes to legal-question and preflight-PASS blocker cases."
+      ],
+      "tests_remaining": [
+        "Live ATS/provider and PostgreSQL coverage, manual jobseeker review, hosted checks/review, complete original requirement denominator and overall release eligibility remain NOT_RUN/PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Only bounded scoped slices are accepted; #108/#107 and #137/#136 stay OPEN/PARTIAL.",
+        "Hosted automation/review is disabled by policy; real application submission is OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "347d4e7e53058135246f734aa1c7e850be25e51d",
+        "tree": "3b34163e8ec9c6d72ecda9c04604e4b7055d3af3",
+        "evidence_path": "docs/evidence/2026-10-08-application-preview.json",
+        "note": "Two scoped, exact-main-verified core-product slices integrated and synchronized; broader release readiness remains PARTIAL/UNKNOWN."
+      }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-G",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T11:03:14Z",
+      "completed_steps": [
+        "Integrated bounded answer semantic-match refinement and read-only synthetic form metadata analysis; tracked both as PARTIAL.",
+        "Reconciled exact main/source evidence and hosted/live-ATS limitations."
+      ],
+      "files_added": [],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/lanes/codex/CLAIMS.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Answer matching focused Python 30/30 and browser 3/3; frontend 97/97 and build passed on candidate; generic-form focused suite 31/31 on candidate; exact integrated main 9 Python and 22 browser tests passed after rebase; skills, catalogue, dashboard tests and evidence checks passed."
+      ],
+      "tests_remaining": [
+        "Whole application suite; PostgreSQL/live ATS; hosted checks."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "One timing-sensitive pre-existing Chromium test timed out at 250 ms on the first combined candidate run; isolated rerun passed and subsequent split exact-main tests passed without source changes."
+      ],
+      "known_limitations": [
+        "Company-specific external ATS metadata and actual employer systems remain untested; hosted CI/review are NOT_RUN by policy; external submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
+        "tree": "cdc7abf97ecf51007be25e4b07504ef775bdac67",
+        "branch": "main",
+        "issue": "#105 / MJ-REQ-104 and #129 / MJ-REQ-128",
+        "evidence_path": "docs/evidence/2026-10-08-generic-form-engine.json",
+        "note": "Both bounded product slices are integrated and synchronized; tracker counts remain requirement-level PARTIAL and release UNKNOWN."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-    "tree": "9f4d23b024e2746c1ac1448464cd344ee847007a",
-    "evidence_path": "docs/evidence/2026-10-08-title-company-search-filters.json",
-    "note": "Accepted bounded connected job-filter slice. Broader sidebar and release remain PARTIAL/NOT_RUN."
+    "git_commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
+    "tree": "cdc7abf97ecf51007be25e4b07504ef775bdac67",
+    "branch": "main",
+    "issue": "#105 / MJ-REQ-104 and #129 / MJ-REQ-128",
+    "evidence_path": "docs/evidence/2026-10-08-generic-form-engine.json",
+    "note": "Both bounded product slices are integrated and synchronized; tracker counts remain requirement-level PARTIAL and release UNKNOWN."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11433,21 +11533,14 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 136,
-    "requirement_id": "MJ-REQ-135",
-    "title": "Sensitive ATS question preflight validation",
-    "state": "Active isolated implementation.",
-    "branch": "codex/mj-req135-sensitive-question-preflight-20261008",
-    "worktree": ".worktrees/codex-mj-req135-sensitive-question-preflight-20261008",
-    "base_commit": "a33ecc497c412a3ee547ac35930b43de6fe274d4",
-    "owned_paths": [
-      "services/applications/preflight.py",
-      "tests/integration/test_application_preflight.py",
-      "tests/browser/test_mock_application.py",
-      "docs/evidence/2026-10-08-sensitive-question-preflight.json"
-    ],
-    "acceptance": "Unexpected required sensitive question must fail closed before browser startup and remain reviewable without exposing answers.",
-    "child_id": "req135-sensitive-question-preflight"
+    "issue": 101,
+    "requirement_id": "MJ-REQ-100",
+    "title": "Cover Letter Engine",
+    "state": "Active isolated implementation; exact-current-main validation and integration pending.",
+    "branch": "codex/mj-req100-verified-company-context-20261008",
+    "worktree": ".worktrees/codex-mj-req100-verified-company-context-20261008",
+    "base_commit": "010764caf6720ca2ea946268473b6c03ed89d3cc",
+    "acceptance": "Use exact company-source identity and user-reviewed provenance-backed company context, position/JD and approved career facts to produce truthful versioned job-specific letters; unverified context remains labeled and no unsupported employer facts are introduced."
   },
   "historical_control_snapshots": [
     {
@@ -12603,7 +12696,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T09:37:57.285378Z",
-  "current_verified_local_state": "Accepted core feature source batch at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; durable application phase trace and annual USD saved salary filters locally verified; scoped requirements remain PARTIAL.",
-  "current_verified_github_state": "GitHub main remains at da52067f3278a5415d05c4631b280d407ca26037 pending local-only fast-forward of this feature and tracker batch."
+  "updated_at": "2026-10-08T11:03:14Z",
+  "current_verified_local_state": "Product source is exact-main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc (tree cdc7abf97ecf51007be25e4b07504ef775bdac67); answer matching and generic mock-form analysis scoped slices accepted PARTIAL. Local tracker integration is in progress.",
+  "current_verified_github_state": "origin/main synchronized at 010764caf6720ca2ea946268473b6c03ed89d3cc; answer-matching and generic mock-form-analysis receipts posted. Tracker publication pending."
 }

@@ -938,7 +938,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-029-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest bounded local slice 105 / MJ-REQ-104 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-answer-semantic-matching.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest bounded local slice 105 / MJ-REQ-104 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-answer-semantic-matching.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #108 / MJ-REQ-107 exact legal profile-value preflight integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-legal-question-preflight.json. Broader legal fields, matching and combined workflow remain PARTIAL; dependencies/status unchanged.",
       "slice_history": [
         {
           "name": "Curated cloud question paraphrase",
@@ -951,6 +951,19 @@
           "limitations": [
             "Only one curated synonym added; general semantic matching is not claimed.",
             "Answer-export browser runtime skipped; hosted checks NOT_RUN_BY_USER_POLICY."
+          ]
+        },
+        {
+          "name": "Fail-closed explicit legal profile-value preflight",
+          "issue": 108,
+          "requirement_id": "MJ-REQ-107",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "1020cd10444caded2bc3d7aa40dc91ce2ad20102",
+          "evidence_path": "docs/evidence/2026-10-08-legal-question-preflight.json",
+          "validation": "PASS: legal + application preflight 19/19; combined with preview 22/22; frontend 96/96/build; evidence hashes and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
+          "limitations": [
+            "Other legal profile fields, live employer ATS validation, hosted checks and whole-requirement acceptance remain incomplete.",
+            "External application submission remains OFF."
           ]
         }
       ]
@@ -1128,7 +1141,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-035-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Bounded MJ-REQ-128 safe mock-form metadata analysis is integrated at 010764caf6720ca2ea946268473b6c03ed89d3cc with 31 focused candidate tests plus exact-main checks; remains PARTIAL. Real ATS metadata unsupported/unverified. Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
     },
     {
       "id": "MJ-PR-036",
@@ -1168,7 +1181,22 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-037-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged. Additional #137 / MJ-REQ-136 application preview integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-application-preview.json. This is a read-only review slice only; parent requirement and dependencies remain PARTIAL/QUEUED.",
+      "slice_history": [
+        {
+          "name": "Connected read-only application preview",
+          "issue": 137,
+          "requirement_id": "MJ-REQ-136",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "347d4e7e53058135246f734aa1c7e850be25e51d",
+          "evidence_path": "docs/evidence/2026-10-08-application-preview.json",
+          "validation": "PASS: focused integration/browser 3/3; combined legal/application/preview 22/22; frontend 96/96/build; diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
+          "limitations": [
+            "Synthetic SQLite/browser fixtures only; hosted/manual/live ATS checks NOT_RUN.",
+            "External employer submission remains OFF."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-038",
@@ -4272,5 +4300,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T09:37:57.285378Z"
+  "generated_at": "2026-10-08T11:03:14Z"
 }

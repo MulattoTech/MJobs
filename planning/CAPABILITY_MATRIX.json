@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T10:14:44Z",
+  "timestamp": "2026-10-08T11:03:14Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -987,9 +987,10 @@
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json",
         "docs/evidence/2026-10-08-answer-matching.json",
-        "docs/evidence/2026-10-08-answer-semantic-matching.json"
+        "docs/evidence/2026-10-08-answer-semantic-matching.json",
+        "docs/evidence/2026-10-08-answer-semantic-match-refinement.json"
       ],
-      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Bounded answer matching slice integrated at e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on 2b3c1996a121af5584caa79653896dc572d46ac8. Exact, bounded fuzzy and one curated synonym matcher are visibly distinguished with provenance; per-job review is deliberate and export recomputes against the locked current profile before immutable local output. 21 Python, 2 Chromium/API, 5 frontend tests and build PASS; local delegated review no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json. Broader semantic matching/configurable thresholds PARTIAL; Node 25.9 outside Vitest declared range; PostgreSQL and hosted checks NOT_RUN; external submission OFF. Additional bounded local slice integrated on exact tested main candidate b96700264ac660c91b5be0093b979607ddfd6267: one explicitly curated cloud provider/platform question paraphrase is shown as CURATED_SEMANTIC and recorded in reviewed export; sensitive/legal exclusions and approval gates stay intact. Root exact candidate combined Python scope includes 28 answer tests; frontend 95/95/build PASS. This is one added synonym, not general semantic matching; #105 and MJ-REQ-104 remain OPEN/PARTIAL. Browser answer-export runtime skipped; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "note": "Deterministic, curated ITSM to IT service management expansion is now shown with an explainable match score and explicit per-job answer selection/review; durable export provenance and service-desk near-miss/sensitive-question controls pass locally. Full requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-105",
@@ -1012,9 +1013,10 @@
       "requirement_id": "MJ-REQ-107",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-05-reviewed-application-answers.json"
+        "docs/evidence/2026-10-05-reviewed-application-answers.json",
+        "docs/evidence/2026-10-08-legal-question-preflight.json"
       ],
-      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Latest scoped legal preflight supports only exact work-authorization and current/future sponsorship profile mappings, keeps compound/historical/uncertain cases UNKNOWN before browser launch, and does not expose or autofill values; full MJ-REQ-107 remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-108",
@@ -1175,9 +1177,11 @@
     },
     {
       "requirement_id": "MJ-REQ-128",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-generic-form-engine.json"
+      ],
+      "note": "Read-only extraction of synthetic mock form labels and safe metadata now supports structured hints and visible field type/required state. Rendered label/heading/legend context fails closed to UNKNOWN, sibling/value text is not returned, and malformed analysis blocks before browser launch with zero attempts. Real ATS remains NOT_RUN; full requirement PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-129",
@@ -1225,9 +1229,11 @@
     },
     {
       "requirement_id": "MJ-REQ-136",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-application-preview.json"
+      ],
+      "note": "Connected read-only application review screen reads persisted job, route, resume, validated cover letter, reviewed-answer export, blockers and confidence; restores profile-scoped selection after reload. Missing evidence and confidence remain UNKNOWN; opening/reloading has GET-only local side effects and does not start automation. Scoped slice remains PARTIAL; hosted/manual/live ATS checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-137",

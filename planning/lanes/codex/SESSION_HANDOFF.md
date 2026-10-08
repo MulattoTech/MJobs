@@ -1,3 +1,11 @@
+## 2026-10-08T10:36:50Z — connected legal preflight and application preview synchronized
+
+Local and origin main are synchronized at `347d4e7e53058135246f734aa1c7e850be25e51d` (tree `3b34163e8ec9c6d72ecda9c04604e4b7055d3af3`). #108/MJ-REQ-107 exact legal profile-value preflight and #137/MJ-REQ-136 connected read-only application preview are integrated, evidence-backed, and remain OPEN/PARTIAL. Root exact combined preflight/preview suite 22/22 PASS; frontend 96/96 and TypeScript/Vite build PASS; py_compile, evidence hashes, diff check and skills validator PASS. Local delegated reviews found no remaining material issues. Original totals now: 83 PASS, 89 PARTIAL, 194 NOT_RUN; release remains UNKNOWN. Hosted Actions/review and live ATS are NOT_RUN; external submission OFF.
+
+Active Codex Luna High writers: #101/MJ-REQ-100 verified company-context cover-letter work on company-context/service/migration/document paths, and #129/MJ-REQ-128 read-only synthetic mock form analysis. Also preserve active Antigravity #302 and Ollama #318 claims. Root remains sole integrator and holds the integration lock. Next: review and exact-test active candidates, integrate only qualified slices, update tracker/dashboard at the next meaningful batch.
+
+---
+
 ## 2026-10-08T06:53:07Z — #192 / MJ-REQ-191 assigned
 
 Active claim `codex/mj-req191-save-filters-20261008` / `.worktrees/codex-mj-req191-save-filters-20261008` based on `bce7866e87aa71b7658d7000e2e8b66452187254`. User action: save current Jobs controls (`q`, work location, source, sort) into a named profile-scoped saved search and restore after reload; verify connected results, profile isolation, malformed/cross-profile rejection, clearing selection, and no scheduling side effect. Tests pending. Parent queue dependencies MJ-PR-051 and MJ-PR-043 stay queued. Claim: https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6054262693. External submission OFF.
