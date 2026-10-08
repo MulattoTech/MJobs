@@ -15,6 +15,7 @@ import uvicorn
 def create_mock_app(receipt_file=None):
     app = FastAPI(title="MJobs fictional mock ATS")
     receipts = json.loads(Path(receipt_file).read_text(encoding="utf-8")) if receipt_file and Path(receipt_file).exists() else {}
+    request_counts = {"review": 0, "submit": 0}
     lock = threading.Lock()
 
     def jobs(origin):
@@ -83,30 +84,63 @@ def create_mock_app(receipt_file=None):
                  "requirements": {"application_context": ["application_id"]}},
                 {"id": "optional_note", "label": "Optional note", "required": False,
                  "requirements": {"answer_ids": ["optional_note"]}},
+                {"id": "region", "label": "State or province", "required": False,
+                 "tag": "select", "options": ["Oklahoma", "Texas"],
+                 "condition": {"question_id": "country", "equals": "United States"},
+                 "requirements": {"answer_ids": ["state"]}},
             ],
         }
 
     @app.get("/ats/apply/{requisition}", response_class=HTMLResponse)
-    def application(requisition: str, challenge: bool = False):
+    def application(requisition: str, challenge: bool = False, dynamic: str | None = None):
         if challenge:
             return '<h1 data-intervention="CAPTCHA">Manual challenge required</h1>'
+        dynamic_mode = dynamic if dynamic in {"known", "unknown"} else None
+        dynamic_field = ""
+        if dynamic_mode == "known":
+            dynamic_field = '''<label for="region">State or province</label>
+                <select id="region" name="region" data-mjobs-dynamic-field
+                        data-mjobs-question-id="region">
+                  <option value="">Choose</option>
+                  <option>Oklahoma</option><option>Texas</option>
+                </select>'''
+        elif dynamic_mode == "unknown":
+            dynamic_field = '''<label for="unlisted">Additional required field</label>
+                <input id="unlisted" name="unlisted" data-mjobs-dynamic-field
+                       data-mjobs-question-id="unlisted">'''
+        review_query = f"?dynamic={dynamic_mode}" if dynamic_mode else ""
         return f'''<h1>Mock ATS application {requisition}</h1>
-        <form action="/ats/review/{requisition}" method="post" enctype="multipart/form-data">
+        <form action="/ats/review/{requisition}{review_query}" method="post" enctype="multipart/form-data">
         <label>Name<input name="name" required maxlength="200"></label>
         <label>Email<input name="email" type="email" required></label>
         <label>Resume<input name="resume" type="file" accept=".pdf" required></label>
         <label>Cover letter<input name="cover" type="file" accept=".pdf" required></label>
-        <label>Country<select name="country" required><option value="">Choose</option><option>United States</option></select></label>
+        <label>Country<select id="country" name="country" required><option value="">Choose</option><option>United States</option></select></label>
+        {f'<section id="conditional-field" hidden>{dynamic_field}</section>' if dynamic_mode else ''}
         <label>Remote role<input type="radio" name="remote" value="yes" required>Yes</label>
         <label><input name="reviewed" type="checkbox" required>Documents reviewed</label>
-        <button type="submit">Review application</button></form>'''
+        <button type="submit">Review application</button></form>
+        {f'''<script>
+        document.getElementById('country').addEventListener('change', event => {{
+          if (event.target.value === 'United States') {{
+            const section = document.getElementById('conditional-field');
+            section.hidden = false;
+            section.querySelector('[data-mjobs-dynamic-field]').required = true;
+          }}
+        }});
+        </script>''' if dynamic_mode else ''}'''
 
     @app.post("/ats/review/{requisition}", response_class=HTMLResponse)
     async def review(requisition: str, request: Request):
+        with lock:
+            request_counts["review"] += 1
         form = await request.form()
         if not all(form.get(field) for field in ("name", "email", "resume", "cover", "country", "remote", "reviewed")):
             await form.close()
             return HTMLResponse('<p role="alert">Validation failed</p>', status_code=422)
+        if request.query_params.get("dynamic") == "known" and form.get("region") != "Oklahoma":
+            await form.close()
+            return HTMLResponse('<p role="alert">Dependent field validation failed</p>', status_code=422)
         for field in ("resume", "cover"):
             data = await form[field].read(2_000_001)
             if len(data) > 2_000_000 or not data.startswith(b"%PDF-"):
@@ -123,6 +157,8 @@ def create_mock_app(receipt_file=None):
 
     @app.post("/ats/submit/{requisition}", response_class=HTMLResponse)
     async def submit(requisition: str, request: Request):
+        with lock:
+            request_counts["submit"] += 1
         form = await request.form()
         if (not all(form.get(key) for key in ("application_id", "answer", "confirmed"))
                 or form.get("answer") != "Controlled fictional test application."):
@@ -157,6 +193,11 @@ def create_mock_app(receipt_file=None):
     def receipt(application_id: str):
         with lock:
             return receipts.get(application_id, {"status": "not_found"})
+
+    @app.get("/_test/request-counts")
+    def test_request_counts():
+        with lock:
+            return dict(request_counts)
 
     return app
 

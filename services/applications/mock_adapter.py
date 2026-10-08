@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import math
 from pathlib import Path
+import re
 from uuid import uuid4
 import httpx
 
@@ -30,6 +31,10 @@ from services.documents.validation import validate_stored_resume, VALIDATOR
 from services.documents.avoid_list import validate_content as validate_avoid_list
 
 
+_DYNAMIC_QUESTION_ID = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
+MAX_DYNAMIC_REQUIRED_FIELDS = 20
+
+
 def _playwright_action_timeout_ms(check, maximum_ms=10000):
     remaining_seconds = getattr(check, "remaining_seconds", None)
     if not callable(remaining_seconds):
@@ -44,6 +49,104 @@ def _playwright_action_timeout_ms(check, maximum_ms=10000):
         check()
         raise ValueError("OPERATION_TIMEOUT")
     return min(maximum_ms, timeout_ms)
+
+
+def _visible_required_controls(page):
+    """Read bounded control identity only; never inspect values or rendered labels."""
+    try:
+        forms = page.locator("form")
+        if forms.count() != 1:
+            return None
+        controls = forms.first.evaluate("""form => Array.from(form.querySelectorAll(
+          'input[required],select[required],textarea[required]'))
+          .filter(control => control.getClientRects().length > 0 &&
+            getComputedStyle(control).visibility !== 'hidden' &&
+            getComputedStyle(control).display !== 'none')
+          .slice(0, 101).map(control => ({
+            question_id: control.getAttribute('data-mjobs-question-id'),
+            id: control.id || null,
+            name: control.name || null,
+            tag: control.tagName.toLowerCase()
+          }))""")
+    except Exception:
+        return None
+    if not isinstance(controls, list) or len(controls) > 100:
+        return None
+    for control in controls:
+        if (not isinstance(control, dict)
+                or control.get("tag") not in {"input", "select", "textarea"}
+                or any(value is not None and (not isinstance(value, str) or len(value) > 100)
+                       for value in (control.get("question_id"), control.get("id"),
+                                     control.get("name")))):
+            return None
+    return controls
+
+
+def _dynamic_control_identity(control):
+    return (control.get("question_id"), control.get("id"), control.get("name"), control.get("tag"))
+
+
+def _approved_answer_text(profile, answer_id):
+    rows = [row for row in profile.get("answers", [])
+            if isinstance(row, dict) and row.get("id", row.get("fact_id")) == answer_id]
+    if len(rows) != 1:
+        return None
+    row = rows[0]
+    confidence = row.get("confidence")
+    if (row.get("verified") is not True or row.get("user_approved") is not True
+            or type(confidence) not in (int, float) or confidence < 80
+            or not isinstance(row.get("source"), str) or not row["source"].strip()
+            or not isinstance(row.get("text"), str) or not row["text"].strip()):
+        return None
+    return row["text"]
+
+
+def _fill_dynamic_required_fields(page, initial_controls, preflight, profile, check):
+    """Resolve newly visible required dependent dropdowns only from exact known mappings."""
+    seen = {_dynamic_control_identity(control) for control in initial_controls}
+    mappings = {row.get("question_id"): row for row in preflight.get("mappings", [])
+                if isinstance(row, dict) and isinstance(row.get("question_id"), str)}
+    for _ in range(MAX_DYNAMIC_REQUIRED_FIELDS + 1):
+        current = _visible_required_controls(page)
+        if current is None:
+            return {"reason": "DYNAMIC_FORM_STATE_UNAVAILABLE",
+                    "question_id": "dynamic-form"}
+        added = [control for control in current if _dynamic_control_identity(control) not in seen]
+        if not added:
+            return None
+        if len(added) > MAX_DYNAMIC_REQUIRED_FIELDS:
+            return {"reason": "DYNAMIC_REQUIRED_FIELD_LIMIT_EXCEEDED",
+                    "question_id": "dynamic-form"}
+        for control in added:
+            seen.add(_dynamic_control_identity(control))
+            question_id = control.get("question_id")
+            if (not isinstance(question_id, str)
+                    or not _DYNAMIC_QUESTION_ID.fullmatch(question_id)
+                    or question_id not in mappings):
+                return {"reason": "UNKNOWN_DYNAMIC_REQUIRED_FIELD",
+                        "question_id": (question_id if isinstance(question_id, str)
+                                         and _DYNAMIC_QUESTION_ID.fullmatch(question_id)
+                                         else "unknown-dynamic-field")}
+            mapping = mappings[question_id]
+            answer_ids = mapping.get("answer_ids", [])
+            mapped_total = sum(len(mapping.get(key, [])) for key in (
+                "fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context"))
+            if (control.get("tag") != "select" or mapped_total != 1
+                    or len(answer_ids) != 1):
+                return {"reason": "UNRESOLVED_DYNAMIC_REQUIRED_FIELD",
+                        "question_id": question_id}
+            answer_text = _approved_answer_text(profile, answer_ids[0])
+            if answer_text is None:
+                return {"reason": "UNRESOLVED_DYNAMIC_REQUIRED_FIELD",
+                        "question_id": question_id}
+            matching = page.locator(f'[data-mjobs-question-id="{question_id}"]')
+            if matching.count() != 1:
+                return {"reason": "AMBIGUOUS_DYNAMIC_REQUIRED_FIELD",
+                        "question_id": question_id}
+            check()
+            matching.select_option(label=answer_text)
+    return {"reason": "DYNAMIC_REQUIRED_FIELD_LIMIT_EXCEEDED",
+            "question_id": "dynamic-form"}
 
 
 def _receipt(client, application, requisition, *, observed_url=None,
@@ -174,6 +277,21 @@ def _preflight(store, application, route, profile, document_kinds, client):
                          "QUESTION_PREFLIGHT_STALE")
         return stale
     return result
+
+
+def _record_dynamic_review(store, application_id, preflight, problem):
+    report = dict(preflight)
+    report.update({
+        "result": "UNKNOWN",
+        "reason": problem["reason"],
+        "missing": [{
+            "question_id": problem["question_id"],
+            "question": "A newly revealed required field needs review.",
+        }],
+    })
+    persist_preflight(store, application_id, report)
+    store.transition(application_id, ["FILLING"], "REVIEW_REQUIRED", problem["reason"])
+    return store.application(application_id)
 
 
 def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None,
@@ -371,7 +489,18 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     store.transition(application_id, ["FILLING"], "FILLING", "FILL_CONTACT")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     start_step("FILL_LOCATION")
+                    initial_controls = _visible_required_controls(page)
+                    if initial_controls is None:
+                        return _record_dynamic_review(store, application_id, preflight, {
+                            "reason": "DYNAMIC_FORM_STATE_UNAVAILABLE",
+                            "question_id": "dynamic-form",
+                        })
                     page.get_by_role("combobox", name="Country", exact=True).select_option(label=answer["country"])
+                    dynamic_problem = _fill_dynamic_required_fields(
+                        page, initial_controls, preflight, profile, check)
+                    if dynamic_problem is not None:
+                        return _record_dynamic_review(store, application_id, preflight,
+                                                      dynamic_problem)
                     finish_step("COMPLETED")
                     start_step("ANSWER_STANDARD")
                     if answer["remote"] != "yes":

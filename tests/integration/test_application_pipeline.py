@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -115,6 +115,46 @@ class ApplicationPipelineTests(unittest.TestCase):
                 m.audit.c.action.in_(("APPLICATION_PIPELINE_STATUS", "APPLICATION_NOTE"))
             )).all()
         self.assertEqual(rows, [])
+
+    def test_unknown_dynamic_required_field_review_survives_reopen_and_detail_read(self):
+        from services.applications.mock_adapter import apply_mock
+        from services.applications.preflight import latest_preflight
+
+        with fixture_server() as origin:
+            with self.store.engine.begin() as connection:
+                route = connection.execute(select(m.routes).where(
+                    m.routes.c.id == self.store.application(self.application_id)["route_id"]
+                )).mappings().one()
+                connection.execute(update(m.routes).where(m.routes.c.id == route["id"]).values(
+                    url=f"{origin}/ats/apply/{route['requisition']}?dynamic=unknown"))
+
+            def check():
+                return None
+            check.remaining_seconds = lambda: 0.5
+            result = apply_mock(self.store, self.application_id, origin, self.root,
+                                submit=True, check=check)
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            import httpx
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
+
+        reopened = Store(f"sqlite:///{self.database.as_posix()}")
+        try:
+            persisted = reopened.application(self.application_id)
+            report = latest_preflight(reopened, self.application_id)
+            self.assertEqual(persisted["state"], "REVIEW_REQUIRED")
+            self.assertIn("UNKNOWN_DYNAMIC_REQUIRED_FIELD", persisted["trace"])
+            self.assertEqual(report["result"], "UNKNOWN")
+            self.assertEqual(report["reason"], "UNKNOWN_DYNAMIC_REQUIRED_FIELD")
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                       operation_mode="FIXTURE")) as client:
+                detail = client.get(f"/profiles/fixture/applications/{self.application_id}")
+            self.assertEqual(detail.status_code, 200, detail.text)
+            self.assertEqual(detail.json()["state"], "REVIEW_REQUIRED")
+            self.assertEqual(detail.json()["question_preflight"]["reason"],
+                             "UNKNOWN_DYNAMIC_REQUIRED_FIELD")
+        finally:
+            reopened.engine.dispose()
 
     def test_supported_manual_stages_are_listed_and_request_ids_cannot_change_meaning(self):
         stages = ["SAVED", "READY", "APPLIED", "RECRUITER_CONTACT", "INTERVIEW",

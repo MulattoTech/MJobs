@@ -578,6 +578,55 @@ class MockApplicationTests(unittest.TestCase):
             self.assertEqual(detail.json()["question_preflight"]["missing"][0]["question"],
                              "What is your gender?")
 
+    def test_conditional_required_dropdown_uses_known_preflight_mapping(self):
+        profile = dict(PROFILE, answers=[*PROFILE["answers"], {
+            "id": "state", "question": "State or province", "text": "Oklahoma",
+            "source": "Synthetic test", "verified": True, "user_approved": True,
+            "confidence": 100,
+        }])
+        with fixture_server() as origin:
+            app_id = self.prepared(origin, profile)
+            application = self.store.application(app_id)
+            with self.store.engine.begin() as connection:
+                route = connection.execute(select(m.routes).where(
+                    m.routes.c.id == application["route_id"])).mappings().one()
+                connection.execute(update(m.routes).where(m.routes.c.id == route["id"]).values(
+                    url=origin + "/ats/apply/B?dynamic=known"))
+
+            result = apply_mock(self.store, app_id, origin, self.root)
+
+            self.assertEqual(result["state"], "DRY_RUN_COMPLETE")
+            self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(),
+                             {"status": "not_found"})
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 1, "submit": 0})
+
+    def test_unknown_conditional_required_field_is_reviewed_before_review_or_submit(self):
+        with fixture_server() as origin:
+            app_id = self.prepared(origin)
+            application = self.store.application(app_id)
+            with self.store.engine.begin() as connection:
+                route = connection.execute(select(m.routes).where(
+                    m.routes.c.id == application["route_id"])).mappings().one()
+                connection.execute(update(m.routes).where(m.routes.c.id == route["id"]).values(
+                    url=origin + "/ats/apply/B?dynamic=unknown"))
+
+            def check():
+                return None
+            check.remaining_seconds = lambda: 0.5
+            result = apply_mock(self.store, app_id, origin, self.root, submit=True, check=check)
+
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            self.assertIn("UNKNOWN_DYNAMIC_REQUIRED_FIELD", result["trace"])
+            from services.applications.preflight import latest_preflight
+            preflight = latest_preflight(self.store, app_id)
+            self.assertEqual(preflight["result"], "UNKNOWN")
+            self.assertEqual(preflight["reason"], "UNKNOWN_DYNAMIC_REQUIRED_FIELD")
+            self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(),
+                             {"status": "not_found"})
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
+
     def test_changed_questionnaire_stops_before_browser_as_stale(self):
         from unittest.mock import patch
         with fixture_server() as origin:
