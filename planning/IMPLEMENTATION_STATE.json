@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T07:14:02Z",
+  "generated_at": "2026-10-08T07:19:12Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-177-APPLY-MOCK-ATS-CONTEXT-INTEGRATED-20261008",
+  "current_milestone": "MJ-REQ-095-TARGET-RELEVANT-BULLETS-CLAIMED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -10338,19 +10338,58 @@
         "at_utc": "2026-10-08T07:14:02Z",
         "note": "Scoped local acceptance only; hosted and runtime limitations remain."
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-095-TARGET-RELEVANT-BULLETS-CLAIMED-20261008",
+      "timestamp": "2026-10-08T07:19:12Z",
+      "current_phase": "MJ_REQ_095_TARGET_RELEVANT_BULLETS_CLAIMED",
+      "completed_steps": [
+        "Reconciled current issue #96, authoritative resume tailoring area spec and latest accepted #95 slices on exact synchronized main.",
+        "Confirmed no active Codex path claim overlaps exact skill matching or skill-order test paths; #180 owns only a separate debug privacy test/evidence path.",
+        "Established isolated branch/worktree, unique child claim and sanitized issue claim for the automatic deterministic target-relevant bullet-selection slice; preserved MJ-PR-026 dependencies."
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "Read-only source audit identified the falsifiable gap: default tailored generation currently retains all eligible bullet facts when no explicit IDs are provided; no tests were run for this claim checkpoint."
+      ],
+      "tests_remaining": [
+        "Reproduce that exact default behavior with a failing focused integration test.",
+        "Implement approved exact target-skill bullet selection with all-eligible fallback when nothing matches and explicit user selection precedence.",
+        "Test durable document history/comparison omission provenance, profile/cover-letter immutability, and unapproved facts.",
+        "Run focused unit/integration/browser checks and build only if frontend inputs change."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-PR-026 remains PARTIAL and its dependencies MJ-PR-025/MJ-PR-024 are preserved.",
+        "Issue #96 / MJ-REQ-095 overall remains OPEN/PARTIAL; this claimed slice is not acceptance."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
+        "tree": "dacf6df78261ce8df5d79c47bd22a6138a59af62",
+        "branch": "main",
+        "issue": "#96 / MJ-REQ-095",
+        "issue_state": "OPEN",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589",
+        "at_utc": "2026-10-08T07:19:12Z",
+        "note": "Isolated target-relevant bullet selection child claim established; no source mutation yet.",
+        "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json"
+      }
     }
   ],
-  "current_phase": "MJ_REQ_177_APPLY_MOCK_ATS_CONTEXT_INTEGRATED",
+  "current_phase": "MJ_REQ_095_TARGET_RELEVANT_BULLETS_CLAIMED",
   "last_safe_checkpoint": {
-    "git_commit": "047a780be248c94e802cba3068e884b7edf20428",
-    "tree": "c2b1652b941a5d58cb5a80a0b979b00ae8cc6d50",
+    "git_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
+    "tree": "dacf6df78261ce8df5d79c47bd22a6138a59af62",
     "branch": "main",
-    "evidence_path": "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
-    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054676806",
-    "issue_state": "OPEN/PARTIAL",
-    "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054679958",
-    "at_utc": "2026-10-08T07:14:02Z",
-    "note": "Scoped local acceptance only; hosted and runtime limitations remain."
+    "issue": "#96 / MJ-REQ-095",
+    "issue_state": "OPEN",
+    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589",
+    "at_utc": "2026-10-08T07:19:12Z",
+    "note": "Isolated target-relevant bullet selection child claim established; no source mutation yet.",
+    "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11836,5 +11875,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T07:14:02Z"
+  "updated_at": "2026-10-08T07:19:12Z"
 }

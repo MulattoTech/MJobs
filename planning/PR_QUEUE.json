@@ -758,7 +758,7 @@
       "status": "PARTIAL",
       "branch": null,
       "draft_until_verified": true,
-      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis, optional contact header, responsibility bullet emphasis and extractive target-skill summary selection/fallback are locally verified. Broader factual bullet and summary rephrasing remain PARTIAL. Fact-editor regression #503 is accepted in PR504. Local-only evidence: docs/evidence/2026-10-06-target-summary-tailoring.json; hosted verification NOT_RUN. User-reviewed selected responsibility bullet rewriting is integrated at bf3c8bc1868987c59661a69184537272c2f8d422; evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json. Issue #96 remains OPEN/PARTIAL because broader summary and other factual bullet rewriting are not complete; hosted checks NOT_RUN_BY_USER_POLICY.",
+      "notes": "MJ092/093/094 accepted. MJ095 ordering, explicit approved selection, technology emphasis, optional contact header, responsibility bullet emphasis and extractive target-skill summary selection/fallback are locally verified. Broader factual bullet and summary rephrasing remain PARTIAL. Fact-editor regression #503 is accepted in PR504. Local-only evidence: docs/evidence/2026-10-06-target-summary-tailoring.json; hosted verification NOT_RUN. User-reviewed selected responsibility bullet rewriting is integrated at bf3c8bc1868987c59661a69184537272c2f8d422; evidence docs/evidence/2026-10-07-resume-user-reviewed-bullet-rephrasing.json. Issue #96 remains OPEN/PARTIAL because broader summary and other factual bullet rewriting are not complete; hosted checks NOT_RUN_BY_USER_POLICY. Previous approved experience-fact rewrite slice integrated on main at 5dfce5eec8e2e6c56442631725c0993c7ce12a29 (tested source c6eb1cd604d1372800bc798b7454aa9fe40d9d91), evidence docs/evidence/2026-10-08-resume-experience-rewrites.json; issue remains OPEN/PARTIAL. New local child slice #96/MJ-REQ-095 target-relevant bullet selection claimed at https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589. Parent dependencies MJ-PR-025/MJ-PR-024 remain unchanged; this child does not promote parent status.",
       "feedback_slice": {
         "branch": "codex/resume-driven-profile",
         "result": "PARTIAL",
@@ -786,12 +786,12 @@
         "note": "Review-reset regression accepted; broader tailoring remains PARTIAL."
       },
       "active_slice": {
-        "name": "Add reviewed factual rewriting for approved experience facts",
+        "name": "Deterministic target-relevant bullet selection",
         "issue": 96,
         "requirement_id": "MJ-REQ-095",
-        "status": "ACTIVE",
+        "status": "ACTIVE_LOCAL_CLAIMED",
         "publication_state": "LOCAL_WORK_IN_PROGRESS",
-        "base_commit": "1defb5d76f7d0c1050a5936a7077eb222acdd86a",
+        "base_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
         "depends_on": [],
         "parent_dependencies_preserved": [
           "MJ-PR-025",
@@ -799,16 +799,32 @@
         ],
         "owned_paths": [
           "services/documents/tailor.py",
-          "apps/web/src/resume-fact-selection.tsx",
-          "apps/web/src/resume-fact-selection.test.tsx",
-          "tests/unit/test_resume_comparison.py",
-          "tests/integration/test_resume_comparison.py",
-          "tests/browser/test_resume_experience_rewrite.py",
-          "docs/evidence/2026-10-08-resume-experience-rewrites.json"
+          "services/documents/generate.py",
+          "tests/unit/test_skill_order.py",
+          "tests/integration/test_skill_order.py",
+          "tests/browser/test_skill_order.py",
+          "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
         ],
-        "acceptance": "Expose the existing user-authored, explicitly reviewed per-application rewrite flow for eligible approved `experience` facts that already render in generated resumes. Preserve strict version/selection/approval checks, source id/hash/kind and exact dates/numbers, durable generated history/reload/comparison, and reject unreviewed, unselected, unapproved, stale or changed-source input. No inferred content, profile mutation, cover-letter change, or provider call.",
-        "rationale": "Current-source audit confirmed the existing rewrite flow omits `experience` in both UI and backend allowlists; this is distinct from integrated technology_experience coverage. The narrow child does not promote parent MJ-PR-026 or change dependencies/denominators."
-      }
+        "acceptance": "When tailored generation has no explicit user fact selection, deterministically select approved responsibility/experience/project/accomplishment bullet facts with exact target-job skill matches; if none match, preserve all eligible bullets. Explicit user selection takes precedence. Preserve summary behavior, skills ordering/emphasis, immutable source facts and history/comparison omission provenance; profile and cover letter unchanged. No inferred wording or provider calls.",
+        "rationale": "Current-source audit found tailored generation keeps every approved bullet absent explicit selection. Issue/spec authorize target-relevant bullet choice; deterministic exact skill matching permits safe selection without inventing wording. Keep all eligible bullets on no-match fallback and honor deliberate explicit selection.",
+        "branch": "codex/mj-req095-target-relevant-bullets-20261008",
+        "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589"
+      },
+      "latest_slice_source_commit": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+      "latest_slice_integration_commit": "5dfce5eec8e2e6c56442631725c0993c7ce12a29",
+      "latest_slice_evidence": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
+      "latest_slice_issue": 96,
+      "latest_slice_requirement": "MJ-REQ-095",
+      "latest_slice_status": "PARTIAL",
+      "latest_slice_validated_head": "c6eb1cd604d1372800bc798b7454aa9fe40d9d91",
+      "latest_slice_validated_tree": "9be02589f74ba57622a2a7aa69b7d87602353136",
+      "latest_slice_issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053321247",
+      "latest_slice_base": "f34131a4047467284bb25b37138f872bf5f14a42",
+      "latest_slice_branch": "codex/mj-req095-experience-rewrite-20261008",
+      "latest_slice_scope_complete": false,
+      "latest_slice_tests": "13 unit/integration, 1 connected Chromium, 1 Vitest and build PASS on tested source head; Node 25.9.0 unsupported for Vitest; current focused Python revalidation BLOCKED_ENVIRONMENT in prior checkpoint; hosted NOT_RUN.",
+      "latest_slice_release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6053343083"
     },
     {
       "id": "MJ-PR-027",
@@ -4032,5 +4048,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T07:14:02Z"
+  "generated_at": "2026-10-08T07:19:12Z"
 }
