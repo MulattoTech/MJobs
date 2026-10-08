@@ -592,13 +592,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "9823b00479a5d9157e74ea84d3485ecca835a52c",
-    "tree": "84944fb02a3f8e7275a473879974eb24481e2618",
-    "result": "PASS for bounded #190/MJ-REQ-189 connected clearance search facet; the broader filter-sidebar requirement remains PARTIAL and release readiness remains UNKNOWN.",
+    "commit": "0863e55d1617b708906e7c865118105c841a6d18",
+    "tree": "01b75ee2176ca161ebbed90e537c9e7147883fd9",
+    "result": "PASS for two bounded core product slices (#190/MJ-REQ-189 evidence-qualified ATS saved-search facet and #96/MJ-REQ-095 responsibility-aware summary selection); both parent requirements remain PARTIAL and release readiness UNKNOWN.",
     "evidence": [
-      "docs/evidence/2026-10-08-clearance-search-filter.json"
+      "docs/evidence/2026-10-08-ats-search-filter.json",
+      "docs/evidence/2026-10-08-responsibility-summary-selection.json"
     ],
-    "verified_at_utc": "2026-10-08T13:47:13Z"
+    "verified_at_utc": "2026-10-08T14:20:06Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -665,7 +666,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the active #190 / MJ-REQ-189 Education requirement filter on its isolated branch; then assess the remaining discovery facets without overlapping live claims.",
+  "recommended_resume_step": "Reconcile dependency blockers and active claims before selecting another original core slice. The live queue scans found no other unclaimed dependency-ready discovery, ranking, document, or application-preparation task. Candidate work remains gated by current queue parents: match-weight configuration #118 by PR-032/031; application priority #119 and sorting #191 by PR-032 or PR-052 dependencies; ambiguous submission #145 by PR-039/038/030. Preserve external Antigravity #302 and Ollama #318 claims; do not duplicate them.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -699,16 +700,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "9823b00479a5d9157e74ea84d3485ecca835a52c",
+  "last_implementation_commit": "0863e55d1617b708906e7c865118105c841a6d18",
   "publication": {
-    "result": "PASS - three bounded core product slices integrated and synchronized; overall release remains UNKNOWN",
+    "result": "PASS - two bounded core product slices integrated and synchronized; original requirements remain PARTIAL and release readiness UNKNOWN",
     "integration_method": "NON_FORCE_FAST_FORWARD under root integration lock after exact-source local verification",
-    "integration_commit": "9823b00479a5d9157e74ea84d3485ecca835a52c",
-    "prior_main": "aab39b9b5dda190b59346f4176a3f513027768e8",
+    "integration_commit": "0863e55d1617b708906e7c865118105c841a6d18",
+    "prior_main": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "#190/MJ-REQ-189 parser-classified education and clearance facets, plus #116/MJ-REQ-115 section-scoped qualification strengths, are integrated as bounded PARTIAL slices. Local/origin/GitHub main synchronized at 9823b00479a5d9157e74ea84d3485ecca835a52c. PostgreSQL/full repository suite/hosted checks/live sources NOT_RUN; external submission OFF."
+    "note": "ATS saved-search facet (#190/MJ-REQ-189) and responsibility-aware v5 resume summary selection (#96/MJ-REQ-095) are integrated by local-only non-force fast-forward. Local/origin/GitHub main synchronized at 0863e55d1617b708906e7c865118105c841a6d18. ATS 24 connected API/Chromium tests and 103 frontend pass. Resume 26/26 scoped tests pass excluding an unchanged-main baseline browser failure, which remains documented. PostgreSQL/live ATS/hosted checks/full suite remain NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -11581,17 +11582,90 @@
         "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276",
         "note": "The taxonomy-backed skill facet is fast-forward integrated locally on main; root exact-source API/browser, frontend, build, compilation, hashes and validators pass. PostgreSQL/hosted remain NOT_RUN."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-P",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "timestamp": "2026-10-08T14:20:06Z",
+      "completed_steps": [
+        "Resolved stale Codex integration lock by verifying its recorded PID was absent; acquired a fresh root Codex lock before integration.",
+        "Verified the staged tracker branch policy and renderer were already present in current main content; did not replay stale setup commits or overwrite newer matrices. Progress dashboard --write reported UNCHANGED and --check CURRENT.",
+        "Integrated #190/MJ-REQ-189 persisted evidence-qualified ATS facet by non-force fast-forward; posted issue receipt and released claim after readback.",
+        "Rebased #96 responsibility-summary union and immutable v5 history candidate onto ATS-updated main, root reviewed, revalidated and integrated by non-force fast-forward; posted issue receipt and released both child claims after readback.",
+        "Confirmed no additional unclaimed dependency-ready core issue surfaced; recorded exact next dependency gates and retained external lane claims."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-ats-search-filter.json",
+        "docs/evidence/2026-10-08-responsibility-summary-selection.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "services/documents/tailor.py",
+        "services/documents/comparison.py",
+        "services/documents/templates.py",
+        "apps/web/src/resume-comparison.tsx",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "tests/unit/test_skill_order.py",
+        "tests/integration/test_skill_order.py",
+        "tests/integration/test_resume_comparison.py",
+        "tests/browser/test_skill_order.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md",
+        "planning/lanes/codex/CONTINUATION.json",
+        "planning/lanes/codex/IMPLEMENTATION_STATE.json",
+        "planning/lanes/codex/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "ATS candidate exact root suite: saved-filter integration and connected Chromium 24/24; frontend 103/103; TypeScript/Vite build; py_compile; 11 worktree source input SHA-256 checks; six canonical Git blob IDs; diff check PASS.",
+        "Resume candidate exact evidence source/tree and ten input SHA-256 checks PASS; local delegated review found no material findings; 26 focused tests PASS excluding one baseline case; frontend 103/103; build and compilation PASS.",
+        "Legacy resume browser ordering failure independently reproduced on current main before integration: Original target-bullet adjustment context is unavailable; retained as known baseline failure, not converted to PASS.",
+        "Tracker validators: catalogue PASS; progress journal validation PASS; progress dashboard tests 4/4 PASS; dashboard --write UNCHANGED, --check CURRENT; lane validation PASS; git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime, full repository suite, live ATS/source behavior, hosted checks and hosted review remain NOT_RUN_BY_USER_POLICY or NOT_RUN; external application submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [
+        "Existing test.browser.test_skill_order.SkillOrderBrowserTests.test_explicit_ordering_reaches_worker_and_download failure is independently reproduced on pre-integration main and remains unresolved."
+      ],
+      "known_limitations": [
+        "MJ-REQ-189 and MJ-REQ-095 both remain PARTIAL; release readiness UNKNOWN.",
+        "No dependency-ready unclaimed next feature was found in the current original discovery, ranking, document and application work lanes."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0863e55d1617b708906e7c865118105c841a6d18",
+        "tree": "01b75ee2176ca161ebbed90e537c9e7147883fd9",
+        "branch": "main",
+        "issue": "#190 / MJ-REQ-189 and #96 / MJ-REQ-095",
+        "evidence_path": "docs/evidence/2026-10-08-responsibility-summary-selection.json",
+        "integration_receipts": [
+          "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061772788",
+          "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874"
+        ],
+        "note": "ATS and responsibility-aware resume summary slices are integrated and synchronized; both requirements remain PARTIAL and hosted/external-provider checks are not run."
+      }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "57e667761de038f5a7ee1692e1053f6c4d5b95eb",
-    "tree": "550dd8c21b16a3f256444b4db1fe5eaddff7f8fe",
+    "git_commit": "0863e55d1617b708906e7c865118105c841a6d18",
+    "tree": "01b75ee2176ca161ebbed90e537c9e7147883fd9",
     "branch": "main",
-    "issue": "#190 / MJ-REQ-189",
-    "evidence_path": "docs/evidence/2026-10-08-skill-search-filter.json",
-    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276",
-    "note": "The taxonomy-backed skill facet is fast-forward integrated locally on main; root exact-source API/browser, frontend, build, compilation, hashes and validators pass. PostgreSQL/hosted remain NOT_RUN."
+    "issue": "#190 / MJ-REQ-189 and #96 / MJ-REQ-095",
+    "evidence_path": "docs/evidence/2026-10-08-responsibility-summary-selection.json",
+    "integration_receipts": [
+      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061772788",
+      "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874"
+    ],
+    "note": "ATS and responsibility-aware resume summary slices are integrated and synchronized; both requirements remain PARTIAL and hosted/external-provider checks are not run."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11917,15 +11991,15 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 96,
-    "requirement_id": "MJ-REQ-095",
-    "title": "Resume Tailoring Engine - responsibility-based summary selection",
-    "state": "ACTIVE_IMPLEMENTATION",
-    "branch": "codex/mj-req095-responsibility-summary-20261008",
-    "worktree": ".worktrees/codex-mj-req095-responsibility-summary-20261008",
-    "base_commit": "aab39b9b5dda190b59346f4176a3f513027768e8",
-    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061276273",
-    "acceptance": "For generated tailored resumes, select approved summary facts containing exact target-responsibility phrases in addition to current exact skill matches; preserve all summaries on no-match fallback, source wording and immutable provenance through reload/history/comparison. No inference or fabricated wording."
+    "issue": null,
+    "requirement_id": null,
+    "title": "Select next dependency-ready original core feature after reconciling queued parent work",
+    "state": "CORE_FEATURE_SPRINT_ACTIVE_NO_READY_UNCLAIMED_ISSUE",
+    "active_codex_children": [],
+    "latest_integrated_issue": 96,
+    "latest_integrated_requirement": "MJ-REQ-095",
+    "latest_integrated_head": "0863e55d1617b708906e7c865118105c841a6d18",
+    "latest_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874"
   },
   "historical_control_snapshots": [
     {
@@ -13081,7 +13155,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T13:47:13Z",
-  "current_verified_local_state": "Local main 9823b00479a5d9157e74ea84d3485ecca835a52c (tree 84944fb02a3f8e7275a473879974eb24481e2618) adds the connected parser-classified clearance facet. Exact source da0d09ccc2dec0bdbc466d72dd97c4e4a60c62e1/bd5f5fe5a9f3761931660806fe46314b76f3d800; root validated 21 connected API/Chromium tests, frontend 103, build, compilation, validators, hashes and diff; local delegated review no material findings. MJ-REQ-189 remains PARTIAL; full repository/PostgreSQL/live ATS/hosted checks NOT_RUN.",
-  "current_verified_github_state": "Local main, origin/main, and GitHub default main were verified synchronized at 9823b00479a5d9157e74ea84d3485ecca835a52c. #190 clearance receipt: https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061279336. Hosted checks remain disabled; external submission OFF."
+  "updated_at": "2026-10-08T14:20:06Z",
+  "current_verified_local_state": "Local main 0863e55d1617b708906e7c865118105c841a6d18 (tree 01b75ee2176ca161ebbed90e537c9e7147883fd9) integrates two user-visible slices: evidence-qualified Greenhouse/synthetic ATS filtering in saved Jobs searches, and source-order union of exact target skill/responsibility resume summaries with v5 history identity. ATS root exact checks: 24 connected API/Chromium, 103 frontend, build, py_compile, 11 worktree hashes, six Git blob IDs and diff PASS. Resume: 26/26 focused tests excluding one unchanged-main baseline browser failure; exact suite 26/27 with baseline reproduced on pre-integration main; 103 frontend, build, compile, evidence hashes, local review PASS. Both original requirements remain PARTIAL.",
+  "current_verified_github_state": "Local main, origin/main and GitHub default main synchronized at 0863e55d1617b708906e7c865118105c841a6d18. ATS receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061772788; resume receipt https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874. Actions disabled; hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF."
 }

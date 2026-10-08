@@ -856,6 +856,57 @@
           ],
           "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6056901053",
           "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6056901326"
+        },
+        {
+          "name": "Exact responsibility-aware union selection of approved resume summary facts with immutable v5 generation identity",
+          "issue": 96,
+          "requirement_id": "MJ-REQ-095",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "owned_paths": [
+            "services/documents/tailor.py",
+            "services/documents/comparison.py",
+            "services/documents/templates.py",
+            "apps/web/src/resume-comparison.tsx",
+            "tests/unit/test_skill_order.py",
+            "tests/unit/test_resume_templates.py",
+            "tests/integration/test_skill_order.py",
+            "tests/integration/test_resume_comparison.py",
+            "tests/browser/test_skill_order.py",
+            "apps/web/src/resume-comparison.test.tsx",
+            "docs/evidence/2026-10-08-responsibility-summary-selection.json"
+          ],
+          "acceptance": "Select stable source-order union of exact job-skill and extracted job-responsibility summary matches; retain all approved summaries if neither matches; preserve approved source wording; durably validate match and source provenance through reopen/comparison; responsibility summary mode requires immutable v5 generation IDs while preserving historical v4 and contact mappings.",
+          "rationale": "A bounded truthful tailoring behavior is now usable and reviewable; requirement remains PARTIAL, with no inferred facts, fabricated wording or migration.",
+          "branch": "codex/mj-req095-responsibility-summary-20261008",
+          "worktree": ".worktrees/codex-mj-req095-responsibility-summary-20261008",
+          "base": "6a35d1a3d4216e13c34c0c8a29c038c46bb5aa17",
+          "tested_source_head": "e2ba8821158c7c15fac73175419723eef0e86b5b",
+          "tested_source_tree": "1e5bff99c1ec04ce29206d8ae936ffc1886f5527",
+          "integrated_head": "0863e55d1617b708906e7c865118105c841a6d18",
+          "integrated_tree": "01b75ee2176ca161ebbed90e537c9e7147883fd9",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "evidence_path": "docs/evidence/2026-10-08-responsibility-summary-selection.json",
+          "issue_claim_comments": [
+            "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061276273",
+            "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061620217"
+          ],
+          "integration_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874",
+          "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874",
+          "issue_state": "OPEN/PARTIAL",
+          "validation": {
+            "focused": "26/26 tests PASS with the unchanged-main baseline case excluded; exact 27-test command 26 passed and 1 known baseline failure, independently reproduced on main before integration",
+            "frontend": "PASS 103/103",
+            "build_compile": "PASS TypeScript/Vite build and Python compilation",
+            "evidence": "PASS source/tree and 10 input SHA-256 values; diff check PASS",
+            "review": "LOCAL_DELEGATED_REVIEW found no material findings on exact source commit",
+            "postgresql": "NOT_RUN",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          },
+          "limitations": [
+            "Broader MJ-REQ-095 acceptance remains incomplete; the legacy browser ordering test continues to fail on main with Original target-bullet adjustment context unavailable.",
+            "PostgreSQL and hosted checks NOT_RUN; external submission OFF."
+          ]
         }
       ]
     },
@@ -1884,6 +1935,56 @@
           "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061279336",
           "limitations": [
             "Other MJ-REQ-189 facets remain; PostgreSQL, hosted checks/review, live providers/ATS, and full repository suite NOT_RUN.",
+            "External application submission OFF."
+          ]
+        },
+        {
+          "name": "Evidence-qualified persisted ATS facet in connected Jobs saved searches",
+          "issue": 190,
+          "requirement_id": "MJ-REQ-189",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-051",
+            "MJ-PR-043"
+          ],
+          "owned_paths": [
+            "packages/persistence/store.py",
+            "apps/api/main.py",
+            "services/discovery/search_profiles.py",
+            "apps/web/src/main.tsx",
+            "tests/integration/test_saved_search_filters.py",
+            "tests/browser/test_saved_search_filters.py",
+            "docs/evidence/2026-10-08-ats-search-filter.json"
+          ],
+          "acceptance": "Jobs filters on Greenhouse or synthetic mock ATS only when a persisted company route exactly matches one evidenced provider/tenant identity with confidence >= 0.75; filter is applied before LIMIT and AND-composes with other criteria. Saved search save/restore/clear is profile-scoped; source-only, mismatch, low-confidence, missing evidence and ambiguity fail closed.",
+          "rationale": "Reuses persisted ATS identity data without changing detection, sources, scheduling, application state or submission. Requirement remains PARTIAL; parent dependencies and PR-052 status are unchanged.",
+          "branch": "codex/mj-req189-ats-filter-20261008",
+          "worktree": ".worktrees/codex-mj-req189-ats-filter-20261008",
+          "base": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
+          "tested_source_head": "95437738b37e47935b7074203e2b28fbd5412bd7",
+          "tested_source_tree": "cabbf5750ba8a6d9e823f35d59793977592449ff",
+          "integrated_head": "6a35d1a3d4216e13c34c0c8a29c038c46bb5aa17",
+          "integrated_tree": "e8833dd46482b4bdd76f737a65804cceaa332ea6",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "evidence_path": "docs/evidence/2026-10-08-ats-search-filter.json",
+          "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061413362",
+          "integration_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061772788",
+          "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061772788",
+          "issue_state": "OPEN/PARTIAL",
+          "validation": {
+            "api_browser": "PASS 24/24 connected local tests on candidate",
+            "frontend": "PASS 103/103",
+            "build_compile": "PASS TypeScript/Vite build and Python compilation",
+            "evidence": "PASS 11 checked-out input SHA-256 values, six canonical Git blob IDs, source tree and diff check",
+            "review": "LOCAL_DELEGATED_REVIEW found no code findings; evidence LF/CRLF hash-domain mismatch corrected and root-verified",
+            "postgresql": "NOT_RUN",
+            "hosted": "NOT_RUN_BY_USER_POLICY",
+            "live_sources_and_ats": "NOT_RUN",
+            "full_repository_suite": "NOT_RUN"
+          },
+          "limitations": [
+            "Other MJ-REQ-189 facets and application capability/state remain incomplete; PostgreSQL, live ATS, hosted checks and full suite NOT_RUN.",
             "External application submission OFF."
           ]
         }
@@ -4502,5 +4603,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T13:47:13Z"
+  "generated_at": "2026-10-08T14:20:06Z"
 }

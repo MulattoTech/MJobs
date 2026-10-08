@@ -2,32 +2,42 @@
   "schema_version": 1,
   "lane": "codex",
   "status": "ACTIVE_CORE_FEATURE_SPRINT",
-  "base_main": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
-  "current_issue": 190,
-  "requirement_id": "MJ-REQ-189",
-  "branch": "codex/mj-req189-posted-date-filter-20261008",
-  "head": "09449f4cc3b14cf5f7f351b1fb9d845580deb7f3",
-  "worktree": ".worktrees/codex-mj-req189-posted-date-filter-20261008",
-  "result": "Integrated profile-scoped posted-date filter; parent requirement remains PARTIAL.",
-  "evidence_path": "docs/evidence/2026-10-08-posted-date-search-filter.json",
+  "base_main": "0863e55d1617b708906e7c865118105c841a6d18",
+  "current_issue": null,
+  "requirement_id": null,
+  "branch": "main",
+  "head": "0863e55d1617b708906e7c865118105c841a6d18",
+  "worktree": ".worktrees/codex-mj-req095-responsibility-summary-20261008",
+  "result": "Two bounded core product slices integrated; original requirements remain PARTIAL and release readiness UNKNOWN.",
+  "evidence_path": "docs/evidence/2026-10-08-responsibility-summary-selection.json",
   "last_completed": {
     "issue": 190,
     "requirement_id": "MJ-REQ-189",
-    "integrated_main": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
+    "integrated_main": "9823b00479a5d9157e74ea84d3485ecca835a52c",
     "issue_state": "OPEN/PARTIAL",
     "evidence_paths": [
-      "docs/evidence/2026-10-08-posted-date-search-filter.json"
+      "docs/evidence/2026-10-08-clearance-search-filter.json"
     ],
-    "validation": "12 integration, 1 browser, 103 frontend, build and local review PASS; PostgreSQL/hosted NOT_RUN.",
+    "validation": "Root exact source: 21 saved-filter API/connected Chromium, frontend 103/103, build, Python compilation, agent-skills/catalogue/lane validators, evidence hashes and diff PASS; LOCAL_DELEGATED_REVIEW no material findings; PostgreSQL/hosted/live/full suite NOT_RUN.",
     "integration_comments": [
-      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796"
+      "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061279336"
     ]
   },
   "next_candidates": [
     {
-      "issue": 96,
-      "requirement_id": "MJ-REQ-095",
-      "status": "Worker branch complete but not integrated; root must reconcile stale-base candidate and verify exact current-head evidence before integration."
+      "issue": 118,
+      "requirement_id": "MJ-REQ-117",
+      "status": "BLOCKED_QUEUED: MJ-PR-032 depends on MJ-PR-031"
+    },
+    {
+      "issue": 119,
+      "requirement_id": "MJ-REQ-118",
+      "status": "BLOCKED_QUEUED: MJ-PR-032 dependency chain remains queued"
+    },
+    {
+      "issue": 145,
+      "requirement_id": "MJ-REQ-144",
+      "status": "BLOCKED_QUEUED: MJ-PR-039 depends on MJ-PR-038 and MJ-PR-030"
     }
   ],
   "do_not_overlap": [
@@ -35,42 +45,43 @@
     "Ollama/OpenCode active issue #318 paths: services/ats_detection/** and detector tests",
     "canonical planning and main outside integration lock"
   ],
-  "resume_instruction": "Local and origin main verified synchronized at 7a6130610e1a2baa6c36f24ea5d51f856e4629b1. #190 posted-date filter is integrated PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796. Continue with a dependency-ready connected core feature after reconciling active claims. Preserve unintegrated #96 reviewed-fact tailoring branch/claim, external claims #302/#318, hosted checks disabled, and external submission OFF.",
-  "last_verified_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
-  "last_verified_tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
-  "last_verified_at_utc": "2026-10-08T11:42:38Z",
+  "resume_instruction": "Local/origin/GitHub main synchronized at 3d7ff2c6fb0a6151026ebbe23033b4b5c5022937. #190 clearance facet integrated PARTIAL at 9823b00479a5d9157e74ea84d3485ecca835a52c; receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6061279336. Current children: #96/MJ-REQ-095 responsibility-based summary selection and #190/MJ-REQ-189 evidence-qualified ATS facet, separate worktrees/path ownership. External claims #302/#318. Hosted checks disabled; PostgreSQL/live ATS/full suite NOT_RUN; external submission OFF.",
+  "last_verified_head": "9823b00479a5d9157e74ea84d3485ecca835a52c",
+  "last_verified_tree": "84944fb02a3f8e7275a473879974eb24481e2618",
+  "last_verified_at_utc": "2026-10-08T13:55:06Z",
   "started_at_utc": "2026-10-07T04:24:01Z",
   "validation": {
-    "result": "PASS for bounded #197 and #96 slices; each requirement remains PARTIAL",
-    "review_queue": "100 frontend tests, TypeScript/Vite production build, connected synthetic Chromium/API 1/1; exact blob hashes and local delegated review PASS",
-    "resume_tailoring": "20 focused unit/integration/browser tests, py_compile and TypeScript/Vite build; exact source hashes and local delegated review PASS",
+    "result": "PASS for bounded #190 clearance facet; requirement remains PARTIAL",
+    "clearance_search_filter": "21 focused API/integration/connected Chromium; 103 frontend; TypeScript/Vite build; compilation and validators PASS; exact source/evidence hashes match.",
+    "review": "LOCAL_DELEGATED_REVIEW found no material findings.",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
     "external_submission": "OFF"
   },
-  "last_integrated_head": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
+  "last_integrated_head": "3d7ff2c6fb0a6151026ebbe23033b4b5c5022937",
   "last_verified_result": "PASS bounded #105 and #190 slices integrated/synchronized; full requirements remain PARTIAL.",
-  "updated_at": "2026-10-08T12:49:05Z",
-  "integrated_main": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
-  "last_integrated_issue": 190,
-  "last_integrated_requirement": "MJ-REQ-189",
-  "last_integrated_evidence": "docs/evidence/2026-10-08-posted-date-search-filter.json",
-  "canonical_main_at_pause": "7a6130610e1a2baa6c36f24ea5d51f856e4629b1",
+  "updated_at": "2026-10-08T14:20:06Z",
+  "integrated_main": "0863e55d1617b708906e7c865118105c841a6d18",
+  "last_integrated_issue": 96,
+  "last_integrated_requirement": "MJ-REQ-095",
+  "last_integrated_evidence": "docs/evidence/2026-10-08-clearance-search-filter.json",
+  "canonical_main_at_pause": "0863e55d1617b708906e7c865118105c841a6d18",
   "last_completed_issue": 190,
-  "last_completed_requirement": "MJ-REQ-189 bounded posted-date filter; whole requirement PARTIAL.",
-  "next_issue": 123,
-  "next_requirement": "MJ-REQ-122",
+  "last_completed_requirement": "MJ-REQ-189 bounded parser-classified clearance facet; whole requirement PARTIAL.",
+  "next_issue": 96,
+  "next_requirement": "MJ-REQ-095",
   "last_validated_head": "4a3c16563c1dd389c6222c9751dacfbe1728d509",
-  "current_branch": "codex/mj-req189-match-score-filter-20261008",
-  "current_worktree": ".worktrees/codex-mj-req189-match-score-filter-20261008",
+  "current_branch": "main",
+  "current_worktree": ".",
   "current_head": "d6a8f519ccc8cf6de3943effb2afc037fd89920b",
   "last_validated_tree": "06e7ddedf14fcfca3f7e1f0313dfcc2f1eaddca4",
   "last_validated_at_utc": "2026-10-08T11:42:38Z",
   "last_validated_result": "PASS: #105 exact source verified with 33 Python, 101 frontend, 4 browser tests/build; #190 exact source verified with 2 integration, 1 browser, 2 Vitest/build; delegated reviews PASS.",
-  "current_requirement": "MJ-REQ-189",
+  "current_requirement": "dependency-aware next core feature selection",
   "last_integrated_tree": "c53080d034f7514d1a7fee994d5294f0cd77dec5",
-  "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060235796",
-  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6059983388",
+  "last_issue_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061888874",
+  "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6061276273",
   "owned_paths": [],
-  "acceptance": "No active claim. Preserve exact issue acceptance and dependencies. #191 Salary direction/range/unit semantics require resolution; do not infer unknown compensation.",
+  "acceptance": "Root remains sole integrator under current lock. ATS saved-search and responsibility-aware resume summary slices are synchronized on main; next issue must be dependency-ready, unclaimed and non-overlapping.",
   "active_children": []
 }
