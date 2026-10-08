@@ -32,6 +32,7 @@ export type BrowserJobExtractionCapturePayload = {
   discovery_origin: string | null;
   observed_hops: string[];
   source_details: {
+    confirmed_source_job_id: string | null;
     extraction_capture: {
       schema_version: 1;
       raw_fields: Record<BrowserJobExtractionFieldName, string | null>;
@@ -360,6 +361,7 @@ export function buildBrowserJobExtractionCapturePayload(
       discovery_origin: origin,
       observed_hops: observedHops,
       source_details: {
+        confirmed_source_job_id: finalValues.source_job_id,
         extraction_capture: {
           schema_version: 1,
           raw_fields: originalValues,

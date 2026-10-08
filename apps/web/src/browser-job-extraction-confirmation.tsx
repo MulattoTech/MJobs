@@ -9,12 +9,13 @@ import {
   type BrowserJobExtractionResponse,
 } from './browser-job-extraction';
 
-const editableFields = ['title', 'company', 'listing_url', 'application_url'] as const;
+const editableFields = ['title', 'company', 'source_job_id', 'listing_url', 'application_url'] as const;
 type EditableField = typeof editableFields[number];
 
 const fieldLabels: Record<EditableField, string> = {
   title: 'Title',
   company: 'Company',
+  source_job_id: 'Source job ID',
   listing_url: 'Listing URL',
   application_url: 'Application URL',
 };

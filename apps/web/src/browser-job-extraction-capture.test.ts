@@ -84,6 +84,7 @@ describe('explicit browser extraction capture client', () => {
       discovery_origin: 'LinkedIn',
       observed_hops: ['UNKNOWN'],
       source_details: {
+        confirmed_source_job_id: 'role-42',
         extraction_capture: {
           schema_version: 1,
           raw_fields: {
@@ -111,7 +112,7 @@ describe('explicit browser extraction capture client', () => {
     });
     const extractionCapture = body.source_details.extraction_capture;
     const expectedFieldNames = Object.keys(fields).sort();
-    expect(Object.keys(body.source_details)).toEqual(['extraction_capture']);
+    expect(Object.keys(body.source_details).sort()).toEqual(['confirmed_source_job_id', 'extraction_capture']);
     expect(Object.keys(extractionCapture).sort()).toEqual([
       'field_provenance', 'raw_capture_ref', 'raw_fields', 'schema_version',
     ]);
@@ -173,6 +174,16 @@ describe('explicit browser extraction capture client', () => {
     expect(result.notices).toContain('The description was entered manually because extraction returned unknown.');
     expect(result.notices).toContain('Extraction remains unknown for: location, employment type, date posted, valid through, description.');
     expect(result.payload.observed_hops).toEqual(['UNKNOWN']);
+  });
+
+  it('persists a user-corrected source job ID separately from its extracted value', () => {
+    const reviewed = confirmation({
+      corrections: { ...confirmation().corrections, source_job_id: 'confirmed-role-99' },
+    });
+    const result = buildBrowserJobExtractionCapturePayload(profileId, reviewed, manual, 'corrected-id');
+    expect(result.payload.source_details.confirmed_source_job_id).toBe('confirmed-role-99');
+    expect(result.payload.source_details.extraction_capture.raw_fields.source_job_id).toBe('role-42');
+    expect(result.payload.source_details.extraction_capture.field_provenance.source_job_id.user_corrected).toBe(true);
   });
 
   it('requires an explicit selected-profile match and never substitutes another profile', () => {

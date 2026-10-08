@@ -270,6 +270,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                         "Maintain synthetic Linux infrastructure after user review."
                     )
                     self.assertEqual(manual_posts, [])
+                    capture_button = page.get_by_role(
+                        "button", name="Confirm reviewed job details", exact=True,
+                    )
+                    expect(capture_button).to_be_enabled()
 
                     before_save = table_counts()
                     try:
@@ -278,7 +282,7 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                             and response.request.method == "POST"
                             and response.status == 503,
                         ) as failed_capture:
-                            confirm_button.click()
+                            capture_button.click()
                     except PlaywrightTimeoutError:
                         body_excerpt = page.locator("body").inner_text()[-1500:]
                         self.fail(
@@ -286,6 +290,9 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                             "POST /jobs/manual. "
                             f"manual_posts={manual_posts!r}; "
                             f"page_errors={page_errors!r}; "
+                            f"alerts={page.get_by_role('alert').all_inner_texts()!r}; "
+                            f"capture_button_count={capture_button.count()}; "
+                            f"capture_button_disabled={capture_button.is_disabled()}; "
                             f"counts_before={before_save!r}; "
                             f"counts_after={table_counts()!r}; "
                             "body_tail="
@@ -296,11 +303,14 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     self.assertEqual(len(manual_posts), 1)
                     failed_payload = manual_posts[0]
                     for field, value in corrections.items():
-                        target_field = {
-                            "source_job_id": "source_job_id",
-                            "listing_url": "reference_url",
-                        }.get(field, field)
-                        self.assertEqual(failed_payload[target_field], value)
+                        if field == "source_job_id":
+                            self.assertEqual(
+                                failed_payload["source_details"]["confirmed_source_job_id"],
+                                value,
+                            )
+                        else:
+                            target_field = {"listing_url": "reference_url"}.get(field, field)
+                            self.assertEqual(failed_payload[target_field], value)
                     self.assertEqual(failed_payload["profile_id"], profile_id)
                     self.assertEqual(failed_payload["application_url"], application_url)
                     self.assertEqual(
@@ -310,6 +320,16 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     expect(page.get_by_role("alert")).to_contain_text(
                         "Synthetic manual capture unavailable",
                     )
+                    confirmation_panel = page.get_by_role(
+                        "region", name="Confirm extracted job details",
+                    )
+                    confirmation_review_labels = (
+                        "Title", "Company", "Source job ID",
+                        "Listing URL", "Application URL",
+                    )
+                    confirmation_review_boxes = [confirmation_panel.get_by_label(
+                        f"Confirm low-confidence {label}", exact=True,
+                    ) for label in confirmation_review_labels]
                     for field, value in corrections.items():
                         label = {
                             "title": "Title", "company": "Company",
@@ -317,22 +337,22 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                             "listing_url": "Listing URL",
                             "application_url": "Application URL",
                         }[field]
-                        expect(page.get_by_label(
+                        expect(confirmation_panel.get_by_label(
                             f"Correction for {label}", exact=True,
                         )).to_have_value(value)
-                    for checkbox in review_boxes:
+                    for checkbox in confirmation_review_boxes:
                         expect(checkbox).to_be_checked()
                     expect(manual_description).to_have_value(
                         "Maintain synthetic Linux infrastructure after user review."
                     )
-                    expect(confirm_button).to_be_enabled()
+                    expect(capture_button).to_be_enabled()
 
                     with page.expect_response(
                         lambda response: response.url == origin + "/jobs/manual"
                         and response.request.method == "POST"
                         and response.status in {200, 201},
                     ) as saved_capture:
-                        confirm_button.click()
+                        capture_button.click()
                     self.assertEqual(len(manual_posts), 2)
                     self.assertEqual(manual_posts[1], failed_payload)
                     self.assertIn(saved_capture.value.status, {200, 201})
@@ -376,6 +396,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     self.assertEqual(submitted["reference_url"], reference_url)
                     self.assertEqual(submitted["application_url"], application_url)
                     source_details = submitted["source_details"]
+                    self.assertEqual(
+                        source_details["confirmed_source_job_id"],
+                        corrections["source_job_id"],
+                    )
                     extraction_capture = source_details["extraction_capture"]
                     self.assertEqual(set(extraction_capture), {
                         "schema_version", "raw_fields", "field_provenance",
@@ -397,14 +421,19 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                             "confidence": result["fields"][name]["confidence"],
                             "review_required": result["fields"][name]["review_required"],
                             "user_corrected": (
-                                name in corrections
-                                and corrections[name] != result["fields"][name]["value"]
+                                ("Maintain synthetic Linux infrastructure after user review."
+                                 if name == "description" else corrections.get(
+                                     name, result["fields"][name]["value"]))
+                                != result["fields"][name]["value"]
                             ),
                         }
                         for name in EXTRACTION_FIELDS
                     }
-                    self.assertEqual(extraction_capture["field_provenance"],
-                                     expected_provenance)
+                    for field, expected in expected_provenance.items():
+                        self.assertEqual(
+                            extraction_capture["field_provenance"][field], expected,
+                            f"provenance for {field}",
+                        )
                     self.assertEqual(
                         submitted["description"],
                         "Maintain synthetic Linux infrastructure after user review.",
