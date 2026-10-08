@@ -4,10 +4,10 @@
   "requirement_id": "MJ-REQ-189",
   "slice": "parser-classified education requirement facet in connected Jobs saved searches",
   "result": "PARTIAL",
-  "base_commit": "57e667761de038f5a7ee1692e1053f6c4d5b95eb",
-  "source_commit": "74293c9ccddfc7b28cd7d9be2613896a00dc1bc3",
-  "source_tree": "b5680455abf0819c1eb8bf023307e4d026e8a046",
-  "validated_at_utc": "2026-10-08T13:29:49Z",
+  "base_commit": "52f4cf41184b62068b567981539afec240673e49",
+  "source_commit": "00c2b602dd689558a2490682bad090cd5b12c2bf",
+  "source_tree": "061e5b44e4618ff1335371f8f90d04a48e752bb7",
+  "validated_at_utc": "2026-10-08T13:32:06Z",
   "environment": {
     "platform": "Windows",
     "python": "3.12.10",
@@ -31,17 +31,17 @@
     {
       "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_saved_search_filters tests.browser.test_saved_search_filters",
       "result": "PASS",
-      "detail": "19 tests passed: 18 connected API/integration cases and 1 local Chromium workflow."
+      "detail": "Root reran on exact rebased source: 19 tests passed (18 connected API/integration cases and 1 local Chromium workflow)."
     },
     {
       "command": "npm test --prefix apps/web -- --run",
       "result": "PASS",
-      "detail": "18 files and 103 frontend tests passed."
+      "detail": "Root reran: 18 files and 103 frontend tests passed."
     },
     {
       "command": "npm run build --prefix apps/web",
       "result": "PASS",
-      "detail": "TypeScript check and Vite production build passed."
+      "detail": "Root reran TypeScript check and Vite production build successfully."
     },
     {
       "command": "Python 3.12 py_compile for changed API, store, search-profile service, and saved-filter tests",
@@ -82,6 +82,6 @@
     "Live production job sources and real ATS behavior",
     "Full repository test suite"
   ],
-  "review": "LOCAL_SELF_REVIEW: checked owned-path diff, exact matching/fail-closed semantics, profile scope, legacy defaults, and no scheduling or external-submission path changes. No independent delegated review was run.",
-  "integration": "Local feature commit is ready for serialized root integration; no push or merge performed. Whole issue #190 and MJ-REQ-189 remain OPEN/PARTIAL."
+  "review": "LOCAL_SELF_REVIEW: inspected exact rebased owned-path diff and verified supported parser classifications, pre-LIMIT exact matching, validation, saved-search profile isolation, legacy defaults, and no scheduling or submission side effects. No delegated review was run.",
+  "integration": "Root rebased onto synchronized main and reran affected tests on the exact candidate. Ready for serialized fast-forward integration; no push or merge performed yet."
 }
