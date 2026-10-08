@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T13:23:13Z",
+  "generated_at": "2026-10-08T13:24:37Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -13081,7 +13081,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T13:23:13Z",
-  "current_verified_local_state": "Local main at 57e667761de038f5a7ee1692e1053f6c4d5b95eb (tree 550dd8c21b16a3f256444b4db1fe5eaddff7f8fe) contains the connected taxonomy-backed skill facet and prior employment/auth slices. Root exact skill candidate validation: API/browser 17 PASS, frontend 103 PASS/build PASS, compile/skills/evidence hashes/diff PASS; local delegated review no material findings. Active Codex child: #190 Education facet on isolated branch based on this head. Whole MJ-REQ-189 remains PARTIAL; hosted/PostgreSQL/live ATS NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "GitHub default main was last verified at 516fd4bffb4e22110573a6a7a406a19d6af76ec4 before the skill-filter fast-forward; issue receipt #190 https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276 is posted. Root will synchronize the accepted local batch by ordinary non-force fast-forward and verify the default branch before the next integration."
+  "updated_at": "2026-10-08T13:24:37Z",
+  "current_verified_local_state": "Product source commit 57e667761de038f5a7ee1692e1053f6c4d5b95eb (tree 550dd8c21b16a3f256444b4db1fe5eaddff7f8fe) adds the taxonomy-backed skill facet to local main; planning batch at 4819fd00704abbcb438797e12ae9a5ae31055817 records the active education-filter child. Exact source validation: 17 API/integration/browser tests, frontend 103, build, compilation, skills, source hashes and diff PASS; local delegated review no material findings.",
+  "current_verified_github_state": "After the accepted skill-filter and tracker batch, local main, origin/main, and GitHub default main were verified equal at 4819fd00704abbcb438797e12ae9a5ae31055817. Product source is 57e667761de038f5a7ee1692e1053f6c4d5b95eb; #190 integration receipt https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060801276 and claim release https://github.com/MulattoTech/MJobs/issues/190#issuecomment-6060814548. Hosted checks remain disabled; external submission OFF."
 }
