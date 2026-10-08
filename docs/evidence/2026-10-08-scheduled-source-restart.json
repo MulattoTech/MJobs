@@ -20,7 +20,7 @@
   "test_first": {
     "result": "FAIL_EXPECTED",
     "command": "python -m unittest tests.integration.test_source_policy_scheduler.SourcePolicySchedulerTests.test_compose_recovery_restarts_scheduler_service -v",
-    "observation": "Before the recovery service list was fixed, the focused probe failed because scheduler was absent from the seven services passed to docker compose restart. This was a command-list probe only; it did not execute or simulate runtime acceptance."
+    "observation": "Before the recovery service list was fixed, the focused probe failed because scheduler was absent from the seven services passed to docker compose restart. API and Compose calls were mocked for this command-list assertion; no Docker service or database was restarted."
   },
   "validation": {
     "focused_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_source_policy_scheduler tests.integration.test_api_queue -v",
