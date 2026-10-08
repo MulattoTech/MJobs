@@ -5,26 +5,26 @@
   "result": "PASS",
   "scope": "Compare two immutable cover-letter revisions belonging to the same application using only preview text freshly returned by the existing profile-scoped application documents endpoint.",
   "branch": "codex/mj-req198-cover-letter-comparison-20261008",
-  "base_commit": "1defb5d76f7d0c1050a5936a7077eb222acdd86a",
-  "base_git_tree": "32ae925c5034c3c0129e742a0c299a187ec72454",
-  "rebase_result": "CLEAN; rebased all four feature commits onto the latest exact synchronized main; no conflicts.",
-  "rebased_pre_evidence_git_tree": "9ba8853e1235e7ded336e671e8e6d1933f23f9b8",
-  "tested_candidate_commit_before_metadata_rebase": "dc9e00205c4ba666c17d75f1dba99407051ffdfd",
-  "tested_candidate_git_tree_before_metadata_rebase": "33ceb3d16138f37df4b1f5f2af005dfa296f55f7",
-  "tested_source_commit_before_evidence_refresh": "78a0eb6fbfd80a60decde87a1daed9f2252d9f82",
+  "base_commit": "d8caa9093138faba04d62f4f6474b4d19bcb02ae",
+  "base_git_tree": "8534bf7f475811acf79c0bae05c3dce3f94c884b",
+  "rebase_result": "CLEAN; rebased onto the latest exact synchronized main after readable-diff implementation and its focused frontend/build/browser checks; no conflicts.",
+  "rebased_pre_evidence_git_tree": "7e490a14e75886cd21ebf16eaf30e32a95fcaab9",
+  "tested_candidate_commit_before_metadata_rebase": "dfd8819f32f63f551aca3aa673e35d771f3a8f5f",
+  "tested_candidate_git_tree_before_metadata_rebase": "e6e2da4fcf65a73f7e53a7939cdde9e07db7254c",
+  "tested_source_commit_before_evidence_refresh": "dfd8819f32f63f551aca3aa673e35d771f3a8f5f",
   "issue_acceptance": "PARTIAL; the immutable same-application cover-letter comparison condition is implemented and locally verified; this slice does not certify the full MJ-REQ-198 action set.",
   "source_inputs": {
-    "apps/web/src/document-history.tsx": "dea669a0163649ed38da71a5189ea64c586316bd18048db9f0cc5e7f9f48d314",
-    "apps/web/src/document-history.test.tsx": "26121516fe6baa1f50e476ef90ae54ac4c160adb250fb0d2435f59a5c4d1704d",
-    "tests/browser/test_document_history.py": "1ecb5cf9f643accd95dd6ec2e4f225d1ec76d882787c5e316c4cb22ca8b13cdb"
+    "apps/web/src/document-history.tsx": "1b43c3a6ed83301e761951233076a982552f6bd1203176c4e647dd621ddcc008",
+    "apps/web/src/document-history.test.tsx": "cc16d122213730c699fdd0fea7b610d458ce32dda31006bc6810ebb2cbc47b34",
+    "tests/browser/test_document_history.py": "247745bd04382d1d44b2bfbae03c694600c7656292b1941961c6f5bf1a702863"
   },
-  "source_tree_sha256": "39efae0ee6959c1d293e965fed9b48856c3d30667e1926aca7de903dff789053",
-  "combined_source_sha256": "39efae0ee6959c1d293e965fed9b48856c3d30667e1926aca7de903dff789053",
+  "source_tree_sha256": "389eb98b9aa57c35992797800bbeeeec419fd9314bd00eb777189efb5e88341c",
+  "combined_source_sha256": "389eb98b9aa57c35992797800bbeeeec419fd9314bd00eb777189efb5e88341c",
   "tested_input_comparison": {
-    "classification": "UNCHANGED; runtime reruns were unnecessary because no executable, frontend, browser, build, or API integrity input differs from the fully tested candidate.",
-    "frontend_git_tree_tested_and_final": "181888da3e9bba7e915df5c6a8b04dd7c803c250",
-    "browser_test_git_blob_tested_and_final": "619d67a7d844be6b753d3bbd0a640fbc20121ef3",
-    "comparison_command": "git diff --quiet dc9e00205c4ba666c17d75f1dba99407051ffdfd HEAD -- apps/web tests/browser/test_document_history.py apps/api/main.py services/documents/history.py services/documents/generate.py fixtures/browser_ports.py fixtures/mock_server.py packages/persistence packages/domain",
+    "classification": "UNCHANGED; no runtime rerun was needed after rebase because frontend, browser, build, API, validation, and persistence inputs match the fully tested source candidate.",
+    "frontend_git_tree_tested_and_final": "4fadc11ddcb0e6a336b69ab330140f6cfacc9aca",
+    "browser_test_git_blob_tested_and_final": "5401759f05c7150b3d0e828f8829931d10efc74c",
+    "comparison_command": "git diff --quiet dfd8819f32f63f551aca3aa673e35d771f3a8f5f HEAD -- apps/web tests/browser/test_document_history.py apps/api/main.py services/documents/history.py services/documents/generate.py fixtures/browser_ports.py fixtures/mock_server.py packages/persistence packages/domain",
     "comparison_result": "PASS; exit code 0",
     "only_paths_changed_by_latest_main_since_tested_base": [
       "planning/IMPLEMENTATION_STATE.json",
@@ -32,8 +32,8 @@
       "planning/SESSION_HANDOFF.md"
     ]
   },
-  "final_evidence_tree_note": "Source/input hashes above are independent of the final evidence commit tree. The final branch commit/tree are reported in the handoff to avoid self-referential commit hashes.",
-  "verified_at_utc": "2026-10-08T05:29:31Z",
+  "final_evidence_tree_note": "Code and verification input hashes match tested source candidate dfd8819 after a clean metadata-only rebase onto d8caa. Final evidence commit SHA and tree are reported in the handoff to avoid self-referential hashes.",
+  "verified_at_utc": "2026-10-08T05:36:29Z",
   "environment": {
     "os": "Windows PowerShell",
     "node": "v25.9.0",
@@ -50,27 +50,27 @@
     {
       "command": "npm test -- --run src/document-history.test.tsx",
       "result": "PASS",
-      "details": "Rebased candidate: 1 test file, 8 tests passed."
+      "details": "Tested source candidate dfd8819: 1 test file, 9 tests passed, including deterministic Added/Removed line-diff ordering and identical-text behavior."
     },
     {
       "command": "npm run build",
       "result": "PASS",
-      "details": "Rebased candidate: TypeScript check and Vite production build passed."
+      "details": "Tested source candidate dfd8819: TypeScript check and Vite production build passed."
     },
     {
       "command": "npm test -- --run",
       "result": "PASS",
-      "details": "Rebased candidate: 13 test files, 64 tests passed."
+      "details": "Tested source candidate dfd8819: 13 test files, 65 tests passed."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history.DocumentHistoryBrowserTests.test_cover_letter_comparison_uses_only_validated_same_application_previews -v",
       "result": "PASS",
-      "details": "Rebased candidate: focused connected Chromium comparison workflow passed, including switching applications while prior comparison text was displayed."
+      "details": "Focused connected Chromium comparison workflow passed; the full browser class was also rerun on tested source candidate dfd8819 and asserts the known old opening is Removed and the new opening is Added, plus verifies application-switch stale text is cleared."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_history -v",
       "result": "PASS",
-      "details": "Rebased candidate: 2 connected Chromium browser tests passed, covering same-application options, validated revision previews, application switching while a comparison is displayed, avoid-list-blocked previews, endpoint read failure, corrupted and missing previews, and unchanged prior TXT download bytes."
+      "details": "Tested source candidate dfd8819: 2 connected Chromium browser tests passed, covering same-application options, validated previews, readable Added/Removed lines, application switching, avoid-list-blocked previews, endpoint read failure, corrupted and missing previews, and unchanged prior TXT download bytes."
     },
     {
       "command": "git diff --check",
@@ -78,9 +78,9 @@
       "details": "No whitespace errors."
     },
     {
-      "command": "git diff --quiet dc9e00205c4ba666c17d75f1dba99407051ffdfd HEAD -- apps/web tests/browser/test_document_history.py apps/api/main.py services/documents/history.py services/documents/generate.py fixtures/browser_ports.py fixtures/mock_server.py packages/persistence packages/domain",
+      "command": "git diff --quiet dfd8819f32f63f551aca3aa673e35d771f3a8f5f HEAD -- apps/web tests/browser/test_document_history.py apps/api/main.py services/documents/history.py services/documents/generate.py fixtures/browser_ports.py fixtures/mock_server.py packages/persistence packages/domain",
       "result": "PASS",
-      "details": "Exit code 0; listed frontend, browser, API, document-validation, and persistence/runtime inputs are unchanged from the fully tested candidate. The complete apps/web Git tree and browser test blob IDs also match."
+      "details": "Exit code 0; frontend, browser, API, document-validation, and persistence/runtime inputs are unchanged from tested source candidate dfd8819. The complete apps/web Git tree and browser test blob IDs also match. Rebase from tested base to d8caa changed only planning/IMPLEMENTATION_STATE.json, planning/PR_QUEUE.json, and planning/SESSION_HANDOFF.md."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
@@ -106,6 +106,11 @@
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -c \"import json,pathlib; json.loads(pathlib.Path('docs/evidence/2026-10-08-cover-letter-history-comparison.json').read_text(encoding='utf-8'))\"",
       "result": "PASS",
       "details": "Evidence JSON parsed successfully."
+    },
+    {
+      "command": "git diff --name-status 1defb5d76f7d0c1050a5936a7077eb222acdd86a d8caa9093138faba04d62f4f6474b4d19bcb02ae",
+      "result": "PASS",
+      "details": "Metadata-only base movement: planning/IMPLEMENTATION_STATE.json, planning/PR_QUEUE.json, and planning/SESSION_HANDOFF.md changed; no executable, build, or browser test input changed."
     }
   ],
   "preserved_invariants": [
@@ -115,7 +120,8 @@
     "Cover-letter revisions remain immutable and existing downloads and resume comparison behavior are unchanged.",
     "An in-flight comparison response is ignored if the document history switches to another application or a newer request supersedes it.",
     "Comparison component state is remounted when profile/application scope changes, clearing previously displayed text.",
-    "External application submission remains off."
+    "External application submission remains off.",
+    "A deterministic LCS line diff clearly marks removed and added lines while retaining both complete immutable originals and their existing downloads."
   ],
   "not_run": {
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
@@ -129,5 +135,6 @@
       "The application-switch browser assertion failed against the prior UI because one stale result region remained; after the scope key fix it passed for A-to-B and B-to-A switches.",
       "The browser test adds current-profile avoid term 'Application'; the existing endpoint returns avoid_list_error, comparison refuses to render, then succeeds after the synthetic preference is cleared."
     ]
-  }
+  },
+  "source_hash_algorithm": "SHA256 over the three ordered source paths as UTF-8, each followed by NUL, then the raw file bytes, then NUL."
 }
