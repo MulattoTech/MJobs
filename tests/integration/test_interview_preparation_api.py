@@ -133,16 +133,20 @@ class InterviewPreparationApiTests(unittest.TestCase):
         self.assertEqual(pack_two["pack_version"], 2)
         self.assertNotEqual(pack_two["pack_id"], pack_one["pack_id"])
 
+        with self.store.engine.connect() as connection:
+            before_reads = [dict(row) for row in connection.execute(
+                select(m.interview_prep_packs).order_by(m.interview_prep_packs.c.pack_version)
+            ).mappings()]
         listed = self.client.get(self.collection)
         self.assertEqual(listed.status_code, 200, listed.text)
         self.assertEqual(listed.json()["profile_id"], "fixture")
         self.assertEqual(listed.json()["job_id"], self.job_id)
         self.assertEqual([row["pack_version"] for row in listed.json()["packs"]], [1, 2])
-
         with self.store.engine.connect() as connection:
-            before = [dict(row) for row in connection.execute(
+            after_list = [dict(row) for row in connection.execute(
                 select(m.interview_prep_packs).order_by(m.interview_prep_packs.c.pack_version)
             ).mappings()]
+        self.assertEqual(after_list, before_reads, "collection GET must not mutate persisted packs")
 
         self.client.close()
         self.store.engine.dispose()
@@ -154,11 +158,6 @@ class InterviewPreparationApiTests(unittest.TestCase):
         detail = self.client.get(f"{self.collection}/{pack_two['pack_id']}")
         self.assertEqual(detail.status_code, 200, detail.text)
         self.assertEqual(detail.json(), pack_two)
-        with self.store.engine.connect() as connection:
-            after = [dict(row) for row in connection.execute(
-                select(m.interview_prep_packs).order_by(m.interview_prep_packs.c.pack_version)
-            ).mappings()]
-        self.assertEqual(after, before)
 
         other_profile = self.client.get(
             f"/profiles/other/jobs/{self.job_id}/interview-prep-packs",
@@ -169,6 +168,11 @@ class InterviewPreparationApiTests(unittest.TestCase):
             f"/profiles/other/jobs/{self.job_id}/interview-prep-packs/{pack_two['pack_id']}",
         )
         self.assertEqual(foreign_detail.status_code, 404, foreign_detail.text)
+        with self.store.engine.connect() as connection:
+            after_reads = [dict(row) for row in connection.execute(
+                select(m.interview_prep_packs).order_by(m.interview_prep_packs.c.pack_version)
+            ).mappings()]
+        self.assertEqual(after_reads, before_reads, "detail and isolation GETs must be read-only")
 
     def test_rejects_noncurrent_or_wrong_use_revision_without_persisting(self):
         wrong_use = self._approved_story(
