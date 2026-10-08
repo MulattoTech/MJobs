@@ -715,7 +715,9 @@ class Store:
                     cutoff = posted_after
                     upper_bound = posted_before
                 else:
-                    parsed_posted_at = func.datetime(reported_at)
+                    # The modifier explicitly normalizes overflow dates on SQLite
+                    # versions that otherwise preserve them (for example Feb 30).
+                    parsed_posted_at = func.datetime(reported_at, "+0 days")
                     iso_timestamp = reported_at.op("GLOB")(
                         "[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]T"
                         "[0-9][0-9]:[0-9][0-9]:[0-9][0-9]*")
@@ -724,9 +726,8 @@ class Store:
                         reported_at.op("GLOB")("*Z"),
                         reported_at.op("GLOB")("*z"),
                     )
-                    # SQLite's date parser normalizes some impossible dates (for
-                    # example February 30) instead of rejecting them. Require the
-                    # parsed whole-second value to round-trip to the input prefix.
+                    # Require the normalized whole-second value to round-trip to
+                    # the original prefix, so impossible calendar dates are unknown.
                     round_trips = func.strftime("%Y-%m-%dT%H:%M:%S", parsed_posted_at) == func.substr(reported_at, 1, 19)
                     parsed_posted_at = case(
                         (and_(iso_timestamp, timezone_suffix, round_trips), parsed_posted_at), else_=None)
