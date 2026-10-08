@@ -5,7 +5,7 @@
   "status": "PARTIAL",
   "base_sha": "b94999bb66537eb2b28df26e648db96e36d0d6b2",
   "target": "codex/mj-req115-certification-strength-20261007",
-  "observed_at_utc": "2026-10-08T05:00:14Z",
+  "observed_at_utc": "2026-10-08T05:02:01Z",
   "behavior": {
     "unqualified_certification": "UNKNOWN",
     "negated_strength_wording": {
@@ -18,6 +18,13 @@
       "no_named_certification_is_required": "UNKNOWN",
       "positive_named_certification_required": "REQUIRED",
       "comma_separated_certification_clauses": "Strength is scoped to each certification mention when comma-separated in either ordering; a neighboring requirement does not promote an unstated certification.",
+      "tested_certification_list_shapes": [
+        "comma",
+        "comma but",
+        "comma and",
+        "plain and"
+      ],
+      "certification_clause_boundary": "Split only when a supported connector is immediately followed by a recognized certification mention.",
       "not_required_but_preferred": "PREFERRED",
       "not_required_but_bonus_or_nice_to_have": "NICE_TO_HAVE"
     },
@@ -31,6 +38,11 @@
     "scope_note": "This is one narrow MJ-REQ-115 slice; the broader matching requirement group remains incomplete."
   },
   "verification": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "summary": "Latest focused run: 23 tests passed. Test-first cases failed all four comma-and/plain-and orderings before the change. Tested list forms include bare comma, comma-but, comma-and and plain-and in both directions; ambiguous 'CCNA, Security+ required' remains UNKNOWN for CCNA. Connectors split only when immediately followed by a recognized certification mention, so unrelated comma phrases such as a negated nice-to-have clause remain intact."
+    },
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
       "result": "PASS",
@@ -103,6 +115,7 @@
     }
   ],
   "limitations": {
+    "certification_clause_scoping": "This is bounded recognition for the enumerated connectors and known certification mentions; it is not general natural-language clause parsing.",
     "browser_build_after_latest_negation_followup": "NOT_RUN_BY_SCOPE; prior connected browser and build evidence predates this parser-only correction.",
     "postgresql": "NOT_RUN",
     "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",

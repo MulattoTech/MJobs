@@ -40,7 +40,7 @@ def _sentence(text, start, end, *, certification_starts=None):
         if index >= 0
     ]
     if certification_starts:
-        for boundary in re.finditer(r",\s*(?:but\s+)?", value, re.I):
+        for boundary in re.finditer(r",\s*(?:(?:but|and)\s+)?|\s+and\s+", value, re.I):
             if boundary.end() not in certification_starts:
                 continue
             if boundary.start() < start:
