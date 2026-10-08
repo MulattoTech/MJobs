@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T07:24:38Z",
+  "generated_at": "2026-10-08T07:26:55Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-095-TARGET-RELEVANT-BULLETS-OWNERSHIP-EXPANDED-20261008",
+  "current_milestone": "MJ-REQ-177-COMPANY-SOURCE-REFRESH-LOG-CONTEXT-CLAIMED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -10457,19 +10457,58 @@
         "at_utc": "2026-10-08T07:24:38Z",
         "note": "The writer paused when edits were observed outside the initial claim. Root verified no conflicting claims, established new complete local ownership with a new child ID, and updated the issue comment before work resumes."
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-177-COMPANY-SOURCE-REFRESH-LOG-CONTEXT-CLAIMED-20261008",
+      "timestamp": "2026-10-08T07:26:55Z",
+      "current_phase": "MJ_REQ_177_COMPANY_SOURCE_REFRESH_LOG_CONTEXT_CLAIMED",
+      "completed_steps": [
+        "Read-only exact-main audit found persisted `company_source.company_id` can safely provide bounded context for COMPANY_SOURCE_REFRESH without using operation params.",
+        "Confirmed no current lane claim overlaps worker structured logging paths; the independent #96 claim is limited to document generation/validation paths.",
+        "Created an isolated branch/worktree and unique Codex child claim; posted sanitized issue claim before implementation."
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [
+        "Read-only source and lane reconciliation only; no tests run for this claim checkpoint."
+      ],
+      "tests_remaining": [
+        "Reproduce missing company_id terminal-log context with a failing worker lifecycle assertion.",
+        "Implement persisted best-effort company-source FK resolution after terminal commit and strict opaque-ID logging for COMPANY_SOURCE_REFRESH only.",
+        "Verify malformed/missing/secret-shaped values, lookup exception isolation, params/URL/name/tenant/provider/error diagnostic exclusion and durable terminal state.",
+        "Run focused worker structured-logging and lifecycle tests; commit/evidence only, no push/merge/plan edits."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #178 / MJ-REQ-177 remains OPEN/PARTIAL; only one exact persisted entity field is in scope.",
+        "Full suite, live Redis/RQ, PostgreSQL and hosted checks/review are NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bd9ecdaaa1ae5d6b12d792e2f0cb372b0cf9d693",
+        "tree": "e0f903ab7bdbf199e84f0c03af2594df1195f348",
+        "branch": "main",
+        "issue": "#178 / MJ-REQ-177",
+        "issue_state": "OPEN",
+        "evidence_path": "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054885161",
+        "at_utc": "2026-10-08T07:26:55Z",
+        "note": "Independent log-context child claim established on worker paths; no source edits yet."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_095_TARGET_RELEVANT_BULLETS_OWNERSHIP_EXPANDED",
+  "current_phase": "MJ_REQ_177_COMPANY_SOURCE_REFRESH_LOG_CONTEXT_CLAIMED",
   "last_safe_checkpoint": {
-    "git_commit": "4dbbaa0a0dacb52299fab5c129bf3663b5ef6cb6",
-    "tree": "bdd134e1654ed9a8954e64169e2d0449c4f34fc8",
+    "git_commit": "bd9ecdaaa1ae5d6b12d792e2f0cb372b0cf9d693",
+    "tree": "e0f903ab7bdbf199e84f0c03af2594df1195f348",
     "branch": "main",
-    "issue": "#96 / MJ-REQ-095",
+    "issue": "#178 / MJ-REQ-177",
     "issue_state": "OPEN",
-    "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json",
-    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054846648",
-    "at_utc": "2026-10-08T07:24:38Z",
-    "note": "The writer paused when edits were observed outside the initial claim. Root verified no conflicting claims, established new complete local ownership with a new child ID, and updated the issue comment before work resumes."
+    "evidence_path": "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
+    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054885161",
+    "at_utc": "2026-10-08T07:26:55Z",
+    "note": "Independent log-context child claim established on worker paths; no source edits yet."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11963,5 +12002,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T07:24:38Z"
+  "updated_at": "2026-10-08T07:26:55Z"
 }

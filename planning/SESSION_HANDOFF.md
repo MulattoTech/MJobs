@@ -1,3 +1,11 @@
+## 2026-10-08T07:26:55Z — #178 company-source refresh log context claimed
+
+A current-main read-only audit found that COMPANY_SOURCE_REFRESH stores a durable source-row ID whose company FK can be safely logged as a validated opaque identifier after terminal persistence. Child `req177-company-refresh-context` owns `workers/tasks.py; workers/structured_logging.py; tests/unit/test_structured_logging.py; tests/integration/test_worker_lifecycle.py` and `docs/evidence/2026-10-08-company-source-refresh-company-context.json` on `codex/mj-req177-company-source-refresh-context-20261008` / `.worktrees/codex-mj-req177-company-source-refresh-context-20261008`, from synchronized base `bd9ecdaaa1ae5d6b12d792e2f0cb372b0cf9d693`. The slice excludes params, URLs, names, tenant/provider values and exception diagnostics; lookup failure must not alter the durable outcome. Claim: https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054885161.
+
+This worker-path slice is disjoint from the active #96 resume-tailoring child. Root remains sole integrator and will serialize candidate integration. Issue #178 remains OPEN/PARTIAL; no hosted or PostgreSQL/RQ evidence is claimed.
+
+---
+
 ## 2026-10-08T07:21:00Z — #180 package privacy regression integrated
 
 Issue #180 / MJ-REQ-179 test-only privacy slice fast-forwarded to synchronized main `89b9a5e24087183717c4359282db544bb48b8fef` (tree `bdd134e1654ed9a8954e64169e2d0449c4f34fc8`); exact tested source `d4e5d975e7e16e3e2db477099119207a923dbc91` / tree `5d1d349d3352119e477a6c0e1d7e3ec5e1e9e82d`. Root ran `python -m unittest tests.browser.test_debug_capture_privacy -v` after rebase and on combined main; 1 PASS each. All pixels across synthetic name/email value regions are black; a one-pixel leak negative control fails. Metadata/DOM canaries are absent; state stays REVIEW_REQUIRED with no submission receipt. Evidence `docs/evidence/2026-10-08-debug-capture-package-privacy.json`; LOCAL_DELEGATED_REVIEW PASS after the initial center-pixel coverage gap was corrected. Real ATS/browser adapter and hosted checks remain NOT_RUN; issue and release stay PARTIAL. Receipt https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054793512; claim release https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054799151.

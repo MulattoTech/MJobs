@@ -1326,7 +1326,25 @@
       "latest_slice_branch": "codex/mj-req177-ats-context-logs-20261008",
       "latest_slice_scope_complete": false,
       "latest_slice_tests": "Root exact combined-tree focused worker/logging suite: 29 run, 28 PASS, 1 optional PostgreSQL skip; compileall/diff/catalogue/progress/lane validators PASS; local delegated review no blocker.",
-      "active_slice": null
+      "active_slice": {
+        "name": "Allowlisted company_id context for COMPANY_SOURCE_REFRESH terminal logs",
+        "issue": 178,
+        "requirement_id": "MJ-REQ-177",
+        "status": "ACTIVE_LOCAL_CLAIMED",
+        "depends_on": [],
+        "owned_paths": [
+          "workers/tasks.py",
+          "workers/structured_logging.py",
+          "tests/unit/test_structured_logging.py",
+          "tests/integration/test_worker_lifecycle.py",
+          "docs/evidence/2026-10-08-company-source-refresh-company-context.json"
+        ],
+        "acceptance": "For COMPANY_SOURCE_REFRESH only, resolve company_id from the persisted company-source row after terminal-state persistence and add only a validated opaque identifier to structured logs. Omit missing/malformed/secret-shaped IDs and lookup failures; never change outcome or log params, URLs, names, tenant/provider data or exception diagnostics. Test persisted provenance, field-kind gating, privacy and lookup-failure isolation.",
+        "branch": "codex/mj-req177-company-source-refresh-context-20261008",
+        "worktree": ".worktrees/codex-mj-req177-company-source-refresh-context-20261008",
+        "base": "bd9ecdaaa1ae5d6b12d792e2f0cb372b0cf9d693",
+        "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/178#issuecomment-6054885161"
+      }
     },
     {
       "id": "MJ-PR-049",
@@ -4039,5 +4057,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T07:24:38Z"
+  "generated_at": "2026-10-08T07:26:55Z"
 }
