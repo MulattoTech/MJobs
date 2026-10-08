@@ -1,11 +1,18 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { DocumentHistory, type GeneratedDocument } from './document-history';
+import { coverLetterLineDiff, DocumentHistory, type GeneratedDocument } from './document-history';
 
 const historical:GeneratedDocument={id:'old',profile_id:'fixture',kind:'resume',version:1,profile_version:'snapshot-1',fact_ids:['python'],
   files:{pdf:'resume.pdf'},sha256:{pdf:'abc'},template:'verified-facts-v1',created_at:null,generation_model:null,
   facts_used:[],missing_fact_ids:['python']};
 describe('document provenance',()=>{
+  it('reports deterministic removed and added cover-letter lines in order',()=>{
+    expect(coverLetterLineDiff('Opening\nRemoved detail\nClosing','Opening\nAdded detail\nClosing')).toEqual([
+      {kind:'Removed',line:'Removed detail'},
+      {kind:'Added',line:'Added detail'},
+    ]);
+    expect(coverLetterLineDiff('Same line','Same line')).toEqual([]);
+  });
   it('renders a contact-only base contract without skill-order fields',()=>{
     const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,template:'approved-contact-base-v1',generation_model:'deterministic-contact-copy-v1',generation_context:{mode:'APPROVED_CONTACT_HEADER',contact_header:['Alex','Phone: 555 0100']},missing_fact_ids:[],facts_used:[{fact_id:'python',kind:'skill',text:'Python',source:'Review',confidence:100,verified:true,user_approved:true}]}]}/>);
     expect(html).toContain('Saved contact details included');expect(html).toContain('Phone: 555 0100');expect(html).not.toContain('Tailored resume:');

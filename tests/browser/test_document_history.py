@@ -87,6 +87,11 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                     expect(result.get_by_text('Cover letter · v2',exact=True)).to_be_visible()
                     expect(result).to_contain_text(first_letter['preview_text'])
                     expect(result).to_contain_text(second_letter['preview_text'])
+                    changes=page.get_by_role('region',name='Cover-letter changes',exact=True)
+                    removed=changes.get_by_role('listitem').filter(has_text='I am applying for this position based on the evidence below.')
+                    added=changes.get_by_role('listitem').filter(has_text='I would be glad to discuss how the evidence below fits this position.')
+                    expect(removed.get_by_text('Removed',exact=True)).to_be_visible()
+                    expect(added.get_by_text('Added',exact=True)).to_be_visible()
                     with page.expect_download() as event:
                         page.get_by_role('region',name='cover-letter version 1',exact=True).get_by_role('link',name='Download TXT',exact=True).click()
                     self.assertEqual(Path(event.value.path()).read_bytes(),first_text)

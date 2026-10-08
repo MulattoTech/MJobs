@@ -15,6 +15,28 @@ export type GeneratedDocument = {
 };
 
 type CoverLetterPreview = Pick<GeneratedDocument,'id'|'application_id'|'profile_id'|'kind'|'version'|'preview_text'|'preview_error'|'avoid_list_error'>;
+export type CoverLetterLineChange={kind:'Added'|'Removed';line:string};
+
+export function coverLetterLineDiff(beforeText:string,afterText:string):CoverLetterLineChange[] {
+  const before=beforeText.split(/\r?\n/);const after=afterText.split(/\r?\n/);
+  const width=after.length+1;
+  const lengths=Array.from({length:before.length+1},()=>new Uint32Array(width));
+  for(let i=before.length-1;i>=0;i--){
+    for(let j=after.length-1;j>=0;j--){
+      lengths[i]![j]=before[i]===after[j]?lengths[i+1]![j+1]!+1:Math.max(lengths[i+1]![j]!,lengths[i]![j+1]!);
+    }
+  }
+  const changes:CoverLetterLineChange[]=[];let i=0;let j=0;
+  while(i<before.length||j<after.length){
+    if(i<before.length&&j<after.length&&before[i]===after[j]){i++;j++;}
+    else if(j<after.length&&(i===before.length||lengths[i]![j+1]!>lengths[i+1]![j]!)){
+      changes.push({kind:'Added',line:after[j]!});j++;
+    }else{
+      changes.push({kind:'Removed',line:before[i]!});i++;
+    }
+  }
+  return changes;
+}
 
 function CoverLetterComparison({documents}:{documents:GeneratedDocument[]}) {
   const [earlierId,setEarlierId]=useState('');const [laterId,setLaterId]=useState('');
@@ -58,6 +80,7 @@ function CoverLetterComparison({documents}:{documents:GeneratedDocument[]}) {
     }catch(e){if(requestSequence.current===currentRequest&&latestScope.current===requestScope)setError(String(e));}
     finally{if(requestSequence.current===currentRequest&&latestScope.current===requestScope)setBusy(false);}
   }
+  const changes=result?coverLetterLineDiff(result.earlier.preview_text!,result.later.preview_text!):[];
   return <section aria-label="Compare cover-letter revisions">
     <h3>Compare cover-letter revisions</h3>
     <p>Choose two immutable versions from this application. Comparison uses only previews validated by the application document history endpoint.</p>
@@ -67,7 +90,7 @@ function CoverLetterComparison({documents}:{documents:GeneratedDocument[]}) {
     </div>
     <button type="button" disabled={busy||earlier.id===later.id} onClick={()=>void compare()}>{busy?'Loading validated previews…':'Compare selected cover letters'}</button>
     {error&&<p role="alert">Cover-letter comparison unavailable: {error}</p>}
-    {result&&<section aria-label="Cover-letter comparison result"><p>Version {result.earlier.version} and version {result.later.version} are immutable saved revisions. Text below comes from the validated application history previews.</p><div className="resume-comparison-texts">
+    {result&&<section aria-label="Cover-letter comparison result"><p>Version {result.earlier.version} and version {result.later.version} are immutable saved revisions. Text below comes from the validated application history previews.</p><section aria-label="Cover-letter changes"><h4>Changed lines</h4>{changes.length?<ul>{changes.map((change,index)=><li key={`${change.kind}-${index}`}><strong>{change.kind}</strong><pre>{change.line}</pre></li>)}</ul>:<p>No text changes between these revisions.</p>}</section><div className="resume-comparison-texts">
       <section><h4>Cover letter · v{result.earlier.version}</h4><pre>{result.earlier.preview_text}</pre></section>
       <section><h4>Cover letter · v{result.later.version}</h4><pre>{result.later.preview_text}</pre></section>
     </div></section>}
