@@ -1,0 +1,47 @@
+{
+  "requirement_id": "MJ-REQ-136",
+  "issue": 137,
+  "result": "PARTIAL",
+  "scope": "Connected, read-only application review screen populated from profile-scoped application, route, document-history, and answer-export readbacks; restores the selected application after reload.",
+  "recorded_at_utc": "2026-10-08T10:26:44Z",
+  "branch": "codex/mj-req136-application-preview-20261008",
+  "base_sha": "a3a9c1421fdf6d2280636c10341e8e2ceedce93f",
+  "validation": [
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "details": "TypeScript check and Vite production build completed."
+    },
+    {
+      "command": "npm test",
+      "result": "PASS",
+      "details": "16 files and 96 frontend tests passed."
+    },
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_preview tests.browser.test_application_preview",
+      "result": "PASS",
+      "details": "3 tests passed. Browser checks cover saved job/company/route/documents/answers, UNKNOWN confidence and missing data, reload restoration, and GET-only/no-outside-request/no-attempt side effects. Integration checks read durable records and verify that reads do not change application, document, or attempt state."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "details": "No whitespace errors."
+    }
+  ],
+  "source_sha256": {
+    "apps/web/src/main.tsx": "67c417a7cab23581cfc9ac154bac8cf58aac682ad9e070c5016f1a6adb6d8ed0",
+    "tests/integration/test_application_preview.py": "221ef60be79939809179680058c88cafc76bd3dbe0b828d560b26d6c8c9de21c",
+    "tests/browser/test_application_preview.py": "3a547ca49a4a6954a6388b60a15801430c8f098d4c802d37173fce57f4588575"
+  },
+  "safety": [
+    "Opening and reloading the preview only read application state; browser proof observed GET methods only and no requests outside the isolated local origin.",
+    "Missing route, document, and supported question-preflight evidence remain UNKNOWN or visible blockers.",
+    "Automation confidence remains UNKNOWN because no calibrated saved confidence value exists.",
+    "The screen preserves existing explicit user action gates. No employer browser was opened and no real or mock submission was triggered."
+  ],
+  "limitations": [
+    "Tests use fictional fixture data and local SQLite.",
+    "Hosted checks and manual user review were not run. External submission remains OFF.",
+    "npm reported the installed Vitest engine expects Node 22/24/26 while the runtime is Node 25.9; build and all frontend tests passed in this environment."
+  ]
+}
