@@ -5,7 +5,7 @@
   "status": "PARTIAL",
   "base_sha": "b94999bb66537eb2b28df26e648db96e36d0d6b2",
   "target": "codex/mj-req115-certification-strength-20261007",
-  "observed_at_utc": "2026-10-08T04:42:55Z",
+  "observed_at_utc": "2026-10-08T04:44:35Z",
   "behavior": {
     "unqualified_certification": "UNKNOWN",
     "negated_strength_wording": {
@@ -25,6 +25,11 @@
     "scope_note": "This is one narrow MJ-REQ-115 slice; the broader matching requirement group remains incomplete."
   },
   "verification": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "summary": "Latest follow-up: 18 tests passed. Test-first assertions reproduced 'CCNA is not a mandatory certification' and 'AZ-104 is not necessarily required' as REQUIRED before the fix; both now resolve UNKNOWN while previously verified preference/bonus cases remain covered."
+    },
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
       "result": "PASS",
@@ -72,6 +77,7 @@
     }
   ],
   "limitations": {
+    "browser_build_after_latest_negation_followup": "NOT_RUN_BY_SCOPE; prior connected browser and build evidence predates this parser-only correction.",
     "postgresql": "NOT_RUN",
     "hosted_checks_and_review": "NOT_RUN_BY_USER_POLICY",
     "live_providers": "NOT_RUN",
