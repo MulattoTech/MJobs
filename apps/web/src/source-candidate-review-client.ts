@@ -225,7 +225,8 @@ function sanitizeCandidate(value: unknown, profileId: string): SourceCandidate {
 }
 
 function requireIdentifier(value: string, name: string): string {
-  if (typeof value !== 'string' || !value.trim() || value !== value.trim() || value.length > 128) {
+  if (typeof value !== 'string' || !value.trim() || value !== value.trim() || value.length > 128 ||
+      value === '.' || value === '..' || /[\\/?#\u0000-\u001f\u007f]/.test(value)) {
     throw new SourceCandidateReviewClientError(null, `Invalid ${name}.`);
   }
   return value;

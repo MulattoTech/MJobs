@@ -42,17 +42,17 @@ function jsonResponse(body: unknown, status = 200): Response {
 describe('source candidate review API client', () => {
   it('lists only the selected profile and strips query data from display URLs', async () => {
     const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({
-      candidates: [{ ...candidate, profile_id: 'fixture / one' }],
+      candidates: [{ ...candidate, profile_id: 'profile-123' }],
     }));
     const client = createSourceCandidateReviewClient({
       baseUrl: 'http://127.0.0.1:8000/', fetchImpl,
     });
 
-    const result = await client.list('fixture / one');
+    const result = await client.list('profile-123');
 
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('http://127.0.0.1:8000/source-candidates?profile_id=fixture+%2F+one');
+    expect(url).toBe('http://127.0.0.1:8000/source-candidates?profile_id=profile-123');
     expect(init.method).toBe('GET');
     expect(result).toHaveLength(1);
     expect(result[0].observations[0].source_url).toBe('https://www.linkedin.com/jobs/view/123');
@@ -72,18 +72,18 @@ describe('source candidate review API client', () => {
   it('uses the profile-scoped review route and preserves request ID and payload on retry', async () => {
     const fetchImpl = vi.fn()
       .mockResolvedValueOnce(jsonResponse({ detail: 'private server detail' }, 503))
-      .mockResolvedValueOnce(jsonResponse({ ...candidate, id: 'candidate / one', profile_id: 'fixture / one' }));
+      .mockResolvedValueOnce(jsonResponse({ ...candidate, id: 'candidate-456', profile_id: 'profile-123' }));
     const client = createSourceCandidateReviewClient({ baseUrl: 'http://127.0.0.1:8000', fetchImpl });
 
-    await expect(client.review('fixture / one', 'candidate / one', input))
+    await expect(client.review('profile-123', 'candidate-456', input))
       .rejects.toBeInstanceOf(SourceCandidateReviewClientError);
-    const result = await client.review('fixture / one', 'candidate / one', input);
+    const result = await client.review('profile-123', 'candidate-456', input);
 
-    expect(result.id).toBe('candidate / one');
+    expect(result.id).toBe('candidate-456');
     expect(fetchImpl).toHaveBeenCalledTimes(2);
     const [firstUrl, firstInit] = fetchImpl.mock.calls[0] as [string, RequestInit];
     const [retryUrl, retryInit] = fetchImpl.mock.calls[1] as [string, RequestInit];
-    expect(firstUrl).toBe('http://127.0.0.1:8000/profiles/fixture%20%2F%20one/source-candidates/candidate%20%2F%20one/review');
+    expect(firstUrl).toBe('http://127.0.0.1:8000/profiles/profile-123/source-candidates/candidate-456/review');
     expect(retryUrl).toBe(firstUrl);
     expect(firstInit.method).toBe('PUT');
     expect(firstInit.headers).toMatchObject({ 'content-type': 'application/json' });
@@ -119,6 +119,20 @@ describe('source candidate review API client', () => {
       });
       await expect(client.review('fixture', candidate.id, input)).rejects.toThrow(/response/i);
     }
+  });
+
+  it('rejects path-changing identifiers before transport instead of relying on encoded slash routing', async () => {
+    const fetchImpl = vi.fn();
+    const client = createSourceCandidateReviewClient({ fetchImpl });
+
+    await expect(client.list('profile/other')).rejects.toThrow(/profile identifier/i);
+    await expect(client.review('fixture?other=1', candidate.id, input))
+      .rejects.toThrow(/profile identifier/i);
+    await expect(client.review('fixture', 'candidate#other', input))
+      .rejects.toThrow(/candidate identifier/i);
+    await expect(client.review('fixture', '..', input))
+      .rejects.toThrow(/candidate identifier/i);
+    expect(fetchImpl).not.toHaveBeenCalled();
   });
 
   it('never returns credential-bearing display URLs from an untrusted response', async () => {
