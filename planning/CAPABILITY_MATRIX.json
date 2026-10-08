@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T07:14:02Z",
+  "timestamp": "2026-10-08T07:21:00Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1530,9 +1530,10 @@
       "requirement_id": "MJ-REQ-179",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-07-safe-browser-debug-capture.json"
+        "docs/evidence/2026-10-07-safe-browser-debug-capture.json",
+        "docs/evidence/2026-10-08-debug-capture-package-privacy.json"
       ],
-      "note": "Existing local mock-ATS capture is verified PARTIAL. A synthetic FIXTURE-mode browser/package-writer privacy regression is actively claimed to prove produced screenshot and metadata/DOM redaction; this test-only slice does not add real ATS support. Issue #180 remains OPEN/PARTIAL; hosted checks NOT_RUN."
+      "note": "Existing local mock-ATS capture is verified PARTIAL. A synthetic FIXTURE-mode browser/package-writer privacy regression is actively claimed to prove produced screenshot and metadata/DOM redaction; this test-only slice does not add real ATS support. Issue #180 remains OPEN/PARTIAL; hosted checks NOT_RUN. Additional synthetic FIXTURE-mode package-writer privacy regression integrated at 89b9a5e24087183717c4359282db544bb48b8fef (tested exact source head d4e5d975e7e16e3e2db477099119207a923dbc91, tree 5d1d349d3352119e477a6c0e1d7e3ec5e1e9e82d); connected Chromium test PASS 1/1 on rebased candidate and combined integration tree. Full captured name/email input rectangles are required all-black, and a one-pixel white-leak negative control fails the same predicate; canaries are absent from serialized metadata/DOM, state remains REVIEW_REQUIRED, and no submission receipt exists. LOCAL_DELEGATED_REVIEW PASS; catalogue/progress/lane/diff checks PASS. Evidence docs/evidence/2026-10-08-debug-capture-package-privacy.json. Test-only slice; real ATS/browser adapter support remains unavailable, so issue #180 / MJ-REQ-179 remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-180",

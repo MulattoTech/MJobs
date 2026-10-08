@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T07:19:12Z",
+  "generated_at": "2026-10-08T07:21:00Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "Issue #179 / MJ-REQ-178 log retention acceptance PASS at 8bea57e595e19e638913405a8ec1cd3aa0ebde32; full product remains PARTIAL.",
     "current_verified_at": "2026-10-07T15:27:43Z"
   },
-  "current_milestone": "MJ-REQ-095-TARGET-RELEVANT-BULLETS-CLAIMED-20261008",
+  "current_milestone": "MJ-REQ-179-DEBUG-CAPTURE-PRIVACY-REGRESSION-INTEGRATED-20261008",
   "current_objective": "Continuously implement dependency-ready MJobs issues from current main under local-only delivery; preserve full requirement denominators and keep external submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -536,11 +536,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "047a780be248c94e802cba3068e884b7edf20428",
-    "tree": "c2b1652b941a5d58cb5a80a0b979b00ae8cc6d50",
-    "result": "PARTIAL - bounded APPLY_MOCK persisted allowlisted ATS context slice PASS; MJ-REQ-177 and product release remain PARTIAL.",
-    "evidence": "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
-    "verified_at_utc": "2026-10-08T07:14:02Z"
+    "commit": "89b9a5e24087183717c4359282db544bb48b8fef",
+    "tree": "bdd134e1654ed9a8954e64169e2d0449c4f34fc8",
+    "result": "PARTIAL - scoped synthetic debug capture privacy regression PASS; real ATS/browser adapter and overall release remain incomplete.",
+    "evidence": "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
+    "verified_at_utc": "2026-10-08T07:21:00Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -10377,19 +10377,64 @@
         "note": "Isolated target-relevant bullet selection child claim established; no source mutation yet.",
         "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-179-DEBUG-CAPTURE-PRIVACY-REGRESSION-INTEGRATED-20261008",
+      "timestamp": "2026-10-08T07:21:00Z",
+      "current_phase": "MJ_REQ_179_DEBUG_CAPTURE_PRIVACY_REGRESSION_INTEGRATED",
+      "completed_steps": [
+        "Local delegated review identified and the child fixed a gap where center-pixel checks did not prove complete captured input-value masking.",
+        "One-pixel white-leak negative control now proves the same full-region predicate rejects partial masks.",
+        "Root reran the connected synthetic FIXTURE browser test after rebasing and on the combined integration tree.",
+        "Fast-forwarded and pushed the exact candidate by the permitted local-only route; synchronized-main readback matched."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
+        "tests/browser/test_debug_capture_privacy.py"
+      ],
+      "files_modified": [],
+      "tests_completed": [
+        "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_debug_capture_privacy -v — 1 passed, 0 failures/errors after rebase and again on combined main.",
+        "Evidence input SHA-256 verification PASS; evidence JSON parse PASS.",
+        "git diff --check, catalogue, progress and lane validation PASS.",
+        "LOCAL_DELEGATED_REVIEW PASS after initial coverage gap was corrected."
+      ],
+      "tests_remaining": [
+        "Real ATS/browser adapter behavior is unavailable and not tested; hosted checks/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "No product code changed; this is test coverage for the already-supported mock adapter only.",
+        "Issue #180 / MJ-REQ-179 remains OPEN/PARTIAL; real ATS/browser adapter support is still incomplete."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "89b9a5e24087183717c4359282db544bb48b8fef",
+        "tree": "bdd134e1654ed9a8954e64169e2d0449c4f34fc8",
+        "branch": "main",
+        "issue": "#180 / MJ-REQ-179",
+        "issue_state": "OPEN/PARTIAL",
+        "issue_claim": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054793512",
+        "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054799151",
+        "evidence_path": "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
+        "at_utc": "2026-10-08T07:21:00Z",
+        "note": "Synthetic mock-adapter regression only; real adapter support remains unavailable."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_095_TARGET_RELEVANT_BULLETS_CLAIMED",
+  "current_phase": "MJ_REQ_179_DEBUG_CAPTURE_PRIVACY_REGRESSION_INTEGRATED",
   "last_safe_checkpoint": {
-    "git_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
-    "tree": "dacf6df78261ce8df5d79c47bd22a6138a59af62",
+    "git_commit": "89b9a5e24087183717c4359282db544bb48b8fef",
+    "tree": "bdd134e1654ed9a8954e64169e2d0449c4f34fc8",
     "branch": "main",
-    "issue": "#96 / MJ-REQ-095",
-    "issue_state": "OPEN",
-    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589",
-    "at_utc": "2026-10-08T07:19:12Z",
-    "note": "Isolated target-relevant bullet selection child claim established; no source mutation yet.",
-    "evidence_path": "docs/evidence/2026-10-08-resume-experience-rewrites.json"
+    "issue": "#180 / MJ-REQ-179",
+    "issue_state": "OPEN/PARTIAL",
+    "issue_claim": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054793512",
+    "issue_release_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054799151",
+    "evidence_path": "docs/evidence/2026-10-08-debug-capture-package-privacy.json",
+    "at_utc": "2026-10-08T07:21:00Z",
+    "note": "Synthetic mock-adapter regression only; real adapter support remains unavailable."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -10715,19 +10760,23 @@
     "next_issue": "Release #398 and select the next dependency-ready unclaimed issue after live claim/worktree reconciliation."
   },
   "active_development_issue": {
-    "issue": 180,
-    "requirement_id": "MJ-REQ-179",
-    "title": "Debug Capture",
-    "state": "ACTIVE_LOCAL_CLAIMED; local delegated review requested correction to check the captured screenshot value area across each input, not only center pixel.",
-    "branch": "codex/mj-req179-debug-package-privacy-20261008",
-    "worktree": ".worktrees/codex-mj-req179-debug-package-privacy-20261008",
-    "base_commit": "3760eb6d05c6cc8c9d0e22bbdfa02e59ae8ee86d",
+    "issue": 96,
+    "requirement_id": "MJ-REQ-095",
+    "title": "Resume Tailoring Engine",
+    "state": "ACTIVE_LOCAL_CLAIMED; deterministic target-relevant bullet selection implementation in progress.",
+    "branch": "codex/mj-req095-target-relevant-bullets-20261008",
+    "worktree": ".worktrees/codex-mj-req095-target-relevant-bullets-20261008",
+    "base_commit": "ef47fc9a2b05cc2027c0445116960b43d6d4b2eb",
     "owned_paths": [
-      "tests/browser/test_debug_capture_privacy.py",
-      "docs/evidence/2026-10-08-debug-capture-package-privacy.json"
+      "services/documents/tailor.py",
+      "services/documents/generate.py",
+      "tests/unit/test_skill_order.py",
+      "tests/integration/test_skill_order.py",
+      "tests/browser/test_skill_order.py",
+      "docs/evidence/2026-10-08-resume-target-bullet-selection.json"
     ],
-    "acceptance": "Synthetic FIXTURE-mode mock-ATS package-writer privacy regression; validate screenshot pixel masking and serialized metadata/DOM canaries. Reviewer identified captured input crop gap; worker is adding full-value-region assertion and will retest after rebase.",
-    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/180#issuecomment-6054500133"
+    "issue_claim_comment": "https://github.com/MulattoTech/MJobs/issues/96#issuecomment-6054751589",
+    "acceptance": "Default tailored generation selects only approved exact target-skill-matching responsibility/experience/project/accomplishment bullets; all eligible bullets remain if none match; explicit user selection takes precedence. Preserve immutable facts/history/comparison and profile/cover-letter data; no generated wording/provider use."
   },
   "historical_control_snapshots": [
     {
@@ -11875,5 +11924,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T07:19:12Z"
+  "updated_at": "2026-10-08T07:21:00Z"
 }
