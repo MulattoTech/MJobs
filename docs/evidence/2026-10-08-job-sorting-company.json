@@ -5,8 +5,8 @@
   "slice": "Company sort only",
   "status": "PASS_BOUNDED_LOCAL_SLICE",
   "branch": "codex/mj-req190-company-20261008",
-  "base_commit": "7ea461ab02cbdfd314e9be07970b96765fba4e6f",
-  "validated_at_utc": "2026-10-08T07:35:58Z",
+  "base_commit": "75d91e37571da5db4c90c776cbd9b408f978fd32",
+  "validated_at_utc": "2026-10-08T07:47:06Z",
   "acceptance": {
     "company_field": "Existing canonical companies.name display field",
     "ordering": "Case-insensitive ascending; trimmed blank names last; job ID ascending for stable ties",
@@ -17,43 +17,46 @@
   },
   "source_sha256": {
     "apps/api/main.py": "4E2ADFAAE7F3F52078F6E21A34D6D66EBB8D95427087CA1CA20A1533A2C2087F",
-    "apps/web/src/main.tsx": "6C6F94DD1C3A584A4F915D866A99A483CE709766B4F9A4D3182A28862C488F82",
+    "apps/web/src/main.tsx": "75E6717C2EFA22DB07DF5A996180658B1753F637B52631854FF47B56ABEAA877",
     "packages/persistence/store.py": "FC6561E72E5F8CEC0E70AB2D4CECAE11B11807ACD4F2AF48D63BE413F221D834",
     "tests/integration/test_job_sorting.py": "493BFA2626093998DF2E5C8146971FBB89B1940B34DEEEE310C641C8C384A525",
     "tests/browser/test_job_sorting.py": "217947D48C79B1262C3D7D400DEB33C00858933DE440E4AAC699FC5E403A9776"
   },
   "validation": [
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_job_sorting tests.browser.test_job_sorting",
-      "result": "PASS: 6 tests"
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_job_sorting tests.browser.test_job_sorting -v",
+      "result": "PASS: 6 tests on exact rebased source (5 API/integration tests, including Company order/limit and existing Newest behavior; 1 connected synthetic Chromium test)."
     },
     {
       "command": "npm test --prefix apps/web -- --run",
-      "result": "PASS: 16 files, 94 tests"
+      "result": "PASS: 16 files, 94 tests; Node 25.9.0 is outside Vitest 5 declared engine support, so this is local executed evidence only."
     },
     {
       "command": "npm run build --prefix apps/web",
-      "result": "PASS: TypeScript and Vite production build"
+      "result": "PASS: TypeScript and Vite production build."
     },
     {
       "command": "git diff --check",
-      "result": "PASS"
+      "result": "PASS."
     }
   ],
   "environment": {
     "python": "3.12.10",
     "node": "25.9.0",
     "browser": "Local Chromium through Playwright; synthetic fixture API and browser requests remained on loopback",
-    "web_dependencies": "Used existing local apps/web/node_modules through a worktree-only junction; no install or network fetch"
+    "web_dependencies": "Existing local apps/web/node_modules; no install or network fetch."
   },
   "not_run": [
-    "Full Python test discovery",
-    "PostgreSQL-specific validation",
-    "GitHub-hosted checks by user policy"
+    "Full Python test discovery (prior 600-second run remains PARTIAL_NOT_COMPLETE; not repeated).",
+    "PostgreSQL-specific validation.",
+    "Supported-Node Vitest execution; available Node 25.9.0 is outside Vitest 5 declared engine support.",
+    "GitHub-hosted checks/review by user policy."
   ],
   "safety": {
     "external_submission": "OFF",
     "external_provider_calls": "None"
   },
-  "scope_limit": "MJ-REQ-190 remains PARTIAL: Best Match, Newest, and Title have prior bounded coverage; Application Priority and Salary remain unimplemented. MJ-PR-052 dependencies MJ-PR-051 and MJ-PR-043 are unchanged."
+  "scope_limit": "MJ-REQ-190 remains PARTIAL: Best Match, Newest, and Title have prior bounded coverage; Application Priority and Salary remain unimplemented. MJ-PR-052 dependencies MJ-PR-051 and MJ-PR-043 are unchanged. Root rebased and reran exact-source checks on eba9f77a0cd54468fb91e2f6406777e25cb4e5a3 / tree a3c96974d1112af01da72cd9edd98b8cf0e5181e; evidence-only commit follows without executable/test input changes.",
+  "source_commit": "eba9f77a0cd54468fb91e2f6406777e25cb4e5a3",
+  "source_tree": "a3c96974d1112af01da72cd9edd98b8cf0e5181e"
 }
