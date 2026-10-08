@@ -31,7 +31,7 @@ def _number(value):
     number = float(value)
     return int(number) if number.is_integer() else number
 
-def _sentence(text, start, end, *, split_commas=False):
+def _sentence(text, start, end, *, certification_starts=None):
     value = str(text or "")
     delimiters = (".", "\n", ";")
     left_candidates = [value.rfind(delimiter, 0, start) for delimiter in delimiters]
@@ -39,10 +39,14 @@ def _sentence(text, start, end, *, split_commas=False):
         index for index in (value.find(delimiter, end) for delimiter in delimiters)
         if index >= 0
     ]
-    if split_commas:
-        contrastive = list(re.finditer(r",\s*but\b", value, re.I))
-        left_candidates.extend(match.start() for match in contrastive if match.start() < start)
-        right_candidates.extend(match.start() for match in contrastive if match.start() >= end)
+    if certification_starts:
+        for boundary in re.finditer(r",\s*(?:but\s+)?", value, re.I):
+            if boundary.end() not in certification_starts:
+                continue
+            if boundary.start() < start:
+                left_candidates.append(boundary.start())
+            elif boundary.start() >= end:
+                right_candidates.append(boundary.start())
     left = max(left_candidates)
     right = min(right_candidates) if right_candidates else len(value)
     return _clean(value[left + 1:right])
@@ -128,9 +132,17 @@ def parse_certifications(text):
     value = str(text or "")
     found = []
     seen = set()
+    certification_starts = {
+        match.start()
+        for _, _, pattern in CERTIFICATION_PATTERNS
+        for match in re.finditer(pattern, value, re.I)
+    }
     for identifier, name, pattern in CERTIFICATION_PATTERNS:
         for match in re.finditer(pattern, value, re.I):
-            clause = _sentence(value, match.start(), match.end(), split_commas=True)
+            clause = _sentence(
+                value, match.start(), match.end(),
+                certification_starts=certification_starts,
+            )
             key = (identifier, match.start())
             if key in seen:
                 continue

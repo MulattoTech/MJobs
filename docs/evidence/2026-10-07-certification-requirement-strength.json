@@ -5,7 +5,7 @@
   "status": "PARTIAL",
   "base_sha": "b94999bb66537eb2b28df26e648db96e36d0d6b2",
   "target": "codex/mj-req115-certification-strength-20261007",
-  "observed_at_utc": "2026-10-08T04:52:23Z",
+  "observed_at_utc": "2026-10-08T05:00:14Z",
   "behavior": {
     "unqualified_certification": "UNKNOWN",
     "negated_strength_wording": {
@@ -17,7 +17,7 @@
       "no_named_certification_required": "UNKNOWN",
       "no_named_certification_is_required": "UNKNOWN",
       "positive_named_certification_required": "REQUIRED",
-      "comma_separated_but_clauses": "Strength is scoped to each certification mention in either ordering.",
+      "comma_separated_certification_clauses": "Strength is scoped to each certification mention when comma-separated in either ordering; a neighboring requirement does not promote an unstated certification.",
       "not_required_but_preferred": "PREFERRED",
       "not_required_but_bonus_or_nice_to_have": "NICE_TO_HAVE"
     },
@@ -31,6 +31,11 @@
     "scope_note": "This is one narrow MJ-REQ-115 slice; the broader matching requirement group remains incomplete."
   },
   "verification": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "summary": "Latest focused run: 22 tests passed. Test-first cases failed both no-but orderings before the change: 'Security+ required, CCNA preferred.' and 'CCNA preferred, Security+ required.' Clear comma-separated certification mentions now get local strength; ambiguous 'CCNA, Security+ required.' keeps CCNA UNKNOWN. Prior negation and nice-to-have controls remain green."
+    },
     {
       "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_requirement_parsers tests.integration.test_explainable_matching",
       "result": "PASS",
