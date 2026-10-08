@@ -3,30 +3,56 @@
   "requirement_id": "MJ-REQ-189",
   "issue": 190,
   "result": "PARTIAL",
-  "base_head": "0ebf4616250d9f06df85b0464099d6ea9d56c088",
-  "tested_source_head": "985e53e214e24277a9d1110cdac8273dcf7aabf1",
-  "tested_source_tree": "adb374419935a9d2e182dcdcc660881da07202ee",
+  "base_head": "cf415ef649ad33b45e83afcddf36bf3d9769d506",
+  "tested_source_head": "6f2f722df3d893c3d0c33ca0420fdfb78238468b",
+  "tested_source_tree": "ebb24f2746d1557492271248f34b55903cc12884",
   "branch": "codex/mj-req189-posted-date-filter-20261008",
-  "acceptance": "Connected Jobs posted-within control accepts 1, 3, 7, 14, or 30 days. Filtering uses only source-reported reported_posted_at before LIMIT; missing/NULL values and first_seen_at-only records are excluded; malformed-date PostgreSQL behavior is unverified. Saved filter round-trip and clearing are tested. Full issue remains PARTIAL.",
+  "acceptance": "Connected Jobs posted-within control accepts 1, 3, 7, 14, or 30 days. Filtering uses only source-reported reported_posted_at before LIMIT; missing, malformed, relative ('now'), impossible calendar dates, and future dates are excluded while enabled. Saved filter round-trip, profile scoping, selection/clear UI refresh and no scheduling/submission side effects are covered. PostgreSQL branch is locally reviewed but runtime NOT_RUN. Full issue remains PARTIAL.",
   "validation": {
-    "integration": "PASS",
-    "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters -v",
-    "result": "12 tests passed, 0 failed",
-    "compile": "PASS: compileall on changed Python API, persistence, profile, and test files",
-    "diff_check": "PASS",
-    "browser": "SKIPPED: tests.browser.test_saved_search_filters; apps/web/dist/index.html absent",
-    "frontend": "NOT_RUN: Vitest executable unavailable in isolated worktree",
-    "postgresql": "NOT_RUN",
+    "integration": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters -v",
+      "tests_passed": 12,
+      "tests_failed": 0,
+      "red_first": "PASS: relative 'now' and impossible February 30 regressions failed before dialect guards were added."
+    },
+    "browser": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_saved_search_filters -v",
+      "tests_passed": 1,
+      "tests_failed": 0
+    },
+    "frontend": {
+      "result": "PASS",
+      "command": "npm test --prefix apps/web -- --run",
+      "test_files_passed": 18,
+      "tests_passed": 103,
+      "tests_failed": 0,
+      "node": "v25.9.0"
+    },
+    "build": {
+      "result": "PASS",
+      "command": "npm run build --prefix apps/web"
+    },
+    "compile": {
+      "result": "PASS",
+      "command": "python -m compileall -q apps/api/main.py packages/persistence/store.py services/discovery/search_profiles.py tests/integration/test_saved_search_filters.py tests/browser/test_saved_search_filters.py"
+    },
+    "agent_skills": "PASS: python -m tools.verification.agent_skills",
+    "diff_check": "PASS: git diff --check",
+    "local_delegated_review": "PASS: read-only review of 6f2f722df3d893c3d0c33ca0420fdfb78238468 found no material findings, including ISO source-output compatibility and both SQL dialect guards.",
+    "postgresql": "NOT_RUN: MJOBS_TEST_POSTGRES_URL is not configured; normalized ISO regex and guarded cast require PostgreSQL runtime verification when available.",
     "hosted": "NOT_RUN_BY_USER_POLICY",
+    "live_ats": "NOT_RUN",
     "external_submission": "OFF"
   },
   "source_sha256": {
-    "apps/api/main.py": "f2e8f7b1c22b0851522c7fffcb429ed4161fbb56e222e0f3593249e882470bbe",
-    "apps/web/src/main.tsx": "b55a1eca3290a57bccf3998a7e0fbf67989f4830b10f800859854fcdab49d4d7",
-    "packages/persistence/store.py": "2eed54ae047dac08057ec3b47d55a41a3d6b3877186896f2a303d1dd224334fd",
+    "apps/api/main.py": "b5f9843337abae96f6dc6f2bcd6930e32d7a25b0d0b75dcc629a7adcd9bab27e",
+    "apps/web/src/main.tsx": "ab2dd933503c3c8f1fbe08e785b21d962f6915c358683e95b7e3397140114b4d",
+    "packages/persistence/store.py": "88b1f3aadc2add62cce20e2f1bf9720036136dbdbeb71fd915782b9a2c08de6f",
     "services/discovery/search_profiles.py": "8ddda93088635396cf7e61e5c1890682116522fb9ca0c13f706e1f04a5030822",
-    "tests/integration/test_saved_search_filters.py": "cef285fa1137f3d14cd78ed6a7a644e91f96c4c68ca28aa6fa493f10bab423b2",
-    "tests/browser/test_saved_search_filters.py": "fb97a755a805cf770b58d4e49a72769d8802362b236cf244cb9ab0010f9eea21"
+    "tests/integration/test_saved_search_filters.py": "0160bfcefacda4e92ebe05c689decdf6ca6c39d7ecfd679b825ea3eb1d6d5708",
+    "tests/browser/test_saved_search_filters.py": "02214b42357ce01ca7574482dc789447df96c5a0def4104b28dad4b5d82c951f"
   },
-  "recorded_at_utc": "2026-10-08T12:29:47Z"
+  "recorded_at_utc": "2026-10-08T12:44:26Z"
 }
