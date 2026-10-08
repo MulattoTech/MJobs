@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-104-ANSWER-MATCH-POLARITY-GUARD-20261008",
-  "recorded_at_utc": "2026-10-08T11:30:07Z",
+  "recorded_at_utc": "2026-10-08T11:35:45Z",
   "result": "PARTIAL",
   "accepted_slice_result": "PASS",
   "issue": 105,
@@ -13,7 +13,7 @@
     "issue_state": "OPEN",
     "branch": "codex/mj-req104-polarity-guard-20261008",
     "worktree": ".worktrees/codex-mj-req104-polarity-guard-20261008",
-    "base_head": "b633578112a9553cc29dcbda7e7e21d88f1547c5"
+    "base_head": "78d58b8f878549c33622c7c4e140cfcf954ad602"
   },
   "acceptance": {
     "opposite_polarity": "PASS; Python and TypeScript reject positive versus not, never, and cannot/contraction prompt variants before semantic/fuzzy matching.",
@@ -42,7 +42,8 @@
       "result": "PASS",
       "tests": 101,
       "failures": 0,
-      "skips": 0
+      "skips": 0,
+      "details": "101 tests passed using existing local dependencies via a temporary worktree-local junction; junction removed afterward, with no installation or network call."
     },
     {
       "command": "apps/web: npm run build",
@@ -64,16 +65,16 @@
       "result": "PASS"
     },
     {
-      "command": "git diff --check b633578112a9553cc29dcbda7e7e21d88f1547c5",
+      "command": "git diff --check 78d58b8f878549c33622c7c4e140cfcf954ad602",
       "target": "candidate patch integrity",
       "result": "PASS"
     }
   ],
   "source_inputs_sha256": {
     "services/documents/answers.py": "487C3D5DFC41934D8E366C7F11E1F838B002EA8B9766FFB5F54A71F1C1365615",
-    "apps/web/src/answer-matching.ts": "3506F29050926895B155A813F074E02A31B9EE875E1D1D4BB249F58FD7A3C8C0",
+    "apps/web/src/answer-matching.ts": "5CB1E3A215BED02EDF6697686C05DB6BF3E49EEF1E6242EA94255D5E2F87C8FB",
     "tests/unit/test_answer_matching.py": "25D93819A740CB3AD9AE5F5F26BA2EA5BDA570D31AAD21DAF9BF01C86A799FE1",
-    "apps/web/src/answer-matching.test.ts": "4E4D5079E1295E5DFEC14F76213EFF6F5A2B2225CBCD340E31F225367A665640",
+    "apps/web/src/answer-matching.test.ts": "4A77FA646C45C4FDCEF40FA029CEA3A81E4B0B2177BCD6DDDC63B6DDF33CD881",
     "tests/integration/test_application_answer_export.py": "7A30F5C0C8614006239C09A59B120898EB1310A7966745F6CD5BF51AB3344ADD",
     "tests/browser/test_application_answer_export.py": "5E73F92E84FAC23032829AAD97EEDDFCD998610E02A9DEE7367414F89807A93B"
   },
@@ -91,5 +92,7 @@
     "postgresql": "NOT_RUN",
     "external_application_submission": "OFF",
     "issue_status": "OPEN/PARTIAL; broader MJ-REQ-104 acceptance remains incomplete"
-  }
+  },
+  "candidate_head_at_validation": "331d7bb45ce982f6ed31096e6db0664c1571a93c",
+  "candidate_tree_at_validation": "88c642c047b04213f4cc0b3ece13309a00a9f4a8"
 }
