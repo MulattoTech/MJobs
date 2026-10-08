@@ -1,6 +1,7 @@
-import React, { useEffect, useSyncExternalStore } from 'react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
 import type {
   SourceCandidate,
+  SourceCandidateState,
   SourceCandidateReviewInput,
 } from './source-candidate-review';
 import { SourceCandidateReviewQueue } from './source-candidate-review';
@@ -108,21 +109,92 @@ export type SourceCandidateReviewPanelProps = {
   client: SourceCandidateReviewClient;
 };
 
+export type SourceCandidateReviewStateFilter = 'ALL' | SourceCandidateState;
+
+const statePriority: Record<SourceCandidateState, number> = {
+  NEEDS_REVIEW: 0,
+  DISCOVERED: 1,
+  BLOCKED: 2,
+  INTEGRATION_QUEUED: 3,
+  INTEGRATED: 4,
+  REJECTED: 5,
+};
+
+function compareStableText(left: string, right: string): number {
+  const a = left.toLowerCase();
+  const b = right.toLowerCase();
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
+export function filterAndSortSourceCandidates(
+  candidates: SourceCandidate[],
+  profileId: string | null,
+  stateFilter: SourceCandidateReviewStateFilter,
+  sourceQuery = '',
+): SourceCandidate[] {
+  if (!profileId) return [];
+  const query = sourceQuery.trim().toLowerCase();
+  return candidates
+    .filter(candidate => candidate.profile_id === profileId)
+    .filter(candidate => stateFilter === 'ALL' || candidate.state === stateFilter)
+    .filter(candidate => !query || candidate.domain.toLowerCase().includes(query) ||
+      candidate.display_name.toLowerCase().includes(query))
+    .slice()
+    .sort((left, right) => statePriority[left.state] - statePriority[right.state] ||
+      compareStableText(left.domain, right.domain) || compareStableText(left.id, right.id));
+}
+
 export function SourceCandidateReviewPanel({ profileId, client }: SourceCandidateReviewPanelProps) {
   const [controller] = React.useState(() => new SourceCandidateReviewPanelController(client));
+  const [stateFilter, setStateFilter] = useState<SourceCandidateReviewStateFilter>('ALL');
+  const [sourceQuery, setSourceQuery] = useState('');
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
 
   useEffect(() => {
+    setStateFilter('ALL');
+    setSourceQuery('');
     void controller.selectProfile(profileId);
   }, [controller, profileId]);
 
   const stateMatchesSelection = state.profileId === profileId;
-  return <SourceCandidateReviewQueue
-    profileId={profileId}
-    candidates={stateMatchesSelection ? state.candidates : []}
-    api={controller}
-    loading={!stateMatchesSelection || state.loading}
-    error={stateMatchesSelection ? state.error : null}
-    onRetry={controller.retry}
-  />;
+  const profileCandidates = stateMatchesSelection ? state.candidates : [];
+  const filteredCandidates = filterAndSortSourceCandidates(
+    profileCandidates, profileId, stateFilter, sourceQuery,
+  );
+  const controlsDisabled = !stateMatchesSelection || state.loading;
+  const filtersActive = stateFilter !== 'ALL' || sourceQuery.trim().length > 0;
+  return <div className="source-candidate-review-panel">
+    {profileId && <section className="panel" aria-label="Source candidate queue filters">
+      <div className="toolbar"><div><h2>Filter source candidates</h2>
+        <p>Changing filters hides unmatched rows; entered review notes and retry IDs remain with their candidates.</p></div>
+        <span className="tag">Showing {filteredCandidates.length} of {profileCandidates.length}</span></div>
+      <div className="toolbar">
+        <label>Review state<select aria-label="Filter by review state" value={stateFilter} disabled={controlsDisabled}
+          onChange={event => setStateFilter(event.currentTarget.value as SourceCandidateReviewStateFilter)}>
+          <option value="ALL">All review states</option>
+          <option value="NEEDS_REVIEW">Needs review</option>
+          <option value="DISCOVERED">Discovered</option>
+          <option value="BLOCKED">Blocked</option>
+          <option value="INTEGRATION_QUEUED">Integration queued</option>
+          <option value="INTEGRATED">Integrated</option>
+          <option value="REJECTED">Rejected</option>
+        </select></label>
+        <label>Source or domain<input aria-label="Filter by source name or domain" type="search" value={sourceQuery}
+          disabled={controlsDisabled} onChange={event => setSourceQuery(event.currentTarget.value)} /></label>
+        <button type="button" disabled={controlsDisabled || !filtersActive}
+          onClick={() => { setStateFilter('ALL'); setSourceQuery(''); }}>Clear filters</button>
+      </div>
+      <p className="muted">Sorted by review priority, then source domain; candidate ID breaks ties.</p>
+      {profileCandidates.length > 0 && filteredCandidates.length === 0 &&
+        <p role="status">No candidates match these filters. Change or clear filters to see this profile’s source candidates.</p>}
+    </section>}
+    <SourceCandidateReviewQueue
+      profileId={profileId}
+      candidates={filteredCandidates}
+      api={controller}
+      loading={!stateMatchesSelection || state.loading}
+      error={stateMatchesSelection ? state.error : null}
+      onRetry={controller.retry}
+    />
+  </div>;
 }

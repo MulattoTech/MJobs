@@ -1,7 +1,13 @@
+import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import type { SourceCandidate } from './source-candidate-review';
 import type { SourceCandidateReviewClient, SourceCandidateReviewInput } from './source-candidate-review-client';
-import { SourceCandidateReviewPanelController } from './source-candidate-review-panel';
+import {
+  filterAndSortSourceCandidates,
+  SourceCandidateReviewPanel,
+  SourceCandidateReviewPanelController,
+} from './source-candidate-review-panel';
 
 const candidate = (profileId: string, id = `${profileId}-candidate`): SourceCandidate => ({
   id, profile_id: profileId, domain: `${profileId}.example`, display_name: profileId,
@@ -101,5 +107,37 @@ describe('source candidate review panel controller', () => {
     await expect(controller.review('profile-1', 'candidate-1', input)).rejects.toThrow(/response.*profile/i);
     expect(list).toHaveBeenCalledTimes(1);
     expect(controller.getSnapshot().candidates).toEqual([candidate('profile-1')]);
+  });
+});
+
+describe('source candidate review panel filters', () => {
+  it('filters by review state and source name or domain, then orders deterministically', () => {
+    const rows = [
+      { ...candidate('profile-1', 'z-id'), state: 'NEEDS_REVIEW' as const, domain: 'zeta.example', display_name: 'Zeta' },
+      { ...candidate('profile-1', 'b-id'), state: 'BLOCKED' as const, domain: 'beta.example', display_name: 'Beta' },
+      { ...candidate('profile-1', 'a-id'), state: 'NEEDS_REVIEW' as const, domain: 'alpha.example', display_name: 'Alpha' },
+      { ...candidate('other-profile', 'other-id'), state: 'NEEDS_REVIEW' as const, domain: 'alpha.example', display_name: 'Alpha' },
+    ];
+
+    expect(filterAndSortSourceCandidates(rows, 'profile-1', 'NEEDS_REVIEW').map(row => row.id))
+      .toEqual(['a-id', 'z-id']);
+    expect(filterAndSortSourceCandidates(rows, 'profile-1', 'ALL', 'ZETA').map(row => row.id))
+      .toEqual(['z-id']);
+    expect(filterAndSortSourceCandidates(rows, 'profile-1', 'ALL', 'beta.example').map(row => row.id))
+      .toEqual(['b-id']);
+  });
+
+  it('exposes accessible read-only filters and keeps review as the only write action', () => {
+    const html = renderToStaticMarkup(<SourceCandidateReviewPanel
+      profileId="profile-1"
+      client={{ list: vi.fn().mockResolvedValue([]), review: vi.fn() }}
+    />);
+
+    expect(html).toContain('aria-label="Filter by review state"');
+    expect(html).toContain('aria-label="Filter by source name or domain"');
+    expect(html).toContain('Sorted by review priority, then source domain');
+    expect(html).toContain('Loading source candidates');
+    expect(html).not.toContain('Enable collection');
+    expect(html).not.toContain('Start collection');
   });
 });
