@@ -6,9 +6,9 @@
   "scope_result": "PASS",
   "requirement_result": "PARTIAL",
   "base_commit": "13426c6d5f9630133dfdf8184c84005cc01436b9",
-  "verified_source_head": "ce0e6ce3ba81345e7191e93d7c4bb97da342d86b",
-  "verified_source_tree": "39fb840acd24e607a7a455391c5bb8279fd41a7e",
-  "verified_at_utc": "2026-10-08T09:32:15Z",
+  "verified_source_head": "5bdaad2ea0ebe94303d2a71793197142bb6cc8dc",
+  "verified_source_tree": "848208ff1d550b30d273f92fbf5511dafe8fafc1",
+  "verified_at_utc": "2026-10-08T09:35:15Z",
   "environment": {
     "python": "Repository virtual environment at C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
     "node": "v25.9.0",
@@ -21,20 +21,20 @@
     "apps/api/main.py": "8F7C914E9B2CC60EE733E7DBEAD122A20DD6EFB59B422D30897BE17EA7E052B7",
     "apps/web/src/main.tsx": "D07039A311F45A827EABB0A3C93B4A0AC390CA08517BDB483D8B4A958780EB0F",
     "packages/persistence/store.py": "57450AE6AF21EB848028CF26263058F4227F4CD125E9A1BCE70D562E1162D71B",
-    "services/discovery/search_profiles.py": "4B03A5B814EEFEF4537AE13B4B2AEF76033C5E03FC3AC35AE334BBCEFBFC8A04",
-    "tests/integration/test_saved_search_filters.py": "5B50A6B03BBB7D900192BF911D73DFAC77E06616D3ED5BFE4EBFF72618A61296",
-    "tests/browser/test_saved_search_filters.py": "36CDAB6FC35E20F8A444FD37210171BCF1C7664C16AE8E5596C13FB68CB612A1"
+    "services/discovery/search_profiles.py": "44989704D12C453842CBC0A7F3C6C15459FF3201780FD989084104B0B2F041B4",
+    "tests/integration/test_saved_search_filters.py": "F58C38E4482A50C6F252F91D70AD7CD859302EFB33A260D167236E6E0FAA5C5B",
+    "tests/browser/test_saved_search_filters.py": "39A7C0122850EDCEA11C0B47E2A1127862802FE3BB59D1040513192342C90EC4"
   },
   "checks": [
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_saved_search_filters tests.integration.test_job_full_text_search",
       "result": "PASS",
-      "summary": "4 tests passed; includes literal wildcard handling, case-insensitive matching, AND combination, pre-limit filtering, saved-filter round trip, and existing q search compatibility."
+      "summary": "4 tests passed; includes literal wildcard handling, case-insensitive matching, AND combination, pre-limit filtering, saved-filter round trip with company sort, and existing q search compatibility."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_saved_search_filters tests.browser.test_search_profile_selection",
       "result": "PASS",
-      "summary": "2 connected browser tests passed; saved title/company values restored after reload, cleared on reset, isolated by profile, no off-origin requests observed, and no discovery scheduling occurred."
+      "summary": "2 connected browser tests passed; saved title/company values and company sort restored after reload, cleared on reset, isolated by profile, no off-origin requests observed, and no discovery scheduling occurred."
     },
     {
       "command": "npm test --prefix apps/web -- --run",
