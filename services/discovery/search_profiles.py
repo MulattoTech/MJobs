@@ -28,7 +28,6 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
                "application_capability": {"", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"},
                "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
-DEFAULT_SEARCH_SCHEDULER = {"enabled": False, "interval_seconds": 3600}
 
 
 def _clean_search_scheduler(value):
@@ -273,7 +272,11 @@ def save_search_profile(store, data):
     if any(value is not None for value in radius_values) and any(value is None for value in radius_values):
         raise ValueError("Radius filtering requires miles, latitude, and longitude together")
 
-    source_ids = _clean_strings(data.get("source_ids", []), limit=100, length=128)
+    source_ids = (
+        _clean_strings(data["source_ids"], limit=100, length=128)
+        if "source_ids" in data else None
+    )
+    enabled = data.get("enabled")
     timestamp = now()
     with store.engine.begin() as connection:
         connection.execute(select(m.profiles.c.id).where(m.profiles.c.id == data["profile_id"])).one()
@@ -286,34 +289,37 @@ def save_search_profile(store, data):
             m.search_profiles.c.id == data["id"])).mappings().one_or_none()
         if existing and existing["profile_id"] != data["profile_id"]:
             raise ValueError("Search profile belongs to a different career profile")
-        if "scheduler" in data:
-            scheduler = _clean_search_scheduler(data["scheduler"])
-            if existing:
-                # Scheduler-only updates must not erase the saved search criteria.
-                # Full saves still update each criterion explicitly present in data.
-                criteria = dict(existing["criteria"])
-                for key in new_criteria:
-                    if key in data:
-                        criteria[key] = new_criteria[key]
-                if "job_filters" in data:
-                    if job_filters is None:
-                        criteria.pop("job_filters", None)
-                    else:
-                        criteria["job_filters"] = job_filters
-            else:
-                criteria = new_criteria
+        previous_scheduler = existing["criteria"].get("scheduler") if existing else None
+        scheduler = (
+            _clean_search_scheduler(data["scheduler"])
+            if "scheduler" in data else (
+                _clean_search_scheduler(previous_scheduler) if previous_scheduler is not None else None
+            )
+        )
+        if existing:
+            # Partial updates preserve criteria not included in the request.
+            criteria = dict(existing["criteria"])
+            for key in new_criteria:
+                if key in data:
+                    criteria[key] = new_criteria[key]
+            if "job_filters" in data:
+                if job_filters is None:
+                    criteria.pop("job_filters", None)
+                else:
+                    criteria["job_filters"] = job_filters
         else:
-            previous_scheduler = existing["criteria"].get("scheduler") if existing else None
-            scheduler = (_clean_search_scheduler(previous_scheduler)
-                         if previous_scheduler is not None else None)
             criteria = new_criteria
         if scheduler is not None:
             criteria["scheduler"] = scheduler
+        if enabled is None:
+            enabled = existing["enabled"] if existing else True
+        if source_ids is None:
+            source_ids = existing["source_ids"] if existing else []
         created_at = existing["created_at"] if existing else timestamp
         changed = existing is not None and any((
             existing["profile_id"] != data["profile_id"],
             existing["name"] != data["name"].strip(),
-            existing["enabled"] != data.get("enabled", True),
+            existing["enabled"] != enabled,
             existing["criteria"] != criteria,
             existing["source_ids"] != source_ids,
         ))
@@ -321,7 +327,7 @@ def save_search_profile(store, data):
             "id": data["id"],
             "profile_id": data["profile_id"],
             "name": data["name"].strip(),
-            "enabled": data.get("enabled", True),
+            "enabled": enabled,
             "criteria": criteria,
             "source_ids": source_ids,
             "created_at": created_at,
@@ -329,7 +335,7 @@ def save_search_profile(store, data):
         }, replace=True)
         store._audit(connection, data["id"], "SEARCH_PROFILE_SAVED", {
             "profile_id": data["profile_id"],
-            "enabled": data.get("enabled", True),
+            "enabled": enabled,
             "source_count": len(source_ids),
         })
         if changed:
