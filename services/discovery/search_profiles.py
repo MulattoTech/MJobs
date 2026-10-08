@@ -26,6 +26,7 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "ats_provider": {"", "mock-ats", "greenhouse"},
                "application_link_status": {"", "AVAILABLE", "UNAVAILABLE"},
                "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
+               "application_capability": {"", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"},
                "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
 
 
@@ -35,7 +36,8 @@ def _clean_job_filters(value):
     required = {"q", "remote_type", "provider", "sort"}
     optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
-                "clearance_level", "ats_provider", "application_link_status", "application_pipeline_status"}
+                "clearance_level", "ats_provider", "application_link_status", "application_pipeline_status",
+                "application_capability"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
@@ -108,10 +110,10 @@ def _clean_job_filters(value):
         raise ValueError("Saved Jobs clearance requirement is invalid")
     cleaned["clearance_level"] = clearance_level
     for key, allowed in JOB_FILTERS.items():
-        if key in {"application_link_status", "application_pipeline_status"} and key not in value:
+        if key in {"application_link_status", "application_pipeline_status", "application_capability"} and key not in value:
             continue
         item = value.get(key, "") if key in {
-            "ats_provider", "application_link_status", "application_pipeline_status"
+            "ats_provider", "application_link_status", "application_pipeline_status", "application_capability"
         } else value[key]
         if not isinstance(item, str) or item not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")

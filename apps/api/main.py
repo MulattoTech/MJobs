@@ -1365,6 +1365,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              clearance_level: str | None = Query(default=None, max_length=32),
              application_link_status: Literal["", "AVAILABLE", "UNAVAILABLE"] | None = Query(default=None, max_length=16),
              application_pipeline_status: str | None = Query(default=None, max_length=32),
+             application_capability: Literal["", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"] | None = Query(default=None, max_length=24),
              posted_within_days: int | None = Query(default=None, ge=1, le=30),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
@@ -1419,6 +1420,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             effective_application_pipeline_status = None
         if effective_application_pipeline_status is not None and not profile_id:
             raise HTTPException(422, "Application pipeline filtering requires a career profile")
+        saved_application_capability = (
+            (search_profile["criteria"].get("job_filters") or {}).get("application_capability")
+            if search_profile else None
+        )
+        effective_application_capability = (
+            application_capability if application_capability is not None else saved_application_capability
+        )
+        if effective_application_capability == "":
+            effective_application_capability = None
         effective_posted_within = posted_within_days if posted_within_days is not None else (
             int(saved_posted_within) if saved_posted_within else None)
         posted_before = datetime.now(timezone.utc) if effective_posted_within is not None else None
@@ -1434,6 +1444,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           clearance_level=clearance_level,
                           application_link_status=effective_application_link_status,
                           application_pipeline_status=effective_application_pipeline_status,
+                          application_capability=effective_application_capability,
                           posted_after=posted_after, posted_before=posted_before)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])

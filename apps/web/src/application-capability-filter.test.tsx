@@ -9,13 +9,13 @@ describe('application capability filter', () => {
       <ApplicationCapabilityFilter value="" onChange={() => {}} />,
     );
 
-    expect(html).toContain('<label for="application-capability">Application adapter capability (this workspace)</label>');
+    expect(html).toContain('<label for="application-capability">Application capability</label>');
     expect(html).toContain('<option value="" selected="">All capabilities</option>');
     expect(html).toContain('<option value="FIXTURE_ONLY">Fixture-only support</option>');
     expect(html).toContain('<option value="UNSUPPORTED">Unsupported</option>');
     expect(html).toContain('<option value="REVIEW_REQUIRED">Review required</option>');
     expect(html).toContain('<option value="UNKNOWN">Unknown</option>');
-    expect(html).toContain("Reports this workspace's existing adapter capability");
+    expect(html).toContain('Reports this workspace&#x27;s existing adapter capability');
     expect(html).toContain('makes no employer requests');
   });
 
@@ -24,7 +24,7 @@ describe('application capability filter', () => {
       <ApplicationCapabilityFilter value="REVIEW_REQUIRED" onChange={() => {}} disabled />,
     );
 
-    expect(html).toContain('aria-label="Application adapter capability (this workspace)" disabled=""');
+    expect(html).toContain('aria-label="Application capability" disabled=""');
     expect(html).toContain('<option value="REVIEW_REQUIRED" selected="">Review required</option>');
   });
 

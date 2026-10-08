@@ -40,7 +40,7 @@ class ApplicationCapabilityFilterApiTests(unittest.TestCase):
             # Sorting puts a non-match first so the FIXTURE_ONLY predicate must run before LIMIT.
             ("unsupported", "A Unsupported greenhouse", "greenhouse", "board-a"),
             ("fixture", "B Fixture mock", "mock-ats", "fixture-board"),
-            ("review", "C Review required", "greenhouse", "weak-board"),
+            ("review", "C Review required", "unrecognized-provider", "weak-board"),
             ("unknown", "D Unknown route", "unrecognized-provider", "unknown-board"),
             ("exact-mismatch", "E Exact route mismatch", "greenhouse", "route-board"),
         )

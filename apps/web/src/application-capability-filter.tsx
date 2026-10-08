@@ -19,10 +19,10 @@ export function ApplicationCapabilityFilter({
   disabled = false,
 }: ApplicationCapabilityFilterProps) {
   return <div className="filter-control">
-    <label htmlFor="application-capability">Application adapter capability (this workspace)</label>
+    <label htmlFor="application-capability">Application capability</label>
     <select
       id="application-capability"
-      aria-label="Application adapter capability (this workspace)"
+      aria-label="Application capability"
       value={value}
       disabled={disabled}
       onChange={event => onChange(event.target.value as ApplicationCapabilityFilterValue)}
