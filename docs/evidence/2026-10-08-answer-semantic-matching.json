@@ -90,5 +90,53 @@
     "hosted_actions_review_ci": "NOT_RUN_BY_USER_POLICY",
     "external_application_submission": "OFF",
     "external_requests": "NONE"
+  },
+  "root_verification": {
+    "head": "b96700264ac660c91b5be0093b979607ddfd6267",
+    "tree": "94a31caece7fbcc8cb3cefa4775529d2d99df349",
+    "recorded_at_utc": "2026-10-08T08:48:08Z",
+    "input_sha256": {
+      "services/documents/answers.py": "47B69142C5624871043983DCB2C423A85EBA7AB622A5178CCA36EB00F90E02BB",
+      "apps/web/src/answer-matching.ts": "6C917CDBE8887B43F48AF27A3C61072D4CB23623C71E77E869D53F9F8CC4BBA7",
+      "apps/web/src/answer-matching.test.ts": "21658169032BF493D4EA78017EDBF142CED6AD2852D10AFECDD20E23F15F97D9",
+      "tests/unit/test_answer_matching.py": "9C0F3D184BE8D9DC7EB2DE0C18D294AACE74D75A5EAA3AE10A55520A53ECB1A3",
+      "tests/integration/test_application_answer_export.py": "BECBC76C66B273D12FD4F50DA2647E8E32D67D89D781DA7A8B77F9EA338B23BD"
+    },
+    "checks": [
+      {
+        "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_cover_letter tests.integration.test_cover_letter_workflow tests.unit.test_answer_matching tests.integration.test_application_answer_export tests.integration.test_explainable_matching",
+        "result": "PASS",
+        "tests": 47,
+        "details": "Combined exact-root Python unit and SQLite/API integration scope."
+      },
+      {
+        "command": "apps/web: npm test -- --reporter=dot",
+        "result": "PASS",
+        "tests": 95,
+        "details": "16 frontend test files."
+      },
+      {
+        "command": "apps/web: npm run build",
+        "result": "PASS",
+        "details": "TypeScript check and Vite production build."
+      },
+      {
+        "command": ".venv/Scripts/python.exe -m unittest tests.browser.test_manual_job_capture.ManualJobCaptureBrowserTests.test_manual_capture_persists_distinct_jobs_and_prepares_without_fetching",
+        "result": "PASS",
+        "tests": 1,
+        "details": "Synthetic connected Chromium/API manual capture and job detail workflow."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "checkout_note": "Root input hashes are recorded separately from child-worktree hashes because Windows checkout line-ending conversion changes raw file bytes. Git semantic diff ignoring line endings is empty for the overlap; the exact root checkout was rebuilt and retested.",
+    "limitations": [
+      "Node v25.9.0 was used for Vitest; this version is outside the repository declared support range.",
+      "The answer-export browser suite was NOT_RUN because its runtime guard skipped all three cases.",
+      "Hosted checks/reviews, PostgreSQL validation, full Python suite, and release eligibility are NOT_RUN_BY_USER_POLICY.",
+      "External application submission remains OFF."
+    ]
   }
 }

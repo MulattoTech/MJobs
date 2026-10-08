@@ -949,9 +949,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-05-job-specific-cover-letter.json",
-        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
+        "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json"
       ],
-      "note": "Combined journey prepares a job-specific cover letter from approved facts and evidence; broader context/content acceptance remains PARTIAL."
+      "note": "Combined journey prepares a job-specific cover letter from approved facts and evidence; broader context/content acceptance remains PARTIAL. Additional bounded local slice integrated on exact tested main candidate b96700264ac660c91b5be0093b979607ddfd6267: generated cover letters rank eligible approved facts by exact posting-token overlap with stable input-order ties; durable generation-history readback and no-match fail-closed checks pass. Root exact candidate combined Python scope includes 9 cover-letter tests; root input hashes are recorded in the new evidence. Full requirement remains PARTIAL because verified company context and broader acceptance remain incomplete. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-101",
@@ -984,9 +985,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-05-reviewed-application-answers.json",
-        "docs/evidence/2026-10-08-answer-matching.json"
+        "docs/evidence/2026-10-08-answer-matching.json",
+        "docs/evidence/2026-10-08-answer-semantic-matching.json"
       ],
-      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Bounded answer matching slice integrated at e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on 2b3c1996a121af5584caa79653896dc572d46ac8. Exact, bounded fuzzy and one curated synonym matcher are visibly distinguished with provenance; per-job review is deliberate and export recomputes against the locked current profile before immutable local output. 21 Python, 2 Chromium/API, 5 frontend tests and build PASS; local delegated review no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json. Broader semantic matching/configurable thresholds PARTIAL; Node 25.9 outside Vitest declared range; PostgreSQL and hosted checks NOT_RUN; external submission OFF."
+      "note": "Question-aware, versioned answer review and application-linked export merged in PR #511 at fb8ab73. Exact candidate 22d9a36 had passing independent review, push 37307763776 and pull_request 37307771220 Verification, nine PASS reports per artifact, and matching GitHub artifact digests. These requirements remain PARTIAL for fuzzy/semantic matching, configurable confidence, full sensitive/legal controls, and durable unexported drafts. Bounded answer matching slice integrated at e77b9be0f6703b7451caffeb961cbbbf2365aca0 (tree bafcd32072fa7892217b3d2fcc5ea1f72ab5fc46), based on 2b3c1996a121af5584caa79653896dc572d46ac8. Exact, bounded fuzzy and one curated synonym matcher are visibly distinguished with provenance; per-job review is deliberate and export recomputes against the locked current profile before immutable local output. 21 Python, 2 Chromium/API, 5 frontend tests and build PASS; local delegated review no blocker. Evidence docs/evidence/2026-10-08-answer-matching.json. Broader semantic matching/configurable thresholds PARTIAL; Node 25.9 outside Vitest declared range; PostgreSQL and hosted checks NOT_RUN; external submission OFF. Additional bounded local slice integrated on exact tested main candidate b96700264ac660c91b5be0093b979607ddfd6267: one explicitly curated cloud provider/platform question paraphrase is shown as CURATED_SEMANTIC and recorded in reviewed export; sensitive/legal exclusions and approval gates stay intact. Root exact candidate combined Python scope includes 28 answer tests; frontend 95/95/build PASS. This is one added synonym, not general semantic matching; #105 and MJ-REQ-104 remain OPEN/PARTIAL. Browser answer-export runtime skipped; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-105",
@@ -1075,9 +1077,10 @@
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-10-05-explainable-matching.json",
-        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
+        "docs/evidence/2026-10-08-explainable-match-factors.json"
       ],
-      "note": "Persisted scheduled-search title/employment criteria are read back; separate transient Jobs title/location controls and match explanations are included in the connected synthetic journey; full acceptance remains PARTIAL."
+      "note": "Persisted scheduled-search title/employment criteria are read back; separate transient Jobs title/location controls and match explanations are included in the connected synthetic journey; full acceptance remains PARTIAL. Additional bounded local slice integrated on exact tested main candidate b96700264ac660c91b5be0093b979607ddfd6267: match explanation shows title-family, work-arrangement, and employment-type fit from explicit preferences/known job attributes; missing inputs remain UNKNOWN and score_effect is NONE. Root exact candidate matching tests, connected synthetic Chromium journey, frontend 95/95/build pass. Salary, education, certification and remaining factors are incomplete; #115 / MJ-REQ-114 and MJ-PR-031 remain PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY."
     },
     {
       "requirement_id": "MJ-REQ-115",

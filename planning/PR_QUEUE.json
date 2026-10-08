@@ -886,7 +886,22 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-028-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Preserve the original aggregate and its dependencies. Additive PR #511 re-slices the question-aware answer bank/export path into MJ-PR-154 because immutable profile answer JSON and the existing application document/history contract are sufficient; no prerequisite or requirement is deleted or marked PASS. Cover-letter remainder stays queued."
+      "notes": "Preserve the original aggregate and its dependencies. Additive PR #511 re-slices the question-aware answer bank/export path into MJ-PR-154 because immutable profile answer JSON and the existing application document/history contract are sufficient; no prerequisite or requirement is deleted or marked PASS. Cover-letter remainder stays queued. Latest bounded local slice 101 / MJ-REQ-100 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-cover-letter-relevance-ranking.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL.",
+      "slice_history": [
+        {
+          "name": "Cover-letter fact relevance ranking",
+          "issue": 101,
+          "requirement_id": "MJ-REQ-100",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "b96700264ac660c91b5be0093b979607ddfd6267",
+          "evidence_path": "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
+          "validation": "PASS: 9 focused cover-letter unit/integration tests; included in exact combined Python 47-test root run.",
+          "limitations": [
+            "Verified employer context remains incomplete.",
+            "Hosted/full-suite/release checks NOT_RUN_BY_USER_POLICY."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-029",
@@ -906,7 +921,22 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-029-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest bounded local slice 105 / MJ-REQ-104 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-answer-semantic-matching.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL.",
+      "slice_history": [
+        {
+          "name": "Curated cloud question paraphrase",
+          "issue": 105,
+          "requirement_id": "MJ-REQ-104",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "b96700264ac660c91b5be0093b979607ddfd6267",
+          "evidence_path": "docs/evidence/2026-10-08-answer-semantic-matching.json",
+          "validation": "PASS: 28 answer unit/integration tests; full frontend 95/95, TypeScript/Vite build.",
+          "limitations": [
+            "Only one curated synonym added; general semantic matching is not claimed.",
+            "Answer-export browser runtime skipped; hosted checks NOT_RUN_BY_USER_POLICY."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-030",
@@ -945,7 +975,22 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-031-matching-ai",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest scoped #116 / MJ-REQ-115 negated-must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested source 12ac4048f92f59423a08d5f4af49453f4949f570 / tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Root: 25 parser/matching tests and 1 synthetic Chromium manual-capture/reopen test PASS; TypeScript/Vite build, py_compile and exact evidence hashes PASS. Vitest NOT_RUN (Node 25 outside declared range); hosted checks/review NOT_RUN_BY_USER_POLICY. Evidence docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json; #116 and PR-031 remain OPEN/PARTIAL; dependencies unchanged."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest scoped #116 / MJ-REQ-115 negated-must-have slice integrated at c05d6c90b660508417ba7c17a0aa24a4116fded3; tested source 12ac4048f92f59423a08d5f4af49453f4949f570 / tree 23f5220012726c5eac91f711428d80e8f72f3a0b. Root: 25 parser/matching tests and 1 synthetic Chromium manual-capture/reopen test PASS; TypeScript/Vite build, py_compile and exact evidence hashes PASS. Vitest NOT_RUN (Node 25 outside declared range); hosted checks/review NOT_RUN_BY_USER_POLICY. Evidence docs/evidence/2026-10-08-required-vs-preferred-negated-must-have.json; #116 and PR-031 remain OPEN/PARTIAL; dependencies unchanged. Latest bounded local slice 115 / MJ-REQ-114 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-explainable-match-factors.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL.",
+      "slice_history": [
+        {
+          "name": "Explain title, arrangement and employment fit factors",
+          "issue": 115,
+          "requirement_id": "MJ-REQ-114",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "b96700264ac660c91b5be0093b979607ddfd6267",
+          "evidence_path": "docs/evidence/2026-10-08-explainable-match-factors.json",
+          "validation": "PASS: focused matching integration tests, one connected synthetic Chromium flow, full frontend 95/95, TypeScript/Vite build.",
+          "limitations": [
+            "Factors are informational and do not change the skill-coverage score; unknown inputs remain UNKNOWN.",
+            "Full match-factor acceptance and hosted checks remain NOT_RUN."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-032",

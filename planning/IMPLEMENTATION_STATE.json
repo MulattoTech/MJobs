@@ -153,7 +153,9 @@
     "MJ-REQ-274",
     "MJ-REQ-104",
     "MJ-REQ-191",
-    "MJ-REQ-179"
+    "MJ-REQ-179",
+    "MJ-REQ-100",
+    "MJ-REQ-114"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -551,11 +553,11 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "f0eab7d3c6c23e21bc68ea39fe720b6084218b51",
-    "tree": "707b75310dac66e1280c468fbdd9fca2e4a8a36d",
-    "result": "PASS bounded synthetic MOCK confirmation capture/readback slice; 22 integrated browser tests PASS; full MJ-REQ-143 and release remain PARTIAL.",
-    "evidence": "docs/evidence/2026-10-08-application-confirmation.json",
-    "verified_at_utc": "2026-10-08T08:24:33Z"
+    "commit": "b96700264ac660c91b5be0093b979607ddfd6267",
+    "tree": "94a31caece7fbcc8cb3cefa4775529d2d99df349",
+    "result": "PASS scoped local candidate: 47 Python, 95 frontend, TypeScript/Vite build and one synthetic connected Chromium test; broader product/release remains PARTIAL/NOT_RUN.",
+    "evidence": "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
+    "verified_at_utc": "2026-10-08T08:49:55Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -622,7 +624,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "User requested clean handoff for a new goal. Current local/origin main at handoff is e211f013801849a4fe2cf24c855313b8fcfc3978. No implementation child claims remain active; preserve Antigravity #302 and Ollama #318 claims. Reconcile exact checkout and planning status first. Highest recent gap #191 Salary is BLOCKED_DESIGN because direction, partial-range endpoint, and mixed currency/period ordering are unspecified; #101 and #118 retain formal dependencies/path constraints. Hosted/release checks remain NOT_RUN_BY_USER_POLICY.",
+  "recommended_resume_step": "Finish this integration checkpoint: regenerate and validate the dashboard, push local-only main by ordinary fast-forward, read back synchronized local/GitHub main, then post truthful issue integration receipts and release only these Codex claims. Continue this explicit core-feature sprint with the next dependency-ready jobseeker workflow slice; preserve Antigravity #302 and Ollama #318 claims. Hosted Actions/reviews and external submission remain OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -660,16 +662,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
+  "last_implementation_commit": "b96700264ac660c91b5be0093b979607ddfd6267",
   "publication": {
-    "result": "PASS — local-only non-force fast-forward integration",
-    "integration_method": "NON_FORCE_FAST_FORWARD",
-    "integration_commit": "fcddebedd6f238271ecd59ef171c2ce1e5e4245b",
-    "prior_main": "75d91e37571da5db4c90c776cbd9b408f978fd32",
+    "result": "PASS - scoped local product slices integrated; overall release remains PARTIAL/NOT_RUN",
+    "integration_method": "NON_FORCE_FAST_FORWARD with exact worker commits cherry-picked where needed",
+    "integration_commit": "b96700264ac660c91b5be0093b979607ddfd6267",
+    "prior_main": "1f4c7771d01b5918943cb1569c5aae84a9e53181",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Issue #191 bounded Company-sort slice integrated; local main and origin/main read back at exact SHA. Tested code/test source and evidence-only descendant are identified in evidence. Root exact candidate rerun and LOCAL_DELEGATED_REVIEW found no blocker. Requirement/issue remains OPEN/PARTIAL; Application Priority and Salary remain missing. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
+    "note": "Three bounded product slices integrated locally under Codex integration lock: cover-letter fact relevance, one curated cloud answer paraphrase, and title/work-arrangement/employment fit explanation. Root exact candidate checks: combined Python 47, frontend 95, TypeScript/Vite build, connected Chromium 1, and source hashes PASS. Full requirements stay PARTIAL; hosted checks/review and overall release eligibility NOT_RUN_BY_USER_POLICY; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -10941,20 +10943,62 @@
         "at_utc": "2026-10-08T08:24:19Z",
         "note": "All eight exact issue fields plus durable company/profile application counts and persisted preference display passed; broader release gates remain NOT_RUN."
       }
+    },
+    {
+      "milestone_id": "CORE-FEATURE-BATCH-20261008-A",
+      "timestamp": "2026-10-08T08:48:08Z",
+      "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+      "completed_steps": [
+        "Integrated bounded job-specific cover-letter fact relevance ranking with durable history checks.",
+        "Integrated one curated cloud provider/platform reusable-answer synonym with reviewed export provenance.",
+        "Integrated transparent title, work-arrangement and employment fit factors without score changes.",
+        "Verified the exact combined candidate with 47 Python tests, 95 frontend tests, TypeScript/Vite build, one connected synthetic Chromium journey, and root input hashes."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
+        "docs/evidence/2026-10-08-answer-semantic-matching.json",
+        "docs/evidence/2026-10-08-explainable-match-factors.json"
+      ],
+      "files_modified": [
+        "services/documents/cover_letter.py",
+        "services/documents/answers.py",
+        "apps/web/src/answer-matching.ts",
+        "apps/web/src/main.tsx",
+        "services/discovery/matching.py"
+      ],
+      "tests_completed": [
+        "Combined focused Python unit/integration tests: 47 PASS.",
+        "Web frontend: 95/95 PASS; TypeScript and Vite build PASS.",
+        "Synthetic connected manual-capture Chromium workflow: 1 PASS.",
+        "Evidence input hashes and git diff check PASS."
+      ],
+      "tests_remaining": [
+        "Full Python suite, answer-export browser suite, PostgreSQL validation, hosted checks/review, and overall release eligibility NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REQ-100 remains PARTIAL for verified employer context and broader acceptance.",
+        "MJ-REQ-104 has one curated paraphrase only; general semantic matching is not claimed.",
+        "MJ-REQ-114 covers three informational factors; other factors and overall requirement remain PARTIAL.",
+        "Node 25.9.0 is outside repository declared support range for Vitest.",
+        "Hosted Actions/reviews and real application submission are disabled/not run."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b96700264ac660c91b5be0093b979607ddfd6267",
+        "tree": "94a31caece7fbcc8cb3cefa4775529d2d99df349",
+        "evidence_path": "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
+        "note": "Related acceptance evidence is also recorded in docs/evidence/2026-10-08-answer-semantic-matching.json and docs/evidence/2026-10-08-explainable-match-factors.json. Original requirements remain PARTIAL."
+      }
     }
   ],
-  "current_phase": "MJ_REQ_194_COMPANIES_SCREEN_ACCEPTANCE_PASS",
+  "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "e211f013801849a4fe2cf24c855313b8fcfc3978",
-    "tree": "7af80d749f045c2fc6489810581cb6282bc53588",
-    "branch": "main",
-    "issue": "#195 / MJ-REQ-194",
-    "issue_state": "CLOSED/PASS",
-    "evidence_path": "docs/evidence/2026-10-08-companies-screen.json",
-    "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055662865",
-    "release_comment": "https://github.com/MulattoTech/MJobs/issues/195#issuecomment-6055840362",
-    "at_utc": "2026-10-08T08:24:19Z",
-    "note": "All eight exact issue fields plus durable company/profile application counts and persisted preference display passed; broader release gates remain NOT_RUN."
+    "git_commit": "b96700264ac660c91b5be0093b979607ddfd6267",
+    "tree": "94a31caece7fbcc8cb3cefa4775529d2d99df349",
+    "evidence_path": "docs/evidence/2026-10-08-cover-letter-relevance-ranking.json",
+    "note": "Related acceptance evidence is also recorded in docs/evidence/2026-10-08-answer-semantic-matching.json and docs/evidence/2026-10-08-explainable-match-factors.json. Original requirements remain PARTIAL."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12445,5 +12489,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T08:26:10Z"
+  "updated_at": "2026-10-08T08:49:55Z"
 }
