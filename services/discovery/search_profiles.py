@@ -12,6 +12,7 @@ from services.discovery.skill_taxonomy import normalize_skill_list
 from services.discovery.requirement_parsers import CLEARANCE_LEVELS, WORK_AUTHORIZATION_FLAGS
 from services.discovery.negative_filters import NEGATIVE_CONDITIONS
 from services.discovery.skill_taxonomy import canonical_skill_id
+from services.tracking.applications import PIPELINE_STATUSES
 
 
 REMOTE_PREFERENCES = {"ANY", "REQUIRED", "EXCLUDED"}
@@ -24,6 +25,7 @@ JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
                "provider": {"", "mock-ats", "greenhouse"},
                "ats_provider": {"", "mock-ats", "greenhouse"},
                "application_link_status": {"", "AVAILABLE", "UNAVAILABLE"},
+               "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
                "sort": {"score", "newest", "company", "title", "salary_high", "salary_low"}}
 
 
@@ -33,7 +35,7 @@ def _clean_job_filters(value):
     required = {"q", "remote_type", "provider", "sort"}
     optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
-                "clearance_level", "ats_provider", "application_link_status"}
+                "clearance_level", "ats_provider", "application_link_status", "application_pipeline_status"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
     query = value["q"]
@@ -106,9 +108,11 @@ def _clean_job_filters(value):
         raise ValueError("Saved Jobs clearance requirement is invalid")
     cleaned["clearance_level"] = clearance_level
     for key, allowed in JOB_FILTERS.items():
-        if key == "application_link_status" and key not in value:
+        if key in {"application_link_status", "application_pipeline_status"} and key not in value:
             continue
-        item = value.get(key, "") if key in {"ats_provider", "application_link_status"} else value[key]
+        item = value.get(key, "") if key in {
+            "ats_provider", "application_link_status", "application_pipeline_status"
+        } else value[key]
         if not isinstance(item, str) or item not in allowed:
             raise ValueError(f"Saved Jobs {key} is invalid")
         cleaned[key] = item

@@ -38,6 +38,7 @@ from services.discovery.search_profiles import (
 )
 from services.discovery.search_semantics import filter_jobs
 from services.discovery.skill_taxonomy import SKILL_TAXONOMY, canonical_skill_id
+from services.tracking.applications import PIPELINE_STATUSES
 from services.documents.answers import (
     DEFAULT_ANSWER_CONFIDENCE_POLICY, get_answer_confidence_policy,
     save_answer_confidence_policy,
@@ -1358,6 +1359,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              education_requirement: str | None = Query(default=None, max_length=64),
              clearance_level: str | None = Query(default=None, max_length=32),
              application_link_status: Literal["", "AVAILABLE", "UNAVAILABLE"] | None = Query(default=None, max_length=16),
+             application_pipeline_status: str | None = Query(default=None, max_length=32),
              posted_within_days: int | None = Query(default=None, ge=1, le=30),
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
@@ -1378,6 +1380,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             clearance_level = clearance_level.strip().upper()
             if not clearance_level or clearance_level not in CLEARANCE_LEVELS:
                 raise HTTPException(422, "Clearance requirement is not supported")
+        if (application_pipeline_status is not None
+                and application_pipeline_status not in {"", *PIPELINE_STATUSES, "NOT_TRACKED"}):
+            raise HTTPException(422, "Application pipeline status is not supported")
         search_profile = get_search_profile(store, search_profile_id) if search_profile_id else None
         if search_profile and search_profile["profile_id"] != profile_id:
             raise HTTPException(409, "Search profile belongs to a different career profile")
@@ -1397,6 +1402,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                                              else saved_application_link_status)
         if effective_application_link_status == "":
             effective_application_link_status = None
+        saved_application_pipeline_status = (
+            (search_profile["criteria"].get("job_filters") or {}).get("application_pipeline_status")
+            if search_profile else None
+        )
+        effective_application_pipeline_status = (
+            application_pipeline_status if application_pipeline_status is not None
+            else saved_application_pipeline_status
+        )
+        if effective_application_pipeline_status == "":
+            effective_application_pipeline_status = None
+        if effective_application_pipeline_status is not None and not profile_id:
+            raise HTTPException(422, "Application pipeline filtering requires a career profile")
         effective_posted_within = posted_within_days if posted_within_days is not None else (
             int(saved_posted_within) if saved_posted_within else None)
         posted_before = datetime.now(timezone.utc) if effective_posted_within is not None else None
@@ -1411,6 +1428,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           education_requirement=education_requirement,
                           clearance_level=clearance_level,
                           application_link_status=effective_application_link_status,
+                          application_pipeline_status=effective_application_pipeline_status,
                           posted_after=posted_after, posted_before=posted_before)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])
