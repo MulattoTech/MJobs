@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T05:42:14Z",
+  "generated_at": "2026-10-08T05:43:46Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -585,7 +585,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Complete the issue #117 evidence receipt, close and read back only #117 / MJ-REQ-116, then release its path claim. Reconcile the #96/MJ-REQ-095 candidate onto current main and verify exact source/test inputs before integrating. #275/MJ-REQ-274 is a separate active recovery implementation claim. After #117 releases apps/web/src/main.tsx, assign the best user-visible next slice from refreshed leads (#105 answer matching or #197 review queue or #517 integration linkage) only after dependency and path checks. #104 CLOSED/PASS; #199 OPEN/PARTIAL; parent queues/core workflow/release remain PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "recommended_resume_step": "#117 / MJ-REQ-116 is CLOSED/PASS and its main.tsx claim is released. Current implementation workers: #96/MJ-REQ-095 reviewed experience rewrite, #105/MJ-REQ-104 answer matching (newly claimed), and #275/MJ-REQ-274 scheduled-source restart recovery; integrate candidates one at a time after exact-base revalidation. Five read-only task leads found #118 blocked by queue/model prerequisites, #197 and #517 UI-dependent on #117 (now reconsider these using current base); #105 was selected as an additive answer-only slice while preserving MJ-PR-029 aggregate dependencies. #104 CLOSED/PASS; #199 OPEN/PARTIAL. Core workflow and release remain PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -9785,7 +9785,8 @@
         "Added deterministic category labels to Jobs cards and match detail using existing persisted score values; invalid and unscored values remain unclassified.",
         "Used an isolated FIXTURE store/browser profile, outside-origin requests blocked, external submission OFF, and verified profile switching/reload without score or tracking mutation.",
         "Root reran 23 helper boundary cases, TypeScript/Vite production build, and connected synthetic Chromium 1/1 on exact rebased integrated source f1afad5541ebcad1cd07e35b5366b78df4e1f637.",
-        "LOCAL_DELEGATED_REVIEW found no blocking findings. Issue receipt and closeout remain pending."
+        "LOCAL_DELEGATED_REVIEW found no blocking findings. Issue receipt and closeout remain pending.",
+        "Posted exact-head local acceptance receipt and read issue #117 CLOSED; released only the #117 Codex child path claim after readback."
       ],
       "files_added": [
         "docs/evidence/2026-10-08-match-categories.json",
@@ -9820,21 +9821,25 @@
         "Hosted checks/review remain NOT_RUN."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
-        "tree": "d06f94ac25071c34b8ac031562966a732b621cba",
+        "git_commit": "467470e4f0ffc87aebe3a3950d9ebc031508ee07",
+        "tree": "199d556c190e82a5961ead1be1bd9401ed195009",
         "source_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
         "evidence_path": "docs/evidence/2026-10-08-match-categories.json",
-        "issue_state_at_checkpoint": "OPEN; closeout pending evidence checkpoint and exact receipt."
+        "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053208027",
+        "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106",
+        "issue_state_after_readback": "CLOSED"
       }
     }
   ],
   "current_phase": "MJ_REQ_116_CATEGORIES_INTEGRATED_LOCAL_PASS_CLOSEOUT_PENDING",
   "last_safe_checkpoint": {
-    "git_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
-    "tree": "d06f94ac25071c34b8ac031562966a732b621cba",
+    "git_commit": "467470e4f0ffc87aebe3a3950d9ebc031508ee07",
+    "tree": "199d556c190e82a5961ead1be1bd9401ed195009",
     "source_commit": "f1afad5541ebcad1cd07e35b5366b78df4e1f637",
     "evidence_path": "docs/evidence/2026-10-08-match-categories.json",
-    "issue_state_at_checkpoint": "OPEN; closeout pending evidence checkpoint and exact receipt."
+    "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053208027",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106",
+    "issue_state_after_readback": "CLOSED"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -11299,5 +11304,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T05:42:14Z"
+  "updated_at": "2026-10-08T05:43:46Z"
 }

@@ -1157,3 +1157,7 @@ GitHub closeout readback for issue #104 / MJ-REQ-103: CLOSED with local acceptan
 - Integrated and synchronized `main`/`origin/main`: `f1afad5541ebcad1cd07e35b5366b78df4e1f637` (tree `d06f94ac25071c34b8ac031562966a732b621cba`), fast-forward from `382cb6707de47b32ca3876907bd1154d017fc707`.
 - All category boundaries and invalid/unscored controls pass; connected FIXTURE-mode browser verifies persisted profile scores through reload, no score/tracking mutation and External submission OFF. Root checks: 23 helper tests, Vite build, Chromium 1/1 PASS. Evidence: `docs/evidence/2026-10-08-match-categories.json`.
 - LOCAL_DELEGATED_REVIEW no blocking findings. Issue #117 is still OPEN pending exact evidence receipt and close readback. Node 25.9 is outside Vitest 5 supported range; hosted checks NOT_RUN_BY_USER_POLICY. Parent MJ-PR-032 dependencies unchanged.
+
+
+Issue #117 / MJ-REQ-116 closeout: GitHub read back **CLOSED** after local receipt https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053208027. Codex child claim RELEASED at https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106. Exact source evidence remains f1afad5541ebcad1cd07e35b5366b78df4e1f637; evidence/closeout metadata checkpoint prior to this metadata commit is 467470e4f0ffc87aebe3a3950d9ebc031508ee07.
+- New independent implementation claim: #105 / MJ-REQ-104 answer matching, disjoint from active #96/#275 and released #117 UI ownership; preserve MJ-PR-029 parent dependencies.

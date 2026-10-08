@@ -87,5 +87,11 @@
     "hosted_checks": "NOT_RUN_BY_USER_POLICY",
     "overall_release_readiness": "NOT_ESTABLISHED; this evidence accepts only MJ-REQ-116."
   },
-  "issue_closeout": "Pending evidence/planning commit and receipt readback."
+  "issue_closeout": {
+    "state": "CLOSED",
+    "read_back_at_utc": "2026-10-08T05:43:46Z",
+    "acceptance_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053208027",
+    "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106",
+    "evidence_checkpoint_main": "467470e4f0ffc87aebe3a3950d9ebc031508ee07"
+  }
 }

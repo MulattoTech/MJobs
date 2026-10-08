@@ -958,7 +958,12 @@
         "integrated_tree": "d06f94ac25071c34b8ac031562966a732b621cba",
         "evidence_path": "docs/evidence/2026-10-08-match-categories.json",
         "verification": "LOCAL: match-category helper 23/23, TypeScript/Vite build PASS, connected synthetic Chromium 1/1; LOCAL_DELEGATED_REVIEW found no blocking findings. Root reran checks on exact rebased integrated source.",
-        "issue_closeout": "PENDING evidence commit, comment and GitHub closed-state readback."
+        "issue_closeout": {
+          "state": "CLOSED",
+          "acceptance_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053208027",
+          "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106",
+          "read_back_at_utc": "2026-10-08T05:43:46Z"
+        }
       }
     },
     {
