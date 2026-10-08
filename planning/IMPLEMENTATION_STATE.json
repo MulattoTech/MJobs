@@ -578,7 +578,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Serialize the reviewed #199 / MJ-REQ-198 comparison candidate on current main after metadata-only source-hash reconciliation. In parallel, #117 / MJ-REQ-116 match categories is claimed on disjoint Jobs UI paths and must retain MJ-PR-032 dependencies MJ-PR-031/MJ-PR-025. Read-only exact-head acceptance checks are underway for #104 / MJ-REQ-103 and #116 / MJ-REQ-115; #96 / MJ-REQ-095 is under current-source acceptance audit. Issue #240 / MJ-REQ-239 is CLOSED/PASS; core workflow and overall release remain PARTIAL. #517 remains blocked from provider/ATS/UI ownership conflicts. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL checks as recorded; external submission OFF.",
+  "recommended_resume_step": "Serialize #199 / MJ-REQ-198 after adding a readable changed-text diff; local review found side-by-side previews alone do not satisfy the claimed slice. #117 / MJ-REQ-116 match categories and #96 / MJ-REQ-095 experience-fact rewriting are independently claimed on disjoint paths. Exact-head verification for #116 / MJ-REQ-115 passed 23 parser/matching tests and 1 connected browser test; #104 / MJ-REQ-103 passed 15 integration + 2 browser tests and build, with Node 25 Vitest engine warning. #240 is CLOSED/PASS. Keep parent queue dependencies intact; core workflow and release remain PARTIAL; #517 is OPEN/PARTIAL after integrated 94de review slice and remains blocked from overlapping provider/ATS paths. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "release_readiness": {
     "result": "NOT_RUN",
     "evidence": [],
@@ -11144,5 +11144,5 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T05:28:40Z"
+  "updated_at": "2026-10-08T05:34:00Z"
 }

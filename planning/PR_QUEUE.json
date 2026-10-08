@@ -784,6 +784,30 @@
         "merge_commit": "b1691622a61ee368f058461ff002728325d275a9",
         "evidence_path": "docs/evidence/2026-10-04-fact-review-exact-head-ci.json",
         "note": "Review-reset regression accepted; broader tailoring remains PARTIAL."
+      },
+      "active_slice": {
+        "name": "Add reviewed factual rewriting for approved experience facts",
+        "issue": 96,
+        "requirement_id": "MJ-REQ-095",
+        "status": "ACTIVE",
+        "publication_state": "LOCAL_WORK_IN_PROGRESS",
+        "base_commit": "1defb5d76f7d0c1050a5936a7077eb222acdd86a",
+        "depends_on": [],
+        "parent_dependencies_preserved": [
+          "MJ-PR-025",
+          "MJ-PR-024"
+        ],
+        "owned_paths": [
+          "services/documents/tailor.py",
+          "apps/web/src/resume-fact-selection.tsx",
+          "apps/web/src/resume-fact-selection.test.tsx",
+          "tests/unit/test_resume_comparison.py",
+          "tests/integration/test_resume_comparison.py",
+          "tests/browser/test_resume_experience_rewrite.py",
+          "docs/evidence/2026-10-08-resume-experience-rewrites.json"
+        ],
+        "acceptance": "Expose the existing user-authored, explicitly reviewed per-application rewrite flow for eligible approved `experience` facts that already render in generated resumes. Preserve strict version/selection/approval checks, source id/hash/kind and exact dates/numbers, durable generated history/reload/comparison, and reject unreviewed, unselected, unapproved, stale or changed-source input. No inferred content, profile mutation, cover-letter change, or provider call.",
+        "rationale": "Current-source audit confirmed the existing rewrite flow omits `experience` in both UI and backend allowlists; this is distinct from integrated technology_experience coverage. The narrow child does not promote parent MJ-PR-026 or change dependencies/denominators."
       }
     },
     {
