@@ -40,6 +40,30 @@ class ResumeAlignmentPreviewTests(unittest.TestCase):
                             for term in result['unmatched']['responsibilities']))
         self.assertNotIn('pending', str(result))
 
+    def test_preview_matches_only_selected_facts_and_rejects_foreign_or_ineligible_ids(self):
+        selected = build_alignment_preview(
+            self.profile, self.job, self.profile['version'], target_fingerprint(self.job),
+            selected_fact_ids=['duty'])
+
+        self.assertEqual(selected['matches']['skills'][0]['fact_ids'], [])
+        self.assertIn('Python', selected['unmatched']['skills'])
+        self.assertEqual(selected['matches']['responsibilities'][0]['fact_ids'], ['duty'])
+        self.assertEqual(selected['selected_fact_ids'], ['duty'])
+        self.assertEqual(selected['selection_mode'], 'EXPLICIT_SELECTION')
+
+        empty = build_alignment_preview(
+            self.profile, self.job, self.profile['version'], target_fingerprint(self.job),
+            selected_fact_ids=[])
+        self.assertTrue(all(not row['fact_ids'] for row in empty['matches']['skills']))
+        self.assertIn('Python', empty['unmatched']['skills'])
+        self.assertEqual(empty['selected_fact_ids'], [])
+
+        for ids in (['missing'], ['pending'], ['python', 'python'], ['python', 3]):
+            with self.subTest(ids=ids), self.assertRaises(ValueError):
+                build_alignment_preview(
+                    self.profile, self.job, self.profile['version'], target_fingerprint(self.job),
+                    selected_fact_ids=ids)
+
     def test_preview_fails_closed_for_stale_profile_or_job_snapshot(self):
         for profile_version, job_fingerprint in (
             ('x' * 64, target_fingerprint(self.job)),

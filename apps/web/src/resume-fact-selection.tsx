@@ -1,8 +1,8 @@
-import React,{useEffect,useState} from 'react';
+import React,{useCallback,useEffect,useState} from 'react';
 import {api,eligible} from './api';
 
 type Fact={fact_id:string;kind:string;text:string;source:string;verified:boolean;user_approved:boolean;confidence:number};
-type AlignmentPreview={profile_id:string;profile_version:string;job_id:string;job_fingerprint:string;matches:{skills:{term:string;fact_ids:string[]}[];responsibilities:{term:string;fact_ids:string[]}[]};unmatched:{skills:string[];responsibilities:string[]};read_only:true};
+type AlignmentPreview={profile_id:string;profile_version:string;job_id:string;job_fingerprint:string;selected_fact_ids:string[];selection_mode:'ALL_ELIGIBLE'|'EXPLICIT_SELECTION';matches:{skills:{term:string;fact_ids:string[]}[];responsibilities:{term:string;fact_ids:string[]}[]};unmatched:{skills:string[];responsibilities:string[]};read_only:true};
 export type ResumeFactRewrite={fact_id:string;text:string;reviewed:boolean};
 export type ResumeFactChoice={profileId:string;jobId:string;version:string;ids:string[];rewrites:ResumeFactRewrite[]};
 export const REWRITABLE_RESUME_FACT_KINDS=['summary','responsibility','experience','accomplishment','project','technology_experience'] as const;
@@ -32,25 +32,29 @@ export function ResumeFactSelection({profileId,jobId,jobFingerprint,disabled,onC
       .catch(failure=>{if(active)setError(String(failure));}).finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;controller.abort();};
   },[choose,profileId,jobId,jobFingerprint,refresh,onChange,onPreviewReady]);
+  const requestAlignmentPreview=useCallback(async(signal?:AbortSignal)=>{
+    if(!version||!jobFingerprint)throw new Error('Reload this job and its approved facts before previewing.');
+    const result=await api<AlignmentPreview>('/profiles/'+encodeURIComponent(profileId)+'/jobs/'+encodeURIComponent(jobId)+'/resume-alignment-preview',{
+      method:'POST',signal,body:JSON.stringify({expected_profile_version:version,expected_job_fingerprint:jobFingerprint,selected_fact_ids:choose?ids:null})});
+    const expectedFactIds=choose?facts.filter(fact=>ids.includes(fact.fact_id)).map(fact=>fact.fact_id):facts.map(fact=>fact.fact_id);
+    if(result.profile_id!==profileId||result.job_id!==jobId||result.profile_version!==version||result.job_fingerprint!==jobFingerprint||result.read_only!==true||result.selection_mode!==(choose?'EXPLICIT_SELECTION':'ALL_ELIGIBLE')||JSON.stringify(result.selected_fact_ids)!==JSON.stringify(expectedFactIds))throw new Error('Alignment preview snapshot did not match the selected facts, profile and job. Reload them and retry.');
+    return result;
+  },[version,jobFingerprint,choose,ids,facts,profileId,jobId]);
   useEffect(()=>{
     if(!version||!jobFingerprint)return;
     const controller=new AbortController();let active=true;
     setPreview(null);setPreviewError('');setPreviewLoading(true);onPreviewReady(null);
-    void api<AlignmentPreview>('/profiles/'+encodeURIComponent(profileId)+'/jobs/'+encodeURIComponent(jobId)+'/resume-alignment-preview',{
-      method:'POST',signal:controller.signal,body:JSON.stringify({expected_profile_version:version,expected_job_fingerprint:jobFingerprint})})
-      .then(result=>{if(!active)return;if(result.profile_id!==profileId||result.job_id!==jobId||result.profile_version!==version||result.job_fingerprint!==jobFingerprint||result.read_only!==true)throw new Error('Alignment preview snapshot did not match the selected profile and job. Reload both and retry.');
+    void requestAlignmentPreview(controller.signal)
+      .then(result=>{if(!active)return;
         setPreview(result);onPreviewReady({profileId,jobId,profileVersion:version,jobFingerprint});})
       .catch(failure=>{if(active)setPreviewError(String(failure));})
       .finally(()=>{if(active)setPreviewLoading(false);});
     return ()=>{active=false;controller.abort();};
-  },[version,profileId,jobId,jobFingerprint,refresh,onPreviewReady]);
+  },[version,profileId,jobId,jobFingerprint,refresh,choose,ids,facts,requestAlignmentPreview,onPreviewReady]);
   async function previewAlignment(){
     setPreviewLoading(true);setPreviewError('');setPreview(null);onPreviewReady(null);
     try{
-      if(!version||!jobFingerprint)throw new Error('Reload this job and its approved facts before previewing.');
-      const result=await api<AlignmentPreview>('/profiles/'+encodeURIComponent(profileId)+'/jobs/'+encodeURIComponent(jobId)+'/resume-alignment-preview',{
-        method:'POST',body:JSON.stringify({expected_profile_version:version,expected_job_fingerprint:jobFingerprint})});
-      if(result.profile_id!==profileId||result.job_id!==jobId||result.profile_version!==version||result.job_fingerprint!==jobFingerprint||result.read_only!==true)throw new Error('Alignment preview snapshot did not match the selected profile and job. Reload both and retry.');
+      const result=await requestAlignmentPreview();
       setPreview(result);onPreviewReady({profileId,jobId,profileVersion:version,jobFingerprint});
     }catch(failure){setPreviewError(String(failure));}
     finally{setPreviewLoading(false);}
@@ -93,7 +97,7 @@ export function ResumeFactSelection({profileId,jobId,jobFingerprint,disabled,onC
         <button type="button" disabled={disabled||loading||previewLoading||!version||!jobFingerprint} onClick={()=>void previewAlignment()}>{previewLoading?'Checking alignment…':'Preview keyword alignment'}</button>
         {previewError&&<p role="alert">{previewError}</p>}
         {preview&&<>
-          <p role="status">Read-only preview for this saved job and profile version.</p>
+          <p role="status">Read-only preview for this saved job and profile version. {preview.selection_mode==='EXPLICIT_SELECTION'?'Selected resume facts only.':'All eligible approved facts are in the default resume selection.'}</p>
           {(['skills','responsibilities'] as const).map(group=><section key={group} aria-label={group==='skills'?'Skill alignment':'Responsibility alignment'}>
             <h4>{group==='skills'?'Skills':'Responsibilities'}</h4>
             {preview.matches[group].length?<ul>{preview.matches[group].map(row=><li key={row.term}><strong>{row.term}</strong> — {row.fact_ids.length?<>supported by approved fact references: {row.fact_ids.join(', ')}</>:'no eligible approved fact match'}</li>)}</ul>:<p>None supported in the saved job snapshot.</p>}

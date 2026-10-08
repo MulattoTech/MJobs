@@ -26,6 +26,7 @@ class ResumeAlignmentPreviewIntegrationTests(unittest.TestCase):
             dict(PROFILE['facts'][0], id='python', text='Python'),
             dict(PROFILE['facts'][0], id='duty', kind='responsibility',
                  text='Administer Linux servers and restore production services.'),
+            dict(PROFILE['facts'][0], id='pending', text='Kubernetes', user_approved=False),
         ]
         self.store.save_profile(dict(PROFILE, facts=facts))
         self.store.save_profile(dict(PROFILE, id='other', facts=[
@@ -46,7 +47,8 @@ class ResumeAlignmentPreviewIntegrationTests(unittest.TestCase):
                 self.assertEqual(saved_job.status_code, 200)
                 self.assertEqual(saved_job.json()['alignment_fingerprint'], fingerprint)
                 request = {'expected_profile_version': self.store.profile('fixture')['version'],
-                           'expected_job_fingerprint': fingerprint}
+                           'expected_job_fingerprint': fingerprint,
+                           'selected_fact_ids': ['python', 'duty']}
                 before = self.row_counts()
                 response = client.post(
                     f"/profiles/fixture/jobs/{job['id']}/resume-alignment-preview", json=request)
@@ -56,6 +58,8 @@ class ResumeAlignmentPreviewIntegrationTests(unittest.TestCase):
                 self.assertEqual(preview['matches']['skills'][0]['fact_ids'], ['python'])
                 self.assertEqual(preview['matches']['skills'][1]['fact_ids'], [])
                 self.assertEqual(preview['matches']['responsibilities'][0]['fact_ids'], ['duty'])
+                self.assertEqual(preview['selected_fact_ids'], ['python', 'duty'])
+                self.assertEqual(preview['selection_mode'], 'EXPLICIT_SELECTION')
                 self.assertIn('Kubernetes', preview['unmatched']['skills'])
                 self.assertTrue(any('coordinate cross team' in term
                                     for term in preview['unmatched']['responsibilities']))
@@ -63,7 +67,8 @@ class ResumeAlignmentPreviewIntegrationTests(unittest.TestCase):
                 self.assertNotIn('AWS certification', str(preview))
                 self.assertEqual(client.post(
                     f"/profiles/other/jobs/{job['id']}/resume-alignment-preview",
-                    json={**request, 'expected_profile_version': self.store.profile('other')['version']}
+                    json={**request, 'expected_profile_version': self.store.profile('other')['version'],
+                          'selected_fact_ids': ['other-python']}
                 ).json()['matches']['skills'][0]['fact_ids'], ['other-python'])
                 self.assertEqual(client.post(
                     f"/profiles/fixture/jobs/{job['id']}/resume-alignment-preview",
@@ -71,6 +76,25 @@ class ResumeAlignmentPreviewIntegrationTests(unittest.TestCase):
                 self.assertEqual(client.post(
                     f"/profiles/fixture/jobs/{job['id']}/resume-alignment-preview",
                     json={**request, 'expected_job_fingerprint': '0' * 64}).status_code, 409)
+                deselected = client.post(
+                    f"/profiles/fixture/jobs/{job['id']}/resume-alignment-preview",
+                    json={**request, 'selected_fact_ids': ['duty']})
+                self.assertEqual(deselected.status_code, 200, deselected.text)
+                self.assertEqual(deselected.json()['matches']['skills'][0]['fact_ids'], [])
+                self.assertIn('Python', deselected.json()['unmatched']['skills'])
+                self.assertEqual(deselected.json()['matches']['responsibilities'][0]['fact_ids'], ['duty'])
+                for invalid_ids in (['other-python'], ['pending'], ['python', 'python'], ['python', 5]):
+                    with self.subTest(invalid_ids=invalid_ids):
+                        rejected = client.post(
+                            f"/profiles/fixture/jobs/{job['id']}/resume-alignment-preview",
+                            json={**request, 'selected_fact_ids': invalid_ids})
+                        self.assertIn(rejected.status_code, (409, 422), rejected.text)
+                empty = client.post(
+                    f"/profiles/fixture/jobs/{job['id']}/resume-alignment-preview",
+                    json={**request, 'selected_fact_ids': []})
+                self.assertEqual(empty.status_code, 200, empty.text)
+                self.assertTrue(all(not row['fact_ids'] for row in empty.json()['matches']['skills']))
+                self.assertEqual(empty.json()['selected_fact_ids'], [])
                 with self.store.engine.begin() as connection:
                     connection.execute(update(m.jobs).where(m.jobs.c.id == job['id']).values(
                         skills=['Python', 'Kubernetes', 'Terraform']))

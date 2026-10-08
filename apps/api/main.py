@@ -1439,6 +1439,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         model_config = ConfigDict(strict=True, extra='forbid')
         expected_profile_version: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
         expected_job_fingerprint: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
+        selected_fact_ids: list[Annotated[str, Field(strict=True, min_length=1, max_length=128)]] | None = Field(default=None, max_length=1000)
 
     @app.post('/profiles/{profile_id}/jobs/{job_id}/resume-alignment-preview')
     def resume_alignment_preview(profile_id: str, job_id: str, value: ResumeAlignmentPreviewInput):
@@ -1450,7 +1451,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(404, 'Saved target job not found')
         try:
             return build_alignment_preview(profile, job, value.expected_profile_version,
-                                           value.expected_job_fingerprint)
+                                           value.expected_job_fingerprint, value.selected_fact_ids)
         except ValueError as error:
             raise HTTPException(409, str(error)) from None
 
