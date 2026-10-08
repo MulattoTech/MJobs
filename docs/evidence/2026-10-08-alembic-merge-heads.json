@@ -20,10 +20,18 @@
     }
   },
   "graph": {
-    "prior_heads": ["9b6d40aaf163", "f37a0c2e91b5"],
+    "prior_heads": [
+      "9b6d40aaf163",
+      "f37a0c2e91b5"
+    ],
     "merge_revision": "e2a4c9d0b721",
-    "parents": ["9b6d40aaf163", "f37a0c2e91b5"],
-    "resulting_heads": ["e2a4c9d0b721"]
+    "parents": [
+      "9b6d40aaf163",
+      "f37a0c2e91b5"
+    ],
+    "resulting_heads": [
+      "e2a4c9d0b721"
+    ]
   },
   "checks": [
     {
@@ -71,5 +79,15 @@
     "No production, user, Docker, or shared database was accessed.",
     "This is an early hotfix slice; issue 167, MJ-REQ-166, MJ-PR-045, and dependencies remain open or incomplete as applicable.",
     "GitHub-hosted checks and external review were not run under local-only policy."
-  ]
+  ],
+  "integration": {
+    "result": "PASS",
+    "source_commit": "0a7400d2bf7f8f449d69a81fde84a4f107faf06f",
+    "source_tree": "f7e11de13c2a83b64748bf6d168637278b9ed9d0",
+    "integrated_main_commit": "0a7400d2bf7f8f449d69a81fde84a4f107faf06f",
+    "verified_at_utc": "2026-10-08T04:46:34Z",
+    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_migration_graph tests.integration.test_resume_comparison -v",
+    "result_count": "7 passed, 0 failures, 0 skips",
+    "details": "Reran against the integrated candidate tree after non-force fast-forward into local main; normal Alembic upgrade head and resume comparison integration setup passed."
+  }
 }

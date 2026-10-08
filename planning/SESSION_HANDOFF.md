@@ -1078,3 +1078,12 @@ Candidate review events persist source kind, explicit API/feed evidence status a
 Validation: 7 focused source-candidate integration/browser tests PASS (root exact-candidate rerun); frontend 63 tests and TypeScript/Vite build PASS; agent-skills/catalogue/progress/lane validators, compileall and diff check PASS; temporary SQLite migration backfill and downgrade-preservation PASS. PostgreSQL/Docker, live source inspection and hosted checks/review NOT_RUN; external submission OFF. Issue #517 remains OPEN/PARTIAL for provider/browser intake and bounded integration-task/provider-issue linkage. Review attribution is profile/event/time because authenticated reviewer identity is unavailable.
 
 Integration checkpoint: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052123718; claim release: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6052125143. Next: reconcile #302/#318 and select an unclaimed supported discovery/browser intake path, or complete bounded integration-task/provider-issue linkage.
+
+
+## 2026-10-08 Codex integration checkpoint — #167 / MJ-REQ-166 migration graph repair
+
+- Source commit/tree: `0a7400d2bf7f8f449d69a81fde84a4f107faf06f` / `f7e11de13c2a83b64748bf6d168637278b9ed9d0`; base `b35830ed000357d5508ec17a9574ec03454022a4`. Integrated by non-force fast-forward under the Codex integration lock.
+- Result: **PARTIAL**. Issue #167 / MJ-REQ-166 stays OPEN/PARTIAL; MJ-PR-045 dependencies remain unchanged. Evidence: `docs/evidence/2026-10-08-alembic-merge-heads.json`.
+- Validation on integrated source: `tests.integration.test_migration_graph` plus `tests.integration.test_resume_comparison` — 7 PASS, 0 failures/skips. A normal temporary SQLite `upgrade('head')` confirms one final Alembic head and expected schema. Migration recovery was 2 PASS / 2 PostgreSQL skips before integration.
+- PostgreSQL index runtime, Docker, destructive migration backup/restore, full suite, hosted checks/review NOT_RUN; external submission OFF.
+- Next: publish and verify main, release #167 claim, then select next dependency-ready issue. Current independent work: #116 parser correction and #96 reviewed technology-experience rewrite; both remain unintegrated pending their exact-base migration/browser verification.

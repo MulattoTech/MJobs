@@ -125,7 +125,8 @@
     "Issue #517 / discovered job-source catalogue follow-up PARTIAL: a URL-only profile-scoped source report now works without title/company/job metadata and creates no job or application. Source commit 20e6835308209c7ae8366d7791215db642ec9ad0; evidence docs/evidence/2026-10-07-source-candidate-catalogue.json. Full Python 955 run/8 skipped, 12 focused API/browser workflow tests, frontend 63/build and local validators PASS. Supported provider/browser capture entry points, documented source evaluation and bounded integration task remain open; hosted, PostgreSQL/Docker and live-source checks NOT_RUN.",
     "Local MOCK ATS submission history now records APPLICATION_SUBMITTED separately from receipt-backed APPLICATION_CONFIRMED; missing receipt remains SUBMISSION_UNCONFIRMED (MJ-REQ-176 / issue #177 PARTIAL).",
     "Native resume extraction transport-disconnect cancellation is verified against a real loopback HTTP client abort, including child reaping and durable no-mutation state; broader external-operation categories remain open (MJ-REQ-004 PARTIAL).",
-    "Issue #517 structured source-review evaluation integrated PARTIAL at main 94de9869be86f32d3f815dc318d4d5e9a95e1219; review history stores source kind, API/feed evidence status/reference, access/terms, capabilities/limits and expected value/maintenance notes. Sources UI save/reload, profile isolation, idempotency, safe URL sanitization, collection OFF and no-network behavior verified. Evidence docs/evidence/2026-10-07-source-candidate-review-evaluation.json. Focused API/browser 7 PASS; frontend 63/build, validators and temporary SQLite migration-preservation check PASS. PostgreSQL/Docker, live source inspection and hosted checks NOT_RUN. Provider/browser intake and bounded integration-task linkage remain open."
+    "Issue #517 structured source-review evaluation integrated PARTIAL at main 94de9869be86f32d3f815dc318d4d5e9a95e1219; review history stores source kind, API/feed evidence status/reference, access/terms, capabilities/limits and expected value/maintenance notes. Sources UI save/reload, profile isolation, idempotency, safe URL sanitization, collection OFF and no-network behavior verified. Evidence docs/evidence/2026-10-07-source-candidate-review-evaluation.json. Focused API/browser 7 PASS; frontend 63/build, validators and temporary SQLite migration-preservation check PASS. PostgreSQL/Docker, live source inspection and hosted checks NOT_RUN. Provider/browser intake and bounded integration-task linkage remain open.",
+    "Issue #167 / MJ-REQ-166 migration graph repair PARTIAL: added merge revision e2a4c9d0b721 joining existing Alembic heads 9b6d40aaf163 and f37a0c2e91b5. Normal `upgrade('head')` now succeeds on a fresh temporary SQLite database and resumes comparison integration setup. Source commit 0a7400d2bf7f8f449d69a81fde84a4f107faf06f; evidence docs/evidence/2026-10-08-alembic-merge-heads.json. Seven focused migration/resume integration tests PASS. Broader database migration, PostgreSQL index runtime, backup/restore acceptance and dependencies remain incomplete; issue #167/MJ-REQ-166 remains OPEN/PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -369,7 +370,8 @@
     "MJ-REQ-176 search-profile settings audit: targeted integration/browser 10 PASS; full Python suite 966 PASS, 8 skipped; frontend 63 PASS and production build PASS; local validators PASS; evidence docs/evidence/2026-10-07-search-profile-audit-history.json; issue #177 remains OPEN/PARTIAL at integrated main d4fd68c73acfeab3c47d523ac2de822c0c1e841f.",
     "MJ-REQ-176 AI cost-policy setting audit: 35 focused integration/browser tests PASS; full Python suite 967 PASS, 8 skipped; frontend 63 PASS and TypeScript/Vite build PASS; local validators PASS. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; scoped issue remains OPEN/PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c.",
     "Issue #177 company-source settings Activity slice: 21 focused integration tests, 2 connected Chromium tests, frontend 63/build, full Python 968 run/8 skipped, validators, compileall and diff check PASS; evidence docs/evidence/2026-10-07-company-source-setting-audit.json.",
-    "MJ-FEATURE-517 structured source evaluation: 7 focused integration/browser tests; frontend 63/build; local validators; temporary SQLite migration preservation PASS at exact source 94de9869be86f32d3f815dc318d4d5e9a95e1219."
+    "MJ-FEATURE-517 structured source evaluation: 7 focused integration/browser tests; frontend 63/build; local validators; temporary SQLite migration preservation PASS at exact source 94de9869be86f32d3f815dc318d4d5e9a95e1219.",
+    "Integrated main 0a7400d2bf7f8f449d69a81fde84a4f107faf06f: tests.integration.test_migration_graph and tests.integration.test_resume_comparison; 7 PASS, 0 failures/skips. Normal SQLite upgrade-to-head and resume comparison migration setup succeeded. Evidence docs/evidence/2026-10-08-alembic-merge-heads.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -451,7 +453,8 @@
     "Issue #166: GitHub Actions/hosted review NOT_RUN_BY_USER_POLICY; live providers NOT_RUN; external submission OFF.",
     "MJ-REQ-176 mock submission audit: PostgreSQL/Docker/migrations NOT_APPLICABLE (no schema change); hosted Actions/reviews NOT_RUN_BY_USER_POLICY; production providers/employer sites NOT_RUN; external submission OFF.",
     "GitHub Actions, hosted tests and independent review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN (no schema change); external submission OFF.",
-    "MJ-FEATURE-517 PostgreSQL/Docker migration runtime, live source inspection, and hosted Actions/review NOT_RUN; external submission OFF."
+    "MJ-FEATURE-517 PostgreSQL/Docker migration runtime, live source inspection, and hosted Actions/review NOT_RUN; external submission OFF.",
+    "Issue #167 / MJ-REQ-166 scoped merge-head repair: PostgreSQL execution of the full-text index migration, Docker/PostgreSQL, destructive migration backup/restore and broader database-migration acceptance NOT_RUN; hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -490,10 +493,10 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "68a0630b690cfa855e43829bc4f1836cf6add246",
+    "commit": "0a7400d2bf7f8f449d69a81fde84a4f107faf06f",
     "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-07-company-source-setting-audit.json",
-    "verified_at_utc": "2026-10-07T23:04:30Z"
+    "evidence": "docs/evidence/2026-10-08-alembic-merge-heads.json",
+    "verified_at_utc": "2026-10-08T04:46:34Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",

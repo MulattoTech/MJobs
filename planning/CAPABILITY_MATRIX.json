@@ -1409,9 +1409,11 @@
     },
     {
       "requirement_id": "MJ-REQ-166",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-08-alembic-merge-heads.json"
+      ],
+      "note": "The duplicate Alembic heads were merged and the normal fresh SQLite upgrade-to-head path plus resume-comparison integration setup pass. Broader data migration safety/recovery, PostgreSQL execution, and the existing PR dependencies remain incomplete. Issue #167 remains OPEN/PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-167",
