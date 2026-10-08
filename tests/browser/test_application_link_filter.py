@@ -152,6 +152,34 @@ class ApplicationLinkFilterBrowserTests(unittest.TestCase):
                                      ["browser-application-link-available"])
                     expect(page.get_by_label("Application link", exact=True)).to_have_value("AVAILABLE")
 
+                    # Clearing the live control is an override of the selected search,
+                    # not a mutation of its durable AVAILABLE criterion.
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and f"search_profile_id={selected_value}" in response.url
+                            and "application_link_status=" in response.url
+                            and "application_link_status=AVAILABLE" not in response.url) as cleared_saved:
+                        page.get_by_label("Application link", exact=True).select_option("")
+                    self.assertEqual(cleared_saved.value.status, 200)
+                    visible_ids = {row["id"] for row in cleared_saved.value.json()["jobs"]}
+                    self.assertTrue({
+                        "browser-application-link-available",
+                        "browser-application-link-unavailable",
+                        "browser-application-link-unknown",
+                        "browser-application-link-missing",
+                    } <= visible_ids)
+                    expect(page.locator(".job-card").filter(has_text="A Unknown Link")).to_be_visible()
+                    expect(page.locator(".job-card").filter(has_text="B Missing Link")).to_be_visible()
+                    expect(page.get_by_label("Application link", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Saved search profile", exact=True)).to_have_value(selected_value)
+                    saved_filters = page.request.get(
+                        origin + "/search-profiles?profile_id=fixture")
+                    self.assertEqual(saved_filters.status, 200)
+                    saved_profile = next(row for row in saved_filters.json()["search_profiles"]
+                                         if row["id"] == selected_value)
+                    self.assertEqual(saved_profile["criteria"]["job_filters"]["application_link_status"],
+                                     "AVAILABLE")
+
                     self.assertEqual(external, [])
                     context.close()
                     browser.close()
