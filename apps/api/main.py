@@ -575,6 +575,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         guard.close()
     store.bind_workspace_mode(operation_mode)
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
+    from apps.api.document_archive import create_document_archive_router
+    app.include_router(create_document_archive_router(store))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
@@ -1018,9 +1020,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return await store_profile_document(profile_id, request, 'BASE_RESUME', 'x-resume-series', 'x-resume-label')
 
     @app.get('/profiles/{profile_id}/document-library')
-    def profile_document_library(profile_id: str):
+    def profile_document_library(profile_id: str, include_archived: bool = Query(default=False)):
         from services.documents.library import document_library
-        return document_library(store, profile_id)
+        from apps.api.document_archive import document_archive_metadata
+        result = document_library(store, profile_id)
+        for row in result['uploaded']:
+            row.update(document_archive_metadata(store, profile_id, None, row['revision_id']))
+        for row in result['generated']:
+            row.update(document_archive_metadata(store, profile_id, row['application_id'], row['id']))
+        if not include_archived:
+            result['uploaded'] = [row for row in result['uploaded'] if not row['archived']]
+            result['generated'] = [row for row in result['generated'] if not row['archived']]
+        return result
 
     @app.post('/profiles/{profile_id}/document-library', status_code=201)
     async def profile_document_upload(profile_id: str, request: Request):
