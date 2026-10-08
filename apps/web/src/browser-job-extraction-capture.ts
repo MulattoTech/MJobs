@@ -32,12 +32,17 @@ export type BrowserJobExtractionCapturePayload = {
   discovery_origin: string | null;
   observed_hops: string[];
   source_details: {
-    extraction_fields: Record<BrowserJobExtractionFieldName, {
-      value: string | null;
-      source: BrowserJobExtractionField['source'];
-      confidence: number;
-      reviewed: boolean;
-    }>;
+    extraction_capture: {
+      schema_version: 1;
+      raw_fields: Record<BrowserJobExtractionFieldName, string | null>;
+      field_provenance: Record<BrowserJobExtractionFieldName, {
+        source: BrowserJobExtractionField['source'];
+        confidence: number;
+        review_required: boolean;
+        user_corrected: boolean;
+      }>;
+      raw_capture_ref: string | null;
+    };
   };
 };
 
@@ -90,6 +95,37 @@ function finalValue(
   return typeof extracted === 'string' ? extracted.trim() || null : null;
 }
 
+const sensitiveQueryKey = /token|session|auth|password|secret|credential|access_key|api_key|authorization|cookie|jwt|csrf|xsrf|signature|(^|_)sig($|_)|security_token/i;
+const sensitivePathSegments = new Set(['token', 'session', 'auth', 'password', 'secret', 'credential', 'access_key']);
+const secretAssignment = /(\b(?:access[_-]?token|refresh[_-]?token|token|session|password|secret|credential|auth(?:orization)?|api[_-]?key|cookie|jwt|csrf|xsrf|signature|sig)\b\s*[:=]\s*)[^\s,;&]+/gi;
+const opaqueCaptureRef = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/;
+const sensitiveCaptureRef = /(?:^|[-_.:])(token|session|password|secret|cookie|credential|auth|api[_-]?key|access[_-]?key|jwt|csrf|xsrf)(?:$|[-_.:])/i;
+
+function sanitizeCaptureText(value: string): string {
+  let text = value;
+  for (let pass = 0; pass < 3; pass += 1) {
+    const decoded = text.replace(/&(#x[\da-f]+|#\d+|amp|lt|gt|quot|apos|nbsp|colon|equals);/gi, (entity, code: string) => {
+      if (code[0] !== '#') {
+        return ({ amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', colon: ':', equals: '=' } as Record<string, string>)[code.toLowerCase()];
+      }
+      const number = code[1]?.toLowerCase() === 'x'
+        ? Number.parseInt(code.slice(2), 16)
+        : Number.parseInt(code.slice(1), 10);
+      return Number.isFinite(number) && number >= 0 && number <= 0x10ffff
+        ? String.fromCodePoint(number)
+        : entity;
+    });
+    if (decoded === text) break;
+    text = decoded;
+  }
+  return text
+    .replace(/<(script|style|noscript|template)\b[^>]*>.*?<\/\1\s*>/gis, ' ')
+    .replace(/<[^>]{0,1000}>/g, ' ')
+    .replace(secretAssignment, '$1[REDACTED]')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function validateHttpUrl(value: string | null, field: string): string | null {
   if (value === null) return null;
   let url: URL;
@@ -101,7 +137,29 @@ function validateHttpUrl(value: string | null, field: string): string | null {
   if ((url.protocol !== 'http:' && url.protocol !== 'https:') || !url.hostname || url.username || url.password) {
     throw new Error(`${field} must be a safe HTTP or HTTPS URL before capture.`);
   }
-  return value;
+  const segments = url.pathname.split('/');
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    let segment = segments[index];
+    try { segment = decodeURIComponent(segment); } catch { /* Keep malformed percent text opaque. */ }
+    if (sensitivePathSegments.has(segment.toLowerCase())) {
+      segments[index + 1] = '[REDACTED]';
+    }
+  }
+  url.pathname = segments.join('/');
+  const safeQuery = [...url.searchParams.entries()].filter(([key]) => !sensitiveQueryKey.test(key.toLowerCase().replaceAll('-', '_')))
+    .map(([key, item]) => [key, sanitizeCaptureText(item)] as const);
+  url.search = '';
+  for (const [key, item] of safeQuery) url.searchParams.append(key, item);
+  url.hash = '';
+  return url.toString();
+}
+
+function sanitizedFieldValue(name: BrowserJobExtractionFieldName, value: string | null): string | null {
+  if (value === null) return null;
+  if (name === 'listing_url' || name === 'application_url') {
+    return validateHttpUrl(value, name.replaceAll('_', ' '));
+  }
+  return sanitizeCaptureText(value);
 }
 
 function reviewedAtConfirmation(
@@ -124,7 +182,16 @@ function normalizedHops(hops: string[] | undefined): string[] {
     throw new Error('Observed hops must contain at most 20 text values of no more than 2000 characters each.');
   }
   const values = hops.map(hop => hop.trim()).filter(Boolean);
-  return values.length ? values : ['UNKNOWN'];
+  return values.length ? values.map(hop => {
+    if (hop === 'UNKNOWN') return hop;
+    try {
+      const parsed = new URL(hop);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return validateHttpUrl(hop, 'Observed hop') || 'UNKNOWN';
+      }
+    } catch { /* Redact secrets from opaque non-URL hop labels below. */ }
+    return sanitizeCaptureText(hop) || 'UNKNOWN';
+  }) : ['UNKNOWN'];
 }
 
 export function buildBrowserJobExtractionCapturePayload(
@@ -152,6 +219,11 @@ export function buildBrowserJobExtractionCapturePayload(
         !knownSources.includes(field.source) || !Number.isFinite(field.confidence) ||
         field.confidence < 0 || field.confidence > 1 || typeof field.review_required !== 'boolean') {
       throw new Error(`Extraction preview contains invalid ${name} provenance.`);
+    }
+    if (field.source === 'UNKNOWN'
+      ? field.value !== null || field.confidence !== 0 || field.review_required
+      : !field.value?.trim() || field.confidence <= 0) {
+      throw new Error(`Extraction preview contains inconsistent ${name} source metadata.`);
     }
   }
 
@@ -200,7 +272,12 @@ export function buildBrowserJobExtractionCapturePayload(
   const correctionErrors = validateBrowserJobExtractionCorrections(confirmation.preview, corrections);
   if (Object.keys(correctionErrors).length) throw new Error(Object.values(correctionErrors).join(' '));
 
-  const finalValues = Object.fromEntries(browserJobExtractionFields.map(name => [name, finalValue(confirmation, name)])) as
+  const originalValues = Object.fromEntries(browserJobExtractionFields.map(name => [
+    name, sanitizedFieldValue(name, fields[name].value),
+  ])) as Record<BrowserJobExtractionFieldName, string | null>;
+  const finalValues = Object.fromEntries(browserJobExtractionFields.map(name => [
+    name, sanitizedFieldValue(name, finalValue(confirmation, name)),
+  ])) as
     Record<BrowserJobExtractionFieldName, string | null>;
   for (const name of browserJobExtractionFields) {
     const value = finalValues[name];
@@ -221,8 +298,8 @@ export function buildBrowserJobExtractionCapturePayload(
     throw new Error('Description was unknown in the preview. Enter the job description manually before capture; no text will be invented.');
   }
 
-  const referenceUrl = validateHttpUrl(finalValues.listing_url, 'Job reference URL');
-  const applicationUrl = validateHttpUrl(finalValues.application_url, 'Application URL');
+  const referenceUrl = finalValues.listing_url;
+  const applicationUrl = finalValues.application_url;
   if (!referenceUrl && !applicationUrl) {
     throw new Error('Review or add a job reference or application URL before capture.');
   }
@@ -240,8 +317,9 @@ export function buildBrowserJobExtractionCapturePayload(
   }
 
   const manualLocation = normalizedManualText(manualDetails.location, 1000, 'Manual location');
-  const location = manualLocation || finalValues.location || 'Unknown';
-  const origin = normalizedManualText(manualDetails.discovery_origin ?? undefined, 253, 'Discovery origin');
+  const location = sanitizeCaptureText(manualLocation || finalValues.location || 'Unknown');
+  const originValue = normalizedManualText(manualDetails.discovery_origin ?? undefined, 253, 'Discovery origin');
+  const origin = originValue === null ? null : sanitizeCaptureText(originValue);
   const observedHops = normalizedHops(manualDetails.observed_hops);
   const notices: string[] = [];
   if (!extractedDescription && manualDescription) notices.push('The description was entered manually because extraction returned unknown.');
@@ -252,15 +330,22 @@ export function buildBrowserJobExtractionCapturePayload(
   if (!origin) notices.push('Discovery origin was not supplied; its attribution remains unknown.');
   if (observedHops.length === 1 && observedHops[0] === 'UNKNOWN') notices.push('No redirect hops were supplied; hops remain explicitly unknown.');
 
-  const extractionFields = Object.fromEntries(browserJobExtractionFields.map(name => {
-    const value = finalValues[name];
-    return [name, {
-      value,
-      source: fields[name].source,
-      confidence: fields[name].confidence,
-      reviewed: reviewedAtConfirmation(confirmation, name),
-    }];
-  })) as BrowserJobExtractionCapturePayload['source_details']['extraction_fields'];
+  const captureRef = confirmation.preview.raw_capture_ref;
+  if (captureRef !== null && (typeof captureRef !== 'string' || captureRef !== captureRef.trim() ||
+      !opaqueCaptureRef.test(captureRef) || sensitiveCaptureRef.test(captureRef))) {
+    throw new Error('Capture reference is not a safe opaque identifier. Reopen the local capture and try again.');
+  }
+  const confirmedValues = {
+    ...finalValues,
+    description: finalValues.description || sanitizedFieldValue('description', manualDescription),
+    location: sanitizedFieldValue('location', manualLocation) || finalValues.location,
+  };
+  const fieldProvenance = Object.fromEntries(browserJobExtractionFields.map(name => [name, {
+    source: fields[name].source,
+    confidence: fields[name].confidence,
+    review_required: fields[name].review_required,
+    user_corrected: confirmedValues[name] !== originalValues[name],
+  }])) as BrowserJobExtractionCapturePayload['source_details']['extraction_capture']['field_provenance'];
 
   return {
     payload: {
@@ -268,13 +353,20 @@ export function buildBrowserJobExtractionCapturePayload(
       request_id: requestId,
       title,
       company,
-      description,
+      description: sanitizeCaptureText(description),
       location,
       reference_url: referenceUrl,
       application_url: applicationUrl,
       discovery_origin: origin,
       observed_hops: observedHops,
-      source_details: { extraction_fields: extractionFields },
+      source_details: {
+        extraction_capture: {
+          schema_version: 1,
+          raw_fields: originalValues,
+          field_provenance: fieldProvenance,
+          raw_capture_ref: captureRef,
+        },
+      },
     },
     notices,
   };
