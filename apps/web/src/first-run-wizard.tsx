@@ -76,7 +76,7 @@ export function FirstRunWizard({
           {step.action === 'acknowledge' && !step.complete && <button disabled={busy} onClick={() => onAcknowledge(step.id)}>{step.actionLabel}</button>}
           {step.skipLabel && !step.complete && <button className="quiet" disabled={busy} onClick={() => onAcknowledge(step.id)}>{step.skipLabel}</button>}
           {step.action === 'search' && <>
-            <label htmlFor="first-run-search-profile">Saved search profile</label>
+            <label htmlFor="first-run-search-profile">First-run saved search profile</label>
             <select id="first-run-search-profile" value={selectedSearchId} onChange={event => onSelectSearch(event.target.value)} disabled={busy || !searches.length}>
                 <option value="">Choose an enabled saved search</option>
                 {searches.map(search => <option key={search.id} value={search.id}>{search.name}</option>)}

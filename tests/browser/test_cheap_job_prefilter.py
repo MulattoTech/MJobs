@@ -34,20 +34,6 @@ class CheapJobPrefilterBrowserTests(unittest.TestCase):
             store.migrate()
             store.bind_workspace_mode("FIXTURE")
             store.save_profile(deepcopy(PROFILE))
-            save_search_profile(store, {
-                "id": "cheap-prefilter-search",
-                "profile_id": "fixture",
-                "name": "Linux systems administrator",
-                "enabled": True,
-                "include_titles": ["Systems Administrator"],
-                "required_keywords": ["Linux"],
-                "exclude_titles": [],
-                "excluded_keywords": [],
-                "exact_phrases": [],
-                "optional_keywords": [],
-                "employment_types": [],
-                "source_ids": [],
-            })
             with store.engine.begin() as connection:
                 upsert(connection, m.companies, {
                     "id": "cheap-prefilter-employer",
@@ -60,6 +46,23 @@ class CheapJobPrefilterBrowserTests(unittest.TestCase):
                 tenant_identifier="prefilter-fixture", public_api_url=endpoint,
                 collection_strategy="PUBLIC_JSON",
             )
+            selected_source_id = f"company-feed:{source['id']}"
+            with store.engine.begin() as connection:
+                upsert(connection, m.job_sources, {
+                    "id": selected_source_id,
+                    "provider": "rss",
+                    "tenant": "prefilter-fixture",
+                    "name": "Prefilter Fixture Employer",
+                    "enabled": True,
+                    "strategy": "PUBLIC_JSON",
+                    "capabilities": {"collection_strategy": "PUBLIC_JSON"},
+                    "poll_interval": 300,
+                    "concurrency": 1,
+                    "request_timeout": 10,
+                    "rate_limit": 60,
+                    "jitter_seconds": 0,
+                    "health_status": "NOT_CHECKED",
+                })
             import_company_feed_jobs(
                 store, company_id="cheap-prefilter-employer", source_id=source["id"],
                 provider="rss", tenant="prefilter-fixture", endpoint=endpoint,
@@ -76,6 +79,20 @@ class CheapJobPrefilterBrowserTests(unittest.TestCase):
                      "location": "Remote", "url": "https://prefilter.fixture.invalid/apply/linux-network"},
                 ],
             )
+            save_search_profile(store, {
+                "id": "cheap-prefilter-search",
+                "profile_id": "fixture",
+                "name": "Linux systems administrator",
+                "enabled": True,
+                "include_titles": ["Systems Administrator"],
+                "required_keywords": ["Linux"],
+                "exclude_titles": [],
+                "excluded_keywords": [],
+                "exact_phrases": [],
+                "optional_keywords": [],
+                "employment_types": [],
+                "source_ids": [selected_source_id],
+            })
 
             with store.engine.connect() as connection:
                 original_postings = [dict(row) for row in connection.execute(

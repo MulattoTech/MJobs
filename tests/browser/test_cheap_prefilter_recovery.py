@@ -175,7 +175,9 @@ class CheapPrefilterRecoveryBrowserTests(unittest.TestCase):
                     self.assertEqual(first_preview.value.status, 200)
                     expect(page.get_by_role("region", name="Prefilter stage counts")).to_contain_text(
                         "Captured: 3")
-                    expect(page.locator(".job-card")).to_have_count(3)
+                    # The selected search scopes visible candidates; all three source
+                    # postings remain in durable storage and are checked after teardown.
+                    expect(page.locator(".job-card")).to_have_count(1)
                     preserved_cards = page.locator(".job-card").all_text_contents()
 
                     with page.expect_response(lambda response:
@@ -184,12 +186,13 @@ class CheapPrefilterRecoveryBrowserTests(unittest.TestCase):
                             "button", name="Preview title and keyword filter", exact=True
                         ).click()
                     self.assertEqual(failed_preview.value.status, 503)
-                    expect(page.get_by_role("alert")).to_be_visible()
+                    prefilter = page.get_by_role("region", name="Cheap job title and keyword prefilter")
+                    expect(prefilter.get_by_role("alert")).to_be_visible()
                     expect(page.get_by_label("Saved search profile", exact=True)).to_have_value(SEARCH_ID)
                     expect(page.get_by_label("Included job titles", exact=True)).to_have_value(
                         "Systems Administrator")
                     expect(page.get_by_label("Required keywords", exact=True)).to_have_value("Linux")
-                    expect(page.locator(".job-card")).to_have_count(3)
+                    expect(page.locator(".job-card")).to_have_count(1)
                     self.assertEqual(page.locator(".job-card").all_text_contents(), preserved_cards)
 
                     # The failed preview does not dirty persisted criteria or source rows.
@@ -198,7 +201,7 @@ class CheapPrefilterRecoveryBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Included job titles", exact=True)).to_have_value(
                         "Systems Administrator")
                     expect(page.get_by_label("Required keywords", exact=True)).to_have_value("Linux")
-                    expect(page.locator(".job-card")).to_have_count(3)
+                    expect(page.locator(".job-card")).to_have_count(1)
                     self.assertEqual(preview_attempts, 2)
                     self.assertEqual(external, [])
                     self.assertEqual(application_or_ai_posts, [])

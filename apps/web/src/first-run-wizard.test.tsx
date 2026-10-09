@@ -47,7 +47,7 @@ it('renders all ten setup steps and keeps external submission unavailable', asyn
   expect(html).toContain('Open Create profile');
   expect(html).toContain('Run first search');
   expect(html).toContain('Choose an enabled source');
-  expect(html).toContain('Saved search profile');
+  expect(html).toContain('First-run saved search profile');
   expect(html).not.toContain('Submit application');
   expect(html).not.toContain('Automatic applications');
 });
