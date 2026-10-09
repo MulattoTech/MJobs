@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-190",
+  "issue": 191,
+  "slice": "complete connected job sorting",
+  "slice_status": "PASS",
+  "requirement_status": "PASS",
+  "branch": "main",
+  "worktree": ".",
+  "source_commit": "e72afe4e5741c21e376089ec422adb3210d19170",
+  "source_tree": "6a36987bab0328fdf9eb39b51dc69e5c2e738a15",
+  "validated_at_utc": "2026-10-09T21:58:04Z",
+  "issue_receipt": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6089953523",
+  "environment": {
+    "python": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe",
+    "database": "temporary SQLite fixtures",
+    "browser": "local Playwright Chromium with requests restricted to the local API",
+    "frontend": "Node 25.9.0; npm dependencies already present",
+    "external_submission": "OFF",
+    "hosted_checks_and_reviews": "NOT_RUN_BY_POLICY",
+    "postgresql": "NOT_RUN"
+  },
+  "acceptance": {
+    "sort_modes": [
+      "Best Match (score)",
+      "Newest",
+      "Application Priority",
+      "Salary high/low",
+      "Company",
+      "Title"
+    ],
+    "application_priority": "Explainable, profile-scoped advisory ranking; unknown values remain last; it does not determine eligibility or submit an application.",
+    "newest": "Uses reported posting time with first-seen fallback, unknown last, deterministic ties, and ordering before result limit.",
+    "salary": "Sorts only comparable annual USD records; malformed or negative supplied endpoints fail closed; unknown or ineligible values last.",
+    "company": "Uses canonical company name with blank values last and stable job-ID ties.",
+    "best_match_and_title": "Existing score and title modes remain available and are covered by connected/API regressions.",
+    "side_effects": "Sorting does not alter job facts, match results, saved-search criteria, schedule state, or application state."
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_job_sorting.py tests/integration/test_application_priority_api.py tests/integration/test_application_priority_app_mount.py -q",
+      "result": "PASS",
+      "observed": "17 tests and 3 subtests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/unit/test_application_priority.py -q",
+      "result": "PASS",
+      "observed": "12 tests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_job_sorting",
+      "result": "PASS",
+      "observed": "1 connected Chromium journey passed; browser egress was restricted to the local API and observed non-local requests were zero."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "observed": "555 tests passed across 97 files."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "observed": "TypeScript and Vite production build passed; existing large-chunk advisory (>500 kB)."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS",
+      "observed": "PASS."
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS",
+      "observed": "PASS."
+    },
+    {
+      "command": "python -m tools.verification.progress validate",
+      "result": "PASS",
+      "observed": "PASS."
+    },
+    {
+      "command": "python -m unittest tests.unit.test_progress_dashboard",
+      "result": "PASS",
+      "observed": "4 tests passed; dashboard CURRENT."
+    },
+    {
+      "command": "python -m tools.verification.progress_dashboard --check",
+      "result": "PASS",
+      "observed": "CURRENT."
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "observed": "PASS."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS",
+      "observed": "PASS; Git reported only line-ending normalization warnings for canonical JSON files."
+    }
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "e969e285ce56c9a0ca3b3d608698101f4d7b01b377d6fc16f7de187e8f319296",
+    "apps/api/application_priority.py": "bb50dde6e15826cefe4f93ae2fb2c823e1f65c6a8502764bd5c462784de9a442",
+    "services/discovery/application_priority.py": "beb21b89ac32afc3b516acb5f0cc9f802a994aca4e5b4adcb457f165f7399bae",
+    "packages/persistence/store.py": "811ab49d800ef898c504200100cc78a29d817bb3b1f828555280b5f67e814128",
+    "apps/web/src/main.tsx": "522f1ddda8835742711c007fdc7162c6e9e4bcd693d3db443641af0a8af8a5a2",
+    "tests/integration/test_job_sorting.py": "e4c260b3b5f168947ac89bda1fb5ffd9c2923dff00cb6f7d15d442549a9a83c4",
+    "tests/integration/test_application_priority_api.py": "a318a73be11a9b01ad67979ca64843155a9804d626b63b6f20f2deb8ef4a34a2",
+    "tests/integration/test_application_priority_app_mount.py": "b9ab76fa5f17b14a788563a8d1f896985fc8d4ca35c1de1b7bc4a80ec25af446",
+    "tests/browser/test_job_sorting.py": "3102d235941d728b0a861f18c01a2a54733ea9bc6f9ed24525c956d0d4e5d25a"
+  },
+  "known_limitations": [
+    "PostgreSQL, full Python repository suite, live providers, and hosted checks/reviews were not run.",
+    "Existing Vite bundle-size advisory remains.",
+    "MJ-PR-052 remains QUEUED behind MJ-PR-051 and MJ-PR-043; other requirements in that bundle are unchanged."
+  ]
+}

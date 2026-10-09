@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T20:30:32Z",
+  "timestamp": "2026-10-09T21:58:04Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1694,13 +1694,14 @@
     },
     {
       "requirement_id": "MJ-REQ-190",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-08-job-sorting-newest.json",
         "docs/evidence/2026-10-08-job-sorting-company.json",
-        "docs/evidence/2026-10-08-job-sorting-salary.json"
+        "docs/evidence/2026-10-08-job-sorting-salary.json",
+        "docs/evidence/2026-10-09-complete-job-sorting.json"
       ],
-      "note": "Newest-only Jobs ordering locally verified on exact integrated main (API/browser/build); Best Match and Title preserved. Application Priority and Salary sorts plus full MJ-REQ-190 acceptance remain incomplete. Full Python discovery was PARTIAL_NOT_COMPLETE (F/ss at 600s, no summary); hosted/PostgreSQL NOT_RUN. Company-only slice integrated at fcddebedd6f238271ecd59ef171c2ce1e5e4245b (tested source eba9f77a0cd54468fb91e2f6406777e25cb4e5a3 / tree a3c96974d1112af01da72cd9edd98b8cf0e5181e): connected Jobs sort uses canonical company name, blank-last, stable tie order, and database limit after sorting. Root exact-candidate API/browser 6/6, frontend 94/94, build and diff PASS; LOCAL_DELEGATED_REVIEW found no blocker. Evidence docs/evidence/2026-10-08-job-sorting-company.json. SQLite tests cover ASCII/ordinary spaces only; PostgreSQL NOT_RUN. Salary sort integrated at main 980f89c78d384ec3098e083616b48c8c713089f3; annual USD only, malformed/negative supplied endpoints fail closed, one-sided null disclosures remain valid, unknowns are last in both directions, and sort is applied before LIMIT and persists in saved searches. Root exact-source API/browser 8/8; worker frontend 103/103 and production build PASS; six input hashes match. Evidence docs/evidence/2026-10-08-job-sorting-salary.json. Application Priority remains undefined; requirement and issue remain PARTIAL; hosted/PostgreSQL NOT_RUN."
+      "note": "All six required Jobs sorting modes are available and locally verified on exact current main. Connected synthetic Chromium validates Application Priority selection with profile-scoped explainable advisory signals and no external requests; focused API/unit/browser and full web checks pass. Evidence docs/evidence/2026-10-09-complete-job-sorting.json. PostgreSQL/full Python suite/hosted checks/live providers NOT_RUN; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-191",

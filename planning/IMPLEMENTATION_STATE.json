@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-FEATURE-517-LOCAL-INTEGRATION-TASK-20261009",
-  "current_objective": "Continue solo feature-first development by selecting the next highest-impact dependency-ready core product workflow.",
+  "current_milestone": "MJ-REQ-190-COMPLETE-JOB-SORTING-20261009",
+  "current_objective": "Select and implement the next highest-value dependency-ready user-facing core workflow; preserve all existing issue/path claims.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -99,7 +99,8 @@
     "MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete.",
     "Issue #244 / MJ-REQ-243 PASS: saved-search source prefilter previews and persists profile-scoped title/keyword criteria, feeds actual discovery-worker candidate scoring, and preserves source rows across reject/defer/errors. Main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json.",
     "Issue #517 bounded queue-integrity slice PASS at main f6976147fcae7cdab121abcb3090b2c310a3a53f: source-candidate integration cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue; API/service fail closed and connected UI persists/readbacks the linked issue without enabling collection. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader catalogue issue remains PARTIAL.",
-    "MJ-REQ-266 PASS locally at 64b123e4633b60cb655cc53a3b95188761860e8a: verified employer/ATS > exact trusted integrated-board provenance > aggregator; persisted route-to-posting/source/collector evidence, connected authority explanation, explicit user choice. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json."
+    "MJ-REQ-266 PASS locally at 64b123e4633b60cb655cc53a3b95188761860e8a: verified employer/ATS > exact trusted integrated-board provenance > aggregator; persisted route-to-posting/source/collector evidence, connected authority explanation, explicit user choice. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
+    "MJ-REQ-190 PASS: the connected Jobs interface exposes and verifies Best Match, Newest, Application Priority, Salary, Company, and Title sorting; see docs/evidence/2026-10-09-complete-job-sorting.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -14584,12 +14585,64 @@
         "Optional provider issue numbers remain user-supplied and unverified.",
         "External application submission is OFF; candidate review does not enable source collection."
       ]
+    },
+    {
+      "milestone_id": "MJ-REQ-190-COMPLETE-JOB-SORTING-20261009",
+      "timestamp": "2026-10-09T21:58:04Z",
+      "current_phase": "ACCEPTANCE_VERIFIED_ON_LOCAL_MAIN",
+      "completed_steps": [
+        "Reconciled the existing API/UI implementation with the original MJ-REQ-190 six-sort contract.",
+        "Ran focused sorting and application-priority tests, connected local Chromium acceptance, all frontend tests, and production build against exact current main.",
+        "Updated MJ-REQ-190 to PASS and closed issue #191; left MJ-PR-052 dependencies and sibling requirements unchanged."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-complete-job-sorting.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "evidence_path": "docs/evidence/2026-10-09-complete-job-sorting.json",
+      "source_commit": "e72afe4e5741c21e376089ec422adb3210d19170",
+      "source_tree": "6a36987bab0328fdf9eb39b51dc69e5c2e738a15",
+      "integrated_main": "e72afe4e5741c21e376089ec422adb3210d19170",
+      "tests_completed": [
+        "17 sorting/application-priority integration tests and 3 subtests PASS",
+        "12 application-priority unit tests PASS",
+        "1 connected synthetic Chromium sort journey PASS; zero non-local requests",
+        "555 frontend tests across 97 files PASS",
+        "TypeScript/Vite production build PASS with existing large-chunk advisory",
+        "Agent-skill, catalogue, progress, dashboard, lane, and diff validators PASS after tracker update"
+      ],
+      "tests_remaining": [
+        "PostgreSQL, full Python suite, live providers, and hosted checks/reviews NOT_RUN"
+      ],
+      "limitations": [
+        "No product source code needed modification: the complete six-mode sorting UI/API was already present on current main; this checkpoint reconciles and proves its outstanding acceptance.",
+        "MJ-PR-052 remains QUEUED behind MJ-PR-051 and MJ-PR-043.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e72afe4e5741c21e376089ec422adb3210d19170",
+        "evidence_path": "docs/evidence/2026-10-09-complete-job-sorting.json"
+      },
+      "acceptance": "PASS for full MJ-REQ-190 / issue #191 sorting acceptance; broader MJ-PR-052 remains QUEUED.",
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/191#issuecomment-6089953523",
+      "known_limitations": [
+        "PostgreSQL, full Python suite, live providers, and hosted checks/reviews NOT_RUN_BY_POLICY or NOT_RUN.",
+        "Vite emitted the existing >500 kB chunk-size advisory; build passed."
+      ]
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+  "current_phase": "ACCEPTANCE_VERIFIED_ON_LOCAL_MAIN",
   "last_safe_checkpoint": {
-    "git_commit": "9c5ac464a574a1101eb3910b0a0a796c36138106",
-    "evidence_path": "docs/evidence/2026-10-09-source-candidate-local-integration-task.json"
+    "git_commit": "e72afe4e5741c21e376089ec422adb3210d19170",
+    "evidence_path": "docs/evidence/2026-10-09-complete-job-sorting.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -16268,7 +16321,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T21:37:30Z",
+  "updated_at": "2026-10-09T21:58:04Z",
   "current_verified_local_state": "Issue #517 local integration-task slice at main 9c5ac464a574a1101eb3910b0a0a796c36138106 from tested code/test source e7553f04e82b3b551feb74fbe3d374cf680241d4 (tree efde066000cfe15f2ebdd4a96d579cd12ada7ecf). A reviewed candidate can be queued without a GitHub issue; the durable profile-scoped candidate ID is the local task key. An optional user-supplied issue remains unverified. Evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json. Exact source-candidate integration/connected Chromium 11, focused web 12, production build, Python compilation, lane and diff checks PASS. PostgreSQL, full suite, live providers and hosted checks NOT_RUN; collection and external submission OFF. #517 remains OPEN/PARTIAL.",
   "current_verified_github_state": "Issue #517 remains OPEN/PARTIAL after local receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089697849; local checkpoint 9c5ac464a574a1101eb3910b0a0a796c36138106 is not pushed. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
