@@ -6,7 +6,9 @@ import re
 from fastapi import APIRouter, Body, HTTPException
 from sqlalchemy.exc import NoResultFound
 
+from services.career_profile.story_bank import StoryBankError, list_stories
 from services.documents import answers as answer_service
+from services.documents.tailor import target_fingerprint
 
 
 _SENSITIVE_QUESTION = re.compile(
@@ -68,6 +70,88 @@ def _candidate_matches(question, profile_answers, policy):
     return candidates[:_MAX_CANDIDATES]
 
 
+def _application_job(store, profile_id, application):
+    job_id = application.get("job_id") if isinstance(application, dict) else None
+    if not isinstance(job_id, str) or not job_id.strip():
+        raise HTTPException(404, {"code": "ANSWER_MATCH_JOB_NOT_FOUND"})
+    try:
+        return store.job(job_id, profile_id)
+    except (NoResultFound, KeyError, TypeError, ValueError):
+        raise HTTPException(404, {"code": "ANSWER_MATCH_JOB_NOT_FOUND"}) from None
+
+
+def _story_reference_rows(store, profile_id):
+    try:
+        revisions = list_stories(store, profile_id)
+    except StoryBankError:
+        raise HTTPException(
+            503, {"code": "ANSWER_MATCH_STORY_REFERENCES_UNAVAILABLE"},
+        ) from None
+
+    references = []
+    for story in revisions:
+        if not isinstance(story, dict):
+            continue
+        story_id = story.get("story_id")
+        revision = story.get("revision")
+        title = story.get("title")
+        text = story.get("text")
+        fingerprints = story.get("fact_fingerprints")
+        fact_ids = story.get("fact_ids")
+        allowed_uses = story.get("allowed_uses")
+        if (not isinstance(story_id, str) or not story_id.strip()
+                or type(revision) is not int or revision < 1
+                or not isinstance(title, str) or not title.strip()
+                or not isinstance(text, str) or not text.strip()
+                or story.get("review_status") != "APPROVED"
+                or story.get("reusable") is not True
+                or not isinstance(allowed_uses, list)
+                or "APPLICATION_ANSWER" not in allowed_uses
+                or not isinstance(fact_ids, list) or not fact_ids
+                or any(not isinstance(fact_id, str) or not fact_id.strip()
+                       for fact_id in fact_ids)
+                or not isinstance(fingerprints, list) or not fingerprints):
+            continue
+
+        fact_provenance = []
+        for fingerprint in fingerprints:
+            if not isinstance(fingerprint, dict):
+                fact_provenance = []
+                break
+            fact_id = fingerprint.get("fact_id")
+            fact_value = fingerprint.get("fingerprint")
+            if (not isinstance(fact_id, str) or not fact_id.strip()
+                    or not isinstance(fact_value, str) or not fact_value.strip()):
+                fact_provenance = []
+                break
+            fact_provenance.append({"fact_id": fact_id, "fingerprint": fact_value})
+        if (not fact_provenance
+                or len(fact_provenance) != len(fact_ids)
+                or {item["fact_id"] for item in fact_provenance} != set(fact_ids)):
+            continue
+
+        references.append({
+            "story_id": story_id,
+            "revision": revision,
+            "current_revision": revision,
+            "is_current": True,
+            "title": title,
+            "text": text,
+            "allowed_use": "APPLICATION_ANSWER",
+            "fact_provenance": fact_provenance,
+            "review_status": "APPROVED",
+        })
+    return references
+
+
+def _story_revision_binding(references):
+    """Return the exact current story revisions represented by citations."""
+    return tuple(sorted(
+        (reference["story_id"], reference["revision"])
+        for reference in references
+    ))
+
+
 def create_application_answer_matching_router(store) -> APIRouter:
     """Build an advisory matching endpoint; selection and export remain separate."""
     router = APIRouter()
@@ -100,13 +184,47 @@ def create_application_answer_matching_router(store) -> APIRouter:
                 404, {"code": "ANSWER_MATCH_APPLICATION_NOT_FOUND"},
             )
 
+        job = _application_job(store, profile_id, application)
+        job_fingerprint = target_fingerprint(job)
+
         policy = answer_service.get_answer_confidence_policy(store, profile_id)
         candidates = _candidate_matches(question, profile.get("answers", []), policy)
+        story_references = _story_reference_rows(store, profile_id)
+
+        try:
+            current_profile = store.profile(profile_id)
+            current_application = store.application(application_id)
+            current_job = _application_job(store, profile_id, current_application)
+        except NoResultFound:
+            raise HTTPException(
+                409, {"code": "ANSWER_MATCH_CONTEXT_STALE"},
+            ) from None
+        if (current_application.get("profile_id") != profile_id
+                or current_application.get("job_id") != job["id"]
+                or current_profile.get("version") != profile.get("version")
+                or target_fingerprint(current_job) != job_fingerprint):
+            raise HTTPException(
+                409, {"code": "ANSWER_MATCH_CONTEXT_STALE"},
+            )
+
+        # Story revisions can change independently of the application/profile/job
+        # snapshot. Re-read immediately before returning so a superseded or newly
+        # pending revision is never projected as current citation metadata.
+        current_story_references = _story_reference_rows(
+            store, profile_id,
+        )
+        if (_story_revision_binding(current_story_references)
+                != _story_revision_binding(story_references)):
+            raise HTTPException(
+                409, {"code": "ANSWER_MATCH_CONTEXT_STALE"},
+            )
+
         return {
             "profile_id": profile_id,
             "application_id": application_id,
             "question": question,
             "candidates": candidates,
+            "story_references": story_references,
         }
 
     return router
