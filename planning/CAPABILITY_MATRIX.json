@@ -2013,9 +2013,11 @@
     },
     {
       "requirement_id": "MJ-REQ-238",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-application-history.json"
+      ],
+      "note": "Append-only application event timeline is connected to the user workflow; durable reopen/reload, concurrent ordering, invalid-write, stale-response, retry and crash-recovery checks pass. User-reported status remains distinct from employer receipt. Broader tracking/release acceptance remains separate; PostgreSQL and hosted checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-239",

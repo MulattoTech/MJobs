@@ -11,9 +11,9 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #517 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T07:03:17Z"
   },
-  "current_milestone": "MJ-FEATURE-517-CAPTURE-REPLAY-IDEMPOTENCY-20261009",
-  "current_objective": "Issue #517 source-candidate capture replay preserves immutable observation/timestamps, distinct event first/last bounds, and sanitized review evidence readback; integrated on local main at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Full catalogue acceptance remains PARTIAL.",
-  "status": "PARTIAL",
+  "current_milestone": "MJ-REQ-238-APPLICATION-HISTORY-20261009",
+  "current_objective": "Verify the original MJ-REQ-238 application-history requirement completely against local acceptance; continue to the next high-value dependency-ready product feature after this checkpoint.",
+  "status": "PASS",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
     "366 stable marked issues mapped; idempotent live reconciliation",
@@ -608,13 +608,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "72bbc73f42179a33de71ba6c777abc721d162c52",
-    "tree": "6ce2cac4de565f6606d8af10b3b64611794df2e0",
-    "result": "PASS for bounded #517 replay-idempotency, observation timestamp, and review-evidence readback checks; overall feature remains PARTIAL.",
+    "commit": "43e268d8ba07f079df68690ddc1694a283509096",
+    "tree": "10d67a7229b165e742a0083d08035e0c6040bd0f",
+    "result": "PASS for MJ-REQ-238 Application History only; broader tracking and whole-product release readiness remain separately classified.",
     "evidence": [
-      "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json"
+      "docs/evidence/2026-10-09-application-history.json"
     ],
-    "verified_at_utc": "2026-10-09T07:03:17Z"
+    "verified_at_utc": "2026-10-09T07:09:38Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -681,7 +681,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Integrate the current-approved story-reference API and scoped citation-review workspace for #372, then connect and verify the #377 resume-preview service/API/UI on an assembled browser path; keep full requirements PARTIAL until remaining criteria pass.",
+  "recommended_resume_step": "After local integration of this evidence/tracker checkpoint, select the next highest-impact unclaimed dependency-ready product issue from live GitHub, its exact original requirement and area specification; prefer a connected user workflow and avoid active cross-lane paths.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -12405,12 +12405,53 @@
         "git_commit": "59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c",
         "evidence_path": "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-238-APPLICATION-HISTORY-20261009",
+      "current_phase": "Issue #239 / MJ-REQ-238 Application History verified PASS on local main 43e268d8ba07f079df68690ddc1694a283509096 (tree 10d67a7229b165e742a0083d08035e0c6040bd0f); 9 focused API/integration/connected Chromium reload, ordering and recovery tests plus web build PASS. Verification of existing behavior; no product code changed. Evidence: docs/evidence/2026-10-09-application-history.json. PostgreSQL and hosted checks NOT_RUN; release readiness remains unchanged.",
+      "timestamp": "2026-10-09T07:09:38Z",
+      "completed_steps": [
+        "Reconciled issue #239, original requirement and application-history area specification; no conflicting active writer was found.",
+        "Inspected append-only application audit events, timeline reconstruction, API reads, and the connected application UI.",
+        "Ran four focused API/integration tests and five connected Chromium reload/recovery tests against exact local main; 9 passed.",
+        "Confirmed invalid writes add no history, concurrent sequence allocation is ordered, late responses are scoped, and attempt history excludes form values.",
+        "Verified web production build; wrote sanitized requirement evidence and updated only MJ-REQ-238 plus its grouped queue note."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-application-history.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json"
+      ],
+      "tests_completed": [
+        "9 focused Python integration and connected Chromium tests passed in 43.32s on local main 43e268d8ba07f079df68690ddc1694a283509096.",
+        "npm run build --prefix apps/web passed; existing bundle-size advisory remains.",
+        "Progress journal, catalogue, dashboard and lane validators are scheduled after dashboard regeneration."
+      ],
+      "tests_remaining": [
+        "PostgreSQL-specific application history validation NOT_RUN.",
+        "Hosted CI/review NOT_RUN_BY_USER_POLICY; whole-product/release acceptance is outside this bounded requirement."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "This milestone verifies existing implementation and does not claim new product code was shipped.",
+        "Local SQLite/Chromium fixture proof does not establish PostgreSQL or hosted behavior.",
+        "External application submission remained OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "43e268d8ba07f079df68690ddc1694a283509096",
+        "evidence_path": "docs/evidence/2026-10-09-application-history.json"
+      }
     }
   ],
-  "current_phase": "Issue #517 source-candidate replay idempotency and evidence readback are locally integrated at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c (tree 109f9461ae5616730ddd34410a7a2333fd79edde); 18 focused Python/integration/browser tests, 21 web tests, build, compilation and diff check PASS. Full catalogue remains PARTIAL. Evidence: docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
+  "current_phase": "Issue #239 / MJ-REQ-238 Application History verified PASS on local main 43e268d8ba07f079df68690ddc1694a283509096 (tree 10d67a7229b165e742a0083d08035e0c6040bd0f); 9 focused API/integration/connected Chromium reload, ordering and recovery tests plus web build PASS. Verification of existing behavior; no product code changed. Evidence: docs/evidence/2026-10-09-application-history.json. PostgreSQL and hosted checks NOT_RUN; release readiness remains unchanged.",
   "last_safe_checkpoint": {
-    "git_commit": "59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c",
-    "evidence_path": "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json"
+    "git_commit": "43e268d8ba07f079df68690ddc1694a283509096",
+    "evidence_path": "docs/evidence/2026-10-09-application-history.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12799,14 +12840,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 517,
-    "url": "https://github.com/MulattoTech/MJobs/issues/517",
-    "branch": "codex/root-solo-517-capture-replay-20261009",
-    "status": "PARTIAL",
+    "number": 239,
+    "url": "https://github.com/MulattoTech/MJobs/issues/239",
+    "branch": "main",
+    "status": "PASS",
     "related_requirements": [
-      "MJ-FEATURE-517"
+      "MJ-REQ-238"
     ],
-    "note": "Capture replay idempotency, out-of-order timestamp bounds, and review evidence reference readback are integrated locally with evidence. Issue remains OPEN/PARTIAL; broader provider/browser intake and live/hosted acceptance remain."
+    "note": "Existing append-only application event timeline meets the original requirement with 9 focused durable API/integration and connected browser recovery tests. No new product code changed; issue closeout follows the verified evidence receipt."
   },
   "historical_control_snapshots": [
     {
@@ -13964,9 +14005,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T07:03:17Z",
-  "current_verified_local_state": "Local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c (tree 109f9461ae5616730ddd34410a7a2333fd79edde) integrates #517 source-candidate capture replay integrity and durable review-evidence readback. Exact tested code source 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Local main remains ahead of origin/main under local-only policy. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #517 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T07:09:38Z",
+  "current_verified_local_state": "Local main 43e268d8ba07f079df68690ddc1694a283509096 (tree 10d67a7229b165e742a0083d08035e0c6040bd0f) verifies issue #239 / MJ-REQ-238 Application History; 9 focused API/integration/Chromium reload, ordering and recovery tests and web build pass. Evidence docs/evidence/2026-10-09-application-history.json. No product code changed. Preserved unrelated untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under the local-only policy; issue #239 is OPEN pending exact local verification receipt; no push, PR, hosted CI, or external application submission.",
   "next_candidates": [
     {
       "issue": 372,

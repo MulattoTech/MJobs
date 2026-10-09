@@ -2460,7 +2460,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-064-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #237 / MJ-REQ-236 Search History slice integrated PARTIAL at local main bc523f642a27795e3791d7bf0926e22473376277, source e3ec3f40476129e5bca57baf48f9485d5db16259, evidence docs/evidence/2026-10-09-search-history.json; keyset API and connected Activity UI verified. Exact duplicate tally remains UNKNOWN; grouped PR remains QUEUED for remaining requirements and dependencies; no PR opened under local-only policy."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #237 / MJ-REQ-236 Search History slice integrated PARTIAL at local main bc523f642a27795e3791d7bf0926e22473376277, source e3ec3f40476129e5bca57baf48f9485d5db16259, evidence docs/evidence/2026-10-09-search-history.json; keyset API and connected Activity UI verified. Exact duplicate tally remains UNKNOWN; grouped PR remains QUEUED for remaining requirements and dependencies; no PR opened under local-only policy. Independent issue #239 / MJ-REQ-238 application-history requirement verified PASS on local main 43e268d8ba07f079df68690ddc1694a283509096; 9 focused API/integration/connected Chromium recovery tests and web build PASS, evidence docs/evidence/2026-10-09-application-history.json. This verifies existing behavior; grouped PR remains QUEUED for other requirements and dependencies; hosted/PostgreSQL NOT_RUN."
     },
     {
       "id": "MJ-PR-065",

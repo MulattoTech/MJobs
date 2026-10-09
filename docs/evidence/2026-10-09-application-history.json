@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-238-APPLICATION-HISTORY-20261009",
+  "issue": 239,
+  "requirement_id": "MJ-REQ-238",
+  "result": "PASS",
+  "recorded_at_utc": "2026-10-09T07:09:38Z",
+  "branch": "main",
+  "source_commit": "43e268d8ba07f079df68690ddc1694a283509096",
+  "source_tree": "10d67a7229b165e742a0083d08035e0c6040bd0f",
+  "input_sha256": {
+    "services/tracking/applications.py": "149eb136478785478f86520233645fe272253806f44124cb6ffe0eccef47a776",
+    "tests/integration/test_application_pipeline.py": "0ed3c517da5f330666c34d7c80de9989b8ec9453800a621da23198276108e258",
+    "tests/browser/test_application_pipeline.py": "1523c8af4e76ff180b4d9bf54f189675c72cd6a53dd62bc40dd0058b94000501",
+    "apps/web/src/main.tsx": "c17af278f2b7362d8489eaee5c5e16de849d35ad8e832a88dfabe723df7792d6"
+  },
+  "acceptance": {
+    "historical_state_preserved": "PASS - Application changes append audit events; history is reconstructed in sequence order and remains available after the backing store is reopened.",
+    "event_timeline": "PASS - Application history and attempt phases are rendered in the connected application workflow with user-reported status clearly distinguished from employer-verified receipt.",
+    "durable_readback": "PASS - API/integration and Chromium reload checks preserve user-reported stage and note history across store reopen and browser reload.",
+    "concurrent_ordering": "PASS - Concurrent updates allocate one ordered history without duplicate sequence values.",
+    "invalid_write_rejection": "PASS - Invalid status and empty note requests create no history entries.",
+    "retry_and_recovery": "PASS - Lost responses can be retried after edits; late responses do not leak between applications; renderer/process crash recovery preserves tracking state.",
+    "privacy_and_truthfulness": "PASS - Attempt history excludes form values and user-reported status is not represented as a submission or employer receipt."
+  },
+  "validation": [
+    {
+      "command": "repository .venv: python -m pytest tests/integration/test_application_pipeline.py::ApplicationPipelineTests::test_user_reported_status_and_notes_survive_reopen_without_submission_receipt tests/integration/test_application_pipeline.py::ApplicationPipelineTests::test_invalid_pipeline_status_and_empty_note_write_no_history tests/integration/test_application_pipeline.py::ApplicationPipelineTests::test_concurrent_updates_allocate_a_single_ordered_history tests/integration/test_application_pipeline.py::ApplicationStepTraceTests::test_mock_attempt_records_all_phases_in_order_without_form_values_after_reopen tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_user_reported_stage_and_note_survive_reload_with_documents_linked tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_application_tracking_recovers_after_browser_renderer_crash tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_application_tracking_recovers_after_browser_process_crash tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_late_status_response_cannot_leak_between_application_details tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_lost_status_and_note_responses_can_be_retried_after_edits -q --tb=short",
+      "result": "PASS - 9 passed in 43.32s."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS - TypeScript and Vite production build; existing bundle-size advisory remains."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS - No implementation diff; verified source tree is clean aside from preserved unrelated untracked evidence."
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12 repository .venv",
+    "database": "temporary SQLite/reopen coverage",
+    "browser": "local Chromium fixture workflow",
+    "external_network": "none",
+    "application_submission": "OFF",
+    "production_credentials": "NOT_USED"
+  },
+  "remaining_gaps": [
+    "This acceptance checkpoint verifies existing implementation; no new product code was changed.",
+    "PostgreSQL-specific runtime, whole-product acceptance, hosted checks and external employer confirmation are NOT_RUN and are outside this two-line requirement.",
+    "The broader tracking and release-readiness requirements remain separately classified."
+  ],
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "external_application_submission": "OFF"
+}
