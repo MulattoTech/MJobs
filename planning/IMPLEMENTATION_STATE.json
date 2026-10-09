@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T06:46:30Z",
+  "generated_at": "2026-10-09T07:03:17Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main bc523f642a27795e3791d7bf0926e22473376277 (tree 2913914dcb56c71b8f6750af68545f6969b77951) integrates the connected MJ-REQ-236 / issue #237 profile-scoped Search History workflow. Exact feature source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); evidence docs/evidence/2026-10-09-search-history.json. Local main remains ahead of origin/main under local-only policy. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #237 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/237#issuecomment-6075897612. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T06:46:30Z"
+    "current_verified_local_state": "Local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c (tree 109f9461ae5616730ddd34410a7a2333fd79edde) integrates #517 source-candidate capture replay integrity and durable review-evidence readback. Exact tested code source 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Local main remains ahead of origin/main under local-only policy. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #517 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+    "current_verified_at": "2026-10-09T07:03:17Z"
   },
-  "current_milestone": "MJ-REQ-236-SEARCH-HISTORY-20261009",
-  "current_objective": "Profile-scoped durable discovery history is connected to terminal DISCOVER operations and Activity UI; keyset paging, saved-search context, reload readback and profile isolation are verified. Duplicate count remains unknown.",
+  "current_milestone": "MJ-FEATURE-517-CAPTURE-REPLAY-IDEMPOTENCY-20261009",
+  "current_objective": "Issue #517 source-candidate capture replay preserves immutable observation/timestamps, distinct event first/last bounds, and sanitized review evidence readback; integrated on local main at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Full catalogue acceptance remains PARTIAL.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -151,7 +151,8 @@
     "MOCK authentication-required attempts persist AUTH_REQUIRED and can resume after deliberate fixture authentication at 5ca978be11a78a71cf93a8be5755f7fede319e12; product UI still lacks a saved-profile sign-in opener, so MJ-REQ-142 remains PARTIAL.",
     "Connected taxonomy-backed skill filter integrated at 57e667761de038f5a7ee1692e1053f6c4d5b95eb: exact skill ID/label matching before LIMIT, alias normalization, saved-search reload/clear, and profile isolation; evidence docs/evidence/2026-10-08-skill-search-filter.json. Whole MJ-REQ-189 remains PARTIAL.",
     "#372 / MJ-REF-002: connected answer-review workspace displays current approved career stories and linked fact fingerprints, requires explicit story-reference review/selection, suppresses sensitive-question lookup, and keeps answer text/review separate. Source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3; evidence docs/evidence/2026-10-09-career-story-answer-citations.json. Story citation is transient, not stored in answer export; document-generation selection and broader story-bank acceptance remain incomplete.",
-    "MJ-REQ-236 / issue #237: connected profile-scoped durable history for terminal discovery runs with source/query/filter context, UTC start/finish, result and new-job counts, status/errors, idempotent atomic persistence, read-only API, keyset pagination and Activity UI reload readback. Source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); integrated local main bc523f642a27795e3791d7bf0926e22473376277. Evidence docs/evidence/2026-10-09-search-history.json. Duplicate counts remain null because collectors do not report a reliable total; hosted/live source NOT_RUN_BY_USER_POLICY."
+    "MJ-REQ-236 / issue #237: connected profile-scoped durable history for terminal discovery runs with source/query/filter context, UTC start/finish, result and new-job counts, status/errors, idempotent atomic persistence, read-only API, keyset pagination and Activity UI reload readback. Source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); integrated local main bc523f642a27795e3791d7bf0926e22473376277. Evidence docs/evidence/2026-10-09-search-history.json. Duplicate counts remain null because collectors do not report a reliable total; hosted/live source NOT_RUN_BY_USER_POLICY.",
+    "MJ-FEATURE-517 / issue #517 bounded source-candidate slice: exact capture replay is a no-op with immutable observation timestamps; distinct events preserve earliest first_seen and latest last_seen independent of arrival order; changed request reuse conflicts; review history displays sanitized API/feed evidence reference. Tested code 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); integrated local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Issue remains OPEN/PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -454,7 +455,8 @@
     "Dashboard checkpoint after skill facet: original totals remain 83 PASS / 93 PARTIAL / 190 NOT_RUN; reference 13 PASS / 1 PARTIAL / 45 NOT_RUN; release UNKNOWN.",
     "#190 / MJ-REQ-189 application-link facet: 34 focused Python, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, compilation, skill/lane validators, exact source hashes/blob IDs and local delegated review PASS at local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d.",
     "#372 / MJ-REF-002 exact source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3: answer matching API 4 tests + 6 subtests PASS; connected synthetic Chromium story citation flow 1 PASS; targeted frontend 25/25 PASS; TypeScript/Vite build and diff check PASS. Evidence docs/evidence/2026-10-09-career-story-answer-citations.json.",
-    "#237 / MJ-REQ-236 exact source e3ec3f40476129e5bca57baf48f9485d5db16259: search-history service/API/worker and connected browser group 24 passed + 4 subtests (4 optional skips); full web Vitest 466/466; TypeScript/Vite build, agent-skills, catalogue and diff validation PASS. Evidence docs/evidence/2026-10-09-search-history.json."
+    "#237 / MJ-REQ-236 exact source e3ec3f40476129e5bca57baf48f9485d5db16259: search-history service/API/worker and connected browser group 24 passed + 4 subtests (4 optional skips); full web Vitest 466/466; TypeScript/Vite build, agent-skills, catalogue and diff validation PASS. Evidence docs/evidence/2026-10-09-search-history.json.",
+    "MJ-FEATURE-517 exact tested source 72bbc73f42179a33de71ba6c777abc721d162c52: 18 focused unit/integration/connected Chromium tests PASS; 21 focused web tests PASS; TypeScript/Vite production build, py_compile and diff check PASS. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -563,7 +565,8 @@
     "Issue #134 / MJ-REQ-133 hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/live ATS/full repository suite NOT_RUN; only one synthetic dynamic dropdown variant implemented.",
     "#190 application-link facet: PostgreSQL runtime, live production sources/ATS, full repository suite, hosted GitHub checks/review NOT_RUN; local-only policy.",
     "#372: PostgreSQL runtime, full repository Python/web suites, hosted checks/review, live ATS/source access and external submission NOT_RUN or OFF; citation persistence and story selection for document generation remain unimplemented.",
-    "#237: live external job-source acceptance and hosted checks/review NOT_RUN_BY_USER_POLICY; no real source egress or application submission occurred."
+    "#237: live external job-source acceptance and hosted checks/review NOT_RUN_BY_USER_POLICY; no real source egress or application submission occurred.",
+    "MJ-FEATURE-517: PostgreSQL runtime, live provider/source acceptance, hosted checks/review NOT_RUN_BY_USER_POLICY; collection stays disabled and external application submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -582,7 +585,8 @@
     "MJ-REQ-177 worker logging currently covers durable operation terminal outcomes only; posting/source/ATS and other contexts plus live Redis/RQ/PostgreSQL remain unverified (docs/evidence/2026-10-07-structured-worker-operation-logs.json).",
     "Issue #517 source catalogue currently captures only manual job and external application reports; existing provider/browser discovery entry points and documented source integration evaluation remain incomplete.",
     "Issue #192 / MJ-REQ-191 remains OPEN/PARTIAL: scheduler cadence and broader filter-sidebar acceptance are not implemented; hosted checks/review and PostgreSQL NOT_RUN_BY_USER_POLICY.",
-    "#237 / MJ-REQ-236: the discovery collector does not expose a trustworthy duplicate tally; the history field is retained as null and UI renders Unknown rather than deriving a false count. Live external-source and hosted acceptance NOT_RUN_BY_USER_POLICY."
+    "#237 / MJ-REQ-236: the discovery collector does not expose a trustworthy duplicate tally; the history field is retained as null and UI renders Unknown rather than deriving a false count. Live external-source and hosted acceptance NOT_RUN_BY_USER_POLICY.",
+    "MJ-FEATURE-517 remains OPEN/PARTIAL beyond this bounded slice; broader source-provider/browser intake and live/hosted acceptance remain unverified. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -604,13 +608,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "46dfc9b09ad4e838b1df7d70aa2850ee0ae6daf2",
-    "tree": "7a4c4cc61b4bd1f1d481cf7ab8a95f7aa88b64d1",
-    "result": "PASS for scoped #408/MJ-REF-038 per-search scoring persistence, isolation, reload, and explanation acceptance; MJ-REF-038 and MJ-REQ-112/113/117 remain PARTIAL and product release remains PARTIAL.",
+    "commit": "72bbc73f42179a33de71ba6c777abc721d162c52",
+    "tree": "6ce2cac4de565f6606d8af10b3b64611794df2e0",
+    "result": "PASS for bounded #517 replay-idempotency, observation timestamp, and review-evidence readback checks; overall feature remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-role-scoring-profile-reload.json"
+      "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json"
     ],
-    "verified_at_utc": "2026-10-09T05:08:54Z"
+    "verified_at_utc": "2026-10-09T07:03:17Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -711,16 +715,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e3ec3f40476129e5bca57baf48f9485d5db16259",
+  "last_implementation_commit": "72bbc73f42179a33de71ba6c777abc721d162c52",
   "publication": {
-    "result": "PASS_SOURCE_SYNC_AT_CHECKPOINT; TRACKER_BATCH_LOCAL",
-    "integration_method": "Ordinary non-force fast-forward under the root integration lock; no PR opened.",
-    "integration_commit": "0214b4bf022cee4bb8498468aa7535decb71392e",
-    "prior_main": "e1048dd2a8eb988c9f351007659192a2d837b539",
+    "result": "PASS_LOCAL_FAST_FORWARD; TRACKER_BATCH_LOCAL",
+    "integration_method": "Ordinary non-force fast-forward under root integration lock; no PR opened or push performed.",
+    "integration_commit": "59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c",
+    "prior_main": "269d964879457bde85767295bb6608f6c9aeb688",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "The #192 source and evidence were synchronized to origin/main and GitHub main at this checkpoint. This planning/dashboard batch is being validated and committed locally; hosted Actions/reviews remain disabled by policy."
+    "note": "#517 source-candidate replay integrity and evidence readback integrated locally at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c; receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647. GitHub origin remains unsynced under local-only policy."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12354,12 +12358,59 @@
         "git_commit": "bc523f642a27795e3791d7bf0926e22473376277",
         "evidence_path": "docs/evidence/2026-10-09-search-history.json"
       }
+    },
+    {
+      "milestone_id": "MJ-FEATURE-517-CAPTURE-REPLAY-IDEMPOTENCY-20261009",
+      "current_phase": "Issue #517 source-candidate replay idempotency and evidence readback are locally integrated at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c (tree 109f9461ae5616730ddd34410a7a2333fd79edde); 18 focused Python/integration/browser tests, 21 web tests, build, compilation and diff check PASS. Full catalogue remains PARTIAL. Evidence: docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
+      "timestamp": "2026-10-09T07:03:17Z",
+      "completed_steps": [
+        "Reproduced same-request capture replay changing last_seen_at and distinct out-of-order capture producing an incorrect earliest timestamp.",
+        "Made capture observation insertion atomic and immutable under exact replay; reject conflicting request reuse without rewriting provenance.",
+        "Keep first_seen_at at the earliest distinct event and last_seen_at at the latest distinct event, independent of arrival order.",
+        "Show the sanitized public API/feed evidence reference in durable source-candidate review history.",
+        "Updated connected browser acceptance to use current accessible UI labels and confirmed profile isolation, collection-off, zero egress and zero submissions.",
+        "Fast-forwarded tested branch and evidence into local main at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c; issue remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "tests/unit/test_source_candidate_catalogue_replay.py",
+        "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json"
+      ],
+      "files_modified": [
+        "services/source_candidates/catalogue.py",
+        "apps/web/src/source-candidate-review.tsx",
+        "apps/web/src/source-candidate-review.test.tsx",
+        "tests/browser/test_source_candidates.py",
+        "tests/browser/test_supported_provider_candidate.py"
+      ],
+      "tests_completed": [
+        "18 focused Python unit/integration/connected browser tests PASS, including profile/tenant boundaries, exact and conflicting replay, out-of-order event time bounds, and passive feed capture.",
+        "21 focused source-candidate web tests PASS.",
+        "TypeScript/Vite production build PASS with existing >500 kB bundle-size advisory.",
+        "Python compilation and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL runtime and live external provider/source validation NOT_RUN.",
+        "Hosted GitHub checks and reviews NOT_RUN_BY_USER_POLICY."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary SQLite and local Chromium against synthetic fixture data; zero external HTTP requests and zero application submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Issue #517 remains OPEN/PARTIAL for broader supported provider/browser intake and live/hosted acceptance.",
+        "Integration issue references remain explicitly user-supplied and unverified; collection remains disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c",
+        "evidence_path": "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json"
+      }
     }
   ],
-  "current_phase": "Issue #237 / MJ-REQ-236 source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77) is integrated on local main at bc523f642a27795e3791d7bf0926e22473376277. Terminal DISCOVER runs persist profile-scoped source, saved-search/query/filter context, timestamps, measured result/new-job counts, terminal status and errors atomically with operation completion. The read-only Activity panel supports pagination and reload; the connected fixture browser flow proves profile isolation and no external requests/submissions. Exact duplicate totals remain UNKNOWN until a collector reports them. Evidence: docs/evidence/2026-10-09-search-history.json.",
+  "current_phase": "Issue #517 source-candidate replay idempotency and evidence readback are locally integrated at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c (tree 109f9461ae5616730ddd34410a7a2333fd79edde); 18 focused Python/integration/browser tests, 21 web tests, build, compilation and diff check PASS. Full catalogue remains PARTIAL. Evidence: docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
   "last_safe_checkpoint": {
-    "git_commit": "bc523f642a27795e3791d7bf0926e22473376277",
-    "evidence_path": "docs/evidence/2026-10-09-search-history.json"
+    "git_commit": "59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c",
+    "evidence_path": "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12719,6 +12770,22 @@
       "integrated_at_utc": "2026-10-09T06:46:30Z",
       "scope_complete": false,
       "github_sync": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-517",
+      "source_commit": "72bbc73f42179a33de71ba6c777abc721d162c52",
+      "source_tree": "6ce2cac4de565f6606d8af10b3b64611794df2e0",
+      "integration_commit": "59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c",
+      "integration_tree": "109f9461ae5616730ddd34410a7a2333fd79edde",
+      "prior_main": "269d964879457bde85767295bb6608f6c9aeb688",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "evidence_path": "docs/evidence/2026-10-09-source-candidate-replay-idempotency.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647",
+      "issue_state": "OPEN/PARTIAL",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+      "external_submission": "OFF"
     }
   ],
   "live_reconciliation": {
@@ -12732,14 +12799,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 237,
-    "url": "https://github.com/MulattoTech/MJobs/issues/237",
-    "branch": "codex/root-237-search-history-20261009",
+    "number": 517,
+    "url": "https://github.com/MulattoTech/MJobs/issues/517",
+    "branch": "codex/root-solo-517-capture-replay-20261009",
     "status": "PARTIAL",
     "related_requirements": [
-      "MJ-REQ-236"
+      "MJ-FEATURE-517"
     ],
-    "note": "Search History is integrated locally; finish only if a truthful duplicate tally can be sourced. Current UI shows Unknown when collectors do not measure duplicates."
+    "note": "Capture replay idempotency, out-of-order timestamp bounds, and review evidence reference readback are integrated locally with evidence. Issue remains OPEN/PARTIAL; broader provider/browser intake and live/hosted acceptance remain."
   },
   "historical_control_snapshots": [
     {
@@ -13897,9 +13964,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T06:46:30Z",
-  "current_verified_local_state": "Local main bc523f642a27795e3791d7bf0926e22473376277 (tree 2913914dcb56c71b8f6750af68545f6969b77951) integrates the connected MJ-REQ-236 / issue #237 profile-scoped Search History workflow. Exact feature source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); evidence docs/evidence/2026-10-09-search-history.json. Local main remains ahead of origin/main under local-only policy. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #237 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/237#issuecomment-6075897612. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T07:03:17Z",
+  "current_verified_local_state": "Local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c (tree 109f9461ae5616730ddd34410a7a2333fd79edde) integrates #517 source-candidate capture replay integrity and durable review-evidence readback. Exact tested code source 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Local main remains ahead of origin/main under local-only policy. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #517 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 372,
