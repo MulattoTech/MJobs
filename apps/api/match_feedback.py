@@ -122,11 +122,13 @@ def _history(value: Any, profile_id: str, job_id: str) -> dict[str, Any]:
     return {"profile_id": profile_id, "job_id": job_id, "items": items, "latest": latest}
 
 
-def _normalize_applied_preference(value: Any, profile_id: str) -> dict[str, str]:
-    fields = {"id", "job_id", "feedback_id", "category", "dimension", "direction", "created_at"}
+def _normalize_applied_preference(value: Any, profile_id: str) -> dict[str, Any]:
+    fields = {"id", "job_id", "company_id", "feedback_id", "category", "dimension", "direction", "created_at"}
     if (not isinstance(value, Mapping) or set(value) != fields
             or not all(_text(value.get(key), max_length=_MAX_ID)
                        for key in ("id", "job_id", "feedback_id"))
+            or (value.get("company_id") is not None
+                and not _text(value.get("company_id"), max_length=_MAX_ID))
             or not _category(value.get("category"))
             or value.get("dimension") not in {
                 "overall", "seniority", "technology", "location", "salary", "company",

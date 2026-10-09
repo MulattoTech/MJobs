@@ -75,7 +75,7 @@ class UserMatchFeedbackTests(unittest.TestCase):
         self.assertEqual(preference, {**replay, "replayed": False})
         stored = list_feedback_preferences(self.store, "fixture")["items"]
         self.assertEqual(len(stored), 1)
-        for key in ("id", "job_id", "feedback_id", "dimension", "direction", "created_at"):
+        for key in ("id", "job_id", "company_id", "feedback_id", "dimension", "direction", "created_at"):
             self.assertEqual(stored[0][key], preference["preference"][key])
 
     def test_preference_rejects_review_only_direction_and_request_id_reuse_conflicts(self):

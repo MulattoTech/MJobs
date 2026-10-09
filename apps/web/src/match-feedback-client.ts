@@ -23,6 +23,7 @@ export type MatchFeedbackRecord = {
 export type AppliedMatchPreference = {
   id: string;
   job_id: string;
+  company_id: string | null;
   feedback_id: string;
   category: MatchFeedbackCategory;
   dimension: PreferenceProposalDimension;
@@ -129,6 +130,7 @@ function isAppliedMatchPreference(value: unknown): value is AppliedMatchPreferen
   return isRecord(value)
     && isText(value.id, 256)
     && isScopeId(value.job_id)
+    && (value.company_id === null || isScopeId(value.company_id))
     && isText(value.feedback_id, 256)
     && isCategory(value.category)
     && ['overall', 'seniority', 'technology', 'location', 'salary', 'company'].includes(String(value.dimension))

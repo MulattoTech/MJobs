@@ -92,7 +92,8 @@ def _latest_source_freshness(values: list[Any]):
 
 
 def _signals(job: Mapping[str, Any], match: Mapping[str, Any],
-             posting_times: list[Any], job_id: str) -> dict[str, Any]:
+             posting_times: list[Any], job_id: str,
+             applied_preferences: list[Mapping[str, Any]] | None = None) -> dict[str, Any]:
     signals: dict[str, Any] = {"match_score": match.get("score")}
     attributes = job.get("attributes")
     if not isinstance(attributes, Mapping):
@@ -106,6 +107,21 @@ def _signals(job: Mapping[str, Any], match: Mapping[str, Any],
     work_arrangement_status = _fit_factor_status(match.get("components"), "work_arrangement")
     if work_arrangement_status is not None:
         signals["work_arrangement_status"] = work_arrangement_status
+    company_id = job.get("company_id")
+    company_feedback = [
+        item for item in (applied_preferences or [])
+        if item.get("dimension") == "company"
+        and item.get("company_id") == company_id
+        and item.get("category") in {"GOOD_MATCH", "BAD_COMPANY"}
+    ]
+    if company_feedback:
+        latest_company_feedback = max(
+            company_feedback,
+            key=lambda item: (str(item.get("created_at") or ""), str(item.get("id") or "")),
+        )
+        signals["company_preference"] = (
+            "PREFERRED" if latest_company_feedback["category"] == "GOOD_MATCH" else "DISFAVORED"
+        )
     if "application_complexity" in attributes:
         signals["application_complexity"] = attributes["application_complexity"]
     if "expires_at" in attributes:
@@ -137,7 +153,7 @@ def rank_jobs_by_application_priority(store, profile_id: str, jobs: list[dict[st
         raise ValueError("APPLICATION_PRIORITY_PROFILE_REQUIRED")
     if not isinstance(jobs, list) or any(not isinstance(row, dict) for row in jobs):
         raise ValueError("APPLICATION_PRIORITY_JOBS_INVALID")
-    applied = list_feedback_preferences(store, profile_id)["by_dimension"]
+    applied = list_feedback_preferences(store, profile_id)["items"]
     job_ids = [row.get("id") for row in jobs]
     if any(not isinstance(job_id, str) or not job_id for job_id in job_ids):
         raise ValueError("APPLICATION_PRIORITY_JOBS_INVALID")
@@ -158,9 +174,9 @@ def rank_jobs_by_application_priority(store, profile_id: str, jobs: list[dict[st
     for row in jobs:
         match = {"score": row.get("match_score"), "components": row.get("match_components")}
         result = explain_application_priority(
-            _signals(row, match, posting_times[row["id"]], row["id"]),
+            _signals(row, match, posting_times[row["id"]], row["id"], applied),
             now=observed_now,
-            applied_preferences=list(applied.values()),
+            applied_preferences=applied,
         )
         score = result["priority_score"]
         row["application_priority_score"] = score
@@ -264,11 +280,11 @@ def create_application_priority_router(
         match_score = match.get("score")
         if not _number(match_score):
             _error(409, "APPLICATION_PRIORITY_STALE_CONTEXT")
-        signals = _signals(job, match, posting_times, job_id)
         try:
-            reviewed = list_feedback_preferences(store, profile_id)["by_dimension"]
+            reviewed = list_feedback_preferences(store, profile_id)["items"]
+            signals = _signals(job, match, posting_times, job_id, reviewed)
             priority = _normalize_result(run_explainer(
-                signals, now=clock(), applied_preferences=list(reviewed.values()),
+                signals, now=clock(), applied_preferences=reviewed,
             ))
         except (TypeError, ValueError):
             _error(502, "APPLICATION_PRIORITY_RESULT_INVALID")

@@ -189,6 +189,35 @@ class ApplicationPriorityApiTests(unittest.TestCase):
         matches = self._snapshot()[m.matches.name]
         self.assertEqual(matches[0]["score"], 80.0)
 
+    def test_reviewed_company_feedback_is_bound_to_its_explicit_company_identity(self):
+        other_job = self._seed_job(job_id="other-job")
+        before = self.client.get(self._url()).json()
+        before_factor = next(row for row in before["factors"] if row["key"] == "company_preference")
+        self.assertEqual(before_factor["status"], "UNKNOWN")
+
+        feedback = self.client.post("/profiles/fixture/jobs/job/match-feedback", json={
+            "category": "BAD_COMPANY", "request_id": "company-feedback",
+        })
+        self.assertEqual(feedback.status_code, 200, feedback.text)
+        proposal = feedback.json()["preference_proposal"]
+        applied = self.client.post("/profiles/fixture/match-preferences", json={
+            "feedback_id": feedback.json()["feedback"]["id"],
+            "dimension": proposal["dimension"],
+            "direction": proposal["direction"],
+            "request_id": "company-feedback-apply",
+        })
+        self.assertEqual(applied.status_code, 200, applied.text)
+        self.assertEqual(applied.json()["preference"]["company_id"], "company-job")
+
+        after = self.client.get(self._url()).json()
+        after_factor = next(row for row in after["factors"] if row["key"] == "company_preference")
+        self.assertEqual(after_factor["status"], "KNOWN")
+        self.assertEqual(after_factor["score"], 20.0)
+        self.assertIn("disfavored", after_factor["explanation"].lower())
+        other = self.client.get(self._url(job_id=other_job["id"])).json()
+        other_factor = next(row for row in other["factors"] if row["key"] == "company_preference")
+        self.assertEqual(other_factor["status"], "UNKNOWN")
+
     def test_missing_job_attributes_remain_unknown_instead_of_receiving_fallbacks(self):
         before = self._snapshot()
 
