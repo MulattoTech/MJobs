@@ -677,6 +677,24 @@
           "head": "f7217cac16b6d3cfc3b1b1f2d8e6f6dcf684de4f",
           "merge_commit": "8240e471260ebeb60bde9932368651da410f3148"
         }
+      ],
+      "in_progress_slices": [
+        {
+          "issue": 85,
+          "requirement_id": "MJ-REQ-084",
+          "name": "Explain persisted ATS knowledge and usable adapter capability in application details",
+          "status": "IN_PROGRESS",
+          "branch": "codex/solo-req084-application-ats-knowledge-ui-20261009",
+          "worktree": ".worktrees/solo-mj-req084-ats-knowledge-20261009",
+          "base_commit": "3283d8e5ee262e26be51770d59b95efe7bef63c8",
+          "started_at": "2026-10-09T18:03:11Z",
+          "owned_paths": [
+            "apps/web/src/main.tsx",
+            "apps/web/src/application-adapter-knowledge.tsx",
+            "apps/web/src/application-adapter-knowledge.test.tsx",
+            "tests/browser/test_application_knowledge_display.py"
+          ]
+        }
       ]
     },
     {
@@ -4981,5 +4999,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T17:58:27Z"
+  "generated_at": "2026-10-09T18:03:11Z"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T17:58:27Z",
+  "generated_at": "2026-10-09T18:03:11Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "GitHub origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 at 2026-10-09T17:32:37Z; issue #134 remains OPEN/PARTIAL; no push or hosted verification.",
     "current_verified_at": "2026-10-09T17:32:37Z"
   },
-  "current_milestone": "MJ-REQ-134-SUPPORTING-DOCUMENTS-MOCK-APPLICATION-20261009",
-  "current_objective": "Complete profile-owned supporting-document selection and safe local mock upload for prepared job applications; then select the next highest-value dependency-ready jobseeker workflow.",
+  "current_milestone": "MJ-REQ-084-APPLICATION-ATS-KNOWLEDGE-UI-20261009",
+  "current_objective": "Connect persisted company-discovery ATS identity to prepared application details with an explainable, profile/job-scoped capability view; do not rediscover, rewrite routes, or enable external submissions.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -175,7 +175,15 @@
     "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported)."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    {
+      "issue": 85,
+      "requirement_id": "MJ-REQ-084",
+      "branch": "codex/solo-req084-application-ats-knowledge-ui-20261009",
+      "worktree": ".worktrees/solo-mj-req084-ats-knowledge-20261009",
+      "scope": "Connected application detail view for persisted company-discovery provider/tenant knowledge and truthful adapter capability. No new external adapter execution."
+    }
+  ],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -14396,7 +14404,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 135,
+  "active_development_issue": 85,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15555,7 +15563,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T17:58:27Z",
+  "updated_at": "2026-10-09T18:03:11Z",
   "current_verified_local_state": "Issue #135 / MJ-REQ-134 supporting-document workflow is integrated locally on main at 5065809d4bcfcb522d74cbf38c48efbdd74f09d5; feature source 2163f9da6edfd024b0115b89e964eb490310c1c1 (tree a83ce3136551953dfb23aca2281a590e719a94ba). Exact-source checks: API plus connected Chromium 6/6, web 544/544, TypeScript/Vite build, py_compile, diff check and lane validation PASS. Two adjacent mock-application browser failures reproduce unchanged on prior main; see docs/evidence/2026-10-09-supporting-document-mock-application.json. Real ATS upload, PostgreSQL, hosted checks and external submission remain unavailable/disabled.",
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and source is not pushed. GitHub issue #251 remains OPEN pending local-only source synchronization. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL and live provider NOT_RUN; external application submission OFF. Verified 2026-10-09T17:10:32Z.",
   "next_candidates": [
