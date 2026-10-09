@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "issue": 396,
+  "requirement": "MJ-REF-026",
+  "result": "PARTIAL",
+  "acceptance_status": "PARTIAL",
+  "scope": "Prioritize deterministic, distinct-job skill evidence gaps using user-reported application and interview relevance, with the ordering and counts explained in the connected heatmap.",
+  "source": {
+    "branch": "codex/root-solo-396-heatmap-priority-20261009",
+    "commit": "9f40bfcec64aad8033fb73b2bf95627ad5b4617a",
+    "tree": "d979085cc6e696443d923baadf0440b2ad95029e"
+  },
+  "tested_at_utc": "2026-10-09T09:23:05.938823Z",
+  "validation": {
+    "python_unit_and_integration": {
+      "result": "PASS",
+      "count": 13,
+      "summary": "Profile-scoped counts, gap/activity intersections, unknown metadata separation, deterministic priority ordering, and stale-version behavior."
+    },
+    "connected_browser": {
+      "result": "PASS",
+      "count": 1,
+      "summary": "A local fixture workflow retries a transient heatmap error, ranks user-reported interview gaps before application gaps, confirms profile-scoped API data and UI text, reloads and verifies the same saved match evidence, and records no external requests."
+    },
+    "frontend_tests": {
+      "result": "PASS",
+      "count": 4,
+      "summary": "Accessible loading/error/empty states, evidence caveats, priority explanation, and gap-specific outcome counts."
+    },
+    "frontend_build": {
+      "result": "PASS",
+      "summary": "TypeScript and Vite production build; existing large-chunk advisory remains."
+    },
+    "reference_provenance": "PASS",
+    "diff_check": "PASS",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "full_repository_suite": "NOT_RUN",
+    "live_sources": "NOT_USED",
+    "external_application_submission": "OFF"
+  },
+  "input_sha256": {
+    "services/learning/skill_gap_heatmap.py": "dd8c80f9b0bd43188c779972bac3d30636cc668859810aa8a2587e8645bb4b5a",
+    "apps/web/src/skill-gap-heatmap.tsx": "af6f7735be2aa28d1f80d92316f3612be97dc1ead1f56ebe0eb8c027a05b440e",
+    "apps/web/src/skill-gap-heatmap.test.tsx": "dbc26af651d55a8cb6e7804b2a67ad5c1d7b7b45268b035dd2f0e6fc7e9d8510",
+    "tests/unit/test_skill_gap_heatmap.py": "65e35903dfba00ce5fb702202254b505545f458b4b577c6139c3b66dd430fdff",
+    "tests/unit/test_skill_gap_heatmap_unknowns.py": "9ff8beb1b1ba3c2930cd140f6382891c352440ac52fa627fe678a0ce2289955b",
+    "tests/integration/test_skill_gap_heatmap_api.py": "2ace564182996b31d532fdda065b52c4f53b8ad1b6ceb00432a66d693235f0b5",
+    "tests/browser/test_skill_gap_heatmap_reload_recovery.py": "d989b43ce9dc0042adec1820f4e246333364bebfe16250725c95882103c67065",
+    "docs/reference/REFERENCE_INSPIRATION_LOG.md": "0553951c079e0bce7e3070f9775d588133041203c700b2a433d1b4b83ebdddb6"
+  },
+  "limitations": [
+    "No course/provider recommendations are generated; the slice explains deterministic skill priorities only. Full MJ-REF-026 remains PARTIAL.",
+    "Original MJ-REQ-115/MJ-REQ-120 and whole-product release acceptance remain separately tracked."
+  ],
+  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+}
