@@ -34,6 +34,10 @@ function score(value:unknown,nullable=false):boolean {
     ||(typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100);
 }
 
+function isScopeMismatchError(value:unknown):boolean {
+  return record(value)&&value.kind==='SCOPE_MISMATCH'&&value.retryable===false;
+}
+
 function responseHasValidShape(value:unknown):value is ApplicationPriorityApiResponse {
   if(!record(value)
     ||typeof value.profile_id!=='string'||typeof value.job_id!=='string'
@@ -72,7 +76,8 @@ export async function loadApplicationPriority(
     const response:unknown=await getApplicationPriority(profileId,jobId);
     if(!responseHasValidShape(response)) return {state:'error',explanation:null};
     return {state:'ready',explanation:response};
-  } catch {
+  } catch(error) {
+    if(isScopeMismatchError(error)) return {state:'scope-mismatch',explanation:null};
     return {state:'error',explanation:null};
   }
 }

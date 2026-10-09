@@ -58,6 +58,16 @@ describe('ApplicationPriority',()=>{
     expect(onRetry).not.toHaveBeenCalled();
   });
 
+  it('shows the browser-contract scope mismatch without score, factors, or retry',()=>{
+    const html=render({state:'scope-mismatch'});
+    expect(html).toContain('role="alert"');
+    expect(html).toContain('This priority explanation does not match the selected profile and job. Reload it before viewing.');
+    expect(html).not.toContain('78/100');
+    expect(html).not.toContain('Posted recently.');
+    expect(html).not.toContain('Priority factors');
+    expect(html).not.toContain('Retry');
+  });
+
   it('handles empty and malformed responses without inventing a score or adding controls',()=>{
     const empty=render({state:'ready',explanation:null});
     expect(empty).toContain('No application priority explanation is available');

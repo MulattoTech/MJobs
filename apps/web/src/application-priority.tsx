@@ -22,7 +22,7 @@ export type ApplicationPriorityExplanation = {
   affects_match_score:false;
 };
 
-export type ApplicationPriorityState = 'loading'|'error'|'ready';
+export type ApplicationPriorityState = 'loading'|'error'|'scope-mismatch'|'ready';
 
 type Props = {
   profileId:string;
@@ -60,7 +60,8 @@ export function ApplicationPriority({profileId,jobId,state,explanation,onRetry}:
     <div className="toolbar"><div><h2>Application priority</h2><p>Advisory ordering context for this job.</p></div></div>
     <p className="muted"><strong>Application priority is advisory only.</strong> Priority is separate from match score and does not change match score or job eligibility. It never rejects or hides a job.</p>
     {state==='loading'?<p role="status" aria-live="polite">Loading application priority…</p>
-      :state==='error'?<div role="alert"><p>Application priority could not be loaded.</p><button type="button" onClick={onRetry}>Retry</button></div>
+      :state==='scope-mismatch'?<p role="alert">This priority explanation does not match the selected profile and job. Reload it before viewing.</p>
+        :state==='error'?<div role="alert"><p>Application priority could not be loaded.</p><button type="button" onClick={onRetry}>Retry</button></div>
         :explanation&&!scopeMatches?<p role="alert">This priority explanation does not match the selected profile and job. Reload it before viewing.</p>
           :explanation&&!responseValid?<p role="alert">This priority explanation could not be verified as advisory. No score is shown.</p>
             :!safeExplanation?<p>No application priority explanation is available for this job.</p>

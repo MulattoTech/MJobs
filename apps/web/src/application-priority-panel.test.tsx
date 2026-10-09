@@ -87,6 +87,20 @@ describe('ApplicationPriorityPanel',()=>{
     expect(html).not.toContain('Recently posted.');
   });
 
+  it('maps non-retryable SCOPE_MISMATCH into the explicit no-retry browser state',async()=>{
+    const error=Object.assign(new Error('private mismatch details'),{kind:'SCOPE_MISMATCH',retryable:false});
+    const loaded=await loadApplicationPriority(vi.fn(async()=>{throw error;}),'profile-a','job-a');
+    expect(loaded.state).toBe('scope-mismatch');
+    const mapped=mapPriorityPanelState('profile-a','job-a',loaded);
+    const html=renderToStaticMarkup(<ApplicationPriority {...mapped} onRetry={vi.fn()}/>);
+    expect(html).toContain('This priority explanation does not match the selected profile and job. Reload it before viewing.');
+    expect(html).not.toContain('private mismatch details');
+    expect(html).not.toContain('73/100');
+    expect(html).not.toContain('Recently posted.');
+    expect(html).not.toContain('Retry');
+    expect(html).not.toContain('Priority factors');
+  });
+
   it('fails safely when the injected client rejects and does not resubmit automatically',async()=>{
     const getApplicationPriority=vi.fn(async()=>{throw new Error('private transport details');});
     const loaded=await loadApplicationPriority(getApplicationPriority,'profile-a','job-a');
@@ -103,6 +117,17 @@ describe('ApplicationPriorityPanel',()=>{
     retryButton?.props.onClick?.();
     expect(onRetry).toHaveBeenCalledTimes(1);
     expect(html).not.toMatch(/\b(Reject|Exclude|Submit|Apply now)\b/);
+  });
+
+  it('keeps retry available for a transient 503 client error',async()=>{
+    const error=Object.assign(new Error('private server detail'),{kind:'HTTP_ERROR',status:503,retryable:true});
+    const loaded=await loadApplicationPriority(vi.fn(async()=>{throw error;}),'profile-a','job-a');
+    expect(loaded.state).toBe('error');
+    const mapped=mapPriorityPanelState('profile-a','job-a',loaded);
+    const html=renderToStaticMarkup(<ApplicationPriority {...mapped} onRetry={vi.fn()}/>);
+    expect(html).toContain('Application priority could not be loaded');
+    expect(html).toContain('<button type="button">Retry</button>');
+    expect(html).not.toContain('private server detail');
   });
 
   it('shows loading status and uses the injected read-only client on render',()=>{
