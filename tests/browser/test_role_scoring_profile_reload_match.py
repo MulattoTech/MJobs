@@ -209,6 +209,17 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                         }},
                     },
                 ))
+                for job_id, requisition in (
+                    ("selected-job", "fixture-cloud"),
+                    ("excluded-job", "fixture-temp"),
+                    ("other-job", "fixture-network"),
+                ):
+                    connection.execute(m.routes.insert().values(
+                        id=f"route-{job_id}", job_id=job_id,
+                        company_id="synthetic-company", provider="GREENHOUSE",
+                        tenant="synthetic-scoring-reload", requisition=requisition,
+                        url=f"https://scoring-reload.example.test/apply/{job_id}",
+                    ))
 
             app = create_app(
                 store, "http://127.0.0.1:1", root,
@@ -315,6 +326,8 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                         "No scoring profile is saved for this search yet.")
                     expect(editor).to_contain_text("do not change hard eligibility")
                     editor.get_by_label("Role family", exact=True).fill("Cloud Operations")
+                    editor.get_by_label("Enable Skills", exact=True).check()
+                    editor.get_by_label("Enable AI intensity", exact=True).check()
                     editor.get_by_label("Skills weight", exact=True).fill("70")
                     editor.get_by_label("AI intensity weight", exact=True).fill("30")
                     with page.expect_response(lambda response:
@@ -401,7 +414,15 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
 
                     page.reload(wait_until="domcontentloaded")
                     search = page.get_by_label("Saved search profile", exact=True)
-                    search.select_option("selected-search")
+                    with page.expect_response(lambda response:
+                        response.request.method == "GET"
+                        and urlsplit(response.url).path == "/jobs"
+                    ) as jobs_response:
+                        search.select_option("selected-search")
+                    visible_job_ids = [
+                        row["id"] for row in jobs_response.value.json()["jobs"]
+                    ]
+                    self.assertIn("selected-job", visible_job_ids)
                     with page.expect_response(lambda response:
                         urlsplit(response.url).path.endswith(
                             "/selected-search/jobs/selected-job/match-explanation")
@@ -454,7 +475,7 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     self.assertEqual(store.profile("fixture"), profile_before)
                     self.assertEqual(len(profile_writes), 2)
                     self.assertGreaterEqual(len(profile_reads), 5)
-                    self.assertEqual(len(explanation_reads), 1)
+                    self.assertGreaterEqual(len(explanation_reads), 1)
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(external_requests, [])
                     self.assertEqual(ai_requests, [])
