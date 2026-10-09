@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-095"],
+  "github_issues": [96],
+  "result": "PARTIAL",
+  "scope": "For a saved job and a currently approved resume fact, the user can enter proposed wording, preview the exact source and proposal with provenance and protected-token auditing through the connected API, and explicitly acknowledge wording only when required dates, numbers, and named credentials are retained. The acknowledgement is temporary and is invalidated when the scope changes or the page reloads; the user must re-enter and preview the proposal again. Preview and acknowledgement do not save or generate a document.",
+  "source": {
+    "branch": "codex/solo-mj-req095-connected-resume-rewrite-review-20261009",
+    "base": "e991b15c3897039624fb712b7c380ed9b63eb558",
+    "tested_commit": "1ca6a2a7f19d8abc79295a51f50f04b0d03fe760",
+    "tested_tree": "efd259071ec3eee93ec61f15d993aaec0176d34f",
+    "tested_source_sha256": {
+      "apps/api/main.py": "E969E285CE56C9A0CA3B3D608698101F4D7B01B377D6FC16F7DE187E8F319296",
+      "apps/api/resume_rewrite_review.py": "638863C80824A85D3E64BF75CA0152768926D9271B598324725FE1A73078B035",
+      "services/documents/rewrite_review.py": "1CCCD161BB7DBE149767AF1EBA5EFD7907CD5012A44586D8074D91780BA6DEA6",
+      "apps/web/src/main.tsx": "9A13EFE929DAD39729F99ED2A62E8CDEF736C2E15296ADFBADE79EBAE35E884B",
+      "apps/web/src/resume-fact-selection.tsx": "451277E6EC5E7C9AEC94E3EFF2BF83225E50E8B127F2470FA2D6AE8128AC54A4",
+      "apps/web/src/resume-rewrite-review.tsx": "89FE78775616249C91ABFB15D7E0DAC35A1AD26949E67C13C0E5E7A9C9090660",
+      "tests/integration/test_resume_rewrite_review_api.py": "BC18E098B201DB575926020CFB7D3591ADB6B7879B6960B7C6587906628F77CD",
+      "tests/browser/test_resume_rewrite_review.py": "0B817D6BAA798DF6E9D60C8D003C120646760442C45603788D80F331C137829B"
+    }
+  },
+  "verified_at_utc": "2026-10-09T20:01:07Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite synthetic profile and job fixtures",
+    "frontend": "local TypeScript/Vite production build and connected Chromium",
+    "delivery": "local-only; not pushed; hosted automation and review disabled"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_resume_rewrite_review tests.integration.test_resume_rewrite_review_api -v",
+      "result": "PASS",
+      "evidence": "14 tests passed, including exact source/proposal binding, selected fact identity in the response, protected-token gaps, stale profile/job rejection, profile scoping, and no persistent writes."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_resume_rewrite_review -v",
+      "result": "PASS",
+      "evidence": "Connected Chromium verified source selection, proposal preview, explicit acknowledgement, stale-profile rejection, fresh re-preview after reload, blocking acknowledgements for missing dates/numbers/credentials, unchanged profile/document/application/operation counts, and zero external requests or submissions."
+    },
+    {
+      "command": "npx vitest run src/resume-rewrite-review.test.tsx src/resume-fact-selection.test.tsx",
+      "result": "PASS",
+      "evidence": "10 focused component tests passed."
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing advisory: generated JavaScript chunk is about 773 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile apps/api/resume_rewrite_review.py tests/integration/test_resume_rewrite_review_api.py tests/browser/test_resume_rewrite_review.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Python compilation and whitespace validation passed."
+    }
+  ],
+  "not_run": [
+    "Full Python and frontend repository suites.",
+    "PostgreSQL validation or live employer/ATS integrations.",
+    "Hosted Actions, hosted reviews, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "The acknowledgement is temporary browser state. Reload invalidates it; users must restore their proposal and request a new source-bound preview.",
+    "Automated token checks do not establish semantic equivalence; a person must judge whether the proposal preserves meaning.",
+    "MJ-REQ-095 remains PARTIAL because the broader tailoring and factual-validation scope is not complete."
+  ],
+  "safety": [
+    "The preview returns selected fact IDs and immutable source hashes so the browser can reject mismatched responses.",
+    "Missing protected tokens block acknowledgement. Stale profile/job snapshots fail closed.",
+    "The tested preview and acknowledgement did not mutate profile facts, create documents/applications/operations, or make external requests."
+  ]
+}
