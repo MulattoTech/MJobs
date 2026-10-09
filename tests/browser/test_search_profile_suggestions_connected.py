@@ -5,7 +5,7 @@ import tempfile
 import threading
 import time
 import unittest
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import select
@@ -40,14 +40,24 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
             with fixture_server() as source_origin:
                 discover(store, source_origin, "fixture")
 
-            for identifier, profile_id, name, title in (
-                    ("fixture-search", "fixture", "Alex search", "System Administrator"),
-                    ("other-search", "other", "Other search", "Network Administrator")):
-                save_search_profile(store, {
-                    "id": identifier, "profile_id": profile_id, "name": name,
-                    "enabled": True, "include_titles": [title], "remote": "REQUIRED",
-                    "employment_types": [], "source_ids": [],
-                })
+            save_search_profile(store, {
+                "id": "fixture-search", "profile_id": "fixture", "name": "Alex search",
+                "enabled": False,
+                "include_titles": ["System Administrator", "Platform Administrator"],
+                "exclude_titles": ["Junior Helpdesk Technician"],
+                "required_keywords": ["Windows Server"],
+                "remote": "REQUIRED", "employment_types": ["FULL_TIME"],
+                "source_ids": ["fixture"],
+                "job_filters": {
+                    "q": "infrastructure operations", "remote_type": "REMOTE",
+                    "provider": "greenhouse", "sort": "newest", "salary_min": "65000",
+                },
+            })
+            save_search_profile(store, {
+                "id": "other-search", "profile_id": "other", "name": "Other search",
+                "enabled": True, "include_titles": ["Network Administrator"],
+                "remote": "REQUIRED", "employment_types": [], "source_ids": [],
+            })
 
             fixture_version = store.profile("fixture")["version"]
             other_version = store.profile("other")["version"]
@@ -60,7 +70,8 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     ("Junior Helpdesk Technician", "fixture", fixture_version, 74),
                     ("Legacy Systems Engineer", "fixture", "stale-profile-version", 99),
                     ("System Administrator", "fixture", fixture_version, 96),
-                    ("Platform Administrator", "other", other_version, 90),
+                    ("Platform Administrator", "fixture", fixture_version, 90),
+                    ("Desktop Support Analyst", "other", other_version, 90),
                 )
                 for index, (title, profile_id, profile_version, score) in enumerate(matches):
                     job_id = identity("browser-search-profile-suggestion", f"{index}:{title}")
@@ -155,8 +166,13 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
 
                     before_retry = read_search("fixture-search")
                     original_criteria = before_retry["criteria"]
-                    self.assertEqual(original_criteria["include_titles"], ["System Administrator"])
+                    original_source_ids = before_retry["source_ids"]
+                    self.assertEqual(original_criteria["include_titles"], [
+                        "System Administrator", "Platform Administrator"])
                     self.assertEqual(original_criteria["remote"], "REQUIRED")
+                    self.assertEqual(original_criteria["employment_types"], ["FULL_TIME"])
+                    self.assertEqual(original_criteria["exclude_titles"], ["Junior Helpdesk Technician"])
+                    self.assertEqual(original_source_ids, ["fixture"])
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(accepted_profile_writes, [])
 
@@ -165,6 +181,14 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                             "/profiles/fixture/search-profile-suggestions") as retried_response:
                         retry.click()
                     self.assertEqual(retried_response.value.status, 200)
+                    fixture_request = next(
+                        url for url in reversed(suggestion_requests)
+                        if urlsplit(url).path == "/profiles/fixture/search-profile-suggestions")
+                    self.assertEqual(
+                        parse_qs(urlsplit(fixture_request).query).get("search_profile_id"),
+                        ["fixture-search"],
+                        "Suggestions must be scoped to the selected saved search profile",
+                    )
                     suggestions = suggestions_section.get_by_role(
                         "list", name="Related title suggestions", exact=True)
                     infrastructure = suggestions.locator("li").filter(
@@ -182,6 +206,14 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(accepted_profile_writes, [])
 
+                    foreign_search = page.request.get(
+                        origin + "/profiles/fixture/search-profile-suggestions"
+                        "?search_profile_id=other-search")
+                    self.assertGreaterEqual(
+                        foreign_search.status, 400,
+                        "A search profile owned by another career profile must fail closed",
+                    )
+
                     page.get_by_label("Active profile", exact=True).select_option("other")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("other")
                     other_selector = page.get_by_label(
@@ -190,7 +222,7 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     other_selector.select_option("other-search")
                     other_suggestions = page.get_by_role(
                         "list", name="Related title suggestions", exact=True)
-                    expect(other_suggestions.get_by_text("Platform Administrator", exact=True)).to_be_visible()
+                    expect(other_suggestions.get_by_text("Desktop Support Analyst", exact=True)).to_be_visible()
                     expect(other_suggestions.get_by_text("Infrastructure Support Engineer", exact=True)).to_have_count(0)
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(accepted_profile_writes, [])
@@ -208,7 +240,9 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                         add.click()
                     self.assertEqual(add_request.value.post_data_json["profile_id"], "fixture")
                     self.assertEqual(add_request.value.post_data_json["include_titles"], [
-                        "System Administrator", "Infrastructure Support Engineer"])
+                        "System Administrator", "Platform Administrator",
+                        "Infrastructure Support Engineer"])
+                    self.assertEqual(add_request.value.post_data_json["source_ids"], ["fixture"])
                     expect(page.get_by_role("button", name=(
                         "Add Infrastructure Support Engineer to Alex search"), exact=True)).to_have_count(0)
                     self.assertEqual(len(accepted_profile_writes), 1)
@@ -218,8 +252,15 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     durable = read_search("fixture-search")
                     self.assertEqual(durable["profile_id"], "fixture")
                     self.assertEqual(durable["criteria"]["include_titles"], [
-                        "System Administrator", "Infrastructure Support Engineer"])
+                        "System Administrator", "Platform Administrator",
+                        "Infrastructure Support Engineer"])
                     self.assertEqual(durable["criteria"]["remote"], "REQUIRED")
+                    self.assertEqual(durable["criteria"]["employment_types"], ["FULL_TIME"])
+                    self.assertEqual(durable["criteria"]["exclude_titles"], [
+                        "Junior Helpdesk Technician"])
+                    self.assertEqual(durable["criteria"]["required_keywords"], ["Windows Server"])
+                    self.assertEqual(durable["criteria"]["job_filters"], original_criteria["job_filters"])
+                    self.assertEqual(durable["source_ids"], original_source_ids)
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(external_requests, [])
                     self.assertEqual(submission_requests, [])
