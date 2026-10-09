@@ -48,6 +48,14 @@ PROFILE = {
         "confidence": 100,
         "verified": True,
         "user_approved": True,
+    }, {
+        "id": "approved-experience-ad",
+        "kind": "experience",
+        "text": "Managed Active Directory in a synthetic enterprise environment",
+        "source": "synthetic user-confirmed experience",
+        "confidence": 100,
+        "verified": True,
+        "user_approved": True,
     }],
     "answers": [],
 }
@@ -180,7 +188,8 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     id="selected-job", company_id="synthetic-company",
                     requisition="fixture-cloud", title="Cloud Systems Engineer",
                     description="Linux systems operations with source-reported AI tooling.",
-                    skills=["Linux"], location="Remote", remote_type="REMOTE",
+                    skills=["Linux", "Active Directory", "Windows Server"],
+                    location="Remote", remote_type="REMOTE",
                     attributes={"specialized_signals": {"ai_intensity": {
                         "score": 35,
                         "provenance": {
@@ -311,7 +320,8 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
-                    search = page.get_by_label("Saved search profile", exact=True)
+                    # The first-run wizard and Jobs filter share this accessible label.
+                    search = page.get_by_label("Saved search profile", exact=True).last
                     with page.expect_response(lambda response:
                         response.request.method == "GET"
                         and urlsplit(response.url).path ==
@@ -327,8 +337,10 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     expect(editor).to_contain_text("do not change hard eligibility")
                     editor.get_by_label("Role family", exact=True).fill("Cloud Operations")
                     editor.get_by_label("Enable Skills", exact=True).check()
+                    editor.get_by_label("Enable Verified experience", exact=True).check()
                     editor.get_by_label("Enable AI intensity", exact=True).check()
-                    editor.get_by_label("Skills weight", exact=True).fill("70")
+                    editor.get_by_label("Skills weight", exact=True).fill("50")
+                    editor.get_by_label("Verified experience weight", exact=True).fill("20")
                     editor.get_by_label("AI intensity weight", exact=True).fill("30")
                     with page.expect_response(lambda response:
                         response.request.method == "GET"
@@ -339,11 +351,12 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     created = create_readback.value.json()["profile"]
                     self.assertEqual(create_readback.value.status, 200)
                     self.assertEqual(created["role_family"], "Cloud Operations")
-                    self.assertEqual(created["weights"]["skills"], 70)
+                    self.assertEqual(created["weights"]["skills"], 50)
+                    self.assertEqual(created["weights"]["experience"], 20)
                     self.assertEqual(created["weights"]["ai_intensity"], 30)
 
                     page.reload(wait_until="domcontentloaded")
-                    search = page.get_by_label("Saved search profile", exact=True)
+                    search = page.get_by_label("Saved search profile", exact=True).last
                     with page.expect_response(lambda response:
                         response.request.method == "GET"
                         and urlsplit(response.url).path ==
@@ -357,8 +370,9 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     expect(editor).to_contain_text(f"current version {created['version']}")
 
                     editor.get_by_label("Role family", exact=True).fill("Cloud Platform Operations")
-                    editor.get_by_label("Skills weight", exact=True).fill("60")
-                    editor.get_by_label("AI intensity weight", exact=True).fill("40")
+                    editor.get_by_label("Skills weight", exact=True).fill("40")
+                    editor.get_by_label("Verified experience weight", exact=True).fill("30")
+                    editor.get_by_label("AI intensity weight", exact=True).fill("30")
                     with page.expect_response(lambda response:
                         response.request.method == "GET"
                         and urlsplit(response.url).path ==
@@ -375,14 +389,15 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     posted = edit_request.value.post_data_json
                     self.assertEqual(posted["expected_version"], created["version"])
                     self.assertEqual(edited["role_family"], "Cloud Platform Operations")
-                    self.assertEqual(edited["weights"]["skills"], 60)
-                    self.assertEqual(edited["weights"]["ai_intensity"], 40)
+                    self.assertEqual(edited["weights"]["skills"], 40)
+                    self.assertEqual(edited["weights"]["experience"], 30)
+                    self.assertEqual(edited["weights"]["ai_intensity"], 30)
                     self.assertNotEqual(edited["version"], created["version"])
 
                     # Reload after editing, then run the actual deterministic scorer
                     # over the selected persisted job using this search's durable criteria.
                     page.reload(wait_until="domcontentloaded")
-                    search = page.get_by_label("Saved search profile", exact=True)
+                    search = page.get_by_label("Saved search profile", exact=True).last
                     with page.expect_response(lambda response:
                         response.request.method == "GET"
                         and urlsplit(response.url).path ==
@@ -413,7 +428,7 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                     )
 
                     page.reload(wait_until="domcontentloaded")
-                    search = page.get_by_label("Saved search profile", exact=True)
+                    search = page.get_by_label("Saved search profile", exact=True).last
                     with page.expect_response(lambda response:
                         response.request.method == "GET"
                         and urlsplit(response.url).path == "/jobs"
@@ -438,6 +453,12 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                         "version": edited["version"],
                         "role_family": "Cloud Platform Operations",
                     })
+                    experience = next(row for row in explanation_body["scoring_contributions"]
+                                      if row["dimension"] == "experience")
+                    self.assertEqual(experience["raw_score"], 33.33)
+                    self.assertEqual(experience["weighted_contribution"], 10.0)
+                    self.assertEqual(experience["provenance"]["source"],
+                                     "USER_APPROVED_EXPERIENCE_FACTS")
                     explanation_heading = page.get_by_role(
                         "heading", name="Saved match explanation", exact=True)
                     explanation = page.locator(".job-detail section.panel").filter(
@@ -450,6 +471,8 @@ class RoleScoringProfileReloadMatchBrowserTests(unittest.TestCase):
                         "table", name="Scoring signal contributions", exact=True)
                     expect(contributions.get_by_role("row").filter(
                         has_text="AI intensity")).to_contain_text("35")
+                    expect(contributions.get_by_role("row").filter(
+                        has_text="Experience")).to_contain_text("33.33")
 
                     search.select_option("other-search")
                     expect(editor.get_by_label("Role family", exact=True)).to_have_value(

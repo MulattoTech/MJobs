@@ -9,6 +9,7 @@ from services.matching.scoring_profiles import (
     resolve_role_scoring_profile,
 )
 from services.matching.specialized_signals import score_specialized_signals
+from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
 
 
 _SPECIALIZED_DIMENSION_NAME = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
@@ -53,7 +54,65 @@ def _legacy_fallback(score, resolution):
     }
 
 
-def compose_profile_scoring(job, legacy_match, resolution):
+def _experience_contribution(job, candidate_profile, weight):
+    target_labels = {}
+    if isinstance(job, Mapping):
+        job_skills = job.get("skills")
+        for value in job_skills if isinstance(job_skills, (list, tuple, set)) else []:
+            identifier = canonical_skill_id(value)
+            label = skill_label(identifier) if identifier else None
+            if label:
+                target_labels[identifier] = label
+    target_skills = set(target_labels)
+    experience_skills = set()
+    if isinstance(candidate_profile, Mapping):
+        facts = candidate_profile.get("facts")
+        if isinstance(facts, (list, tuple)):
+            for fact in facts:
+                if not isinstance(fact, Mapping) or fact.get("kind") not in {
+                    "experience", "technology_experience", "responsibility", "project", "accomplishment",
+                }:
+                    continue
+                text = fact.get("text")
+                source = fact.get("source")
+                confidence = fact.get("confidence")
+                if (fact.get("verified") is not True or fact.get("user_approved") is not True
+                        or type(confidence) not in (int, float) or not isfinite(confidence)
+                        or confidence < 80 or not isinstance(text, str) or not text.strip()
+                        or not isinstance(source, str) or not source.strip()):
+                    continue
+                for label in extract_skills(text).get("labels", []):
+                    identifier = canonical_skill_id(label)
+                    if identifier:
+                        experience_skills.add(identifier)
+
+    matched = sorted(target_skills & experience_skills)
+    if target_skills and matched:
+        labels = [target_labels[identifier] for identifier in matched]
+        raw_score = round(100 * len(matched) / len(target_skills), 2)
+        explanation = (
+            f"Verified, user-approved experience facts match {len(matched)} of "
+            f"{len(target_skills)} recognized job skills: {', '.join(labels[:8])}."
+        )
+        provenance = {"source": "USER_APPROVED_EXPERIENCE_FACTS"}
+    else:
+        raw_score = None
+        explanation = (
+            "Relevant experience is UNKNOWN because no supported skill overlap is present in verified, "
+            "user-approved, source-backed experience facts; no score penalty is applied."
+        )
+        provenance = {"source": "UNKNOWN"}
+    return {
+        "dimension": "experience",
+        "weight": weight,
+        "raw_score": raw_score,
+        "weighted_contribution": None,
+        "explanation": explanation,
+        "provenance": provenance,
+    }
+
+
+def compose_profile_scoring(job, legacy_match, resolution, *, candidate_profile=None):
     """Return one explainable advisory result from a resolved profile and match baseline.
 
     The resolver remains the authority for selecting and validating profile data.
@@ -76,7 +135,7 @@ def compose_profile_scoring(job, legacy_match, resolution):
 
     supported_weights = {
         dimension: weight for dimension, weight in weights.items()
-        if _SPECIALIZED_DIMENSION_NAME.fullmatch(dimension)
+        if _SPECIALIZED_DIMENSION_NAME.fullmatch(dimension) and dimension != "experience"
     }
     unsupported_dimensions = {
         dimension: weight for dimension, weight in weights.items()
@@ -90,6 +149,9 @@ def compose_profile_scoring(job, legacy_match, resolution):
         job, weights=supported_weights, thresholds=supported_thresholds,
     )
     rows = list(signal_result["contributions"])
+    experience_weight = weights.get("experience", 0.0)
+    if experience_weight > 0:
+        rows.append(_experience_contribution(job, candidate_profile, experience_weight))
     rows.extend(
         _unknown_contribution(dimension, weight)
         for dimension, weight in unsupported_dimensions.items()
@@ -142,6 +204,7 @@ def resolve_and_compose_profile_scoring(
     role_family,
     profiles_by_role_family=None,
     default_profile=None,
+    candidate_profile=None,
 ):
     """Resolve a user-edited role profile and explain its advisory score.
 
@@ -155,4 +218,6 @@ def resolve_and_compose_profile_scoring(
         profiles_by_role_family,
         default_profile=default_profile,
     )
-    return compose_profile_scoring(job, legacy_match, resolution)
+    return compose_profile_scoring(
+        job, legacy_match, resolution, candidate_profile=candidate_profile,
+    )

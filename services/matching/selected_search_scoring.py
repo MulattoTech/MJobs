@@ -8,7 +8,7 @@ from services.matching.profile_scoring import resolve_and_compose_profile_scorin
 _SCORING_PROFILE_KEY = "role_scoring_profile"
 
 
-def compose_selected_search_match(job, legacy_match, criteria):
+def compose_selected_search_match(job, legacy_match, criteria, *, candidate_profile=None):
     """Apply only the scoring profile present in one selected search's criteria.
 
     The input is the criteria object loaded for the selected saved search. This
@@ -31,6 +31,7 @@ def compose_selected_search_match(job, legacy_match, criteria):
             legacy_match,
             role_family=None,
             profiles_by_role_family={},
+            candidate_profile=candidate_profile,
         )
     if not isinstance(profile, Mapping):
         raise ValueError("ROLE_SCORING_PROFILE_INVALID")
@@ -44,4 +45,5 @@ def compose_selected_search_match(job, legacy_match, criteria):
         legacy_match,
         role_family=role_family,
         profiles_by_role_family={role_family: profile},
+        candidate_profile=candidate_profile,
     )

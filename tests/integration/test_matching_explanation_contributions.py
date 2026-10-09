@@ -228,6 +228,55 @@ class MatchingExplanationContributionTests(unittest.TestCase):
         self.assertEqual(response.json()["detail"]["code"], "MATCH_EXPLANATION_STALE_CONTEXT")
         self.assertEqual(self._snapshot(), before_read)
 
+    def test_recalculation_persists_experience_weight_from_verified_profile_facts(self):
+        self.store.save_profile({
+            **deepcopy(PROFILE),
+            "facts": [
+                {"id": "verified-skill", "kind": "skill", "text": "Linux",
+                 "source": "synthetic profile", "confidence": 100,
+                 "verified": True, "user_approved": True},
+                {"id": "approved-experience", "kind": "experience",
+                 "text": "Administered Active Directory", "source": "synthetic profile",
+                 "confidence": 100, "verified": True, "user_approved": True},
+            ],
+        })
+        configured = self.client.put(self._profile_url(), json={
+            "expected_version": None,
+            "profile": {
+                "schema_version": 1,
+                "role_family": "Systems Administration",
+                "weights": {"skills": 0, "experience": 100},
+                "thresholds": {},
+            },
+        })
+        self.assertEqual(configured.status_code, 200, configured.text)
+        with self.store.engine.begin() as connection:
+            connection.execute(m.jobs.update().where(
+                m.jobs.c.id == "selected-job",
+            ).values(skills=["Linux", "Active Directory", "Windows Server"]))
+            search = dict(connection.execute(select(m.search_profiles).where(
+                m.search_profiles.c.id == "selected-search",
+            )).mappings().one())
+
+        from services.discovery.matching import recalculate
+        recalculate(self.store, "fixture", scoring_criteria=search["criteria"])
+
+        with self.store.engine.connect() as connection:
+            saved = dict(connection.execute(select(m.matches).where(
+                m.matches.c.job_id == "selected-job",
+                m.matches.c.profile_id == "fixture",
+                m.matches.c.profile_version == self.store.profile("fixture")["version"],
+            )).mappings().one())
+        self.assertEqual(saved["score"], 33.33)
+        explanation = self.client.get(self._explanation_url())
+        self.assertEqual(explanation.status_code, 200, explanation.text)
+        experience = next(row for row in explanation.json()["scoring_contributions"]
+                          if row["dimension"] == "experience")
+        self.assertEqual(experience["raw_score"], 33.33)
+        self.assertEqual(experience["weighted_contribution"], 33.33)
+        self.assertEqual(experience["provenance"]["source"],
+                         "USER_APPROVED_EXPERIENCE_FACTS")
+
 
 if __name__ == "__main__":
     unittest.main()

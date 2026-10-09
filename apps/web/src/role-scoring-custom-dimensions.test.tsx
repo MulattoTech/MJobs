@@ -74,7 +74,7 @@ function viewProps(
 describe('custom scoring dimensions', () => {
   it('keeps built-in dimensions and accepts stable custom keys in saved drafts', () => {
     expect(ROLE_SCORING_DIMENSIONS).toEqual([
-      'skills', 'title', 'salary', 'work_arrangement', 'employment_type',
+      'skills', 'title', 'experience', 'salary', 'work_arrangement', 'employment_type',
       'certification', 'education', 'ai_intensity',
     ]);
     expect(validateRoleScoringProfileDraft(customDraft)).toEqual([]);

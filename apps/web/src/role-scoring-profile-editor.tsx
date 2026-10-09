@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 export const ROLE_SCORING_DIMENSIONS = [
-  'skills', 'title', 'salary', 'work_arrangement', 'employment_type',
+  'skills', 'title', 'experience', 'salary', 'work_arrangement', 'employment_type',
   'certification', 'education', 'ai_intensity',
 ] as const;
 
@@ -35,6 +35,7 @@ export class RoleScoringProfileEditorError extends Error {
 const DIMENSION_LABELS:Record<BuiltInRoleScoringDimension,string> = {
   skills:'Skills',
   title:'Title',
+  experience:'Verified experience',
   salary:'Salary',
   work_arrangement:'Work arrangement',
   employment_type:'Employment type',
@@ -46,6 +47,7 @@ const DIMENSION_LABELS:Record<BuiltInRoleScoringDimension,string> = {
 const DIMENSION_DETAILS:Record<BuiltInRoleScoringDimension,string> = {
   skills:'Approved profile skills compared with evidence in the job posting.',
   title:'The job title compared with this editable role family.',
+  experience:'Recognized job skills matched by verified, user-approved, source-backed career experience. Missing evidence stays neutral.',
   salary:'Source-provided compensation compared with saved preferences.',
   work_arrangement:'Source-provided remote, hybrid, or on-site information.',
   employment_type:'Source-provided employment type compared with preferences.',

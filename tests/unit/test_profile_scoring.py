@@ -246,6 +246,59 @@ def test_resolve_and_compose_keeps_missing_configured_signal_explicitly_unknown(
     assert rows["hourly_comp_suitability"]["provenance"] == {"source": "UNKNOWN"}
 
 
+def test_experience_weight_uses_only_approved_profile_facts_and_normalized_job_skills():
+    profile = _profile("systems-experience", "systems", {"skills": 40, "experience": 60})
+    job = {
+        **_job(("experience", _signal(100, "UNTRUSTED_JOB_SIGNAL"))),
+        "skills": ["Active Directory", "Windows Server", "Azure"],
+    }
+    candidate_profile = {"facts": [
+        {"id": "fact-approved", "kind": "experience",
+         "text": "Managed Active Directory and Windows Server", "source": "resume.pdf",
+         "confidence": 90, "verified": True, "user_approved": True},
+        {"id": "fact-pending", "kind": "experience", "text": "Azure administration",
+         "source": "resume.pdf", "confidence": 99, "verified": False,
+         "user_approved": False},
+    ]}
+
+    result = compose_profile_scoring(
+        job, _legacy(50), _resolution(profile), candidate_profile=candidate_profile,
+    )
+    contributions = {row["dimension"]: row for row in result["scoring_contributions"]}
+
+    assert result["score"] == 60.0
+    assert contributions["experience"]["raw_score"] == 66.67
+    assert contributions["experience"]["weighted_contribution"] == 40.0
+    assert contributions["experience"]["provenance"] == {
+        "source": "USER_APPROVED_EXPERIENCE_FACTS",
+    }
+    assert "Active Directory" in contributions["experience"]["explanation"]
+    assert "Azure" not in contributions["experience"]["explanation"]
+
+
+def test_experience_weight_stays_unknown_without_approved_matching_facts():
+    profile = _profile("systems-experience", "systems", {"skills": 0, "experience": 100})
+    job = {
+        **_job(("experience", _signal(100, "UNTRUSTED_JOB_SIGNAL"))),
+        "skills": ["Active Directory"],
+    }
+
+    result = compose_profile_scoring(
+        job, _legacy(73), _resolution(profile), candidate_profile={"facts": [{
+            "id": "fact-pending", "kind": "experience", "text": "Active Directory",
+            "source": "resume.pdf", "confidence": 99, "verified": True,
+            "user_approved": False,
+        }]},
+    )
+    experience = next(row for row in result["scoring_contributions"]
+                      if row["dimension"] == "experience")
+
+    assert result["score"] == 73
+    assert experience["raw_score"] is None
+    assert experience["weighted_contribution"] is None
+    assert experience["provenance"] == {"source": "UNKNOWN"}
+
+
 def test_resolve_and_compose_uses_explicit_default_and_legacy_fallbacks():
     default = _profile("general", "General", {"skills": 100})
 

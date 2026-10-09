@@ -663,6 +663,7 @@ def recalculate(store, profile_id, profile_version=None, check=None, *, candidat
                 from services.matching.selected_search_scoring import compose_selected_search_match
                 composed = compose_selected_search_match(
                     job, {"score": explanation["score"]}, scoring_criteria,
+                    candidate_profile=profile,
                 )
                 explanation["score"] = composed["score"]
                 explanation["components"] = {
