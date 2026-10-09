@@ -2117,9 +2117,11 @@
     },
     {
       "requirement_id": "MJ-REQ-251",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-first-run-resume-review.json"
+      ],
+      "note": "User has a connected first-run opportunity to inspect and explicitly verify/approve imported resume facts before the profile review step completes; imported facts remain pending by default and approval persists through API readback and browser reload. See docs/evidence/2026-10-09-first-run-resume-review.json. Broader first-run wizard and end-to-end workflow remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-252",

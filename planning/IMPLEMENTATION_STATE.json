@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance readback. Local-only commits are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:23:40Z.",
     "current_verified_at": "2026-10-09T16:23:40Z"
   },
-  "current_milestone": "MJ-REQ-117-VERIFIED-EXPERIENCE-WEIGHT-20261009",
-  "current_objective": "Add saved-search weighting based only on verified, user-approved candidate experience facts and persist explainable selected-search results.",
+  "current_milestone": "MJ-REQ-251-FIRST-RUN-RESUME-REVIEW-20261009",
+  "current_objective": "Continue solo, feature-first development; complete the connected first-run resume fact review acceptance, then choose the next unclaimed core workflow.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -707,7 +707,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue solo with the highest-value dependency-ready user-facing core feature. Dice adapter issue #302 is still owned by Antigravity; reconcile remaining #517 source-candidate acceptance for a non-overlapping discovery/tracking gap, preserving all active claims and worktrees.",
+  "recommended_resume_step": "Reconcile current claims and select the next high-value dependency-ready, unclaimed core workflow; preserve all existing lane claims/worktrees and the root untracked compose-target evidence.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -741,7 +741,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712",
+  "last_implementation_commit": "bd3b79691a1ddec38db239545486af974f70244d",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under Codex integration lock; no PR or push.",
@@ -13577,12 +13577,59 @@
         "git_commit": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
         "evidence_path": "docs/evidence/2026-10-09-experience-weighted-matching.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-251-FIRST-RUN-RESUME-REVIEW-20261009",
+      "timestamp": "2026-10-09T16:48:15Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+      "completed_steps": [
+        "Added a connected browser acceptance proving imported resume facts stay pending until the user explicitly verifies and approves them.",
+        "Confirmed review completion reads persisted profile state across API readback and browser reload; application submission remains absent.",
+        "Integrated candidate bd3b79691a1ddec38db239545486af974f70244d by local fast-forward to main; no push."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-first-run-resume-review.json"
+      ],
+      "files_modified": [
+        "tests/browser/test_first_run_wizard.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "source_commit": "bd3b79691a1ddec38db239545486af974f70244d",
+      "source_tree": "8cc5a49af23aacc3d3cf86048ef1f74793be151a",
+      "integrated_main": "bd3b79691a1ddec38db239545486af974f70244d",
+      "integrated_tree": "8cc5a49af23aacc3d3cf86048ef1f74793be151a",
+      "result": "PASS",
+      "acceptance": "MJ-REQ-251 passed: imported facts are pending by default, first-run gives the user a review route, explicit approvals persist and the review step completes only after readback. Broader first-run and end-to-end requirements remain incomplete.",
+      "tests_completed": [
+        "Focused Python/integration/connected Chromium: 52 passed, 7 subtests.",
+        "TypeScript/Vite production build passed; existing bundle-size advisory remains.",
+        "Python compilation and git diff check passed."
+      ],
+      "tests_remaining": [
+        "Full Python repository suite, PostgreSQL, hosted checks/review NOT_RUN_BY_USER_POLICY.",
+        "Real external application submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated SQLite and local connected Chromium; external requests and submission were not used."
+      ],
+      "known_limitations": [
+        "This acceptance is limited to MJ-REQ-251; broader wizard, live providers, PostgreSQL and the full connected jobseeker workflow remain incomplete."
+      ],
+      "known_errors": [],
+      "last_safe_checkpoint": {
+        "git_commit": "bd3b79691a1ddec38db239545486af974f70244d",
+        "evidence_path": "docs/evidence/2026-10-09-first-run-resume-review.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
-    "evidence_path": "docs/evidence/2026-10-09-experience-weighted-matching.json"
+    "git_commit": "bd3b79691a1ddec38db239545486af974f70244d",
+    "evidence_path": "docs/evidence/2026-10-09-first-run-resume-review.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14062,20 +14109,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": {
-    "number": 118,
-    "url": "https://github.com/MulattoTech/MJobs/issues/118",
-    "requirement_id": "MJ-REQ-117",
-    "branch": "main",
-    "status": "LOCAL_MAIN_INTEGRATED_PARTIAL",
-    "source_commit": "c9ed0540469593a1f8fcb8a99b60b4f03373999a",
-    "integrated_main": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
-    "integrated_tree": "5642fe155f7e01fb0d3ee67f8c00adca4130cebd",
-    "related_requirements": [
-      "MJ-REQ-117"
-    ],
-    "note": "Verified-experience weighting slice is locally integrated; broader configurable weighting remains PARTIAL and issue #118 remains OPEN."
-  },
+  "active_development_issue": 252,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15234,9 +15268,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T16:24:00Z",
-  "current_verified_local_state": "Local main product code is integrated at 71e29e233d3af9af5dae57d8dc91aaab9c74bcbd (tree a573a70eaa22acb083862f91e182c8c302e1ed29): issue #253 / MJ-REQ-252 and issue #254 / MJ-REQ-253 both PASS with connected search-profile evidence. Preserve unrelated untracked compose-target evidence.",
-  "current_verified_github_state": "Origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance receipts. Local-only commits are not pushed. Hosted checks/review, PostgreSQL, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T16:24:00Z.",
+  "updated_at": "2026-10-09T16:48:15Z",
+  "current_verified_local_state": "Issue #252 / MJ-REQ-251 first-run resume fact review is PASS on local main bd3b79691a1ddec38db239545486af974f70244d (tree 8cc5a49af23aacc3d3cf86048ef1f74793be151a). Connected Chromium proves imported facts remain pending until the user explicitly verifies and approves; readback and reload preserve approval. Focused acceptance 52 passed, 7 subtests; build, py_compile and diff check pass. Untracked compose-target evidence remains preserved.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only commit not pushed. Issue #252 is open pending acceptance receipt/closeout. Hosted checks and review NOT_RUN_BY_USER_POLICY; PostgreSQL and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T16:48:15Z.",
   "next_candidates": [
     {
       "issue": 517,
