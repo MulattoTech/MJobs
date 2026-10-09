@@ -21,6 +21,7 @@ import { matchCategory } from './match-category';
 import { JobMatchScoreFilter } from './job-match-score-filter';
 import { isSensitiveAnswerQuestion, suggestAnswers } from './answer-matching';
 import { ApplicationAnswerMatching } from './application-answer-matching';
+import { ApplicationStoryReferenceWorkspace } from './application-story-reference-workspace';
 import { JobRiskSignalsPanel, type JobRiskSignalsResponse } from './job-risk-signals';
 import { RecruiterClassificationCard, type RecruiterClassification } from './recruiter-classification';
 import {
@@ -1388,6 +1389,35 @@ function App() {
                 onRetry={()=>void findApplicationAnswerMatches(index)}
                 onSelectDraft={suggestion=>applyApplicationAnswerSuggestion(index,suggestion)}
               />}
+              <ApplicationStoryReferenceWorkspace
+                key={`${profileId}:${selectedApp.id}:${draft.question}`}
+                profile_id={profileId}
+                application_id={selectedApp.id}
+                question={draft.question}
+                client={{
+                  load: async scope => {
+                    const response = await matchApplicationAnswers(
+                      {
+                        profileId: scope.profile_id,
+                        applicationId: scope.application_id,
+                        question: scope.question,
+                      },
+                      () => ({
+                        profileId: scope.profile_id,
+                        applicationId: scope.application_id,
+                        question: scope.question,
+                      }),
+                    );
+                    return {
+                      profile_id: response.profile_id,
+                      application_id: response.application_id,
+                      question: response.question,
+                      story_references: response.story_references,
+                    };
+                  },
+                }}
+                onCitationChange={() => {}}
+              />
               {sensitive&&sensitiveSuggestion?.source==='PROFILE_CONFIGURATION'&&sensitiveSuggestion.category&&!!sensitiveSuggestion.response&&<div className="provenance" aria-label={`Profile preference suggestion for question ${index+1}`}>
                 <p>Profile preference · {sensitiveSuggestion.mode==='PREFER_NOT_TO_ANSWER'?'Prefer not to answer':'Configured response'}</p>
                 <p>Proposed from this profile's explicit policy. This response requires review for this application.</p>

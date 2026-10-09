@@ -1,5 +1,6 @@
 """Connected synthetic acceptance for profile-scoped story citations in answer review."""
 from copy import deepcopy
+from contextlib import ExitStack
 from pathlib import Path
 import tempfile
 import threading
@@ -12,10 +13,9 @@ import uvicorn
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
-from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.career_profile.story_bank import create_story, review_story, revise_story
-from services.discovery.pipeline import discover
+from services.discovery.manual_capture import capture_manual_job
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
 
@@ -28,9 +28,10 @@ CURRENT_STORY_TEXT = "Maintained synthetic Linux services for four test sites."
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(), "Build apps/web before browser acceptance")
 class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
     def test_current_story_is_a_scoped_citation_with_separate_answer_review(self):
-        with tempfile.TemporaryDirectory(prefix="mjobs-answer-story-reference-") as directory:
+        with tempfile.TemporaryDirectory(prefix="mjobs-answer-story-reference-") as directory, ExitStack() as cleanup:
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'browser.db').as_posix()}")
+            cleanup.callback(store.engine.dispose)
             store.migrate()
             store.bind_workspace_mode("FIXTURE")
 
@@ -96,10 +97,19 @@ class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
             review_story(store, "other", foreign_story["story_id"], True,
                          "Synthetic acceptance review", expected_revision=1)
 
-            with fixture_server() as fixture:
-                discover(store, fixture, "fixture")
-                discover(store, fixture, "other")
-            job_id = store.jobs()[0]["id"]
+            job = capture_manual_job(store, {
+                "request_id": "answer-story-reference-synthetic-job",
+                "title": "Synthetic Linux Service Support Engineer",
+                "company": "Synthetic Story Reference Employer",
+                "description": (
+                    "Responsibilities: Maintain synthetic Linux services for four test sites. "
+                    "Coordinate service support and resolve service incidents. Required skills: Linux, support."
+                ),
+                "reference_url": "https://jobs.example.test/answer-story-reference",
+                "application_url": "https://apply.example.test/answer-story-reference",
+                "profile_id": "fixture",
+            })["job"]
+            job_id = job["id"]
             application_id = prepare(store, job_id, "fixture", root)
             other_application_id = prepare(store, job_id, "other", root)
 
@@ -159,7 +169,7 @@ class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
                     answer_box = self.add_question(page, question_text)
                     expect(answer_box).to_have_value("")
 
-                    matching = page.get_by_role("region", name="Application answer matching", exact=True)
+                    matching = page.get_by_role("region", name="Saved answer matches", exact=True)
                     with page.expect_response(
                         lambda response: response.request.method == "POST"
                         and response.url.endswith(ANSWER_MATCH_ROUTE.format(application_id=application_id))
@@ -185,7 +195,23 @@ class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
                     self.assertNotIn(old_story["story_id"], {row["story_id"] for row in references})
                     self.assertNotIn(foreign_story["story_id"], {row["story_id"] for row in references})
 
-                    reference_region = page.get_by_role("region", name="Saved story references", exact=True)
+                    reference_region = page.get_by_role(
+                        "region", name="Application story references", exact=True
+                    )
+                    with page.expect_response(
+                        lambda response: response.request.method == "POST"
+                        and response.url.endswith(ANSWER_MATCH_ROUTE.format(application_id=application_id))
+                    ) as reference_response:
+                        load_references = reference_region.get_by_role(
+                            "button", name="Load approved story references", exact=True
+                        )
+                        self.assertFalse(load_references.is_disabled(), reference_region.inner_text())
+                        load_references.click()
+                    self.assertEqual(reference_response.value.status, 200, reference_response.value.text)
+                    self.assertEqual(
+                        [row["story_id"] for row in reference_response.value.json()["story_references"]],
+                        [current_story["story_id"]],
+                    )
                     expect(reference_region).to_contain_text(current_story["story_id"])
                     expect(reference_region).to_contain_text("revision 1")
                     expect(reference_region).to_contain_text("answer-story-fact-current")
@@ -193,7 +219,12 @@ class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
                     expect(reference_region).not_to_contain_text(old_story["story_id"])
                     expect(reference_region).not_to_contain_text(foreign_story["story_id"])
 
-                    reference_region.get_by_role("button", name="Use as story citation", exact=True).click()
+                    reference_region.get_by_label(
+                        "I reviewed these approved story references for this answer", exact=True
+                    ).check()
+                    reference_region.get_by_role(
+                        "radio", name="Select Synthetic Linux service support revision 1 as a citation", exact=True
+                    ).check()
                     selected_citation = page.get_by_role(
                         "region", name="Selected story citation", exact=True
                     )
@@ -209,11 +240,26 @@ class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
                     self.assertEqual(browser_writes, [], "Citation selection must not write or export answers")
                     self.assertEqual(outside_requests, [], "FIXTURE browser attempted a non-local request")
 
+                    # Sensitive questions never receive story references or trigger matching.
+                    sensitive_question = page.locator("#application-answer-question-0")
+                    matches_before_sensitive = len(answer_match_requests)
+                    sensitive_question.fill("What is your ethnic origin?")
+                    sensitive_draft = page.locator("fieldset.fact").last
+                    expect(sensitive_draft.get_by_text("Sensitive or legal question", exact=False)).to_be_visible()
+                    sensitive_references = sensitive_draft.get_by_role(
+                        "region", name="Application story references", exact=True
+                    )
+                    expect(sensitive_references.get_by_role("alert")).to_contain_text(
+                        "do not receive career story references"
+                    )
+                    self.assertEqual(browser_writes, [])
+                    self.assertEqual(len(answer_match_requests), matches_before_sensitive)
+
                     # Citation selection is temporary; reload reads the same scoped source list.
                     page.reload(wait_until="domcontentloaded")
                     self.open_application(page)
                     answer_box = self.add_question(page, question_text)
-                    matching = page.get_by_role("region", name="Application answer matching", exact=True)
+                    matching = page.get_by_role("region", name="Saved answer matches", exact=True)
                     with page.expect_response(
                         lambda response: response.request.method == "POST"
                         and response.url.endswith(ANSWER_MATCH_ROUTE.format(application_id=application_id))
@@ -225,22 +271,6 @@ class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
                         [current_story["story_id"]],
                     )
                     expect(answer_box).to_have_value("")
-
-                    # Sensitive questions never receive story references or trigger matching.
-                    page.get_by_role("button", name="Add question", exact=True).click()
-                    sensitive_question = page.get_by_label("Employer question", exact=True).nth(1)
-                    matches_before_sensitive = len(answer_match_requests)
-                    sensitive_question.fill("What is your ethnic origin?")
-                    sensitive_draft = page.locator("fieldset.fact").last
-                    expect(sensitive_draft.get_by_text("Sensitive or legal question", exact=False)).to_be_visible()
-                    self.assertEqual(
-                        sensitive_draft.get_by_role(
-                            "region", name="Saved story references", exact=True
-                        ).count(),
-                        0,
-                    )
-                    self.assertEqual(browser_writes, [])
-                    self.assertEqual(len(answer_match_requests), matches_before_sensitive)
 
                     # The service rejects an otherwise-valid application ID under a foreign profile.
                     mismatched_scope = context.request.post(
