@@ -3,6 +3,7 @@ from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from sqlalchemy import select
 
@@ -70,6 +71,15 @@ class UserMatchFeedbackTests(unittest.TestCase):
             feedback_count = connection.execute(select(m.audit.c.id).where(
                 m.audit.c.action == "MATCH_FEEDBACK")).all()
         self.assertEqual(len(feedback_count), 1)
+
+    def test_replay_detection_does_not_depend_on_timestamp_precision(self):
+        with patch("services.matching.user_match_feedback.now", return_value="same-time"):
+            first = record_feedback(
+                self.store, "fixture", self.job["id"], "GOOD_MATCH", "fixed-clock")
+            replay = record_feedback(
+                self.store, "fixture", self.job["id"], "GOOD_MATCH", "fixed-clock")
+        self.assertFalse(first["replayed"])
+        self.assertTrue(replay["replayed"])
 
     def test_reusing_request_for_another_category_or_job_conflicts(self):
         record_feedback(self.store, "fixture", self.job["id"], "GOOD_MATCH", "request-fixed")

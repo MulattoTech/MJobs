@@ -75,7 +75,8 @@ def _append_once(connection, values: dict) -> None:
             index_elements=[m.audit.c.id])
     else:
         raise ValueError("Unsupported persistence backend")
-    connection.execute(statement)
+    result = connection.execute(statement)
+    return result.rowcount == 1
 
 
 def record_feedback(store, profile_id, job_id, category, request_id) -> dict:
@@ -118,7 +119,7 @@ def record_feedback(store, profile_id, job_id, category, request_id) -> dict:
             raise LookupError("Job is not currently matched to this profile")
 
         created_at = now()
-        _append_once(connection, {
+        inserted = _append_once(connection, {
             "id": event_id,
             "entity_id": profile_id,
             "action": "MATCH_FEEDBACK",
@@ -147,7 +148,7 @@ def record_feedback(store, profile_id, job_id, category, request_id) -> dict:
             "category": category,
             "created_at": stored["timestamp"],
         },
-        "replayed": stored["timestamp"] != created_at,
+        "replayed": not inserted,
         "preference_proposal": dict(stored_payload["proposal"]),
     }
 
