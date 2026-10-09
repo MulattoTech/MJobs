@@ -38,6 +38,7 @@ export type MatchFeedbackResult = {
 };
 
 export type MatchFeedbackSubmitter = {
+  load?: (profileId: string, jobId: string) => Promise<{ items: MatchFeedbackRecord[]; latest: MatchFeedbackRecord | null }>;
   submit: (
     profileId: string,
     jobId: string,
@@ -153,7 +154,7 @@ function normalizeReadback(
   value: unknown,
   profileId: string,
   jobId: string,
-  feedback: MatchFeedbackRecord,
+  feedback?: MatchFeedbackRecord,
 ): { items: MatchFeedbackRecord[]; latest: MatchFeedbackRecord | null } {
   if (!isRecord(value)) throw invalidResponse();
   if (value.profile_id !== profileId || value.job_id !== jobId) {
@@ -178,7 +179,7 @@ function normalizeReadback(
   if (latest && !items.some(item => item.id === latest.id && item.category === latest.category)) {
     throw invalidResponse();
   }
-  const confirmed = items.some(item => item.id === feedback.id && item.category === feedback.category);
+  const confirmed = feedback === undefined || items.some(item => item.id === feedback.id && item.category === feedback.category);
   if (!confirmed) {
     throw new MatchFeedbackClientError('READBACK_NOT_CONFIRMED', null, true);
   }
@@ -201,6 +202,15 @@ function checkResponse(response: Response): void {
 
 export function createMatchFeedbackClient(fetchImpl: typeof fetch = fetch): MatchFeedbackSubmitter {
   return {
+    async load(profileId, jobId) {
+      if (!isScopeId(profileId) || !isScopeId(jobId)) throw invalidRequest();
+      const path = `/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/match-feedback`;
+      let response: Response;
+      try { response = await fetchImpl(path, { headers: { accept: 'application/json' } }); }
+      catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+      checkResponse(response);
+      return normalizeReadback(await readJson(response), profileId, jobId);
+    },
     async submit(profileId, jobId, category, requestId) {
       if (!isScopeId(profileId) || !isScopeId(jobId) || !isCategory(category)
         || !/^[A-Za-z0-9._:-]{1,128}$/.test(requestId)) {

@@ -159,7 +159,7 @@ export function MatchFeedbackView({
 
     {preferenceProposal && <section className="panel" aria-label="Preference proposal">
       <h3>Deterministic preference proposal</h3>
-      <p>This proposal is an editable draft only; it has not been applied. Reviewing or editing it
+      <p><strong>Review required.</strong> This proposal is an editable draft only; it has not been applied. Reviewing or editing it
         does not change hard filters, match eligibility, or saved preferences.</p>
       <dl>
         <dt>Proposed dimension</dt>
@@ -262,7 +262,18 @@ export function MatchFeedback({
     requestGeneration.current += 1;
     requestContext.current = null;
     setModel(emptyModel(scopeKey));
-  }, [scopeKey]);
+    if (!profileId || !jobId || !client.load) return;
+    const generation = requestGeneration.current;
+    void client.load(profileId, jobId).then(history => {
+      if (generation !== requestGeneration.current) return;
+      setModel({ ...emptyModel(scopeKey), history: history.items });
+    }).catch(error => {
+      if (generation !== requestGeneration.current) return;
+      setModel({ ...emptyModel(scopeKey), phase: 'error',
+        error: error instanceof MatchFeedbackClientError ? error.message : 'Feedback history could not be loaded.',
+        retryable: false });
+    });
+  }, [scopeKey, profileId, jobId, client]);
 
   const chooseCategory = (category: MatchFeedbackCategory | null) => {
     if (category === visibleModel.category) return;

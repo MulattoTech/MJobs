@@ -620,6 +620,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_matching_explanations_router(store))
     from apps.api.job_comparison import create_job_comparison_router
     app.include_router(create_job_comparison_router(store))
+    from apps.api.match_feedback import create_match_feedback_router
+    app.include_router(create_match_feedback_router(store))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}

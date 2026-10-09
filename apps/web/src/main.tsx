@@ -47,6 +47,8 @@ import { RoleScoringProfileEditor } from './role-scoring-profile-editor';
 import { createRoleScoringProfileClient } from './role-scoring-profile-client';
 import { ApplicationPriorityPanel } from './application-priority-panel';
 import { createApplicationPriorityClient } from './application-priority-client';
+import { MatchFeedback } from './match-feedback';
+import { createMatchFeedbackClient } from './match-feedback-client';
 import { ApplicationMultipageWorkspace, type ApplicationMultipagePage } from './application-multipage-workspace';
 import { MatchingExplanationWorkflow } from './matching-explanation-workflow';
 import { createMatchingExplanationClient } from './matching-explanation-client';
@@ -69,6 +71,7 @@ import './style.css';
 
 const sourceCandidateReviewClient = createSourceCandidateReviewClient();
 const applicationPriorityClient = createApplicationPriorityClient();
+const matchFeedbackClient = createMatchFeedbackClient();
 const getApplicationPriority = (profileId:string,jobId:string) => applicationPriorityClient.load(profileId,jobId);
 const multipageApplicationPages:ApplicationMultipagePage[]=[
   {id:'contact',title:'Contact information',fields:[
@@ -1200,6 +1203,7 @@ function App() {
            {profileId&&<ApplicationPriorityPanel key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} getApplicationPriority={getApplicationPriority}/>}
            {profileId&&<JobRiskSignalsPanel key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} client={jobRiskSignalsClient}/>}
            {profileId&&<RecruiterClassificationCard key={`${profileId}:${detail.id}`} jobId={detail.id} client={recruiterClassificationClient}/>}
+           {profileId&&<MatchFeedback key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} client={matchFeedbackClient}/>}
            {profileId&&editor.version&&detail.alignment_fingerprint&&<ResumeWorkspaceConnected key={`${profileId}:${detail.id}:${editor.version}`} profileId={profileId} jobId={detail.id} profileVersion={editor.version} jobFingerprint={detail.alignment_fingerprint} facts={editor.facts}/>}
            {detail.attributes.certifications?.length?<section className="panel" aria-label="Certification mentions"><h3>Certification mentions</h3><p className="muted">Strength reflects wording in this job description. UNKNOWN means the description does not state whether a certification is required or preferred.</p><ul aria-label="Certification requirement strength">{detail.attributes.certifications.map((item,index)=><li key={item.id+index}><strong>{item.name}</strong> — {item.strength.replaceAll('_',' ')}</li>)}</ul></section>:null}
            {detail.attributes.salary&&<p>Published range: {detail.attributes.salary.map(s=>`${s.currency} ${s.min}–${s.max} (period ${s.period.toLowerCase()})`).join('; ')}</p>}

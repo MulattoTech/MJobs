@@ -43,7 +43,7 @@ def _feedback_bundle_is_mounted() -> bool:
     api_source = (ROOT / "apps/api/main.py").read_text(encoding="utf-8")
     index = ROOT / "apps/web/dist/index.html"
     assets = ROOT / "apps/web/dist/assets"
-    if ("MatchFeedbackWorkflow" not in web_source
+    if ("<MatchFeedback " not in web_source
             or "create_match_feedback_router" not in api_source
             or not index.is_file() or not assets.is_dir()):
         return False
@@ -248,7 +248,7 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     page.set_default_timeout(8000)
                     page.goto(origin, wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
-                    page.get_by_role("button", name="Jobs", exact=True).click()
+                    page.get_by_role("button", name="Jobs").click()
                     page.get_by_label("Saved search profile", exact=True).select_option(
                         "fixture-feedback-search",
                     )
@@ -338,7 +338,7 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     # Reload must repopulate saved feedback by GET for this exact
                     # profile/job pair; matching history reads remain local/read-only.
                     page.reload(wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Jobs", exact=True).click()
+                    page.get_by_role("button", name="Jobs").click()
                     page.get_by_label("Saved search profile", exact=True).select_option(
                         "fixture-feedback-search",
                     )
@@ -370,12 +370,12 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     self.assertEqual(second_job_history.value.status, 200)
                     self.assertEqual(second_job_history.value.json()["items"], [])
                     self.assertIsNone(second_job_history.value.json()["latest"])
-                    expect(page.get_by_role("region", name="Job match feedback")).not_to_contain_text(
-                        "Bad match",
-                    )
+                    expect(page.get_by_role("region", name="Job match feedback").get_by_role(
+                        "region", name="Saved feedback history",
+                    )).to_have_count(0)
 
                     page.get_by_label("Active profile", exact=True).select_option("other")
-                    page.get_by_role("button", name="Jobs", exact=True).click()
+                    page.get_by_role("button", name="Jobs").click()
                     page.get_by_label("Saved search profile", exact=True).select_option(
                         "other-feedback-search",
                     )
@@ -390,9 +390,9 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                         ).click()
                     self.assertEqual(other_profile_history.value.status, 200)
                     self.assertEqual(other_profile_history.value.json()["items"], [])
-                    expect(page.get_by_role("region", name="Job match feedback")).not_to_contain_text(
-                        "Bad match",
-                    )
+                    expect(page.get_by_role("region", name="Job match feedback").get_by_role(
+                        "region", name="Saved feedback history",
+                    )).to_have_count(0)
 
                     self.assertFalse(fail_first_saved_response)
                     self.assertEqual(blocked_writes, [])
