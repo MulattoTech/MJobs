@@ -188,6 +188,26 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
         self.assertEqual(response.json()["fields"], [])
         self.assertNotIn("PRIVATE_ANSWER", response.text)
 
+    def test_cyclic_field_dependencies_fail_closed(self):
+        self._persist_fields(mappings=[
+            {
+                "question_id": "country", "kind": "select", "label": "Country",
+                "required": True, "visible": True, "dependent_on": "region",
+                "choices": ["United States"], "repeatable": False,
+            },
+            {
+                "question_id": "region", "kind": "select", "label": "Region",
+                "required": True, "visible": True, "dependent_on": "country",
+                "choices": ["Oklahoma"], "repeatable": False,
+            },
+        ])
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json().get("status"), "REVIEW_REQUIRED")
+        self.assertEqual(response.json().get("fields"), [])
+
     def test_field_and_option_bounds_fail_closed_without_partial_metadata(self):
         self._persist_fields(mappings=[{
             "question_id": "region", "kind": "select", "label": "R" * 501,

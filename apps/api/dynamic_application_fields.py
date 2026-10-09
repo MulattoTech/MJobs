@@ -92,6 +92,25 @@ def _fields(report: Mapping) -> list[dict] | None:
     if any(field["depends_on"] is not None and field["depends_on"] not in seen
            for field in fields):
         return None
+    parents = {field["id"]: field["depends_on"] for field in fields}
+    visiting = set()
+    visited = set()
+
+    def has_cycle(field_id: str) -> bool:
+        if field_id in visiting:
+            return True
+        if field_id in visited:
+            return False
+        visiting.add(field_id)
+        parent = parents[field_id]
+        if parent is not None and has_cycle(parent):
+            return True
+        visiting.remove(field_id)
+        visited.add(field_id)
+        return False
+
+    if any(has_cycle(field_id) for field_id in parents):
+        return None
     return fields
 
 
