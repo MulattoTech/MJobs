@@ -83,7 +83,8 @@
     "MJ-REF-002": {
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-career-story-answer-citations.json"
+        "docs/evidence/2026-10-09-career-story-answer-citations.json",
+        "docs/evidence/2026-10-09-career-story-export-citations.json"
       ]
     },
     "MJ-REF-003": {

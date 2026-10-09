@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "issue": 372,
+  "requirement": "MJ-REF-002",
+  "result": "PARTIAL",
+  "acceptance_status": "PARTIAL",
+  "scope": "Persist a separately reviewed current career-story citation with its reviewed application-answer export and expose provenance in profile-scoped document history without changing answer text or TXT bytes.",
+  "source": {
+    "branch": "codex/root-solo-372-citation-export-20261009",
+    "commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
+    "tree": "fbcf211cc142db645d67b476fe236383d837bd87"
+  },
+  "integrated_main": {
+    "sha": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
+    "tree": "fbcf211cc142db645d67b476fe236383d837bd87",
+    "method": "local non-force fast-forward under the Codex integration lock"
+  },
+  "tested_at_utc": "2026-10-09T09:07:18Z",
+  "validation": {
+    "connected_api_and_browser": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_story_citation_export tests.browser.test_application_answer_story_references -v",
+      "summary": "4 API integration tests and 1 connected Chromium workflow passed. Current approved revision and exact fact fingerprints are required; stale, tampered, and sensitive-question citations are rejected before export. The browser explicitly reviews and selects a citation, exports a reviewed answer, reloads profile-scoped document history, verifies source-fact IDs, confirms TXT bytes contain only the answer text, and records no external requests."
+    },
+    "related_python_regressions": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_answer_export tests.integration.test_application_answer_matching_api tests.integration.test_career_story_bank_durable_readback tests.unit.test_career_story_bank tests.unit.test_career_story_selection -v",
+      "summary": "41 existing export, answer-matching, durable story-bank, and story-selection tests passed."
+    },
+    "frontend_tests": {
+      "result": "PASS",
+      "command": "npm run test --prefix apps/web -- --run src/application-story-reference-workspace.test.tsx src/application-answer-matching.test.tsx src/application-answer-matching-client.test.ts src/document-history.test.tsx",
+      "summary": "36 tests passed across 4 files."
+    },
+    "frontend_build": {
+      "result": "PASS",
+      "command": "npm run build --prefix apps/web",
+      "summary": "TypeScript and Vite production build passed; the existing large-chunk advisory remains."
+    },
+    "repository_validators": {
+      "result": "PASS",
+      "commands": [
+        "python -m tools.verification.agent_skills",
+        "python -m tools.verification.catalogue",
+        "python -m tools.verification.progress validate",
+        "python -m tools.verification.reference_provenance",
+        "git diff --check"
+      ]
+    },
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "full_repository_suite": "NOT_RUN",
+    "live_ats_or_source_access": "NOT_USED",
+    "external_application_submission": "OFF"
+  },
+  "input_sha256": {
+    "apps/api/main.py": "0411868b8f7b8b3b658245d377dae610f97862d7960cc3b8e0ad181268289beb",
+    "apps/web/src/main.tsx": "9feb0036465046588d9af61e8805fefc814025aea427e085872f818965f8843d",
+    "apps/web/src/document-history.tsx": "5e13b18ee4d7d7975de425ead5162ea74926ab9acd978bed288077aa9483a54a",
+    "services/documents/answer_story_citations.py": "ffb999db7ef9288cf7aed10c363e808da2c6d12413310afb9741126b80aeb38c",
+    "services/documents/history.py": "f35dee0b90b32ada9ad419400ab392f6f872e1490e08042c552f880315bd0240",
+    "tests/integration/test_application_answer_story_citation_export.py": "c1ff75c9f3bf47043740d084218b205166ae80755c3361313b99bddb567b6af4",
+    "tests/browser/test_application_answer_story_references.py": "3e5ce409ad94b1cdfdbc7b8565d9980507ea57c8c49809ea146ca62e8111f0a0"
+  },
+  "limitations": [
+    "Citation provenance is appended in a separate audit transaction immediately after the immutable answer-export transaction; an interruption between those commits could leave an export without its citation record.",
+    "Story citations are not yet selectable for resume or cover-letter generation, so MJ-REF-002 remains PARTIAL.",
+    "PostgreSQL, hosted verification, and full-repository regression were not run."
+  ],
+  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+}

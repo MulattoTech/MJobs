@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration was not pushed and no PR was opened. Issue #134 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T08:48:49Z"
   },
-  "current_milestone": "MJ-REQ-133-DYNAMIC-FORM-REVIEW-20261009",
-  "current_objective": "Continue solo feature-first product development after integrating the connected dynamic-form review slice; keep MJ-REQ-133 PARTIAL until durable, real-provider form handling and its safety gates are proven.",
+  "current_milestone": "MJ-REF-002-ANSWER-EXPORT-CITATION-20261009",
+  "current_objective": "Continue solo feature-first product development. Reviewed, current career-story citations now persist with application-answer export history; keep MJ-REF-002 PARTIAL until document-generation story selection and the remaining acceptance are complete.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -717,16 +717,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "8a2c98135bb1748d7ec40658f11fdbc957a4468e",
+  "last_implementation_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under the existing Codex integration lock; no PR opened or push performed.",
-    "integration_commit": "8a2c98135bb1748d7ec40658f11fdbc957a4468e",
-    "prior_main": "645b27145d5cde63d94f545e326c56b9d538c747",
+    "integration_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
+    "prior_main": "cd90d0127fd914b7f467a647c71c184429feb5cd",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Exact tested source integrated to local main. Canonical progress/evidence checkpoint is being recorded under the same lock. Hosted checks, full Python suite, PostgreSQL, and live ATS remain NOT_RUN; external submission OFF."
+    "note": "Exact tested source integrated to local main. Batched evidence and progress-tracker refresh follows under the same lock. Hosted checks, PostgreSQL, and full repository suite remain NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -1750,7 +1750,7 @@
     },
     {
       "milestone_id": "M18-ATS-SEARCH-DETECTION-LOCAL",
-      "timestamp": "2026-10-01T23:55:59.049070Z",
+      "timestamp": "2026-10-01T23:55:59.04907Z",
       "current_phase": "M18_ATS_SEARCH_DETECTION_LOCAL_VERIFIED",
       "completed_steps": [
         "Reconciled and repaired stale PR #444 planning/evidence state using merged GitHub state, exact head and successful exact-head runs.",
@@ -1807,7 +1807,7 @@
     },
     {
       "milestone_id": "M19-ATS-TENANT-SOURCE-HIERARCHY-LOCAL",
-      "timestamp": "2026-10-02T00:26:58.998180Z",
+      "timestamp": "2026-10-02T00:26:58.99818Z",
       "current_phase": "M19_ATS_TENANT_SOURCE_HIERARCHY_LOCAL_VERIFIED",
       "completed_steps": [
         "Reconciled live main after PR #445 merged; corrected stale PR-018 state and evidence additively.",
@@ -2050,7 +2050,7 @@
     },
     {
       "milestone_id": "RESUME-PROFILE-FEEDBACK-20261003",
-      "timestamp": "2026-10-03T19:07:22.805950Z",
+      "timestamp": "2026-10-03T19:07:22.80595Z",
       "current_phase": "RESUME_PROFILE_FEEDBACK_LOCAL_VERIFIED",
       "completed_steps": [
         "Reproduced the missing import/profile/history behavior.",
@@ -2181,7 +2181,7 @@
     },
     {
       "milestone_id": "RESUME-UPLOAD-INTEGRITY-20261003",
-      "timestamp": "2026-10-03T20:02:48.702650Z",
+      "timestamp": "2026-10-03T20:02:48.70265Z",
       "current_phase": "RESUME_UPLOAD_INTEGRITY_VERIFIED",
       "completed_steps": [
         "Reproduced alternate-format orphan file on identical-byte upload.",
@@ -2223,7 +2223,7 @@
     },
     {
       "milestone_id": "FULL-DELIVERY-INTEGRATION-20261003",
-      "timestamp": "2026-10-03T20:09:49.399240Z",
+      "timestamp": "2026-10-03T20:09:49.39924Z",
       "current_phase": "FEEDBACK_RESUME_CATALOGUE_UPLOAD_INTEGRATION",
       "completed_steps": [
         "Integrated preserved feedback GUI, resume/profile work,59-reference catalogue and upload integrity fix.",
@@ -2498,7 +2498,7 @@
     },
     {
       "milestone_id": "company-source-monitoring-20261004",
-      "timestamp": "2026-10-04T00:22:19.621350Z",
+      "timestamp": "2026-10-04T00:22:19.62135Z",
       "current_phase": "COMPANY_SOURCE_MONITORING_LOCAL_VERIFIED",
       "completed_steps": [
         "Reconciled PR477 exact-head merge",
@@ -2679,7 +2679,7 @@
     },
     {
       "milestone_id": "document-provenance-20261004",
-      "timestamp": "2026-10-04T18:53:14.753590Z",
+      "timestamp": "2026-10-04T18:53:14.75359Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "2120534c1d169c125412cf63321c2916d2a28984",
@@ -2884,7 +2884,7 @@
       "known_errors": [],
       "known_limitations": [],
       "milestone_id": "ats-headings-20261004",
-      "timestamp": "2026-10-04T20:47:50.621120Z",
+      "timestamp": "2026-10-04T20:47:50.62112Z",
       "current_phase": "MERGED",
       "last_safe_checkpoint": {
         "git_commit": "5a2f77c2a622433c9bf3dbcad22294a3de99c595",
@@ -3130,7 +3130,7 @@
     },
     {
       "milestone_id": "CORE-WORKFLOW-TRIAL-B-MANUAL-CAPTURE",
-      "timestamp": "2026-10-05T05:28:10.640890Z",
+      "timestamp": "2026-10-05T05:28:10.64089Z",
       "current_phase": "B_MANUAL_CAPTURE_REVIEW_REPAIR",
       "completed_steps": [
         "Implemented manual job capture on the existing Jobs screen and canonical persistence model",
@@ -12603,12 +12603,68 @@
         "git_commit": "3b4c86dd604d7ef7d8651159ae2c2231586e8221",
         "evidence_path": "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-002-ANSWER-EXPORT-CITATION-20261009",
+      "current_phase": "Issue #372 / MJ-REF-002 citation-export slice integrated on local main at f5e53b0dfd2ba03d133df1efdf53411e4a540fdc (tree fbcf211cc142db645d67b476fe236383d837bd87). Users can explicitly review a current approved story for an answer, then retain its story revision and fact fingerprints in profile-scoped document history. The TXT answer bytes are unchanged. Evidence: docs/evidence/2026-10-09-career-story-export-citations.json.",
+      "timestamp": "2026-10-09T09:07:18Z",
+      "completed_steps": [
+        "Reconciled solo mode, root integration lock, active claims and worker roster; no agents were spawned, and the active #302 source-adapter claim was preserved.",
+        "Connected application-question citation selection to the reviewed answer export request; question-scope changes clear citation state while answer edits continue to require exact-answer review.",
+        "Revalidated current approved story revision, application-answer allowed use, sensitive-question gate, and exact linked fact fingerprints before export.",
+        "Persisted only story/revision/fact provenance identifiers as an append-only application audit event and exposed it in profile-scoped document history after reload; exported TXT bytes remain unchanged.",
+        "Fast-forwarded the exact tested source to local main at f5e53b0dfd2ba03d133df1efdf53411e4a540fdc; requirement MJ-REF-002 and issue #372 remain PARTIAL/OPEN."
+      ],
+      "files_added": [
+        "services/documents/answer_story_citations.py",
+        "tests/integration/test_application_answer_story_citation_export.py",
+        "docs/evidence/2026-10-09-career-story-export-citations.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/document-history.tsx",
+        "services/documents/history.py",
+        "tests/browser/test_application_answer_story_references.py",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Citation API and connected Chromium workflow: 4 integration tests plus 1 browser test PASS; synthetic SQLite, no external requests.",
+        "Related existing Python answer-export/matching and story-bank suites: 41 tests PASS.",
+        "Focused web story-reference, answer-matching and document-history Vitest: 36 tests PASS.",
+        "TypeScript/Vite production build PASS with the existing large-chunk advisory.",
+        "Agent skill, catalogue, progress, reference-provenance validators and source diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Resume and cover-letter generation cannot yet select story-bank revisions; MJ-REF-002 remains PARTIAL.",
+        "PostgreSQL runtime, full repository test suites, hosted checks/review, and live ATS/source access NOT_RUN.",
+        "Citation audit persistence uses a separate transaction immediately after immutable export creation; an interruption between transactions can leave an export without its citation record."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic profile/job/story data, temporary SQLite, local API and Chromium only; no external HTTP requests or application submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Story citations remain separate provenance and never populate or alter answer text.",
+        "Story citation audit write and immutable answer export are separate database transactions; failure recovery for the narrow inter-transaction window remains incomplete.",
+        "Story selection for resume and cover-letter generation remains unimplemented; MJ-REF-002 remains PARTIAL.",
+        "Hosted checks/review are NOT_RUN_BY_USER_POLICY; PostgreSQL and full repository suite are NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
+        "evidence_path": "docs/evidence/2026-10-09-career-story-export-citations.json"
+      }
     }
   ],
-  "current_phase": "Issue #408 / MJ-REF-038 stale-explanation recovery is locally integrated at 3b4c86dd604d7ef7d8651159ae2c2231586e8221 (tree 147ef3e379337b97c036c9efe5c016543e4c6aa5). On a stale saved score, the selected-job explanation now offers a profile-wide deterministic rescore, waits for the durable operation, reloads the selected job list, and reads the current scoped explanation. Pending, failure, attribution, and profile isolation paths are covered. MJ-REF-038 remains PARTIAL/OPEN pending full acceptance reconciliation; the separate selected-search default-score persistence claim is preserved. Original MJ-REQ-112..120 remain separate. Evidence: docs/evidence/2026-10-09-role-scoring-stale-recovery.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
+  "current_phase": "Issue #372 / MJ-REF-002 citation-export slice integrated on local main at f5e53b0dfd2ba03d133df1efdf53411e4a540fdc (tree fbcf211cc142db645d67b476fe236383d837bd87). Users can explicitly review a current approved story for an answer, then retain its story revision and fact fingerprints in profile-scoped document history. The TXT answer bytes are unchanged. Evidence: docs/evidence/2026-10-09-career-story-export-citations.json.",
   "last_safe_checkpoint": {
-    "git_commit": "3b4c86dd604d7ef7d8651159ae2c2231586e8221",
-    "evidence_path": "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
+    "git_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
+    "evidence_path": "docs/evidence/2026-10-09-career-story-export-citations.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12997,14 +13053,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 408,
-    "url": "https://github.com/MulattoTech/MJobs/issues/408",
-    "branch": "codex/root-solo-408-fixture-route-20261009",
-    "status": "CHECKPOINTED_PARTIAL",
+    "number": 372,
+    "url": "https://github.com/MulattoTech/MJobs/issues/372",
+    "branch": "codex/root-solo-372-citation-export-20261009",
+    "status": "INTEGRATED_PARTIAL",
     "related_requirements": [
-      "MJ-REF-038"
+      "MJ-REF-002"
     ],
-    "note": "Stale explanation now queues and awaits profile rescore, then reads the current saved-match breakdown. Full #408 remains open/partial; preserve the separate #408 default-score persistence claim and its branch/worktree."
+    "note": "Current approved story citations are now explicitly selected, revalidated, persisted as provenance-only audit links to immutable answer exports, and shown after document-history reload. Resume/cover-letter story selection remains incomplete; separate audit/export transaction failure recovery is a known limitation."
   },
   "historical_control_snapshots": [
     {
@@ -14162,14 +14218,14 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T08:13:30Z",
-  "current_verified_local_state": "Local main 3b4c86dd604d7ef7d8651159ae2c2231586e8221 (tree 147ef3e379337b97c036c9efe5c016543e4c6aa5) includes the role-scoring stale-explanation rescore/reload recovery. Matching/scoring Python 48 + 28 subtests, router mount 1, Chromium 4, web 474 across 79 files, TypeScript/Vite build, local reference/lane/progress validators and diff check pass. MJ-REF-038 remains PARTIAL; original matching requirements are separate. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under local-only policy. #408 has an accurate OPEN/PARTIAL local-integration receipt at https://github.com/MulattoTech/MJobs/issues/408#issuecomment-6077131595. No push or PR; hosted CI/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T09:07:18Z",
+  "current_verified_local_state": "Local main f5e53b0dfd2ba03d133df1efdf53411e4a540fdc (tree fbcf211cc142db645d67b476fe236383d837bd87) includes the #372 reviewed story-citation export workflow. Current approved revision and exact fact fingerprints are revalidated; only provenance IDs are appended to application audit history and read back in profile-scoped document history. Connected API/Chromium 5/5, related existing Python 41/41, focused web 36/36, TypeScript/Vite build, agent-skill/catalogue/progress/reference validators and diff checks PASS. Answer TXT bytes remain unchanged; sensitive/stale/tampered citation negatives pass. MJ-REF-002 remains PARTIAL; full Python suite/PostgreSQL/hosted checks NOT_RUN.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under local-only policy; local main is ahead by 249 commits after this fast-forward. No push or PR. Issue #372 receives a local-integration receipt; hosted CI/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 517,
       "requirement_id": "MJ-FEATURE-517",
-      "status": "RECONCILE_NEXT: current main already has durable source-candidate API/UI/capture hooks; issue #517 includes manual capture, external application, provenance, review, and evaluation gaps. Verify alias-idempotency candidate and review workflow before implementation."
+      "status": "RECONCILE_NEXT: capture/review gaps remain; source adapter paths are claimed by Antigravity #302, so select only a disjoint acceptance gap after claims are checked."
     },
     {
       "issue": 134,
@@ -14179,7 +14235,7 @@
     {
       "issue": 372,
       "requirement_id": "MJ-REF-002",
-      "status": "PARTIAL_ON_LOCAL_MAIN: current approved story references are mounted in application answer review with explicit review/selection and sensitive-question suppression. Citation is not persisted with exports; document-generation story selection and full story-bank acceptance remain open."
+      "status": "PARTIAL_ON_LOCAL_MAIN: answer citation is persisted as provenance in profile-scoped export history; resume/cover-letter story selection and remaining MJ-REF-002 acceptance remain incomplete."
     },
     {
       "issue": 377,
