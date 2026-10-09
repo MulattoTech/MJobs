@@ -3,6 +3,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from sqlalchemy import select
+
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.learning.search_profile_suggestions import suggest_search_profile_titles
@@ -24,13 +26,14 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
         )
         self.store.migrate()
         self.store.save_profile(dict(PROFILE))
+        self.store.save_profile({**PROFILE, "id": "other-profile"})
         self.next_job = 0
 
     def tearDown(self):
         self.store.engine.dispose()
         self.directory.cleanup()
 
-    def _match(self, title, score, *, profile_version=None):
+    def _match(self, title, score, *, profile_id="fixture", profile_version=None):
         self.next_job += 1
         job_id = f"scope-job-{self.next_job}"
         company_id = f"scope-company-{self.next_job}"
@@ -45,8 +48,8 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
                 attributes={},
             ))
             connection.execute(m.matches.insert().values(
-                id=f"scope-match-{job_id}", job_id=job_id, profile_id="fixture",
-                profile_version=profile_version or self.store.profile("fixture")["version"],
+                id=f"scope-match-{job_id}", job_id=job_id, profile_id=profile_id,
+                profile_version=profile_version or self.store.profile(profile_id)["version"],
                 score=score, missing=[], components={},
             ))
 
@@ -59,21 +62,82 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
         self._match("Platform Administrator", 99, profile_version=previous_version)
         self._match("System Administrator", 95)
         self._match("Infrastructure Support Engineer", 75)
+        self._match("Infrastructure Support Engineer", 90)
         self._match("Review Only Engineer", 74)
+        self._match("Foreign Profile Engineer", 99, profile_id="other-profile")
 
         self.assertEqual(
             suggest_search_profile_titles(
                 self.store,
                 "fixture",
                 current_title=" system administrator ",
-                excluded_titles=[" PLATFORM ADMINISTRATOR "],
+                excluded_titles=[
+                    " PLATFORM ADMINISTRATOR ",
+                    "platform administrator",
+                    "  Platform Administrator  ",
+                ],
             ),
             [{
                 "title": "Infrastructure Support Engineer",
-                "strong_match_count": 1,
-                "reason": "Observed in 1 current strong match.",
+                "strong_match_count": 2,
+                "reason": "Observed in 2 current strong matches.",
             }],
         )
+
+    def test_duplicate_selected_search_exclusions_do_not_suppress_other_candidate_matches(self):
+        self._match("System Administrator", 95)
+        self._match("Infrastructure Support Engineer", 75)
+        self._match("Infrastructure Support Engineer", 90)
+
+        self.assertEqual(
+            suggest_search_profile_titles(
+                self.store,
+                "fixture",
+                excluded_titles=[
+                    " SYSTEM ADMINISTRATOR ",
+                    "system administrator",
+                    "  System Administrator  ",
+                ],
+            ),
+            [{
+                "title": "Infrastructure Support Engineer",
+                "strong_match_count": 2,
+                "reason": "Observed in 2 current strong matches.",
+            }],
+        )
+
+    def test_search_including_all_matched_titles_returns_empty_without_changing_evidence(self):
+        selected_search_include_titles = [
+            "System Administrator",
+            "Infrastructure Support Engineer",
+            "Platform Administrator",
+        ]
+        self._match("System Administrator", 95)
+        self._match("Infrastructure Support Engineer", 75)
+        self._match("Platform Administrator", 90)
+
+        def persisted_evidence():
+            with self.store.engine.connect() as connection:
+                return connection.execute(
+                    select(
+                        m.matches.c.job_id,
+                        m.matches.c.profile_version,
+                        m.matches.c.score,
+                    ).where(m.matches.c.profile_id == "fixture")
+                    .order_by(m.matches.c.job_id)
+                ).all()
+
+        evidence_before = persisted_evidence()
+        self.assertEqual(len(evidence_before), 3)
+
+        suggestions = suggest_search_profile_titles(
+            self.store,
+            "fixture",
+            excluded_titles=selected_search_include_titles,
+        )
+
+        self.assertEqual(suggestions, [])
+        self.assertEqual(persisted_evidence(), evidence_before)
 
 
 if __name__ == "__main__":
