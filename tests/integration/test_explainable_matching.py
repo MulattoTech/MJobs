@@ -608,6 +608,87 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertEqual(factors["work_arrangement"]["status"], "ALIGNS")
         self.assertEqual(factors["employment_type"]["status"], "ALIGNS")
 
+    def test_relevant_experience_fit_requires_approved_experience_evidence(self):
+        from services.discovery.matching import build_explanation
+
+        job = {
+            "title": "Systems Administrator",
+            "skills": ["Windows Server", "Active Directory"],
+            "attributes": {"skill_evidence": "description_mentions"},
+        }
+        profile = {"facts": [
+            {"kind": "technology_experience",
+             "text": "Administered Active Directory and Windows Server for enterprise users",
+             "source": "approved resume revision", "confidence": 95,
+             "verified": True, "user_approved": True},
+            {"kind": "responsibility", "text": "Managed VMware clusters",
+             "source": "approved resume revision", "confidence": 95,
+             "verified": True, "user_approved": True},
+            {"kind": "experience", "text": "Used Active Directory",
+             "source": "pending import", "confidence": 100,
+             "verified": False, "user_approved": False},
+        ]}
+
+        result = build_explanation(job, profile)
+        factors = {row["id"]: row for row in result["components"]["fit_factors"]}
+        experience = factors.get("relevant_experience")
+
+        self.assertEqual(result["score"], 0)
+        self.assertIsNotNone(experience, "matching should explain relevant approved experience")
+        self.assertEqual(experience["status"], "ALIGNS")
+        self.assertEqual(experience["score_effect"], "NONE")
+        self.assertIn("Active Directory", experience["explanation"])
+        self.assertIn("locally recognized", experience["explanation"])
+        self.assertNotIn("Used Active Directory", experience["explanation"])
+
+    def test_relevant_experience_fit_stays_unknown_without_supported_evidence(self):
+        from services.discovery.matching import build_explanation
+
+        job = {"skills": ["Windows Server"], "attributes": {}}
+        profiles = [
+            {"facts": []},
+            {"facts": [{"kind": "technology_experience", "text": "Windows Server",
+                        "source": "import", "confidence": 100,
+                        "verified": True, "user_approved": False}]},
+            {"facts": [{"kind": "skill", "text": "Windows Server", "source": "approved",
+                        "confidence": 100, "verified": True, "user_approved": True}]},
+        ]
+
+        for profile in profiles:
+            with self.subTest(profile=profile):
+                result = build_explanation(job, profile)
+                factor = next((row for row in result["components"]["fit_factors"]
+                               if row["id"] == "relevant_experience"), None)
+                self.assertIsNotNone(factor, "matching should include the relevant-experience factor")
+                self.assertEqual(factor["status"], "UNKNOWN")
+                self.assertEqual(factor["score_effect"], "NONE")
+        no_job_skills = build_explanation({"skills": [], "attributes": {}}, profiles[0])
+        factor = next((row for row in no_job_skills["components"]["fit_factors"]
+                       if row["id"] == "relevant_experience"), None)
+        self.assertIsNotNone(factor, "matching should retain the factor when job evidence is missing")
+        self.assertEqual(factor["status"], "UNKNOWN")
+
+        unsupported_job_skill = build_explanation({"skills": ["Unrecognized private technology"],
+                                                   "attributes": {}}, profiles[0])
+        factor = next(row for row in unsupported_job_skill["components"]["fit_factors"]
+                      if row["id"] == "relevant_experience")
+        self.assertEqual(factor["status"], "UNKNOWN")
+
+    def test_relevant_experience_no_direct_match_does_not_claim_missing_qualification(self):
+        from services.discovery.matching import build_explanation
+
+        result = build_explanation({"skills": ["Windows Server"], "attributes": {}}, {"facts": [{
+            "kind": "technology_experience", "text": "Managed VMware clusters",
+            "source": "approved resume", "confidence": 95,
+            "verified": True, "user_approved": True,
+        }]})
+        factor = next(row for row in result["components"]["fit_factors"]
+                      if row["id"] == "relevant_experience")
+
+        self.assertEqual(factor["status"], "NO_DIRECT_MATCH")
+        self.assertIn("other relevant experience may not be represented", factor["explanation"])
+        self.assertEqual(factor["score_effect"], "NONE")
+
     def test_unavailable_fit_inputs_are_unknown_and_never_penalize_score(self):
         from services.discovery.matching import build_explanation
 

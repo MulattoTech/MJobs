@@ -279,6 +279,65 @@ def _education_fit_factors(job, profile):
     }]
 
 
+def _relevant_experience_fit_factor(job, profile):
+    """Compare job skills with approved experience facts without inferring qualifications."""
+    target_labels = {}
+    for value in _strings(job.get("skills")):
+        identifier = canonical_skill_id(value)
+        if not identifier:
+            continue
+        label = skill_label(identifier)
+        if label:
+            target_labels[label.casefold()] = label
+    target_skills = set(target_labels)
+    if not target_skills:
+        return {
+            "id": "relevant_experience", "label": "Relevant experience", "status": "UNKNOWN",
+            "explanation": "The posting has no supported skill evidence to compare with career experience.",
+            "score_effect": "NONE",
+        }
+
+    experience_skills = set()
+    for fact in profile.get("facts", []):
+        if not isinstance(fact, dict) or fact.get("kind") not in {
+                "experience", "technology_experience", "responsibility", "project", "accomplishment"}:
+            continue
+        text = fact.get("text")
+        source = fact.get("source")
+        confidence = fact.get("confidence")
+        if (fact.get("verified") is not True or fact.get("user_approved") is not True
+                or type(confidence) not in (int, float) or confidence < 80
+                or not isinstance(text, str) or not text.strip()
+                or not isinstance(source, str) or not source.strip()):
+            continue
+        experience_skills.update(_canonical_set(extract_skills(text)["labels"]))
+
+    if not experience_skills:
+        status = "UNKNOWN"
+        explanation = (
+            "No approved, sufficiently confident experience facts contain locally recognized skills; "
+            "missing profile evidence does not show that relevant experience is absent."
+        )
+    else:
+        matched = sorted(target_labels[key] for key in target_skills & experience_skills)
+        if matched:
+            status = "ALIGNS"
+            explanation = (
+                "Approved experience facts directly mention locally recognized job skills: "
+                + ", ".join(matched) + "."
+            )
+        else:
+            status = "NO_DIRECT_MATCH"
+            explanation = (
+                "No direct overlap was found between locally recognized job skills and approved experience facts; "
+                "other relevant experience may not be represented in those facts."
+            )
+    return {
+        "id": "relevant_experience", "label": "Relevant experience", "status": status,
+        "explanation": explanation, "score_effect": "NONE",
+    }
+
+
 def _fit_factors(job, profile):
     """Describe directly comparable profile preferences and job attributes."""
     attributes = job.get("attributes") or {}
@@ -355,6 +414,7 @@ def _fit_factors(job, profile):
                     "explanation": explanation, "score_effect": "NONE"})
     factors.extend(_certification_fit_factors(job, profile))
     factors.extend(_education_fit_factors(job, profile))
+    factors.append(_relevant_experience_fit_factor(job, profile))
     return factors
 
 
