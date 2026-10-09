@@ -24,13 +24,15 @@ def _has_strong_match_category(score):
     return _STRONG_CATEGORY_MINIMUM <= score <= _MATCH_SCORE_MAXIMUM
 
 
-def suggest_search_profile_titles(store, profile_id, current_title=None):
+def suggest_search_profile_titles(store, profile_id, current_title=None, excluded_titles=()):
     """Aggregate titles from current-version strong matches for one profile.
 
     Results are case-insensitively deduplicated, ordered by descending count
     then normalized title, and capped at 20. strong_match_count counts
     current-profile/current-version scored jobs in the existing Strong,
-    Excellent, or Exceptional categories.
+    Excellent, or Exceptional categories. ``current_title`` is kept for
+    backward compatibility; ``excluded_titles`` lets the selected saved
+    search suppress all of its explicitly included titles from suggestions.
     """
     with store.engine.connect() as connection:
         profile_version = connection.execute(
@@ -49,14 +51,26 @@ def suggest_search_profile_titles(store, profile_id, current_title=None):
             )
         ).all()
 
-    excluded_title = current_title.strip().casefold() if isinstance(current_title, str) else ""
+    excluded = set()
+    if isinstance(current_title, str) and current_title.strip():
+        excluded.add(current_title.strip().casefold())
+    if isinstance(excluded_titles, str):
+        excluded_titles = (excluded_titles,)
+    try:
+        excluded_values = iter(excluded_titles)
+    except TypeError:
+        excluded_values = iter(())
+    for title in excluded_values:
+        if isinstance(title, str) and title.strip():
+            excluded.add(title.strip().casefold())
+
     grouped = {}
     for title, score in rows:
         if not isinstance(title, str):
             continue
         title = title.strip()
         normalized = title.casefold()
-        if not normalized or normalized == excluded_title or not _has_strong_match_category(score):
+        if not normalized or normalized in excluded or not _has_strong_match_category(score):
             continue
 
         entry = grouped.setdefault(normalized, {"title": title, "strong_match_count": 0})
