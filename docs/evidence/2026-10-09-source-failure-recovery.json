@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-246"
+  ],
+  "github_issues": [
+    247
+  ],
+  "result": "PARTIAL",
+  "scope": "For monitored company sources, transient retryable failures after a healthy check remain visibly degraded with a bounded retry schedule for the first two consecutive failures; the third failure transitions to FAILED and stops automatic retries. A user can manually run the check after the cooldown and a successful check restores HEALTHY and clears the failure count. Access-denied sources remain BLOCKED without automatic retries; structural feed changes retain the rediscovery review gate.",
+  "source": {
+    "branch": "codex/solo-mj-req246-source-failure-recovery-20261009",
+    "base": "6e81ccf3c3850eddae2c5d5eea0620ed8b019eca",
+    "tested_commit": "1158f50a7b4a7e4d32b3d91cc426ce49dd5f587d",
+    "tested_tree": "13386ab674c383f1b0c56f17a68e93462ac1e9da",
+    "tested_source_sha256": {
+      "services/company_discovery/monitoring.py": "061B0D46AA7888C62A6A27B8CED756AD928DA41AC3188009FD982AB8A29C5BF2",
+      "services/company_discovery/sources.py": "AA6489629A51531A03B759C4C3F07AF3FEF5CFB460F6C7B7472BD41CDADE2FA5",
+      "apps/web/src/company-source-monitoring.tsx": "9033576CD203E2B65ED6792C05281F87DE28222AA74B9B01D1EBCB3D9E3C69E8",
+      "apps/web/src/company-source-monitoring.test.tsx": "750E1DA5A31B40785FD46CBFDE8666536E8888CA8D88A24C2A58AB0EE967EBFC",
+      "tests/integration/test_company_source_monitoring.py": "A5301556D109DEBB77BEA7D0F97892DA0B3D014EA62F3F5D4BCF65287D87A6B9"
+    }
+  },
+  "verified_at_utc": "2026-10-09T20:16:36Z",
+  "environment": {
+    "os": "Windows",
+    "database": "synthetic service fixtures with mocked HTTP responses",
+    "frontend": "focused local Vitest plus TypeScript/Vite build",
+    "delivery": "local-only; hosted automation/review disabled; external application submission OFF"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_source_monitoring",
+      "result": "PASS",
+      "evidence": "7 integration tests passed, including bounded 503 retry state, terminal stop, manual recovery/reset, 403 blocked state, and structural rediscovery gate. Network responses are mocked; no external requests were made."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/company-source-monitoring.test.tsx",
+      "result": "PASS",
+      "evidence": "5 focused component tests passed for degraded status/count, scheduled retry presentation, terminal failure, and manual recovery control."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed; existing bundle-size advisory remains."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services/company_discovery/monitoring.py services/company_discovery/sources.py tests/integration/test_company_source_monitoring.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Python compilation and whitespace validation passed on the tested source commit."
+    }
+  ],
+  "not_run": [
+    "Full Python and frontend repository suites.",
+    "PostgreSQL validation or live company-source provider requests.",
+    "Hosted Actions, hosted reviews, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "Acceptance is limited to monitored company-source recovery; other discovery-source worker/provider failure paths remain outside this evidence.",
+    "The feature is local and has not been pushed; hosted checks remain unavailable by policy.",
+    "MJ-REQ-246 remains PARTIAL pending broader source lifecycle acceptance."
+  ],
+  "safety": [
+    "Automatic retries stop after three consecutive retryable failures.",
+    "Access-denied responses are not retried; structural changes continue to require explicit rediscovery review.",
+    "Tests used mocked network responses and made no real provider requests. External application submission remains OFF."
+  ]
+}
