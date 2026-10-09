@@ -41,7 +41,7 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
         return TestClient(app)
 
     def _persist_fields(self, *, profile_version=None, document_version=None,
-                        metadata_fingerprint="a" * 64, mappings=None):
+                        metadata_fingerprint="a" * 64, mappings=None, optional_sections=None):
         application = self.store.application(self.application_id)
         report = {
             "result": "PASS",
@@ -54,6 +54,7 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
             "tenant": "example",
             "requisition": "A",
             "metadata_fingerprint": metadata_fingerprint,
+            "optional_sections": optional_sections if optional_sections is not None else [],
             "mappings": mappings if mappings is not None else [
                 {
                     "question_id": "country",
@@ -204,6 +205,117 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
 
         response = self.client.get(self.url)
 
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json().get("status"), "REVIEW_REQUIRED")
+        self.assertEqual(response.json().get("fields"), [])
+
+    def test_optional_sections_and_repeatable_rows_are_projected_without_values(self):
+        sections = [{
+            "section_id": "prior_roles",
+            "label": "Additional experience",
+            "question_ids": ["role_employer", "role_title"],
+            "required": False,
+            "visible": True,
+            "condition": {"question_id": "include_prior_roles", "equals": "yes"},
+        }]
+        mappings = [
+            {
+                "field_id": "role_employer", "question": "Employer", "type": "text",
+                "required": True, "visible": True, "depends_on": None,
+                "options": [], "repeatable": True, "section_id": "prior_roles",
+                "repeatable_group": "prior_roles_rows", "repeatable_min_rows": 0,
+                "repeatable_max_rows": 5, "current_value": "PRIVATE_ANSWER",
+            },
+            {
+                "field_id": "role_title", "question": "Title", "type": "text",
+                "required": True, "visible": True, "depends_on": None,
+                "options": [], "repeatable": True, "section_id": "prior_roles",
+                "repeatable_group": "prior_roles_rows", "repeatable_min_rows": 0,
+                "repeatable_max_rows": 5,
+            },
+        ]
+        self._persist_fields(mappings=mappings, optional_sections=sections)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body.get("optional_sections"), [{
+            "id": "prior_roles", "label": "Additional experience",
+            "field_ids": ["role_employer", "role_title"],
+            "required": False, "visible": True,
+        }])
+        self.assertEqual(body.get("repeatable_groups"), [{
+            "id": "prior_roles_rows", "field_ids": ["role_employer", "role_title"],
+            "minimum_rows": 0, "maximum_rows": 5,
+        }])
+        self.assertNotIn("PRIVATE_ANSWER", response.text)
+        self.assertNotIn("condition", response.text)
+
+    def test_repeatable_bounds_change_invalidates_previous_fingerprint(self):
+        mappings = [{
+            "field_id": "role_employer", "question": "Employer", "type": "text",
+            "required": True, "visible": True, "depends_on": None, "options": [],
+            "repeatable": True, "repeatable_group": "prior_roles_rows",
+            "repeatable_min_rows": 0, "repeatable_max_rows": 5,
+        }]
+        self._persist_fields(mappings=mappings)
+        first = self.client.get(self.url)
+        self.assertEqual(first.status_code, 200, first.text)
+
+        mappings[0]["repeatable_max_rows"] = 6
+        self._persist_fields(mappings=mappings)
+        stale = self.client.get(
+            self.url, params={"expected_fingerprint": first.json()["fingerprint"]},
+        )
+
+        self.assertEqual(stale.status_code, 409, stale.text)
+        self.assertEqual(stale.json()["detail"]["code"], "DYNAMIC_FIELDS_STALE")
+
+    def test_review_required_metadata_keeps_safe_fields_visible(self):
+        report = self._persist_fields()
+        report["result"] = "UNKNOWN"
+        report["mappings"][0]["current_value"] = "PRIVATE_ANSWER"
+        with self.store.engine.begin() as connection:
+            self.store._audit(connection, self.application_id,
+                              "APPLICATION_QUESTION_PREFLIGHT", report)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["status"], "REVIEW_REQUIRED")
+        self.assertEqual([field["id"] for field in body["fields"]], [
+            "country", "region", "experience_employer",
+        ])
+        self.assertNotIn("PRIVATE_ANSWER", response.text)
+
+    def test_optional_section_with_unknown_field_fails_closed(self):
+        mappings = [{
+            "field_id": "role_employer", "question": "Employer", "type": "text",
+            "required": True, "visible": True, "depends_on": None,
+            "options": [], "repeatable": False,
+        }]
+        sections = [{
+            "section_id": "prior_roles", "question_ids": ["missing_field"],
+        }]
+        self._persist_fields(mappings=mappings, optional_sections=sections)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["status"], "REVIEW_REQUIRED")
+        self.assertEqual(response.json()["fields"], [])
+
+    def test_malformed_optional_section_or_repeatable_bounds_fail_closed(self):
+        mappings = [{
+            "field_id": "role_employer", "question": "Employer", "type": "text",
+            "required": True, "visible": True, "depends_on": None, "options": [],
+            "repeatable": True, "repeatable_group": "prior_roles_rows",
+            "repeatable_min_rows": 3, "repeatable_max_rows": 2,
+        }]
+        self._persist_fields(mappings=mappings)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json().get("status"), "REVIEW_REQUIRED")
         self.assertEqual(response.json().get("fields"), [])
