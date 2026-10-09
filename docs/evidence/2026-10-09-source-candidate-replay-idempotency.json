@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-FEATURE-517-CAPTURE-REPLAY-IDEMPOTENCY-20261009",
+  "issue": 517,
+  "requirement_id": "MJ-FEATURE-517",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-09T07:01:29Z",
+  "branch": "codex/root-solo-517-capture-replay-20261009",
+  "implementation_commit": "72bbc73f42179a33de71ba6c777abc721d162c52",
+  "implementation_tree": "6ce2cac4de565f6606d8af10b3b64611794df2e0",
+  "input_sha256": {
+    "services/source_candidates/catalogue.py": "e570eb681e005aa9e2a10c7f29cebfbf8dfd21b19e15c5e9a6ed4d993eff2e09",
+    "apps/web/src/source-candidate-review.tsx": "3f0668811931f132844d2cac5da549199d133ba7abf551a936e7e7f2bf4afa37",
+    "apps/web/src/source-candidate-review.test.tsx": "ae25ddd87aaafa0fe1069c987fbf1f4b015efc038ce6ae891f1a5c5dd0b2e4f3",
+    "tests/unit/test_source_candidate_catalogue_replay.py": "77b345dbe0b25bbcfae3fab62fb0168e40066598665d89ac8fa0186527b4c3d7",
+    "tests/browser/test_source_candidates.py": "4a95fae3079b611d13503f3125e586cb40b6f09061ad74ab7c2dd563b48db275",
+    "tests/browser/test_supported_provider_candidate.py": "b4d9762aa5e34d811f7e2556cd621dbb6df49dc1669a2a5709a6f625a35b8c02"
+  },
+  "acceptance": {
+    "same_request_replay": "PASS - Replaying identical capture content is a no-op and preserves the original observation and candidate timestamps.",
+    "distinct_capture_times": "PASS - Distinct events preserve their own observations while first_seen_at is the earliest event and last_seen_at the latest event, independent of arrival order.",
+    "conflicting_replay": "PASS - Reusing a request identifier with changed provenance is rejected without changing recorded evidence or timestamps.",
+    "profile_and_tenant_boundaries": "PASS - Profiles and provider tenant subdomains remain separate candidate identities.",
+    "review_evidence_readback": "PASS - Saved sanitized public API/feed reference appears in durable review history.",
+    "connected_workflow": "PASS - Chromium capture/review/reload/profile isolation and supported-collection candidate visibility pass; collection remains disabled and no source URL is contacted.",
+    "external_side_effects": "PASS - Connected fixture tests observed no external requests and no application submission."
+  },
+  "validation": [
+    {
+      "command": "repository .venv: python -m pytest tests/unit/test_source_candidate_catalogue_replay.py tests/unit/test_supported_source_capture.py tests/integration/test_source_candidates.py tests/browser/test_source_candidates.py tests/browser/test_supported_provider_candidate.py -q --tb=short",
+      "result": "PASS - 18 passed."
+    },
+    {
+      "command": "npm run test --prefix apps/web -- --run source-candidate-review.test.tsx source-candidate-review-panel.test.tsx source-candidate-review-client.test.ts",
+      "result": "PASS - 3 files, 21 tests."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS - TypeScript and Vite production build; existing >500 kB bundle-size advisory remains."
+    },
+    {
+      "command": "repository .venv: python -m py_compile services/source_candidates/catalogue.py tests/unit/test_source_candidate_catalogue_replay.py tests/browser/test_source_candidates.py tests/browser/test_supported_provider_candidate.py",
+      "result": "PASS."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS."
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "database": "temporary SQLite only",
+    "browser": "local Chromium with isolated fixture API",
+    "external_network": "none",
+    "application_submission": "OFF",
+    "production_credentials": "NOT_USED"
+  },
+  "remaining_gaps": [
+    "Issue #517 remains OPEN/PARTIAL: remaining catalogue acceptance and broader live-source evidence have not been completed.",
+    "PostgreSQL runtime and hosted checks/review are NOT_RUN_BY_USER_POLICY."
+  ],
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "external_application_submission": "OFF"
+}
