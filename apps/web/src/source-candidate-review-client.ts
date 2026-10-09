@@ -41,6 +41,8 @@ export type SourceCandidateObservation = {
   id: string;
   job_id: string | null;
   application_id: string | null;
+  job_context: {id: string; title: string; company: string} | null;
+  application_context: {id: string; state: string} | null;
   discovery_origin: string | null;
   origin_attribution: string;
   source_url: string | null;
@@ -180,10 +182,30 @@ function sanitizeCandidate(value: unknown, profileId: string): SourceCandidate {
       if (isRecord(hop)) return { state: cleanText(hop.state, 32) || 'UNKNOWN' };
       return { state: 'UNKNOWN' };
     }) : [{ state: 'UNKNOWN' }];
+    const jobId = nullableId(item.job_id);
+    const applicationId = nullableId(item.application_id);
+    const linkedJob = isRecord(item.job_context) && jobId && item.job_context.id === jobId
+      ? {
+        id: cleanText(item.job_context.id, 128),
+        title: cleanText(item.job_context.title, 500),
+        company: cleanText(item.job_context.company, 200),
+      }
+      : null;
+    const linkedApplication = isRecord(item.application_context)
+      && applicationId && item.application_context.id === applicationId
+      ? {
+        id: cleanText(item.application_context.id, 128),
+        state: cleanText(item.application_context.state, 64),
+      }
+      : null;
     return {
       id: cleanText(item.id, 128),
-      job_id: nullableId(item.job_id),
-      application_id: nullableId(item.application_id),
+      job_id: jobId,
+      application_id: applicationId,
+      job_context: linkedJob && linkedJob.id && linkedJob.title && linkedJob.company ? linkedJob : null,
+      application_context: linkedApplication && linkedApplication.id && linkedApplication.state
+        ? linkedApplication
+        : null,
       discovery_origin: nullableText(item.discovery_origin, 253),
       origin_attribution: cleanText(item.origin_attribution, 64) || 'UNKNOWN',
       source_url: safeDisplayUrl(item.source_url),

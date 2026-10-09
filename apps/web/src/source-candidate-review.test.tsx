@@ -18,6 +18,8 @@ const candidate: SourceCandidate = {
   observations: [{
     id: 'obs-1', job_id: 'job-3', application_id: 'app-8', discovery_origin: 'LinkedIn',
     origin_attribution: 'USER_REPORTED', source_url: null,
+    job_context: {id: 'job-3', title: 'Systems Administrator', company: 'Example Employer'},
+    application_context: {id: 'app-8', state: 'EXTERNALLY_APPLIED'},
     application_url: 'https://talenthop.com/apply/3', observed_hops: [{ state: 'UNKNOWN' }],
     capture_method: 'MANUAL_CAPTURE', evidence_status: 'PARTIAL', observed_at: '2026-10-07T10:00:00Z',
   }],
@@ -56,8 +58,8 @@ describe('source candidate review queue', () => {
     expect(html).toContain('Source URL: <code>Unknown</code>');
     expect(html).toContain('Application destination');
     expect(html).toContain('https://talenthop.com/apply/3');
-    expect(html).toContain('Linked job: job-3');
-    expect(html).toContain('Linked application: app-8');
+    expect(html).toContain('Linked job: Systems Administrator at Example Employer (job-3)');
+    expect(html).toContain('Linked application: EXTERNALLY APPLIED (user reported, app-8)');
     expect(html).toContain('Unknown hop');
     expect(html).toContain('Evidence status: PARTIAL');
     expect(html).toContain('Blockers and unknowns');

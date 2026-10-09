@@ -226,6 +226,15 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         self.assertEqual(observation["discovery_origin"], "LinkedIn")
         self.assertEqual(observation["origin_attribution"], "USER_REPORTED")
         self.assertEqual(observation["application_id"], captured.json()["application_id"])
+        self.assertEqual(observation["job_context"], {
+            "id": observation["job_id"],
+            "title": "Systems Administrator",
+            "company": "Example Employer",
+        })
+        self.assertEqual(observation["application_context"], {
+            "id": observation["application_id"],
+            "state": "EXTERNALLY_APPLIED",
+        })
         self.assertEqual(observation["observed_hops"], [{"state": "UNKNOWN"}])
         self.assertNotIn("private-token", str(candidate))
 

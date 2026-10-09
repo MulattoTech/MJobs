@@ -199,13 +199,14 @@ def list_candidates(store, profile_id: str):
         for candidate in candidates:
             candidate["integration_issue_status"] = _integration_issue_status(
                 candidate["integration_issue"])
-            candidate["observations"] = [dict(row) for row in connection.execute(
+            observations = [dict(row) for row in connection.execute(
                 select(m.source_candidate_observations).where(
                     m.source_candidate_observations.c.candidate_id == candidate["id"],
                     m.source_candidate_observations.c.profile_id == profile_id,
                 ).order_by(m.source_candidate_observations.c.observed_at,
                            m.source_candidate_observations.c.id)
             ).mappings()]
+            candidate["observations"] = observations
             candidate["review_history"] = [dict(row) for row in connection.execute(
                 select(m.source_candidate_reviews).where(
                     m.source_candidate_reviews.c.candidate_id == candidate["id"],
@@ -216,6 +217,37 @@ def list_candidates(store, profile_id: str):
             for review in candidate["review_history"]:
                 review["integration_issue_status"] = _integration_issue_status(
                     review["integration_issue"])
+        observations = [observation for candidate in candidates
+                        for observation in candidate["observations"]]
+        job_ids = {observation["job_id"] for observation in observations
+                   if observation["job_id"]}
+        application_ids = {observation["application_id"] for observation in observations
+                           if observation["application_id"]}
+        job_contexts = {}
+        if job_ids:
+            job_contexts = {
+                row["id"]: dict(row) for row in connection.execute(
+                    select(m.jobs.c.id, m.jobs.c.title,
+                           m.companies.c.name.label("company"))
+                    .select_from(m.jobs.join(
+                        m.companies, m.companies.c.id == m.jobs.c.company_id))
+                    .where(m.jobs.c.id.in_(job_ids))
+                ).mappings()
+            }
+        application_contexts = {}
+        if application_ids:
+            application_contexts = {
+                row["id"]: dict(row) for row in connection.execute(
+                    select(m.applications.c.id, m.applications.c.state).where(
+                        m.applications.c.id.in_(application_ids),
+                        m.applications.c.profile_id == profile_id,
+                    )
+                ).mappings()
+            }
+        for observation in observations:
+            observation["job_context"] = job_contexts.get(observation["job_id"])
+            observation["application_context"] = application_contexts.get(
+                observation["application_id"])
         return {"candidates": candidates}
 
 

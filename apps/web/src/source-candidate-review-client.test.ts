@@ -13,10 +13,12 @@ const candidate: SourceCandidate = {
   collection_enabled: false, review_reason: null, integration_issue: null,
   integration_issue_status: 'NOT_LINKED', blockers: ['Feed support is unknown.'],
   observations: [{
-    id: 'obs-1', job_id: 'job-1', application_id: null,
+    id: 'obs-1', job_id: 'job-1', application_id: 'app-1',
     discovery_origin: 'LinkedIn', origin_attribution: 'USER_REPORTED',
     source_url: 'https://www.linkedin.com/jobs/view/123?tracking=private',
     application_url: 'https://talenthop.com/apply/123?session=private#form',
+    job_context: {id: 'job-1', title: 'Systems Administrator', company: 'Example Employer'},
+    application_context: {id: 'app-1', state: 'EXTERNALLY_APPLIED'},
     observed_hops: [{ state: 'UNKNOWN' }], capture_method: 'MANUAL_CAPTURE',
     evidence_status: 'PARTIAL', observed_at: '2026-10-08T10:00:00Z',
   }],
@@ -57,6 +59,12 @@ describe('source candidate review API client', () => {
     expect(result).toHaveLength(1);
     expect(result[0].observations[0].source_url).toBe('https://www.linkedin.com/jobs/view/123');
     expect(result[0].observations[0].application_url).toBe('https://talenthop.com/apply/123');
+    expect(result[0].observations[0].job_context).toEqual({
+      id: 'job-1', title: 'Systems Administrator', company: 'Example Employer',
+    });
+    expect(result[0].observations[0].application_context).toEqual({
+      id: 'app-1', state: 'EXTERNALLY_APPLIED',
+    });
     expect(JSON.stringify(result)).not.toContain('private');
   });
 
@@ -67,6 +75,25 @@ describe('source candidate review API client', () => {
     const client = createSourceCandidateReviewClient({ fetchImpl });
 
     await expect(client.list('fixture')).rejects.toThrow(/profile/i);
+  });
+
+  it('drops linked-record context that is empty or does not match its observation ID', async () => {
+    const untrusted = {
+      ...candidate,
+      observations: [{
+        ...candidate.observations[0], job_id: '',
+        job_context: {id: '', title: '', company: ''},
+        application_context: {id: 'another-application', state: 'EXTERNALLY_APPLIED'},
+      }],
+    };
+    const client = createSourceCandidateReviewClient({
+      fetchImpl: vi.fn().mockResolvedValue(jsonResponse({candidates: [untrusted]})),
+    });
+
+    const [result] = await client.list('fixture');
+
+    expect(result.observations[0].job_context).toBeNull();
+    expect(result.observations[0].application_context).toBeNull();
   });
 
   it('uses the profile-scoped review route and preserves request ID and payload on retry', async () => {

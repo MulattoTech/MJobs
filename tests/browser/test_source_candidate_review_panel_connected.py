@@ -16,7 +16,10 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.source_candidates.catalogue import report_source_candidate, review_candidate
+from services.applications.external_capture import capture_external_application
+from services.source_candidates.catalogue import (
+    list_candidates, report_source_candidate, review_candidate,
+)
 from tests.integration.test_spine import PROFILE
 
 
@@ -63,20 +66,33 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
             )
 
             def record(profile_id, request_id, domain, *, origin="LinkedIn",
-                       source=None, destination=None):
+                       source=None, destination=None, with_application=False):
+                source = source or f"https://jobs.{domain}/posting/{request_id}"
+                destination = destination or f"https://{domain}/apply/role/{request_id}"
+                if with_application:
+                    capture_external_application(store, {
+                        "profile_id": profile_id, "request_id": request_id,
+                        "company": "Example Employer", "title": "Systems Administrator",
+                        "source": "BROWSER", "applied_at": "2026-10-08T10:00:00Z",
+                        "application_url": destination, "source_url": source,
+                        "discovery_origin": origin, "observed_hops": [],
+                    })
+                    return next(candidate for candidate in list_candidates(
+                        store, profile_id)["candidates"] if candidate["domain"] == domain)
                 return report_source_candidate(
                     store,
                     profile_id=profile_id,
                     request_id=request_id,
                     discovery_origin=origin,
-                    source_url=source or f"https://jobs.{domain}/posting/{request_id}",
-                    application_url=destination or f"https://{domain}/apply/role/{request_id}",
+                    source_url=source,
+                    application_url=destination,
                     observed_hops=[],
                 )["candidate"]
 
             talenthop = record(
                 "fixture", "review-panel-talenthop", "talenthop.com",
                 source=source_url, destination=application_url,
+                with_application=True,
             )
             alpha = record("fixture", "review-panel-alpha", "alpha.example")
             blocked = record("fixture", "review-panel-blocked", "bravo.example")
@@ -225,6 +241,12 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     expect(target).to_contain_text("Observed hops: Unknown hop")
                     expect(target).to_contain_text("Source URL: http://127.0.0.1")
                     expect(target).to_contain_text("Application destination: https://www.talenthop.com/apply/role-517")
+                    expect(target).to_contain_text(
+                        "Linked job: Systems Administrator at Example Employer (",
+                    )
+                    expect(target).to_contain_text(
+                        "Linked application: EXTERNALLY APPLIED (user reported, ",
+                    )
                     expect(target).not_to_contain_text("private-token")
                     expect(target).to_contain_text("Collection is disabled. Review does not enable collection.")
 
@@ -347,7 +369,7 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     expect(queued).to_contain_text("Collection is disabled. Review does not enable collection.")
 
                     final_counts = counts()
-                    self.assertEqual(final_counts[m.applications.name], 0)
+                    self.assertEqual(final_counts[m.applications.name], 1)
                     self.assertEqual(final_counts[m.source_candidate_reviews.name],
                                      before_review[m.source_candidate_reviews.name] + 2)
                     self.assertEqual(final_counts[m.source_candidates.name], 4)

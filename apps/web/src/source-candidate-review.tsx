@@ -27,6 +27,8 @@ export type SourceCandidateObservation = {
   id: string;
   job_id: string | null;
   application_id: string | null;
+  job_context: {id: string; title: string; company: string} | null;
+  application_context: {id: string; state: string} | null;
   discovery_origin: string | null;
   origin_attribution: string;
   source_url: string | null;
@@ -345,7 +347,11 @@ export function SourceCandidateReviewQueue({
                   <p>Source URL: <code>{observation.source_url || 'Unknown'}</code></p>
                   <p>Application destination: <code>{observation.application_url || 'Unknown'}</code></p>
                   <p>Observed hops: {observation.observed_hops.length ? observation.observed_hops.map(hopLabel).join(' → ') : 'Unknown hops'}</p>
-                  <p>Linked job: {observation.job_id || 'None'} · Linked application: {observation.application_id || 'None'}</p>
+                  <p>Linked job: {observation.job_context
+                    ? `${observation.job_context.title} at ${observation.job_context.company} (${observation.job_context.id})`
+                    : observation.job_id || 'None'} · Linked application: {observation.application_context
+                    ? `${observation.application_context.state.replaceAll('_', ' ')} (user reported, ${observation.application_context.id})`
+                    : observation.application_id || 'None'}</p>
                 </li>)}
               </ol> : <p>No evidence observations recorded.</p>}
               {!!candidate.review_history.length && <details>
