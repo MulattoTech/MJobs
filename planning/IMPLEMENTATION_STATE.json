@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T10:14:05Z",
+  "generated_at": "2026-10-09T10:48:42Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T10:14:05Z"
   },
-  "current_milestone": "MJ-REF-006-MEASURED-SUCCESS-ACCEPTANCE-20261009",
-  "current_objective": "Complete and locally verify deterministic resume page-fit, including the measured-success connected browser workflow; keep whole-product release readiness separate.",
+  "current_milestone": "MJ-REF-002-COVER-LETTER-STORY-REUSE-20261009",
+  "current_objective": "Complete explicitly reviewed, factual career-story reuse across job-specific cover letters and resumes; keep story selection opt-in, provenance verifiable, and application submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -157,7 +157,8 @@
     "MJ-REQ-236 / issue #237: connected profile-scoped durable history for terminal discovery runs with source/query/filter context, UTC start/finish, result and new-job counts, status/errors, idempotent atomic persistence, read-only API, keyset pagination and Activity UI reload readback. Source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); integrated local main bc523f642a27795e3791d7bf0926e22473376277. Evidence docs/evidence/2026-10-09-search-history.json. Duplicate counts remain null because collectors do not report a reliable total; hosted/live source NOT_RUN_BY_USER_POLICY.",
     "MJ-FEATURE-517 / issue #517 bounded source-candidate slice: exact capture replay is a no-op with immutable observation timestamps; distinct events preserve earliest first_seen and latest last_seen independent of arrival order; changed request reuse conflicts; review history displays sanitized API/feed evidence reference. Tested code 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); integrated local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Issue remains OPEN/PARTIAL.",
     "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved company’s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json).",
-    "MJ-REF-006 local acceptance: 29 focused unit/API/integration/browser-recovery tests pass for deterministic measured trimming, bounded attempts, protected facts, no-write previews and unavailable-measurement recovery. A measured-success connected browser flow and broader release gates remain unverified (docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json)."
+    "MJ-REF-006 local acceptance: 29 focused unit/API/integration/browser-recovery tests pass for deterministic measured trimming, bounded attempts, protected facts, no-write previews and unavailable-measurement recovery. A measured-success connected browser flow and broader release gates remain unverified (docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json).",
+    "MJ-REF-002 / #372: current approved fact-linked story revisions can be explicitly selected for job-specific cover letters; generated text retains exact user-authored story content and document history resolves revision/fact provenance. Resume story reuse and broader story-bank acceptance remain incomplete. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -181,7 +182,8 @@
     "MJ-REQ-107",
     "MJ-REQ-136",
     "MJ-REQ-101",
-    "MJ-REQ-142"
+    "MJ-REQ-142",
+    "MJ-REF-002"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -462,7 +464,9 @@
     "#372 / MJ-REF-002 exact source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3: answer matching API 4 tests + 6 subtests PASS; connected synthetic Chromium story citation flow 1 PASS; targeted frontend 25/25 PASS; TypeScript/Vite build and diff check PASS. Evidence docs/evidence/2026-10-09-career-story-answer-citations.json.",
     "#237 / MJ-REQ-236 exact source e3ec3f40476129e5bca57baf48f9485d5db16259: search-history service/API/worker and connected browser group 24 passed + 4 subtests (4 optional skips); full web Vitest 466/466; TypeScript/Vite build, agent-skills, catalogue and diff validation PASS. Evidence docs/evidence/2026-10-09-search-history.json.",
     "MJ-FEATURE-517 exact tested source 72bbc73f42179a33de71ba6c777abc721d162c52: 18 focused unit/integration/connected Chromium tests PASS; 21 focused web tests PASS; TypeScript/Vite production build, py_compile and diff check PASS. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
-    "#376 / MJ-REF-006 exact source bf78b77b7d3e26861c332aea7f92bc7d81ce9c2e (tree a02c8777d62bd769d03523333eb6debc20bffdee): 30 focused unit/API/integration/connected Chromium tests PASS; TypeScript/Vite build and diff check PASS. Evidence docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json."
+    "#376 / MJ-REF-006 exact source bf78b77b7d3e26861c332aea7f92bc7d81ce9c2e (tree a02c8777d62bd769d03523333eb6debc20bffdee): 30 focused unit/API/integration/connected Chromium tests PASS; TypeScript/Vite build and diff check PASS. Evidence docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json.",
+    "#372 / MJ-REF-002 exact integrated source 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d): 44 focused story-bank, API, persistence, generation, worker and connected-browser tests PASS; separate final connected Chromium workflow 1 PASS.",
+    "#372 / MJ-REF-002: focused web selection/review/history Vitest 22 PASS; TypeScript/Vite production build, Python compilation, evidence input hashes, lane validation and git diff --check PASS. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -488,7 +492,8 @@
     "Resolved test-harness attempt: combined 67-test run at 447afe1665af2c81a2e0d63149ca6e00068cbcfb had 66 PASS and one browser test failure while its profile-save interaction remained pending after preceding integration modules. Isolated browser passed; Activity UI test now seeds a value-free setting event rather than repeating that separate save workflow, and combined exact-main suite passes 67/67 at 26deecc77098471f0973e7e0b34193c1e4e0d0e3.",
     "MJ-REQ-176 candidate full Python suite at source 382db126a1b504754ec2ad748bb543df586d976b: 962 tests ran, 8 skipped, one failure at tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation because isolated Uvicorn thread remained alive at shutdown; same test isolated rerun passed. Overall suite remains a failed run, not PASS; see docs/evidence/2026-10-07-application-submit-audit.json.",
     "Initial #190 application-link browser test wait timed out against a fixed saved-search UUID. Root cause was a brittle test expectation; Ezra Bridger changed it to use the persisted UUID and added saved-search clear-override coverage. Exact current browser test passes 1/1.",
-    "#372 adjacent answer-review browser regression at current local source failed at the application-switch step because a non-exact Application review locator resolves both existing Application review and Multi-page application review regions. The second region is already present in main's application-multipage-review.tsx; no changed path owns it. Record as a pre-existing test-selector ambiguity, not as feature PASS."
+    "#372 adjacent answer-review browser regression at current local source failed at the application-switch step because a non-exact Application review locator resolves both existing Application review and Multi-page application review regions. The second region is already present in main's application-multipage-review.tsx; no changed path owns it. Record as a pre-existing test-selector ambiguity, not as feature PASS.",
+    "#372 adjacent cover-letter preview regression remains FAIL_ON_UNMODIFIED_MAIN: reproduced identically on untouched main because company_context is None; excluded from this feature acceptance."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -573,7 +578,8 @@
     "#372: PostgreSQL runtime, full repository Python/web suites, hosted checks/review, live ATS/source access and external submission NOT_RUN or OFF; citation persistence and story selection for document generation remain unimplemented.",
     "#237: live external job-source acceptance and hosted checks/review NOT_RUN_BY_USER_POLICY; no real source egress or application submission occurred.",
     "MJ-FEATURE-517: PostgreSQL runtime, live provider/source acceptance, hosted checks/review NOT_RUN_BY_USER_POLICY; collection stays disabled and external application submission OFF.",
-    "#376 / MJ-REF-006: PostgreSQL, full repository suite, hosted checks/review NOT_RUN; synthetic local acceptance only; external submission OFF."
+    "#376 / MJ-REF-006: PostgreSQL, full repository suite, hosted checks/review NOT_RUN; synthetic local acceptance only; external submission OFF.",
+    "#372 / MJ-REF-002: PostgreSQL, full repository suite, hosted checks/review, live ATS/source access NOT_RUN; external application submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -615,13 +621,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "19e85aaf4d926886137397cb8b888caced926b13",
-    "tree": "d962dcc6fb4692833bf3773b9699fed950e4241d",
-    "result": "PARTIAL: resume page-fit API/algorithm and unavailable-recovery browser acceptance passed; measured-success connected browser acceptance remains unrun.",
+    "commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
+    "tree": "09e06d85dbfb24412db997bcfa889b9660123d4d",
+    "result": "PARTIAL: explicit, profile/job/story-revision-bound career-story reuse in cover-letter preparation and durable provenance verified; resume reuse and broader MJ-REF-002 remain incomplete.",
     "evidence": [
-      "docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json"
+      "docs/evidence/2026-10-09-cover-letter-story-reuse.json"
     ],
-    "verified_at_utc": "2026-10-09T10:14:05Z"
+    "verified_at_utc": "2026-10-09T10:48:42Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -688,7 +694,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Select the next highest-impact dependency-ready job discovery or matching feature from live GitHub issues and its authoritative area specification. Reconcile claims before writing; continue in one root-owned branch and keep external application submission OFF.",
+  "recommended_resume_step": "Continue issue #372 / MJ-REF-002 by completing reviewed story reuse for job-specific resume generation, without conflicting with the preserved story-generation input claim; then verify connected durable readback and recovery.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -722,7 +728,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "9f40bfcec64aad8033fb73b2bf95627ad5b4617a",
+  "last_implementation_commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under the existing Codex integration lock; no PR opened or push performed.",
@@ -12717,12 +12723,69 @@
         "git_commit": "de1e463ec42f2c5dca14c6df4112be9a249e75a2",
         "evidence_path": "docs/evidence/2026-10-09-skill-gap-priority.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-002-COVER-LETTER-STORY-REUSE-20261009",
+      "current_phase": "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d). Users can preview and explicitly select approved fact-linked career stories for a saved job; the worker revalidates current profile/job/story/fact state and immutable document history resolves the exact selected revision and provenance. Evidence: docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
+      "timestamp": "2026-10-09T10:48:42Z",
+      "completed_steps": [
+        "Safely transitioned to solo root ownership; existing workers were already at completed checkpoints and no new agents were spawned.",
+        "Connected explicit approved-story preview/selection to durable cover-letter preparation with observed profile/job snapshots and fail-closed stale selection checks.",
+        "Preserved exact selected user-authored story wording as a review-required paragraph and recorded revision/fact provenance in document history without copying story text into metadata.",
+        "Fast-forwarded the exact verified source to local main at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1; #372 and MJ-REF-002 remain OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "apps/web/src/cover-letter-story-selection.tsx",
+        "tests/browser/test_cover_letter_story_reuse.py",
+        "docs/evidence/2026-10-09-cover-letter-story-reuse.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/career-story-selection-review.test.tsx",
+        "apps/web/src/career-story-selection.test.tsx",
+        "apps/web/src/career-story-selection.tsx",
+        "apps/web/src/document-history.test.tsx",
+        "apps/web/src/document-history.tsx",
+        "apps/web/src/main.tsx",
+        "services/career_profile/story_selection.py",
+        "services/documents/cover_letter.py",
+        "services/documents/generate.py",
+        "services/documents/history.py",
+        "services/documents/validation.py",
+        "tests/integration/test_api_queue.py",
+        "tests/integration/test_role_lens_generation.py",
+        "workers/tasks.py"
+      ],
+      "tests_completed": [
+        "Focused story-bank, selection API, durable readback, document generation/validation, durable worker and browser tests: 44 PASS; final connected Chromium workflow: 1 PASS.",
+        "Focused web selection/review/history Vitest: 22 PASS; TypeScript/Vite build, Python compileall, evidence hashes, lane validation and diff check PASS."
+      ],
+      "tests_remaining": [
+        "Resume story reuse and broader MJ-REF-002/#372 acceptance remain incomplete.",
+        "PostgreSQL, full repository suite, hosted checks/review, live ATS/source access NOT_RUN; external submission OFF.",
+        "Adjacent preview test failure was reproduced on untouched main and is recorded as baseline."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local profile/job/story data, local API, temporary persistence and Chromium only; no external requests or application submissions."
+      ],
+      "known_errors": [
+        "Adjacent cover-letter preview test has the same company_context=None failure on unmodified main; not caused by this slice."
+      ],
+      "known_limitations": [
+        "Only cover-letter story selection is implemented in this slice; resume story selection and full story-bank acceptance remain incomplete.",
+        "Hosted checks/review are NOT_RUN_BY_USER_POLICY; PostgreSQL and full suite are NOT_RUN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
+        "evidence_path": "docs/evidence/2026-10-09-cover-letter-story-reuse.json"
+      }
     }
   ],
-  "current_phase": "Issue #396 / MJ-REF-026 priority slice integrated on local main at de1e463ec42f2c5dca14c6df4112be9a249e75a2 (tree b69539458323ce50c96f2b4135fd2fe54ec1b661). Skill-gap rows now include distinct-job intersections of missing approved evidence with user-reported application and interview status; a stable, explained ordering puts interview gaps first, then application gaps, required-gap frequency and total gap frequency. Evidence: docs/evidence/2026-10-09-skill-gap-priority.json.",
+  "current_phase": "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d). Users can preview and explicitly select approved fact-linked career stories for a saved job; the worker revalidates current profile/job/story/fact state and immutable document history resolves the exact selected revision and provenance. Evidence: docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
   "last_safe_checkpoint": {
-    "git_commit": "de1e463ec42f2c5dca14c6df4112be9a249e75a2",
-    "evidence_path": "docs/evidence/2026-10-09-skill-gap-priority.json"
+    "git_commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
+    "evidence_path": "docs/evidence/2026-10-09-cover-letter-story-reuse.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13111,14 +13174,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 396,
-    "url": "https://github.com/MulattoTech/MJobs/issues/396",
-    "branch": "codex/root-solo-396-heatmap-priority-20261009",
+    "number": 372,
+    "url": "https://github.com/MulattoTech/MJobs/issues/372",
+    "branch": "main",
     "status": "INTEGRATED_PARTIAL",
     "related_requirements": [
-      "MJ-REF-026"
+      "MJ-REF-002"
     ],
-    "note": "User-reported interview/application relevance now intersects the same skill's no-approved-evidence jobs and drives transparent priority ordering. Evidence-driven learning resources or AI theme grouping remain unimplemented."
+    "note": "Explicit story selection is now connected to job-specific cover-letter preparation with stale-context revalidation and immutable story/fact provenance in document history. Resume story reuse and remaining story-bank acceptance are next."
   },
   "historical_control_snapshots": [
     {
@@ -14261,9 +14324,10 @@
     "Issue #178 / MJ-REQ-177 APPLY_MOCK persisted job/company log context integrated at main 86d7bb580c03ed0b0dc0d807e147b5ecea29be7e; exact root rerun 33 PASS/1 optional PostgreSQL skip; issue remains OPEN/PARTIAL.",
     "Issue #144 / MJ-REQ-143 MOCK-only receipt capture integrated at main e211f013801849a4fe2cf24c855313b8fcfc3978; 22 browser tests PASS and durable connected receipt readback PASS; real ATS/full requirement remains PARTIAL.",
     "Issue #190 / MJ-REQ-189 user-reported pipeline status facet integrated at local source e0a0b9d5591165976f8a590ba906c6afcf60190c (tree 30c5477a4ae75fd471a78d3e501908a900b49ab4); evidence docs/evidence/2026-10-08-application-pipeline-search-filter.json; API + connected browser 5/5, frontend 116/116, TypeScript/Vite build and diff check PASS. PostgreSQL, live providers, full suite and hosted checks NOT_RUN; issue and requirement remain OPEN/PARTIAL; external submission OFF.",
-    "Issue #262 / MJ-REQ-261 provenance slice at e337115700a23b0d5d7b1e50abb1ffc26983e292 (tree 9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636); evidence docs/evidence/2026-10-08-source-ats-separation.json; API and connected Chromium 2/2, web 124/124, TypeScript/Vite build, API compilation and diff check PASS. PostgreSQL/live providers/full repository/hosted checks NOT_RUN; issue OPEN/PARTIAL; parent MJ-PR-071 QUEUED; external submission OFF."
+    "Issue #262 / MJ-REQ-261 provenance slice at e337115700a23b0d5d7b1e50abb1ffc26983e292 (tree 9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636); evidence docs/evidence/2026-10-08-source-ats-separation.json; API and connected Chromium 2/2, web 124/124, TypeScript/Vite build, API compilation and diff check PASS. PostgreSQL/live providers/full repository/hosted checks NOT_RUN; issue OPEN/PARTIAL; parent MJ-PR-071 QUEUED; external submission OFF.",
+    "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d); evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json; focused Python/API/persistence/worker/connected browser 44 PASS and final Chromium 1 PASS, focused web 22 PASS, production build/compile/hash/lane/diff PASS. PostgreSQL/full suite/hosted NOT_RUN; external application submission OFF; requirement remains PARTIAL."
   ],
-  "ownership": "Root integrated #372 / MJ-REF-002 source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3 on local main by non-force fast-forward under the Codex integration lock. Evidence docs/evidence/2026-10-09-career-story-answer-citations.json. Root retains sole integration ownership. The source-story selection worker claim remains preserved; hosted checks/reviews are NOT_RUN_BY_USER_POLICY and external submission is OFF.",
+  "ownership": "Root alone integrated #372 / MJ-REF-002 cover-letter story reuse at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d) by non-force fast-forward under the Codex integration lock. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json. No Codex child workers are active; unrelated existing lane claims and worktrees are preserved. Hosted checks/reviews are NOT_RUN_BY_USER_POLICY and external submission is OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -14276,9 +14340,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T10:25:04Z",
-  "current_verified_local_state": "Local page-fit acceptance source bf78b77b7d3e26861c332aea7f92bc7d81ce9c2e (tree a02c8777d62bd769d03523333eb6debc20bffdee): 30 focused unit/API/integration/connected Chromium tests PASS; TypeScript/Vite build PASS with existing bundle advisory. Evidence docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json. MJ-REF-006 is locally PASS; whole-product release remains PARTIAL. Preserve untracked docs/evidence/2026-10-08-compose-target-isolation.json.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T10:25:04Z.",
+  "updated_at": "2026-10-09T10:48:42Z",
+  "current_verified_local_state": "Local main 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d): #372 cover-letter story reuse integrated by non-force fast-forward; 44 focused Python/API/persistence/worker/connected-browser tests PASS, final Chromium 1 PASS, focused web 22 PASS, build/compilation/hash/lane/diff checks PASS. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json. MJ-REF-002 remains PARTIAL; resume story reuse and broader acceptance are incomplete.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T10:48:42Z.",
   "next_candidates": [
     {
       "issue": 517,
@@ -14293,7 +14357,7 @@
     {
       "issue": 372,
       "requirement_id": "MJ-REF-002",
-      "status": "PARTIAL_ON_LOCAL_MAIN: answer citation is persisted as provenance in profile-scoped export history; resume/cover-letter story selection and remaining MJ-REF-002 acceptance remain incomplete."
+      "status": "INTEGRATED_PARTIAL_ON_LOCAL_MAIN: explicit job-specific cover-letter story selection and immutable revision/fact provenance are verified; next is resume story reuse and remaining acceptance."
     },
     {
       "issue": 377,
