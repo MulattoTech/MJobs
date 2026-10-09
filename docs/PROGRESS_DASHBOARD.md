@@ -8,7 +8,7 @@ Additional reference gaps: **15 PASS / 3 PARTIAL / 41 NOT_RUN** (59 total; 25.4%
 Full-spec release readiness: **UNKNOWN** (separate from local slice tests).
 
 Original matrix as of: `2026-10-09T01:18:26Z`. Reference matrix as of: `2026-10-09T05:52:55Z`.
-Latest recorded implementation milestone: `MJ-REQ-120-MATCH-FEEDBACK-PARTIAL-20261009`.
+Latest recorded implementation milestone: `MJ-REQ-120-MATCH-FEEDBACK-REPLAY-ROBUST-20261009`.
 
 PASS requires evidence for the whole acceptance contract of that ID. PARTIAL is not a percentage. NOT_RUN does not necessarily mean no code exists. Local PASS is not hosted CI or full release acceptance.
 

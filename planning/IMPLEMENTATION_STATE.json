@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T06:02:00Z",
+  "generated_at": "2026-10-09T06:04:21Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main 6fc9f3e771cf6d0e54fd273e71522027ecb4da3f adds selected-job profile-scoped feedback, idempotent recovery, durable readback history, and review-only preference proposals. Evidence: docs/evidence/2026-10-09-match-feedback-history.json. Local main is 206 commits ahead of origin/main; prior untracked user evidence remains preserved.",
+    "current_verified_local_state": "Local main a0b561609111a17a08f57b739e1047ae1215c354 (tree 777b8cf8a572336459a997c23d1bb918a38d6727) adds selected-job profile-scoped feedback, idempotent recovery, durable readback history, and review-only preference proposals. Evidence: docs/evidence/2026-10-09-match-feedback-history.json. Local main is 209 commits ahead of origin/main; pre-existing untracked docs/evidence/2026-10-08-compose-target-isolation.json remains preserved.",
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issue #121 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T06:02:00Z"
+    "current_verified_at": "2026-10-09T06:04:21Z"
   },
-  "current_milestone": "MJ-REQ-120-MATCH-FEEDBACK-PARTIAL-20261009",
+  "current_milestone": "MJ-REQ-120-MATCH-FEEDBACK-REPLAY-ROBUST-20261009",
   "current_objective": "Continue solo feature development; next close reviewed preference application for match feedback or select the highest-impact ready matching workflow.",
   "status": "PARTIAL",
   "completed_capabilities": [
