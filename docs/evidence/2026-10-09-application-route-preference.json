@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-266"],
+  "github_issues": [267],
+  "result": "PARTIAL",
+  "scope": "Persisted profile preference for verified-first route selection or an explicit per-job route choice; route evidence is exposed in job details and application preparation rejects an implicit route when the profile requires a choice.",
+  "source": {
+    "branch": "codex/solo-267-application-route-preference-20261009",
+    "commit": "76a2db203c003344ab4a735990dfd0bad35bb4b2",
+    "tree": "9bc83809126e9993ecbcc0872d0c8f1f991c57c9"
+  },
+  "verified_at_utc": "2026-10-09T13:14:57Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and Chromium"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_application_routes tests.unit.test_application_route_authority tests.integration.test_job_route_provenance tests.integration.test_source_value_resolution",
+      "result": "PASS",
+      "evidence": "21 focused route and provenance tests passed, including API preference enforcement, route evidence projection, explicit route persistence, and document-worker rejection without a user selection."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/application-route-preference.test.tsx",
+      "result": "PASS",
+      "evidence": "2 preference-control tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing advisory: generated JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_route_preference",
+      "result": "PASS",
+      "evidence": "Connected local Chromium workflow passed: profile preference save/reload, explicit route picker, preparation request contains the selected route, and the test observed no external network or application submission."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile packages/domain/profile.py services/dedupe/routes.py services/documents/generate.py apps/api/main.py tests/unit/test_application_routes.py tests/unit/test_application_route_authority.py; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "PostgreSQL integration",
+    "Hosted Actions or external review (disabled by local-only policy)",
+    "Live employer or ATS provider verification",
+    "External job application submission"
+  ],
+  "limitations": [
+    "The intermediate trusted-integrated-job-board tier is not implemented because the current route model has no auditable route-to-board trust mapping; job-source quality measurements are not authority evidence. Requirement MJ-REQ-266 therefore remains PARTIAL.",
+    "The separate direct-employer route discovery-before-apply requirement MJ-REQ-267 remains NOT_RUN.",
+    "A full repository unittest discovery run earlier in this session was interrupted after emitting failures in unrelated application-priority, company-preferences, and job-risk browser tests; the full-suite result is incomplete and is not represented as passing."
+  ],
+  "safety": [
+    "Only synthetic profiles and isolated SQLite fixtures were used.",
+    "Route authority is only elevated from exact verified employer-domain or ATS-tenant evidence; a provider name alone is not proof.",
+    "The preference controls preparation only. External submission remains OFF.",
+    "No schema migration or external network request was required."
+  ]
+}
