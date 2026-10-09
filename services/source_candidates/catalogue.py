@@ -3,7 +3,9 @@ from __future__ import annotations
 
 from urllib.parse import urlsplit, urlunsplit
 
-from sqlalchemy import select, update
+from sqlalchemy import case, select, update
+from sqlalchemy.dialects.postgresql import insert as postgres_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
@@ -12,6 +14,26 @@ from packages.persistence.store import identity, now, upsert
 
 class SourceCandidateConflict(ValueError):
     """A review request identifier was reused with different content."""
+
+
+def _insert_observation_once(connection, values: dict) -> bool:
+    insert = {"postgresql": postgres_insert, "sqlite": sqlite_insert}.get(
+        connection.dialect.name)
+    if insert is None:
+        raise ValueError("Unsupported persistence backend")
+    result = connection.execute(
+        insert(m.source_candidate_observations).values(**values).on_conflict_do_nothing(
+            index_elements=[m.source_candidate_observations.c.id]))
+    return result.rowcount == 1
+
+
+def _matches_observation(previous, expected) -> bool:
+    actual = (previous["candidate_id"], previous["profile_id"], previous["job_id"],
+              previous["application_id"], previous["discovery_origin"],
+              previous["origin_attribution"], previous["source_url"],
+              previous["application_url"], previous["observed_hops"],
+              previous["capture_method"], previous["evidence_status"])
+    return actual == expected
 
 
 def _integration_issue_status(issue: int | None) -> str:
@@ -93,29 +115,25 @@ def record_capture(connection, *, profile_id: str | None, request_id: str,
             "USER_REPORTED", "PARTIAL", "UNKNOWN"}:
         raise ValueError("SOURCE_CANDIDATE_EVIDENCE_STATUS_INVALID")
 
+    expected = (candidate_id, profile_id, job_id, application_id, origin,
+                attribution, safe_source, safe_application, hops,
+                capture_method, status)
+    previous = connection.execute(select(m.source_candidate_observations).where(
+        m.source_candidate_observations.c.id == observation_id
+    )).mappings().one_or_none()
+    if previous is not None:
+        if not _matches_observation(previous, expected):
+            raise SourceCandidateConflict(
+                "Source candidate capture identifier was reused for different provenance")
+        return candidate_id
+
     upsert(connection, m.source_candidates, {
         "id": candidate_id, "profile_id": profile_id, "domain": domain,
         "display_name": domain, "site_type": "UNKNOWN", "state": "NEEDS_REVIEW",
         "first_seen_at": timestamp, "last_seen_at": timestamp,
         "collection_enabled": False, "review_reason": None, "integration_issue": None,
     })
-    connection.execute(update(m.source_candidates).where(
-        m.source_candidates.c.id == candidate_id
-    ).values(last_seen_at=timestamp))
-    previous = connection.execute(select(m.source_candidate_observations).where(
-        m.source_candidate_observations.c.id == observation_id
-    )).mappings().one_or_none()
-    if previous is not None:
-        expected = (candidate_id, job_id, application_id, origin,
-                    "USER_REPORTED" if origin else "UNKNOWN", safe_source,
-                    safe_application, hops, capture_method)
-        actual = (previous["candidate_id"], previous["job_id"], previous["application_id"],
-                  previous["discovery_origin"], previous["origin_attribution"],
-                  previous["source_url"], previous["application_url"],
-                  previous["observed_hops"], previous["capture_method"])
-        if actual != expected:
-            raise SourceCandidateConflict("Source candidate capture identifier was reused for different provenance")
-    upsert(connection, m.source_candidate_observations, {
+    observation = {
         "id": observation_id, "candidate_id": candidate_id, "profile_id": profile_id,
         "capture_key": capture_key, "job_id": job_id, "application_id": application_id,
         "discovery_origin": origin,
@@ -124,7 +142,30 @@ def record_capture(connection, *, profile_id: str | None, request_id: str,
         "observed_hops": hops, "capture_method": capture_method,
         "evidence_status": status,
         "observed_at": timestamp,
-    })
+    }
+    if not _insert_observation_once(connection, observation):
+        previous = connection.execute(select(m.source_candidate_observations).where(
+            m.source_candidate_observations.c.id == observation_id
+        )).mappings().one_or_none()
+        if previous is None or not _matches_observation(previous, expected):
+            raise SourceCandidateConflict(
+                "Source candidate capture identifier was reused for different provenance")
+        return candidate_id
+
+    candidate = m.source_candidates.c
+    connection.execute(update(m.source_candidates).where(
+        candidate.id == candidate_id,
+        candidate.profile_id == profile_id,
+    ).values(
+        first_seen_at=case(
+            (candidate.first_seen_at > timestamp, timestamp),
+            else_=candidate.first_seen_at,
+        ),
+        last_seen_at=case(
+            (candidate.last_seen_at < timestamp, timestamp),
+            else_=candidate.last_seen_at,
+        ),
+    ))
     return candidate_id
 
 

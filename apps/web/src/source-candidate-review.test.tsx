@@ -84,6 +84,26 @@ describe('source candidate review queue', () => {
     expect(html).toContain('Keep needs review');
   });
 
+  it('shows the sanitized public API or feed reference in durable review history', () => {
+    const reviewed = {
+      ...candidate,
+      review_history: [{
+        id: 'review-1', profile_id: 'profile-1', state: 'BLOCKED' as const,
+        site_type: 'ATS' as const, reason: 'Access was denied.',
+        api_feed_evidence_status: 'BLOCKED' as const,
+        api_feed_evidence_reference: 'https://talenthop.com/api/jobs',
+        api_feed_evidence_note: 'Prior endpoint request returned 403.',
+        access_terms_note: 'Terms remain unverified.',
+        capabilities_limits_note: 'No feed has been confirmed.',
+        expected_value_maintenance_note: 'Value remains unknown.',
+        integration_issue: null, integration_issue_status: 'NOT_LINKED' as const,
+        reviewed_at: '2026-10-09T00:00:00Z',
+      }],
+    };
+    const html = render({ candidates: [reviewed] });
+    expect(html).toContain('Public API or feed reference: <code>https://talenthop.com/api/jobs</code>');
+  });
+
   it('does not invoke the review callback just by rendering', () => {
     const review = vi.fn();
     renderToStaticMarkup(<SourceCandidateReviewQueue

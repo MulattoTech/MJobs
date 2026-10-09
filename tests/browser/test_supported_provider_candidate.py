@@ -161,7 +161,7 @@ class SupportedProviderCandidateBrowserTests(unittest.TestCase):
                         expect(candidate).to_contain_text("SUPPORTED COLLECTION")
                         expect(candidate).to_contain_text(endpoint)
                         expect(candidate).to_contain_text(application_url)
-                        expect(candidate).to_contain_text("Collection disabled")
+                        expect(candidate).to_contain_text("Collection is disabled")
                         expect(candidate.get_by_role(
                             "button", name="Enable collection", exact=True
                         )).to_have_count(0)
@@ -170,7 +170,7 @@ class SupportedProviderCandidateBrowserTests(unittest.TestCase):
                         page.locator("#active-profile").select_option("other")
                         page.get_by_role("button", name="Sources", exact=True).click()
                         expect(page.get_by_text(
-                            "No third-party source candidates are recorded for this profile.", exact=True
+                            "No source candidates need review for this profile.", exact=True
                         )).to_be_visible()
                         self.assertEqual(outbound, [])
                         browser.close()

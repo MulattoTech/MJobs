@@ -349,6 +349,7 @@ export function SourceCandidateReviewQueue({
                 <ol>{candidate.review_history.map((review, index) => <li key={`${review.id}-${index}`}>
                   <time dateTime={review.reviewed_at}>{displayTime(review.reviewed_at)}</time> · {review.state.replaceAll('_', ' ')} · {review.site_type.replaceAll('_', ' ')} · {review.api_feed_evidence_status.replaceAll('_', ' ')} · {review.reason}.
                   {review.integration_issue === null ? ' No integration task linked.' : ` Integration issue #${review.integration_issue} is user supplied and unverified.`}
+                  {' '}Public API or feed reference: <code>{review.api_feed_evidence_reference ?? 'Unknown'}</code>.
                   {' '}Evidence: {review.api_feed_evidence_note} Access and terms: {review.access_terms_note} Capabilities and limits: {review.capabilities_limits_note} Value and maintenance: {review.expected_value_maintenance_note}
                 </li>)}</ol>
               </details>}
