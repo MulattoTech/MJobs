@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T09:58:03Z",
+  "generated_at": "2026-10-09T10:00:49Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local source checkpoint 8f7fab9b330d554ef8659cf1232a9a23f006436f (tree 5ede7429f9803831135ef8d9e19edd5742192e36) adds verified-domain reuse before optional search for no-website company discovery and original evidence-order precedence. Evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. Focused integration suite 42/42, Python compilation, catalogue/progress validators, and diff check PASS. Issue #61 / MJ-REQ-060 remains OPEN/PARTIAL; automatic acquisition across all supported evidence paths remains incomplete.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration is not pushed and no PR is opened. Issue #61 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T09:58:03Z"
+    "current_verified_local_state": "Local main b249a96652ea0f84860c27264782a92758c8b3d8 integrates the bounded #61 / MJ-REQ-060 verified-domain reuse slice; exact tested source is 8f7fab9b330d554ef8659cf1232a9a23f006436f (tree 5ede7429f9803831135ef8d9e19edd5742192e36). Evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. Focused integration suite 42/42, Python compilation, catalogue/progress validators, and source hash checks PASS. Issue #61 remains OPEN/PARTIAL; automatic domain acquisition across all supported evidence paths remains incomplete. Preserved root untracked docs/evidence/2026-10-08-compose-target-isolation.json is untouched.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+    "current_verified_at": "2026-10-09T10:00:49Z"
   },
   "current_milestone": "MJ-REQ-060-VERIFIED-DOMAIN-REUSE-20261009",
   "current_objective": "Complete the bounded no-website discovery path using only a uniquely resolved company’s persisted verified, evidenced domain before optional search. MJ-REQ-060 remains PARTIAL; broader domain evidence acquisition and whole-product release remain incomplete.",
