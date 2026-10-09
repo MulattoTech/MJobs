@@ -178,6 +178,30 @@ class ScoringProfilesApiTests(unittest.TestCase):
         self.assertEqual(after_update[m.operations.name], operations_before)
         self.assertEqual(after_update[m.matches.name], matches_before)
 
+        before_readback = self._snapshot()
+        readback = self.client.get(self._url())
+        self.assertEqual(readback.status_code, 200, readback.text)
+        self.assertEqual(readback.json(), {"profile": second})
+        resolved_update = self.client.get(self._url(), params={
+            "role_family": " family   two ",
+        })
+        self.assertEqual(resolved_update.status_code, 200, resolved_update.text)
+        self.assertEqual(resolved_update.json(), {
+            "profile": second,
+            "resolution": {
+                "requested_role_family": "family two",
+                "selected_role_family": "Family Two",
+                "profile_id": second["id"],
+                "profile_version": second["version"],
+                "selection": "ROLE_FAMILY",
+            },
+        })
+        old_family = self.client.get(self._url(), params={"role_family": "Family One"})
+        self.assertEqual(old_family.status_code, 200, old_family.text)
+        self.assertIsNone(old_family.json()["profile"])
+        self.assertEqual(old_family.json()["resolution"]["selection"], "LEGACY_DEFAULT")
+        self.assertEqual(self._snapshot(), before_readback)
+
         before_stale = self._snapshot()
         duplicate_create = self.client.put(self._url(), json={
             "expected_version": None,
