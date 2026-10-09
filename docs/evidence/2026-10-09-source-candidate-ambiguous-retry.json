@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "issue": 517,
+  "requirement": "When a source URL report commits but its browser response is lost, retry the same profile, URL, and reported origin with the same request ID; create one durable observation and use a fresh ID after success or changed input.",
+  "result": "PASS",
+  "timestamp_utc": "2026-10-09T21:15:16Z",
+  "branch": "codex/solo-517-capture-retry-20261009",
+  "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\solo-517-capture-retry-20261009",
+  "source": {
+    "commit": "31af99f2767344b2a46dd28551f99dd765157702",
+    "tree": "90c96f3e90f6c947b7f5d73ad13906d6a658d419",
+    "base": "720484d553e276e548469920a130682beb7dcb12",
+    "files": [
+      {
+        "path": "apps/web/src/main.tsx",
+        "sha256": "B0197202FEE182FBC80276AAC89D19F3D21643345521BBEEF34268B50801BA06"
+      },
+      {
+        "path": "tests/browser/test_source_candidates.py",
+        "sha256": "949862786B3BAF7962A04AE2DC626DB8436C81B99DD4E355CC29AC7931819164"
+      }
+    ]
+  },
+  "checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_source_candidate_catalogue_replay.py tests/integration/test_source_candidates.py tests/browser/test_source_candidate_review_panel_connected.py tests/browser/test_source_candidates.py -q --tb=short",
+      "result": "PASS",
+      "passed": 17,
+      "evidence": "The Chromium scenario commits a source report then aborts its response, retries with the identical request ID, confirms one observation for that URL, switches to a new URL and confirms a new request ID, and observes no page errors or external requests."
+    },
+    {
+      "command": "npm test -- --run src/source-candidate-review.test.tsx src/source-candidate-review-panel.test.tsx src/source-candidate-review-client.test.ts",
+      "result": "PASS",
+      "passed": 25
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed; existing large-chunk advisory remains."
+    },
+    {
+      "command": "python -m py_compile tests/browser/test_source_candidates.py; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "PostgreSQL-specific integration",
+    "Full repository suite",
+    "Live job-source requests",
+    "Hosted Actions and hosted reviews (NOT_RUN_BY_USER_POLICY)",
+    "External application submission (OFF)"
+  ],
+  "limitations": [
+    "The browser workflow uses isolated SQLite fixtures and synthetic local records.",
+    "The route-label compatibility guard defaults missing route authority to UNKNOWN; it does not grant route trust.",
+    "Issue #517 remains OPEN/PARTIAL for source-provider/browser intake, source evaluation, and bounded integration linkage."
+  ],
+  "safety": [
+    "Source capture remains passive and does not open candidate websites or enable collection.",
+    "The browser test blocks and records any non-loopback request; none occurred.",
+    "No real application was submitted."
+  ]
+}
