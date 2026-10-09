@@ -1,0 +1,80 @@
+"""Selected-search scope and current-evidence rules for title suggestions."""
+from pathlib import Path
+import tempfile
+import unittest
+
+from packages.persistence import models as m
+from packages.persistence.store import Store
+from services.learning.search_profile_suggestions import suggest_search_profile_titles
+
+PROFILE = {
+    "id": "fixture",
+    "name": "Synthetic Profile",
+    "email": "synthetic@example.test",
+    "answers": [],
+    "facts": [],
+}
+
+
+class SearchProfileSuggestionScopeTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory(prefix="mjobs-title-suggestion-scope-")
+        self.store = Store(
+            f"sqlite:///{(Path(self.directory.name) / 'jobs.db').as_posix()}"
+        )
+        self.store.migrate()
+        self.store.save_profile(dict(PROFILE))
+        self.next_job = 0
+
+    def tearDown(self):
+        self.store.engine.dispose()
+        self.directory.cleanup()
+
+    def _match(self, title, score, *, profile_version=None):
+        self.next_job += 1
+        job_id = f"scope-job-{self.next_job}"
+        company_id = f"scope-company-{self.next_job}"
+        with self.store.engine.begin() as connection:
+            connection.execute(m.companies.insert().values(
+                id=company_id, name="Synthetic Company", domain="example.test",
+                parent_company_id=None, relationship_type=None,
+            ))
+            connection.execute(m.jobs.insert().values(
+                id=job_id, company_id=company_id, requisition=job_id, title=title,
+                description="", skills=[], location="", remote_type="UNKNOWN",
+                attributes={},
+            ))
+            connection.execute(m.matches.insert().values(
+                id=f"scope-match-{job_id}", job_id=job_id, profile_id="fixture",
+                profile_version=profile_version or self.store.profile("fixture")["version"],
+                score=score, missing=[], components={},
+            ))
+
+    def test_excludes_selected_search_titles_and_only_uses_current_strong_evidence(self):
+        previous_version = self.store.profile("fixture")["version"]
+        updated_profile = dict(PROFILE)
+        updated_profile["name"] = "Current profile"
+        self.store.save_profile(updated_profile)
+
+        self._match("Platform Administrator", 99, profile_version=previous_version)
+        self._match("System Administrator", 95)
+        self._match("Infrastructure Support Engineer", 75)
+        self._match("Review Only Engineer", 74)
+
+        self.assertEqual(
+            suggest_search_profile_titles(
+                self.store,
+                "fixture",
+                current_title=" system administrator ",
+                excluded_titles=[" PLATFORM ADMINISTRATOR "],
+            ),
+            [{
+                "title": "Infrastructure Support Engineer",
+                "strong_match_count": 1,
+                "reason": "Observed in 1 current strong match.",
+            }],
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
