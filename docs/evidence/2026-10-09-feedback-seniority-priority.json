@@ -1,0 +1,46 @@
+{
+  "issue": 121,
+  "requirement": "MJ-REQ-120",
+  "result": "PARTIAL",
+  "source_sha": "1274041fb4a037dff0bc3a1147aacadc84108ae9",
+  "source_tree": "5673bb90d6afdc5436b24ab4742c0d17e00e3f77",
+  "verified_at_utc": "2026-10-09T07:55:36Z",
+  "environment": {
+    "platform": "Windows local synthetic FIXTURE mode",
+    "python": "3.12.10 repository virtual environment",
+    "node": "v25.9.0",
+    "database": "isolated SQLite fixtures",
+    "browser": "local Chromium through Playwright"
+  },
+  "scope": "An explicitly applied TOO_SENIOR preference captures only a recognized normalized experience level from its feedback job and contributes an explainable advisory priority factor only to jobs with that exact same level.",
+  "input_sha256": {
+    "apps/api/application_priority.py": "a3431bd1730cdbb8e9bb38fdeeeddf80ea890e8a9af0301f7c25272121ba2175",
+    "apps/api/match_feedback.py": "7465c678d5825f74982c96363603156922f29a9398f137c3764711db23555456",
+    "apps/web/src/match-feedback-client.test.ts": "d55aae68b3ba915d6af86bc605ae389ad2e65ca7349bda4bad272ab0f384e4cf",
+    "apps/web/src/match-feedback-client.ts": "a24a6438f75cb13c18fad6613ba002baae1133a843d0103131403c0a1e5bd859",
+    "apps/web/src/match-feedback.test.tsx": "647e90b300c8116af83a6913ddd281cc23966ddd59b61b5d83b3cd8177b4e04f",
+    "services/discovery/application_priority.py": "beb21b89ac32afc3b516acb5f0cc9f802a994aca4e5b4adcb457f165f7399bae",
+    "services/matching/user_match_feedback.py": "070384ca50439c15b914fa2174b404669640e572c50ca39f3619dd368f2029b1",
+    "tests/browser/test_job_sorting.py": "3102d235941d728b0a861f18c01a2a54733ea9bc6f9ed24525c956d0d4e5d25a",
+    "tests/integration/test_application_priority_api.py": "ad98130b314494adc6d4c3adb068de6f3bfe35f02eb90d10dc06cc10bcad6ff8",
+    "tests/unit/test_application_priority.py": "b4a31dc4d0160e7fdf17278d7913454bcb223a909b4dfc7eb27c5efa45f4419c",
+    "tests/unit/test_user_match_feedback.py": "88de8c32f0f3ac8861b711fa6b1e8ea87090137609b526ec77c6a7d918bb9c63"
+  },
+  "verified": {
+    "python": "Focused feedback and priority unit/API/mount suites: 41 passed, including 17 subtests.",
+    "browser": "Connected feedback and application-priority sorting workflows: 2 passed; no skips.",
+    "web": "Focused feedback client and component Vitest: 15 passed.",
+    "build": "TypeScript check and Vite production build passed; existing bundle-size advisory remains.",
+    "recovery": "A repeated pre-upgrade preference request remains idempotent and does not infer a level missing from its stored event.",
+    "ranking": "Reviewed TOO_SENIOR feedback on a synthetic SENIOR job lowered its advisory priority and sorted a same-match-score MID job first; a different level received no seniority factor.",
+    "invariants": "Saved profile preferences, persisted match scores, and application rows stayed unchanged; external submission remained OFF.",
+    "validators": "Python compilation, agent-skill validation, lane coordination validation, and git diff --check passed."
+  },
+  "remaining": [
+    "Feedback preferences still do not alter saved-search or persisted job-match scoring; the dependency chain in MJ-PR-032 remains queued.",
+    "Seniority evidence is intentionally limited to the exact normalized level the user explicitly marked too senior; other levels remain UNKNOWN.",
+    "PostgreSQL-specific and hosted checks/review were NOT_RUN under local-only policy."
+  ],
+  "external_submission": "OFF",
+  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+}
