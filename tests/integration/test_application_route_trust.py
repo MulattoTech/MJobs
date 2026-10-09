@@ -6,11 +6,13 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
+from sqlalchemy import update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.dedupe.routes import plan_application_routes
+from services.discovery.sources.collect import configure_source
 from tests.integration.test_spine import PROFILE
 
 
@@ -52,6 +54,16 @@ class ApplicationRouteTrustTests(unittest.TestCase):
                     "provider": provider, "tenant": tenant, "requisition": req,
                     "url": f"https://board.example/jobs/{route_id}",
                 })
+        self.board_source_id = configure_source(self.store, "public", provider="remotive")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(attributes={
+                "source_id": self.board_source_id, "provider": "remotive", "tenant": "public",
+            }))
+            upsert(connection, m.routes, {
+                "id": "remotive-route", "job_id": "job-a", "company_id": "company-a",
+                "provider": "remotive", "tenant": "public", "requisition": "req-a",
+                "url": "https://remotive.com/remote-jobs/example/1",
+            })
 
     def tearDown(self):
         self.store.engine.dispose()
@@ -63,7 +75,7 @@ class ApplicationRouteTrustTests(unittest.TestCase):
             "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
         ))
 
-    def test_reviewed_company_route_preference_reads_back_and_changes_only_same_rank_choice(self):
+    def test_trusted_board_authority_ranks_above_user_preference_but_explicit_route_choice_is_preserved(self):
         with self.client() as client:
             saved = client.put(
                 f"/profiles/{self.profile['id']}/companies/company-a/preferred-application-route",
@@ -80,10 +92,11 @@ class ApplicationRouteTrustTests(unittest.TestCase):
             readback = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
             self.assertEqual(readback.status_code, 200, readback.text)
 
-        routes = readback.json()["all_options"]
-        trusted = [option["preferred_route"] for option in routes]
-        plan = plan_application_routes(trusted, "DEFAULT")
-        self.assertEqual(plan["selected"][0]["preferred_route"]["id"], "board-a")
+        routes = [route for option in readback.json()["all_options"] for route in option["aliases"]]
+        plan = plan_application_routes(routes, "DEFAULT")
+        self.assertEqual(plan["selected"][0]["preferred_route"]["id"], "remotive-route")
+        chosen = plan_application_routes(routes, "THIS_ROUTE", route_id="board-a")
+        self.assertEqual(chosen["selected"][0]["preferred_route"]["id"], "board-a")
 
     def test_route_preference_is_not_visible_to_another_profile(self):
         other = copy.deepcopy(PROFILE)
@@ -173,3 +186,100 @@ class ApplicationRouteTrustTests(unittest.TestCase):
         routes = [route for option in readback.json()["all_options"] for route in option["aliases"]]
         plan = plan_application_routes(routes, "DEFAULT")
         self.assertEqual(plan["selected"][0]["preferred_route"]["id"], "verified-ats")
+
+    def test_exact_supported_board_evidence_ranks_between_verified_ats_and_aggregator(self):
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        routes = response.json()["all_options"]
+        route = next(route for option in routes for route in option["aliases"]
+                     if route["id"] == "remotive-route")
+        self.assertEqual(route["authority"], "TRUSTED_INTEGRATED_BOARD")
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.routes, {
+                "id": "generic-aggregator", "job_id": "job-a", "company_id": "company-a",
+                "provider": "aggregator", "tenant": "feed", "requisition": "other-req",
+                "url": "https://aggregator.example/jobs/1",
+            })
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        board_and_aggregator = [route for option in response.json()["all_options"]
+                                for route in option["aliases"]
+                                if route["id"] in {"remotive-route", "generic-aggregator"}]
+        board_plan = plan_application_routes(board_and_aggregator, "DEFAULT")
+        self.assertEqual(board_plan["selected"][0]["preferred_route"]["id"], "remotive-route")
+
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.routes, {
+                "id": "verified-ats", "job_id": "job-a", "company_id": "company-a",
+                "provider": "greenhouse", "tenant": "example", "requisition": "ats-req",
+                "url": "https://boards.greenhouse.io/example/jobs/1",
+            })
+            upsert(connection, m.company_ats_tenants, {
+                "id": "tenant-evidence", "company_id": "company-a", "provider": "greenhouse",
+                "tenant_identifier": "example", "organization_identifier": "", "board_identifier": "",
+                "confidence": 0.95, "evidence": ["PUBLIC_API_BOARD"],
+                "first_seen_at": "2026-10-09T00:00:00Z", "last_seen_at": "2026-10-09T00:00:00Z",
+            })
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
+        plan = plan_application_routes(routes, "DEFAULT")
+        self.assertEqual(plan["selected"][0]["preferred_route"]["id"], "verified-ats")
+
+    def test_board_authority_fails_closed_when_source_identity_or_capability_does_not_match(self):
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        original = next(route for option in response.json()["all_options"] for route in option["aliases"]
+                        if route["id"] == "remotive-route")
+        self.assertEqual(original["authority"], "TRUSTED_INTEGRATED_BOARD")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(attributes={
+                "source_id": "different-source", "provider": "remotive", "tenant": "public",
+            }))
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
+        self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")
+
+        for source_attributes in (
+            {"source_id": self.board_source_id, "provider": "remoteok", "tenant": "public"},
+            {"source_id": self.board_source_id, "provider": "remotive", "tenant": "different"},
+        ):
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(
+                    attributes=source_attributes,
+                ))
+            with self.client() as client:
+                response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+                self.assertEqual(response.status_code, 200, response.text)
+            routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
+            self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")
+
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(attributes={
+                "source_id": self.board_source_id, "provider": "remotive", "tenant": "public",
+            }))
+            connection.execute(update(m.job_sources).where(m.job_sources.c.id == self.board_source_id).values(
+                capabilities={"strategy": "PUBLIC_JSON", "capabilities": ["DISCOVERY"]},
+            ))
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
+        self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")
+
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.job_sources).where(m.job_sources.c.id == self.board_source_id).values(
+                capabilities={"strategy": "PUBLIC_JSON", "capabilities": ["APPLICATION_REDIRECT"]},
+                tenant="wrong-tenant",
+            ))
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
+        self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")

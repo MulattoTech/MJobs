@@ -17,6 +17,7 @@ import uvicorn
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
+from services.discovery.sources.collect import configure_source
 from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,6 +32,7 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
             store.bind_workspace_mode("PERSONAL")
             store.save_profile(copy.deepcopy(PROFILE))
             job_id = "b" * 64
+            board_source_id = configure_source(store, "public", provider="remotive")
             with store.engine.begin() as connection:
                 upsert(connection, m.companies, {
                     "id":"browser-route-company", "name":"Route Choice Employer", "domain":"routechoice.example",
@@ -38,12 +40,18 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                 upsert(connection, m.jobs, {
                     "id":job_id, "company_id":"browser-route-company", "requisition":"route-choice",
                     "title":"Route Selection Engineer", "description":"Support local systems.",
-                    "skills":["Python"], "location":"Remote", "remote_type":"REMOTE", "attributes":{},
+                    "skills":["Python"], "location":"Remote", "remote_type":"REMOTE",
+                    "attributes":{"source_id":board_source_id,"provider":"remotive","tenant":"public"},
                 })
                 upsert(connection, m.routes, {
                     "id":"browser-route-board", "job_id":job_id, "company_id":"browser-route-company",
                     "provider":"job-board", "tenant":"integrated-board", "requisition":"route-choice",
                     "url":"https://board.example/jobs/route-choice",
+                })
+                upsert(connection, m.routes, {
+                    "id":"browser-route-remotive", "job_id":job_id, "company_id":"browser-route-company",
+                    "provider":"remotive", "tenant":"public", "requisition":"route-choice",
+                    "url":"https://remotive.com/remote-jobs/example/1",
                 })
                 upsert(connection, m.routes, {
                     "id":"browser-route-ats", "job_id":job_id, "company_id":"browser-route-company",
@@ -143,6 +151,8 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                         "job-board · integrated-board · route not verified")
                     expect(route_picker.locator("option").nth(2)).to_contain_text(
                         "same employer requisition has verified ATS route: greenhouse · routechoice")
+                    expect(route_picker.locator("option").nth(3)).to_contain_text(
+                        "remotive · public · trusted integrated board evidence")
                     prepare = page.get_by_role("button", name="Prepare documents", exact=True)
                     expect(prepare).to_be_disabled()
                     route_picker.select_option("browser-route-board")

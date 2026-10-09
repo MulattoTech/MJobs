@@ -25,10 +25,14 @@ FIRST_PARTY_PROVIDERS = {
     "mock-ats",
 }
 
+TRUSTED_INTEGRATED_BOARD_PROVIDERS = {"remotive", "remoteok", "remote_ok", "wwr"}
+APPLICATION_REDIRECT_CAPABILITY = "APPLICATION_REDIRECT"
+
 
 def route_authority(route):
     explicit = str(route.get("authority") or "").upper()
-    if explicit in {"VERIFIED_EMPLOYER", "VERIFIED_ATS", "DIRECT_EMPLOYER", "AGGREGATOR", "UNKNOWN"}:
+    if explicit in {"VERIFIED_EMPLOYER", "VERIFIED_ATS", "TRUSTED_INTEGRATED_BOARD",
+                    "DIRECT_EMPLOYER", "AGGREGATOR", "UNKNOWN"}:
         return explicit
     provider = str(route.get("provider") or "").casefold()
     if provider in FIRST_PARTY_PROVIDERS:
@@ -63,6 +67,7 @@ def distinct_route_options(routes):
     rank = {
         "UNKNOWN": 0,
         "AGGREGATOR": 10,
+        "TRUSTED_INTEGRATED_BOARD": 15,
         "DIRECT_EMPLOYER": 20,
         "VERIFIED_ATS": 30,
         "VERIFIED_EMPLOYER": 40,
@@ -118,7 +123,8 @@ def plan_application_routes(routes, mode="DEFAULT", route_id=None, preference="P
         selected = [max(
             candidates,
             key=lambda option: (
-                {"DIRECT_EMPLOYER": 20, "VERIFIED_ATS": 30, "VERIFIED_EMPLOYER": 40}[
+                {"DIRECT_EMPLOYER": 20, "TRUSTED_INTEGRATED_BOARD": 15,
+                 "VERIFIED_ATS": 30, "VERIFIED_EMPLOYER": 40}[
                     option["preferred_route"]["authority"]
                 ],
                 option["underlying_key"],
@@ -130,7 +136,8 @@ def plan_application_routes(routes, mode="DEFAULT", route_id=None, preference="P
         selected = [max(
             options,
             key=lambda option: (
-                {"UNKNOWN": 0, "AGGREGATOR": 10, "DIRECT_EMPLOYER": 20, "VERIFIED_ATS": 30, "VERIFIED_EMPLOYER": 40}[
+                {"UNKNOWN": 0, "AGGREGATOR": 10, "TRUSTED_INTEGRATED_BOARD": 15,
+                 "DIRECT_EMPLOYER": 20, "VERIFIED_ATS": 30, "VERIFIED_EMPLOYER": 40}[
                     option["preferred_route"]["authority"]
                 ],
                 bool(option["preferred_route"].get("preferred_by_profile")),
@@ -147,8 +154,39 @@ def plan_application_routes(routes, mode="DEFAULT", route_id=None, preference="P
     }
 
 
+def _has_integrated_board_route_evidence(connection, route):
+    provider = str(route.get("provider") or "").casefold()
+    if provider not in TRUSTED_INTEGRATED_BOARD_PROVIDERS:
+        return False
+    job = connection.execute(select(m.jobs.c.attributes).where(
+        m.jobs.c.id == route.get("job_id"),
+        m.jobs.c.company_id == route.get("company_id"),
+    )).first()
+    attributes = job[0] if job is not None else None
+    if not isinstance(attributes, dict):
+        return False
+    source_id = attributes.get("source_id")
+    if not isinstance(source_id, str) or not source_id.strip():
+        return False
+    if str(attributes.get("provider") or "").casefold() != provider:
+        return False
+    if str(attributes.get("tenant") or "").casefold() != str(route.get("tenant") or "").casefold():
+        return False
+    source = connection.execute(select(
+        m.job_sources.c.provider, m.job_sources.c.tenant, m.job_sources.c.capabilities,
+    ).where(m.job_sources.c.id == source_id)).mappings().first()
+    if source is None or str(source["provider"]).casefold() != provider:
+        return False
+    if str(source["tenant"]).casefold() != str(route.get("tenant") or "").casefold():
+        return False
+    capabilities = source["capabilities"]
+    return (isinstance(capabilities, dict)
+            and isinstance(capabilities.get("capabilities"), list)
+            and APPLICATION_REDIRECT_CAPABILITY in capabilities["capabilities"])
+
+
 def qualify_route_authority(connection, routes):
-    """Annotate routes only from exact, persisted employer or ATS identity evidence."""
+    """Annotate routes only from exact, persisted employer, ATS, or board evidence."""
     result = [dict(route) for route in routes]
     for route in result:
         route["authority"] = route_authority(route)
@@ -172,6 +210,9 @@ def qualify_route_authority(connection, routes):
                 and isinstance(tenants[0]["evidence"], list)
                 and any(isinstance(item, str) and item.strip() for item in tenants[0]["evidence"])):
             route["authority"] = "VERIFIED_ATS"
+            continue
+        if _has_integrated_board_route_evidence(connection, route):
+            route["authority"] = "TRUSTED_INTEGRATED_BOARD"
     return result
 
 
