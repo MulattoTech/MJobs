@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-246"
+  ],
+  "github_issues": [
+    247
+  ],
+  "result": "PASS",
+  "scope": "After the third retryable failure of an explicitly monitored public company feed, preserve the existing failed source and configuration, queue one identity-checked company rediscovery operation, and explain the queued state in the connected source-monitoring UI.",
+  "source": {
+    "branch": "codex/solo-mj-req246-failure-rediscovery-20261009",
+    "base": "17e5abd10402a0a5a5f378ef27d66b3e76931ba8",
+    "tested_commit": "173215d66c68944238f1b224c8855bce3670cb13",
+    "tested_tree": "35ecef5bef7b7bbb6d4da78ac62f040f435b89cf",
+    "tested_source_sha256": {
+      "services/company_discovery/monitoring.py": "C252BCF7C118374936E7F3BD999EE360890D7B94CA121773FB9AA34DF78AD319",
+      "apps/web/src/company-source-monitoring.tsx": "663EE5EAEBEF3AFA25969FEE9428103601898959D5B3AE22EC2E4F5AE3895A63",
+      "apps/web/src/company-source-monitoring.test.tsx": "12587123A1A721D5601832942A6976DDA674CC2B81DF831F80C850B05431AF94",
+      "tests/integration/test_company_source_monitoring.py": "FDCE7641C57CBBCFCCD4D659A9BB1888F40289359B8726BB0FD1BE61CD769248",
+      "tests/browser/test_company_source_failure_rediscovery.py": "566A2472436D7F343EFBE3BC4CEFD2D4B4F35F26C5F94EDBAF066DD21F446346"
+    }
+  },
+  "verified_at_utc": "2026-10-09T22:13:45Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite with synthetic company/profile data and mocked public-fetch responses",
+    "browser": "local connected Chromium; page network restricted to the test origin",
+    "frontend": "local Vitest and TypeScript/Vite production build",
+    "delivery": "local-only; hosted automation/review disabled; external application submission OFF"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_company_source_monitoring.py tests/integration/test_company_source_view.py -q",
+      "result": "PASS",
+      "evidence": "16 tests passed. Synthetic 503 failures queue one COMPANY_DISCOVER only at the third retryable failure, preserve the existing endpoint and source, stop automatic scheduling, block duplicate manual refresh while rediscovery is active, and leave the source intact when rediscovery fails. 403 does not queue rediscovery; source-view behavior also passes."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_company_source_failure_rediscovery tests.browser.test_company_source_monitoring",
+      "result": "PASS",
+      "evidence": "2 connected Chromium tests passed. The new synthetic flow reads FAILED and queued rediscovery state from the connected app, reloads and verifies durable readback, confirms the source endpoint/enabled state are unchanged, and observes no page errors or non-local requests."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/company-source-monitoring.test.tsx",
+      "result": "PASS",
+      "evidence": "6 focused component tests passed, including the no-retarget queued-rediscovery explanation."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing bundle-size advisory remains."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services/company_discovery/monitoring.py tests/integration/test_company_source_monitoring.py tests/browser/test_company_source_failure_rediscovery.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Python compilation and source diff whitespace checks passed."
+    }
+  ],
+  "not_run": [
+    "PostgreSQL validation and full repository suites.",
+    "Live company-source/provider requests.",
+    "Hosted Actions, hosted reviews, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "Acceptance proves the monitored public company-feed failure path; it does not claim failure-triggered rediscovery for every discovery provider or source type.",
+    "Rediscovery results remain subject to the existing user-review flow; this feature never replaces or enables the failed source automatically.",
+    "This evidence covers one bounded MJ-REQ-246 acceptance slice and does not assert whole-product release eligibility."
+  ],
+  "safety": [
+    "Synthetic responses were used; no live provider was contacted.",
+    "The existing source identity, endpoint, enablement, and configuration remain unchanged until user review.",
+    "No CAPTCHA, access control, ATS, or application-submission behavior was changed. External submission remains OFF."
+  ]
+}
