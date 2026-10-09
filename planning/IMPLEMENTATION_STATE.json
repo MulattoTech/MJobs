@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T10:14:05Z"
   },
-  "current_milestone": "MJ-REF-006-LOCAL-ACCEPTANCE-20261009",
-  "current_objective": "Verify the already-integrated deterministic resume page-fit workflow locally; keep MJ-REF-006 PARTIAL because measured-success connected browser acceptance remains unrun.",
+  "current_milestone": "MJ-REF-006-MEASURED-SUCCESS-ACCEPTANCE-20261009",
+  "current_objective": "Complete and locally verify deterministic resume page-fit, including the measured-success connected browser workflow; keep whole-product release readiness separate.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -83,7 +83,8 @@
     "MJ-REQ-100 bounded company-context workflow: source-identity binding, explicit content-hash review, labeled unverified context and immutable per-job letter history; PARTIAL only.",
     "Connected #190/MJ-REQ-189 application-capability Jobs facet integrated at 08715b516dd8fe9d109102b969f4f77eacd311cd: exact persisted route/current adapter knowledge, pre-LIMIT filtering, profile-scoped save/restore/clear; evidence docs/evidence/2026-10-08-application-capability-search-filter.json.",
     "Profile-scoped dynamic ATS form review with dependent choices, optional sections, repeatable rows, and browser-tab recovery; employer writes remain disabled.",
-    "MJ-REQ-240 / issue #241 company preferences PASS: durable profile-scoped BLACKLISTED/PREFERRED/NEUTRAL state, pre-limit job exclusion with explicit recovery override, and explainable application-priority company factor; evidence docs/evidence/2026-10-09-company-preferences.json."
+    "MJ-REQ-240 / issue #241 company preferences PASS: durable profile-scoped BLACKLISTED/PREFERRED/NEUTRAL state, pre-limit job exclusion with explicit recovery override, and explainable application-priority company factor; evidence docs/evidence/2026-10-09-company-preferences.json.",
+    "MJ-REF-006: connected, explicitly reviewed measured-success resume page-fit generation with durable revision readback and preserved prior resume bytes."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -460,7 +461,8 @@
     "#190 / MJ-REQ-189 application-link facet: 34 focused Python, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, compilation, skill/lane validators, exact source hashes/blob IDs and local delegated review PASS at local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d.",
     "#372 / MJ-REF-002 exact source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3: answer matching API 4 tests + 6 subtests PASS; connected synthetic Chromium story citation flow 1 PASS; targeted frontend 25/25 PASS; TypeScript/Vite build and diff check PASS. Evidence docs/evidence/2026-10-09-career-story-answer-citations.json.",
     "#237 / MJ-REQ-236 exact source e3ec3f40476129e5bca57baf48f9485d5db16259: search-history service/API/worker and connected browser group 24 passed + 4 subtests (4 optional skips); full web Vitest 466/466; TypeScript/Vite build, agent-skills, catalogue and diff validation PASS. Evidence docs/evidence/2026-10-09-search-history.json.",
-    "MJ-FEATURE-517 exact tested source 72bbc73f42179a33de71ba6c777abc721d162c52: 18 focused unit/integration/connected Chromium tests PASS; 21 focused web tests PASS; TypeScript/Vite production build, py_compile and diff check PASS. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json."
+    "MJ-FEATURE-517 exact tested source 72bbc73f42179a33de71ba6c777abc721d162c52: 18 focused unit/integration/connected Chromium tests PASS; 21 focused web tests PASS; TypeScript/Vite production build, py_compile and diff check PASS. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
+    "#376 / MJ-REF-006 exact source bf78b77b7d3e26861c332aea7f92bc7d81ce9c2e (tree a02c8777d62bd769d03523333eb6debc20bffdee): 30 focused unit/API/integration/connected Chromium tests PASS; TypeScript/Vite build and diff check PASS. Evidence docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -570,7 +572,8 @@
     "#190 application-link facet: PostgreSQL runtime, live production sources/ATS, full repository suite, hosted GitHub checks/review NOT_RUN; local-only policy.",
     "#372: PostgreSQL runtime, full repository Python/web suites, hosted checks/review, live ATS/source access and external submission NOT_RUN or OFF; citation persistence and story selection for document generation remain unimplemented.",
     "#237: live external job-source acceptance and hosted checks/review NOT_RUN_BY_USER_POLICY; no real source egress or application submission occurred.",
-    "MJ-FEATURE-517: PostgreSQL runtime, live provider/source acceptance, hosted checks/review NOT_RUN_BY_USER_POLICY; collection stays disabled and external application submission OFF."
+    "MJ-FEATURE-517: PostgreSQL runtime, live provider/source acceptance, hosted checks/review NOT_RUN_BY_USER_POLICY; collection stays disabled and external application submission OFF.",
+    "#376 / MJ-REF-006: PostgreSQL, full repository suite, hosted checks/review NOT_RUN; synthetic local acceptance only; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -14273,9 +14276,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T09:43:11Z",
-  "current_verified_local_state": "Company-preference candidate source 97ae82d9b59c1e588c494379dea0f1e0606772c1 (tree d8bdcc0f138db9cb27452bd60b57d9bc792e964c) passed focused API/service, discovery, application-priority, connected Chromium, frontend and build checks; evidence docs/evidence/2026-10-09-company-preferences.json. MJ-REQ-240 PASS; whole product and MJ-REF-026 remain PARTIAL.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration is not pushed and no PR is opened. Issue #241 receives a local acceptance receipt. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T10:25:04Z",
+  "current_verified_local_state": "Local page-fit acceptance source bf78b77b7d3e26861c332aea7f92bc7d81ce9c2e (tree a02c8777d62bd769d03523333eb6debc20bffdee): 30 focused unit/API/integration/connected Chromium tests PASS; TypeScript/Vite build PASS with existing bundle advisory. Evidence docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json. MJ-REF-006 is locally PASS; whole-product release remains PARTIAL. Preserve untracked docs/evidence/2026-10-08-compose-target-isolation.json.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T10:25:04Z.",
   "next_candidates": [
     {
       "issue": 517,

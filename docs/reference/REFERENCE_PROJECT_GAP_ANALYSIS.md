@@ -180,7 +180,7 @@ The canonical namespace is `MJ-REF`. Concurrent audit work produced a richer cat
 - #372 MJ-REF-002 — Career story bank and reusable bullet pool — PARTIAL on local main: approved, current, fact-linked story revisions can be explicitly reviewed and selected as optional citations in answer review; reviewed citations now persist as provenance-only links with answer export history. Story selection for resume and cover-letter generation remains incomplete. Evidence: `docs/evidence/2026-10-09-career-story-answer-citations.json`, `docs/evidence/2026-10-09-career-story-export-citations.json`.
 - #373 MJ-REF-003 — Enforced global avoid-list for generated career content
 - #375 MJ-REF-005 — Deterministic no-LLM fallback for core career workflows
-- #376 MJ-REF-006 — Deterministic resume page-fit and layout measurement
+- #376 MJ-REF-006 — Deterministic resume page-fit and layout measurement — PASS on local main after measured-success connected browser acceptance; deterministic layout measurement, protected-fact preservation, bounded attempts, explicit preview review, and durable generated revision readback are verified. Evidence: `docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json`.
 - #377 MJ-REF-007 — Resume workspace with templates, section ordering, and keyword highlighting
 - #378 MJ-REF-008 — Grounded interview-preparation workspace
 - #379 MJ-REF-009 — Multilingual UI and generated-material support

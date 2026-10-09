@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-09T10:14:05Z",
+  "generated_at": "2026-10-09T10:25:04Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -106,7 +106,7 @@
       ]
     },
     "MJ-REF-006": {
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json"
       ]

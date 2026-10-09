@@ -2,21 +2,25 @@
   "schema_version": 1,
   "issue": 376,
   "reference_gap_id": "MJ-REF-006",
-  "result": "PARTIAL",
-  "tested_head": "19e85aaf4d926886137397cb8b888caced926b13",
-  "tested_tree": "d962dcc6fb4692833bf3773b9699fed950e4241d",
-  "tested_at_utc": "2026-10-09T10:14:05Z",
+  "result": "PASS",
+  "tested_head": "bf78b77b7d3e26861c332aea7f92bc7d81ce9c2e",
+  "tested_tree": "a02c8777d62bd769d03523333eb6debc20bffdee",
+  "tested_at_utc": "2026-10-09T10:25:04Z",
   "environment": {
     "platform": "Windows",
     "python": "3.12",
     "database": "temporary SQLite",
-    "browser": "local Playwright/Chromium synthetic recovery flow"
+    "browser": "local Playwright/Chromium",
+    "web": "local TypeScript/Vite production build"
   },
-  "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_resume_page_fit tests.integration.test_resume_page_fit tests.integration.test_resume_page_fit_api tests.integration.test_resume_page_fit_render_contract tests.integration.test_resume_page_fit_api_no_write_preview tests.browser.test_resume_page_fit_unavailable_recovery -v",
-  "result_detail": "29 tests passed. Coverage includes deterministic page-count fitting, bounded attempts, protected/selected fact preservation, measured PDF preview and generation API behavior, preview no-write and profile scope, and browser recovery when measurement is unavailable.",
+  "commands": [
+    "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_resume_page_fit tests.integration.test_resume_page_fit tests.integration.test_resume_page_fit_api tests.integration.test_resume_page_fit_render_contract tests.integration.test_resume_page_fit_api_no_write_preview tests.browser.test_resume_page_fit_unavailable_recovery tests.browser.test_resume_page_fit_measured_success -v",
+    "npm run build --prefix apps/web",
+    "git diff --check"
+  ],
+  "result_detail": "30/30 focused page-fit unit, integration, API, render-contract, no-write, unavailable-recovery, and connected Chromium measured-success tests passed. The browser workflow measured an actual one-page synthetic resume PDF, kept preview transient until explicit review, persisted a fitted resume revision under the existing application, preserved the earlier resume bytes and hash, and made no external requests or application submissions. TypeScript/Vite build passed with the existing large-chunk advisory.",
   "limitations": [
-    "The connected browser exercised the unavailable-measurement recovery path; a measured-success UI generation flow was not run in Chromium.",
     "PostgreSQL, full repository suite, hosted checks and external review were not run.",
-    "MJ-REF-006 remains PARTIAL; whole-product release remains PARTIAL; external application submission is OFF."
+    "All acceptance data was synthetic and local; external application submission remains OFF."
   ]
 }
