@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T10:00:49Z",
+  "generated_at": "2026-10-09T10:14:05Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main b249a96652ea0f84860c27264782a92758c8b3d8 integrates the bounded #61 / MJ-REQ-060 verified-domain reuse slice; exact tested source is 8f7fab9b330d554ef8659cf1232a9a23f006436f (tree 5ede7429f9803831135ef8d9e19edd5742192e36). Evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. Focused integration suite 42/42, Python compilation, catalogue/progress validators, and source hash checks PASS. Issue #61 remains OPEN/PARTIAL; automatic domain acquisition across all supported evidence paths remains incomplete. Preserved root untracked docs/evidence/2026-10-08-compose-target-isolation.json is untouched.",
+    "current_verified_local_state": "Local main was 19e85aaf4d926886137397cb8b888caced926b13 (tree d962dcc6fb4692833bf3773b9699fed950e4241d) when the focused resume page-fit acceptance suite ran: 29 unit/API/integration/browser-recovery tests PASS. Evidence docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json. MJ-REF-006 remains PARTIAL because measured-success connected browser verification is still missing. Preserve root untracked docs/evidence/2026-10-08-compose-target-isolation.json.",
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T10:00:49Z"
+    "current_verified_at": "2026-10-09T10:14:05Z"
   },
-  "current_milestone": "MJ-REQ-060-VERIFIED-DOMAIN-REUSE-20261009",
-  "current_objective": "Complete the bounded no-website discovery path using only a uniquely resolved company’s persisted verified, evidenced domain before optional search. MJ-REQ-060 remains PARTIAL; broader domain evidence acquisition and whole-product release remain incomplete.",
+  "current_milestone": "MJ-REF-006-LOCAL-ACCEPTANCE-20261009",
+  "current_objective": "Verify the already-integrated deterministic resume page-fit workflow locally; keep MJ-REF-006 PARTIAL because measured-success connected browser acceptance remains unrun.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -155,7 +155,8 @@
     "#372 / MJ-REF-002: connected answer-review workspace displays current approved career stories and linked fact fingerprints, requires explicit story-reference review/selection, suppresses sensitive-question lookup, and keeps answer text/review separate. Source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3; evidence docs/evidence/2026-10-09-career-story-answer-citations.json. Story citation is transient, not stored in answer export; document-generation selection and broader story-bank acceptance remain incomplete.",
     "MJ-REQ-236 / issue #237: connected profile-scoped durable history for terminal discovery runs with source/query/filter context, UTC start/finish, result and new-job counts, status/errors, idempotent atomic persistence, read-only API, keyset pagination and Activity UI reload readback. Source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); integrated local main bc523f642a27795e3791d7bf0926e22473376277. Evidence docs/evidence/2026-10-09-search-history.json. Duplicate counts remain null because collectors do not report a reliable total; hosted/live source NOT_RUN_BY_USER_POLICY.",
     "MJ-FEATURE-517 / issue #517 bounded source-candidate slice: exact capture replay is a no-op with immutable observation timestamps; distinct events preserve earliest first_seen and latest last_seen independent of arrival order; changed request reuse conflicts; review history displays sanitized API/feed evidence reference. Tested code 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); integrated local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Issue remains OPEN/PARTIAL.",
-    "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved company’s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json)."
+    "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved company’s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json).",
+    "MJ-REF-006 local acceptance: 29 focused unit/API/integration/browser-recovery tests pass for deterministic measured trimming, bounded attempts, protected facts, no-write previews and unavailable-measurement recovery. A measured-success connected browser flow and broader release gates remain unverified (docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -611,13 +612,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "8f7fab9b330d554ef8659cf1232a9a23f006436f",
-    "tree": "5ede7429f9803831135ef8d9e19edd5742192e36",
-    "result": "PASS for bounded verified-domain reuse and evidence precedence; MJ-REQ-060 and overall product remain PARTIAL.",
+    "commit": "19e85aaf4d926886137397cb8b888caced926b13",
+    "tree": "d962dcc6fb4692833bf3773b9699fed950e4241d",
+    "result": "PARTIAL: resume page-fit API/algorithm and unavailable-recovery browser acceptance passed; measured-success connected browser acceptance remains unrun.",
     "evidence": [
-      "docs/evidence/2026-10-09-official-domain-evidence-order.json"
+      "docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json"
     ],
-    "verified_at_utc": "2026-10-09T09:58:03Z"
+    "verified_at_utc": "2026-10-09T10:14:05Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",

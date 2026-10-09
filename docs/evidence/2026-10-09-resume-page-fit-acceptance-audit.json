@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "issue": 376,
+  "reference_gap_id": "MJ-REF-006",
+  "result": "PARTIAL",
+  "tested_head": "19e85aaf4d926886137397cb8b888caced926b13",
+  "tested_tree": "d962dcc6fb4692833bf3773b9699fed950e4241d",
+  "tested_at_utc": "2026-10-09T10:14:05Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "database": "temporary SQLite",
+    "browser": "local Playwright/Chromium synthetic recovery flow"
+  },
+  "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.unit.test_resume_page_fit tests.integration.test_resume_page_fit tests.integration.test_resume_page_fit_api tests.integration.test_resume_page_fit_render_contract tests.integration.test_resume_page_fit_api_no_write_preview tests.browser.test_resume_page_fit_unavailable_recovery -v",
+  "result_detail": "29 tests passed. Coverage includes deterministic page-count fitting, bounded attempts, protected/selected fact preservation, measured PDF preview and generation API behavior, preview no-write and profile scope, and browser recovery when measurement is unavailable.",
+  "limitations": [
+    "The connected browser exercised the unavailable-measurement recovery path; a measured-success UI generation flow was not run in Chromium.",
+    "PostgreSQL, full repository suite, hosted checks and external review were not run.",
+    "MJ-REF-006 remains PARTIAL; whole-product release remains PARTIAL; external application submission is OFF."
+  ]
+}
