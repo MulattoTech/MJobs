@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-09T17:31:28Z",
+  "issue": 134,
+  "requirement_id": "MJ-REQ-133",
+  "acceptance": "PARTIAL",
+  "feature": "Explicit opt-in local browser-profile persistence for reviewed dynamic mock-ATS answers; exact profile/application/form-fingerprint scope; restored text requires fresh review; saved copy can be deleted.",
+  "branch": "codex/solo-mj-req133-local-draft-20261009",
+  "tested_base": "d5695fc49941d410bf6fa463e6e5ea55dba2c30d",
+  "source_sha256": {
+    "apps/web/src/dynamic-application-form-connected.tsx": "f132649edf0a4df84b87ae112c7df0b05925877083311662cbba10a23539e361",
+    "apps/web/src/dynamic-application-form-connected.test.tsx": "dc4b8e5fded6c356d349de8f39f6f2ba674e26246584cee2b94836b3f4d27be5",
+    "tests/browser/test_dynamic_application_fields_root_flow.py": "88eb2d4b6223ba121680f9253ea87f70301e05bf2970b64bd8aa4f1362498e54"
+  },
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "vitest_engine_note": "Vitest declares Node ^22.12, ^24, or >=26; local execution on Node 25.9 emitted EBADENGINE but completed successfully."
+  },
+  "verification": [
+    {
+      "command": "npm test -- --run src/dynamic-application-form.test.tsx src/dynamic-application-form-connected.test.tsx src/dynamic-application-form-client.test.ts",
+      "result": "PASS",
+      "tests": 22
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "notes": "TypeScript and Vite production build passed; existing 753.06 kB chunk-size advisory remains."
+    },
+    {
+      "command": "python -m unittest tests.integration.test_dynamic_application_fields_api tests.integration.test_dynamic_application_fields_app_mount tests.integration.test_application_pipeline tests.browser.test_dynamic_application_fields_root_flow",
+      "result": "PASS",
+      "tests": 28
+    },
+    {
+      "command": "python -m unittest tests.browser.test_dynamic_application_fields_root_flow",
+      "result": "PASS",
+      "tests": 1,
+      "notes": "Connected Chromium used an isolated temporary SQLite fixture and a temporary persistent browser profile."
+    },
+    {
+      "command": "python -m py_compile tests/browser/test_dynamic_application_fields_root_flow.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    }
+  ],
+  "browser_assertions": [
+    "Default session-only storage remains the default and survives a same-tab reload.",
+    "Device persistence requires an explicit checkbox and Continue after current fingerprint revalidation.",
+    "A synthetic storage-quota failure leaves the reviewed form available and can fall back to session-only storage.",
+    "A new Chromium browser context using the same temporary browser profile restores the answer text, but review checkboxes are reset.",
+    "The user can delete the exact local copy and the form clears immediately.",
+    "Sensitive-field answers are absent; browser traffic is same-origin GET only; no ATS write, external request, or submission occurs."
+  ],
+  "limitations": [
+    "Acceptance covers the supported local mock ATS path, not a live employer ATS.",
+    "The overall dynamic-forms requirement remains PARTIAL for broader provider support and other original acceptance gaps.",
+    "PostgreSQL, full repository suite, hosted CI/review, and live ATS verification were NOT_RUN_BY_USER_POLICY or out of scope."
+  ],
+  "external_application_submission": "OFF"
+}

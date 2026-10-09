@@ -1,4 +1,5 @@
 """Connected browser acceptance for profile-scoped dynamic form review drafts."""
+import json
 from pathlib import Path
 import tempfile
 import threading
@@ -105,8 +106,9 @@ class DynamicApplicationFieldsRootFlowTests(unittest.TestCase):
                         self.fail("Isolated dynamic-form API did not start")
                     time.sleep(0.02)
                 with sync_playwright() as playwright:
-                    browser = playwright.chromium.launch(headless=True)
-                    context = browser.new_context()
+                    browser_profile = root / "browser-profile"
+                    context = playwright.chromium.launch_persistent_context(
+                        str(browser_profile), headless=True)
                     context.add_init_script("localStorage.setItem('mjobs-profile', 'fixture')")
                     origin_netloc = urlsplit(origin).netloc
 
@@ -167,15 +169,67 @@ class DynamicApplicationFieldsRootFlowTests(unittest.TestCase):
                     continue_button = form.get_by_role("button", name="Continue", exact=True)
                     expect(continue_button).to_be_enabled()
                     continue_button.click()
-                    expect(connected).to_contain_text("Nothing was sent to an employer")
-                    stored = page.evaluate("Object.keys(sessionStorage).filter(k => k.startsWith('mjobs.dynamic-form.'))")
-                    self.assertEqual(len(stored), 1)
+                    expect(connected).to_contain_text("browser tab")
+                    stored = page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('mjobs.dynamic-form.device.v1:'))")
+                    self.assertEqual(stored, [])
+                    session_drafts = page.evaluate("Object.keys(sessionStorage).filter(k => k.startsWith('mjobs.dynamic-form.v1:'))")
+                    self.assertEqual(len(session_drafts), 1)
                     self.assertEqual(outside, [])
                     self.assertFalse(any(method != "GET" for method, _ in requests), requests)
 
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Applications", exact=False).click()
                     page.locator(".job-card").filter(has_text=job["title"]).click()
+                    connected = page.get_by_role("region", name="Dynamic application form review", exact=True)
+                    form = page.get_by_role("region", name="Dynamic application form", exact=True)
+                    expect(connected.get_by_label("Save reviewed answers on this device", exact=True)).not_to_be_checked()
+                    expect(form.get_by_role("group", name="Country").get_by_label(
+                        "Country", exact=True)).to_have_value("United States")
+                    form.get_by_label("Review this answer for Country", exact=True).check()
+                    form.get_by_label("Review this answer for State or province", exact=True).check()
+                    form.get_by_label("Review this answer for Additional details", exact=True).check()
+                    form.get_by_label("Review Work history 1", exact=True).check()
+                    connected.get_by_label("Save reviewed answers on this device", exact=True).check()
+                    page.evaluate("""(() => {
+                      const nativeSet = Storage.prototype.setItem;
+                      window.__failDeviceDraftWrite = true;
+                      window.__nativeStorageSet = nativeSet;
+                      Storage.prototype.setItem = function(key, value) {
+                        if (window.__failDeviceDraftWrite && key.startsWith('mjobs.dynamic-form.device.v1:')) {
+                          throw new DOMException('Synthetic quota failure', 'QuotaExceededError');
+                        }
+                        return window.__nativeStorageSet.call(this, key, value);
+                      };
+                    })()""")
+                    form.get_by_role("button", name="Continue", exact=True).click()
+                    expect(connected).to_contain_text("Answers could not be saved with the selected browser storage")
+                    expect(form.get_by_role("group", name="Country").get_by_label(
+                        "Country", exact=True)).to_have_value("United States")
+                    page.evaluate("window.__failDeviceDraftWrite = false")
+                    form.get_by_role("button", name="Continue", exact=True).click()
+                    expect(connected).to_contain_text("saved on this device")
+                    stored = page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('mjobs.dynamic-form.device.v1:'))")
+                    self.assertEqual(len(stored), 1)
+                    stored_value = page.evaluate("localStorage.getItem(Object.keys(localStorage).find(k => k.startsWith('mjobs.dynamic-form.device.v1:')))" )
+                    self.assertNotIn("reviewed_fields", json.loads(stored_value))
+                    self.assertNotIn("PRIVATE_ANSWER", stored_value)
+                    session_drafts = page.evaluate("Object.keys(sessionStorage).filter(k => k.startsWith('mjobs.dynamic-form.v1:'))")
+                    self.assertEqual(session_drafts, [])
+
+                    context.close()
+                    context = playwright.chromium.launch_persistent_context(
+                        str(browser_profile), headless=True)
+                    context.add_init_script("localStorage.setItem('mjobs-profile', 'fixture')")
+                    context.route("**/*", local_only)
+                    page = context.new_page()
+                    page.set_default_timeout(8000)
+                    page.on("pageerror", lambda error: page_errors.append(str(error)))
+                    page.goto(origin, wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Applications", exact=False).click()
+                    page.locator(".job-card").filter(has_text=job["title"]).click()
+                    connected = page.get_by_role(
+                        "region", name="Dynamic application form review", exact=True)
+                    expect(connected.get_by_label("Save reviewed answers on this device", exact=True)).to_be_checked()
                     form = page.get_by_role("region", name="Dynamic application form", exact=True)
                     expect(form.get_by_role("group", name="Country").get_by_label(
                         "Country", exact=True)).to_have_value("United States")
@@ -184,12 +238,20 @@ class DynamicApplicationFieldsRootFlowTests(unittest.TestCase):
                     expect(form.get_by_role("group", name="Additional details").get_by_label(
                         "Additional details", exact=True)).to_have_value("Synthetic reviewed note")
                     expect(form.get_by_label("Review this answer for Country", exact=True)).not_to_be_checked()
+                    clear_button = connected.get_by_role("button", name="Clear saved application answers on this device", exact=True)
+                    expect(clear_button).to_be_visible()
+                    clear_button.click()
+                    expect(connected).to_contain_text("Saved local answers were cleared")
+                    form = page.get_by_role("region", name="Dynamic application form", exact=True)
+                    expect(form.get_by_role("group", name="Country").get_by_label(
+                        "Country", exact=True)).to_have_value("")
+                    stored_after_clear = page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('mjobs.dynamic-form.device.v1:'))")
+                    self.assertEqual(stored_after_clear, [])
                     expect(form).not_to_contain_text("PRIVATE_ANSWER")
                     self.assertEqual(outside, [])
                     self.assertFalse(page_errors, page_errors)
                     self.assertFalse(any(method != "GET" for method, _ in requests), requests)
                     context.close()
-                    browser.close()
             finally:
                 server.should_exit = True
                 if thread.ident is not None:
