@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "milestone_id": "MJ-REQ-114-RELEVANT-EXPERIENCE-20261009",
+  "created_at_utc": "2026-10-09T13:58:55Z",
+  "result": "PASS",
+  "scope": "Bounded, score-neutral relevant-experience explanation from approved career facts; MJ-REQ-114 remains PARTIAL.",
+  "issue": "https://github.com/MulattoTech/MJobs/issues/115",
+  "requirement_id": "MJ-REQ-114",
+  "source": {
+    "branch": "codex/solo-115-relevant-experience-20261009",
+    "commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
+    "tree": "fca52ef5ae9b10a8b42b16c84a0a115690961414",
+    "input_sha256": {
+      "services/discovery/matching.py": "08ed4800e42fc2e33083594735416ebdb30cbaF1664575cedac16108728a617c",
+      "tests/integration/test_explainable_matching.py": "244dbbeaf59d1bf71af144848a32a2a5a4a61f72718c3ac1e6269b89ca27b83b",
+      "tests/browser/test_relevant_experience_match_explanation.py": "c6a1c471d23d20c43ca41840c9cac3050523c16ad286ac880039ccf97f92c4e3"
+    }
+  },
+  "user_visible_behavior": [
+    "Job Detail shows a Relevant experience fit factor when a profile and match are selected.",
+    "ALIGNS is limited to locally recognized job skills found in verified, user-approved, sourced experience, responsibility, project, accomplishment, or technology-experience facts with confidence of at least 80.",
+    "Unsupported or missing evidence remains UNKNOWN. A known but nonoverlapping comparison says other experience may not be represented; it does not claim the person lacks a qualification.",
+    "The factor is informational and has no effect on the numeric match score."
+  ],
+  "verification": {
+    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching tests.integration.test_role_scoring_search_flow tests.integration.test_selected_search_recalculation tests.browser.test_relevant_experience_match_explanation tests.browser.test_education_match_explanation tests.browser.test_job_sorting tests.browser.test_role_scoring_selected_search_explanation_flow tests.unit.test_specialized_match_signals tests.unit.test_matching_candidate_scope -v",
+    "result": "PASS",
+    "tests": 36,
+    "browser": "Connected isolated SQLite/API/Chromium; external requests were blocked and none were observed. Job Detail read back the match, displayed approved experience evidence, excluded pending experience text, and retained the 0% score.",
+    "web_bundle": {
+      "source_main": "3c695620703662f115ae92e996de6c452a4716ca",
+      "index_sha256": "2f5f3c55b80dd0acfea81ef78a8cdcdd062dd087673fe7aaf649728449476524",
+      "javascript_sha256": "8154793fc9d3d218de6b5e1ed0066ecc0ccd7baad3a05569ff5de94b260f22b7",
+      "note": "The frontend was unchanged by this slice; the existing current-main build was used to verify its generic fit-factor renderer."
+    },
+    "additional_checks": [
+      "Python compilation of the service and new tests: PASS.",
+      "git diff --check: PASS."
+    ]
+  },
+  "known_unrelated_failure": {
+    "test": "tests.browser.test_manual_job_capture.ManualJobCaptureBrowserTests.test_manual_capture_persists_distinct_jobs_and_prepares_without_fetching",
+    "result": "FAIL on unchanged main source 3c695620703662f115ae92e996de6c452a4716ca",
+    "cause": "The test's exact Job title label locator resolves to both the capture field and the Jobs search filter. Reproduced on main; not changed in this feature."
+  },
+  "not_run": [
+    "PostgreSQL-specific validation",
+    "Full repository test suite",
+    "Hosted Actions and hosted review, disabled by policy",
+    "Live external job provider",
+    "Real application submission, which remains OFF"
+  ],
+  "limitations": [
+    "The factor compares recognized job skills to approved experience facts; it does not assess time-in-role, seniority, depth, or qualification.",
+    "Overall MJ-REQ-114 and parent MJ-PR-031 remain PARTIAL; dependencies and acceptance statuses are unchanged."
+  ]
+}

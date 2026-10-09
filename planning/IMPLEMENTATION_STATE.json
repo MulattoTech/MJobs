@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T13:44:01Z",
+  "generated_at": "2026-10-09T13:58:55Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main includes issue #270 / MJ-REQ-269 connected immutable generated-document fact-trace acceptance at 1db36c4fe10eff95880ad37d5941829e31770000; evidence docs/evidence/2026-10-09-document-fact-trace.json. Requirement remains PARTIAL because live AI-provider generation was not exercised. Preserve untracked user file docs/evidence/2026-10-08-compose-target-isolation.json and unrelated branches/worktrees.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #270 remains OPEN/PARTIAL with a local acceptance receipt. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T13:44:01Z"
+    "current_verified_local_state": "Local main includes #115 / MJ-REQ-114 relevant-experience fit explanation source commit a7d29aefdfb3051927bd63834a6d75cfc7f54857 (tree fca52ef5ae9b10a8b42b16c84a0a115690961414); connected score-neutral readback evidence docs/evidence/2026-10-09-relevant-experience-match-explanation.json. The overall matching requirement remains PARTIAL. Preserve untracked user file docs/evidence/2026-10-08-compose-target-isolation.json.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #115 remains OPEN/PARTIAL. The local-only source is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external application submission OFF. Verified at 2026-10-09T13:58:55Z.",
+    "current_verified_at": "2026-10-09T13:58:55Z"
   },
-  "current_milestone": "MJ-REQ-269-DOCUMENT-FACT-TRACE-20261009",
-  "current_objective": "Verify connected generated-document fact references against immutable profile snapshots and prevent unapproved or current-edited facts from leaking into history.",
+  "current_milestone": "MJ-REQ-114-RELEVANT-EXPERIENCE-20261009",
+  "current_objective": "Explain job-relevant experience using only approved career facts while preserving the existing score.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -698,7 +698,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Advance core explainable matching: inspect issue #115 / MJ-REQ-114 plus existing local-only salary and score-explanation branches, then implement the largest remaining connected match explanation gap without conflicting with preserved worktrees.",
+  "recommended_resume_step": "Continue MJ-REQ-114 by selecting the next concrete gap between the original weighted match example and persisted, explainable score contributions; preserve score neutrality for informational fit factors and keep the umbrella PARTIAL until full acceptance is proven.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -732,7 +732,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "95ef4c151ba01e666a1a2a982a0f4b21aefb2a31",
+  "last_implementation_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under Codex integration lock; no PR or push.",
@@ -13226,12 +13226,69 @@
         "git_commit": "95ef4c151ba01e666a1a2a982a0f4b21aefb2a31",
         "evidence_path": "docs/evidence/2026-10-09-application-status-tracking.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-114-RELEVANT-EXPERIENCE-20261009",
+      "timestamp": "2026-10-09T13:58:55Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added a score-neutral relevant-experience factor using the existing Job Detail fit-signal renderer.",
+        "Compared normalized job skills only with verified, user-approved, sourced experience, technology-experience, responsibility, project, or accomplishment facts at confidence >=80.",
+        "Kept unsupported/missing inputs UNKNOWN and made non-overlap explicitly distinct from absence of qualifications.",
+        "Integrated the exact tested source by local non-force fast-forward; preserved all unrelated dirty files and existing claims/worktrees."
+      ],
+      "files_added": [
+        "tests/browser/test_relevant_experience_match_explanation.py",
+        "docs/evidence/2026-10-09-relevant-experience-match-explanation.json"
+      ],
+      "files_modified": [
+        "services/discovery/matching.py",
+        "tests/integration/test_explainable_matching.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "source_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
+      "source_tree": "fca52ef5ae9b10a8b42b16c84a0a115690961414",
+      "integrated_main": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
+      "result": "PARTIAL",
+      "acceptance": "Bounded relevant-experience explanation PASS locally; MJ-REQ-114 remains PARTIAL.",
+      "tests_completed": [
+        "36 focused Python integration/browser/unit tests PASS.",
+        "Python compilation and git diff --check PASS.",
+        "Connected isolated SQLite/API/Chromium verified display/readback, pending-fact exclusion, unchanged numeric score, and no external requests."
+      ],
+      "tests_remaining": [
+        "PostgreSQL and full repository suite NOT_RUN.",
+        "Hosted Actions/review NOT_RUN_BY_USER_POLICY.",
+        "Real external submission remains OFF."
+      ],
+      "known_errors": [
+        "Adjacent manual-job-capture browser selector failure reproduces on unchanged main: exact Job title label resolves to both capture and search inputs; outside this slice."
+      ],
+      "known_limitations": [
+        "This signal compares locally recognized skills in approved experience facts and does not assess duration, depth, seniority, or qualification.",
+        "The complete MJ-REQ-114 weighted explainable matching acceptance and MJ-PR-031 remain PARTIAL."
+      ],
+      "evidence_path": "docs/evidence/2026-10-09-relevant-experience-match-explanation.json",
+      "last_safe_checkpoint": {
+        "git_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
+        "tree": "fca52ef5ae9b10a8b42b16c84a0a115690961414",
+        "evidence_path": "docs/evidence/2026-10-09-relevant-experience-match-explanation.json"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated synthetic SQLite/API/Chromium with external requests blocked; no provider was contacted."
+      ]
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS_REQUIREMENT_PARTIAL_PACKAGE",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "95ef4c151ba01e666a1a2a982a0f4b21aefb2a31",
-    "evidence_path": "docs/evidence/2026-10-09-application-status-tracking.json"
+    "git_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
+    "tree": "fca52ef5ae9b10a8b42b16c84a0a115690961414",
+    "evidence_path": "docs/evidence/2026-10-09-relevant-experience-match-explanation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13696,14 +13753,16 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 270,
-    "url": "https://github.com/MulattoTech/MJobs/issues/270",
-    "branch": "codex/solo-270-document-fact-trace",
-    "status": "SELECTED_SOLO_NEXT",
+    "number": 115,
+    "url": "https://github.com/MulattoTech/MJobs/issues/115",
+    "requirement_id": "MJ-REQ-114",
+    "branch": "main",
+    "status": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+    "source_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
     "related_requirements": [
-      "MJ-REQ-269"
+      "MJ-REQ-114"
     ],
-    "note": "Next dependency-ready original P1 document explainability requirement after confirming requirements/area spec and active-claim path ownership."
+    "note": "Relevant-experience fit is now displayed in Job Detail from approved experience facts; continue the incomplete explainable-matching acceptance."
   },
   "historical_control_snapshots": [
     {
@@ -14863,14 +14922,14 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T12:59:39Z",
-  "current_verified_local_state": "MJ-REQ-264/265 company-discovery policy integrated to local main at f1036d6e7bce62eb5aa75f7a5a14102179f274ce (tree 84aff12f991afffc520ee6838db479b2bcee1aeb). Connected profile controls persist across reload; policy thresholds, hourly cap and priority queue behavior verified. Evidence docs/evidence/2026-10-09-company-discovery-policy.json. Full repository unittest discovery was interrupted after unrelated browser locator failures; PostgreSQL and hosted checks NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #265/#266 remain OPEN with local acceptance evidence; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T12:59:39Z.",
+  "updated_at": "2026-10-09T13:58:55Z",
+  "current_verified_local_state": "Local main includes #115 / MJ-REQ-114 relevant-experience fit explanation source commit a7d29aefdfb3051927bd63834a6d75cfc7f54857 (tree fca52ef5ae9b10a8b42b16c84a0a115690961414); connected score-neutral readback evidence docs/evidence/2026-10-09-relevant-experience-match-explanation.json. The overall matching requirement remains PARTIAL.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #115 remains OPEN/PARTIAL. The local-only source is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external application submission OFF. Verified at 2026-10-09T13:58:55Z.",
   "next_candidates": [
     {
       "issue": 115,
       "requirement_id": "MJ-REQ-114",
-      "status": "NEXT_SOLO_FEATURE: complete a missing user-visible explainable-match component, prioritizing truthful salary evidence and preserving unknowns."
+      "status": "Continue MJ-REQ-114: inspect the remaining explainable score-dimension gap after the approved-experience factor; keep unsupported signals UNKNOWN and score-neutral unless an exact evidence-backed scoring contract supports more."
     },
     {
       "issue": 270,

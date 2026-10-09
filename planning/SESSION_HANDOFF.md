@@ -1,3 +1,13 @@
+# Solo feature checkpoint — 2026-10-09T13:58:55Z
+
+- Root: `C:\Tools\Dev\MJobs`; local main includes #115 / MJ-REQ-114 source `a7d29aefdfb3051927bd63834a6d75cfc7f54857` (tree `fca52ef5ae9b10a8b42b16c84a0a115690961414`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
+- Solo transition: all previously listed child agents completed; no active child writers remain. Preserve their branches, worktrees, outstanding claims, and untracked user file `docs/evidence/2026-10-08-compose-target-isolation.json`. The Codex integration lock is held only during this tracker update.
+- Added the score-neutral Relevant experience factor in Job Detail. Only recognized job skills in verified, user-approved, sourced experience facts at confidence >=80 can align. Missing inputs remain UNKNOWN; non-overlap does not claim lack of qualifications. Evidence: `docs/evidence/2026-10-09-relevant-experience-match-explanation.json`.
+- Verification: 36 focused matching/profile-scoring/browser/unit tests PASS; Python compile and diff check PASS. Connected browser blocked external requests and confirmed no external traffic. Adjacent manual-capture browser locator failure reproduced on unchanged main; PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF.
+- #115 remains OPEN/PARTIAL; PR-031 dependencies remain unchanged. Continue the original explainable-matching gap, next examining how profile-weighted dimensions can be explained without unsupported qualification claims.
+
+---
+
 # Current solo session checkpoint — 2026-10-09T13:44:01Z
 
 - Root: `C:\Tools\Dev\MJobs`; local main includes issue #270 acceptance at `1db36c4fe10eff95880ad37d5941829e31770000` (tree `888ac5c43c60a21f97e5fd198be7a5636009210c`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
