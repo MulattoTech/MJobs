@@ -9,7 +9,7 @@
   "base_main": "08f582ec155c61e12dc1c593defa8e3f3640803e",
   "source_commit": "1b3646b0f40b0685226aab313e8e52d05bbd717c",
   "source_tree": "31f4a0831d22b5e52fad8397f85c885ca7bc83a5",
-  "verified_at_utc": "2026-10-09T14:57:06Z",
+  "verified_at_utc": "2026-10-09T15:07:39Z",
   "environment": {
     "os": "Windows",
     "python": "repository .venv Python 3.12",
@@ -40,12 +40,12 @@
       "result": "PASS: TypeScript and Vite build; emitted the existing >500 kB chunk advisory (736.18 kB JavaScript)."
     },
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_browser_job_extraction_confirm_capture",
-      "result": "PASS: 1 connected Chromium workflow, including review gating, retry, reload, and receipt/provenance readback"
-    },
-    {
       "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.reference_provenance; python -m tools.coordination.lane_coordination validate; git diff --check",
       "result": "PASS: all six local validators/checks"
+    },
+    {
+      "command": "npm run build --prefix apps/web; C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_manual_capture_review_receipt_safety tests.browser.test_browser_job_extraction_confirm_capture",
+      "result": "PASS: final TypeScript/Vite build; both connected Chromium acceptance tests passed. Existing >500 kB bundle advisory remains."
     }
   ],
   "source_sha256": {
@@ -68,5 +68,14 @@
     "real external application submission"
   ],
   "external_submission": "OFF",
-  "notes": "Evidence is for the exact tested local source commit. This acceptance does not promote whole-product release status or claim hosted verification."
+  "notes": "Evidence is for the exact tested local source commit. This acceptance does not promote whole-product release status or claim hosted verification.",
+  "integrated_main_commit": "af3c38144443d863bf3a8e9f104984420d4417b9",
+  "integrated_main_tree": "84dee0db0465fb196f382aec1fb1668bd55f78dc",
+  "additional_acceptance": {
+    "commit": "af3c38144443d863bf3a8e9f104984420d4417b9",
+    "tree": "84dee0db0465fb196f382aec1fb1668bd55f78dc",
+    "test_path": "tests/browser/test_manual_capture_review_receipt_safety.py",
+    "test_sha256": "a94dac56c3a59ec4bf31ffce34bda28a04eae47a233ab33ab5854d923de6aef1",
+    "result": "PASS: connected retry/reload browser test; verifies failed write does not persist, retry preserves exact review receipt, rejected optional application route stays omitted with provenance, reload reads back, and no external submission or write request occurs."
+  }
 }
