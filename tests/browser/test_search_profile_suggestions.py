@@ -69,6 +69,7 @@ class SearchProfileSuggestionsBrowserTests(unittest.TestCase):
                         "requisition": "suggestion-" + job_id[:20],
                     }))
                     connection.execute(m.matches.insert().values(
+                        id=f"match-{profile_id}-{job_id}",
                         job_id=job_id, profile_id=profile_id,
                         profile_version=profile_version, score=score,
                         missing=[], components={"fixture": "synthetic strong-match evidence"},
@@ -140,7 +141,9 @@ class SearchProfileSuggestionsBrowserTests(unittest.TestCase):
                     expect(suggestions.get_by_text("Legacy Systems Engineer", exact=True)).to_have_count(0)
                     expect(suggestions.get_by_text("System Administrator", exact=True)).to_have_count(0)
                     reason = suggestions.locator("li").filter(
-                        has_text="Infrastructure Support Engineer").locator("p")
+                        has_text="Infrastructure Support Engineer").get_by_text(
+                            "Observed in 1 current strong match.", exact=True,
+                        ).last
                     expect(reason).to_be_visible()
                     expect(reason).to_contain_text(re.compile(
                         r"1\s+current\s+strong\s+match", re.IGNORECASE))
