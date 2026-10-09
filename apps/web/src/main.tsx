@@ -33,6 +33,7 @@ import {
   type ApplicationAnswerSuggestionDraft,
 } from './application-answer-matching-client';
 import { ApplicationReviewQueue, type ReviewQueueApplication } from './application-review-queue';
+import { ApplicationAdapterKnowledgePanel } from './application-adapter-knowledge';
 import { ApplicationFollowUpDrafts } from './application-follow-up-drafts';
 import { ApplicationSupportingDocuments } from './application-supporting-documents';
 import { ApplicationLinkFilter, type ApplicationLinkStatusFilter } from './application-link-filter';
@@ -223,6 +224,7 @@ function ApplicationReview({application,documents,answerExportText,issues}:{appl
       <dt>Outstanding issues</dt><dd><ul aria-label="Outstanding application issues">{issues.map((issue,index)=><li key={index}>{issue}</li>)}</ul></dd>
       <dt>Automation confidence</dt><dd>UNKNOWN — no calibrated application-confidence score is saved. External submission remains OFF.</dd>
     </dl>
+    <ApplicationAdapterKnowledgePanel knowledge={application.adapter_knowledge}/>
   </section>;
 }
 
