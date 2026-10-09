@@ -98,7 +98,6 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
             browser = playwright.chromium.launch(headless=True)
             context = browser.new_context()
             context.add_init_script("localStorage.setItem('mjobs-profile', 'fixture')")
-
             def local_only(route):
                 nonlocal injected_save_failures, injected_next_failures
                 request = route.request
@@ -224,9 +223,8 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
             # The final action enters manual review and never exposes submission.
             review.get_by_role("button", name="Continue", exact=True).click()
             expect(review.get_by_text("Manual intervention required", exact=True)).to_be_visible()
-            expect(review.get_by_text(
-                "Review the employer form yourself and submit it on the employer’s website.",
-                exact=True)).to_be_visible()
+            expect(review.get_by_role("status")).to_contain_text(
+                "MJobs does not submit applications.")
             expect(review.get_by_role("button", name="Submit", exact=False)).to_have_count(0)
             expect(review.get_by_role("button", name="Continue", exact=True)).to_have_count(0)
 
