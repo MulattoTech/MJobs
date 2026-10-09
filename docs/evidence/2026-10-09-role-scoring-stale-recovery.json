@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-09T08:12:35Z",
+  "repository": "MulattoTech/MJobs",
+  "issue": 408,
+  "reference_requirement": "MJ-REF-038",
+  "result": "PARTIAL",
+  "acceptance_status": "PARTIAL",
+  "tested_candidate": {
+    "branch": "codex/root-solo-408-fixture-route-20261009",
+    "source_sha": "478e2fcd1941bc190315c0289e2984d0c005a738",
+    "source_tree": "43dc23228cf4c53574f995a9f1289580bf562658"
+  },
+  "verified_behavior": [
+    "A stale saved match explanation now offers profile rescore through the existing durable operation endpoint, waits for completion, refreshes the profile and job list, then reloads the selected job explanation.",
+    "The stale recovery action reports pending state, disables repeat clicks, and retains a sanitized retryable state if the rescore operation fails.",
+    "The connected Chromium flow verifies the stale explanation returns after rescore with current saved-profile attribution, and the synthetic worker changes only the targeted stale match fixture.",
+    "The saved-search browser fixtures now include the persisted source routes required by the production jobs query and select job titles consistent with their search criteria.",
+    "No browser egress, AI inference, external submission, or unapproved write was made."
+  ],
+  "validation": {
+    "python_runtime": "Python 3.12.10 from C:/Tools/Dev/MJobs/.venv",
+    "matching_api_and_scoring": {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest tests/unit/test_scoring_profiles.py tests/unit/test_profile_scoring.py tests/unit/test_selected_search_scoring.py tests/integration/test_scoring_profiles_api.py tests/integration/test_matching_explanations_api.py tests/integration/test_matching_explanation_contributions.py tests/integration/test_matching_explanation_stale_context_recovery.py tests/integration/test_role_scoring_search_flow.py tests/integration/test_role_scoring_peer_recalculation_isolation.py tests/integration/test_selected_search_scoring_fail_closed.py -q --tb=short",
+      "result": "PASS: 48 tests and 28 subtests"
+    },
+    "router_mount": {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest tests/integration/test_scoring_profile_router_mount.py -q --tb=short",
+      "result": "PASS: 1 test"
+    },
+    "connected_browser": {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest tests/browser/test_role_scoring_profile_editor.py tests/browser/test_role_scoring_profile_reload_match.py tests/browser/test_role_scoring_selected_search_explanation_flow.py tests/browser/test_matching_explanation_workflow.py -q --tb=short",
+      "result": "PASS: 4 Chromium tests"
+    },
+    "web_tests": {
+      "command": "npm test",
+      "result": "PASS: 474 tests across 79 files"
+    },
+    "web_build": {
+      "command": "npm run build",
+      "result": "PASS: TypeScript and Vite production build; existing chunk-size advisory remains"
+    },
+    "diff_check": "PASS",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN"
+  },
+  "remaining": [
+    "Issue #408 remains OPEN/PARTIAL pending root reconciliation of its full acceptance and the separate preserved selected-search default-score persistence claim.",
+    "Original requirements MJ-REQ-112 through MJ-REQ-120 remain separate from this reference issue and are not promoted by this slice.",
+    "Hosted checks, PostgreSQL runtime verification, and whole-product release eligibility are not claimed."
+  ],
+  "external_application_submission": "OFF",
+  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+}
