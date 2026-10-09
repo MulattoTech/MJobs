@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-09T18:40:21Z",
+  "requirement_id": "MJ-REQ-095",
+  "issue": 96,
+  "result": "PARTIAL",
+  "scope": "Connect the existing read-only resume rewrite review preview to the app API and fact-selection workflow; require user review before proposed wording reaches document preparation.",
+  "branch": "codex/mj-req095-connected-rewrite-preview-20261009",
+  "worktree": ".worktrees/mj-req095-connected-rewrite-preview-20261009",
+  "base": {
+    "commit": "b108465f3ad826501f2159010428e2bdc89bb1ba",
+    "tree": "f7bb8211eee1e9798bb5f9b823f6121d84cdae6e"
+  },
+  "candidate_state": "Unintegrated local checkpoint on the isolated feature branch.",
+  "source_inputs_sha256": {
+    "apps/api/main.py": "71f55f8b3bf304d7d322e0207512a1adb609cee1dabcb3ea59277f0ef240534b",
+    "apps/api/resume_rewrite_review.py": "b0230a1d43f37abe407a02995e9dc9ad4f9829b7ed6c2083111daf64d4440f8e",
+    "apps/web/src/main.tsx": "7c5cfd861ca7aef0c65565121041fbb296d498a5916f85bb52c5125e153e265f",
+    "apps/web/src/resume-fact-selection.tsx": "1c4d48c77213a31465197b415336886c43683f5b216199afc7e68bc39522c782",
+    "apps/web/src/resume-rewrite-review.tsx": "5ffcfabc7e61217ddb696ef37a77a781028505efd249f36a3cfc35afe500c639",
+    "tests/integration/test_resume_rewrite_review_api.py": "70b454c04c1d0a35f1cd670039c53502d8c16a955e1b979260bcc8f0ce7f7f30",
+    "tests/browser/test_resume_rewrite_review.py": "bd4a81af7ef2eac465ffc878fdd014b45be2ae37666a7e91d1d790d8e69279d9"
+  },
+  "behavior_implemented": [
+    "Mount the existing profile/job-scoped read-only rewrite-preview router in create_app.",
+    "Replace the inline rewrite acknowledgement with the existing side-by-side preview, exact source/hash and protected-token audit, and explicit user review acknowledgement.",
+    "Clear rewrite-review state when proposed text or selection changes; the existing preparation guard requires every changed rewrite to be reviewed."
+  ],
+  "validation": {
+    "api_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_resume_rewrite_review_api -v",
+    "api_result": "PASS: 5 tests, including create_app route mount and read-only/stale/token protections.",
+    "web_command": "npm test --prefix apps/web -- --run src/resume-fact-selection.test.tsx src/resume-rewrite-review.test.tsx",
+    "web_result": "PASS: 10 tests across 2 files.",
+    "build_command": "npm run build --prefix apps/web",
+    "build_result": "PASS: TypeScript/Vite production build. Existing >500 kB chunk advisory.",
+    "compile_and_diff": "PASS: Python py_compile for changed API and test files; git diff --check.",
+    "browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_resume_rewrite_review -v",
+    "browser_result": "FAIL / PARTIAL: the connected rewrite browser acceptance stops at the existing controlled Choose resume facts checkbox. The handler fires but Playwright does not observe checked state. The existing resume-alignment browser test fails at the same checkbox on untouched root main b108465f3ad826501f2159010428e2bdc89bb1ba, confirming this is a pre-existing app/test interaction blocker. New rewrite preview UI acceptance was not reached.",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "external_submission": "OFF",
+    "alignment_preview": "Automatic alignment requests were removed; the existing explicit Preview keyword alignment action remains, and any profile/job/fact scope change clears stale readiness."
+  },
+  "unresolved": "Fix or replace the baseline resume-fact selection interaction and then run the connected Chromium rewrite preview, stale profile, protected-token, read-only reload, and no-submit flow. Do not integrate this partial slice until the user-visible review path is demonstrated.",
+  "integrated_main": null,
+  "dashboard": "UNCHANGED; no accepted integration batch."
+}

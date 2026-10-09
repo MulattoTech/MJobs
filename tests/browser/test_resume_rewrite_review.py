@@ -22,22 +22,7 @@ from services.documents.tailor import target_fingerprint
 
 
 ROOT = Path(__file__).resolve().parents[2]
-_MAIN_SOURCE = (ROOT / "apps/web/src/main.tsx").read_text(encoding="utf-8")
-_API_SOURCE = (ROOT / "apps/api/resume_rewrite_review.py")
-_UI_SOURCE = (ROOT / "apps/web/src/resume-rewrite-review.tsx")
-_CONNECTED_REWRITE_REVIEW = (
-    (ROOT / "apps/web/dist/index.html").is_file()
-    and _API_SOURCE.is_file()
-    and _UI_SOURCE.is_file()
-    and "resume-rewrite-review-preview" in (ROOT / "apps/api/main.py").read_text(encoding="utf-8")
-    and "ResumeRewriteReviewPreview" in _MAIN_SOURCE
-)
-
-
-@unittest.skipUnless(
-    _CONNECTED_REWRITE_REVIEW,
-    "Mount the resume rewrite review preview UI/API and build the web app before Chromium acceptance",
-)
+@unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(), "Build apps/web before browser acceptance")
 class ResumeRewriteReviewBrowserTests(unittest.TestCase):
     def test_preview_review_tokens_staleness_and_reload_are_read_only(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-resume-rewrite-review-") as directory:
@@ -124,11 +109,12 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                         route.continue_()
 
                     context.route("**/*", local_only)
+                    context.add_init_script("localStorage.setItem('mjobs-profile', 'fixture')")
                     page = context.new_page()
+                    page.on("response", lambda response: print("ALIGNMENT_RESPONSE", response.status, response.url) if "resume-alignment-preview" in response.url else None)
+                    page.on("requestfailed", lambda request: print("ALIGNMENT_FAILED", request.url, request.failure) if "resume-alignment-preview" in request.url else None)
                     page.set_default_timeout(10000)
                     page.goto(origin, wait_until="domcontentloaded")
-                    page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
-                    page.reload(wait_until="domcontentloaded")
 
                     # Load one exact approved source fact into the existing editor.
                     self.open_resume_rewrite_editor(page, job["title"], original_fact["text"])
@@ -295,10 +281,17 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
     @staticmethod
     def open_resume_rewrite_editor(page, job_title, source_text):
         page.locator(".job-grid .job-list .job-card").filter(has_text=job_title).first.click()
+        detail = page.locator(".job-grid .job-detail")
+        # The job and profile load independently. Wait for the profile-bound
+        # workspace so a late profile read cannot reset the resume controls.
+        expect(detail.get_by_role("heading", name="Resume workspace", exact=True)).to_be_visible()
         page.get_by_label("Order approved skills for this job", exact=True).check()
-        page.get_by_label("Choose resume facts", exact=True).check()
-        page.get_by_label("Include " + source_text, exact=True).check()
-        expect(page.get_by_label("Rewrite this experience: " + source_text, exact=True)).to_be_visible()
+        choose = detail.get_by_label("Choose resume facts", exact=True).last
+        choose.check()
+        fact = detail.get_by_label("Include " + source_text, exact=True)
+        expect(fact).to_be_visible()
+        fact.check()
+        expect(detail.get_by_label("Rewrite this experience: " + source_text, exact=True)).to_be_visible()
 
     @staticmethod
     def counts(store):

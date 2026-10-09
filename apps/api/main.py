@@ -666,6 +666,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_cheap_prefilter_router(store))
     from apps.api.resume_page_fit import create_resume_page_fit_router
     app.include_router(create_resume_page_fit_router(store, output_dir))
+    from apps.api.resume_rewrite_review import create_resume_rewrite_review_router
+    app.include_router(create_resume_rewrite_review_router(store))
     from apps.api.career_story_bank import create_career_story_bank_router
     app.include_router(create_career_story_bank_router(store))
     from apps.api.career_story_selection import create_career_story_selection_router

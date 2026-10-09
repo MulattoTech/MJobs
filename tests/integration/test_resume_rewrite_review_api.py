@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select, update
 
+from apps.api.main import create_app
 from apps.api.resume_rewrite_review import create_resume_rewrite_review_router
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
@@ -110,6 +111,20 @@ class ResumeRewriteReviewApiTests(unittest.TestCase):
                 ).scalar_one()
                 for table in (m.facts, m.applications, m.documents, m.operations, m.audit)
             }
+
+    def test_application_mount_exposes_resume_rewrite_review_preview(self):
+        app = create_app(
+            self.store,
+            "http://127.0.0.1:1",
+            self.root / "documents",
+            "redis://127.0.0.1:1/0",
+            operation_mode="FIXTURE",
+        )
+        with TestClient(app) as client:
+            response = client.post(self.url(), json=self.request())
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["job_id"], self.job_id)
+        self.assertTrue(response.json()["read_only"])
 
     def test_preview_returns_exact_source_hash_token_audit_and_proposed_text_without_writes(self):
         before_counts = self.counts()
