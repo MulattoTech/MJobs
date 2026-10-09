@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-190-COMPLETE-JOB-SORTING-20261009",
-  "current_objective": "Select and implement the next highest-value dependency-ready user-facing core workflow; preserve all existing issue/path claims.",
+  "current_milestone": "MJ-REQ-246-FAILURE-REDISCOVERY-20261009",
+  "current_objective": "Select and implement the next highest-value dependency-ready user-facing workflow while preserving all active claims and worktrees.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -725,7 +725,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the solo #517 source-catalogue feature by selecting the next dependency-ready capture-intake or provider-evaluation gap after reconciling active claims; local task queue acceptance is now integrated.",
+  "recommended_resume_step": "Reconcile current live issue/path claims after closing #247, then start one dependency-ready core product feature in the sole Luna root session.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -759,7 +759,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e7553f04e82b3b551feb74fbe3d374cf680241d4",
+  "last_implementation_commit": "173215d66c68944238f1b224c8855bce3670cb13",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
     "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
@@ -14637,12 +14637,71 @@
         "PostgreSQL, full Python suite, live providers, and hosted checks/reviews NOT_RUN_BY_POLICY or NOT_RUN.",
         "Vite emitted the existing >500 kB chunk-size advisory; build passed."
       ]
+    },
+    {
+      "milestone_id": "MJ-REQ-246-FAILURE-REDISCOVERY-20261009",
+      "timestamp": "2026-10-09T22:19:00Z",
+      "current_phase": "ACCEPTANCE_VERIFIED_ON_LOCAL_MAIN",
+      "completed_steps": [
+        "After the third retryable monitored-feed failure, enqueue one identity-checked COMPANY_DISCOVER operation without replacing or editing the existing source.",
+        "Expose queued rediscovery and the required user review in the source-monitoring UI; verify durable connected readback after reload.",
+        "Fast-forward the tested feature and evidence into local main, rerun acceptance on the exact integrated tree, update MJ-REQ-246 to PASS, and close issue #247."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-source-failure-rediscovery.json",
+        "tests/browser/test_company_source_failure_rediscovery.py"
+      ],
+      "files_modified": [
+        "services/company_discovery/monitoring.py",
+        "apps/web/src/company-source-monitoring.tsx",
+        "apps/web/src/company-source-monitoring.test.tsx",
+        "tests/integration/test_company_source_monitoring.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json",
+      "source_commit": "173215d66c68944238f1b224c8855bce3670cb13",
+      "source_tree": "35ecef5bef7b7bbb6d4da78ac62f040f435b89cf",
+      "integrated_main": "189e2d1062c7bb2c571febbced44410f1678a02c",
+      "integrated_tree": "04c2c6661691d557900624e28d1b2415190e3215",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "tests_completed": [
+        "Company-source monitoring and source-view integration: 16 passed.",
+        "Connected Chromium failure-rediscovery and existing monitoring journeys: 2 passed; local-only network and durable reload readback verified.",
+        "Focused source-monitoring Vitest: 6 passed.",
+        "TypeScript/Vite production build, Python compilation and git diff --check passed."
+      ],
+      "tests_remaining": [
+        "PostgreSQL/full repository suites/live provider requests; hosted checks and reviews NOT_RUN_BY_USER_POLICY."
+      ],
+      "limitations": [
+        "Requirement-specific local PASS does not imply whole-product release eligibility.",
+        "The >500 kB web bundle advisory remains; build passed.",
+        "External application submission remains OFF."
+      ],
+      "acceptance": "PASS for MJ-REQ-246 / issue #247 on local main; GitHub issue closed after exact integration validation.",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/247#issuecomment-6090161101",
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "PostgreSQL/full repository suites/live provider requests and hosted checks/reviews NOT_RUN.",
+        "The existing >500 kB frontend bundle advisory remains; build passed.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "189e2d1062c7bb2c571febbced44410f1678a02c",
+        "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json"
+      }
     }
   ],
   "current_phase": "ACCEPTANCE_VERIFIED_ON_LOCAL_MAIN",
   "last_safe_checkpoint": {
-    "git_commit": "e72afe4e5741c21e376089ec422adb3210d19170",
-    "evidence_path": "docs/evidence/2026-10-09-complete-job-sorting.json"
+    "git_commit": "189e2d1062c7bb2c571febbced44410f1678a02c",
+    "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15153,10 +15212,10 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 517,
-    "requirement_id": "MJ-FEATURE-517",
-    "status": "INTEGRATED_PARTIAL",
-    "outcome": "A reviewed source candidate can be queued as a durable local integration task keyed by its profile-scoped candidate ID, with an optional unverified user-supplied issue link; capture remains passive and collection disabled."
+    "number": 247,
+    "requirement_id": "MJ-REQ-246",
+    "status": "CLOSED_PASS",
+    "outcome": "Monitored company-source recovery and identity-checked failure rediscovery are accepted locally; existing source configuration remains intact until user review."
   },
   "historical_control_snapshots": [
     {
@@ -16321,15 +16380,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T21:58:04Z",
-  "current_verified_local_state": "Issue #517 local integration-task slice at main 9c5ac464a574a1101eb3910b0a0a796c36138106 from tested code/test source e7553f04e82b3b551feb74fbe3d374cf680241d4 (tree efde066000cfe15f2ebdd4a96d579cd12ada7ecf). A reviewed candidate can be queued without a GitHub issue; the durable profile-scoped candidate ID is the local task key. An optional user-supplied issue remains unverified. Evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json. Exact source-candidate integration/connected Chromium 11, focused web 12, production build, Python compilation, lane and diff checks PASS. PostgreSQL, full suite, live providers and hosted checks NOT_RUN; collection and external submission OFF. #517 remains OPEN/PARTIAL.",
-  "current_verified_github_state": "Issue #517 remains OPEN/PARTIAL after local receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089697849; local checkpoint 9c5ac464a574a1101eb3910b0a0a796c36138106 is not pushed. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-  "next_candidates": [
-    {
-      "issue": 517,
-      "requirement_id": "MJ-FEATURE-517",
-      "status": "Continue #517 with the next dependency-ready manual/browser capture-intake or source-evaluation gap; bounded local integration-task queue is now implemented and verified."
-    }
-  ],
-  "current_verified_at": "2026-10-09T21:37:30Z"
+  "updated_at": "2026-10-09T22:19:00Z",
+  "current_verified_local_state": "Issue #247 / MJ-REQ-246 PASS at exact local main 189e2d1062c7bb2c571febbced44410f1678a02c (tree 04c2c6661691d557900624e28d1b2415190e3215). The connected monitored company-source flow progresses HEALTHY → DEGRADED → FAILED, stops retrying at three failures, preserves 403 BLOCKED and structural-review behavior, resets on successful manual refresh, and queues identity-checked rediscovery after the third retryable failure without changing the source/configuration. Exact integrated tree: 16 Python integration tests, 2 connected Chromium tests, 6 focused Vitest tests, TypeScript/Vite build, compilation and diff checks PASS. Evidence docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json. PostgreSQL/full suite/live providers/hosted checks NOT_RUN; submission OFF.",
+  "current_verified_github_state": "Issue #247 / MJ-REQ-246 is CLOSED after local PASS receipt https://github.com/MulattoTech/MJobs/issues/247#issuecomment-6090161101. Local main 189e2d1062c7bb2c571febbced44410f1678a02c is not pushed; origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "next_candidates": [],
+  "current_verified_at": "2026-10-09T22:19:00Z"
 }

@@ -2096,11 +2096,12 @@
     },
     {
       "requirement_id": "MJ-REQ-246",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-09-source-failure-recovery.json"
+        "docs/evidence/2026-10-09-source-failure-recovery.json",
+        "docs/evidence/2026-10-09-source-failure-rediscovery.json"
       ],
-      "note": "Monitored company-source retry recovery now shows HEALTHY → DEGRADED → FAILED, bounds automatic retries at three failures, permits manual recovery/reset, keeps 403 blocked, and preserves the structural rediscovery gate. Integrated locally at 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47. Other provider/source lifecycle failure paths remain outside this slice; hosted/PostgreSQL/full-suite checks NOT_RUN."
+      "note": "Requirement-specific monitored company-source recovery is verified: HEALTHY → DEGRADED → FAILED with three-failure retry stop, manual recovery/reset, 403 BLOCKED behavior, structural rediscovery review, and identity-checked rediscovery after the third retryable failure while preserving the existing source/configuration. Evidence: docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json; exact integrated local main 189e2d1062c7bb2c571febbced44410f1678a02c. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN; external submission OFF. Whole-product release remains UNKNOWN."
     },
     {
       "requirement_id": "MJ-REQ-247",

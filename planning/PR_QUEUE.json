@@ -2816,7 +2816,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-066-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped original requirement MJ-REQ-244 (#245) is locally verified PASS and issue closed; acceptance evidence docs/evidence/2026-10-09-search-profile-suggestions.json, source/test commit 32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712. Suggestions derive from current profile/version strong matches; explicit user add updates only the selected saved search and confirms durable readback. Focused Python 27 plus 5 subtests, frontend 13, build/compile/diff PASS. MJ-PR-066 remains QUEUED; requirements MJ-REQ-243/245/246 and dependencies MJ-PR-065/MJ-PR-057 are unchanged. Issue #247 / MJ-REQ-246 bounded monitored company-source recovery integrated PARTIAL at local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; 7 monitoring integration and 5 UI tests plus build/compile/diff/lane validation PASS. Broader failure lifecycle and MJ-PR-066 remain queued; hosted/PostgreSQL/full suite NOT_RUN; external submission OFF. Issue #244 / MJ-REQ-243 Company Source Search Filtering is locally verified PASS and closed at main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. 23 backend/API/pipeline/worker tests, 2 connected Chromium workflows, 4 frontend tests and build PASS. Browser fixture now uses explicit source scope; filter errors preserve all captured rows. Parent MJ-PR-066 stays QUEUED for sibling requirements/dependencies.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped original requirement MJ-REQ-244 (#245) is locally verified PASS and issue closed; acceptance evidence docs/evidence/2026-10-09-search-profile-suggestions.json, source/test commit 32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712. Suggestions derive from current profile/version strong matches; explicit user add updates only the selected saved search and confirms durable readback. Focused Python 27 plus 5 subtests, frontend 13, build/compile/diff PASS. MJ-PR-066 remains QUEUED; MJ-REQ-243 and MJ-REQ-245 remain PASS; MJ-REQ-246 is now PASS; dependencies MJ-PR-065/MJ-PR-057 remain unchanged. Issue #247 / MJ-REQ-246 monitored company-source failure recovery is requirement-specific PASS and CLOSED at local main 189e2d1062c7bb2c571febbced44410f1678a02c; evidence docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json. Retry progression, three-failure stop, manual reset, blocked 403, structural review gate, identity-checked rediscovery, source preservation, and connected UI reload are covered. Exact integrated checks: 16 Python integration, 2 Chromium, 6 focused web, TypeScript/Vite build, compilation and diff PASS. Parent MJ-PR-066 remains QUEUED for sibling requirements/dependencies; hosted/PostgreSQL/full suite NOT_RUN; external submission OFF. Issue #244 / MJ-REQ-243 Company Source Search Filtering is locally verified PASS and closed at main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. 23 backend/API/pipeline/worker tests, 2 connected Chromium workflows, 4 frontend tests and build PASS. Browser fixture now uses explicit source scope; filter errors preserve all captured rows. Parent MJ-PR-066 stays QUEUED for sibling requirements/dependencies.",
       "slice_history": [
         {
           "name": "Current strong-match related-title suggestions with explicit saved-search add",
@@ -2840,24 +2840,23 @@
           ]
         },
         {
-          "name": "Bounded monitored company-source failure recovery",
+          "name": "Monitored company-source failure recovery and rediscovery",
           "issue": 247,
           "requirement_id": "MJ-REQ-246",
-          "status": "INTEGRATED_PARTIAL",
-          "base": "6e81ccf3c3850eddae2c5d5eea0620ed8b019eca",
-          "source_head": "4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47",
-          "source_tree": "f120f92fecbc2393c6e471a2ee75ed9ae09cbe56",
-          "integrated_head": "4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47",
-          "integrated_tree": "f120f92fecbc2393c6e471a2ee75ed9ae09cbe56",
-          "evidence_path": "docs/evidence/2026-10-09-source-failure-recovery.json",
+          "status": "INTEGRATED_PASS",
+          "base": "17e5abd10402a0a5a5f378ef27d66b3e76931ba8",
+          "source_head": "173215d66c68944238f1b224c8855bce3670cb13",
+          "source_tree": "35ecef5bef7b7bbb6d4da78ac62f040f435b89cf",
+          "integrated_head": "189e2d1062c7bb2c571febbced44410f1678a02c",
+          "integrated_tree": "04c2c6661691d557900624e28d1b2415190e3215",
+          "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json",
           "integration_method": "NON_FORCE_FAST_FORWARD",
-          "validation": "Exact-source focused company-source monitoring integration 7/7, UI Vitest 5/5, TypeScript/Vite build, py_compile, diff check and lane validation PASS.",
-          "issue_state": "OPEN/PARTIAL",
-          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/247#issuecomment-6088557993",
+          "validation": "Exact integrated tree: 16 company-source monitoring/view integration tests, 2 connected Chromium tests, 6 focused Vitest tests, TypeScript/Vite build, Python compilation and diff check PASS.",
+          "issue_state": "CLOSED/PASS",
+          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/247#issuecomment-6090161101",
           "limitations": [
-            "Only monitored company-source failures are covered; other source lifecycle paths remain incomplete.",
             "PostgreSQL, full repository suites, live provider access and hosted checks NOT_RUN_BY_USER_POLICY.",
-            "External application submission OFF."
+            "This requirement result does not imply whole-product release eligibility; external application submission remains OFF."
           ]
         },
         {
