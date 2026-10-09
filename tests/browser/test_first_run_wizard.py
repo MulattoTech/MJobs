@@ -1,0 +1,169 @@
+"""Connected, local-fixture acceptance for the first-run search workflow."""
+import os
+from pathlib import Path
+import re
+import tempfile
+import threading
+import time
+import unittest
+from urllib.parse import urlsplit
+from unittest.mock import patch
+
+from playwright.sync_api import expect, sync_playwright
+import uvicorn
+
+from apps.api.main import create_app
+from fixtures.browser_ports import bound_browser_socket
+from fixtures.mock_server import fixture_server
+from packages.persistence.store import Store
+from services.discovery.search_profiles import save_search_profile
+from services.discovery.sources.collect import configure_source
+from tests.integration.test_spine import PROFILE
+from workers.tasks import execute_operation
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+@unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
+                     "Build apps/web before browser acceptance")
+class FirstRunWizardBrowserTests(unittest.TestCase):
+    def test_wizard_runs_profile_scoped_saved_search_and_reads_back_history(self):
+        with tempfile.TemporaryDirectory(prefix="mjobs-first-run-wizard-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'wizard.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(dict(PROFILE))
+            source_id = configure_source(store, "fixture", provider="greenhouse")
+            save_search_profile(store, {
+                "id": "wizard-search",
+                "profile_id": "fixture",
+                "name": "Systems administrator roles",
+                "enabled": True,
+                "include_titles": ["Systems Administrator"],
+                "remote": "REQUIRED",
+                "employment_types": ["FULL_TIME"],
+                "source_ids": [source_id],
+            })
+
+            with fixture_server() as source_origin:
+                sock = bound_browser_socket()
+                origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+                app = create_app(store, source_origin, root,
+                                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+                server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+                server_thread = threading.Thread(target=server.run,
+                                                 kwargs={"sockets": [sock]}, daemon=True)
+                external_requests = []
+                application_requests = []
+                collect_bodies = []
+                worker_results = []
+                page_errors = []
+                try:
+                    server_thread.start()
+                    deadline = time.monotonic() + 10
+                    while not server.started:
+                        if not server_thread.is_alive() or time.monotonic() > deadline:
+                            self.fail("Isolated first-run API did not start")
+                        time.sleep(0.02)
+
+                    with sync_playwright() as playwright:
+                        browser = playwright.chromium.launch(headless=True)
+                        context = browser.new_context()
+
+                        def local_only(route):
+                            request = route.request
+                            parsed = urlsplit(request.url)
+                            if parsed.netloc != urlsplit(origin).netloc:
+                                external_requests.append(request.url)
+                                route.abort()
+                            elif parsed.path.lower().endswith(("/submit", "/mock-run", "/apply")):
+                                application_requests.append((request.method, request.url))
+                                route.abort()
+                            else:
+                                route.continue_()
+
+                        def run_fixture_collection(route):
+                            request = route.request
+                            collect_bodies.append(request.post_data_json)
+                            response = route.fetch()
+                            if response.status == 202:
+                                operation_id = response.json()["operation_id"]
+                                with patch.dict(os.environ, {
+                                    "MJOBS_DATABASE_URL": store.url,
+                                    "MJOBS_MOCK_ORIGIN": source_origin,
+                                    "MJOBS_OUTPUT_DIR": str(root),
+                                    "MJOBS_OPERATION_MODE": "FIXTURE",
+                                }):
+                                    with patch("workers.tasks.collect_source", return_value={"jobs_seen": 0}):
+                                        worker_results.append(execute_operation(operation_id))
+                            route.fulfill(response=response)
+
+                        context.route("**/*", local_only)
+                        context.route(origin + "/sources/**/collect", run_fixture_collection)
+                        page = context.new_page()
+                        page.set_default_timeout(12000)
+                        page.on("pageerror", lambda error: page_errors.append(str(error)))
+                        page.goto(origin, wait_until="domcontentloaded")
+                        page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                        page.reload(wait_until="domcontentloaded")
+
+                        expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+                        wizard = page.get_by_role("region", name="First-run setup")
+                        expect(wizard).to_be_visible()
+                        expect(wizard.get_by_role("listitem")).to_have_count(10)
+                        expect(wizard).to_contain_text("External submission stays off")
+                        wizard.get_by_role("button", name="Open profile", exact=True).click()
+                        expect(page.get_by_role("button", name="Profile", exact=True)).to_have_attribute("aria-current", "page")
+                        wizard.get_by_role("button", name="Open resume library", exact=True).click()
+                        expect(page.get_by_role("button", name="Profile", exact=True)).to_have_attribute("aria-current", "page")
+                        wizard.get_by_role("button", name="Continue without a resume", exact=True).click()
+                        expect(wizard.get_by_role("listitem").nth(1).get_by_text("Complete", exact=True)).to_be_visible()
+                        wizard.get_by_role("button", name="Open saved searches", exact=True).click()
+                        expect(page.get_by_role("button", name="Sources", exact=True)).to_have_attribute("aria-current", "page")
+                        expect(page.get_by_role("heading", name="Scheduled search profiles", exact=True)).to_be_visible()
+                        page.get_by_role("button", name=re.compile(r"^Jobs")).click()
+                        automation_step = wizard.get_by_role("listitem").nth(8)
+                        automation_step.get_by_role("button", name="Keep manual review only").click()
+                        expect(automation_step.get_by_text("Complete", exact=True)).to_be_visible()
+                        page.reload(wait_until="domcontentloaded")
+                        wizard = page.get_by_role("region", name="First-run setup")
+                        expect(wizard.get_by_role("listitem").nth(8).get_by_text("Complete", exact=True)).to_be_visible()
+                        source = wizard.get_by_label("Enabled source for this search", exact=True)
+                        source.select_option(source_id)
+                        search = wizard.get_by_label("Saved search profile", exact=True)
+                        search.select_option("wizard-search")
+
+                        wizard.get_by_role("button", name="Run saved search", exact=True).click()
+                        last_step = wizard.get_by_role("listitem").nth(9)
+                        expect(last_step.get_by_text("Complete", exact=True)).to_be_visible(timeout=20000)
+
+                        self.assertEqual(len(collect_bodies), 1, collect_bodies)
+                        self.assertEqual(collect_bodies[0]["profile_id"], "fixture")
+                        self.assertEqual(collect_bodies[0]["search_profile_id"], "wizard-search")
+                        self.assertEqual(len(worker_results), 1)
+                        self.assertEqual(worker_results[0]["status"], "COMPLETED", worker_results)
+                        history_response = page.request.get(origin + "/profiles/fixture/search-history?limit=1")
+                        self.assertEqual(history_response.status, 200, history_response.text())
+                        history = history_response.json()
+                        self.assertEqual(history["profile_id"], "fixture")
+                        self.assertEqual(history["items"][0]["status"], "COMPLETED")
+                        self.assertEqual(history["items"][0]["filters"]["include_titles"], ["Systems Administrator"])
+                        wizard.get_by_role("button", name="Set up later", exact=True).click()
+                        resume = page.get_by_role("button", name=re.compile(r"^Resume first-run setup"))
+                        expect(resume).to_be_visible()
+                        page.reload(wait_until="domcontentloaded")
+                        expect(resume).to_be_visible()
+                        resume.click()
+                        resumed_wizard = page.get_by_role("region", name="First-run setup")
+                        expect(resumed_wizard).to_be_visible()
+                        expect(resumed_wizard.get_by_role("listitem").nth(9).get_by_text("Complete", exact=True)).to_be_visible()
+                        self.assertEqual(external_requests, [])
+                        self.assertEqual(application_requests, [])
+                        self.assertEqual(page_errors, [])
+                        browser.close()
+                finally:
+                    server.should_exit = True
+                    server_thread.join(timeout=5)
+                    store.engine.dispose()
+                    self.assertFalse(server_thread.is_alive(), "API server did not stop cleanly")

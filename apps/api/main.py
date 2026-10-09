@@ -1412,7 +1412,24 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         profile = store.profile(value.profile_id)
         with store.engine.connect() as connection:
             connection.execute(select(m.job_sources.c.id).where(m.job_sources.c.id == source_id)).one()
-        return queued("DISCOVER", value.profile_id, {"source_id": source_id, "profile_version": profile["version"], "request_id": value.request_id})
+            saved_search = None
+            if value.search_profile_id:
+                saved_search = connection.execute(select(m.search_profiles).where(
+                    m.search_profiles.c.id == value.search_profile_id
+                )).mappings().one_or_none()
+        if value.search_profile_id:
+            if saved_search is None:
+                raise HTTPException(404, "Saved search not found")
+            if saved_search["profile_id"] != value.profile_id:
+                raise HTTPException(409, "Saved search belongs to another profile")
+            if not saved_search["enabled"]:
+                raise HTTPException(409, "Saved search is disabled")
+            if saved_search["source_ids"] and source_id not in saved_search["source_ids"]:
+                raise HTTPException(409, "Saved search is not configured for this source")
+        params = {"source_id": source_id, "profile_version": profile["version"], "request_id": value.request_id}
+        if value.search_profile_id:
+            params["search_profile_id"] = value.search_profile_id
+        return queued("DISCOVER", value.profile_id, params)
 
     @app.post("/jobs/manual")
     def manual_job_capture(value: ManualJobCaptureInput, response: Response):
