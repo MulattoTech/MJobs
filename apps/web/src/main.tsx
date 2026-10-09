@@ -52,6 +52,7 @@ import { MatchingExplanationWorkflow } from './matching-explanation-workflow';
 import { createMatchingExplanationClient } from './matching-explanation-client';
 import { JobComparisonWorkspace } from './job-comparison-workspace';
 import { createJobComparisonClient } from './job-comparison-client';
+import { ResumeWorkspaceConnected } from './resume-workspace-connected';
 
 const jobRiskSignalsClient = {
   get: (profileId: string, jobId: string) => api<JobRiskSignalsResponse>(
@@ -1199,6 +1200,7 @@ function App() {
            {profileId&&<ApplicationPriorityPanel key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} getApplicationPriority={getApplicationPriority}/>}
            {profileId&&<JobRiskSignalsPanel key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} client={jobRiskSignalsClient}/>}
            {profileId&&<RecruiterClassificationCard key={`${profileId}:${detail.id}`} jobId={detail.id} client={recruiterClassificationClient}/>}
+           {profileId&&editor.version&&detail.alignment_fingerprint&&<ResumeWorkspaceConnected key={`${profileId}:${detail.id}:${editor.version}`} profileId={profileId} jobId={detail.id} profileVersion={editor.version} jobFingerprint={detail.alignment_fingerprint} facts={editor.facts}/>}
            {detail.attributes.certifications?.length?<section className="panel" aria-label="Certification mentions"><h3>Certification mentions</h3><p className="muted">Strength reflects wording in this job description. UNKNOWN means the description does not state whether a certification is required or preferred.</p><ul aria-label="Certification requirement strength">{detail.attributes.certifications.map((item,index)=><li key={item.id+index}><strong>{item.name}</strong> — {item.strength.replaceAll('_',' ')}</li>)}</ul></section>:null}
            {detail.attributes.salary&&<p>Published range: {detail.attributes.salary.map(s=>`${s.currency} ${s.min}–${s.max} (period ${s.period.toLowerCase()})`).join('; ')}</p>}
           <label className="consent"><input type="checkbox" checked={tailorResume} disabled={!!busy||!profileId} onChange={e=>{setTailorResume(e.target.checked);setResumeSelection(null);setResumeAlignmentPreview(null);}}/> Order approved skills for this job</label><p className="muted">A read-only keyword alignment preview runs before preparation. Unmatched job terms stay visibly unmatched and are never inserted into resume content. Job-matched skills and technology facts appear in bold in DOCX and PDF. Approved profile facts stay unchanged. Review the generated document before use.</p>

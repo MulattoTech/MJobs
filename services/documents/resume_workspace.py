@@ -97,6 +97,8 @@ def _validated_sections(sections, profile):
 def _row(row):
     result = dict(row)
     result["sections"] = deepcopy(result["sections"])
+    if result.get("source_refs") is not None:
+        result["source_refs"] = deepcopy(result["source_refs"])
     return result
 
 

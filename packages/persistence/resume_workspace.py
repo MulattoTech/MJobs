@@ -4,9 +4,11 @@ from sqlalchemy import (
     Column,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     JSON,
     String,
+    Text,
     Table,
     UniqueConstraint,
 )
@@ -24,10 +26,23 @@ resume_workspace_revisions = Table(
     Column("job_fingerprint", String(64), nullable=False),
     Column("template_id", String(100), nullable=False),
     Column("sections", JSON, nullable=False),
+    Column("preview_fingerprint", String(64)),
+    Column("rendered_text", Text),
+    Column("source_refs", JSON),
+    Column("request_id", String(128)),
+    Column("payload_fingerprint", String(64)),
     Column("created_at", DateTime(timezone=True), nullable=False),
     UniqueConstraint(
         "profile_id", "job_id", "version",
         name="uq_resume_workspace_profile_job_version",
     ),
     CheckConstraint("version > 0", name="ck_resume_workspace_version_positive"),
+)
+
+Index(
+    "uq_resume_workspace_profile_job_request",
+    resume_workspace_revisions.c.profile_id,
+    resume_workspace_revisions.c.job_id,
+    resume_workspace_revisions.c.request_id,
+    unique=True,
 )

@@ -580,6 +580,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         guard.close()
     store.bind_workspace_mode(operation_mode)
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
+    from apps.api.resume_workspace_editor import create_resume_workspace_editor_router
+    app.include_router(create_resume_workspace_editor_router(store))
     from apps.api.job_risk_signals import create_job_risk_signals_router
     app.include_router(create_job_risk_signals_router(store))
     from apps.api.recruiter_classification import create_recruiter_classification_router

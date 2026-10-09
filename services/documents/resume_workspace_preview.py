@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
+import json
 
 from services.documents.alignment_preview import build_alignment_preview
 from services.documents.errors import PreparationError
@@ -213,6 +215,110 @@ def build_resume_workspace_preview(store, profile_id: str, job_id: str, *,
             "selected_fact_ids": list(visible_fact_ids),
             "analysis_only": True,
         },
+        "read_only": True,
+        "text_only": True,
+        "ats_safe": True,
+        "document_generated": False,
+    }
+
+
+def build_resume_workspace_draft_preview(store, profile_id: str, job_id: str, *,
+                                         template_id: str, sections: list[dict],
+                                         expected_profile_version: str,
+                                         expected_job_fingerprint: str,
+                                         expected_template_version: str) -> dict:
+    """Render an unsaved reviewed layout without creating a revision or document."""
+    if (type(profile_id) is not str or not profile_id.strip() or
+            type(job_id) is not str or not job_id.strip()):
+        _fail("RESUME_WORKSPACE_STALE_CONTEXT", "Choose a current profile and job.")
+    try:
+        profile = store.profile(profile_id)
+        job = store.job(job_id, profile_id)
+    except Exception:
+        _fail("RESUME_WORKSPACE_STALE_CONTEXT", "The requested profile/job workspace is unavailable.")
+    job_fingerprint = _validate_snapshot(
+        profile, job, expected_profile_version, expected_job_fingerprint)
+    try:
+        template = select_resume_template(template_id, expected_template_version)
+    except PreparationError:
+        raise
+    except (TypeError, ValueError):
+        _fail("RESUME_TEMPLATE_VERSION_STALE", "Reload the template catalog before previewing.")
+
+    eligible = eligible_rows(profile)
+    facts_by_id = {row.get("fact_id", row.get("id")): row for row in eligible}
+    normalized, visible_sections, visible_fact_ids = _validate_sections(
+        sections, template, facts_by_id)
+    rendered_sections = []
+    source_facts = []
+    for section in visible_sections:
+        facts = [facts_by_id[fact_id] for fact_id in section["fact_ids"]]
+        rendered_sections.append({
+            "section_id": section["section_id"],
+            "heading": HEADINGS[section["section_id"]],
+            "fact_ids": list(section["fact_ids"]),
+            "text": "\n".join(row["text"] for row in facts),
+        })
+        for row in facts:
+            source_facts.append({
+                "fact_id": row.get("fact_id", row.get("id")),
+                "source": row["source"],
+                "kind": row["kind"],
+                "profile_version": expected_profile_version,
+                "fact_fingerprint": source_fact_fingerprint(row),
+            })
+
+    rendered_lines = contact_header(profile, template_id)
+    for section in rendered_sections:
+        rendered_lines.append(section["heading"])
+        if section["text"]:
+            rendered_lines.extend(section["text"].split("\n"))
+    rendered_text = "\n".join(rendered_lines)
+    try:
+        alignment = build_alignment_preview(
+            profile, job, expected_profile_version, job_fingerprint,
+            selected_fact_ids=visible_fact_ids)
+    except ValueError:
+        _fail("RESUME_WORKSPACE_PREVIEW_INVALID", "Keyword analysis is unavailable for this snapshot.")
+    order = {fact_id: index for index, fact_id in enumerate(visible_fact_ids)}
+    for group in alignment["matches"].values():
+        for match in group:
+            match["fact_ids"].sort(key=order.__getitem__)
+    keyword_alignment = {
+        "matches": alignment["matches"],
+        "unmatched": alignment["unmatched"],
+        "selected_fact_ids": list(visible_fact_ids),
+        "analysis_only": True,
+    }
+    source_refs = {"facts": source_facts}
+    preview_material = {
+        "profile_id": profile_id,
+        "profile_version": expected_profile_version,
+        "job_id": job_id,
+        "job_fingerprint": job_fingerprint,
+        "template_id": template_id,
+        "template_version": expected_template_version,
+        "sections": normalized,
+        "rendered_text": rendered_text,
+        "source_refs": source_refs,
+    }
+    preview_fingerprint = hashlib.sha256(json.dumps(
+        preview_material, sort_keys=True, ensure_ascii=False, separators=(",", ":"),
+    ).encode("utf-8")).hexdigest()
+
+    try:
+        current_profile = store.profile(profile_id)
+        current_job = store.job(job_id, profile_id)
+    except Exception:
+        _fail("RESUME_WORKSPACE_STALE_CONTEXT", "The profile or job changed during preview.")
+    _validate_snapshot(current_profile, current_job,
+                       expected_profile_version, expected_job_fingerprint)
+    return {
+        **preview_material,
+        "preview_fingerprint": preview_fingerprint,
+        "sections": normalized,
+        "rendered_sections": rendered_sections,
+        "keyword_alignment": keyword_alignment,
         "read_only": True,
         "text_only": True,
         "ats_safe": True,
