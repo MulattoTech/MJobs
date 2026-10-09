@@ -881,6 +881,59 @@ class ExplainableMatchingTests(unittest.TestCase):
         strengths = {row["skill"]: row["strength"] for row in explanation["components"]["requirements"]}
         self.assertEqual(strengths, {"Python": "REQUIRED", "Azure": "UNKNOWN"})
 
+    def test_remote_location_fit_uses_supported_profile_and_job_regions_without_changing_score(self):
+        from services.discovery.matching import build_explanation
+
+        def factor(remote_type, regions, contact):
+            result = build_explanation({
+                "skills": ["Python"], "remote_type": remote_type,
+                "attributes": {"skill_evidence": "description_mentions", "remote_regions": regions},
+            }, {"facts": [{"kind": "skill", "text": "Python", "source": "approved",
+                           "confidence": 100, "verified": True, "user_approved": True}],
+                "contact": contact})
+            row = next((item for item in result["components"]["fit_factors"]
+                        if item["id"] == "remote_location"), None)
+            return result["score"], row
+
+        aligned_state = factor(
+            "REMOTE_SPECIFIC_STATES", ["OK", "TX"],
+            {"country": "United States", "state": "Oklahoma"},
+        )
+        self.assertIsNotNone(aligned_state[1], "matching should explain remote-region eligibility")
+        self.assertEqual(aligned_state[0], 100)
+        self.assertEqual(aligned_state[1]["status"], "ALIGNS")
+        self.assertEqual(aligned_state[1]["score_effect"], "NONE")
+        self.assertNotIn("Oklahoma", aligned_state[1]["explanation"])
+
+        country_match = factor(
+            "REMOTE_US", ["US"], {"country": "USA", "state": "Oklahoma"},
+        )[1]
+        self.assertEqual(country_match["status"], "ALIGNS")
+        worldwide = factor(
+            "REMOTE_WORLDWIDE", ["WORLDWIDE"], {"country": "Canada", "state": "Ontario"},
+        )[1]
+        self.assertEqual(worldwide["status"], "ALIGNS")
+
+        outside_score, outside_region = factor(
+            "REMOTE_SPECIFIC_STATES", ["TX"],
+            {"country": "US", "state": "Oklahoma"},
+        )
+        self.assertEqual(outside_score, 100)
+        self.assertEqual(outside_region["status"], "NO_DIRECT_MATCH")
+        self.assertIn("does not reduce the score", outside_region["explanation"])
+
+        for remote_type, regions, contact in (
+            ("REMOTE_COUNTRY", [], {"country": "US"}),
+            ("REMOTE_COUNTRY", ["US"], {}),
+            ("REMOTE_COUNTRY", ["UNKNOWN_REGION"], {"country": "US"}),
+            ("REMOTE_SPECIFIC_STATES", ["OK"], {"country": "US"}),
+            ("ONSITE", [], {"country": "US", "state": "OK"}),
+        ):
+            with self.subTest(remote_type=remote_type, regions=regions, contact=contact):
+                unknown = factor(remote_type, regions, contact)[1]
+                self.assertEqual(unknown["status"], "UNKNOWN")
+                self.assertEqual(unknown["score_effect"], "NONE")
+
 
 if __name__ == "__main__":
     unittest.main()

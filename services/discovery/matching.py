@@ -40,6 +40,130 @@ _EDUCATION_AMBIGUITY = re.compile(
     r"not\s+yet\s+(?:earned|completed)|or\s+equivalent\s+experience)\b",
     re.I,
 )
+_US_STATE_NAMES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+    "CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+    "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+    "KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+    "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+    "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+    "NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+    "OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+    "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+    "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia",
+}
+_STATE_CODES_BY_NAME = {name.casefold(): code for code, name in _US_STATE_NAMES.items()}
+
+
+def _country_code(value):
+    normalized = re.sub(r"[^a-z0-9]+", " ", str(value or "").casefold()).strip()
+    aliases = {
+        "us": "US", "usa": "US", "united states": "US",
+        "united states of america": "US", "ca": "CA", "canada": "CA",
+        "gb": "GB", "uk": "GB", "united kingdom": "GB",
+        "great britain": "GB",
+    }
+    return aliases.get(normalized)
+
+
+def _state_code(value):
+    normalized = re.sub(r"[^a-z]+", " ", str(value or "").casefold()).strip()
+    if len(normalized) == 2 and normalized.upper() in _US_STATE_NAMES:
+        return normalized.upper()
+    return _STATE_CODES_BY_NAME.get(normalized)
+
+
+def _remote_location_fit_factor(job, profile):
+    attributes = job.get("attributes") or {}
+    remote_type = str(job.get("remote_type") or "UNKNOWN").upper()
+    raw_regions = attributes.get("remote_regions")
+    regions = [str(value).strip() for value in raw_regions
+               if isinstance(value, str) and value.strip()] if isinstance(raw_regions, (list, tuple, set)) else []
+    contact = profile.get("contact") or {}
+    country = _country_code(contact.get("country")) if isinstance(contact, dict) else None
+    state = _state_code(contact.get("state")) if isinstance(contact, dict) else None
+
+    normalized_regions = set()
+    unknown_region = False
+    for region in regions:
+        token = re.sub(r"[^a-z0-9]+", " ", region.casefold()).strip()
+        if token in {"worldwide", "global", "anywhere"}:
+            normalized_regions.add("WORLDWIDE")
+        elif code := _country_code(region):
+            normalized_regions.add(code)
+        elif code := _state_code(region):
+            normalized_regions.add(f"US:{code}")
+        else:
+            unknown_region = True
+
+    state_regions = {region.split(":", 1)[1] for region in normalized_regions
+                     if region.startswith("US:")}
+    country_regions = normalized_regions - {"WORLDWIDE"} - {
+        f"US:{code}" for code in state_regions
+    }
+    if (not remote_type.startswith("REMOTE") or not regions or unknown_region
+            or country is None):
+        status = "UNKNOWN"
+        explanation = (
+            "A supported remote-work scope and the selected profile's country are both needed; "
+            "on-site commute distance and work authorization are not inferred."
+        )
+    elif "WORLDWIDE" in normalized_regions:
+        status = "ALIGNS"
+        explanation = (
+            "The known remote-work regions are worldwide; "
+            "this does not verify work authorization or change the score."
+        )
+    elif remote_type == "REMOTE_SPECIFIC_STATES" or (country == "US" and state_regions):
+        if not state_regions:
+            status = "UNKNOWN"
+            explanation = (
+                "The job is marked as limited to specific U.S. states, but those states are "
+                "not available as supported regions."
+            )
+        elif country != "US":
+            status = "NO_DIRECT_MATCH"
+            explanation = (
+                "The job is limited to U.S. states and the selected profile country is outside "
+                "the United States; this informational result does not reduce the score."
+            )
+        elif state is None:
+            status = "UNKNOWN"
+            explanation = (
+                "The job is limited to specific U.S. states, but a supported profile state "
+                "is unavailable; no location fit is inferred."
+            )
+        elif state in state_regions:
+            status = "ALIGNS"
+            explanation = (
+                "The selected profile state is within the job's stated remote-work regions; "
+                "this does not verify work authorization or change the score."
+            )
+        else:
+            status = "NO_DIRECT_MATCH"
+            explanation = (
+                "The selected profile state is outside the job's stated remote-work regions; "
+                "this informational result does not reduce the score."
+            )
+    elif country in country_regions:
+        status = "ALIGNS"
+        explanation = (
+            "The known remote-work regions include the selected profile's country; "
+            "this does not verify work authorization or change the score."
+        )
+    else:
+        status = "NO_DIRECT_MATCH"
+        explanation = (
+            "The known remote-work regions do not include the selected profile's country; "
+            "this informational result does not reduce the score."
+        )
+    return {
+        "id": "remote_location", "label": "Remote work region",
+        "status": status, "explanation": explanation, "score_effect": "NONE",
+    }
 
 
 def _has_mixed_salary_range_scale(text):
@@ -398,6 +522,7 @@ def _fit_factors(job, profile):
         explanation = f"The known job arrangement ({job_arrangement.replace('_', ' ').lower()}) is not among the configured work-arrangement preferences; no score penalty is applied."
     factors.append({"id": "work_arrangement", "label": "Work arrangement", "status": status,
                     "explanation": explanation, "score_effect": "NONE"})
+    factors.append(_remote_location_fit_factor(job, profile))
 
     employment_preferences = {value.upper() for value in _strings(preferences.get("employment_types"))}
     employment_type = str(attributes.get("employment_type") or "UNKNOWN").upper()
