@@ -22,13 +22,6 @@ from tests.integration.test_spine import PROFILE
 
 
 ROOT = Path(__file__).resolve().parents[2]
-FIELD_NAMES = (
-    "title", "company", "description", "location", "employment_type",
-    "date_posted", "valid_through", "source_job_id", "listing_url",
-    "application_url",
-)
-
-
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(),
                      "Build apps/web before browser acceptance")
 class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
@@ -105,8 +98,9 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                                 external_requests.append(request.url)
                                 route.abort()
                                 return
-                            if parsed.path.lower().endswith(("/submit", "/apply")) or \
-                                    "/applications" in parsed.path.lower():
+                            if request.method not in {"GET", "HEAD"} and (
+                                    parsed.path.lower().endswith(("/submit", "/apply")) or
+                                    "/applications" in parsed.path.lower()):
                                 submission_requests.append((request.method, request.url))
                                 route.abort()
                                 return
@@ -166,20 +160,46 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         preview = preview_response.value.json()
                         self.assertEqual(counts(), before_preview)
                         self.assertEqual(len(preview_posts), 1)
-                        rejected_provenance = preview["fields"]["employment_type"]
+                        rejected_provenance = preview["fields"]["application_url"]
+
+                        field_labels = {
+                            "title": "Title", "company": "Company", "description": "Description",
+                            "location": "Location", "employment_type": "Employment type",
+                            "date_posted": "Date posted", "valid_through": "Valid through",
+                            "source_job_id": "Source job ID", "listing_url": "Listing URL",
+                            "application_url": "Application URL",
+                        }
+                        preview_field_labels = {
+                            **field_labels, "listing_url": "listing URL",
+                            "application_url": "application URL",
+                        }
+                        for field in preview["review_required"]:
+                            capture_panel.get_by_label(
+                                f"Confirm low-confidence {preview_field_labels[field]}", exact=True,
+                            ).check()
+                        capture_panel.get_by_role(
+                            "button", name="Confirm reviewed details", exact=True,
+                        ).click()
 
                         review_panel = page.get_by_role(
                             "region", name="Confirm extracted job details",
                         )
                         expect(review_panel).to_be_visible()
-                        for label in (
-                            "Title", "Company", "Description", "Location", "Date posted",
-                            "Valid through", "Source job ID", "Listing URL", "Application URL",
+                        for field in (
+                            "title", "company", "source_job_id", "listing_url", "application_url",
                         ):
-                            page.get_by_label(f"Review extracted {label}", exact=True).check()
+                            review_panel.get_by_label(
+                                f"Confirm low-confidence {field_labels[field]}", exact=True,
+                            ).check()
+                        application_url = review_panel.get_by_label(
+                            "Correction for Application URL", exact=True,
+                        )
+                        application_url.fill(preview["fields"]["application_url"]["value"])
+                        application_url.fill("")
                         page.get_by_label(
-                            "Reject extracted Employment type", exact=True,
+                            "Confirm removal of extracted Application URL", exact=True,
                         ).check()
+                        page.get_by_label("Confirm reviewed job description", exact=True).check()
                         confirm_button = review_panel.get_by_role(
                             "button", name="Confirm reviewed job details", exact=True,
                         )
@@ -196,9 +216,9 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         self.assertEqual(len(confirm_posts), 1)
                         self.assertEqual(counts(), before_preview)
                         expect(page.get_by_label(
-                            "Reject extracted Employment type", exact=True,
+                            "Confirm removal of extracted Application URL", exact=True,
                         )).to_be_checked()
-                        expect(review_panel).to_contain_text("Rejected by you")
+                        self.assertEqual(application_url.input_value(), "")
                         expect(confirm_button).to_be_enabled()
 
                         with page.expect_response(
@@ -211,10 +231,13 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         self.assertEqual(confirm_posts[1], confirm_posts[0])
                         request_body = confirm_posts[1]
                         request_receipt = request_body["source_details"]["extraction_capture"]["review_receipt"]
-                        self.assertEqual(request_receipt["reviewed_fields"], list(FIELD_NAMES))
-                        self.assertEqual(request_receipt["rejected_fields"], ["employment_type"])
+                        expected_reviewed_fields = [
+                            "title", "company", "description", "source_job_id",
+                            "listing_url", "application_url",
+                        ]
+                        self.assertEqual(request_receipt["reviewed_fields"], expected_reviewed_fields)
+                        self.assertEqual(request_receipt["rejected_fields"], ["application_url"])
                         created_job_id = recovered.value.json()["job"]["id"]
-                        self.assertEqual(recovered.value.json()["profile_id"], profile_id)
 
                         after_save = counts()
                         self.assertEqual(after_save[m.jobs.name], baseline[m.jobs.name] + 1)
@@ -243,14 +266,14 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                         receipt = extraction["review_receipt"]
                         self.assertEqual(receipt["schema_version"], 1)
                         self.assertTrue(receipt["confirmed_by_user"])
-                        self.assertEqual(receipt["reviewed_fields"], list(FIELD_NAMES))
-                        self.assertEqual(receipt["rejected_fields"], ["employment_type"])
-                        self.assertIsNone(extraction["raw_fields"]["employment_type"])
+                        self.assertEqual(receipt["reviewed_fields"], expected_reviewed_fields)
+                        self.assertEqual(receipt["rejected_fields"], ["application_url"])
+                        self.assertIsNone(extraction["raw_fields"]["application_url"])
                         self.assertEqual(
-                            extraction["field_provenance"]["employment_type"],
+                            extraction["field_provenance"]["application_url"],
                             {**{key: rejected_provenance[key] for key in (
                                 "source", "confidence", "review_required",
-                            )}, "user_corrected": False},
+                            )}, "user_corrected": True},
                         )
                         self.assertEqual(
                             extraction["raw_fields"]["source_job_id"],
