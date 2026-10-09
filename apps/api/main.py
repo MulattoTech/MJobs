@@ -183,6 +183,9 @@ class DiscoveryInput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     profile_id: str = Field(min_length=1, max_length=128)
     request_id: str | None = Field(default=None, min_length=1, max_length=64)
+    search_profile_id: str | None = Field(default=None, min_length=1, max_length=128)
+    query: str | None = Field(default=None, max_length=2000)
+    filters: dict[str, object] | None = Field(default=None, max_length=50)
 
 
 class ResumeFactRewriteInput(BaseModel):
@@ -580,6 +583,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         guard.close()
     store.bind_workspace_mode(operation_mode)
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
+    from apps.api.search_history import create_search_history_router
+    app.include_router(create_search_history_router(store))
     from apps.api.resume_workspace_editor import create_resume_workspace_editor_router
     app.include_router(create_resume_workspace_editor_router(store))
     from apps.api.job_risk_signals import create_job_risk_signals_router
@@ -1190,7 +1195,20 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         if operation_mode != "FIXTURE":
             raise HTTPException(409, "Fictional discovery is available only in verification mode")
         profile = store.profile(value.profile_id)
-        return queued("DISCOVER", value.profile_id, {"profile_version": profile["version"], "request_id": value.request_id})
+        params = {"profile_version": profile["version"], "request_id": value.request_id}
+        if value.search_profile_id:
+            try:
+                search = get_search_profile(store, value.search_profile_id)
+            except NoResultFound as exc:
+                raise HTTPException(404, "Search profile not found") from exc
+            if search["profile_id"] != value.profile_id:
+                raise HTTPException(404, "Search profile not found")
+            params["search_profile_id"] = value.search_profile_id
+        if value.query is not None:
+            params["query"] = value.query
+        if value.filters is not None:
+            params["filters"] = value.filters
+        return queued("DISCOVER", value.profile_id, params)
 
     @app.post("/matches", status_code=202)
     def matches(value: DiscoveryInput):

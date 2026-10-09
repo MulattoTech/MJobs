@@ -18,12 +18,34 @@ from services.discovery.sources.greenhouse import SourceError
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
 from services.audit_history import record_application_preparation_event
+from services.discovery.search_history import record_search_history
+from services.discovery.search_history_events import build_search_history_record
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
 from workers.structured_logging import log_operation_finished
 
 
 class FixtureOperationDisabled(Exception):
     """A queued fixture task must not run after switching to personal mode."""
+
+
+def _profile_job_ids(store, profile_id):
+    with store.engine.connect() as connection:
+        return set(connection.execute(select(m.matches.c.job_id).where(
+            m.matches.c.profile_id == profile_id,
+        )).scalars())
+
+
+def _history_source(store, params, operation_mode):
+    source_id = params.get("source_id")
+    if isinstance(source_id, str) and source_id:
+        with store.engine.connect() as connection:
+            row = connection.execute(select(
+                m.job_sources.c.provider, m.job_sources.c.tenant,
+            ).where(m.job_sources.c.id == source_id)).mappings().one_or_none()
+        if row is not None:
+            return f"{row['provider']}:{row['tenant']}"
+        return source_id
+    return "mock-fixture" if operation_mode == "FIXTURE" else "UNKNOWN"
 
 
 def _record_supported_collection_candidates(store, operation_id, source_id, profile_ids):
@@ -102,6 +124,44 @@ def execute_operation(operation_id):
         if operation is None:
             return {"status": "ALREADY_CLAIMED_OR_CAPACITY"}
         started_at = time.monotonic()
+        params = operation["params"] if isinstance(operation.get("params"), dict) else {}
+        records_search = (operation["kind"] == "DISCOVER"
+                          and params.get("rescore_only") is not True)
+        # The operation entity is the profile that requested this run. Other
+        # profile IDs in a source operation receive refreshed matches, but did
+        # not independently request a search and must not inherit its history.
+        history_profiles = [operation["entity_id"]]
+        if records_search:
+            search_started_at = operation.get("last_attempt_at") or now()
+            history_source = _history_source(store, params, operation_mode)
+            history_query = params.get("query") if isinstance(params.get("query"), str) else ""
+            history_filters = params.get("filters") if isinstance(params.get("filters"), dict) else {}
+            search_profile_id = params.get("search_profile_id")
+            if isinstance(search_profile_id, str) and search_profile_id:
+                try:
+                    from services.discovery.search_profiles import get_search_profile
+                    search_profile = get_search_profile(store, search_profile_id)
+                    if search_profile.get("profile_id") in history_profiles:
+                        history_filters = {
+                            **search_profile.get("criteria", {}), **history_filters,
+                        }
+                except Exception:
+                    # A stale saved-search reference must not prevent discovery;
+                    # the actual query/filter descriptors remain explicit below.
+                    pass
+            before_job_ids = {
+                profile_id: _profile_job_ids(store, profile_id)
+                for profile_id in history_profiles
+            }
+            history_results = None
+            history_counts = {}
+        else:
+            search_started_at = None
+            history_source = "UNKNOWN"
+            history_query = ""
+            history_filters = {}
+            before_job_ids = {}
+            history_results = None
         try:
             deadline = time.monotonic() + timeout()
 
@@ -150,8 +210,11 @@ def execute_operation(operation_id):
                         )
                         if "search_profile_id" in params else None
                     )
-                    collect_source(store, params["source_id"], primary, check=check,
-                                   profile_version=params.get("profile_version"))
+                    collection_result = collect_source(
+                        store, params["source_id"], primary, check=check,
+                        profile_version=params.get("profile_version"),
+                    )
+                    history_results = collection_result.get("jobs_seen")
                     _record_supported_collection_candidates(
                         store, operation_id, params["source_id"], profile_ids)
                     if search_profile is not None:
@@ -171,7 +234,11 @@ def execute_operation(operation_id):
                     # so an intervening edit/revocation cannot publish a stale match.
                     recalculate(store, operation["entity_id"], check=check)
                 else:
-                    discover(store, origin, operation["entity_id"], check=check, profile_version=params.get("profile_version"))
+                    discovery_jobs = discover(
+                        store, origin, operation["entity_id"], check=check,
+                        profile_version=params.get("profile_version"),
+                    )
+                    history_results = len(discovery_jobs)
             elif operation["kind"] == "COMPANY_DISCOVER":
                 params = operation["params"]
                 if params.get("monitoring_source_id") or params.get("discovery_request_id"):
@@ -225,6 +292,13 @@ def execute_operation(operation_id):
                     state, error = "BLOCKED", application["state"]
             else:
                 raise ValueError("Unsupported operation")
+            history_counts = {}
+            if records_search and history_results is not None:
+                for profile_id in history_profiles:
+                    new_count = len(_profile_job_ids(store, profile_id) - before_job_ids.get(profile_id, set()))
+                    # The collector does not expose a duplicate tally. Do not
+                    # infer duplicates from old matches or filtered postings.
+                    history_counts[profile_id] = (new_count, None)
             # A completed synchronous stage may omit an internal checkpoint. Do
             # not report success after the operation budget expires. Application
             # confirmation is already authoritative and must remain visible.
@@ -241,6 +315,7 @@ def execute_operation(operation_id):
             state, error = "BLOCKED", "FIXTURE_OPERATION_DISABLED"
         except Exception as failure:
             state, error = "FAILED", failure.code if isinstance(failure, (SourceError, PreparationError)) else type(failure).__name__
+            history_counts = {}
         with store.engine.begin() as connection:
             if state == "FAILED":
                 state = "DEAD_LETTERED"
@@ -258,6 +333,33 @@ def execute_operation(operation_id):
                          "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",
                          {"state": state, "error": error,
                           "attempt_count": int(operation["attempt_count"])})
+            if records_search:
+                for profile_id in history_profiles:
+                    new_count, duplicate_count = history_counts.get(
+                        profile_id, (None, None),
+                    )
+                    history_operation = {
+                        **operation, "entity_id": profile_id, "state": state,
+                        "error": error, "updated_at": finished_at,
+                        "dead_lettered_at": finished_at if state == "DEAD_LETTERED" else None,
+                    }
+                    history_record = build_search_history_record(
+                        history_operation,
+                        {
+                            "source": history_source,
+                            "query": history_query,
+                            "filters": history_filters,
+                            "started_at": search_started_at,
+                            "finished_at": finished_at,
+                            "results": history_results,
+                            "new_jobs": new_count,
+                            "duplicates": duplicate_count,
+                        },
+                    )
+                    if history_record is not None:
+                        record_search_history(
+                            store, history_record, connection=connection,
+                        )
             if (state == "DEAD_LETTERED" and operation["kind"] == "PREPARE"
                     and isinstance(operation["params"].get("job_id"), str)):
                 record_application_preparation_event(
