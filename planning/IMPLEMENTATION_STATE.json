@@ -14005,9 +14005,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T07:09:38Z",
+  "updated_at": "2026-10-09T07:10:34Z",
   "current_verified_local_state": "Local main 43e268d8ba07f079df68690ddc1694a283509096 (tree 10d67a7229b165e742a0083d08035e0c6040bd0f) verifies issue #239 / MJ-REQ-238 Application History; 9 focused API/integration/Chromium reload, ordering and recovery tests and web build pass. Evidence docs/evidence/2026-10-09-application-history.json. No product code changed. Preserved unrelated untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under the local-only policy; issue #239 is OPEN pending exact local verification receipt; no push, PR, hosted CI, or external application submission.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under local-only policy; issue #239 is CLOSED after verified local receipt https://github.com/MulattoTech/MJobs/issues/239#issuecomment-6076244717. No push or PR; hosted CI/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 372,
