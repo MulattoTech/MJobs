@@ -3,6 +3,8 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from sqlalchemy import select
+
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.learning.search_profile_suggestions import suggest_search_profile_titles
@@ -103,6 +105,39 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
                 "reason": "Observed in 2 current strong matches.",
             }],
         )
+
+    def test_search_including_all_matched_titles_returns_empty_without_changing_evidence(self):
+        selected_search_include_titles = [
+            "System Administrator",
+            "Infrastructure Support Engineer",
+            "Platform Administrator",
+        ]
+        self._match("System Administrator", 95)
+        self._match("Infrastructure Support Engineer", 75)
+        self._match("Platform Administrator", 90)
+
+        def persisted_evidence():
+            with self.store.engine.connect() as connection:
+                return connection.execute(
+                    select(
+                        m.matches.c.job_id,
+                        m.matches.c.profile_version,
+                        m.matches.c.score,
+                    ).where(m.matches.c.profile_id == "fixture")
+                    .order_by(m.matches.c.job_id)
+                ).all()
+
+        evidence_before = persisted_evidence()
+        self.assertEqual(len(evidence_before), 3)
+
+        suggestions = suggest_search_profile_titles(
+            self.store,
+            "fixture",
+            excluded_titles=selected_search_include_titles,
+        )
+
+        self.assertEqual(suggestions, [])
+        self.assertEqual(persisted_evidence(), evidence_before)
 
 
 if __name__ == "__main__":
