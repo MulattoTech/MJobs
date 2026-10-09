@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T08:48:49Z",
+  "timestamp": "2026-10-09T09:58:03Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -560,9 +560,10 @@
       "evidence": [
         "docs/evidence/2026-10-01-company-alias-domain-career-discovery.json",
         "docs/evidence/2026-10-03-public-company-discovery.json",
-        "docs/evidence/2026-10-03-company-discovery-requests.json"
+        "docs/evidence/2026-10-03-company-discovery-requests.json",
+        "docs/evidence/2026-10-09-official-domain-evidence-order.json"
       ],
-      "note": "Qualified stored domain proof authorizes automatic requests and is revalidated before worker reads and under the source enrollment transaction. Unknown/user-selected sites remain candidate identities. Automatic first-party/job/ATS/search-provider domain acquisition remains incomplete."
+      "note": "Discovery without a supplied website now reuses a uniquely resolved existing company’s persisted VERIFIED domain only when its verification method is approved and evidence is present; first-party job-link evidence outranks stored-domain evidence, and same-tier conflicts remain ambiguous. Automatic acquisition across all original evidence sources and supported discovery paths remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-061",

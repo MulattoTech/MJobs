@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "issue": 61,
+  "requirement_id": "MJ-REQ-060",
+  "slice": "reuse a verified company domain before optional search when discovery omits a website",
+  "result": "PARTIAL",
+  "base_commit": "3e2c9de6d746d913dedda36963082df32ddf4c8a",
+  "source_commit": "8f7fab9b330d554ef8659cf1232a9a23f006436f",
+  "source_tree": "5ede7429f9803831135ef8d9e19edd5742192e36",
+  "source_hash_algorithm": "SHA-256 over exact Git blob bytes at source_commit",
+  "validated_at_utc": "2026-10-09T09:58:03Z",
+  "environment": {
+    "platform": "Windows",
+    "python": "3.12",
+    "database": "temporary SQLite",
+    "network": "synthetic pages served through a patched public-fetch boundary; no external requests"
+  },
+  "behavior": {
+    "implemented": [
+      "For public company discovery without a supplied website, identify an existing company only through the existing resolver and consult only its persisted VERIFIED domain records with approved verification methods and nonempty evidence.",
+      "Select among stored verified domains using the original evidence order: first-party job link, existing verified domain, ATS metadata, official career redirect, structured metadata, configured web search, then public metadata.",
+      "Ambiguous same-tier domain evidence remains unresolved; a unique verified domain is added to the queued candidate so the bounded public client receives a valid scoped origin.",
+      "Connected PERSONAL-mode worker discovery completes from the selected verified domain without invoking the optional search provider; mismatched or unsupported pages retain the existing safety gates."
+    ],
+    "remaining": "MJ-REQ-060 remains PARTIAL: automatic acquisition across first-party job links, ATS metadata, official redirects/structured metadata, and configured/public providers is not complete across all supported discovery paths.",
+    "external_submission": "OFF"
+  },
+  "tests": [
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m unittest tests.integration.test_company_discovery tests.integration.test_domain_evidence_lock tests.integration.test_public_company_discovery tests.integration.test_source_value_resolution -v",
+      "result": "PASS",
+      "detail": "42 integration tests passed, including unique verified-domain reuse, first-party evidence precedence, same-tier ambiguity, PERSONAL-mode worker readback, and bounded discovery regressions."
+    },
+    {
+      "command": "Python 3.12 py_compile for services/company_discovery/domains.py, flywheel.py, triggers.py and the two affected integration test modules",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "services/company_discovery/domains.py": "b4ec118e893e48b3d95ccd7ef934747d3040aad296cd9e67ab9b3d2f8bc5fc67",
+    "services/company_discovery/flywheel.py": "8f195d68c49e62ed2ecc50668a6e0d9b43cf6801fc4050b60260f9de823a2073",
+    "services/company_discovery/triggers.py": "6ea4ec0f0011be63a6305b103a5c10c7b17ad9088c3d0a1d1b1b3ecefa9dbe7c",
+    "tests/integration/test_company_discovery.py": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3",
+    "tests/integration/test_public_company_discovery.py": "69115d6fb06405ea76f67fa5c7cee5d9bb3d93f1d4b681b2bfc0bcab89acfbdd"
+  },
+  "limitations": {
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "hosted_review": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "full_repository_suite": "NOT_RUN",
+    "live_employer_source": "NOT_RUN",
+    "external_submission": "OFF"
+  }
+}
