@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-084"],
+  "github_issues": [85],
+  "result": "PARTIAL",
+  "scope": "Prepared application details now explain persisted company-discovery ATS knowledge, its evidence basis, tenant identity, and actual application-adapter capability. Company-level discovery is explicitly distinguished from a verified job route. Ambiguous evidence never selects a provider or adapter. The panel reuses saved application knowledge and route records without rediscovery or employer requests.",
+  "source": {
+    "branch": "codex/solo-req084-application-ats-knowledge-ui-20261009",
+    "commit": "25fc13e394394ceb6e60daf9d2e5a490f9102ac0",
+    "tree": "d9ebbd0c32027d1016ff264ce9dedc9d9a2f6b67"
+  },
+  "verified_at_utc": "2026-10-09T18:07:09Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local TypeScript/Vite production build and Chromium",
+    "external_submission": "disabled"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_application_knowledge_display.py tests/browser/test_application_status_tracking.py tests/browser/test_application_capability_filter.py tests/integration/test_application_knowledge.py -q",
+      "result": "PASS",
+      "evidence": "11 tests passed on the exact source commit. The browser acceptance read persisted Greenhouse/acme discovery metadata in application details after reload, distinguished company evidence from the selected RSS application route, showed the provider unsupported for application automation, and observed no external requests. Existing route, capability, and application-status browser tests also passed."
+    },
+    {
+      "command": "npm run test --prefix apps/web",
+      "result": "PASS",
+      "evidence": "96 test files and 548 frontend tests passed, including the new adapter-knowledge presentation tests for exact, company-only, ambiguous, and unknown evidence."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Vite reported the existing advisory that the JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_application_knowledge_display.py; git diff --check; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "evidence": "Browser acceptance compilation, whitespace validation, and lane coordination validation passed."
+    }
+  ],
+  "limitations": [
+    "Greenhouse is accurately shown as unsupported for application automation; this slice does not implement an external ATS application adapter.",
+    "The user can prepare documents for manual use; external application submission remains OFF.",
+    "Hosted checks, PostgreSQL, and live ATS verification were not run under local-only delivery policy. Full MJ-REQ-084 remains PARTIAL."
+  ]
+}
