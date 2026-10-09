@@ -248,7 +248,7 @@ def _preflight(store, application, route, profile, document_kinds, client):
         store._audit(connection, application["id"], "APPLICATION_FORM_ANALYSIS", form_analysis)
     result = build_preflight_result(profile, route, questionnaire, document_kinds,
                                     application_id=application["id"])
-    _include_question_shape(result, questionnaire)
+    _include_question_shape(result, questionnaire, form_analysis)
     if result["result"] == "PASS" and (
             form_analysis["status"] != "PASS"
             or any(field["sensitivity"] != "STANDARD" or field["ambiguous"]
@@ -266,7 +266,7 @@ def _preflight(store, application, route, profile, document_kinds, client):
     if (latest is None or questionnaire_fingerprint(latest) != result["metadata_fingerprint"]):
         stale = build_preflight_result(profile, route, latest, document_kinds,
                                        application_id=application["id"])
-        _include_question_shape(stale, latest)
+        _include_question_shape(stale, latest, analyze_questionnaire(latest))
         stale.update({"reason": "STALE_PREFLIGHT", "result": "UNKNOWN",
                       "document_version": application["document_version"]})
         persist_preflight(store, application["id"], stale)
@@ -276,12 +276,18 @@ def _preflight(store, application, route, profile, document_kinds, client):
     return result
 
 
-def _include_question_shape(result, questionnaire):
-    """Retain optional/conditional/repeatable declarations without answer data."""
+def _include_question_shape(result, questionnaire, form_analysis=None):
+    """Retain bounded field rules and per-control review classification without answers."""
     if not isinstance(questionnaire, dict) or not isinstance(questionnaire.get("questions"), list):
         return
     mappings = {row.get("question_id"): row for row in result.get("mappings", [])
                 if isinstance(row, dict) and isinstance(row.get("question_id"), str)}
+    analyzed = form_analysis.get("fields") if isinstance(form_analysis, dict) else None
+    analysis_by_id = {}
+    if isinstance(analyzed, list) and len(analyzed) == len(questionnaire["questions"]):
+        for question, analysis in zip(questionnaire["questions"], analyzed):
+            if isinstance(question, dict) and isinstance(analysis, dict):
+                analysis_by_id[question.get("id")] = analysis
     for question in questionnaire["questions"]:
         if not isinstance(question, dict):
             continue
@@ -296,15 +302,75 @@ def _include_question_shape(result, questionnaire):
             result.setdefault("mappings", []).append(row)
             mappings[question_id] = row
         row["required"] = question.get("required") is True
+        row["visible"] = question.get("visible", True) is True
         row["optional"] = question.get("required") is False
         row["conditional"] = any(key in question for key in (
             "condition", "required_when", "options_by"))
         row["repeatable"] = question.get("repeatable") is True
+        raw_type = question.get("type", question.get("input_type", question.get("tag")))
+        aliases = {"textarea": "text", "select-one": "select", "select-multiple": "select",
+                   "radio": "choice", "input": "text", "checkbox": "boolean"}
+        field_type = aliases.get(raw_type.casefold(), raw_type.casefold()) \
+            if isinstance(raw_type, str) else None
+        row["field_id"] = question_id
+        row["metadata_provider"] = questionnaire.get("provider")
+        row["metadata_tenant"] = questionnaire.get("tenant")
+        row["metadata_requisition"] = questionnaire.get("requisition")
+        row["metadata_revision"] = questionnaire.get("revision")
+        row["type"] = field_type if field_type in {
+            "text", "email", "number", "date", "file", "select", "boolean", "choice",
+        } else "text"
+        row["type_explicit"] = field_type in {
+            "text", "email", "number", "date", "file", "select", "boolean", "choice",
+        }
+        options = question.get("options", [])
+        if isinstance(options, list):
+            row["options"] = [item.get("label") if isinstance(item, dict) else item
+                               for item in options]
+        else:
+            row["options"] = []
+        condition = question.get("condition")
+        if isinstance(condition, dict):
+            parent = condition.get("question_id")
+            if isinstance(parent, str) and _DYNAMIC_QUESTION_ID.fullmatch(parent):
+                row["depends_on"] = parent
+                if set(condition) == {"question_id", "equals"}:
+                    row["condition"] = dict(condition)
+        options_by = question.get("options_by")
+        if isinstance(options_by, dict):
+            parent = options_by.get("question_id")
+            choices = options_by.get("choices")
+            if (isinstance(parent, str) and _DYNAMIC_QUESTION_ID.fullmatch(parent)
+                    and isinstance(choices, dict)):
+                row["depends_on"] = parent
+                row["options_by"] = {"question_id": parent, "choices": choices}
+        sections = question.get("optional_sections", [])
+        if isinstance(question.get("optional_section_id"), str):
+            sections = [question["optional_section_id"]]
+        row["optional_sections"] = sections if isinstance(sections, list) else []
         group = question.get("repeatable_group")
         if row["repeatable"] and isinstance(group, str) and _DYNAMIC_QUESTION_ID.fullmatch(group):
             row["repeatable_group"] = group
-        row["supported"] = bool(sum(len(row.get(key, [])) for key in (
-            "fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context")))
+            for source_key, target_key in (
+                ("repeatable_min_rows", "repeatable_min_rows"),
+                ("repeatable_max_rows", "repeatable_max_rows"),
+                ("repeatable_group_required", "repeatable_group_required"),
+                ("repeatable_group_visible", "repeatable_group_visible"),
+            ):
+                if source_key in question:
+                    row[target_key] = question[source_key]
+        analysis = analysis_by_id.get(question_id, {})
+        sensitivity = analysis.get("sensitivity")
+        ambiguous = analysis.get("ambiguous") is True
+        sensitive = sensitivity != "STANDARD"
+        supported = (row["type_explicit"] and not sensitive and not ambiguous
+                     and row["type"] in {"text", "select", "boolean"})
+        row["sensitivity"] = sensitivity if sensitivity in {
+            "STANDARD", "SENSITIVE", "CREDENTIAL",
+        } else "UNKNOWN"
+        row["ambiguous"] = ambiguous
+        row["supported"] = bool(supported)
+        row["manual_review_required"] = not supported
 
 
 def _record_dynamic_review(store, application_id, preflight, problem):

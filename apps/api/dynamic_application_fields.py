@@ -64,9 +64,16 @@ def _fields(report: Mapping) -> list[dict] | None:
         dependent_on = item.get("depends_on", item.get("dependent_on"))
         choices = item.get("options", item.get("choices"))
         section_id = item.get("section_id", item.get("optional_section_id"))
+        if section_id is None and isinstance(item.get("optional_sections"), list):
+            section_id = item["optional_sections"][0] if len(item["optional_sections"]) == 1 else None
         repeatable_group = item.get("repeatable_group")
         min_rows = item.get("repeatable_min_rows")
         max_rows = item.get("repeatable_max_rows")
+        sensitivity = item.get("sensitivity", "UNKNOWN")
+        ambiguous = item.get("ambiguous") is True
+        type_explicit = item.get("type_explicit") is True
+        manual_review = (item.get("manual_review_required") is not False
+                         or sensitivity != "STANDARD" or ambiguous or not type_explicit)
         if (not isinstance(field_id, str) or not _IDENTIFIER.fullmatch(field_id)
                 or field_id in seen or not required_keys.issubset(item)
                 or not isinstance(label, str) or not label.strip() or len(label) > _MAX_TEXT):
@@ -89,6 +96,11 @@ def _fields(report: Mapping) -> list[dict] | None:
                          or min_rows < 0 or max_rows < 1 or min_rows > max_rows
                          or max_rows > _MAX_REPEATABLE_ROWS))
                 or not isinstance(choices, list) or len(choices) > _MAX_CHOICES
+                or sensitivity not in {"STANDARD", "SENSITIVE", "CREDENTIAL", "UNKNOWN"}
+                or ("supported" in item and type(item.get("supported")) is not bool)
+                or ("manual_review_required" in item
+                    and type(item.get("manual_review_required")) is not bool)
+                or ("ambiguous" in item and type(item.get("ambiguous")) is not bool)
                 or any(not isinstance(choice, str) or not choice.strip() or len(choice) > _MAX_TEXT
                        for choice in choices)):
             return None
@@ -96,16 +108,51 @@ def _fields(report: Mapping) -> list[dict] | None:
         if len(set(normalized_choices)) != len(normalized_choices):
             return None
         seen.add(field_id)
+        supported_kind = kind in {"text", "select", "boolean"}
+        supported = (item.get("supported") is True and not manual_review and supported_kind)
         field = {
             "id": field_id,
-            "label": " ".join(label.split()),
+            "label": ("Sensitive or ambiguous question requires manual review"
+                      if manual_review and sensitivity != "STANDARD" or ambiguous
+                      else "Unsupported field requires manual review" if not supported_kind
+                      else " ".join(label.split())),
             "type": kind,
             "required": item["required"],
             "visible": item["visible"],
             "depends_on": dependent_on,
-            "options": normalized_choices,
+            "options": [] if manual_review else normalized_choices,
             "repeatable": item["repeatable"],
+            "supported": supported,
+            "sensitive": sensitivity != "STANDARD",
+            "manual_review_required": manual_review or not supported_kind,
         }
+        if item.get("condition") is not None:
+            condition = item["condition"]
+            if (not isinstance(condition, Mapping) or set(condition) != {"question_id", "equals"}
+                    or condition.get("question_id") != dependent_on
+                    or not isinstance(condition.get("equals"), str)
+                    or len(condition["equals"]) > _MAX_TEXT):
+                return None
+            field["condition"] = {"question_id": dependent_on,
+                                  "equals": " ".join(condition["equals"].split())}
+        if item.get("options_by") is not None:
+            options_by = item["options_by"]
+            if (not isinstance(options_by, Mapping)
+                    or set(options_by) != {"question_id", "choices"}
+                    or options_by.get("question_id") != dependent_on
+                    or not isinstance(options_by.get("choices"), Mapping)
+                    or not 1 <= len(options_by["choices"]) <= _MAX_CHOICES):
+                return None
+            by_value = {}
+            for parent_value, options in options_by["choices"].items():
+                if (not isinstance(parent_value, str) or len(parent_value) > _MAX_TEXT
+                        or not isinstance(options, list) or not options
+                        or len(options) > _MAX_CHOICES
+                        or any(not isinstance(value, str) or not value.strip()
+                               or len(value) > _MAX_TEXT for value in options)):
+                    return None
+                by_value[" ".join(parent_value.split())] = [" ".join(value.split()) for value in options]
+            field["options_by"] = by_value
         if section_id is not None:
             field["section_id"] = section_id
         if repeatable_group is not None:

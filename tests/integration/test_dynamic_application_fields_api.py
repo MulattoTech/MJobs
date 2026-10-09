@@ -65,6 +65,8 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
                     "dependent_on": None,
                     "choices": ["United States", "Canada"],
                     "repeatable": False,
+                    "type_explicit": True, "sensitivity": "STANDARD", "ambiguous": False,
+                    "supported": True, "manual_review_required": False,
                 },
                 {
                     "question_id": "region",
@@ -75,6 +77,9 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
                     "dependent_on": "country",
                     "choices": ["Oklahoma", "Texas"],
                     "repeatable": False,
+                    "type_explicit": True, "sensitivity": "STANDARD", "ambiguous": False,
+                    "supported": True, "manual_review_required": False,
+                    "condition": {"question_id": "country", "equals": "United States"},
                 },
                 {
                     "question_id": "experience_employer",
@@ -85,6 +90,8 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
                     "dependent_on": None,
                     "choices": [],
                     "repeatable": True,
+                    "type_explicit": True, "sensitivity": "STANDARD", "ambiguous": False,
+                    "supported": True, "manual_review_required": False,
                 },
             ],
         }
@@ -120,13 +127,17 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
         self.assertEqual(body["fields"], [
             {"id": "country", "label": "Country", "type": "select",
              "required": True, "visible": True, "depends_on": None,
-             "options": ["United States", "Canada"], "repeatable": False},
+             "options": ["United States", "Canada"], "repeatable": False,
+             "supported": True, "sensitive": False, "manual_review_required": False},
             {"id": "region", "label": "State or province", "type": "select",
              "required": True, "visible": True, "depends_on": "country",
-             "options": ["Oklahoma", "Texas"], "repeatable": False},
+             "options": ["Oklahoma", "Texas"], "repeatable": False,
+             "supported": True, "sensitive": False, "manual_review_required": False,
+             "condition": {"question_id": "country", "equals": "United States"}},
             {"id": "experience_employer", "label": "Employer", "type": "text",
              "required": False, "visible": True, "depends_on": None,
-             "options": [], "repeatable": True},
+             "options": [], "repeatable": True,
+             "supported": True, "sensitive": False, "manual_review_required": False},
         ])
         self.assertNotIn("answers", body)
         self.assertNotIn("value", body)

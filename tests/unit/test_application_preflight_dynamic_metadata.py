@@ -3,6 +3,8 @@ from contextlib import contextmanager
 import unittest
 
 from services.applications.preflight import build_dynamic_form_snapshot, persist_preflight
+from services.applications.form_analysis import analyze_questionnaire
+from services.applications.mock_adapter import _include_question_shape
 
 
 def dynamic_report(**overrides):
@@ -35,8 +37,9 @@ def dynamic_report(**overrides):
                 "type": "select", "type_explicit": True, "required": True,
                 "visible": True, "optional": False, "conditional": True,
                 "depends_on": "country", "options": ["Oklahoma", "Texas"],
+                "condition": {"question_id": "country", "equals": "United States"},
                 "repeatable": False, "optional_sections": ["location-details"],
-                "supported": False, "metadata_provider": "mock-ats",
+                "supported": True, "metadata_provider": "mock-ats",
                 "metadata_tenant": "example", "metadata_requisition": "B",
                 "metadata_revision": 4, "fact_ids": [], "answer_ids": [],
                 "profile_paths": [], "document_kinds": [], "application_context": [],
@@ -46,7 +49,7 @@ def dynamic_report(**overrides):
                 "type": "text", "type_explicit": True, "required": False,
                 "visible": True, "optional": True, "conditional": False,
                 "depends_on": None, "options": [], "repeatable": True,
-                "optional_sections": ["employment-history"], "supported": False,
+                "optional_sections": ["employment-history"], "supported": True,
                 "metadata_provider": "mock-ats", "metadata_tenant": "example",
                 "metadata_requisition": "B", "metadata_revision": 4,
                 "repeatable_group": "employment", "repeatable_min_rows": 1,
@@ -58,6 +61,9 @@ def dynamic_report(**overrides):
         ],
         "missing": [],
     }
+    for row in report["mappings"]:
+        row.update({"sensitivity": "STANDARD", "ambiguous": False,
+                    "manual_review_required": False})
     report.update(overrides)
     return report
 
@@ -78,6 +84,41 @@ class _CaptureStore:
 
 
 class ApplicationPreflightDynamicMetadataTests(unittest.TestCase):
+    def test_adapter_question_shape_persists_dynamic_rules_and_manual_review_classification(self):
+        questionnaire = {
+            "provider": "mock-ats", "tenant": "example", "requisition": "B", "revision": 4,
+            "questions": [
+                {"id": "country", "label": "Country", "tag": "select", "required": True,
+                 "options": ["United States", "Canada"]},
+                {"id": "region", "label": "State", "tag": "select", "required": True,
+                 "options": ["Oklahoma", "Texas"],
+                 "condition": {"question_id": "country", "equals": "United States"},
+                 "options_by": {"question_id": "country", "choices": {
+                     "United States": ["Oklahoma"], "Canada": ["Ontario"]}}},
+                {"id": "ssn", "label": "Social Security number", "tag": "input",
+                 "input_type": "text", "required": False},
+            ],
+        }
+        result = {"mappings": [], "metadata_fingerprint": "a" * 64}
+
+        _include_question_shape(result, questionnaire, analyze_questionnaire(questionnaire))
+        snapshot = build_dynamic_form_snapshot(result)
+
+        self.assertIsNotNone(snapshot)
+        fields = {field["question_id"]: field for field in snapshot["fields"]}
+        self.assertEqual(fields["region"]["condition"], {
+            "question_id": "country", "equals": "United States",
+        })
+        self.assertEqual(fields["region"]["options_by"], {
+            "question_id": "country",
+            "choices": {"United States": ["Oklahoma"], "Canada": ["Ontario"]},
+        })
+        self.assertTrue(fields["country"]["supported"])
+        self.assertFalse(fields["country"]["manual_review_required"])
+        self.assertEqual(fields["country"]["options"], ["United States", "Canada"])
+        self.assertTrue(fields["ssn"]["manual_review_required"])
+        self.assertFalse(fields["ssn"]["supported"])
+
     def test_snapshot_preserves_safe_sections_groups_dependencies_and_fingerprint(self):
         snapshot = build_dynamic_form_snapshot(dynamic_report())
 
@@ -107,6 +148,15 @@ class ApplicationPreflightDynamicMetadataTests(unittest.TestCase):
         self.assertEqual([field["field_id"] for field in store.payload["dynamic_fields"]], [
             "country", "region", "job-title",
         ])
+        self.assertEqual(store.payload["optional_sections"], [
+            {"id": "employment-history", "field_ids": ["job-title"]},
+            {"id": "location-details", "field_ids": ["region"]},
+        ])
+        repeatable = next(field for field in store.payload["dynamic_fields"]
+                          if field["field_id"] == "job-title")
+        self.assertEqual(repeatable["repeatable_group"], "employment")
+        self.assertEqual(repeatable["repeatable_min_rows"], 1)
+        self.assertEqual(repeatable["repeatable_max_rows"], 5)
         persisted = store.payload["dynamic_form_metadata"]
         self.assertEqual(persisted["optional_sections"][1], {
             "section_id": "location-details", "field_ids": ["region"],
@@ -126,11 +176,15 @@ class ApplicationPreflightDynamicMetadataTests(unittest.TestCase):
         changed_choice["mappings"][1]["options"] = ["Oklahoma", "Kansas"]
         changed_membership = dynamic_report()
         changed_membership["mappings"][1]["optional_sections"] = ["location-info"]
+        changed_condition = dynamic_report()
+        changed_condition["mappings"][1]["condition"]["equals"] = "Canada"
 
         self.assertNotEqual(base["snapshot_fingerprint"],
                             build_dynamic_form_snapshot(changed_choice)["snapshot_fingerprint"])
         self.assertNotEqual(base["snapshot_fingerprint"],
                             build_dynamic_form_snapshot(changed_membership)["snapshot_fingerprint"])
+        self.assertNotEqual(base["snapshot_fingerprint"],
+                            build_dynamic_form_snapshot(changed_condition)["snapshot_fingerprint"])
 
     def test_malformed_metadata_is_not_persisted_as_dynamic_snapshot(self):
         store = _CaptureStore()

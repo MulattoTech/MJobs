@@ -31,9 +31,10 @@ export type DynamicApplicationContinuePayload={
   application_id:string;
   answers:DynamicApplicationAnswers;
   reviewed_fields:string[];
+  enabled_optional_sections:string[];
 };
 
-export type DynamicApplicationRestoredDraft={profile_id:string;application_id:string;answers:DynamicApplicationAnswers};
+export type DynamicApplicationRestoredDraft={profile_id:string;application_id:string;answers:DynamicApplicationAnswers;enabled_optional_sections?:string[]};
 
 const SUPPORTED_KINDS=new Set<DynamicApplicationFieldKind>(['text','textarea','select','checkbox']);
 
@@ -254,8 +255,9 @@ function safeInitialAnswers(fields:DynamicApplicationField[],initial:DynamicAppl
   return accepted;
 }
 
-function visibleInitialAnswers(fields:DynamicApplicationField[],answers:DynamicApplicationAnswers):DynamicApplicationAnswers{
-  const visible=new Set(getVisibleDynamicFields(fields,answers,new Set()).map(field=>field.id));
+function visibleInitialAnswers(fields:DynamicApplicationField[],answers:DynamicApplicationAnswers,
+  enabledOptionalSections:Set<string>):DynamicApplicationAnswers{
+  const visible=new Set(getVisibleDynamicFields(fields,answers,enabledOptionalSections).map(field=>field.id));
   const result={...answers};
   for(const field of fields){
     if(!visible.has(field.id)){delete result[field.id];continue;}
@@ -269,10 +271,14 @@ function DynamicApplicationFormSession({profileId,applicationId,provider,fields:
   const fields=Array.isArray(rawFields)?rawFields.slice(0,100).filter((field):field is DynamicApplicationField=>
     !!field&&typeof field==='object'&&typeof field.id==='string'&&typeof field.label==='string'):[];
   const scopedDraft=restoredDraft?.profile_id===profileId&&restoredDraft.application_id===applicationId
-    ?restoredDraft.answers:undefined;
-  const [answers,setAnswers]=useState<DynamicApplicationAnswers>(()=>visibleInitialAnswers(fields,safeInitialAnswers(fields,scopedDraft)));
+    ?restoredDraft:undefined;
+  const restoredSections=new Set((Array.isArray(scopedDraft?.enabled_optional_sections)
+    ?scopedDraft.enabled_optional_sections:[]).filter((id)=>fields.some((field)=>field.optional_section_id===id)));
+  const [enabledOptionalSections,setEnabledOptionalSections]=useState<Set<string>>(()=>new Set(restoredSections));
+  const [answers,setAnswers]=useState<DynamicApplicationAnswers>(()=>visibleInitialAnswers(
+    fields,safeInitialAnswers(fields,scopedDraft?.answers),restoredSections,
+  ));
   const [reviewed,setReviewed]=useState<Set<string>>(()=>new Set());
-  const [enabledOptionalSections,setEnabledOptionalSections]=useState<Set<string>>(()=>new Set());
   const issues=getDynamicFormConfigurationIssues(rawFields);
   const visibleFields=getVisibleDynamicFields(fields,answers,enabledOptionalSections);
   const blockers=getDynamicFormBlockers(visibleFields,answers,reviewed);
@@ -362,6 +368,7 @@ function DynamicApplicationFormSession({profileId,applicationId,provider,fields:
     </ul></div>}
     <button type="button" className="primary" disabled={!canContinue} onClick={()=>onContinue({
       profile_id:profileId,application_id:applicationId,answers:{...answers},reviewed_fields:[...reviewed].sort(),
+      enabled_optional_sections:[...enabledOptionalSections].sort(),
     })}>Continue</button>
     <p className="muted">Continue advances to local application review only. It does not submit an application.</p>
   </section>;

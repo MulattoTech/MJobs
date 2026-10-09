@@ -326,7 +326,11 @@ def build_dynamic_form_snapshot(result: dict) -> dict | None:
                 or type(row.get("visible")) is not bool
                 or type(row.get("optional")) is not bool
                 or type(row.get("conditional")) is not bool
-                or type(row.get("repeatable")) is not bool):
+                or type(row.get("repeatable")) is not bool
+                or type(row.get("supported", False)) is not bool
+                or type(row.get("manual_review_required", True)) is not bool
+                or type(row.get("ambiguous", True)) is not bool
+                or row.get("sensitivity", "UNKNOWN") not in {"STANDARD", "SENSITIVE", "CREDENTIAL", "UNKNOWN"}):
             return None
         seen.add(field_id)
 
@@ -367,9 +371,48 @@ def build_dynamic_form_snapshot(result: dict) -> dict | None:
             "options": options,
             "repeatable": row["repeatable"],
             "optional_sections": section_ids,
+            "supported": row.get("supported") is True,
+            "manual_review_required": row.get("manual_review_required", True) is True,
+            "ambiguous": row.get("ambiguous", True) is True,
+            "sensitivity": row.get("sensitivity", "UNKNOWN"),
         }
         if field["type_explicit"] is not True:
-            return None
+            field["supported"] = False
+            field["manual_review_required"] = True
+        if field["sensitivity"] != "STANDARD" or field["ambiguous"]:
+            field["supported"] = False
+            field["manual_review_required"] = True
+            field["options"] = []
+            field["label"] = "Sensitive or ambiguous question requires manual review"
+
+        condition = row.get("condition")
+        if condition is not None:
+            if (not isinstance(condition, dict) or set(condition) != {"question_id", "equals"}
+                    or not isinstance(condition.get("question_id"), str)
+                    or not _IDENTIFIER.fullmatch(condition["question_id"])
+                    or not isinstance(condition.get("equals"), str)
+                    or len(condition["equals"]) > MAX_QUESTION_LABEL):
+                return None
+            field["condition"] = {"question_id": condition["question_id"],
+                                  "equals": " ".join(condition["equals"].split())}
+        options_by = row.get("options_by")
+        if options_by is not None:
+            if (not isinstance(options_by, dict) or set(options_by) != {"question_id", "choices"}
+                    or not isinstance(options_by.get("question_id"), str)
+                    or not _IDENTIFIER.fullmatch(options_by["question_id"])
+                    or not isinstance(options_by.get("choices"), dict)
+                    or not 1 <= len(options_by["choices"]) <= 100):
+                return None
+            choices = {}
+            for parent_value, child_options in options_by["choices"].items():
+                if not isinstance(parent_value, str) or len(parent_value) > MAX_QUESTION_LABEL:
+                    return None
+                normalized = _bounded_string_list(child_options, maximum=100, label=True)
+                if not normalized:
+                    return None
+                choices[" ".join(parent_value.split())] = normalized
+            field["options_by"] = {"question_id": options_by["question_id"],
+                                    "choices": choices}
         for section_id in section_ids:
             sections.setdefault(section_id, []).append(field_id)
 
@@ -392,6 +435,11 @@ def build_dynamic_form_snapshot(result: dict) -> dict | None:
             if group is None:
                 groups[group_id] = {"group_id": group_id, "field_ids": [], **details}
             groups[group_id]["field_ids"].append(field_id)
+            field.update({
+                "repeatable_group": group_id,
+                "repeatable_min_rows": minimum,
+                "repeatable_max_rows": maximum,
+            })
         elif any(key in row for key in (
                 "repeatable_group", "repeatable_min_rows", "repeatable_max_rows",
                 "repeatable_group_required", "repeatable_group_visible")):
@@ -510,6 +558,10 @@ def persist_preflight(store, application_id: str, result: dict) -> None:
             "dynamic_fields": snapshot["fields"],
             "dynamic_fields_fingerprint": snapshot["fingerprint"],
             "dynamic_form_metadata": snapshot,
+            "optional_sections": [
+                {"id": section["section_id"], "field_ids": section["field_ids"]}
+                for section in snapshot["optional_sections"]
+            ],
         })
     with store.engine.begin() as connection:
         store._audit(connection, application_id, "APPLICATION_QUESTION_PREFLIGHT", payload)
