@@ -74,7 +74,7 @@ describe('role scoring profile editor',()=>{
     expect(validateRoleScoringProfileDraft({...draft,weights:{skills:101}}).some(error=>error.includes('0 to 100'))).toBe(true);
     expect(validateRoleScoringProfileDraft({...draft,weights:{skills:Number.NaN}}).some(error=>error.includes('finite number'))).toBe(true);
     expect(validateRoleScoringProfileDraft({...draft,thresholds:{skills:-1}}).some(error=>error.includes('0 to 100'))).toBe(true);
-    expect(validateRoleScoringProfileDraft({...draft,weights:{skills:40,other:10} as RoleScoringProfileDraft['weights']}).some(error=>error.includes('unsupported'))).toBe(true);
+    expect(validateRoleScoringProfileDraft({...draft,weights:{skills:40,'not-snake-case':10} as RoleScoringProfileDraft['weights']}).some(error=>error.includes('invalid custom dimension key'))).toBe(true);
   });
 
   it('renders selected profile/search attribution and clearly separates advisory scoring from eligibility',()=>{
