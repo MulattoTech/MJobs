@@ -223,7 +223,7 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     infrastructure = suggestions.locator("li").filter(
                         has_text="Infrastructure Support Engineer")
                     expect(infrastructure).to_be_visible()
-                    expect(infrastructure.locator("p")).to_contain_text(
+                    expect(infrastructure.locator("[aria-label='Strong-match evidence']")).to_contain_text(
                         re.compile(r"2\s+current\s+strong\s+matches", re.IGNORECASE))
                     expect(suggestions.get_by_text("IT Operations Engineer", exact=True)).to_be_visible()
                     for excluded in (
