@@ -7,6 +7,7 @@
   "base_commit": "c08c1acf2e81ee3b1b6a2996c23fbe17a9245717",
   "source_commit": "97ae82d9b59c1e588c494379dea0f1e0606772c1",
   "source_tree": "d8bdcc0f138db9cb27452bd60b57d9bc792e964c",
+  "source_hash_algorithm": "SHA-256 over exact Git blob bytes at source_commit",
   "validated_at_utc": "2026-10-09T09:43:11Z",
   "environment": {
     "platform": "Windows",
@@ -64,15 +65,15 @@
     "apps/api/company_preferences.py": "3ea0cba060c08110bf1ba946ca127369d902673620b7c7ef6d598f606c3fed56",
     "apps/web/src/company-preferences-client.test.ts": "136c9876b4a05457fd3f659383319768ffd194c6edcae62cc099c64b2d08c938",
     "apps/web/src/company-preferences-client.ts": "ec97392a96b52d3b1a942585874616c2a35a3faeebcd2d7b4c3ab1f01e809572",
-    "apps/web/src/company-preferences.test.tsx": "441500bf9228b4f96234db2b867df6f8e032fd645faa5edaf550da9e66908127",
-    "apps/web/src/company-preferences.tsx": "d9781715885c2d303f82f0749d18b70fcd364124be8a4d2ca45fd943f26b19fc",
-    "apps/web/src/main.tsx": "feff1ffddfc06a8a0c5115c907f2fc14f9315def47b7710229e4f557bcb5a055",
+    "apps/web/src/company-preferences.test.tsx": "4266dae5c053f478225b0e553ad36aa19f2b21d9938c9ca58d6dada2a3e3e0e5",
+    "apps/web/src/company-preferences.tsx": "5aecada7216274ca1c6526251121d44c17987898ab155c6e495d436c525b3173",
+    "apps/web/src/main.tsx": "c472a80ecba95f5c1c4d20e75bd39b11f611bfce71fcc51efb50f76afc59fea1",
     "packages/persistence/store.py": "2df983401e9ad7f73542d53d18941d780b66c4432e5d2015f85e7c48e30b40ac",
     "services/matching/company_preferences.py": "398635619d24135897098ef4452cda45cf34eb8f450e569b9d1f8b9812b9bb56",
     "tests/browser/test_company_preferences_connected.py": "c98345116a08d7d45389524b1c84e3f7d37eb89ef3df9633ac27397640552955",
     "tests/integration/test_application_priority_api.py": "a318a73be11a9b01ad67979ca64843155a9804d626b63b6f20f2deb8ef4a34a2",
-    "tests/integration/test_company_blacklist_search.py": "1da1eb7ccae3a2d9e5e36fe84834d4ce3953f2e32373ea82a214b29cf114b17a",
-    "tests/integration/test_company_preferences_api.py": "88efc3d21a7404c086e6411aff42704cc4a2fb658d732eceeb4fa5d983feebb8",
+    "tests/integration/test_company_blacklist_search.py": "dd51952a46fd948daf7d36d62e4802006393483702e203f5db64e374b8ff9d48",
+    "tests/integration/test_company_preferences_api.py": "39170f8cdca579206f90b09164ec4411d5896ef7cb0b5dde94409cf4f3b9abcf",
     "tests/unit/test_company_preferences.py": "2e4fc8e25c247ffc11c59cd46be8df15e99dfdc3c854d11845d6a4a0a18de8a5"
   },
   "limitations": {
