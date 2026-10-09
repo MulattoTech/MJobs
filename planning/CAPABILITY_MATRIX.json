@@ -1137,9 +1137,11 @@
     },
     {
       "requirement_id": "MJ-REQ-120",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-match-feedback-history.json"
+      ],
+      "note": "Scoped selected-job feedback, durable profile/job history, recovery, and review-only preference proposal verified; applying feedback to saved preferences/ranking remains incomplete."
     },
     {
       "requirement_id": "MJ-REQ-121",

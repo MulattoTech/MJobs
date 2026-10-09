@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "issue": 377,
+  "requirement": "MJ-REF-007",
+  "result": "PASS",
+  "acceptance_status": "PASS",
+  "scope": "Complete synthetic local acceptance for MJ-REF-007: ATS-safe templates, approved-fact section ordering/visibility, analysis-only job keyword coverage, explicit review, immutable diffable versions, and content-validated DOCX/PDF/TXT exports from the exact saved preview.",
+  "branch": "codex/root-377-formats-20261009",
+  "tested_candidate": {
+    "branch": "codex/root-377-formats-20261009",
+    "source_sha": "0113022450d669c2ef8efff106ed04dcc7e75737",
+    "source_tree": "176a525fd6352dc368ca7c45aad379037ee8ba37"
+  },
+  "tested_at_utc": "2026-10-09T05:52:14Z",
+  "validation": {
+    "python_resume_workspace_suite": {
+      "result": "PASS",
+      "count": 35,
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_resume_workspace_editor_api tests.unit.test_resume_workspace_export tests.unit.test_resume_workspace tests.unit.test_resume_workspace_preview tests.unit.test_resume_templates tests.integration.test_resume_workspace_api tests.integration.test_resume_workspace_preview_api tests.integration.test_resume_workspace_store_migrate tests.browser.test_resume_workspace_connected_flow",
+      "summary": "35 passed, 0 failed, 0 skipped. Synthetic profile/job fixtures; read-only preview, reviewed save/readback, all three format exports with content readback, exact replay and stale/foreign/unreviewed/current avoid-list negative paths covered."
+    },
+    "frontend_tests": {
+      "result": "PASS",
+      "count": 9,
+      "command": "npm test -- --run src/resume-workspace-client.test.ts src/resume-workspace.test.tsx",
+      "summary": "9 tests passed for scoped client contracts, reviewed-save gating, supported and unknown keyword analysis, layout invalidation, scope races, and durable reload."
+    },
+    "connected_browser": {
+      "result": "PASS",
+      "count": 1,
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_resume_workspace_connected_flow",
+      "summary": "After building the exact local-main web bundle, Chromium verified read-only preview, explicit review, one durable save, TXT/DOCX/PDF downloads matching the reviewed text, reload/history, unchanged approved facts, zero document/application writes and no external requests."
+    },
+    "frontend_build": {
+      "result": "PASS",
+      "command": "npm run build",
+      "summary": "TypeScript validation and Vite production build passed; Vite emitted its existing large-chunk advisory."
+    },
+    "isolated_alembic_upgrade_downgrade": {
+      "result": "PASS",
+      "summary": "Fresh temporary SQLite database upgraded through all heads at source 01130224; reviewed snapshot columns and unique idempotency index were present; empty-table downgrade returned to predecessor revision."
+    },
+    "python_compile": "PASS for changed API, service, persistence and migration modules.",
+    "git_diff_check": "PASS",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "browser_e2e": "PASS; one synthetic connected Chromium flow across all three download formats"
+  },
+  "privacy": {
+    "data": "synthetic only",
+    "network": "local TestClient and temporary SQLite database",
+    "external_network": "NOT_USED",
+    "submission": "NOT_USED"
+  },
+  "known_limitations": [
+    "PostgreSQL migration/runtime and hosted verification were not run.",
+    "GitHub origin/main was not advanced; local main remains local-only and ahead of origin.",
+    "Broader original resume requirements and overall MJobs release readiness remain separate and incomplete."
+  ],
+  "integration": "Locally integrated by non-force fast-forward into main at source commit 0113022450d669c2ef8efff106ed04dcc7e75737. MJ-REF-007 scoped acceptance is PASS; no PR, push, hosted automation, or external application submission was used."
+}

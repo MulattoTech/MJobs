@@ -1,0 +1,19 @@
+{
+  "issue": 121,
+  "requirement": "MJ-REQ-120",
+  "result": "PARTIAL",
+  "source_sha": "6fc9f3e771cf6d0e54fd273e71522027ecb4da3f",
+  "scope": "Selected-job match feedback capture, profile/job scoped append-only persistence, idempotent request recovery, read-only history reload, and editable review-only deterministic preference proposal.",
+  "verified": {
+    "python": "tests.unit.test_user_match_feedback tests.integration.test_match_feedback_api: 12 passed",
+    "web": "src/match-feedback-client.test.ts src/match-feedback.test.tsx: 10 passed; npm run build passed",
+    "browser": "tests.browser.test_match_feedback_workflow: 1 passed with synthetic SQLite and Chromium",
+    "hard_rules": "Feedback does not change profile preferences, saved search filters, match eligibility, or application state."
+  },
+  "remaining": [
+    "Reviewed deterministic preference proposal cannot yet be applied to saved preferences or used to alter explainable ranking.",
+    "Hosted checks and provider-connected validation NOT_RUN_BY_USER_POLICY."
+  ],
+  "external_submission": "OFF",
+  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+}

@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T05:08:54Z",
+  "generated_at": "2026-10-09T06:02:00Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main 46dfc9b09ad4e838b1df7d70aa2850ee0ae6daf2 (tree 7a4c4cc61b4bd1f1d481cf7ab8a95f7aa88b64d1) adds verified per-saved-search scoring persistence, peer-search isolation, and connected profile reload/match explanation acceptance to the prior integrated feature set. Evidence: docs/evidence/2026-10-09-role-scoring-profile-reload.json. Local main is 192 commits ahead of origin/main; the pre-existing untracked docs/evidence/2026-10-08-compose-target-isolation.json is preserved.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issue #408 remains OPEN/PARTIAL. Hosted checks remain NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T05:08:54Z"
+    "current_verified_local_state": "Local main 6fc9f3e771cf6d0e54fd273e71522027ecb4da3f adds selected-job profile-scoped feedback, idempotent recovery, durable readback history, and review-only preference proposals. Evidence: docs/evidence/2026-10-09-match-feedback-history.json. Local main is 206 commits ahead of origin/main; prior untracked user evidence remains preserved.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issue #121 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+    "current_verified_at": "2026-10-09T06:02:00Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261009-ROLE-SCORING-RELOAD",
-  "current_objective": "Advance the connected jobseeker workflow through dependency-ready discovery, matching, truthful document preparation, reviewed application preparation, and tracking slices.",
+  "current_milestone": "MJ-REQ-120-MATCH-FEEDBACK-PARTIAL-20261009",
+  "current_objective": "Continue solo feature development; next close reviewed preference application for match feedback or select the highest-impact ready matching workflow.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -12099,16 +12099,156 @@
         "evidence_path": "docs/evidence/2026-10-09-core-feature-integration-batch.json",
         "note": "Integrated by non-force fast-forward to local main. Focused connected UI/API/browser checks pass. Origin main remains unchanged by local-only policy."
       }
+    },
+    {
+      "milestone_id": "MJ-REF-007-REVIEWED-WORKSPACE-PARTIAL-20261009",
+      "current_phase": "Issue #377 / MJ-REF-007 reviewed resume workspace is integrated PARTIAL on local main; browser acceptance and DOCX/PDF exports from the same immutable workspace snapshot remain.",
+      "timestamp": "2026-10-09T05:43:19Z",
+      "completed_steps": [
+        "Integrated the profile/job-scoped reviewed resume workspace API and connected Jobs UI.",
+        "Recorded MJ-REF-007 as PARTIAL with synthetic acceptance evidence; issue remains open."
+      ],
+      "files_added": [
+        "apps/api/resume_workspace_editor.py",
+        "apps/web/src/resume-workspace-client.ts",
+        "apps/web/src/resume-workspace-connected.tsx",
+        "apps/web/src/resume-workspace.tsx",
+        "services/documents/resume_workspace_export.py",
+        "migrations/versions/20261009_reviewed_resume_workspace_exports.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/resume_workspace.py",
+        "services/documents/resume_workspace.py",
+        "services/documents/resume_workspace_preview.py"
+      ],
+      "tests_completed": [
+        "34 focused Python resume-workspace tests passed.",
+        "9 focused web tests passed.",
+        "TypeScript/Vite production build passed.",
+        "Isolated Alembic full upgrade and empty-table downgrade passed.",
+        "Changed Python modules compiled and git diff --check passed."
+      ],
+      "tests_remaining": [
+        "Connected Chromium/browser workflow",
+        "DOCX/PDF export consistency from the stored workspace snapshot",
+        "PostgreSQL migration/runtime validation"
+      ],
+      "migrations_applied": [
+        "Temporary SQLite full upgrade to c4f08e16a2d9 and downgrade to a7d19c0e4b26; no user database was touched."
+      ],
+      "live_integrations_tested": [
+        "Synthetic FastAPI TestClient and temporary SQLite only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Hosted checks/reviews NOT_RUN_BY_USER_POLICY.",
+        "Local main remains ahead of origin/main; no push or PR.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c35f38b0b44d530e5906c4f12a907290f4540d3b",
+        "evidence_path": "docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REF-007-BROWSER-ROUNDTRIP-20261009",
+      "current_phase": "Issue #377 / MJ-REF-007 connected browser flow passed and was integrated locally; acceptance remains PARTIAL pending DOCX/PDF export from the same stored workspace snapshot.",
+      "timestamp": "2026-10-09T05:48:27Z",
+      "completed_steps": [
+        "Integrated synthetic Chromium acceptance for preview, reviewed save, exact TXT download, reload/history and fact preservation.",
+        "Confirmed the browser test must run after rebuilding the root checkout web bundle; an earlier run used stale root dist and is not counted."
+      ],
+      "files_added": [
+        "tests/browser/test_resume_workspace_connected_flow.py"
+      ],
+      "files_modified": [
+        "apps/web/src/resume-workspace.tsx"
+      ],
+      "tests_completed": [
+        "Focused Python resume workspace suite: 34 tests passed on source commit c35f38b0b44d530e5906c4f12a907290f4540d3b.",
+        "Focused web suite: 9 tests passed and TypeScript/Vite build passed on the browser candidate.",
+        "Exact local main web build and Chromium connected flow passed; preview made no writes, save persisted one revision, TXT download matched preview, reload retained version, no external request.",
+        "Compilation and git diff --check passed."
+      ],
+      "tests_remaining": [
+        "DOCX/PDF export consistency from the exact stored snapshot",
+        "PostgreSQL migration/runtime validation",
+        "Hosted verification NOT_RUN_BY_USER_POLICY"
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local Chromium, FastAPI, fixture source and temporary SQLite only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REF-007 remains PARTIAL and issue #377 remains OPEN pending workspace snapshot DOCX/PDF export.",
+        "Local main remains ahead of origin/main; no PR or push.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f1d28a19cb23a73c23fcd0cdb2df6f5e32a0af04",
+        "evidence_path": "docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json"
+      }
+    },
+    {
+      "milestone_id": "MJ-REF-007-MULTIFORMAT-ACCEPTED-20261009",
+      "current_phase": "Issue #377 / MJ-REF-007 complete and integrated PASS on local main at 0113022450d669c2ef8efff106ed04dcc7e75737. Local synthetic browser workflow verifies review, persistence, diff history, and matching DOCX/PDF/TXT downloads. Broader original resume requirements and overall release remain partial.",
+      "timestamp": "2026-10-09T05:52:55Z",
+      "completed_steps": [
+        "Added a connected profile/job resume workspace with three ATS-safe templates, approved fact ordering/visibility, analysis-only keyword coverage, explicit review and immutable version history.",
+        "Exported each stored snapshot as DOCX/PDF/TXT only after format readback validation; current avoid-list preferences block conflicting historical exports.",
+        "Recorded scoped MJ-REF-007 PASS and preserved distinct broader original requirement/release states."
+      ],
+      "files_added": [
+        "apps/api/resume_workspace_editor.py",
+        "apps/web/src/resume-workspace-client.ts",
+        "apps/web/src/resume-workspace-connected.tsx",
+        "apps/web/src/resume-workspace.tsx",
+        "services/documents/resume_workspace_export.py",
+        "migrations/versions/20261009_reviewed_resume_workspace_exports.py",
+        "tests/integration/test_resume_workspace_editor_api.py",
+        "tests/browser/test_resume_workspace_connected_flow.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/resume_workspace.py",
+        "services/documents/resume_workspace.py",
+        "services/documents/resume_workspace_preview.py"
+      ],
+      "tests_completed": [
+        "35 focused Python/API/Browser tests passed on exact local main.",
+        "9 focused web tests passed; TypeScript/Vite production build passed with existing large-chunk advisory.",
+        "Synthetic Chromium verified exact reviewed text across all three downloaded formats, reload history, no fact mutation, no duplicate documents/applications and no external traffic.",
+        "Isolated SQLite Alembic full upgrade and safe empty-table downgrade passed at exact source; py_compile/compileall, diff check, dashboard, catalogue, progress, reference provenance and lane validators passed."
+      ],
+      "tests_remaining": [
+        "PostgreSQL migration/runtime validation and hosted checks are NOT_RUN."
+      ],
+      "migrations_applied": [
+        "Temporary SQLite full upgrade to c4f08e16a2d9 and downgrade to a7d19c0e4b26; no user database was touched."
+      ],
+      "live_integrations_tested": [
+        "Synthetic profile/job fixtures, local TestClient, temporary SQLite and local Chromium only."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Local main is ahead of origin/main; no PR/push.",
+        "External application submission remains OFF.",
+        "Broader original resume requirements and full MJobs release remain PARTIAL/UNKNOWN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0113022450d669c2ef8efff106ed04dcc7e75737",
+        "evidence_path": "docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json"
+      }
     }
   ],
-  "current_phase": "CORE_FEATURE_IMPLEMENTATION",
+  "current_phase": "Issue #377 / MJ-REF-007 complete and integrated PASS on local main at 0113022450d669c2ef8efff106ed04dcc7e75737. Local synthetic browser workflow verifies review, persistence, diff history, and matching DOCX/PDF/TXT downloads. Broader original resume requirements and overall release remain partial.",
   "last_safe_checkpoint": {
-    "git_commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
-    "tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
-    "branch": "main",
-    "issue": "#105 / #242 / #243 connected answer matching and job quality features",
-    "evidence_path": "docs/evidence/2026-10-09-core-feature-integration-batch.json",
-    "note": "Integrated by non-force fast-forward to local main. Focused connected UI/API/browser checks pass. Origin main remains unchanged by local-only policy."
+    "git_commit": "0113022450d669c2ef8efff106ed04dcc7e75737",
+    "evidence_path": "docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12466,16 +12606,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "issue": "#96",
-    "requirement_id": "MJ-REQ-095",
-    "title": "Truthful uploaded-base resume comparison for responsibility-selected target bullets",
-    "state": "ACTIVE_IMPLEMENTATION; API v5 skill-order acceptance is still failing and must be diagnosed before integration.",
-    "active_codex_children": [
-      "Clone Force 99 — Tech (API connected acceptance); Hunter/Echo/Wrecker contributions are committed and awaiting root revalidation."
+    "number": 121,
+    "url": "https://github.com/MulattoTech/MJobs/issues/121",
+    "branch": "codex/root-121-feedback-20261009",
+    "status": "PARTIAL",
+    "related_requirements": [
+      "MJ-REQ-120"
     ],
-    "latest_integrated_issue": 192,
-    "latest_integrated_requirement": "MJ-REQ-191",
-    "latest_integrated_head": "0214b4bf022cee4bb8498468aa7535decb71392e"
+    "note": "Connected feedback capture/history and review-only proposal integrated; next implement explicit reviewed preference application before claiming full requirement acceptance."
   },
   "historical_control_snapshots": [
     {
@@ -13633,9 +13771,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T01:18:26Z",
-  "current_verified_local_state": "Local main d61eabcd9276bc519e40cbe0154fe5bce3945260 (tree d43c562f67b569f9987cf0e94e2410ffc3734dbc) contains the connected answer matching review slice plus advisory job quality and recruiter classification features. Exact focused Python/API/browser/Vitest/build checks are recorded in docs/evidence/2026-10-09-core-feature-integration-batch.json. Main remains ahead of origin; the pre-existing untracked docs/evidence/2026-10-08-compose-target-isolation.json is preserved.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issues #242 and #243 remain OPEN after local acceptance. Hosted checks remain NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T05:52:55Z",
+  "current_verified_local_state": "Local main 0113022450d669c2ef8efff106ed04dcc7e75737 (tree 176a525fd6352dc368ca7c45aad379037ee8ba37) completes MJ-REF-007 resume workspace with three-template layout, review, immutable history/diff, and exact validated DOCX/PDF/TXT export. Evidence: docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json. Local main is 203 commits ahead of origin/main; the pre-existing untracked compose evidence is preserved.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Issue #377 scoped acceptance is locally PASS and an integration receipt is pending; no push/PR. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "next_candidates": [
     {
       "issue": 372,
@@ -13645,7 +13783,7 @@
     {
       "issue": 377,
       "requirement_id": "MJ-REF-007",
-      "status": "ACTIVE_IMPLEMENTATION: keyword-analysis service, preview API, UI, and browser tests are ready in separate candidates; root mount and assembled acceptance remain."
+      "status": "SCOPED_PASS_ON_LOCAL_MAIN: all MJ-REF-007 criteria and synthetic browser DOCX/PDF/TXT round-trip are verified; broader MJ-REQ-092/093/097/198 and release readiness remain separate."
     },
     {
       "issue": 517,
