@@ -45,6 +45,7 @@ import { JobPrefilter, type JobPrefilterCriteria, type JobPrefilterResponse } fr
 import { ResumePageFit, type ResumePageFitGenerated, type ResumePageFitPreview } from './resume-page-fit';
 import { CareerStoryBankConnected } from './career-story-bank-connected';
 import { CoverLetterStorySelection } from './cover-letter-story-selection';
+import { ResumeStorySelection } from './resume-story-selection';
 import { RoleLensSelectionLoader } from './role-lens-selection';
 import type { RoleLensChoice } from './role-lens-picker';
 import { RoleScoringProfileEditor } from './role-scoring-profile-editor';
@@ -311,12 +312,13 @@ function App() {
   const [coverLetterLength,setCoverLetterLength]=useState<'VERY_SHORT'|'CONCISE'|'NORMAL'|'DETAILED'>('NORMAL');
   const [coverLetterStyle,setCoverLetterStyle]=useState<'professional'|'warm'|'technical'|'direct'|'conversational'|'formal'>('professional');
   const [coverLetterStorySelection,setCoverLetterStorySelection]=useState<{profileId:string;profileVersion:string;jobId:string;jobFingerprint:string;storyIds:string[]}|null>(null);
+  const [resumeStorySelection,setResumeStorySelection]=useState<{profileId:string;profileVersion:string;jobId:string;jobFingerprint:string;storyIds:string[]}|null>(null);
   const [resumeSelection,setResumeSelection]=useState<ResumeFactChoice|null>(null);
   const [resumeAlignmentPreview,setResumeAlignmentPreview]=useState<{profileId:string;jobId:string;profileVersion:string;jobFingerprint:string}|null>(null);
   const [pageFitPreview,setPageFitPreview]=useState<ResumePageFitPreview|null>(null);
   const [pageFitGenerated,setPageFitGenerated]=useState<ResumePageFitGenerated|null>(null);
   const [pageFitError,setPageFitError]=useState('');
-  useEffect(()=>{setTailorResume(false);setIncludeResumeContact(false);setResumeSelection(null);setResumeAlignmentPreview(null);setPageFitPreview(null);setPageFitGenerated(null);setPageFitError('');setRoleLensSelection(null);setCoverLetterStorySelection(null);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());jobDispositionRequestIds.current.clear();},[detail?.id,profileId,editor.version]);
+  useEffect(()=>{setTailorResume(false);setIncludeResumeContact(false);setResumeSelection(null);setResumeAlignmentPreview(null);setPageFitPreview(null);setPageFitGenerated(null);setPageFitError('');setRoleLensSelection(null);setCoverLetterStorySelection(null);setResumeStorySelection(null);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());jobDispositionRequestIds.current.clear();},[detail?.id,profileId,editor.version]);
   useEffect(()=>{setSourceCandidates([]);setExternalOrigin('');setExternalSourceUrl('');},[profileId]);
   const [selectedApp,setSelectedApp]=useState<Application|null>(null);
   const [reviewQueueApplications,setReviewQueueApplications]=useState<ReviewQueueApplication[]>([]);
@@ -743,8 +745,14 @@ function App() {
     setPageFitError('');
     await action('Measuring resume PDF page fit',async()=>{
       try {
+        const stories=resumeStorySelection?.profileId===profileId
+          &&resumeStorySelection.jobId===jobId
+          &&resumeStorySelection.profileVersion===editor.version
+          ?resumeStorySelection
+          :null;
         const result=await api<ResumePageFitPreview>(`/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/resume-page-fit-previews`,{
-          method:'POST',body:JSON.stringify({target_pdf_pages:targetPages}),
+          method:'POST',body:JSON.stringify({target_pdf_pages:targetPages,
+            ...(stories?.storyIds.length?{resume_story_ids:stories.storyIds,expected_profile_version:stories.profileVersion,expected_job_fingerprint:stories.jobFingerprint}:{})}),
         });
         if(result.profile_id!==profileId||result.job_id!==jobId)throw new Error('The page-fit preview belongs to a different profile or job.');
         setPageFitPreview(result);setPageFitGenerated(null);
@@ -915,8 +923,16 @@ function App() {
       &&coverLetterStorySelection.jobFingerprint===job.alignment_fingerprint
       ? coverLetterStorySelection.storyIds
       : [];
+    const selectedResumeStoryIds = resumeStorySelection?.profileId===profileId
+      &&resumeStorySelection.jobId===job.id
+      &&resumeStorySelection.profileVersion===editor.version
+      &&resumeStorySelection.jobFingerprint===job.alignment_fingerprint
+      ? resumeStorySelection.storyIds
+      : [];
     if(coverLetterStorySelection?.storyIds.length&&!selectedStoryIds.length)throw new Error('Profile or job details changed. Reload and review the selected career stories before preparing documents.');
+    if(resumeStorySelection?.storyIds.length&&!selectedResumeStoryIds.length)throw new Error('Profile or job details changed. Reload and review the selected resume stories before preparing documents.');
     if(selectedStoryIds.length&&(!editor.version||!job.alignment_fingerprint))throw new Error('Reload the profile and saved job before preparing with selected career stories.');
+    if(selectedResumeStoryIds.length&&(!editor.version||!job.alignment_fingerprint))throw new Error('Reload the profile and saved job before preparing with selected resume stories.');
     const op=await queue('/applications',{profile_id:profileId,job_id:job.id,request_id:crypto.randomUUID(),route_mode:routeMode,tailor_resume:tailorResume,include_resume_contact:includeResumeContact,
       cover_letter_length:coverLetterLength,cover_letter_style:coverLetterStyle,
       ...(confirmedRoleLens?{role_lens_id:confirmedRoleLens.id,expected_role_lens_version:confirmedRoleLens.version}:{}),
@@ -924,6 +940,7 @@ function App() {
       ...(tailorResume&&resumeSelection?{tailor_fact_ids:resumeSelection.ids}:{}),
       ...(tailorResume&&resumeSelection?.rewrites.length?{tailor_fact_rewrites:resumeSelection.rewrites}:{}),...(routeId?{route_id:routeId}:{}),
       ...(selectedStoryIds.length?{cover_letter_story_ids:selectedStoryIds,expected_profile_version:editor.version,expected_job_fingerprint:job.alignment_fingerprint}:{}),
+      ...(selectedResumeStoryIds.length?{resume_story_ids:selectedResumeStoryIds,expected_profile_version:editor.version,expected_job_fingerprint:job.alignment_fingerprint}:{}),
       ...(aiDocumentPreparation?.jobId===job.id?{ai_evaluation_run_id:aiDocumentPreparation.runId}:{})});
     if(op.application_id)await showApp(op.application_id);
     if(aiDocumentPreparation?.jobId===job.id)setAIDocumentPreparation(null);
@@ -1252,7 +1269,8 @@ function App() {
            {tailorResume&&<ResumeFactSelection key={profileId+':'+detail.id} profileId={profileId} jobId={detail.id} jobFingerprint={detail.alignment_fingerprint||''} disabled={!!busy} onChange={setResumeSelection} onPreviewReady={setResumeAlignmentPreview}/>}
            {profileId&&<ResumePageFit key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} preview={pageFitPreview} generated={pageFitGenerated} busy={!!busy} error={pageFitError} onPreview={targetPages=>void previewResumePageFit(detail.id,targetPages)} onGenerate={previewId=>void generateReviewedPageFit(detail.id,previewId)}/>}
             <div className="two-col"><label>Cover letter length<select aria-label="Cover letter length" value={coverLetterLength} disabled={!!busy||!profileId} onChange={e=>setCoverLetterLength(e.target.value as typeof coverLetterLength)}><option value="VERY_SHORT">Very Short</option><option value="CONCISE">Concise</option><option value="NORMAL">Normal</option><option value="DETAILED">Detailed</option></select></label><label>Cover letter style<select aria-label="Cover letter style" value={coverLetterStyle} disabled={!!busy||!profileId} onChange={e=>setCoverLetterStyle(e.target.value as typeof coverLetterStyle)}>{['professional','warm','technical','direct','conversational','formal'].map(style=><option key={style} value={style}>{style[0].toUpperCase()+style.slice(1)}</option>)}</select></label></div>
-            {profileId&&editor.id===profileId&&editor.version&&<CoverLetterStorySelection key={`${profileId}:${editor.version}:${detail.id}`} profileId={profileId} profileVersion={editor.version} jobId={detail.id} jobTitle={detail.title} approvedFactIds={editor.facts.filter(eligible).map(fact=>fact.fact_id||fact.id)} api={api} onSelectionChange={storyIds=>setCoverLetterStorySelection(storyIds.length?{profileId,profileVersion:editor.version||'',jobId:detail.id,jobFingerprint:detail.alignment_fingerprint||'',storyIds}:null)}/>}
+            {profileId&&editor.id===profileId&&editor.version&&<ResumeStorySelection key={`resume-story:${profileId}:${editor.version}:${detail.id}`} profileId={profileId} profileVersion={editor.version} jobId={detail.id} jobTitle={detail.title} approvedFactIds={editor.facts.filter(eligible).map(fact=>fact.fact_id||fact.id)} api={api} onSelectionChange={storyIds=>{setResumeStorySelection(storyIds.length?{profileId,profileVersion:editor.version||'',jobId:detail.id,jobFingerprint:detail.alignment_fingerprint||'',storyIds}:null);setPageFitPreview(null);setPageFitGenerated(null);}}/>}
+            {profileId&&editor.id===profileId&&editor.version&&<CoverLetterStorySelection key={`cover-letter-story:${profileId}:${editor.version}:${detail.id}`} profileId={profileId} profileVersion={editor.version} jobId={detail.id} jobTitle={detail.title} approvedFactIds={editor.facts.filter(eligible).map(fact=>fact.fact_id||fact.id)} api={api} onSelectionChange={storyIds=>setCoverLetterStorySelection(storyIds.length?{profileId,profileVersion:editor.version||'',jobId:detail.id,jobFingerprint:detail.alignment_fingerprint||'',storyIds}:null)}/>}
             {profileId&&<RoleLensSelectionLoader key={`${profileId}:${detail.id}`} api={api} profileId={profileId} jobId={detail.id} onSelectionChange={choice=>setRoleLensSelection(choice?{...choice,profileId,jobId:detail.id}:null)}/>}
            <p className="muted">The letter uses exact job details and only relevant approved facts. Style and length change the deterministic template; no AI text is added. Review the validated preview in Applications before using it. {detail.attributes.company_identity==='USER_ENTERED_UNVERIFIED'?'Employer name was entered manually and is unverified; check it against the saved source.':''}</p>
            {profileId&&<BrowserJobExtraction key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} onConfirm={captureReviewedBrowserJob}/>}

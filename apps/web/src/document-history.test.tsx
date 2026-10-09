@@ -81,6 +81,21 @@ describe('document provenance',()=>{
     expect(html).toContain('Reused reviewed story revisions');expect(html).toContain('user-authored text preserved verbatim');
     expect(html).toContain('Reduced report latency · revision 2 · linked facts python');
   });
+  it('previews a validated resume and shows the selected story provenance',()=>{
+    const resume:GeneratedDocument={...historical,kind:'resume',files:{pdf:'resume.pdf',txt:'resume.txt'},missing_fact_ids:[],
+      preview_text:'Systems Administrator\nReviewed career stories\nReduced report latency\nI improved the reviewed Python service.',preview_error:null,
+      generation_context:{mode:'APPROVED_FACTS',review_required:true,
+        story_refs:[{story_id:'story-revision-7',revision:2,title:'Reduced report latency',profile_version:'snapshot-1',fact_ids:['python'],fact_fingerprints:[{fact_id:'python',fingerprint:'fact-source-v1'}],text_sha256:'story-content-hash'}]}};
+    const html=renderToStaticMarkup(<DocumentHistory documents={[resume]}/>);
+    expect(html).toContain('Preview validated resume');
+    expect(html).toContain('I improved the reviewed Python service.');
+    expect(html).toContain('exact user-authored wording');
+    expect(html).toContain('Reduced report latency · revision 2 · linked facts python');
+    expect(html).toContain('Download PDF');
+    const blocked=renderToStaticMarkup(<DocumentHistory documents={[{...resume,preview_text:null,preview_error:'Resume validation failed.'}]}/>);
+    expect(blocked).toContain('Downloads are disabled until a valid version is prepared');
+    expect(blocked).not.toContain('Download PDF');
+  });
   it('labels a legacy cover letter whose original job snapshot was not recorded',()=>{
     const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,kind:'cover-letter',legacy_job_context_missing:true,
       preview_text:'Application for Earlier Title',preview_error:null,files:{txt:'letter.txt'},missing_fact_ids:[]}]}/>);

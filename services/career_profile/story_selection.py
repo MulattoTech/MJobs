@@ -70,6 +70,49 @@ def _document_story(story: dict) -> dict:
     }
 
 
+def story_revision_refs(stories: list[dict] | None) -> list[dict]:
+    """Return provenance-only references; never copy reviewed story text."""
+    refs = []
+    for story in stories or []:
+        text = story.get("text")
+        if not isinstance(text, str) or not text.strip():
+            raise StorySelectionError(
+                "STORY_NOT_SELECTABLE", 422,
+                "A selected story has no reviewed text",
+            )
+        refs.append({
+            "story_id": story["story_id"],
+            "revision": story["revision"],
+            "title": story["title"],
+            "profile_version": story["profile_version"],
+            "fact_ids": list(story["fact_ids"]),
+            "fact_fingerprints": [dict(item) for item in story["fact_fingerprints"]],
+            "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        })
+    return refs
+
+
+def resume_story_paragraphs(stories: list[dict] | None) -> tuple[list[str], set[int]]:
+    """Build clearly labeled, exact user-authored story blocks for a resume."""
+    paragraphs = []
+    headings = set()
+    if not stories:
+        return paragraphs, headings
+    headings.add(0)
+    paragraphs.append("Reviewed career stories")
+    for story in stories:
+        text = story.get("text")
+        if not isinstance(text, str) or not text.strip():
+            raise StorySelectionError(
+                "STORY_NOT_SELECTABLE", 422,
+                "A selected story has no reviewed text",
+            )
+        headings.add(len(paragraphs))
+        paragraphs.append(story["title"])
+        paragraphs.append(text)
+    return paragraphs, headings
+
+
 def select_stories_for_job(store, profile_id: str, job_id: str, allowed_use: str,
                            selected_story_ids: list[str] | None = None,
                            connection=None) -> dict:

@@ -494,7 +494,22 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             raise
         resume = next(document for document in documents if document['kind']=='resume')
         try:
-            validate_stored_resume({ext:path for (kind,ext),path in files.items() if kind=='resume'}, profile, resume['fact_ids'], resume['template'], resume['generation_model'])
+            resume_context = resume.get('generation_context') or {}
+            resume_stories = []
+            if resume_context.get('story_refs'):
+                from services.career_profile.story_selection import StorySelectionError, resolve_story_revisions
+                try:
+                    resume_stories = resolve_story_revisions(
+                        store, application['profile_id'], resume_context['story_refs'],
+                        resume['profile_version'], 'RESUME',
+                    )
+                except StorySelectionError as error:
+                    raise PreparationError(error.code, str(error)) from error
+            validate_stored_resume(
+                {ext:path for (kind,ext),path in files.items() if kind=='resume'},
+                profile, resume['fact_ids'], resume['template'], resume['generation_model'],
+                generation_context=resume_context, selected_stories=resume_stories,
+            )
         except PreparationError as error:
             store.transition(application_id, [application['state']], 'REVIEW_REQUIRED', error.code)
             raise

@@ -9,7 +9,7 @@ import time
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.exc import NoResultFound
 
 from services.documents.tailor import target_fingerprint
@@ -22,6 +22,18 @@ _MAX_ACTIVE_PREVIEWS = 100
 class PageFitPreviewInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     target_pdf_pages: int = Field(ge=1, le=20)
+    resume_story_ids: list[str] | None = Field(default=None, min_length=1, max_length=50)
+    expected_profile_version: str | None = Field(default=None, min_length=64, max_length=64)
+    expected_job_fingerprint: str | None = Field(default=None, min_length=64, max_length=64)
+
+    @model_validator(mode="after")
+    def selected_resume_stories_require_snapshots(self):
+        if self.resume_story_ids is not None and (
+                len(set(self.resume_story_ids)) != len(self.resume_story_ids)
+                or any(not item.strip() or len(item) > 128 for item in self.resume_story_ids)
+                or not self.expected_profile_version or not self.expected_job_fingerprint):
+            raise ValueError("Selected resume stories require unique IDs and observed profile and job versions")
+        return self
 
 
 class PageFitReviewInput(BaseModel):
@@ -29,11 +41,16 @@ class PageFitReviewInput(BaseModel):
     reviewed: bool
 
 
-def _default_preview_runner(store, profile_id, job_id, output_dir, target_pdf_pages):
+def _default_preview_runner(store, profile_id, job_id, output_dir, target_pdf_pages,
+                            resume_story_ids=None, expected_profile_version=None,
+                            expected_job_fingerprint=None):
     from services.documents.generate import preview_resume_page_fit
 
     return preview_resume_page_fit(
         store, profile_id, job_id, output_dir, target_pdf_pages,
+        resume_story_ids=resume_story_ids,
+        expected_profile_version=expected_profile_version,
+        resume_story_job_fingerprint=expected_job_fingerprint,
     )
 
 
@@ -186,11 +203,23 @@ def create_resume_page_fit_router(store, output_dir: str | Path, *,
     def preview_resume_page_fit(profile_id: str, job_id: str, value: PageFitPreviewInput):
         profile = _load_profile(store, profile_id)
         job = _load_job(store, job_id)
+        if value.resume_story_ids is not None and (
+                value.expected_profile_version != profile["version"]
+                or value.expected_job_fingerprint != target_fingerprint(job)):
+            raise HTTPException(409, {"code": "RESUME_PAGE_FIT_PREVIEW_STALE"})
         result = None
         try:
-            result = preview_runner(
-                store, profile_id, job_id, output_dir, value.target_pdf_pages,
-            )
+            if value.resume_story_ids is None:
+                result = preview_runner(
+                    store, profile_id, job_id, output_dir, value.target_pdf_pages,
+                )
+            else:
+                result = preview_runner(
+                    store, profile_id, job_id, output_dir, value.target_pdf_pages,
+                    resume_story_ids=value.resume_story_ids,
+                    expected_profile_version=value.expected_profile_version,
+                    expected_job_fingerprint=value.expected_job_fingerprint,
+                )
             page_fit = _page_fit_payload(
                 result.get("page_fit", result.get("generation_context", {}).get("page_fit"))
                 if isinstance(result, dict) else None

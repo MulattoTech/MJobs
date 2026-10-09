@@ -8,6 +8,7 @@ from unittest.mock import Mock, patch
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app, create_from_env
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
 from workers.dispatch import enqueue_operation, dispatch_pending
@@ -161,7 +162,7 @@ class ApiQueueTests(unittest.TestCase):
                 "text": "User-authored evidence: I improved a synthetic Python support workflow.",
                 "fact_ids": ["python"],
                 "tags": ["support"],
-                "allowed_uses": ["COVER_LETTER"],
+                "allowed_uses": ["COVER_LETTER", "RESUME"],
             })
             story = review_story(
                 self.store, "fixture", story["story_id"], True, None,
@@ -175,12 +176,15 @@ class ApiQueueTests(unittest.TestCase):
                 "expected_profile_version": profile["version"],
                 "expected_job_fingerprint": fingerprint,
                 "cover_letter_story_ids": [story["story_id"]],
+                "resume_story_ids": [story["story_id"]],
             })
             self.assertEqual(queued.status_code, 202, queued.text)
             operation_id = queued.json()["operation_id"]
             operation = client.get("/operations/" + operation_id).json()
             self.assertEqual(operation["params"]["cover_letter_story_ids"], [story["story_id"]])
+            self.assertEqual(operation["params"]["resume_story_ids"], [story["story_id"]])
             self.assertEqual(operation["params"]["cover_letter_story_job_fingerprint"], fingerprint)
+            self.assertEqual(operation["params"]["resume_story_job_fingerprint"], fingerprint)
             with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
                             MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
                             MJOBS_OPERATION_MODE="FIXTURE"):
@@ -189,10 +193,24 @@ class ApiQueueTests(unittest.TestCase):
                 f"/profiles/fixture/applications/{queued.json()['application_id']}/documents",
             ).json()["documents"]
             letter = next(row for row in docs if row["kind"] == "cover-letter")
+            resume = next(row for row in docs if row["kind"] == "resume")
             self.assertIsNone(letter["preview_error"])
+            self.assertIsNone(resume["preview_error"])
             self.assertIn(story["text"], letter["preview_text"])
+            self.assertIn(story["text"], resume["preview_text"])
             self.assertEqual(letter["generation_context"]["story_refs"][0]["story_id"],
                              story["story_id"])
+            self.assertEqual(resume["generation_context"]["story_refs"][0]["story_id"],
+                             story["story_id"])
+            download_path = f"/profiles/fixture/documents/{resume['id']}/txt"
+            downloaded = client.get(download_path)
+            self.assertEqual(downloaded.status_code, 200, downloaded.text)
+            self.assertIn(story["text"], downloaded.text)
+            with self.store.engine.begin() as connection:
+                connection.execute(m.career_stories.update().where(
+                    m.career_stories.c.id == story["story_id"],
+                ).values(text="Changed story source must fail closed."))
+            self.assertEqual(client.get(download_path).status_code, 409)
 
 
 if __name__ == "__main__":

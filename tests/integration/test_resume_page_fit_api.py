@@ -10,6 +10,8 @@ from apps.api.resume_page_fit import create_resume_page_fit_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
+from services.career_profile.story_bank import create_story, review_story
+from services.documents.tailor import target_fingerprint
 from tests.integration import test_document_provenance as fixtures
 from tests.integration.test_spine import PROFILE
 from fixtures.mock_server import fixture_server
@@ -26,6 +28,7 @@ class ResumePageFitApiTests(unittest.TestCase):
             discover(self.store, origin, "fixture")
         self.job_id = self.store.jobs("fixture")[0]["id"]
         self.calls = {"preview": [], "generate": []}
+        self.preview_story_options = []
         self.now = [100.0]
         self.outside_preview_path = None
         self.preview_result = {
@@ -45,8 +48,9 @@ class ResumePageFitApiTests(unittest.TestCase):
             },
         }
 
-        def preview_runner(store, profile_id, job_id, output_dir, target_pdf_pages):
+        def preview_runner(store, profile_id, job_id, output_dir, target_pdf_pages, **kwargs):
             self.calls["preview"].append((profile_id, job_id, target_pdf_pages))
+            self.preview_story_options.append(kwargs)
             preview_root = Path(output_dir) / ".page-fit-previews"
             preview_root.mkdir(parents=True, exist_ok=True)
             preview_path = preview_root / f"preview-{len(self.calls['preview'])}.pdf"
@@ -96,6 +100,41 @@ class ResumePageFitApiTests(unittest.TestCase):
         self.assertEqual(self.calls["preview"], [("fixture", self.job_id, 1)])
         self.assertEqual(self.calls["generate"], [])
         self.assertEqual(self.counts(), before)
+
+    def test_preview_binds_explicit_resume_story_selection_to_profile_and_job(self):
+        profile = self.store.profile("fixture")
+        story = create_story(self.store, "fixture", {
+            "kind": "ACCOMPLISHMENT", "title": "Reviewed story",
+            "text": "User-authored synthetic result.", "fact_ids": ["python"],
+            "tags": [], "allowed_uses": ["RESUME"],
+        })
+        story = review_story(
+            self.store, "fixture", story["story_id"], True, None,
+            expected_revision=story["revision"],
+        )
+        job = self.store.job(self.job_id, "fixture")
+        fingerprint = target_fingerprint(job)
+        response = self.client.post(self.url(), json={
+            "target_pdf_pages": 1,
+            "resume_story_ids": [story["story_id"]],
+            "expected_profile_version": profile["version"],
+            "expected_job_fingerprint": fingerprint,
+        })
+
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(self.preview_story_options[-1], {
+            "resume_story_ids": [story["story_id"]],
+            "expected_profile_version": profile["version"],
+            "expected_job_fingerprint": fingerprint,
+        })
+        stale = self.client.post(self.url(), json={
+            "target_pdf_pages": 1,
+            "resume_story_ids": [story["story_id"]],
+            "expected_profile_version": profile["version"],
+            "expected_job_fingerprint": "0" * 64,
+        })
+        self.assertEqual(stale.status_code, 409)
+        self.assertEqual(len(self.calls["preview"]), 1)
 
     def test_explicit_review_is_required_before_generation(self):
         before = self.counts()

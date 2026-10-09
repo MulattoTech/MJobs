@@ -52,6 +52,18 @@ describe('career story selection', () => {
     expect(baseProps.onSelectionChange).not.toHaveBeenCalled();
   });
 
+  it('keeps label and input ids unique when resume and cover-letter selectors coexist', () => {
+    const html = renderToStaticMarkup(<>
+      <CareerStorySelection {...baseProps} />
+      <CareerStorySelection {...baseProps} allowedUse="RESUME" />
+    </>);
+    const ids = [...html.matchAll(/<input[^>]+id="([^"]+)"/g)].map(match => match[1]);
+
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+    expect((html.match(/<label>/g) || [])).toHaveLength(2);
+  });
+
   it('disables pending, rejected, nonlatest, stale, unapproved-fact, and wrong-use revisions', () => {
     const candidates = [
       {...candidate, revisionId: 'pending', revision: 3, reviewStatus: 'PENDING' as const},

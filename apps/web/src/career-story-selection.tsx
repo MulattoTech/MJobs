@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 
 export type CareerStorySelectionAllowedUse =
   | 'RESUME'
@@ -32,6 +32,7 @@ export type CareerStorySelectionProps = {
   profileId: string;
   jobId: string;
   jobTitle?: string;
+  ariaLabel?: string;
   allowedUse: CareerStorySelectionAllowedUse;
   candidates: readonly CareerStorySelectionCandidate[];
   approvedFactIds: readonly string[];
@@ -120,11 +121,13 @@ export function CareerStorySelection({
   profileId,
   jobId,
   jobTitle,
+  ariaLabel,
   allowedUse,
   candidates,
   approvedFactIds,
   onSelectionChange,
 }: CareerStorySelectionProps) {
+  const instanceId = useId();
   const contextKey = JSON.stringify([profileId, jobId, allowedUse]);
   const callback = useRef(onSelectionChange);
   callback.current = onSelectionChange;
@@ -166,7 +169,7 @@ export function CareerStorySelection({
       && isCareerStorySelectionCandidateEligible(candidate, allowedUse, approvedFactIds)
   )).length;
 
-  return <section className="panel" aria-label={`Career story selection for ${title}`} data-profile-id={profileId} data-job-id={jobId}>
+  return <section className="panel" aria-label={ariaLabel || `Career story selection for ${title}`} data-profile-id={profileId} data-job-id={jobId}>
     <h2>Story revisions for {title}</h2>
     <p>Choose exact, approved story revisions for this {useLabels[allowedUse].toLowerCase()}.</p>
     <p>{validRevisionIds.length} story revision{validRevisionIds.length === 1 ? '' : 's'} selected. Nothing is selected automatically.</p>
@@ -176,12 +179,12 @@ export function CareerStorySelection({
           ? 'This revision identity is missing or ambiguous. Reload career stories.'
           : careerStorySelectionUnavailableReason(candidate, allowedUse, approvedFactIds);
         const disabled = reason !== null;
-        const inputId = `career-story-selection-${index}`;
+        const inputId = `career-story-selection-${instanceId}-${index}`;
         const reasonId = `${inputId}-unavailable`;
         const selected = !disabled && validRevisionIds.includes(candidate.revisionId);
         const describedBy = disabled ? reasonId : undefined;
         return <li key={`${candidate.revisionId}-${index}`}>
-          <label htmlFor={inputId}>
+          <label>
             <input
               id={inputId}
               type="checkbox"

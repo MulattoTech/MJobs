@@ -8,7 +8,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, identity, upsert
 from services.career_profile.story_bank import create_story, review_story
 from services.documents.errors import PreparationError
-from services.documents.generate import prepare
+from services.documents.generate import discard_resume_page_fit_preview, prepare, preview_resume_page_fit
 from services.documents.history import application_documents
 from services.documents.tailor import target_fingerprint
 
@@ -275,6 +275,95 @@ class RoleLensGenerationTests(unittest.TestCase):
         self.assertEqual(self.store.count("applications"), before_application_count)
         self.assertEqual(self.store.count("documents"), before_document_count)
         self.assertFalse((self.root / identity(self.job_id, "fixture")).exists())
+
+    def test_explicit_reviewed_story_is_reused_verbatim_in_resume_history(self):
+        user_text = (
+            "Situation: synthetic reports were slow. Task: improve them.\n"
+            "Action: I optimized the reviewed Python queries. Result: reporting ran faster."
+        )
+        story = self._create_story(
+            "Reviewed reporting accomplishment", user_text, "support",
+        )
+        profile_before = self.store.profile("fixture")
+
+        application_id = prepare(
+            self.store, self.job_id, "fixture", self.root,
+            profile_version=profile_before["version"],
+            resume_story_ids=[story["story_id"]],
+            resume_story_job_fingerprint=target_fingerprint(
+                self.store.job(self.job_id)),
+        )
+
+        documents = application_documents(self.store, application_id, self.root)
+        resume = next(row for row in documents if row["kind"] == "resume")
+        resume_text = (self.root / application_id / resume["files"]["txt"]).read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(user_text, resume_text)
+        self.assertIsNone(resume["preview_error"])
+        reference = resume["generation_context"]["story_refs"][0]
+        self.assertEqual(reference["story_id"], story["story_id"])
+        self.assertEqual(reference["revision"], story["revision"])
+        self.assertEqual(reference["fact_ids"], ["support"])
+        self.assertEqual(reference["fact_fingerprints"], story["fact_fingerprints"])
+        self.assertEqual(self.store.profile("fixture")["facts"], profile_before["facts"])
+        self.assertNotIn(user_text, str(resume["generation_context"]))
+        repeated = prepare(
+            self.store, self.job_id, "fixture", self.root,
+            profile_version=profile_before["version"],
+            resume_story_ids=[story["story_id"]],
+            resume_story_job_fingerprint=target_fingerprint(
+                self.store.job(self.job_id)),
+        )
+        self.assertEqual(repeated, application_id)
+        self.assertEqual(self.store.application(application_id)["document_version"], 1)
+
+    def test_resume_rejects_story_without_explicit_resume_permission(self):
+        story = create_story(self.store, "fixture", {
+            "kind": "ACCOMPLISHMENT", "title": "Letter only story",
+            "text": "User-authored story text.", "fact_ids": ["support"],
+            "tags": [], "allowed_uses": ["COVER_LETTER"],
+        })
+        story = review_story(
+            self.store, "fixture", story["story_id"], True, None,
+            expected_revision=story["revision"],
+        )
+        before_documents = self.store.count("documents")
+        with self.assertRaises(PreparationError) as error:
+            prepare(
+                self.store, self.job_id, "fixture", self.root,
+                profile_version=self.store.profile("fixture")["version"],
+                resume_story_ids=[story["story_id"]],
+                resume_story_job_fingerprint=target_fingerprint(
+                    self.store.job(self.job_id)),
+            )
+        self.assertEqual(error.exception.code, "STORY_NOT_SELECTABLE")
+        self.assertEqual(self.store.count("documents"), before_documents)
+
+    def test_measured_resume_preview_keeps_explicit_stories_in_the_page_count(self):
+        from pypdf import PdfReader
+
+        story = self._create_story(
+            "Reviewed reporting accomplishment",
+            "Action: I improved a reviewed synthetic Python workflow.", "support",
+        )
+        profile = self.store.profile("fixture")
+        before = (self.store.count("applications"), self.store.count("documents"))
+        preview = preview_resume_page_fit(
+            self.store, "fixture", self.job_id, self.root, 1,
+            resume_story_ids=[story["story_id"]],
+            resume_story_job_fingerprint=target_fingerprint(self.store.job(self.job_id)),
+            expected_profile_version=profile["version"],
+        )
+        try:
+            rendered = " ".join(page.extract_text() for page in PdfReader(
+                preview["preview_pdf_path"],
+            ).pages)
+            self.assertIn(story["text"], rendered)
+            self.assertEqual(preview["resume_story_ids"], [story["story_id"]])
+            self.assertEqual((self.store.count("applications"), self.store.count("documents")), before)
+        finally:
+            discard_resume_page_fit_preview(self.root, preview)
 
 
 if __name__ == "__main__":

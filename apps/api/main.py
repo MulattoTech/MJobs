@@ -212,6 +212,7 @@ class ApplicationInput(DiscoveryInput):
                                      pattern=r'^[a-z][a-z0-9_]{0,31}$')
     expected_role_lens_version: int | None = Field(default=None, strict=True, ge=1, le=2147483647)
     cover_letter_story_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=50)
+    resume_story_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=50)
 
     @model_validator(mode='after')
     def selected_facts_require_tailoring_and_snapshot(self):
@@ -221,7 +222,7 @@ class ApplicationInput(DiscoveryInput):
                 not self.tailor_resume or self.tailor_fact_ids is None or not self.expected_profile_version):
             raise ValueError('Reviewed resume rewrites require selected facts, tailoring and the observed profile version')
         if self.expected_job_fingerprint is not None and (
-                not (self.tailor_resume or self.cover_letter_story_ids)
+                not (self.tailor_resume or self.cover_letter_story_ids or self.resume_story_ids)
                 or not self.expected_profile_version):
             raise ValueError('A document preparation snapshot requires tailoring or selected stories and the observed profile version')
         if (self.role_lens_id is None) != (self.expected_role_lens_version is None):
@@ -230,6 +231,10 @@ class ApplicationInput(DiscoveryInput):
                 len(set(self.cover_letter_story_ids)) != len(self.cover_letter_story_ids)
                 or not self.expected_profile_version or not self.expected_job_fingerprint):
             raise ValueError('Selected cover-letter stories require unique IDs and observed profile and job versions')
+        if self.resume_story_ids is not None and (
+                len(set(self.resume_story_ids)) != len(self.resume_story_ids)
+                or not self.expected_profile_version or not self.expected_job_fingerprint):
+            raise ValueError('Selected resume stories require unique IDs and observed profile and job versions')
         return self
 
 
@@ -1797,6 +1802,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             if any(story["profile_version"] != profile["version"]
                    for story in selection["stories"]):
                 raise HTTPException(409, {"code": "STORY_SELECTION_CONTEXT_STALE"})
+        if value.resume_story_ids is not None:
+            from services.career_profile.story_selection import StorySelectionError, select_stories_for_job
+            try:
+                selection = select_stories_for_job(
+                    store, value.profile_id, value.job_id, "RESUME",
+                    value.resume_story_ids,
+                )
+            except StorySelectionError as error:
+                raise HTTPException(error.status_code, {"code": error.code}) from None
+            if any(story["profile_version"] != profile["version"]
+                   for story in selection["stories"]):
+                raise HTTPException(409, {"code": "STORY_SELECTION_CONTEXT_STALE"})
         with store.engine.connect() as connection:
             connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
             try:
@@ -1818,6 +1835,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             **({'cover_letter_story_ids': value.cover_letter_story_ids,
                 'cover_letter_story_job_fingerprint': value.expected_job_fingerprint}
                if value.cover_letter_story_ids is not None else {}),
+            **({'resume_story_ids': value.resume_story_ids,
+                'resume_story_job_fingerprint': value.expected_job_fingerprint}
+               if value.resume_story_ids is not None else {}),
             **({'tailor_fact_ids':value.tailor_fact_ids} if value.tailor_fact_ids is not None else {}),
             **({'tailor_fact_rewrites':[rewrite.model_dump() for rewrite in value.tailor_fact_rewrites]} if value.tailor_fact_rewrites is not None else {}),
             **({'role_lens_id': value.role_lens_id,
@@ -2019,6 +2039,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def serve_document(document, format):
         document = dict(document)
         root = Path(output_dir).resolve()
+        if document["kind"] == "resume":
+            from services.documents.history import validated_resume_preview
+            from services.documents.errors import PreparationError
+            try:
+                validated_resume_preview(store, document, output_dir)
+            except (OSError, ValueError, KeyError, TypeError, PreparationError) as error:
+                if getattr(error, 'code', None) == 'AVOID_LIST_BLOCKED':
+                    raise HTTPException(409, {"code": error.code, "message": str(error)}) from error
+                raise HTTPException(409, "Resume validation failed; revise and prepare a new version") from error
         if document["kind"] == "cover-letter":
             from services.documents.history import validated_letter_preview
             from services.documents.errors import PreparationError

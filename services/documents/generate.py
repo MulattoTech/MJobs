@@ -15,6 +15,7 @@ from sqlalchemy import select
 from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.career_profile import story_selection
 from services.dedupe.routes import persist_route_choices, plan_application_routes
 from services.dedupe.source_values import require_route_review
 from services.applications.knowledge import application_adapter_knowledge
@@ -50,7 +51,8 @@ def uncommitted_files():
 
 
 def _measure_and_fit_resume_rows(profile, job, rows, template, page_target, probe_dir,
-                                 include_bullet_emphasis, explicitly_selected_ids=None):
+                                 include_bullet_emphasis, explicitly_selected_ids=None,
+                                 selected_stories=None):
     bullet_rows = [row for row in rows if row['kind'] in tailor.TARGET_BULLET_FACT_KINDS]
     skill_matches = tailor.matched_labels(bullet_rows, job)
     responsibility_matches = tailor.matched_responsibility_phrases(
@@ -83,6 +85,10 @@ def _measure_and_fit_resume_rows(profile, job, rows, template, page_target, prob
         candidate_ids = {row['fact_id'] for row in candidate_facts}
         candidate_rows = [row for row in rows if row['fact_id'] in candidate_ids]
         candidate_paragraphs, candidate_headings = resume_layout(profile, candidate_rows, template)
+        story_paragraphs, story_headings = story_selection.resume_story_paragraphs(selected_stories)
+        story_offset = len(candidate_paragraphs)
+        candidate_paragraphs.extend(story_paragraphs)
+        candidate_headings.update(story_offset + index for index in story_headings)
         candidate_emphasis = tailor.emphasis(
             candidate_rows, job, include_responsibilities=include_bullet_emphasis)
         contact_count = len(contact_header(profile, template))
@@ -127,12 +133,30 @@ def _page_fit_api_result(page_fit):
     }
 
 
-def preview_resume_page_fit(store, profile_id, job_id, output_dir, target_pdf_pages):
+def preview_resume_page_fit(store, profile_id, job_id, output_dir, target_pdf_pages,
+                            resume_story_ids=None, resume_story_job_fingerprint=None,
+                            expected_profile_version=None):
     """Render a transient measured PDF preview without creating an application or revision."""
     if type(target_pdf_pages) is not int or not 1 <= target_pdf_pages <= 20:
         raise ValueError('target_pdf_pages must be an integer from 1 through 20')
     profile = store.profile(profile_id)
     job = store.job(job_id, profile_id)
+    selected_stories = []
+    if resume_story_ids is not None:
+        if (expected_profile_version != profile['version']
+                or resume_story_job_fingerprint != tailor.target_fingerprint(job)):
+            raise PreparationError('STORY_SELECTION_CONTEXT_STALE',
+                'The profile or target job changed; reload before previewing selected stories')
+        from services.career_profile.story_selection import StorySelectionError, select_stories_for_job
+        try:
+            selected_stories = select_stories_for_job(
+                store, profile_id, job_id, 'RESUME', resume_story_ids,
+            )['stories']
+        except StorySelectionError as error:
+            raise PreparationError(error.code, str(error)) from error
+        if any(story['profile_version'] != profile['version'] for story in selected_stories):
+            raise PreparationError('STORY_SELECTION_CONTEXT_STALE',
+                'The profile changed; reload before previewing selected stories')
     eligible = tailor.eligible_rows(profile)
     if not eligible:
         raise PreparationError('DOCUMENT_NO_APPROVED_FACTS',
@@ -153,8 +177,12 @@ def preview_resume_page_fit(store, profile_id, job_id, output_dir, target_pdf_pa
     preview_pdf_path = preview_root / f'{preview_id}.pdf'
     selected_rows, page_fit = _measure_and_fit_resume_rows(
         profile, job, rows, template, target_pdf_pages, preview_root,
-        include_bullet_emphasis)
+        include_bullet_emphasis, selected_stories=selected_stories)
     paragraphs, headings = resume_layout(profile, selected_rows, template)
+    story_paragraphs, story_headings = story_selection.resume_story_paragraphs(selected_stories)
+    story_offset = len(paragraphs)
+    paragraphs.extend(story_paragraphs)
+    headings.update(story_offset + index for index in story_headings)
     validate_avoid_list('\n'.join(paragraphs), profile.get('preferences'), 'resume')
     emphasized = tailor.emphasis(selected_rows, job,
         include_responsibilities=include_bullet_emphasis)
@@ -169,6 +197,8 @@ def preview_resume_page_fit(store, profile_id, job_id, output_dir, target_pdf_pa
         'preview_pdf_path': str(preview_pdf_path),
         'profile_version': profile['version'],
         'job_fingerprint': tailor.target_fingerprint(job),
+        'resume_story_ids': list(resume_story_ids) if resume_story_ids is not None else None,
+        'resume_story_job_fingerprint': resume_story_job_fingerprint,
     }
 
 
@@ -209,7 +239,9 @@ def generate_resume_page_fit_preview(store, profile_id, job_id, output_dir, prev
         application_id = prepare(
             store, job_id, profile_id, output_dir, profile_version=profile_version,
             tailor_resume=True, resume_page_target=page_fit['page_target'],
-            resume_page_fit_job_fingerprint=job_fingerprint)
+            resume_page_fit_job_fingerprint=job_fingerprint,
+            resume_story_ids=preview.get('resume_story_ids'),
+            resume_story_job_fingerprint=preview.get('resume_story_job_fingerprint'))
         rows = application_documents(store, application_id)
         resume = next(row for row in rows if row['kind'] == 'resume' and
                       row['version'] == store.application(application_id)['document_version'])
@@ -300,7 +332,7 @@ def _resolved_role_lens(store, profile, job, profile_id, role_lens_id,
     }
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
@@ -341,6 +373,36 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         job = dict(connection.execute(select(m.jobs, m.companies.c.name.label("company")).join(
             m.companies, m.companies.c.id == m.jobs.c.company_id).where(m.jobs.c.id == job_id)
             .with_for_update(of=m.jobs)).mappings().one())
+        selected_resume_stories = []
+        if resume_story_ids is not None:
+            if (not isinstance(resume_story_ids, list) or not resume_story_ids
+                    or len(set(resume_story_ids)) != len(resume_story_ids)):
+                raise PreparationError(
+                    "STORY_SELECTION_INVALID",
+                    "Choose one or more distinct reviewed stories or omit resume story selection",
+                )
+            if (not isinstance(resume_story_job_fingerprint, str)
+                    or not resume_story_job_fingerprint
+                    or tailor.target_fingerprint(job) != resume_story_job_fingerprint):
+                raise PreparationError(
+                    "STORY_SELECTION_CONTEXT_STALE",
+                    "The target job changed; reload it and review story selection again",
+                )
+            from services.career_profile.story_selection import StorySelectionError, select_stories_for_job
+            try:
+                selected_resume_stories = select_stories_for_job(
+                    store, profile_id, job_id, "RESUME", resume_story_ids,
+                    connection=connection,
+                )["stories"]
+            except StorySelectionError as error:
+                raise PreparationError(error.code, str(error)) from error
+            if any(story["profile_version"] != profile["version"]
+                   for story in selected_resume_stories):
+                raise PreparationError(
+                    "STORY_SELECTION_CONTEXT_STALE",
+                    "Career facts changed; reload the profile and review story selection again",
+                )
+        resume_story_refs = story_selection.story_revision_refs(selected_resume_stories)
         selected_stories = []
         if cover_letter_story_ids is not None:
             if (not isinstance(cover_letter_story_ids, list)
@@ -415,13 +477,19 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             same_page_fit=((resume_page_target is None and prior_page_fit is None) or
                 (resume_page_target is not None and prior_page_fit is not None and
                  prior_page_fit.get('target_page_count') == resume_page_target))
+            prior_resume_context = (prior_resume['generation_context'] or {}) if prior_resume else {}
+            same_resume_stories = bool(prior_resume and
+                prior_resume_context.get('story_refs', []) == resume_story_refs and
+                prior_resume_context.get('story_job_id') == (job_id if resume_story_refs else None) and
+                prior_resume_context.get('story_job_fingerprint') ==
+                    (resume_story_job_fingerprint if resume_story_refs else None))
             prior_letter=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='cover-letter')).mappings().one_or_none()
             prior_letter_context = (prior_letter['generation_context'] or {}) if prior_letter else {}
             same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
                 and {key:value for key,value in prior_letter_context.items()
                      if key != 'claim_validation'} == cover_letter_context)
-            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_page_fit and same_letter and prior['state'] != 'REVIEW_REQUIRED':
+            if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
             if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
@@ -465,7 +533,8 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         if resume_page_target is not None:
             ordered_rows, page_fit = _measure_and_fit_resume_rows(
                 profile, job, ordered_rows, resume_template, resume_page_target,
-                staging, include_bullet_emphasis, selection_ids)
+                staging, include_bullet_emphasis, selection_ids,
+                selected_stories=selected_resume_stories)
             selected_fit_ids = {row['fact_id'] for row in ordered_rows}
             if context and 'emphasized_fact_ids' in context:
                 context['emphasized_fact_ids'] = [
@@ -490,10 +559,20 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             context['emphasized_fact_ids'] = emphasized
             context['role_lens'] = role_lens
         resume_ids=[row['fact_id'] for row in ordered_rows]
+        if resume_story_refs:
+            context = context or {'mode': 'APPROVED_FACTS'}
+            context['story_refs'] = resume_story_refs
+            context['review_required'] = True
+            context['story_job_id'] = job_id
+            context['story_job_fingerprint'] = resume_story_job_fingerprint
         if include_resume_contact:
             context=context or {'mode':'APPROVED_CONTACT_HEADER'}
             context['contact_header']=contact_header(profile,resume_template)
         kinds = compose_paragraphs(profile, job, ordered_rows, texts, resume_template)
+        resume_story_paragraphs, resume_story_headings = story_selection.resume_story_paragraphs(
+            selected_resume_stories)
+        resume_story_offset = len(kinds['resume'])
+        kinds['resume'].extend(resume_story_paragraphs)
         kinds['cover-letter'] = cover_letter_paragraphs
         if set(kinds) != {'resume', 'cover-letter'}:
             raise PreparationError('UNSUPPORTED_CLAIM', 'The generated document set has no complete validation contract')
@@ -510,10 +589,13 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             claim_validation = validate_assertions(
                 kind, paragraphs, profile, current_fact_ids, job['title'], template,
                 generation_context=generation_context,
-                selected_stories=selected_stories if kind == 'cover-letter' else None)
+                selected_stories=(selected_stories if kind == 'cover-letter'
+                                  else selected_resume_stories if kind == 'resume' else None))
             generation_context = {**(generation_context or {}),
                                  'claim_validation': claim_validation}
             headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
+            if kind == 'resume':
+                headings.update(resume_story_offset + index for index in resume_story_headings)
             fact_indices=[index for index in range(len(contact_header(profile,template)),len(paragraphs)) if index not in headings] if kind=='resume' else []
             bold_indices={index for index,row in zip(fact_indices,ordered_rows) if row['fact_id'] in emphasized}
             document = Document()

@@ -2,12 +2,57 @@
 import hashlib
 from pathlib import Path
 
+from docx import Document
 from sqlalchemy import select
 from packages.persistence import models as m
 from services.documents.avoid_list import validate_content as validate_avoid_list
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
 from services.documents.validation import validate_assertions, validate_formats
+
+
+def validated_resume_preview(store, document, output_dir):
+    """Validate immutable resume bytes and resolve any selected story revisions."""
+    application = store.application(document["application_id"])
+    document.setdefault("profile_id", application["profile_id"])
+    root = Path(output_dir).resolve()
+    application_root = (root / document["application_id"]).resolve()
+    if not application_root.is_relative_to(root):
+        raise PreparationError("DOCUMENT_CONTENT_MISMATCH", "Resume storage path is invalid")
+    paths = {}
+    for format, relative in document["files"].items():
+        path = (application_root / relative).resolve()
+        if format not in ("docx", "pdf", "txt") or not path.is_relative_to(application_root) or not path.is_file():
+            raise PreparationError("DOCUMENT_CONTENT_MISMATCH", "Resume file is missing or outside its revision")
+        if hashlib.sha256(path.read_bytes()).hexdigest() != document["sha256"].get(format):
+            raise PreparationError("DOCUMENT_CONTENT_MISMATCH", "Resume integrity check failed")
+        paths[format] = path
+    if not {"docx", "pdf", "txt"}.issubset(paths):
+        raise PreparationError("DOCUMENT_CONTENT_MISMATCH", "Validated resume formats are incomplete")
+    text = paths["txt"].read_text(encoding="utf-8")
+    paragraphs = [paragraph.text for paragraph in Document(paths["docx"]).paragraphs]
+    profile = store.profile(document["profile_id"], document["profile_version"])
+    context = document.get("generation_context") or {}
+    story_refs = context.get("story_refs", [])
+    selected_stories = []
+    if story_refs:
+        from services.career_profile.story_selection import StorySelectionError, resolve_story_revisions
+        try:
+            selected_stories = resolve_story_revisions(
+                store, document["profile_id"], story_refs,
+                document["profile_version"], "RESUME",
+            )
+        except StorySelectionError as error:
+            raise PreparationError(error.code, str(error)) from error
+    validate_assertions(
+        "resume", paragraphs, profile, document["fact_ids"],
+        template=document["template"], generation_context=context,
+        selected_stories=selected_stories,
+    )
+    validate_formats(paths, paragraphs)
+    current_profile = store.profile(document["profile_id"])
+    validate_avoid_list("\n".join(paragraphs), current_profile.get("preferences"), "resume")
+    return "\n".join(paragraphs)
 
 
 def validated_letter_preview(store, document, output_dir):
@@ -130,4 +175,11 @@ def application_documents(store, application_id, output_dir=None):
                 except (OSError, ValueError, KeyError, TypeError):
                     row['preview_text'] = None
                     row['preview_error'] = "Cover-letter validation failed. Revise and prepare a new version before using this file."
+            if row['kind'] == 'resume' and output_dir is not None:
+                try:
+                    row['preview_text'] = validated_resume_preview(store, row, output_dir)
+                    row['preview_error'] = None
+                except (OSError, ValueError, KeyError, TypeError):
+                    row['preview_text'] = None
+                    row['preview_error'] = "Resume validation failed. Revise and prepare a new version before using this file."
         return rows

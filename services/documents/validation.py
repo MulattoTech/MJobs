@@ -9,6 +9,31 @@ from services.documents.templates import (CONTRACTS, REPHRASE_TEMPLATE, LEGACY_R
     CONTACT_PAIRS, LEGACY_CONTACT_PAIRS, contact_header, contract_role, resume_layout)
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 
+
+def _resume_story_context(profile, paragraphs, expected, headings, context, selected_stories):
+    from services.career_profile.story_selection import (
+        resume_story_paragraphs,
+        story_revision_refs,
+    )
+    refs = story_revision_refs(selected_stories)
+    story_paragraphs, story_headings = resume_story_paragraphs(selected_stories)
+    if refs:
+        offset = len(expected)
+        expected.extend(story_paragraphs)
+        headings.update(offset + index for index in story_headings)
+    if (paragraphs != expected
+            or context.get('story_refs', []) != refs
+            or context.get('review_required', False) != bool(refs)
+            or (refs and (not isinstance(context.get('story_job_id'), str)
+                          or not context.get('story_job_id')
+                          or not isinstance(context.get('story_job_fingerprint'), str)
+                          or not context.get('story_job_fingerprint')))
+            or (not refs and (context.get('story_job_id') is not None
+                              or context.get('story_job_fingerprint') is not None))):
+        raise PreparationError('UNSUPPORTED_CLAIM',
+            'Resume differs from its approved facts or reviewed story sources')
+    return len(expected) - len(story_paragraphs), headings
+
 VALIDATOR = 'exact-approved-facts-v5-claim-preservation'
 _DATE_TOKEN = re.compile(
     r"\b(?:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|"
@@ -94,6 +119,8 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
     if kind == 'resume':
         if template not in CONTRACTS:
             raise PreparationError('UNSUPPORTED_CLAIM', 'Document template has no assertion validation contract')
+        context = generation_context if isinstance(generation_context, dict) else {}
+        selected_stories = selected_stories or []
         legacy_rephrase_templates = (LEGACY_REPHRASE_TEMPLATE,
             LEGACY_CONTACT_PAIRS[LEGACY_REPHRASE_TEMPLATE][0])
         current_rewrite_templates = (REPHRASE_TEMPLATE, CONTACT_PAIRS[REPHRASE_TEMPLATE][0])
@@ -111,9 +138,11 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
             else:
                 rewritten = apply_saved_user_rephrases(rows, fact_ids, context.get('fact_rephrases'))
             expected, heading_indices = resume_layout(profile, rewritten, template)
+            base_length, heading_indices = _resume_story_context(
+                profile, paragraphs, expected, heading_indices, context, selected_stories)
             header = len(contact_header(profile, template))
             headings = {expected[index] for index in heading_indices}
-            actual_facts = [value for value in paragraphs[header:] if value not in headings]
+            actual_facts = [value for value in paragraphs[header:base_length] if value not in headings]
             _reject_novel_tokens(actual_facts, [eligible[identifier] for identifier in fact_ids])
             if paragraphs != expected:
                 raise PreparationError('UNSUPPORTED_CLAIM', 'Rewritten resume differs from its reviewed source-fact context')
@@ -128,9 +157,11 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
         if CONTRACTS[template][2]:
             by_id = {row['fact_id']:row for row in profile['facts']}
             expected, heading_indices = resume_layout(profile, [by_id[i] for i in fact_ids], template)
+            base_length, heading_indices = _resume_story_context(
+                profile, paragraphs, expected, heading_indices, context, selected_stories)
             header = len(contact_header(profile, template))
             headings = {expected[index] for index in heading_indices}
-            actual_facts = [value for value in paragraphs[header:] if value not in headings]
+            actual_facts = [value for value in paragraphs[header:base_length] if value not in headings]
             _reject_novel_tokens(actual_facts, [eligible[identifier] for identifier in fact_ids])
             if paragraphs != expected:
                 raise PreparationError('UNSUPPORTED_CLAIM', 'Document assertions differ from the approved factual inputs and template structure')
@@ -190,11 +221,14 @@ def validate_formats(paths, paragraphs):
         raise PreparationError('DOCUMENT_CONTENT_MISMATCH', 'PDF content differs from validated assertions')
 
 
-def validate_stored_resume(paths, profile, fact_ids, template='verified-facts-v1', model=None):
+def validate_stored_resume(paths, profile, fact_ids, template='verified-facts-v1', model=None,
+                           generation_context=None, selected_stories=None):
     if not contract_role(template, model, allow_legacy_unrecorded=True):
         raise PreparationError('UNSUPPORTED_CLAIM', 'Document template and generation model have no validation contract')
     if 'docx' not in paths:
         raise PreparationError('DOCUMENT_CONTENT_MISMATCH', 'DOCX is required for assertion validation')
     paragraphs = _paragraphs(paths['docx'])
-    validate_assertions('resume', paragraphs, profile, fact_ids, template=template)
+    validate_assertions('resume', paragraphs, profile, fact_ids, template=template,
+                        generation_context=generation_context,
+                        selected_stories=selected_stories)
     validate_formats(paths, paragraphs)
