@@ -7,7 +7,7 @@ export type CompanyPreferenceReadback = {
   profile_id: string;
   company_id: string;
   status: CompanyPreferenceStatus;
-  updated_at: string;
+  updated_at: string | null;
 };
 
 export type CompanyPreferenceClient = {
@@ -51,7 +51,8 @@ function validateReadback(
   if (!readback || readback.profile_id !== profileId || readback.company_id !== companyId ||
       !COMPANY_PREFERENCE_STATUSES.includes(readback.status) ||
       (expectedStatus && readback.status !== expectedStatus) ||
-      typeof readback.updated_at !== 'string' || Number.isNaN(Date.parse(readback.updated_at))) {
+      (readback.updated_at !== null &&
+        (typeof readback.updated_at !== 'string' || Number.isNaN(Date.parse(readback.updated_at))))) {
     throw new Error('The company preference response did not confirm the selected profile, company, status, and update time.');
   }
   return readback;
@@ -87,7 +88,8 @@ export function CompanyPreferenceView({
       : `Could not load company preference: ${error}. ${saved ? 'Last confirmed preference remains shown.' : ''}`}</p>}
     {saved && !error && !loading && <p>Saved preference: <strong>{saved.status}</strong> — {STATUS_LABEL[saved.status]}.</p>}
     {saved && error && <p>Last confirmed preference: <strong>{saved.status}</strong> — {STATUS_LABEL[saved.status]}.</p>}
-    {saved && <p>Last confirmed at: <time dateTime={saved.updated_at}>{saved.updated_at}</time></p>}
+    {saved?.updated_at && <p>Last confirmed at: <time dateTime={saved.updated_at}>{saved.updated_at}</time></p>}
+    {saved && !saved.updated_at && <p>No explicit choice has been saved; the current default is neutral.</p>}
     <form onSubmit={event => { event.preventDefault(); onSave(); }}>
       <fieldset disabled={busy || !saved}>
         <legend>Change preference for {companyName}</legend>
@@ -106,7 +108,7 @@ export function CompanyPreferenceView({
       </div>
     </form>
     {saveConfirmed && <p role="status">Preference saved and read back from the selected company.</p>}
-    <p className="safety">Company preferences are informational only. They do not automatically filter jobs, submit applications, or reject applications.</p>
+    <p className="safety">Blacklisted companies are omitted from job search unless “Show blacklisted companies” is enabled. Preferred companies affect application-priority sorting only. This never submits or rejects an application.</p>
     <p className="muted">Profile ID: <code>{profileId}</code></p>
   </section>;
 }
@@ -126,9 +128,10 @@ export type CompanyPreferencesProps = {
   companyId: string;
   companyName: string;
   client: CompanyPreferenceClient;
+  onPreferenceSaved?: () => void;
 };
 
-export function CompanyPreferences({ profileId, companyId, companyName, client }: CompanyPreferencesProps) {
+export function CompanyPreferences({ profileId, companyId, companyName, client, onPreferenceSaved }: CompanyPreferencesProps) {
   const scope = scopeKey(profileId, companyId);
   const requestSequence = useRef(0);
   const [state, setState] = useState<CompanyPreferenceState>(() => ({
@@ -184,6 +187,7 @@ export function CompanyPreferences({ profileId, companyId, companyName, client }
       if (requestId === requestSequence.current) {
         setState({ scope, saved: readback, loading: false, saving: false, error: null, errorOperation: null, saveConfirmed: true });
         setDraft({ scope, status: readback.status });
+        onPreferenceSaved?.();
       }
     } catch (reason) {
       if (requestId === requestSequence.current) setState(previous => ({

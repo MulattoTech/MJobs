@@ -660,6 +660,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_job_comparison_router(store))
     from apps.api.match_feedback import create_match_feedback_router
     app.include_router(create_match_feedback_router(store))
+    from apps.api.company_preferences import create_company_preferences_router
+    app.include_router(create_company_preferences_router(store))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
@@ -1481,6 +1483,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              override_saved_match_score: bool = False,
              search_profile_id: str | None = Query(default=None, max_length=128),
              include_dismissed: bool = False,
+             include_blacklisted: bool = False,
              limit: int = Query(default=200, ge=1, le=500)):
         if salary_min is not None and salary_max is not None and salary_min > salary_max:
             raise HTTPException(422, "Minimum annual USD salary cannot exceed maximum annual USD salary")
@@ -1549,6 +1552,17 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                         if posted_before is not None else None)
         result_limit = 500 if sort == "application_priority" else limit
         database_sort = "score" if sort == "application_priority" else sort
+        excluded_company_ids = []
+        if profile_id and not include_blacklisted:
+            from services.matching.company_preferences import list_company_preferences
+            try:
+                excluded_company_ids = [
+                    item["company_id"]
+                    for item in list_company_preferences(store, profile_id)
+                    if item["status"] == "BLACKLISTED"
+                ]
+            except LookupError:
+                raise HTTPException(404, "Career profile not found") from None
         rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
                           title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
@@ -1560,7 +1574,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           application_link_status=effective_application_link_status,
                           application_pipeline_status=effective_application_pipeline_status,
                           application_capability=effective_application_capability,
-                          posted_after=posted_after, posted_before=posted_before)
+                          posted_after=posted_after, posted_before=posted_before,
+                          exclude_company_ids=excluded_company_ids)
         if search_profile_id:
             rows = filter_jobs(rows, search_profile["criteria"])
         if profile_id:

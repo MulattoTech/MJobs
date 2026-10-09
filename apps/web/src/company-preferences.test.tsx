@@ -35,7 +35,7 @@ describe('CompanyPreferences', () => {
       expect(html).toContain(`<p>Saved preference: <strong>${status}</strong> — ${labels[status]}.</p>`);
       expect(html).toContain(labels[status]);
       expect(html).toContain(`checked="" value="${status}"`);
-      expect(html).toContain('They do not automatically filter jobs, submit applications, or reject applications');
+      expect(html).toContain('Blacklisted companies are omitted from job search');
     }
   });
 
@@ -46,6 +46,12 @@ describe('CompanyPreferences', () => {
     expect(html).toContain('Loading saved company preference');
     expect(html).toContain('disabled=""');
     expect(html).not.toContain('Saved preference:');
+  });
+
+  it('labels an unsaved initial state as neutral default without inventing a save time', () => {
+    const html = render({ saved: { ...saved, status: 'NEUTRAL', updated_at: null }, selectedStatus: 'NEUTRAL' });
+    expect(html).toContain('No explicit choice has been saved; the current default is neutral.');
+    expect(html).not.toContain('Last confirmed at:');
   });
 
   it('keeps the last confirmed value and offers a read retry after a GET failure', () => {

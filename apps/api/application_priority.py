@@ -95,7 +95,8 @@ def _latest_source_freshness(values: list[Any]):
 
 def _signals(job: Mapping[str, Any], match: Mapping[str, Any],
              posting_times: list[Any], job_id: str,
-             applied_preferences: list[Mapping[str, Any]] | None = None) -> dict[str, Any]:
+             applied_preferences: list[Mapping[str, Any]] | None = None,
+             company_preferences: Mapping[str, str] | None = None) -> dict[str, Any]:
     signals: dict[str, Any] = {"match_score": match.get("score")}
     attributes = job.get("attributes")
     if not isinstance(attributes, Mapping):
@@ -110,20 +111,28 @@ def _signals(job: Mapping[str, Any], match: Mapping[str, Any],
     if work_arrangement_status is not None:
         signals["work_arrangement_status"] = work_arrangement_status
     company_id = job.get("company_id")
-    company_feedback = [
-        item for item in (applied_preferences or [])
-        if item.get("dimension") == "company"
-        and item.get("company_id") == company_id
-        and item.get("category") in {"GOOD_MATCH", "BAD_COMPANY"}
-    ]
-    if company_feedback:
-        latest_company_feedback = max(
-            company_feedback,
-            key=lambda item: (str(item.get("created_at") or ""), str(item.get("id") or "")),
-        )
-        signals["company_preference"] = (
-            "PREFERRED" if latest_company_feedback["category"] == "GOOD_MATCH" else "DISFAVORED"
-        )
+    explicit_company_status = (company_preferences or {}).get(company_id)
+    if explicit_company_status in {"BLACKLISTED", "PREFERRED", "NEUTRAL"}:
+        signals["company_preference"] = {
+            "BLACKLISTED": "DISFAVORED",
+            "PREFERRED": "PREFERRED",
+            "NEUTRAL": "NEUTRAL",
+        }[explicit_company_status]
+    else:
+        company_feedback = [
+            item for item in (applied_preferences or [])
+            if item.get("dimension") == "company"
+            and item.get("company_id") == company_id
+            and item.get("category") in {"GOOD_MATCH", "BAD_COMPANY"}
+        ]
+        if company_feedback:
+            latest_company_feedback = max(
+                company_feedback,
+                key=lambda item: (str(item.get("created_at") or ""), str(item.get("id") or "")),
+            )
+            signals["company_preference"] = (
+                "PREFERRED" if latest_company_feedback["category"] == "GOOD_MATCH" else "DISFAVORED"
+            )
     level = attributes.get("experience_level")
     seniority_feedback = [
         item for item in (applied_preferences or [])
@@ -170,6 +179,11 @@ def rank_jobs_by_application_priority(store, profile_id: str, jobs: list[dict[st
     if not isinstance(jobs, list) or any(not isinstance(row, dict) for row in jobs):
         raise ValueError("APPLICATION_PRIORITY_JOBS_INVALID")
     applied = list_feedback_preferences(store, profile_id)["items"]
+    from services.matching.company_preferences import list_company_preferences
+    company_preferences = {
+        item["company_id"]: item["status"]
+        for item in list_company_preferences(store, profile_id)
+    }
     job_ids = [row.get("id") for row in jobs]
     if any(not isinstance(job_id, str) or not job_id for job_id in job_ids):
         raise ValueError("APPLICATION_PRIORITY_JOBS_INVALID")
@@ -190,7 +204,8 @@ def rank_jobs_by_application_priority(store, profile_id: str, jobs: list[dict[st
     for row in jobs:
         match = {"score": row.get("match_score"), "components": row.get("match_components")}
         result = explain_application_priority(
-            _signals(row, match, posting_times[row["id"]], row["id"], applied),
+            _signals(row, match, posting_times[row["id"]], row["id"], applied,
+                     company_preferences),
             now=observed_now,
             applied_preferences=applied,
         )
@@ -298,7 +313,13 @@ def create_application_priority_router(
             _error(409, "APPLICATION_PRIORITY_STALE_CONTEXT")
         try:
             reviewed = list_feedback_preferences(store, profile_id)["items"]
-            signals = _signals(job, match, posting_times, job_id, reviewed)
+            from services.matching.company_preferences import list_company_preferences
+            company_preferences = {
+                item["company_id"]: item["status"]
+                for item in list_company_preferences(store, profile_id)
+            }
+            signals = _signals(job, match, posting_times, job_id, reviewed,
+                               company_preferences)
             priority = _normalize_result(run_explainer(
                 signals, now=clock(), applied_preferences=reviewed,
             ))

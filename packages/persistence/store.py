@@ -638,7 +638,7 @@ class Store:
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
-             application_capability=None):
+             application_capability=None, exclude_company_ids=None):
         if application_capability == "":
             application_capability = None
         if application_capability is not None:
@@ -666,6 +666,20 @@ class Store:
                 .outerjoin(m.matches, (m.matches.c.job_id == m.jobs.c.id) & (m.matches.c.profile_id == profile_id) &
                            (m.matches.c.profile_version == (profile["version"] if profile else "")))
                 .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
+            excluded_companies = sorted({
+                value for value in (exclude_company_ids or [])
+                if isinstance(value, str) and value.strip()
+            })
+            if excluded_companies:
+                encoded_company_ids = literal(json.dumps(excluded_companies))
+                if self.engine.dialect.name == "postgresql":
+                    company_id_values = func.jsonb_array_elements_text(
+                        cast(encoded_company_ids, JSONB)).table_valued("value").alias()
+                else:
+                    company_id_values = func.json_each(encoded_company_ids).table_valued(
+                        "key", "value").alias()
+                statement = statement.where(m.jobs.c.company_id.not_in(
+                    select(company_id_values.c.value)))
             if ats_provider:
                 ats_identity = m.company_ats_tenants
 

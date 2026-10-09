@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from apps.api.application_priority import create_application_priority_router
+from apps.api.company_preferences import create_company_preferences_router
 from apps.api.match_feedback import create_match_feedback_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -38,6 +39,7 @@ class ApplicationPriorityApiTests(unittest.TestCase):
             self.store, now_provider=lambda: NOW,
         ))
         app.include_router(create_match_feedback_router(self.store))
+        app.include_router(create_company_preferences_router(self.store))
         self.client = TestClient(app)
         self.addCleanup(self.client.close)
 
@@ -279,6 +281,29 @@ class ApplicationPriorityApiTests(unittest.TestCase):
             self.assertIsNone(factors[name]["score"])
             self.assertIsNone(factors[name]["contribution"])
         self.assertEqual(self._snapshot(), before)
+
+    def test_explicit_company_states_drive_explainable_priority_without_changing_match(self):
+        before = self.client.get(self._url()).json()
+        self.assertEqual(before["match_score"], 80.0)
+        statuses = {
+            "PREFERRED": 100.0,
+            "NEUTRAL": 60.0,
+            "BLACKLISTED": 20.0,
+        }
+        for index, (status, expected_score) in enumerate(statuses.items()):
+            with self.subTest(status=status):
+                saved = self.client.put(
+                    "/profiles/fixture/company-preferences/company-job",
+                    json={"status": status, "request_id": f"priority-company-{index}"},
+                )
+                self.assertEqual(saved.status_code, 200, saved.text)
+                result = self.client.get(self._url())
+                self.assertEqual(result.status_code, 200, result.text)
+                factor = next(row for row in result.json()["factors"]
+                              if row["key"] == "company_preference")
+                self.assertEqual(factor["status"], "KNOWN")
+                self.assertEqual(factor["score"], expected_score)
+                self.assertEqual(result.json()["match_score"], 80.0)
 
     def test_profile_job_binding_and_stale_matches_fail_closed_without_writes(self):
         self._seed_job(job_id="other-job", profile_id="other")
