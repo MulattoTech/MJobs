@@ -1,22 +1,26 @@
 {
   "schema_version": 1,
-  "requirement_ids": ["MJ-REQ-266"],
-  "github_issues": [267],
-  "result": "PARTIAL",
-  "scope": "Elevate an integrated job-board route only when its supported board provider, job source ID, provider, tenant, and persisted APPLICATION_REDIRECT capability match. Rank that evidence above aggregators and below verified employer or ATS routes, and explain it in the route picker.",
+  "requirement_ids": [
+    "MJ-REQ-266"
+  ],
+  "github_issues": [
+    267
+  ],
+  "result": "PASS",
+  "scope": "Qualify each integrated job-board application route only from its own exact captured posting, matching company-source record, configured collector identity, provider, tenant, and persisted APPLICATION_REDIRECT capability. Rank that evidence above aggregators and below verified employer or ATS routes, and explain it in the route picker.",
   "source": {
     "branch": "codex/solo-267-integrated-board-route-trust-20261009",
-    "commit": "87199f5c75d62d6dd93abf9d495d3820b35f54c0",
-    "tree": "3c99cf1f9f31d83040643c31991560138a9e8532",
+    "commit": "a4286d189f2d7b8b583b17de229fecd38fd98813",
+    "tree": "627040b5977f7b621d593864c6604af059af3349",
     "base": "436d3059388af418b1351505bc6115c3d171a179",
     "tested_source_sha256": {
-      "services/dedupe/routes.py": "D97D558B705326CCCB55591AACF5D85128FF8363BA1C41F7EB0684A23CC8CF5A",
+      "services/dedupe/routes.py": "7B6B4580B5208E5911B5ED0C6AD309A88CBAFA3D0A7A7D0ECAF32A5C186B1C08",
       "apps/web/src/main.tsx": "7AFE901DF412BAFC218DFD041D89069AF142581C5583C4A0A6B9924F06E28FEF",
-      "tests/integration/test_application_route_trust.py": "92AA2D901B875F3028106CFB20662342E68BFAA07388F7F78677C10C1021D78E",
-      "tests/browser/test_application_route_preference.py": "ABFA4AF0DD2B73CBDC66E71D2BF5DA484441D332F078490593876F0CE4315D77"
+      "tests/integration/test_application_route_trust.py": "75DD6D67035E6B0638A5721EA68FB19D97ED7940EF814020BDE3886186B7454F",
+      "tests/browser/test_application_route_preference.py": "B55454EA26707D530CA205270311509479029B80D7EF6E9CEEEB97FB28F835F1"
     }
   },
-  "verified_at_utc": "2026-10-09T21:00:24Z",
+  "verified_at_utc": "2026-10-09T21:03:27Z",
   "environment": {
     "os": "Windows",
     "database": "isolated SQLite fixtures",
@@ -27,8 +31,8 @@
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_application_route_authority.py tests/unit/test_application_routes.py tests/integration/test_application_route_trust.py tests/browser/test_application_route_preference.py -q",
       "result": "PASS",
-      "passed": 28,
-      "evidence": "Tests verify exact configured-source capability/provider/tenant qualification, fail-closed mismatches, aggregator < trusted board < verified ATS ranking, explicit route selection, profile preference readback, and the connected browser route workflow. The browser test observed no external requests or submissions."
+      "passed": 29,
+      "evidence": "Tests verify exact captured-posting/source/configuration links, multi-source canonical jobs, fail-closed evidence mismatches, aggregator < trusted board < verified ATS ranking, explicit route selection, profile preference readback, and connected browser rendering. The browser test observed no external requests or submissions."
     },
     {
       "command": "npm test -- --run src/application-route-preference.test.tsx",
@@ -53,13 +57,12 @@
     "External application submission (OFF)"
   ],
   "limitations": [
-    "The canonical job projection currently carries one exact source_id. If a job is merged from multiple integrated sources, only the source represented by the current projection can elevate a matching route; other routes fail closed until per-route source evidence is persisted.",
-    "MJ-REQ-266 remains PARTIAL pending a durable per-route source relationship and broader acceptance reconciliation.",
-    "No schema, migration, collector, or source-policy files were changed because those paths have active ownership claims."
+    "PostgreSQL-specific behavior and the full repository test suite were not run; the focused API workflow used isolated SQLite and connected local Chromium.",
+    "The supported board trust allowlist currently contains Remotive, Remote OK, and We Work Remotely source adapters; other providers remain aggregator or unknown until explicitly supported."
   ],
   "safety": [
-    "Route authority requires a persisted exact source configuration and APPLICATION_REDIRECT capability; provider labels or source-quality scores alone never establish trust.",
-    "Verified employer and ATS evidence remain above trusted boards. Explicit route choice remains available.",
-    "No network requests, real application submissions, or private user documents were used."
+    "Route authority is derived from a matching captured posting, company source, configured collector, provider, tenant, and APPLICATION_REDIRECT capability; provider labels or quality scores alone never establish trust.",
+    "Verified employer and ATS evidence remain above trusted boards. Users retain explicit route selection and the USER_CHOICE policy.",
+    "No real external requests, application submissions, or private user documents were used."
   ]
 }
