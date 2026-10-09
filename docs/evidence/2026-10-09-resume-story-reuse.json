@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "issue": 372,
+  "requirement": "MJ-REF-002",
+  "result": "PARTIAL",
+  "acceptance_status": "PARTIAL",
+  "scope": "A user can explicitly review and select current approved, fact-linked story revisions for a saved-job resume. Preparation, page-fit preview, durable generation, download and history revalidate the selected profile/job/story/fact snapshot; exact user-authored wording and immutable revision/fact provenance are retained. Existing approved facts remain unchanged and manual review is required.",
+  "source": {
+    "branch": "codex/solo-372-resume-story-reuse-20261009",
+    "base": "7782681954722b035c528c2030009faac0c041bf",
+    "commit": "33ec9ad464a2aa119567623a946e67a369de4c3a",
+    "tree": "fa3998901bdf8f1b411facfefd203a90cc53372d",
+    "input_sha256": {
+      "apps/api/main.py": "6ccdf24f19f228b1dbecaaa651f113c75e473d778430b87fbc6b92fab604d44f",
+      "apps/api/resume_page_fit.py": "149a99c75abfbd05c6da98d9bc97aa328b170179348e3c12e1cb77937484209f",
+      "apps/web/src/career-story-selection.test.tsx": "c677fde8dbd1151550c234690a886f944af9264357d301fbdafb1fa146e432f4",
+      "apps/web/src/career-story-selection.tsx": "c25a74a9b8862315351071378e9334fddf690750216278b863e690201bdf7684",
+      "apps/web/src/document-history.test.tsx": "238aee857fb0f6f106d8a4ee9b15a0a02d718881d0b6765ac9f91dad973349dd",
+      "apps/web/src/document-history.tsx": "3229d04dd1e80fd653b5b178a950212425fe5f6c5154d38beab2febad8e6ca81",
+      "apps/web/src/main.tsx": "6fd74ae01cb92b4cd297d7f2b15d0f9433803050ed2a294556da73bb34ca45cf",
+      "apps/web/src/resume-story-selection.tsx": "6d99b40cbca3c9d74accf010c66d4086522ff8bb73dbfff27b55cf3df3cd4cdf",
+      "services/applications/mock_adapter.py": "59e1cc61bc0a886cb5524516605b6cddaab76f190b65fcf5e7be10cc2adb8059",
+      "services/career_profile/story_selection.py": "2e4004feecc9628ba8b194f9c2d799a7956afd16a9e11fe31bab9f63efd0b0f2",
+      "services/documents/generate.py": "a27a70e1616a99a00b76d86c89e95d97ef5483a5c78745695987c2b72e9f0b76",
+      "services/documents/history.py": "b3f5a3994ee31ed6a3d0cfc43730a65fa3159dfc05bbf11986625c25fd642324",
+      "services/documents/validation.py": "bf8ee69aa57484bb7566f54aeca0e83b4a95c0e74e82e74edb1c2bc7c0e5cc1a",
+      "tests/browser/test_resume_story_reuse.py": "bab0f228266bcbee6c7fe4dcfa6bda5d5cc632c73153bb4f8b9f9752bdf0cc8c",
+      "tests/integration/test_api_queue.py": "622e0d33cdc862ef6353744561c60a445623e06c802fd3135f6e05543c338715",
+      "tests/integration/test_resume_page_fit_api.py": "c2498cdb7545e14522ce16cde2cb6c2786252c5c85533e668d95671dc31871be",
+      "tests/integration/test_role_lens_generation.py": "4584e7f9cd7d40569f07bc93e7983e888fb777028271bdb8c005b95bfa8cad8d",
+      "workers/tasks.py": "74c4d8e10e0d3833567a2b27a651907588419129eb3061b85f7bc313feed9797"
+    }
+  },
+  "tested_at_utc": "2026-10-09T11:17:27Z",
+  "validation": {
+    "python_regressions": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_role_lens_generation tests.integration.test_api_queue tests.integration.test_resume_page_fit_api",
+      "summary": "32 focused document, API, persistence, worker and page-fit integration tests passed."
+    },
+    "connected_browser": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_resume_story_reuse tests.browser.test_cover_letter_story_reuse",
+      "summary": "Two Chromium flows passed. Resume story selection remained explicit, the durable PREPARE request carried observed profile/job snapshots, exact story text and provenance survived worker generation and reload, and the browser made no external requests or submissions. Existing cover-letter story reuse passed alongside it."
+    },
+    "frontend_tests": {
+      "result": "PASS",
+      "command": "npm --prefix apps/web run test -- src/career-story-selection.test.tsx src/career-story-selection-review.test.tsx src/document-history.test.tsx",
+      "summary": "24 tests passed, including unique accessible selector identifiers when resume and cover-letter pickers coexist, review controls and document-history validation."
+    },
+    "frontend_build": {
+      "result": "PASS",
+      "command": "npm --prefix apps/web run build",
+      "summary": "TypeScript check and Vite production build passed; the existing large-chunk advisory remains."
+    },
+    "static_checks": {
+      "result": "PASS",
+      "commands": [
+        "python -m tools.verification.agent_skills",
+        "python -m tools.verification.catalogue",
+        "git diff --check"
+      ]
+    },
+    "full_repository_suite": "NOT_RUN",
+    "postgresql": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "live_ats_or_source_access": "NOT_USED",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "MJ-REF-002 and issue #372 remain OPEN/PARTIAL: story-bank import/edit/version breadth and interview-preparation reuse are not fully accepted by this slice.",
+    "The full repository suite, PostgreSQL and hosted verification were not run."
+  ]
+}
