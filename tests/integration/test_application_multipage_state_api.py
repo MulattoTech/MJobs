@@ -203,6 +203,41 @@ class ApplicationMultipageStateApiTests(unittest.TestCase):
         self.assertEqual(application["state"], "PREPARED")
         self.assertIsNone(application["confirmation"])
 
+    def test_progress_and_idempotency_are_isolated_between_same_profile_applications(self):
+        first_payload = {
+            "request_id": "same-request-id",
+            "action": "SAVE_PROGRESS",
+            "expected_version": 0,
+            "page_id": "identity",
+            "page_order": ["identity", "experience"],
+            "progress": {"identity": {"full_name": "First Synthetic Applicant"}},
+        }
+        first = self.client.post(self.url, json=first_payload)
+        self.assertEqual(first.status_code, 200, first.text)
+
+        jobs = self.store.jobs("fixture")
+        self.assertGreaterEqual(len(jobs), 2)
+        second_application_id = prepare(self.store, jobs[1]["id"], "fixture", self.root)
+        self.assertNotEqual(second_application_id, self.application_id)
+        second_url = f"/profiles/fixture/applications/{second_application_id}/multipage-state"
+        second_payload = {
+            **first_payload,
+            "progress": {"identity": {"full_name": "Second Synthetic Applicant"}},
+        }
+        second = self.client.post(second_url, json=second_payload)
+        self.assertEqual(second.status_code, 200, second.text)
+        self.assertEqual(second.json()["application_id"], second_application_id)
+        self.assertEqual(second.json()["version"], 1)
+        self.assertEqual(second.json()["progress"], second_payload["progress"])
+
+        first_readback = self.client.get(self.url)
+        second_readback = self.client.get(second_url)
+        self.assertEqual(first_readback.status_code, 200, first_readback.text)
+        self.assertEqual(second_readback.status_code, 200, second_readback.text)
+        self.assertEqual(first_readback.json(), first.json())
+        self.assertEqual(second_readback.json(), second.json())
+        self.assertNotEqual(first_readback.json()["progress"], second_readback.json()["progress"])
+
 
 if __name__ == "__main__":
     unittest.main()
