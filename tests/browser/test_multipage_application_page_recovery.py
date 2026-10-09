@@ -33,6 +33,8 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
         self.store.migrate()
         self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(dict(PROFILE))
+        self.store.save_profile({**PROFILE, "id": "other", "name": "Other Synthetic Profile",
+                                 "email": "other@example.invalid"})
         self.fixture = fixture_server()
         self.fixture_origin = self.fixture.__enter__()
         discover(self.store, self.fixture_origin, "fixture")
@@ -138,6 +140,26 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
                 "Contact information")
             expect(review.get_by_role("list", name="Application progress")).to_contain_text(
                 "Experience")
+
+            # A valid application id cannot be used through a different profile scope.
+            foreign_response = page.evaluate("""async ({url, payload}) => {
+              const response = await fetch(url, {method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)});
+              return {status: response.status};
+            }""", {
+                "url": self.origin + self.application_url.replace("/profiles/fixture/", "/profiles/other/"),
+                "payload": {
+                    "request_id": "browser-foreign-profile-write-1",
+                    "action": "SAVE_PROGRESS",
+                    "expected_version": 1,
+                    "page_id": "contact",
+                    "progress": {"contact": {"email": "unauthorized@example.invalid"}},
+                },
+            })
+            self.assertEqual(foreign_response["status"], 404)
+            state_after_foreign_write = self.client.get(self.application_url).json()
+            self.assertEqual(state_after_foreign_write["current_page_id"], "contact")
+            self.assertEqual(state_after_foreign_write["progress"], {})
 
             # Required input blocks navigation without changing durable page state.
             expect(review.get_by_role("button", name="Continue", exact=True)).to_be_disabled()
