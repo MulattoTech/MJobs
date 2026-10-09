@@ -459,7 +459,8 @@
     "#265/#266 / MJ-REQ-264/265 exact source f1036d6e7bce62eb5aa75f7a5a14102179f274ce (tree 84aff12f991afffc520ee6838db479b2bcee1aeb): focused policy/discovery/browser suite 16 PASS; web Vitest 527 PASS; TypeScript/Vite build, py_compile, and diff check PASS. Evidence docs/evidence/2026-10-09-company-discovery-policy.json.",
     "MJ-REQ-266 route-preference slice: 21 focused Python unit/integration tests, connected Chromium workflow 1/1, component tests 2/2, TypeScript/Vite build, py_compile, and diff checks PASS at tested source 76a2db203c003344ab4a735990dfd0bad35bb4b2.",
     "MJ-REQ-267 route-discovery slice: 24 focused Python unit/integration tests; connected Chromium route-choice workflow 1/1; route-preference component tests 2/2; TypeScript/Vite build, py_compile, and diff checks PASS at tested code 8220a1dc5bec9707c3799c94c900b1f848071903.",
-    "MJ-REQ-268 status-tracking acceptance: 9 integration tests PASS; connected Chromium all-six-status workflow 1/1 PASS across page reload; Vite/TypeScript build, browser-test compilation, and diff checks PASS."
+    "MJ-REQ-268 status-tracking acceptance: 9 integration tests PASS; connected Chromium all-six-status workflow 1/1 PASS across page reload; Vite/TypeScript build, browser-test compilation, and diff checks PASS.",
+    "Exact #115 remote-region matching slice: 31 focused Python integration/connected Chromium tests and 41 subtests; py_compile and diff check PASS (source 8b3c30d9)."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -625,13 +626,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "95ef4c151ba01e666a1a2a982a0f4b21aefb2a31",
-    "tree": "dd1bb29eeda1ffbcb9a73fdf3cbfba98b93a87bc",
-    "result": "PASS for MJ-REQ-268 manual status-tracking acceptance: six statuses are selectable and stored as USER_REPORTED history; reload readback, profile isolation, invalid states, and separation from submission confirmation are verified locally.",
+    "commit": "8b3c30d9df2c941f2f49fc6f8f0cd108701d2810",
+    "tree": "0f3091ab72c65d792e41d1fee430b475fad019ca",
+    "result": "PASS for bounded score-neutral remote work region fit explanations; connected job-detail readback distinguishes ALIGNS, NO_DIRECT_MATCH and UNKNOWN without exposing selected-profile country/state. MJ-REQ-114 remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-application-status-tracking.json"
+      "docs/evidence/2026-10-09-work-location-match-explanation.json"
     ],
-    "verified_at_utc": "2026-10-09T13:32:17Z"
+    "verified_at_utc": "2026-10-09T14:25:33Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -698,7 +699,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue MJ-REQ-114 by selecting the next concrete gap between the original weighted match example and persisted, explainable score contributions; preserve score neutrality for informational fit factors and keep the umbrella PARTIAL until full acceptance is proven.",
+  "recommended_resume_step": "Reconcile active claims and select the highest-value dependency-ready core product gap; do not promote MJ-REQ-114 or MJ-PR-031 from this bounded informational factor.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -732,7 +733,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
+  "last_implementation_commit": "8b3c30d9df2c941f2f49fc6f8f0cd108701d2810",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under Codex integration lock; no PR or push.",
@@ -13282,13 +13283,77 @@
       "live_integrations_tested": [
         "Isolated synthetic SQLite/API/Chromium with external requests blocked; no provider was contacted."
       ]
+    },
+    {
+      "milestone_id": "MJ-REQ-114-REMOTE-REGION-FIT-20261009",
+      "timestamp": "2026-10-09T14:25:33Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added a score-neutral, explainable comparison between supported profile country/state and persisted remote-work regions.",
+        "Verified ALIGNS, NO_DIRECT_MATCH and UNKNOWN cases in focused matching tests and connected synthetic Chromium readback.",
+        "Fast-forward integrated source and evidence to local main; issue and umbrella requirement remain partial."
+      ],
+      "source_commit": "8b3c30d9df2c941f2f49fc6f8f0cd108701d2810",
+      "source_tree": "0f3091ab72c65d792e41d1fee430b475fad019ca",
+      "integrated_main": "fb70b1dc8bdacc532cdb30ac44978ba382d5b727",
+      "evidence": [
+        "docs/evidence/2026-10-09-work-location-match-explanation.json"
+      ],
+      "tests_completed": [
+        "31 focused tests PASS; 41 subtests PASS",
+        "py_compile PASS",
+        "git diff --check PASS"
+      ],
+      "tests_not_run": [
+        "PostgreSQL",
+        "full repository suite",
+        "web build (no frontend source changed)",
+        "hosted checks and reviews by local-only policy"
+      ],
+      "external_submission": "OFF",
+      "files_added": [
+        "tests/browser/test_work_location_match_explanation.py",
+        "docs/evidence/2026-10-09-work-location-match-explanation.json"
+      ],
+      "files_modified": [
+        "services/discovery/matching.py",
+        "tests/integration/test_explainable_matching.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "result": "PARTIAL",
+      "acceptance": "Bounded remote-region fit explanation PASS locally; full MJ-REQ-114 remains PARTIAL.",
+      "tests_remaining": [
+        "PostgreSQL and full repository suite NOT_RUN.",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY.",
+        "External application submission remains OFF."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Only supported profile country/state and supported persisted remote regions are compared; unsupported/missing inputs remain UNKNOWN.",
+        "Informational result does not verify work authorization or commute distance and does not change score.",
+        "The complete MJ-REQ-114 weighted explainable matching acceptance and MJ-PR-031 remain PARTIAL."
+      ],
+      "evidence_path": "docs/evidence/2026-10-09-work-location-match-explanation.json",
+      "last_safe_checkpoint": {
+        "git_commit": "fb70b1dc8bdacc532cdb30ac44978ba382d5b727",
+        "tree": "7252bada7e645be1e4cb75b3f2bb08f727fca237",
+        "evidence_path": "docs/evidence/2026-10-09-work-location-match-explanation.json"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic SQLite/API/Chromium connected workflow with external requests blocked; no provider was contacted."
+      ]
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
-    "tree": "fca52ef5ae9b10a8b42b16c84a0a115690961414",
-    "evidence_path": "docs/evidence/2026-10-09-relevant-experience-match-explanation.json"
+    "git_commit": "fb70b1dc8bdacc532cdb30ac44978ba382d5b727",
+    "tree": "7252bada7e645be1e4cb75b3f2bb08f727fca237",
+    "evidence_path": "docs/evidence/2026-10-09-work-location-match-explanation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13758,11 +13823,11 @@
     "requirement_id": "MJ-REQ-114",
     "branch": "main",
     "status": "LOCAL_MAIN_INTEGRATED_PARTIAL",
-    "source_commit": "a7d29aefdfb3051927bd63834a6d75cfc7f54857",
+    "source_commit": "8b3c30d9df2c941f2f49fc6f8f0cd108701d2810",
     "related_requirements": [
       "MJ-REQ-114"
     ],
-    "note": "Relevant-experience fit is now displayed in Job Detail from approved experience facts; continue the incomplete explainable-matching acceptance."
+    "note": "Remote region explanation is integrated and locally verified; remaining explainable matching acceptance is incomplete."
   },
   "historical_control_snapshots": [
     {
@@ -14922,9 +14987,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T13:58:55Z",
-  "current_verified_local_state": "Local main includes #115 / MJ-REQ-114 relevant-experience fit explanation source commit a7d29aefdfb3051927bd63834a6d75cfc7f54857 (tree fca52ef5ae9b10a8b42b16c84a0a115690961414); connected score-neutral readback evidence docs/evidence/2026-10-09-relevant-experience-match-explanation.json. The overall matching requirement remains PARTIAL.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #115 remains OPEN/PARTIAL. The local-only source is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external application submission OFF. Verified at 2026-10-09T13:58:55Z.",
+  "updated_at": "2026-10-09T14:25:33Z",
+  "current_verified_local_state": "Local main fb70b1dc8bdacc532cdb30ac44978ba382d5b727 includes #115 / MJ-REQ-114 remote work region fit source 8b3c30d9df2c941f2f49fc6f8f0cd108701d2810 (tree 0f3091ab72c65d792e41d1fee430b475fad019ca); 31 focused tests and 41 subtests, including connected local Chromium, PASS. Evidence docs/evidence/2026-10-09-work-location-match-explanation.json. This informational factor has score_effect NONE; the broader requirement remains PARTIAL.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #115 remains OPEN/PARTIAL. Local integration is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external application submission OFF. Verified at 2026-10-09T14:25:33Z.",
   "next_candidates": [
     {
       "issue": 115,
