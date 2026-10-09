@@ -1648,6 +1648,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):
         result = store.job(job_id, profile_id)
+        result["routes"] = load_job_routes(store, job_id)
         result['alignment_fingerprint'] = target_fingerprint(result)
         if profile_id:
             from services.tracking.jobs import read_job_tracking
@@ -1834,8 +1835,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 require_route_review(connection, value.job_id, value.route_mode, value.route_id)
             except ValueError as error:
                 raise HTTPException(409, str(error)) from error
+        route_preference = (profile.get("preferences") or {}).get(
+            "application_route_preference", "PREFER_VERIFIED")
+        if route_preference == "USER_CHOICE" and value.route_mode != "THIS_ROUTE":
+            raise HTTPException(409, "APPLICATION_ROUTE_SELECTION_REQUIRED")
         routes = load_job_routes(store, value.job_id)
-        route_plan = plan_application_routes(routes, value.route_mode, value.route_id)
+        try:
+            route_plan = plan_application_routes(
+                routes, value.route_mode, value.route_id, route_preference)
+        except ValueError as error:
+            raise HTTPException(409, str(error)) from None
         selected_routes = [option["preferred_route"] for option in route_plan["selected"]]
         if operation_mode == "PERSONAL" and any(route["provider"] == "mock-ats" for route in selected_routes):
             raise HTTPException(409, "Fictional applications are unavailable in personal mode")

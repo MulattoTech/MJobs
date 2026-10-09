@@ -1,6 +1,8 @@
 """Preserve source provenance while planning genuinely distinct application routes."""
 from __future__ import annotations
 
+from urllib.parse import urlsplit
+
 from sqlalchemy import select
 
 from packages.persistence import models as m
@@ -29,9 +31,10 @@ def route_authority(route):
         return explicit
     provider = str(route.get("provider") or "").casefold()
     if provider in FIRST_PARTY_PROVIDERS:
-        return "VERIFIED_ATS"
+        # A provider label identifies a platform, not this employer's tenant.
+        return "UNKNOWN"
     if provider in {"employer", "company", "direct-employer"}:
-        return "VERIFIED_EMPLOYER"
+        return "UNKNOWN"
     return "AGGREGATOR"
 
 
@@ -82,8 +85,13 @@ def distinct_route_options(routes):
     return sorted(result, key=lambda row: row["underlying_key"])
 
 
-def plan_application_routes(routes, mode="DEFAULT", route_id=None):
+def plan_application_routes(routes, mode="DEFAULT", route_id=None, preference="PREFER_VERIFIED"):
     mode = str(mode or "DEFAULT").upper()
+    preference = str(preference or "PREFER_VERIFIED").upper()
+    if preference not in {"PREFER_VERIFIED", "USER_CHOICE"}:
+        raise ValueError("APPLICATION_ROUTE_PREFERENCE_INVALID")
+    if mode == "DEFAULT" and preference == "USER_CHOICE":
+        raise ValueError("APPLICATION_ROUTE_SELECTION_REQUIRED")
     options = distinct_route_options(routes)
     if not options:
         raise ValueError("APPLICATION_ROUTE_UNAVAILABLE")
@@ -136,14 +144,43 @@ def plan_application_routes(routes, mode="DEFAULT", route_id=None):
     }
 
 
+def qualify_route_authority(connection, routes):
+    """Annotate routes only from exact, persisted employer or ATS identity evidence."""
+    result = [dict(route) for route in routes]
+    for route in result:
+        route["authority"] = route_authority(route)
+        parsed = urlsplit(str(route.get("url") or ""))
+        host = (parsed.hostname or "").casefold().rstrip(".")
+        domains = connection.execute(select(m.company_domains.c.domain).where(
+            m.company_domains.c.company_id == route["company_id"],
+            m.company_domains.c.verified.is_(True),
+        )).scalars().all()
+        normalized_domains = [str(domain).casefold().rstrip(".") for domain in domains]
+        if host and any(host == domain or host.endswith("." + domain) for domain in normalized_domains):
+            route["authority"] = "VERIFIED_EMPLOYER"
+            continue
+        tenants = connection.execute(select(m.company_ats_tenants).where(
+            m.company_ats_tenants.c.company_id == route["company_id"],
+            m.company_ats_tenants.c.provider == route["provider"],
+            m.company_ats_tenants.c.tenant_identifier == route["tenant"],
+        ).order_by(m.company_ats_tenants.c.id)).mappings().all()
+        if (route["provider"] in FIRST_PARTY_PROVIDERS and len(tenants) == 1
+                and 0.75 <= float(tenants[0]["confidence"]) <= 1.0
+                and isinstance(tenants[0]["evidence"], list)
+                and any(isinstance(item, str) and item.strip() for item in tenants[0]["evidence"])):
+            route["authority"] = "VERIFIED_ATS"
+    return result
+
+
 def load_job_routes(store, job_id):
     with store.engine.connect() as connection:
-        return [
+        routes = [
             dict(row)
             for row in connection.execute(
                 select(m.routes).where(m.routes.c.job_id == job_id).order_by(m.routes.c.id)
             ).mappings()
         ]
+        return qualify_route_authority(connection, routes)
 
 
 def persist_route_choices(connection, application_id, route_plan):

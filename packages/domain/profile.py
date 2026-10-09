@@ -83,6 +83,7 @@ class JobPreferences(BaseModel):
         default_factory=dict, max_length=6,
     )
     company_discovery: CompanyDiscoveryPreferences = Field(default_factory=CompanyDiscoveryPreferences)
+    application_route_preference: Literal['PREFER_VERIFIED', 'USER_CHOICE'] = 'PREFER_VERIFIED'
 
     def sensitive_answer_policy_for(self, category: SensitiveAnswerCategory) -> 'SensitiveAnswerPolicy':
         """Return the stored policy or the safe review-required default."""

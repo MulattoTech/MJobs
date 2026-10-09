@@ -9,12 +9,13 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.dedupe.routes import (
     distinct_route_options,
+    load_job_routes,
     list_route_choices,
     plan_application_routes,
     route_underlying_key,
     source_provenance_inventory,
 )
-from services.documents.generate import prepare
+from services.documents.generate import PreparationError, prepare
 from tests.integration.test_spine import PROFILE
 
 
@@ -47,6 +48,13 @@ class ApplicationRouteTests(unittest.TestCase):
             ]
             for route in routes:
                 upsert(connection, m.routes, route)
+            for provider, tenant in (("greenhouse", "example"), ("lever", "example")):
+                upsert(connection, m.company_ats_tenants, {
+                    "id": f"verified-{provider}", "company_id": "company", "provider": provider,
+                    "tenant_identifier": tenant, "organization_identifier": "", "board_identifier": "",
+                    "confidence": 0.94, "evidence": ["PUBLIC_API_BOARD"],
+                    "first_seen_at": "2026-10-09T00:00:00Z", "last_seen_at": "2026-10-09T00:00:00Z",
+                })
             for identifier, source, source_job_id, application_url in (
                 ("p1", "board-a", "1", "https://redirect.example/apply/a"),
                 ("p2", "greenhouse:example", "1", "https://job-boards.greenhouse.io/example/jobs/1"),
@@ -64,8 +72,7 @@ class ApplicationRouteTests(unittest.TestCase):
         self.temp.cleanup()
 
     def routes(self):
-        with self.store.engine.connect() as connection:
-            return [dict(row) for row in connection.execute(m.routes.select().where(m.routes.c.job_id == "job")).mappings()]
+        return load_job_routes(self.store, "job")
 
     def test_same_employer_requisition_collapses_redirect_aliases(self):
         options = distinct_route_options(self.routes())
@@ -89,6 +96,23 @@ class ApplicationRouteTests(unittest.TestCase):
         self.assertEqual(all_distinct["distinct_count"], 2)
         self.assertEqual(len(all_distinct["selected"]), 2)
 
+    def test_profile_policy_can_require_an_explicit_route_without_disabling_explicit_selection(self):
+        routes = self.routes()
+        with self.assertRaisesRegex(ValueError, "APPLICATION_ROUTE_SELECTION_REQUIRED"):
+            plan_application_routes(routes, preference="USER_CHOICE")
+        selected = plan_application_routes(routes, "THIS_ROUTE", "agg-a", preference="USER_CHOICE")
+        self.assertEqual(selected["selected"][0]["preferred_route"]["id"], "agg-a")
+
+    def test_known_ats_route_is_not_preferred_without_exact_verified_tenant_evidence(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(m.company_ats_tenants.delete().where(
+                m.company_ats_tenants.c.provider == "greenhouse"))
+        greenhouse = next(route for route in self.routes() if route["id"] == "ats-a")
+        self.assertEqual(greenhouse["authority"], "UNKNOWN")
+        option = next(option for option in distinct_route_options(self.routes())
+                      if option["underlying_key"].endswith(":req-a"))
+        self.assertEqual(option["preferred_route"]["id"], "agg-a")
+
     def test_prepare_all_distinct_persists_one_choice_per_underlying_route(self):
         application_id = prepare(
             self.store, "job", "fixture", self.root,
@@ -100,6 +124,19 @@ class ApplicationRouteTests(unittest.TestCase):
                          {"employer:company:req-a", "employer:company:req-b"})
         self.assertEqual(self.store.count("job_postings"), 3)
         self.assertEqual(self.store.count("canonical_jobs"), 1)
+
+    def test_document_worker_enforces_user_route_choice_and_persists_the_selected_route(self):
+        profile = self.store.profile("fixture")
+        profile["preferences"]["application_route_preference"] = "USER_CHOICE"
+        self.store.save_profile(profile)
+        with self.assertRaisesRegex(PreparationError, "Choose an application route"):
+            prepare(self.store, "job", "fixture", self.root)
+        application_id = prepare(
+            self.store, "job", "fixture", self.root,
+            route_mode="THIS_ROUTE", route_id="agg-a",
+        )
+        choices = list_route_choices(self.store, application_id)
+        self.assertEqual([choice["route_id"] for choice in choices], ["agg-a"])
 
     def test_job_read_model_keeps_all_routes_and_postings_without_duplicate_list_rows(self):
         rows = self.store.jobs("fixture")
@@ -119,6 +156,60 @@ class ApplicationRouteTests(unittest.TestCase):
         self.assertEqual(body["distinct_count"], 2)
         self.assertEqual(len(body["source_records"]), 3)
         self.assertEqual({row["posting_id"] for row in body["source_records"]}, {"p1", "p2", "p3"})
+
+    def test_api_requires_explicit_route_when_profile_asks_for_choice(self):
+        job_id = "a" * 64
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {"id":"route-policy-company","name":"Route Policy Co","domain":"routepolicy.example"})
+            upsert(connection, m.jobs, {
+                "id":job_id,"company_id":"route-policy-company","requisition":"route-policy",
+                "title":"Systems Engineer","description":"Support systems.","skills":["Python"],
+                "location":"Remote","remote_type":"REMOTE","attributes":{},
+            })
+            upsert(connection, m.routes, {
+                "id":"route-policy-aggregator","job_id":job_id,"company_id":"route-policy-company",
+                "provider":"job-board","tenant":"board","requisition":"route-policy",
+                "url":"https://board.example/jobs/route-policy",
+            })
+            upsert(connection, m.routes, {
+                "id":"route-policy-ats","job_id":job_id,"company_id":"route-policy-company",
+                "provider":"greenhouse","tenant":"routepolicy","requisition":"route-policy",
+                "url":"https://job-boards.greenhouse.io/routepolicy/jobs/1",
+            })
+            upsert(connection, m.company_ats_tenants, {
+                "id":"route-policy-verified-ats","company_id":"route-policy-company",
+                "provider":"greenhouse","tenant_identifier":"routepolicy",
+                "organization_identifier":"","board_identifier":"","confidence":0.94,
+                "evidence":["PUBLIC_API_BOARD"],"first_seen_at":"2026-10-09T00:00:00Z",
+                "last_seen_at":"2026-10-09T00:00:00Z",
+            })
+        profile = self.store.profile("fixture")
+        profile["preferences"]["application_route_preference"] = "USER_CHOICE"
+        self.store.save_profile(profile)
+        with TestClient(create_app(
+            self.store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+        )) as client:
+            body = {"profile_id":"fixture", "job_id":job_id, "request_id":"explicit-choice"}
+            denied = client.post("/applications", json=body)
+            self.assertEqual(denied.status_code, 409, denied.text)
+            self.assertEqual(denied.json()["detail"], "APPLICATION_ROUTE_SELECTION_REQUIRED")
+            selected = client.post("/applications", json={
+                **body, "request_id":"explicit-route", "route_mode":"THIS_ROUTE", "route_id":"route-policy-aggregator",
+            })
+            self.assertEqual(selected.status_code, 202, selected.text)
+            self.assertEqual(selected.json()["route_ids"], ["route-policy-aggregator"])
+
+    def test_job_detail_marks_only_evidence_qualified_routes_as_verified(self):
+        with TestClient(create_app(
+            self.store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+        )) as client:
+            response = client.get("/jobs/job", params={"profile_id":"fixture"})
+        self.assertEqual(response.status_code, 200, response.text)
+        routes = {route["id"]:route for route in response.json()["routes"]}
+        self.assertEqual(routes["ats-a"]["authority"], "VERIFIED_ATS")
+        self.assertEqual(routes["agg-a"]["authority"], "AGGREGATOR")
 
     def test_source_inventory_never_collapses_records(self):
         postings = [
