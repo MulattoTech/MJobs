@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "scope_result": "PASS",
+  "whole_requirement_result": "PARTIAL",
+  "source": {
+    "branch": "codex/solo-190-job-source-filter-20261009",
+    "commit": "8029cd6636183bbd1ea8de9e445cba74e276c125",
+    "tree": "1492c63016e4be8dd5414901328d0555a6c526d3"
+  },
+  "behavior": [
+    "Jobs has a separate collection-source selector; application route providers and verified ATS classification remain distinct.",
+    "Selecting a configured source filters recorded jobs in the database before LIMIT and rejects an unknown source ID.",
+    "The source ID persists in profile-owned saved-search filters and restores/clears through the connected Jobs UI; old saved searches default to no source filter.",
+    "Filtering and saving do not enqueue or schedule collection."
+  ],
+  "verification": [
+    {
+      "command": "python -m unittest tests.integration.test_job_source_filter tests.integration.test_saved_search_filters",
+      "result": "PASS",
+      "passed": 25
+    },
+    {
+      "command": "python -m unittest tests.browser.test_saved_search_filters.SavedSearchFiltersBrowserTests.test_saved_filters_restore_controls_results_and_clear_with_profile_isolation",
+      "result": "PASS",
+      "passed": 1
+    },
+    {
+      "command": "npm run test --prefix apps/web -- --run src/job-source-filter.test.tsx",
+      "result": "PASS",
+      "passed": 2
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "limitations": ["Existing bundle-size advisory (>500 kB)."]
+    },
+    {
+      "command": "python -m py_compile tests/integration/test_job_source_filter.py tests/integration/test_saved_search_filters.py tests/browser/test_saved_search_filters.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "PostgreSQL integration",
+    "Full repository suite",
+    "Hosted Actions or hosted review (local-only policy)"
+  ],
+  "safety": {
+    "test_data": "Synthetic local profiles, jobs, and sources only.",
+    "external_provider_requests": "NOT_PERFORMED",
+    "collection_scheduling": "NOT_TRIGGERED",
+    "external_application_submission": "OFF"
+  },
+  "remaining_requirement_gaps": [
+    "This is one connected facet of MJ-REQ-189; the requirement remains PARTIAL until all original search controls and complete acceptance are verified.",
+    "The filter reads the canonical job's recorded source_id attribution; multi-source posting provenance remains governed by existing source-history behavior."
+  ]
+}
