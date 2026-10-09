@@ -50,6 +50,13 @@ _DOCUMENT_KINDS = {"resume", "cover-letter"}
 _APPLICATION_CONTEXT = {"application_id"}
 MAX_QUESTIONS = 200
 MAX_QUESTION_LABEL = 300
+_DYNAMIC_TYPES = {"text", "email", "number", "date", "file", "select", "boolean", "choice"}
+_DYNAMIC_QUESTION_KEYS = {
+    "fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context",
+}
+_DYNAMIC_META_KEYS = {
+    "metadata_provider", "metadata_tenant", "metadata_requisition", "metadata_revision",
+}
 
 
 def questionnaire_fingerprint(questionnaire: dict) -> str:
@@ -266,11 +273,224 @@ def _is_unexpected_sensitive_question(question):
     return _UNEXPECTED_SENSITIVE_QUESTION.search(question["label"]) is not None
 
 
+def _bounded_string_list(value, *, maximum, pattern=None, label=False):
+    if not isinstance(value, list) or len(value) > maximum:
+        return None
+    output = []
+    for item in value:
+        if not isinstance(item, str):
+            return None
+        clean = " ".join(item.split()) if label else item
+        if not clean or (label and len(clean) > MAX_QUESTION_LABEL):
+            return None
+        if pattern is not None and not pattern.fullmatch(clean):
+            return None
+        if clean in output:
+            return None
+        output.append(clean)
+    return output
+
+
+def build_dynamic_form_snapshot(result: dict) -> dict | None:
+    """Return bounded, value-free form metadata suitable for durable readback.
+
+    The upstream fingerprint remains the browser freshness token. A second hash
+    binds the exact safe projection retained by this service.
+    """
+    fingerprint = result.get("metadata_fingerprint")
+    rows = result.get("mappings")
+    if (not isinstance(fingerprint, str) or not re.fullmatch(r"[0-9a-f]{64}", fingerprint)
+            or not isinstance(rows, list) or not rows or len(rows) > MAX_QUESTIONS):
+        return None
+
+    scope = None
+    fields = []
+    sections: dict[str, list[str]] = {}
+    groups: dict[str, dict] = {}
+    seen = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            return None
+        field_id = row.get("field_id")
+        question_id = row.get("question_id")
+        label = row.get("question")
+        field_type = row.get("type")
+        if (not isinstance(field_id, str) or not _IDENTIFIER.fullmatch(field_id)
+                or field_id in seen
+                or not isinstance(question_id, str) or not _IDENTIFIER.fullmatch(question_id)
+                or not isinstance(label, str) or not label.strip()
+                or len(label) > MAX_QUESTION_LABEL
+                or not isinstance(field_type, str) or field_type not in _DYNAMIC_TYPES
+                or type(row.get("type_explicit")) is not bool
+                or type(row.get("required")) is not bool
+                or type(row.get("visible")) is not bool
+                or type(row.get("optional")) is not bool
+                or type(row.get("conditional")) is not bool
+                or type(row.get("repeatable")) is not bool):
+            return None
+        seen.add(field_id)
+
+        provider, tenant, requisition, revision = (
+            row.get("metadata_provider"), row.get("metadata_tenant"),
+            row.get("metadata_requisition"), row.get("metadata_revision"),
+        )
+        row_scope = (provider, tenant, requisition, revision)
+        if (not isinstance(provider, str) or not _IDENTIFIER.fullmatch(provider)
+                or not isinstance(tenant, str) or not _IDENTIFIER.fullmatch(tenant)
+                or not isinstance(requisition, str) or not _IDENTIFIER.fullmatch(requisition)
+                or type(revision) is not int or revision < 1
+                or (scope is not None and row_scope != scope)):
+            return None
+        scope = row_scope
+
+        options = _bounded_string_list(row.get("options"), maximum=100, label=True)
+        section_ids = _bounded_string_list(row.get("optional_sections"), maximum=50,
+                                           pattern=_IDENTIFIER)
+        if options is None or section_ids is None:
+            return None
+        depends_on = row.get("depends_on")
+        if depends_on is not None and (
+                not isinstance(depends_on, str) or not _IDENTIFIER.fullmatch(depends_on)):
+            return None
+
+        field = {
+            "field_id": field_id,
+            "question_id": question_id,
+            "label": " ".join(label.split()),
+            "type": field_type,
+            "type_explicit": row["type_explicit"],
+            "required": row["required"],
+            "visible": row["visible"],
+            "optional": row["optional"],
+            "conditional": row["conditional"],
+            "depends_on": depends_on,
+            "options": options,
+            "repeatable": row["repeatable"],
+            "optional_sections": section_ids,
+        }
+        if field["type_explicit"] is not True:
+            return None
+        for section_id in section_ids:
+            sections.setdefault(section_id, []).append(field_id)
+
+        if field["repeatable"]:
+            group_id = row.get("repeatable_group")
+            minimum = row.get("repeatable_min_rows")
+            maximum = row.get("repeatable_max_rows")
+            group_required = row.get("repeatable_group_required")
+            group_visible = row.get("repeatable_group_visible")
+            if (not isinstance(group_id, str) or not _IDENTIFIER.fullmatch(group_id)
+                    or type(minimum) is not int or type(maximum) is not int
+                    or minimum < 0 or maximum < minimum or maximum > 20
+                    or type(group_required) is not bool or type(group_visible) is not bool):
+                return None
+            group = groups.get(group_id)
+            details = {"minimum_rows": minimum, "maximum_rows": maximum,
+                       "required": group_required, "visible": group_visible}
+            if group is not None and any(group[key] != value for key, value in details.items()):
+                return None
+            if group is None:
+                groups[group_id] = {"group_id": group_id, "field_ids": [], **details}
+            groups[group_id]["field_ids"].append(field_id)
+        elif any(key in row for key in (
+                "repeatable_group", "repeatable_min_rows", "repeatable_max_rows",
+                "repeatable_group_required", "repeatable_group_visible")):
+            return None
+        fields.append(field)
+
+    parents_by_id = {field["field_id"]: field["depends_on"] for field in fields}
+    for field in fields:
+        parent = field["depends_on"]
+        if parent is not None:
+            parents = [candidate for candidate in fields if candidate["field_id"] == parent]
+            if (parent == field["field_id"] or not parents
+                    or parents[0]["type"] not in {"select", "choice"}
+                    or field["type"] not in {"select", "choice"}):
+                return None
+    for field_id in parents_by_id:
+        seen_dependencies = set()
+        current = field_id
+        while current is not None:
+            if current in seen_dependencies:
+                return None
+            seen_dependencies.add(current)
+            current = parents_by_id.get(current)
+
+    dependent_choices = [
+        {"field_id": field["field_id"], "depends_on": field["depends_on"],
+         "options": field["options"]}
+        for field in fields if field["depends_on"] is not None
+    ]
+    snapshot = {
+        "schema_version": 1,
+        "fingerprint": fingerprint,
+        "scope": {"provider": scope[0], "tenant": scope[1],
+                  "requisition": scope[2], "revision": scope[3]},
+        "fields": fields,
+        "optional_sections": [
+            {"section_id": section_id, "field_ids": sorted(field_ids)}
+            for section_id, field_ids in sorted(sections.items())
+        ],
+        "repeatable_groups": [groups[key] for key in sorted(groups)],
+        "dependent_choices": dependent_choices,
+    }
+    canonical = json.dumps(snapshot, sort_keys=True, ensure_ascii=False,
+                           separators=(",", ":"), allow_nan=False)
+    snapshot["snapshot_fingerprint"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    return snapshot
+
+
+def _safe_preflight_rows(rows):
+    if not isinstance(rows, list) or len(rows) > MAX_QUESTIONS:
+        return []
+    safe = []
+    for row in rows:
+        if (not isinstance(row, dict)
+                or not isinstance(row.get("question_id"), str)
+                or not _IDENTIFIER.fullmatch(row["question_id"])
+                or not isinstance(row.get("question"), str)
+                or not row["question"].strip()
+                or len(row["question"]) > MAX_QUESTION_LABEL):
+            continue
+        item = {key: row[key] for key in ("question_id", "question")}
+        valid = True
+        for key in _DYNAMIC_QUESTION_KEYS:
+            values = row.get(key, [])
+            choices = (_PROFILE_PATHS if key == "profile_paths" else
+                       _DOCUMENT_KINDS if key == "document_kinds" else
+                       _APPLICATION_CONTEXT if key == "application_context" else None)
+            pattern = _PROFILE_PATH if key == "profile_paths" else _IDENTIFIER
+            if (not isinstance(values, list) or len(values) > 50
+                    or any(not isinstance(value, str) or not pattern.fullmatch(value)
+                           or (choices is not None and value not in choices) for value in values)
+                    or len(set(values)) != len(values)):
+                valid = False
+                break
+            item[key] = list(values)
+        if valid:
+            for key in _DYNAMIC_META_KEYS:
+                if key not in row:
+                    continue
+                value = row[key]
+                if key == "metadata_revision":
+                    if type(value) is not int or value < 1:
+                        valid = False
+                        break
+                elif not isinstance(value, str) or not value or len(value) > 80:
+                    valid = False
+                    break
+                item[key] = value
+        if valid:
+            safe.append(item)
+    return safe
+
+
 def persist_preflight(store, application_id: str, result: dict) -> None:
     if result.get("result") not in ("PASS", "FAIL", "UNKNOWN"):
         raise ValueError("Unsupported question preflight result")
-    with store.engine.begin() as connection:
-        store._audit(connection, application_id, "APPLICATION_QUESTION_PREFLIGHT", {
+    mappings = _safe_preflight_rows(result.get("mappings", []))
+    missing = _safe_preflight_rows(result.get("missing", []))
+    payload = {
             "result": result["result"],
             "reason": result.get("reason"),
             "observed_at": result["observed_at"],
@@ -281,9 +501,18 @@ def persist_preflight(store, application_id: str, result: dict) -> None:
             "tenant": result.get("tenant"),
             "requisition": result.get("requisition"),
             "metadata_fingerprint": result.get("metadata_fingerprint"),
-            "mappings": result.get("mappings", []),
-            "missing": result.get("missing", []),
+            "mappings": mappings,
+            "missing": missing,
+        }
+    snapshot = build_dynamic_form_snapshot(result)
+    if snapshot is not None:
+        payload.update({
+            "dynamic_fields": snapshot["fields"],
+            "dynamic_fields_fingerprint": snapshot["fingerprint"],
+            "dynamic_form_metadata": snapshot,
         })
+    with store.engine.begin() as connection:
+        store._audit(connection, application_id, "APPLICATION_QUESTION_PREFLIGHT", payload)
 
 
 def latest_preflight(store, application_id: str) -> dict | None:
