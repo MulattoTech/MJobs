@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 from unittest.mock import patch
 
 from playwright.sync_api import expect, sync_playwright
+from sqlalchemy import func, select
 import uvicorn
 
 from apps.api.main import create_app
@@ -85,6 +86,8 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     browser = pw.chromium.launch(headless=True)
                     context = browser.new_context()
                     external = []
+                    capture_requests = []
+                    failed_capture_count = 0
 
                     def local_only(route):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
@@ -104,9 +107,25 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                         self.assertEqual(result["status"], "COMPLETED", result)
                         route.fulfill(response=response)
 
+                    def fail_after_capture_commit(route):
+                        nonlocal failed_capture_count
+                        payload = route.request.post_data_json
+                        if route.request.method == "POST" and isinstance(payload, dict):
+                            capture_requests.append(payload)
+                            if payload.get("source_url") == "https://jobs.unknown.invalid/retry-role":
+                                failed_capture_count += 1
+                            if payload.get("source_url") == "https://jobs.unknown.invalid/retry-role" and failed_capture_count == 1:
+                                response = route.fetch()
+                                self.assertEqual(response.status, 201, response.text())
+                                route.abort("failed")
+                                return
+                        route.continue_()
+
                     context.route("**/*", local_only)
                     context.route("**/matches", execute_rescore)
                     page = context.new_page()
+                    page_errors = []
+                    page.on("pageerror", lambda error: page_errors.append(str(error)))
                     page.set_default_timeout(8000)
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
@@ -121,7 +140,12 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                         "https://www.talenthop.com/apply/role-123?session=private-token#form")
                     page.get_by_label("Reported discovery origin", exact=True).fill("LinkedIn")
                     page.get_by_role("button", name="Save captured job", exact=True).click()
-                    expect(page.get_by_role("status").filter(has_text="Job captured and evaluated")).to_be_visible()
+                    try:
+                        expect(page.get_by_role("status").filter(has_text="Job captured and evaluated")).to_be_visible()
+                    except AssertionError:
+                        self.fail("Manual capture did not complete: " + page.locator("body").inner_text()
+                                  + " page_errors=" + repr(page_errors))
+                    self.assertEqual(page_errors, [])
                     page.get_by_role("button", name="Sources", exact=True).click()
                     feed_candidate = page.get_by_role(
                         "article", name="Source candidate jobs.example-ats.invalid")
@@ -210,6 +234,45 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     expect(reported).to_contain_text("Review history (1)")
                     expect(reported).to_contain_text("Integration issue #302 · user supplied; not externally verified (USER_SUPPLIED_UNVERIFIED)")
                     expect(reported).to_contain_text("Collection is disabled")
+
+                    retry_url = "https://jobs.unknown.invalid/retry-role"
+                    context.route("**/source-candidates", fail_after_capture_commit)
+                    page.get_by_label("Source site URL").fill(retry_url)
+                    page.get_by_label("Reported discovery origin for source site").fill("Indeed")
+                    page.get_by_role("button", name="Record source URL", exact=True).click()
+                    expect(page.get_by_role("alert")).to_be_visible()
+                    page.get_by_role("button", name="Record source URL", exact=True).click()
+                    expect(page.get_by_role("status").filter(
+                        has_text="Source URL report already exists")).to_be_visible()
+                    self.assertEqual(len(capture_requests), 2)
+                    self.assertEqual(capture_requests[0]["request_id"], capture_requests[1]["request_id"])
+                    with store.engine.connect() as connection:
+                        retry_candidate_id = connection.execute(select(m.source_candidates.c.id).where(
+                            m.source_candidates.c.profile_id == "other",
+                            m.source_candidates.c.domain == "jobs.unknown.invalid",
+                        )).scalar_one()
+                        retry_observation_rows = connection.execute(select(m.source_candidate_observations).where(
+                                m.source_candidate_observations.c.profile_id == "other",
+                                m.source_candidate_observations.c.candidate_id == retry_candidate_id,
+                                m.source_candidate_observations.c.source_url == retry_url,
+                            )).mappings().all()
+                        retry_observations = connection.execute(select(func.count()).select_from(
+                            m.source_candidate_observations).where(
+                                m.source_candidate_observations.c.profile_id == "other",
+                                m.source_candidate_observations.c.candidate_id == retry_candidate_id,
+                                m.source_candidate_observations.c.source_url == retry_url,
+                            )).scalar_one()
+                    self.assertEqual(retry_observations, 1, {
+                        "requests": capture_requests,
+                        "observations": [dict(row) for row in retry_observation_rows],
+                    })
+                    page.get_by_label("Source site URL").fill(
+                        "https://jobs.unknown.invalid/retry-role-2")
+                    page.get_by_role("button", name="Record source URL", exact=True).click()
+                    expect(page.get_by_role("status").filter(
+                        has_text="Source URL recorded for review")).to_be_visible()
+                    self.assertEqual(len(capture_requests), 3)
+                    self.assertNotEqual(capture_requests[0]["request_id"], capture_requests[-1]["request_id"])
                     page.locator("#active-profile").select_option("fixture")
                     expect(page.get_by_role("article", name="Source candidate talenthop.com")).to_be_visible()
                     self.assertEqual(external, [])

@@ -109,7 +109,7 @@ type Preferences = {desired_roles:string[];employment_types:string[];work_arrang
 type Profile = {id:string; name:string; email:string; version?:string; facts:Fact[]; answers:Answer[]; contact?:Partial<Contact>; preferences?:Partial<Preferences>};
 type Match = {score:number; missing:string[]; components:{method?:string; matched?:string[]; detected?:string[]; limitation?:string;skill_evidence_coverage?:{covered_weight:number;possible_weight:number;percentage:number};fit_factors?:{id:string;label:string;status:'ALIGNS'|'NO_DIRECT_MATCH'|'UNKNOWN';explanation:string;score_effect:'NONE'}[];requirements?:{skill:string;strength:'REQUIRED'|'PREFERRED'|'NICE_TO_HAVE'|'UNKNOWN';profile_evidence:'APPROVED'|'NO_APPROVED_EVIDENCE';weight?:number;covered_weight?:number;explanation:string}[]}};
 type JobTracking = {disposition:'ACTIVE'|'SAVED'|'HIDDEN'|'NOT_INTERESTED';notes?:{id:string;text:string;sequence:number;timestamp:string}[];history?:{type:'disposition'|'note';disposition?:string;id?:string;text?:string;sequence:number;timestamp:string}[]};
-type Job = {id:string; company_id:string; title:string; company:string; provider:string; location:string; remote_type:string; description:string; skills:string[]; alignment_fingerprint?:string; application_url:string; match_score:number|null; application_priority_score?:number|null; application_priority_band?:'UNKNOWN'|'LOW'|'NORMAL'|'HIGH'; posting_count:number; posting_sources?:string[]; routes?:{id:string;provider:string;tenant:string;url:string;preferred_by_profile?:boolean;authority:'VERIFIED_EMPLOYER'|'VERIFIED_ATS'|'TRUSTED_INTEGRATED_BOARD'|'DIRECT_EMPLOYER'|'AGGREGATOR'|'UNKNOWN';direct_employer_resolution?:{status:'ATS_CANDIDATE_FOUND'|'UNRESOLVED'|'AMBIGUOUS'|'NOT_AGGREGATOR';source_route_id:string;candidate_route_ids:string[]}}[]; tracking?:JobTracking; attributes:{fictional?:boolean; captured_at?:string; source_type?:string; company_identity?:string; skill_evidence?:string; certifications?:{id:string;name:string;strength:'REQUIRED'|'PREFERRED'|'NICE_TO_HAVE'|'UNKNOWN'}[]; salary?:{min:number;max:number;currency:string;period:string}[]; last_collected_at?:string; source_resolution?:SourceValueResolution|null}; match?:Match|null; postings?:{source:string;source_job_id:string;source_url?:string;application_url?:string;fetched_at:string;raw?:{submitted_fields?:{application_url?:string;reference_url?:string;source_details?:Record<string,unknown>}};snapshots:{sha256:string;retrieved_at:string}[]}[]};
+type Job = {id:string; company_id:string; title:string; company:string; provider:string; location:string; remote_type:string; description:string; skills:string[]; alignment_fingerprint?:string; application_url:string; match_score:number|null; application_priority_score?:number|null; application_priority_band?:'UNKNOWN'|'LOW'|'NORMAL'|'HIGH'; posting_count:number; posting_sources?:string[]; routes?:{id:string;provider:string;tenant:string;url:string;preferred_by_profile?:boolean;authority?:'VERIFIED_EMPLOYER'|'VERIFIED_ATS'|'TRUSTED_INTEGRATED_BOARD'|'DIRECT_EMPLOYER'|'AGGREGATOR'|'UNKNOWN';direct_employer_resolution?:{status:'ATS_CANDIDATE_FOUND'|'UNRESOLVED'|'AMBIGUOUS'|'NOT_AGGREGATOR';source_route_id:string;candidate_route_ids:string[]}}[]; tracking?:JobTracking; attributes:{fictional?:boolean; captured_at?:string; source_type?:string; company_identity?:string; skill_evidence?:string; certifications?:{id:string;name:string;strength:'REQUIRED'|'PREFERRED'|'NICE_TO_HAVE'|'UNKNOWN'}[]; salary?:{min:number;max:number;currency:string;period:string}[]; last_collected_at?:string; source_resolution?:SourceValueResolution|null}; match?:Match|null; postings?:{source:string;source_job_id:string;source_url?:string;application_url?:string;fetched_at:string;raw?:{submitted_fields?:{application_url?:string;reference_url?:string;source_details?:Record<string,unknown>}};snapshots:{sha256:string;retrieved_at:string}[]}[]};
 type ApplicationTracking = {status:string|null;attribution:'USER_REPORTED'|'EXTERNAL_USER_REPORTED'|null;notes:{id:string;text:string;sequence:number;timestamp:string}[];external_reports?:{source:string;applied_at:string;application_url?:string;sequence:number;timestamp:string}[];history:{type:'status'|'note'|'external_application';status?:string;attribution?:string;text?:string;source?:string;applied_at?:string;sequence:number;timestamp:string}[]};
 type Application = {id:string; title:string; company:string; state:string; target:string; job_id:string; profile_id:string; route_id?:string; route_choices?:{route_id:string;underlying_key:string;requested_mode:string;state:string}[]; adapter_knowledge?:{provider:string|null;tenant_identifier:string|null;basis:string;adapter_status:string;external_submission_enabled:boolean}; document_version:number; profile_version:string; fact_ids:string[]; trace:string[]; confirmation:Record<string,unknown>|null; question_preflight?:{result:'PASS'|'FAIL'|'UNKNOWN';reason:string|null;observed_at:string;missing:{question_id:string;question:string;fact_ids?:string[];answer_ids?:string[];profile_paths?:string[];document_kinds?:string[];application_context?:string[]}[]}|null; pipeline_status?:string|null; pipeline_attribution?:string|null; external_reports?:{source:string;applied_at:string;application_url?:string;sequence:number;timestamp:string}[]; answer_bank?:Answer[]; attempts?:{state:string; started_at:string;steps:string[]}[]};
 type AnswerConfidencePolicy = {minimum_saved_answer_confidence:number;minimum_question_match_confidence:number};
@@ -286,6 +286,7 @@ function App() {
   const [sourceCandidates,setSourceCandidates] = useState<SourceCandidate[]>([]);
   const [sourceReportUrl,setSourceReportUrl] = useState('');
   const [sourceReportOrigin,setSourceReportOrigin] = useState('');
+  const sourceReportRequest=useRef<{profileId:string;sourceUrl:string;origin:string;requestId:string}|null>(null);
   const [aiTaskSettings,setAITaskSettings] = useState<AITaskSettings>(defaultAITaskSettings);
   const [aiTaskFallbacks,setAITaskFallbacks] = useState<Partial<AITaskFallbacks>>({});
   const [aiSettingsLoading,setAISettingsLoading] = useState(false);
@@ -934,21 +935,28 @@ function App() {
     if(!profileId)throw new Error('Select a profile before recording a source URL.');
     if(!sourceReportUrl.trim())throw new Error('Enter the source or application URL you want to catalogue.');
     const selectedProfile=profileId;
+    const sourceUrl=sourceReportUrl.trim();
+    const origin=sourceReportOrigin.trim();
+    const pending=sourceReportRequest.current;
+    const requestId=pending&&pending.profileId===selectedProfile&&pending.sourceUrl===sourceUrl&&pending.origin===origin
+      ?pending.requestId:crypto.randomUUID();
+    sourceReportRequest.current={profileId:selectedProfile,sourceUrl,origin,requestId};
     await action('Recording source URL',async()=>{
       const result=await api<{created:boolean}>('/source-candidates',{method:'POST',body:JSON.stringify({
-        profile_id:selectedProfile,request_id:crypto.randomUUID(),
-        application_url:null,discovery_origin:sourceReportOrigin.trim()||null,
-        source_url:sourceReportUrl.trim(),observed_hops:[],
+        profile_id:selectedProfile,request_id:requestId,
+        application_url:null,discovery_origin:origin||null,
+        source_url:sourceUrl,observed_hops:[],
       })});
       if(selectedProfile!==profileRef.current)return;
       await refresh(selectedProfile);
+      if(sourceReportRequest.current?.requestId===requestId)sourceReportRequest.current=null;
       setSourceReportUrl('');setSourceReportOrigin('');
       setNotice(result.created?'Source URL recorded for review. No site was opened and collection remains disabled.':'Source URL report already exists. No site was opened.');
     });
   }
   function switchProfile(id:string) {
     if(id===profileId)return;
-    profileRef.current=id;
+    profileRef.current=id;sourceReportRequest.current=null;
     ++companySourcesSequence.current;++jobsSequence.current;++detailSequence.current;
     ++appSequence.current;++editorSequence.current;
     profileBaselineRef.current=null;
@@ -1408,7 +1416,7 @@ function App() {
             <select aria-label="Choose the application route for this job" value={selectedApplicationRouteId} disabled={!!busy||!profileId}
               onChange={event=>setApplicationRouteSelection({profileId,jobId:detail.id,routeId:event.currentTarget.value})}>
               <option value="">{applicationRoutePreference==='USER_CHOICE'?'Select a route before preparing':'No preferred route saved'}</option>
-              {(detail.routes||[]).map(route=>{const resolved=route.direct_employer_resolution?.status==='ATS_CANDIDATE_FOUND'?detail.routes?.find(candidate=>candidate.id===route.direct_employer_resolution?.candidate_route_ids[0]):undefined;const authorityLabel=route.authority.startsWith('VERIFIED_')?'verified identity evidence':route.authority==='TRUSTED_INTEGRATED_BOARD'?'trusted integrated board evidence':route.authority==='DIRECT_EMPLOYER'?'direct employer route':'route not verified';return <option key={route.id} value={route.id}>{route.provider} · {route.tenant||'tenant unknown'} · {authorityLabel}{route.preferred_by_profile?' · preferred for this employer':''}{resolved?` · same employer requisition has verified ATS route: ${resolved.provider} · ${resolved.tenant}`:''}</option>;})}
+              {(detail.routes||[]).map(route=>{const resolved=route.direct_employer_resolution?.status==='ATS_CANDIDATE_FOUND'?detail.routes?.find(candidate=>candidate.id===route.direct_employer_resolution?.candidate_route_ids[0]):undefined;const authority=route.authority||'UNKNOWN';const authorityLabel=authority.startsWith('VERIFIED_')?'verified identity evidence':authority==='TRUSTED_INTEGRATED_BOARD'?'trusted integrated board evidence':authority==='DIRECT_EMPLOYER'?'direct employer route':'route not verified';return <option key={route.id} value={route.id}>{route.provider} · {route.tenant||'tenant unknown'} · {authorityLabel}{route.preferred_by_profile?' · preferred for this employer':''}{resolved?` · same employer requisition has verified ATS route: ${resolved.provider} · ${resolved.tenant}`:''}</option>;})}
             </select>
             <span className="muted">MJobs preserves every known route. A saved preference affects only default ordering for this employer; a verified employer or ATS route keeps its evidence-based priority. This does not submit an application.</span>
           </label>
