@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T20:22:54Z",
+  "timestamp": "2026-10-09T20:30:32Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2073,9 +2073,11 @@
     },
     {
       "requirement_id": "MJ-REQ-243",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-company-source-cheap-prefilter.json"
+      ],
+      "note": "User-configured saved-search title/keyword prefilter previews source-scoped counts, persists criteria and limits discovery-worker candidate scoring before deterministic matching. Reject/defer/preview error outcomes preserve captured postings; uncertain oversized text is not falsely rejected. Connected Chromium verifies saved criteria, one matching candidate from three source postings, and retry/reload recovery. Evidence and exact inputs at main 88b781bfc45c44363cd024e61af4b9a8d01866e4. Hosted/PostgreSQL/live source/full-suite checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-244",

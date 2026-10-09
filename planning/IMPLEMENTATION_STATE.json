@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T20:22:54Z",
+  "generated_at": "2026-10-09T20:30:32Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-247-FAILED-SOURCE-PRESERVATION-20261009",
-  "current_objective": "Verify and preserve configured company-source identity, settings, and failure history after repeated parser failures.",
+  "current_milestone": "MJ-REQ-243-COMPANY-SOURCE-PREFILTER-20261009",
+  "current_objective": "Verify and complete saved-search title and keyword filtering from user preview and persistence through the actual discovery worker.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -96,7 +96,8 @@
     "MJ-REQ-253 / issue #254: 16 opt-in advisory technology preferences persist with saved searches, display after reload, survive pause/resume, and are selectable for Jobs filtering. They remain separate from required criteria and career facts. Evidence docs/evidence/2026-10-09-default-technology-seed.json.",
     "Dynamic mock-ATS draft recovery: explicit on-device consent, exact profile/application/form-version scope, unreviewed restore, deletion, quota-failure recovery, and no employer writes.",
     "MJ-REQ-114 weighted coverage breakdown: required/preferred/nice-to-have/missing evidence arithmetic, per-skill contribution, connected job-detail readback, and base-vs-selected-search score distinction verified at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af.",
-    "MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete."
+    "MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete.",
+    "Issue #244 / MJ-REQ-243 PASS: saved-search source prefilter previews and persists profile-scoped title/keyword criteria, feeds actual discovery-worker candidate scoring, and preserves source rows across reject/defer/errors. Main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -718,7 +719,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Select the next highest-impact incomplete user-facing original requirement from live issues and non-overlapping claims; prefer job discovery, matching, resume/document generation, or application preparation.",
+  "recommended_resume_step": "Reconcile open P0-P2 original jobseeker issues and active claims; select the next substantial dependency-ready discovery, matching, resume/document, or application-preparation capability.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -752,7 +753,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "85a73d268a1fa6b6d281d707a8fd8058e1a3bc40",
+  "last_implementation_commit": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
     "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
@@ -14199,12 +14200,61 @@
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": []
+    },
+    {
+      "milestone_id": "MJ-REQ-243-COMPANY-SOURCE-PREFILTER-20261009",
+      "timestamp": "2026-10-09T20:30:32Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+      "completed_steps": [
+        "Verified saved-search title/keyword criteria preview is source-scoped and profile-bound.",
+        "Verified the actual discovery worker uses saved criteria before scoring and recovery preserves all source postings.",
+        "Fixed the duplicate first-run/Jobs accessible label and corrected browser fixtures for explicit source scope and selected-search visibility.",
+        "Fast-forward integrated exact code/tests/evidence; issue #244 closed PASS."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-company-source-cheap-prefilter.json"
+      ],
+      "files_modified": [
+        "apps/web/src/first-run-wizard.tsx",
+        "tests/browser/test_cheap_job_prefilter.py",
+        "tests/browser/test_cheap_prefilter_recovery.py"
+      ],
+      "tests_completed": [
+        "Python unit/API/pipeline/worker tests: 23 passed",
+        "Connected Chromium workflows: 2 passed",
+        "Focused web tests: 4 passed",
+        "TypeScript/Vite build, py_compile, diff check and coordination validation passed"
+      ],
+      "tests_remaining": [
+        "PostgreSQL, full Python/frontend suites and live employer-source requests",
+        "Hosted Actions/review NOT_RUN_BY_USER_POLICY"
+      ],
+      "known_limitations": [
+        "The candidate cap is bounded and defers excess plausible rows.",
+        "Current worker uses deterministic scoring; no AI enrichment savings are claimed.",
+        "Parent PR-066 remains queued for other requirements/dependencies; whole release remains UNKNOWN.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
+        "evidence_path": "docs/evidence/2026-10-09-company-source-cheap-prefilter.json"
+      },
+      "integrated_main": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
+      "source_tree": "475cd899cfb75aeeca6df884bf125910c4914589",
+      "acceptance": "PASS: profile-scoped saved filters preview and persist; the discovery worker filters candidate scoring without deleting postings; issue #244 closed.",
+      "limitations": [
+        "PostgreSQL/full repository/live source/hosted checks NOT_RUN.",
+        "External application submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": []
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "85a73d268a1fa6b6d281d707a8fd8058e1a3bc40",
-    "evidence_path": "docs/evidence/2026-10-09-failed-source-preservation.json"
+    "git_commit": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
+    "evidence_path": "docs/evidence/2026-10-09-company-source-cheap-prefilter.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15851,7 +15901,8 @@
     "#378 / MJ-REF-008 integrated at 430d4724e36d063890c9511c7478b44257abcd59 (tree e768f9a6cb4e0d3429e05d9dd45bbdab152030a5); evidence docs/evidence/2026-10-09-grounded-interview-preparation.json; Python/API/migration/connected browser 20 PASS, frontend 13 PASS, build and local migration graph PASS. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF.",
     "Issue #115 / MJ-REQ-114 weighted skill-evidence score explanation integrated locally at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af (tree 282aaf80006e28bf505befba28c203c98fbdd0e2); evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json; focused matching integration 27 PASS, connected Chromium 1 PASS, focused Vitest 17 PASS, build/compile/lane/diff/hash PASS. Full original match dimensions remain PARTIAL; PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF.",
     "Issue #247 / MJ-REQ-246 exact integrated source 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47 (tree f120f92fecbc2393c6e471a2ee75ed9ae09cbe56): focused monitoring integration 7 PASS, component 5 PASS, TypeScript/Vite build, py_compile, diff check and lane validation PASS. Evidence docs/evidence/2026-10-09-source-failure-recovery.json; PostgreSQL/full suites/live providers/hosted NOT_RUN; external submission OFF.",
-    "Issue #248 / MJ-REQ-247 exact integrated source 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40: monitoring/preservation integration 8 PASS, connected Chromium source workflow 1 PASS, py_compile/diff/coordination validation PASS. Evidence docs/evidence/2026-10-09-failed-source-preservation.json; PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF."
+    "Issue #248 / MJ-REQ-247 exact integrated source 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40: monitoring/preservation integration 8 PASS, connected Chromium source workflow 1 PASS, py_compile/diff/coordination validation PASS. Evidence docs/evidence/2026-10-09-failed-source-preservation.json; PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
+    "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF."
   ],
   "ownership": "ROOT is the sole Luna High engineer in solo mode with zero active child agents. #253 / MJ-REQ-252 and #254 / MJ-REQ-253 are locally PASS and integrated. Preserve completed workers, unrelated branches/worktrees/claims, and untracked docs/evidence/2026-10-08-compose-target-isolation.json. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "delivery_policy": {
@@ -15866,9 +15917,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T20:22:54Z",
-  "current_verified_local_state": "Issue #248 / MJ-REQ-247 is locally PASS at main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40 (tree 4abec3df6f9fd65e0ffbfc62ca687bf47af71a7f); after three synthetic parser failures, source identity/configuration, terminal monitor state and failure events survive fresh Store readback. Evidence docs/evidence/2026-10-09-failed-source-preservation.json; issue CLOSED/PASS.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #248 is CLOSED/PASS with receipt https://github.com/MulattoTech/MJobs/issues/248#issuecomment-6088624645; issue #247 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "updated_at": "2026-10-09T20:30:32Z",
+  "current_verified_local_state": "Issue #244 / MJ-REQ-243 is locally PASS at main 88b781bfc45c44363cd024e61af4b9a8d01866e4 (tree 475cd899cfb75aeeca6df884bf125910c4914589). Saved title/keyword filtering is previewable, persisted per search profile and applied by the actual discovery worker before deterministic scoring. Captured source rows remain durably retained on rejection, deferral, and preview errors. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json; issue CLOSED/PASS.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #244 is CLOSED/PASS with receipt https://github.com/MulattoTech/MJobs/issues/244#issuecomment-6088737961. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "next_candidates": [
     {
       "issue": 517,
@@ -15876,5 +15927,5 @@
       "status": "NEXT: reconcile and continue the connected discovered-job-site source candidate catalogue and review workflow; preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF. Reconcile existing claims/worktrees before selecting owned paths."
     }
   ],
-  "current_verified_at": "2026-10-09T20:22:54Z"
+  "current_verified_at": "2026-10-09T20:30:32Z"
 }

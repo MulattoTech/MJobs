@@ -2791,7 +2791,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-066-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped original requirement MJ-REQ-244 (#245) is locally verified PASS and issue closed; acceptance evidence docs/evidence/2026-10-09-search-profile-suggestions.json, source/test commit 32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712. Suggestions derive from current profile/version strong matches; explicit user add updates only the selected saved search and confirms durable readback. Focused Python 27 plus 5 subtests, frontend 13, build/compile/diff PASS. MJ-PR-066 remains QUEUED; requirements MJ-REQ-243/245/246 and dependencies MJ-PR-065/MJ-PR-057 are unchanged. Issue #247 / MJ-REQ-246 bounded monitored company-source recovery integrated PARTIAL at local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; 7 monitoring integration and 5 UI tests plus build/compile/diff/lane validation PASS. Broader failure lifecycle and MJ-PR-066 remain queued; hosted/PostgreSQL/full suite NOT_RUN; external submission OFF.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped original requirement MJ-REQ-244 (#245) is locally verified PASS and issue closed; acceptance evidence docs/evidence/2026-10-09-search-profile-suggestions.json, source/test commit 32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712. Suggestions derive from current profile/version strong matches; explicit user add updates only the selected saved search and confirms durable readback. Focused Python 27 plus 5 subtests, frontend 13, build/compile/diff PASS. MJ-PR-066 remains QUEUED; requirements MJ-REQ-243/245/246 and dependencies MJ-PR-065/MJ-PR-057 are unchanged. Issue #247 / MJ-REQ-246 bounded monitored company-source recovery integrated PARTIAL at local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; 7 monitoring integration and 5 UI tests plus build/compile/diff/lane validation PASS. Broader failure lifecycle and MJ-PR-066 remain queued; hosted/PostgreSQL/full suite NOT_RUN; external submission OFF. Issue #244 / MJ-REQ-243 Company Source Search Filtering is locally verified PASS and closed at main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. 23 backend/API/pipeline/worker tests, 2 connected Chromium workflows, 4 frontend tests and build PASS. Browser fixture now uses explicit source scope; filter errors preserve all captured rows. Parent MJ-PR-066 stays QUEUED for sibling requirements/dependencies.",
       "slice_history": [
         {
           "name": "Current strong-match related-title suggestions with explicit saved-search add",
@@ -2832,6 +2832,27 @@
           "limitations": [
             "Only monitored company-source failures are covered; other source lifecycle paths remain incomplete.",
             "PostgreSQL, full repository suites, live provider access and hosted checks NOT_RUN_BY_USER_POLICY.",
+            "External application submission OFF."
+          ]
+        },
+        {
+          "name": "Saved-search company-source title and keyword prefilter",
+          "issue": 244,
+          "requirement_id": "MJ-REQ-243",
+          "status": "INTEGRATED_PASS",
+          "base": "8ffb4d93f88fd20ba4506b53af0cc1317e2db006",
+          "source_head": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
+          "source_tree": "475cd899cfb75aeeca6df884bf125910c4914589",
+          "integrated_head": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
+          "integrated_tree": "475cd899cfb75aeeca6df884bf125910c4914589",
+          "evidence_path": "docs/evidence/2026-10-09-company-source-cheap-prefilter.json",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "validation": "Python unit/API/pipeline/worker 23 PASS; connected Chromium 2 PASS; focused web 4 PASS; TypeScript/Vite, compilation, diff and coordination checks PASS.",
+          "issue_state": "CLOSED/PASS",
+          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/244#issuecomment-6088737961",
+          "limitations": [
+            "PostgreSQL, full repository suite, live provider access and hosted checks NOT_RUN.",
+            "Candidate cap defers excess plausible rows; full repository release remains UNKNOWN.",
             "External application submission OFF."
           ]
         }
@@ -5054,5 +5075,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T20:22:54Z"
+  "generated_at": "2026-10-09T20:30:32Z"
 }
