@@ -30,7 +30,8 @@ export type ApplicationPriority = {
 
 export type ApplicationPriorityRecovery = 'NONE' | 'REFRESH' | 'RETRY';
 export type ApplicationPriorityErrorKind =
-  | 'NOT_FOUND' | 'STALE' | 'HTTP_ERROR' | 'NETWORK' | 'INVALID_REQUEST' | 'INVALID_RESPONSE';
+  | 'NOT_FOUND' | 'STALE' | 'HTTP_ERROR' | 'NETWORK' | 'INVALID_REQUEST'
+  | 'INVALID_RESPONSE' | 'SCOPE_MISMATCH';
 
 export class ApplicationPriorityClientError extends Error {
   readonly state: 'ERROR' | 'STALE';
@@ -66,6 +67,13 @@ function invalidResponse(): ApplicationPriorityClientError {
   return new ApplicationPriorityClientError(
     'INVALID_RESPONSE', null, 'NONE', false,
     'Application priority service returned an invalid response.',
+  );
+}
+
+function scopeMismatch(): ApplicationPriorityClientError {
+  return new ApplicationPriorityClientError(
+    'SCOPE_MISMATCH', null, 'NONE', false,
+    'Priority response does not match the selected profile and job. Reload the selected job.',
   );
 }
 
@@ -108,8 +116,9 @@ function normalizeFactor(value: unknown): ApplicationPriorityFactor {
 }
 
 function normalizePriority(value: unknown, profileId: string, jobId: string): ApplicationPriority {
-  if (!isRecord(value) || value.profile_id !== profileId || value.job_id !== jobId ||
-      !finiteScore(value.match_score) ||
+  if (!isRecord(value)) throw invalidResponse();
+  if (value.profile_id !== profileId || value.job_id !== jobId) throw scopeMismatch();
+  if (!finiteScore(value.match_score) ||
       !(value.priority_score === null || finiteScore(value.priority_score)) ||
       !['UNKNOWN', 'LOW', 'NORMAL', 'HIGH'].includes(String(value.priority_band)) ||
       !finiteScore(value.coverage_percent) || !Array.isArray(value.factors) ||

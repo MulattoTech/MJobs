@@ -44,9 +44,10 @@ describe('application priority API client', () => {
     expect(loaded.factors[1].status).toBe('UNKNOWN');
     expect(loaded.unknowns).toEqual(['salary']);
     expect(loaded.affects_match_score).toBe(false);
+    expect(loaded.state).toBe('UNKNOWN');
   });
 
-  it('rejects a response bound to another profile or job', async () => {
+  it('classifies profile and job scope mismatches without returning response data or retry hints', async () => {
     for (const body of [
       { ...result, profile_id: 'another-profile' },
       { ...result, job_id: 'another-job' },
@@ -54,8 +55,20 @@ describe('application priority API client', () => {
       const client = createApplicationPriorityClient({
         fetchImpl: vi.fn().mockResolvedValue(jsonResponse(body)),
       });
-      await expect(client.load(result.profile_id, result.job_id))
-        .rejects.toMatchObject({ kind: 'INVALID_RESPONSE', retryable: false });
+      try {
+        await client.load(result.profile_id, result.job_id);
+        throw new Error('expected mismatched scope to be rejected');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ApplicationPriorityClientError);
+        expect(error).toMatchObject({
+          kind: 'SCOPE_MISMATCH', status: null, recovery: 'NONE', retryable: false,
+        });
+        expect((error as Error).message).toMatch(/does not match the selected profile and job/i);
+        expect((error as Error).message).not.toMatch(/retry/i);
+        expect((error as Error).message).not.toMatch(/another-profile|another-job/);
+        expect(error).not.toHaveProperty('response');
+        expect(error).not.toHaveProperty('body');
+      }
     }
   });
 
