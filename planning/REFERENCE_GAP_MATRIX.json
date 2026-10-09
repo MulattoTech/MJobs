@@ -258,8 +258,10 @@
       ]
     },
     "MJ-REF-038": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-role-scoring-profile-reload.json"
+      ]
     },
     "MJ-REF-039": {
       "result": "NOT_RUN",

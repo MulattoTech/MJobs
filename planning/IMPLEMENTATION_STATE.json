@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T01:18:26Z",
+  "generated_at": "2026-10-09T05:08:54Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main d61eabcd9276bc519e40cbe0154fe5bce3945260 (tree d43c562f67b569f9987cf0e94e2410ffc3734dbc) contains the connected answer matching review slice plus advisory job quality and recruiter classification features. Exact focused Python/API/browser/Vitest/build checks are recorded in docs/evidence/2026-10-09-core-feature-integration-batch.json. Main remains ahead of origin; the pre-existing untracked docs/evidence/2026-10-08-compose-target-isolation.json is preserved.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issues #242 and #243 remain OPEN after local acceptance. Hosted checks remain NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T01:18:26Z"
+    "current_verified_local_state": "Local main 46dfc9b09ad4e838b1df7d70aa2850ee0ae6daf2 (tree 7a4c4cc61b4bd1f1d481cf7ab8a95f7aa88b64d1) adds verified per-saved-search scoring persistence, peer-search isolation, and connected profile reload/match explanation acceptance to the prior integrated feature set. Evidence: docs/evidence/2026-10-09-role-scoring-profile-reload.json. Local main is 192 commits ahead of origin/main; the pre-existing untracked docs/evidence/2026-10-08-compose-target-isolation.json is preserved.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issue #408 remains OPEN/PARTIAL. Hosted checks remain NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+    "current_verified_at": "2026-10-09T05:08:54Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261009-ANSWER-MATCHING-AND-JOB-QUALITY",
+  "current_milestone": "CORE-FEATURE-BATCH-20261009-ROLE-SCORING-RELOAD",
   "current_objective": "Advance the connected jobseeker workflow through dependency-ready discovery, matching, truthful document preparation, reviewed application preparation, and tracking slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -596,13 +596,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
-    "tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
-    "result": "PASS for the connected answer-matching review slice and requirements MJ-REQ-241/MJ-REQ-242; MJ-REQ-104 remains PARTIAL and product release remains PARTIAL.",
+    "commit": "46dfc9b09ad4e838b1df7d70aa2850ee0ae6daf2",
+    "tree": "7a4c4cc61b4bd1f1d481cf7ab8a95f7aa88b64d1",
+    "result": "PASS for scoped #408/MJ-REF-038 per-search scoring persistence, isolation, reload, and explanation acceptance; MJ-REF-038 and MJ-REQ-112/113/117 remain PARTIAL and product release remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-core-feature-integration-batch.json"
+      "docs/evidence/2026-10-09-role-scoring-profile-reload.json"
     ],
-    "verified_at_utc": "2026-10-09T01:18:26Z"
+    "verified_at_utc": "2026-10-09T05:08:54Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -669,7 +669,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Connect job-specific role-lens selection to the live search/match explanation without changing score or evidence truth; reconcile other open claims before selecting the next feature.",
+  "recommended_resume_step": "Integrate the current-approved story-reference API and scoped citation-review workspace for #372, then connect and verify the #377 resume-preview service/API/UI on an assembled browser path; keep full requirements PARTIAL until remaining criteria pass.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -703,7 +703,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+  "last_implementation_commit": "46dfc9b09ad4e838b1df7d70aa2850ee0ae6daf2",
   "publication": {
     "result": "PASS_SOURCE_SYNC_AT_CHECKPOINT; TRACKER_BATCH_LOCAL",
     "integration_method": "Ordinary non-force fast-forward under the root integration lock; no PR opened.",
@@ -13638,29 +13638,29 @@
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issues #242 and #243 remain OPEN after local acceptance. Hosted checks remain NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
-      "issue": 371,
-      "requirement_id": "MJ-REF-001",
-      "status": "PARTIAL_ON_MAIN: document preparation flow integrated; live match explanation remains."
+      "issue": 372,
+      "requirement_id": "MJ-REF-002",
+      "status": "READY_FOR_ROOT_INTEGRATION: current-story API race fix and scoped citation workspace are committed; mount in answer preparation and verify the read-only review/selection flow."
+    },
+    {
+      "issue": 377,
+      "requirement_id": "MJ-REF-007",
+      "status": "ACTIVE_IMPLEMENTATION: keyword-analysis service, preview API, UI, and browser tests are ready in separate candidates; root mount and assembled acceptance remain."
+    },
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-517",
+      "status": "ACTIVE_IMPLEMENTATION: catalog API/UI and replay regression are ready; root must reconcile the existing alias-idempotency fix and wire the review workflow."
+    },
+    {
+      "issue": 134,
+      "requirement_id": "MJ-REQ-133",
+      "status": "ACTIVE_IMPLEMENTATION: dynamic metadata adapter/API/UI candidates cover safe fields; upstream persisted optional-section metadata and root mounts remain gaps."
     },
     {
       "issue": 408,
       "requirement_id": "MJ-REF-038",
-      "status": "READY_FOR_ROOT_INTEGRATION: scoring service/API/UI/test branches need assembled worker/search wiring; do not overlap the role-lens match slice."
-    },
-    {
-      "issue": 401,
-      "requirement_id": "MJ-REF-031",
-      "status": "READY_FOR_ROOT_INTEGRATION: local capture service/API/UI/tests are prepared; mount and verify against current main."
-    },
-    {
-      "issue": 391,
-      "requirement_id": "MJ-REF-021",
-      "status": "PARTIAL: company workspace/advisor modules exist; snapshot history/undo acceptance remains."
-    },
-    {
-      "issue": 372,
-      "requirement_id": "MJ-REF-002",
-      "status": "PARTIAL: career story bank/selectors exist; connected document/answer consumption remains."
+      "status": "PARTIAL_ON_MAIN: profile reload, explanation provenance, scheduled persistence, and peer-search isolation verified; remaining issue acceptance is open."
     }
   ]
 }

@@ -1117,9 +1117,11 @@
     },
     {
       "requirement_id": "MJ-REQ-117",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-role-scoring-profile-reload.json"
+      ],
+      "note": "A connected selected-search scoring-profile workflow verifies durable weight edits, reload/readback, persisted match scoring and signal provenance. Broader configurable weighting acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-118",

@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-09T05:08:54Z",
+  "repository": "MulattoTech/MJobs",
+  "issue": 408,
+  "reference_requirement": "MJ-REF-038",
+  "original_requirement_slices": [
+    "MJ-REQ-112",
+    "MJ-REQ-113",
+    "MJ-REQ-117"
+  ],
+  "result": "PARTIAL",
+  "integration": {
+    "branch": "main",
+    "commit": "46dfc9b09ad4e838b1df7d70aa2850ee0ae6daf2",
+    "tree": "7a4c4cc61b4bd1f1d481cf7ab8a95f7aa88b64d1",
+    "method": "LOCAL_CHERRY_PICK_AND_ROOT_FIXTURE_CORRECTION",
+    "remote_push": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_application_submission": "OFF"
+  },
+  "verified_behavior": [
+    "Scheduled search scoring without a configured role profile persists the deterministic legacy score and explanation, preserves hard eligibility, and does not duplicate match history on replay.",
+    "Recalculating one saved search preserves another search's scores, explanations, configuration, operation history, audit history, and hard eligibility.",
+    "A connected Chromium flow creates and edits a selected-search scoring profile, verifies durable readback after reload, persists a match through the production deterministic scorer, and displays the selected profile version and source-provenanced signal contribution.",
+    "Zero-weight scoring signals remain disabled until explicitly enabled in the UI; the acceptance flow enables its selected signals before editing their weights.",
+    "Synthetic jobs include persisted application routes required by the production jobs query; the selected job is asserted in the connected search response before opening its explanation."
+  ],
+  "validation": {
+    "python_runtime": "Python 3.12.10 from repository .venv",
+    "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_selected_search_default_score_persistence tests.integration.test_role_scoring_peer_recalculation_isolation tests.browser.test_role_scoring_profile_reload_match",
+    "result": "PASS: 3 tests",
+    "diff_check": "PASS",
+    "hosted_and_full_suite": "NOT_RUN_BY_USER_POLICY / NOT_RUN"
+  },
+  "source_sha256": {
+    "tests/integration/test_selected_search_default_score_persistence.py": "4bfe7c1921f234c695465da6ca713f7f364caeb61b7ca66e3593348f96005dce",
+    "tests/integration/test_role_scoring_peer_recalculation_isolation.py": "1cdadc8ac2257ede74566146837748d47f6bc11771298135810c0685932c8247",
+    "tests/browser/test_role_scoring_profile_reload_match.py": "c76480d55b7474d310c00ef2f5d5896db165cab9dc0503032b9f427e72f90f04",
+    "apps/web/src/role-scoring-profile-editor.tsx": "2baa2ef1dff5365a5f88d91e898ef6664eb21e736de1b5688b638265e6cf7997",
+    "apps/api/matching_explanations.py": "bdcbac58c07d0978443ba39146f20e4064c42fb27a7e3a35fb062e7e600152c1"
+  },
+  "limitations": [
+    "This acceptance slice does not complete all MJ-REF-038 acceptance criteria or original matching requirements.",
+    "No hosted verification, PostgreSQL run, or product-wide release eligibility is claimed."
+  ]
+}
