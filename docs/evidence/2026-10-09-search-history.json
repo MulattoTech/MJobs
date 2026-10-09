@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-236",
+  "github_issue": 237,
+  "feature": "Profile-scoped durable discovery search history with Activity UI and keyset pagination",
+  "acceptance_status": "PARTIAL",
+  "verified_at_utc": "2026-10-09T06:45:54Z",
+  "tested_source_commit": "e3ec3f40476129e5bca57baf48f9485d5db16259",
+  "tested_source_tree": "e5669e85ce084004a18f30f3232eec7982925f77",
+  "evidence": [
+    {
+      "command": "python -m pytest tests/unit/test_search_history_service.py tests/unit/test_search_history_events.py tests/integration/test_search_history_api.py tests/integration/test_prefilter_discover_worker.py tests/browser/test_search_history_connected.py -q -s",
+      "result": "PASS: 24 passed, 4 subtests passed, 4 optional skips",
+      "scope": "service validation/idempotency/transaction rollback; terminal worker mapping; API profile isolation/keyset paging; discovery worker regression; connected Chromium fixture search with durable reload readback"
+    },
+    {
+      "command": "npm run test --prefix apps/web -- --run",
+      "result": "PASS: 79 test files, 466 tests"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS: TypeScript and Vite production build; existing bundle-size advisory remains"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "connected_observations": {
+    "fixture_source": "mock-fixture",
+    "saved_search_query_and_filters_read_back": true,
+    "started_and_finished_timestamps_are_ordered_utc": true,
+    "profile_scope_survives_reload_and_isolates_other_profile": true,
+    "terminal_status_and_error_list_are_projected": true,
+    "unmeasured_duplicate_count": null,
+    "external_network_requests": 0,
+    "application_submission_requests": 0
+  },
+  "remaining_gaps": [
+    "The source collector does not report a trustworthy duplicate tally; history preserves this as null instead of inferring a number.",
+    "Hosted checks and live external-source acceptance were not run under local-only delivery policy."
+  ],
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "external_application_submission": "OFF"
+}
