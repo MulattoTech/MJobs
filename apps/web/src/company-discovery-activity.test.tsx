@@ -34,6 +34,37 @@ describe('CompanyDiscoveryActivity', () => {
     expect(html.indexOf('Discovered Acme')).toBeLessThan(html.indexOf('Resolved official domain'));
   });
 
+  it('shows an expandable, sanitized explanation for a discovery attempt', () => {
+    const rows = discoveryActivity([{
+      id: 'attempt', event_type: 'COMPANY_DISCOVERY_ATTEMPT',
+      summary: 'Company discovery attempt needs review.', timestamp: '2026-10-08T12:00:00Z',
+      details: {
+        company: 'Example Employer', triggers: ['Previously unseen company', 'High-match job'],
+        attempt_state: 'DEAD_LETTERED', attempt_count: 2, ats_provider: 'Greenhouse',
+        confidence: 0.94, confidence_basis: 'ATS detection',
+        evidence: ['ATS detected', 'Official domain verified'], source_created: false,
+        results: {jobs_enumerated: 5, jobs_imported: 3, matched_jobs: 2},
+        error: 'No official employer website could be verified.',
+        private_url: 'https://private.invalid/?token=secret',
+      },
+    }]);
+    const html = renderToStaticMarkup(<CompanyDiscoveryActivity rows={rows} loading={false} error={false}/>);
+    expect(html).toContain('<details>');
+    expect(html).toContain('Discovery details for Example Employer');
+    expect(html).toContain('Previously unseen company');
+    expect(html).toContain('High-match job');
+    expect(html).toContain('DEAD_LETTERED');
+    expect(html).toContain('2');
+    expect(html).toContain('Greenhouse');
+    expect(html).toContain('94% confidence (ATS detection)');
+    expect(html).toContain('Official domain verified');
+    expect(html).toContain('No company source was confirmed.');
+    expect(html).toContain('5 openings checked · 3 openings added · 2 match this profile');
+    expect(html).toContain('No official employer website could be verified.');
+    expect(html).not.toContain('private.invalid');
+    expect(html).not.toContain('secret');
+  });
+
   it('shows loading and empty states without exposing stale rows', () => {
     const staleRows: DiscoveryActivity[] = [{id: 'old', message: 'Old result', timestamp: null}];
     const loading = renderToStaticMarkup(<CompanyDiscoveryActivity rows={staleRows} loading={true} error={false}/>);

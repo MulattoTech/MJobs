@@ -55,9 +55,62 @@ describe('source-linked discovery activity', () => {
       {id: 'domain', event_type: 'COMPANY_DOMAIN_RESOLVED', summary: 'Resolved official domain', timestamp: null},
       {id: 'ats', event_type: 'COMPANY_ATS_DETECTED', summary: 'Detected Lever', timestamp: null},
       {id: 'source', event_type: 'COMPANY_SOURCE_ENROLLED', summary: 'Added a direct employer source', timestamp: null},
+      {id: 'profile-source', event_type: 'COMPANY_SOURCE_ENROLLED', summary: 'Added direct employer source for Acme Systems', timestamp: null},
     ]).map(row => row.message)).toEqual([
       'Resolved official domain', 'Detected Lever', 'Added a direct employer source',
+      'Added direct employer source for Acme Systems',
     ]);
+  });
+
+  it('normalizes bounded discovery attempt details and drops unknown values', () => {
+    const rows = discoveryActivity([{
+      id: 'attempt', event_type: 'COMPANY_DISCOVERY_ATTEMPT',
+      summary: 'Company discovery attempt needs review.',
+      timestamp: '2026-10-08T12:00:00Z',
+      details: {
+        company: 'Example Employer', triggers: ['Previously unseen company', 'PRIVATE'],
+        attempt_state: 'DEAD_LETTERED', attempt_count: 2, ats_provider: 'Greenhouse',
+        confidence: 0.94, confidence_basis: 'ATS detection',
+        evidence: ['ATS detected', 'Official domain verified', 'PRIVATE'],
+        source_created: false,
+        results: {jobs_enumerated: 5, jobs_imported: 3, matched_jobs: 2, private: 'SECRET'},
+        error: 'No official employer website could be verified.',
+        private_url: 'https://private.invalid/?token=secret',
+      },
+    }]);
+    expect(rows).toEqual([{
+      id: 'attempt', message: 'Company discovery attempt needs review.',
+      timestamp: '2026-10-08T12:00:00.000Z',
+      details: {
+        company: 'Example Employer', triggers: ['Previously unseen company'],
+        attemptState: 'DEAD_LETTERED', attemptCount: 2, atsProvider: 'Greenhouse',
+        confidence: 0.94, confidenceBasis: 'ATS detection',
+        evidence: ['ATS detected', 'Official domain verified'],
+        sourceCreated: false,
+        results: {jobsEnumerated: 5, jobsImported: 3, matchedJobs: 2},
+        error: 'No official employer website could be verified.',
+      },
+    }]);
+    expect(JSON.stringify(rows)).not.toContain('private.invalid');
+    expect(JSON.stringify(rows)).not.toContain('secret');
+  });
+
+  it('rejects unsafe company names, errors, states, and out-of-range confidence', () => {
+    const [row] = discoveryActivity([{
+      id: 'attempt', event_type: 'COMPANY_DISCOVERY_ATTEMPT',
+      summary: 'Company discovery is in progress.', timestamp: null,
+      details: {
+        company: '<script>bad</script>', triggers: ['High-match job'],
+        attempt_state: 'UNTRUSTED_STATE', attempt_count: 2.5, ats_provider: 'private',
+        confidence: 5, confidence_basis: 'secret', evidence: ['arbitrary'],
+        source_created: 'yes', results: {jobs_enumerated: -1}, error: 'raw exception with secret',
+      },
+    }]);
+    expect(row?.details).toEqual({
+      company: null, triggers: ['High-match job'], attemptState: null,
+      attemptCount: null, atsProvider: null, confidence: null,
+      confidenceBasis: null, evidence: [], sourceCreated: null, results: null, error: null,
+    });
   });
 
   it('keeps the server-provided newest-first order and stable equal-time order', () => {

@@ -37,6 +37,24 @@ export function CompanyDiscoveryActivity({rows, loading, error, onRetry}: Props)
         return <li key={row.id}>
           {date ? <time dateTime={date.dateTime}>{date.label}</time> : <span className="muted">Date unavailable</span>}
           {' · '}{row.message}
+          {row.details && <details>
+            <summary>Discovery details for {row.details.company || 'this company'}</summary>
+            <dl>
+              {row.details.triggers.length > 0 && <div><dt>Why it was discovered</dt><dd>{row.details.triggers.join(' · ')}</dd></div>}
+              {row.details.attemptState && <div><dt>Attempt status</dt><dd>{row.details.attemptState}</dd></div>}
+              {row.details.attemptCount !== null && <div><dt>Attempts</dt><dd>{row.details.attemptCount}</dd></div>}
+              {row.details.atsProvider && <div><dt>Detected careers system</dt><dd>{row.details.atsProvider}</dd></div>}
+              {row.details.confidence !== null && row.details.confidenceBasis && <div><dt>Confidence</dt><dd>{Math.round(row.details.confidence * 100)}% confidence ({row.details.confidenceBasis})</dd></div>}
+              {row.details.evidence.length > 0 && <div><dt>Verified evidence</dt><dd>{row.details.evidence.join(' · ')}</dd></div>}
+              {row.details.sourceCreated !== null && <div><dt>Employer source</dt><dd>{row.details.sourceCreated ? 'A company source was recorded.' : 'No company source was confirmed.'}</dd></div>}
+              {row.details.results && <div><dt>Discovery results</dt><dd>{[
+                row.details.results.jobsEnumerated !== null ? `${row.details.results.jobsEnumerated} openings checked` : null,
+                row.details.results.jobsImported !== null ? `${row.details.results.jobsImported} openings added` : null,
+                row.details.results.matchedJobs !== null ? `${row.details.results.matchedJobs} match this profile` : null,
+              ].filter(Boolean).join(' · ')}</dd></div>}
+              {row.details.error && <div><dt>What needs attention</dt><dd>{row.details.error}</dd></div>}
+            </dl>
+          </details>}
         </li>;
       })}
     </ol>}

@@ -10,7 +10,7 @@ import { createSearchHistoryClient } from './search-history-client';
 import { SearchHistoryPanel } from './search-history-panel';
 import { SourceCandidateReviewPanel } from './source-candidate-review-panel';
 import { createSourceCandidateReviewClient, type SourceCandidateReview } from './source-candidate-review-client';
-import type { DiscoveryActivity } from './company-activity';
+import { discoveryActivity, type DiscoveryActivity } from './company-activity';
 import { addSelectedExtraction, cleanLines } from './profile-import';
 import { ResumeLibrary, type Resume, type Extraction } from './resume-library';
 import { SourceValueEvidence, type SourceValueResolution } from './source-value-evidence';
@@ -133,7 +133,7 @@ function archiveableDocuments(library:DocumentArchiveLibrary,profileId:string):A
 }
 type Operation = {id:string; kind:string; state:string; error:string|null;attempt_count:number;cancel_requested:boolean;updated_at:string;last_attempt_at?:string|null;dead_lettered_at?:string|null;discarded_at?:string|null;retryable?:boolean;retry_blocked_reason?:string};
 type AuditEvent = {id:string;type:string;summary:string;subject:string;company:string;timestamp:string};
-type CompanyDiscoveryActivityEvent = {timestamp:string|null;event_type:string;summary:string};
+type CompanyDiscoveryActivityEvent = {timestamp:string|null;event_type:string;summary:string;details?:unknown};
 type Source = {id:string;provider:string;tenant:string;name:string;enabled:boolean;health_status:string;jobs_seen:number;last_error:string|null;last_success:string|null;backoff_until:string|null;poll_interval:number;concurrency:number;request_timeout:number;rate_limit:number;jitter_seconds:number;strategy:string;capabilities:{capabilities:string[]}};
 type SourceCandidate = {id:string;domain:string;display_name:string;site_type:string;state:string;first_seen_at:string;last_seen_at:string;collection_enabled:boolean;review_reason:string|null;integration_issue:number|null;integration_issue_status:'USER_SUPPLIED_UNVERIFIED'|'NOT_LINKED';observations:{id:string;job_id:string|null;application_id:string|null;discovery_origin:string|null;origin_attribution:string;source_url:string|null;application_url:string|null;observed_hops:(string|{state:string})[];capture_method:string;evidence_status:string;observed_at:string}[];review_history:SourceCandidateReview[]};
 type ExperienceLevel='INTERNSHIP'|'ENTRY'|'JUNIOR'|'ASSOCIATE'|'MID'|'SENIOR'|'LEAD'|'MANAGER'|'DIRECTOR'|'EXECUTIVE'|'UNKNOWN';
@@ -405,12 +405,9 @@ function App() {
       const response=await api<{profile_id:string;events:CompanyDiscoveryActivityEvent[]}>(
         `/profiles/${encodeURIComponent(id)}/company-discovery/activity?limit=100`);
       if(response.profile_id!==id)throw new Error('Company discovery activity profile mismatch.');
-      const allowed=new Set(['COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED','COMPANY_DOMAIN_RESOLVED','COMPANY_ATS_DETECTED','FEED_IMPORT_COMPLETE','COMPANY_FEED_MATCHES']);
-      const rows=Array.isArray(response.events)?response.events.filter(event=>
-        event&&
-        allowed.has(event.event_type)&&typeof event.summary==='string'&&event.summary.length>0&&event.summary.length<=240&&
-        (event.timestamp===null||typeof event.timestamp==='string'))
-        .map((event,index)=>({id:`${event.event_type}:${event.timestamp||'undated'}:${index}`,message:event.summary,timestamp:event.timestamp})):[];
+      const rows=Array.isArray(response.events)?discoveryActivity(response.events.map((event,index)=>({
+        ...event,id:`${event.event_type}:${event.timestamp||'undated'}:${index}`,
+      })),100):[];
       if(sequence===companyDiscoveryActivitySequence.current&&id===profileRef.current)setCompanyDiscoveryActivity(rows);
     } catch {
       if(sequence===companyDiscoveryActivitySequence.current&&id===profileRef.current)setCompanyDiscoveryActivityError(true);

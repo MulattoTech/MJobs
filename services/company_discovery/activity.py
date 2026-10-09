@@ -12,6 +12,7 @@ from packages.persistence.store import identity
 
 _ATS_REVIEW_ACTIONS = {"COMPANY_ATS_DETECTION_REVIEW"}
 _IMPORT_ACTIONS = {"COMPANY_FEED_IMPORT_COMPLETE"}
+_SOURCE_CREATED_ACTIONS = {"COMPANY_SOURCE_DISCOVERED"}
 _PROVIDER_LABELS = {
     "adp": "ADP Recruiting",
     "ashby": "Ashby",
@@ -34,6 +35,19 @@ _PROVIDER_LABELS = {
 }
 _CONTROL_CHARS = re.compile(r"[\x00-\x1f\x7f]")
 _TAG_LIKE = re.compile(r"<[^>]*>")
+_SAFE_OPERATION_ERRORS = {
+    "COMPANY_OFFICIAL_WEBSITE_REQUIRED": "An official employer website could not be identified.",
+    "COMPANY_OFFICIAL_WEBSITE_NOT_FOUND": "No official employer website could be verified.",
+    "COMPANY_ATS_REVIEW_REQUIRED": "The careers system needs a manual review.",
+    "COMPANY_ATS_ENUMERATION_UNSUPPORTED": "This careers system is not supported yet.",
+    "COMPANY_JOB_ENUMERATION_INVALID": "The employer's public job feed could not be read.",
+    "COMPANY_DISCOVERY_URL_BLOCKED": "A requested page did not meet safe browsing rules.",
+    "COMPANY_DISCOVERY_REDIRECT_BLOCKED": "A page redirect did not meet safe browsing rules.",
+}
+_TRIGGER_LABELS = {
+    "PREVIOUSLY_UNSEEN_COMPANY": "Previously unseen company",
+    "HIGH_MATCH_JOB": "High-match job",
+}
 
 
 def _plain_name(value: object) -> str:
@@ -58,9 +72,13 @@ def _count(value: object) -> int | None:
     return value
 
 
-def _event(event_id: str, timestamp: object, event_type: str, summary: str) -> dict:
-    return {"id": event_id, "timestamp": timestamp,
-            "event_type": event_type, "summary": summary}
+def _event(event_id: str, timestamp: object, event_type: str, summary: str,
+           details: dict | None = None) -> dict:
+    event = {"id": event_id, "timestamp": timestamp,
+             "event_type": event_type, "summary": summary}
+    if details is not None:
+        event["details"] = details
+    return event
 
 
 def list_company_discovery_activity(store, profile_id: str, *, limit: int = 100) -> list[dict]:
@@ -89,17 +107,12 @@ def list_company_discovery_activity(store, profile_id: str, *, limit: int = 100)
             m.audit.c.entity_id == profile_id,
             m.audit.c.action.in_(("COMPANY_DISCOVERED", "COMPANY_SOURCE_ENROLLED")),
         )).scalars()) - {None}
-        discovered_company_ids = set(connection.execute(select(
-            m.audit.c.payload["company_id"].as_string(),
-        ).where(
-            m.audit.c.entity_id == profile_id,
-            m.audit.c.action == "COMPANY_DISCOVERED",
-        )).scalars()) - {None}
-
         requests = list(connection.execute(select(
             m.company_discovery_requests.c.id,
             m.company_discovery_requests.c.company_id,
             m.company_discovery_requests.c.created_at,
+            m.company_discovery_requests.c.reasons,
+            m.company_discovery_requests.c.operation_id,
         ).where(m.company_discovery_requests.c.profile_id == profile_id)
           .order_by(m.company_discovery_requests.c.created_at.desc(),
                     m.company_discovery_requests.c.id.desc()).limit(limit)).mappings())
@@ -107,6 +120,16 @@ def list_company_discovery_activity(store, profile_id: str, *, limit: int = 100)
             m.company_discovery_requests.c.company_id,
         ).where(m.company_discovery_requests.c.profile_id == profile_id)).scalars())
         associated_company_ids = profile_company_ids | request_company_ids
+
+        operation_ids = {row["operation_id"] for row in requests if row["operation_id"]}
+        operations = {}
+        if operation_ids:
+            operations = {row["id"]: row for row in connection.execute(select(
+                m.operations.c.id, m.operations.c.state, m.operations.c.error,
+                m.operations.c.attempt_count, m.operations.c.updated_at,
+                m.operations.c.last_attempt_at,
+            ).where(m.operations.c.id.in_(operation_ids),
+                    m.operations.c.kind == "COMPANY_DISCOVER")).mappings()}
 
         company_names = {}
         if associated_company_ids:
@@ -128,12 +151,120 @@ def list_company_discovery_activity(store, profile_id: str, *, limit: int = 100)
             result.append(_event(row["id"], row["timestamp"], event_type, summary))
 
         for request in requests:
-            if request["company_id"] in discovered_company_ids:
-                continue
             company = company_names.get(request["company_id"]) or "the company"
+            operation = operations.get(request["operation_id"])
+            if operation:
+                state = operation["state"] if operation["state"] in {
+                    "PENDING", "QUEUED", "RUNNING", "SUCCEEDED", "COMPLETED",
+                    "FAILED", "BLOCKED", "DEAD_LETTERED", "CANCELLED", "DISCARDED",
+                } else "UNKNOWN"
+                raw_error = operation["error"]
+                error = _SAFE_OPERATION_ERRORS.get(raw_error)
+                if error is None and isinstance(raw_error, str) and raw_error:
+                    error = "The discovery attempt ended with an error that needs review."
+                timestamp = operation["updated_at"] or request["created_at"]
+                event_type = "COMPANY_DISCOVERY_ATTEMPT"
+                summary = ("Company discovery completed." if state in {"SUCCEEDED", "COMPLETED"}
+                           else "Company discovery attempt needs review." if state in {
+                               "FAILED", "BLOCKED", "DEAD_LETTERED", "CANCELLED", "DISCARDED", "UNKNOWN"}
+                           else "Company discovery is in progress.")
+            else:
+                state = "NEEDS_REVIEW"
+                error = None
+                timestamp = request["created_at"]
+                event_type = "COMPANY_DISCOVERY_ATTEMPT"
+                summary = "Company discovery is waiting for review."
+
+            reasons = request["reasons"] if isinstance(request["reasons"], list) else []
+            triggers = [_TRIGGER_LABELS[reason] for reason in reasons
+                        if isinstance(reason, str) and reason in _TRIGGER_LABELS]
+            latest_review = None
+            if request["company_id"] in associated_company_ids:
+                latest_review = connection.execute(select(
+                    m.audit.c.payload,
+                ).where(m.audit.c.entity_id == request["company_id"],
+                        m.audit.c.action.in_(_ATS_REVIEW_ACTIONS)).order_by(
+                    m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1)).mappings().first()
+            review_payload = latest_review["payload"] if latest_review and isinstance(
+                latest_review["payload"], dict) else {}
+            provider = _PROVIDER_LABELS.get(str(review_payload.get("provider") or "").casefold())
+            confidence = review_payload.get("confidence")
+            confidence_basis = "ATS detection" if (
+                review_payload.get("status") == "MATCH" and provider
+                and isinstance(confidence, (int, float)) and not isinstance(confidence, bool)
+                and 0 <= confidence <= 1
+            ) else None
+            if confidence_basis is None:
+                confidence = None
+                provider = None
+            else:
+                confidence = float(confidence)
+            evidence = []
+            if provider:
+                evidence.append("ATS detected")
+            verified_domain = connection.execute(select(
+                m.company_domains.c.verified,
+            ).where(m.company_domains.c.company_id == request["company_id"],
+                    m.company_domains.c.verified.is_(True)).limit(1)).scalar_one_or_none()
+            if verified_domain:
+                evidence.append("Official domain verified")
+                if confidence is None:
+                    confidence, confidence_basis = 0.99, "verified domain"
+            source_created = False
+            results = None
+            if state in {"SUCCEEDED", "COMPLETED"}:
+                result_start = operation["last_attempt_at"] if operation else None
+                result_end = operation["updated_at"] if operation else None
+                source_event = connection.execute(select(
+                    m.audit.c.payload,
+                ).where(
+                    m.audit.c.entity_id == request["company_id"],
+                    m.audit.c.action.in_(_SOURCE_CREATED_ACTIONS),
+                    m.audit.c.timestamp >= (result_start or request["created_at"]),
+                    m.audit.c.timestamp <= (result_end or request["created_at"]),
+                ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1)).mappings().first()
+                source_created = source_event is not None
+                result_values = {}
+                if source_event and isinstance(source_event["payload"], dict):
+                    payload = source_event["payload"]
+                    result_values["jobs_enumerated"] = _count(payload.get("jobs_enumerated"))
+                    result_values["jobs_imported"] = _count(payload.get("jobs_imported"))
+                feed_result = connection.execute(select(
+                    m.audit.c.payload,
+                ).where(
+                    m.audit.c.entity_id == request["company_id"],
+                    m.audit.c.action == "COMPANY_FEED_IMPORT_COMPLETE",
+                    m.audit.c.timestamp >= (result_start or request["created_at"]),
+                    m.audit.c.timestamp <= (result_end or request["created_at"]),
+                    m.audit.c.payload["profile_id"].as_string() == profile_id,
+                ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1)).mappings().first()
+                if feed_result and isinstance(feed_result["payload"], dict):
+                    payload = feed_result["payload"]
+                    result_values["jobs_enumerated"] = _count(payload.get("jobs_enumerated"))
+                    result_values["jobs_imported"] = _count(payload.get("jobs_imported"))
+                    result_values["matched_jobs"] = _count(payload.get("matched_jobs"))
+                if result_values:
+                    results = {
+                        "jobs_enumerated": result_values.get("jobs_enumerated"),
+                        "jobs_imported": result_values.get("jobs_imported"),
+                        "matched_jobs": result_values.get("matched_jobs"),
+                    }
+            details = {
+                "company": company,
+                "triggers": triggers,
+                "attempt_state": state,
+                "attempt_count": _count(operation["attempt_count"]) if operation else 0,
+                "ats_provider": provider,
+                "confidence": confidence,
+                "confidence_basis": confidence_basis,
+                "evidence": evidence,
+                "source_created": source_created,
+                "results": results,
+                "error": error,
+            }
             result.append(_event(
-                identity("company-discovery-activity", profile_id, request["id"], "created"),
-                request["created_at"], "COMPANY_DISCOVERED", f"Discovered {company}",
+                identity("company-discovery-activity", profile_id, request["id"], "attempt"),
+                timestamp, event_type, summary, details,
             ))
 
         if associated_company_ids:

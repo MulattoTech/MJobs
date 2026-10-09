@@ -4,10 +4,15 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
+import httpx
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
+from services.company_discovery.domains import record_company_domain
+from services.discovery.sources.collect import collect_source, configure_source
+from tests.integration.test_greenhouse import RAW
 from tests.integration.test_spine import PROFILE
 
 
@@ -135,6 +140,118 @@ class CompanyDiscoveryActivityApiTests(unittest.TestCase):
                             for event in events))
         self.assertTrue(all(event["event_type"] != "COMPANY_DISCOVERY_DIAGNOSTIC"
                             for event in events))
+
+    def test_activity_explains_profile_discovery_trigger_attempt_evidence_and_safe_error(self):
+        source = configure_source(self.store, "activity-discovery")
+
+        def response(request):
+            if request.url.path.endswith("/jobs"):
+                return httpx.Response(200, json={"jobs": [RAW]})
+            return httpx.Response(200, json={"name": "Example Public Employer"})
+
+        collect_source(
+            self.store, source, "fixture", transport=httpx.MockTransport(response),
+        )
+        with self.store.engine.begin() as connection:
+            request = dict(connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.profile_id == "fixture"
+            )).mappings().one())
+            connection.execute(m.operations.insert().values(
+                id="company-history-attempt", kind="COMPANY_DISCOVER",
+                entity_id=request["company_id"],
+                params={"profile_id": "fixture", "private_url": "https://private.invalid/?token=x"},
+                state="DEAD_LETTERED", error="COMPANY_OFFICIAL_WEBSITE_NOT_FOUND",
+                updated_at="2026-10-08T10:10:00+00:00", attempt_count=2,
+                last_attempt_at="2026-10-08T10:09:00+00:00",
+                dead_lettered_at="2026-10-08T10:10:00+00:00",
+            ))
+            connection.execute(update(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == request["id"]
+            ).values(operation_id="company-history-attempt", authorization="USER_REVIEWED"))
+            connection.execute(m.audit.insert().values(
+                id="company-history-ats-match", entity_id=request["company_id"],
+                action="COMPANY_ATS_DETECTION_REVIEW",
+                timestamp="2026-10-08T10:08:00+00:00",
+                payload={"status": "MATCH", "provider": "greenhouse",
+                         "confidence": 0.94, "evidence": ["PUBLIC_API_BOARD"],
+                         "private_url": "https://private.invalid/ats"},
+            ))
+            connection.execute(m.audit.insert().values(
+                id="company-history-profile-discovered", entity_id="fixture",
+                action="COMPANY_DISCOVERED", timestamp="2026-10-08T10:07:00+00:00",
+                payload={"company_id": request["company_id"], "raw_payload": "PRIVATE"},
+            ))
+        record_company_domain(
+            self.store, request["company_id"], "employer.example",
+            "VERIFIED_EXISTING_DOMAIN", ["Synthetic first-party evidence"],
+        )
+
+        response = self.client.get("/profiles/fixture/company-discovery/activity")
+
+        self.assertEqual(response.status_code, 200, response.text)
+        attempt = next(event for event in response.json()["events"]
+                       if event["event_type"] == "COMPANY_DISCOVERY_ATTEMPT")
+        self.assertEqual(attempt["summary"], "Company discovery attempt needs review.")
+        self.assertEqual(attempt["details"]["company"], "Example Public Employer")
+        self.assertIn("Previously unseen company", attempt["details"]["triggers"])
+        self.assertIn("High-match job", attempt["details"]["triggers"])
+        self.assertEqual(attempt["details"]["attempt_state"], "DEAD_LETTERED")
+        self.assertEqual(attempt["details"]["attempt_count"], 2)
+        self.assertEqual(attempt["details"]["ats_provider"], "Greenhouse")
+        self.assertEqual(attempt["details"]["confidence"], 0.94)
+        self.assertEqual(attempt["details"]["confidence_basis"], "ATS detection")
+        self.assertIn("Official domain verified", attempt["details"]["evidence"])
+        self.assertFalse(attempt["details"]["source_created"])
+        self.assertEqual(
+            attempt["details"]["error"],
+            "No official employer website could be verified.",
+        )
+        self.assertNotIn("private.invalid", response.text)
+        self.assertNotIn("PUBLIC_API_BOARD", response.text)
+
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == "company-history-attempt"
+            ).values(error="https://private.invalid/raw?token=secret"))
+        unknown_error = self.client.get("/profiles/fixture/company-discovery/activity")
+        safe_attempt = next(event for event in unknown_error.json()["events"]
+                            if event["event_type"] == "COMPANY_DISCOVERY_ATTEMPT")
+        self.assertEqual(
+            safe_attempt["details"]["error"],
+            "The discovery attempt ended with an error that needs review.",
+        )
+        self.assertNotIn("private.invalid", unknown_error.text)
+        self.assertNotIn("secret", unknown_error.text)
+
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == "company-history-attempt"
+            ).values(state="COMPLETED", error=None,
+                     updated_at="2026-10-08T10:11:00+00:00"))
+            connection.execute(m.audit.insert(), [
+                {
+                    "id": "company-history-source-created", "entity_id": request["company_id"],
+                    "action": "COMPANY_SOURCE_DISCOVERED", "timestamp": "2026-10-08T10:10:00+00:00",
+                    "payload": {"jobs_enumerated": 5, "jobs_imported": 3,
+                                "endpoint": "https://private.invalid/feed"},
+                },
+                {
+                    "id": "company-history-feed-result", "entity_id": request["company_id"],
+                    "action": "COMPANY_FEED_IMPORT_COMPLETE", "timestamp": "2026-10-08T10:10:30+00:00",
+                    "payload": {"profile_id": "fixture", "jobs_enumerated": 5,
+                                "jobs_imported": 3, "matched_jobs": 2,
+                                "raw_payload": "PRIVATE"},
+                },
+            ])
+        completed = self.client.get("/profiles/fixture/company-discovery/activity")
+        completed_attempt = next(event for event in completed.json()["events"]
+                                 if event["event_type"] == "COMPANY_DISCOVERY_ATTEMPT")
+        self.assertTrue(completed_attempt["details"]["source_created"])
+        self.assertEqual(completed_attempt["details"]["results"], {
+            "jobs_enumerated": 5, "jobs_imported": 3, "matched_jobs": 2,
+        })
+        self.assertNotIn("private.invalid", completed.text)
+        self.assertNotIn("PRIVATE", completed.text)
 
 
 if __name__ == "__main__":
