@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-269"],
+  "github_issues": [270],
+  "result": "PARTIAL",
+  "scope": "Connected generated-document history already retains the exact fact IDs and resolves them against the immutable profile snapshot used at generation. The document history UI shows each referenced fact text, source, and verification/approval state. A focused acceptance verifies that a later profile edit does not rewrite the trace and that an unapproved fact is not exposed.",
+  "source": {
+    "branch": "codex/solo-270-document-fact-trace",
+    "commit": "2c13fcd553b446cef47dc08743bd4e92b360fc91",
+    "tree": "9c4985e47fcb9e1b3fd65ef78cdc74504682ea79"
+  },
+  "verified_at_utc": "2026-10-09T13:40:42Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixture database",
+    "frontend": "current local Vite production build and Chromium",
+    "external_network": "blocked by browser route guard"
+  },
+  "inputs_sha256": {
+    "apps/web/src/document-history.tsx": "06f75ab977297da242097d97bb9e6632640a834148400dc275b262e22a82792b",
+    "services/documents/history.py": "b3f5a3994ee31ed6a3d0cfc43730a65fa3159dfc05bbf11986625c25fd642324",
+    "packages/persistence/models.py": "8ca6c92ae1d61750449a1daa2486cfcb8e407cbea4b71032f504be7edc69be03",
+    "tests/browser/test_document_fact_trace.py": "5f4ab99509906b1fea1715cf46617491e3d1377676ae54d4bd33035150a337a1"
+  },
+  "checks": [
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_document_fact_trace -v",
+      "result": "PASS",
+      "evidence": "1 connected Chromium test passed on exact source commit 2c13fcd553b446cef47dc08743bd4e92b360fc91. API history returned the original python/sql fact IDs and text after a later profile edit. The user-visible history panel showed source and approval status and omitted the changed current text and an unapproved fact. No external requests were permitted."
+    },
+    {
+      "command": "..\\..\\.venv\\Scripts\\python.exe -m py_compile tests/browser/test_document_fact_trace.py; git diff HEAD^ --check",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_ats_templates tests.integration.test_cover_letter_workflow tests.integration.test_user_read_models -v",
+      "result": "PARTIAL",
+      "evidence": "9 of 10 tests passed. The one failure is the existing tamper-rejection test expecting the error text to include 'assertions'; the current validator rejects tampered bytes with 'Resume differs from its approved facts or reviewed story sources'. No unsafe acceptance occurred."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing advisory: generated JavaScript chunk exceeds 500 kB."
+    }
+  ],
+  "not_run": [
+    "Live AI-provider generated-document path; no provider inference was attempted",
+    "PostgreSQL integration",
+    "Hosted Actions or external review (disabled by local-only policy)",
+    "External application submission"
+  ],
+  "limitations": [
+    "The focused acceptance verifies the existing deterministic fact-backed generator and its immutable provenance projection; it does not establish behavior for an enabled live AI provider.",
+    "The broader pre-existing tests.browser.test_document_history suite was attempted and has unrelated failures in cover-letter alert selection and document-library reload/download. The focused fact-trace test passed independently."
+  ],
+  "safety": [
+    "Only approved fact IDs stored on the generated revision are resolved from the matching immutable profile version.",
+    "Current profile edits do not rewrite historical fact text; unapproved profile facts are not included in the saved document's references.",
+    "The test uses synthetic local data and blocks all external browser requests; external application submission remains OFF."
+  ]
+}
