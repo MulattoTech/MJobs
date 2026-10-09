@@ -1396,7 +1396,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-037-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged. Additional #137 / MJ-REQ-136 application preview integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-application-preview.json. This is a read-only review slice only; parent requirement and dependencies remain PARTIAL/QUEUED. Additional #134 / MJ-REQ-133 bounded dynamic-form slice integrated on main 6ade66fd9ad2d35362264df403cacfa493a9b416; evidence docs/evidence/2026-10-08-dynamic-form-conditional-field.json. Exact reviewed dependent dropdown mapping succeeds; unknown newly-required fields persist REVIEW_REQUIRED before review/submit. 42 browser/pipeline/preflight tests PASS. PR-037 remains QUEUED behind PR-036 and PR-030; parent requirement remains PARTIAL. Additional #134 / MJ-REQ-133 connected dynamic-form review integrated locally at 8a2c98135bb1748d7ec40658f11fdbc957a4468e; evidence docs/evidence/2026-10-09-dynamic-form-review.json. Profile/application/fingerprint-scoped browser-tab drafts restore after reload and require fresh review; external writes/submission remain OFF. Full requirement remains PARTIAL. Local issue #134 / MJ-REQ-133 device-draft recovery slice integrated at 31adef448b090cb04a4d0d5e237c9526b8d32b6f; evidence docs/evidence/2026-10-09-dynamic-form-device-draft.json; full PR remains QUEUED/PARTIAL.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged. Additional #137 / MJ-REQ-136 application preview integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-application-preview.json. This is a read-only review slice only; parent requirement and dependencies remain PARTIAL/QUEUED. Additional #134 / MJ-REQ-133 bounded dynamic-form slice integrated on main 6ade66fd9ad2d35362264df403cacfa493a9b416; evidence docs/evidence/2026-10-08-dynamic-form-conditional-field.json. Exact reviewed dependent dropdown mapping succeeds; unknown newly-required fields persist REVIEW_REQUIRED before review/submit. 42 browser/pipeline/preflight tests PASS. PR-037 remains QUEUED behind PR-036 and PR-030; parent requirement remains PARTIAL. Additional #134 / MJ-REQ-133 connected dynamic-form review integrated locally at 8a2c98135bb1748d7ec40658f11fdbc957a4468e; evidence docs/evidence/2026-10-09-dynamic-form-review.json. Profile/application/fingerprint-scoped browser-tab drafts restore after reload and require fresh review; external writes/submission remain OFF. Full requirement remains PARTIAL. Local issue #134 / MJ-REQ-133 device-draft recovery slice integrated at 31adef448b090cb04a4d0d5e237c9526b8d32b6f; evidence docs/evidence/2026-10-09-dynamic-form-device-draft.json; full PR remains QUEUED/PARTIAL. Additional #135 / MJ-REQ-134 profile-owned supporting-document selection integrated locally at 5065809d4bcfcb522d74cbf38c48efbdd74f09d5; exact feature source 2163f9da6edfd024b0115b89e964eb490310c1c1 (tree a83ce3136551953dfb23aca2281a590e719a94ba); evidence docs/evidence/2026-10-09-supporting-document-mock-application.json. Connected UI selection/reload, job-specific persistence, byte-verified mock upload, and archived-file pre-request recovery passed focused acceptance. Real ATS upload remains unsupported; PR-037 stays QUEUED/PARTIAL and external submission OFF.",
       "slice_history": [
         {
           "name": "Connected read-only application preview",
@@ -1437,6 +1437,21 @@
             "Synthetic local FIXTURE/mock-ATS only; live ATS, PostgreSQL, hosted checks, and full repository suite NOT_RUN.",
             "Reviewed answers persist in browser-tab sessionStorage only; no durable server-side answer storage or employer form write.",
             "External application submission remains OFF; parent requirement remains PARTIAL."
+          ]
+        },
+        {
+          "name": "Profile-owned supporting-document selection and mock application upload",
+          "issue": 135,
+          "requirement_id": "MJ-REQ-134",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "5065809d4bcfcb522d74cbf38c48efbdd74f09d5",
+          "source_commit": "2163f9da6edfd024b0115b89e964eb490310c1c1",
+          "source_tree": "a83ce3136551953dfb23aca2281a590e719a94ba",
+          "evidence_path": "docs/evidence/2026-10-09-supporting-document-mock-application.json",
+          "validation": "Exact source commit: API plus connected Chromium 6/6; web 544/544; TypeScript/Vite production build; compilation, diff check and lane validation PASS. Two adjacent legacy mock-browser failures reproduce on baseline main.",
+          "limitations": [
+            "Fictional local mock ATS only; real ATS upload adapters unsupported.",
+            "External submission OFF; hosted checks and PostgreSQL NOT_RUN."
           ]
         }
       ]
@@ -4966,5 +4981,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T15:32:11Z"
+  "generated_at": "2026-10-09T17:58:27Z"
 }

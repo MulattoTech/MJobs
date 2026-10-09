@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T17:32:37Z",
+  "timestamp": "2026-10-09T17:58:27Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1239,9 +1239,11 @@
     },
     {
       "requirement_id": "MJ-REQ-134",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-supporting-document-mock-application.json"
+      ],
+      "note": "Connected profile- and application-scoped supporting-document selection is durable and reloadable for a prepared fictional mock ATS application. The mock dry run verifies selected revision identity and bytes, uploads only the selected file, records the upload step, and stops before submission; archived selections require manual review before any mock request. Evidence: docs/evidence/2026-10-09-supporting-document-mock-application.json. Real ATS upload adapters remain unsupported; external submission, hosted checks, and PostgreSQL validation are NOT_RUN. Full MJ-REQ-134 remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-135",
