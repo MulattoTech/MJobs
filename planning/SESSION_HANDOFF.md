@@ -1801,3 +1801,12 @@ Issue #517 linked-record usability slice is integrated locally at main ceb067c7f
 Exact local checks: focused web 16/16, TypeScript/Vite build, source-candidate integration 10/10, connected Chromium 1/1, Python compilation, coordination validation and diff checks PASS. PostgreSQL, full repository suite, live providers, and hosted checks/review NOT_RUN. Issue #517 remains OPEN/PARTIAL; local issue receipt: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6088961735. Local main is not pushed; external application submission OFF.
 
 Next: continue #517 by checking remaining manual, external-application and supported-browser capture paths, then select a dependency-ready source-evaluation or integration-task gap without overlapping source-provider work. Preserve untracked docs/evidence/2026-10-08-compose-target-isolation.json and all non-root claims/worktrees.
+
+
+## 2026-10-09T20:51:32Z — solo #517 linked-record navigation
+
+Issue #517 source-candidate history now shows linked job title/company and profile-scoped application state, and opens the linked Jobs detail or Applications review from the selected profile when complete linked context is available. The connected browser path navigates to both and returns to the review queue. Local main: ea6cc9601bf2950e87c73d1229fb142d2364768a (tree fe17ca92a41650df01eaccd3b831f29b8accb904), integrated from tested source 725c2e94fb4ce8c4379c65ea9e76e8b2659e9851 (tree 1ab0e7cd52a9b392f383f957a1c18d1f39e7ceb5). Evidence: docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json.
+
+Exact checks: focused web 25/25, TypeScript/Vite build, source-candidate integration 10/10, connected Chromium 1/1, Python compilation, lane validation and diff checks PASS. No outbound source request, source collection, or application submission. PostgreSQL, full suite, live providers, and hosted checks/review NOT_RUN. Issue #517 remains OPEN/PARTIAL; local receipt: https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089049795. No push.
+
+Next: continue #517 with one dependency-ready capture-intake or source-evaluation/integration gap after checking live claims. Preserve untracked docs/evidence/2026-10-08-compose-target-isolation.json, other branches/worktrees, and unrelated claims.

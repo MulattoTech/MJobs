@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-FEATURE-517-LINKED-RECORD-CONTEXT-20261009",
-  "current_objective": "Make source-candidate review history understandable by displaying profile-scoped linked job and application context.",
+  "current_milestone": "MJ-FEATURE-517-LINKED-RECORD-NAVIGATION-20261009",
+  "current_objective": "Open profile-scoped captured job and application records directly from source-candidate history.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -721,7 +721,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #517 by checking remaining manual, external-application and supported-browser capture paths, then complete one dependency-ready source-evaluation or integration-task gap without overlapping existing source-provider work.",
+  "recommended_resume_step": "Continue issue #517 by selecting one uncovered dependency-ready capture-intake or source-evaluation/integration acceptance gap. Preserve profile boundaries, provenance, collection OFF, and no external application submission.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -14360,12 +14360,67 @@
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": []
+    },
+    {
+      "milestone_id": "MJ-FEATURE-517-LINKED-RECORD-NAVIGATION-20261009",
+      "timestamp": "2026-10-09T20:51:32Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Source review history displays linked job title/company and profile-scoped recorded application state.",
+        "Users can open the linked job detail or saved application review directly from a candidate observation when the API returns complete linked context.",
+        "Connected browser flow returned to source review and continued the existing review/retry sequence; no outbound source request, collection, or application submission occurred.",
+        "Integrated tested code and evidence by non-force fast-forward; issue #517 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "apps/web/src/source-candidate-review.tsx",
+        "apps/web/src/source-candidate-review-panel.tsx",
+        "apps/web/src/source-candidate-review.test.tsx",
+        "tests/browser/test_source_candidate_review_panel_connected.py",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused web tests: 25 passed",
+        "TypeScript/Vite production build passed with existing large-chunk advisory",
+        "Source-candidate integration: 10 passed; connected Chromium: 1 passed",
+        "Python compilation, coordination validation, and diff checks passed"
+      ],
+      "tests_remaining": [
+        "PostgreSQL and full repository suites",
+        "Live providers and hosted checks/review NOT_RUN_BY_USER_POLICY"
+      ],
+      "known_limitations": [
+        "Only bounded review-history navigation is accepted; full source catalogue #517 remains PARTIAL.",
+        "Local main is not pushed; origin/main remains unchanged.",
+        "External application submission remains OFF; review does not enable source collection."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "ea6cc9601bf2950e87c73d1229fb142d2364768a",
+        "evidence_path": "docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json"
+      },
+      "integrated_main": "ea6cc9601bf2950e87c73d1229fb142d2364768a",
+      "source_commit": "725c2e94fb4ce8c4379c65ea9e76e8b2659e9851",
+      "source_tree": "1ab0e7cd52a9b392f383f957a1c18d1f39e7ceb5",
+      "acceptance": "PASS for linked job/application history navigation; broader #517 remains PARTIAL.",
+      "evidence_path": "docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089049795",
+      "limitations": [
+        "PostgreSQL/full suite/live providers/hosted checks NOT_RUN; external submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": []
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "ceb067c7f7c4556ddb17e2e0935a2c108b2a018c",
-    "evidence_path": "docs/evidence/2026-10-09-source-candidate-linked-record-context.json"
+    "git_commit": "ea6cc9601bf2950e87c73d1229fb142d2364768a",
+    "evidence_path": "docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -16028,15 +16083,15 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T20:44:59Z",
-  "current_verified_local_state": "Issue #517 linked-record review context integrated at local main ceb067c7f7c4556ddb17e2e0935a2c108b2a018c (tree 8ee1f3f735a617c72a007043ee04d4b644f2d067), from tested source ed01ceac20dfa9876172662ad4e954ef13696f84 (tree 5e723685d28f4fab375acb537d659cdc401d1c33). Source review history shows linked job title/company and profile-scoped recorded application state; client rejects empty or mismatched linked context. Evidence docs/evidence/2026-10-09-source-candidate-linked-record-context.json. Broader source-catalogue acceptance remains OPEN/PARTIAL.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #517 remains OPEN/PARTIAL; local receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6088961735. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live providers NOT_RUN; external submission OFF.",
+  "updated_at": "2026-10-09T20:51:32Z",
+  "current_verified_local_state": "Issue #517 linked-record display and navigation are integrated locally at main ea6cc9601bf2950e87c73d1229fb142d2364768a (tree fe17ca92a41650df01eaccd3b831f29b8accb904), from tested source 725c2e94fb4ce8c4379c65ea9e76e8b2659e9851 (tree 1ab0e7cd52a9b392f383f957a1c18d1f39e7ceb5). Candidate history displays job title/company and application state, with actions to open the profile-scoped Jobs detail and Applications review when linked context is complete. Evidence docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json; broader #517 remains OPEN/PARTIAL.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #517 remains OPEN/PARTIAL; local receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089049795. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live providers NOT_RUN; external submission OFF.",
   "next_candidates": [
     {
       "issue": 517,
       "requirement_id": null,
-      "status": "Continue #517: verify remaining capture entry points and complete a bounded source evaluation/integration-task path; preserve provenance, profile boundaries, collection OFF, and no external submission."
+      "status": "Continue #517 with one dependency-ready capture-intake or source-evaluation/integration gap after verifying ownership; linked history is now understandable and navigable."
     }
   ],
-  "current_verified_at": "2026-10-09T20:44:59Z"
+  "current_verified_at": "2026-10-09T20:51:32Z"
 }
