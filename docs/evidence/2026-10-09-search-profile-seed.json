@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-252-REMOTE-INFRASTRUCTURE-SEARCH-SEED-20261009",
+  "requirement_ids": ["MJ-REQ-252"],
+  "github_issues": [253],
+  "result": "PASS",
+  "scope": "Provide an editable Remote Infrastructure / SysAdmin example with the ten specified IT titles, remote required, and full-time employment. Saving uses the existing profile-scoped search API; users can select the persisted profile after reload to filter Jobs. Scheduled discovery remains disabled until the user enables it.",
+  "source": {
+    "branch": "codex/solo-252-search-profile-seed-20261009",
+    "commit": "04b9cab642512913cd2eba9c293484be7e53d9e0",
+    "tree": "c87ccbdc5127c1380c3cf7e2f82e08bc47b9ac59",
+    "integrated_main": "04b9cab642512913cd2eba9c293484be7e53d9e0"
+  },
+  "verified_at_utc": "2026-10-09T16:13:41Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixture",
+    "frontend": "local Vite production build and connected Chromium",
+    "delivery": "local-only; no push or hosted automation"
+  },
+  "input_sha256": {
+    "apps/web/src/main.tsx": "A8A608E08C0F250C9813A61B98749B45CE4A2DA8FBB035B3E1BA944D57AD628A",
+    "apps/web/src/search-profile-seed.tsx": "7B2D16CA9BBB3F39FFC565496C9CA8616F42A4C939F4FC015D6B302BB9165733",
+    "apps/web/src/search-profile-seed.test.tsx": "10C56E8BDB911930FB331D934F36B35E7CAB98B76D999D90D5CD6DC0541A510E",
+    "tests/browser/test_search_profile_seed.py": "6F091F5F87D4A7E80E0D1EB2DF8ABC6326A017BCB197BCC923657E396203DDF4",
+    "tests/browser/test_search_profile_selection.py": "C74FFB15C58539BE1F5D27CC4AD758707BD4B8C47BE4E77947EA335AAFF2E99F"
+  },
+  "acceptance": [
+    "The user can load the documented ten-title example into editable search fields; loading does not save, submit, enable scheduling, or contact an external source.",
+    "The user can save it through the existing API. Connected browser readback verifies all titles, REQUIRED remote preference, FULL_TIME employment, no source restriction, and a disabled scheduler.",
+    "After reload, the saved search appears under the active profile. Selecting it in Jobs sends the persisted search_profile_id in the jobs query.",
+    "The example is profile-scoped, and the adjacent profile-isolation regression passes."
+  ],
+  "checks": [
+    {
+      "command": "npm test --prefix apps/web -- --run search-profile-seed.test.tsx",
+      "result": "PASS",
+      "evidence": "1 file, 2 tests passed."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "evidence": "94 frontend test files and 536 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing advisory: generated JavaScript chunk is 748.34 kB, above the 500 kB warning threshold."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_search_profile_seed tests.browser.test_saved_search_schedule tests.browser.test_search_profile_selection",
+      "result": "PASS",
+      "evidence": "Three connected Chromium acceptance tests passed. The seed test observed zero external requests, zero collection requests, and zero queued worker operations."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_search_profile_seed.py tests/browser/test_search_profile_selection.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Changed Python tests compile and the source diff has no whitespace errors."
+    }
+  ],
+  "not_run": [
+    "PostgreSQL search-profile persistence acceptance and the full Python repository suite.",
+    "Hosted Actions/review (disabled by local-only policy).",
+    "Live external job-source collection; this seed verification deliberately made no provider request.",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "This delivers the example profile only; it does not imply that listed job sources have live coverage or that a matching job exists.",
+    "The user must explicitly choose a saved search and separately enable scheduled collection if desired."
+  ],
+  "safety": [
+    "The seed loads draft field values only and creates no record until the user saves it.",
+    "Source selection resets to all enabled sources; schedule remains off by default.",
+    "The verification blocks all external browser requests and performs no application submission."
+  ]
+}
