@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-08T21:38:15Z",
+  "generated_at": "2026-10-09T01:18:26Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main at 260cf9f090f4706d2c2994534b35ff95f6608908 (tree 66739379ddcbc35c730f2ea78e7ffdcde26df5a7) after integrating the job-specific role-lens document-preparation flow; main is locally ahead of origin/main.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push performed. Hosted Actions/reviews remain disabled by policy; external submission remains OFF.",
-    "current_verified_at": "2026-10-08T21:38:15Z"
+    "current_verified_local_state": "Local main d61eabcd9276bc519e40cbe0154fe5bce3945260 (tree d43c562f67b569f9987cf0e94e2410ffc3734dbc) contains the connected answer matching review slice plus advisory job quality and recruiter classification features. Exact focused Python/API/browser/Vitest/build checks are recorded in docs/evidence/2026-10-09-core-feature-integration-batch.json. Main remains ahead of origin; the pre-existing untracked docs/evidence/2026-10-08-compose-target-isolation.json is preserved.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issues #242 and #243 remain OPEN after local acceptance. Hosted checks remain NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+    "current_verified_at": "2026-10-09T01:18:26Z"
   },
-  "current_milestone": "CORE-FEATURE-BATCH-20261008-ROLE-LENS-DOCUMENT-PREPARATION",
-  "current_objective": "Advance the role-lens capability into live job matching, then continue dependency-ready core product features.",
+  "current_milestone": "CORE-FEATURE-BATCH-20261009-ANSWER-MATCHING-AND-JOB-QUALITY",
+  "current_objective": "Advance the connected jobseeker workflow through dependency-ready discovery, matching, truthful document preparation, reviewed application preparation, and tracking slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -596,13 +596,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
-    "tree": "66739379ddcbc35c730f2ea78e7ffdcde26df5a7",
-    "result": "PASS for connected job-specific role-lens document preparation; MJ-REF-001 remains PARTIAL pending search/match integration.",
+    "commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+    "tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
+    "result": "PASS for the connected answer-matching review slice and requirements MJ-REQ-241/MJ-REQ-242; MJ-REQ-104 remains PARTIAL and product release remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-08-role-lens-document-preparation.json"
+      "docs/evidence/2026-10-09-core-feature-integration-batch.json"
     ],
-    "verified_at_utc": "2026-10-08T21:38:15Z"
+    "verified_at_utc": "2026-10-09T01:18:26Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -703,7 +703,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
+  "last_implementation_commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
   "publication": {
     "result": "PASS_SOURCE_SYNC_AT_CHECKPOINT; TRACKER_BATCH_LOCAL",
     "integration_method": "Ordinary non-force fast-forward under the root integration lock; no PR opened.",
@@ -12043,64 +12043,72 @@
       }
     },
     {
-      "milestone_id": "CORE-FEATURE-BATCH-20261008-ROLE-LENS-DOCUMENT-PREPARATION",
+      "milestone_id": "CORE-FEATURE-BATCH-20261009-ANSWER-MATCHING-AND-JOB-QUALITY",
       "current_phase": "CORE_FEATURE_IMPLEMENTATION",
-      "timestamp": "2026-10-08T21:38:15Z",
+      "timestamp": "2026-10-09T01:18:26Z",
       "completed_steps": [
-        "Integrated the user-selected role-lens picker and explicit selection loader into document preparation.",
-        "Confirmed PREPARE receives only a profile/job-readback-confirmed lens ID and expected version; generation persists lens provenance for document history.",
-        "Kept issue #371 / MJ-REF-001 PARTIAL because the live search-result match explanation does not yet use the selected lens."
+        "Integrated issue #105 answer-matching review flow and the #242/#243 user-visible job quality features to local main by non-force fast-forward.",
+        "Verified profile/job scoped recruiter classification and advisory risk evidence through API, UI and connected synthetic-browser flows.",
+        "Marked MJ-REQ-241 and MJ-REQ-242 PASS; preserved MJ-REQ-104 PARTIAL for incomplete broad semantic matching.",
+        "Updated the affected requirement rows, queue history and generated progress dashboard under the integration lock."
       ],
       "files_added": [
-        "docs/evidence/2026-10-08-role-lens-document-preparation.json",
-        "tests/integration/test_role_lens_application_mount.py"
+        "docs/evidence/2026-10-09-core-feature-integration-batch.json"
       ],
       "files_modified": [
         "apps/api/main.py",
         "apps/web/src/main.tsx",
-        "apps/web/src/document-history.tsx",
-        "workers/tasks.py",
-        "planning/REFERENCE_GAP_MATRIX.json",
+        "apps/web/src/job-risk-signals.tsx",
+        "apps/web/src/recruiter-classification.tsx",
+        "tests/browser/test_job_risk_signals.py",
+        "tests/browser/test_recruiter_classification.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
         "docs/PROGRESS_DASHBOARD.md"
       ],
       "tests_completed": [
-        "16 focused Python unit/API/integration tests PASS.",
-        "Connected Chromium role-lens document-preparation test 1/1 PASS.",
-        "Frontend tests 201/201 PASS; strict TypeScript/Vite build PASS.",
-        "Agent-skill, reference-provenance, catalogue, progress journal, dashboard and diff checks PASS."
+        "Risk and recruiter service/API: 43 Python tests and 3 subtests PASS.",
+        "Risk and recruiter connected Chromium browser tests: 2/2 PASS.",
+        "Risk and recruiter frontend tests: 11 PASS; TypeScript/Vite build PASS.",
+        "Answer matching unit/API/browser suite: 22 tests and 10 subtests PASS; connected browser tests include 2/2 PASS.",
+        "Answer matching frontend tests: 18 PASS; TypeScript/Vite build PASS.",
+        "Agent skills, catalogue, progress journal, progress dashboard check, and git diff --check PASS."
       ],
       "tests_remaining": [
-        "PostgreSQL runtime and full repository suite NOT_RUN.",
-        "Hosted Actions and hosted review NOT_RUN_BY_USER_POLICY.",
-        "Search/match explanation and matching-specific lens UI are not implemented."
+        "Full repository Python/browser/frontend suite NOT_RUN for this batch.",
+        "PostgreSQL runtime NOT_RUN.",
+        "Hosted Actions/reviews NOT_RUN_BY_USER_POLICY.",
+        "Product-wide release acceptance remains PARTIAL."
       ],
       "migrations_applied": [],
       "live_integrations_tested": [
-        "Synthetic local React UI/API/worker/database flow in FIXTURE mode; no external request or application submission."
+        "Synthetic local browser/API/SQLite flows in FIXTURE mode; no external requests or application submissions."
       ],
       "known_errors": [],
       "known_limitations": [
-        "MJ-REF-001 and issue #371 remain PARTIAL until role-lens influence is visible in live match explanations.",
-        "Local main is ahead of origin/main; no push performed."
+        "MJ-REQ-104 remains PARTIAL for broad semantic matching.",
+        "Origin main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created under the local-only workflow.",
+        "Issues #242 and #243 remain OPEN after local requirement acceptance."
       ],
       "last_safe_checkpoint": {
-        "git_commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
-        "tree": "66739379ddcbc35c730f2ea78e7ffdcde26df5a7",
+        "git_commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+        "tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
         "branch": "main",
-        "issue": "#371 / MJ-REF-001 role-lens document-preparation slice",
-        "evidence_path": "docs/evidence/2026-10-08-role-lens-document-preparation.json",
-        "note": "Local connected role-lens document preparation verified; issue remains PARTIAL because search-result/match explanation integration is outstanding."
+        "issue": "#105 / #242 / #243 connected answer matching and job quality features",
+        "evidence_path": "docs/evidence/2026-10-09-core-feature-integration-batch.json",
+        "note": "Integrated by non-force fast-forward to local main. Focused connected UI/API/browser checks pass. Origin main remains unchanged by local-only policy."
       }
     }
   ],
   "current_phase": "CORE_FEATURE_IMPLEMENTATION",
   "last_safe_checkpoint": {
-    "git_commit": "260cf9f090f4706d2c2994534b35ff95f6608908",
-    "tree": "66739379ddcbc35c730f2ea78e7ffdcde26df5a7",
+    "git_commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+    "tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
     "branch": "main",
-    "issue": "#371 / MJ-REF-001 role-lens document-preparation slice",
-    "evidence_path": "docs/evidence/2026-10-08-role-lens-document-preparation.json",
-    "note": "Local connected role-lens document preparation verified; issue remains PARTIAL because search-result/match explanation integration is outstanding."
+    "issue": "#105 / #242 / #243 connected answer matching and job quality features",
+    "evidence_path": "docs/evidence/2026-10-09-core-feature-integration-batch.json",
+    "note": "Integrated by non-force fast-forward to local main. Focused connected UI/API/browser checks pass. Origin main remains unchanged by local-only policy."
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13625,9 +13633,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-08T21:38:15Z",
-  "current_verified_local_state": "Local main source checkpoint 0214b4bf022cee4bb8498468aa7535decb71392e (tree b5c7e67a9ba5b1ba1e96879641dd2f919a3a160c) includes the #192 per-saved-search cadence scheduler: enable/edit/disable, profile-scoped durable DISCOVER enqueue, idempotency/recovery, and connected UI save/readback. Exact evidence is docs/evidence/2026-10-08-saved-search-scheduler.json. 26 focused Python tests, Chromium 1/1, frontend 136/136, build and local validators PASS. #96 uploaded-base comparison follow-up remains unintegrated; Tech reports the API v5 skill-order case still returns 409 and needs diagnosis.",
-  "current_verified_github_state": "Local main, origin/main and GitHub main synchronized at 0214b4bf022cee4bb8498468aa7535decb71392e for the #192 source checkpoint. The scheduler issue receipt is recorded at https://github.com/MulattoTech/MJobs/issues/192#issuecomment-6065967967. GitHub Actions/hosted checks remain disabled or NOT_RUN_BY_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T01:18:26Z",
+  "current_verified_local_state": "Local main d61eabcd9276bc519e40cbe0154fe5bce3945260 (tree d43c562f67b569f9987cf0e94e2410ffc3734dbc) contains the connected answer matching review slice plus advisory job quality and recruiter classification features. Exact focused Python/API/browser/Vitest/build checks are recorded in docs/evidence/2026-10-09-core-feature-integration-batch.json. Main remains ahead of origin; the pre-existing untracked docs/evidence/2026-10-08-compose-target-isolation.json is preserved.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issues #242 and #243 remain OPEN after local acceptance. Hosted checks remain NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 371,

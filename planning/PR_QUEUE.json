@@ -989,7 +989,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-029-career-profile-documents",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest bounded local slice 105 / MJ-REQ-104 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-answer-semantic-matching.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #108 / MJ-REQ-107 exact legal profile-value preflight integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-legal-question-preflight.json. Broader legal fields, matching and combined workflow remain PARTIAL; dependencies/status unchanged. Additional #105 / MJ-REQ-104 opposite-polarity guard integrated on synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b; evidence docs/evidence/2026-10-08-answer-match-polarity-guard.json. Exact source tests: 33 Python unit/integration, 101 frontend, 4 browser, TypeScript/Vite build, py_compile and source hashes PASS; local delegated review found no material blocker. Common explicit negation only; parent dependencies/status unchanged and requirement remains PARTIAL. Additional #105 / MJ-REQ-104 exact weekend availability curated aliases and unavailable-polarity guard integrated at main 9808cdce34ab0302bf5231b09d6ae5fd56a33b81; evidence docs/evidence/2026-10-08-answer-weekend-availability-semantic-match.json. Python 39, connected feature browser 1, frontend 104, build, hashes and local review pass. A separate existing confidence-threshold browser shutdown failure remains recorded; broad answer semantics and PR dependencies remain PARTIAL/unchanged. Additional #107 / MJ-REQ-106 integrated as a bounded partial at 9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8; profile-configured sensitive responses are visibly attributed and remain user-selected/review-gated per application. Evidence docs/evidence/2026-10-08-sensitive-answer-policy.json; 17 focused Python/API/Chromium, frontend 127, build and diff PASS. Broader acceptance and existing PR-029 dependencies/status remain unchanged; external submission OFF.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Latest bounded local slice 105 / MJ-REQ-104 integrated on tested candidate b96700264ac660c91b5be0093b979607ddfd6267; evidence docs/evidence/2026-10-08-answer-semantic-matching.json. Parent aggregate status and dependencies are unchanged; broader acceptance remains PARTIAL. Additional #108 / MJ-REQ-107 exact legal profile-value preflight integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-legal-question-preflight.json. Broader legal fields, matching and combined workflow remain PARTIAL; dependencies/status unchanged. Additional #105 / MJ-REQ-104 opposite-polarity guard integrated on synchronized main d6a8f519ccc8cf6de3943effb2afc037fd89920b; evidence docs/evidence/2026-10-08-answer-match-polarity-guard.json. Exact source tests: 33 Python unit/integration, 101 frontend, 4 browser, TypeScript/Vite build, py_compile and source hashes PASS; local delegated review found no material blocker. Common explicit negation only; parent dependencies/status unchanged and requirement remains PARTIAL. Additional #105 / MJ-REQ-104 exact weekend availability curated aliases and unavailable-polarity guard integrated at main 9808cdce34ab0302bf5231b09d6ae5fd56a33b81; evidence docs/evidence/2026-10-08-answer-weekend-availability-semantic-match.json. Python 39, connected feature browser 1, frontend 104, build, hashes and local review pass. A separate existing confidence-threshold browser shutdown failure remains recorded; broad answer semantics and PR dependencies remain PARTIAL/unchanged. Additional #107 / MJ-REQ-106 integrated as a bounded partial at 9287de43eba3168f2c4d5f3ecd3e9e7c2f21f1d8; profile-configured sensitive responses are visibly attributed and remain user-selected/review-gated per application. Evidence docs/evidence/2026-10-08-sensitive-answer-policy.json; 17 focused Python/API/Chromium, frontend 127, build and diff PASS. Broader acceptance and existing PR-029 dependencies/status remain unchanged; external submission OFF. Additional issue #105 connected answer-matching review flow integrated PARTIAL on local main d61eabcd9276bc519e40cbe0154fe5bce3945260; evidence docs/evidence/2026-10-09-core-feature-integration-batch.json. Exact local checks: Python 22 tests/10 subtests, two connected browser tests, 18 web tests, build and diff check PASS. Broad semantic matching remains incomplete; queue status and dependencies unchanged.",
       "slice_history": [
         {
           "name": "Curated cloud question paraphrase",
@@ -1044,6 +1044,20 @@
           "limitations": [
             "MJ-REQ-106 and MJ-PR-029 remain PARTIAL/QUEUED; broader semantic matching and legal-field coverage, plus durable unsaved drafts, remain incomplete.",
             "PostgreSQL, hosted checks/review, live production ATS, and real external submission were not run; submission remains OFF."
+          ]
+        },
+        {
+          "name": "Connected answer matching review flow",
+          "issue": 105,
+          "requirement_id": "MJ-REQ-104",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+          "candidate_tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
+          "evidence_path": "docs/evidence/2026-10-09-core-feature-integration-batch.json",
+          "validation": "PASS: 22 Python tests and 10 subtests; two connected browser tests; 18 frontend tests; TypeScript/Vite build and diff check.",
+          "limitations": [
+            "Broad semantic matching remains incomplete.",
+            "Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
           ]
         }
       ]
@@ -2466,7 +2480,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-065-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Parent remains QUEUED with dependencies MJ-PR-064 and MJ-PR-057 unchanged. The dependency-independent issue #240 / MJ-REQ-239 notes slice is integrated PASS; other parent requirements remain incomplete.",
+      "notes": "Parent remains QUEUED with dependencies MJ-PR-064 and MJ-PR-057 unchanged. The dependency-independent issue #240 / MJ-REQ-239 notes slice is integrated PASS; other parent requirements remain incomplete. Additional dependency-independent issues #242 / MJ-REQ-241 and #243 / MJ-REQ-242 integrated PASS on local main d61eabcd9276bc519e40cbe0154fe5bce3945260; evidence docs/evidence/2026-10-09-core-feature-integration-batch.json. The aggregate PR-065 remains QUEUED with MJ-PR-064/MJ-PR-057 dependencies and requirements #239/#240 unchanged.",
       "active_slice": {
         "issue": 240,
         "requirement_id": "MJ-REQ-239",
@@ -2515,7 +2529,45 @@
         "tested_tree": "5f3d7364e0cbe2edccbfee05386a1e9591c791f3",
         "integration_receipt": "https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052950378",
         "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/240#issuecomment-6052969166"
-      }
+      },
+      "slice_history": [
+        {
+          "name": "Evidence-backed advisory recruiter classification",
+          "issue": 242,
+          "requirement_id": "MJ-REQ-241",
+          "status": "INTEGRATED_PASS",
+          "integration_commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+          "integration_tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "evidence_path": "docs/evidence/2026-10-09-core-feature-integration-batch.json",
+          "local_validation": {
+            "python_service_api": "29 PASS",
+            "connected_browser": "1 PASS",
+            "web": "6 PASS",
+            "typescript_vite_build": "PASS",
+            "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+          },
+          "issue_state_at_checkpoint": "OPEN"
+        },
+        {
+          "name": "Advisory job quality risk signals",
+          "issue": 243,
+          "requirement_id": "MJ-REQ-242",
+          "status": "INTEGRATED_PASS",
+          "integration_commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+          "integration_tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "evidence_path": "docs/evidence/2026-10-09-core-feature-integration-batch.json",
+          "local_validation": {
+            "python_service_api": "14 PASS and 3 subtests",
+            "connected_browser": "1 PASS",
+            "web": "5 PASS",
+            "typescript_vite_build": "PASS",
+            "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+          },
+          "issue_state_at_checkpoint": "OPEN"
+        }
+      ]
     },
     {
       "id": "MJ-PR-066",
@@ -4733,5 +4785,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-08T17:02:26Z"
+  "generated_at": "2026-10-09T01:18:26Z"
 }

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "observed_at_utc": "2026-10-09T01:18:26Z",
+  "repository": "MulattoTech/MJobs",
+  "integration": {
+    "branch": "main",
+    "commit": "d61eabcd9276bc519e40cbe0154fe5bce3945260",
+    "tree": "d43c562f67b569f9987cf0e94e2410ffc3734dbc",
+    "method": "NON_FORCE_FAST_FORWARD",
+    "remote_push": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "external_application_submission": "OFF"
+  },
+  "accepted_requirements": [
+    {
+      "issue": 242,
+      "requirement_id": "MJ-REQ-241",
+      "result": "PASS",
+      "outcome": "Job detail shows an explicitly requested, profile/job scoped classification using attributable evidence; missing or ambiguous evidence stays UNKNOWN, and staffing firms remain visible with advisory explanation.",
+      "validation": {
+        "python_service_and_api": "PASS: 29 tests",
+        "connected_browser": "PASS: 1 test",
+        "web_component_tests": "PASS: 6 tests",
+        "typescript_vite_build": "PASS"
+      }
+    },
+    {
+      "issue": 243,
+      "requirement_id": "MJ-REQ-242",
+      "result": "PASS",
+      "outcome": "Job detail displays bounded advisory evidence for salary, payment requests, messaging-only interviews, suspicious domains, unknown employer identity, and reused text. Missing evidence remains UNKNOWN; findings never block or reject jobs.",
+      "validation": {
+        "python_service_and_api": "PASS: 14 tests plus 3 subtests",
+        "connected_browser": "PASS: 1 test",
+        "web_component_tests": "PASS: 5 tests",
+        "typescript_vite_build": "PASS"
+      }
+    }
+  ],
+  "partial_requirement_slices": [
+    {
+      "issue": 105,
+      "requirement_id": "MJ-REQ-104",
+      "result": "PARTIAL",
+      "outcome": "Connected answer matching review and selection is integrated and locally exercised. Broad semantic matching remains incomplete; this slice does not promote the full requirement.",
+      "validation": {
+        "python_unit_api_browser": "PASS: 22 tests and 10 subtests",
+        "web_component_tests": "PASS: 18 tests",
+        "typescript_vite_build": "PASS"
+      }
+    }
+  ],
+  "shared_validation": {
+    "risk_and_recruiter_python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_job_risk_signals.py tests/integration/test_job_risk_signals_api.py tests/unit/test_recruiter_classification.py tests/integration/test_recruiter_classification_api.py -q",
+    "risk_and_recruiter_browser_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/browser/test_job_risk_signals.py tests/browser/test_recruiter_classification.py -q --tb=short",
+    "risk_and_recruiter_web_command": "npm test --prefix apps/web -- --run job-risk-signals recruiter-classification",
+    "answer_matching_python_command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_answer_matching.py tests/integration/test_application_answer_matching_api.py tests/browser/test_application_answer_matching_connected.py tests/browser/test_application_answer_matching_review_flow.py -q --tb=short",
+    "answer_matching_web_command": "npm test --prefix apps/web -- --run application-answer-matching",
+    "build_command": "npm run build --prefix apps/web",
+    "diff_check": "PASS"
+  },
+  "limitations": [
+    "The new job quality and recruiter requirements passed the stated local acceptance scope; no hosted checks or external review ran under local-only policy.",
+    "Original requirement MJ-REQ-104 remains PARTIAL for broad semantic matching.",
+    "The product-wide release remains PARTIAL."
+  ]
+}

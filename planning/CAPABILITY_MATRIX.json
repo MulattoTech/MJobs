@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-08T17:02:26Z",
+  "timestamp": "2026-10-09T01:18:26Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -994,9 +994,10 @@
         "docs/evidence/2026-10-08-answer-semantic-matching.json",
         "docs/evidence/2026-10-08-answer-semantic-match-refinement.json",
         "docs/evidence/2026-10-08-answer-match-polarity-guard.json",
-        "docs/evidence/2026-10-08-answer-weekend-availability-semantic-match.json"
+        "docs/evidence/2026-10-08-answer-weekend-availability-semantic-match.json",
+        "docs/evidence/2026-10-09-core-feature-integration-batch.json"
       ],
-      "note": "Deterministic, curated ITSM to IT service management expansion is now shown with an explainable match score and explicit per-job answer selection/review; durable export provenance and service-desk near-miss/sensitive-question controls pass locally. Full requirement remains PARTIAL. Additional bounded slice: opposite-polarity saved-answer suggestions and export reuse are blocked for common explicit negation cues; rejected export creates no document, while deliberate per-job manual review remains available. Evidence docs/evidence/2026-10-08-answer-match-polarity-guard.json. Full requirement remains PARTIAL. Additional exact ordinary weekend availability aliases are integrated at main 9808cdce34ab0302bf5231b09d6ae5fd56a33b81. The backend and client return CURATED_SEMANTIC 0.95 for the two narrow variants and preserve weekday, unavailable, explicit-polarity and sensitive/legal rejection. Exact checks: 39 Python unit/API tests, 1 connected feature browser, 104 frontend tests, build, compile, hashes, diff and local delegated review PASS. One adjacent profile-threshold browser server-shutdown failure remains recorded; broad matching remains PARTIAL."
+      "note": "Deterministic, curated ITSM to IT service management expansion is now shown with an explainable match score and explicit per-job answer selection/review; durable export provenance and service-desk near-miss/sensitive-question controls pass locally. Full requirement remains PARTIAL. Additional bounded slice: opposite-polarity saved-answer suggestions and export reuse are blocked for common explicit negation cues; rejected export creates no document, while deliberate per-job manual review remains available. Evidence docs/evidence/2026-10-08-answer-match-polarity-guard.json. Full requirement remains PARTIAL. Additional exact ordinary weekend availability aliases are integrated at main 9808cdce34ab0302bf5231b09d6ae5fd56a33b81. The backend and client return CURATED_SEMANTIC 0.95 for the two narrow variants and preserve weekday, unavailable, explicit-polarity and sensitive/legal rejection. Exact checks: 39 Python unit/API tests, 1 connected feature browser, 104 frontend tests, build, compile, hashes, diff and local delegated review PASS. One adjacent profile-threshold browser server-shutdown failure remains recorded; broad matching remains PARTIAL. Additional issue #105 slice integrated on local main d61eabcd9276bc519e40cbe0154fe5bce3945260: connected answer matching review/selection passed 22 Python tests and 10 subtests, two connected browser tests, 18 frontend tests and TypeScript/Vite build. Broad semantic matching remains incomplete; requirement stays PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-105",
@@ -2028,15 +2029,19 @@
     },
     {
       "requirement_id": "MJ-REQ-241",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-core-feature-integration-batch.json"
+      ],
+      "note": "Issue #242 integrated on local main d61eabcd9276bc519e40cbe0154fe5bce3945260. Profile/job scoped advisory classification is explicitly requested, based on current attributable evidence, keeps missing or ambiguous evidence UNKNOWN, and never auto-rejects staffing firms. Focused service/API, connected Chromium, web tests and build passed; hosted checks NOT_RUN_BY_POLICY."
     },
     {
       "requirement_id": "MJ-REQ-242",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-core-feature-integration-batch.json"
+      ],
+      "note": "Issue #243 integrated on local main d61eabcd9276bc519e40cbe0154fe5bce3945260. Connected job detail displays bounded advisory evidence for all six specified quality heuristics; missing evidence remains UNKNOWN and no finding blocks or rejects a job. Focused service/API, connected Chromium, web tests and build passed; hosted checks NOT_RUN_BY_POLICY."
     },
     {
       "requirement_id": "MJ-REQ-243",
