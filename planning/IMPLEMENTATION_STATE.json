@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T07:31:03Z",
+  "generated_at": "2026-10-09T08:13:30Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,7 +11,7 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #121 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/121#issuecomment-6076515954. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T07:31:03Z"
   },
-  "current_milestone": "MJ-REQ-120-REVIEWED-SENIORITY-PRIORITY-20261009",
+  "current_milestone": "MJ-REF-038-STALE-RECOVERY-20261009",
   "current_objective": "Continue the dependency-aware core-feature sprint from the integrated MJ-REQ-120 feedback checkpoint; feedback affects explainable advisory priority, while saved-search/job-match scoring remains partial.",
   "status": "PARTIAL",
   "completed_capabilities": [
@@ -608,14 +608,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
-    "tree": "b811ea117aa01c1552ff2051acf95b51637907ec",
-    "result": "PASS for the bounded reviewed-seniority-to-priority workflow; MJ-REQ-120 remains PARTIAL.",
+    "commit": "3b4c86dd604d7ef7d8651159ae2c2231586e8221",
+    "tree": "147ef3e379337b97c036c9efe5c016543e4c6aa5",
+    "result": "PASS for bounded role-scoring stale-explanation recovery; MJ-REF-038 remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-reviewed-feedback-priority.json",
-      "docs/evidence/2026-10-09-feedback-seniority-priority.json"
+      "docs/evidence/2026-10-09-role-scoring-profile-reload.json",
+      "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
     ],
-    "verified_at_utc": "2026-10-09T07:55:36Z"
+    "verified_at_utc": "2026-10-09T08:13:30Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -682,7 +682,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile issue #408 / MJ-REF-038 role-scoring profile candidates, active claims, and the exact MJ-PR-032 dependency chain. Continue the highest-value safe saved-search scoring slice only after ownership is clear; do not promote MJ-REQ-120 while saved-search/job-match scoring remains incomplete.",
+  "recommended_resume_step": "Inspect live issue #517 / discovered job-site catalogue against existing capture, source-candidate, external-application and review code. Reconcile its acceptance with the implementation already on main; implement only the highest-value verified gap without overlapping claims. Preserve #408 as PARTIAL and leave its separate default-score persistence claim/worktree intact.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -718,14 +718,14 @@
   },
   "last_implementation_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
   "publication": {
-    "result": "PASS_LOCAL_FAST_FORWARD; TRACKER_BATCH_PENDING",
+    "result": "PASS_LOCAL_FAST_FORWARD; TRACKER_CHECKPOINT_COMMIT_IN_PROGRESS",
     "integration_method": "Ordinary non-force fast-forward under root integration lock; no PR opened or push performed.",
-    "integration_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
-    "prior_main": "e92d527d649bc3dc9efb28818f8a46c7799e0f30",
+    "integration_commit": "3b4c86dd604d7ef7d8651159ae2c2231586e8221",
+    "prior_main": "605f7e8ad2822a1c128110cca3902831d82601b7",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Reviewed TOO_SENIOR feedback now adds an exact-level advisory factor. Issue #121 remains OPEN/PARTIAL because saved-search/job-match scoring is outstanding. Hosted checks/review NOT_RUN_BY_USER_POLICY; no push."
+    "note": "Exact tested stale-explanation recovery and evidence were fast-forwarded to local main. Reference result remains PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; no push."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12556,12 +12556,58 @@
         "git_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
         "evidence_path": "docs/evidence/2026-10-09-feedback-seniority-priority.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-038-STALE-RECOVERY-20261009",
+      "current_phase": "Issue #408 / MJ-REF-038 stale-explanation recovery is locally integrated at 3b4c86dd604d7ef7d8651159ae2c2231586e8221 (tree 147ef3e379337b97c036c9efe5c016543e4c6aa5). On a stale saved score, the selected-job explanation now offers a profile-wide deterministic rescore, waits for the durable operation, reloads the selected job list, and reads the current scoped explanation. Pending, failure, attribution, and profile isolation paths are covered. MJ-REF-038 remains PARTIAL/OPEN pending full acceptance reconciliation; the separate selected-search default-score persistence claim is preserved. Original MJ-REQ-112..120 remain separate. Evidence: docs/evidence/2026-10-09-role-scoring-stale-recovery.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
+      "timestamp": "2026-10-09T08:13:30Z",
+      "completed_steps": [
+        "Connected the stale-explanation action to the existing durable profile rescore operation; wait for terminal success, reload profile/jobs, and refetch the selected explanation.",
+        "Added pending, duplicate-action, failure-recovery, scope-isolation, and sanitized-error UI acceptance.",
+        "Corrected synthetic browser fixtures to persist routes required by the production job-list query and keep selected-search criteria consistent with expected results.",
+        "Fast-forwarded exact tested source/evidence to local main at 3b4c86dd604d7ef7d8651159ae2c2231586e8221; #408 remains OPEN/PARTIAL and the other default-score claim was preserved."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "apps/web/src/matching-explanation-workflow.tsx",
+        "apps/web/src/matching-explanation-workflow.test.tsx",
+        "tests/browser/test_matching_explanation_workflow.py",
+        "tests/browser/test_role_scoring_selected_search_explanation_flow.py",
+        "tests/integration/test_scoring_profile_router_mount.py"
+      ],
+      "tests_completed": [
+        "Role scoring/matching Python unit and integration suite: 48 passed plus 28 subtests; scoring-profile router mount: 1 passed.",
+        "Connected local Chromium workflows for profile editor, reload/recalculation, selected-search explanations, and stale recovery: 4 passed.",
+        "Frontend Vitest: 474 passed across 79 files; TypeScript/Vite production build passed with the existing chunk-size advisory.",
+        "Reference provenance and lane validators passed; exact-source diff check passed."
+      ],
+      "tests_remaining": [
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN.",
+        "Full #408 issue acceptance reconciliation remains open, including the separate claimed default-score persistence slice.",
+        "Whole-product release eligibility is not claimed; original matching requirements remain separately tracked."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic SQLite and local Chromium only; no external egress or application submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "This slice repairs stale scoring explanations through the existing full profile rescore operation; it does not complete all MJ-REF-038 acceptance or original matching requirements.",
+        "External application submission remains OFF and hosted automation remains disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "3b4c86dd604d7ef7d8651159ae2c2231586e8221",
+        "evidence_path": "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
+      }
     }
   ],
-  "current_phase": "Issue #121 / MJ-REQ-120 exact seniority evidence is locally integrated at 6e93487755b6cf6b62b0cb54f61509b6b4fd55ba (tree b811ea117aa01c1552ff2051acf95b51637907ec). Explicit TOO_SENIOR review snapshots only an allowlisted normalized source level; the connected priority sort uses it for exact same-level jobs only. Profile filters, match scores and application state remain unchanged. Saved-search/job-match scoring remains PARTIAL behind MJ-PR-032. Evidence: docs/evidence/2026-10-09-feedback-seniority-priority.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
+  "current_phase": "Issue #408 / MJ-REF-038 stale-explanation recovery is locally integrated at 3b4c86dd604d7ef7d8651159ae2c2231586e8221 (tree 147ef3e379337b97c036c9efe5c016543e4c6aa5). On a stale saved score, the selected-job explanation now offers a profile-wide deterministic rescore, waits for the durable operation, reloads the selected job list, and reads the current scoped explanation. Pending, failure, attribution, and profile isolation paths are covered. MJ-REF-038 remains PARTIAL/OPEN pending full acceptance reconciliation; the separate selected-search default-score persistence claim is preserved. Original MJ-REQ-112..120 remain separate. Evidence: docs/evidence/2026-10-09-role-scoring-stale-recovery.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
   "last_safe_checkpoint": {
-    "git_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
-    "evidence_path": "docs/evidence/2026-10-09-feedback-seniority-priority.json"
+    "git_commit": "3b4c86dd604d7ef7d8651159ae2c2231586e8221",
+    "evidence_path": "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12950,14 +12996,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 121,
-    "url": "https://github.com/MulattoTech/MJobs/issues/121",
-    "branch": "codex/root-solo-121-feedback-ranking-20261009",
+    "number": 408,
+    "url": "https://github.com/MulattoTech/MJobs/issues/408",
+    "branch": "codex/root-solo-408-fixture-route-20261009",
     "status": "CHECKPOINTED_PARTIAL",
     "related_requirements": [
-      "MJ-REQ-120"
+      "MJ-REF-038"
     ],
-    "note": "Exact-level seniority feedback now affects explainable advisory priority; continue only after reconciling the saved-search scoring dependency chain. Do not claim full requirement PASS."
+    "note": "Stale explanation now queues and awaits profile rescore, then reads the current saved-match breakdown. Full #408 remains open/partial; preserve the separate #408 default-score persistence claim and its branch/worktree."
   },
   "historical_control_snapshots": [
     {
@@ -14115,10 +14161,20 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T07:55:36Z",
-  "current_verified_local_state": "Local main 6e93487755b6cf6b62b0cb54f61509b6b4fd55ba (tree b811ea117aa01c1552ff2051acf95b51637907ec) includes the exact-level reviewed-seniority priority slice. Python 41 + 17 subtests, browser 2, web 15/build, compilation and validators pass. MJ-REQ-120 remains PARTIAL for saved-search/job-match scoring. Unrelated untracked docs/evidence/2026-10-08-compose-target-isolation.json remains preserved.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under local-only policy; issue #239 is CLOSED after verified local receipt https://github.com/MulattoTech/MJobs/issues/239#issuecomment-6076244717. No push or PR; hosted CI/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T08:13:30Z",
+  "current_verified_local_state": "Local main 3b4c86dd604d7ef7d8651159ae2c2231586e8221 (tree 147ef3e379337b97c036c9efe5c016543e4c6aa5) includes the role-scoring stale-explanation rescore/reload recovery. Matching/scoring Python 48 + 28 subtests, router mount 1, Chromium 4, web 474 across 79 files, TypeScript/Vite build, local reference/lane/progress validators and diff check pass. MJ-REF-038 remains PARTIAL; original matching requirements are separate. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under local-only policy. #408 has an accurate OPEN/PARTIAL local-integration receipt at https://github.com/MulattoTech/MJobs/issues/408#issuecomment-6077131595. No push or PR; hosted CI/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
+    {
+      "issue": 517,
+      "requirement_id": "MJ-FEATURE-517",
+      "status": "RECONCILE_NEXT: current main already has durable source-candidate API/UI/capture hooks; issue #517 includes manual capture, external application, provenance, review, and evaluation gaps. Verify alias-idempotency candidate and review workflow before implementation."
+    },
+    {
+      "issue": 134,
+      "requirement_id": "MJ-REQ-133",
+      "status": "ACTIVE_IMPLEMENTATION: dynamic metadata adapter/API/UI candidates cover safe fields; upstream persisted optional-section metadata and root mounts remain gaps."
+    },
     {
       "issue": 372,
       "requirement_id": "MJ-REF-002",
@@ -14128,16 +14184,6 @@
       "issue": 377,
       "requirement_id": "MJ-REF-007",
       "status": "SCOPED_PASS_ON_LOCAL_MAIN: all MJ-REF-007 criteria and synthetic browser DOCX/PDF/TXT round-trip are verified; broader MJ-REQ-092/093/097/198 and release readiness remain separate."
-    },
-    {
-      "issue": 517,
-      "requirement_id": "MJ-FEATURE-517",
-      "status": "ACTIVE_IMPLEMENTATION: catalog API/UI and replay regression are ready; root must reconcile the existing alias-idempotency fix and wire the review workflow."
-    },
-    {
-      "issue": 134,
-      "requirement_id": "MJ-REQ-133",
-      "status": "ACTIVE_IMPLEMENTATION: dynamic metadata adapter/API/UI candidates cover safe fields; upstream persisted optional-section metadata and root mounts remain gaps."
     },
     {
       "issue": 408,

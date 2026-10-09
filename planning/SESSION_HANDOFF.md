@@ -1576,3 +1576,11 @@ Root completed and locally integrated the #121 / MJ-REQ-120 seniority signal sli
 Exact-source local checks: 41 Python tests plus 17 subtests, 2 connected Chromium tests, 15 Vitest tests, TypeScript/Vite build, py_compile, agent-skills, lane coordination, progress/catalogue/dashboard validation and diff check PASS. Hosted checks and PostgreSQL NOT_RUN_BY_USER_POLICY. External submission remains OFF. #121 remains OPEN/PARTIAL because applying approved preference proposals to saved-search scoring (PR-032/PR-025 dependencies) is still incomplete.
 
 This handoff and the accompanying tracker/dashboard refresh are metadata-only and are being committed as one checkpoint after the product integration. Preserve untracked `docs/evidence/2026-10-08-compose-target-isolation.json`. Next candidate is #408 / MJ-REF-038 role-scoring profiles; existing claims and branch ownership must be reconciled before any edits.
+
+## 2026-10-09 — #408 role-scoring stale-explanation recovery
+
+Root integrated `codex/root-solo-408-fixture-route-20261009` locally at `3b4c86dd604d7ef7d8651159ae2c2231586e8221` (tree `147ef3e379337b97c036c9efe5c016543e4c6aa5`) by non-force fast-forward from `605f7e8ad2822a1c128110cca3902831d82601b7`. The #408 stale-explanation recovery action now queues and waits for the existing durable profile rescore operation, reloads profile/job data, then fetches the selected job's current explanation. It exposes pending and recoverable failure states and keeps private transport details hidden. Browser fixture route/search criteria now match production requirements.
+
+Evidence: `docs/evidence/2026-10-09-role-scoring-stale-recovery.json`. Validation on the exact source: Python 48 tests + 28 subtests, router mount 1 test, connected Chromium 4 tests, all 474 web tests, TypeScript/Vite build, reference-provenance and lane validators, and diff check PASS. Hosted checks and PostgreSQL NOT_RUN. #408 remains OPEN/PARTIAL; the separate selected-search default-score persistence claim and worktree are preserved. No push/PR; external submission OFF.
+
+Next candidate: reconcile #517 discovered job-site catalogue against the source-candidate implementation already in main; implement only a verified gap. Preserve #408 as partial and leave its remaining claim intact.

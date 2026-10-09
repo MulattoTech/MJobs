@@ -264,7 +264,8 @@
     "MJ-REF-038": {
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-role-scoring-profile-reload.json"
+        "docs/evidence/2026-10-09-role-scoring-profile-reload.json",
+        "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
       ]
     },
     "MJ-REF-039": {
