@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T10:14:05Z"
   },
-  "current_milestone": "MJ-REF-038-ROLE-SCORING-COMPLETION-20261009",
-  "current_objective": "Complete configurable per-search role scoring, transparent signal provenance/contributions, hard-eligibility isolation, and safe legacy defaults for scheduled searches; continue solo on the next dependency-ready core feature.",
+  "current_milestone": "MJ-REQ-189-JOB-SOURCE-SAVED-FILTER-20261009",
+  "current_objective": "Add a truthful collection-source filter to the Jobs workflow with database-side filtering and profile-owned saved-search persistence; keep the broad filter requirement PARTIAL until full acceptance is proven.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -625,13 +625,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
-    "tree": "8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228",
-    "result": "PASS for issue #408 / MJ-REF-038 complete local acceptance. Executable source was tested at aae75c7a3944cbe5ac1cfbe77297deecc3827255 / tree 71f8f4a0d029ff2b1f9fa0d232cb0618ce4d66e6; only the sanitized acceptance receipt was added in the integration commit. Whole-product release remains UNKNOWN.",
+    "commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
+    "tree": "60c7fe672498a64b8ce10f9f706a3b5bfc9eadae",
+    "result": "PASS for the connected job-source saved-filter slice; whole MJ-REQ-189 remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
+      "docs/evidence/2026-10-09-job-source-filter.json"
     ],
-    "verified_at_utc": "2026-10-09T11:57:19Z"
+    "verified_at_utc": "2026-10-09T12:12:23Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -698,7 +698,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile the live issue backlog, active claims and preserved worktrees; select and implement the next highest-impact dependency-ready user-facing workflow in solo mode, preferably discovery/search or application preparation. Keep release eligibility UNKNOWN until full original acceptance is verified.",
+  "recommended_resume_step": "Reconcile live issues and claims, then continue solo on the next highest-impact dependency-ready connected product workflow; keep original requirements PARTIAL unless their full contracts are proven.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -732,22 +732,22 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "aae75c7a3944cbe5ac1cfbe77297deecc3827255",
+  "last_implementation_commit": "8029cd6636183bbd1ea8de9e445cba74e276c125",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under the Codex integration lock; no PR opened or push performed.",
-    "integration_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
-    "prior_main": "aae75c7a3944cbe5ac1cfbe77297deecc3827255",
-    "source_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
-    "source_tree": "8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228",
-    "integration_tree": "8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228",
+    "integration_commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
+    "prior_main": "b3eb01110261c45f9e4ef73820380be8898f9b39",
+    "source_commit": "8029cd6636183bbd1ea8de9e445cba74e276c125",
+    "source_tree": "1492c63016e4be8dd5414901328d0555a6c526d3",
+    "integration_tree": "60c7fe672498a64b8ce10f9f706a3b5bfc9eadae",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "issue": 408,
-    "issue_state": "CLOSED/PASS_LOCAL_ONLY",
-    "evidence_path": "docs/evidence/2026-10-09-role-specific-matching-acceptance.json",
-    "note": "Issue #408 closed with a local-only acceptance receipt. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; hosted checks/review, PostgreSQL, full suite and manual production remain NOT_RUN; external submission OFF."
+    "issue": 190,
+    "issue_state": "OPEN/PARTIAL",
+    "evidence_path": "docs/evidence/2026-10-09-job-source-filter.json",
+    "note": "Connected job-source filtering works locally through API, database query, Jobs control and profile-owned saved-search reload/clear. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12921,12 +12921,61 @@
         "git_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
         "evidence_path": "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-189-JOB-SOURCE-SAVED-FILTER-20261009",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "timestamp": "2026-10-09T12:12:23Z",
+      "completed_steps": [
+        "Implemented a distinct collection-source selector on the Jobs page and filtered by recorded job source_id in the database before LIMIT.",
+        "Persisted the selected source in profile-owned saved-search filters and verified selecting/reloading/clearing it in the connected browser workflow.",
+        "Fast-forwarded the tested branch into local main and retained MJ-REQ-189 as PARTIAL; issue #190 remains open."
+      ],
+      "files_added": [
+        "apps/web/src/job-source-filter.tsx",
+        "apps/web/src/job-source-filter.test.tsx",
+        "tests/integration/test_job_source_filter.py",
+        "docs/evidence/2026-10-09-job-source-filter.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "packages/persistence/store.py",
+        "services/discovery/search_profiles.py",
+        "tests/integration/test_saved_search_filters.py",
+        "tests/browser/test_saved_search_filters.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "25 focused saved-search/filter API tests PASS, including two job-source regressions.",
+        "Connected Chromium saved-search reload/clear workflow 1 PASS.",
+        "Frontend component 2 PASS; TypeScript/Vite build PASS with existing >500 kB advisory; py_compile and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL integration, full repository suite, hosted Actions/review NOT_RUN; broader MJ-REQ-189 acceptance remains incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local sources and jobs only; no provider requests or collection scheduling; no external application submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "The facet filters canonical job attributes.source_id and does not claim multi-source posting-history resolution.",
+        "Whole MJ-REQ-189 remains PARTIAL; origin/main unchanged and release readiness UNKNOWN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
+        "evidence_path": "docs/evidence/2026-10-09-job-source-filter.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
-    "evidence_path": "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
+    "git_commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
+    "evidence_path": "docs/evidence/2026-10-09-job-source-filter.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13331,14 +13380,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": null,
-    "url": null,
+    "number": 190,
+    "url": "https://github.com/MulattoTech/MJobs/issues/190",
     "branch": "main",
-    "status": "CHECKPOINTED_SELECT_NEXT",
+    "status": "INTEGRATED_PARTIAL",
     "related_requirements": [
-      "MJ-REF-038"
+      "MJ-REQ-189"
     ],
-    "note": "Issue #408 / MJ-REF-038 complete local acceptance is integrated at efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6; evidence docs/evidence/2026-10-09-role-specific-matching-acceptance.json. Select the next high-impact dependency-ready feature after live claim/backlog reconciliation."
+    "note": "Issue #190 / MJ-REQ-189 gained one locally verified vertical slice: filter by recorded collection source_id, distinct from application route provider/ATS, with profile-owned saved-search save/reload/clear. Evidence docs/evidence/2026-10-09-job-source-filter.json. The broad original requirement remains PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -14498,9 +14547,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T11:57:19Z",
-  "current_verified_local_state": "Local main efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6 (tree 8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228); issue #408 / MJ-REF-038 complete local acceptance. Source aae75c7a3944cbe5ac1cfbe77297deecc3827255 / tree 71f8f4a0d029ff2b1f9fa0d232cb0618ce4d66e6 passed 32 focused Python tests, 46 focused frontend tests, production web build, one Alembic head, py_compile and diff check. Evidence docs/evidence/2026-10-09-role-specific-matching-acceptance.json. PostgreSQL, full suite, hosted checks/review, manual production and live provider checks NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #408 is CLOSED with a local-only acceptance receipt; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T11:57:19Z.",
+  "updated_at": "2026-10-09T12:12:23Z",
+  "current_verified_local_state": "Local main 0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e (tree 60c7fe672498a64b8ce10f9f706a3b5bfc9eadae); source filter slice from 8029cd6636183bbd1ea8de9e445cba74e276c125 / tree 1492c63016e4be8dd5414901328d0555a6c526d3 filters recorded job source_id before LIMIT and restores/clears through saved searches. API 27/27, Chromium 1/1, frontend 2/2, build, py_compile and diff PASS. Evidence docs/evidence/2026-10-09-job-source-filter.json. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF. MJ-REQ-189 remains PARTIAL.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #190 remains OPEN/PARTIAL with local-only evidence; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T12:12:23Z.",
   "next_candidates": [
     {
       "issue": 517,
