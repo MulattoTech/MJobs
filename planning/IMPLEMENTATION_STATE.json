@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-FEATURE-517-LINKED-RECORD-NAVIGATION-20261009",
-  "current_objective": "Open profile-scoped captured job and application records directly from source-candidate history.",
+  "current_milestone": "MJ-REQ-266-TRUSTED-INTEGRATED-BOARD-ROUTE-20261009",
+  "current_objective": "Persist exact integrated-source evidence on application routes and rank only matching supported board routes between verified employer/ATS and generic aggregators.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -184,7 +184,14 @@
     "Issue #517 discovered source-site catalogue remains PARTIAL: other provider/browser intake and overall source suitability/integration acceptance are incomplete."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    {
+      "requirement_id": "MJ-REQ-266",
+      "issue": 267,
+      "status": "ACTIVE_IMPLEMENTATION",
+      "branch": "codex/solo-267-integrated-board-route-trust-20261009"
+    }
+  ],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -721,7 +728,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #517 by selecting one uncovered dependency-ready capture-intake or source-evaluation/integration acceptance gap. Preserve profile boundaries, provenance, collection OFF, and no external application submission.",
+  "recommended_resume_step": "Implement and verify the #267 trusted integrated-board route authority slice, preserving employer/ATS precedence and user-controlled route preferences.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -14920,7 +14927,13 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": null,
+  "active_development_issue": {
+    "number": 267,
+    "requirement_id": "MJ-REQ-266",
+    "status": "ACTIVE_IMPLEMENTATION",
+    "branch": "codex/solo-267-integrated-board-route-trust-20261009",
+    "outcome": "Profile-aware default route planning uses persisted exact integrated-board evidence; unknown routes remain aggregator/unknown."
+  },
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -16083,7 +16096,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T20:51:32Z",
+  "updated_at": "2026-10-09T20:52:00Z",
   "current_verified_local_state": "Issue #517 linked-record display and navigation are integrated locally at main ea6cc9601bf2950e87c73d1229fb142d2364768a (tree fe17ca92a41650df01eaccd3b831f29b8accb904), from tested source 725c2e94fb4ce8c4379c65ea9e76e8b2659e9851 (tree 1ab0e7cd52a9b392f383f957a1c18d1f39e7ceb5). Candidate history displays job title/company and application state, with actions to open the profile-scoped Jobs detail and Applications review when linked context is complete. Evidence docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json; broader #517 remains OPEN/PARTIAL.",
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #517 remains OPEN/PARTIAL; local receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089049795. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live providers NOT_RUN; external submission OFF.",
   "next_candidates": [
