@@ -1140,9 +1140,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-09-match-feedback-history.json",
-        "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
+        "docs/evidence/2026-10-09-reviewed-feedback-priority.json",
+        "docs/evidence/2026-10-09-feedback-seniority-priority.json"
       ],
-      "note": "Scoped selected-job feedback and durable history verified. Users can explicitly apply reviewed preferences; deterministic advisory application-priority weights and explanations update without changing hard rules or match scores. Saved-search/job-match scoring remains incomplete, and dimensions without explicit signals stay unknown."
+      "note": "Connected selected-job feedback and durable history are verified. Users can explicitly apply reviewed preferences; explainable advisory priority weighting and search-result sorting respond to reviewed salary, company, location and exact normalized TOO_SENIOR evidence without changing hard rules or match scores. Seniority remains UNKNOWN for unmarked or different levels. Saved-search/job-match scoring remains incomplete pending the MJ-PR-032 dependency chain; whole MJ-REQ-120 remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-121",

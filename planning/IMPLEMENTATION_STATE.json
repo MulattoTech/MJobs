@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #121 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/121#issuecomment-6076515954. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T07:31:03Z"
   },
-  "current_milestone": "MJ-REQ-120-REVIEWED-PREFERENCE-PRIORITY-20261009",
-  "current_objective": "Extend reviewed feedback into deterministic job matching and recommendations without modifying hard eligibility rules.",
+  "current_milestone": "MJ-REQ-120-REVIEWED-SENIORITY-PRIORITY-20261009",
+  "current_objective": "Continue the dependency-aware core-feature sprint from the integrated MJ-REQ-120 feedback checkpoint; feedback affects explainable advisory priority, while saved-search/job-match scoring remains partial.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -608,13 +608,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "43e268d8ba07f079df68690ddc1694a283509096",
-    "tree": "10d67a7229b165e742a0083d08035e0c6040bd0f",
-    "result": "PASS for MJ-REQ-238 Application History only; broader tracking and whole-product release readiness remain separately classified.",
+    "commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
+    "tree": "b811ea117aa01c1552ff2051acf95b51637907ec",
+    "result": "PASS for the bounded reviewed-seniority-to-priority workflow; MJ-REQ-120 remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-application-history.json"
+      "docs/evidence/2026-10-09-reviewed-feedback-priority.json",
+      "docs/evidence/2026-10-09-feedback-seniority-priority.json"
     ],
-    "verified_at_utc": "2026-10-09T07:09:38Z"
+    "verified_at_utc": "2026-10-09T07:55:36Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -681,7 +682,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #121: inspect how persisted profile preferences flow through deterministic match scoring and saved-search ordering; add reviewed-feedback influence with hard-rule isolation, then validate the connected match workflow.",
+  "recommended_resume_step": "Reconcile issue #408 / MJ-REF-038 role-scoring profile candidates, active claims, and the exact MJ-PR-032 dependency chain. Continue the highest-value safe saved-search scoring slice only after ownership is clear; do not promote MJ-REQ-120 while saved-search/job-match scoring remains incomplete.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -715,16 +716,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "bb7983deb27059dda704a65bea122b27883928e5",
+  "last_implementation_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD; TRACKER_BATCH_PENDING",
     "integration_method": "Ordinary non-force fast-forward under root integration lock; no PR opened or push performed.",
-    "integration_commit": "bb7983deb27059dda704a65bea122b27883928e5",
-    "prior_main": "07079a4f3f4985db1bc5923f490f9f14645a177f",
+    "integration_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
+    "prior_main": "e92d527d649bc3dc9efb28818f8a46c7799e0f30",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Reviewed feedback preference application and advisory priority effect integrated locally at bb7983deb27059dda704a65bea122b27883928e5; issue #121 remains OPEN/PARTIAL. Receipt: https://github.com/MulattoTech/MJobs/issues/121#issuecomment-6076515954. No push; hosted checks remain NOT_RUN_BY_USER_POLICY."
+    "note": "Reviewed TOO_SENIOR feedback now adds an exact-level advisory factor. Issue #121 remains OPEN/PARTIAL because saved-search/job-match scoring is outstanding. Hosted checks/review NOT_RUN_BY_USER_POLICY; no push."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12500,12 +12501,67 @@
         "git_commit": "bb7983deb27059dda704a65bea122b27883928e5",
         "evidence_path": "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-120-REVIEWED-SENIORITY-PRIORITY-20261009",
+      "current_phase": "Issue #121 / MJ-REQ-120 exact seniority evidence is locally integrated at 6e93487755b6cf6b62b0cb54f61509b6b4fd55ba (tree b811ea117aa01c1552ff2051acf95b51637907ec). Explicit TOO_SENIOR review snapshots only an allowlisted normalized source level; the connected priority sort uses it for exact same-level jobs only. Profile filters, match scores and application state remain unchanged. Saved-search/job-match scoring remains PARTIAL behind MJ-PR-032. Evidence: docs/evidence/2026-10-09-feedback-seniority-priority.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
+      "timestamp": "2026-10-09T07:55:36Z",
+      "completed_steps": [
+        "Reconciled the existing root-owned #121 branch and integrated issue-owned code without disturbing the prior evidence edit or unrelated untracked artifact.",
+        "Stored an allowlisted normalized experience level only for explicitly applied TOO_SENIOR feedback and preserved idempotent readback for pre-upgrade audit events.",
+        "Added an optional explainable seniority priority factor only when a job has the exact level previously marked too senior.",
+        "Connected Chromium verified priority sort movement while persisted match scores, profile hard preferences and application state remained unchanged.",
+        "Fast-forwarded exact tested source plus sanitized evidence into local main at 6e93487755b6cf6b62b0cb54f61509b6b4fd55ba; issue #121 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-feedback-seniority-priority.json"
+      ],
+      "files_modified": [
+        "apps/api/application_priority.py",
+        "apps/api/match_feedback.py",
+        "apps/web/src/match-feedback-client.ts",
+        "services/discovery/application_priority.py",
+        "services/matching/user_match_feedback.py",
+        "tests/browser/test_job_sorting.py",
+        "tests/integration/test_application_priority_api.py",
+        "tests/unit/test_application_priority.py",
+        "tests/unit/test_user_match_feedback.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
+      ],
+      "tests_completed": [
+        "Focused Python unit/API/mount suites: 41 passed plus 17 subtests.",
+        "Connected synthetic Chromium feedback and job-sorting workflows: 2 passed with no skips.",
+        "Focused web client/component Vitest: 15 passed; TypeScript/Vite production build passed with the existing bundle-size advisory.",
+        "Python compilation, agent-skill validation, lane validation, catalogue validation, dashboard tests, dashboard check and git diff --check passed."
+      ],
+      "tests_remaining": [
+        "PostgreSQL-specific and hosted GitHub checks/review NOT_RUN under local-only policy.",
+        "Saved-search/persisted job-match scoring remains incomplete behind MJ-PR-032 and MJ-PR-025.",
+        "External ATS behavior and real application submission were not run; submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Temporary SQLite and local Chromium against synthetic fixture data; no external HTTP requests or application submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Only jobs with the exact recognized experience level explicitly marked TOO_SENIOR receive this optional advisory factor; other levels remain UNKNOWN.",
+        "MJ-REQ-120 remains PARTIAL until saved-search and persisted match-score influence is implemented and verified.",
+        "External submission remains OFF and hosted automation remains disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
+        "evidence_path": "docs/evidence/2026-10-09-feedback-seniority-priority.json"
+      }
     }
   ],
-  "current_phase": "Issue #121 / MJ-REQ-120 is PARTIAL on local main at bb7983deb27059dda704a65bea122b27883928e5 (tree c6da9bd1f2af05d69dc51c981fda910fe25ccd77). Explicit review, durable profile-scoped preference application, advisory priority-weight changes and explanations pass focused Python, web, and connected Chromium checks. Hard profile rules and match score remain unchanged. Saved-search/job-match scoring remains incomplete. Evidence: docs/evidence/2026-10-09-reviewed-feedback-priority.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
+  "current_phase": "Issue #121 / MJ-REQ-120 exact seniority evidence is locally integrated at 6e93487755b6cf6b62b0cb54f61509b6b4fd55ba (tree b811ea117aa01c1552ff2051acf95b51637907ec). Explicit TOO_SENIOR review snapshots only an allowlisted normalized source level; the connected priority sort uses it for exact same-level jobs only. Profile filters, match scores and application state remain unchanged. Saved-search/job-match scoring remains PARTIAL behind MJ-PR-032. Evidence: docs/evidence/2026-10-09-feedback-seniority-priority.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
   "last_safe_checkpoint": {
-    "git_commit": "bb7983deb27059dda704a65bea122b27883928e5",
-    "evidence_path": "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
+    "git_commit": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
+    "evidence_path": "docs/evidence/2026-10-09-feedback-seniority-priority.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12897,11 +12953,11 @@
     "number": 121,
     "url": "https://github.com/MulattoTech/MJobs/issues/121",
     "branch": "codex/root-solo-121-feedback-ranking-20261009",
-    "status": "IMPLEMENTING",
+    "status": "CHECKPOINTED_PARTIAL",
     "related_requirements": [
       "MJ-REQ-120"
     ],
-    "note": "Root solo slice: explicitly reviewed and persisted feedback proposals must affect deterministic advisory ranking/priority after readback; hard eligibility rules remain unchanged."
+    "note": "Exact-level seniority feedback now affects explainable advisory priority; continue only after reconciling the saved-search scoring dependency chain. Do not claim full requirement PASS."
   },
   "historical_control_snapshots": [
     {
@@ -14059,8 +14115,8 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T07:15:20Z",
-  "current_verified_local_state": "Local main 43e268d8ba07f079df68690ddc1694a283509096 (tree 10d67a7229b165e742a0083d08035e0c6040bd0f) verifies issue #239 / MJ-REQ-238 Application History; 9 focused API/integration/Chromium reload, ordering and recovery tests and web build pass. Evidence docs/evidence/2026-10-09-application-history.json. No product code changed. Preserved unrelated untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
+  "updated_at": "2026-10-09T07:55:36Z",
+  "current_verified_local_state": "Local main 6e93487755b6cf6b62b0cb54f61509b6b4fd55ba (tree b811ea117aa01c1552ff2051acf95b51637907ec) includes the exact-level reviewed-seniority priority slice. Python 41 + 17 subtests, browser 2, web 15/build, compilation and validators pass. MJ-REQ-120 remains PARTIAL for saved-search/job-match scoring. Unrelated untracked docs/evidence/2026-10-08-compose-target-isolation.json remains preserved.",
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under local-only policy; issue #239 is CLOSED after verified local receipt https://github.com/MulattoTech/MJobs/issues/239#issuecomment-6076244717. No push or PR; hosted CI/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {

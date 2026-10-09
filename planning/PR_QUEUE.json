@@ -1217,7 +1217,37 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "codex/root-solo-121-feedback-ranking-20261009",
       "draft_until_verified": true,
-      "notes": "Issue #121 / MJ-REQ-120 remains OPEN/PARTIAL. Reviewed feedback can now be explicitly applied and read back; deterministic advisory application-priority weights/explanations update without hard-rule or match-score changes. Source and local main integrated at bb7983deb27059dda704a65bea122b27883928e5. Evidence docs/evidence/2026-10-09-reviewed-feedback-priority.json plus prior history evidence. Remaining: saved-search/job-match scoring integration and explicit company preference evidence. Focused Python/API 33 plus 17 subtests, Chromium 1, web 15, production build, compilation, skill validation and diff check PASS. PostgreSQL-specific and hosted checks NOT_RUN by policy; external submission OFF; no push/PR."
+      "notes": "Issue #121 / MJ-REQ-120 remains OPEN/PARTIAL. Applied preferences can alter explainable advisory priority and sorting for known salary/work-arrangement/company signals; TOO_SENIOR is now bound to an exact allowlisted normalized level from the reviewed job. Saved-search/persisted match-score influence remains incomplete behind MJ-PR-032 and MJ-PR-025. Source 1274041fb4a037dff0bc3a1147aacadc84108ae9 integrated locally at 6e93487755b6cf6b62b0cb54f61509b6b4fd55ba. Evidence: docs/evidence/2026-10-09-reviewed-feedback-priority.json and docs/evidence/2026-10-09-feedback-seniority-priority.json. Exact-source checks: Python 41 + 17 subtests, Chromium 2, web 15/build, py_compile, agent-skill/lane validators and diff check PASS. PostgreSQL/hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF; no push/PR.",
+      "active_slice": {
+        "name": "Apply reviewed seniority evidence to explainable advisory priority",
+        "issue": 121,
+        "requirement_id": "MJ-REQ-120",
+        "status": "INTEGRATED_PARTIAL",
+        "publication_state": "LOCAL_MAIN_FAST_FORWARD",
+        "depends_on": [],
+        "parent_dependencies_preserved": [
+          "MJ-PR-032",
+          "MJ-PR-025"
+        ],
+        "owned_paths": [
+          "services/matching/user_match_feedback.py",
+          "services/discovery/application_priority.py",
+          "apps/api/match_feedback.py",
+          "apps/api/application_priority.py",
+          "apps/web/src/match-feedback-client.ts",
+          "tests/unit/test_user_match_feedback.py",
+          "tests/unit/test_application_priority.py",
+          "tests/integration/test_application_priority_api.py",
+          "tests/browser/test_job_sorting.py"
+        ],
+        "acceptance": "An explicitly applied TOO_SENIOR preference stores only an allowlisted normalized source-job level and adds a priority factor only for a job at that exact level. Unknown/different levels stay unscored; saved profile filters, match scores, and application state remain unchanged.",
+        "source_commit": "1274041fb4a037dff0bc3a1147aacadc84108ae9",
+        "integrated_main": "6e93487755b6cf6b62b0cb54f61509b6b4fd55ba",
+        "integrated_tree": "b811ea117aa01c1552ff2051acf95b51637907ec",
+        "evidence_path": "docs/evidence/2026-10-09-feedback-seniority-priority.json",
+        "verification": "41 focused Python tests plus 17 subtests, 2 connected Chromium tests, 15 focused Vitest tests, TypeScript/Vite build, compilation, agent-skill validation, lane validation, and diff check PASS. PostgreSQL/hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+        "issue_state": "OPEN/PARTIAL"
+      }
     },
     {
       "id": "MJ-PR-034",
@@ -4784,5 +4814,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T07:03:17Z"
+  "generated_at": "2026-10-09T07:55:36Z"
 }
