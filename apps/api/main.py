@@ -304,6 +304,8 @@ class SourceCandidateReviewInput(BaseModel):
             raise ValueError("Public documented API/feed evidence requires a reference URL")
         if self.integration_issue is not None and self.state != "INTEGRATION_QUEUED":
             raise ValueError("An existing provider issue may only be linked while queueing integration")
+        if self.state == "INTEGRATION_QUEUED" and self.integration_issue is None:
+            raise ValueError("An existing provider issue is required to queue integration")
         return self
 
 

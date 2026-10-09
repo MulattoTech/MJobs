@@ -247,6 +247,17 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     target.get_by_label("Capabilities and limits note for talenthop.com").fill(review["capabilities_limits_note"])
                     target.get_by_label("Expected value and maintenance note for talenthop.com").fill(review["expected_value_maintenance_note"])
 
+                    queue_button = target.get_by_role(
+                        "button", name="Queue integration review", exact=True)
+                    issue_number = target.get_by_label(
+                        "Integration task issue number for talenthop.com", exact=True)
+                    self.assertIn("required to queue integration", target.inner_text())
+                    expect(queue_button).to_be_disabled()
+                    issue_number.fill("302")
+                    expect(queue_button).to_be_enabled()
+                    issue_number.fill("")
+                    expect(queue_button).to_be_disabled()
+
                     before_review = counts()
                     with page.expect_event(
                         "requestfailed",
@@ -309,10 +320,36 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     expect(target).to_contain_text("Review history (1)")
                     expect(page.get_by_role("article", name="Source candidate other-only.example")).to_have_count(0)
 
+                    queued = page.get_by_role("article", name="Source candidate alpha.example")
+                    queued.get_by_label("Site type assessment for alpha.example").select_option("JOB_BOARD")
+                    queued.get_by_label("Review reason for alpha.example", exact=True).fill(
+                        "Existing provider issue tracks review of this public job board.")
+                    queued.get_by_label("API or feed evidence status for alpha.example").select_option("UNKNOWN")
+                    queued.get_by_label("API or feed evidence note for alpha.example").fill(
+                        "Public API or feed support is not verified.")
+                    queued.get_by_label("Access and terms note for alpha.example").fill(
+                        "Access terms need review before collection.")
+                    queued.get_by_label("Capabilities and limits note for alpha.example").fill(
+                        "No collection capability is currently enabled.")
+                    queued.get_by_label("Expected value and maintenance note for alpha.example").fill(
+                        "Source value and maintenance need bounded evaluation.")
+                    queued.get_by_label("Integration task issue number for alpha.example").fill("318")
+                    with page.expect_response(
+                        lambda item: item.request.method == "PUT"
+                        and item.url.endswith("/review") and item.status == 200,
+                    ) as queue_response:
+                        queued.get_by_role(
+                            "button", name="Queue integration review", exact=True).click()
+                    self.assertEqual(queue_response.value.json()["state"], "INTEGRATION_QUEUED")
+                    self.assertEqual(queue_response.value.json()["integration_issue"], 318)
+                    expect(queued).to_contain_text("Review state: INTEGRATION QUEUED")
+                    expect(queued).to_contain_text("Integration issue #318 is user supplied and unverified.")
+                    expect(queued).to_contain_text("Collection is disabled. Review does not enable collection.")
+
                     final_counts = counts()
                     self.assertEqual(final_counts[m.applications.name], 0)
                     self.assertEqual(final_counts[m.source_candidate_reviews.name],
-                                     before_review[m.source_candidate_reviews.name] + 1)
+                                     before_review[m.source_candidate_reviews.name] + 2)
                     self.assertEqual(final_counts[m.source_candidates.name], 4)
                     self.assertEqual(final_counts[m.source_candidate_observations.name], 4)
                     self.assertEqual(outside_requests, [])

@@ -133,6 +133,9 @@ export function buildSourceCandidateReviewPayload(
       throw new Error('Enter a positive whole integration issue number. The reference is not checked externally.');
     }
   }
+  if (state === 'INTEGRATION_QUEUED' && integrationIssue === null) {
+    throw new Error('An existing provider issue is required to queue integration.');
+  }
   if (!requestId.trim() || requestId !== requestId.trim()) {
     throw new Error('Review request identifier is invalid.');
   }
@@ -217,6 +220,7 @@ function completeDraft(draft: SourceCandidateReviewDraft, state: SourceCandidate
     const value = Number(draft.integration_issue);
     if (!Number.isSafeInteger(value) || value < 1 || value > 2147483647) return false;
   }
+  if (state === 'INTEGRATION_QUEUED' && !draft.integration_issue.trim()) return false;
   return true;
 }
 
@@ -363,7 +367,7 @@ export function SourceCandidateReviewQueue({
                 </select></label>
                 <label>Review outcome reason<textarea aria-label={`Review reason for ${candidate.domain}`} maxLength={1000} value={draft.reason} disabled={pending}
                   onChange={event => updateDraft(candidate, 'reason', event.currentTarget.value)} /></label>
-                <label>Integration task issue number (optional)<input aria-label={`Integration task issue number for ${candidate.domain}`} type="number" min="1" max="2147483647" step="1" value={draft.integration_issue} disabled={pending}
+                <label>Integration task issue number (required to queue integration)<input aria-label={`Integration task issue number for ${candidate.domain}`} type="number" min="1" max="2147483647" step="1" value={draft.integration_issue} disabled={pending}
                   onChange={event => updateDraft(candidate, 'integration_issue', event.currentTarget.value)} /></label>
                 <p className="muted">Only a user-supplied issue number is recorded; the reference is not checked externally.</p>
                 <label>Public API or feed evidence status<select aria-label={`API or feed evidence status for ${candidate.domain}`} value={draft.api_feed_evidence_status} disabled={pending}

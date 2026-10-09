@@ -130,6 +130,15 @@ describe('source candidate review queue', () => {
       .toMatchObject({ state: 'INTEGRATION_QUEUED', integration_issue: 401 });
   });
 
+  it('does not allow an integration queue entry without a linked issue', () => {
+    expect(() => buildSourceCandidateReviewPayload(
+      { ...draft, integration_issue: '' }, 'INTEGRATION_QUEUED', 'request-1',
+    )).toThrow(/existing provider issue/i);
+    expect(buildSourceCandidateReviewPayload(
+      { ...draft, integration_issue: '' }, 'NEEDS_REVIEW', 'request-2',
+    )).toMatchObject({ state: 'NEEDS_REVIEW', integration_issue: null });
+  });
+
   it('retries the explicit profile-scoped callback with the same criteria and request ID', async () => {
     const api = { review: vi.fn().mockRejectedValueOnce(new Error('Temporary review error.'))
       .mockResolvedValueOnce(candidate) };

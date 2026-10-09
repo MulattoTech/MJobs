@@ -15,6 +15,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.sources import upsert_company_job_source
 from services.discovery.company_feed import import_company_feed_jobs
+from services.source_candidates.catalogue import review_candidate
 from tests.integration.test_spine import PROFILE
 
 
@@ -373,6 +374,58 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         old_replay = self.client.put(url, json=payload)
         self.assertEqual(old_replay.status_code, 200, old_replay.text)
         self.assertEqual(old_replay.json()["review_history"][0]["integration_issue"], 302)
+
+    def test_integration_queue_requires_an_existing_provider_issue(self):
+        captured = self.client.post("/source-candidates", json={
+            "profile_id": "fixture", "request_id": "queue-requires-issue",
+            "source_url": "https://candidate.example.invalid/jobs/123",
+        })
+        self.assertEqual(captured.status_code, 201, captured.text)
+        candidate_id = captured.json()["candidate"]["id"]
+        payload = {
+            "state": "INTEGRATION_QUEUED", "site_type": "JOB_BOARD",
+            "reason": "A source review is ready for an existing integration task.",
+            "api_feed_evidence_status": "UNKNOWN", "api_feed_evidence_reference": None,
+            "api_feed_evidence_note": "Public API or feed is not verified.",
+            "access_terms_note": "Terms are not verified.",
+            "capabilities_limits_note": "Collection capability is unknown.",
+            "expected_value_maintenance_note": "Value and maintenance are unknown.",
+            "integration_issue": None, "request_id": "queue-without-issue",
+        }
+
+        response = self.client.put(
+            f"/profiles/fixture/source-candidates/{candidate_id}/review", json=payload)
+
+        self.assertEqual(response.status_code, 422, response.text)
+        unchanged = self.client.get("/source-candidates", params={"profile_id": "fixture"})
+        candidate = next(row for row in unchanged.json()["candidates"]
+                         if row["id"] == candidate_id)
+        self.assertEqual(candidate["state"], "NEEDS_REVIEW")
+        self.assertIsNone(candidate["integration_issue"])
+        self.assertEqual(candidate["review_history"], [])
+        self.assertFalse(candidate["collection_enabled"])
+
+    def test_source_review_service_rejects_unlinked_integration_queue(self):
+        captured = self.client.post("/source-candidates", json={
+            "profile_id": "fixture", "request_id": "service-queue-requires-issue",
+            "source_url": "https://candidate.example.invalid/jobs/124",
+        })
+        candidate_id = captured.json()["candidate"]["id"]
+
+        with self.assertRaisesRegex(ValueError, "SOURCE_CANDIDATE_INTEGRATION_ISSUE_REQUIRED"):
+            review_candidate(
+                self.store, "fixture", candidate_id, "INTEGRATION_QUEUED", "JOB_BOARD",
+                "Queue must have an existing provider task.", "service-queue-without-issue",
+                "UNKNOWN", None, "Public API or feed is not verified.",
+                "Terms are not verified.", "Collection capability is unknown.",
+                "Value and maintenance are unknown.", None,
+            )
+
+        candidate = next(row for row in self.client.get(
+            "/source-candidates", params={"profile_id": "fixture"}
+        ).json()["candidates"] if row["id"] == candidate_id)
+        self.assertEqual(candidate["state"], "NEEDS_REVIEW")
+        self.assertEqual(candidate["review_history"], [])
 
 
 class SourceCandidateIssueLinkMigrationTests(unittest.TestCase):
