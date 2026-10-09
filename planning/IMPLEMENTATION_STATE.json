@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-246-FAILURE-REDISCOVERY-20261009",
-  "current_objective": "Select and implement the next highest-value dependency-ready user-facing workflow while preserving all active claims and worktrees.",
+  "current_milestone": "MJ-REQ-245-AUTOMATED-SOURCE-LEARNING-20261009",
+  "current_objective": "Implement evidence-based bounded adaptive scheduling for monitored public company sources using existing feed observations and current-profile match scores.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -725,7 +725,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile current live issue/path claims after closing #247, then start one dependency-ready core product feature in the sole Luna root session.",
+  "recommended_resume_step": "Continue isolated issue #246 / MJ-REQ-245 on the exact claimed branch; prove productivity and no-relevance bounds, explain learned intervals in the connected UI, and preserve configured/global limits.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -14696,11 +14696,44 @@
         "git_commit": "189e2d1062c7bb2c571febbced44410f1678a02c",
         "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-245-AUTOMATED-SOURCE-LEARNING-20261009",
+      "timestamp": "2026-10-09T22:29:00Z",
+      "current_phase": "IMPLEMENTATION_IN_PROGRESS",
+      "completed_steps": [
+        "Reconciled issue #246 and confirmed no active issue/path claim for the monitored-source learning slice.",
+        "Created isolated worktree and root-owned exclusive path claim; retained parent PR dependencies unchanged.",
+        "Defined acceptance: recent strong-match sources use a shorter derived interval, six-month unproductive sources use a longer interval, insufficient history stays at baseline, all results remain within 300–604800 seconds, and the connected source card explains the decision."
+      ],
+      "files_added": [],
+      "files_modified": [],
+      "tests_completed": [],
+      "tests_remaining": [
+        "Red-first service and integration coverage for learning signals, minimum/maximum clamps and no-learning baseline.",
+        "Connected UI and reload acceptance; targeted monitoring regression, frontend build and repository validators."
+      ],
+      "known_limitations": [
+        "No source code changes made at this planning checkpoint.",
+        "Parent queue dependencies remain incomplete; this is an independent leaf acceptance slice only."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f895d456fedb03f337deaa969abf8288e6edcaae",
+        "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json"
+      },
+      "source_commit": "f895d456fedb03f337deaa969abf8288e6edcaae",
+      "source_tree": "6a651febd155124ffcfe8244b12da28959c2392b",
+      "integrated_main": "f895d456fedb03f337deaa969abf8288e6edcaae",
+      "acceptance": "IN_PROGRESS: existing source-feed activity and current-profile strong matches will inform a bounded poll interval; target test evidence pending.",
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "issue_claim": "https://github.com/MulattoTech/MJobs/issues/246"
     }
   ],
-  "current_phase": "ACCEPTANCE_VERIFIED_ON_LOCAL_MAIN",
+  "current_phase": "IMPLEMENTATION_IN_PROGRESS",
   "last_safe_checkpoint": {
-    "git_commit": "189e2d1062c7bb2c571febbced44410f1678a02c",
+    "git_commit": "f895d456fedb03f337deaa969abf8288e6edcaae",
     "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json"
   },
   "live_integrations_tested": [
@@ -15212,10 +15245,10 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 247,
-    "requirement_id": "MJ-REQ-246",
-    "status": "CLOSED_PASS",
-    "outcome": "Monitored company-source recovery and identity-checked failure rediscovery are accepted locally; existing source configuration remains intact until user review."
+    "number": 246,
+    "requirement_id": "MJ-REQ-245",
+    "status": "ACTIVE_IMPLEMENTATION",
+    "outcome": "Monitored company-source performance informs next poll frequency within existing 5-minute to 7-day bounds, with a visible reason; user-configured interval remains the baseline."
   },
   "historical_control_snapshots": [
     {
@@ -16380,9 +16413,15 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T22:19:00Z",
+  "updated_at": "2026-10-09T22:29:00Z",
   "current_verified_local_state": "Issue #247 / MJ-REQ-246 PASS at exact local main 189e2d1062c7bb2c571febbced44410f1678a02c (tree 04c2c6661691d557900624e28d1b2415190e3215). The connected monitored company-source flow progresses HEALTHY → DEGRADED → FAILED, stops retrying at three failures, preserves 403 BLOCKED and structural-review behavior, resets on successful manual refresh, and queues identity-checked rediscovery after the third retryable failure without changing the source/configuration. Exact integrated tree: 16 Python integration tests, 2 connected Chromium tests, 6 focused Vitest tests, TypeScript/Vite build, compilation and diff checks PASS. Evidence docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json. PostgreSQL/full suite/live providers/hosted checks NOT_RUN; submission OFF.",
   "current_verified_github_state": "Issue #247 / MJ-REQ-246 is CLOSED after local PASS receipt https://github.com/MulattoTech/MJobs/issues/247#issuecomment-6090161101. Local main 189e2d1062c7bb2c571febbced44410f1678a02c is not pushed; origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external submission OFF.",
-  "next_candidates": [],
+  "next_candidates": [
+    {
+      "issue": 246,
+      "requirement_id": "MJ-REQ-245",
+      "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
+    }
+  ],
   "current_verified_at": "2026-10-09T22:19:00Z"
 }

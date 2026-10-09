@@ -2880,7 +2880,39 @@
             "External application submission OFF."
           ]
         }
-      ]
+      ],
+      "active_slice": {
+        "issue": 246,
+        "requirement_id": "MJ-REQ-245",
+        "slice": "Deterministic adaptive scheduling for monitored company sources from source-linked feed history and current-profile strong match scores.",
+        "dependencies": [],
+        "parent_dependencies_preserved": [
+          "MJ-PR-065",
+          "MJ-PR-057"
+        ],
+        "branch": "codex/solo-mj-req245-source-learning-20261009",
+        "worktree": ".worktrees/solo-mj-req245-source-learning-20261009",
+        "owned_paths": [
+          "services/company_discovery/monitoring.py",
+          "services/company_discovery/source_learning.py",
+          "services/company_discovery/sources.py",
+          "apps/web/src/company-source-monitoring.tsx",
+          "apps/web/src/company-source-monitoring.test.tsx",
+          "tests/unit/test_company_source_learning.py",
+          "tests/integration/test_company_source_monitoring.py",
+          "tests/integration/test_company_source_view.py",
+          "tests/browser/test_company_source_learning.py"
+        ],
+        "acceptance": [
+          "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
+          "Six-month source history with no strong matches schedules less often.",
+          "Insufficient evidence keeps the configured baseline.",
+          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
+          "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
+        ],
+        "status": "ACTIVE_IMPLEMENTATION",
+        "rationale": "The current schema already records source-linked posting candidates and current-profile match scores; the connected monitor has durable next_due and a user-visible interval. This leaf can use those records without a migration; parent PR dependencies remain queued."
+      }
     },
     {
       "id": "MJ-PR-067",
