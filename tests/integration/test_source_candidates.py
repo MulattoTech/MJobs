@@ -384,7 +384,7 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         self.assertEqual(old_replay.status_code, 200, old_replay.text)
         self.assertEqual(old_replay.json()["review_history"][0]["integration_issue"], 302)
 
-    def test_integration_queue_requires_an_existing_provider_issue(self):
+    def test_integration_queue_creates_local_task_without_issue(self):
         captured = self.client.post("/source-candidates", json={
             "profile_id": "fixture", "request_id": "queue-requires-issue",
             "source_url": "https://candidate.example.invalid/jobs/123",
@@ -405,36 +405,39 @@ class SourceCandidateCaptureTests(unittest.TestCase):
         response = self.client.put(
             f"/profiles/fixture/source-candidates/{candidate_id}/review", json=payload)
 
-        self.assertEqual(response.status_code, 422, response.text)
-        unchanged = self.client.get("/source-candidates", params={"profile_id": "fixture"})
-        candidate = next(row for row in unchanged.json()["candidates"]
-                         if row["id"] == candidate_id)
-        self.assertEqual(candidate["state"], "NEEDS_REVIEW")
+        self.assertEqual(response.status_code, 200, response.text)
+        candidate = response.json()
+        self.assertEqual(candidate["state"], "INTEGRATION_QUEUED")
+        self.assertEqual(candidate["id"], candidate_id)
         self.assertIsNone(candidate["integration_issue"])
-        self.assertEqual(candidate["review_history"], [])
+        self.assertEqual(len(candidate["review_history"]), 1)
+        self.assertEqual(candidate["review_history"][0]["state"], "INTEGRATION_QUEUED")
+        self.assertIsNone(candidate["review_history"][0]["integration_issue"])
         self.assertFalse(candidate["collection_enabled"])
+        replay = self.client.put(
+            f"/profiles/fixture/source-candidates/{candidate_id}/review", json=payload)
+        self.assertEqual(replay.status_code, 200, replay.text)
+        self.assertEqual(len(replay.json()["review_history"]), 1)
 
-    def test_source_review_service_rejects_unlinked_integration_queue(self):
+    def test_source_review_service_returns_profile_scoped_local_task(self):
         captured = self.client.post("/source-candidates", json={
             "profile_id": "fixture", "request_id": "service-queue-requires-issue",
             "source_url": "https://candidate.example.invalid/jobs/124",
         })
         candidate_id = captured.json()["candidate"]["id"]
 
-        with self.assertRaisesRegex(ValueError, "SOURCE_CANDIDATE_INTEGRATION_ISSUE_REQUIRED"):
-            review_candidate(
-                self.store, "fixture", candidate_id, "INTEGRATION_QUEUED", "JOB_BOARD",
-                "Queue must have an existing provider task.", "service-queue-without-issue",
-                "UNKNOWN", None, "Public API or feed is not verified.",
-                "Terms are not verified.", "Collection capability is unknown.",
-                "Value and maintenance are unknown.", None,
-            )
+        candidate = review_candidate(
+            self.store, "fixture", candidate_id, "INTEGRATION_QUEUED", "JOB_BOARD",
+            "Queue a local bounded source review task.", "service-queue-without-issue",
+            "UNKNOWN", None, "Public API or feed is not verified.",
+            "Terms are not verified.", "Collection capability is unknown.",
+            "Value and maintenance are unknown.", None,
+        )
 
-        candidate = next(row for row in self.client.get(
-            "/source-candidates", params={"profile_id": "fixture"}
-        ).json()["candidates"] if row["id"] == candidate_id)
-        self.assertEqual(candidate["state"], "NEEDS_REVIEW")
-        self.assertEqual(candidate["review_history"], [])
+        self.assertEqual(candidate["state"], "INTEGRATION_QUEUED")
+        self.assertIsNone(candidate["integration_issue"])
+        self.assertFalse(candidate["collection_enabled"])
+        self.assertEqual(len(candidate["review_history"]), 1)
 
 
 class SourceCandidateIssueLinkMigrationTests(unittest.TestCase):

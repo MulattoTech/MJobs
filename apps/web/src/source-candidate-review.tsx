@@ -96,7 +96,7 @@ export type SourceCandidateReviewQueueProps = {
 
 const reviewStates: { state: SourceCandidateReviewState; label: string }[] = [
   { state: 'NEEDS_REVIEW', label: 'Keep needs review' },
-  { state: 'INTEGRATION_QUEUED', label: 'Queue integration review' },
+  { state: 'INTEGRATION_QUEUED', label: 'Queue local integration task' },
   { state: 'BLOCKED', label: 'Mark blocked' },
   { state: 'REJECTED', label: 'Reject candidate' },
 ];
@@ -136,9 +136,6 @@ export function buildSourceCandidateReviewPayload(
     if (!Number.isSafeInteger(integrationIssue) || integrationIssue < 1 || integrationIssue > 2147483647) {
       throw new Error('Enter a positive whole integration issue number. The reference is not checked externally.');
     }
-  }
-  if (state === 'INTEGRATION_QUEUED' && integrationIssue === null) {
-    throw new Error('An existing provider issue is required to queue integration.');
   }
   if (!requestId.trim() || requestId !== requestId.trim()) {
     throw new Error('Review request identifier is invalid.');
@@ -207,9 +204,6 @@ function blockersFor(candidate: SourceCandidate): string[] {
   }
   if (candidate.site_type === 'UNKNOWN' && !latest) blockers.push('Source kind is unknown.');
   if (latest?.api_feed_evidence_status === 'BLOCKED') blockers.push('Public API/feed access is blocked.');
-  if (candidate.state === 'INTEGRATION_QUEUED' && candidate.integration_issue === null) {
-    blockers.push('No existing provider issue is linked.');
-  }
   return blockers;
 }
 
@@ -224,7 +218,6 @@ function completeDraft(draft: SourceCandidateReviewDraft, state: SourceCandidate
     const value = Number(draft.integration_issue);
     if (!Number.isSafeInteger(value) || value < 1 || value > 2147483647) return false;
   }
-  if (state === 'INTEGRATION_QUEUED' && !draft.integration_issue.trim()) return false;
   return true;
 }
 
@@ -339,7 +332,9 @@ export function SourceCandidateReviewQueue({
                 ? <p className="alert">Collection is already enabled separately. Review actions here do not change collection state.</p>
                 : <p className="safety">Collection is disabled. Review does not enable collection.</p>}
               {candidate.integration_issue === null
-                ? <p>No integration task linked.</p>
+                ? candidate.state === 'INTEGRATION_QUEUED'
+                  ? <p>Local integration task keyed by source candidate <code>{candidate.id}</code>. No integration issue is linked.</p>
+                  : <p>No integration task queued.</p>
                 : <p>Integration issue #{candidate.integration_issue} · user supplied; not externally verified ({candidate.integration_issue_status}).</p>}
               <h4>Blockers and unknowns</h4>
               {blockers.length ? <ul>{blockers.map((blocker, index) => <li key={`${index}-${blocker}`}>{blocker}</li>)}</ul> : <p>No recorded blockers.</p>}
@@ -373,7 +368,11 @@ export function SourceCandidateReviewQueue({
                 <summary>Review history ({candidate.review_history.length})</summary>
                 <ol>{candidate.review_history.map((review, index) => <li key={`${review.id}-${index}`}>
                   <time dateTime={review.reviewed_at}>{displayTime(review.reviewed_at)}</time> · {review.state.replaceAll('_', ' ')} · {review.site_type.replaceAll('_', ' ')} · {review.api_feed_evidence_status.replaceAll('_', ' ')} · {review.reason}.
-                  {review.integration_issue === null ? ' No integration task linked.' : ` Integration issue #${review.integration_issue} is user supplied and unverified.`}
+                  {review.integration_issue === null
+                    ? review.state === 'INTEGRATION_QUEUED'
+                      ? ` Local task keyed by source candidate ${candidate.id}.`
+                      : ' No integration task queued.'
+                    : ` Integration issue #${review.integration_issue} is user supplied and unverified.`}
                   {' '}Public API or feed reference: <code>{review.api_feed_evidence_reference ?? 'Unknown'}</code>.
                   {' '}Evidence: {review.api_feed_evidence_note} Access and terms: {review.access_terms_note} Capabilities and limits: {review.capabilities_limits_note} Value and maintenance: {review.expected_value_maintenance_note}
                 </li>)}</ol>
@@ -388,9 +387,9 @@ export function SourceCandidateReviewQueue({
                 </select></label>
                 <label>Review outcome reason<textarea aria-label={`Review reason for ${candidate.domain}`} maxLength={1000} value={draft.reason} disabled={pending}
                   onChange={event => updateDraft(candidate, 'reason', event.currentTarget.value)} /></label>
-                <label>Integration task issue number (required to queue integration)<input aria-label={`Integration task issue number for ${candidate.domain}`} type="number" min="1" max="2147483647" step="1" value={draft.integration_issue} disabled={pending}
+                <label>Existing provider issue number (optional)<input aria-label={`Integration task issue number for ${candidate.domain}`} type="number" min="1" max="2147483647" step="1" value={draft.integration_issue} disabled={pending}
                   onChange={event => updateDraft(candidate, 'integration_issue', event.currentTarget.value)} /></label>
-                <p className="muted">Only a user-supplied issue number is recorded; the reference is not checked externally.</p>
+                <p className="muted">Leave blank to create a local task keyed to this source candidate. A supplied issue number is user-provided and is not checked externally. This review never enables collection.</p>
                 <label>Public API or feed evidence status<select aria-label={`API or feed evidence status for ${candidate.domain}`} value={draft.api_feed_evidence_status} disabled={pending}
                   onChange={event => updateDraft(candidate, 'api_feed_evidence_status', event.currentTarget.value as SourceCandidateEvidenceStatus)}>
                   <option value="UNKNOWN">Unknown / not verified</option><option value="PUBLIC_DOCUMENTED">Public documented evidence</option><option value="BLOCKED">Blocked or access denied</option>

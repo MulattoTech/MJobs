@@ -305,8 +305,6 @@ def review_candidate(store, profile_id: str, candidate_id: str,
         raise ValueError("SOURCE_CANDIDATE_INTEGRATION_ISSUE_INVALID")
     if integration_issue is not None and state != "INTEGRATION_QUEUED":
         raise ValueError("SOURCE_CANDIDATE_INTEGRATION_ISSUE_REQUIRES_QUEUED_STATE")
-    if state == "INTEGRATION_QUEUED" and integration_issue is None:
-        raise ValueError("SOURCE_CANDIDATE_INTEGRATION_ISSUE_REQUIRED")
     api_feed_evidence_note = _review_note(api_feed_evidence_note)
     raw_reference = api_feed_evidence_reference
     api_feed_evidence_reference = _safe_url(raw_reference)

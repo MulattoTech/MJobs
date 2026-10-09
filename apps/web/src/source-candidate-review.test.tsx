@@ -111,7 +111,7 @@ describe('source candidate review queue', () => {
     const html = render();
     expect(html).toContain('Collection is disabled. Review does not enable collection.');
     expect(html).not.toContain('Enable collection');
-    expect(html).toContain('Queue integration review');
+    expect(html).toContain('Queue local integration task');
     expect(html).toContain('Mark blocked');
     expect(html).toContain('Reject candidate');
     expect(html).toContain('Keep needs review');
@@ -163,12 +163,15 @@ describe('source candidate review queue', () => {
       .toMatchObject({ state: 'INTEGRATION_QUEUED', integration_issue: 401 });
   });
 
-  it('does not allow an integration queue entry without a linked issue', () => {
-    expect(() => buildSourceCandidateReviewPayload(
-      { ...draft, integration_issue: '' }, 'INTEGRATION_QUEUED', 'request-1',
-    )).toThrow(/existing provider issue/i);
+  it('queues locally without an external issue number and can still link an optional unverified issue', () => {
     expect(buildSourceCandidateReviewPayload(
-      { ...draft, integration_issue: '' }, 'NEEDS_REVIEW', 'request-2',
+      { ...draft, integration_issue: '' }, 'INTEGRATION_QUEUED', 'request-1',
+    )).toMatchObject({ state: 'INTEGRATION_QUEUED', integration_issue: null });
+    expect(buildSourceCandidateReviewPayload(
+      { ...draft, integration_issue: '401' }, 'INTEGRATION_QUEUED', 'request-2',
+    )).toMatchObject({ state: 'INTEGRATION_QUEUED', integration_issue: 401 });
+    expect(buildSourceCandidateReviewPayload(
+      { ...draft, integration_issue: '' }, 'NEEDS_REVIEW', 'request-3',
     )).toMatchObject({ state: 'NEEDS_REVIEW', integration_issue: null });
   });
 
