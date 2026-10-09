@@ -18,6 +18,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, identity
 from services.discovery.pipeline import discover
 from services.discovery.search_profiles import save_search_profile
+from services.discovery.sources.collect import configure_source
 from tests.integration.test_spine import PROFILE
 
 
@@ -32,60 +33,78 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
             root = Path(directory)
             database = root / "browser.db"
             store = Store(f"sqlite:///{database.as_posix()}")
-            store.migrate()
-            store.bind_workspace_mode("FIXTURE")
-            store.save_profile(dict(PROFILE))
-            store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
-                                "email": "other@example.test"})
-            with fixture_server() as source_origin:
-                discover(store, source_origin, "fixture")
+            try:
+                store.migrate()
+                store.bind_workspace_mode("FIXTURE")
+                store.save_profile(dict(PROFILE))
+                store.save_profile({**PROFILE, "id": "other", "name": "Other Fixture",
+                                    "email": "other@example.test"})
+                with fixture_server() as source_origin:
+                    discover(store, source_origin, "fixture")
 
-            save_search_profile(store, {
-                "id": "fixture-search", "profile_id": "fixture", "name": "Alex search",
-                "enabled": False,
-                "include_titles": ["System Administrator", "Platform Administrator"],
-                "exclude_titles": ["Junior Helpdesk Technician"],
-                "required_keywords": ["Windows Server"],
-                "remote": "REQUIRED", "employment_types": ["FULL_TIME"],
-                "source_ids": ["fixture"],
-                "job_filters": {
-                    "q": "infrastructure operations", "remote_type": "REMOTE",
-                    "provider": "greenhouse", "sort": "newest", "salary_min": "65000",
-                },
-            })
-            save_search_profile(store, {
-                "id": "other-search", "profile_id": "other", "name": "Other search",
-                "enabled": True, "include_titles": ["Network Administrator"],
-                "remote": "REQUIRED", "employment_types": [], "source_ids": [],
-            })
-
-            fixture_version = store.profile("fixture")["version"]
-            other_version = store.profile("other")["version"]
-            with store.engine.begin() as connection:
-                template = dict(connection.execute(select(m.jobs).limit(1)).mappings().one())
-                matches = (
-                    ("Infrastructure Support Engineer", "fixture", fixture_version, 92),
-                    ("Infrastructure Support Engineer", "fixture", fixture_version, 84),
-                    ("IT Operations Engineer", "fixture", fixture_version, 82),
-                    ("Junior Helpdesk Technician", "fixture", fixture_version, 74),
-                    ("Legacy Systems Engineer", "fixture", "stale-profile-version", 99),
-                    ("System Administrator", "fixture", fixture_version, 96),
-                    ("Platform Administrator", "fixture", fixture_version, 90),
-                    ("Desktop Support Analyst", "other", other_version, 90),
+                # Discovery persists employer sources separately from configured
+                # search-policy sources. Inspect that registry, then configure one
+                # isolated synthetic source whose ID is valid for saved searches.
+                with store.engine.connect() as connection:
+                    sources_after_discover = list(connection.execute(
+                        select(m.job_sources.c.id).order_by(m.job_sources.c.id)).scalars())
+                configured_source_id = (
+                    sources_after_discover[0] if sources_after_discover else
+                    configure_source(store, "fixture-board", provider="greenhouse")
                 )
-                for index, (title, profile_id, profile_version, score) in enumerate(matches):
-                    job_id = identity("browser-search-profile-suggestion", f"{index}:{title}")
-                    connection.execute(m.jobs.insert().values(**{
-                        **template, "id": job_id, "title": title,
-                        "requisition": f"suggestion-{index}-{job_id[:16]}",
-                    }))
-                    connection.execute(m.matches.insert().values(
-                        job_id=job_id, profile_id=profile_id,
-                        profile_version=profile_version, score=score, missing=[],
-                        components={"fixture": "synthetic current strong-match evidence"},
-                    ))
+                with store.engine.connect() as connection:
+                    registered_source_ids = set(connection.execute(
+                        select(m.job_sources.c.id)).scalars())
+                self.assertIn(configured_source_id, registered_source_ids)
 
-            store.engine.dispose()
+                save_search_profile(store, {
+                    "id": "fixture-search", "profile_id": "fixture", "name": "Alex search",
+                    "enabled": False,
+                    "include_titles": ["System Administrator", "Platform Administrator"],
+                    "exclude_titles": ["Junior Helpdesk Technician"],
+                    "required_keywords": ["Windows Server"],
+                    "remote": "REQUIRED", "employment_types": ["FULL_TIME"],
+                    "source_ids": [configured_source_id],
+                    "job_filters": {
+                        "q": "infrastructure operations", "remote_type": "REMOTE",
+                        "provider": "greenhouse", "sort": "newest", "salary_min": "65000",
+                    },
+                })
+                save_search_profile(store, {
+                    "id": "other-search", "profile_id": "other", "name": "Other search",
+                    "enabled": True, "include_titles": ["Network Administrator"],
+                    "remote": "REQUIRED", "employment_types": [], "source_ids": [],
+                })
+
+                fixture_version = store.profile("fixture")["version"]
+                other_version = store.profile("other")["version"]
+                with store.engine.begin() as connection:
+                    template = dict(connection.execute(select(m.jobs).limit(1)).mappings().one())
+                    matches = (
+                        ("Infrastructure Support Engineer", "fixture", fixture_version, 92),
+                        ("Infrastructure Support Engineer", "fixture", fixture_version, 84),
+                        ("IT Operations Engineer", "fixture", fixture_version, 82),
+                        ("Junior Helpdesk Technician", "fixture", fixture_version, 74),
+                        ("Legacy Systems Engineer", "fixture", "stale-profile-version", 99),
+                        ("System Administrator", "fixture", fixture_version, 96),
+                        ("Platform Administrator", "fixture", fixture_version, 90),
+                        ("Desktop Support Analyst", "other", other_version, 90),
+                    )
+                    for index, (title, profile_id, profile_version, score) in enumerate(matches):
+                        job_id = identity("browser-search-profile-suggestion", f"{index}:{title}")
+                        connection.execute(m.jobs.insert().values(**{
+                            **template, "id": job_id, "title": title,
+                            "requisition": f"suggestion-{index}-{job_id[:16]}",
+                        }))
+                        connection.execute(m.matches.insert().values(
+                            id=identity("browser-search-profile-suggestion-match", job_id),
+                            job_id=job_id, profile_id=profile_id,
+                            profile_version=profile_version, score=score, missing=[],
+                            components={"fixture": "synthetic current strong-match evidence"},
+                        ))
+            finally:
+                store.engine.dispose()
+
             store = Store(f"sqlite:///{database.as_posix()}")
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
@@ -182,7 +201,7 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     self.assertEqual(original_criteria["remote"], "REQUIRED")
                     self.assertEqual(original_criteria["employment_types"], ["FULL_TIME"])
                     self.assertEqual(original_criteria["exclude_titles"], ["Junior Helpdesk Technician"])
-                    self.assertEqual(original_source_ids, ["fixture"])
+                    self.assertEqual(original_source_ids, [configured_source_id])
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(accepted_profile_writes, [])
 
@@ -252,7 +271,7 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     self.assertEqual(add_request.value.post_data_json["include_titles"], [
                         "System Administrator", "Platform Administrator",
                         "Infrastructure Support Engineer"])
-                    self.assertEqual(add_request.value.post_data_json["source_ids"], ["fixture"])
+                    self.assertEqual(add_request.value.post_data_json["source_ids"], [configured_source_id])
                     expect(page.get_by_role("button", name=(
                         "Add Infrastructure Support Engineer to Alex search"), exact=True)).to_have_count(0)
                     self.assertEqual(len(accepted_profile_writes), 1)
