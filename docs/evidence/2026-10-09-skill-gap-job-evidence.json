@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REF-026-HEATMAP-JOB-EVIDENCE-20261009",
+  "issue": 396,
+  "requirement_id": "MJ-REF-026",
+  "result": "PARTIAL",
+  "recorded_at_utc": "2026-10-09T12:22:15Z",
+  "branch": "codex/solo-396-skill-gap-evidence-20261009",
+  "implementation_commit": "84e8ba15e139b84a6f87a208a952a123a1899518",
+  "implementation_tree": "254a58a28d69841e7af8fc1c01734c6a3d2dada3",
+  "input_sha256": {
+    "services/learning/skill_gap_heatmap.py": "a33f397574ea558ae8adc00868ea5a918ea28606133b9e0a690dc91af369e94d",
+    "apps/web/src/skill-gap-heatmap.tsx": "c7df2300a49dc1f477eb1829ba6c9c665c2103650bcc00b2e8280742d469ac14",
+    "apps/web/src/skill-gap-heatmap.test.tsx": "fea5d289b785e668d385fd3441710c4c15853c1dbe7751a3be7ef6623fe09d02",
+    "tests/unit/test_skill_gap_heatmap.py": "e2eefe8df60fcfec969f78a49f7f6fe63b06ee612c6d9bccf5cf033d74fa888a",
+    "tests/integration/test_skill_gap_heatmap_api.py": "1a4f6d82615f05ba6384fc5b5bb0dfce7532d99283bbd5829b11cadc043e3438",
+    "tests/browser/test_skill_gap_heatmap_reload_recovery.py": "d357e737c6b1deaa19dc76387c124bfab6fa0a482b25402892c84e8f009046b6"
+  },
+  "acceptance": {
+    "scored_job_traceability": "PASS - Each skill row exposes a bounded deterministic list of current profile-version scored jobs with title, employer, normalized posting strengths, and profile evidence status.",
+    "ranking_context": "PASS - User-reported interview and application relevance is visible per job and orders the bounded examples; full aggregate counts remain computed across every current match.",
+    "metadata_uncertainty": "PASS - Unknown posting strength remains labeled unknown and is not converted into a candidate skill gap.",
+    "profile_scope": "PASS - API evidence contains only the selected profile current-version scored jobs; a second profile fixture is absent.",
+    "bounded_payload": "PASS - At most ten evidence jobs are returned per skill, with a total count and explicit UI disclosure when examples are capped.",
+    "connected_workflow": "PASS - Chromium opens the AWS heatmap row, reads the exact synthetic role and user-reported interview status, retries a transient API error, reloads, and receives the same durable result.",
+    "no_external_actions": "PASS - Browser test aborts any off-origin request; this slice makes no provider or application-submission request."
+  },
+  "validation": [
+    {
+      "command": "repository .venv: python -m unittest tests.unit.test_skill_gap_heatmap tests.integration.test_skill_gap_heatmap_api tests.integration.test_skill_gap_heatmap_profile_isolation",
+      "result": "PASS - 12 tests."
+    },
+    {
+      "command": "repository .venv: python -m unittest tests.browser.test_skill_gap_heatmap_reload_recovery",
+      "result": "PASS - 1 connected Chromium test."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/skill-gap-heatmap.test.tsx",
+      "result": "PASS - 1 file, 4 tests."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS - TypeScript and Vite build; existing >500 kB advisory remains."
+    },
+    {
+      "command": "repository .venv: python -m tools.verification.agent_skills",
+      "result": "PASS."
+    },
+    {
+      "command": "repository .venv: python -m py_compile services/learning/skill_gap_heatmap.py tests/unit/test_skill_gap_heatmap.py tests/integration/test_skill_gap_heatmap_api.py tests/browser/test_skill_gap_heatmap_reload_recovery.py",
+      "result": "PASS."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS."
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "database": "temporary SQLite fixtures only",
+    "browser": "local Chromium with isolated fixture API",
+    "external_network": "off-origin requests are blocked by the browser test",
+    "application_submission": "OFF",
+    "production_credentials": "NOT_USED"
+  },
+  "remaining_gaps": [
+    "This is a traceability slice for #396, not the complete reference issue; #396 remains OPEN/PARTIAL.",
+    "An AI-assisted learning-plan generator is not implemented; deterministic heatmap remains available without AI.",
+    "PostgreSQL, full repository suite, hosted Actions/review, and live provider checks are NOT_RUN."
+  ],
+  "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+  "external_application_submission": "OFF"
+}
