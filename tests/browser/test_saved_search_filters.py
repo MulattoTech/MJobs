@@ -18,6 +18,7 @@ from packages.persistence.store import Store, identity, upsert
 from services.company_discovery.sources import register_ats_tenant
 from services.discovery.pipeline import discover
 from services.discovery.scheduler import schedule_due_sources
+from services.discovery.sources.collect import configure_source
 from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,6 +39,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                 "email": "other@example.test"})
             with fixture_server() as source_origin:
                 discover(store, source_origin, "fixture")
+            source_a = configure_source(store, "saved-filter-source-a")
+            source_b = configure_source(store, "saved-filter-source-b")
             ats_routes = [
                 ("Python Developer", "python-board", "python-board", 0.95, ["QUALIFIED_GREENHOUSE_ROUTE"]),
                 ("Data Engineer", "source-only-board", None, 0.95, ["TEST_EVIDENCE"]),
@@ -77,6 +80,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                        "skill_ids": ["PYTHON"],
                                        "education_requirement": "BACHELORS_REQUIRED",
                                        "clearance": {"level": "PUBLIC_TRUST"},
+                                       "source_id": source_a,
                                        "reported_posted_at": "2026-10-07T00:00:00+00:00"}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")
                                    .values(location="Berlin", attributes={
@@ -86,6 +90,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                        "skill_ids": ["SQL"],
                                        "education_requirement": "ASSOCIATE_REQUIRED",
                                        "clearance": {"level": "SECRET"},
+                                       "source_id": source_b,
                                        "reported_posted_at": "2026-09-01T00:00:00+00:00"}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
                                    .values(skills=["Python"]))
@@ -133,6 +138,19 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Education requirement", exact=True).locator("option")).to_have_count(6)
                     expect(page.get_by_label("Skill", exact=True)).to_have_value("")
                     expect(page.get_by_label("Skill", exact=True).locator("option", has_text="Active Directory")).to_have_count(1)
+
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and f"job_source_id={source_a}" in response.url) as source_only:
+                        page.get_by_label("Job source", exact=True).select_option(source_a)
+                    self.assertEqual(source_only.value.status, 200, source_only.value.text())
+                    self.assertEqual([job["title"] for job in source_only.value.json()["jobs"]],
+                                     ["Python Developer"])
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "job_source_id=" not in response.url) as source_cleared:
+                        page.get_by_label("Job source", exact=True).select_option("")
+                    self.assertEqual(len(source_cleared.value.json()["jobs"]), 2)
 
                     # A date-only change must fetch new results immediately, then clear cleanly.
                     with page.expect_response(lambda response:
@@ -185,7 +203,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     page.get_by_label("Clearance requirement", exact=True).select_option("PUBLIC_TRUST")
                     page.get_by_label("Posted within", exact=True).select_option("7")
                     page.get_by_label("Work location", exact=True).select_option("REMOTE")
-                    page.get_by_label("Source", exact=True).select_option("mock-ats")
+                    page.get_by_label("Application provider", exact=True).select_option("mock-ats")
+                    page.get_by_label("Job source", exact=True).select_option(source_a)
                     page.get_by_label("ATS", exact=True).select_option("greenhouse")
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
@@ -195,6 +214,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "education_requirement=BACHELORS_REQUIRED" in response.url
                             and "clearance_level=PUBLIC_TRUST" in response.url
                             and "ats_provider=greenhouse" in response.url
+                            and f"job_source_id={source_a}" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "sort=company" in response.url) as sorted_jobs:
@@ -222,6 +242,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "education_requirement=BACHELORS_REQUIRED" in response.url
                             and "clearance_level=PUBLIC_TRUST" in response.url
                             and "ats_provider=greenhouse" in response.url
+                            and f"job_source_id={source_a}" in response.url
                             and "salary_min=80000" in response.url
                             and "salary_max=100000" in response.url
                             and "remote_type=REMOTE" in response.url
@@ -244,7 +265,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("ATS", exact=True)).to_have_value("greenhouse")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("7")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("REMOTE")
-                    expect(page.get_by_label("Source", exact=True)).to_have_value("mock-ats")
+                    expect(page.get_by_label("Application provider", exact=True)).to_have_value("mock-ats")
+                    expect(page.get_by_label("Job source", exact=True)).to_have_value(source_a)
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("company")
                     expect(page.locator(".job-card").filter(has_text="Python Developer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
@@ -289,6 +311,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             and "education_requirement=" not in response.url
                             and "clearance_level=" not in response.url
                             and "ats_provider=" not in response.url
+                            and "job_source_id=" not in response.url
                             and "salary_min=" not in response.url
                             and "salary_max=" not in response.url
                             and "remote_type=" not in response.url
@@ -310,7 +333,8 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("ATS", exact=True)).to_have_value("")
                     expect(page.get_by_label("Posted within", exact=True)).to_have_value("")
                     expect(page.get_by_label("Work location", exact=True)).to_have_value("")
-                    expect(page.get_by_label("Source", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Application provider", exact=True)).to_have_value("")
+                    expect(page.get_by_label("Job source", exact=True)).to_have_value("")
                     expect(page.get_by_label("Sort", exact=True)).to_have_value("score")
 
                     page.get_by_label("Active profile", exact=True).select_option("other")

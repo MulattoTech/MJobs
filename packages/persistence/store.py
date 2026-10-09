@@ -637,6 +637,7 @@ class Store:
              title="", company="", location="", salary_min=None, salary_max=None,
              min_match_score=None, experience_level=None, employment_type=None, skill_id=None,
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
+             job_source_id=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
              application_capability=None, exclude_company_ids=None):
         if application_capability == "":
@@ -970,6 +971,11 @@ class Store:
                     statement = statement.where(m.jobs.c.remote_type == remote_type)
             if provider:
                 statement = statement.where(m.jobs.c.id.in_(select(m.routes.c.job_id).where(m.routes.c.provider == provider)))
+            if job_source_id:
+                # Collector attribution is stored on the canonical job during
+                # collection; keep it distinct from application route providers.
+                statement = statement.where(
+                    m.jobs.c.attributes["source_id"].as_string() == job_source_id)
             if sort == "score":
                 statement = statement.order_by(m.matches.c.score.desc().nulls_last(), m.jobs.c.title, m.jobs.c.id)
             elif sort == "title":

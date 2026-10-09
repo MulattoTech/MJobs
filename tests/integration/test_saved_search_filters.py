@@ -186,7 +186,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             "q": "network", "title": "Developer", "location": "Boston", "company": "Example",
             "experience_level": "", "employment_type": "", "posted_within_days": "", "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
             "salary_min": "", "salary_max": "", "skill": "", "education_requirement": "",
-            "clearance_level": "", "ats_provider": ""})
+            "clearance_level": "", "ats_provider": "", "job_source_id": ""})
         self.assertFalse(row["enabled"])
         self.assertEqual(self.client.get("/search-profiles", params={"profile_id": "other"})
                          .json()["search_profiles"], [])
@@ -685,7 +685,8 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
                    "remote_type": "REMOTE", "provider": "greenhouse", "sort": "company",
                    "salary_min": "85000", "salary_max": "130000", "experience_level": "",
                    "employment_type": "", "posted_within_days": "", "skill": "",
-                   "education_requirement": "", "clearance_level": "", "ats_provider": ""}
+                   "education_requirement": "", "clearance_level": "", "ats_provider": "",
+                   "job_source_id": ""}
         operations_before = self.store.count("worker_operations")
         response = self.client.put("/search-profiles", json=self._profile(job_filters=filters))
         self.assertEqual(response.status_code, 200, response.text)

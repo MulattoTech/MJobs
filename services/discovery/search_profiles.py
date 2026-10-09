@@ -47,7 +47,7 @@ def _clean_job_filters(value):
     required = {"q", "remote_type", "provider", "sort"}
     optional = {"title", "company", "location", "salary_min", "salary_max", "min_match_score",
                 "experience_level", "posted_within_days", "employment_type", "skill", "education_requirement",
-                "clearance_level", "ats_provider", "application_link_status", "application_pipeline_status",
+                "clearance_level", "ats_provider", "job_source_id", "application_link_status", "application_pipeline_status",
                 "application_capability"}
     if not isinstance(value, dict) or not required <= set(value) or set(value) - required - optional:
         raise ValueError("Saved Jobs filters must include q, remote_type, provider, and sort")
@@ -120,6 +120,10 @@ def _clean_job_filters(value):
     if clearance_level and clearance_level not in CLEARANCE_LEVELS:
         raise ValueError("Saved Jobs clearance requirement is invalid")
     cleaned["clearance_level"] = clearance_level
+    job_source_id = value.get("job_source_id", "")
+    if not isinstance(job_source_id, str) or len(job_source_id) > 128:
+        raise ValueError("Saved Jobs source is invalid")
+    cleaned["job_source_id"] = job_source_id.strip()
     for key, allowed in JOB_FILTERS.items():
         if key in {"application_link_status", "application_pipeline_status", "application_capability"} and key not in value:
             continue

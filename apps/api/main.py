@@ -1490,6 +1490,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              skill: str | None = Query(default=None, max_length=100),
              education_requirement: str | None = Query(default=None, max_length=64),
              clearance_level: str | None = Query(default=None, max_length=32),
+             job_source_id: str | None = Query(default=None, max_length=128),
              application_link_status: Literal["", "AVAILABLE", "UNAVAILABLE"] | None = Query(default=None, max_length=16),
              application_pipeline_status: str | None = Query(default=None, max_length=32),
              application_capability: Literal["", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"] | None = Query(default=None, max_length=24),
@@ -1514,6 +1515,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             clearance_level = clearance_level.strip().upper()
             if not clearance_level or clearance_level not in CLEARANCE_LEVELS:
                 raise HTTPException(422, "Clearance requirement is not supported")
+        if job_source_id is not None:
+            job_source_id = job_source_id.strip()
+            if not job_source_id:
+                job_source_id = None
+            else:
+                with store.engine.connect() as connection:
+                    known_source = connection.execute(select(m.job_sources.c.id).where(
+                        m.job_sources.c.id == job_source_id)).scalar_one_or_none()
+                if known_source is None:
+                    raise HTTPException(422, "Job source is not configured")
         if (application_pipeline_status is not None
                 and application_pipeline_status not in {"", *PIPELINE_STATUSES, "NOT_TRACKED"}):
             raise HTTPException(422, "Application pipeline status is not supported")
@@ -1585,6 +1596,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           skill_id=skill_id,
                           education_requirement=education_requirement,
                           clearance_level=clearance_level,
+                          job_source_id=job_source_id,
                           application_link_status=effective_application_link_status,
                           application_pipeline_status=effective_application_pipeline_status,
                           application_capability=effective_application_capability,
