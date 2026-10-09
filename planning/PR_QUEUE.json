@@ -1214,10 +1214,10 @@
         "MJ-PR-032",
         "MJ-PR-025"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-033-matching-ai",
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "codex/root-121-feedback-20261009",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Issue #121 / MJ-REQ-120 partial locally integrated at 6fc9f3e771cf6d0e54fd273e71522027ecb4da3f; selected-job feedback persistence, recovery, history and review-only proposal pass synthetic API/browser tests. Remaining: explicitly reviewed proposal application to deterministic saved-search scoring preferences. Evidence docs/evidence/2026-10-09-match-feedback-history.json. No push; hosted checks NOT_RUN_BY_USER_POLICY."
     },
     {
       "id": "MJ-PR-034",
