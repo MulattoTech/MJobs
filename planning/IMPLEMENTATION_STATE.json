@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-267-REVIEWED-EMPLOYER-ROUTE-SAVE-20261009",
-  "current_objective": "After an explicit verified route check, let a user recheck and save the employer/ATS destination as a durable selectable route while preserving the existing route preference.",
+  "current_milestone": "MJ-REQ-095-CONNECTED-REWRITE-REVIEW-20261009",
+  "current_objective": "Connect a job-scoped user-reviewed resume rewrite preview while preserving source provenance, protected-token checks, and explicit non-persistence before generation.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -750,7 +750,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+  "last_implementation_commit": "225c7d1dd2db3fe9699518ffc5d9429d72d37913",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
     "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
@@ -14052,12 +14052,64 @@
         "evidence_path": "docs/evidence/2026-10-09-explainable-skill-score-breakdown.json"
       },
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/115#issuecomment-6087555128"
+    },
+    {
+      "milestone_id": "MJ-REQ-095-CONNECTED-REWRITE-REVIEW-20261009",
+      "timestamp": "2026-10-09T20:04:49Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Mounted the existing source-bound rewrite review service through the connected API and resume fact-selection UI.",
+        "Verified exact source/proposal projection, protected token auditing, stale scope rejection, and temporary acknowledgement reset on reload.",
+        "Confirmed the preview path makes no database writes, document generation, application operation, external request, or submission.",
+        "Fast-forward integrated the tested source and evidence commits into local main; issue #96 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-resume-rewrite-review-connected.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/resume-fact-selection.tsx",
+        "tests/integration/test_resume_rewrite_review_api.py",
+        "tests/browser/test_resume_rewrite_review.py"
+      ],
+      "tests_completed": [
+        "Python unit/API: 14 passed",
+        "Connected Chromium: 1 passed with negative and no-write assertions",
+        "Focused frontend: 10 passed",
+        "TypeScript/Vite build, compilation, lane validation and diff checks passed"
+      ],
+      "tests_remaining": [
+        "PostgreSQL and full repository suite",
+        "Hosted CI/review NOT_RUN_BY_USER_POLICY",
+        "Broader factual resume tailoring and automated semantic-equivalence proof"
+      ],
+      "known_limitations": [
+        "Acknowledgement is temporary and clears on scope change or reload; it must be recreated after reload.",
+        "Issue #96 and MJ-REQ-095 remain PARTIAL.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "225c7d1dd2db3fe9699518ffc5d9429d72d37913",
+        "evidence_path": "docs/evidence/2026-10-09-resume-rewrite-review-connected.json"
+      },
+      "integrated_main": "225c7d1dd2db3fe9699518ffc5d9429d72d37913",
+      "source_tree": "efd259071ec3eee93ec61f15d993aaec0176d34f",
+      "acceptance": "PARTIAL: exact connected preview and protected-token audit work for selected approved facts; acknowledgement is temporary and broader factual tailoring/semantic-equivalence remain incomplete.",
+      "limitations": [
+        "Acknowledgement is temporary and clears on scope change or reload; it must be recreated after reload.",
+        "Issue #96 and MJ-REQ-095 remain PARTIAL.",
+        "External application submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": []
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "55c6a6036dc42bb15f6a5d8e60289afb73fb55af",
-    "evidence_path": "docs/evidence/2026-10-09-explainable-skill-score-breakdown.json"
+    "git_commit": "225c7d1dd2db3fe9699518ffc5d9429d72d37913",
+    "evidence_path": "docs/evidence/2026-10-09-resume-rewrite-review-connected.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14557,7 +14609,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 115,
+  "active_development_issue": 96,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15717,9 +15769,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T19:10:48Z",
-  "current_verified_local_state": "Issue #268 / MJ-REQ-267 reviewed destination save integrated locally to main at b2413668e11b8af84ad4ba0c1d81527b27c3691e (tree f0e3cbb6f202e04df42def163055b173112c83c6). The connected user action rechecks destination identity evidence, persists an idempotent route, reads it back into the picker, and preserves the current selection until explicit user choice. 36 focused Python, 2 component, 1 connected browser tests, TypeScript/Vite build, compilation, lane validation, and diff checks PASS. Evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json; issue OPEN/PARTIAL; hosted/PostgreSQL/live-site/full-suite checks NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
+  "updated_at": "2026-10-09T20:04:49Z",
+  "current_verified_local_state": "Issue #96 / MJ-REQ-095 connected rewrite preview integrated locally on main at 225c7d1dd2db3fe9699518ffc5d9429d72d37913 (tree efd259071ec3eee93ec61f15d993aaec0176d34f). Approved facts can be paired with user-authored proposed text; the connected API returns exact source/proposal and protected date, number, and named-credential token audit. Explicit acknowledgement is temporary and clears on scope change or reload. No fact/document/application persistence, external request, or submission occurs. Evidence docs/evidence/2026-10-09-resume-rewrite-review-connected.json; focused Python/API 14, connected Chromium 1, frontend 10, build and diff checks PASS. Issue OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and was not pushed under local-only delivery. Issue #96 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified 2026-10-09T20:04:49Z.",
   "next_candidates": [
     {
       "issue": 517,
@@ -15727,5 +15779,5 @@
       "status": "NEXT: reconcile and continue the connected discovered-job-site source candidate catalogue and review workflow; preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF. Reconcile existing claims/worktrees before selecting owned paths."
     }
   ],
-  "current_verified_at": "2026-10-09T19:29:04Z"
+  "current_verified_at": "2026-10-09T20:04:49Z"
 }
