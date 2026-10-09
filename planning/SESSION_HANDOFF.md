@@ -1,3 +1,14 @@
+# Current solo session checkpoint — 2026-10-09T13:25:00Z
+
+- Root: `C:\Tools\Dev\MJobs`; local main `4e086a55711730b838519cbb1cbae5b01f7a282d` (tree `bcbbf97e21877d8cfcb8b3f342381cd9aaef06da`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
+- Solo mode: zero active child agents. Preserve completed-worker branches/worktrees, all unrelated lane claims, and untracked user file `docs/evidence/2026-10-08-compose-target-isolation.json`.
+- #267 / MJ-REQ-266 is PARTIAL at `245461a473f516eabbae5f1d8ec0dfad0a2f07`; evidence `docs/evidence/2026-10-09-application-route-preference.json`. The connected profile preference, verified employer/ATS route evidence, and explicit per-job choice gate are integrated. Trusted integrated-board authority remains unmapped.
+- #268 / MJ-REQ-267 is PARTIAL at `4e086a55711730b838519cbb1cbae5b01f7a282d`; evidence `docs/evidence/2026-10-09-direct-employer-route-discovery.json`. An aggregator route can display a same-employer/requisition exact-evidence verified ATS candidate. The lookup performs no network I/O and never replaces the user's selected route. Live cross-site redirect resolution remains unimplemented.
+- Verification for #268: 24 focused Python tests, connected Chromium 1/1, component tests 2/2, Vite/TypeScript build, compilation, and diff check PASS. Full repository unittest discovery is incomplete after unrelated browser failures. PostgreSQL/hosted NOT_RUN; external submission OFF.
+- Next solo feature: #269 / MJ-REQ-268, connected manual application status tracking across six states, durable save/reload/history and profile/job isolation.
+
+---
+
 # Current solo session checkpoint — 2026-10-09T13:16:27Z
 
 - Root: `C:\Tools\Dev\MJobs`, local `main` at `245461a473f516eabbaeaf5f1d8ec0dfad0a2f07` (tree `b67a90733fbe60d3b1c98d05f5db0a391f4e19e9`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.

@@ -2212,9 +2212,9 @@
     },
     {
       "requirement_id": "MJ-REQ-267",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": ["docs/evidence/2026-10-09-direct-employer-route-discovery.json"],
+      "note": "Connected route readback finds a same-employer/requisition verified ATS candidate using persisted evidence and leaves the user-selected route unchanged. No external redirect is followed; actual aggregator-to-ATS resolution remains unimplemented."
     },
     {
       "requirement_id": "MJ-REQ-268",
