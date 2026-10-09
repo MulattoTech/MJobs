@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-243"
+  ],
+  "github_issues": [
+    244
+  ],
+  "result": "PASS",
+  "scope": "Users can configure saved-search title and keyword filters, preview captured versus prefiltered/rejected/deferred source rows, persist criteria to the profile-scoped search, and apply those saved criteria in the discovery worker before deterministic scoring. Source postings remain durably stored; uncertain/oversized rows are not falsely rejected, candidates beyond the cap are deferred, and preview errors preserve criteria and posting history.",
+  "source": {
+    "branch": "codex/solo-mj-req243-company-prefilter-20261009",
+    "base": "8ffb4d93f88fd20ba4506b53af0cc1317e2db006",
+    "tested_commit": "7ed64882f715e99825c157f538eb68b1ba073bbd",
+    "tested_tree": "44c116f972337b5b1256ca652d6695568abe4ed0",
+    "tested_source_sha256": {
+      "apps/api/cheap_prefilter.py": "1479E438B0F81D8426157F8DC188C8F4321C2DC17E463A932DBA771578502F0D",
+      "apps/web/src/main.tsx": "9A13EFE929DAD39729F99ED2A62E8CDEF736C2E15296ADFBADE79EBAE35E884B",
+      "apps/web/src/job-prefilter.tsx": "672585BEDD2C10EA202B8577004259B5EE03D13D9804F04D6215B990E7EB58BD",
+      "apps/web/src/first-run-wizard.tsx": "E279A3E2E657295CAFF82E67C6D99FF27C6B2F9580BF64567C1CF65248D66C4C",
+      "services/discovery/cheap_prefilter.py": "8EC637682B183581BB8AD857C3D1E87252B239999B0BF9EC3563EF6A3F872B8A",
+      "services/discovery/cheap_prefilter_pipeline.py": "3DFFF5A54A2BE884F457CA08DE9F3C33F0825A7809342E2A6D35989E98DAD698",
+      "workers/tasks.py": "74C4D8E10E0D3833567A2B27A651907588419129EB3061B85F7BC313FEED9797",
+      "tests/unit/test_cheap_prefilter.py": "061D6572F487234D9AC8353F52F53B9F53D1CA4B165F96FC096FED1F299219CE",
+      "tests/integration/test_prefilter_discover_worker.py": "CEC2BEDBFD4778189180214A85E14A8E6DBE5449B6EC6ECE6013D56AD8174E26",
+      "tests/integration/test_cheap_prefilter_api.py": "01F841CEA2B30F52AA814EC023158A2B6A84057B780AA69A27A0F9F084DE1529",
+      "tests/browser/test_cheap_job_prefilter.py": "654EC1CE4D0E166FA343A45551C41C71E97F23F01091FE7F2A01448D4263DE28",
+      "tests/browser/test_cheap_prefilter_recovery.py": "947CD47FC5354EECAD78F93950A8BE3CFF1C2D7A7390A910EAAD66BEB4BCB26A",
+      "apps/web/src/job-prefilter.test.tsx": "F732631BE174409CD6B25C5FC6B853D8BBC5D32F822B67ECC378B7BBBCE78899",
+      "apps/web/src/first-run-wizard.test.tsx": "99ECE99954AB8A83AD1064EB856F99D210BA4445FF93487F083654FAF78B9E82"
+    }
+  },
+  "verified_at_utc": "2026-10-09T20:29:38Z",
+  "environment": {
+    "os": "Windows",
+    "database": "temporary SQLite fixtures with explicit selected source and saved-search profile",
+    "browser": "local connected Chromium; cross-origin requests blocked",
+    "frontend": "local focused Vitest and TypeScript/Vite production build",
+    "delivery": "local-only; hosted automation/review disabled; external application submission OFF"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_cheap_prefilter tests.integration.test_cheap_prefilter_pipeline tests.integration.test_cheap_prefilter_pipeline_recovery tests.integration.test_cheap_prefilter_api tests.integration.test_prefilter_discover_worker tests.integration.test_prefilter_search_profile_contract -v",
+      "result": "PASS",
+      "evidence": "23 tests passed. Covers title/keyword rules, saved criteria, source/profile scope, worker scoring only matching rows, deterministic candidate caps, explicit deferred candidates, unchanged postings, read-only preview and invalid input."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_cheap_job_prefilter tests.browser.test_cheap_prefilter_recovery -v",
+      "result": "PASS",
+      "evidence": "2 connected Chromium workflows passed: saved-search title/keyword preview reported 3 captured and 1 candidate while all postings remained stored; transient preview failure retained saved criteria and candidate view, reload restored settings, and storage rows were unchanged. No external requests, application records, or AI evaluations were observed."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/first-run-wizard.test.tsx src/job-prefilter.test.tsx",
+      "result": "PASS",
+      "evidence": "4 focused frontend tests passed, including unique first-run search-profile accessible name and filter criteria/preview display."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing bundle-size advisory: 773.80 kB JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_cheap_job_prefilter.py tests/browser/test_cheap_prefilter_recovery.py; git diff --check; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "evidence": "Browser test compilation, commit diff check, and lane claim validation passed."
+    }
+  ],
+  "not_run": [
+    "Full Python and frontend repository suites.",
+    "PostgreSQL and live employer source requests.",
+    "Hosted Actions, reviews, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "The filter caps current scoring candidates at 500 and explicitly defers remaining plausible rows; this is bounded staged scoring, not proof that every collected posting is scored immediately.",
+    "The app has no configured AI enrichment step in this workflow; this filter prevents unnecessary deterministic scoring and does not claim AI analysis savings.",
+    "Release readiness remains UNKNOWN; issue scope completion is not whole-product completion."
+  ],
+  "safety": [
+    "Preview reads explicitly selected source IDs and saved-search profile scope; cross-profile and missing-source requests fail closed.",
+    "Captured postings are not deleted by reject/defer outcomes or preview errors.",
+    "Filter selection does not create applications or trigger AI/provider calls. External application submission remains OFF."
+  ]
+}
