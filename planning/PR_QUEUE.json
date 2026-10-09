@@ -2524,7 +2524,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-065-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Parent remains QUEUED with dependencies MJ-PR-064 and MJ-PR-057 unchanged. The dependency-independent issue #240 / MJ-REQ-239 notes slice is integrated PASS; other parent requirements remain incomplete. Additional dependency-independent issues #242 / MJ-REQ-241 and #243 / MJ-REQ-242 integrated PASS on local main d61eabcd9276bc519e40cbe0154fe5bce3945260; evidence docs/evidence/2026-10-09-core-feature-integration-batch.json. The aggregate PR-065 remains QUEUED with MJ-PR-064/MJ-PR-057 dependencies and requirements #239/#240 unchanged.",
+      "notes": "Parent remains QUEUED with dependencies MJ-PR-064 and MJ-PR-057 unchanged. Dependency-independent issues #240 / MJ-REQ-239, #241 / MJ-REQ-240, #242 / MJ-REQ-241 and #243 / MJ-REQ-242 are locally accepted PASS slices; #241 adds durable profile-scoped company preferences, pre-limit blacklist exclusion/recovery, and explainable priority integration (docs/evidence/2026-10-09-company-preferences.json). Earlier #240/#242/#243 evidence remains docs/evidence/2026-10-09-core-feature-integration-batch.json. The aggregate PR-065 remains QUEUED because its declared dependencies and remaining scope are incomplete.",
       "active_slice": {
         "issue": 240,
         "requirement_id": "MJ-REQ-239",

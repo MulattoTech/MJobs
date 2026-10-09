@@ -2034,9 +2034,11 @@
     },
     {
       "requirement_id": "MJ-REQ-240",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-company-preferences.json"
+      ],
+      "note": "Profile-scoped blacklist/preferred/neutral controls are durable and connected; blacklisted companies are excluded before the job-result limit with an explicit include override, and preference states feed the explainable application-priority company factor."
     },
     {
       "requirement_id": "MJ-REQ-241",

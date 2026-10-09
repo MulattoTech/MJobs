@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration was not pushed and no PR was opened. Issue #134 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T08:48:49Z"
   },
-  "current_milestone": "MJ-REF-026-SKILL-GAP-PRIORITY-20261009",
-  "current_objective": "Continue solo feature-first development after integrating user-reported outcome prioritization into the deterministic skill-gap heatmap. Keep MJ-REF-026 PARTIAL until its remaining upskilling-plan acceptance is addressed.",
+  "current_milestone": "MJ-REQ-240-COMPANY-PREFERENCES-20261009",
+  "current_objective": "Deliver profile-scoped company blacklist, preference ranking, and discovery controls. Keep overall product release PARTIAL; MJ-REF-026 remains PARTIAL pending its remaining upskilling-plan acceptance.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -82,7 +82,8 @@
     "MJ-REQ-128 read-only safe metadata analysis for synthetic mock application forms; ambiguous rendered context fails closed; PARTIAL acceptance only.",
     "MJ-REQ-100 bounded company-context workflow: source-identity binding, explicit content-hash review, labeled unverified context and immutable per-job letter history; PARTIAL only.",
     "Connected #190/MJ-REQ-189 application-capability Jobs facet integrated at 08715b516dd8fe9d109102b969f4f77eacd311cd: exact persisted route/current adapter knowledge, pre-LIMIT filtering, profile-scoped save/restore/clear; evidence docs/evidence/2026-10-08-application-capability-search-filter.json.",
-    "Profile-scoped dynamic ATS form review with dependent choices, optional sections, repeatable rows, and browser-tab recovery; employer writes remain disabled."
+    "Profile-scoped dynamic ATS form review with dependent choices, optional sections, repeatable rows, and browser-tab recovery; employer writes remain disabled.",
+    "MJ-REQ-240 / issue #241 company preferences PASS: durable profile-scoped BLACKLISTED/PREFERRED/NEUTRAL state, pre-limit job exclusion with explicit recovery override, and explainable application-priority company factor; evidence docs/evidence/2026-10-09-company-preferences.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -609,14 +610,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "3b4c86dd604d7ef7d8651159ae2c2231586e8221",
-    "tree": "147ef3e379337b97c036c9efe5c016543e4c6aa5",
-    "result": "PASS for bounded role-scoring stale-explanation recovery; MJ-REF-038 remains PARTIAL.",
+    "commit": "97ae82d9b59c1e588c494379dea0f1e0606772c1",
+    "tree": "d8bdcc0f138db9cb27452bd60b57d9bc792e964c",
+    "result": "PASS for full MJ-REQ-240 company preference acceptance on exact tested source; overall product remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-role-scoring-profile-reload.json",
-      "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
+      "docs/evidence/2026-10-09-company-preferences.json"
     ],
-    "verified_at_utc": "2026-10-09T08:13:30Z"
+    "verified_at_utc": "2026-10-09T09:43:11Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -14271,9 +14271,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T09:24:58Z",
-  "current_verified_local_state": "Local main de1e463ec42f2c5dca14c6df4112be9a249e75a2 (tree b69539458323ce50c96f2b4135fd2fe54ec1b661) includes deterministic profile-scoped skill-gap priority counts and UI explanation. Thirteen Python unit/integration tests, one connected Chromium recovery/reload workflow, four focused frontend tests, TypeScript/Vite build, reference provenance validation and diff checks PASS. MJ-REF-026 remains PARTIAL; no AI theme clustering or course recommendations.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is 252 commits ahead. Issue #396 receives a local-only integration receipt. No push or PR; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T09:43:11Z",
+  "current_verified_local_state": "Company-preference candidate source 97ae82d9b59c1e588c494379dea0f1e0606772c1 (tree d8bdcc0f138db9cb27452bd60b57d9bc792e964c) passed focused API/service, discovery, application-priority, connected Chromium, frontend and build checks; evidence docs/evidence/2026-10-09-company-preferences.json. MJ-REQ-240 PASS; whole product and MJ-REF-026 remain PARTIAL.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration is not pushed and no PR is opened. Issue #241 receives a local acceptance receipt. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 517,
