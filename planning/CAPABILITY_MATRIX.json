@@ -2235,12 +2235,13 @@
     },
     {
       "requirement_id": "MJ-REQ-266",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-09-application-route-preference.json",
-        "docs/evidence/2026-10-09-application-route-preference-map.json"
+        "docs/evidence/2026-10-09-application-route-preference-map.json",
+        "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json"
       ],
-      "note": "Profile-scoped employer route preferences persist, read back, and influence default ordering only within equal evidence authority; verified employer/ATS evidence remains higher priority. Users can save or clear the preference in connected application preparation. Trusted integrated-board authority is still unimplemented because route-to-board trust evidence is not persisted."
+      "note": "Default route planning ranks exact verified employer/official ATS evidence above trusted integrated-board evidence and aggregators. Board authority requires a captured posting whose application URL matches the route, a matching company-source record and configured collector, provider/tenant identity, and persisted APPLICATION_REDIRECT capability. Connected route UI explains authority; USER_CHOICE and explicit route selection remain available. Verified locally at main 64b123e4633b60cb655cc53a3b95188761860e8a; PostgreSQL, full repository suite, live providers, and hosted checks were not run."
     },
     {
       "requirement_id": "MJ-REQ-267",

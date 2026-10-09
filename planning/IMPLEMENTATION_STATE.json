@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T20:30:32Z",
+  "generated_at": "2026-10-09T21:05:23Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-266-TRUSTED-INTEGRATED-BOARD-ROUTE-20261009",
-  "current_objective": "Persist exact integrated-source evidence on application routes and rank only matching supported board routes between verified employer/ATS and generic aggregators.",
+  "current_milestone": "MJ-REQ-266-TRUSTED-INTEGRATED-BOARD-ROUTE-PASS-20261009",
+  "current_objective": "Select and begin the next highest-value dependency-ready core product feature after integrating exact trusted-board route ranking.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -98,7 +98,8 @@
     "MJ-REQ-114 weighted coverage breakdown: required/preferred/nice-to-have/missing evidence arithmetic, per-skill contribution, connected job-detail readback, and base-vs-selected-search score distinction verified at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af.",
     "MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete.",
     "Issue #244 / MJ-REQ-243 PASS: saved-search source prefilter previews and persists profile-scoped title/keyword criteria, feeds actual discovery-worker candidate scoring, and preserves source rows across reject/defer/errors. Main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json.",
-    "Issue #517 bounded queue-integrity slice PASS at main f6976147fcae7cdab121abcb3090b2c310a3a53f: source-candidate integration cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue; API/service fail closed and connected UI persists/readbacks the linked issue without enabling collection. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader catalogue issue remains PARTIAL."
+    "Issue #517 bounded queue-integrity slice PASS at main f6976147fcae7cdab121abcb3090b2c310a3a53f: source-candidate integration cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue; API/service fail closed and connected UI persists/readbacks the linked issue without enabling collection. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader catalogue issue remains PARTIAL.",
+    "MJ-REQ-266 PASS locally at 64b123e4633b60cb655cc53a3b95188761860e8a: verified employer/ATS > exact trusted integrated-board provenance > aggregator; persisted route-to-posting/source/collector evidence, connected authority explanation, explicit user choice. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -174,7 +175,6 @@
     "MJ-REF-006 local acceptance: 29 focused unit/API/integration/browser-recovery tests pass for deterministic measured trimming, bounded attempts, protected facts, no-write previews and unavailable-measurement recovery. A measured-success connected browser flow and broader release gates remain unverified (docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json).",
     "MJ-REF-002 / #372: current approved fact-linked story revisions can be explicitly selected for job-specific cover letters; generated text retains exact user-authored story content and document history resolves revision/fact provenance. Resume story reuse and broader story-bank acceptance remain incomplete. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
     "Issue #372 / MJ-REF-002 explicit job-specific resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c); evidence docs/evidence/2026-10-09-resume-story-reuse.json; focused Python 32, frontend 24, connected resume/cover-letter Chromium 2, build and local validators PASS. Exact story text and immutable story/fact provenance survive durable generation/history; broader story-bank and interview-preparation acceptance remains PARTIAL.",
-    "Profile-controlled application route preference and evidence-qualified employer/ATS ranking, with explicit user route choice persisted through application preparation (MJ-REQ-266; trusted integrated-board tier remains PARTIAL).",
     "Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted).",
     "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported).",
     "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL).",
@@ -184,14 +184,7 @@
     "Issue #517 discovered source-site catalogue remains PARTIAL: other provider/browser intake and overall source suitability/integration acceptance are incomplete."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    {
-      "requirement_id": "MJ-REQ-266",
-      "issue": 267,
-      "status": "ACTIVE_IMPLEMENTATION",
-      "branch": "codex/solo-267-integrated-board-route-trust-20261009"
-    }
-  ],
+  "active_requirements": [],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -485,7 +478,8 @@
     "MJ-REF-031 / #401: 46 focused Python unit/integration tests, 30 focused web tests, TypeScript/Vite build, and two connected Chromium review/retry/reload tests PASS on the local integrated tree.",
     "MJ-REQ-267 bounded redirect-resolution slice at b2e514a8dab39996c7cfb448e1c02dbe93995947: 43 focused Python tests PASS (route resolver, API, existing route and public-fetch regressions); 533 frontend tests PASS; connected Chromium route-choice/check/preparation flow 1/1 PASS; TypeScript/Vite build, py_compile, and diff check PASS. Evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json.",
     "MJ-REQ-250 complete fresh-profile first-run: connected Chromium 1/1; affected profile/resume/discovery integration 52/52; web 95 files / 540 tests; TypeScript/Vite build; py_compile, diff check and lane validator PASS locally.",
-    "MJ-REQ-114 focused exact-candidate: 27 matching integration tests PASS; connected Chromium profile-scoped match detail 1/1 PASS with zero external requests/submissions; 17 focused matching explanation Vitest tests PASS; TypeScript/Vite build PASS; compilation, evidence hash and lane/diff checks PASS."
+    "MJ-REQ-114 focused exact-candidate: 27 matching integration tests PASS; connected Chromium profile-scoped match detail 1/1 PASS with zero external requests/submissions; 17 focused matching explanation Vitest tests PASS; TypeScript/Vite build PASS; compilation, evidence hash and lane/diff checks PASS.",
+    "MJ-REQ-266 exact route-level trusted-board provenance: focused Python/API/connected Chromium 29 PASS; route-preference Vitest 2 PASS; TypeScript/Vite build, py_compile, lane validation, diff check PASS. Exact source a4286d189f2d7b8b583b17de229fecd38fd98813 tree 627040b5977f7b621d593864c6604af059af3349; evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -609,7 +603,8 @@
     "MJ-REQ-268: PostgreSQL, hosted Actions/review, automatic email updates, and external application submission NOT_RUN/OFF.",
     "MJ-REF-031/#401: PostgreSQL, full repository suite, live ATS/provider access, hosted checks/reviews, and real application submission NOT_RUN; external submission OFF.",
     "MJ-REQ-250 live Greenhouse, PostgreSQL, full Python repository suite, hosted checks/review and cross-device browser-local acknowledgment persistence NOT_RUN; external submission OFF.",
-    "MJ-REQ-114 PostgreSQL-specific execution, full repository suite, hosted CI/review, and live employer/ATS integrations NOT_RUN under local-only policy; external application submission OFF."
+    "MJ-REQ-114 PostgreSQL-specific execution, full repository suite, hosted CI/review, and live employer/ATS integrations NOT_RUN under local-only policy; external application submission OFF.",
+    "MJ-REQ-266: PostgreSQL-specific and full repository suites, live providers, hosted Actions/reviews NOT_RUN; external application submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -631,7 +626,6 @@
     "#237 / MJ-REQ-236: the discovery collector does not expose a trustworthy duplicate tally; the history field is retained as null and UI renders Unknown rather than deriving a false count. Live external-source and hosted acceptance NOT_RUN_BY_USER_POLICY.",
     "MJ-FEATURE-517 remains OPEN/PARTIAL beyond this bounded slice; broader source-provider/browser intake and live/hosted acceptance remain unverified. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
     "Issue #238 local SQLite/synthetic acceptance does not verify PostgreSQL or live employer/ATS behavior; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "MJ-REQ-266 remains PARTIAL because the route model has no auditable mapping for trusted integrated-job-board authority; source-quality scores alone are not authority evidence.",
     "MJ-REQ-267 resolves only through a user-triggered bounded check to allowlisted verified employer/ATS destinations. Candidates are ephemeral and require manual review; no automatic submission gate is enabled. Live remote behavior, PostgreSQL, and hosted checks remain unverified; external submission OFF."
   ],
   "known_product_defects": [
@@ -655,13 +649,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
-    "tree": "47a9baf9eff07848246f5744bbe62c8002591124",
-    "result": "PARTIAL for issue #267 / MJ-REQ-266; explicit per-employer route preferences now save, clear, reload and affect preparation defaults only within equal authority. Trusted integrated-board evidence remains incomplete.",
+    "commit": "64b123e4633b60cb655cc53a3b95188761860e8a",
+    "tree": "4eab257fa49b74fda6e59a36cd5251a8a80b2e3f",
+    "result": "PASS_LOCAL for full original MJ-REQ-266 acceptance at issue #267; release readiness remains UNKNOWN.",
     "evidence": [
-      "docs/evidence/2026-10-09-application-route-preference-map.json"
+      "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json"
     ],
-    "verified_at_utc": "2026-10-09T18:57:20Z"
+    "verified_at_utc": "2026-10-09T21:05:23Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -728,7 +722,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement and verify the #267 trusted integrated-board route authority slice, preserving employer/ATS precedence and user-controlled route preferences.",
+  "recommended_resume_step": "Reconcile live priority issues and claims; select and claim the next dependency-ready user-facing feature. Preserve local-only delivery, active worktrees, and external-submission OFF.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -14422,12 +14416,66 @@
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": []
+    },
+    {
+      "milestone_id": "MJ-REQ-266-TRUSTED-INTEGRATED-BOARD-ROUTE-PASS-20261009",
+      "timestamp": "2026-10-09T21:05:23Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+      "completed_steps": [
+        "Added exact persisted route-to-posting/company-source/configured-collector evidence for Remotive, Remote OK, and We Work Remotely routes with APPLICATION_REDIRECT capability.",
+        "Default ranking places verified employer/ATS above trusted integrated boards and aggregators; connected picker explains evidence and explicit USER_CHOICE remains available.",
+        "Multi-source canonical job, mismatched source/configuration, missing capability, route URL mismatch, and connected no-egress/no-submit paths passed.",
+        "Integrated tested sources and evidence to local main by fast-forward; issue #267 closed with local PASS receipt."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json"
+      ],
+      "files_modified": [
+        "services/dedupe/routes.py",
+        "apps/web/src/main.tsx",
+        "tests/integration/test_application_route_trust.py",
+        "tests/browser/test_application_route_preference.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "tests_completed": [
+        "Focused Python/API/connected Chromium: 29 passed",
+        "Route preference Vitest: 2 passed",
+        "TypeScript/Vite production build passed with existing chunk-size advisory",
+        "Python compilation, lane validation, and diff checks passed"
+      ],
+      "tests_remaining": [
+        "PostgreSQL-specific and full repository suites",
+        "Live provider checks and hosted Actions/reviews NOT_RUN_BY_USER_POLICY"
+      ],
+      "known_limitations": [
+        "Only Remotive, Remote OK, and We Work Remotely source adapters receive the integrated-board tier; others fail closed.",
+        "Local main is not pushed; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "64b123e4633b60cb655cc53a3b95188761860e8a",
+        "evidence_path": "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json"
+      },
+      "integrated_main": "64b123e4633b60cb655cc53a3b95188761860e8a",
+      "source_commit": "a4286d189f2d7b8b583b17de229fecd38fd98813",
+      "source_tree": "627040b5977f7b621d593864c6604af059af3349",
+      "acceptance": "PASS for full original MJ-REQ-266 route hierarchy and configurable user choice; release readiness remains UNKNOWN.",
+      "evidence_path": "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json",
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6089238604",
+      "limitations": [
+        "PostgreSQL/full suite/live providers/hosted checks NOT_RUN; external application submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": []
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "ea6cc9601bf2950e87c73d1229fb142d2364768a",
-    "evidence_path": "docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json"
+    "git_commit": "64b123e4633b60cb655cc53a3b95188761860e8a",
+    "evidence_path": "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14915,6 +14963,16 @@
       "integrated_at_utc": "2026-10-09T19:10:48Z",
       "evidence_path": "docs/evidence/2026-10-09-explainable-skill-score-breakdown.json",
       "remote_pushed": false
+    },
+    {
+      "commit": "64b123e4633b60cb655cc53a3b95188761860e8a",
+      "tree": "4eab257fa49b74fda6e59a36cd5251a8a80b2e3f",
+      "issue": 267,
+      "requirement_id": "MJ-REQ-266",
+      "result": "PASS_LOCAL_ONLY",
+      "integrated_at_utc": "2026-10-09T21:05:23Z",
+      "evidence_path": "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json",
+      "remote_pushed": false
     }
   ],
   "live_reconciliation": {
@@ -14928,11 +14986,10 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 267,
-    "requirement_id": "MJ-REQ-266",
-    "status": "ACTIVE_IMPLEMENTATION",
-    "branch": "codex/solo-267-integrated-board-route-trust-20261009",
-    "outcome": "Profile-aware default route planning uses persisted exact integrated-board evidence; unknown routes remain aggregator/unknown."
+    "number": null,
+    "requirement_id": null,
+    "status": "NEXT_SLICE_SELECTION",
+    "outcome": "MJ-REQ-266 is locally PASS; select a dependency-ready core feature from live backlog without overlapping active claims."
   },
   "historical_control_snapshots": [
     {
@@ -16097,8 +16154,8 @@
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
   "updated_at": "2026-10-09T20:52:00Z",
-  "current_verified_local_state": "Issue #517 linked-record display and navigation are integrated locally at main ea6cc9601bf2950e87c73d1229fb142d2364768a (tree fe17ca92a41650df01eaccd3b831f29b8accb904), from tested source 725c2e94fb4ce8c4379c65ea9e76e8b2659e9851 (tree 1ab0e7cd52a9b392f383f957a1c18d1f39e7ceb5). Candidate history displays job title/company and application state, with actions to open the profile-scoped Jobs detail and Applications review when linked context is complete. Evidence docs/evidence/2026-10-09-source-candidate-linked-record-navigation.json; broader #517 remains OPEN/PARTIAL.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #517 remains OPEN/PARTIAL; local receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089049795. Hosted checks NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live providers NOT_RUN; external submission OFF.",
+  "current_verified_local_state": "MJ-REQ-266 / issue #267 is locally PASS at main 64b123e4633b60cb655cc53a3b95188761860e8a (tree 4eab257fa49b74fda6e59a36cd5251a8a80b2e3f), from tested source a4286d189f2d7b8b583b17de229fecd38fd98813 (tree 627040b5977f7b621d593864c6604af059af3349). Exact per-route provenance joins captured postings, company sources and configured collectors; the picker explains trusted board evidence; explicit route choice remains available. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
+  "current_verified_github_state": "Issue #267 is CLOSED after local acceptance receipt https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6089238604. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live providers NOT_RUN; external submission OFF.",
   "next_candidates": [
     {
       "issue": 517,
@@ -16106,5 +16163,5 @@
       "status": "Continue #517 with one dependency-ready capture-intake or source-evaluation/integration gap after verifying ownership; linked history is now understandable and navigable."
     }
   ],
-  "current_verified_at": "2026-10-09T20:51:32Z"
+  "current_verified_at": "2026-10-09T21:05:23Z"
 }
