@@ -37,6 +37,12 @@ October 5 trial-deadline instructions. GitHub remains source/issue/PR storage.
 
 See docs/GITHUB_WORKFLOW.md and prompts/LOCAL_ONLY_LUNA_ITERATION.md.
 
+## 2026-10-09 user-authorized two-agent interactive exception
+
+The current user explicitly authorized **one Codex CLI root** and **one Google Antigravity root** to work concurrently on separate MJobs areas. This overrides earlier statements that only one interactive coding root may run **for this two-session pairing only**; it does not authorize hosted agents, automated GitHub Actions, paid hosted reviews, unattended runs, or a second integration owner. Additional child agents require scoped, independently nonoverlapping claims and proven host capacity; neither root should automatically fan out 50 workers.
+
+**Required operating contract:** read `docs/DUAL_AGENT_COORDINATION.md`, `planning/lanes/README.md`, and `docs/PROGRESS_TRACKING.md` before starting either paired session. Codex owns the claimed application-automation implementation files; Antigravity owns claimed matching/AI implementation files. Use isolated branches and worktrees, exact issue/path claims with GitHub comment mirror, and serial integration. Only one integrator may update canonical planning, shared interfaces/migrations and `main`. If a claim overlaps or a checkout is dirty unexpectedly, preserve it and stop that slice. Both clients' model-specific `/goal` and complete prompts live under `prompts/dual-agent/`. External real submission stays OFF. These rules persist only where compatible with a later explicit user instruction.
+
 ## Mandatory low-overhead progress tracking — every AI, every session
 
 All writers (Codex/Luna, Claude, Gemini/Antigravity, Ollama, and other agents) must follow `docs/PROGRESS_TRACKING.md`, whether or not their client auto-loads this file. The root must include that policy in any child handoff.

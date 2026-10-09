@@ -164,31 +164,32 @@ def render_dashboard(root: Path = ROOT) -> str:
 
 
 def write_dashboard(root: Path = ROOT) -> bool:
-    """Atomic, idempotent update. Never call without a safe integration lock."""
+    """Atomically update generated files at an owned acceptance checkpoint."""
     root = Path(root)
     output = root / DASHBOARD
     expected = render_dashboard(root)
-    if output.is_file() and output.read_text(encoding="utf-8") == expected:
-        return False
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(
-        mode="w", encoding="utf-8", dir=output.parent,
-        prefix=".dashboard-", suffix=".tmp", delete=False, newline="\n",
-    ) as handle:
-        temp = Path(handle.name)
+    changed = not (output.is_file() and output.read_text(encoding="utf-8") == expected)
+    if changed:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=output.parent,
+            prefix=".dashboard-", suffix=".tmp", delete=False, newline="\n",
+        ) as handle:
+            temp = Path(handle.name)
+            try:
+                handle.write(expected)
+                handle.flush()
+                os.fsync(handle.fileno())
+            except BaseException:
+                temp.unlink(missing_ok=True)
+                raise
         try:
-            handle.write(expected)
-            handle.flush()
-            os.fsync(handle.fileno())
-        except BaseException:
+            os.replace(temp, output)
+        finally:
             temp.unlink(missing_ok=True)
-            raise
-    try:
-        os.replace(temp, output)
-    finally:
-        temp.unlink(missing_ok=True)
-    return True
-
+    from tools.verification.progress_card import write_card
+    card_changed = write_card(root, snapshot(root))
+    return changed or card_changed
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -210,7 +211,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         output = args.root / DASHBOARD
         if args.check:
-            current = output.is_file() and output.read_text(encoding="utf-8") == render_dashboard(args.root)
+            from tools.verification.progress_card import card_current
+            current = (output.is_file() and
+                       output.read_text(encoding="utf-8") == render_dashboard(args.root) and
+                       card_current(args.root, state))
             print("Progress dashboard: CURRENT" if current else "Progress dashboard: STALE")
             return 0 if current else 1
         changed = write_dashboard(args.root)

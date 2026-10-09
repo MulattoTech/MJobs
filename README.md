@@ -1,5 +1,9 @@
 # MJobs
 
+[![MJobs verified requirement acceptance](docs/PROGRESS_CARD.svg)](docs/PROGRESS_DASHBOARD.md)
+
+> **Quick ChatGPT status:** Ask “Show MJobs progress” with connected GitHub/Desktop Commander. [Installable skill and sync guidance](docs/MJOBS_CHATGPT_PROGRESS.md). Card refreshes only at verified integration checkpoints, not on every commit.
+
 > **Agent guidance and live tracker:** Every AI working on MJobs should read [AGENTS.md](AGENTS.md) and [batched progress-tracking policy](docs/PROGRESS_TRACKING.md). [The generated progress dashboard](docs/PROGRESS_DASHBOARD.md) is refreshed only at accepted integration checkpoints and closeout, not every turn. The next user-invoked core-feature sprint prompt is [here](prompts/LUNA_CORE_FEATURE_SPRINT.md).
 
 > **Local-only development:** GitHub Actions and agent reviews are disabled by the user. Start with [the local Luna iteration prompt](prompts/LOCAL_ONLY_LUNA_ITERATION.md) and [current handoff](planning/SESSION_HANDOFF.md). Local verification, requirement completion and release acceptance are distinct.
@@ -76,3 +80,8 @@ to process your feedback.
 For a product-level walkthrough, use [docs/GUIDED_PRODUCT_REVIEW.md](docs/GUIDED_PRODUCT_REVIEW.md) and the VS Code tasks **MJobs: Guided Product Review - Personal/Fixture**.
 
 For browser-driven test/feedback development in VS Code, see [docs/LIVE_FEEDBACK_DEVELOPMENT.md](docs/LIVE_FEEDBACK_DEVELOPMENT.md). Checked-in VS Code tasks can start PERSONAL or FIXTURE mode and a privacy-conscious headed-browser recorder. Session data stays under ignored `outputs/live-feedback/`; use `prompts/VS_CODE_LIVE_FEEDBACK.md` with Codex to turn the latest observation into a test, patch, validation, and retest cycle.
+
+
+## Dual-agent feature implementation (Codex + Antigravity)
+
+For isolated local Codex application automation and Antigravity AI matching, follow [the ownership and integration contract](docs/DUAL_AGENT_COORDINATION.md) and [the seven model-specific launch profiles](prompts/dual-agent/README.md). Only the integration owner merges accepted evidence into `main`. Project-hosted Actions/agent runs remain disabled and real external applications are not submitted.

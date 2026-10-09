@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "issue": 275,
+  "requirement_id": "MJ-REQ-274",
+  "result": "PASS",
+  "scope": "Bounded fixture Compose recovery target isolation and fail-fast validation",
+  "validated_at_utc": "2026-10-08T19:10:37Z",
+  "source": {
+    "commit": "f20f54a1ec23c0530fe11b2e1c8d792cb9ad7c53",
+    "tree": "c42cd02296bd7c52a5807fd2b93195f9e8bb36b8"
+  },
+  "commands": [
+    {
+      "command": ".venv/Scripts/python.exe -m unittest tests.unit.test_compose_recovery_target tests.integration.test_compose_recovery_guardrails tests.integration.test_compose_recovery_target -v",
+      "result": "PASS: 11 tests"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m py_compile cli/compose_recovery.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff f20f54a1ec23c0530fe11b2e1c8d792cb9ad7c53 --check",
+      "result": "PASS"
+    }
+  ],
+  "observed": [
+    "Project names are restricted to mjobs-fixture-[a-f0-9]{12} and ports to 1024 through 65535.",
+    "The command requires explicit project and port arguments before runtime access.",
+    "Compose commands use the repository compose file, fixture profile, selected project and MJOBS_PORT.",
+    "Worker inspection is selected through the project-scoped Compose service and validates project/service labels.",
+    "All subprocess and HTTP interactions in these tests were mocked."
+  ],
+  "limitations": [
+    "Compose/PostgreSQL/Redis runtime recovery was NOT_RUN.",
+    "Whole issue #275 and MJ-REQ-274 remain PARTIAL.",
+    "Hosted checks were NOT_RUN_BY_USER_POLICY."
+  ],
+  "external_submission_enabled": false
+}
