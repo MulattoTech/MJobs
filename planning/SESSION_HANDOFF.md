@@ -1,3 +1,15 @@
+# Current solo session checkpoint — 2026-10-09T13:16:27Z
+
+- Root: `C:\Tools\Dev\MJobs`, local `main` at `245461a473f516eabbaeaf5f1d8ec0dfad0a2f07` (tree `b67a90733fbe60d3b1c98d05f5db0a391f4e19e9`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
+- Solo mode: zero active child agents. Do not spawn. Preserve all completed-worker branches/worktrees and unrelated claims; the eight runtime children visible at transition had completed their tasks.
+- Integrated feature: #267 / MJ-REQ-266 application route preference, PARTIAL. Evidence: `docs/evidence/2026-10-09-application-route-preference.json`. Profile can prefer verified employer/ATS or require explicit route selection; exact route choice is persisted during preparation. A provider label alone is not proof.
+- Verification: 21 focused Python tests, browser workflow 1/1, component tests 2/2, TypeScript/Vite build, Python compilation, and diff checks PASS. Full repository unittest discovery was interrupted earlier with unrelated browser failures and is incomplete. PostgreSQL and hosted checks NOT_RUN; external application submission OFF.
+- Gap: trusted integrated-job-board authority has no auditable route mapping in the current persistence model. MJ-REQ-267 remains PARTIAL.
+- Preserve untracked user file `docs/evidence/2026-10-08-compose-target-isolation.json`. Root feature branch/worktree remains `codex/solo-267-application-route-preference-20261009` / `.worktrees/root-solo-267-application-route-preference-20261009`, clean after integration.
+- Next solo feature: #268 / MJ-REQ-267, bounded direct-employer route discovery before preparation using existing route/posting provenance and synthetic acceptance. Define bounded timeout/fallback, keep external submission OFF.
+
+---
+
 # 2026-10-09 12:59Z — Solo company-discovery policy integrated
 
 - #265 / MJ-REQ-264 and #266 / MJ-REQ-265 are implemented and locally PASS at source/integrated main `f1036d6e7bce62eb5aa75f7a5a14102179f274ce` (tree `84aff12f991afffc520ee6838db479b2bcee1aeb`). Profile controls persist company discovery enablement, minimum/priority scores, and hourly cap. Eligible high-score requests carry durable HIGH priority and dispatch ahead of normal outbox work. Evidence: `docs/evidence/2026-10-09-company-discovery-policy.json`.

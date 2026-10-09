@@ -2206,9 +2206,9 @@
     },
     {
       "requirement_id": "MJ-REQ-266",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": ["docs/evidence/2026-10-09-application-route-preference.json"],
+      "note": "Profile can prefer evidence-qualified employer/ATS routes or require an explicit per-job choice; provider names alone do not qualify. The trusted integrated job-board tier is unimplemented because route-to-board trust evidence is not persisted."
     },
     {
       "requirement_id": "MJ-REQ-267",

@@ -2830,7 +2830,7 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "main",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-264 and MJ-REQ-265 passed and integrated to local main at f1036d6e7bce62eb5aa75f7a5a14102179f274ce; evidence docs/evidence/2026-10-09-company-discovery-policy.json. MJ-REQ-266 and MJ-REQ-267 remain unverified; package remains partial. Local-only delivery; no push."
+      "notes": "MJ-REQ-264 and MJ-REQ-265 passed and integrated to local main at f1036d6e7bce62eb5aa75f7a5a14102179f274ce; evidence docs/evidence/2026-10-09-company-discovery-policy.json. MJ-REQ-266 is PARTIAL at 245461a473f516eabbaeaf5f1d8ec0dfad0a2f07; evidence docs/evidence/2026-10-09-application-route-preference.json. Profile preference, verified employer/ATS evidence, explicit user choice, API and worker gates are locally verified. Trusted integrated job-board authority mapping and MJ-REQ-267 direct-employer route discovery remain incomplete. Local-only delivery; no push."
     },
     {
       "id": "MJ-PR-073",
