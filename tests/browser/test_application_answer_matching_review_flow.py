@@ -75,8 +75,8 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
             initial_other = store.profile("other")
             initial_documents = store.count("documents")
 
-            # This branch contains the scoped router and picker contracts, but
-            # create_app/main.tsx do not mount them yet. ROOT owns that wiring.
+            # Exercise the mounted local router and browser picker against a
+            # disposable fixture store; no external service is contacted.
             app = create_app(store, "http://127.0.0.1:1", root,
                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
             sock = bound_browser_socket()
@@ -154,7 +154,7 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                             response.url.endswith(
                                 f"/profiles/fixture/applications/{first_application}/answers/match")) as matched:
                         lookup.click()
-                    self.assertEqual(matched.value.status, 200, matched.value.text)
+                    self.assertEqual(matched.value.status, 200, matched.value.text())
                     expect(candidates).to_be_visible()
                     self.assertEqual(len(matching_requests), 1, matching_requests)
                     self.assertEqual(matching_requests[0]["method"], "POST")
@@ -203,11 +203,12 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
 
                     # Editing the question makes the old response unusable.
                     changed_question = "Describe a fictional dessert you like."
-                    question_group.get_by_label("Employer question", exact=True).fill(
+                    question_group.locator("#application-answer-question-0").fill(
                         changed_question)
                     expect(candidates.get_by_role("listitem", name="Answer match 1")).to_have_count(0)
                     expect(question_group.get_by_role(
                         "button", name="Select answer as draft:", exact=False)).to_have_count(0)
+                    expect(answer).to_have_value("")
                     self.assertFalse(any(
                         item["body"] == {"question": changed_question}
                         for item in matching_requests))
@@ -215,8 +216,10 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                             response.url.endswith(
                                 f"/profiles/fixture/applications/{first_application}/answers/match")) as changed_match:
                         lookup.click()
-                    self.assertEqual(changed_match.value.status, 200, changed_match.value.text)
-                    expect(candidates).to_contain_text("No eligible saved answer matches")
+                    self.assertEqual(changed_match.value.status, 200, changed_match.value.text())
+                    expect(question_group.get_by_role(
+                        "region", name="Saved answer matches")).to_contain_text(
+                            "No eligible saved answer matches were found.")
                     self.assertEqual(matching_requests[-1]["body"],
                                      {"question": changed_question})
 
@@ -246,7 +249,7 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                                 f"/profiles/fixture/applications/{second_application}/answers/match")) as second_match:
                         second_match_panel.get_by_role(
                             "button", name="Find saved answer matches", exact=True).click()
-                    self.assertEqual(second_match.value.status, 200, second_match.value.text)
+                    self.assertEqual(second_match.value.status, 200, second_match.value.text())
                     self.assertEqual(matching_requests[-1]["path"],
                                      f"/profiles/fixture/applications/{second_application}/answers/match")
                     expect(second_match_panel.get_by_role(
@@ -264,7 +267,7 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                             response.request.method == "GET" and response.url.endswith(
                                 f"/profiles/other/applications/{other_application}")) as other_detail:
                         other_card.click()
-                    self.assertEqual(other_detail.value.status, 200, other_detail.value.text)
+                    self.assertEqual(other_detail.value.status, 200, other_detail.value.text())
                     other_panel = page.get_by_role(
                         "region", name="Application answers")
                     other_panel.get_by_role(
@@ -283,11 +286,11 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                                 f"/profiles/other/applications/{other_application}/answers/match")) as other_match:
                         other_match_panel.get_by_role(
                             "button", name="Find saved answer matches", exact=True).click()
-                    self.assertEqual(other_match.value.status, 200, other_match.value.text)
+                    self.assertEqual(other_match.value.status, 200, other_match.value.text())
                     self.assertEqual(matching_requests[-1]["body"], {"question": question})
                     expect(other_match_panel).to_contain_text(
                         "No eligible saved answer matches")
-                    self.assertNotIn("exact-experience", other_match.value.text)
+                    self.assertNotIn("exact-experience", other_match.value.text())
 
                     # Return to the fixture profile/app and deliberately
                     # select/review before permitting a durable local export.
@@ -298,7 +301,7 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                             response.request.method == "GET" and response.url.endswith(
                                 f"/profiles/fixture/applications/{first_application}")) as first_detail:
                         first_card.click()
-                    self.assertEqual(first_detail.value.status, 200, first_detail.value.text)
+                    self.assertEqual(first_detail.value.status, 200, first_detail.value.text())
                     export_panel = page.get_by_role(
                         "region", name="Application answers")
                     export_panel.get_by_role(
@@ -312,7 +315,7 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                                 f"/profiles/fixture/applications/{first_application}/answers/match")) as final_match:
                         export_matches.get_by_role(
                             "button", name="Find saved answer matches", exact=True).click()
-                    self.assertEqual(final_match.value.status, 200, final_match.value.text)
+                    self.assertEqual(final_match.value.status, 200, final_match.value.text())
                     export_matches.get_by_role(
                         "listitem", name="Answer match 1").get_by_role(
                             "button", name=("Select answer as draft: "
@@ -333,7 +336,7 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                             response.url.endswith(
                                 f"/profiles/fixture/applications/{first_application}/answers/export")) as saved:
                         export_button.click()
-                    self.assertEqual(saved.value.status, 201, saved.value.text)
+                    self.assertEqual(saved.value.status, 201, saved.value.text())
                     self.assertEqual(saved.value.json()["external_submission"], "OFF")
                     self.assertEqual(store.count("documents"), initial_documents + 1)
                     self.assertEqual(store.profile("fixture")["answers"],
@@ -345,20 +348,16 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                     # never send their question to the matching route.
                     export_panel.get_by_role(
                         "button", name="Add question", exact=True).click()
-                    sensitive_group = export_panel.get_by_role("group", name="Question 2")
+                    sensitive_group = export_panel.get_by_role("group", name="Question 1")
                     sensitive_question = (
                         "Are you legally authorized to work in the United States?")
-                    sensitive_group.get_by_label("Employer question", exact=True).fill(
+                    sensitive_group.locator("#application-answer-question-0").fill(
                         sensitive_question)
-                    sensitive_match_panel = sensitive_group.get_by_role(
-                        "region", name="Saved answer matches")
                     previous_match_count = len(matching_requests)
-                    sensitive_match_panel.get_by_role(
-                        "button", name="Find saved answer matches", exact=True).click()
-                    expect(sensitive_match_panel).to_contain_text(
-                        "Sensitive or legally significant")
-                    expect(sensitive_match_panel.get_by_role(
-                        "button", name="Select answer as draft", exact=False)).to_have_count(0)
+                    expect(sensitive_group).to_contain_text(
+                        "Sensitive or legal question: enter your answer for this application.")
+                    expect(sensitive_group.get_by_role(
+                        "region", name="Saved answer matches")).to_have_count(0)
                     expect(sensitive_group.get_by_role(
                         "textbox", name="Answer", exact=True)).to_have_value("")
                     self.assertEqual(len(matching_requests), previous_match_count)

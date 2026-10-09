@@ -20,6 +20,12 @@ import { ResumeFactSelection,type ResumeFactChoice } from './resume-fact-selecti
 import { matchCategory } from './match-category';
 import { JobMatchScoreFilter } from './job-match-score-filter';
 import { isSensitiveAnswerQuestion, suggestAnswers } from './answer-matching';
+import { ApplicationAnswerMatching } from './application-answer-matching';
+import {
+  matchApplicationAnswers,
+  type ApplicationAnswerMatchResponse,
+  type ApplicationAnswerSuggestionDraft,
+} from './application-answer-matching-client';
 import { ApplicationReviewQueue, type ReviewQueueApplication } from './application-review-queue';
 import { ApplicationFollowUpDrafts } from './application-follow-up-drafts';
 import { ApplicationLinkFilter, type ApplicationLinkStatusFilter } from './application-link-filter';
@@ -54,7 +60,7 @@ type ApplicationTracking = {status:string|null;attribution:'USER_REPORTED'|'EXTE
 type Application = {id:string; title:string; company:string; state:string; target:string; job_id:string; profile_id:string; route_id?:string; route_choices?:{route_id:string;underlying_key:string;requested_mode:string;state:string}[]; adapter_knowledge?:{provider:string|null;tenant_identifier:string|null;basis:string;adapter_status:string;external_submission_enabled:boolean}; document_version:number; profile_version:string; fact_ids:string[]; trace:string[]; confirmation:Record<string,unknown>|null; question_preflight?:{result:'PASS'|'FAIL'|'UNKNOWN';reason:string|null;observed_at:string;missing:{question_id:string;question:string;fact_ids?:string[];answer_ids?:string[];profile_paths?:string[];document_kinds?:string[];application_context?:string[]}[]}|null; pipeline_status?:string|null; pipeline_attribution?:string|null; external_reports?:{source:string;applied_at:string;application_url?:string;sequence:number;timestamp:string}[]; answer_bank?:Answer[]; attempts?:{state:string; started_at:string;steps:string[]}[]};
 type AnswerConfidencePolicy = {minimum_saved_answer_confidence:number;minimum_question_match_confidence:number};
 type SensitiveAnswerSuggestion = {category:string|null;response:string;mode:'PREFER_NOT_TO_ANSWER'|'USE_CONFIGURED_RESPONSE'|'ALWAYS_REQUIRE_REVIEW';source?:'PROFILE_CONFIGURATION';review_required:true};
-type AnswerDraft = {question:string;text:string;answer_id?:string;reviewed:boolean;bankConfidence?:number;bankConsent?:boolean;sensitivePolicySuggestion?:SensitiveAnswerSuggestion};
+type AnswerDraft = {question:string;text:string;answer_id?:string;reviewed:boolean;bankConfidence?:number;bankConsent?:boolean;sensitivePolicySuggestion?:SensitiveAnswerSuggestion;matchResponse?:ApplicationAnswerMatchResponse|null;matchLoading?:boolean;matchError?:string};
 type Doc = GeneratedDocument;
 type DocumentArchiveLibrary = {
   uploaded: (Resume & {revision_id?:string;document_kind?:string;archived_at?:string|null})[];
@@ -270,6 +276,8 @@ function App() {
   const [busy,setBusy]=useState(''); const [error,setError]=useState(''); const [notice,setNotice]=useState('');
   const [activeOp,setActiveOp]=useState('');
   const profileRef = useRef(profileId); profileRef.current = profileId;
+  const selectedAppRef = useRef(selectedApp); selectedAppRef.current = selectedApp;
+  const answerDraftsRef = useRef(answerDrafts); answerDraftsRef.current = answerDrafts;
   const browserCaptureClients = useRef(new Map<string, ReturnType<typeof createBrowserJobExtractionCaptureClient>>());
   const searchScheduleDraftsRef = useRef<Record<string,{enabled:boolean;interval:number}>>({});
   function updateSearchScheduleDraft(searchId:string,saved:{enabled:boolean;interval:number},next:{enabled:boolean;interval:number}) {
@@ -818,6 +826,46 @@ function App() {
     const matchingPreferences=(preferences:Partial<Preferences>)=>Object.fromEntries(Object.entries(preferences).filter(([key])=>key!=='avoid_terms'&&key!=='sensitive_answer_policies'));
     return JSON.stringify(factProjection(clean.facts))!==JSON.stringify(factProjection(baseline.facts))||stable(matchingPreferences(clean.preferences))!==stable(matchingPreferences(baseline.preferences||{}));
   }
+  async function findApplicationAnswerMatches(index:number) {
+    const draft=answerDraftsRef.current[index];
+    const application=selectedAppRef.current;
+    const selectedProfile=profileRef.current;
+    if(!draft||!application||!selectedProfile||!draft.question.trim()||isSensitiveAnswerQuestion(draft.question))return;
+    if(answerConfidencePolicyProfileId!==selectedProfile){
+      setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index?{...row,matchError:'Load the active profile answer thresholds before looking up reusable answers.'}:row));
+      return;
+    }
+    const requestScope={profileId:selectedProfile,applicationId:application.id,question:draft.question};
+    setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index?{...row,matchResponse:null,matchLoading:true,matchError:''}:row));
+    const getActiveScope=()=>({
+      profileId:profileRef.current,
+      applicationId:selectedAppRef.current?.id||'',
+      question:answerDraftsRef.current[index]?.question||'',
+    });
+    try {
+      const response=await matchApplicationAnswers(requestScope,getActiveScope);
+      if(profileRef.current!==requestScope.profileId||selectedAppRef.current?.id!==requestScope.applicationId||answerDraftsRef.current[index]?.question!==requestScope.question)return;
+      setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index&&row.question===requestScope.question?{...row,matchResponse:response}:row));
+    } catch (failure) {
+      const current=getActiveScope();
+      if(current.profileId!==requestScope.profileId||current.applicationId!==requestScope.applicationId||current.question!==requestScope.question)return;
+      setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index&&row.question===requestScope.question?{...row,matchResponse:null,matchError:failure instanceof Error?failure.message:'Could not load saved answer matches.'}:row));
+    } finally {
+      const current=getActiveScope();
+      if(current.profileId===requestScope.profileId&&current.applicationId===requestScope.applicationId&&current.question===requestScope.question)
+        setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index&&row.question===requestScope.question?{...row,matchLoading:false}:row));
+    }
+  }
+  function applyApplicationAnswerSuggestion(index:number,suggestion:ApplicationAnswerSuggestionDraft) {
+    const draft=answerDraftsRef.current[index];
+    if(!draft||profileRef.current!==suggestion.profile_id||selectedAppRef.current?.id!==suggestion.application_id||
+      draft.question!==suggestion.question||isSensitiveAnswerQuestion(draft.question)||!suggestion.verified||!suggestion.user_approved||
+      suggestion.confidence<answerConfidencePolicy.minimum_saved_answer_confidence||
+      suggestion.score<answerConfidencePolicy.minimum_question_match_confidence)return;
+    setAnswerDrafts(rows=>rows.map((row,rowIndex)=>rowIndex===index&&row.question===suggestion.question?{
+      ...row,text:suggestion.text,answer_id:suggestion.answer_id,reviewed:false,bankConsent:false,bankConfidence:undefined,
+    }:row));
+  }
   async function exportAnswers() {
     if(!selectedApp||!profileId)throw new Error('Select an application and profile before exporting answers');
     const items=answerDrafts.map(({question,text,answer_id,reviewed})=>({question,text,...(answer_id?{answer_id}:{}),reviewed}));
@@ -825,7 +873,7 @@ function App() {
     await showApp(selectedApp.id);setNotice(`Reviewed answer export saved as document ${result.document_id.slice(0,10)}.`);
   }
   function editAnswerQuestion(index:number,question:string) {
-    setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,question,answer_id:undefined,reviewed:false,bankConsent:false,bankConfidence:undefined,sensitivePolicySuggestion:undefined}:row));
+    setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,question,text:row.answer_id?'':row.text,answer_id:undefined,reviewed:false,bankConsent:false,bankConfidence:undefined,sensitivePolicySuggestion:undefined,matchResponse:null,matchError:'',matchLoading:false}:row));
     const pending=sensitiveSuggestionTimers.current.get(index);
     if(pending!==undefined)window.clearTimeout(pending);
     if(!profileId||!selectedApp||!isSensitiveAnswerQuestion(question))return;
@@ -1229,6 +1277,19 @@ function App() {
               <legend>Question {index+1}</legend>
               <label>Employer question<textarea id={`application-answer-question-${index}`} maxLength={2000} value={draft.question} onChange={e=>editAnswerQuestion(index,e.target.value)}/></label>
               {sensitive&&<p className="safety">Sensitive or legal question: enter your answer for this application. Reusable answers are not suggested.</p>}
+              {!sensitive&&<ApplicationAnswerMatching
+                profileId={profileId}
+                applicationId={selectedApp.id}
+                question={draft.question}
+                response={draft.matchResponse||null}
+                loading={!!draft.matchLoading}
+                error={draft.matchError||null}
+                minimumConfidence={answerConfidencePolicy.minimum_saved_answer_confidence}
+                minimumMatchScore={answerConfidencePolicy.minimum_question_match_confidence}
+                onFindMatches={()=>void findApplicationAnswerMatches(index)}
+                onRetry={()=>void findApplicationAnswerMatches(index)}
+                onSelectDraft={suggestion=>applyApplicationAnswerSuggestion(index,suggestion)}
+              />}
               {sensitive&&sensitiveSuggestion?.source==='PROFILE_CONFIGURATION'&&sensitiveSuggestion.category&&!!sensitiveSuggestion.response&&<div className="provenance" aria-label={`Profile preference suggestion for question ${index+1}`}>
                 <p>Profile preference · {sensitiveSuggestion.mode==='PREFER_NOT_TO_ANSWER'?'Prefer not to answer':'Configured response'}</p>
                 <p>Proposed from this profile's explicit policy. This response requires review for this application.</p>
