@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -111,6 +111,62 @@ class UserMatchFeedbackTests(unittest.TestCase):
         self.assertEqual(len(current["items"]), 2)
         self.assertEqual(current["by_dimension"]["salary"]["direction"], "INCREASE")
         self.assertNotIn("request_id", current["items"][0])
+
+    def test_reviewed_seniority_feedback_keeps_only_a_known_level_snapshot(self):
+        with self.store.engine.begin() as connection:
+            row = connection.execute(select(m.jobs.c.attributes).where(
+                m.jobs.c.id == self.job["id"])).mappings().one()
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.job["id"])
+                               .values(attributes={**row["attributes"], "experience_level": "SENIOR"}))
+
+        feedback = record_feedback(
+            self.store, "fixture", self.job["id"], "TOO_SENIOR", "feedback-seniority")
+        applied = apply_feedback_preference(
+            self.store, "fixture", feedback["feedback"]["id"],
+            "seniority", "increase", "apply-seniority")
+        current = list_feedback_preferences(self.store, "fixture")["items"]
+
+        self.assertEqual(applied["preference"]["seniority_level"], "SENIOR")
+        self.assertEqual(current[0]["seniority_level"], "SENIOR")
+
+        with self.store.engine.begin() as connection:
+            row = connection.execute(select(m.jobs.c.attributes).where(
+                m.jobs.c.id == self.job["id"])).mappings().one()
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.job["id"])
+                               .values(attributes={**row["attributes"], "experience_level": "UNVERIFIED"}))
+        unknown_feedback = record_feedback(
+            self.store, "fixture", self.job["id"], "TOO_SENIOR", "feedback-seniority-unknown")
+        unknown = apply_feedback_preference(
+            self.store, "fixture", unknown_feedback["feedback"]["id"],
+            "seniority", "increase", "apply-seniority-unknown")
+        self.assertIsNone(unknown["preference"]["seniority_level"])
+
+    def test_replaying_a_pre_upgrade_preference_does_not_reclassify_its_source_job(self):
+        with self.store.engine.begin() as connection:
+            row = connection.execute(select(m.jobs.c.attributes).where(
+                m.jobs.c.id == self.job["id"])).mappings().one()
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.job["id"])
+                               .values(attributes={**row["attributes"], "experience_level": "SENIOR"}))
+        feedback = record_feedback(
+            self.store, "fixture", self.job["id"], "TOO_SENIOR", "legacy-seniority-feedback")
+        first = apply_feedback_preference(
+            self.store, "fixture", feedback["feedback"]["id"],
+            "seniority", "increase", "legacy-seniority-apply")
+        with self.store.engine.begin() as connection:
+            applied_event = connection.execute(select(m.audit.c.id, m.audit.c.payload).where(
+                m.audit.c.id == first["preference"]["id"])).mappings().one()
+            legacy_payload = dict(applied_event["payload"])
+            legacy_payload.pop("seniority_level")
+            connection.execute(update(m.audit).where(m.audit.c.id == applied_event["id"])
+                               .values(payload=legacy_payload))
+
+        replay = apply_feedback_preference(
+            self.store, "fixture", feedback["feedback"]["id"],
+            "seniority", "increase", "legacy-seniority-apply")
+
+        self.assertTrue(replay["replayed"])
+        self.assertIsNone(replay["preference"]["seniority_level"])
+        self.assertIsNone(list_feedback_preferences(self.store, "fixture")["items"][0]["seniority_level"])
 
     def test_same_request_and_category_replays_one_event(self):
         first = record_feedback(

@@ -26,6 +26,7 @@ export type AppliedMatchPreference = {
   company_id: string | null;
   feedback_id: string;
   category: MatchFeedbackCategory;
+  seniority_level: string | null;
   dimension: PreferenceProposalDimension;
   direction: 'INCREASE' | 'DECREASE';
   created_at: string;
@@ -131,6 +132,10 @@ function isAppliedMatchPreference(value: unknown): value is AppliedMatchPreferen
     && isText(value.id, 256)
     && isScopeId(value.job_id)
     && (value.company_id === null || isScopeId(value.company_id))
+    && (value.seniority_level === null || [
+      'EXECUTIVE', 'DIRECTOR', 'MANAGER', 'LEAD', 'SENIOR', 'MID',
+      'ASSOCIATE', 'JUNIOR', 'ENTRY', 'INTERNSHIP',
+    ].includes(String(value.seniority_level)))
     && isText(value.feedback_id, 256)
     && isCategory(value.category)
     && ['overall', 'seniority', 'technology', 'location', 'salary', 'company'].includes(String(value.dimension))

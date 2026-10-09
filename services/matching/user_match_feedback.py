@@ -51,6 +51,10 @@ _REVIEWABLE_DIMENSIONS = frozenset({
     "overall", "overall_fit", "seniority", "technology", "location", "salary", "company",
 })
 _APPLIED_DIRECTIONS = frozenset({"increase", "decrease"})
+EXPLICIT_EXPERIENCE_LEVELS = frozenset({
+    "EXECUTIVE", "DIRECTOR", "MANAGER", "LEAD", "SENIOR", "MID",
+    "ASSOCIATE", "JUNIOR", "ENTRY", "INTERNSHIP",
+})
 
 
 class FeedbackConflict(ValueError):
@@ -235,12 +239,18 @@ def apply_feedback_preference(store, profile_id, feedback_id, dimension, directi
         job_id = feedback_payload.get("job_id")
         if category not in FEEDBACK_CATEGORIES or not isinstance(job_id, str):
             raise ValueError("Stored feedback cannot support a preference")
-        job = connection.execute(select(m.jobs.c.company_id).where(
+        job = connection.execute(select(m.jobs.c.company_id, m.jobs.c.attributes).where(
             m.jobs.c.id == job_id,
         )).mappings().one_or_none()
         if job is None or not isinstance(job["company_id"], str) or not job["company_id"]:
             raise ValueError("Stored feedback job has no company identity")
         company_id = job["company_id"]
+        attributes = job["attributes"]
+        level = attributes.get("experience_level") if isinstance(attributes, Mapping) else None
+        seniority_level = (
+            level if dimension == "seniority" and category == "TOO_SENIOR"
+            and isinstance(level, str) and level in EXPLICIT_EXPERIENCE_LEVELS else None
+        )
 
         event_id = identity("user-match-preference", 1, profile_id, request_id)
         payload = {
@@ -248,6 +258,7 @@ def apply_feedback_preference(store, profile_id, feedback_id, dimension, directi
             "company_id": company_id,
             "feedback_id": feedback_id,
             "category": category,
+            "seniority_level": seniority_level,
             "dimension": dimension,
             "direction": direction,
             "request_id": request_id,
@@ -267,8 +278,16 @@ def apply_feedback_preference(store, profile_id, feedback_id, dimension, directi
             m.audit.c.action == "MATCH_PREFERENCE_APPLIED",
         )).mappings().one()
 
-    if stored["payload"] != payload:
+    stored_payload = stored["payload"]
+    expected_payload = dict(payload)
+    if isinstance(stored_payload, Mapping) and "seniority_level" not in stored_payload:
+        expected_payload.pop("seniority_level")
+    if stored_payload != expected_payload:
         raise FeedbackConflict("Preference request ID was reused with different review content")
+    stored_seniority_level = (
+        stored_payload.get("seniority_level")
+        if isinstance(stored_payload, Mapping) else None
+    )
     return {
         "profile_id": profile_id,
         "replayed": not inserted,
@@ -278,6 +297,7 @@ def apply_feedback_preference(store, profile_id, feedback_id, dimension, directi
             "company_id": company_id,
             "feedback_id": feedback_id,
             "category": category,
+            "seniority_level": stored_seniority_level,
             "dimension": dimension,
             "direction": direction,
             "created_at": stored["timestamp"],
@@ -315,6 +335,7 @@ def list_feedback_preferences(store, profile_id: str) -> dict:
             "company_id": payload.get("company_id"),
             "feedback_id": payload.get("feedback_id"),
             "category": payload.get("category"),
+            "seniority_level": payload.get("seniority_level"),
             "dimension": "overall" if dimension == "overall_fit" else dimension,
             "direction": direction,
             "created_at": row["timestamp"],

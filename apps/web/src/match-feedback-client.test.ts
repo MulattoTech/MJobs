@@ -16,7 +16,7 @@ const proposal = {
   review_required: true as const,
 };
 const appliedPreference = {
-  id: 'applied-1', job_id: jobId, company_id: 'company-1', feedback_id: feedback.id,
+  id: 'applied-1', job_id: jobId, company_id: 'company-1', seniority_level: null, feedback_id: feedback.id,
   category: 'GOOD_MATCH' as const, dimension: 'salary' as const,
   direction: 'INCREASE' as const, created_at: '2026-10-09T11:30:00Z',
 };

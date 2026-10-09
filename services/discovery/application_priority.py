@@ -21,6 +21,7 @@ _SOURCE_BY_KEY = {
     "posting_age": "signals.posted_at",
     "salary": "signals.salary_status",
     "company_preference": "signals.company_preference",
+    "seniority": "profile.applied_feedback.seniority_level + job.experience_level",
     "direct_employer_availability": "signals.direct_employer_availability",
     "application_complexity": "signals.application_complexity",
     "source_freshness": "signals.source_freshness_at",
@@ -30,10 +31,13 @@ _SOURCE_BY_KEY = {
 _OPTIONAL_FACTORS = (
     ("work_arrangement", "Work arrangement", "work_arrangement_status", 10),
 )
+_OPTIONAL_SENIORITY_FACTOR = (
+    "seniority", "Seniority", "seniority_status", 10,
+)
 _PREFERENCE_FACTOR = {
     "overall": "match",
     "overall_fit": "match",
-    "seniority": "match",
+    "seniority": "seniority",
     "technology": "match",
     "location": "work_arrangement",
     "salary": "salary",
@@ -112,6 +116,14 @@ def _categorical_score(value, scores):
     return float(score), f"The explicit {normalized.replace('_', ' ').lower()} signal maps to {score} out of 100."
 
 
+def _seniority_score(value, level):
+    if value != "TOO_SENIOR" or not isinstance(level, str) or not level.strip():
+        return None
+    return 20.0, (
+        f"The job's normalized experience level ({level}) exactly matches a level the user explicitly marked too senior."
+    )
+
+
 def _age_score(value, now, *, dimension):
     observed = _timestamp(value)
     if observed is None or now is None:
@@ -180,6 +192,7 @@ def explain_application_priority(signals, *, now, applied_preferences=None):
         "company_preference": lambda value: _categorical_score(value, {
             "PREFERRED": 100, "NEUTRAL": 60, "DISFAVORED": 20,
         }),
+        "seniority": lambda value: _seniority_score(value, signals.get("seniority_level")),
         "direct_employer_availability": lambda value: _categorical_score(value, {
             "DIRECT_EMPLOYER": 100, "STAFFING_AGENCY": 75, "RECRUITER": 60,
         }),
@@ -196,6 +209,8 @@ def explain_application_priority(signals, *, now, applied_preferences=None):
     factors_to_score = list(_FACTORS)
     if "work_arrangement_status" in signals:
         factors_to_score.extend(_OPTIONAL_FACTORS)
+    if "seniority_status" in signals:
+        factors_to_score.append(_OPTIONAL_SENIORITY_FACTOR)
     adjusted_weights, adjusted_by_factor = _reviewed_weight_overrides(
         applied_preferences, factors_to_score,
     )

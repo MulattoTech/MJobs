@@ -189,6 +189,54 @@ class JobSortingBrowserTests(unittest.TestCase):
                     self.assertGreater(reviewed_ranked[0]["application_priority_score"],
                                        reviewed_ranked[1]["application_priority_score"])
                     expect(page.locator(".job-card").first).to_contain_text("Application priority")
+
+                    # A user-approved TOO_SENIOR signal is applied only when
+                    # the job exposes the exact same normalized level.
+                    profile_preferences = store.profile("fixture")["preferences"]
+                    with store.engine.begin() as connection:
+                        for job, level in ((older, "SENIOR"), (newer, "MID")):
+                            connection.execute(update(m.jobs).where(m.jobs.c.id == job["id"])
+                                               .values(attributes={
+                                                   **job["attributes"],
+                                                   "experience_level": level,
+                                                   "reported_posted_at": comparable_posted_at,
+                                               }))
+                            connection.execute(update(m.matches).where(
+                                m.matches.c.job_id == job["id"],
+                                m.matches.c.profile_id == "fixture",
+                            ).values(score=80.0, components={}))
+                    senior_feedback = page.request.post(
+                        f"{origin}/profiles/fixture/jobs/{older['id']}/match-feedback",
+                        data={"category": "TOO_SENIOR", "request_id": "seniority-priority-feedback"},
+                    )
+                    self.assertEqual(senior_feedback.status, 200, senior_feedback.text())
+                    senior_applied = page.request.post(
+                        f"{origin}/profiles/fixture/match-preferences",
+                        data={"feedback_id": senior_feedback.json()["feedback"]["id"],
+                              "dimension": "seniority", "direction": "increase",
+                              "request_id": "seniority-priority-apply"},
+                    )
+                    self.assertEqual(senior_applied.status, 200, senior_applied.text())
+                    self.assertEqual(senior_applied.json()["preference"]["seniority_level"], "SENIOR")
+
+                    sort.select_option("newest")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "sort=application_priority" in response.url) as seniority_priority:
+                        sort.select_option("application_priority")
+                    seniority_ranked = seniority_priority.value.json()["jobs"]
+                    self.assertEqual([row["title"] for row in seniority_ranked],
+                                     ["Zulu Newest Role", "Alpha Older Role"])
+                    self.assertEqual({row["match_score"] for row in seniority_ranked}, {80.0})
+                    seniority_detail = page.request.get(
+                        f"{origin}/profiles/fixture/jobs/{older['id']}/application-priority")
+                    self.assertEqual(seniority_detail.status, 200, seniority_detail.text())
+                    seniority_factor = next(
+                        factor for factor in seniority_detail.json()["factors"]
+                        if factor["key"] == "seniority")
+                    self.assertEqual(seniority_factor["score"], 20)
+                    self.assertEqual(store.profile("fixture")["preferences"], profile_preferences)
+                    self.assertEqual(store.count("applications"), 0)
                     self.assertEqual(external, [])
                     context.close()
                     browser.close()

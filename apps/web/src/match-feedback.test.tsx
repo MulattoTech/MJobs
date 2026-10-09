@@ -141,7 +141,7 @@ describe('match feedback view', () => {
   it('shows read-back applied preferences without exposing request identifiers', () => {
     const html = renderToStaticMarkup(<MatchFeedbackView {...props({
       appliedPreferences: [{
-        id: 'preference-1', job_id: 'job-a', company_id: 'company-a', feedback_id: feedback.id,
+        id: 'preference-1', job_id: 'job-a', company_id: 'company-a', seniority_level: null, feedback_id: feedback.id,
         category: 'BAD_SALARY', dimension: 'salary', direction: 'DECREASE',
         created_at: '2026-10-09T11:00:00Z',
       }],

@@ -6,6 +6,8 @@ from typing import Any, Mapping
 
 from fastapi import APIRouter, Body, HTTPException
 
+from services.matching.user_match_feedback import EXPLICIT_EXPERIENCE_LEVELS
+
 
 _CATEGORIES = frozenset({
     "GOOD_MATCH", "BAD_MATCH", "TOO_SENIOR", "WRONG_TECHNOLOGY",
@@ -123,12 +125,17 @@ def _history(value: Any, profile_id: str, job_id: str) -> dict[str, Any]:
 
 
 def _normalize_applied_preference(value: Any, profile_id: str) -> dict[str, Any]:
-    fields = {"id", "job_id", "company_id", "feedback_id", "category", "dimension", "direction", "created_at"}
+    fields = {"id", "job_id", "company_id", "feedback_id", "category", "seniority_level", "dimension", "direction", "created_at"}
     if (not isinstance(value, Mapping) or set(value) != fields
             or not all(_text(value.get(key), max_length=_MAX_ID)
                        for key in ("id", "job_id", "feedback_id"))
             or (value.get("company_id") is not None
                 and not _text(value.get("company_id"), max_length=_MAX_ID))
+            or (value.get("seniority_level") is not None
+                and value.get("seniority_level") not in EXPLICIT_EXPERIENCE_LEVELS)
+            or (value.get("seniority_level") is not None
+                and (value.get("dimension") != "seniority"
+                     or value.get("category") != "TOO_SENIOR"))
             or not _category(value.get("category"))
             or value.get("dimension") not in {
                 "overall", "seniority", "technology", "location", "salary", "company",

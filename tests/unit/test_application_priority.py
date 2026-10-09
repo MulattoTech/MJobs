@@ -75,6 +75,30 @@ def test_feedback_location_preference_uses_explicit_work_arrangement_evidence_on
     assert "user-reviewed" in factor["explanation"].lower()
 
 
+def test_seniority_preference_uses_only_an_exact_explicit_level_marked_too_senior():
+    unreviewed = explain_application_priority({"match_score": 80}, now=NOW)
+    assert "seniority" not in {row["key"] for row in unreviewed["factors"]}
+
+    result = explain_application_priority(
+        {"match_score": 80, "seniority_status": "TOO_SENIOR", "seniority_level": "SENIOR"},
+        now=NOW,
+        applied_preferences=[{
+            "id": "seniority-1", "dimension": "seniority", "direction": "INCREASE",
+            "created_at": "2026-10-09T11:00:00Z",
+        }],
+    )
+
+    factor = next(row for row in result["factors"] if row["key"] == "seniority")
+    assert factor["status"] == "KNOWN"
+    assert factor["score"] == 20
+    assert factor["contribution"] == 3
+    assert "user-reviewed" in factor["explanation"].lower()
+    assert "too senior" in factor["explanation"].lower()
+    assert "SENIOR" in factor["explanation"]
+    assert result["priority_score"] == pytest.approx(57.5)
+    assert result["affects_match_score"] is False
+
+
 def test_missing_or_unusable_signals_stay_unknown_and_reduce_coverage():
     result = explain_application_priority({
         "match_score": 80,

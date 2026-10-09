@@ -218,6 +218,46 @@ class ApplicationPriorityApiTests(unittest.TestCase):
         other_factor = next(row for row in other["factors"] if row["key"] == "company_preference")
         self.assertEqual(other_factor["status"], "UNKNOWN")
 
+    def test_reviewed_too_senior_feedback_ranks_only_the_explicit_same_level_advisorially(self):
+        preferences_before = self.store.profile("fixture")["preferences"]
+        other_job = self._seed_job(
+            job_id="mid-level-job", attributes={"experience_level": "MID"})
+        self._set_job_signals(
+            attributes={"experience_level": "SENIOR"}, components={},
+        )
+        before = self.client.get(self._url()).json()
+        self.assertNotIn("seniority", {factor["key"] for factor in before["factors"]})
+
+        feedback = self.client.post("/profiles/fixture/jobs/job/match-feedback", json={
+            "category": "TOO_SENIOR", "request_id": "too-senior-feedback",
+        })
+        self.assertEqual(feedback.status_code, 200, feedback.text)
+        applied = self.client.post("/profiles/fixture/match-preferences", json={
+            "feedback_id": feedback.json()["feedback"]["id"],
+            "dimension": "seniority", "direction": "increase",
+            "request_id": "too-senior-preference",
+        })
+        self.assertEqual(applied.status_code, 200, applied.text)
+        self.assertEqual(applied.json()["preference"]["seniority_level"], "SENIOR")
+
+        after = self.client.get(self._url()).json()
+        seniority = next(factor for factor in after["factors"] if factor["key"] == "seniority")
+        self.assertEqual(seniority["status"], "KNOWN")
+        self.assertEqual(seniority["score"], 20)
+        self.assertEqual(seniority["contribution"], 3)
+        self.assertIn("too senior", seniority["explanation"].lower())
+        self.assertEqual(after["priority_score"], 57.5)
+        self.assertEqual(after["match_score"], before["match_score"])
+        other = self.client.get(self._url(job_id=other_job["id"])).json()
+        self.assertNotIn("seniority", {factor["key"] for factor in other["factors"]})
+        self.assertEqual(self.store.profile("fixture")["preferences"], preferences_before)
+        state = self._snapshot()
+        self.assertEqual(len(state[m.applications.name]), 0)
+        self.assertEqual(
+            {row["id"]: row["score"] for row in state[m.matches.name]},
+            {"match-fixture-job": 80.0, "match-fixture-mid-level-job": 80.0},
+        )
+
     def test_missing_job_attributes_remain_unknown_instead_of_receiving_fallbacks(self):
         before = self._snapshot()
 

@@ -12,7 +12,9 @@ from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from services.discovery.recruiter_classification import classify_recruiter
-from services.matching.user_match_feedback import list_feedback_preferences
+from services.matching.user_match_feedback import (
+    EXPLICIT_EXPERIENCE_LEVELS, list_feedback_preferences,
+)
 
 
 _FACTOR_FIELDS = {"key", "label", "score", "contribution", "status", "explanation", "source"}
@@ -122,6 +124,20 @@ def _signals(job: Mapping[str, Any], match: Mapping[str, Any],
         signals["company_preference"] = (
             "PREFERRED" if latest_company_feedback["category"] == "GOOD_MATCH" else "DISFAVORED"
         )
+    level = attributes.get("experience_level")
+    seniority_feedback = [
+        item for item in (applied_preferences or [])
+        if item.get("dimension") == "seniority"
+    ]
+    if isinstance(level, str) and level in EXPLICIT_EXPERIENCE_LEVELS and seniority_feedback:
+        latest_seniority_feedback = max(
+            seniority_feedback,
+            key=lambda item: (str(item.get("created_at") or ""), str(item.get("id") or "")),
+        )
+        if (latest_seniority_feedback.get("category") == "TOO_SENIOR"
+                and latest_seniority_feedback.get("seniority_level") == level):
+            signals["seniority_status"] = "TOO_SENIOR"
+            signals["seniority_level"] = level
     if "application_complexity" in attributes:
         signals["application_complexity"] = attributes["application_complexity"]
     if "expires_at" in attributes:
