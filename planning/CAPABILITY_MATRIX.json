@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T14:39:49Z",
+  "timestamp": "2026-10-09T15:32:11Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2220,9 +2220,10 @@
       "requirement_id": "MJ-REQ-267",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-direct-employer-route-discovery.json"
+        "docs/evidence/2026-10-09-direct-employer-route-discovery.json",
+        "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
       ],
-      "note": "Connected route readback finds a same-employer/requisition verified ATS candidate using persisted evidence and leaves the user-selected route unchanged. No external redirect is followed; actual aggregator-to-ATS resolution remains unimplemented."
+      "note": "An explicit user-triggered route check follows a bounded public redirect chain to a verified employer domain or recognized ATS with matching verified tenant evidence. Redacted candidates are shown for review; route selection and submission are unchanged. Automatic pre-submission integration cannot be exercised while external submission is OFF; requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-268",

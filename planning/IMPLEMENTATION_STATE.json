@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T13:58:55Z",
+  "generated_at": "2026-10-09T15:32:11Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main includes #115 / MJ-REQ-114 relevant-experience fit explanation source commit a7d29aefdfb3051927bd63834a6d75cfc7f54857 (tree fca52ef5ae9b10a8b42b16c84a0a115690961414); connected score-neutral readback evidence docs/evidence/2026-10-09-relevant-experience-match-explanation.json. The overall matching requirement remains PARTIAL. Preserve untracked user file docs/evidence/2026-10-08-compose-target-isolation.json.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #115 remains OPEN/PARTIAL. The local-only source is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external application submission OFF. Verified at 2026-10-09T13:58:55Z.",
-    "current_verified_at": "2026-10-09T13:58:55Z"
+    "current_verified_local_state": "Local main b2e514a8dab39996c7cfb448e1c02dbe93995947 (tree bcb9411533376a51ba9a301b6833902224769de6); issue #268 / MJ-REQ-267 route-resolution slice is integrated locally with evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json. A preexisting untracked user file remains preserved.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #268 remains OPEN/PARTIAL; local-only changes are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T15:32:11Z.",
+    "current_verified_at": "2026-10-09T15:32:11Z"
   },
-  "current_milestone": "MJ-REF-031-BROWSER-EXTRACTION-REVIEW-20261009",
-  "current_objective": "Require explicit, durable user review of browser-extracted job fields before manual capture, with safe rejection and retry/readback.",
+  "current_milestone": "MJ-REQ-267-BOUNDED-REDIRECT-RESOLUTION-20261009",
+  "current_objective": "Offer a safe, bounded, user-triggered check for an aggregator redirect to a verified employer or ATS destination without changing the selected route or submitting.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -168,11 +168,11 @@
     "MJ-REF-002 / #372: current approved fact-linked story revisions can be explicitly selected for job-specific cover letters; generated text retains exact user-authored story content and document history resolves revision/fact provenance. Resume story reuse and broader story-bank acceptance remain incomplete. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
     "Issue #372 / MJ-REF-002 explicit job-specific resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c); evidence docs/evidence/2026-10-09-resume-story-reuse.json; focused Python 32, frontend 24, connected resume/cover-letter Chromium 2, build and local validators PASS. Exact story text and immutable story/fact provenance survive durable generation/history; broader story-bank and interview-preparation acceptance remains PARTIAL.",
     "Profile-controlled application route preference and evidence-qualified employer/ATS ranking, with explicit user route choice persisted through application preparation (MJ-REQ-266; trusted integrated-board tier remains PARTIAL).",
-    "Connected route details identify a same-employer/requisition exact-evidence ATS sibling for aggregator routes, keep ambiguous outcomes explicit, and preserve the user-selected route (MJ-REQ-267; live cross-site redirect resolution remains PARTIAL)."
+    "Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted)."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-269"
+    "MJ-REQ-267"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -464,7 +464,8 @@
     "MJ-REQ-268 status-tracking acceptance: 9 integration tests PASS; connected Chromium all-six-status workflow 1/1 PASS across page reload; Vite/TypeScript build, browser-test compilation, and diff checks PASS.",
     "Exact #115 remote-region matching slice: 31 focused Python integration/connected Chromium tests and 41 subtests; py_compile and diff check PASS (source 8b3c30d9).",
     "MJ-REQ-244 exact-source acceptance: Python unit/integration/connected Chromium 27 passed with 5 subtests; frontend 13 passed; TypeScript/Vite production build, py_compile and diff check PASS.",
-    "MJ-REF-031 / #401: 46 focused Python unit/integration tests, 30 focused web tests, TypeScript/Vite build, and two connected Chromium review/retry/reload tests PASS on the local integrated tree."
+    "MJ-REF-031 / #401: 46 focused Python unit/integration tests, 30 focused web tests, TypeScript/Vite build, and two connected Chromium review/retry/reload tests PASS on the local integrated tree.",
+    "MJ-REQ-267 bounded redirect-resolution slice at b2e514a8dab39996c7cfb448e1c02dbe93995947: 43 focused Python tests PASS (route resolver, API, existing route and public-fetch regressions); 533 frontend tests PASS; connected Chromium route-choice/check/preparation flow 1/1 PASS; TypeScript/Vite build, py_compile, and diff check PASS. Evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -584,7 +585,7 @@
     "Issue #238: PostgreSQL, full repository suite, live employer/ATS sources and hosted Actions/review NOT_RUN; external application submission OFF.",
     "MJ-REQ-264/265 PostgreSQL runtime, hosted Actions/review, live employer/ATS requests, and external application submission remain NOT_RUN/OFF; full repository unittest discovery was interrupted.",
     "MJ-REQ-266: PostgreSQL, hosted Actions/review, live employer/ATS resolution, and external application submission NOT_RUN/OFF.",
-    "MJ-REQ-267 live cross-site redirect resolution, PostgreSQL, hosted Actions/review, and external application submission NOT_RUN/OFF.",
+    "MJ-REQ-267: live employer/ATS requests, PostgreSQL, full Python discovery, hosted Actions/review NOT_RUN; external application submission OFF.",
     "MJ-REQ-268: PostgreSQL, hosted Actions/review, automatic email updates, and external application submission NOT_RUN/OFF.",
     "MJ-REF-031/#401: PostgreSQL, full repository suite, live ATS/provider access, hosted checks/reviews, and real application submission NOT_RUN; external submission OFF."
   ],
@@ -609,7 +610,7 @@
     "MJ-FEATURE-517 remains OPEN/PARTIAL beyond this bounded slice; broader source-provider/browser intake and live/hosted acceptance remain unverified. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json.",
     "Issue #238 local SQLite/synthetic acceptance does not verify PostgreSQL or live employer/ATS behavior; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "MJ-REQ-266 remains PARTIAL because the route model has no auditable mapping for trusted integrated-job-board authority; source-quality scores alone are not authority evidence.",
-    "MJ-REQ-267 does not perform cross-site URL resolution; it only surfaces exact persisted verified ATS sibling routes, because the current route model lacks an observed aggregator-to-ATS relationship and the bounded public fetcher intentionally blocks cross-origin redirects."
+    "MJ-REQ-267 resolves only through a user-triggered bounded check to allowlisted verified employer/ATS destinations. Candidates are ephemeral and require manual review; no automatic submission gate is enabled. Live remote behavior, PostgreSQL, and hosted checks remain unverified; external submission OFF."
   ],
   "known_product_defects": [
     "Manual application status is user-reported only; company/application notes beyond this slice, independently verified submission receipts, and full canonical tracker acceptance remain unverified.",
@@ -632,13 +633,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "8e8caa9eeb60fbc59a633a8064f142cad83b1e68",
-    "tree": "31d3b7a1b45988989ab0fca0d7f567089b61ca14",
-    "result": "PASS for bounded MJ-REF-031/#401: durable explicit extraction review/rejection receipt, safe optional application-route omission, preserved sanitized field provenance, and connected reload/retry acceptance. Issue remains OPEN pending local-only source synchronization.",
+    "commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
+    "tree": "bcb9411533376a51ba9a301b6833902224769de6",
+    "result": "PARTIAL for #268 / MJ-REQ-267: a user-triggered bounded redirect check displays a redacted verified destination without changing route choice or submitting.",
     "evidence": [
-      "docs/evidence/2026-10-09-browser-extraction-review-receipt.json"
+      "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
     ],
-    "verified_at_utc": "2026-10-09T15:07:39Z"
+    "verified_at_utc": "2026-10-09T15:32:11Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -705,7 +706,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile and safely release only checkpointed #401 / MJ-REF-031 extraction claims, then complete the highest-value connected browser job-capture gap on current main. Preserve all existing worktrees and claims outside that feature.",
+  "recommended_resume_step": "Select and implement the highest-value dependency-ready P1 jobseeker workflow next; initial live backlog review identified #251 / MJ-REQ-250 First-Run Wizard as a candidate, pending path/claim reconciliation. Preserve all other worktrees, claims and untracked files.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -13464,13 +13465,68 @@
       "live_integrations_tested": [
         "No ATS/provider requests or external application submissions; synthetic isolated SQLite and locally served browser acceptance only."
       ]
+    },
+    {
+      "milestone_id": "MJ-REQ-267-BOUNDED-REDIRECT-RESOLUTION-20261009",
+      "timestamp": "2026-10-09T15:32:11Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added an explicit user-triggered POST route check from job preparation; page reads perform no redirect requests.",
+        "Reused the pinned-public-IP transport with an 8-second deadline, bounded redirects, HTTPS-only origins, destination robots checks, and verified employer/ATS tenant allowlists.",
+        "Returned only a sanitized candidate link; query strings, remote body content, route changes, and application submission are not retained or performed.",
+        "Integrated locally by non-force fast-forward; issue #268 remains OPEN/PARTIAL and local main is not pushed."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-direct-employer-route-resolution.json",
+        "services/dedupe/route_redirects.py",
+        "apps/web/src/application-route-discovery.tsx",
+        "tests/unit/test_direct_employer_route_redirects.py",
+        "apps/web/src/application-route-discovery.test.tsx"
+      ],
+      "files_modified": [
+        "services/company_discovery/public_client.py",
+        "services/dedupe/route_redirects.py",
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "tests/unit/test_application_routes.py",
+        "tests/browser/test_application_route_preference.py"
+      ],
+      "integrated_main": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
+      "source_tree": "bcb9411533376a51ba9a301b6833902224769de6",
+      "acceptance": "MJ-REQ-267 remains PARTIAL. Synthetic tests prove the bounded user-triggered check, redacted verified candidate display, unchanged saved/selected route, and fail-closed cases. No automatic external-submit path is enabled and the candidate is not persisted as a route.",
+      "limitations": [
+        "Live employer/ATS requests, PostgreSQL, full Python suite, and hosted checks remain NOT_RUN.",
+        "External application submission remains OFF."
+      ],
+      "tests_completed": [
+        "43 focused Python unit/API/public-client tests PASS.",
+        "All 533 frontend Vitest tests PASS.",
+        "Connected Chromium route-choice/check/preparation test 1/1 PASS using a locally intercepted route response.",
+        "TypeScript/Vite build, Python compilation, and git diff check PASS."
+      ],
+      "tests_remaining": [
+        "Live employer/ATS redirect checks, PostgreSQL, full Python suite, hosted Actions/review, and external application submission NOT_RUN/OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic redirect responses through a patched local transport; connected local Chromium with external requests blocked/intercepted."
+      ],
+      "known_errors": [
+        "Existing unrelated full Python discovery failures remain outside this feature; full-suite verification was not run in this slice."
+      ],
+      "known_limitations": [
+        "Unverified intermediary hosts fail closed. Redirect candidates require manual review and are not saved as route records."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
+        "evidence_path": "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "8e8caa9eeb60fbc59a633a8064f142cad83b1e68",
-    "tree": "31d3b7a1b45988989ab0fca0d7f567089b61ca14",
-    "evidence_path": "docs/evidence/2026-10-09-browser-extraction-review-receipt.json"
+    "git_commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
+    "evidence_path": "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13922,6 +13978,22 @@
       "pr_state": "NOT_OPENED_LOCAL_ONLY",
       "hosted_checks": "NOT_RUN_BY_USER_POLICY",
       "external_submission": "OFF"
+    },
+    {
+      "issue": 268,
+      "requirement_id": "MJ-REQ-267",
+      "source_commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
+      "source_tree": "bcb9411533376a51ba9a301b6833902224769de6",
+      "integration_commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
+      "integration_tree": "bcb9411533376a51ba9a301b6833902224769de6",
+      "prior_main": "6931140797dc92eb2cb0f93069e63f418bc4c78c",
+      "integration_method": "NON_FORCE_FAST_FORWARD_LOCAL_ONLY",
+      "evidence_path": "docs/evidence/2026-10-09-direct-employer-route-resolution.json",
+      "issue_state": "OPEN/PARTIAL",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+      "external_submission": "OFF",
+      "remote_main": "0a8719d4db524c90b632d990cc7b205add0c2577"
     }
   ],
   "live_reconciliation": {

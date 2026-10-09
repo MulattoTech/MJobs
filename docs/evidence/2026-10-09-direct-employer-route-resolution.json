@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-267"],
+  "github_issues": [268],
+  "result": "PARTIAL",
+  "scope": "Add an explicit, bounded route-check action for an aggregator listing. Follow only public HTTPS redirects to a verified employer domain or a recognized ATS destination whose tenant matches persisted company evidence. Display a redacted candidate without changing the user's route selection or submitting an application.",
+  "source": {
+    "branch": "codex/solo-268-direct-employer-route-discovery",
+    "commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
+    "tree": "bcb9411533376a51ba9a301b6833902224769de6",
+    "integrated_main": "b2e514a8dab39996c7cfb448e1c02dbe93995947"
+  },
+  "verified_at_utc": "2026-10-09T15:29:29Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and connected Chromium",
+    "delivery": "local-only; no push or hosted automation"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_direct_employer_route_redirects tests.unit.test_application_routes tests.unit.test_public_company_client",
+      "result": "PASS",
+      "evidence": "43 tests passed, including verified employer/ATS targets, exact tenant matching, query redaction, unrelated-host rejection, robots denial, unresolved redirects, API integration with a synthetic redirect transport, selected-route preservation, and regressions in the shared public client."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "evidence": "92 frontend test files and 533 tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing advisory: generated JavaScript chunk is 738.60 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_route_preference",
+      "result": "PASS",
+      "evidence": "Connected local Chromium exercised the explicit route-check button, rendered the returned verified ATS destination, kept preparation enabled, and submitted preparation with the unchanged user-selected aggregator route. The check response was intercepted locally; no external network request or application submission occurred."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services\\company_discovery\\public_client.py services\\dedupe\\route_redirects.py apps\\api\\main.py tests\\unit\\test_direct_employer_route_redirects.py tests\\unit\\test_application_routes.py tests\\browser\\test_application_route_preference.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Changed Python modules compiled and the candidate diff had no whitespace errors."
+    }
+  ],
+  "not_run": [
+    "Live requests to employer or ATS sites; all redirect responses were synthetic and network-intercepted.",
+    "PostgreSQL integration.",
+    "Full Python repository test discovery.",
+    "Hosted Actions, hosted review, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "Resolution is an explicit user action from the job preparation view and is bounded to an 8-second client deadline and the existing three-redirect cap. It is not persisted, does not create/select a new route, and the destination remains a candidate for user review.",
+    "Only verified employer domains and a bounded set of recognized ATS hosts with a matching verified tenant are eligible redirect destinations; intermediary hosts without that evidence fail closed.",
+    "Automatic external submission remains disabled, so an automatic pre-submission gate cannot be exercised. MJ-REQ-267 remains PARTIAL.",
+    "PostgreSQL, full Python suite, hosted checks, and live remote-site behavior remain unverified."
+  ],
+  "safety": [
+    "Route checking occurs only after the user clicks the button; job reads and page loads perform no redirect check.",
+    "The existing public client enforces HTTPS, globally routable DNS results, pinned vetted addresses, bounded response/header sizes, cancellation, and deadlines. The route probe also checks robots.txt for each followed origin and rejects unverified cross-origin destinations.",
+    "The request sends no cookies or credentials. Remote page content is not saved; query strings and fragments are omitted from returned candidate links.",
+    "No route is automatically substituted or persisted. Application preparation keeps the route explicitly selected by the user and does not submit externally."
+  ]
+}
