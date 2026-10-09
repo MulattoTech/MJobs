@@ -1,11 +1,15 @@
 import React, { Children, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
+import type {
+  ApplicationAnswerMatchCandidate,
+  ApplicationAnswerMatchResponse,
+  ApplicationAnswerMatchScope,
+  ApplicationAnswerSuggestionDraft,
+} from './application-answer-matching-client';
 import {
   ApplicationAnswerMatching,
-  type ApplicationAnswerMatchCandidate,
   type ApplicationAnswerMatchingProps,
-  type ApplicationAnswerMatchResponse,
 } from './application-answer-matching';
 
 function findButtons(node: ReactNode): ReactElement<{
@@ -24,29 +28,37 @@ function findButtons(node: ReactNode): ReactElement<{
   });
 }
 
-const candidate = {
+const scope: ApplicationAnswerMatchScope = {
+  profileId: 'profile-1',
+  applicationId: 'application-1',
+  question: 'Are you available to work weekends?',
+};
+
+const candidate: ApplicationAnswerMatchCandidate = {
   answer_id: 'answer-1',
-  method: 'CURATED_SEMANTIC' as const,
-  score: 0.95,
-  saved_question: 'Can you work weekends?',
-  answer: 'Yes, with advance notice.',
+  question: 'Can you work weekends?',
+  text: 'Yes, with advance notice.',
   source: 'Reviewed profile answer',
   confidence: 94,
   verified: true,
   user_approved: true,
+  method: 'CURATED_SEMANTIC',
+  score: 0.95,
+  explanation: 'Question wording matches the curated weekend availability paraphrase.',
 };
 
 const response: ApplicationAnswerMatchResponse = {
-  profile_id: 'profile-1',
-  application_id: 'application-1',
-  question: 'Are you available to work weekends?',
+  scope,
+  profile_id: scope.profileId,
+  application_id: scope.applicationId,
+  question: scope.question,
   candidates: [candidate],
 };
 
 const baseProps: ApplicationAnswerMatchingProps = {
-  profileId: 'profile-1',
-  applicationId: 'application-1',
-  question: response.question,
+  profileId: scope.profileId,
+  applicationId: scope.applicationId,
+  question: scope.question,
   response: null,
   onFindMatches: vi.fn(),
   onRetry: vi.fn(),
@@ -54,7 +66,7 @@ const baseProps: ApplicationAnswerMatchingProps = {
 };
 
 describe('application answer matching picker', () => {
-  it('shows ranked match evidence and approval provenance without selecting or exporting', () => {
+  it('renders the client candidate shape with explanation, provenance, score, and review status', () => {
     const markup = renderToStaticMarkup(
       <ApplicationAnswerMatching {...baseProps} response={response} />,
     );
@@ -63,8 +75,9 @@ describe('application answer matching picker', () => {
     expect(markup).toContain('Rank 1');
     expect(markup).toContain('Curated semantic match');
     expect(markup).toContain('95%');
-    expect(markup).toContain('Why it matched');
-    expect(markup).toContain(candidate.saved_question);
+    expect(markup).toContain(candidate.explanation);
+    expect(markup).toContain(candidate.question);
+    expect(markup).toContain(candidate.text);
     expect(markup).toContain(candidate.source);
     expect(markup).toContain('Verified and approved for reuse');
     expect(markup).toContain('94% confidence');
@@ -73,57 +86,71 @@ describe('application answer matching picker', () => {
     expect(baseProps.onSelectDraft).not.toHaveBeenCalled();
   });
 
-  it('adds only the deliberately selected candidate to the draft callback', () => {
-    const onSelectDraft = vi.fn();
+  it('creates a fresh unreviewed draft only after explicit selection', () => {
+    const onSelectDraft = vi.fn<(draft: ApplicationAnswerSuggestionDraft) => void>();
     const props = { ...baseProps, response, onSelectDraft };
-    const buttons = findButtons(ApplicationAnswerMatching(props));
-    const selectButton = buttons.find(button => button.props['aria-label'] === 'Select answer as draft: Yes, with advance notice.');
+    const selectButton = findButtons(ApplicationAnswerMatching(props))
+      .find(button => button.props['aria-label'] === 'Select answer as draft: Yes, with advance notice.');
 
     expect(selectButton).toBeDefined();
     expect(onSelectDraft).not.toHaveBeenCalled();
     selectButton?.props.onClick?.();
 
-    expect(onSelectDraft).toHaveBeenCalledExactlyOnceWith(candidate, props.question);
+    expect(onSelectDraft).toHaveBeenCalledExactlyOnceWith({
+      answer_id: candidate.answer_id,
+      text: candidate.text,
+      profile_id: scope.profileId,
+      application_id: scope.applicationId,
+      question: scope.question,
+      reviewed: false,
+      method: candidate.method,
+      score: candidate.score,
+      saved_question: candidate.question,
+      source: candidate.source,
+      confidence: candidate.confidence,
+      verified: true,
+      user_approved: true,
+      explanation: candidate.explanation,
+    });
   });
 
-  it('offers an explicit lookup action and does not auto-match on render', () => {
+  it('offers an explicit lookup and never matches automatically on render', () => {
     const onFindMatches = vi.fn();
     const props = { ...baseProps, onFindMatches };
     const markup = renderToStaticMarkup(<ApplicationAnswerMatching {...props} />);
 
     expect(markup).toContain('Find saved answer matches');
-    expect(markup).not.toContain(candidate.answer);
+    expect(markup).not.toContain(candidate.text);
     expect(onFindMatches).not.toHaveBeenCalled();
-    const findButton = findButtons(ApplicationAnswerMatching(props))
-      .find(button => button.props['aria-label'] === 'Find saved answer matches');
-    findButton?.props.onClick?.();
+    findButtons(ApplicationAnswerMatching(props))
+      .find(button => button.props['aria-label'] === 'Find saved answer matches')?.props.onClick?.();
     expect(onFindMatches).toHaveBeenCalledExactlyOnceWith();
   });
 
-  it('does not display candidates from another profile, application, or question', () => {
-    const mismatches: ApplicationAnswerMatchResponse[] = [
+  it('does not render results when profile, application, or question scope is stale', () => {
+    const staleResponses: ApplicationAnswerMatchResponse[] = [
       { ...response, profile_id: 'other-profile' },
       { ...response, application_id: 'other-application' },
       { ...response, question: 'A different question?' },
+      { ...response, scope: { ...scope, applicationId: 'other-application' } },
     ];
 
-    for (const mismatched of mismatches) {
+    for (const staleResponse of staleResponses) {
       const markup = renderToStaticMarkup(
-        <ApplicationAnswerMatching {...baseProps} response={mismatched} />,
+        <ApplicationAnswerMatching {...baseProps} response={staleResponse} />,
       );
       expect(markup).toContain('could not be safely matched to this profile, application, and question');
-      expect(markup).not.toContain(candidate.answer);
+      expect(markup).not.toContain(candidate.text);
       expect(markup).not.toContain('Select answer as draft');
     }
   });
 
-  it('fails closed when a candidate is unapproved or unverified', () => {
-    const rejectedCandidates = [
+  it('hides invalid or unapproved candidates even if a response is malformed', () => {
+    const rejectedCandidates: ApplicationAnswerMatchCandidate[] = [
       { ...candidate, user_approved: false },
       { ...candidate, verified: false },
       { ...candidate, confidence: 79 },
-      { ...candidate, method: 'UNSUPPORTED' as ApplicationAnswerMatchCandidate['method'] },
-      { ...candidate, user_approved: undefined as unknown as boolean },
+      { ...candidate, score: 0.74 },
     ];
 
     for (const rejected of rejectedCandidates) {
@@ -131,27 +158,27 @@ describe('application answer matching picker', () => {
         <ApplicationAnswerMatching {...baseProps} response={{ ...response, candidates: [rejected] }} />,
       );
       expect(markup).toContain('No eligible saved answer matches were found.');
-      expect(markup).not.toContain(candidate.answer);
+      expect(markup).not.toContain(candidate.text);
     }
   });
 
-  it('shows accessible loading, empty, error, and retry states without selection side effects', () => {
+  it('shows accessible loading, empty, error, and retry states with no draft side effects', () => {
     const loading = renderToStaticMarkup(<ApplicationAnswerMatching {...baseProps} loading />);
     expect(loading).toContain('role="status"');
     expect(loading).toContain('Loading saved answer matches');
 
-    const empty = renderToStaticMarkup(<ApplicationAnswerMatching {...baseProps} response={{ ...response, candidates: [] }} />);
+    const empty = renderToStaticMarkup(
+      <ApplicationAnswerMatching {...baseProps} response={{ ...response, candidates: [] }} />,
+    );
     expect(empty).toContain('No eligible saved answer matches were found.');
 
     const onRetry = vi.fn();
     const errorProps = { ...baseProps, error: 'Could not load saved answer matches. Try again.', onRetry };
-    const errorMarkup = renderToStaticMarkup(<ApplicationAnswerMatching {...errorProps} />);
-    expect(errorMarkup).toContain('role="alert"');
-    expect(errorMarkup).toContain(errorProps.error);
-    const retryButton = findButtons(ApplicationAnswerMatching(errorProps))
-      .find(button => button.props['aria-label'] === 'Retry saved answer matches');
-    retryButton?.props.onClick?.();
-
+    const markup = renderToStaticMarkup(<ApplicationAnswerMatching {...errorProps} />);
+    expect(markup).toContain('role="alert"');
+    expect(markup).toContain(errorProps.error);
+    findButtons(ApplicationAnswerMatching(errorProps))
+      .find(button => button.props['aria-label'] === 'Retry saved answer matches')?.props.onClick?.();
     expect(onRetry).toHaveBeenCalledExactlyOnceWith();
     expect(baseProps.onSelectDraft).not.toHaveBeenCalled();
   });

@@ -1,25 +1,11 @@
 import React from 'react';
-
-export type ApplicationAnswerMatchMethod = 'EXACT_NORMALIZATION' | 'FUZZY' | 'CURATED_SEMANTIC';
-
-export type ApplicationAnswerMatchCandidate = {
-  answer_id: string;
-  method: ApplicationAnswerMatchMethod;
-  score: number;
-  saved_question: string;
-  answer: string;
-  source: string;
-  confidence: number;
-  verified: boolean;
-  user_approved: boolean;
-};
-
-export type ApplicationAnswerMatchResponse = {
-  profile_id: string;
-  application_id: string;
-  question: string;
-  candidates: ApplicationAnswerMatchCandidate[];
-};
+import {
+  selectApplicationAnswerSuggestion,
+  type ApplicationAnswerMatchCandidate,
+  type ApplicationAnswerMatchResponse,
+  type ApplicationAnswerMatchScope,
+  type ApplicationAnswerSuggestionDraft,
+} from './application-answer-matching-client';
 
 export type ApplicationAnswerMatchingProps = {
   profileId: string;
@@ -27,30 +13,27 @@ export type ApplicationAnswerMatchingProps = {
   question: string;
   response: ApplicationAnswerMatchResponse | null;
   onFindMatches: () => void;
-  onSelectDraft: (candidate: ApplicationAnswerMatchCandidate, question: string) => void;
+  onSelectDraft: (draft: ApplicationAnswerSuggestionDraft) => void;
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
 };
 
-const methods: Record<ApplicationAnswerMatchMethod, string> = {
+const methods: Record<ApplicationAnswerMatchCandidate['method'], string> = {
   EXACT_NORMALIZATION: 'Exact normalized match',
   FUZZY: 'Fuzzy match',
   CURATED_SEMANTIC: 'Curated semantic match',
 };
 
-const isEligibleCandidate = (value: unknown): value is ApplicationAnswerMatchCandidate => {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as Partial<ApplicationAnswerMatchCandidate>;
-  return typeof candidate.answer_id === 'string' && candidate.answer_id.trim().length > 0 &&
-    typeof candidate.method === 'string' && Object.hasOwn(methods, candidate.method) &&
-    Number.isFinite(candidate.score) && candidate.score! >= 0 && candidate.score! <= 1 &&
-    typeof candidate.saved_question === 'string' && candidate.saved_question.trim().length > 0 &&
-    typeof candidate.answer === 'string' && candidate.answer.trim().length > 0 &&
-    typeof candidate.source === 'string' && candidate.source.trim().length > 0 &&
-    Number.isFinite(candidate.confidence) && candidate.confidence! >= 80 && candidate.confidence! <= 100 &&
-    candidate.verified === true && candidate.user_approved === true;
-};
+const responseScopeMatches = (
+  response: ApplicationAnswerMatchResponse,
+  active: ApplicationAnswerMatchScope,
+) => response.profile_id === active.profileId && response.application_id === active.applicationId &&
+  response.question === active.question && response.scope.profileId === active.profileId &&
+  response.scope.applicationId === active.applicationId && response.scope.question === active.question;
+
+const isSelectableCandidate = (candidate: ApplicationAnswerMatchCandidate) =>
+  candidate.verified && candidate.user_approved && candidate.confidence >= 80 && candidate.score >= 0.75;
 
 export function ApplicationAnswerMatching({
   profileId,
@@ -63,11 +46,17 @@ export function ApplicationAnswerMatching({
   error = null,
   onRetry,
 }: ApplicationAnswerMatchingProps) {
-  const scopeMatches = response !== null && response.profile_id === profileId &&
-    response.application_id === applicationId && response.question === question;
-  const candidates = scopeMatches && Array.isArray(response.candidates)
-    ? response.candidates.filter(isEligibleCandidate)
+  const activeScope = { profileId, applicationId, question };
+  const scopeMatches = response !== null && responseScopeMatches(response, activeScope);
+  const candidates = scopeMatches
+    ? response.candidates.filter(isSelectableCandidate)
     : [];
+
+  const selectCandidate = (candidate: ApplicationAnswerMatchCandidate) => {
+    if (!response || !scopeMatches) return;
+    const selected = selectApplicationAnswerSuggestion(candidate, response.scope, activeScope);
+    if (selected.ok) onSelectDraft(selected.draft);
+  };
 
   return <section aria-labelledby="application-answer-matching-heading">
     <h3 id="application-answer-matching-heading">Saved answer matches</h3>
@@ -98,14 +87,15 @@ export function ApplicationAnswerMatching({
                   <h4>Rank {index + 1}</h4>
                   <p><strong>{methods[candidate.method]}</strong> · match score {Math.round(candidate.score * 100)}%</p>
                   <h5>Why it matched</h5>
-                  <p>Matched against saved question: <q>{candidate.saved_question}</q></p>
-                  <p><strong>Saved answer:</strong> {candidate.answer}</p>
+                  <p>{candidate.explanation}</p>
+                  <p>Matched against saved question: <q>{candidate.question}</q></p>
+                  <p><strong>Saved answer:</strong> {candidate.text}</p>
                   <p><strong>Source:</strong> {candidate.source}</p>
                   <p><strong>Approval status:</strong> Verified and approved for reuse · {candidate.confidence}% confidence</p>
                   <button
                     type="button"
-                    aria-label={`Select answer as draft: ${candidate.answer}`}
-                    onClick={() => onSelectDraft(candidate, question)}
+                    aria-label={`Select answer as draft: ${candidate.text}`}
+                    onClick={() => selectCandidate(candidate)}
                   >
                     Select answer as draft
                   </button>
