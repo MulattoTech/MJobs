@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "issue": 408,
+  "requirement_id": "MJ-REF-038",
+  "result": "PASS",
+  "source": {
+    "branch": "codex/solo-408-role-scoring-completion-20261009",
+    "commit": "aae75c7a3944cbe5ac1cfbe77297deecc3827255",
+    "tree": "71f8f4a0d029ff2b1f9fa0d232cb0618ce4d66e6"
+  },
+  "acceptance": [
+    "User-editable, per-search role scoring profiles configure dimensions and thresholds without occupation-specific code changes.",
+    "Optional specialized signals carry explicit provenance.",
+    "Explanations identify the selected scoring profile and each signal contribution.",
+    "Soft profile preferences remain advisory and cannot alter hard eligibility rules.",
+    "Scheduled searches without a role profile preserve the legacy default score, components, eligibility, excluded-job state, and idempotent match history."
+  ],
+  "verification": {
+    "python": {
+      "command": "python -m unittest tests.unit.test_scoring_profiles tests.unit.test_profile_scoring tests.integration.test_scoring_profiles_api tests.integration.test_role_scoring_profiles_api tests.integration.test_role_scoring_search_flow tests.integration.test_role_scoring_peer_recalculation_isolation tests.integration.test_selected_search_default_score_persistence tests.integration.test_matching_explanation_contributions tests.integration.test_matching_explanations_api tests.integration.test_matching_explanation_stale_context_recovery tests.browser.test_role_scoring_profile_editor tests.browser.test_role_scoring_profile_reload_match tests.browser.test_role_scoring_selected_search_explanation_flow tests.browser.test_matching_explanation_workflow",
+      "result": "PASS",
+      "passed": 32
+    },
+    "frontend": {
+      "command": "npm run test --prefix apps/web -- --run src/role-scoring-profile-editor.test.tsx src/role-scoring-profile-client.test.ts src/role-scoring-custom-dimensions.test.tsx src/matching-explanation.test.tsx src/matching-explanation-workflow.test.tsx src/matching-explanation-client.test.ts",
+      "result": "PASS",
+      "passed": 46
+    },
+    "production_build": {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "limitations": ["Existing bundle-size advisory (>500 kB)."]
+    },
+    "migration_heads": {
+      "result": "PASS",
+      "heads": ["20261008ip01"]
+    },
+    "python_compile": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "not_run": [
+    "PostgreSQL integration",
+    "Full repository suite",
+    "Hosted Actions or hosted review (local-only policy)",
+    "Manual production verification",
+    "Live provider access"
+  ],
+  "safety": {
+    "external_application_submission": "OFF",
+    "external_provider_writes": "NOT_PERFORMED"
+  }
+}
