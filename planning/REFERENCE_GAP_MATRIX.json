@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-09T10:25:04Z",
+  "generated_at": "2026-10-09T11:46:44Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -120,8 +120,10 @@
       ]
     },
     "MJ-REF-008": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-grounded-interview-preparation.json"
+      ]
     },
     "MJ-REF-009": {
       "result": "NOT_RUN",
