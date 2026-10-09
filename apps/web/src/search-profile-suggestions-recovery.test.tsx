@@ -22,6 +22,22 @@ function findButtons(node: ReactNode): ReactElement<{
   });
 }
 
+function withComponentHooks<T>(run: () => T): T {
+  let state: unknown;
+  const ref = { current: new Set<string>() };
+  const useState = vi.spyOn(React, 'useState').mockImplementation(((initial: unknown) => [
+    state ?? initial,
+    (next: unknown) => { state = typeof next === 'function' ? (next as (value: unknown) => unknown)(state) : next; },
+  ]) as typeof React.useState);
+  const useRef = vi.spyOn(React, 'useRef').mockImplementation((() => ref) as typeof React.useRef);
+  try {
+    return run();
+  } finally {
+    useState.mockRestore();
+    useRef.mockRestore();
+  }
+}
+
 const baseProps: SearchProfileSuggestionsProps = {
   profiles: [{ id: 'profile-1', name: 'Infrastructure roles' }],
   selectedProfileId: 'profile-1',
@@ -62,23 +78,25 @@ describe('search profile suggestion recovery states', () => {
       onSelectProfile,
       onAddTitle,
     };
-    const tree = SearchProfileSuggestions(props);
-    const markup = renderToStaticMarkup(<SearchProfileSuggestions {...props} />);
+    withComponentHooks(() => {
+      const tree = SearchProfileSuggestions(props);
+      const markup = renderToStaticMarkup(tree);
 
-    expect(markup).toContain('role="alert"');
-    expect(markup).toContain('Could not load title suggestions. Try again.');
-    expect(markup).toContain('aria-label="Retry suggestions"');
-    expect(markup).toContain('value="profile-1" selected=""');
-    expect(onRetry).not.toHaveBeenCalled();
-    expect(onSelectProfile).not.toHaveBeenCalled();
-    expect(onAddTitle).not.toHaveBeenCalled();
+      expect(markup).toContain('role="alert"');
+      expect(markup).toContain('Could not load title suggestions. Try again.');
+      expect(markup).toContain('aria-label="Retry suggestions"');
+      expect(markup).toContain('value="profile-1" selected=""');
+      expect(onRetry).not.toHaveBeenCalled();
+      expect(onSelectProfile).not.toHaveBeenCalled();
+      expect(onAddTitle).not.toHaveBeenCalled();
 
-    const retryButton = findButtons(tree).find(button => button.props['aria-label'] === 'Retry suggestions');
-    expect(retryButton?.props.onClick).toBeDefined();
-    retryButton?.props.onClick?.();
+      const retryButton = findButtons(tree).find(button => button.props['aria-label'] === 'Retry suggestions');
+      expect(retryButton?.props.onClick).toBeDefined();
+      retryButton?.props.onClick?.();
 
-    expect(onRetry).toHaveBeenCalledExactlyOnceWith();
-    expect(onSelectProfile).not.toHaveBeenCalled();
-    expect(onAddTitle).not.toHaveBeenCalled();
+      expect(onRetry).toHaveBeenCalledExactlyOnceWith();
+      expect(onSelectProfile).not.toHaveBeenCalled();
+      expect(onAddTitle).not.toHaveBeenCalled();
+    });
   });
 });

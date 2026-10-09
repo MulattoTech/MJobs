@@ -17,6 +17,22 @@ function findElements(node: ReactNode, typeName: string): ReactElement<{
   });
 }
 
+function withComponentHooks<T>(run: () => T): T {
+  let state: unknown;
+  const ref = { current: new Set<string>() };
+  const useState = vi.spyOn(React, 'useState').mockImplementation(((initial: unknown) => [
+    state ?? initial,
+    (next: unknown) => { state = typeof next === 'function' ? (next as (value: unknown) => unknown)(state) : next; },
+  ]) as typeof React.useState);
+  const useRef = vi.spyOn(React, 'useRef').mockImplementation((() => ref) as typeof React.useRef);
+  try {
+    return run();
+  } finally {
+    useState.mockRestore();
+    useRef.mockRestore();
+  }
+}
+
 const baseProps: SearchProfileSuggestionsProps = {
   profiles: [{ id: 'profile-1', name: 'Infrastructure roles' }],
   selectedProfileId: 'profile-1',
@@ -43,16 +59,18 @@ describe('search profile suggestions accessibility', () => {
       suggestions: [{ title: 'Platform Administrator', reason: 'Appeared in strong matches.' }],
       onAddTitle,
     };
-    const tree = SearchProfileSuggestions(props);
-    const markup = renderToStaticMarkup(<SearchProfileSuggestions {...props} />);
+    withComponentHooks(() => {
+      const tree = SearchProfileSuggestions(props);
+      const markup = renderToStaticMarkup(tree);
 
-    expect(markup).toContain('aria-label="Related title suggestions"');
-    expect(markup).toContain('aria-label="Add Platform Administrator to Infrastructure roles"');
-    expect(markup).toContain('Appeared in strong matches.');
-    expect(onAddTitle).not.toHaveBeenCalled();
+      expect(markup).toContain('aria-label="Related title suggestions"');
+      expect(markup).toContain('aria-label="Add Platform Administrator to Infrastructure roles"');
+      expect(markup).toContain('Appeared in strong matches.');
+      expect(onAddTitle).not.toHaveBeenCalled();
 
-    findElements(tree, 'button')[0].props.onClick?.();
+      findElements(tree, 'button')[0].props.onClick?.();
 
-    expect(onAddTitle).toHaveBeenCalledExactlyOnceWith('profile-1', 'Platform Administrator');
+      expect(onAddTitle).toHaveBeenCalledExactlyOnceWith('profile-1', 'Platform Administrator');
+    });
   });
 });
