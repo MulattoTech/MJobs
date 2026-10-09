@@ -2847,10 +2847,10 @@
         "MJ-PR-072",
         "MJ-PR-063"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-073-operations-ux-ci",
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "main",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-268 manual application status tracking passed local connected UI/API persistence and profile-scope acceptance at 95ef4c151ba01e666a1a2a982a0f4b21aefb2a31; evidence docs/evidence/2026-10-09-application-status-tracking.json. MJ-REQ-269/270/271 remain unverified and declared dependencies MJ-PR-072/MJ-PR-063 remain incomplete; package stays partial. Hosted checks NOT_RUN; external submission OFF."
     },
     {
       "id": "MJ-PR-074",

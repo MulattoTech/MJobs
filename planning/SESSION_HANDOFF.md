@@ -1,3 +1,15 @@
+# Current solo session checkpoint — 2026-10-09T13:32:17Z
+
+- Root: `C:\Tools\Dev\MJobs`; local main `95ef4c151ba01e666a1a2a982a0f4b21aefb2a31` (tree `dd1bb29eeda1ffbcb9a73fdf3cbfba98b93a87bc`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
+- Solo mode: zero child agents. Preserve completed-worker branches/worktrees, unrelated claims, and untracked user file `docs/evidence/2026-10-08-compose-target-isolation.json`.
+- #267 / MJ-REQ-266 remains PARTIAL: verified employer/ATS preference and explicit route choice are connected; trusted integrated-board authority has no persisted evidence model. Evidence: `docs/evidence/2026-10-09-application-route-preference.json`.
+- #268 / MJ-REQ-267 remains PARTIAL: same-employer/requisition exact-evidence ATS siblings are shown to users, but no cross-site redirect is fetched. Evidence: `docs/evidence/2026-10-09-direct-employer-route-discovery.json`.
+- #269 / MJ-REQ-268 is PASS locally at `95ef4c151ba01e666a1a2a982a0f4b21aefb2a31`; evidence `docs/evidence/2026-10-09-application-status-tracking.json`. All six required statuses are saved from the Applications UI, remain user-reported audit history after reload, and do not create a submission receipt.
+- Verification: 9 application-pipeline integration tests; dedicated Chromium all-status/reload workflow 1/1; web build and diff checks PASS. Broader core-workflow browser test has stale scheduled-search selectors and did not reach tracker assertions. PostgreSQL/hosted NOT_RUN; external submission OFF.
+- Next solo feature: #270 / MJ-REQ-269, connected fact trace for generated documents, checking user-readable fact references and no unapproved-fact leakage.
+
+---
+
 # Current solo session checkpoint — 2026-10-09T13:25:00Z
 
 - Root: `C:\Tools\Dev\MJobs`; local main `4e086a55711730b838519cbb1cbae5b01f7a282d` (tree `bcbbf97e21877d8cfcb8b3f342381cd9aaef06da`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.

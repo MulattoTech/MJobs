@@ -2218,9 +2218,9 @@
     },
     {
       "requirement_id": "MJ-REQ-268",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": ["docs/evidence/2026-10-09-application-status-tracking.json"],
+      "note": "Connected Applications UI manually records all six required user-reported statuses, persists ordered history across reload, and keeps Applied separate from submission confirmation. Profile scope and invalid states are covered; automatic email updates remain out of scope."
     },
     {
       "requirement_id": "MJ-REQ-269",
