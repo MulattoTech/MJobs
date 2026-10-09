@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 export type ApplicationMultipageField={
   id:string;
@@ -58,21 +58,25 @@ function isMatchingState(value:ApplicationMultipageState,profileId:string,applic
     &&(uninitialized||review||knownPage)
     &&(value.status==='IN_PROGRESS'||value.status==='REVIEW')
     &&typeof value.manual_intervention_required==='boolean'
+    &&(value.status!=='REVIEW'||value.manual_intervention_required===true)
     &&typeof value.progress==='object'&&value.progress!==null&&!Array.isArray(value.progress)
     &&Object.values(value.progress).every(item=>typeof item==='object'&&item!==null&&!Array.isArray(item)
       &&Object.values(item).every(answer=>typeof answer==='string'));
 }
 
 async function transition(client:ApplicationMultipageClient,profileId:string,applicationId:string,
-  pages:ApplicationMultipagePage[],request:Omit<ApplicationMultipageTransition,'request_id'>):Promise<ApplicationMultipageState> {
+  pages:ApplicationMultipagePage[],request:Omit<ApplicationMultipageTransition,'request_id'>,scopeIsCurrent?:()=>boolean):Promise<ApplicationMultipageState> {
+  if(scopeIsCurrent&&!scopeIsCurrent())throw new Error('The selected application changed before progress was saved.');
   const result=await client.transition(profileId,applicationId,{request_id:crypto.randomUUID(),...request});
+  if(scopeIsCurrent&&!scopeIsCurrent())throw new Error('The selected application changed while progress was saving.');
   if(!isMatchingState(result,profileId,applicationId,pages))
     throw new Error('The saved progress did not match this profile and application. Reload the review before continuing.');
   return result;
 }
 
 export async function saveApplicationMultipageProgress(client:ApplicationMultipageClient,profileId:string,applicationId:string,
-  state:ApplicationMultipageState,pages:ApplicationMultipagePage[],progress:Record<string,Record<string,string>>):Promise<ApplicationMultipageState> {
+  state:ApplicationMultipageState,pages:ApplicationMultipagePage[],progress:Record<string,Record<string,string>>,scopeIsCurrent?:()=>boolean):Promise<ApplicationMultipageState> {
+  if(scopeIsCurrent&&!scopeIsCurrent())throw new Error('The selected application changed before progress was saved.');
   if(!isMatchingState(state,profileId,applicationId,pages))
     throw new Error('The current progress no longer matches this profile and application. Reload before saving.');
   if(state.status==='REVIEW')throw new Error('Manual review is a stop state. Return to a form page before saving progress.');
@@ -80,12 +84,13 @@ export async function saveApplicationMultipageProgress(client:ApplicationMultipa
   if(!pageId)throw new Error('This application has no configured form pages.');
   return transition(client,profileId,applicationId,pages,{
     action:'SAVE_PROGRESS',expected_version:state.version,page_id:pageId,page_order:pages.map(page=>page.id),progress,
-  });
+  },scopeIsCurrent);
 }
 
 export async function moveApplicationMultipageReview(client:ApplicationMultipageClient,profileId:string,applicationId:string,
-  state:ApplicationMultipageState,pages:ApplicationMultipagePage[],progress:Record<string,Record<string,string>>,direction:'NEXT'|'PREVIOUS'):
+  state:ApplicationMultipageState,pages:ApplicationMultipagePage[],progress:Record<string,Record<string,string>>,direction:'NEXT'|'PREVIOUS',scopeIsCurrent?:()=>boolean):
   Promise<ApplicationMultipageState> {
+  if(scopeIsCurrent&&!scopeIsCurrent())throw new Error('The selected application changed before progress was saved.');
   if(!isMatchingState(state,profileId,applicationId,pages))
     throw new Error('The current progress no longer matches this profile and application. Reload before continuing.');
   if(state.status==='REVIEW'&&state.current_page_id==='review') {
@@ -94,7 +99,7 @@ export async function moveApplicationMultipageReview(client:ApplicationMultipage
     if(!previousPageId)throw new Error('There is no prior form page to review.');
     return transition(client,profileId,applicationId,pages,{
       action:'PREVIOUS',expected_version:state.version,page_id:'review',page_order:pages.map(page=>page.id),previous_page_id:previousPageId,
-    });
+    },scopeIsCurrent);
   }
   const currentPageId=state.current_page_id||pages[0]?.id;
   const currentIndex=pages.findIndex(page=>page.id===currentPageId);
@@ -106,7 +111,7 @@ export async function moveApplicationMultipageReview(client:ApplicationMultipage
     const missing=canContinueApplicationPage(pages[currentIndex],progress[currentPageId]||{});
     if(missing.length)throw new Error(`Complete required fields before continuing: ${missing.join(', ')}.`);
   }
-  const saved=await saveApplicationMultipageProgress(client,profileId,applicationId,state,pages,progress);
+  const saved=await saveApplicationMultipageProgress(client,profileId,applicationId,state,pages,progress,scopeIsCurrent);
   const isFinal=direction==='NEXT'&&destinationIndex>=pages.length;
   const request:Omit<ApplicationMultipageTransition,'request_id'>={
     action:isFinal?'REVIEW':direction,expected_version:saved.version,page_id:saved.current_page_id||currentPageId,
@@ -114,7 +119,7 @@ export async function moveApplicationMultipageReview(client:ApplicationMultipage
     ...(!isFinal&&direction==='NEXT'?{next_page_id:pages[destinationIndex].id}:{}),
     ...(direction==='PREVIOUS'?{previous_page_id:pages[destinationIndex].id}:{}),
   };
-  return transition(client,profileId,applicationId,pages,request);
+  return transition(client,profileId,applicationId,pages,request,scopeIsCurrent);
 }
 
 export function ApplicationMultipageReviewView({pages,state,draft,pending,error,validationAttempted=false,onFieldChange,onPrevious,onContinue,onSaveProgress,onReload}:
@@ -168,6 +173,9 @@ export function ApplicationMultipageReview({profileId,applicationId,pages,initia
   const [error,setError]=useState<string|null>(null);
   const [validationAttempted,setValidationAttempted]=useState(false);
   const pageKey=useMemo(()=>pages.map(page=>page.id).join('\u0000'),[pages]);
+  const scopeKey=`${profileId}\u0000${applicationId}\u0000${pageKey}`;
+  const scopeRef=useRef(scopeKey);
+  scopeRef.current=scopeKey;
 
   useEffect(()=>{
     let active=true;
@@ -193,23 +201,29 @@ export function ApplicationMultipageReview({profileId,applicationId,pages,initia
   },[profileId,applicationId,pageKey]);
 
   const reload=async()=>{
+    const requestScope=scopeKey;
     setPending(true);setError(null);
     try {
       const result=await client.load(profileId,applicationId);
+      if(scopeRef.current!==requestScope)return;
       if(!isMatchingState(result,profileId,applicationId,pages))throw new Error('Saved progress is unavailable for this profile and application.');
       const pageId=result.current_page_id||pages[0]?.id;
       const oldPageId=state?.current_page_id||pages[0]?.id;
       setState(result);setDraft({...((pageId&&result.progress[pageId])||{}),...(oldPageId===pageId?draft:{})});
-    } catch(reason) {setError(reason instanceof Error?reason.message:'Could not load this application review.');}
-    finally {setPending(false);}
+    } catch(reason) {if(scopeRef.current===requestScope)setError(reason instanceof Error?reason.message:'Could not load this application review.');}
+    finally {if(scopeRef.current===requestScope)setPending(false);}
   };
 
   const run=async(operation:()=>Promise<ApplicationMultipageState>)=>{
     if(!state)return;
+    const requestScope=scopeKey;
     setPending(true);setError(null);
-    try{const result=await operation();setState(result);setDraft(result.current_page_id&&result.current_page_id!=='review'?result.progress[result.current_page_id]||{}:{});setValidationAttempted(false);}
-    catch(reason){setError(reason instanceof Error?reason.message:'Progress could not be saved. Retry after checking the saved version.');}
-    finally{setPending(false);}
+    try{
+      const result=await operation();
+      if(scopeRef.current!==requestScope)return;
+      setState(result);setDraft(result.current_page_id&&result.current_page_id!=='review'?result.progress[result.current_page_id]||{}:{});setValidationAttempted(false);
+    } catch(reason){if(scopeRef.current===requestScope)setError(reason instanceof Error?reason.message:'Progress could not be saved. Retry after checking the saved version.');}
+    finally{if(scopeRef.current===requestScope)setPending(false);}
   };
   if(!state||!isMatchingState(state,profileId,applicationId,pages))return <section className="panel" aria-label="Multi-page application review">
     <h2>Application review</h2>{pending||!error?<p role="status">Loading saved application progress…</p>:<p role="alert">{error||'Saved application progress could not be loaded.'}</p>}
@@ -221,12 +235,12 @@ export function ApplicationMultipageReview({profileId,applicationId,pages,initia
   const progress={...state.progress,...(currentPageId?{[currentPageId]:draft}:{})};
   return <ApplicationMultipageReviewView pages={pages} state={state} draft={draft} pending={pending} error={error}
     validationAttempted={validationAttempted} onFieldChange={(fieldId,value)=>setDraft(previous=>({...previous,[fieldId]:value}))}
-    onPrevious={()=>{if(!state.current_page_id&&state.version===0)return;void run(()=>moveApplicationMultipageReview(client,profileId,applicationId,state,pages,progress,'PREVIOUS'));}}
+    onPrevious={()=>{if(!state.current_page_id&&state.version===0)return;void run(()=>moveApplicationMultipageReview(client,profileId,applicationId,state,pages,progress,'PREVIOUS',()=>scopeRef.current===scopeKey));}}
     onContinue={()=>{
       setValidationAttempted(true);
       if(!current||canContinueApplicationPage(current,draft).length)return;
-      void run(()=>moveApplicationMultipageReview(client,profileId,applicationId,state,pages,progress,'NEXT'));
+      void run(()=>moveApplicationMultipageReview(client,profileId,applicationId,state,pages,progress,'NEXT',()=>scopeRef.current===scopeKey));
     }}
-    onSaveProgress={()=>void run(()=>saveApplicationMultipageProgress(client,profileId,applicationId,state,pages,progress))}
+    onSaveProgress={()=>void run(()=>saveApplicationMultipageProgress(client,profileId,applicationId,state,pages,progress,()=>scopeRef.current===scopeKey))}
     onReload={()=>void reload()}/>;
 }
