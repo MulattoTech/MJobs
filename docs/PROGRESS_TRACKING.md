@@ -10,6 +10,8 @@ This contract applies to **every agent/tool writing MJobs**, including Codex/Lun
 4. Queue/handoff: `planning/PR_QUEUE.json`, `planning/IMPLEMENTATION_STATE.json`, `planning/SESSION_HANDOFF.md`.
 5. Readable view: `docs/PROGRESS_DASHBOARD.md`, generated deterministically from the matrices and the `planning/ISSUE_SEED.jsonl` area/priority mapping.
 
+`docs/PROGRESS_CARD.json` and `docs/PROGRESS_CARD.svg` are small, derived companions to the Markdown dashboard. The existing `progress_dashboard --write` refreshes all three at the same authorized checkpoint, and `--check` verifies them together. Do not run a separate timer, hook, hosted CI job, or auto-push.
+
 The dashboard is **derived, not an alternative source of truth**. PASS means the full acceptance for that particular ID has been proven. A merged limited slice remains PARTIAL if its parent requirement is incomplete; NOT_RUN does not prove absence of source code. Local validation never masquerades as hosted verification or full-release acceptance.
 
 ## Refresh cadence: once per meaningful integration batch, not every turn
