@@ -4,11 +4,11 @@
 > Only the integration owner refreshes this at accepted batches/session closeout. See [tracker policy](PROGRESS_TRACKING.md).
 
 Original requirements: **92 PASS / 100 PARTIAL / 174 NOT_RUN** (366 total; 25.1% fully accepted).
-Additional reference gaps: **18 PASS / 4 PARTIAL / 37 NOT_RUN** (59 total; 30.5% fully accepted).
+Additional reference gaps: **19 PASS / 4 PARTIAL / 36 NOT_RUN** (59 total; 32.2% fully accepted).
 Full-spec release readiness: **UNKNOWN** (separate from local slice tests).
 
-Original matrix as of: `2026-10-09T14:39:49Z`. Reference matrix as of: `2026-10-09T12:23:19Z`.
-Latest recorded implementation milestone: `MJ-REQ-114-RELEVANT-EXPERIENCE-20261009`.
+Original matrix as of: `2026-10-09T14:39:49Z`. Reference matrix as of: `2026-10-09T15:07:39Z`.
+Latest recorded implementation milestone: `MJ-REF-031-BROWSER-EXTRACTION-REVIEW-20261009`.
 
 PASS requires evidence for the whole acceptance contract of that ID. PARTIAL is not a percentage. NOT_RUN does not necessarily mean no code exists. Local PASS is not hosted CI or full release acceptance.
 

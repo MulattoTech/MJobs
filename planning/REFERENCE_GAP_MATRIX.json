@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-09T12:23:19Z",
+  "generated_at": "2026-10-09T15:07:39Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -239,8 +239,10 @@
       "evidence": []
     },
     "MJ-REF-031": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-browser-extraction-review-receipt.json"
+      ]
     },
     "MJ-REF-032": {
       "result": "NOT_RUN",

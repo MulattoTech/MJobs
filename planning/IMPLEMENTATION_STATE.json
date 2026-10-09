@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #115 remains OPEN/PARTIAL. The local-only source is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL NOT_RUN; external application submission OFF. Verified at 2026-10-09T13:58:55Z.",
     "current_verified_at": "2026-10-09T13:58:55Z"
   },
-  "current_milestone": "MJ-REQ-114-RELEVANT-EXPERIENCE-20261009",
-  "current_objective": "Explain job-relevant experience using only approved career facts while preserving the existing score.",
+  "current_milestone": "MJ-REF-031-BROWSER-EXTRACTION-REVIEW-20261009",
+  "current_objective": "Require explicit, durable user review of browser-extracted job fields before manual capture, with safe rejection and retry/readback.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -90,7 +90,8 @@
     "MJ-REQ-264/265: profile-controlled company discovery enablement, match thresholds, hourly cap, and durable priority ordering are locally verified PASS at f1036d6e7bce62eb5aa75f7a5a14102179f274ce; broader grouped MJ-PR-072 requirements remain partial.",
     "Connected manual application status tracking for Applied, Recruiter Contact, Interview, Offer, Rejected, and Withdrawn, with user-reported history, profile-scoped durable readback, and no submission receipt (MJ-REQ-268).",
     "MJ-REQ-269 PARTIAL: connected document history displays fact references resolved from the original profile snapshot; focused Chromium acceptance confirms later edits and unapproved facts do not leak. Live AI provider document generation remains NOT_RUN. Evidence docs/evidence/2026-10-09-document-fact-trace.json.",
-    "Related job-title suggestions from current strong matches (MJ-REQ-244)"
+    "Related job-title suggestions from current strong matches (MJ-REQ-244)",
+    "Browser-assisted job extraction now persists a server-validated review receipt, rejected optional-route decision, sanitized raw fields, and field provenance through reload."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -462,7 +463,8 @@
     "MJ-REQ-267 route-discovery slice: 24 focused Python unit/integration tests; connected Chromium route-choice workflow 1/1; route-preference component tests 2/2; TypeScript/Vite build, py_compile, and diff checks PASS at tested code 8220a1dc5bec9707c3799c94c900b1f848071903.",
     "MJ-REQ-268 status-tracking acceptance: 9 integration tests PASS; connected Chromium all-six-status workflow 1/1 PASS across page reload; Vite/TypeScript build, browser-test compilation, and diff checks PASS.",
     "Exact #115 remote-region matching slice: 31 focused Python integration/connected Chromium tests and 41 subtests; py_compile and diff check PASS (source 8b3c30d9).",
-    "MJ-REQ-244 exact-source acceptance: Python unit/integration/connected Chromium 27 passed with 5 subtests; frontend 13 passed; TypeScript/Vite production build, py_compile and diff check PASS."
+    "MJ-REQ-244 exact-source acceptance: Python unit/integration/connected Chromium 27 passed with 5 subtests; frontend 13 passed; TypeScript/Vite production build, py_compile and diff check PASS.",
+    "MJ-REF-031 / #401: 46 focused Python unit/integration tests, 30 focused web tests, TypeScript/Vite build, and two connected Chromium review/retry/reload tests PASS on the local integrated tree."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -490,7 +492,8 @@
     "Initial #190 application-link browser test wait timed out against a fixed saved-search UUID. Root cause was a brittle test expectation; Ezra Bridger changed it to use the persisted UUID and added saved-search clear-override coverage. Exact current browser test passes 1/1.",
     "#372 adjacent answer-review browser regression at current local source failed at the application-switch step because a non-exact Application review locator resolves both existing Application review and Multi-page application review regions. The second region is already present in main's application-multipage-review.tsx; no changed path owns it. Record as a pre-existing test-selector ambiguity, not as feature PASS.",
     "#372 adjacent cover-letter preview regression remains FAIL_ON_UNMODIFIED_MAIN: reproduced identically on untouched main because company_context is None; excluded from this feature acceptance.",
-    "Full repository unittest discovery was interrupted after multiple failures outside changed feature paths, including strict-locator browser failures in application-priority, company-preferences, and job-risk tests; command did not complete and is not a passing full-suite result. See docs/evidence/2026-10-09-company-discovery-policy.json."
+    "Full repository unittest discovery was interrupted after multiple failures outside changed feature paths, including strict-locator browser failures in application-priority, company-preferences, and job-risk tests; command did not complete and is not a passing full-suite result. See docs/evidence/2026-10-09-company-discovery-policy.json.",
+    "RESOLVED on integrated source: checkpointed #401 retry browser test initially used stale review-stage labels, asserted an unsupported response field, and classified read-only GET /applications as submission; the test now follows the current UI/API contract and passes."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -582,7 +585,8 @@
     "MJ-REQ-264/265 PostgreSQL runtime, hosted Actions/review, live employer/ATS requests, and external application submission remain NOT_RUN/OFF; full repository unittest discovery was interrupted.",
     "MJ-REQ-266: PostgreSQL, hosted Actions/review, live employer/ATS resolution, and external application submission NOT_RUN/OFF.",
     "MJ-REQ-267 live cross-site redirect resolution, PostgreSQL, hosted Actions/review, and external application submission NOT_RUN/OFF.",
-    "MJ-REQ-268: PostgreSQL, hosted Actions/review, automatic email updates, and external application submission NOT_RUN/OFF."
+    "MJ-REQ-268: PostgreSQL, hosted Actions/review, automatic email updates, and external application submission NOT_RUN/OFF.",
+    "MJ-REF-031/#401: PostgreSQL, full repository suite, live ATS/provider access, hosted checks/reviews, and real application submission NOT_RUN; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -628,13 +632,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712",
-    "tree": "897a4f62ec5b602d4b8d2d941e6e437eaa42e17e",
-    "result": "PASS for MJ-REQ-244: profile/current-version strong-match titles are suggested with evidence; explicit selected-search add preserves criteria and is confirmed by durable readback. No automatic application/search expansion.",
+    "commit": "8e8caa9eeb60fbc59a633a8064f142cad83b1e68",
+    "tree": "31d3b7a1b45988989ab0fca0d7f567089b61ca14",
+    "result": "PASS for bounded MJ-REF-031/#401: durable explicit extraction review/rejection receipt, safe optional application-route omission, preserved sanitized field provenance, and connected reload/retry acceptance. Issue remains OPEN pending local-only source synchronization.",
     "evidence": [
-      "docs/evidence/2026-10-09-search-profile-suggestions.json"
+      "docs/evidence/2026-10-09-browser-extraction-review-receipt.json"
     ],
-    "verified_at_utc": "2026-10-09T14:39:49Z"
+    "verified_at_utc": "2026-10-09T15:07:39Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -13400,13 +13404,73 @@
       "live_integrations_tested": [
         "Synthetic SQLite/API/Chromium connected flow with external requests and application submissions blocked."
       ]
+    },
+    {
+      "milestone_id": "MJ-REF-031-BROWSER-EXTRACTION-REVIEW-20261009",
+      "timestamp": "2026-10-09T15:07:39Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+      "completed_steps": [
+        "Added a required versioned review receipt to browser-assisted manual capture and enforced required identity/description, retained-route, low-confidence, and rejection constraints before durable writes.",
+        "Connected the review UI receipt to API persistence; rejected optional application URLs are omitted while sanitized source/confidence provenance remains available after profile-scoped reload.",
+        "Integrated the checkpointed retry-safety browser test after reconciling its stale selectors and submission classifier; preserved every other worker branch/worktree.",
+        "Locally fast-forwarded implementation and acceptance to main; left GitHub issue #401 OPEN because origin/main has not been synchronized."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-browser-extraction-review-receipt.json",
+        "tests/browser/test_manual_capture_review_receipt_safety.py"
+      ],
+      "files_modified": [
+        "services/discovery/manual_capture.py",
+        "apps/web/src/browser-job-extraction-capture.ts",
+        "apps/web/src/browser-job-extraction-confirmation.tsx",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "source_commit": "1b3646b0f40b0685226aab313e8e52d05bbd717c",
+      "source_tree": "31f4a0831d22b5e52fad8397f85c885ca7bc83a5",
+      "acceptance_commit": "af3c38144443d863bf3a8e9f104984420d4417b9",
+      "integrated_main": "8e8caa9eeb60fbc59a633a8064f142cad83b1e68",
+      "integrated_tree": "31d3b7a1b45988989ab0fca0d7f567089b61ca14",
+      "result": "PASS",
+      "acceptance": "MJ-REF-031 passed locally: extraction fields/provenance survive durable capture, user review/rejection is enforced by the server, and connected retry/reload preserves the exact decision. Whole-product release remains UNKNOWN/PARTIAL.",
+      "tests_completed": [
+        "Focused Python: 46 unit/integration tests PASS.",
+        "Focused web: 30 Vitest tests PASS.",
+        "TypeScript/Vite production build PASS; existing 736.18 kB chunk advisory.",
+        "Connected Chromium: review/capture/readback and retry/rejection/reload safety, 2/2 PASS.",
+        "Catalogue, progress, reference-provenance, lane, skill, and diff validators PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL and full repository suite NOT_RUN.",
+        "Live ATS/provider access and hosted checks/review NOT_RUN by local-only policy.",
+        "Real application submission remains OFF."
+      ],
+      "known_errors": [
+        "The checkpointed retry browser test initially failed on stale assumptions; root cause was test drift from the two-step review UI and current capture/API contracts. The test was corrected and passed on the final bundle."
+      ],
+      "known_limitations": [
+        "Local main is 323 commits ahead of origin/main; no push was authorized. Issue #401 remains OPEN until source synchronization.",
+        "The feature persists bounded sanitized extracted fields and a non-sensitive opaque capture reference; it does not store unbounded raw page text."
+      ],
+      "evidence_path": "docs/evidence/2026-10-09-browser-extraction-review-receipt.json",
+      "last_safe_checkpoint": {
+        "git_commit": "8e8caa9eeb60fbc59a633a8064f142cad83b1e68",
+        "tree": "31d3b7a1b45988989ab0fca0d7f567089b61ca14",
+        "evidence_path": "docs/evidence/2026-10-09-browser-extraction-review-receipt.json"
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "No ATS/provider requests or external application submissions; synthetic isolated SQLite and locally served browser acceptance only."
+      ]
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "d222b475213f8d9a38994c6fca2406f1c7397e9b",
-    "tree": "a314c6e70ea7dd2642354a6b083d7da4a05b54b8",
-    "evidence_path": "docs/evidence/2026-10-09-search-profile-suggestions.json"
+    "git_commit": "8e8caa9eeb60fbc59a633a8064f142cad83b1e68",
+    "tree": "31d3b7a1b45988989ab0fca0d7f567089b61ca14",
+    "evidence_path": "docs/evidence/2026-10-09-browser-extraction-review-receipt.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15045,9 +15109,9 @@
   "current_verified_github_state": "Issue #245 / MJ-REQ-244 CLOSED after local acceptance receipt https://github.com/MulattoTech/MJobs/issues/245#issuecomment-6083106380; origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 and local work is not pushed. Hosted checks/review, PostgreSQL and full suite NOT_RUN. External application submission OFF. Verified 2026-10-09T14:39:49Z.",
   "next_candidates": [
     {
-      "issue": 401,
-      "requirement_id": "MJ-REF-031",
-      "status": "NEXT: inspect current-main extraction behavior and complete the highest-value connected browser capture gap after reconciling existing checkpointed claims."
+      "issue": 517,
+      "requirement_id": null,
+      "status": "NEXT: complete the connected discovered-job-site source candidate catalogue and review workflow. Dependencies #507 and #390 are complete; no active local issue claim exists. Preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF."
     }
   ]
 }
