@@ -20,6 +20,16 @@ export type MatchFeedbackRecord = {
   created_at: string;
 };
 
+export type AppliedMatchPreference = {
+  id: string;
+  job_id: string;
+  feedback_id: string;
+  category: MatchFeedbackCategory;
+  dimension: PreferenceProposalDimension;
+  direction: 'INCREASE' | 'DECREASE';
+  created_at: string;
+};
+
 export type DeterministicPreferenceProposal = {
   dimension: PreferenceProposalDimension;
   direction: PreferenceProposalDirection;
@@ -39,6 +49,14 @@ export type MatchFeedbackResult = {
 
 export type MatchFeedbackSubmitter = {
   load?: (profileId: string, jobId: string) => Promise<{ items: MatchFeedbackRecord[]; latest: MatchFeedbackRecord | null }>;
+  loadPreferences?: (profileId: string) => Promise<AppliedMatchPreference[]>;
+  applyPreference?: (
+    profileId: string,
+    feedbackId: string,
+    dimension: PreferenceProposalDimension,
+    direction: Exclude<PreferenceProposalDirection, 'review'>,
+    requestId: string,
+  ) => Promise<AppliedMatchPreference[]>;
   submit: (
     profileId: string,
     jobId: string,
@@ -103,6 +121,18 @@ function isFeedbackRecord(value: unknown): value is MatchFeedbackRecord {
   return isRecord(value)
     && isText(value.id, 256)
     && isCategory(value.category)
+    && isText(value.created_at, 128)
+    && Number.isFinite(Date.parse(value.created_at));
+}
+
+function isAppliedMatchPreference(value: unknown): value is AppliedMatchPreference {
+  return isRecord(value)
+    && isText(value.id, 256)
+    && isScopeId(value.job_id)
+    && isText(value.feedback_id, 256)
+    && isCategory(value.category)
+    && ['overall', 'seniority', 'technology', 'location', 'salary', 'company'].includes(String(value.dimension))
+    && ['INCREASE', 'DECREASE'].includes(String(value.direction))
     && isText(value.created_at, 128)
     && Number.isFinite(Date.parse(value.created_at));
 }
@@ -186,6 +216,22 @@ function normalizeReadback(
   return { items, latest };
 }
 
+function normalizePreferenceHistory(value: unknown, profileId: string): AppliedMatchPreference[] {
+  if (!isRecord(value) || value.profile_id !== profileId
+    || !Array.isArray(value.items) || !isRecord(value.by_dimension)) {
+    throw new MatchFeedbackClientError('SCOPE_MISMATCH', null, false);
+  }
+  const items = value.items.map(item => {
+    if (!isAppliedMatchPreference(item)) throw invalidResponse();
+    return item;
+  });
+  if (new Set(items.map(item => item.id)).size !== items.length) throw invalidResponse();
+  const expected: Record<string, AppliedMatchPreference> = {};
+  for (const item of items) expected[item.dimension] = item;
+  if (JSON.stringify(expected) !== JSON.stringify(value.by_dimension)) throw invalidResponse();
+  return items;
+}
+
 async function readJson(response: Response): Promise<unknown> {
   try {
     return await response.json();
@@ -210,6 +256,56 @@ export function createMatchFeedbackClient(fetchImpl: typeof fetch = fetch): Matc
       catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
       checkResponse(response);
       return normalizeReadback(await readJson(response), profileId, jobId);
+    },
+    async loadPreferences(profileId) {
+      if (!isScopeId(profileId)) throw invalidRequest();
+      let response: Response;
+      try {
+        response = await fetchImpl(`/profiles/${encodeURIComponent(profileId)}/match-preferences`, {
+          headers: { accept: 'application/json' },
+        });
+      } catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+      checkResponse(response);
+      return normalizePreferenceHistory(await readJson(response), profileId);
+    },
+    async applyPreference(profileId, feedbackId, dimension, direction, requestId) {
+      if (!isScopeId(profileId) || !isText(feedbackId, 256)
+        || !['overall', 'seniority', 'technology', 'location', 'salary', 'company'].includes(dimension)
+        || !['increase', 'decrease'].includes(direction)
+        || !/^[A-Za-z0-9._:-]{1,128}$/.test(requestId)) throw invalidRequest();
+      const path = `/profiles/${encodeURIComponent(profileId)}/match-preferences`;
+      let response: Response;
+      try {
+        response = await fetchImpl(path, {
+          method: 'POST',
+          headers: { accept: 'application/json', 'content-type': 'application/json' },
+          body: JSON.stringify({
+            feedback_id: feedbackId, dimension, direction, request_id: requestId,
+          }),
+        });
+      } catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+      checkResponse(response);
+      const posted = await readJson(response);
+      const preference = isRecord(posted) ? posted.preference : null;
+      if (!isRecord(posted) || posted.profile_id !== profileId || typeof posted.replayed !== 'boolean'
+        || !isAppliedMatchPreference(preference)
+        || preference.feedback_id !== feedbackId
+        || preference.dimension !== dimension
+        || preference.direction !== direction.toUpperCase()) {
+        throw new MatchFeedbackClientError('SCOPE_MISMATCH', null, false);
+      }
+
+      let readbackResponse: Response;
+      try { readbackResponse = await fetchImpl(path, { headers: { accept: 'application/json' } }); }
+      catch { throw new MatchFeedbackClientError('NETWORK_ERROR', null, true); }
+      checkResponse(readbackResponse);
+      const readback = normalizePreferenceHistory(await readJson(readbackResponse), profileId);
+      if (!readback.some(item => item.id === preference.id
+        && item.feedback_id === feedbackId && item.dimension === dimension
+        && item.direction === direction.toUpperCase())) {
+        throw new MatchFeedbackClientError('READBACK_NOT_CONFIRMED', null, true);
+      }
+      return readback;
     },
     async submit(profileId, jobId, category, requestId) {
       if (!isScopeId(profileId) || !isScopeId(jobId) || !isCategory(category)

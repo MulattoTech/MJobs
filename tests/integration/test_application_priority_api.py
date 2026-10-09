@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from apps.api.application_priority import create_application_priority_router
+from apps.api.match_feedback import create_match_feedback_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
 
@@ -36,6 +37,7 @@ class ApplicationPriorityApiTests(unittest.TestCase):
         app.include_router(create_application_priority_router(
             self.store, now_provider=lambda: NOW,
         ))
+        app.include_router(create_match_feedback_router(self.store))
         self.client = TestClient(app)
         self.addCleanup(self.client.close)
 
@@ -152,6 +154,40 @@ class ApplicationPriorityApiTests(unittest.TestCase):
         self.assertEqual(before[m.matches.name][0]["score"], 80.0)
         self.assertEqual(before[m.applications.name], [])
         self.assertEqual(before[m.operations.name], [])
+
+    def test_reviewed_feedback_changes_only_explainable_priority_not_hard_rules_or_match_score(self):
+        preferences_before = self.store.profile("fixture")["preferences"]
+        self._set_job_signals(
+            attributes={},
+            components={"fit_factors": [{"id": "salary", "status": "ALIGNS"}]},
+        )
+        before = self.client.get(self._url()).json()
+        saved_feedback = self.client.post(
+            "/profiles/fixture/jobs/job/match-feedback",
+            json={"category": "BAD_SALARY", "request_id": "priority-feedback"},
+        )
+        self.assertEqual(saved_feedback.status_code, 200, saved_feedback.text)
+        proposal = saved_feedback.json()["preference_proposal"]
+        applied = self.client.post("/profiles/fixture/match-preferences", json={
+            "feedback_id": saved_feedback.json()["feedback"]["id"],
+            "dimension": proposal["dimension"],
+            "direction": proposal["direction"],
+            "request_id": "priority-feedback-apply",
+        })
+        self.assertEqual(applied.status_code, 200, applied.text)
+
+        after = self.client.get(self._url()).json()
+        before_salary = next(row for row in before["factors"] if row["key"] == "salary")
+        after_salary = next(row for row in after["factors"] if row["key"] == "salary")
+        self.assertGreater(after_salary["contribution"], before_salary["contribution"])
+        self.assertIn("user-reviewed", after_salary["explanation"].lower())
+        self.assertGreater(after["priority_score"], before["priority_score"])
+        self.assertEqual(after["match_score"], before["match_score"])
+        self.assertFalse(after["affects_match_score"])
+        self.assertTrue(after["advisory"])
+        self.assertEqual(self.store.profile("fixture")["preferences"], preferences_before)
+        matches = self._snapshot()[m.matches.name]
+        self.assertEqual(matches[0]["score"], 80.0)
 
     def test_missing_job_attributes_remain_unknown_instead_of_receiving_fallbacks(self):
         before = self._snapshot()

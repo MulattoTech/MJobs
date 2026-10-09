@@ -37,6 +37,20 @@ _PROPOSAL_DIMENSIONS = {
     "BAD_COMPANY": "company",
     "NOT_INTERESTED": "overall_fit",
 }
+_PROPOSAL_DIRECTIONS = {
+    "GOOD_MATCH": "INCREASE",
+    "BAD_MATCH": "DECREASE",
+    "TOO_SENIOR": "INCREASE",
+    "WRONG_TECHNOLOGY": "INCREASE",
+    "WRONG_LOCATION": "INCREASE",
+    "BAD_SALARY": "INCREASE",
+    "BAD_COMPANY": "INCREASE",
+    "NOT_INTERESTED": "REVIEW",
+}
+_REVIEWABLE_DIMENSIONS = frozenset({
+    "overall", "overall_fit", "seniority", "technology", "location", "salary", "company",
+})
+_APPLIED_DIRECTIONS = frozenset({"increase", "decrease"})
 
 
 class FeedbackConflict(ValueError):
@@ -51,7 +65,7 @@ def _required_identifier(value, name: str) -> str:
 
 def _proposal(profile_id: str, job_id: str, category: str) -> dict:
     dimension = _PROPOSAL_DIMENSIONS[category]
-    direction = "INCREASE" if category == "GOOD_MATCH" else "DECREASE"
+    direction = _PROPOSAL_DIRECTIONS[category]
     return {
         "advisory": True,
         "profile_id": profile_id,
@@ -181,3 +195,122 @@ def list_feedback(store, profile_id: str, job_id: str) -> dict:
         items.append({"id": row["id"], "category": category, "created_at": row["timestamp"]})
     return {"profile_id": profile_id, "job_id": job_id, "items": items,
             "latest": items[-1] if items else None}
+
+
+def apply_feedback_preference(store, profile_id, feedback_id, dimension, direction,
+                              request_id) -> dict:
+    """Append an explicit user decision to use one saved feedback proposal.
+
+    This is separate from feedback capture: callers must supply the ID of an
+    existing profile-owned feedback event, an allowed proposal dimension, and
+    an explicit INCREASE/DECREASE choice. The immutable event can influence
+    advisory priority only; it never mutates profile filters or eligibility.
+    """
+    profile_id = _required_identifier(profile_id, "profile_id")
+    feedback_id = _required_identifier(feedback_id, "feedback_id")
+    request_id = _required_identifier(request_id, "request_id")
+    if not isinstance(dimension, str) or dimension not in _REVIEWABLE_DIMENSIONS:
+        raise ValueError("Unsupported reviewed preference dimension")
+    dimension = "overall" if dimension == "overall_fit" else dimension
+    if not isinstance(direction, str) or direction.casefold() not in _APPLIED_DIRECTIONS:
+        raise ValueError("An explicit increase or decrease is required")
+    direction = direction.upper()
+
+    with store.engine.begin() as connection:
+        profile_exists = connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == profile_id)).scalar_one_or_none()
+        if profile_exists is None:
+            raise LookupError("Preference profile not found")
+        feedback = connection.execute(select(
+            m.audit.c.id, m.audit.c.payload,
+        ).where(
+            m.audit.c.id == feedback_id,
+            m.audit.c.entity_id == profile_id,
+            m.audit.c.action == "MATCH_FEEDBACK",
+        )).mappings().one_or_none()
+        if feedback is None or not isinstance(feedback["payload"], Mapping):
+            raise LookupError("Reviewed feedback was not found for this profile")
+        feedback_payload = feedback["payload"]
+        category = feedback_payload.get("category")
+        job_id = feedback_payload.get("job_id")
+        if category not in FEEDBACK_CATEGORIES or not isinstance(job_id, str):
+            raise ValueError("Stored feedback cannot support a preference")
+
+        event_id = identity("user-match-preference", 1, profile_id, request_id)
+        payload = {
+            "job_id": job_id,
+            "feedback_id": feedback_id,
+            "category": category,
+            "dimension": dimension,
+            "direction": direction,
+            "request_id": request_id,
+        }
+        inserted = _append_once(connection, {
+            "id": event_id,
+            "entity_id": profile_id,
+            "action": "MATCH_PREFERENCE_APPLIED",
+            "payload": payload,
+            "timestamp": now(),
+        })
+        stored = connection.execute(select(
+            m.audit.c.id, m.audit.c.payload, m.audit.c.timestamp,
+        ).where(
+            m.audit.c.id == event_id,
+            m.audit.c.entity_id == profile_id,
+            m.audit.c.action == "MATCH_PREFERENCE_APPLIED",
+        )).mappings().one()
+
+    if stored["payload"] != payload:
+        raise FeedbackConflict("Preference request ID was reused with different review content")
+    return {
+        "profile_id": profile_id,
+        "replayed": not inserted,
+        "preference": {
+            "id": stored["id"],
+            "job_id": job_id,
+            "feedback_id": feedback_id,
+            "category": category,
+            "dimension": dimension,
+            "direction": direction,
+            "created_at": stored["timestamp"],
+        },
+    }
+
+
+def list_feedback_preferences(store, profile_id: str) -> dict:
+    """Return profile-scoped reviewed preferences with latest values by dimension."""
+    profile_id = _required_identifier(profile_id, "profile_id")
+    with store.engine.connect() as connection:
+        exists = connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == profile_id)).scalar_one_or_none()
+        if exists is None:
+            raise LookupError("Preference profile not found")
+        rows = connection.execute(select(
+            m.audit.c.id, m.audit.c.payload, m.audit.c.timestamp,
+        ).where(
+            m.audit.c.entity_id == profile_id,
+            m.audit.c.action == "MATCH_PREFERENCE_APPLIED",
+        ).order_by(m.audit.c.timestamp, m.audit.c.id)).mappings().all()
+
+    items = []
+    for row in rows:
+        payload = row["payload"]
+        if not isinstance(payload, Mapping):
+            continue
+        dimension = payload.get("dimension")
+        direction = payload.get("direction")
+        if dimension not in _REVIEWABLE_DIMENSIONS or direction not in {"INCREASE", "DECREASE"}:
+            continue
+        items.append({
+            "id": row["id"],
+            "job_id": payload.get("job_id"),
+            "feedback_id": payload.get("feedback_id"),
+            "category": payload.get("category"),
+            "dimension": "overall" if dimension == "overall_fit" else dimension,
+            "direction": direction,
+            "created_at": row["timestamp"],
+        })
+    by_dimension = {}
+    for item in items:
+        by_dimension[item["dimension"]] = item
+    return {"profile_id": profile_id, "items": items, "by_dimension": by_dimension}

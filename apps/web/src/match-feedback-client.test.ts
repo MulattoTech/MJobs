@@ -15,6 +15,11 @@ const proposal = {
   explanation: 'Linux matches were helpful.',
   review_required: true as const,
 };
+const appliedPreference = {
+  id: 'applied-1', job_id: jobId, feedback_id: feedback.id,
+  category: 'GOOD_MATCH' as const, dimension: 'salary' as const,
+  direction: 'INCREASE' as const, created_at: '2026-10-09T11:30:00Z',
+};
 
 function jsonResponse(body: unknown, status = 200): Response {
   return {
@@ -116,5 +121,45 @@ describe('match feedback client', () => {
     await expect(client.submit(profileId, jobId, category, ' '))
       .rejects.toMatchObject({ kind: 'INVALID_REQUEST' });
     expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('applies only after explicit request and confirms the profile-scoped preference by readback', async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        profile_id: profileId, replayed: false, preference: appliedPreference,
+      }))
+      .mockResolvedValueOnce(jsonResponse({
+        profile_id: profileId, items: [appliedPreference], by_dimension: { salary: appliedPreference },
+      }));
+    const client = createMatchFeedbackClient(fetchImpl);
+
+    const result = await client.applyPreference!(
+      profileId, feedback.id, 'salary', 'increase', 'apply-stable',
+    );
+
+    expect(result).toEqual([appliedPreference]);
+    expect(fetchImpl).toHaveBeenNthCalledWith(1,
+      '/profiles/profile%201/match-preferences', {
+        method: 'POST',
+        headers: { accept: 'application/json', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          feedback_id: feedback.id, dimension: 'salary', direction: 'increase', request_id: 'apply-stable',
+        }),
+      });
+    expect(fetchImpl).toHaveBeenNthCalledWith(2,
+      '/profiles/profile%201/match-preferences',
+      { headers: { accept: 'application/json' } });
+  });
+
+  it('does not report preference success when durable readback omits the posted event', async () => {
+    const fetchImpl = vi.fn()
+      .mockResolvedValueOnce(jsonResponse({
+        profile_id: profileId, replayed: false, preference: appliedPreference,
+      }))
+      .mockResolvedValueOnce(jsonResponse({ profile_id: profileId, items: [], by_dimension: {} }));
+    const client = createMatchFeedbackClient(fetchImpl);
+    await expect(client.applyPreference!(
+      profileId, feedback.id, 'salary', 'increase', 'apply-stable',
+    )).rejects.toMatchObject({ kind: 'READBACK_NOT_CONFIRMED', retryable: true });
   });
 });

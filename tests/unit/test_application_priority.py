@@ -42,6 +42,39 @@ def test_known_signals_produce_deterministic_weighted_explanations():
     assert explain_application_priority(signals, now=NOW) == result
 
 
+def test_explicit_feedback_preferences_adjust_only_advisory_priority_weights():
+    signals = {"match_score": 20, "salary_status": "ALIGNS"}
+    before = explain_application_priority(signals, now=NOW)
+    after = explain_application_priority(signals, now=NOW, applied_preferences=[{
+        "id": "review-1", "dimension": "salary", "direction": "INCREASE",
+        "created_at": "2026-10-09T11:00:00Z",
+    }])
+
+    before_salary = next(row for row in before["factors"] if row["key"] == "salary")
+    after_salary = next(row for row in after["factors"] if row["key"] == "salary")
+    assert before["priority_score"] == 50.0
+    assert after["priority_score"] == pytest.approx(55.56)
+    assert after_salary["contribution"] == 20.0
+    assert "user-reviewed" in after_salary["explanation"].lower()
+    assert after["advisory"] is True
+    assert after["affects_match_score"] is False
+
+
+def test_feedback_location_preference_uses_explicit_work_arrangement_evidence_only():
+    result = explain_application_priority(
+        {"match_score": 80, "work_arrangement_status": "NO_DIRECT_MATCH"},
+        now=NOW,
+        applied_preferences=[{
+            "id": "location-1", "dimension": "location", "direction": "DECREASE",
+            "created_at": "2026-10-09T11:00:00Z",
+        }],
+    )
+    factor = next(row for row in result["factors"] if row["key"] == "work_arrangement")
+    assert factor["status"] == "KNOWN"
+    assert factor["contribution"] == 1.0
+    assert "user-reviewed" in factor["explanation"].lower()
+
+
 def test_missing_or_unusable_signals_stay_unknown_and_reduce_coverage():
     result = explain_application_priority({
         "match_score": 80,

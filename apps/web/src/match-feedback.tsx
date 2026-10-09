@@ -3,6 +3,7 @@ import {
   MATCH_FEEDBACK_CATEGORIES,
   MatchFeedbackClientError,
   type DeterministicPreferenceProposal,
+  type AppliedMatchPreference,
   type MatchFeedbackCategory,
   type MatchFeedbackRecord,
   type MatchFeedbackResult,
@@ -31,6 +32,33 @@ export type FeedbackRequestContext = {
   requestId: string;
 };
 
+export type PreferenceRequestContext = {
+  profileId: string;
+  feedbackId: string;
+  dimension: PreferenceProposalDimension;
+  direction: Exclude<PreferenceProposalDirection, 'review'>;
+  requestId: string;
+};
+
+export function resolvePreferenceRequestId(
+  current: PreferenceRequestContext | null,
+  profileId: string,
+  feedbackId: string,
+  dimension: PreferenceProposalDimension,
+  direction: Exclude<PreferenceProposalDirection, 'review'>,
+  createRequestId: () => string,
+): { context: PreferenceRequestContext; requestId: string } {
+  if (current && current.profileId === profileId && current.feedbackId === feedbackId
+    && current.dimension === dimension && current.direction === direction) {
+    return { context: current, requestId: current.requestId };
+  }
+  const requestId = createRequestId();
+  return {
+    context: { profileId, feedbackId, dimension, direction, requestId },
+    requestId,
+  };
+}
+
 export function resolveFeedbackRequestId(
   current: FeedbackRequestContext | null,
   profileId: string,
@@ -57,15 +85,22 @@ export type MatchFeedbackViewProps = {
   error: string | null;
   retryable: boolean;
   history: MatchFeedbackRecord[];
+  appliedPreferences: AppliedMatchPreference[];
   savedFeedback: MatchFeedbackRecord | null;
   preferenceProposal: DeterministicPreferenceProposal | null;
   draftProposal: DeterministicPreferenceProposal | null;
   proposalEditing: boolean;
+  preferenceApplyPhase: 'idle' | 'saving' | 'saved' | 'error';
+  preferenceApplyError: string | null;
+  preferenceApplyRetryable: boolean;
+  preferenceHistoryError: string | null;
   onCategoryChange: (category: MatchFeedbackCategory | null) => void;
   onSave: () => void;
   onRetry: () => void;
   onReviewProposal: () => void;
   onProposalChange: (proposal: DeterministicPreferenceProposal) => void;
+  onApplyPreference: () => void;
+  onRetryPreference: () => void;
 };
 
 function feedbackLabel(category: MatchFeedbackCategory): string {
@@ -89,15 +124,22 @@ export function MatchFeedbackView({
   error,
   retryable,
   history,
+  appliedPreferences,
   savedFeedback,
   preferenceProposal,
   draftProposal,
   proposalEditing,
+  preferenceApplyPhase,
+  preferenceApplyError,
+  preferenceApplyRetryable,
+  preferenceHistoryError,
   onCategoryChange,
   onSave,
   onRetry,
   onReviewProposal,
   onProposalChange,
+  onApplyPreference,
+  onRetryPreference,
 }: MatchFeedbackViewProps) {
   const hasScope = !!profileId && !!jobId;
   const canSave = hasScope && category !== null && phase !== 'loading' && phase !== 'error' && phase !== 'saved';
@@ -159,8 +201,8 @@ export function MatchFeedbackView({
 
     {preferenceProposal && <section className="panel" aria-label="Preference proposal">
       <h3>Deterministic preference proposal</h3>
-      <p><strong>Review required.</strong> This proposal is an editable draft only; it has not been applied. Reviewing or editing it
-        does not change hard filters, match eligibility, or saved preferences.</p>
+      <p><strong>Review required.</strong> This editable proposal only changes advisory priority after you explicitly apply it.
+        It never changes hard filters, match eligibility, or application readiness.</p>
       <dl>
         <dt>Proposed dimension</dt>
         <dd>{draftProposal?.dimension ?? preferenceProposal.dimension}</dd>
@@ -172,7 +214,7 @@ export function MatchFeedbackView({
       <button type="button" aria-label="Review preference proposal" onClick={onReviewProposal}>
         Review preference proposal
       </button>
-      {proposalEditing && draftProposal && <fieldset>
+      {proposalEditing && draftProposal && <fieldset disabled={preferenceApplyPhase === 'saving'}>
         <legend>Edit proposal draft</legend>
         <label htmlFor="match-feedback-proposal-dimension">Proposed dimension</label>
         <select
@@ -210,9 +252,32 @@ export function MatchFeedbackView({
           value={draftProposal.explanation}
           onChange={event => updateProposal({ explanation: event.currentTarget.value })}
         />
-        <p className="muted">Edits stay in this draft. There is no apply or preference-save action here.</p>
+        <p className="muted">Choose whether this factor should carry more or less weight in explainable application priority.</p>
       </fieldset>}
+      {proposalEditing && savedFeedback && draftProposal
+        && draftProposal.direction !== 'review' && <button type="button"
+          aria-label="Apply reviewed preference"
+          disabled={preferenceApplyPhase === 'saving'}
+          onClick={onApplyPreference}>
+          {preferenceApplyPhase === 'saving' ? 'Applying preference…' : 'Apply reviewed preference'}
+        </button>}
+      {preferenceApplyPhase === 'saving' && <p role="status">Saving and confirming this preference in profile history…</p>}
+      {preferenceApplyPhase === 'saved' && <p role="status">Reviewed preference saved and confirmed. Application priority will explain its effect.</p>}
+      {preferenceApplyPhase === 'error' && <div role="alert">
+        <p>{preferenceApplyError ?? 'Preference could not be confirmed.'}</p>
+        {preferenceApplyRetryable && <button type="button" aria-label="Retry preference apply" onClick={onRetryPreference}>
+          Retry preference apply
+        </button>}
+      </div>}
     </section>}
+    {appliedPreferences.length > 0 && <section aria-label="Applied profile preferences">
+      <h4>Applied advisory preferences</h4>
+      <ul>{appliedPreferences.map(item => <li key={item.id}>
+        {item.dimension}: {item.direction.toLowerCase()} weight ({feedbackLabel(item.category)} feedback)
+        {' '}<time dateTime={item.created_at}>{item.created_at}</time>
+      </li>)}</ul>
+    </section>}
+    {preferenceHistoryError && <p role="alert">{preferenceHistoryError}</p>}
   </section>;
 }
 
@@ -223,17 +288,24 @@ type Model = {
   error: string | null;
   retryable: boolean;
   history: MatchFeedbackRecord[];
+  appliedPreferences: AppliedMatchPreference[];
   savedFeedback: MatchFeedbackRecord | null;
   preferenceProposal: DeterministicPreferenceProposal | null;
   draftProposal: DeterministicPreferenceProposal | null;
   proposalEditing: boolean;
+  preferenceApplyPhase: 'idle' | 'saving' | 'saved' | 'error';
+  preferenceApplyError: string | null;
+  preferenceApplyRetryable: boolean;
+  preferenceHistoryError: string | null;
 };
 
 function emptyModel(scopeKey: string): Model {
   return {
     scopeKey, category: null, phase: 'idle', error: null, retryable: false, history: [],
+    appliedPreferences: [],
     savedFeedback: null, preferenceProposal: null, draftProposal: null,
-    proposalEditing: false,
+    proposalEditing: false, preferenceApplyPhase: 'idle', preferenceApplyError: null,
+    preferenceApplyRetryable: false, preferenceHistoryError: null,
   };
 }
 
@@ -256,17 +328,28 @@ export function MatchFeedback({
   const [model, setModel] = useState<Model>(() => emptyModel(scopeKey));
   const visibleModel = model.scopeKey === scopeKey ? model : emptyModel(scopeKey);
   const requestContext = useRef<FeedbackRequestContext | null>(null);
+  const preferenceRequestContext = useRef<PreferenceRequestContext | null>(null);
   const requestGeneration = useRef(0);
 
   useEffect(() => {
     requestGeneration.current += 1;
     requestContext.current = null;
+    preferenceRequestContext.current = null;
     setModel(emptyModel(scopeKey));
     if (!profileId || !jobId || !client.load) return;
     const generation = requestGeneration.current;
-    void client.load(profileId, jobId).then(history => {
+    void Promise.all([
+      client.load(profileId, jobId),
+      client.loadPreferences
+        ? client.loadPreferences(profileId).catch(() => null)
+        : Promise.resolve<AppliedMatchPreference[] | null>([]),
+    ]).then(([history, appliedPreferences]) => {
       if (generation !== requestGeneration.current) return;
-      setModel({ ...emptyModel(scopeKey), history: history.items });
+      setModel({ ...emptyModel(scopeKey), history: history.items,
+        appliedPreferences: appliedPreferences ?? [],
+        preferenceHistoryError: appliedPreferences === null
+          ? 'Applied preference history could not be loaded.' : null,
+      });
     }).catch(error => {
       if (generation !== requestGeneration.current) return;
       setModel({ ...emptyModel(scopeKey), phase: 'error',
@@ -342,7 +425,40 @@ export function MatchFeedback({
   };
 
   const updateProposal = (draftProposal: DeterministicPreferenceProposal) => {
-    setModel({ ...visibleModel, scopeKey, draftProposal });
+    preferenceRequestContext.current = null;
+    setModel({ ...visibleModel, scopeKey, draftProposal, preferenceApplyPhase: 'idle',
+      preferenceApplyError: null, preferenceApplyRetryable: false });
+  };
+
+  const applyPreference = async () => {
+    const draft = visibleModel.draftProposal;
+    const feedback = visibleModel.savedFeedback;
+    if (!profileId || !feedback || !draft || !visibleModel.proposalEditing
+      || draft.direction === 'review' || !client.applyPreference
+      || visibleModel.preferenceApplyPhase === 'saving') return;
+    const resolved = resolvePreferenceRequestId(
+      preferenceRequestContext.current, profileId, feedback.id,
+      draft.dimension, draft.direction, createRequestId,
+    );
+    preferenceRequestContext.current = resolved.context;
+    const generation = ++requestGeneration.current;
+    setModel({ ...visibleModel, scopeKey, preferenceApplyPhase: 'saving',
+      preferenceApplyError: null, preferenceApplyRetryable: false });
+    try {
+      const appliedPreferences = await client.applyPreference(
+        profileId, feedback.id, draft.dimension, draft.direction, resolved.requestId,
+      );
+      if (generation !== requestGeneration.current) return;
+      setModel({ ...visibleModel, scopeKey, appliedPreferences, preferenceApplyPhase: 'saved',
+        preferenceApplyError: null, preferenceApplyRetryable: false,
+        preferenceHistoryError: null });
+    } catch (error) {
+      if (generation !== requestGeneration.current) return;
+      setModel({ ...visibleModel, scopeKey, preferenceApplyPhase: 'error',
+        preferenceApplyError: error instanceof MatchFeedbackClientError
+          ? error.message : 'Preference could not be saved. Retry with the same request.',
+        preferenceApplyRetryable: error instanceof MatchFeedbackClientError ? error.retryable : true });
+    }
   };
 
   return <MatchFeedbackView
@@ -353,14 +469,21 @@ export function MatchFeedback({
     error={visibleModel.error}
     retryable={visibleModel.retryable}
     history={visibleModel.history}
+    appliedPreferences={visibleModel.appliedPreferences}
     savedFeedback={visibleModel.savedFeedback}
     preferenceProposal={visibleModel.preferenceProposal}
     draftProposal={visibleModel.draftProposal}
     proposalEditing={visibleModel.proposalEditing}
+    preferenceApplyPhase={visibleModel.preferenceApplyPhase}
+    preferenceApplyError={visibleModel.preferenceApplyError}
+    preferenceApplyRetryable={visibleModel.preferenceApplyRetryable}
+    preferenceHistoryError={visibleModel.preferenceHistoryError}
     onCategoryChange={chooseCategory}
     onSave={() => { void save(); }}
     onRetry={() => { void save(); }}
     onReviewProposal={() => setModel({ ...visibleModel, scopeKey, proposalEditing: true })}
     onProposalChange={updateProposal}
+    onApplyPreference={() => { void applyPreference(); }}
+    onRetryPreference={() => { void applyPreference(); }}
   />;
 }

@@ -12,6 +12,7 @@ from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from services.discovery.recruiter_classification import classify_recruiter
+from services.matching.user_match_feedback import list_feedback_preferences
 
 
 _FACTOR_FIELDS = {"key", "label", "score", "contribution", "status", "explanation", "source"}
@@ -71,6 +72,19 @@ def _salary_status(components: Any):
     return matches[0].get("status")
 
 
+def _fit_factor_status(components: Any, factor_id: str):
+    if not isinstance(components, Mapping):
+        return None
+    factors = components.get("fit_factors")
+    if not isinstance(factors, list):
+        return None
+    matches = [row for row in factors if isinstance(row, Mapping) and row.get("id") == factor_id]
+    if len(matches) != 1:
+        return None
+    status = matches[0].get("status")
+    return status if status in {"ALIGNS", "NO_DIRECT_MATCH"} else None
+
+
 def _latest_source_freshness(values: list[Any]):
     # Rows are sorted newest-first by their persisted fetch timestamp. Leave a
     # malformed explicit value for the scorer to report as UNKNOWN.
@@ -89,6 +103,9 @@ def _signals(job: Mapping[str, Any], match: Mapping[str, Any],
     salary_status = _salary_status(match.get("components"))
     if salary_status is not None:
         signals["salary_status"] = salary_status
+    work_arrangement_status = _fit_factor_status(match.get("components"), "work_arrangement")
+    if work_arrangement_status is not None:
+        signals["work_arrangement_status"] = work_arrangement_status
     if "application_complexity" in attributes:
         signals["application_complexity"] = attributes["application_complexity"]
     if "expires_at" in attributes:
@@ -194,7 +211,10 @@ def create_application_priority_router(
             _error(409, "APPLICATION_PRIORITY_STALE_CONTEXT")
         signals = _signals(job, match, posting_times, job_id)
         try:
-            priority = _normalize_result(run_explainer(signals, now=clock()))
+            reviewed = list_feedback_preferences(store, profile_id)["by_dimension"]
+            priority = _normalize_result(run_explainer(
+                signals, now=clock(), applied_preferences=list(reviewed.values()),
+            ))
         except (TypeError, ValueError):
             _error(502, "APPLICATION_PRIORITY_RESULT_INVALID")
         return {

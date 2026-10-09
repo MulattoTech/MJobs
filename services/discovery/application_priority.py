@@ -25,7 +25,61 @@ _SOURCE_BY_KEY = {
     "application_complexity": "signals.application_complexity",
     "source_freshness": "signals.source_freshness_at",
     "expiration_risk": "signals.expires_at",
+    "work_arrangement": "match.components.fit_factors[work_arrangement]",
 }
+_OPTIONAL_FACTORS = (
+    ("work_arrangement", "Work arrangement", "work_arrangement_status", 10),
+)
+_PREFERENCE_FACTOR = {
+    "overall": "match",
+    "overall_fit": "match",
+    "seniority": "match",
+    "technology": "match",
+    "location": "work_arrangement",
+    "salary": "salary",
+    "company": "company_preference",
+}
+_PREFERENCE_WEIGHT_STEP = 5
+
+
+def _reviewed_weight_overrides(applied_preferences, factors):
+    if applied_preferences is None:
+        return {}, {}
+    if not isinstance(applied_preferences, (list, tuple)):
+        raise ValueError("Applied preferences must be a list")
+    factor_keys = {row[0] for row in factors}
+    latest_by_factor = {}
+    for item in applied_preferences:
+        if not isinstance(item, Mapping):
+            raise ValueError("Applied preference must be an object")
+        dimension = item.get("dimension")
+        direction = item.get("direction")
+        preference_id = item.get("id")
+        if (dimension not in _PREFERENCE_FACTOR
+                or direction not in {"INCREASE", "DECREASE"}
+                or not isinstance(preference_id, str) or not preference_id):
+            raise ValueError("Applied preference is invalid")
+        factor = _PREFERENCE_FACTOR[dimension]
+        if factor not in factor_keys:
+            continue
+        created_at = _timestamp(item.get("created_at"))
+        if created_at is None:
+            raise ValueError("Applied preference timestamp is invalid")
+        candidate = (created_at, preference_id, direction, dimension)
+        if factor not in latest_by_factor or candidate[:2] > latest_by_factor[factor][:2]:
+            latest_by_factor[factor] = candidate
+    base_weights = {row[0]: row[3] for row in factors}
+    return {
+        key: (
+            min(100, base_weights[key] + _PREFERENCE_WEIGHT_STEP)
+            if value[2] == "INCREASE"
+            else max(0, base_weights[key] - _PREFERENCE_WEIGHT_STEP)
+        )
+        for key, value in latest_by_factor.items()
+    }, {
+        key: {"dimension": value[3], "direction": value[2]}
+        for key, value in latest_by_factor.items()
+    }
 
 
 def _timestamp(value):
@@ -107,7 +161,7 @@ def _factor(row, *, status, score=None, contribution=None, detail=None):
     }
 
 
-def explain_application_priority(signals, *, now):
+def explain_application_priority(signals, *, now, applied_preferences=None):
     """Explain relative handling priority from caller-supplied known signals.
 
     `now` must be timezone-aware for posting-age, source-freshness and expiration
@@ -134,25 +188,43 @@ def explain_application_priority(signals, *, now):
         }),
         "source_freshness": lambda value: _age_score(value, current_time, dimension="source_freshness"),
         "expiration_risk": lambda value: _expiration_score(value, current_time),
+        "work_arrangement": lambda value: _categorical_score(value, {
+            "ALIGNS": 100, "NO_DIRECT_MATCH": 20,
+        }),
     }
+
+    factors_to_score = list(_FACTORS)
+    if "work_arrangement_status" in signals:
+        factors_to_score.extend(_OPTIONAL_FACTORS)
+    adjusted_weights, adjusted_by_factor = _reviewed_weight_overrides(
+        applied_preferences, factors_to_score,
+    )
 
     factors = []
     unknowns = []
     weighted_total = 0.0
     known_weight = 0
-    for row in _FACTORS:
-        key, _, signal_key, weight = row
+    for row in factors_to_score:
+        key, _, signal_key, base_weight = row
+        weight = adjusted_weights.get(key, base_weight)
+        factor_row = (row[0], row[1], row[2], weight)
         result = extractors[key](signals.get(signal_key))
         if result is None:
             unknowns.append(key)
-            factors.append(_factor(row, status="UNKNOWN"))
+            factors.append(_factor(factor_row, status="UNKNOWN"))
             continue
         score, detail = result
+        preference = adjusted_by_factor.get(key)
+        if preference:
+            detail += (
+                f" A user-reviewed {preference['dimension']} preference adjusted this advisory factor's "
+                f"weight by 5 points ({preference['direction'].lower()})."
+            )
         contribution = round(weight * score / 100, 2)
         weighted_total += contribution
         known_weight += weight
         factors.append(_factor(
-            row, status="KNOWN", score=score, contribution=contribution, detail=detail,
+            factor_row, status="KNOWN", score=score, contribution=contribution, detail=detail,
         ))
 
     priority_score = round(weighted_total * 100 / known_weight, 2) if known_weight else None

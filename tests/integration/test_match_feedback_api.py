@@ -172,6 +172,47 @@ class MatchFeedbackApiTests(unittest.TestCase):
         self.assertIn(body["latest"], body["items"])
         self.assertEqual(self._table_rows(m.audit), before_read)
 
+    def test_reviewed_preference_is_explicit_persistent_idempotent_and_profile_scoped(self):
+        feedback = self._post(category="BAD_SALARY", request_id="review-salary")
+        self.assertEqual(feedback.status_code, 200, feedback.text)
+        feedback_id = feedback.json()["feedback"]["id"]
+        body = {
+            "feedback_id": feedback_id,
+            "dimension": "salary",
+            "direction": "decrease",
+            "request_id": "apply-salary-once",
+        }
+        path = "/profiles/fixture/match-preferences"
+        before = self._hard_rule_snapshot()
+
+        first = self.client.post(path, json=body)
+        replay = self.client.post(path, json=body)
+        self.assertEqual(first.status_code, 200, first.text)
+        self.assertEqual(replay.status_code, 200, replay.text)
+        self.assertFalse(first.json()["replayed"])
+        self.assertTrue(replay.json()["replayed"])
+        self.assertEqual(first.json()["preference"], replay.json()["preference"])
+        self.assertEqual(self._hard_rule_snapshot(), before)
+
+        readback = self.client.get(path)
+        self.assertEqual(readback.status_code, 200, readback.text)
+        self.assertEqual(readback.json()["profile_id"], "fixture")
+        self.assertEqual(readback.json()["by_dimension"]["salary"]["direction"], "DECREASE")
+        self.assertNotIn("request_id", readback.text)
+
+    def test_preference_apply_rejects_unknown_feedback_and_review_only_direction(self):
+        self.assertEqual(self.client.post("/profiles/fixture/match-preferences", json={
+            "feedback_id": "invented", "dimension": "salary",
+            "direction": "decrease", "request_id": "not-found",
+        }).status_code, 404)
+        feedback = self._post(category="BAD_SALARY", request_id="review-only")
+        path = "/profiles/fixture/match-preferences"
+        response = self.client.post(path, json={
+            "feedback_id": feedback.json()["feedback"]["id"],
+            "dimension": "salary", "direction": "review", "request_id": "no-change",
+        })
+        self.assertEqual(response.status_code, 422, response.text)
+
     def test_reusing_request_id_for_another_category_conflicts_without_mutating_rules(self):
         first = self._post(category="BAD_MATCH", request_id="same-request")
         self.assertEqual(first.status_code, 200, first.text)

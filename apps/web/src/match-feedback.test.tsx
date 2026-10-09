@@ -5,6 +5,7 @@ import {
   FEEDBACK_CATEGORIES,
   MatchFeedbackView,
   resolveFeedbackRequestId,
+  resolvePreferenceRequestId,
   type MatchFeedbackViewProps,
 } from './match-feedback';
 
@@ -36,10 +37,13 @@ function findElement(
 function props(overrides: Partial<MatchFeedbackViewProps> = {}): MatchFeedbackViewProps {
   return {
     profileId: 'profile-a', jobId: 'job-a', category: null, phase: 'idle',
-    error: null, retryable: false, history: [], savedFeedback: null, preferenceProposal: null,
+    error: null, retryable: false, history: [], appliedPreferences: [], savedFeedback: null, preferenceProposal: null,
     draftProposal: null, proposalEditing: false,
+    preferenceApplyPhase: 'idle', preferenceApplyError: null, preferenceApplyRetryable: false,
+    preferenceHistoryError: null,
     onCategoryChange: vi.fn(), onSave: vi.fn(), onRetry: vi.fn(),
-    onReviewProposal: vi.fn(), onProposalChange: vi.fn(), ...overrides,
+    onReviewProposal: vi.fn(), onProposalChange: vi.fn(),
+    onApplyPreference: vi.fn(), onRetryPreference: vi.fn(), ...overrides,
   };
 }
 
@@ -74,21 +78,24 @@ describe('match feedback view', () => {
     expect(html).toContain('This feedback does not change hard filters or job eligibility.');
   });
 
-  it('shows a deterministic preference as a locally editable proposal, never an applied rule', () => {
+  it('requires review before applying a deterministic preference and never changes hard rules', () => {
     const edit = vi.fn();
+    const apply = vi.fn();
     const tree = MatchFeedbackView(props({
       phase: 'saved', savedFeedback: feedback, history: [feedback],
       preferenceProposal: proposal, draftProposal: proposal, proposalEditing: true,
-      onProposalChange: edit,
+      onProposalChange: edit, onApplyPreference: apply,
     }));
     const html = renderToStaticMarkup(tree);
     expect(html).toContain('aria-label="Preference proposal"');
     expect(html).toContain('Review preference proposal');
-    expect(html).toContain('This proposal is an editable draft only; it has not been applied.');
+    expect(html).toContain('only changes advisory priority after you explicitly apply it');
     expect(html).toContain('Linux matches were helpful.');
     expect(html).toContain('aria-label="Proposed dimension"');
     expect(html).toContain('aria-label="Proposed direction"');
-    expect(html).not.toMatch(/<button[^>]*>(?:Apply proposal|Save preference|Change hard filters)/i);
+    expect(html).toContain('aria-label="Apply reviewed preference"');
+    findElement(tree, element => element.props['aria-label'] === 'Apply reviewed preference')?.props.onClick();
+    expect(apply).toHaveBeenCalledOnce();
     const direction = findElement(tree, element => element.props['aria-label'] === 'Proposed direction');
     direction?.props.onChange({ currentTarget: { value: 'review' } });
     expect(edit).toHaveBeenCalledWith({ ...proposal, direction: 'review' });
@@ -129,5 +136,43 @@ describe('match feedback view', () => {
     expect(nextCategory.requestId).toBe('request-b');
     expect(nextScope.requestId).toBe('request-c');
     expect(create).toHaveBeenCalledTimes(3);
+  });
+
+  it('shows read-back applied preferences without exposing request identifiers', () => {
+    const html = renderToStaticMarkup(<MatchFeedbackView {...props({
+      appliedPreferences: [{
+        id: 'preference-1', job_id: 'job-a', feedback_id: feedback.id,
+        category: 'BAD_SALARY', dimension: 'salary', direction: 'DECREASE',
+        created_at: '2026-10-09T11:00:00Z',
+      }],
+    })} />);
+    expect(html).toContain('aria-label="Applied profile preferences"');
+    expect(html).toContain('salary: decrease weight');
+    expect(html).not.toContain('request-id');
+  });
+
+  it('shows when profile preference history could not be loaded', () => {
+    const html = renderToStaticMarkup(<MatchFeedbackView {...props({
+      preferenceHistoryError: 'Applied preference history could not be loaded.',
+    })} />);
+    expect(html).toContain('role="alert"');
+    expect(html).toContain('Applied preference history could not be loaded.');
+  });
+
+  it('reuses preference apply request IDs on retry and replaces them after edits', () => {
+    const create = vi.fn().mockReturnValueOnce('apply-a').mockReturnValueOnce('apply-b');
+    const first = resolvePreferenceRequestId(
+      null, 'profile-a', 'feedback-a', 'salary', 'decrease', create,
+    );
+    const retry = resolvePreferenceRequestId(
+      first.context, 'profile-a', 'feedback-a', 'salary', 'decrease', create,
+    );
+    const edited = resolvePreferenceRequestId(
+      retry.context, 'profile-a', 'feedback-a', 'salary', 'increase', create,
+    );
+    expect(first.requestId).toBe('apply-a');
+    expect(retry.requestId).toBe('apply-a');
+    expect(edited.requestId).toBe('apply-b');
+    expect(create).toHaveBeenCalledTimes(2);
   });
 });

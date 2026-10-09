@@ -122,8 +122,45 @@ def _history(value: Any, profile_id: str, job_id: str) -> dict[str, Any]:
     return {"profile_id": profile_id, "job_id": job_id, "items": items, "latest": latest}
 
 
+def _normalize_applied_preference(value: Any, profile_id: str) -> dict[str, str]:
+    fields = {"id", "job_id", "feedback_id", "category", "dimension", "direction", "created_at"}
+    if (not isinstance(value, Mapping) or set(value) != fields
+            or not all(_text(value.get(key), max_length=_MAX_ID)
+                       for key in ("id", "job_id", "feedback_id"))
+            or not _category(value.get("category"))
+            or value.get("dimension") not in {
+                "overall", "seniority", "technology", "location", "salary", "company",
+            }
+            or value.get("direction") not in {"INCREASE", "DECREASE"}
+            or not _text(value.get("created_at"), max_length=64)):
+        _error(503, "MATCH_FEEDBACK_SERVICE_UNAVAILABLE")
+    return {key: value[key] for key in fields}
+
+
+def _preference_history(value: Any, profile_id: str) -> dict[str, Any]:
+    if (not isinstance(value, Mapping)
+            or set(value) != {"profile_id", "items", "by_dimension"}
+            or value.get("profile_id") != profile_id
+            or not isinstance(value.get("items"), list)
+            or not isinstance(value.get("by_dimension"), Mapping)):
+        _error(503, "MATCH_FEEDBACK_SERVICE_UNAVAILABLE")
+    items = [_normalize_applied_preference(item, profile_id) for item in value["items"]]
+    if len({item["id"] for item in items}) != len(items):
+        _error(503, "MATCH_FEEDBACK_SERVICE_UNAVAILABLE")
+    latest_by_dimension = {}
+    for item in items:
+        latest_by_dimension[item["dimension"]] = item
+    supplied = {
+        dimension: _normalize_applied_preference(item, profile_id)
+        for dimension, item in value["by_dimension"].items()
+    }
+    if supplied != latest_by_dimension:
+        _error(503, "MATCH_FEEDBACK_SERVICE_UNAVAILABLE")
+    return {"profile_id": profile_id, "items": items, "by_dimension": latest_by_dimension}
+
+
 def create_match_feedback_router(store) -> APIRouter:
-    """Build feedback-write and history-read endpoints; preference changes remain proposals."""
+    """Build feedback history and explicit, durable preference-review endpoints."""
     router = APIRouter()
 
     @router.post("/profiles/{profile_id}/jobs/{job_id}/match-feedback")
@@ -155,5 +192,47 @@ def create_match_feedback_router(store) -> APIRouter:
         conflict_type = getattr(service, "FeedbackConflict", None)
         result = _invoke(service.list_feedback, conflict_type, store, profile_id, job_id)
         return _history(result, profile_id, job_id)
+
+    @router.post("/profiles/{profile_id}/match-preferences")
+    def apply_match_preference(profile_id: str, payload: object = Body(...)):
+        if (not _text(profile_id, max_length=_MAX_ID)
+                or not isinstance(payload, dict)
+                or set(payload) != {"feedback_id", "dimension", "direction", "request_id"}
+                or not _text(payload.get("feedback_id"), max_length=_MAX_ID)
+                or payload.get("dimension") not in {
+                    "overall", "overall_fit", "seniority", "technology", "location", "salary", "company",
+                }
+                or payload.get("direction") not in {"increase", "decrease"}
+                or not _text(payload.get("request_id"), max_length=_MAX_REQUEST_ID)
+                or payload["request_id"] != payload["request_id"].strip()):
+            _error(422, "MATCH_FEEDBACK_PREFERENCE_INVALID_REQUEST")
+
+        service = _service()
+        conflict_type = getattr(service, "FeedbackConflict", None)
+        result = _invoke(
+            service.apply_feedback_preference,
+            conflict_type,
+            store, profile_id, payload["feedback_id"], payload["dimension"],
+            payload["direction"], payload["request_id"],
+        )
+        if (not isinstance(result, Mapping)
+                or set(result) != {"profile_id", "replayed", "preference"}
+                or result.get("profile_id") != profile_id
+                or type(result.get("replayed")) is not bool):
+            _error(503, "MATCH_FEEDBACK_SERVICE_UNAVAILABLE")
+        return {
+            "profile_id": profile_id,
+            "replayed": result["replayed"],
+            "preference": _normalize_applied_preference(result["preference"], profile_id),
+        }
+
+    @router.get("/profiles/{profile_id}/match-preferences")
+    def read_applied_match_preferences(profile_id: str):
+        if not _text(profile_id, max_length=_MAX_ID):
+            _error(404, "MATCH_FEEDBACK_SCOPE_NOT_FOUND")
+        service = _service()
+        conflict_type = getattr(service, "FeedbackConflict", None)
+        result = _invoke(service.list_feedback_preferences, conflict_type, store, profile_id)
+        return _preference_history(result, profile_id)
 
     return router

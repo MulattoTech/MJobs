@@ -1,4 +1,4 @@
-"""Connected browser acceptance for scoped, review-only match feedback."""
+"""Connected browser acceptance for scoped feedback and reviewed preference application."""
 
 from copy import deepcopy
 import json
@@ -49,7 +49,10 @@ def _feedback_bundle_is_mounted() -> bool:
         return False
     bundles = list(assets.glob("*.js"))
     return any("Job match feedback" in bundle.read_text(
-        encoding="utf-8", errors="ignore") for bundle in bundles)
+        encoding="utf-8", errors="ignore")
+        and "Apply reviewed preference" in bundle.read_text(
+            encoding="utf-8", errors="ignore")
+        for bundle in bundles)
 
 
 def _save_search(store, *, profile_id: str, search_id: str) -> None:
@@ -237,6 +240,11 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                                 return
                             route.continue_()
                             return
+                        if path.endswith("/match-preferences") and request.method == "POST":
+                            # This is an explicit, profile-scoped advisory
+                            # preference decision, not an external application.
+                            route.continue_()
+                            return
                         if request.method not in {"GET", "HEAD", "OPTIONS"}:
                             blocked_writes.append((request.method, path))
                             route.abort()
@@ -307,6 +315,31 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     feedback.get_by_role(
                         "button", name="Review preference proposal", exact=True,
                     ).click()
+                    apply_preference = feedback.get_by_role(
+                        "button", name="Apply reviewed preference", exact=True,
+                    )
+                    expect(apply_preference).to_be_visible()
+                    preference_readbacks = []
+                    page.on("response", lambda response: preference_readbacks.append(response)
+                            if urlsplit(response.url).path == "/profiles/fixture/match-preferences"
+                            and response.request.method == "GET" else None)
+                    with page.expect_response(lambda response:
+                            urlsplit(response.url).path == "/profiles/fixture/match-preferences"
+                            and response.request.method == "POST") as applied_response:
+                        apply_preference.click()
+                    self.assertLess(applied_response.value.status, 300,
+                                    applied_response.value.text())
+                    applied_body = applied_response.value.json()
+                    self.assertEqual(applied_body["profile_id"], "fixture")
+                    self.assertEqual(applied_body["preference"]["feedback_id"],
+                                     replay["feedback"]["id"])
+                    expect(feedback).to_contain_text("Reviewed preference saved and confirmed")
+                    self.assertTrue(preference_readbacks)
+                    self.assertEqual(preference_readbacks[-1].status, 200)
+                    applied_history = preference_readbacks[-1].json()
+                    self.assertEqual(applied_history["profile_id"], "fixture")
+                    self.assertEqual(applied_history["by_dimension"][proposal["dimension"]]["direction"],
+                                     proposal["direction"].upper())
                     self.assertEqual(_preference_and_eligibility_state(store), baseline)
 
                     for feedback_category, label in FEEDBACK_CATEGORIES.items():
@@ -357,6 +390,8 @@ class MatchFeedbackWorkflowBrowserTests(unittest.TestCase):
                     feedback = page.get_by_role("region", name="Job match feedback")
                     for label in FEEDBACK_CATEGORIES.values():
                         expect(feedback).to_contain_text(label)
+                    expect(feedback.get_by_role("region", name="Applied profile preferences"))\
+                        .to_contain_text("overall: decrease weight")
 
                     second_feedback_url = feedback_template.format(
                         profile_id="fixture", job_id=second_job_id,

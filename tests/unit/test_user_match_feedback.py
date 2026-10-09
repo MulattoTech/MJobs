@@ -14,6 +14,8 @@ from services.discovery.matching import recalculate
 from services.matching.user_match_feedback import (
     FEEDBACK_CATEGORIES,
     FeedbackConflict,
+    apply_feedback_preference,
+    list_feedback_preferences,
     record_feedback,
 )
 from tests.integration.test_spine import PROFILE
@@ -57,6 +59,58 @@ class UserMatchFeedbackTests(unittest.TestCase):
                 m.audit.c.action == "MATCH_FEEDBACK")).mappings().all()
         self.assertEqual(len(rows), len(FEEDBACK_CATEGORIES))
         self.assertTrue(all(row["payload"]["job_id"] == self.job["id"] for row in rows))
+
+    def test_user_must_apply_a_matching_saved_proposal_and_replay_is_idempotent(self):
+        feedback = record_feedback(
+            self.store, "fixture", self.job["id"], "BAD_SALARY", "feedback-to-apply")
+        preference = apply_feedback_preference(
+            self.store, "fixture", feedback["feedback"]["id"],
+            "salary", "decrease", "preference-apply-1")
+        replay = apply_feedback_preference(
+            self.store, "fixture", feedback["feedback"]["id"],
+            "salary", "decrease", "preference-apply-1")
+
+        self.assertFalse(preference["replayed"])
+        self.assertTrue(replay["replayed"])
+        self.assertEqual(preference, {**replay, "replayed": False})
+        stored = list_feedback_preferences(self.store, "fixture")["items"]
+        self.assertEqual(len(stored), 1)
+        for key in ("id", "job_id", "feedback_id", "dimension", "direction", "created_at"):
+            self.assertEqual(stored[0][key], preference["preference"][key])
+
+    def test_preference_rejects_review_only_direction_and_request_id_reuse_conflicts(self):
+        feedback = record_feedback(
+            self.store, "fixture", self.job["id"], "BAD_SALARY", "feedback-scope")
+        feedback_id = feedback["feedback"]["id"]
+
+        with self.assertRaises(ValueError):
+            apply_feedback_preference(
+                self.store, "fixture", feedback_id, "salary", "review", "preference-scope")
+        with self.assertRaises(LookupError):
+            apply_feedback_preference(
+                self.store, "other-profile", feedback_id, "salary", "decrease", "other-scope")
+
+        applied = apply_feedback_preference(
+            self.store, "fixture", feedback_id, "salary", "decrease", "preference-reuse")
+        with self.assertRaises(FeedbackConflict):
+            apply_feedback_preference(
+                self.store, "fixture", feedback_id, "salary", "increase", "preference-reuse")
+        self.assertEqual(applied["preference"]["direction"], "DECREASE")
+
+    def test_preferences_are_profile_scoped_and_latest_decision_is_read_back(self):
+        one = record_feedback(
+            self.store, "fixture", self.job["id"], "BAD_SALARY", "feedback-one")
+        two = record_feedback(
+            self.store, "fixture", self.job["id"], "GOOD_MATCH", "feedback-two")
+        apply_feedback_preference(
+            self.store, "fixture", one["feedback"]["id"], "salary", "decrease", "apply-one")
+        apply_feedback_preference(
+            self.store, "fixture", two["feedback"]["id"], "salary", "increase", "apply-two")
+
+        current = list_feedback_preferences(self.store, "fixture")
+        self.assertEqual(len(current["items"]), 2)
+        self.assertEqual(current["by_dimension"]["salary"]["direction"], "INCREASE")
+        self.assertNotIn("request_id", current["items"][0])
 
     def test_same_request_and_category_replays_one_event(self):
         first = record_feedback(
@@ -128,7 +182,7 @@ class UserMatchFeedbackTests(unittest.TestCase):
 
         self.assertEqual(profile_after["preferences"], profile_before["preferences"])
         self.assertEqual(result["preference_proposal"]["dimension"], "location")
-        self.assertEqual(result["preference_proposal"]["direction"], "DECREASE")
+        self.assertEqual(result["preference_proposal"]["direction"], "INCREASE")
         self.assertTrue(result["preference_proposal"]["requires_confirmation"])
         self.assertFalse(any(key in result["preference_proposal"] for key in (
             "eligibility", "hard_rule", "application_action", "auto_submit")))
