@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-243-COMPANY-SOURCE-PREFILTER-20261009",
-  "current_objective": "Verify and complete saved-search title and keyword filtering from user preview and persistence through the actual discovery worker.",
+  "current_milestone": "MJ-FEATURE-517-INTEGRATION-QUEUE-GUARD-20261009",
+  "current_objective": "Prevent source candidates from entering an integration queue without a real linked provider task, and verify the connected review flow.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -97,7 +97,8 @@
     "Dynamic mock-ATS draft recovery: explicit on-device consent, exact profile/application/form-version scope, unreviewed restore, deletion, quota-failure recovery, and no employer writes.",
     "MJ-REQ-114 weighted coverage breakdown: required/preferred/nice-to-have/missing evidence arithmetic, per-skill contribution, connected job-detail readback, and base-vs-selected-search score distinction verified at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af.",
     "MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete.",
-    "Issue #244 / MJ-REQ-243 PASS: saved-search source prefilter previews and persists profile-scoped title/keyword criteria, feeds actual discovery-worker candidate scoring, and preserves source rows across reject/defer/errors. Main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json."
+    "Issue #244 / MJ-REQ-243 PASS: saved-search source prefilter previews and persists profile-scoped title/keyword criteria, feeds actual discovery-worker candidate scoring, and preserves source rows across reject/defer/errors. Main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json.",
+    "Issue #517 bounded queue-integrity slice PASS at main f6976147fcae7cdab121abcb3090b2c310a3a53f: source-candidate integration cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue; API/service fail closed and connected UI persists/readbacks the linked issue without enabling collection. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader catalogue issue remains PARTIAL."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -179,7 +180,8 @@
     "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL).",
     "Explainable match coverage now shows covered/possible base skill weights and per-skill contributions (issue #115 / MJ-REQ-114; integrated 55c6a6036dc42bb15f6a5d8e60289afb73fb55af; evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json). Broader original score dimensions remain incomplete.",
     "Issue #247 / MJ-REQ-246: monitored company-source transient failures show bounded HEALTHY → DEGRADED → FAILED recovery, manual reset, blocked-access handling and preserved rediscovery gate. Local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; broader source failure lifecycle remains incomplete.",
-    "Issue #247 / MJ-REQ-247 PASS: a failed parser does not remove or rewrite the employer source; enabled configuration, provider/endpoints, terminal monitoring state and all failure events survive a fresh Store readback. Main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40; evidence docs/evidence/2026-10-09-failed-source-preservation.json."
+    "Issue #247 / MJ-REQ-247 PASS: a failed parser does not remove or rewrite the employer source; enabled configuration, provider/endpoints, terminal monitoring state and all failure events survive a fresh Store readback. Main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40; evidence docs/evidence/2026-10-09-failed-source-preservation.json.",
+    "Issue #517 discovered source-site catalogue remains PARTIAL: other provider/browser intake and overall source suitability/integration acceptance are incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [],
@@ -719,7 +721,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile open P0-P2 original jobseeker issues and active claims; select the next substantial dependency-ready discovery, matching, resume/document, or application-preparation capability.",
+  "recommended_resume_step": "Continue issue #517 at the next concrete source-candidate usability gap. Candidate IDs are currently shown as raw job/application references; inspect source-candidate linked-record context and deliver profile-scoped title/company/detail readback before selecting a new feature.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -753,7 +755,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
+  "last_implementation_commit": "f6976147fcae7cdab121abcb3090b2c310a3a53f",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
     "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
@@ -14249,12 +14251,64 @@
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": []
+    },
+    {
+      "milestone_id": "MJ-FEATURE-517-INTEGRATION-QUEUE-GUARD-20261009",
+      "timestamp": "2026-10-09T20:38:44Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added API and service validation that refuses INTEGRATION_QUEUED without an issue reference.",
+        "Disabled the UI queue action until an issue number is entered and preserved the explicit unverified-reference label.",
+        "Verified the connected profile-scoped queue flow, durable issue readback, unchanged review state on rejection, collection disabled and zero external requests.",
+        "Fast-forward integrated tested source and evidence at local main; issue #517 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-source-candidate-queue-guard.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "services/source_candidates/catalogue.py",
+        "apps/web/src/source-candidate-review.tsx",
+        "apps/web/src/source-candidate-review.test.tsx",
+        "tests/integration/test_source_candidates.py",
+        "tests/browser/test_source_candidate_review_panel_connected.py"
+      ],
+      "tests_completed": [
+        "Source-candidate and adjacent Python suites: 23 passed plus 8 subtests",
+        "Connected Chromium review queue: 1 passed",
+        "Focused source-candidate UI tests: 22 passed",
+        "TypeScript/Vite build, py_compile, coordination validation and diff checks passed"
+      ],
+      "tests_remaining": [
+        "PostgreSQL, full repository suites and live provider access",
+        "Hosted checks/review NOT_RUN_BY_USER_POLICY"
+      ],
+      "known_limitations": [
+        "Issue references remain user-supplied and unverified; no external lookup is performed.",
+        "Issue #517 broader catalogue acceptance remains OPEN/PARTIAL.",
+        "External application submission remains OFF and source collection remains disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "f6976147fcae7cdab121abcb3090b2c310a3a53f",
+        "evidence_path": "docs/evidence/2026-10-09-source-candidate-queue-guard.json"
+      },
+      "integrated_main": "f6976147fcae7cdab121abcb3090b2c310a3a53f",
+      "source_tree": "0ea4515e869a2773fe1f1568e55b71f3b220b950",
+      "acceptance": "PASS for this queue-integrity slice: an integration queue entry requires a user-supplied provider issue and persists only after validation; broader #517 remains PARTIAL.",
+      "limitations": [
+        "PostgreSQL/full repository/live provider/hosted checks NOT_RUN.",
+        "Issue #517 remains OPEN/PARTIAL.",
+        "External application submission OFF; source collection disabled."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": []
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "88b781bfc45c44363cd024e61af4b9a8d01866e4",
-    "evidence_path": "docs/evidence/2026-10-09-company-source-cheap-prefilter.json"
+    "git_commit": "f6976147fcae7cdab121abcb3090b2c310a3a53f",
+    "evidence_path": "docs/evidence/2026-10-09-source-candidate-queue-guard.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15917,15 +15971,15 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T20:30:32Z",
-  "current_verified_local_state": "Issue #244 / MJ-REQ-243 is locally PASS at main 88b781bfc45c44363cd024e61af4b9a8d01866e4 (tree 475cd899cfb75aeeca6df884bf125910c4914589). Saved title/keyword filtering is previewable, persisted per search profile and applied by the actual discovery worker before deterministic scoring. Captured source rows remain durably retained on rejection, deferral, and preview errors. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json; issue CLOSED/PASS.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #244 is CLOSED/PASS with receipt https://github.com/MulattoTech/MJobs/issues/244#issuecomment-6088737961. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "updated_at": "2026-10-09T20:38:44Z",
+  "current_verified_local_state": "Issue #517 bounded integration-queue integrity is locally verified at main f6976147fcae7cdab121abcb3090b2c310a3a53f (tree 881e9e497ad233d11bbb13d9186a4f9ae8c92304). Candidates require a user-supplied provider issue number before entering INTEGRATION_QUEUED; the API and service reject missing issue links without persisting review state, and the connected UI reads back linked queue state while collection remains disabled. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader #517 remains OPEN/PARTIAL.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #517 remains OPEN/PARTIAL with local integration receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6088851790. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 517,
       "requirement_id": null,
-      "status": "NEXT: reconcile and continue the connected discovered-job-site source candidate catalogue and review workflow; preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF. Reconcile existing claims/worktrees before selecting owned paths."
+      "status": "Continue #517: make captured job/application relationships understandable and navigable from the source review history; preserve profile boundaries, provenance, collection OFF, and no external submission."
     }
   ],
-  "current_verified_at": "2026-10-09T20:30:32Z"
+  "current_verified_at": "2026-10-09T20:38:44Z"
 }
