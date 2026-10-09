@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T10:14:05Z"
   },
-  "current_milestone": "MJ-REF-008-GROUNDED-INTERVIEW-PREPARATION-20261009",
-  "current_objective": "Deliver a connected, deterministic interview-preparation workspace with durable profile/job-scoped versions, explicit approved-story citations, missing-evidence disclosure, and safe export; external submission remains OFF.",
+  "current_milestone": "MJ-REF-038-ROLE-SCORING-COMPLETION-20261009",
+  "current_objective": "Complete configurable per-search role scoring, transparent signal provenance/contributions, hard-eligibility isolation, and safe legacy defaults for scheduled searches; continue solo on the next dependency-ready core feature.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -625,13 +625,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "430d4724e36d063890c9511c7478b44257abcd59",
-    "tree": "e768f9a6cb4e0d3429e05d9dd45bbdab152030a5",
-    "result": "PASS for issue #378 / MJ-REF-008 complete local acceptance: durable deterministic prep packs are connected to selected job detail and exact reload/export; broader product release remains UNKNOWN.",
+    "commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
+    "tree": "8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228",
+    "result": "PASS for issue #408 / MJ-REF-038 complete local acceptance. Executable source was tested at aae75c7a3944cbe5ac1cfbe77297deecc3827255 / tree 71f8f4a0d029ff2b1f9fa0d232cb0618ce4d66e6; only the sanitized acceptance receipt was added in the integration commit. Whole-product release remains UNKNOWN.",
     "evidence": [
-      "docs/evidence/2026-10-09-grounded-interview-preparation.json"
+      "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
     ],
-    "verified_at_utc": "2026-10-09T11:46:44Z"
+    "verified_at_utc": "2026-10-09T11:57:19Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -698,7 +698,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile the live issue backlog and claim bus, select the next highest-impact dependency-ready discovery, search/matching, or application-preparation feature, and continue solo; keep full-product release eligibility UNKNOWN until its complete original acceptance is verified.",
+  "recommended_resume_step": "Reconcile the live issue backlog, active claims and preserved worktrees; select and implement the next highest-impact dependency-ready user-facing workflow in solo mode, preferably discovery/search or application preparation. Keep release eligibility UNKNOWN until full original acceptance is verified.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -732,22 +732,22 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
+  "last_implementation_commit": "aae75c7a3944cbe5ac1cfbe77297deecc3827255",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
-    "integration_method": "Ordinary non-force fast-forward into local main under the existing Codex integration lock; no PR opened or push performed.",
-    "integration_commit": "430d4724e36d063890c9511c7478b44257abcd59",
-    "prior_main": "52ac84fb7ce673fbb8f312e6464b6feb15c6cd8a",
-    "source_commit": "eb7bbec7df699603f6337de8db68912236a3809b",
-    "source_tree": "182294058482aeb3e463d9f33d454a2e91606459",
-    "integration_tree": "e768f9a6cb4e0d3429e05d9dd45bbdab152030a5",
+    "integration_method": "Ordinary non-force fast-forward into local main under the Codex integration lock; no PR opened or push performed.",
+    "integration_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
+    "prior_main": "aae75c7a3944cbe5ac1cfbe77297deecc3827255",
+    "source_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
+    "source_tree": "8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228",
+    "integration_tree": "8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "issue": 378,
-    "issue_state": "CLOSED/PASS",
-    "evidence_path": "docs/evidence/2026-10-09-grounded-interview-preparation.json",
-    "note": "Focused synthetic local acceptance is recorded in docs/evidence/2026-10-09-grounded-interview-preparation.json; origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Hosted checks/review and PostgreSQL remain NOT_RUN; external submission OFF."
+    "issue": 408,
+    "issue_state": "CLOSED/PASS_LOCAL_ONLY",
+    "evidence_path": "docs/evidence/2026-10-09-role-specific-matching-acceptance.json",
+    "note": "Issue #408 closed with a local-only acceptance receipt. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; hosted checks/review, PostgreSQL, full suite and manual production remain NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12885,12 +12885,48 @@
         "git_commit": "430d4724e36d063890c9511c7478b44257abcd59",
         "evidence_path": "docs/evidence/2026-10-09-grounded-interview-preparation.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-038-ROLE-SCORING-COMPLETION-20261009",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+      "timestamp": "2026-10-09T11:57:19Z",
+      "completed_steps": [
+        "Completed issue #408 / MJ-REF-038 acceptance reconciliation on existing role-scoring implementation; verified default-score persistence for scheduled searches with no configured role profile.",
+        "Committed the sanitized acceptance receipt and fast-forwarded it into local main under the Codex integration lock.",
+        "Closed GitHub issue #408 with explicit local-only evidence; no push or PR."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
+      ],
+      "files_modified": [
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Source aae75c7a3944cbe5ac1cfbe77297deecc3827255 / tree 71f8f4a0d029ff2b1f9fa0d232cb0618ce4d66e6: 32 focused Python tests PASS, 46 focused frontend tests PASS, production web build PASS (existing >500 kB advisory), one Alembic head PASS, py_compile PASS, diff check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL, full repository suite, manual production, hosted Actions/review and live provider checks NOT_RUN; external application submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local profiles and searches only; no live providers or external submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "origin/main remains unchanged; this is a local-only integration. Whole-product release remains UNKNOWN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
+        "evidence_path": "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
+      }
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "430d4724e36d063890c9511c7478b44257abcd59",
-    "evidence_path": "docs/evidence/2026-10-09-grounded-interview-preparation.json"
+    "git_commit": "efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6",
+    "evidence_path": "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13295,14 +13331,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 378,
-    "url": "https://github.com/MulattoTech/MJobs/issues/378",
+    "number": null,
+    "url": null,
     "branch": "main",
-    "status": "INTEGRATED_PASS",
+    "status": "CHECKPOINTED_SELECT_NEXT",
     "related_requirements": [
-      "MJ-REF-008"
+      "MJ-REF-038"
     ],
-    "note": "Connected local selected-job interview preparation produces deterministic source-referenced questions, approved-story talking points/STAR prompts, missing-evidence disclosures and immutable reloadable/exportable versions; no AI answers or external submission. Evidence docs/evidence/2026-10-09-grounded-interview-preparation.json."
+    "note": "Issue #408 / MJ-REF-038 complete local acceptance is integrated at efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6; evidence docs/evidence/2026-10-09-role-specific-matching-acceptance.json. Select the next high-impact dependency-ready feature after live claim/backlog reconciliation."
   },
   "historical_control_snapshots": [
     {
@@ -14462,9 +14498,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T11:46:44Z",
-  "current_verified_local_state": "Local main 430d4724e36d063890c9511c7478b44257abcd59 (tree e768f9a6cb4e0d3429e05d9dd45bbdab152030a5): issue #378 / MJ-REF-008 grounded interview preparation integrated by non-force fast-forward. Python/API/migration/browser 20 PASS, frontend 13 PASS, TypeScript/Vite build, one Alembic head, py_compile and diff check PASS. Evidence docs/evidence/2026-10-09-grounded-interview-preparation.json. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #378 is recorded CLOSED/PASS after local-only integration; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T11:46:44Z.",
+  "updated_at": "2026-10-09T11:57:19Z",
+  "current_verified_local_state": "Local main efe2aa7f61e4c9cb754bd62a8e5dffd4b155d2f6 (tree 8c2cb13c538fc4ab7038fa0b2d48cd42c4c67228); issue #408 / MJ-REF-038 complete local acceptance. Source aae75c7a3944cbe5ac1cfbe77297deecc3827255 / tree 71f8f4a0d029ff2b1f9fa0d232cb0618ce4d66e6 passed 32 focused Python tests, 46 focused frontend tests, production web build, one Alembic head, py_compile and diff check. Evidence docs/evidence/2026-10-09-role-specific-matching-acceptance.json. PostgreSQL, full suite, hosted checks/review, manual production and live provider checks NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #408 is CLOSED with a local-only acceptance receipt; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T11:57:19Z.",
   "next_candidates": [
     {
       "issue": 517,

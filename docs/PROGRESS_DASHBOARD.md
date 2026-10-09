@@ -4,11 +4,11 @@
 > Only the integration owner refreshes this at accepted batches/session closeout. See [tracker policy](PROGRESS_TRACKING.md).
 
 Original requirements: **87 PASS / 97 PARTIAL / 182 NOT_RUN** (366 total; 23.8% fully accepted).
-Additional reference gaps: **17 PASS / 5 PARTIAL / 37 NOT_RUN** (59 total; 28.8% fully accepted).
+Additional reference gaps: **18 PASS / 4 PARTIAL / 37 NOT_RUN** (59 total; 30.5% fully accepted).
 Full-spec release readiness: **UNKNOWN** (separate from local slice tests).
 
-Original matrix as of: `2026-10-09T09:58:03Z`. Reference matrix as of: `2026-10-09T11:46:44Z`.
-Latest recorded implementation milestone: `MJ-REF-008-GROUNDED-INTERVIEW-PREPARATION-20261009`.
+Original matrix as of: `2026-10-09T09:58:03Z`. Reference matrix as of: `2026-10-09T11:57:19Z`.
+Latest recorded implementation milestone: `MJ-REF-038-ROLE-SCORING-COMPLETION-20261009`.
 
 PASS requires evidence for the whole acceptance contract of that ID. PARTIAL is not a percentage. NOT_RUN does not necessarily mean no code exists. Local PASS is not hosted CI or full release acceptance.
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-09T11:46:44Z",
+  "generated_at": "2026-10-09T11:57:19Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -271,10 +271,9 @@
       ]
     },
     "MJ-REF-038": {
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-09-role-scoring-profile-reload.json",
-        "docs/evidence/2026-10-09-role-scoring-stale-recovery.json"
+        "docs/evidence/2026-10-09-role-specific-matching-acceptance.json"
       ]
     },
     "MJ-REF-039": {
