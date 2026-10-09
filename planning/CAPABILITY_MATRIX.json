@@ -1999,9 +1999,11 @@
     },
     {
       "requirement_id": "MJ-REQ-236",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-search-history.json"
+      ],
+      "note": "Connected local search-history workflow stores terminal discovery source, profile, query/filter context, timestamps, result/new-job counts and errors with profile isolation, idempotency and keyset paging. Exact duplicate totals remain UNKNOWN because source collectors expose no trustworthy duplicate counter. Source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77) integrated at local main bc523f642a27795e3791d7bf0926e22473376277; hosted/live-source checks NOT_RUN_BY_USER_POLICY."
     },
     {
       "requirement_id": "MJ-REQ-237",
