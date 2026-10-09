@@ -216,13 +216,11 @@ class InterviewPreparationUiBrowserTests(unittest.TestCase):
 
     @staticmethod
     def open_interview_preparation(page, job_title, job_id):
-        page.get_by_role("button", name="Applications", exact=False).first.click()
+        page.get_by_role("navigation", name="Main navigation").get_by_role(
+            "button", name=re.compile(r"^Jobs"),
+        ).click()
         page.locator(".job-card").filter(has_text=job_title).first.click()
         workspace = page.get_by_role("region", name="Interview preparation", exact=True)
-        if not workspace.is_visible():
-            navigation = page.get_by_role("navigation")
-            tab = navigation.get_by_role("button", name=re.compile(r"interview (?:prep|preparation)", re.I))
-            tab.click()
         expect(workspace).to_be_visible()
         target = workspace.get_by_role("region", name="Selected interview target", exact=True)
         expect(target).to_contain_text(job_title)

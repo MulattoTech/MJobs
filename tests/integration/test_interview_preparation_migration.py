@@ -14,7 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from packages.persistence import models as m
 
 
-PARENT_REVISION = "d0c97315c313"
+PARENT_REVISION = "c4f08e16a2d9"
 EXPECTED_MIGRATION = "20261008ip01"
 
 

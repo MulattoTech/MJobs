@@ -1,7 +1,7 @@
 """Persist immutable, profile-scoped interview-preparation pack versions.
 
 Revision ID: 20261008ip01
-Revises: d0c97315c313
+Revises: c4f08e16a2d9
 Create Date: 2026-10-08
 """
 from typing import Sequence, Union
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 
 revision: str = "20261008ip01"
-down_revision: Union[str, Sequence[str], None] = "d0c97315c313"
+down_revision: Union[str, Sequence[str], None] = "c4f08e16a2d9"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

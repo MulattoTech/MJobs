@@ -151,11 +151,12 @@ class InterviewPreparationBrowserTests(unittest.TestCase):
 
                     self.assertTrue(detail_response.value.url.endswith(f"/interview-prep-packs/{pack['pack_id']}"))
                     self.assertEqual(detail_response.value.status, 200)
-                    article = prep.get_by_role("article", name="Interview prep pack version 1", exact=True)
+                    article = page.locator('article[aria-label="Interview prep pack version 1"]').first
+                    self.assertEqual(article.count(), 1)
                     expect(article).to_be_visible()
                     expect(article.get_by_role("region", name="Missing evidence", exact=True)).to_be_visible()
                     expect(article).to_contain_text("Synthetic service recovery story")
-                    expect(article).to_contain_text("export contains no generated answers")
+                    expect(article).to_contain_text("It contains no generated answers.")
 
                     preview = article.get_by_role("region", name="Deterministic export preview", exact=True)
                     with page.expect_download() as download_info:
@@ -170,7 +171,9 @@ class InterviewPreparationBrowserTests(unittest.TestCase):
                         jobs_tab.click()
                     page.locator(".job-card").filter(has_text="Synthetic Python Support Engineer").first.click()
                     prep = page.get_by_role("region", name="Interview preparation", exact=True)
-                    expect(prep.get_by_role("article", name="Interview prep pack version 1", exact=True)).to_be_visible()
+                    saved_article = page.locator('article[aria-label="Interview prep pack version 1"]').first
+                    expect(saved_article).to_be_visible()
+                    expect(saved_article).to_contain_text("Synthetic service recovery story")
                     expect(prep).to_contain_text("Synthetic service recovery story")
                     self.assertFalse(external_requests, "FIXTURE browser attempted an external request")
                     self.assertFalse(submission_requests, "Interview preparation attempted an application submission")
