@@ -33,19 +33,15 @@ describe('multi-page application review',()=>{
     expect(canContinueApplicationPage(pages[0],{email:'person@example.test'})).toEqual([]);
   });
 
-  it('saves a valid page before advancing and enters a manual review stop without a submit action',async()=>{
+  it('advances unchanged progress and enters a manual review stop without a submit action',async()=>{
     const client={load:vi.fn(),transition:vi.fn()
-      .mockResolvedValueOnce({...state,version:3})
-      .mockResolvedValueOnce({...state,current_page_id:'experience',version:4})};
+      .mockResolvedValueOnce({...state,current_page_id:'experience',version:3})};
     await moveApplicationMultipageReview(client,'profile-a','application-a',state,pages,state.progress,'NEXT');
     expect(client.transition).toHaveBeenNthCalledWith(1,'profile-a','application-a',expect.objectContaining({
-      action:'SAVE_PROGRESS',expected_version:2,page_id:'contact',page_order:['contact','experience'],progress:state.progress,
-    }));
-    expect(client.transition).toHaveBeenNthCalledWith(2,'profile-a','application-a',expect.objectContaining({
-      action:'NEXT',expected_version:3,page_id:'contact',next_page_id:'experience',
+      action:'NEXT',expected_version:2,page_id:'contact',next_page_id:'experience',
     }));
     const enteringReview={...state,current_page_id:'experience',version:4};
-    client.transition.mockResolvedValueOnce({...enteringReview,progress:{...state.progress,experience:{summary:'Relevant experience'}},version:5});
+    client.transition.mockReset().mockResolvedValueOnce({...enteringReview,progress:{...state.progress,experience:{summary:'Relevant experience'}},version:5});
     client.transition.mockResolvedValueOnce({...enteringReview,current_page_id:'review',status:'REVIEW',
       progress:{...state.progress,experience:{summary:'Relevant experience'}},version:6});
     await moveApplicationMultipageReview(client,'profile-a','application-a',enteringReview,pages,
@@ -53,6 +49,26 @@ describe('multi-page application review',()=>{
     expect(client.transition).toHaveBeenLastCalledWith('profile-a','application-a',expect.objectContaining({
       action:'REVIEW',expected_version:5,page_id:'experience',
     }));
+  });
+
+  it('retries navigation after reload without saving the already durable progress again',async()=>{
+    const editedProgress={contact:{email:'person@example.test',phone:'555-0100'}};
+    const savedAfterFirstAttempt={...state,progress:editedProgress,version:3};
+    const client={load:vi.fn().mockResolvedValue(savedAfterFirstAttempt),transition:vi.fn()
+      .mockResolvedValueOnce(savedAfterFirstAttempt)
+      .mockRejectedValueOnce(new Error('temporary NEXT failure'))
+      .mockResolvedValueOnce({...savedAfterFirstAttempt,current_page_id:'experience',version:4})
+      .mockResolvedValueOnce({...savedAfterFirstAttempt,current_page_id:'experience',version:5})};
+
+    await expect(moveApplicationMultipageReview(client,'profile-a','application-a',state,pages,editedProgress,'NEXT'))
+      .rejects.toThrow('temporary NEXT failure');
+    const reloaded=await client.load('profile-a','application-a');
+    await moveApplicationMultipageReview(client,'profile-a','application-a',reloaded,pages,reloaded.progress,'NEXT');
+
+    expect(client.transition).toHaveBeenCalledTimes(3);
+    expect(client.transition.mock.calls[0][2]).toMatchObject({action:'SAVE_PROGRESS',expected_version:2,progress:editedProgress});
+    expect(client.transition.mock.calls[1][2]).toMatchObject({action:'NEXT',expected_version:3,next_page_id:'experience'});
+    expect(client.transition.mock.calls[2][2]).toMatchObject({action:'NEXT',expected_version:3,next_page_id:'experience'});
   });
 
   it('does not write when a required value is missing',async()=>{
@@ -119,11 +135,12 @@ describe('multi-page application review',()=>{
 
   it('stops a Continue sequence if the selected scope changes while progress is saving',async()=>{
     let scopeIsCurrent=true;
+    const editedProgress={contact:{email:'person@example.test',phone:'changed'}};
     const client={load:vi.fn(),transition:vi.fn().mockImplementationOnce(async()=>{
       scopeIsCurrent=false;
       return {...state,version:3};
     })};
-    await expect(moveApplicationMultipageReview(client,'profile-a','application-a',state,pages,state.progress,'NEXT',()=>scopeIsCurrent))
+    await expect(moveApplicationMultipageReview(client,'profile-a','application-a',state,pages,editedProgress,'NEXT',()=>scopeIsCurrent))
       .rejects.toThrow('selected application changed');
     expect(client.transition).toHaveBeenCalledTimes(1);
     expect(client.transition.mock.calls[0][2]).toMatchObject({action:'SAVE_PROGRESS'});

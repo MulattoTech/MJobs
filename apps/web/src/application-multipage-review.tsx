@@ -47,6 +47,23 @@ export function canContinueApplicationPage(page:ApplicationMultipagePage,values:
   return page.fields.filter(field=>field.required&&!String(values[field.id]||'').trim()).map(field=>field.label);
 }
 
+function hasSameApplicationMultipageProgress(
+  saved:Record<string,Record<string,string>>,
+  proposed:Record<string,Record<string,string>>,
+):boolean {
+  const savedPages=Object.keys(saved).sort();
+  const proposedPages=Object.keys(proposed).sort();
+  return savedPages.length===proposedPages.length&&savedPages.every((pageId,index)=>{
+    if(pageId!==proposedPages[index])return false;
+    const savedAnswers=saved[pageId];
+    const proposedAnswers=proposed[pageId];
+    const savedFields=Object.keys(savedAnswers).sort();
+    const proposedFields=Object.keys(proposedAnswers).sort();
+    return savedFields.length===proposedFields.length&&savedFields.every((fieldId,fieldIndex)=>
+      fieldId===proposedFields[fieldIndex]&&savedAnswers[fieldId]===proposedAnswers[fieldId]);
+  });
+}
+
 function isMatchingState(value:ApplicationMultipageState,profileId:string,applicationId:string,pages:ApplicationMultipagePage[]):boolean {
   const expectedOrder=pages.map(page=>page.id);
   const uninitialized=value.version===0&&value.current_page_id===null&&Array.isArray(value.page_order)&&value.page_order.length===0;
@@ -111,7 +128,11 @@ export async function moveApplicationMultipageReview(client:ApplicationMultipage
     const missing=canContinueApplicationPage(pages[currentIndex],progress[currentPageId]||{});
     if(missing.length)throw new Error(`Complete required fields before continuing: ${missing.join(', ')}.`);
   }
-  const saved=await saveApplicationMultipageProgress(client,profileId,applicationId,state,pages,progress,scopeIsCurrent);
+  // A prior Continue can durably save the draft and then fail during navigation.
+  // After reload, reuse that snapshot so retry sends only the still-pending move.
+  const saved=hasSameApplicationMultipageProgress(state.progress,progress)
+    ?state
+    :await saveApplicationMultipageProgress(client,profileId,applicationId,state,pages,progress,scopeIsCurrent);
   const isFinal=direction==='NEXT'&&destinationIndex>=pages.length;
   const request:Omit<ApplicationMultipageTransition,'request_id'>={
     action:isFinal?'REVIEW':direction,expected_version:saved.version,page_id:saved.current_page_id||currentPageId,
