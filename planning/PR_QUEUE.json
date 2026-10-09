@@ -2790,7 +2790,7 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "main",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-252 / issue #253 Search Profile Seed is locally PASS at main 5b86ae91e1e50e68b7db63347d190aa9cc227818; evidence docs/evidence/2026-10-09-search-profile-seed.json. All ten documented titles, remote-required/full-time criteria, save/readback after reload, and Jobs selection were verified in connected Chromium; no collection or schedule was started. MJ-REQ-253/254/255 remain separately incomplete or unverified; grouped package remains partial. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
+      "notes": "MJ-REQ-252 / issue #253 Search Profile Seed is locally PASS at main 71e29e233d3af9af5dae57d8dc91aaab9c74bcbd; evidence docs/evidence/2026-10-09-search-profile-seed.json. MJ-REQ-253 / issue #254 Default Technology Seed is locally PASS at the same main; evidence docs/evidence/2026-10-09-default-technology-seed.json. The 16 saved optional skill preferences are advisory, persist across reload and pause/resume, and do not become required skills or career facts. Issues #253 and #254 are CLOSED after local acceptance readback. MJ-REQ-254/255 remain separately incomplete; grouped package remains partial. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "id": "MJ-PR-070",

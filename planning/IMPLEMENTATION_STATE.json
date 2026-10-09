@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T16:16:08Z",
+  "generated_at": "2026-10-09T16:23:40Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main 5b86ae91e1e50e68b7db63347d190aa9cc227818 (tree 45c2c4adb7b1e37670042333958ff558299b9849); issue #253 / MJ-REQ-252 Search Profile Seed is locally integrated with evidence docs/evidence/2026-10-09-search-profile-seed.json. The preexisting untracked compose-target evidence remains preserved.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #253 is CLOSED after local acceptance readback; local-only changes are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:16:08Z.",
-    "current_verified_at": "2026-10-09T16:16:08Z"
+    "current_verified_local_state": "Local main 71e29e233d3af9af5dae57d8dc91aaab9c74bcbd integrates issues #253 / MJ-REQ-252 Search Profile Seed and #254 / MJ-REQ-253 Default Technology Seed. Both connected local search-profile workflows pass; evidence docs/evidence/2026-10-09-search-profile-seed.json and docs/evidence/2026-10-09-default-technology-seed.json. Preserve unrelated untracked compose-target evidence.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance readback. Local-only commits are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:23:40Z.",
+    "current_verified_at": "2026-10-09T16:23:40Z"
   },
-  "current_milestone": "MJ-REQ-252-SEARCH-PROFILE-SEED-20261009",
-  "current_objective": "Provide an editable remote infrastructure/sysadmin search example that saves as a profile-scoped search and can be selected after reload to filter Jobs, without enabling scheduled collection.",
+  "current_milestone": "MJ-REQ-253-DEFAULT-TECHNOLOGY-SEED-20261009",
+  "current_objective": "Add user-selected advisory technology preferences to saved searches; persist and display them without turning them into required job filters or career facts.",
   "status": "PASS",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -92,7 +92,8 @@
     "MJ-REQ-269 PARTIAL: connected document history displays fact references resolved from the original profile snapshot; focused Chromium acceptance confirms later edits and unapproved facts do not leak. Live AI provider document generation remains NOT_RUN. Evidence docs/evidence/2026-10-09-document-fact-trace.json.",
     "Related job-title suggestions from current strong matches (MJ-REQ-244)",
     "Browser-assisted job extraction now persists a server-validated review receipt, rejected optional-route decision, sanitized raw fields, and field provenance through reload.",
-    "MJ-REQ-252 / issue #253: editable remote infrastructure search seed with ten documented titles, remote-required/full-time criteria, profile-scoped API save/readback, reload persistence, and Jobs selection; scheduled discovery stayed off. Evidence docs/evidence/2026-10-09-search-profile-seed.json."
+    "MJ-REQ-252 / issue #253: editable remote infrastructure search seed with ten documented titles, remote-required/full-time criteria, profile-scoped API save/readback, reload persistence, and Jobs selection; scheduled discovery stayed off. Evidence docs/evidence/2026-10-09-search-profile-seed.json.",
+    "MJ-REQ-253 / issue #254: 16 opt-in advisory technology preferences persist with saved searches, display after reload, survive pause/resume, and are selectable for Jobs filtering. They remain separate from required criteria and career facts. Evidence docs/evidence/2026-10-09-default-technology-seed.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -632,13 +633,14 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "5b86ae91e1e50e68b7db63347d190aa9cc227818",
-    "tree": "45c2c4adb7b1e37670042333958ff558299b9849",
-    "result": "PASS for #253 / MJ-REQ-252: user can load the documented ten-title remote/full-time example into an editable form, save it to the selected profile, read it after reload, and select it for a Jobs query; no source collection starts.",
+    "commit": "71e29e233d3af9af5dae57d8dc91aaab9c74bcbd",
+    "tree": "a573a70eaa22acb083862f91e182c8c302e1ed29",
+    "result": "PASS for issue #254 / MJ-REQ-253: opt-in technology preferences persist through save, reload and pause/resume; optional criteria remain advisory and select a saved search in Jobs.",
     "evidence": [
+      "docs/evidence/2026-10-09-default-technology-seed.json",
       "docs/evidence/2026-10-09-search-profile-seed.json"
     ],
-    "verified_at_utc": "2026-10-09T16:15:12Z"
+    "verified_at_utc": "2026-10-09T16:23:40Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -15162,7 +15164,7 @@
     "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d); evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json; focused Python/API/persistence/worker/connected browser 44 PASS and final Chromium 1 PASS, focused web 22 PASS, production build/compile/hash/lane/diff PASS. PostgreSQL/full suite/hosted NOT_RUN; external application submission OFF; requirement remains PARTIAL.",
     "#378 / MJ-REF-008 integrated at 430d4724e36d063890c9511c7478b44257abcd59 (tree e768f9a6cb4e0d3429e05d9dd45bbdab152030a5); evidence docs/evidence/2026-10-09-grounded-interview-preparation.json; Python/API/migration/connected browser 20 PASS, frontend 13 PASS, build and local migration graph PASS. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF."
   ],
-  "ownership": "ROOT remains in solo mode with zero active child agents. #269/MJ-REQ-268 has passed local connected acceptance and is integrated. Current #269 browser/evidence claims await closeout; prior completed agents and unrelated worktrees/claims remain preserved. Preserve untracked user file docs/evidence/2026-10-08-compose-target-isolation.json. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "ownership": "ROOT is the sole Luna High engineer in solo mode with zero active child agents. #253 / MJ-REQ-252 and #254 / MJ-REQ-253 are locally PASS and integrated. Preserve completed workers, unrelated branches/worktrees/claims, and untracked docs/evidence/2026-10-08-compose-target-isolation.json. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -15175,9 +15177,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T14:39:49Z",
-  "current_verified_local_state": "Local main d222b475213f8d9a38994c6fca2406f1c7397e9b includes verified MJ-REQ-244 search-profile suggestions. Source/test checkpoint 32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712 (tree 897a4f62ec5b602d4b8d2d941e6e437eaa42e17e); Python unit/integration/Chromium 27 passed with 5 subtests, focused frontend 13/13, build/compile/diff pass. Evidence docs/evidence/2026-10-09-search-profile-suggestions.json. Other MJ-PR-066 requirements remain separate.",
-  "current_verified_github_state": "Issue #245 / MJ-REQ-244 CLOSED after local acceptance receipt https://github.com/MulattoTech/MJobs/issues/245#issuecomment-6083106380; origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 and local work is not pushed. Hosted checks/review, PostgreSQL and full suite NOT_RUN. External application submission OFF. Verified 2026-10-09T14:39:49Z.",
+  "updated_at": "2026-10-09T16:24:00Z",
+  "current_verified_local_state": "Local main product code is integrated at 71e29e233d3af9af5dae57d8dc91aaab9c74bcbd (tree a573a70eaa22acb083862f91e182c8c302e1ed29): issue #253 / MJ-REQ-252 and issue #254 / MJ-REQ-253 both PASS with connected search-profile evidence. Preserve unrelated untracked compose-target evidence.",
+  "current_verified_github_state": "Origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance receipts. Local-only commits are not pushed. Hosted checks/review, PostgreSQL, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T16:24:00Z.",
   "next_candidates": [
     {
       "issue": 517,

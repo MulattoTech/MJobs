@@ -9,9 +9,10 @@
     "branch": "codex/solo-253-default-technology-seed-20261009",
     "commit": "101d54d810816da8e26a14d521c770ceb332b362",
     "tree": "f4d7a58535951513390283f3d3c34bd87bb464ab",
-    "base": "7b0f1692b7f8b0e5e6076e9f1e5928c8a2b95044"
+    "base": "7b0f1692b7f8b0e5e6076e9f1e5928c8a2b95044",
+    "integrated_main": "71e29e233d3af9af5dae57d8dc91aaab9c74bcbd"
   },
-  "verified_at_utc": "2026-10-09T16:23:00Z",
+  "verified_at_utc": "2026-10-09T16:23:40Z",
   "environment": {
     "os": "Windows",
     "database": "isolated SQLite fixture",
@@ -62,6 +63,16 @@
       "command": "python -m unittest tests.unit.test_search_semantics",
       "result": "PASS",
       "evidence": "13 existing optional/required search semantic tests passed; no generic matching logic was changed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_technology_skill_seed.py tests/browser/test_search_profile_seed.py tests/browser/test_saved_search_schedule.py tests/browser/test_search_profile_selection.py -q (integrated main)",
+      "result": "PASS",
+      "evidence": "All four connected Chromium browser tests passed after integration at main 71e29e233d3af9af5dae57d8dc91aaab9c74bcbd."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run; npm run build --prefix apps/web (integrated main)",
+      "result": "PASS",
+      "evidence": "95 frontend files and 540 tests passed; integrated-main TypeScript and Vite build passed with the same 750.27 kB advisory."
     },
     {
       "command": "python -m py_compile tests/browser/test_technology_skill_seed.py; git diff --check HEAD^ HEAD; python -m tools.coordination.lane_coordination validate",

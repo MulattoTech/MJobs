@@ -2130,9 +2130,11 @@
     },
     {
       "requirement_id": "MJ-REQ-253",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-default-technology-seed.json"
+      ],
+      "note": "The 16 documented technology preferences are optional saved-search criteria, remain advisory and distinct from verified career facts and required filters, persist through reload and pause/resume, and can be selected in Jobs. Integrated-main acceptance is local PASS; hosted checks and PostgreSQL remain NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-254",

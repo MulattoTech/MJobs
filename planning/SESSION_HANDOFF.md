@@ -1,3 +1,14 @@
+# Solo feature checkpoint — 2026-10-09T16:23:40Z
+
+- Root: `C:\Tools\Dev\MJobs`; integrated product code at local main `71e29e233d3af9af5dae57d8dc91aaab9c74bcbd` (tree `a573a70eaa22acb083862f91e182c8c302e1ed29`); `origin/main` remains `0a8719d4db524c90b632d990cc7b205add0c2577`; local-only delivery, no push. The Codex integration lock is held for this accepted tracker batch.
+- Solo mode: zero active child agents. Preserve completed workers' branches/worktrees and unrelated claims. Preserve untracked user file `docs/evidence/2026-10-08-compose-target-isolation.json`.
+- #253 / MJ-REQ-252 Remote Infrastructure Search Seed and #254 / MJ-REQ-253 Default Technology Seed are locally PASS. New preferences are opt-in advisory saved-search criteria, separate from career facts/required filters, persist through reload and pause/resume, and can be selected in Jobs. Evidence: `docs/evidence/2026-10-09-search-profile-seed.json` and `docs/evidence/2026-10-09-default-technology-seed.json`.
+- Exact integrated-main verification: 95 frontend files / 540 tests; TypeScript/Vite build; 13 search semantics tests; and four connected Chromium search-profile/schedule browser tests all PASS. Build reports the existing 750.27 kB bundle-size advisory. Hosted checks, PostgreSQL runtime and full Python suite NOT_RUN; source collection was not invoked; external application submission OFF.
+- GitHub issue #254 was closed after the full local acceptance receipt https://github.com/MulattoTech/MJobs/issues/254#issuecomment-6084900441. Issue #253 remains closed from the prior checkpoint. No product changes were pushed; `origin/main` remains unchanged.
+- Next: reconcile live claims and open dependency-ready issues, then continue the highest-value non-overlapping user workflow. Do not clean or retire historical worktrees/claims.
+
+---
+
 # Solo feature checkpoint — 2026-10-09T13:58:55Z
 
 - Root: `C:\Tools\Dev\MJobs`; local main includes #115 / MJ-REQ-114 source `a7d29aefdfb3051927bd63834a6d75cfc7f54857` (tree `fca52ef5ae9b10a8b42b16c84a0a115690961414`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
