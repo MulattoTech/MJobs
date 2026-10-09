@@ -2,6 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import {
+  ApplicationMultipageReview,
   ApplicationMultipageReviewView,
   canContinueApplicationPage,
   moveApplicationMultipageReview,
@@ -86,6 +87,23 @@ describe('multi-page application review',()=>{
     const client={load:vi.fn(),transition:vi.fn()};
     await expect(saveApplicationMultipageProgress(client,'profile-a','application-a',
       {...state,application_id:'application-other'},pages,state.progress)).rejects.toThrow('no longer matches');
+    expect(client.transition).not.toHaveBeenCalled();
+  });
+
+  it('hides the previous application while the newly selected scope is still loading',()=>{
+    const html=renderToStaticMarkup(<ApplicationMultipageReview profileId="profile-b" applicationId="application-b"
+      pages={pages} initialState={state} client={{load:vi.fn(),transition:vi.fn()}}/>);
+    expect(html).toContain('Loading saved application progress');
+    expect(html).not.toContain('person@example.test');
+    expect(html).not.toContain('Continue');
+    expect(html).not.toContain('Manual intervention required');
+  });
+
+  it('prevents a stale previous-scope page from advancing or entering review',async()=>{
+    const client={load:vi.fn(),transition:vi.fn()};
+    const staleFinalPage={...state,current_page_id:'experience',progress:{experience:{summary:'Persisted prior application'}}};
+    await expect(moveApplicationMultipageReview(client,'profile-b','application-b',staleFinalPage,pages,
+      staleFinalPage.progress,'NEXT')).rejects.toThrow('no longer matches');
     expect(client.transition).not.toHaveBeenCalled();
   });
 

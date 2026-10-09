@@ -170,8 +170,24 @@ export function ApplicationMultipageReview({profileId,applicationId,pages,initia
   const pageKey=useMemo(()=>pages.map(page=>page.id).join('\u0000'),[pages]);
 
   useEffect(()=>{
-    const pageId=initialState.current_page_id||pages[0]?.id;
-    setState(initialState);setDraft(pageId?initialState.progress[pageId]||{}:{});setError(null);setPending(false);setValidationAttempted(false);
+    let active=true;
+    setError(null);setValidationAttempted(false);
+    if(isMatchingState(initialState,profileId,applicationId,pages)) {
+      const pageId=initialState.current_page_id||pages[0]?.id;
+      setState(initialState);setDraft(pageId?initialState.progress[pageId]||{}:{});setPending(false);
+      return ()=>{active=false;};
+    }
+    setState(null);setDraft({});setPending(true);
+    void client.load(profileId,applicationId).then(result=>{
+      if(!isMatchingState(result,profileId,applicationId,pages))
+        throw new Error('Saved progress is unavailable for this profile and application.');
+      if(!active)return;
+      const pageId=result.current_page_id||pages[0]?.id;
+      setState(result);setDraft(pageId?result.progress[pageId]||{}:{});
+    }).catch(reason=>{
+      if(active)setError(reason instanceof Error?reason.message:'Could not load this application review.');
+    }).finally(()=>{if(active)setPending(false);});
+    return ()=>{active=false;};
   // Refresh local form state when the selected application or configured page sequence changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   },[profileId,applicationId,pageKey]);
@@ -195,9 +211,9 @@ export function ApplicationMultipageReview({profileId,applicationId,pages,initia
     catch(reason){setError(reason instanceof Error?reason.message:'Progress could not be saved. Retry after checking the saved version.');}
     finally{setPending(false);}
   };
-  if(!state)return <section className="panel" aria-label="Multi-page application review">
-    <h2>Application review</h2>{pending?<p role="status">Loading saved application progress…</p>:<p role="alert">{error||'Saved application progress could not be loaded.'}</p>}
-    {!pending&&<button type="button" onClick={()=>void reload()}>Reload progress</button>}
+  if(!state||!isMatchingState(state,profileId,applicationId,pages))return <section className="panel" aria-label="Multi-page application review">
+    <h2>Application review</h2>{pending||!error?<p role="status">Loading saved application progress…</p>:<p role="alert">{error||'Saved application progress could not be loaded.'}</p>}
+    {!pending&&error&&<button type="button" onClick={()=>void reload()}>Reload progress</button>}
   </section>;
 
   const currentPageId=state.current_page_id||pages[0]?.id;
