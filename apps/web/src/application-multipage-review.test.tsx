@@ -83,6 +83,16 @@ describe('multi-page application review',()=>{
     }));
   });
 
+  it('keeps manual review terminal and rejects a missing manual-intervention flag',async()=>{
+    const client={load:vi.fn(),transition:vi.fn()};
+    const reviewState={...state,current_page_id:'review',status:'REVIEW' as const};
+    await expect(moveApplicationMultipageReview(client,'profile-a','application-a',reviewState,pages,state.progress,'NEXT'))
+      .rejects.toThrow('Manual review is the final step');
+    await expect(moveApplicationMultipageReview(client,'profile-a','application-a',
+      {...reviewState,manual_intervention_required:false},pages,state.progress,'PREVIOUS')).rejects.toThrow('no longer matches');
+    expect(client.transition).not.toHaveBeenCalled();
+  });
+
   it('refuses to save state loaded for another profile or application',async()=>{
     const client={load:vi.fn(),transition:vi.fn()};
     await expect(saveApplicationMultipageProgress(client,'profile-a','application-a',
@@ -105,6 +115,18 @@ describe('multi-page application review',()=>{
     await expect(moveApplicationMultipageReview(client,'profile-b','application-b',staleFinalPage,pages,
       staleFinalPage.progress,'NEXT')).rejects.toThrow('no longer matches');
     expect(client.transition).not.toHaveBeenCalled();
+  });
+
+  it('stops a Continue sequence if the selected scope changes while progress is saving',async()=>{
+    let scopeIsCurrent=true;
+    const client={load:vi.fn(),transition:vi.fn().mockImplementationOnce(async()=>{
+      scopeIsCurrent=false;
+      return {...state,version:3};
+    })};
+    await expect(moveApplicationMultipageReview(client,'profile-a','application-a',state,pages,state.progress,'NEXT',()=>scopeIsCurrent))
+      .rejects.toThrow('selected application changed');
+    expect(client.transition).toHaveBeenCalledTimes(1);
+    expect(client.transition.mock.calls[0][2]).toMatchObject({action:'SAVE_PROGRESS'});
   });
 
   it('shows progress, previous/continue/save controls, and required-field guidance',()=>{
