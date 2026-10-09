@@ -91,7 +91,7 @@ export function JobRiskSignalsPanelView({
   onRetry,
 }: JobRiskSignalsPanelViewProps) {
   return <section className="panel job-risk-signals" aria-labelledby="job-risk-signals-heading" data-profile-id={profileId} data-job-id={jobId}>
-    <h2 id="job-risk-signals-heading">Job quality signals</h2>
+    <h2 id="job-risk-signals-heading">Potential Risk signals</h2>
     <p>These checks are heuristic indicators with limited evidence. They do not determine whether a posting is fraudulent and do not block or reject the posting.</p>
     {state.status === 'loading' && <p role="status" aria-busy="true">Loading risk signals…</p>}
     {state.status === 'error' && <>

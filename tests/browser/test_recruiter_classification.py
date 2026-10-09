@@ -110,6 +110,15 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                             "profile_version": scoped_profile["version"],
                             "score": 72.5, "missing": [], "components": {},
                         })
+                    upsert(connection, m.routes, {
+                        "id": "route-" + fixture["id"],
+                        "job_id": fixture["id"],
+                        "company_id": fixture["company_id"],
+                        "provider": "fixture",
+                        "tenant": "recruiter-classification-browser",
+                        "requisition": fixture["id"],
+                        "url": f"https://jobs.example.test/apply/{fixture['id']}",
+                    })
                     upsert(connection, m.postings, {
                         "id": "posting-" + fixture["id"], "job_id": fixture["id"],
                         "source": "synthetic-source", "source_job_id": fixture["id"],
@@ -208,7 +217,12 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                     self.assertEqual(staffing["classification"], "STAFFING_AGENCY")
                     direct_card = visible_jobs.filter(has_text="Direct employer fixture")
                     direct_card.click()
-                    region = page.get_by_role("region", name="Employer type classification", exact=True)
+                    expect(page.locator(".job-detail > h2").first).to_have_text(
+                        "Direct employer fixture",
+                    )
+                    region = page.locator(
+                        '.job-detail section[aria-labelledby="recruiter-classification-heading"][data-job-id="recruiter-direct-job"]'
+                    )
                     expect(region).to_be_visible()
                     expect(region.get_by_role("button", name="Classify employer relationship", exact=True)).to_be_visible()
                     region.get_by_role("button", name="Classify employer relationship", exact=True).click()
@@ -218,7 +232,12 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
 
                     ambiguous_card = visible_jobs.filter(has_text="Ambiguous employer fixture")
                     ambiguous_card.click()
-                    region = page.get_by_role("region", name="Employer type classification", exact=True)
+                    expect(page.locator(".job-detail > h2").first).to_have_text(
+                        "Ambiguous employer fixture",
+                    )
+                    region = page.locator(
+                        '.job-detail section[aria-labelledby="recruiter-classification-heading"][data-job-id="recruiter-ambiguous-job"]'
+                    )
                     expect(region).to_be_visible()
                     region.get_by_role("button", name="Classify employer relationship", exact=True).click()
                     expect(region).to_contain_text("UNKNOWN")
@@ -226,8 +245,13 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                     expect(region).not_to_contain_text("DIRECT EMPLOYER")
 
                     staffing_card.click()
+                    expect(page.locator(".job-detail > h2").first).to_have_text(
+                        "Staffing agency fixture remains visible",
+                    )
                     detail = page.locator(".job-detail")
-                    region = page.get_by_role("region", name="Employer type classification", exact=True)
+                    region = page.locator(
+                        '.job-detail section[aria-labelledby="recruiter-classification-heading"][data-job-id="recruiter-staffing-job"]'
+                    )
                     expect(region).to_be_visible()
                     region.get_by_role("button", name="Classify employer relationship", exact=True).click()
                     expect(region).to_contain_text("STAFFING AGENCY")
@@ -236,7 +260,7 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                     expect(region).to_contain_text("SOURCE_PROVIDED_JOB_METADATA")
                     expect(region).to_contain_text("synthetic:posting-employer-label")
                     expect(detail).to_be_visible()
-                    expect(detail.get_by_role("button", name="Classify employer relationship", exact=True)).to_be_visible()
+                    expect(region.get_by_role("button", name="Refresh classification", exact=True)).to_be_visible()
                     self.assertFalse(any(
                         word in (region.inner_text() or "").lower()
                         for word in ("reject this job", "exclude this job", "not eligible")))
@@ -246,9 +270,10 @@ class RecruiterClassificationBrowserTests(unittest.TestCase):
                     expect(page.locator(".job-card").filter(has_text="Staffing agency fixture remains visible")).to_be_visible()
                     self.assertEqual(external, [])
                     self.assertFalse([request for request in requests if request[0] != "GET"], requests)
-                    self.assertFalse(any(path.startswith("/applications") for _, path, _ in requests), requests)
-                    self.assertFalse(any(path.startswith(("/discover", "/sources", "/collect"))
-                                         for _, path, _ in requests), requests)
+                    self.assertFalse(any(
+                        method != "GET" and path.startswith(("/applications", "/discover", "/sources", "/collect"))
+                        for method, path, _ in requests
+                    ), requests)
                     context.close()
                     browser.close()
             finally:

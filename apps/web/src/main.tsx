@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { api, eligible, terminal } from './api';
 import { updateReviewedFact } from './fact-review';
@@ -21,6 +21,8 @@ import { matchCategory } from './match-category';
 import { JobMatchScoreFilter } from './job-match-score-filter';
 import { isSensitiveAnswerQuestion, suggestAnswers } from './answer-matching';
 import { ApplicationAnswerMatching } from './application-answer-matching';
+import { JobRiskSignalsPanel, type JobRiskSignalsResponse } from './job-risk-signals';
+import { RecruiterClassificationCard, type RecruiterClassification } from './recruiter-classification';
 import {
   matchApplicationAnswers,
   type ApplicationAnswerMatchResponse,
@@ -41,6 +43,12 @@ import { ResumePageFit, type ResumePageFitGenerated, type ResumePageFitPreview }
 import { CareerStoryBankConnected } from './career-story-bank-connected';
 import { RoleLensSelectionLoader } from './role-lens-selection';
 import type { RoleLensChoice } from './role-lens-picker';
+
+const jobRiskSignalsClient = {
+  get: (profileId: string, jobId: string) => api<JobRiskSignalsResponse>(
+    `/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/risk-signals`,
+  ),
+};
 import { BrowserJobExtraction } from './browser-job-extraction';
 import { createBrowserJobExtractionCaptureClient } from './browser-job-extraction-capture';
 import type { BrowserJobExtractionConfirmedPayload } from './browser-job-extraction-confirmation';
@@ -176,6 +184,36 @@ function App() {
   const [tab,setTab] = useState<Tab>('Jobs');
   const [profiles,setProfiles] = useState<Profile[]>([]);
   const [profileId,setProfileId] = useState(localStorage.getItem('mjobs-profile') || '');
+  const recruiterClassificationClient = useMemo(() => ({
+    classify: async (jobId: string): Promise<RecruiterClassification> => {
+      const response = await api<{
+        job_id: string;
+        classification: RecruiterClassification['classification'];
+        reasons: string[];
+        evidence: Array<{
+          classification: string;
+          subject_type: string;
+          source: string;
+          evidence_ref: string;
+        }>;
+        unknowns: string[];
+      }>(`/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/recruiter-classification`);
+      const reasons = [
+        ...response.reasons,
+        ...response.unknowns.map(value => `Unknown: ${value.replaceAll('_', ' ')}.`),
+      ].filter(value => typeof value === 'string' && value.trim());
+      return {
+        job_id: response.job_id,
+        classification: response.classification,
+        explanation: reasons.join(' ') || 'No current classification explanation is available.',
+        evidence: response.evidence.map(item => ({
+          signal: `${item.classification.replaceAll('_', ' ')} (${item.subject_type.toLowerCase()})`,
+          detail: item.evidence_ref,
+          source: item.source,
+        })),
+      };
+    },
+  }), [profileId]);
   const [editor,setEditor] = useState<Profile>(newProfile);
   const [jobs,setJobs] = useState<Job[]>([]);
   const [showDismissed,setShowDismissed] = useState(false);
@@ -1107,6 +1145,8 @@ function App() {
         <label className="consent"><input type="checkbox" checked={showDismissed} onChange={e=>setShowDismissed(e.target.checked)}/> Show hidden and not interested</label>
         <div className="job-grid"><div className="job-list">{jobs.map(job=><button className={'job-card '+(detail?.id===job.id?'selected':'')} key={job.id} onClick={()=>void showJob(job.id).catch(e=>setError(String(e)))}><div className="card-top"><span className="eyebrow">{job.company}</span><span className="score">{job.match_score===null?'Unscored':<>{job.match_score}%{matchCategory(job.match_score)&&` · ${matchCategory(job.match_score)}`}</>}</span></div><h2>{job.title}</h2><p>{job.location} · {job.remote_type}</p><div className="card-foot"><span className={'tag '+(job.attributes.fictional?'fictional':'')}>{job.attributes.fictional?'Fictional demo':job.provider==='manual'?'Manual capture':'Application provider route'}</span><span>{job.posting_count} posting{job.posting_count===1?'':'s'}</span></div><JobRouteProvenance postingSources={job.posting_sources} routeProvider={job.provider}/></button>)}{jobs.length===0&&<section className="empty"><h2>No matching jobs yet.</h2><p>{operationMode==='FIXTURE'?'Clear your filters, load a fictional demo, or configure a public job board in Sources.':'Clear your filters or configure a public job board in Sources.'}</p><button onClick={()=>setTab('Sources')}>Manage sources</button>{' '}<button onClick={()=>setManualCaptureOpen(true)}>Capture a job</button></section>}</div>
         <section className="job-detail">{detail?<><span className="eyebrow">{detail.company}</span><h2>{detail.title}</h2><p>{detail.location} · {detail.remote_type}</p>{profileId&&<section className="panel" aria-label="Job tracking"><h3>Track this job</h3><p>Current status: <strong>{detail.tracking?.disposition||'ACTIVE'}</strong></p><div className="toolbar"><button disabled={!!busy} onClick={()=>void updateJobDisposition(detail.tracking?.disposition==='SAVED'?'ACTIVE':'SAVED')}>{detail.tracking?.disposition==='SAVED'?'Unsave job':'Save job'}</button>{' '}<button disabled={!!busy} onClick={()=>void updateJobDisposition(detail.tracking?.disposition==='HIDDEN'?'ACTIVE':'HIDDEN')}>{detail.tracking?.disposition==='HIDDEN'?'Restore hidden job':'Hide job'}</button>{' '}<button disabled={!!busy} onClick={()=>void updateJobDisposition(detail.tracking?.disposition==='NOT_INTERESTED'?'ACTIVE':'NOT_INTERESTED')}>{detail.tracking?.disposition==='NOT_INTERESTED'?'Clear not interested':'Not interested'}</button></div><form onSubmit={event=>{event.preventDefault();void addJobNote();}}><label htmlFor="job-note">Private job note</label><textarea id="job-note" aria-label="Job note" maxLength={4000} value={jobNoteDraft} onChange={event=>{setJobNoteDraft(event.target.value);setJobNoteRequestId(crypto.randomUUID());}}/><button className="primary" disabled={!!busy||!jobNoteDraft.trim()}>Add note</button></form><h4>Tracking history</h4>{detail.tracking?.history?.length?<ol aria-label="Job tracking history">{detail.tracking.history.map((event,index)=><li key={event.id||`${event.type}-${event.timestamp}-${index}`}><strong>{event.type==='note'?'Note':'Status: '+event.disposition}</strong>{event.text&&<p>{event.text}</p>}<small>{stamp(event.timestamp)}</small></li>)}</ol>:<p className="muted">No status changes or notes yet.</p>}</section>}<div className="divider"/><h3>Why this match?</h3>{detail.match?<><strong className="big-score">{detail.match.score}%{matchCategory(detail.match.score)&&` · ${matchCategory(detail.match.score)}`}</strong><p>Weighted coverage of detected skill evidence; this is not a qualification assessment.</p>{detail.match.components.fit_factors?.length?<><h4>Other fit signals</h4><p className="muted">Informational comparisons from explicit profile preferences and known job attributes; these do not change the score.</p><ul aria-label="Additional fit signals">{detail.match.components.fit_factors.map(factor=><li key={factor.id}><strong>{factor.label} — {factor.status.replaceAll('_',' ')}</strong><span className="muted">. {factor.explanation} This does not change the score.</span></li>)}</ul></>:null}<p><strong>Supported by approved facts:</strong> {detail.match.components.matched?.join(', ')||'None'}</p><p><strong>Not found in approved profile facts:</strong> {detail.match.missing.join(', ')||'None detected'}</p>{detail.match.components.requirements?.length?<ul aria-label="Skill match explanation">{detail.match.components.requirements.map((row,index)=><li key={row.skill+index}><strong>{row.skill}</strong> — {row.strength.replaceAll('_',' ')}; {row.profile_evidence==='APPROVED'?'supported by an approved fact':'no approved profile evidence'}<span className="muted">. {row.explanation}</span></li>)}</ul>:null}{detail.match.components.limitation&&<p className="muted">{detail.match.components.limitation}</p>}</>:<p>Unscored — select a profile and refresh matches to calculate a score.</p>}
+           {profileId&&<JobRiskSignalsPanel key={`${profileId}:${detail.id}`} profileId={profileId} jobId={detail.id} client={jobRiskSignalsClient}/>}
+           {profileId&&<RecruiterClassificationCard key={`${profileId}:${detail.id}`} jobId={detail.id} client={recruiterClassificationClient}/>}
            {detail.attributes.certifications?.length?<section className="panel" aria-label="Certification mentions"><h3>Certification mentions</h3><p className="muted">Strength reflects wording in this job description. UNKNOWN means the description does not state whether a certification is required or preferred.</p><ul aria-label="Certification requirement strength">{detail.attributes.certifications.map((item,index)=><li key={item.id+index}><strong>{item.name}</strong> — {item.strength.replaceAll('_',' ')}</li>)}</ul></section>:null}
            {detail.attributes.salary&&<p>Published range: {detail.attributes.salary.map(s=>`${s.currency} ${s.min}–${s.max} (period ${s.period.toLowerCase()})`).join('; ')}</p>}
           <label className="consent"><input type="checkbox" checked={tailorResume} disabled={!!busy||!profileId} onChange={e=>{setTailorResume(e.target.checked);setResumeSelection(null);setResumeAlignmentPreview(null);}}/> Order approved skills for this job</label><p className="muted">A read-only keyword alignment preview runs before preparation. Unmatched job terms stay visibly unmatched and are never inserted into resume content. Job-matched skills and technology facts appear in bold in DOCX and PDF. Approved profile facts stay unchanged. Review the generated document before use.</p>

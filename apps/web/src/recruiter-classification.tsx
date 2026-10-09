@@ -134,8 +134,8 @@ type RecruiterClassificationCardViewProps = {
 
 export function RecruiterClassificationCardView({ state, onClassify, onRetry }: RecruiterClassificationCardViewProps) {
   const result = state.result && state.result.job_id === state.jobId ? state.result : null;
-  return <section className="panel" aria-labelledby="recruiter-classification-heading">
-    <h2 id="recruiter-classification-heading">Employer classification</h2>
+  return <section className="panel" aria-labelledby="recruiter-classification-heading" data-job-id={state.jobId ?? ''}>
+    <h2 id="recruiter-classification-heading">Employer type classification</h2>
     <p className="muted">
       This classification is advisory and may be uncertain. It does not automatically reject staffing firms.
     </p>

@@ -50,7 +50,7 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
             repeated = next(row for row in jobs if row["id"] != target["id"])
             target_company_id = target["company_id"]
             repeated_company_id = "risk-unrelated-synthetic-company"
-            risky_url = "https://quick-payroll-alert.xyz/jobs/synthetic-role-242"
+            risky_url = "http://quick-payroll-alert.xyz/jobs/synthetic-role-242"
             with store.engine.begin() as connection:
                 connection.execute(update(m.companies).where(
                     m.companies.c.id == target_company_id,
@@ -66,10 +66,10 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
                     description=RISK_DESCRIPTION,
                     attributes={
                         **target.get("attributes", {}),
-                        "salary": [{
-                            "min": 1000000, "max": 1500000,
-                            "currency": "USD", "period": "YEAR",
-                        }],
+                        "salary_min": 10000000,
+                        "salary_max": 15000000,
+                        "salary_currency": "USD",
+                        "salary_period": "YEAR",
                     },
                 ))
                 connection.execute(update(m.jobs).where(
@@ -187,10 +187,11 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
                         "region", name=re.compile("Potential Risk", re.I),
                     )
                     expect(potential_risk).to_be_visible()
-                    expect(potential_risk).to_contain_text("Potential Risk")
+                    # Wait for the connected API result before snapshotting the evidence.
+                    expect(potential_risk).to_contain_text("10,000,000")
                     risk_text = potential_risk.inner_text()
                     body = page.locator("body").inner_text()
-                    self.assertIn("$1,000,000", risk_text)
+                    self.assertIn("10,000,000", risk_text)
                     self.assertIn("$75", risk_text)
                     self.assertIn("Telegram", risk_text)
                     self.assertIn("quick-payroll-alert.xyz", risk_text)
@@ -216,8 +217,13 @@ class JobRiskSignalsBrowserTests(unittest.TestCase):
                             and "profile_id=other" in response.url) as other_jobs:
                         page.get_by_label("Active profile", exact=True).select_option("other")
                     self.assertEqual(other_jobs.value.status, 200)
-                    other_rows = other_jobs.value.json()["jobs"]
-                    self.assertNotIn(target["id"], {row["id"] for row in other_rows})
+                    # Discovery rows are shared across selected profiles; the
+                    # explanatory endpoint remains bound to a current profile match.
+                    cross_profile = page.evaluate("""async ({profileId, jobId}) => {
+                      const response = await fetch(`/profiles/${encodeURIComponent(profileId)}/jobs/${encodeURIComponent(jobId)}/risk-signals`);
+                      return response.status;
+                    }""", {"profileId": "other", "jobId": target["id"]})
+                    self.assertEqual(cross_profile, 404)
                     self.assertEqual(potential_risk.count(), 0)
 
                     self.assertEqual(external_requests, [])
