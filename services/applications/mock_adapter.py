@@ -51,22 +51,31 @@ def _playwright_action_timeout_ms(check, maximum_ms=10000):
     return min(maximum_ms, timeout_ms)
 
 
-def _visible_required_controls(page):
-    """Read bounded control identity only; never inspect values or rendered labels."""
+def _visible_form_controls(page):
+    """Read bounded visible control metadata only; never inspect values or labels."""
     try:
         forms = page.locator("form")
         if forms.count() != 1:
             return None
         controls = forms.first.evaluate("""form => Array.from(form.querySelectorAll(
-          'input[required],select[required],textarea[required]'))
+          'input,select,textarea'))
           .filter(control => control.getClientRects().length > 0 &&
             getComputedStyle(control).visibility !== 'hidden' &&
-            getComputedStyle(control).display !== 'none')
+            getComputedStyle(control).display !== 'none' &&
+            !control.disabled)
           .slice(0, 101).map(control => ({
             question_id: control.getAttribute('data-mjobs-question-id'),
             id: control.id || null,
             name: control.name || null,
-            tag: control.tagName.toLowerCase()
+            tag: control.tagName.toLowerCase(),
+            input_type: control.type || null,
+            required: control.required === true ||
+              control.getAttribute('aria-required') === 'true',
+            repeatable: Boolean(control.closest('[data-mjobs-repeatable]')),
+            repeatable_group: control.closest('[data-mjobs-repeatable]') ?
+              (control.closest('[data-mjobs-repeatable]').getAttribute('data-mjobs-repeatable') || 'group') : null,
+            conditional: Boolean(control.closest('[data-mjobs-conditional]') ||
+              control.hasAttribute('data-mjobs-dynamic-field'))
           }))""")
     except Exception:
         return None
@@ -75,9 +84,13 @@ def _visible_required_controls(page):
     for control in controls:
         if (not isinstance(control, dict)
                 or control.get("tag") not in {"input", "select", "textarea"}
+                or type(control.get("required")) is not bool
+                or type(control.get("repeatable")) is not bool
+                or type(control.get("conditional")) is not bool
                 or any(value is not None and (not isinstance(value, str) or len(value) > 100)
                        for value in (control.get("question_id"), control.get("id"),
-                                     control.get("name")))):
+                                     control.get("name"), control.get("input_type"),
+                                     control.get("repeatable_group")))):
             return None
     return controls
 
@@ -86,67 +99,49 @@ def _dynamic_control_identity(control):
     return (control.get("question_id"), control.get("id"), control.get("name"), control.get("tag"))
 
 
-def _approved_answer_text(profile, answer_id):
-    rows = [row for row in profile.get("answers", [])
-            if isinstance(row, dict) and row.get("id", row.get("fact_id")) == answer_id]
-    if len(rows) != 1:
+def _inspect_dynamic_controls(page, initial_controls, preflight):
+    """Surface all post-dependency changes for review without reading control values."""
+    current = _visible_form_controls(page)
+    if current is None:
         return None
-    row = rows[0]
-    confidence = row.get("confidence")
-    if (row.get("verified") is not True or row.get("user_approved") is not True
-            or type(confidence) not in (int, float) or confidence < 80
-            or not isinstance(row.get("source"), str) or not row["source"].strip()
-            or not isinstance(row.get("text"), str) or not row["text"].strip()):
-        return None
-    return row["text"]
-
-
-def _fill_dynamic_required_fields(page, initial_controls, preflight, profile, check):
-    """Resolve newly visible required dependent dropdowns only from exact known mappings."""
-    seen = {_dynamic_control_identity(control) for control in initial_controls}
-    mappings = {row.get("question_id"): row for row in preflight.get("mappings", [])
-                if isinstance(row, dict) and isinstance(row.get("question_id"), str)}
-    for _ in range(MAX_DYNAMIC_REQUIRED_FIELDS + 1):
-        current = _visible_required_controls(page)
-        if current is None:
-            return {"reason": "DYNAMIC_FORM_STATE_UNAVAILABLE",
-                    "question_id": "dynamic-form"}
-        added = [control for control in current if _dynamic_control_identity(control) not in seen]
-        if not added:
-            return None
-        if len(added) > MAX_DYNAMIC_REQUIRED_FIELDS:
-            return {"reason": "DYNAMIC_REQUIRED_FIELD_LIMIT_EXCEEDED",
-                    "question_id": "dynamic-form"}
-        for control in added:
-            seen.add(_dynamic_control_identity(control))
-            question_id = control.get("question_id")
-            if (not isinstance(question_id, str)
-                    or not _DYNAMIC_QUESTION_ID.fullmatch(question_id)
-                    or question_id not in mappings):
-                return {"reason": "UNKNOWN_DYNAMIC_REQUIRED_FIELD",
-                        "question_id": (question_id if isinstance(question_id, str)
-                                         and _DYNAMIC_QUESTION_ID.fullmatch(question_id)
-                                         else "unknown-dynamic-field")}
-            mapping = mappings[question_id]
-            answer_ids = mapping.get("answer_ids", [])
-            mapped_total = sum(len(mapping.get(key, [])) for key in (
-                "fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context"))
-            if (control.get("tag") != "select" or mapped_total != 1
-                    or len(answer_ids) != 1):
-                return {"reason": "UNRESOLVED_DYNAMIC_REQUIRED_FIELD",
-                        "question_id": question_id}
-            answer_text = _approved_answer_text(profile, answer_ids[0])
-            if answer_text is None:
-                return {"reason": "UNRESOLVED_DYNAMIC_REQUIRED_FIELD",
-                        "question_id": question_id}
-            matching = page.locator(f'[data-mjobs-question-id="{question_id}"]')
-            if matching.count() != 1:
-                return {"reason": "AMBIGUOUS_DYNAMIC_REQUIRED_FIELD",
-                        "question_id": question_id}
-            check()
-            matching.select_option(label=answer_text)
-    return {"reason": "DYNAMIC_REQUIRED_FIELD_LIMIT_EXCEEDED",
-            "question_id": "dynamic-form"}
+    previous = {}
+    for control in initial_controls:
+        previous.setdefault(_dynamic_control_identity(control), []).append(control)
+    deltas = []
+    for control in current:
+        identity = _dynamic_control_identity(control)
+        prior = previous.get(identity, [])
+        if prior:
+            old = prior.pop(0)
+            if control["required"] and not old["required"]:
+                changed = dict(control)
+                changed["newly_required"] = True
+                deltas.append(changed)
+            continue
+        changed = dict(control)
+        changed["newly_required"] = control["required"]
+        deltas.append(changed)
+    if len(deltas) > MAX_DYNAMIC_REQUIRED_FIELDS:
+        return {"reason": "DYNAMIC_FIELD_LIMIT_EXCEEDED",
+                "question_id": "dynamic-form", "fields": deltas}
+    # Any newly required question blocks progression, even if it has a known
+    # mapping or an approved cached answer. The newly exposed control still
+    # requires an explicit user review.
+    required = [field for field in deltas if field["required"] or field["newly_required"]]
+    if required:
+        first = required[0]
+        question_id = first.get("question_id")
+        valid_id = (isinstance(question_id, str)
+                    and _DYNAMIC_QUESTION_ID.fullmatch(question_id))
+        known_ids = {row.get("question_id") for row in preflight.get("mappings", [])
+                     if isinstance(row, dict)}
+        return {
+            "reason": "UNKNOWN_DYNAMIC_REQUIRED_FIELD" if not valid_id or question_id not in known_ids else
+                      "DYNAMIC_REQUIRED_FIELDS_REVIEW_REQUIRED",
+            "question_id": question_id if valid_id else "unknown-dynamic-field",
+            "fields": deltas,
+        }
+    return {"fields": deltas}
 
 
 def _receipt(client, application, requisition, *, observed_url=None,
@@ -253,6 +248,7 @@ def _preflight(store, application, route, profile, document_kinds, client):
         store._audit(connection, application["id"], "APPLICATION_FORM_ANALYSIS", form_analysis)
     result = build_preflight_result(profile, route, questionnaire, document_kinds,
                                     application_id=application["id"])
+    _include_question_shape(result, questionnaire)
     if result["result"] == "PASS" and (
             form_analysis["status"] != "PASS"
             or any(field["sensitivity"] != "STANDARD" or field["ambiguous"]
@@ -270,6 +266,7 @@ def _preflight(store, application, route, profile, document_kinds, client):
     if (latest is None or questionnaire_fingerprint(latest) != result["metadata_fingerprint"]):
         stale = build_preflight_result(profile, route, latest, document_kinds,
                                        application_id=application["id"])
+        _include_question_shape(stale, latest)
         stale.update({"reason": "STALE_PREFLIGHT", "result": "UNKNOWN",
                       "document_version": application["document_version"]})
         persist_preflight(store, application["id"], stale)
@@ -279,14 +276,82 @@ def _preflight(store, application, route, profile, document_kinds, client):
     return result
 
 
+def _include_question_shape(result, questionnaire):
+    """Retain optional/conditional/repeatable declarations without answer data."""
+    if not isinstance(questionnaire, dict) or not isinstance(questionnaire.get("questions"), list):
+        return
+    mappings = {row.get("question_id"): row for row in result.get("mappings", [])
+                if isinstance(row, dict) and isinstance(row.get("question_id"), str)}
+    for question in questionnaire["questions"]:
+        if not isinstance(question, dict):
+            continue
+        question_id = question.get("id")
+        if not isinstance(question_id, str) or not _DYNAMIC_QUESTION_ID.fullmatch(question_id):
+            continue
+        row = mappings.get(question_id)
+        if row is None:
+            row = {"question_id": question_id, "question": question.get("label", ""),
+                   "fact_ids": [], "answer_ids": [], "profile_paths": [],
+                   "document_kinds": [], "application_context": []}
+            result.setdefault("mappings", []).append(row)
+            mappings[question_id] = row
+        row["required"] = question.get("required") is True
+        row["optional"] = question.get("required") is False
+        row["conditional"] = any(key in question for key in (
+            "condition", "required_when", "options_by"))
+        row["repeatable"] = question.get("repeatable") is True
+        group = question.get("repeatable_group")
+        if row["repeatable"] and isinstance(group, str) and _DYNAMIC_QUESTION_ID.fullmatch(group):
+            row["repeatable_group"] = group
+        row["supported"] = bool(sum(len(row.get(key, [])) for key in (
+            "fact_ids", "answer_ids", "profile_paths", "document_kinds", "application_context")))
+
+
 def _record_dynamic_review(store, application_id, preflight, problem):
     report = dict(preflight)
+    mappings = list(report.get("mappings", []))
+    known = {row.get("question_id") for row in mappings if isinstance(row, dict)}
+    for field in problem.get("fields", []):
+        question_id = field.get("question_id")
+        valid_id = (isinstance(question_id, str)
+                    and _DYNAMIC_QUESTION_ID.fullmatch(question_id))
+        question_id = question_id if valid_id else "unknown-dynamic-field"
+        if question_id in known:
+            for row in mappings:
+                if isinstance(row, dict) and row.get("question_id") == question_id:
+                    row["visible"] = True
+                    row["required"] = field.get("required") is True
+                    row["optional"] = field.get("required") is False
+                    row["conditional"] = field.get("conditional") is True or field.get("newly_required") is True
+                    row["repeatable"] = field.get("repeatable") is True
+            continue
+        mappings.append({
+            "question_id": question_id,
+            "question": "A newly revealed field needs review.",
+            "fact_ids": [], "answer_ids": [], "profile_paths": [],
+            "document_kinds": [], "application_context": [],
+            "required": field.get("required") is True,
+            "optional": field.get("required") is False,
+            "conditional": field.get("conditional") is True or field.get("newly_required") is True,
+            "repeatable": field.get("repeatable") is True,
+            "supported": False,
+            "visible": True,
+        })
+        known.add(question_id)
+    known_question = next((row.get("question") for row in mappings
+                           if isinstance(row, dict)
+                           and row.get("question_id") == problem["question_id"]
+                           and isinstance(row.get("question"), str)
+                           and row["question"].strip()), None)
     report.update({
         "result": "UNKNOWN",
         "reason": problem["reason"],
+        "mappings": mappings,
         "missing": [{
             "question_id": problem["question_id"],
-            "question": "A newly revealed required field needs review.",
+            "question": known_question or "A newly revealed required field needs review.",
+            "required": True,
+            "optional": False,
         }],
     })
     persist_preflight(store, application_id, report)
@@ -510,18 +575,49 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     store.transition(application_id, ["FILLING"], "FILLING", "FILL_CONTACT")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     start_step("FILL_LOCATION")
-                    initial_controls = _visible_required_controls(page)
+                    initial_controls = _visible_form_controls(page)
                     if initial_controls is None:
                         return _record_dynamic_review(store, application_id, preflight, {
                             "reason": "DYNAMIC_FORM_STATE_UNAVAILABLE",
                             "question_id": "dynamic-form",
                         })
                     page.get_by_role("combobox", name="Country", exact=True).select_option(label=answer["country"])
-                    dynamic_problem = _fill_dynamic_required_fields(
-                        page, initial_controls, preflight, profile, check)
+                    dynamic_result = _inspect_dynamic_controls(page, initial_controls, preflight)
+                    if dynamic_result is None:
+                        return _record_dynamic_review(store, application_id, preflight, {
+                            "reason": "DYNAMIC_FORM_STATE_UNAVAILABLE",
+                            "question_id": "dynamic-form",
+                        })
+                    dynamic_problem = (dynamic_result if "reason" in dynamic_result else None)
                     if dynamic_problem is not None:
                         return _record_dynamic_review(store, application_id, preflight,
                                                       dynamic_problem)
+                    if dynamic_result.get("fields"):
+                        updated = dict(preflight)
+                        updated["mappings"] = list(preflight.get("mappings", []))
+                        for field in dynamic_result["fields"]:
+                            question_id = field.get("question_id")
+                            if not isinstance(question_id, str) or not _DYNAMIC_QUESTION_ID.fullmatch(question_id):
+                                question_id = "unknown-dynamic-field"
+                            row = next((item for item in updated["mappings"]
+                                        if isinstance(item, dict)
+                                        and item.get("question_id") == question_id), None)
+                            if row is None:
+                                row = {
+                                    "question_id": question_id,
+                                    "question": "A newly revealed optional field needs review.",
+                                    "fact_ids": [], "answer_ids": [], "profile_paths": [],
+                                    "document_kinds": [], "application_context": [],
+                                    "supported": False,
+                                }
+                                updated["mappings"].append(row)
+                            row.update({
+                                "required": False, "optional": True,
+                                "conditional": field.get("conditional") is True,
+                                "repeatable": field.get("repeatable") is True,
+                                "visible": True,
+                            })
+                        persist_preflight(store, application_id, updated)
                     finish_step("COMPLETED")
                     start_step("ANSWER_STANDARD")
                     if answer["remote"] != "yes":
