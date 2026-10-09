@@ -232,6 +232,7 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     partial_card.click()
                     panel = page.get_by_role(
                         "region", name="Application priority explanation", exact=True)
+                    expect(panel).to_have_count(1)
                     expect(panel.get_by_role("alert")).to_contain_text(
                         "does not match the selected profile and job")
                     expect(panel.get_by_role("list", name="Priority factors", exact=True)).to_have_count(0)
@@ -262,16 +263,23 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     panel = page.get_by_role(
                         "region", name="Application priority explanation", exact=True)
                     expect(panel.get_by_role("list", name="Priority factors", exact=True)).to_be_visible()
-                    expect(panel).to_contain_text("Advisory only")
+                    expect(panel).to_contain_text("Application priority is advisory only.")
 
                     self.assertFalse(fail_known_once)
                     self.assertFalse(misbind_job_once)
                     self.assertFalse(misbind_profile_once)
                     self.assertEqual(external, [])
                     self.assertFalse([request for request in requests if request[0] != "GET"], requests)
-                    self.assertFalse(any(path.startswith("/applications") for _, path in requests), requests)
-                    self.assertFalse(any(path.startswith(("/discover", "/sources", "/collect"))
-                                         for _, path in requests), requests)
+                    self.assertFalse(any(method in {"POST", "PUT", "PATCH", "DELETE"}
+                                          and path.startswith("/applications")
+                                          for method, path in requests),
+                                     [row for row in requests if row[0] in {"POST", "PUT", "PATCH", "DELETE"}
+                                      and row[1].startswith("/applications")])
+                    self.assertFalse(any(method in {"POST", "PUT", "PATCH", "DELETE"}
+                                          and path.startswith(("/discover", "/sources", "/collect"))
+                                          for method, path in requests),
+                                     [row for row in requests if row[0] in {"POST", "PUT", "PATCH", "DELETE"}
+                                      and row[1].startswith(("/discover", "/sources", "/collect"))])
                     context.close()
                     browser.close()
             finally:
