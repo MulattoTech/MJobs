@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T15:32:11Z",
+  "generated_at": "2026-10-09T16:03:25Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main b2e514a8dab39996c7cfb448e1c02dbe93995947 (tree bcb9411533376a51ba9a301b6833902224769de6); issue #268 / MJ-REQ-267 route-resolution slice is integrated locally with evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json. A preexisting untracked user file remains preserved.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #268 remains OPEN/PARTIAL; local-only changes are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T15:32:11Z.",
-    "current_verified_at": "2026-10-09T15:32:11Z"
+    "current_verified_local_state": "Local main 20661b676d20df064f1bec61d962d31248f579d3 (tree 44d608d064330a6915e2b00d60643278e0dd1c7a); issue #251 / MJ-REQ-250 First-Run Wizard is locally integrated with evidence docs/evidence/2026-10-09-first-run-wizard.json. The preexisting untracked compose-target evidence file remains preserved.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #251 remains OPEN/PARTIAL; local-only changes are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:03:25Z.",
+    "current_verified_at": "2026-10-09T16:03:25Z"
   },
-  "current_milestone": "MJ-REQ-267-BOUNDED-REDIRECT-RESOLUTION-20261009",
-  "current_objective": "Offer a safe, bounded, user-triggered check for an aggregator redirect to a verified employer or ATS destination without changing the selected route or submitting.",
+  "current_milestone": "MJ-REQ-250-FIRST-RUN-WIZARD-20261009",
+  "current_objective": "Connect the ten-step first-run guide to saved profile, resume, review, search, preferences, source selection, and durable discovery history while preserving manual-review and no-submit gates.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -171,9 +171,7 @@
     "Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted)."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-267"
-  ],
+  "active_requirements": [],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -633,13 +631,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
-    "tree": "bcb9411533376a51ba9a301b6833902224769de6",
-    "result": "PARTIAL for #268 / MJ-REQ-267: a user-triggered bounded redirect check displays a redacted verified destination without changing route choice or submitting.",
+    "commit": "20661b676d20df064f1bec61d962d31248f579d3",
+    "tree": "44d608d064330a6915e2b00d60643278e0dd1c7a",
+    "result": "PARTIAL for #251 / MJ-REQ-250: connected first-run navigation and selected saved-search collection persist through durable operation history; live provider fetching and cross-device acknowledgment persistence remain unverified.",
     "evidence": [
-      "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
+      "docs/evidence/2026-10-09-first-run-wizard.json"
     ],
-    "verified_at_utc": "2026-10-09T15:32:11Z"
+    "verified_at_utc": "2026-10-09T16:03:25Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -706,7 +704,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Select and implement the highest-value dependency-ready P1 jobseeker workflow next; initial live backlog review identified #251 / MJ-REQ-250 First-Run Wizard as a candidate, pending path/claim reconciliation. Preserve all other worktrees, claims and untracked files.",
+  "recommended_resume_step": "After this accepted local checkpoint, select the next dependency-ready user-facing workflow from the live backlog; preserve all existing branches/worktrees and untracked files. Keep external application submission OFF and do not publish to hosted automation.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",

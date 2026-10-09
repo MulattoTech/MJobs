@@ -2108,9 +2108,11 @@
     },
     {
       "requirement_id": "MJ-REQ-250",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-first-run-wizard.json"
+      ],
+      "note": "Connected ten-step first-run guide uses saved profile, resume, fact-review, search, preference, AI, source, and manual-review controls. A selected enabled saved search is passed through scoped collection and durable history. Browser completion used a synthetic zero-result collector; live provider fetching and cross-device persistence remain unverified."
     },
     {
       "requirement_id": "MJ-REQ-251",

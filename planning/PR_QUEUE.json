@@ -2767,10 +2767,10 @@
       "depends_on": [
         "MJ-PR-063"
       ],
-      "status": "QUEUED",
+      "status": "INTEGRATED_PARTIAL",
       "branch": "codex/mj-pr-068-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-250 First-Run Wizard locally integrated at main 20661b676d20df064f1bec61d962d31248f579d3 (code source 39405f08dd8071ef838f6aef4f7a6a5fce7f4f51), evidence docs/evidence/2026-10-09-first-run-wizard.json. Connected browser verified the selected profile/source/search through durable operation history with a synthetic zero-result collector; live provider fetch and cross-device acknowledgment persistence remain unverified. MJ-REQ-248/249/251 remain separately incomplete or unverified; this grouped package remains partial. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "id": "MJ-PR-069",

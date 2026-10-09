@@ -1,14 +1,18 @@
 {
   "schema_version": 1,
-  "requirement_ids": ["MJ-REQ-250"],
-  "github_issues": [251],
+  "requirement_ids": [
+    "MJ-REQ-250"
+  ],
+  "github_issues": [
+    251
+  ],
   "result": "PARTIAL",
   "scope": "Add a ten-step first-run guide connected to existing profile, resume, fact-review, saved-search, location, application preference, AI, source, manual-review, and discovery controls. Pass the selected saved-search ID through the source collection API with profile, enabled-state, and source-scope checks before durable work is queued.",
   "source": {
     "branch": "codex/solo-250-first-run-wizard-20261009",
     "commit": "39405f08dd8071ef838f6aef4f7a6a5fce7f4f51",
     "tree": "ebb1c35993dac2c678b048e5dc9527b435fe9846",
-    "integrated_main": "39405f08dd8071ef838f6aef4f7a6a5fce7f4f51"
+    "integrated_main": "20661b676d20df064f1bec61d962d31248f579d3"
   },
   "verified_at_utc": "2026-10-09T15:59:36Z",
   "environment": {
