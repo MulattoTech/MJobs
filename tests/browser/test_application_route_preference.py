@@ -78,13 +78,23 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                 with sync_playwright() as playwright:
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context()
-                    external, errors, application_requests = [], [], []
+                    external, errors, application_requests, route_checks = [], [], [], []
 
                     def local_only(route):
                         parsed = urlsplit(route.request.url)
                         if parsed.netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
                             route.abort()
+                            return
+                        if (parsed.path == f"/jobs/{job_id}/routes/browser-route-board/resolve"
+                                and route.request.method == "POST"):
+                            route_checks.append(route.request.post_data)
+                            route.fulfill(status=200, json={
+                                "source_route_id":"browser-route-board",
+                                "status":"RESOLVED_ATS_ROUTE",
+                                "candidate_url":"https://boards.greenhouse.io/routechoice/jobs/1",
+                                "provider":"greenhouse", "tenant":"routechoice",
+                            })
                             return
                         if parsed.path == "/applications" and route.request.method == "POST":
                             application_requests.append(route.request.post_data_json)
@@ -127,11 +137,19 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     expect(prepare).to_be_disabled()
                     route_picker.select_option("browser-route-board")
                     expect(prepare).to_be_enabled()
+                    check_route = page.get_by_role("button", name="Check employer route", exact=True)
+                    with page.expect_response(lambda response: response.request.method == "POST"
+                                              and response.url.endswith("/jobs/" + job_id + "/routes/browser-route-board/resolve")):
+                        check_route.click()
+                    expect(page.get_by_role("link", name="Review detected ATS destination ↗")).to_have_attribute(
+                        "href", "https://boards.greenhouse.io/routechoice/jobs/1")
+                    expect(prepare).to_be_enabled()
                     prepare.click()
                     expect(page.get_by_text("Completed. Your workspace has been updated.", exact=False)).to_be_visible()
                     self.assertEqual(len(application_requests), 1)
                     self.assertEqual(application_requests[0]["route_mode"], "THIS_ROUTE")
                     self.assertEqual(application_requests[0]["route_id"], "browser-route-board")
+                    self.assertEqual(route_checks, [None])
                     self.assertEqual(errors, [])
                     self.assertEqual(external, [])
                     context.close()

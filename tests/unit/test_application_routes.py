@@ -1,7 +1,9 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
+import httpx
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
@@ -16,6 +18,7 @@ from services.dedupe.routes import (
     route_underlying_key,
     source_provenance_inventory,
 )
+from services.dedupe.route_redirects import RouteRedirectProbeClient
 from services.documents.generate import PreparationError, prepare
 from tests.integration.test_spine import PROFILE
 
@@ -201,6 +204,40 @@ class ApplicationRouteTests(unittest.TestCase):
         self.assertEqual(aggregator["direct_employer_resolution"], {
             "status": "ATS_CANDIDATE_FOUND", "source_route_id": "agg-a", "candidate_route_ids": ["ats-a"],
         })
+
+    def test_explicit_route_check_uses_company_evidence_and_does_not_change_saved_routes(self):
+        def request_once(client, url, deadline):
+            request = httpx.Request("GET", url)
+            if url == "https://redirect.example/apply/a":
+                return httpx.Response(302, headers={
+                    "location":"https://boards.greenhouse.io/example/jobs/1?tracking=private",
+                }, request=request)
+            return httpx.Response(200, request=request)
+
+        with patch.object(RouteRedirectProbeClient, "_load_robots"), \
+             patch.object(RouteRedirectProbeClient, "_request_once", request_once), \
+             patch("services.company_discovery.public_client.MIN_REQUEST_INTERVAL", 0), \
+             TestClient(create_app(
+                self.store, "http://127.0.0.1:8090", self.root,
+                "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+             )) as client:
+            response = client.post("/jobs/job/routes/agg-a/resolve")
+            saved_route_count = self.store.count("application_routes")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "RESOLVED_ATS_ROUTE")
+        self.assertEqual(response.json()["source_route_id"], "agg-a")
+        self.assertEqual(response.json()["candidate_url"], "https://boards.greenhouse.io/example/jobs/1")
+        self.assertEqual(response.json()["tenant"], "example")
+        self.assertEqual(saved_route_count, 3)
+
+    def test_explicit_route_check_rejects_a_verified_route_without_network_access(self):
+        with patch("apps.api.main.resolve_aggregator_redirect") as resolve, TestClient(create_app(
+            self.store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+        )) as client:
+            response = client.post("/jobs/job/routes/ats-a/resolve")
+        self.assertEqual(response.status_code, 409)
+        resolve.assert_not_called()
 
     def test_api_requires_explicit_route_when_profile_asks_for_choice(self):
         job_id = "a" * 64

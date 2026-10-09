@@ -44,7 +44,8 @@ from services.documents.answers import (
     save_answer_confidence_policy,
 )
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
-from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, source_provenance_inventory
+from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, route_authority, source_provenance_inventory
+from services.dedupe.route_redirects import resolve_aggregator_redirect
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
 from services.ai.providers import AIProviderDisabled, AIProviderError, create_provider
@@ -1644,6 +1645,34 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         with store.engine.connect() as connection:
             postings = [dict(row) for row in connection.execute(select(m.postings).where(m.postings.c.job_id == job_id).order_by(m.postings.c.id)).mappings()]
         return {**plan, "source_records": source_provenance_inventory(postings)}
+
+    @app.post("/jobs/{job_id}/routes/{route_id}/resolve")
+    def resolve_job_application_route(job_id: str, route_id: str):
+        """Explicitly check one saved aggregator URL for a verified employer/ATS redirect."""
+        with store.engine.connect() as connection:
+            source = connection.execute(
+                select(m.routes).where(m.routes.c.job_id == job_id, m.routes.c.id == route_id)
+            ).mappings().first()
+            if source is None:
+                raise HTTPException(404, "Saved application route not found")
+            source = dict(source)
+            if route_authority(source) != "AGGREGATOR":
+                raise HTTPException(409, "Only an aggregator route can be checked")
+            domains = connection.execute(
+                select(m.company_domains.c.domain).where(
+                    m.company_domains.c.company_id == source["company_id"],
+                    m.company_domains.c.verified.is_(True),
+                ).order_by(m.company_domains.c.domain)
+            ).scalars().all()
+            tenants = [dict(row) for row in connection.execute(
+                select(m.company_ats_tenants).where(
+                    m.company_ats_tenants.c.company_id == source["company_id"]
+                ).order_by(m.company_ats_tenants.c.id)
+            ).mappings()]
+        result = resolve_aggregator_redirect(
+            source["url"], verified_domains=domains, ats_tenants=tenants,
+        )
+        return {"source_route_id": route_id, **result}
 
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):

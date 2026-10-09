@@ -60,6 +60,7 @@ import { CompanyPreferences } from './company-preferences';
 import { createCompanyPreferenceClient } from './company-preferences-client';
 import { CompanyDiscoveryPolicy, type CompanyDiscoveryPolicyValue } from './company-discovery-policy';
 import { ApplicationRoutePreference, type ApplicationRoutePreferenceValue } from './application-route-preference';
+import { ApplicationRouteDiscovery, type ApplicationRouteDiscoveryResult } from './application-route-discovery';
 import { ApplicationMultipageWorkspace, type ApplicationMultipagePage } from './application-multipage-workspace';
 import { DynamicApplicationFormConnected } from './dynamic-application-form-connected';
 import { MatchingExplanationWorkflow } from './matching-explanation-workflow';
@@ -1291,6 +1292,10 @@ function App() {
             </select>
             <span className="muted">MJobs preserves every known route; select the destination you want. This choice prepares documents and does not submit an application.</span>
           </label>}
+          {(detail.routes||[]).filter(route=>route.authority==='AGGREGATOR').map(route=><ApplicationRouteDiscovery
+            key={`${detail.id}:${route.id}`} routeId={route.id} routeLabel={`${route.provider} · ${route.tenant||'tenant unknown'}`}
+            disabled={!!busy} onCheck={routeId=>api<ApplicationRouteDiscoveryResult>(
+              `/jobs/${encodeURIComponent(detail.id)}/routes/${encodeURIComponent(routeId)}/resolve`, {method:'POST'})}/>)}
           <button className="primary" disabled={!!busy||!profileId||(applicationRoutePreference==='USER_CHOICE'&&!selectedApplicationRouteId)||(tailorResume&&(!resumeAlignmentPreview||resumeAlignmentPreview.profileId!==profileId||resumeAlignmentPreview.jobId!==detail.id||resumeAlignmentPreview.jobFingerprint!==detail.alignment_fingerprint||(resumeSelection&&(!resumeSelection.version||!resumeSelection.ids.length||resumeAlignmentPreview.profileVersion!==resumeSelection.version))))||!!detail.attributes.source_resolution?.route_review_required||(detail.attributes.source_type==='MANUAL_USER_ENTRY'&&!detail.postings?.some(p=>p.source==='manual'&&p.raw?.submitted_fields?.application_url))} onClick={()=>void action('Preparing factual documents',()=>prepareJobRoute(detail,applicationRoutePreference==='USER_CHOICE'?'THIS_ROUTE':'DEFAULT',selectedApplicationRouteId||undefined))}>Prepare documents</button>
           {detail.attributes.source_type==='MANUAL_USER_ENTRY'&&!detail.postings?.some(p=>p.source==='manual'&&p.raw?.submitted_fields?.application_url)&&<p className="muted">Add an application URL before preparing documents. A job reference alone is not an application route.</p>}
           {!detail.attributes.fictional&&detail.application_url&&(!detail.attributes.source_type||detail.postings?.some(p=>p.source!=='manual'||Boolean(p.raw?.submitted_fields?.application_url)))&&<a className="button-link" href={detail.application_url} target="_blank" rel="noreferrer">Open employer application ↗</a>}

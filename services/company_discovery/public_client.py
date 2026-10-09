@@ -377,19 +377,24 @@ class PublicCompanyClient:
         if rate and rate.requests:
             self._robots_delay = max(self._robots_delay, float(rate.seconds) / max(1, rate.requests))
 
+    def _robots_for(self, url, deadline):
+        """Return robots rules for an allowed URL origin (the base client is same-origin)."""
+        if not self.allowed(url):
+            raise PublicFetchError("URL_NOT_ALLOWED")
+        self._load_robots(deadline)
+        return self._robots
+
     def get(self, url):
         self._check()
         if not self.allowed(url):
             raise PublicFetchError("URL_NOT_ALLOWED")
         deadline = min(self._deadline, time.monotonic() + DEADLINE)
-        self._load_robots(deadline)
-        if self._robots and not self._robots.can_fetch(USER_AGENT, url):
-            raise PublicFetchError("ROBOTS_DENIED")
         current = url
         history = []
         for redirects in range(MAX_REDIRECTS + 1):
             self._check()
-            if self._robots and not self._robots.can_fetch(USER_AGENT, current):
+            robots = self._robots_for(current, deadline)
+            if robots and not robots.can_fetch(USER_AGENT, current):
                 raise PublicFetchError("ROBOTS_DENIED")
             response = self._request_once(current, deadline)
             if 300 <= response.status_code < 400 and response.status_code not in {301, 302, 303, 307, 308}:
