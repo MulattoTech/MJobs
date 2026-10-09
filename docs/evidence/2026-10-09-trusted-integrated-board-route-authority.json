@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-266"],
+  "github_issues": [267],
+  "result": "PARTIAL",
+  "scope": "Elevate an integrated job-board route only when its supported board provider, job source ID, provider, tenant, and persisted APPLICATION_REDIRECT capability match. Rank that evidence above aggregators and below verified employer or ATS routes, and explain it in the route picker.",
+  "source": {
+    "branch": "codex/solo-267-integrated-board-route-trust-20261009",
+    "commit": "87199f5c75d62d6dd93abf9d495d3820b35f54c0",
+    "tree": "3c99cf1f9f31d83040643c31991560138a9e8532",
+    "base": "436d3059388af418b1351505bc6115c3d171a179",
+    "tested_source_sha256": {
+      "services/dedupe/routes.py": "D97D558B705326CCCB55591AACF5D85128FF8363BA1C41F7EB0684A23CC8CF5A",
+      "apps/web/src/main.tsx": "7AFE901DF412BAFC218DFD041D89069AF142581C5583C4A0A6B9924F06E28FEF",
+      "tests/integration/test_application_route_trust.py": "92AA2D901B875F3028106CFB20662342E68BFAA07388F7F78677C10C1021D78E",
+      "tests/browser/test_application_route_preference.py": "ABFA4AF0DD2B73CBDC66E71D2BF5DA484441D332F078490593876F0CE4315D77"
+    }
+  },
+  "verified_at_utc": "2026-10-09T21:00:24Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and connected Chromium",
+    "delivery": "local-only; no push; hosted automation and review disabled"
+  },
+  "checks": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_application_route_authority.py tests/unit/test_application_routes.py tests/integration/test_application_route_trust.py tests/browser/test_application_route_preference.py -q",
+      "result": "PASS",
+      "passed": 28,
+      "evidence": "Tests verify exact configured-source capability/provider/tenant qualification, fail-closed mismatches, aggregator < trusted board < verified ATS ranking, explicit route selection, profile preference readback, and the connected browser route workflow. The browser test observed no external requests or submissions."
+    },
+    {
+      "command": "npm test -- --run src/application-route-preference.test.tsx",
+      "result": "PASS",
+      "passed": 2
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed; existing advisory reports a generated JavaScript chunk above 500 kB."
+    },
+    {
+      "command": "python -m py_compile services/dedupe/routes.py tests/integration/test_application_route_trust.py tests/browser/test_application_route_preference.py; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "PostgreSQL-specific integration",
+    "Full repository test suite",
+    "Live employer or ATS requests",
+    "Hosted Actions, hosted reviews, or external certification (NOT_RUN_BY_USER_POLICY)",
+    "External application submission (OFF)"
+  ],
+  "limitations": [
+    "The canonical job projection currently carries one exact source_id. If a job is merged from multiple integrated sources, only the source represented by the current projection can elevate a matching route; other routes fail closed until per-route source evidence is persisted.",
+    "MJ-REQ-266 remains PARTIAL pending a durable per-route source relationship and broader acceptance reconciliation.",
+    "No schema, migration, collector, or source-policy files were changed because those paths have active ownership claims."
+  ],
+  "safety": [
+    "Route authority requires a persisted exact source configuration and APPLICATION_REDIRECT capability; provider labels or source-quality scores alone never establish trust.",
+    "Verified employer and ATS evidence remain above trusted boards. Explicit route choice remains available.",
+    "No network requests, real application submissions, or private user documents were used."
+  ]
+}
