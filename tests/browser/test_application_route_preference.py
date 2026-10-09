@@ -121,6 +121,8 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                         "greenhouse · routechoice · verified identity evidence")
                     expect(route_picker.locator("option").nth(2)).to_contain_text(
                         "job-board · integrated-board · route not verified")
+                    expect(route_picker.locator("option").nth(2)).to_contain_text(
+                        "same employer requisition has verified ATS route: greenhouse · routechoice")
                     prepare = page.get_by_role("button", name="Prepare documents", exact=True)
                     expect(prepare).to_be_disabled()
                     route_picker.select_option("browser-route-board")

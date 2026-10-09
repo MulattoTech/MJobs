@@ -172,6 +172,32 @@ def qualify_route_authority(connection, routes):
     return result
 
 
+def direct_employer_route_discovery(routes, source_route_id):
+    """Resolve a listing to an already-known, verified ATS sibling by exact job identity.
+
+    This is a local evidence lookup, not an HTTP redirect fetch. It never rewrites the
+    requested route; callers must preserve a user's explicit route choice.
+    """
+    if not isinstance(routes, list):
+        raise ValueError("APPLICATION_ROUTES_INVALID")
+    source = next((route for route in routes if str(route.get("id")) == str(source_route_id)), None)
+    if source is None:
+        raise ValueError("APPLICATION_ROUTE_SELECTION_INVALID")
+    if route_authority(source) != "AGGREGATOR":
+        return {"status": "NOT_AGGREGATOR", "source_route_id": str(source_route_id),
+                "candidate_route_ids": []}
+    source_key = route_underlying_key(source)
+    candidates = sorted(
+        str(route["id"]) for route in routes
+        if str(route.get("id")) != str(source_route_id)
+        and route_authority(route) == "VERIFIED_ATS"
+        and route_underlying_key(route) == source_key
+    )
+    status = "ATS_CANDIDATE_FOUND" if len(candidates) == 1 else "AMBIGUOUS" if candidates else "UNRESOLVED"
+    return {"status": status, "source_route_id": str(source_route_id),
+            "candidate_route_ids": candidates}
+
+
 def load_job_routes(store, job_id):
     with store.engine.connect() as connection:
         routes = [
@@ -180,7 +206,12 @@ def load_job_routes(store, job_id):
                 select(m.routes).where(m.routes.c.job_id == job_id).order_by(m.routes.c.id)
             ).mappings()
         ]
-        return qualify_route_authority(connection, routes)
+        qualified = qualify_route_authority(connection, routes)
+        for route in qualified:
+            if route["authority"] == "AGGREGATOR":
+                route["direct_employer_resolution"] = direct_employer_route_discovery(
+                    qualified, route["id"])
+        return qualified
 
 
 def persist_route_choices(connection, application_id, route_plan):

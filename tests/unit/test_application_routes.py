@@ -8,6 +8,7 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.dedupe.routes import (
+    direct_employer_route_discovery,
     distinct_route_options,
     load_job_routes,
     list_route_choices,
@@ -113,6 +114,45 @@ class ApplicationRouteTests(unittest.TestCase):
                       if option["underlying_key"].endswith(":req-a"))
         self.assertEqual(option["preferred_route"]["id"], "agg-a")
 
+    def test_aggregator_route_discovery_returns_verified_ats_sibling_without_replacing_user_choice(self):
+        routes = self.routes()
+        resolution = direct_employer_route_discovery(routes, "agg-a")
+        self.assertEqual(resolution, {
+            "status": "ATS_CANDIDATE_FOUND",
+            "source_route_id": "agg-a",
+            "candidate_route_ids": ["ats-a"],
+        })
+        selected = plan_application_routes(routes, "THIS_ROUTE", "agg-a")
+        self.assertEqual(selected["selected"][0]["preferred_route"]["id"], "agg-a")
+
+    def test_aggregator_route_discovery_stays_unresolved_without_verified_ats_sibling(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(m.company_ats_tenants.delete().where(
+                m.company_ats_tenants.c.provider == "greenhouse"))
+        self.assertEqual(direct_employer_route_discovery(self.routes(), "agg-a"), {
+            "status": "UNRESOLVED",
+            "source_route_id": "agg-a",
+            "candidate_route_ids": [],
+        })
+
+    def test_aggregator_route_discovery_surfaces_multiple_verified_ats_candidates_as_ambiguous(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.routes, {
+                "id":"ats-alt", "job_id":"job", "company_id":"company",
+                "provider":"lever", "tenant":"employer", "requisition":"req-a",
+                "url":"https://jobs.lever.co/employer/req-a",
+            })
+            upsert(connection, m.company_ats_tenants, {
+                "id":"tenant-alt", "company_id":"company", "provider":"lever",
+                "tenant_identifier":"employer", "organization_identifier":"",
+                "board_identifier":"", "confidence":0.91, "evidence":["PUBLIC_API_BOARD"],
+                "first_seen_at":"2026-10-09T00:00:00Z", "last_seen_at":"2026-10-09T00:00:00Z",
+            })
+        self.assertEqual(direct_employer_route_discovery(self.routes(), "agg-a"), {
+            "status": "AMBIGUOUS", "source_route_id": "agg-a",
+            "candidate_route_ids": ["ats-a", "ats-alt"],
+        })
+
     def test_prepare_all_distinct_persists_one_choice_per_underlying_route(self):
         application_id = prepare(
             self.store, "job", "fixture", self.root,
@@ -156,6 +196,11 @@ class ApplicationRouteTests(unittest.TestCase):
         self.assertEqual(body["distinct_count"], 2)
         self.assertEqual(len(body["source_records"]), 3)
         self.assertEqual({row["posting_id"] for row in body["source_records"]}, {"p1", "p2", "p3"})
+        aggregator = next(route for option in body["all_options"] for route in option["aliases"]
+                          if route["id"] == "agg-a")
+        self.assertEqual(aggregator["direct_employer_resolution"], {
+            "status": "ATS_CANDIDATE_FOUND", "source_route_id": "agg-a", "candidate_route_ids": ["ats-a"],
+        })
 
     def test_api_requires_explicit_route_when_profile_asks_for_choice(self):
         job_id = "a" * 64
@@ -210,6 +255,7 @@ class ApplicationRouteTests(unittest.TestCase):
         routes = {route["id"]:route for route in response.json()["routes"]}
         self.assertEqual(routes["ats-a"]["authority"], "VERIFIED_ATS")
         self.assertEqual(routes["agg-a"]["authority"], "AGGREGATOR")
+        self.assertEqual(routes["agg-a"]["direct_employer_resolution"]["candidate_route_ids"], ["ats-a"])
 
     def test_source_inventory_never_collapses_records(self):
         postings = [
