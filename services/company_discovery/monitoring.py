@@ -21,6 +21,7 @@ from workers.operations import OperationCancelled, timeout
 
 FIELDS = ('company_id', 'provider', 'tenant', 'endpoint', 'career_url', 'collection_strategy', 'collector_source_id')
 ACTIVE = {'QUEUED', 'RUNNING'}
+MAX_RETRYABLE_SOURCE_FAILURES = 3
 
 
 def _snapshot(source):
@@ -215,6 +216,9 @@ def schedule_company_sources(store, at=None):
                 continue
             if monitor['status'] in {'BLOCKED', 'REDISCOVERY_REQUIRED'}:
                 continue
+            if (monitor['status'] == 'FAILED'
+                    and monitor['failure_count'] >= MAX_RETRYABLE_SOURCE_FAILURES):
+                continue
             if _active(c, monitor['operation_id']) or _active(c, monitor['rediscovery_operation_id']):
                 continue
             if monitor['status'] == 'SCHEDULED' and monitor['operation_id']:
@@ -376,7 +380,15 @@ def refresh_company_source(store, operation, check=None):
                         and live['attempt_count'] == operation['attempt_count'] and live['state'] == 'RUNNING'):
                     cancelled = isinstance(failure, OperationCancelled) or live['cancel_requested']
                     failures = current['failure_count'] + (0 if cancelled else 1)
-                    state = 'IDLE' if cancelled else 'REDISCOVERY_REQUIRED' if structural else 'FAILED' if retryable else 'BLOCKED'
+                    if cancelled:
+                        state = 'IDLE'
+                    elif structural:
+                        state = 'REDISCOVERY_REQUIRED'
+                    elif retryable:
+                        state = ('IDLE' if failures < MAX_RETRYABLE_SOURCE_FAILURES
+                                 else 'FAILED')
+                    else:
+                        state = 'BLOCKED'
                     rediscovery = None
                     if structural:
                         try:

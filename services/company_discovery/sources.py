@@ -461,7 +461,7 @@ def list_company_source_view(store, profile_id=None):
             "next_check": monitors.get(row['id'], {}).get('next_due'),
             "source_version": source_version(row), "monitoring_supported": supported_source(row),
             "monitoring": {key: value for key, value in monitors.get(row['id'], {}).items()
-                if key in {'revision','enabled','poll_interval','status','last_attempt','next_due','last_error',
+                if key in {'revision','enabled','poll_interval','status','failure_count','last_attempt','next_due','last_error',
                            'operation_id','rediscovery_operation_id','authorization'}} or None,
             "quality": qualities[row['id']],
             "provenance": {

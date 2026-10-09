@@ -5,6 +5,7 @@ export type Monitoring = {
   enabled: boolean;
   poll_interval: number;
   status: string;
+  failure_count: number;
   last_attempt: string | null;
   next_due: string | null;
   last_error: string | null;
@@ -32,7 +33,13 @@ const statusLabels: Record<string, string> = {
 const reviewStatuses = new Set(['BLOCKED', 'REDISCOVERY_REQUIRED']);
 const updateStatuses = new Set(['IDLE', 'HEALTHY', 'FAILED']);
 
-function statusLabel(value: string): string { return statusLabels[value] || 'Status unavailable'; }
+function statusLabel(monitoring: Monitoring): string {
+  if (['IDLE', 'SCHEDULED', 'QUEUED', 'RUNNING'].includes(monitoring.status) &&
+      monitoring.failure_count > 0 && monitoring.failure_count < 3) {
+    return 'Degraded';
+  }
+  return statusLabels[monitoring.status] || 'Status unavailable';
+}
 function displayTime(value: string | null): string {
   if (!value) return 'Not recorded';
   const parsed = new Date(value);
@@ -56,9 +63,9 @@ export function CompanySourceMonitoring({sourceId, sourceVersion, sourceEnabled,
   </section>;
   return <section className="panel source-monitoring" aria-label="Source monitoring">
     <div className="toolbar"><div><h4>Source monitoring</h4><p>Bounded public read checks can refresh this reviewed source. Review does not verify employer identity.</p></div>
-      {monitoring && <span className="tag">{statusLabel(monitoring.status)}</span>}</div>
+      {monitoring && <span className="tag">{statusLabel(monitoring)}</span>}</div>
     {!sourceEnabled && <p className="alert">Enable the existing source before monitoring can run.</p>}
-    {monitoring && <dl><div><dt>Last attempt</dt><dd>{displayTime(monitoring.last_attempt)}</dd></div><div><dt>Next check</dt><dd>{displayTime(monitoring.next_due)}</dd></div></dl>}
+    {monitoring && <dl><div><dt>Last attempt</dt><dd>{displayTime(monitoring.last_attempt)}</dd></div><div><dt>Next check</dt><dd>{displayTime(monitoring.next_due)}</dd></div>{monitoring.failure_count > 0 && <div><dt>Consecutive failures</dt><dd>{monitoring.failure_count}{monitoring.failure_count >= 3 ? ' (automatic retries stopped)' : ' (retry scheduled)'}</dd></div>}</dl>}
     {monitoring?.last_error && <p className="error-text">{monitoring.last_error}</p>}
     {canReview && <form onSubmit={submit}><label>Check interval (minutes)<input type="number" min={5} max={10080} required value={intervalMinutes} disabled={busy} onChange={event => setIntervalMinutes(Number(event.target.value))} /></label>
       <button type="submit" disabled={busy || !sourceEnabled}>{initialReview ? 'Monitor this reviewed source' : 'Update monitoring'}</button>

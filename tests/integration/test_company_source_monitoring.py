@@ -12,9 +12,9 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, upsert
-from services.company_discovery.sources import upsert_company_job_source
+from services.company_discovery.sources import list_company_source_view, upsert_company_job_source
 from services.company_discovery.domains import record_company_domain
-from services.company_discovery.public_client import PublicCompanyClient
+from services.company_discovery.public_client import HTTPStatusError, PublicCompanyClient
 from services.company_discovery.monitoring import configure_monitoring, source_version, schedule_company_sources, queue_refresh
 from services.discovery.search_profiles import save_search_profile
 from tests.integration.test_spine import PROFILE
@@ -113,6 +113,70 @@ class CompanySourceMonitoringTests(unittest.TestCase):
         self.assertNotIn('https://employer.example/changed.json', self.seen)
         with self.store.engine.connect() as c:
             self.assertEqual(c.execute(select(m.company_sources.c.endpoint)).scalar_one(), self.source['endpoint'])
+
+    def test_retryable_failures_degrade_then_stop_until_successful_manual_recovery(self):
+        self.configure()
+        def fail_feed(url, deadline):
+            if httpx.URL(url).path == '/jobs.json':
+                raise HTTPStatusError(503)
+            return self.fetch(url, deadline)
+
+        initial = schedule_company_sources(self.store)['scheduled']
+        self.assertEqual(len(initial), 1)
+        with patch.dict(os.environ, self.env), patch.object(
+                PublicCompanyClient, '_request_once', self.fetch):
+            self.assertEqual(execute_operation(initial[0]['operation_id'])['status'], 'COMPLETED')
+        self.assertEqual(self.monitor()['status'], 'HEALTHY')
+
+        for failures in (1, 2, 3):
+            current = self.monitor()
+            due = datetime.fromisoformat(current['next_due']) + timedelta(seconds=1)
+            scheduled = schedule_company_sources(self.store, at=due)['scheduled']
+            self.assertEqual(len(scheduled), 1)
+            with patch.dict(os.environ, self.env), patch.object(
+                    PublicCompanyClient, '_request_once', side_effect=fail_feed):
+                execute_operation(scheduled[0]['operation_id'])
+            current = self.monitor()
+            self.assertEqual(current['failure_count'], failures)
+            self.assertEqual(current['status'], 'FAILED' if failures == 3 else 'IDLE')
+            source_view = next(row for row in list_company_source_view(self.store)
+                               if row['id'] == self.source['id'])
+            self.assertEqual(source_view['monitoring']['failure_count'], failures)
+
+        due = datetime.fromisoformat(self.monitor()['next_due']) + timedelta(seconds=1)
+        self.assertEqual(schedule_company_sources(self.store, at=due)['scheduled'], [])
+
+        with self.store.engine.begin() as connection:
+            old_attempt = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
+            connection.execute(update(m.company_source_monitoring).where(
+                m.company_source_monitoring.c.source_id == self.source['id']
+            ).values(last_attempt=old_attempt))
+        queued = queue_refresh(self.store, self.source['id'], 'fixture')
+        with patch.dict(os.environ, self.env), patch.object(
+                PublicCompanyClient, '_request_once', self.fetch):
+            result = execute_operation(queued['operation_id'])
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        self.assertEqual(self.monitor()['status'], 'HEALTHY')
+        self.assertEqual(self.monitor()['failure_count'], 0)
+
+    def test_forbidden_feed_stays_blocked_without_automatic_retry(self):
+        self.configure()
+        scheduled = schedule_company_sources(self.store)['scheduled']
+        self.assertEqual(len(scheduled), 1)
+
+        def forbid_feed(url, deadline):
+            if httpx.URL(url).path == '/jobs.json':
+                raise HTTPStatusError(403)
+            return self.fetch(url, deadline)
+
+        with patch.dict(os.environ, self.env), patch.object(
+                PublicCompanyClient, '_request_once', side_effect=forbid_feed):
+            execute_operation(scheduled[0]['operation_id'])
+
+        monitor = self.monitor()
+        self.assertEqual(monitor['status'], 'BLOCKED')
+        retry_at = datetime.fromisoformat(monitor['next_due']) + timedelta(seconds=1)
+        self.assertEqual(schedule_company_sources(self.store, at=retry_at)['scheduled'], [])
 
     def test_commit_receipt_prevents_crawl_replay_after_worker_crash(self):
         self.configure()

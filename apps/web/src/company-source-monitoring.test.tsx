@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { CompanySourceMonitoring, type Monitoring } from './company-source-monitoring';
 
-const healthy: Monitoring = {revision:2, enabled:true, poll_interval:3600, status:'HEALTHY', last_attempt:'2026-10-03T12:00:00Z', next_due:'2026-10-03T13:00:00Z', last_error:null, operation_id:null, rediscovery_operation_id:null, authorization:'USER_REVIEW'};
+const healthy: Monitoring = {revision:2, enabled:true, poll_interval:3600, status:'HEALTHY', failure_count:0, last_attempt:'2026-10-03T12:00:00Z', next_due:'2026-10-03T13:00:00Z', last_error:null, operation_id:null, rediscovery_operation_id:null, authorization:'USER_REVIEW'};
 const props = {sourceId:'source-1', sourceVersion:'v2', sourceEnabled:true, supported:true, busy:false, profileSelected:true, onMonitor:vi.fn(), onRun:vi.fn()};
 
 describe('company source monitoring', () => {
@@ -51,5 +51,20 @@ describe('company source monitoring', () => {
     const blockedHtml = renderToStaticMarkup(<CompanySourceMonitoring {...props} monitoring={{...healthy, status:'BLOCKED'}} />);
     expect(blockedHtml).toContain('Monitor this reviewed source');
     expect(blockedHtml).not.toContain('Run now');
+  });
+
+  it('explains degraded health and stopped automatic retries while keeping manual recovery available', () => {
+    const degraded = renderToStaticMarkup(<CompanySourceMonitoring {...props} monitoring={{...healthy, status:'IDLE', failure_count:2, last_error:'HTTP_STATUS_ERROR'}} />);
+    expect(degraded).toContain('Degraded');
+    expect(degraded).toContain('Consecutive failures');
+    expect(degraded).toContain('2 (retry scheduled)');
+    expect(degraded).toContain('Run now');
+    const retrying = renderToStaticMarkup(<CompanySourceMonitoring {...props} monitoring={{...healthy, status:'SCHEDULED', failure_count:1}} />);
+    expect(retrying).toContain('Degraded');
+
+    const stopped = renderToStaticMarkup(<CompanySourceMonitoring {...props} monitoring={{...healthy, status:'FAILED', failure_count:3, last_error:'HTTP_STATUS_ERROR'}} />);
+    expect(stopped).toContain('Failed');
+    expect(stopped).toContain('3 (automatic retries stopped)');
+    expect(stopped).toContain('Run now');
   });
 });
