@@ -82,7 +82,8 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
 
-                    search = page.get_by_label("Saved search profile", exact=True)
+                    # The onboarding guide exposes its own earlier saved-search selector.
+                    search = page.get_by_label("Saved search profile", exact=True).last
                     expect(search.locator("option", has_text="Python remote")).to_have_count(1)
                     expect(search.locator("option", has_text="Data remote")).to_have_count(1)
                     with page.expect_response(lambda response:
@@ -108,7 +109,7 @@ class SearchProfileSelectionBrowserTests(unittest.TestCase):
                     expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_be_visible()
 
                     page.get_by_label("Active profile", exact=True).select_option("other")
-                    isolated_search = page.get_by_label("Saved search profile", exact=True)
+                    isolated_search = page.get_by_label("Saved search profile", exact=True).last
                     expect(isolated_search).to_have_value("")
                     expect(isolated_search.locator("option", has_text="Python remote")).to_have_count(0)
                     isolated_search.select_option("other-search")

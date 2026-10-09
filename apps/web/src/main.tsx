@@ -41,6 +41,7 @@ import { ManualMockAuthentication } from './manual-mock-authentication';
 import { SensitiveAnswerPolicy, type SensitiveAnswerPolicyValue } from './sensitive-answer-policy';
 import { SavedSearchSchedule } from './saved-search-schedule';
 import { SearchProfileSuggestions, type SearchProfileTitleSuggestion } from './search-profile-suggestions';
+import { SearchProfileSeed, type SearchProfileSeedDraft } from './search-profile-seed';
 import { SkillGapHeatmap, type SkillGapHeatmapData } from './skill-gap-heatmap';
 import { JobPrefilter, type JobPrefilterCriteria, type JobPrefilterResponse } from './job-prefilter';
 import { ResumePageFit, type ResumePageFitGenerated, type ResumePageFitPreview } from './resume-page-fit';
@@ -490,6 +491,14 @@ function App() {
     if(filters){setQ(filters.q);setTitle(filters.title||'');setCompany(filters.company||'');setLocationText(filters.location||'');setSalaryMin(filters.salary_min||'');setSalaryMax(filters.salary_max||'');setMinMatchScore(filters.min_match_score||'');setExperienceLevel((filters.experience_level||'') as ExperienceLevel|'');setEmploymentType((filters.employment_type||'') as EmploymentType|'');setSkillId(filters.skill||'');setEducationRequirement((filters.education_requirement||'') as EducationRequirement|'');setClearanceLevel((filters.clearance_level||'') as ClearanceLevel|'');setApplicationLinkStatus((filters.application_link_status||'') as ApplicationLinkStatusFilter);setApplicationPipelineStatus((filters.application_pipeline_status||'') as ApplicationPipelineStatusFilterValue);setApplicationCapability((filters.application_capability||'') as ApplicationCapabilityFilterValue);setPostedWithinDays(filters.posted_within_days||'');setAtsProvider((filters.ats_provider||'') as 'greenhouse'|'mock-ats'|'');setJobSourceId(filters.job_source_id||'');setRemote(filters.remote_type);setProvider(filters.provider);setSort(filters.sort);}
     else if(!id){setQ('');setTitle('');setCompany('');setLocationText('');setSalaryMin('');setSalaryMax('');setMinMatchScore('');setExperienceLevel('');setEmploymentType('');setSkillId('');setEducationRequirement('');setClearanceLevel('');setApplicationLinkStatus('');setApplicationPipelineStatus('');setApplicationCapability('');setPostedWithinDays('');setAtsProvider('');setJobSourceId('');setRemote('');setProvider('');setSort('score');}
     else {setApplicationPipelineStatus('');setApplicationCapability('');}
+  }
+  function applySearchProfileSeed(seed:SearchProfileSeedDraft) {
+    setSearchName(seed.name);
+    setSearchTitles(seed.includeTitles.join('\n'));
+    setSearchRemote(seed.remote);
+    setSearchEmployment(seed.employmentType);
+    setSearchSource('');
+    setNotice('Example loaded into the form. Review or edit it, then save when ready.');
   }
   async function addSuggestedTitle(targetProfileId:string,suggestedTitle:string) {
     const selected=searchProfiles.find(search=>search.id===targetProfileId&&search.profile_id===profileId);
@@ -1507,6 +1516,7 @@ function App() {
             await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:crypto.randomUUID(),profile_id:profileId,name:searchName,enabled:true,include_titles:titles,remote:searchRemote,employment_types:searchEmployment?[searchEmployment]:[],source_ids:searchSource?[searchSource]:[],scheduler:{enabled:false,interval_seconds:3600}})});
             setSearchName('');setSearchTitles('');setNotice('Search saved. Its schedule is off until you enable it on the saved search.');
           });}}>
+            <SearchProfileSeed disabled={!!busy} onApply={applySearchProfileSeed}/>
             <div className="two-col">
               <label>Search name<input required maxLength={200} value={searchName} onChange={e=>setSearchName(e.target.value)} placeholder="Remote Infrastructure"/></label>
               <label>Source<select value={searchSource} onChange={e=>setSearchSource(e.target.value)}><option value="">All enabled sources</option>{sources.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
