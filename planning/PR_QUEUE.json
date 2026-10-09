@@ -2852,7 +2852,29 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-067-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #248 / MJ-REQ-247 is locally verified PASS and closed at main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40; evidence docs/evidence/2026-10-09-failed-source-preservation.json. Three synthetic parser failures retain source identity/configuration and all durable failure events across a fresh Store readback. Parent PR-067 remains QUEUED behind MJ-PR-066 and MJ-PR-057.",
+      "slice_history": [
+        {
+          "name": "Durable source configuration and failure history retention",
+          "issue": 248,
+          "requirement_id": "MJ-REQ-247",
+          "status": "INTEGRATED_PASS",
+          "base": "601200d81d886f1e92b7a8393f38e0cd5dc69166",
+          "source_head": "85a73d268a1fa6b6d281d707a8fd8058e1a3bc40",
+          "source_tree": "4abec3df6f9fd65e0ffbfc62ca687bf47af71a7f",
+          "integrated_head": "85a73d268a1fa6b6d281d707a8fd8058e1a3bc40",
+          "integrated_tree": "4abec3df6f9fd65e0ffbfc62ca687bf47af71a7f",
+          "evidence_path": "docs/evidence/2026-10-09-failed-source-preservation.json",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "validation": "Monitoring integration 8/8 PASS including 3-failure and fresh-Store readback preservation; connected Chromium source-management 1/1 PASS; compilation, diff and coordination validation PASS.",
+          "issue_state": "CLOSED/PASS",
+          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/248#issuecomment-6088624645",
+          "limitations": [
+            "PostgreSQL/full repository/live provider/hosted checks NOT_RUN.",
+            "External application submission OFF."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-068",
@@ -5032,5 +5054,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T20:18:31Z"
+  "generated_at": "2026-10-09T20:22:54Z"
 }

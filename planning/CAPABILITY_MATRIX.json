@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T20:18:31Z",
+  "timestamp": "2026-10-09T20:22:54Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2101,9 +2101,11 @@
     },
     {
       "requirement_id": "MJ-REQ-247",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-failed-source-preservation.json"
+      ],
+      "note": "Verified that three repeated synthetic parser failures do not delete or rewrite a configured company source: after a fresh Store readback the original source ID, enabled state, provider, career/feed URLs, and collection strategy remain; terminal monitoring state and all three durable failure-history events remain visible. Integrated at local main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40. PostgreSQL/full-suite/live-provider/hosted checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-248",
