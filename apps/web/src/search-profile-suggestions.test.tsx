@@ -25,14 +25,16 @@ describe('search profile title suggestions', () => {
     const reason = 'Observed in 4 current strong matches.';
     const componentProps = {
       ...props,
-      suggestions: [{ title: 'Platform Administrator', reason }],
+      suggestions: [{ title: 'Platform Administrator', reason, strong_match_count: 4 }],
       onAddTitle,
     };
     const html = renderToStaticMarkup(<SearchProfileSuggestions {...componentProps} />);
 
     expect(html).toContain('<ul aria-label="Related title suggestions">');
+    expect(html).toContain('<p aria-label="Strong-match evidence">Observed in 4 current strong matches.</p>');
     expect(html).toContain(`<p>${reason}</p>`);
     expect(html).toContain('aria-label="Add Platform Administrator to Infrastructure roles"');
+    expect(html).toContain('>Add Platform Administrator to Infrastructure roles</button>');
     expect(onAddTitle).not.toHaveBeenCalled();
   });
 
@@ -44,7 +46,7 @@ describe('search profile title suggestions', () => {
 
     expect(html).toContain('Platform Administrator');
     expect(html).toContain('Appeared in 4 strong matches for System Administrator.');
-    expect(html).toContain('Add to selected search profile');
+    expect(html).toContain('>Add Platform Administrator to Infrastructure roles</button>');
     expect(onAddTitle).not.toHaveBeenCalled();
 
     const addButton = findElements(tree, 'button')[0];

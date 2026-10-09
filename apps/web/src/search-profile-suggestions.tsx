@@ -8,6 +8,7 @@ export type SearchProfileSuggestionProfile = {
 export type SearchProfileTitleSuggestion = {
   title: string;
   reason: string;
+  strong_match_count?: number;
 };
 
 export type SearchProfileSuggestionsProps = {
@@ -63,6 +64,9 @@ export function SearchProfileSuggestions({
           : <ul aria-label="Related title suggestions">
             {suggestions.map(suggestion => <li key={suggestion.title}>
               <strong>{suggestion.title}</strong>
+              {typeof suggestion.strong_match_count === 'number' && Number.isInteger(suggestion.strong_match_count) && suggestion.strong_match_count > 0 && <p aria-label="Strong-match evidence">
+                Observed in {suggestion.strong_match_count} current strong {suggestion.strong_match_count === 1 ? 'match' : 'matches'}.
+              </p>}
               <p>{suggestion.reason}</p>
               <button
                 type="button"
@@ -72,7 +76,7 @@ export function SearchProfileSuggestions({
                   if (selectedProfile) onAddTitle(selectedProfile.id, suggestion.title);
                 }}
               >
-                Add to selected search profile
+                Add {suggestion.title} to {selectedProfile?.name ?? 'selected search profile'}
               </button>
             </li>)}
           </ul>}
