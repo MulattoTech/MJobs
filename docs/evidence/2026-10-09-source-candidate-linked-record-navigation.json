@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "issue": 517,
+  "requirement": "From profile-scoped source-candidate history, open the linked job detail or saved application review when valid linked-record context exists.",
+  "status": "PASS",
+  "timestamp_utc": "2026-10-09T20:51:20Z",
+  "branch": "codex/solo-517-linked-record-navigation-20261009",
+  "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\solo-517-linked-record-navigation-20261009",
+  "source_commit": "725c2e94fb4ce8c4379c65ea9e76e8b2659e9851",
+  "source_tree": "1ab0e7cd52a9b392f383f957a1c18d1f39e7ceb5",
+  "source_files": [
+    {
+      "path": "apps/web/src/main.tsx",
+      "sha256": "9449b2cdab45675c3ca2261b1f93114fc2f78107235bda07b369284ea0f0ad28"
+    },
+    {
+      "path": "apps/web/src/source-candidate-review-panel.tsx",
+      "sha256": "75047b3292dee5103a8073e0109197f0546868157118cd5ab31d44985f8b5226"
+    },
+    {
+      "path": "apps/web/src/source-candidate-review.test.tsx",
+      "sha256": "cb8dbb32e62535c69dbd80b47b20e9d0c0b4986bc140bb9fe64ec093e22c1f3e"
+    },
+    {
+      "path": "apps/web/src/source-candidate-review.tsx",
+      "sha256": "13e4586cf497d1cd9f84aa034a642071a1d293122c60005076433568f23ced8f"
+    },
+    {
+      "path": "tests/browser/test_source_candidate_review_panel_connected.py",
+      "sha256": "9637313f7047053f8cc4b4247c19bd0e423808cabd6e29c20d9f6060d9abb6fa"
+    }
+  ],
+  "checks": [
+    {
+      "result": "PASS: 3 files, 25 tests",
+      "command": "vitest run src/source-candidate-review.test.tsx src/source-candidate-review-panel.test.tsx src/source-candidate-review-client.test.ts"
+    },
+    {
+      "result": "PASS: TypeScript and Vite production build; existing >500 kB chunk advisory",
+      "command": "npm run build"
+    },
+    {
+      "result": "PASS: 10 tests",
+      "command": ".venv/Scripts/python.exe -m pytest tests/integration/test_source_candidates.py -q"
+    },
+    {
+      "result": "PASS: connected local browser flow opens job details and saved application review, returns to Sources, preserves review/retry; 1 test",
+      "command": ".venv/Scripts/python.exe -m pytest tests/browser/test_source_candidate_review_panel_connected.py -q"
+    },
+    {
+      "result": "PASS",
+      "command": ".venv/Scripts/python.exe -m py_compile tests/browser/test_source_candidate_review_panel_connected.py"
+    },
+    {
+      "result": "PASS",
+      "command": "git diff --check"
+    },
+    {
+      "result": "PASS",
+      "command": "python -m tools.coordination.lane_coordination validate"
+    }
+  ],
+  "limitations": [
+    "PostgreSQL validation NOT_RUN",
+    "Full repository suites NOT_RUN",
+    "Live providers and hosted checks/review NOT_RUN_BY_USER_POLICY",
+    "External application submission OFF"
+  ],
+  "workflow": "Synthetic connected local profile, job, and application only. Application reads are profile-scoped; no outbound source requests, source collection, or application submission."
+}
