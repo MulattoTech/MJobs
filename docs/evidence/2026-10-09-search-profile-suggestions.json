@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "issue": 245,
+  "requirement_id": "MJ-REQ-244",
+  "acceptance_scope": "Connected related-title suggestions from current strong matches with explicit profile-scoped add and durable saved-search readback.",
+  "result": "PASS",
+  "branch": "codex/root-solo-245-search-suggestions-20261009",
+  "base_main": "07c3b1c58b72ad6d44d9ec14442193c9bd200ab5",
+  "source_commit": "32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712",
+  "source_tree": "897a4f62ec5b602d4b8d2d941e6e437eaa42e17e",
+  "verified_at_utc": "2026-10-09T14:37:11Z",
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "web_runtime": "local npm/Vitest/Vite toolchain",
+    "browser": "local Chromium via Playwright",
+    "storage": "isolated synthetic SQLite fixtures",
+    "network": "connected browser tests block and assert external requests and application submissions"
+  },
+  "behavior": {
+    "suggestions": "Titles are derived from profile-current, profile-version-current jobs in the existing Strong/Excellent/Exceptional score bands; current saved-search titles and weak, stale, or other-profile matches are excluded.",
+    "explanation": "Each suggestion shows its observed current strong-match count and reason.",
+    "user_control": "Suggestions are read-only until the user selects a saved search and explicitly adds one title; add confirmation follows durable API readback.",
+    "preservation": "Adding a title preserves existing criteria, updates only the selected saved search, and does not alter application or auto-apply state.",
+    "negative_controls": "Invalid and cross-profile selections fail closed; view and retry flows do not write criteria; no external request or application submission is performed."
+  },
+  "commands": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/unit/test_search_profile_suggestions_scope.py tests/unit/test_search_profile_suggestions_currentness.py tests/unit/test_search_profile_suggestions.py tests/integration/test_search_profile_suggestions_validation.py tests/integration/test_search_profile_suggestions_selected_scope.py tests/integration/test_search_profile_suggestions_saved_search_scope.py tests/integration/test_search_profile_suggestions_reason.py tests/integration/test_search_profile_suggestions_limits.py tests/integration/test_search_profile_suggestions.py tests/browser/test_search_profile_suggestions_profile_scope.py tests/browser/test_search_profile_suggestions_connected.py tests/browser/test_search_profile_suggestions.py -q",
+      "result": "PASS: 27 passed, 5 subtests passed; no skips"
+    },
+    {
+      "command": "npm.cmd exec -- vitest run src/search-profile-suggestions.test.tsx src/search-profile-suggestions.accessibility.test.tsx src/search-profile-suggestions-scope.test.tsx src/search-profile-suggestions-recovery.test.tsx",
+      "result": "PASS: 4 files, 13 tests"
+    },
+    {
+      "command": "npm.cmd run build",
+      "result": "PASS: TypeScript and Vite production build; existing 735.34 kB JavaScript chunk advisory"
+    },
+    {
+      "command": "python -m py_compile tests/browser/test_search_profile_suggestions.py; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "apps/api/search_profile_suggestions.py": "c5be29d0fc299ad6d099eed65619cfd62f46077846624d0d3ce9c807027e32b0",
+    "services/learning/search_profile_suggestions.py": "a5b6f488e6cb89428f907bf21288641c231bc0150d1596ee8190b08d7e2261d3",
+    "apps/web/src/main.tsx": "e90867d655437f684d588fda13fe6c7260a1ea0359195437e6f063cd3506e251",
+    "apps/web/src/search-profile-suggestions.tsx": "23b9fe870694e28ed6e6b45ed3dd5595b370351f9bc69bb4744b993686ec7c78",
+    "tests/unit/test_search_profile_suggestions.py": "db530692cbbcc7004d7012fdb0d63469a57b8adbf612828f2ab8b98f88b0b597",
+    "tests/unit/test_search_profile_suggestions_scope.py": "953c2717a3344f801251c0444dd0450562039cd63d12c3a60204f656d7074f21",
+    "tests/unit/test_search_profile_suggestions_currentness.py": "d94e9f727572acfb95ded995b29d67294faef6b2cb223972e6dbad2eb283bd6d",
+    "tests/integration/test_search_profile_suggestions.py": "bc173e5b4afafb81177d6ccefbc7b688fc4820ac0b9831c1064deb2306e29ec3",
+    "tests/integration/test_search_profile_suggestions_selected_scope.py": "1b225441fdefd8b19875444791042a9d3b8c8a9e500df231988ec68026a3c1a7",
+    "tests/integration/test_search_profile_suggestions_saved_search_scope.py": "7b0ec0e3dde1dbb7ed747b3d46e6b476b50c820be4ac31203fdae9190becac1d",
+    "tests/integration/test_search_profile_suggestions_validation.py": "0fb22e24c334fc081001c5bc1a754c98aac3bb85fcccfc23b8581632e82762e2",
+    "tests/integration/test_search_profile_suggestions_reason.py": "00521d1789134d8ee411af9c146f16d56833548d3fe0b6e2bbf5014eb32099dc",
+    "tests/integration/test_search_profile_suggestions_limits.py": "85b781a3983f5d8b1f8cc868057ff3a1487664e2a9f16671b8623f7b01b69316",
+    "tests/browser/test_search_profile_suggestions.py": "5bbb7d88e5be0c197fd4ddab2b9941d7d17df6a467c811133cfd2613f962cd26",
+    "tests/browser/test_search_profile_suggestions_profile_scope.py": "3b7b7aae674ac6ec33ef1d08b02fddaa7dc951bc3fa210c15aa994b3c635584f",
+    "tests/browser/test_search_profile_suggestions_connected.py": "7b5811f72be39f25704062182fce9bccf806975d8d44db2ba41782c2e5b64feb"
+  },
+  "test_fixture_repairs": [
+    "Added the required job_matches primary key to the synthetic browser fixture; this resolved an existing IntegrityError and prevented temporary SQLite cleanup from running while the database was open.",
+    "Narrowed the browser reason assertion to its exact matching text because the UI intentionally renders the same evidence sentence in both its count and explanation paragraphs."
+  ],
+  "not_run": [
+    "PostgreSQL validation",
+    "full repository suite",
+    "hosted checks/reviews (local-only policy)"
+  ],
+  "external_submission": "OFF",
+  "notes": "The connected flow is verified against local synthetic data. GitHub Actions remain disabled."
+}
