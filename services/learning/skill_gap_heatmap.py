@@ -10,6 +10,7 @@ from packages.persistence.store import identity
 from services.discovery.skill_taxonomy import canonical_skill_id, skill_label
 
 
+_MAX_EVIDENCE_JOBS_PER_SKILL = 10
 _CLASSIFIED_STRENGTHS = {"REQUIRED", "PREFERRED", "NICE_TO_HAVE"}
 _INTERVIEW_STATUSES = {"INTERVIEW", "TECHNICAL_INTERVIEW", "FINAL_INTERVIEW"}
 _USER_ATTRIBUTIONS = {"USER_REPORTED", "EXTERNAL_USER_REPORTED"}
@@ -18,7 +19,16 @@ _USER_ATTRIBUTIONS = {"USER_REPORTED", "EXTERNAL_USER_REPORTED"}
 def _current_matches(store, profile_id: str, profile_version: str) -> list[dict]:
     with store.engine.connect() as connection:
         return [dict(row) for row in connection.execute(
-            select(m.matches.c.job_id, m.matches.c.missing, m.matches.c.components)
+            select(
+                m.matches.c.job_id,
+                m.matches.c.missing,
+                m.matches.c.components,
+                m.jobs.c.title.label("job_title"),
+                m.companies.c.name.label("company"),
+            ).select_from(
+                m.matches.join(m.jobs, m.jobs.c.id == m.matches.c.job_id)
+                .outerjoin(m.companies, m.companies.c.id == m.jobs.c.company_id)
+            )
             .where(m.matches.c.profile_id == profile_id,
                    m.matches.c.profile_version == profile_version)
             .order_by(m.matches.c.job_id)
@@ -76,6 +86,7 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
             "no_approved_evidence": set(), "approved_evidence": set(),
             "applied": set(), "interview": set(),
             "gap_required": set(), "gap_applied": set(), "gap_interview": set(),
+            "evidence_jobs": {},
         }
     )
     for match in matches:
@@ -130,6 +141,15 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
                 if "REQUIRED" in strengths:
                     row["gap_required"].add(job_id)
             user_events = reported.get(job_id) or {}
+            row["evidence_jobs"][job_id] = {
+                "job_id": job_id,
+                "title": match.get("job_title"),
+                "company": match.get("company"),
+                "posting_strengths": sorted(strengths),
+                "profile_evidence": sorted(evidence),
+                "user_reported_applied": job_id in user_events.get("applied", set()),
+                "user_reported_interview": job_id in user_events.get("interview", set()),
+            }
             if user_events.get("applied"):
                 row["applied"].add(job_id)
                 if has_evidence_gap:
@@ -141,6 +161,16 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
 
     skills = []
     for skill_id, signals in totals.items():
+        evidence_jobs = sorted(
+            signals["evidence_jobs"].values(),
+            key=lambda job: (
+                -int(job["user_reported_interview"]),
+                -int(job["user_reported_applied"]),
+                (job["title"] or "").casefold(),
+                (job["company"] or "").casefold(),
+                job["job_id"],
+            ),
+        )
         skills.append({
             "skill_id": skill_id,
             "skill": skill_label(skill_id) or skill_id,
@@ -156,6 +186,8 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
             "no_evidence_required_job_count": len(signals["gap_required"]),
             "no_evidence_applied_job_count": len(signals["gap_applied"]),
             "no_evidence_interview_job_count": len(signals["gap_interview"]),
+            "evidence_job_count": len(evidence_jobs),
+            "evidence_jobs": evidence_jobs[:_MAX_EVIDENCE_JOBS_PER_SKILL],
         })
     skills.sort(key=lambda row: (
         -row["no_evidence_interview_job_count"],

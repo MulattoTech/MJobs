@@ -15,6 +15,16 @@ export type SkillGapHeatmapSkill = {
   no_evidence_required_job_count: number;
   no_evidence_applied_job_count: number;
   no_evidence_interview_job_count: number;
+  evidence_job_count: number;
+  evidence_jobs: Array<{
+    job_id: string;
+    title: string | null;
+    company: string | null;
+    posting_strengths: string[];
+    profile_evidence: string[];
+    user_reported_applied: boolean;
+    user_reported_interview: boolean;
+  }>;
 };
 
 export type SkillGapHeatmapData = {
@@ -91,6 +101,36 @@ export function SkillGapHeatmap({ status, data, error, onRetry }: SkillGapHeatma
         <h3>{item.skill}</h3>
         <p>{count(item.no_approved_evidence_job_count)} of {jobs(item.job_count)} have no approved profile evidence for this skill.</p>
         <p>No approved evidence in {jobs(item.no_evidence_applied_job_count)} with a user-reported application and {jobs(item.no_evidence_interview_job_count)} with a user-reported interview.</p>
+        {item.evidence_job_count > 0 && <details>
+          <summary>{count(item.evidence_jobs.length) === count(item.evidence_job_count)
+            ? `View ${jobs(item.evidence_job_count)} behind this skill`
+            : `View ${count(item.evidence_jobs.length)} of ${jobs(item.evidence_job_count)} behind this skill`}</summary>
+          <ul aria-label={`${item.skill} scored job evidence`}>
+            {item.evidence_jobs.map(job => {
+              const strengths = job.posting_strengths.map(value => {
+                if (value === 'REQUIRED') return 'Required';
+                if (value === 'PREFERRED') return 'Preferred';
+                if (value === 'NICE_TO_HAVE') return 'Nice to have';
+                return 'Posting requirement strength unknown';
+              });
+              const evidence = job.profile_evidence.map(value => {
+                if (value === 'APPROVED') return 'approved profile evidence';
+                if (value === 'NO_APPROVED_EVIDENCE') return 'no approved profile evidence';
+                return 'profile evidence unknown';
+              });
+              return <li key={job.job_id}>
+                <strong>{job.title || 'Untitled job'}</strong>
+                <span> — {job.company || 'Employer unknown'}</span>
+                <p>{[...strengths, ...evidence].join('; ')}</p>
+                {job.user_reported_applied && <p>Application reported by you</p>}
+                {job.user_reported_interview && <p>Interview reported by you</p>}
+              </li>;
+            })}
+          </ul>
+          {item.evidence_jobs.length < item.evidence_job_count && <p className="muted">
+            Showing the ten most relevant scored jobs. Aggregate counts above use every current scored job.
+          </p>}
+        </details>}
         <dl>
           <div>
             <dt>Required mentions without approved evidence</dt>

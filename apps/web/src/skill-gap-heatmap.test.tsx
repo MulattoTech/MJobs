@@ -22,6 +22,18 @@ const sample: SkillGapHeatmapData = {
       no_evidence_required_job_count: 2,
       no_evidence_applied_job_count: 1,
       no_evidence_interview_job_count: 1,
+      evidence_job_count: 1,
+      evidence_jobs: [
+        {
+          job_id: 'job-python',
+          title: 'Systems Engineer',
+          company: 'Example Employer',
+          posting_strengths: ['REQUIRED'],
+          profile_evidence: ['NO_APPROVED_EVIDENCE'],
+          user_reported_applied: true,
+          user_reported_interview: false,
+        },
+      ],
     },
   ],
 };
@@ -72,5 +84,10 @@ describe('skill gap heatmap', () => {
     expect(html).toContain('Priority order: interview-reported gaps, applied-reported gaps, required-gap frequency, then total gap frequency.');
     expect(html).toContain('This activity is based on statuses you reported; it does not verify employer receipt or interview attendance.');
     expect(html).toContain('<h3>Python</h3>');
+    expect(html).toContain('View 1 job behind this skill');
+    expect(html).toContain('Systems Engineer');
+    expect(html).toContain('Example Employer');
+    expect(html).toContain('Required; no approved profile evidence');
+    expect(html).toContain('Application reported by you');
   });
 });

@@ -146,12 +146,30 @@ class SkillGapHeatmapReloadRecoveryBrowserTests(unittest.TestCase):
                     self.assertEqual(by_skill["AWS"]["no_evidence_interview_job_count"], 1)
                     self.assertEqual(by_skill["LINUX"]["no_evidence_applied_job_count"], 1)
                     self.assertEqual(by_skill["AZURE"]["no_evidence_applied_job_count"], 0)
+                    self.assertEqual(by_skill["AWS"]["evidence_job_count"], 1)
+                    self.assertEqual(by_skill["AWS"]["evidence_jobs"][0]["job_id"], aws_job["id"])
+                    self.assertEqual(
+                        by_skill["AWS"]["evidence_jobs"][0]["title"],
+                        "Synthetic AWS infrastructure role",
+                    )
+                    self.assertTrue(by_skill["AWS"]["evidence_jobs"][0]["user_reported_interview"])
                     expect(heatmap).to_contain_text("AWS")
                     expect(heatmap).to_contain_text("Linux")
                     expect(heatmap).to_contain_text("Azure")
                     expect(heatmap).to_contain_text("interview-reported gaps, applied-reported gaps")
                     expect(heatmap).to_contain_text(
                         "It does not confirm that you lack the skill.")
+                    aws_row = heatmap.locator("article").filter(
+                        has=page.get_by_role("heading", name="AWS", exact=True)
+                    )
+                    aws_evidence = aws_row.get_by_text("View 1 job behind this skill", exact=True)
+                    aws_evidence.click()
+                    expect(aws_row.get_by_text(
+                        "Synthetic AWS infrastructure role", exact=True,
+                    )).to_be_visible()
+                    expect(aws_row.get_by_text(
+                        "Interview reported by you", exact=True,
+                    )).to_be_visible()
 
                     # Reload creates a fresh browser document and reads the persisted match again.
                     page.reload(wait_until="domcontentloaded")
