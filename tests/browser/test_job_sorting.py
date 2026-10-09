@@ -1,4 +1,5 @@
-"""Connected browser acceptance for Newest sorting after profile reload."""
+"""Connected browser acceptance for job sorting and reviewed priority after reload."""
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
 import threading
@@ -133,6 +134,61 @@ class JobSortingBrowserTests(unittest.TestCase):
                                      ["Alpha Older Role", "Zulu Newest Role"])
                     expect(page.locator(".job-card h2").first).to_have_text("Alpha Older Role")
                     expect(page.locator(".job-card h2").nth(1)).to_have_text("Zulu Newest Role")
+
+                    # Build two explicit, conflicting ranking signals. The newer
+                    # job has a stronger skill match but salary mismatch; reviewed
+                    # salary feedback should move the salary-aligned job upward.
+                    with store.engine.begin() as connection:
+                        comparable_posted_at = (datetime.now(timezone.utc) - timedelta(hours=12)).isoformat()
+                        for job, score, salary_status in (
+                            (older, 40.0, "ALIGNS"), (newer, 95.0, "NO_DIRECT_MATCH"),
+                        ):
+                            connection.execute(update(m.jobs).where(m.jobs.c.id == job["id"]).values(
+                                attributes={**job["attributes"], "reported_posted_at": comparable_posted_at},
+                            ))
+                            connection.execute(update(m.matches).where(
+                                m.matches.c.job_id == job["id"],
+                                m.matches.c.profile_id == "fixture",
+                            ).values(score=score, components={"fit_factors": [{
+                                "id": "salary", "label": "Salary expectation",
+                                "status": salary_status, "explanation": "Explicit synthetic salary comparison.",
+                                "score_effect": "NONE",
+                            }]}))
+
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "sort=application_priority" in response.url) as initial_priority:
+                        sort.select_option("application_priority")
+                    initial_ranked = initial_priority.value.json()["jobs"]
+                    self.assertEqual([row["title"] for row in initial_ranked],
+                                     ["Zulu Newest Role", "Alpha Older Role"])
+
+                    feedback = page.request.post(
+                        f"{origin}/profiles/fixture/jobs/{older['id']}/match-feedback",
+                        data={"category": "BAD_SALARY", "request_id": "salary-priority-feedback"},
+                    )
+                    self.assertEqual(feedback.status, 200, feedback.text())
+                    applied = page.request.post(
+                        f"{origin}/profiles/fixture/match-preferences",
+                        data={"feedback_id": feedback.json()["feedback"]["id"],
+                              "dimension": "salary", "direction": "increase",
+                              "request_id": "salary-priority-apply"},
+                    )
+                    self.assertEqual(applied.status, 200, applied.text())
+
+                    sort.select_option("newest")
+                    with page.expect_response(lambda response:
+                            response.url.startswith(origin + "/jobs?")
+                            and "sort=application_priority" in response.url) as reviewed_priority:
+                        sort.select_option("application_priority")
+                    reviewed_ranked = reviewed_priority.value.json()["jobs"]
+                    self.assertEqual([row["title"] for row in reviewed_ranked],
+                                     ["Alpha Older Role", "Zulu Newest Role"],
+                                     [(row["title"], row["application_priority_score"],
+                                       row["application_priority_band"]) for row in reviewed_ranked])
+                    self.assertGreater(reviewed_ranked[0]["application_priority_score"],
+                                       reviewed_ranked[1]["application_priority_score"])
+                    expect(page.locator(".job-card").first).to_contain_text("Application priority")
                     self.assertEqual(external, [])
                     context.close()
                     browser.close()

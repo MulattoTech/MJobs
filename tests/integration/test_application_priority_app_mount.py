@@ -125,3 +125,9 @@ class ApplicationPriorityAppMountTests(unittest.TestCase):
         self.assertEqual(unknown_profile.status_code, 404, unknown_profile.text)
         self.assertEqual(unknown_profile.json()["detail"]["code"], "APPLICATION_PRIORITY_PROFILE_NOT_FOUND")
         self.assertEqual(self._snapshot(), before)
+
+    def test_application_priority_job_sort_requires_explicit_profile_scope(self):
+        response = self.client.get("/jobs?sort=application_priority")
+
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(response.json()["detail"], "Application-priority sorting requires a career profile")

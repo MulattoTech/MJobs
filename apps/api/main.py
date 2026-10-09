@@ -1429,7 +1429,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              remote_type: str | None = Query(default=None, max_length=32),
              provider: Literal["mock-ats", "greenhouse"] | None = None,
              ats_provider: Literal["mock-ats", "greenhouse"] | None = None,
-             sort: Literal["score", "newest", "company", "title", "salary_high", "salary_low"] = "score",
+             sort: Literal["score", "newest", "company", "title", "salary_high", "salary_low",
+                           "application_priority"] = "score",
              salary_min: float | None = Query(default=None, ge=0, le=100000000),
              salary_max: float | None = Query(default=None, ge=0, le=100000000),
              min_match_score: int | None = Query(default=None, ge=0, le=100),
@@ -1466,6 +1467,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         if (application_pipeline_status is not None
                 and application_pipeline_status not in {"", *PIPELINE_STATUSES, "NOT_TRACKED"}):
             raise HTTPException(422, "Application pipeline status is not supported")
+        if sort == "application_priority" and not profile_id:
+            raise HTTPException(422, "Application-priority sorting requires a career profile")
         search_profile = get_search_profile(store, search_profile_id) if search_profile_id else None
         if search_profile and search_profile["profile_id"] != profile_id:
             raise HTTPException(409, "Search profile belongs to a different career profile")
@@ -1511,7 +1514,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         posted_before = datetime.now(timezone.utc) if effective_posted_within is not None else None
         posted_after = (posted_before - timedelta(days=effective_posted_within)
                         if posted_before is not None else None)
-        rows = store.jobs(profile_id, q, remote_type, provider, sort, limit,
+        result_limit = 500 if sort == "application_priority" else limit
+        database_sort = "score" if sort == "application_priority" else sort
+        rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
                           title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
                           min_match_score=effective_match_score, experience_level=experience_level,
@@ -1532,6 +1537,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 row["tracking"] = tracking[row["id"]]
             if not include_dismissed:
                 rows = [row for row in rows if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED")]
+        if sort == "application_priority":
+            from apps.api.application_priority import rank_jobs_by_application_priority
+            try:
+                rows = rank_jobs_by_application_priority(store, profile_id, rows)
+            except (LookupError, TypeError, ValueError):
+                raise HTTPException(502, "Application-priority ranking is temporarily unavailable") from None
+            rows = rows[:limit]
         if rows:
             job_ids = [row["id"] for row in rows]
             with store.engine.connect() as connection:

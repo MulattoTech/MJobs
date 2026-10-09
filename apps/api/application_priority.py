@@ -126,6 +126,61 @@ def _signals(job: Mapping[str, Any], match: Mapping[str, Any],
     return signals
 
 
+def rank_jobs_by_application_priority(store, profile_id: str, jobs: list[dict[str, Any]], *,
+                                       now: datetime | None = None) -> list[dict[str, Any]]:
+    """Return a bounded search result ordered by explainable advisory priority.
+
+    This adds display-only priority values to the supplied result rows. It never
+    changes persisted match scores, saved-search filters, or application state.
+    """
+    if not isinstance(profile_id, str) or not profile_id.strip():
+        raise ValueError("APPLICATION_PRIORITY_PROFILE_REQUIRED")
+    if not isinstance(jobs, list) or any(not isinstance(row, dict) for row in jobs):
+        raise ValueError("APPLICATION_PRIORITY_JOBS_INVALID")
+    applied = list_feedback_preferences(store, profile_id)["by_dimension"]
+    job_ids = [row.get("id") for row in jobs]
+    if any(not isinstance(job_id, str) or not job_id for job_id in job_ids):
+        raise ValueError("APPLICATION_PRIORITY_JOBS_INVALID")
+    posting_times: dict[str, list[Any]] = {job_id: [] for job_id in job_ids}
+    if job_ids:
+        with store.engine.connect() as connection:
+            observed = connection.execute(select(
+                m.postings.c.job_id, m.postings.c.fetched_at,
+            ).where(m.postings.c.job_id.in_(job_ids)).order_by(
+                m.postings.c.job_id, m.postings.c.fetched_at.desc(), m.postings.c.id,
+            )).all()
+        for job_id, fetched_at in observed:
+            posting_times[job_id].append(fetched_at)
+
+    from services.discovery.application_priority import explain_application_priority
+
+    observed_now = now or datetime.now(timezone.utc)
+    for row in jobs:
+        match = {"score": row.get("match_score"), "components": row.get("match_components")}
+        result = explain_application_priority(
+            _signals(row, match, posting_times[row["id"]], row["id"]),
+            now=observed_now,
+            applied_preferences=list(applied.values()),
+        )
+        score = result["priority_score"]
+        row["application_priority_score"] = score
+        row["application_priority_band"] = result["priority_band"]
+
+    def order(row):
+        score = row["application_priority_score"]
+        match_score = row.get("match_score")
+        return (
+            score is None,
+            -(score if score is not None else 0.0),
+            match_score is None,
+            -(match_score if isinstance(match_score, (int, float)) else 0.0),
+            str(row.get("title") or "").casefold(),
+            row["id"],
+        )
+
+    return sorted(jobs, key=order)
+
+
 def _number(value: Any, *, nullable=False) -> bool:
     if nullable and value is None:
         return True
