@@ -82,6 +82,28 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
             }],
         )
 
+    def test_duplicate_selected_search_exclusions_do_not_suppress_other_candidate_matches(self):
+        self._match("System Administrator", 95)
+        self._match("Infrastructure Support Engineer", 75)
+        self._match("Infrastructure Support Engineer", 90)
+
+        self.assertEqual(
+            suggest_search_profile_titles(
+                self.store,
+                "fixture",
+                excluded_titles=[
+                    " SYSTEM ADMINISTRATOR ",
+                    "system administrator",
+                    "  System Administrator  ",
+                ],
+            ),
+            [{
+                "title": "Infrastructure Support Engineer",
+                "strong_match_count": 2,
+                "reason": "Observed in 2 current strong matches.",
+            }],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
