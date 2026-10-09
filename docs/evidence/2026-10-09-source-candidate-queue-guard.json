@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "result": "PASS",
+  "scope": "A source candidate cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue number. Missing links are rejected before persistence; a linked issue remains explicitly unverified and collection stays disabled.",
+  "issue": 517,
+  "requirement_id": "MJ-FEATURE-517",
+  "base": "dcb52e4c5c09cef3f003168617f0557efd7d67df",
+  "source_head": "f9ee344eec7db45cf67d42ed129ba26e68a4e66e",
+  "source_tree": "0ea4515e869a2773fe1f1568e55b71f3b220b950",
+  "captured_at_utc": "2026-10-09T20:37:27.957142Z",
+  "input_sha256": {
+    "apps/api/main.py": "88d5b8abc5b078b61db2fe7c8ef23b56864ee743787f496ef830d01b94cb00dd",
+    "services/source_candidates/catalogue.py": "1511f69052bff2acda0921f1e74b07484b2a05974fff9f683a57aebe5f04db61",
+    "apps/web/src/source-candidate-review.tsx": "897e48b839e9d4d1629870b3a75328d7a44d8def3f070323a8f8109f1f02fdaf",
+    "apps/web/src/source-candidate-review.test.tsx": "c3a54b7051bfba84ffa26371c92fee719ad13cb3f86f661396e0c59417b9d995",
+    "tests/integration/test_source_candidates.py": "64a9509f96a356fd68f23ab6947c6d452f1f325e640d9f131dbe293ac944bf92",
+    "tests/browser/test_source_candidate_review_panel_connected.py": "49e2b3b820c4bf6b09908d97c21a6a0e77a0a4174cc1e1a16f0fb5b92c0dc39e"
+  },
+  "validation": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest tests/integration/test_source_candidates.py -q",
+      "result": "PASS",
+      "summary": "10 passed"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest tests/integration/test_source_candidates.py tests/integration/test_browser_job_extraction_confirm_capture_api.py tests/integration/test_manual_capture_extraction_provenance.py tests/integration/test_supported_provider_collection.py tests/unit/test_supported_source_capture.py -q",
+      "result": "PASS",
+      "summary": "23 passed, 8 subtests passed"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest tests/browser/test_source_candidate_review_panel_connected.py -q",
+      "result": "PASS",
+      "summary": "1 connected Chromium workflow passed; profile isolation, issue-required button state, durable queued issue readback, zero external requests, collection disabled, and no applications"
+    },
+    {
+      "command": "vitest run src/source-candidate-review.test.tsx src/source-candidate-review-panel.test.tsx src/source-candidate-review-client.test.ts",
+      "result": "PASS",
+      "summary": "22 passed"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "summary": "TypeScript and Vite production build passed; existing large-chunk advisory"
+    },
+    {
+      "command": "py_compile, lane_coordination validate, git diff --check",
+      "result": "PASS",
+      "summary": "All passed"
+    }
+  ],
+  "limitations": [
+    "The issue number is still user-supplied and explicitly labeled unverified; no GitHub issue existence lookup is performed.",
+    "This bounded slice does not complete the broader #517 source catalogue acceptance.",
+    "PostgreSQL, full repository suites, live provider access, hosted checks and review NOT_RUN_BY_USER_POLICY.",
+    "External application submission OFF; source collection remains disabled."
+  ]
+}
