@@ -11,8 +11,8 @@
     "current_verified_github_state": "GitHub origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 at 2026-10-09T17:32:37Z; issue #134 remains OPEN/PARTIAL; no push or hosted verification.",
     "current_verified_at": "2026-10-09T17:32:37Z"
   },
-  "current_milestone": "MJ-REQ-084-APPLICATION-ATS-KNOWLEDGE-UI-20261009",
-  "current_objective": "Expose persisted company-discovery ATS identity and truthful application-adapter capability in prepared job application details, without rediscovery or employer requests.",
+  "current_milestone": "MJ-REQ-266-USER-PREFERRED-APPLICATION-ROUTE-20261009",
+  "current_objective": "Persist a profile-scoped preferred employer route in the connected job preparation flow while preserving evidence-based employer/ATS authority.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -638,13 +638,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
-    "tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
-    "result": "PARTIAL for issue #134 / MJ-REQ-133; the local device-draft recovery slice is verified, while the full dynamic-forms requirement remains incomplete.",
+    "commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+    "tree": "47a9baf9eff07848246f5744bbe62c8002591124",
+    "result": "PARTIAL for issue #267 / MJ-REQ-266; explicit per-employer route preferences now save, clear, reload and affect preparation defaults only within equal authority. Trusted integrated-board evidence remains incomplete.",
     "evidence": [
-      "docs/evidence/2026-10-09-dynamic-form-device-draft.json"
+      "docs/evidence/2026-10-09-application-route-preference-map.json"
     ],
-    "verified_at_utc": "2026-10-09T17:32:37Z"
+    "verified_at_utc": "2026-10-09T18:57:20Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -745,22 +745,23 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+  "last_implementation_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
-    "integration_method": "Root-owned non-force fast-forward into local main; no push, PR, hosted CI, or review.",
-    "integration_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
-    "prior_main": "d5695fc49941d410bf6fa463e6e5ea55dba2c30d",
-    "source_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
-    "source_tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
-    "integration_tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
+    "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
+    "integration_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+    "prior_main": "b108465f3ad826501f2159010428e2bdc89bb1ba",
+    "source_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+    "source_tree": "47a9baf9eff07848246f5744bbe62c8002591124",
+    "integration_tree": "47a9baf9eff07848246f5744bbe62c8002591124",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "issue": 134,
+    "issue": 267,
     "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-09-dynamic-form-device-draft.json",
-    "note": "Connected local mock ATS only. Live ATS, PostgreSQL, full Python suite, hosted checks/review NOT_RUN. External submission OFF."
+    "evidence_path": "docs/evidence/2026-10-09-application-route-preference-map.json",
+    "note": "Focused Python/API tests 25/25, connected browser flow 1/1, focused Vitest 2/2, frontend build, compilation and coordination validation PASS. PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF.",
+    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6087319835"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -13946,12 +13947,63 @@
         "git_commit": "48931302c84c5c18b3baa6d473f3450c8ec90a48",
         "evidence_path": "docs/evidence/2026-10-09-application-ats-knowledge-ui.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-266-USER-PREFERRED-APPLICATION-ROUTE-20261009",
+      "timestamp": "2026-10-09T18:57:20Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added profile- and company-scoped preferred route persistence using append-only, request-idempotent audit events.",
+        "Connected route reads and application preparation to saved preferences; preference only breaks ties within equal route evidence authority.",
+        "Added save, clear, reload and prepare controls in the connected job preparation view; no application submission occurs.",
+        "Integrated locally by non-force fast-forward and recorded exact-source verification."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-application-route-preference-map.json",
+        "services/dedupe/route_trust.py",
+        "tests/integration/test_application_route_trust.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/dedupe/routes.py",
+        "tests/browser/test_application_route_preference.py"
+      ],
+      "integrated_main": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+      "source_tree": "47a9baf9eff07848246f5744bbe62c8002591124",
+      "acceptance": "MJ-REQ-266 remains PARTIAL. Explicit employer route preference is persisted and used by connected preparation. User preference does not override verified employer/ATS authority and does not establish trusted integrated-board status.",
+      "limitations": [
+        "PostgreSQL, full repository suite, hosted checks/review, and live ATS verification NOT_RUN.",
+        "External application submission remains OFF."
+      ],
+      "tests_completed": [
+        "25 focused Python/API route tests PASS on the exact candidate.",
+        "Connected Chromium preference save/reload/prepare flow PASS (1/1).",
+        "Focused route-preference Vitest PASS (2/2); TypeScript/Vite build PASS with the existing chunk-size advisory.",
+        "Python compilation, lane validation, source SHA-256 checks and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL/full repository suite/hosted checks/live ATS NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local SQLite and connected local Chromium; browser fixture intercepted external requests and performed no application submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Trusted integrated-board authority evidence is not persisted; broader MJ-REQ-266 remains PARTIAL."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+        "evidence_path": "docs/evidence/2026-10-09-application-route-preference-map.json"
+      },
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6087319835"
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "48931302c84c5c18b3baa6d473f3450c8ec90a48",
-    "evidence_path": "docs/evidence/2026-10-09-application-ats-knowledge-ui.json"
+    "git_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+    "evidence_path": "docs/evidence/2026-10-09-application-route-preference-map.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14441,7 +14493,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 85,
+  "active_development_issue": 267,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15600,9 +15652,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T18:07:31Z",
-  "current_verified_local_state": "Issue #85 / MJ-REQ-084 integrated on local main at 48931302c84c5c18b3baa6d473f3450c8ec90a48; feature source 25fc13e394394ceb6e60daf9d2e5a490f9102ac0 (tree d9ebbd0c32027d1016ff264ce9dedc9d9a2f6b67). Prepared application details now explain persisted provider/tenant and evidence basis, distinguish company knowledge from a verified application route, and fail closed on ambiguous/unsupported adapters. Exact-source verification: 11 API/browser tests, 548 frontend tests, TypeScript/Vite build, py_compile, diff check and lane validation PASS. Greenhouse remains unsupported for application automation; external submission OFF. Hosted/PostgreSQL/live ATS NOT_RUN.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and source is not pushed. GitHub issue #251 remains OPEN pending local-only source synchronization. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL and live provider NOT_RUN; external application submission OFF. Verified 2026-10-09T17:10:32Z.",
+  "updated_at": "2026-10-09T18:57:20Z",
+  "current_verified_local_state": "Issue #267 / MJ-REQ-266 integrated on local main at a72d9bd6cd6c905cc0f9a8691d9304f07034127b (tree 47a9baf9eff07848246f5744bbe62c8002591124). Profile-scoped route preference saves, clears, reads back after reload, and influences default application preparation without outranking verified employer/ATS authority. Focused Python/API 25/25, connected Chromium 1/1, route-preference Vitest 2/2, TypeScript/Vite build, compilation, lane and diff checks PASS. MJ-REQ-266 remains PARTIAL because trusted integrated-board authority evidence is not persisted; external submission OFF.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 357 commits and this source was not pushed. Issue #267 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live ATS NOT_RUN; external application submission OFF. Verified 2026-10-09T18:57:20Z.",
   "next_candidates": [
     {
       "issue": 517,

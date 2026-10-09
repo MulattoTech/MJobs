@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T18:07:31Z",
+  "timestamp": "2026-10-09T18:57:20Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2229,9 +2229,10 @@
       "requirement_id": "MJ-REQ-266",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-application-route-preference.json"
+        "docs/evidence/2026-10-09-application-route-preference.json",
+        "docs/evidence/2026-10-09-application-route-preference-map.json"
       ],
-      "note": "Profile can prefer evidence-qualified employer/ATS routes or require an explicit per-job choice; provider names alone do not qualify. The trusted integrated job-board tier is unimplemented because route-to-board trust evidence is not persisted."
+      "note": "Profile-scoped employer route preferences persist, read back, and influence default ordering only within equal evidence authority; verified employer/ATS evidence remains higher priority. Users can save or clear the preference in connected application preparation. Trusted integrated-board authority is still unimplemented because route-to-board trust evidence is not persisted."
     },
     {
       "requirement_id": "MJ-REQ-267",
