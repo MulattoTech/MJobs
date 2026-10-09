@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T10:48:42Z",
+  "generated_at": "2026-10-09T11:20:00Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T10:14:05Z"
   },
-  "current_milestone": "MJ-REF-002-COVER-LETTER-STORY-REUSE-20261009",
-  "current_objective": "Complete explicitly reviewed, factual career-story reuse across job-specific cover letters and resumes; keep story selection opt-in, provenance verifiable, and application submission OFF.",
+  "current_milestone": "MJ-REF-002-RESUME-STORY-REUSE-20261009",
+  "current_objective": "Complete truthful, explicitly reviewed career-story reuse across job-specific resumes and cover letters while preserving provenance and keeping external application submission OFF.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -158,7 +158,8 @@
     "MJ-FEATURE-517 / issue #517 bounded source-candidate slice: exact capture replay is a no-op with immutable observation timestamps; distinct events preserve earliest first_seen and latest last_seen independent of arrival order; changed request reuse conflicts; review history displays sanitized API/feed evidence reference. Tested code 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); integrated local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Issue remains OPEN/PARTIAL.",
     "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved company’s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json).",
     "MJ-REF-006 local acceptance: 29 focused unit/API/integration/browser-recovery tests pass for deterministic measured trimming, bounded attempts, protected facts, no-write previews and unavailable-measurement recovery. A measured-success connected browser flow and broader release gates remain unverified (docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json).",
-    "MJ-REF-002 / #372: current approved fact-linked story revisions can be explicitly selected for job-specific cover letters; generated text retains exact user-authored story content and document history resolves revision/fact provenance. Resume story reuse and broader story-bank acceptance remain incomplete. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json."
+    "MJ-REF-002 / #372: current approved fact-linked story revisions can be explicitly selected for job-specific cover letters; generated text retains exact user-authored story content and document history resolves revision/fact provenance. Resume story reuse and broader story-bank acceptance remain incomplete. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
+    "Issue #372 / MJ-REF-002 explicit job-specific resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c); evidence docs/evidence/2026-10-09-resume-story-reuse.json; focused Python 32, frontend 24, connected resume/cover-letter Chromium 2, build and local validators PASS. Exact story text and immutable story/fact provenance survive durable generation/history; broader story-bank and interview-preparation acceptance remains PARTIAL."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -621,13 +622,14 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
-    "tree": "09e06d85dbfb24412db997bcfa889b9660123d4d",
-    "result": "PARTIAL: explicit, profile/job/story-revision-bound career-story reuse in cover-letter preparation and durable provenance verified; resume reuse and broader MJ-REF-002 remain incomplete.",
+    "commit": "9adee1f554283eb4ee5f46913eacc175671e428c",
+    "tree": "f8e7647cbf1356a9e5ad175f753a24388998845c",
+    "result": "PARTIAL: explicit approved story reuse is connected to job-specific resumes and cover letters with durable exact-text/provenance validation; broader MJ-REF-002 remains incomplete.",
     "evidence": [
-      "docs/evidence/2026-10-09-cover-letter-story-reuse.json"
+      "docs/evidence/2026-10-09-cover-letter-story-reuse.json",
+      "docs/evidence/2026-10-09-resume-story-reuse.json"
     ],
-    "verified_at_utc": "2026-10-09T10:48:42Z"
+    "verified_at_utc": "2026-10-09T11:20:00Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -694,7 +696,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue issue #372 / MJ-REF-002 by completing reviewed story reuse for job-specific resume generation, without conflicting with the preserved story-generation input claim; then verify connected durable readback and recovery.",
+  "recommended_resume_step": "Select and implement the highest-impact dependency-ready discovery, search/matching, or application-preparation gap after reconciling live claims and worktrees; keep #372 OPEN/PARTIAL until remaining story-bank and interview-preparation acceptance is verified.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -709,7 +711,7 @@
     "e14ac893620f",
     "Issue #517 structured candidate review evaluation migration 9b6d40aaf163; temporary SQLite upgrade/backfill/downgrade-preservation verified; retained personal database untouched."
   ],
-  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json\nMJ-REF-033 issue #403 page permits integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Browser/source entrypoint integration, bounded diagnostic reruns, and preemption of already-running synchronous handlers remain incomplete.\nMJ-REQ-176 AI cost-policy SETTING_CHANGED slice integrated PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c, source 612a697b47dbf9a9c695261835727445dd699b1b; effective existing-profile changes emit one empty-payload audit event in the same transaction, default-equivalent and repeated saves emit none. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; 35 focused tests, full Python 967 PASS/8 skipped, frontend 63/build and validators PASS. Issue #177 remains OPEN/PARTIAL for remaining settings and full event lifecycle; hosted NOT_RUN_BY_USER_POLICY; external submission OFF.\nMJ-FEATURE-517 provider issue-reference slice integrated at dbc9e573680fcf32498131afe3bee75e72213371; evidence docs/evidence/2026-10-08-source-candidate-issue-link.json. Nine focused source-candidate API/integration/browser/migration tests and 94 web tests plus build pass on the integrated tree; temporary SQLite migration upgrade/readback/guarded downgrade verified. Issue #517 remains OPEN/PARTIAL for broader provider/browser intake and evaluation/task linkage; hosted/PostgreSQL NOT_RUN; collection and external submission OFF.\nMJ-REQ-133 issue #134 connected dynamic-form review integrated locally at 8a2c98135bb1748d7ec40658f11fdbc957a4468e; focused acceptance evidence docs/evidence/2026-10-09-dynamic-form-review.json. Requirement remains PARTIAL for durable answer persistence and broader live ATS acceptance.",
+  "unfinished_work_evidence": "docs/evidence/2026-10-06-mock-ats-action-budget.json\nMJ-REQ-095 issue #96 responsibility-bullet emphasis locally verified on e6c47515aa20596ed6ec3263c809af26b4cf3910; broader summary adjustment and factual rephrasing remain PARTIAL. Evidence: docs/evidence/2026-10-06-resume-bullet-emphasis.json\nMJ-REQ-095 issue #96 extractive summary tailoring locally verified on d5309972c04062c721ee72986008b04a1f572e03; factual bullet rephrasing and broad AI rewriting remain PARTIAL. Evidence: docs/evidence/2026-10-06-target-summary-tailoring.json\nMJ-REQ-007 issue #8 local config initialization slice c7306774884ad08e5172bfec7ab365dc261f77b3; issue remains PARTIAL pending actual protected-configuration migration recovery. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-007 scoped atomic .env initialization integrated at 494e15f46a93b70530755811888ece6046dc98aa; GitHub issue #8 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/8#issuecomment-6019785804. Evidence: docs/evidence/2026-10-06-atomic-env-initialization.json\nMJ-REQ-008 issue #9 isolated container crash/resume proof: docs/evidence/2026-10-06-progress-container-crash-recovery.json; host restart remains unverified.\nMJ-REQ-004 uploaded-original resume comparison cancellation candidate 8a469b03bb7c57448118be9e1b761d8608d179ab; issue #5 remains OPEN/PARTIAL for remaining external-operation categories and multi-replica cancellation. Evidence: docs/evidence/2026-10-06-uploaded-comparison-cancellation.json\nMJ-REQ-004 cancellation acknowledgement truthfulness candidate 6abd58aec2562fddaff1367fa8c60417d98b5ebb; issue #5 remains OPEN/PARTIAL for cross-replica signaling and remaining operation classes. Evidence: docs/evidence/2026-10-06-comparison-cancel-acknowledgement.json\nMJ-REQ-004 mock ATS questionnaire/receipt HTTP calls now honor worker cancellation/deadline; submission receipt uncertainty remains safe. Evidence: docs/evidence/2026-10-06-mock-ats-http-cancellation.json\nMJ-REQ-109 persisted provider/model selections are connected to a profile-scoped API and AI Settings UI, but no production task consumer or live inference is verified; issue #110 remains PARTIAL/OPEN (docs/evidence/2026-10-06-ai-task-settings-persistence.json).\nMJ-REQ-008 issue #9 product-worker crash recovery/stale-attempt fencing integrated as a scoped PARTIAL slice at source d516834ac3bd48352ef3aa8885a1de1fffe53419; evidence docs/evidence/2026-10-07-product-worker-crash-recovery.json. Physical host restart, browser-process crash, other worker operation types and live PostgreSQL remain unverified.\n\nMJ-REQ-179 issue #180 debug capture scoped implementation PARTIAL: docs/evidence/2026-10-07-safe-browser-debug-capture.json\nMJ-REF-033 issue #403 page permits integrated PARTIAL at 01596a7a093bbfc359e9ded49076aac3cb95d94d; evidence docs/evidence/2026-10-07-agent-page-budget.json. Browser/source entrypoint integration, bounded diagnostic reruns, and preemption of already-running synchronous handlers remain incomplete.\nMJ-REQ-176 AI cost-policy SETTING_CHANGED slice integrated PARTIAL at 2d5dcaba6b20012df93de8546f216ecdd5a26d3c, source 612a697b47dbf9a9c695261835727445dd699b1b; effective existing-profile changes emit one empty-payload audit event in the same transaction, default-equivalent and repeated saves emit none. Evidence docs/evidence/2026-10-07-ai-cost-policy-audit.json; 35 focused tests, full Python 967 PASS/8 skipped, frontend 63/build and validators PASS. Issue #177 remains OPEN/PARTIAL for remaining settings and full event lifecycle; hosted NOT_RUN_BY_USER_POLICY; external submission OFF.\nMJ-FEATURE-517 provider issue-reference slice integrated at dbc9e573680fcf32498131afe3bee75e72213371; evidence docs/evidence/2026-10-08-source-candidate-issue-link.json. Nine focused source-candidate API/integration/browser/migration tests and 94 web tests plus build pass on the integrated tree; temporary SQLite migration upgrade/readback/guarded downgrade verified. Issue #517 remains OPEN/PARTIAL for broader provider/browser intake and evaluation/task linkage; hosted/PostgreSQL NOT_RUN; collection and external submission OFF.\nMJ-REQ-133 issue #134 connected dynamic-form review integrated locally at 8a2c98135bb1748d7ec40658f11fdbc957a4468e; focused acceptance evidence docs/evidence/2026-10-09-dynamic-form-review.json. Requirement remains PARTIAL for durable answer persistence and broader live ATS acceptance.\nIssue #372 / MJ-REF-002 resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c; evidence docs/evidence/2026-10-09-resume-story-reuse.json. Broader story-bank and interview-preparation acceptance remains incomplete.",
   "authorization": "User explicitly provided 100% Git and GitHub authorization on 2026-09-30; still verify native permissions and required checks",
   "user_testing": {
     "result": "PASS",
@@ -732,12 +734,12 @@
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under the existing Codex integration lock; no PR opened or push performed.",
-    "integration_commit": "de1e463ec42f2c5dca14c6df4112be9a249e75a2",
-    "prior_main": "67977a772368b6caa3414342764b38f9b4297a26",
+    "integration_commit": "9adee1f554283eb4ee5f46913eacc175671e428c",
+    "prior_main": "7782681954722b035c528c2030009faac0c041bf",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Exact source 9f40bfcec64aad8033fb73b2bf95627ad5b4617a integrated locally as de1e463ec42f2c5dca14c6df4112be9a249e75a2; evidence checkpoint follows under the existing lock. Origin main remains unchanged; hosted checks, PostgreSQL and full suite remain NOT_RUN; external submission OFF."
+    "note": "Exact-source tests and local acceptance are recorded in docs/evidence/2026-10-09-resume-story-reuse.json; origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Hosted checks, PostgreSQL and full suite remain NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12780,12 +12782,64 @@
         "git_commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
         "evidence_path": "docs/evidence/2026-10-09-cover-letter-story-reuse.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-002-RESUME-STORY-REUSE-20261009",
+      "timestamp": "2026-10-09T11:20:00Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Integrated explicit reviewed story selection into job-specific resume preparation and measured page-fit preview.",
+        "Revalidated exact story revision, approved linked facts, profile version and job fingerprint through durable generation, document download and history readback.",
+        "Resolved colliding sibling React keys and checkbox IDs so resume and cover-letter selections work together.",
+        "Fast-forwarded exact tested source 9adee1f554283eb4ee5f46913eacc175671e428c to local main; #372 and MJ-REF-002 remain OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-resume-story-reuse.json",
+        "apps/web/src/resume-story-selection.tsx",
+        "tests/browser/test_resume_story_reuse.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/api/resume_page_fit.py",
+        "apps/web/src/main.tsx",
+        "apps/web/src/career-story-selection.tsx",
+        "apps/web/src/document-history.tsx",
+        "services/career_profile/story_selection.py",
+        "services/documents/generate.py",
+        "services/documents/history.py",
+        "services/documents/validation.py",
+        "services/applications/mock_adapter.py",
+        "workers/tasks.py"
+      ],
+      "tests_completed": [
+        "Focused Python API/document/worker suites: 32 PASS.",
+        "Focused frontend selection/history suite: 24 PASS; TypeScript/Vite production build PASS.",
+        "Connected Chromium resume story and existing cover-letter story workflows: 2 PASS, including durable readback/reload and no external requests/submission.",
+        "Agent-skill validation, catalogue validation, and diff check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL, full repository suite, hosted checks/review and live ATS/source access NOT_RUN.",
+        "Broader #372/MJ-REF-002 story-bank import/edit/version and interview-preparation acceptance remains incomplete."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic fixture profile/job/story data, local API, temporary persistence, durable worker, and Chromium only; no external requests or application submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "MJ-REF-002 and issue #372 remain OPEN/PARTIAL.",
+        "origin/main remains unchanged; no push or PR."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9adee1f554283eb4ee5f46913eacc175671e428c",
+        "evidence_path": "docs/evidence/2026-10-09-resume-story-reuse.json"
+      }
     }
   ],
-  "current_phase": "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d). Users can preview and explicitly select approved fact-linked career stories for a saved job; the worker revalidates current profile/job/story/fact state and immutable document history resolves the exact selected revision and provenance. Evidence: docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1",
-    "evidence_path": "docs/evidence/2026-10-09-cover-letter-story-reuse.json"
+    "git_commit": "9adee1f554283eb4ee5f46913eacc175671e428c",
+    "evidence_path": "docs/evidence/2026-10-09-resume-story-reuse.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13181,7 +13235,7 @@
     "related_requirements": [
       "MJ-REF-002"
     ],
-    "note": "Explicit story selection is now connected to job-specific cover-letter preparation with stale-context revalidation and immutable story/fact provenance in document history. Resume story reuse and remaining story-bank acceptance are next."
+    "note": "Users can explicitly select current approved fact-linked story revisions for job-specific cover letters and resumes. Resume generation, measured page-fit preview, download, and history revalidate the observed profile/job/story/fact context and retain exact user-authored wording plus immutable story/fact provenance. Broader story-bank and interview-preparation acceptance remains incomplete."
   },
   "historical_control_snapshots": [
     {
@@ -14327,7 +14381,7 @@
     "Issue #262 / MJ-REQ-261 provenance slice at e337115700a23b0d5d7b1e50abb1ffc26983e292 (tree 9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636); evidence docs/evidence/2026-10-08-source-ats-separation.json; API and connected Chromium 2/2, web 124/124, TypeScript/Vite build, API compilation and diff check PASS. PostgreSQL/live providers/full repository/hosted checks NOT_RUN; issue OPEN/PARTIAL; parent MJ-PR-071 QUEUED; external submission OFF.",
     "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d); evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json; focused Python/API/persistence/worker/connected browser 44 PASS and final Chromium 1 PASS, focused web 22 PASS, production build/compile/hash/lane/diff PASS. PostgreSQL/full suite/hosted NOT_RUN; external application submission OFF; requirement remains PARTIAL."
   ],
-  "ownership": "Root alone integrated #372 / MJ-REF-002 cover-letter story reuse at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d) by non-force fast-forward under the Codex integration lock. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json. No Codex child workers are active; unrelated existing lane claims and worktrees are preserved. Hosted checks/reviews are NOT_RUN_BY_USER_POLICY and external submission is OFF.",
+  "ownership": "Root alone integrated #372 / MJ-REF-002 resume story reuse at 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c) by non-force fast-forward under the Codex integration lock. Evidence docs/evidence/2026-10-09-resume-story-reuse.json. Solo mode is active; no child workers were spawned. Unrelated existing lane claims, worktrees, and untracked docs/evidence/2026-10-08-compose-target-isolation.json are preserved. Hosted checks/reviews are NOT_RUN_BY_USER_POLICY and external submission is OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -14340,9 +14394,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T10:48:42Z",
-  "current_verified_local_state": "Local main 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d): #372 cover-letter story reuse integrated by non-force fast-forward; 44 focused Python/API/persistence/worker/connected-browser tests PASS, final Chromium 1 PASS, focused web 22 PASS, build/compilation/hash/lane/diff checks PASS. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json. MJ-REF-002 remains PARTIAL; resume story reuse and broader acceptance are incomplete.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration is not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T10:48:42Z.",
+  "updated_at": "2026-10-09T11:22:00Z",
+  "current_verified_local_state": "Local main 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c): #372 / MJ-REF-002 resume story reuse integrated by non-force fast-forward. Focused Python 32 PASS, frontend 24 PASS, connected Chromium resume and cover-letter 2 PASS, TypeScript/Vite build, catalogue, agent-skills, and diff checks PASS. Evidence docs/evidence/2026-10-09-resume-story-reuse.json. MJ-REF-002 remains PARTIAL; PostgreSQL, full repository suite, and hosted checks/review NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #372 remains OPEN/PARTIAL and the local-only integration receipt is https://github.com/MulattoTech/MJobs/issues/372#issuecomment-6079840974. No push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T11:22:00Z.",
   "next_candidates": [
     {
       "issue": 517,
@@ -14357,7 +14411,7 @@
     {
       "issue": 372,
       "requirement_id": "MJ-REF-002",
-      "status": "INTEGRATED_PARTIAL_ON_LOCAL_MAIN: explicit job-specific cover-letter story selection and immutable revision/fact provenance are verified; next is resume story reuse and remaining acceptance."
+      "status": "INTEGRATED_PARTIAL_ON_LOCAL_MAIN: explicit job-specific cover-letter and resume story selection with immutable provenance verified at 9adee1f554283eb4ee5f46913eacc175671e428c; broader story-bank/import/edit/version and interview-preparation acceptance remain open."
     },
     {
       "issue": 377,
