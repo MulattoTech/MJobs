@@ -5,12 +5,13 @@ export const ROLE_SCORING_DIMENSIONS = [
   'certification', 'education', 'ai_intensity',
 ] as const;
 
-export type RoleScoringDimension = typeof ROLE_SCORING_DIMENSIONS[number];
+export type BuiltInRoleScoringDimension = typeof ROLE_SCORING_DIMENSIONS[number];
+export type RoleScoringDimension = BuiltInRoleScoringDimension|string;
 export type RoleScoringProfileDraft = {
   schema_version:1;
   role_family:string;
-  weights:Partial<Record<RoleScoringDimension,number>>;
-  thresholds:Partial<Record<RoleScoringDimension,number>>;
+  weights:Record<string,number>;
+  thresholds:Record<string,number>;
 };
 export type SavedRoleScoringProfile = RoleScoringProfileDraft & {id:string;version:string};
 export type RoleScoringEditorState = 'scope_required'|'loading'|'ready'|'saving'|'load_error'|'save_error'|'stale';
@@ -31,7 +32,7 @@ export class RoleScoringProfileEditorError extends Error {
   }
 }
 
-const DIMENSION_LABELS:Record<RoleScoringDimension,string> = {
+const DIMENSION_LABELS:Record<BuiltInRoleScoringDimension,string> = {
   skills:'Skills',
   title:'Title',
   salary:'Salary',
@@ -42,7 +43,7 @@ const DIMENSION_LABELS:Record<RoleScoringDimension,string> = {
   ai_intensity:'AI intensity',
 };
 
-const DIMENSION_DETAILS:Record<RoleScoringDimension,string> = {
+const DIMENSION_DETAILS:Record<BuiltInRoleScoringDimension,string> = {
   skills:'Approved profile skills compared with evidence in the job posting.',
   title:'The job title compared with this editable role family.',
   salary:'Source-provided compensation compared with saved preferences.',
@@ -59,6 +60,29 @@ function isRecord(value:unknown):value is Record<string,unknown> {
 
 function validAmount(value:unknown):value is number {
   return typeof value==='number'&&Number.isFinite(value)&&value>=0&&value<=100;
+}
+
+const CUSTOM_DIMENSION_KEY_PATTERN=/^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$/;
+
+function isBuiltInDimension(dimension:string):dimension is BuiltInRoleScoringDimension {
+  return (ROLE_SCORING_DIMENSIONS as readonly string[]).includes(dimension);
+}
+
+export function isStableCustomDimensionKey(value:unknown):value is string {
+  return typeof value==='string'&&value.length>=1&&value.length<=64
+    &&CUSTOM_DIMENSION_KEY_PATTERN.test(value);
+}
+
+export function addCustomScoringDimension(
+  draft:RoleScoringProfileDraft,
+  dimension:string,
+):RoleScoringProfileDraft {
+  if(!isStableCustomDimensionKey(dimension)||isBuiltInDimension(dimension)
+    ||Object.prototype.hasOwnProperty.call(draft.weights,dimension)
+    ||Object.prototype.hasOwnProperty.call(draft.thresholds,dimension)) {
+    throw new RoleScoringProfileEditorError('invalid_draft');
+  }
+  return {...draft,weights:{...draft.weights,[dimension]:0}};
 }
 
 export function createRoleScoringProfileDraft(profile?:SavedRoleScoringProfile|null):RoleScoringProfileDraft {
@@ -117,8 +141,8 @@ export function validateRoleScoringProfileDraft(value:unknown):string[] {
       continue;
     }
     for(const [dimension,amount] of Object.entries(values)) {
-      if(!ROLE_SCORING_DIMENSIONS.includes(dimension as RoleScoringDimension)) {
-        errors.push(`${field} contains unsupported dimension ${dimension}.`);
+      if(!isBuiltInDimension(dimension)&&!isStableCustomDimensionKey(dimension)) {
+        errors.push(`${field} contains invalid custom dimension key ${dimension}.`);
       } else if(!validAmount(amount)) {
         errors.push(`${field} for ${dimension} must be a finite number from 0 to 100.`);
       }
@@ -166,9 +190,14 @@ export async function loadRoleScoringProfile(
 }
 
 function sameConfiguration(left:RoleScoringProfileDraft,right:RoleScoringProfileDraft):boolean {
+  const sameMap=(leftMap:Record<string,number>,rightMap:Record<string,number>)=>{
+    const leftKeys=Object.keys(leftMap).sort();
+    const rightKeys=Object.keys(rightMap).sort();
+    return leftKeys.length===rightKeys.length
+      &&leftKeys.every((key,index)=>key===rightKeys[index]&&leftMap[key]===rightMap[key]);
+  };
   return left.schema_version===right.schema_version&&left.role_family.trim()===right.role_family.trim()
-    &&ROLE_SCORING_DIMENSIONS.every(dimension=>(left.weights[dimension]??0)===(right.weights[dimension]??0)
-      &&(left.thresholds[dimension]??null)===(right.thresholds[dimension]??null));
+    &&sameMap(left.weights,right.weights)&&sameMap(left.thresholds,right.thresholds);
 }
 
 export async function saveAndReadbackRoleScoringProfile(
@@ -210,11 +239,16 @@ export type RoleScoringProfileEditorViewProps = {
   onRetryLoad:()=>void;
   onRetrySave:()=>void;
   onReloadLatest:()=>void;
+  customDimensionKey?:string;
+  customDimensionError?:string|null;
+  onCustomDimensionKeyChange?:(value:string)=>void;
+  onAddCustomDimension?:(value:string)=>void;
 };
 
 export function RoleScoringProfileEditorView({
   profileId,searchProfileId,profile,draft,state,error,savedNotice,onDraftChange,
-  onSave,onRetryLoad,onRetrySave,onReloadLatest,
+  onSave,onRetryLoad,onRetrySave,onReloadLatest,customDimensionKey='',customDimensionError=null,
+  onCustomDimensionKeyChange=()=>undefined,onAddCustomDimension=()=>undefined,
 }:RoleScoringProfileEditorViewProps) {
   const validation=state==='ready'||state==='save_error'?validateRoleScoringProfileDraft(draft):[];
   const busy=state==='loading'||state==='saving';
@@ -263,8 +297,39 @@ export function RoleScoringProfileEditorView({
               }}/>
           </div>;
         })}
+        {[...new Set([...Object.keys(draft.weights),...Object.keys(draft.thresholds)])]
+          .filter(dimension=>!isBuiltInDimension(dimension)).sort().map(dimension=>{
+            const enabled=(draft.weights[dimension]??0)>0;
+            return <div key={dimension} className="role-scoring-dimension role-scoring-custom-dimension">
+              <label>
+                <input aria-label={`Enable ${dimension} custom signal`} type="checkbox" checked={enabled}
+                  onChange={event=>onDraftChange(toggleRoleScoringSignal(draft,dimension,event.currentTarget.checked))}/>
+                {dimension} (custom signal)
+              </label>
+              <p>Absent explicit source metadata stays UNKNOWN. Custom signals are never inferred from posting prose and never change hard eligibility.</p>
+              <label htmlFor={`weight-${dimension}`}>{dimension} weight</label>
+              <input id={`weight-${dimension}`} aria-label={`${dimension} weight`} type="number" min={0} max={100} step={1}
+                value={draft.weights[dimension]??0} disabled={!enabled}
+                onChange={event=>onDraftChange(updateRoleScoringWeight(draft,dimension,Number(event.currentTarget.value)))}/>
+              <label htmlFor={`threshold-${dimension}`}>{dimension} soft threshold</label>
+              <input id={`threshold-${dimension}`} aria-label={`${dimension} soft threshold`} type="number" min={0} max={100} step={1}
+                value={draft.thresholds[dimension]??''} disabled={!enabled}
+                onChange={event=>{
+                  const value=event.currentTarget.value;
+                  onDraftChange(updateRoleScoringThreshold(draft,dimension,value===''?null:Number(value)));
+                }}/>
+            </div>;
+          })}
       </fieldset>
       {validation.length>0&&<ul role="alert" aria-label="Scoring profile validation errors">{validation.map(message=><li key={message}>{message}</li>)}</ul>}
+      <label htmlFor="custom-scoring-dimension-key">Custom scoring signal key</label>
+      <input id="custom-scoring-dimension-key" aria-label="Custom scoring signal key" type="text" maxLength={64}
+        value={customDimensionKey} disabled={!editable}
+        onChange={event=>onCustomDimensionKeyChange(event.currentTarget.value)}/>
+      <p>Use a unique lowercase snake-case key (1–64 characters). Add a signal only when its scorer supplies explicit source metadata; missing metadata remains UNKNOWN.</p>
+      {customDimensionError&&<p role="alert">{customDimensionError}</p>}
+      <button type="button" aria-label="Add custom scoring signal" disabled={!editable}
+        onClick={()=>onAddCustomDimension(customDimensionKey)}>Add custom scoring signal</button>
       {state==='load_error'&&<button type="button" onClick={onRetryLoad}>Retry load</button>}
       {state==='save_error'&&<button type="button" disabled={!canSave} onClick={onRetrySave}>Retry save</button>}
       <button type="button" disabled={busy||!profileId||!searchProfileId} onClick={onReloadLatest}>
@@ -281,7 +346,9 @@ function modelForScope(scopeKey:string,profileId:string|null,searchProfileId:str
   return {
     scopeKey,profileId,searchProfileId,profile:null,draft:createRoleScoringProfileDraft(),
     state:profileId&&searchProfileId?'loading':'scope_required',error:null,savedNotice:null,
+    customDimensionKey:'',customDimensionError:null,
     onDraftChange:()=>undefined,onSave:()=>undefined,onRetryLoad:()=>undefined,onRetrySave:()=>undefined,onReloadLatest:()=>undefined,
+    onCustomDimensionKeyChange:()=>undefined,onAddCustomDimension:()=>undefined,
   };
 }
 
@@ -366,6 +433,15 @@ export function RoleScoringProfileEditor({
 
   const retrySave=()=>{ void saveDraft(); };
   const onDraftChange=(next:RoleScoringProfileDraft)=>update({draft:next,error:null,savedNotice:null});
+  const onCustomDimensionKeyChange=(value:string)=>update({customDimensionKey:value,customDimensionError:null});
+  const onAddCustomDimension=(value:string)=>{
+    try {
+      const next=addCustomScoringDimension(visible.draft,value);
+      update({draft:next,customDimensionKey:'',customDimensionError:null,error:null,savedNotice:null});
+    } catch {
+      update({customDimensionError:'Enter a unique lowercase snake-case key from 1 to 64 characters.'});
+    }
+  };
 
   return <RoleScoringProfileEditorView
     {...visible}
@@ -374,5 +450,7 @@ export function RoleScoringProfileEditor({
     onRetryLoad={retryLoad}
     onRetrySave={retrySave}
     onReloadLatest={()=>{void loadLatest();}}
+    onCustomDimensionKeyChange={onCustomDimensionKeyChange}
+    onAddCustomDimension={onAddCustomDimension}
   />;
 }
