@@ -612,7 +612,7 @@
       "status": "PARTIAL",
       "branch": "codex/mj-pr-023-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "Merged activity, scoring, source-value and link-evidence slices reused. Current isolated slice exposes quality factors and reuses ATS knowledge as internal metadata; no submission authorization.",
+      "notes": "Merged activity, scoring, source-value and link-evidence slices reused. Current isolated slice exposes quality factors and reuses ATS knowledge as internal metadata; no submission authorization. Additional #85 / MJ-REQ-084 application ATS knowledge panel integrated locally at 48931302c84c5c18b3baa6d473f3450c8ec90a48; source 25fc13e394394ceb6e60daf9d2e5a490f9102ac0 (tree d9ebbd0c32027d1016ff264ce9dedc9d9a2f6b67); evidence docs/evidence/2026-10-09-application-ats-knowledge-ui.json. Application details surface persisted provider/tenant and distinguish company discovery evidence from the selected route. Greenhouse remains unsupported for application automation; requirement and PR-023 remain PARTIAL.",
       "validation_result": "PARTIAL",
       "worktree": "C:\\Tools\\Dev\\MJobs-pr-023",
       "base": "566bbf9cdebf882cc80bbb65b803ca3996fa9beb",
@@ -676,26 +676,24 @@
           "url": "https://github.com/MulattoTech/MJobs/pull/476",
           "head": "f7217cac16b6d3cfc3b1b1f2d8e6f6dcf684de4f",
           "merge_commit": "8240e471260ebeb60bde9932368651da410f3148"
-        }
-      ],
-      "in_progress_slices": [
+        },
         {
+          "name": "Explain persisted ATS knowledge and usable adapter capability in application details",
           "issue": 85,
           "requirement_id": "MJ-REQ-084",
-          "name": "Explain persisted ATS knowledge and usable adapter capability in application details",
-          "status": "IN_PROGRESS",
-          "branch": "codex/solo-req084-application-ats-knowledge-ui-20261009",
-          "worktree": ".worktrees/solo-mj-req084-ats-knowledge-20261009",
-          "base_commit": "3283d8e5ee262e26be51770d59b95efe7bef63c8",
-          "started_at": "2026-10-09T18:03:11Z",
-          "owned_paths": [
-            "apps/web/src/main.tsx",
-            "apps/web/src/application-adapter-knowledge.tsx",
-            "apps/web/src/application-adapter-knowledge.test.tsx",
-            "tests/browser/test_application_knowledge_display.py"
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "48931302c84c5c18b3baa6d473f3450c8ec90a48",
+          "source_commit": "25fc13e394394ceb6e60daf9d2e5a490f9102ac0",
+          "source_tree": "d9ebbd0c32027d1016ff264ce9dedc9d9a2f6b67",
+          "evidence_path": "docs/evidence/2026-10-09-application-ats-knowledge-ui.json",
+          "validation": "Exact source: connected application knowledge, status, and capability browser/API tests 11/11; frontend 548/548; TypeScript/Vite build; compilation, diff check, and lane validation PASS.",
+          "limitations": [
+            "Greenhouse application adapter unsupported; user proceeds manually.",
+            "External submission OFF; hosted checks, PostgreSQL, live ATS NOT_RUN."
           ]
         }
-      ]
+      ],
+      "in_progress_slices": []
     },
     {
       "id": "MJ-PR-024",
@@ -4999,5 +4997,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T18:03:11Z"
+  "generated_at": "2026-10-09T18:07:31Z"
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T17:58:27Z",
+  "timestamp": "2026-10-09T18:07:31Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -757,9 +757,11 @@
     },
     {
       "requirement_id": "MJ-REQ-084",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-application-ats-knowledge-ui.json"
+      ],
+      "note": "Prepared application details reuse persisted company ATS discovery and exact route identity to show provider, tenant, evidence basis, and actual application-adapter capability. Company-level evidence is explicitly distinguished from a verified application URL; ambiguous identities do not select an adapter. No network rediscovery occurs. Evidence: docs/evidence/2026-10-09-application-ats-knowledge-ui.json. Greenhouse is correctly classified as unsupported for application automation, so manual preparation remains necessary; external submission, hosted checks, PostgreSQL, and live ATS verification are NOT_RUN. Full MJ-REQ-084 remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-085",

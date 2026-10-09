@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T18:03:11Z",
+  "generated_at": "2026-10-09T18:07:31Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-09T17:32:37Z"
   },
   "current_milestone": "MJ-REQ-084-APPLICATION-ATS-KNOWLEDGE-UI-20261009",
-  "current_objective": "Connect persisted company-discovery ATS identity to prepared application details with an explainable, profile/job-scoped capability view; do not rediscover, rewrite routes, or enable external submissions.",
+  "current_objective": "Expose persisted company-discovery ATS identity and truthful application-adapter capability in prepared job application details, without rediscovery or employer requests.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -172,18 +172,11 @@
     "Issue #372 / MJ-REF-002 explicit job-specific resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c); evidence docs/evidence/2026-10-09-resume-story-reuse.json; focused Python 32, frontend 24, connected resume/cover-letter Chromium 2, build and local validators PASS. Exact story text and immutable story/fact provenance survive durable generation/history; broader story-bank and interview-preparation acceptance remains PARTIAL.",
     "Profile-controlled application route preference and evidence-qualified employer/ATS ranking, with explicit user route choice persisted through application preparation (MJ-REQ-266; trusted integrated-board tier remains PARTIAL).",
     "Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted).",
-    "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported)."
+    "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported).",
+    "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL)."
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    {
-      "issue": 85,
-      "requirement_id": "MJ-REQ-084",
-      "branch": "codex/solo-req084-application-ats-knowledge-ui-20261009",
-      "worktree": ".worktrees/solo-mj-req084-ats-knowledge-20261009",
-      "scope": "Connected application detail view for persisted company-discovery provider/tenant knowledge and truthful adapter capability. No new external adapter execution."
-    }
-  ],
+  "active_requirements": [],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -718,7 +711,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile live issues and lane claims, then select the next dependency-ready user-facing discovery, matching, document, or application workflow; preserve the two baseline failures in tests/browser/test_mock_application.py and keep external submission OFF.",
+  "recommended_resume_step": "Select the next highest-impact dependency-ready jobseeker feature from live original requirements and issue claims; prioritize usable discovery, matching, truthful documents, or application workflow.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -13909,12 +13902,56 @@
         "git_commit": "5065809d4bcfcb522d74cbf38c48efbdd74f09d5",
         "evidence_path": "docs/evidence/2026-10-09-supporting-document-mock-application.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-084-APPLICATION-ATS-KNOWLEDGE-UI-20261009",
+      "timestamp": "2026-10-09T18:07:31Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added an accessible application-detail panel for persisted ATS provider, tenant, discovery/route basis, and actual adapter capability.",
+        "Distinguished company-level discovery from exact application-route evidence and surfaced unsupported/ambiguous states without selecting an adapter.",
+        "Verified saved ATS knowledge appears through the connected Applications UI after reload with no external network requests or rediscovery.",
+        "Integrated the UI slice on local main and refreshed the original requirement matrix and generated dashboard; full requirement remains PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-application-ats-knowledge-ui.json",
+        "apps/web/src/application-adapter-knowledge.tsx",
+        "apps/web/src/application-adapter-knowledge.test.tsx",
+        "tests/browser/test_application_knowledge_display.py"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Focused API and connected Chromium application knowledge/status/capability tests: 11 passed.",
+        "Full frontend suite: 548 passed in 96 files.",
+        "TypeScript/Vite production build passed; existing chunk-size advisory retained.",
+        "Python compilation, git diff --check, and lane coordination validation passed."
+      ],
+      "tests_remaining": [
+        "Hosted checks, PostgreSQL, and live ATS verification are NOT_RUN under local-only policy."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Greenhouse remains unsupported for application automation; manual preparation is required.",
+        "External submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "48931302c84c5c18b3baa6d473f3450c8ec90a48",
+        "evidence_path": "docs/evidence/2026-10-09-application-ats-knowledge-ui.json"
+      }
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "5065809d4bcfcb522d74cbf38c48efbdd74f09d5",
-    "evidence_path": "docs/evidence/2026-10-09-supporting-document-mock-application.json"
+    "git_commit": "48931302c84c5c18b3baa6d473f3450c8ec90a48",
+    "evidence_path": "docs/evidence/2026-10-09-application-ats-knowledge-ui.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15563,8 +15600,8 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T18:03:11Z",
-  "current_verified_local_state": "Issue #135 / MJ-REQ-134 supporting-document workflow is integrated locally on main at 5065809d4bcfcb522d74cbf38c48efbdd74f09d5; feature source 2163f9da6edfd024b0115b89e964eb490310c1c1 (tree a83ce3136551953dfb23aca2281a590e719a94ba). Exact-source checks: API plus connected Chromium 6/6, web 544/544, TypeScript/Vite build, py_compile, diff check and lane validation PASS. Two adjacent mock-application browser failures reproduce unchanged on prior main; see docs/evidence/2026-10-09-supporting-document-mock-application.json. Real ATS upload, PostgreSQL, hosted checks and external submission remain unavailable/disabled.",
+  "updated_at": "2026-10-09T18:07:31Z",
+  "current_verified_local_state": "Issue #85 / MJ-REQ-084 integrated on local main at 48931302c84c5c18b3baa6d473f3450c8ec90a48; feature source 25fc13e394394ceb6e60daf9d2e5a490f9102ac0 (tree d9ebbd0c32027d1016ff264ce9dedc9d9a2f6b67). Prepared application details now explain persisted provider/tenant and evidence basis, distinguish company knowledge from a verified application route, and fail closed on ambiguous/unsupported adapters. Exact-source verification: 11 API/browser tests, 548 frontend tests, TypeScript/Vite build, py_compile, diff check and lane validation PASS. Greenhouse remains unsupported for application automation; external submission OFF. Hosted/PostgreSQL/live ATS NOT_RUN.",
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and source is not pushed. GitHub issue #251 remains OPEN pending local-only source synchronization. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL and live provider NOT_RUN; external application submission OFF. Verified 2026-10-09T17:10:32Z.",
   "next_candidates": [
     {
