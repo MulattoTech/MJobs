@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-264", "MJ-REQ-265"],
+  "github_issues": [265, 266],
+  "result": "PASS",
+  "scope": "Profile-owned company-discovery enablement, match thresholds, hourly request limit, and durable high-priority queue ordering are configurable through the connected Profile UI.",
+  "source": {
+    "branch": "codex/solo-265-company-discovery-policy",
+    "commit": "2f70cce63577e76e0e079fcf88984bcaa563c2e4",
+    "tree": "5a77272e4fb1be5d43b5f1d11585541d165026bd"
+  },
+  "verified_at_utc": "2026-10-09T12:57:42Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and Chromium"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_discovery_policy tests.integration.test_discovery_requests tests.browser.test_company_discovery_policy",
+      "result": "PASS",
+      "evidence": "16 tests passed. Covers profile defaults and invalid bounds, enabled/disabled behavior, configured thresholds, hourly request cap, durable high-priority dispatch, existing discovery regressions, and connected profile save/readback after reload with external requests blocked."
+    },
+    {
+      "command": "cd apps/web && npm test -- --run",
+      "result": "PASS",
+      "evidence": "90 files and 527 tests passed."
+    },
+    {
+      "command": "cd apps/web && npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing advisory: generated JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile packages/domain/profile.py services/company_discovery/requests.py workers/dispatch.py; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "PostgreSQL integration",
+    "Hosted Actions or external review (disabled by local-only policy)",
+    "Live employer websites or ATS providers",
+    "External job application submission"
+  ],
+  "limitations": [
+    "A full repository unittest discovery run was started but interrupted after it emitted multiple failures outside this feature, including strict-locator failures in application-priority, company-preferences, and job-risk browser tests. The full-suite result is incomplete and is not represented as passing."
+  ],
+  "safety": [
+    "Only isolated synthetic SQLite profiles and in-process mock source responses were used.",
+    "Discovery controls do not authorize or submit applications; external submission remains OFF.",
+    "No schema migration or external network access was required."
+  ]
+}
