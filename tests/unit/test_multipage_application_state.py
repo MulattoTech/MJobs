@@ -105,6 +105,26 @@ class MultipageApplicationStateTests(unittest.TestCase):
 
         self.assertEqual(load_multipage_state(self.store, "profile", "application"), before)
 
+    def test_unknown_page_progress_and_nonadjacent_navigation_are_atomic_rejections(self):
+        self.transition("SAVE_PROGRESS", 0, "contact", page_order=["contact", "eligibility"],
+                        progress={"contact": {"city": "Tulsa"}})
+        before_state = load_multipage_state(self.store, "profile", "application")
+        before_event_count = self.store.count("audit_events")
+
+        with self.assertRaises(MultipageStateError) as progress_error:
+            self.transition("SAVE_PROGRESS", 1, "contact",
+                            progress={"unknown-page": {"answer": "value"}})
+        self.assertEqual(progress_error.exception.code, "INVALID_PROGRESS")
+        self.assertEqual(load_multipage_state(self.store, "profile", "application"), before_state)
+        self.assertEqual(self.store.count("audit_events"), before_event_count)
+
+        with self.assertRaises(MultipageStateError) as navigation_error:
+            self.transition("NEXT", 1, "contact", next_page_id="unknown-page",
+                            progress={"contact": {"city": "Tulsa"}})
+        self.assertEqual(navigation_error.exception.code, "INVALID_TRANSITION")
+        self.assertEqual(load_multipage_state(self.store, "profile", "application"), before_state)
+        self.assertEqual(self.store.count("audit_events"), before_event_count)
+
     def test_exact_retry_returns_committed_state_and_conflicting_retry_is_rejected(self):
         self.transition("SAVE_PROGRESS", 0, "contact", page_order=["contact", "eligibility"],
                         progress={"contact": {"city": "Tulsa"}})
