@@ -2240,9 +2240,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-09-direct-employer-route-discovery.json",
-        "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
+        "docs/evidence/2026-10-09-direct-employer-route-resolution.json",
+        "docs/evidence/2026-10-09-reviewed-employer-route-save.json"
       ],
-      "note": "An explicit user-triggered route check follows a bounded public redirect chain to a verified employer domain or recognized ATS with matching verified tenant evidence. Redacted candidates are shown for review; route selection and submission are unchanged. Automatic pre-submission integration cannot be exercised while external submission is OFF; requirement remains PARTIAL."
+      "note": "The explicit save action rechecks the bounded redirect, validates current employer/ATS identity evidence, persists an idempotent selectable route and readback, and leaves the existing user selection unchanged. Verified locally on main at b2413668e11b8af84ad4ba0c1d81527b27c3691e. Automatic pre-submission integration is not exercised while external submission is OFF; requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-268",

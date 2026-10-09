@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main integrates issue #115 / MJ-REQ-114 weighted skill-evidence breakdown at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af (tree 282aaf80006e28bf505befba28c203c98fbdd0e2), following issue #267 route preference at a72d9bd6cd6c905cc0f9a8691d9304f07034127b. Evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json; focused exact-candidate tests PASS. Local-only; not pushed; external application submission OFF. Verified 2026-10-09T19:10:48Z.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead 359 commits and was not pushed. Issue #115 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/full repository suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:10:48Z.",
-    "current_verified_at": "2026-10-09T19:10:48Z"
+    "current_verified_local_state": "Issue #268 / MJ-REQ-267 reviewed destination save integrated locally to main at b2413668e11b8af84ad4ba0c1d81527b27c3691e (tree f0e3cbb6f202e04df42def163055b173112c83c6). The connected user action rechecks destination identity evidence, persists an idempotent route, reads it back into the picker, and preserves the current selection until explicit user choice. 36 focused Python, 2 component, 1 connected browser tests, TypeScript/Vite build, compilation, lane validation, and diff checks PASS. Evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json; issue OPEN/PARTIAL; hosted/PostgreSQL/live-site/full-suite checks NOT_RUN; external submission OFF.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
+    "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-114-WEIGHTED-SKILL-EVIDENCE-EXPLANATION-20261009",
-  "current_objective": "Expose the deterministic weighted skill-evidence contribution and base coverage arithmetic in connected job-match explanations without overstating qualification or selected-search score.",
+  "current_milestone": "MJ-REQ-267-REVIEWED-EMPLOYER-ROUTE-SAVE-20261009",
+  "current_objective": "After an explicit verified route check, let a user recheck and save the employer/ATS destination as a durable selectable route while preserving the existing route preference.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -95,7 +95,8 @@
     "MJ-REQ-252 / issue #253: editable remote infrastructure search seed with ten documented titles, remote-required/full-time criteria, profile-scoped API save/readback, reload persistence, and Jobs selection; scheduled discovery stayed off. Evidence docs/evidence/2026-10-09-search-profile-seed.json.",
     "MJ-REQ-253 / issue #254: 16 opt-in advisory technology preferences persist with saved searches, display after reload, survive pause/resume, and are selectable for Jobs filtering. They remain separate from required criteria and career facts. Evidence docs/evidence/2026-10-09-default-technology-seed.json.",
     "Dynamic mock-ATS draft recovery: explicit on-device consent, exact profile/application/form-version scope, unreviewed restore, deletion, quota-failure recovery, and no employer writes.",
-    "MJ-REQ-114 weighted coverage breakdown: required/preferred/nice-to-have/missing evidence arithmetic, per-skill contribution, connected job-detail readback, and base-vs-selected-search score distinction verified at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af."
+    "MJ-REQ-114 weighted coverage breakdown: required/preferred/nice-to-have/missing evidence arithmetic, per-skill contribution, connected job-detail readback, and base-vs-selected-search score distinction verified at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af.",
+    "MJ-REQ-267 / issue #268: explicitly rechecked verified employer/ATS destinations can be saved idempotently as selectable routes, read back in the connected picker, and selected only by the user; focused API, UI and connected Chromium acceptance PASS at b2413668e11b8af84ad4ba0c1d81527b27c3691e; evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json. External submission OFF; automatic pre-submit gate remains incomplete."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -15717,13 +15718,14 @@
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
   "updated_at": "2026-10-09T19:10:48Z",
-  "current_verified_local_state": "Issue #267 / MJ-REQ-266 integrated on local main at a72d9bd6cd6c905cc0f9a8691d9304f07034127b (tree 47a9baf9eff07848246f5744bbe62c8002591124). Profile-scoped route preference saves, clears, reads back after reload, and influences default application preparation without outranking verified employer/ATS authority. Focused Python/API 25/25, connected Chromium 1/1, route-preference Vitest 2/2, TypeScript/Vite build, compilation, lane and diff checks PASS. MJ-REQ-266 remains PARTIAL because trusted integrated-board authority evidence is not persisted; external submission OFF.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 357 commits and this source was not pushed. Issue #267 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live ATS NOT_RUN; external application submission OFF. Verified 2026-10-09T18:57:20Z.",
+  "current_verified_local_state": "Issue #268 / MJ-REQ-267 reviewed destination save integrated locally to main at b2413668e11b8af84ad4ba0c1d81527b27c3691e (tree f0e3cbb6f202e04df42def163055b173112c83c6). The connected user action rechecks destination identity evidence, persists an idempotent route, reads it back into the picker, and preserves the current selection until explicit user choice. 36 focused Python, 2 component, 1 connected browser tests, TypeScript/Vite build, compilation, lane validation, and diff checks PASS. Evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json; issue OPEN/PARTIAL; hosted/PostgreSQL/live-site/full-suite checks NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
   "next_candidates": [
     {
       "issue": 517,
       "requirement_id": null,
       "status": "NEXT: reconcile and continue the connected discovered-job-site source candidate catalogue and review workflow; preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF. Reconcile existing claims/worktrees before selecting owned paths."
     }
-  ]
+  ],
+  "current_verified_at": "2026-10-09T19:29:04Z"
 }
