@@ -415,6 +415,7 @@ function App() {
     if(sequence===jobsSequence.current&&id===profileRef.current)setJobs(result.jobs);
   }
   function selectSearchProfile(id:string) {
+    setError('');setNotice('');
     setSelectedSearchProfileId(id);
     const selected=searchProfiles.find(search=>search.id===id&&search.profile_id===profileId);
     const criteria:SearchProfile['criteria']=selected?.criteria||{include_titles:[],remote:'',employment_types:[]};
