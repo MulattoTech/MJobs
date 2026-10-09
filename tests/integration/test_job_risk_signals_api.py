@@ -112,13 +112,16 @@ class JobRiskSignalsApiTests(unittest.TestCase):
             }
 
     def _get_without_network(self, url):
+        return self._get_client_without_network(self.client, url)
+
+    def _get_client_without_network(self, client, url):
         with patch.object(socket, "create_connection",
                           side_effect=AssertionError("network access attempted")), \
                 patch("urllib.request.urlopen",
                       side_effect=AssertionError("network access attempted")), \
                 patch.object(http.client.HTTPConnection, "connect",
                              side_effect=AssertionError("network access attempted")):
-            return self.client.get(url)
+            return client.get(url)
 
     def test_warning_preview_is_advisory_scoped_and_read_only(self):
         before = self._snapshot()
@@ -202,6 +205,28 @@ class JobRiskSignalsApiTests(unittest.TestCase):
 
         self.assertEqual(unavailable.status_code, 503, unavailable.text)
         self.assertEqual(unavailable.json()["detail"]["code"], "RISK_EVALUATION_UNAVAILABLE")
+        self.assertEqual(self._snapshot(), before)
+
+    def test_default_service_contract_maps_local_warning_and_unknowns(self):
+        before = self._snapshot()
+        app = FastAPI()
+        app.include_router(self.router_factory(self.store))
+        client = TestClient(app)
+        self.addCleanup(client.close)
+
+        response = self._get_client_without_network(client, self._url())
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["profile_id"], "fixture")
+        self.assertEqual(body["job_id"], "fixture-risk-job")
+        self.assertIn("EMPLOYER_IDENTITY_UNKNOWN", {item["code"] for item in body["signals"]})
+        self.assertTrue(all(item["label"] == "Potential Risk" for item in body["signals"]))
+        self.assertTrue(all(item["severity"] == "ADVISORY" for item in body["signals"]))
+        self.assertTrue(all(set(item) == {
+            "code", "label", "severity", "reason", "evidence_source", "observed_value",
+        } for item in body["signals"]))
+        self.assertTrue(all(set(item) == {"code", "reason"} for item in body["unknowns"]))
         self.assertEqual(self._snapshot(), before)
 
 
