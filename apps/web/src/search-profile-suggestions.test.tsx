@@ -166,4 +166,50 @@ describe('search profile title suggestions', () => {
       renderer.restore();
     }
   });
+
+  it('server-renders a rejected save as retryable and keeps the same profile/title locked while retry is pending', async () => {
+    let rejectRetry!: (reason: Error) => void;
+    const retrySave = new Promise<void>((_resolve, reject) => { rejectRetry = reject; });
+    const onAddTitle = vi.fn()
+      .mockRejectedValueOnce(new Error('private save detail'))
+      .mockReturnValueOnce(retrySave);
+    const renderer = createStatefulRenderer({ ...props, onAddTitle });
+
+    try {
+      findElements(renderer.render(), 'button')[0].props.onClick?.();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      const errorTree = renderer.render();
+      const errorMarkup = renderToStaticMarkup(errorTree);
+      const retryButton = findElements(errorTree, 'button')[0];
+      expect(errorMarkup).toContain('role="alert"');
+      expect(errorMarkup).toContain('Could not save and confirm this title. You can try again.');
+      expect(errorMarkup).not.toContain('was saved to Infrastructure roles');
+      expect(retryButton.props.disabled).toBe(false);
+
+      retryButton.props.onClick?.();
+      const pendingTree = renderer.render();
+      const pendingButton = findElements(pendingTree, 'button')[0];
+      const pendingMarkup = renderToStaticMarkup(pendingTree);
+      expect(pendingMarkup).toContain('Saving and confirming…');
+      expect(pendingMarkup).toContain('disabled=""');
+      expect(pendingMarkup).not.toContain('was saved to Infrastructure roles');
+      await pendingButton.props.onClick?.();
+      expect(onAddTitle).toHaveBeenCalledTimes(2);
+      expect(onAddTitle).toHaveBeenNthCalledWith(1, 'profile-1', 'Platform Administrator');
+      expect(onAddTitle).toHaveBeenNthCalledWith(2, 'profile-1', 'Platform Administrator');
+
+      rejectRetry(new Error('private readback detail'));
+      await retrySave.catch(() => undefined);
+      await Promise.resolve();
+      const finalMarkup = renderToStaticMarkup(renderer.render());
+      expect(finalMarkup).toContain('role="alert"');
+      expect(finalMarkup).not.toContain('was saved to Infrastructure roles');
+      expect(finalMarkup).not.toContain('private save detail');
+      expect(finalMarkup).not.toContain('private readback detail');
+    } finally {
+      renderer.restore();
+    }
+  });
 });
