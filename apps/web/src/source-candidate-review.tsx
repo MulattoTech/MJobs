@@ -90,6 +90,8 @@ export type SourceCandidateReviewQueueProps = {
   onRetry: () => void;
   busy?: boolean;
   onCandidateUpdated?: (candidate: SourceCandidate) => void;
+  onOpenJob?: (jobId: string) => void;
+  onOpenApplication?: (applicationId: string) => void;
 };
 
 const reviewStates: { state: SourceCandidateReviewState; label: string }[] = [
@@ -235,6 +237,8 @@ export function SourceCandidateReviewQueue({
   onRetry,
   busy = false,
   onCandidateUpdated,
+  onOpenJob,
+  onOpenApplication,
 }: SourceCandidateReviewQueueProps) {
   const [drafts, setDrafts] = useState<Record<string, SourceCandidateReviewDraft>>({});
   const [updatedCandidates, setUpdatedCandidates] = useState<Record<string, SourceCandidate>>({});
@@ -352,6 +356,17 @@ export function SourceCandidateReviewQueue({
                     : observation.job_id || 'None'} · Linked application: {observation.application_context
                     ? `${observation.application_context.state.replaceAll('_', ' ')} (user reported, ${observation.application_context.id})`
                     : observation.application_id || 'None'}</p>
+                  {(observation.job_context && onOpenJob) ||
+                  (observation.application_context && onOpenApplication) ? <div className="toolbar" aria-label="Open linked records">
+                    {observation.job_context && onOpenJob && <button type="button"
+                      onClick={() => onOpenJob(observation.job_context!.id)}>
+                      Open job: {observation.job_context.title} at {observation.job_context.company}
+                    </button>}
+                    {observation.application_context && onOpenApplication && <button type="button"
+                      onClick={() => onOpenApplication(observation.application_context!.id)}>
+                      Open application: {observation.application_context.state.replaceAll('_', ' ')}
+                    </button>}
+                  </div> : null}
                 </li>)}
               </ol> : <p>No evidence observations recorded.</p>}
               {!!candidate.review_history.length && <details>

@@ -250,6 +250,27 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     expect(target).not_to_contain_text("private-token")
                     expect(target).to_contain_text("Collection is disabled. Review does not enable collection.")
 
+                    target.get_by_role(
+                        "button", name="Open job: Systems Administrator at Example Employer",
+                    ).click()
+                    job_detail = page.locator(".job-detail")
+                    expect(job_detail.get_by_role(
+                        "heading", name="Systems Administrator", exact=True,
+                    )).to_be_visible()
+
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    target = page.get_by_role("article", name="Source candidate talenthop.com")
+                    target.get_by_role(
+                        "button", name="Open application: EXTERNALLY APPLIED",
+                    ).click()
+                    application_review = page.get_by_role("region", name="Application review")
+                    expect(application_review).to_be_visible()
+                    expect(application_review).to_contain_text("Systems Administrator")
+                    expect(application_review).to_contain_text("Example Employer")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    target = page.get_by_role("article", name="Source candidate talenthop.com")
+                    expect(target).to_be_visible()
+
                     review = {
                         "site_type": "ATS",
                         "reason": "Synthetic 403 evidence; review only, no access attempt.",
@@ -318,6 +339,9 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                         )).mappings().one()
                         self.assertFalse(saved["collection_enabled"])
 
+                    # The app restores the last opened application on reload; clear
+                    # that separate preference so this assertion can reopen Sources.
+                    page.evaluate("localStorage.removeItem('mjobs-selected-application:fixture')")
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("button", name="Sources", exact=True).click()
                     queue = page.get_by_role("region", name="Source candidate review queue")

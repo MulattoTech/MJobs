@@ -1490,7 +1490,9 @@ function App() {
             <button className="primary" disabled={!!busy||!profileId||!sourceReportUrl.trim()}>Record source URL</button>
           </form>
           <SourceCandidateReviewPanel profileId={profileId||null} client={sourceCandidateReviewClient}
-            refreshToken={sourceCandidates.map(candidate=>`${candidate.id}:${candidate.last_seen_at}:${candidate.state}`).join('|')}/>
+            refreshToken={sourceCandidates.map(candidate=>`${candidate.id}:${candidate.last_seen_at}:${candidate.state}`).join('|')}
+            onOpenJob={jobId=>{setTab('Jobs');void showJob(jobId).catch(error=>setError(String(error)));}}
+            onOpenApplication={applicationId=>{void showApp(applicationId).catch(error=>setError(String(error)));}}/>
           <p className="safety">Review status is not collection authorization. No source is enabled by capture or review.</p>
         </section>
         {operationMode==='PERSONAL'&&<CompanyDiscoveryRequests rows={discoveryRequests} busy={!!busy}

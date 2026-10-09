@@ -67,6 +67,37 @@ describe('source candidate review queue', () => {
     expect(html).toContain('Review state: NEEDS REVIEW');
   });
 
+  it('offers profile-scoped navigation for linked job and application records', () => {
+    const html = render({
+      onOpenJob: vi.fn(),
+      onOpenApplication: vi.fn(),
+    });
+
+    expect(html).toContain('Open job: Systems Administrator at Example Employer');
+    expect(html).toContain('Open application: EXTERNALLY APPLIED');
+  });
+
+  it('does not offer navigation when linked record readback is unavailable', () => {
+    const incompleteCandidate = {
+      ...candidate,
+      observations: [{
+        ...candidate.observations[0],
+        job_context: null,
+        application_context: null,
+      }],
+    };
+    const html = render({
+      candidates: [incompleteCandidate],
+      onOpenJob: vi.fn(),
+      onOpenApplication: vi.fn(),
+    });
+
+    expect(html).not.toContain('Open job:');
+    expect(html).not.toContain('Open application:');
+    expect(html).toContain('Linked job: job-3');
+    expect(html).toContain('Linked application: app-8');
+  });
+
   it('shows accessible loading, empty, no-profile, and retryable error states', () => {
     expect(render({ loading: true, candidates: [] })).toContain('Loading source candidates');
     expect(render({ candidates: [] })).toContain('No source candidates need review for this profile.');

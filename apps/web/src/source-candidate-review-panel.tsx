@@ -153,6 +153,8 @@ export type SourceCandidateReviewPanelProps = {
   profileId: string | null;
   client: SourceCandidateReviewClient;
   refreshToken?: string | number | null;
+  onOpenJob?: (jobId: string) => void;
+  onOpenApplication?: (applicationId: string) => void;
 };
 
 const statePriority: Record<SourceCandidateState, number> = {
@@ -188,7 +190,9 @@ export function filterAndSortSourceCandidates(
       compareStableText(left.domain, right.domain) || compareStableText(left.id, right.id));
 }
 
-export function SourceCandidateReviewPanel({ profileId, client, refreshToken }: SourceCandidateReviewPanelProps) {
+export function SourceCandidateReviewPanel({
+  profileId, client, refreshToken, onOpenJob, onOpenApplication,
+}: SourceCandidateReviewPanelProps) {
   const [controller] = React.useState(() => new SourceCandidateReviewPanelController(client));
   const state = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
 
@@ -235,6 +239,8 @@ export function SourceCandidateReviewPanel({ profileId, client, refreshToken }: 
       loading={!stateMatchesSelection || state.loading}
       error={stateMatchesSelection ? state.error : null}
       onRetry={controller.retry}
+      onOpenJob={onOpenJob}
+      onOpenApplication={onOpenApplication}
     />
   </div>;
 }
