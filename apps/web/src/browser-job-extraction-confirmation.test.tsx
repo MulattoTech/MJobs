@@ -26,7 +26,7 @@ const preview: BrowserJobExtractionResponse = {
   unknown_fields: ['description', 'date_posted', 'valid_through', 'source_job_id'],
   review_required: ['location', 'listing_url'],
 };
-const allAcknowledgements = ['title', 'company', 'location', 'listing_url', 'application_url'] as const;
+const allAcknowledgements = ['title', 'company', 'description', 'location', 'listing_url', 'application_url'] as const;
 
 function props(overrides: Partial<BrowserJobExtractionConfirmationStepProps> = {}): BrowserJobExtractionConfirmationStepProps {
   return {
@@ -105,6 +105,7 @@ describe('browser job extraction confirmation step', () => {
     expect(html).toContain('aria-label="Confirm extracted Title"');
     expect(html).toContain('aria-label="Confirm extracted Company"');
     expect(html).toContain('aria-label="Confirm extracted Application URL"');
+    expect(html).toContain('aria-label="Confirm reviewed job description"');
     expect(controlProps(confirmButton(tree)).disabled).toBe(true);
   });
 
@@ -159,7 +160,7 @@ describe('browser job extraction confirmation step', () => {
     const absent = BrowserJobExtractionConfirmationStep(props({
       preview: noRoutes,
       description: 'Manual description.',
-      confirmedFields: ['title', 'company', 'location'],
+      confirmedFields: ['title', 'company', 'description', 'location'],
     }));
     expect(controlProps(confirmButton(absent)).disabled).toBe(false);
 
@@ -170,6 +171,16 @@ describe('browser job extraction confirmation step', () => {
       confirmedFields: ['title', 'company', 'location'],
     }));
     expect(controlProps(confirmButton(added)).disabled).toBe(true);
+  });
+
+  it('requires a separate acknowledgement when the user removes an extracted route', () => {
+    const tree = BrowserJobExtractionConfirmationStep(props({
+      description: 'Reviewed description.',
+      corrections: { application_url: '' },
+      confirmedFields: ['title', 'company', 'description', 'location', 'listing_url'],
+    }));
+    expect(renderToStaticMarkup(tree)).toContain('aria-label="Confirm removal of extracted Application URL"');
+    expect(controlProps(confirmButton(tree)).disabled).toBe(true);
   });
 
   it('emits the edited description and identity/routes with safe extraction provenance', () => {
@@ -218,7 +229,7 @@ describe('browser job extraction confirmation step', () => {
         listing_url: 'https://jobs.example.test/updated-listing',
         application_url: 'https://jobs.example.test/updated-apply',
       },
-      reviewed_fields: ['title', 'company', 'location', 'listing_url', 'application_url'],
+      reviewed_fields: ['title', 'company', 'description', 'location', 'listing_url', 'application_url'],
       manualDetails: { description: 'Edited role description.' },
     });
     const html = renderToStaticMarkup(edited);

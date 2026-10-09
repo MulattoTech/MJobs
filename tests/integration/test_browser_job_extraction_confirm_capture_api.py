@@ -104,6 +104,14 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     "raw_fields": raw_fields,
                     "field_provenance": field_provenance,
                     "raw_capture_ref": "capture.synthetic-reviewed-confirmation-1",
+                    "review_receipt": {
+                        "schema_version": 1,
+                        "confirmed_by_user": True,
+                        "reviewed_fields": [
+                            "title", "company", "description", "listing_url", "application_url",
+                        ],
+                        "rejected_fields": [],
+                    },
                 },
                 "confirmed_source_job_id": "example-role-41-confirmed",
             },
@@ -272,6 +280,45 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 404, response.text)
         self.assertEqual(self._counts(), before)
+
+    def test_missing_review_receipt_is_rejected_without_writes(self):
+        payload = self._payload("missing-review-receipt")
+        payload["source_details"]["extraction_capture"].pop("review_receipt")
+        before = self._counts()
+
+        response = self._post_without_network(payload)
+
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertIn("explicit user confirmation", response.text)
+        self.assertEqual(self._counts(), before)
+
+    def test_reviewed_rejection_omits_application_route_but_preserves_provenance(self):
+        payload = self._payload("rejected-application-route")
+        capture = payload["source_details"]["extraction_capture"]
+        original_provenance = capture["field_provenance"]["application_url"].copy()
+        capture["review_receipt"]["rejected_fields"] = ["application_url"]
+        payload["application_url"] = None
+        before = self._counts()
+
+        response = self._post_without_network(payload)
+
+        self.assertEqual(response.status_code, 201, response.text)
+        self.assertEqual(self._counts()["job_postings"], before["job_postings"] + 1)
+        job_id = response.json()["job"]["id"]
+        with self.store.engine.connect() as connection:
+            stored_posting = connection.execute(select(m.postings.c.raw).where(
+                m.postings.c.job_id == job_id,
+            )).scalar_one()
+            route_urls = connection.execute(select(m.routes.c.url).where(
+                m.routes.c.job_id == job_id,
+            )).scalars().all()
+        submitted = stored_posting["submitted_fields"]
+        saved_capture = submitted["source_details"]["extraction_capture"]
+        self.assertIsNone(submitted["application_url"])
+        self.assertIsNone(saved_capture["raw_fields"]["application_url"])
+        self.assertEqual(saved_capture["field_provenance"]["application_url"], original_provenance)
+        self.assertEqual(saved_capture["review_receipt"]["rejected_fields"], ["application_url"])
+        self.assertEqual(route_urls, ["https://jobs.example.invalid/roles/sysadmin"])
 
 
 if __name__ == "__main__":

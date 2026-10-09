@@ -55,6 +55,12 @@ def _extraction_capture():
             for field, (source, confidence, review_required) in source_by_field.items()
         },
         "raw_capture_ref": "sha256:fixture-capture-42",
+        "review_receipt": {
+            "schema_version": 1,
+            "confirmed_by_user": True,
+            "reviewed_fields": ["title", "company", "description", "listing_url", "application_url"],
+            "rejected_fields": [],
+        },
     }
 
 
@@ -113,6 +119,12 @@ class ManualCaptureExtractionProvenanceTests(unittest.TestCase):
         self.assertEqual(extraction["schema_version"], 1)
         self.assertEqual(set(extraction["raw_fields"]), set(FIELD_NAMES))
         self.assertEqual(extraction["raw_capture_ref"], "sha256:fixture-capture-42")
+        self.assertEqual(extraction["review_receipt"], {
+            "schema_version": 1,
+            "confirmed_by_user": True,
+            "reviewed_fields": ["title", "company", "description", "listing_url", "application_url"],
+            "rejected_fields": [],
+        })
         self.assertEqual(extraction["raw_fields"]["title"], "Captured Systems Administrator")
         self.assertEqual(extraction["raw_fields"]["description"], "Maintain Linux systems.")
         self.assertEqual(
@@ -241,6 +253,36 @@ class ManualCaptureExtractionProvenanceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "low-confidence identity"):
             capture_manual_job(self.store, payload)
         self.assertEqual(self.store.count("job_postings"), 0)
+
+    def test_extraction_requires_user_receipt_and_every_low_confidence_field_before_writes(self):
+        missing = _payload("manual-extraction-missing-receipt")
+        missing["source_details"]["extraction_capture"].pop("review_receipt")
+        with self.assertRaisesRegex(ValueError, "explicit user confirmation"):
+            capture_manual_job(self.store, missing)
+
+        incomplete = _payload("manual-extraction-incomplete-receipt")
+        incomplete["source_details"]["extraction_capture"]["review_receipt"]["reviewed_fields"].remove(
+            "application_url")
+        with self.assertRaisesRegex(ValueError, "reviewed_fields"):
+            capture_manual_job(self.store, incomplete)
+        self.assertEqual(self.store.count("job_postings"), 0)
+        self.assertEqual(self.store.count("canonical_jobs"), 0)
+        self.assertEqual(self.store.count("application_routes"), 0)
+
+    def test_rejected_optional_route_is_removed_but_its_provenance_is_kept(self):
+        payload = _payload("manual-extraction-rejected-application-route")
+        capture = payload["source_details"]["extraction_capture"]
+        original_provenance = capture["field_provenance"]["application_url"].copy()
+        capture["review_receipt"]["rejected_fields"] = ["application_url"]
+
+        capture_manual_job(self.store, payload)
+
+        stored = self._posting_raw(payload["request_id"])["submitted_fields"]
+        stored_capture = stored["source_details"]["extraction_capture"]
+        self.assertIsNone(stored_capture["raw_fields"]["application_url"])
+        self.assertEqual(stored_capture["field_provenance"]["application_url"], original_provenance)
+        self.assertIsNone(stored["application_url"])
+        self.assertEqual(stored["reference_url"], "https://www.linkedin.com/jobs/view/42")
 
 
 if __name__ == "__main__":

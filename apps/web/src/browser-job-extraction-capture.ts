@@ -43,6 +43,12 @@ export type BrowserJobExtractionCapturePayload = {
         user_corrected: boolean;
       }>;
       raw_capture_ref: string | null;
+      review_receipt: {
+        schema_version: 1;
+        confirmed_by_user: true;
+        reviewed_fields: BrowserJobExtractionFieldName[];
+        rejected_fields: BrowserJobExtractionFieldName[];
+      };
     };
   };
 };
@@ -280,6 +286,14 @@ export function buildBrowserJobExtractionCapturePayload(
     name, sanitizedFieldValue(name, finalValue(confirmation, name)),
   ])) as
     Record<BrowserJobExtractionFieldName, string | null>;
+  const rejectedFields = browserJobExtractionFields.filter(name =>
+    originalValues[name] !== null && finalValues[name] === null,
+  );
+  const rejectedFieldSet = new Set(rejectedFields);
+  const unreviewedRejectedFields = rejectedFields.filter(name => !reviewedAtConfirmation(confirmation, name));
+  if (unreviewedRejectedFields.length) {
+    throw new Error(`Explicitly review each removed extracted field before capture: ${unreviewedRejectedFields.join(', ')}.`);
+  }
   for (const name of browserJobExtractionFields) {
     const value = finalValues[name];
     const limit = maxFieldLengths[name];
@@ -304,9 +318,9 @@ export function buildBrowserJobExtractionCapturePayload(
   if (!referenceUrl && !applicationUrl) {
     throw new Error('Review or add a job reference or application URL before capture.');
   }
-  const identityAndRoutes = ['title', 'company'] as const;
+  const identityAndRoutes = ['title', 'company', 'description'] as const;
   for (const name of identityAndRoutes) {
-    const value = finalValues[name];
+    const value = name === 'description' ? description : finalValues[name];
     if (!value || !reviewedAtConfirmation(confirmation, name)) {
       throw new Error(`Review ${name.replaceAll('_', ' ')} before capture.`);
     }
@@ -364,9 +378,17 @@ export function buildBrowserJobExtractionCapturePayload(
         confirmed_source_job_id: finalValues.source_job_id,
         extraction_capture: {
           schema_version: 1,
-          raw_fields: originalValues,
+          raw_fields: Object.fromEntries(browserJobExtractionFields.map(name => [
+            name, rejectedFieldSet.has(name) ? null : originalValues[name],
+          ])) as Record<BrowserJobExtractionFieldName, string | null>,
           field_provenance: fieldProvenance,
           raw_capture_ref: captureRef,
+          review_receipt: {
+            schema_version: 1,
+            confirmed_by_user: true,
+            reviewed_fields: [...confirmation.reviewed_fields],
+            rejected_fields: rejectedFields,
+          },
         },
       },
     },

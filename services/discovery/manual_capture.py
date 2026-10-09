@@ -129,8 +129,10 @@ def _hops(value) -> list:
 
 
 def _sanitize_extraction_capture(value) -> dict:
+    if isinstance(value, Mapping) and "review_receipt" not in value:
+        raise ValueError("Extraction capture requires explicit user confirmation in review_receipt")
     if not isinstance(value, Mapping) or set(value) != {
-            "schema_version", "raw_fields", "field_provenance", "raw_capture_ref"}:
+            "schema_version", "raw_fields", "field_provenance", "raw_capture_ref", "review_receipt"}:
         raise ValueError("Extraction capture must use the supported bounded schema")
     if type(value.get("schema_version")) is not int or value["schema_version"] != 1:
         raise ValueError("Extraction capture schema version is unsupported")
@@ -145,6 +147,8 @@ def _sanitize_extraction_capture(value) -> dict:
             or not _OPAQUE_CAPTURE_REF.fullmatch(raw_capture_ref)
             or _SENSITIVE_CAPTURE_REF.search(raw_capture_ref)):
         raise ValueError("Extraction capture reference must be a bounded opaque identifier")
+    review_receipt = _sanitize_extraction_review_receipt(value.get("review_receipt"))
+    rejected_fields = set(review_receipt["rejected_fields"])
 
     sanitized_fields = {}
     sanitized_provenance = {}
@@ -167,19 +171,24 @@ def _sanitize_extraction_capture(value) -> dict:
                 and confidence < 0.8 and not review_required):
             raise ValueError(f"Extraction provenance for low-confidence identity field {field} requires review")
         if source == "UNKNOWN":
-            if raw_value is not None or confidence != 0 or review_required:
+            if raw_value is not None or confidence != 0 or review_required or field in rejected_fields:
                 raise ValueError(f"Unknown extraction for {field} must remain explicit")
             sanitized_fields[field] = None
         else:
-            if confidence <= 0 or not isinstance(raw_value, str):
+            if confidence <= 0 or not (raw_value is None or isinstance(raw_value, str)):
                 raise ValueError(f"Extracted value for {field} is invalid")
-            if field in {"listing_url", "application_url"}:
-                sanitized_fields[field] = _url(raw_value, f"Extracted {field}")
-            else:
-                sanitized_fields[field] = _plain_capture_text(
-                    raw_value, field, _EXTRACTION_FIELD_LIMITS[field])
-            if not sanitized_fields[field]:
+            if raw_value is None and field not in rejected_fields:
+                raise ValueError(f"Extracted value for {field} is invalid")
+            sanitized_value = None
+            if isinstance(raw_value, str):
+                if field in {"listing_url", "application_url"}:
+                    sanitized_value = _url(raw_value, f"Extracted {field}")
+                else:
+                    sanitized_value = _plain_capture_text(
+                        raw_value, field, _EXTRACTION_FIELD_LIMITS[field])
+            if field not in rejected_fields and not sanitized_value:
                 raise ValueError(f"Extracted value for {field} is empty")
+            sanitized_fields[field] = None if field in rejected_fields else sanitized_value
         sanitized_provenance[field] = {
             "source": source,
             "confidence": float(confidence),
@@ -192,10 +201,45 @@ def _sanitize_extraction_capture(value) -> dict:
         "raw_fields": sanitized_fields,
         "field_provenance": sanitized_provenance,
         "raw_capture_ref": raw_capture_ref,
+        "review_receipt": review_receipt,
     }
     if len(json.dumps(sanitized, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) > 40_000:
         raise ValueError("Extraction capture exceeds the safe metadata limit")
     return sanitized
+
+
+def _sanitize_extraction_review_receipt(value) -> dict:
+    if not isinstance(value, Mapping) or set(value) != {
+            "schema_version", "confirmed_by_user", "reviewed_fields", "rejected_fields"}:
+        raise ValueError("Extraction review receipt must use the supported bounded schema")
+    if type(value.get("schema_version")) is not int or value["schema_version"] != 1:
+        raise ValueError("Extraction review receipt schema version is unsupported")
+    if value.get("confirmed_by_user") is not True:
+        raise ValueError("Extraction capture requires explicit user confirmation")
+    reviewed_fields = value.get("reviewed_fields")
+    rejected_fields = value.get("rejected_fields")
+    if (not isinstance(reviewed_fields, list) or len(reviewed_fields) > len(_EXTRACTION_FIELDS)
+            or any(not isinstance(field, str) or field not in _EXTRACTION_FIELDS
+                   for field in reviewed_fields)
+            or len(set(reviewed_fields)) != len(reviewed_fields)):
+        raise ValueError("Extraction review receipt reviewed_fields are invalid")
+    if (not isinstance(rejected_fields, list) or len(rejected_fields) > len(_EXTRACTION_FIELDS)
+            or any(not isinstance(field, str) or field not in _EXTRACTION_FIELDS
+                   for field in rejected_fields)
+            or len(set(rejected_fields)) != len(rejected_fields)):
+        raise ValueError("Extraction review receipt rejected_fields are invalid")
+    if not set(rejected_fields).issubset(reviewed_fields):
+        raise ValueError("Rejected extraction fields must be a subset of reviewed_fields")
+    if {"title", "company", "description"}.difference(reviewed_fields):
+        raise ValueError("Extraction review receipt reviewed_fields must cover title, company, and description")
+    if {"title", "company", "description"}.intersection(rejected_fields):
+        raise ValueError("Required extraction fields cannot be rejected")
+    return {
+        "schema_version": 1,
+        "confirmed_by_user": True,
+        "reviewed_fields": reviewed_fields,
+        "rejected_fields": rejected_fields,
+    }
 
 
 def _sanitize_source_details(value) -> dict:
@@ -268,6 +312,59 @@ def _validate_user_corrections(data: dict, source_details: dict) -> None:
             raise ValueError(f"Changed extracted value for {field} must be marked as user corrected")
 
 
+def _validate_extraction_confirmation(data: dict, source_details: dict) -> None:
+    extraction = source_details.get("extraction_capture")
+    confirmation = extraction.get("review_receipt") if extraction is not None else None
+    if extraction is None:
+        if confirmation is not None:
+            raise ValueError("Extraction review receipt requires an extraction capture")
+        return
+    if confirmation is None:
+        raise ValueError("Extraction capture requires explicit user confirmation")
+    reviewed_fields = set(confirmation["reviewed_fields"])
+    required = {"title", "company", "description"}
+    required.update(
+        field for field in _EXTRACTION_FIELDS
+        if extraction["field_provenance"][field]["review_required"]
+    )
+    route_fields = {
+        field for field, value in (
+            ("listing_url", data.get("reference_url")),
+            ("application_url", data.get("application_url")),
+        ) if value
+    }
+    route_fields.difference_update(confirmation["rejected_fields"])
+    if not route_fields:
+        raise ValueError("Extraction confirmation requires a valid listing or application route")
+    unreviewed_routes = route_fields - reviewed_fields
+    if unreviewed_routes:
+        missing = ", ".join(sorted(unreviewed_routes))
+        raise ValueError(f"Extraction confirmation reviewed_fields must cover every supplied route: {missing}")
+    if not required.issubset(reviewed_fields):
+        missing = ", ".join(sorted(required - reviewed_fields))
+        raise ValueError(f"Extraction confirmation reviewed_fields must cover: {missing}")
+
+
+def _apply_rejected_extraction_fields(data: dict, source_details: dict) -> None:
+    extraction = source_details.get("extraction_capture")
+    if extraction is None:
+        return
+    rejected_fields = set(extraction["review_receipt"]["rejected_fields"])
+    for field in rejected_fields:
+        if field == "listing_url":
+            data["reference_url"] = None
+        elif field == "application_url":
+            data["application_url"] = None
+        elif field == "location":
+            data["location"] = "Unknown"
+        elif field in {"employment_type", "date_posted", "valid_through"}:
+            data[field] = None
+        elif field == "source_job_id":
+            data["source_job_id"] = None
+            if "confirmed_source_job_id" in source_details:
+                source_details["confirmed_source_job_id"] = None
+
+
 def _reject_raw_capture_content(data: dict) -> None:
     for key in data:
         if (isinstance(key, str)
@@ -298,6 +395,10 @@ def capture_manual_job(store, submitted: dict) -> dict:
         data["observed_hops"] = _hops(data["observed_hops"])
     if "source_details" in data:
         data["source_details"] = _sanitize_source_details(data["source_details"])
+    _apply_rejected_extraction_fields(data, data.get("source_details") or {})
+    reference_url = data.get("reference_url")
+    application_url = data.get("application_url")
+    _validate_extraction_confirmation(data, data.get("source_details") or {})
     _validate_user_corrections(data, data.get("source_details") or {})
     route_url = application_url or reference_url
     source_url = reference_url or application_url

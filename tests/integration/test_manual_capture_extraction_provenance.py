@@ -33,7 +33,7 @@ def _capture_payload():
         "date_posted": ("UNKNOWN", 0.0, False, False),
         "valid_through": ("UNKNOWN", 0.0, False, False),
         "source_job_id": ("UNKNOWN", 0.0, False, False),
-        "listing_url": ("PROVIDER_FIELDS", 0.9, False, False),
+        "listing_url": ("PROVIDER_FIELDS", 0.9, False, True),
         "application_url": ("VISIBLE_TEXT", 0.65, True, True),
     }
     extraction_capture = {
@@ -49,6 +49,12 @@ def _capture_payload():
             for field, (source, confidence, review_required, corrected) in sources.items()
         },
         "raw_capture_ref": "sha256:integration-fixture-7",
+        "review_receipt": {
+            "schema_version": 1,
+            "confirmed_by_user": True,
+            "reviewed_fields": ["title", "company", "description", "location", "listing_url", "application_url"],
+            "rejected_fields": [],
+        },
     }
     return {
         "profile_id": "fixture",
@@ -105,6 +111,12 @@ class ManualCaptureExtractionProvenanceIntegrationTests(unittest.TestCase):
         self.assertEqual(persisted["title"], "Senior Systems Administrator")
         self.assertEqual(persisted["location"], "Oklahoma, Remote")
         extraction = persisted["source_details"]["extraction_capture"]
+        self.assertEqual(extraction["review_receipt"], {
+            "schema_version": 1,
+            "confirmed_by_user": True,
+            "reviewed_fields": ["title", "company", "description", "location", "listing_url", "application_url"],
+            "rejected_fields": [],
+        })
         self.assertEqual(extraction["raw_fields"]["title"], "Systems Administrator")
         self.assertEqual(extraction["field_provenance"]["title"]["user_corrected"], True)
         self.assertEqual(extraction["field_provenance"]["location"]["source"], "VISIBLE_TEXT")

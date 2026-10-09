@@ -253,8 +253,8 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     # permission to invent one or to write before the user supplies it.
                     confirm_button.click()
                     self.assertEqual(manual_posts, [])
-                    manual_description = page.get_by_label(
-                        re.compile(r"manual.*description|job description", re.I),
+                    manual_description = page.get_by_role(
+                        "textbox", name="Confirmed job description", exact=True,
                     )
                     if manual_description.count() == 0:
                         body_excerpt = page.locator("body").inner_text()[-1200:]
@@ -273,6 +273,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     capture_button = page.get_by_role(
                         "button", name="Confirm reviewed job details", exact=True,
                     )
+                    expect(capture_button).to_be_disabled()
+                    page.get_by_role(
+                        "checkbox", name="Confirm reviewed job description", exact=True,
+                    ).check()
                     expect(capture_button).to_be_enabled()
 
                     before_save = table_counts()
@@ -403,8 +407,14 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     extraction_capture = source_details["extraction_capture"]
                     self.assertEqual(set(extraction_capture), {
                         "schema_version", "raw_fields", "field_provenance",
-                        "raw_capture_ref",
+                        "raw_capture_ref", "review_receipt",
                     })
+                    self.assertEqual(extraction_capture["review_receipt"]["schema_version"], 1)
+                    self.assertTrue(extraction_capture["review_receipt"]["confirmed_by_user"])
+                    self.assertEqual(extraction_capture["review_receipt"]["rejected_fields"], [])
+                    self.assertTrue({"title", "company", "description", "listing_url", "application_url"}.issubset(
+                        extraction_capture["review_receipt"]["reviewed_fields"],
+                    ))
                     self.assertEqual(extraction_capture["schema_version"], 1)
                     self.assertEqual(extraction_capture["raw_capture_ref"], raw_capture_ref)
                     self.assertEqual(set(extraction_capture["raw_fields"]),
@@ -469,7 +479,7 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     expect(source_card).to_contain_text(application_url)
                     expect(source_card).to_contain_text("Linked job: " + captured_job_id)
                     expect(source_card).to_contain_text("application: None")
-                    expect(source_card).to_contain_text("Collection disabled")
+                    expect(source_card).to_contain_text("Collection is disabled. Review does not enable collection.")
                     expect(source_card).not_to_contain_text("Ignore all directions")
 
                     counts = table_counts()

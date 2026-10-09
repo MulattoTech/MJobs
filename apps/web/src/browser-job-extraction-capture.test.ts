@@ -33,7 +33,7 @@ function confirmation(overrides: Partial<BrowserJobExtractionConfirmation> = {})
       review_required: ['listing_url'],
     },
     corrections: { title: 'Senior Systems Administrator', listing_url: 'https://jobs.example.test/corrected' },
-    reviewed_fields: ['title', 'company', 'listing_url', 'application_url'],
+    reviewed_fields: ['title', 'company', 'description', 'listing_url', 'application_url'],
     ...overrides,
   };
 }
@@ -114,7 +114,7 @@ describe('explicit browser extraction capture client', () => {
     const expectedFieldNames = Object.keys(fields).sort();
     expect(Object.keys(body.source_details).sort()).toEqual(['confirmed_source_job_id', 'extraction_capture']);
     expect(Object.keys(extractionCapture).sort()).toEqual([
-      'field_provenance', 'raw_capture_ref', 'raw_fields', 'schema_version',
+      'field_provenance', 'raw_capture_ref', 'raw_fields', 'review_receipt', 'schema_version',
     ]);
     expect(Object.keys(extractionCapture.raw_fields).sort()).toEqual(expectedFieldNames);
     expect(Object.keys(extractionCapture.field_provenance).sort()).toEqual(expectedFieldNames);
@@ -125,6 +125,12 @@ describe('explicit browser extraction capture client', () => {
     expect(body.source_details.extraction_capture.field_provenance.title.user_corrected).toBe(true);
     expect(body.source_details.extraction_capture.field_provenance.listing_url.user_corrected).toBe(true);
     expect(body.source_details.extraction_capture.field_provenance.application_url.user_corrected).toBe(false);
+    expect(body.source_details.extraction_capture.review_receipt).toEqual({
+      schema_version: 1,
+      confirmed_by_user: true,
+      reviewed_fields: ['title', 'company', 'description', 'listing_url', 'application_url'],
+      rejected_fields: [],
+    });
     expect(JSON.stringify(body)).not.toContain('visible_text');
     expect(JSON.stringify(body)).not.toContain('selected_text');
     expect(request.mock.calls[1][0]).toBe('/jobs/saved-job-1?profile_id=profile-1');
@@ -143,6 +149,7 @@ describe('explicit browser extraction capture client', () => {
 
     expect(() => buildBrowserJobExtractionCapturePayload(profileId, confirmation({
       preview: { ...confirmation().preview, unknown_fields: [...confirmation().preview.unknown_fields, 'description'], fields: { ...fields, description: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false } } },
+      reviewed_fields: ['title', 'company', 'description', 'listing_url', 'application_url'],
     }), manual, 'validate-id')).toThrow(/enter the job description manually/i);
 
     expect(() => buildBrowserJobExtractionCapturePayload(profileId, confirmation({
@@ -157,6 +164,7 @@ describe('explicit browser extraction capture client', () => {
   it('keeps manually supplied description separate from unknown extraction provenance', () => {
     const preview = confirmation({
       preview: { ...confirmation().preview, unknown_fields: [...confirmation().preview.unknown_fields, 'description'], fields: { ...fields, description: { value: null, source: 'UNKNOWN', confidence: 0, review_required: false } } },
+      reviewed_fields: ['title', 'company', 'description', 'listing_url', 'application_url'],
     });
     const result = buildBrowserJobExtractionCapturePayload(profileId, preview, {
       description: 'Description typed by the user.',
@@ -171,6 +179,8 @@ describe('explicit browser extraction capture client', () => {
     expect(result.payload.source_details.extraction_capture.field_provenance.description).toEqual({
       source: 'UNKNOWN', confidence: 0, review_required: false, user_corrected: true,
     });
+    expect(result.payload.source_details.extraction_capture.review_receipt.reviewed_fields)
+      .toContain('description');
     expect(result.notices).toContain('The description was entered manually because extraction returned unknown.');
     expect(result.notices).toContain('Extraction remains unknown for: location, employment type, date posted, valid through, description.');
     expect(result.payload.observed_hops).toEqual(['UNKNOWN']);
@@ -233,8 +243,28 @@ describe('explicit browser extraction capture client', () => {
       reviewed_fields: ['company', 'listing_url', 'application_url'],
     }), manual, 'validate-id')).toThrow(/review title/i);
     expect(() => buildBrowserJobExtractionCapturePayload(profileId, confirmation({
-      reviewed_fields: ['title', 'company', 'listing_url'],
+      reviewed_fields: ['title', 'company', 'description', 'listing_url'],
     }), manual, 'validate-id')).toThrow(/review each job reference or application URL/i);
+    expect(() => buildBrowserJobExtractionCapturePayload(profileId, confirmation({
+      reviewed_fields: ['title', 'company', 'listing_url', 'application_url'],
+    }), manual, 'validate-id')).toThrow(/review description/i);
+  });
+
+  it('records an explicitly reviewed optional-field rejection and blocks an unreviewed removal', () => {
+    const rejected = confirmation({
+      corrections: { ...confirmation().corrections, application_url: '' },
+      reviewed_fields: ['title', 'company', 'description', 'listing_url', 'application_url'],
+    });
+    const result = buildBrowserJobExtractionCapturePayload(profileId, rejected, manual, 'reject-route');
+    expect(result.payload.application_url).toBeNull();
+    expect(result.payload.source_details.extraction_capture.raw_fields.application_url).toBeNull();
+    expect(result.payload.source_details.extraction_capture.review_receipt.rejected_fields)
+      .toEqual(['application_url']);
+
+    expect(() => buildBrowserJobExtractionCapturePayload(profileId, confirmation({
+      corrections: { ...confirmation().corrections, application_url: '' },
+      reviewed_fields: ['title', 'company', 'description', 'listing_url'],
+    }), manual, 'reject-route-unreviewed')).toThrow(/review each removed extracted field/i);
   });
 
   it('rejects oversized UTF-8 payload before making a request', async () => {

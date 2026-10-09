@@ -54,7 +54,10 @@ function requiredAcknowledgements(
   preview: BrowserJobExtractionResponse,
   corrections: BrowserJobExtractionCorrections,
 ): BrowserJobExtractionFieldName[] {
-  const required = new Set<BrowserJobExtractionFieldName>(['title', 'company']);
+  const required = new Set<BrowserJobExtractionFieldName>(['title', 'company', 'description']);
+  for (const field of editableFields) {
+    if (Object.prototype.hasOwnProperty.call(corrections, field)) required.add(field);
+  }
   for (const field of preview.review_required) {
     if ((browserJobExtractionFields as readonly string[]).includes(field)) required.add(field as BrowserJobExtractionFieldName);
   }
@@ -129,9 +132,11 @@ export function BrowserJobExtractionConfirmationStep({
             {correctionErrors[field] && <p role="alert">{correctionErrors[field]}</p>}
             {requiredFields.includes(field) && <label><input
               type="checkbox"
-              aria-label={preview.fields[field].review_required
-                ? `Confirm low-confidence ${fieldLabels[field]}`
-                : `Confirm extracted ${fieldLabels[field]}`}
+              aria-label={Object.prototype.hasOwnProperty.call(corrections, field) && !corrections[field]?.trim()
+                ? `Confirm removal of extracted ${fieldLabels[field]}`
+                : preview.fields[field].review_required
+                  ? `Confirm low-confidence ${fieldLabels[field]}`
+                  : `Confirm extracted ${fieldLabels[field]}`}
               checked={confirmedFields.includes(field)}
               onChange={event => onReviewFieldChange(field, event.currentTarget.checked)}
               disabled={pending}
@@ -152,13 +157,20 @@ export function BrowserJobExtractionConfirmationStep({
         disabled={pending}
       />
     </label>
+    <label><input
+      type="checkbox"
+      aria-label="Confirm reviewed job description"
+      checked={confirmedFields.includes('description')}
+      onChange={event => onReviewFieldChange('description', event.currentTarget.checked)}
+      disabled={pending}
+    />I reviewed this description text</label>
     {missingDescription && <p role="alert">Enter the job description manually before confirming. It will not be inferred from page instructions.</p>}
     {!missingDescription && <p>Use the extracted description only after checking it against the job posting. You can edit it here.</p>}
 
     <h3>Fields requiring review</h3>
     {preview.review_required.length === 0
       ? <p>No extracted fields were flagged for low confidence.</p>
-      : <ul>{requiredFields.filter(field => !editableFields.includes(field as EditableField)).map(field => {
+      : <ul>{requiredFields.filter(field => field !== 'description' && !editableFields.includes(field as EditableField)).map(field => {
         const extracted = preview.fields[field];
         const value = extracted.value ?? 'Unknown';
         return <li key={field}>
