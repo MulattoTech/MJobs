@@ -44,6 +44,8 @@ def application_documents(store, application_id, output_dir=None):
         rows = [dict(row) for row in connection.execute(select(m.documents).where(
             m.documents.c.application_id == application_id).order_by(
             m.documents.c.version.desc(), m.documents.c.kind)).mappings()]
+        from services.documents.answer_story_citations import answer_story_citations_by_document
+        story_citations = answer_story_citations_by_document(connection, application_id)
         facts = {}
         versions = {row['profile_version'] for row in rows}
         if versions:
@@ -54,6 +56,8 @@ def application_documents(store, application_id, output_dir=None):
         for row in rows:
             row['job_id'] = application['job_id']
             row['profile_id'] = application['profile_id']
+            if row['kind'] == 'application-answer-export':
+                row['story_citations'] = story_citations.get(row['id'], [])
             row['legacy_job_context_missing'] = bool(row['kind'] == 'cover-letter'
                 and row['template'] == 'verified-facts-v1' and not row.get('generation_context'))
             row['facts_used'] = [facts[(row['profile_version'], identifier)] for identifier in row['fact_ids']

@@ -317,10 +317,41 @@ class ApplicationAnswerItem(BaseModel):
         return self
 
 
+class ApplicationAnswerStoryFactProvenanceInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    fact_id: str = Field(min_length=1, max_length=128)
+    fingerprint: str = Field(min_length=64, max_length=64)
+
+
+class ApplicationAnswerStoryCitationInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    item_index: int = Field(ge=0, le=99)
+    story_id: str = Field(min_length=1, max_length=128)
+    revision: int = Field(ge=1, le=2147483647)
+    fact_provenance: list[ApplicationAnswerStoryFactProvenanceInput] = Field(
+        min_length=1, max_length=100)
+
+    @model_validator(mode="after")
+    def unique_fact_references(self):
+        if (not self.story_id.strip()
+                or len({fact.fact_id for fact in self.fact_provenance}) != len(self.fact_provenance)
+                or any(not fact.fact_id.strip() for fact in self.fact_provenance)):
+            raise ValueError("APPLICATION_ANSWER_STORY_CITATION_INVALID")
+        return self
+
+
 class ApplicationAnswerExportInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     profile_id: str = Field(min_length=1, max_length=128)
     items: list[ApplicationAnswerItem] = Field(min_length=1, max_length=100)
+    citations: list[ApplicationAnswerStoryCitationInput] = Field(default_factory=list, max_length=100)
+
+    @model_validator(mode="after")
+    def unique_story_citations(self):
+        identities = [(row.item_index, row.story_id, row.revision) for row in self.citations]
+        if len(set(identities)) != len(identities):
+            raise ValueError("APPLICATION_ANSWER_STORY_CITATION_INVALID")
+        return self
 
 
 class SensitiveAnswerSuggestionInput(BaseModel):
@@ -1821,12 +1852,26 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.post("/profiles/{profile_id}/applications/{application_id}/answers/export", status_code=201)
     def export_application_answers(profile_id: str, application_id: str, value: ApplicationAnswerExportInput):
         from services.documents.answers import export_answers
+        from services.documents.answer_story_citations import (
+            AnswerStoryCitationError,
+            record_answer_story_citations,
+            validate_answer_story_citations,
+        )
         application = store.application(application_id)
         if application["profile_id"] != profile_id or value.profile_id != profile_id:
             raise NoResultFound("Application is not owned by this profile")
+        try:
+            citations = validate_answer_story_citations(
+                store, profile_id, value.items, value.citations)
+        except AnswerStoryCitationError as error:
+            raise HTTPException(422, {"code": error.code}) from None
         record = export_answers(store, application_id, output_dir, value.items)
+        record_answer_story_citations(
+            store, application_id=application_id, document_id=record["id"],
+            document_version=record["version"], citations=citations)
         return {"document_id": record["id"], "version": record["version"],
-                "sha256": record["sha256"]["txt"], "external_submission": "OFF"}
+                "sha256": record["sha256"]["txt"], "external_submission": "OFF",
+                "story_citation_count": len(citations)}
 
     @app.get('/profiles/{profile_id}/applications/{application_id}/document-comparison')
     def document_comparison(profile_id: str, application_id: str, base_document_id: str, tailored_document_id: str):

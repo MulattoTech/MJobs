@@ -23,7 +23,7 @@ import { matchCategory } from './match-category';
 import { JobMatchScoreFilter } from './job-match-score-filter';
 import { isSensitiveAnswerQuestion, suggestAnswers } from './answer-matching';
 import { ApplicationAnswerMatching } from './application-answer-matching';
-import { ApplicationStoryReferenceWorkspace } from './application-story-reference-workspace';
+import { ApplicationStoryReferenceWorkspace, type ApplicationStoryCitation } from './application-story-reference-workspace';
 import { JobRiskSignalsPanel, type JobRiskSignalsResponse } from './job-risk-signals';
 import { RecruiterClassificationCard, type RecruiterClassification } from './recruiter-classification';
 import {
@@ -99,7 +99,7 @@ type ApplicationTracking = {status:string|null;attribution:'USER_REPORTED'|'EXTE
 type Application = {id:string; title:string; company:string; state:string; target:string; job_id:string; profile_id:string; route_id?:string; route_choices?:{route_id:string;underlying_key:string;requested_mode:string;state:string}[]; adapter_knowledge?:{provider:string|null;tenant_identifier:string|null;basis:string;adapter_status:string;external_submission_enabled:boolean}; document_version:number; profile_version:string; fact_ids:string[]; trace:string[]; confirmation:Record<string,unknown>|null; question_preflight?:{result:'PASS'|'FAIL'|'UNKNOWN';reason:string|null;observed_at:string;missing:{question_id:string;question:string;fact_ids?:string[];answer_ids?:string[];profile_paths?:string[];document_kinds?:string[];application_context?:string[]}[]}|null; pipeline_status?:string|null; pipeline_attribution?:string|null; external_reports?:{source:string;applied_at:string;application_url?:string;sequence:number;timestamp:string}[]; answer_bank?:Answer[]; attempts?:{state:string; started_at:string;steps:string[]}[]};
 type AnswerConfidencePolicy = {minimum_saved_answer_confidence:number;minimum_question_match_confidence:number};
 type SensitiveAnswerSuggestion = {category:string|null;response:string;mode:'PREFER_NOT_TO_ANSWER'|'USE_CONFIGURED_RESPONSE'|'ALWAYS_REQUIRE_REVIEW';source?:'PROFILE_CONFIGURATION';review_required:true};
-type AnswerDraft = {question:string;text:string;answer_id?:string;reviewed:boolean;bankConfidence?:number;bankConsent?:boolean;sensitivePolicySuggestion?:SensitiveAnswerSuggestion;matchResponse?:ApplicationAnswerMatchResponse|null;matchLoading?:boolean;matchError?:string};
+type AnswerDraft = {question:string;text:string;answer_id?:string;reviewed:boolean;storyCitation?:ApplicationStoryCitation;bankConfidence?:number;bankConsent?:boolean;sensitivePolicySuggestion?:SensitiveAnswerSuggestion;matchResponse?:ApplicationAnswerMatchResponse|null;matchLoading?:boolean;matchError?:string};
 type Doc = GeneratedDocument;
 type DocumentArchiveLibrary = {
   uploaded: (Resume & {revision_id?:string;document_kind?:string;archived_at?:string|null})[];
@@ -971,11 +971,15 @@ function App() {
   async function exportAnswers() {
     if(!selectedApp||!profileId)throw new Error('Select an application and profile before exporting answers');
     const items=answerDrafts.map(({question,text,answer_id,reviewed})=>({question,text,...(answer_id?{answer_id}:{}),reviewed}));
-    const result=await api<{document_id:string}>(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(selectedApp.id)}/answers/export`,{method:'POST',body:JSON.stringify({profile_id:profileId,items})});
+    const citations=answerDrafts.flatMap((draft,item_index)=>draft.storyCitation? [{
+      item_index,story_id:draft.storyCitation.story_id,revision:draft.storyCitation.revision,
+      fact_provenance:draft.storyCitation.fact_provenance,
+    }]:[]);
+    const result=await api<{document_id:string;story_citation_count:number}>(`/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(selectedApp.id)}/answers/export`,{method:'POST',body:JSON.stringify({profile_id:profileId,items,citations})});
     await showApp(selectedApp.id);setNotice(`Reviewed answer export saved as document ${result.document_id.slice(0,10)}.`);
   }
   function editAnswerQuestion(index:number,question:string) {
-    setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,question,text:row.answer_id?'':row.text,answer_id:undefined,reviewed:false,bankConsent:false,bankConfidence:undefined,sensitivePolicySuggestion:undefined,matchResponse:null,matchError:'',matchLoading:false}:row));
+    setAnswerDrafts(rows=>rows.map((row,i)=>i===index?{...row,question,text:row.answer_id?'':row.text,answer_id:undefined,reviewed:false,storyCitation:undefined,bankConsent:false,bankConfidence:undefined,sensitivePolicySuggestion:undefined,matchResponse:null,matchError:'',matchLoading:false}:row));
     const pending=sensitiveSuggestionTimers.current.get(index);
     if(pending!==undefined)window.clearTimeout(pending);
     if(!profileId||!selectedApp||!isSensitiveAnswerQuestion(question))return;
@@ -1434,8 +1438,15 @@ function App() {
                     };
                   },
                 }}
-                onCitationChange={() => {}}
+                onCitationChange={citation=>setAnswerDrafts(rows=>rows.map((row,rowIndex)=>{
+                  if(rowIndex!==index||row.question!==draft.question)return row;
+                  if(!citation)return {...row,storyCitation:undefined};
+                  if(citation.profile_id!==profileId||citation.application_id!==selectedApp.id||
+                    citation.question!==row.question)return row;
+                  return {...row,storyCitation:citation};
+                }))}
               />
+              {draft.storyCitation&&<p className="muted">The reviewed story and fact references will be retained with this answer’s export. They do not change answer text or enter the TXT file.</p>}
               {sensitive&&sensitiveSuggestion?.source==='PROFILE_CONFIGURATION'&&sensitiveSuggestion.category&&!!sensitiveSuggestion.response&&<div className="provenance" aria-label={`Profile preference suggestion for question ${index+1}`}>
                 <p>Profile preference · {sensitiveSuggestion.mode==='PREFER_NOT_TO_ANSWER'?'Prefer not to answer':'Configured response'}</p>
                 <p>Proposed from this profile's explicit policy. This response requires review for this application.</p>

@@ -291,6 +291,76 @@ class ApplicationAnswerStoryReferenceBrowserTests(unittest.TestCase):
                         current_story["story_id"],
                         {row["story_id"] for row in other_scope.json()["story_references"]},
                     )
+
+                    # A separately reviewed citation follows its answer into the local export
+                    # history, while the exported answer bytes remain unchanged.
+                    matching = page.get_by_role("region", name="Saved answer matches", exact=True)
+                    with page.expect_response(
+                        lambda response: response.request.method == "POST"
+                        and response.url.endswith(ANSWER_MATCH_ROUTE.format(application_id=application_id))
+                    ) as final_match:
+                        matching.get_by_role("button", name="Find saved answer matches", exact=True).click()
+                    self.assertEqual(final_match.value.status, 200, final_match.value.text)
+                    reference_region = page.get_by_role(
+                        "region", name="Application story references", exact=True
+                    )
+                    with page.expect_response(
+                        lambda response: response.request.method == "POST"
+                        and response.url.endswith(ANSWER_MATCH_ROUTE.format(application_id=application_id))
+                    ) as final_reference:
+                        reference_region.get_by_role(
+                            "button", name="Load approved story references", exact=True
+                        ).click()
+                    self.assertEqual(final_reference.value.status, 200, final_reference.value.text)
+                    reference_region.get_by_label(
+                        "I reviewed these approved story references for this answer", exact=True
+                    ).check()
+                    reference_region.get_by_role(
+                        "radio", name="Select Synthetic Linux service support revision 1 as a citation", exact=True
+                    ).check()
+                    answer_box.fill("I maintained four synthetic Linux service test sites.")
+                    page.get_by_label("I reviewed this exact answer for this job", exact=True).check()
+                    export_button = page.get_by_role(
+                        "button", name="Save reviewed answers and export TXT", exact=True
+                    )
+                    expect(export_button).to_be_enabled()
+                    with page.expect_response(
+                        lambda response: response.request.method == "POST"
+                        and response.url.endswith(
+                            f"/profiles/fixture/applications/{application_id}/answers/export")
+                    ) as exported_response:
+                        export_button.click()
+                    self.assertEqual(exported_response.value.status, 201, exported_response.value.text)
+                    request_payload = exported_response.value.request.post_data_json
+                    self.assertEqual(request_payload["citations"], [{
+                        "item_index": 0,
+                        "story_id": current_story["story_id"],
+                        "revision": 1,
+                        "fact_provenance": [{
+                            "fact_id": "answer-story-fact-current",
+                            "fingerprint": approved_current["fact_fingerprints"][0]["fingerprint"],
+                        }],
+                    }])
+                    export_body = exported_response.value.json()
+                    self.assertEqual(export_body["story_citation_count"], 1)
+                    document_id = export_body["document_id"]
+                    document_history = context.request.get(
+                        origin + f"/profiles/fixture/applications/{application_id}/documents")
+                    self.assertEqual(document_history.status, 200, document_history.text())
+                    saved_export = next(row for row in document_history.json()["documents"]
+                                        if row["id"] == document_id)
+                    self.assertEqual(saved_export["story_citations"], request_payload["citations"])
+                    txt = context.request.get(
+                        origin + f"/profiles/fixture/documents/{document_id}/txt")
+                    self.assertEqual(txt.status, 200, txt.text())
+                    self.assertIn("I maintained four synthetic Linux service test sites.", txt.text())
+                    self.assertNotIn(CURRENT_STORY_TEXT, txt.text())
+                    history_panel = page.get_by_role(
+                        "region", name="application-answer-export version 1", exact=True
+                    )
+                    expect(history_panel).to_contain_text("Reviewed story citations")
+                    expect(history_panel).to_contain_text(current_story["story_id"])
+                    expect(history_panel).to_contain_text("answer-story-fact-current")
                     self.assertEqual(outside_requests, [])
                     context.close()
                     browser.close()
