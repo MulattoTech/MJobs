@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-247"
+  ],
+  "github_issues": [
+    248
+  ],
+  "result": "PASS",
+  "scope": "After repeated parser failures for a configured company job source, the durable source record and its configuration remain available; the terminal monitoring state and all failure history survive a fresh Store connection and remain readable in the profile-facing source projection.",
+  "source": {
+    "branch": "codex/solo-mj-req247-preserve-failed-sources-20261009",
+    "base": "601200d81d886f1e92b7a8393f38e0cd5dc69166",
+    "tested_commit": "7a2563c768cb74005d04cf8b8776dfbe1b4b3b33",
+    "tested_tree": "83d015cf48d79f5fb94ce580bf25e1d9fd40770d",
+    "tested_source_sha256": {
+      "services/company_discovery/monitoring.py": "061B0D46AA7888C62A6A27B8CED756AD928DA41AC3188009FD982AB8A29C5BF2",
+      "services/company_discovery/sources.py": "AA6489629A51531A03B759C4C3F07AF3FEF5CFB460F6C7B7472BD41CDADE2FA5",
+      "apps/web/src/company-source-monitoring.tsx": "9033576CD203E2B65ED6792C05281F87DE28222AA74B9B01D1EBCB3D9E3C69E8",
+      "tests/integration/test_company_source_monitoring.py": "9C1BC71D42A4B7C768456D33113450401896B037585727EB419CDA8A77D3B9AB"
+    }
+  },
+  "verified_at_utc": "2026-10-09T20:22:07Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite synthetic employer/profile, reopened through a fresh Store connection",
+    "browser": "local connected Chromium; network restricted to the test origin",
+    "delivery": "local-only; hosted automation/review disabled; external application submission OFF"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_company_source_monitoring -v",
+      "result": "PASS",
+      "evidence": "8 tests passed. New regression induces three synthetic HTTP 503 parser failures, reopens the SQLite store, and checks the same source ID, enabled flag, provider, career URL, collection strategy, endpoint, FAILED status, failure_count=3, and three durable COMPANY_SOURCE_REFRESH_FAILED events."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_company_source_monitoring -v",
+      "result": "PASS",
+      "evidence": "Connected Chromium workflow passed for source review, monitor controls, source history visibility, preference persistence/readback after reload, and safety controls. This browser test does not simulate parser failure; failure-state persistence is covered by the integration regression."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/integration/test_company_source_monitoring.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Test compilation and whitespace validation passed on exact test commit."
+    }
+  ],
+  "not_run": [
+    "PostgreSQL validation and full repository suites.",
+    "Live company source/provider requests.",
+    "Hosted Actions or hosted reviews (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "Evidence establishes preservation for the monitored company-source/parser path; it does not claim a full audit of every source adapter deletion or archival policy.",
+    "No production code change was necessary; the regression test documents behavior already implemented in the current source lifecycle."
+  ],
+  "safety": [
+    "All parser responses were synthetic and network access was not used for the failure test.",
+    "The feature does not enable collection or alter source review/authorization.",
+    "External application submission remains OFF."
+  ]
+}
