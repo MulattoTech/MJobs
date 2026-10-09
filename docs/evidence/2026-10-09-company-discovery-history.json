@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-237",
+  "github_issue": 238,
+  "result": "PASS",
+  "scope": "Profile-scoped company discovery history now explains triggers, attempts, verified evidence, ATS/confidence, safe errors, source creation, and bounded discovery results in the connected Activity UI.",
+  "source": {
+    "branch": "codex/solo-238-company-discovery-history-20261009",
+    "commit": "0ffed07957b20adee2e4069088d9a7da86e8a274",
+    "tree": "19cf5b4dc2b21ae9776f178f4c5f1e2199ee487a"
+  },
+  "verified_at_utc": "2026-10-09T12:37:00Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and Chromium"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_company_discovery_activity_api.py -q",
+      "result": "PASS",
+      "evidence": "3 passed; covers trigger aggregation, operation state/count, ATS and verified-domain evidence, safe known/unknown errors, profile association, source creation, and enumerated/imported/matched results."
+    },
+    {
+      "command": "cd apps/web && npm run test -- --run src/company-discovery-activity.test.tsx src/company-activity.test.ts",
+      "result": "PASS",
+      "evidence": "13 passed; checks strict field allowlists, bounds, unsafe-value rejection, and accessible expandable rendering."
+    },
+    {
+      "command": "cd apps/web && npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing advisory: generated JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_company_discovery_activity.py -q",
+      "result": "PASS",
+      "evidence": "1 connected Chromium test passed against the isolated local API and production bundle; verified reload, profile isolation, visible details, and no external network requests."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services/company_discovery/activity.py tests/integration/test_company_discovery_activity_api.py tests/browser/test_company_discovery_activity.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "Full repository test suite",
+    "PostgreSQL integration",
+    "Hosted Actions or external review (disabled by local-only policy)",
+    "Live employer websites or ATS providers",
+    "External job application submission"
+  ],
+  "safety": [
+    "All discovery fixtures used an in-process synthetic HTTP transport.",
+    "Operation parameters, raw errors, URLs, tokens, audit payloads, and ATS evidence tokens are excluded from the API response.",
+    "Company discovery activity is scoped to the selected profile; feed match results require an explicit matching profile receipt.",
+    "No schema migration, external submission, hosted automation, or hosted reviewer was used."
+  ]
+}
