@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-134"],
+  "github_issues": [135],
+  "result": "PARTIAL",
+  "scope": "A user can select profile-owned supporting-document and certification revisions for one prepared fictional mock application, save and read back that job-scoped selection, and attach the selected verified bytes to the controlled local mock form during a dry run. Archived selections require review before any mock ATS request. No external application upload or submission is enabled.",
+  "source": {
+    "branch": "codex/solo-mj-req134-supporting-docs-20261009",
+    "commit": "2163f9da6edfd024b0115b89e964eb490310c1c1",
+    "tree": "a83ce3136551953dfb23aca2281a590e719a94ba"
+  },
+  "verified_at_utc": "2026-10-09T17:58:27Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local TypeScript/Vite production build and Chromium",
+    "submission": "disabled"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_application_supporting_documents.py tests/browser/test_application_supporting_documents.py -q",
+      "result": "PASS",
+      "evidence": "6 tests passed: profile and application scoping, idempotent save/readback, supported document kinds, exact-job isolation, selected file integrity and mock dry-run upload, archived-file review gate with zero mock requests, and connected Chromium selection/reload recovery."
+    },
+    {
+      "command": "npm run test --prefix apps/web",
+      "result": "PASS",
+      "evidence": "95 test files and 544 frontend tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Vite reported the existing advisory that the JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services/applications/supporting_documents.py apps/api/application_supporting_documents.py tests/integration/test_application_supporting_documents.py tests/browser/test_application_supporting_documents.py; git diff --check; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "evidence": "Python compilation, whitespace validation, and lane coordination validation passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_mock_application.py -q",
+      "result": "PARTIAL",
+      "evidence": "23 tests passed and 2 existing assertions failed. Both failures were reproduced unchanged against local main: conditional required dropdown returned REVIEW_REQUIRED, and the sensitive-question missing payload included additional empty metadata fields."
+    }
+  ],
+  "limitations": [
+    "This acceptance covers the controlled local mock ATS only; real ATS document upload adapters remain unsupported and external submissions remain disabled.",
+    "The complete MJ-REQ-134 requirement remains PARTIAL.",
+    "GitHub-hosted checks and PostgreSQL validation were not run under local-only delivery policy."
+  ]
+}
