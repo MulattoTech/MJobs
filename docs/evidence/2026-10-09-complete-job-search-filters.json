@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-189-COMPLETE-JOB-SEARCH-FILTERS-20261009",
+  "issue": 190,
+  "requirement_id": "MJ-REQ-189",
+  "result": "PASS",
+  "source": {
+    "branch": "main",
+    "commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
+    "tree": "fc61962383917b3d9290b8c0804fca7e1a1fc030"
+  },
+  "verified_at_utc": "2026-10-09T16:57:53Z",
+  "scope": "Cumulative local acceptance of the complete MJ-REQ-189 Jobs search-filter workflow across connected controls, API predicates, profile-scoped saved searches, result ordering/limits, and separate application-route and source evidence.",
+  "acceptance": [
+    "The connected Jobs UI exposes keyword, title, company, location, remote type, salary bounds, experience, posted-date, employment type, skill, education, clearance, minimum match score, source, ATS, application-link availability, user-reported application state, and recorded application capability filters.",
+    "Composed criteria filter before result limits where applicable, preserve unknown/missing evidence semantics, and keep collection source, route provider, verified ATS, and application capability distinct.",
+    "Saved searches persist and restore criteria for the owning profile; users can clear live criteria; legacy payloads remain compatible; cross-profile reads and selections do not leak saved searches.",
+    "Invalid and unknown saved filters fail closed; application status filters use only user-reported pipeline events and never infer employer receipt or internal application state.",
+    "Connected synthetic browser workflows observed no external requests, source scheduling/collection, application mutations, or submissions."
+  ],
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_saved_search_filters.py tests/integration/test_job_source_filter.py tests/integration/test_application_link_filter.py tests/integration/test_application_capability_filter.py tests/integration/test_application_pipeline_search_filter.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "34 passed and 9 subtests passed in 42.34s."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_saved_search_filters.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "1 connected Chromium workflow passed in 10.17s, combining all baseline filter fields, saved-search restore and clear, result checks, and profile isolation."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_application_link_filter.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "1 connected Chromium workflow passed in 8.01s."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_application_capability_filter.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "1 connected Chromium workflow passed in 7.80s."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_application_pipeline_search_filter.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "1 connected Chromium workflow passed in 7.65s."
+    },
+    {
+      "command": "npm test -- --run (apps/web)",
+      "result": "PASS",
+      "evidence": "95 test files and 540 tests passed."
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "evidence": "TypeScript/Vite production build passed; existing 750.46 kB chunk-size advisory remains."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_saved_search_filters.py tests/browser/test_application_link_filter.py tests/browser/test_application_capability_filter.py tests/browser/test_application_pipeline_search_filter.py; git diff --check; python -m tools.verification.agent_skills; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "evidence": "Compilation, whitespace, local skill and lane coordination validators passed."
+    }
+  ],
+  "observed_test_harness_issue": "The first acceptance attempt found duplicate accessible labels for “Saved search profile” in the first-run wizard and Jobs controls. Browser tests were scoped to the Jobs .filters panel; all four connected browser workflows then passed independently. The initial Playwright cleanup errors were cascades from the first strict-locator failure.",
+  "not_run": [
+    "Full Python repository suite.",
+    "PostgreSQL runtime persistence.",
+    "Live job-source/provider requests.",
+    "Hosted Actions and hosted review (disabled by local-only policy)."
+  ],
+  "limitations": [
+    "MJ-PR-052 remains QUEUED behind MJ-PR-051 and MJ-PR-043; this does not promote the bundled PR group or other requirements.",
+    "GitHub issue #190 remains open pending local-only source synchronization; no push was made.",
+    "External application submission remains OFF."
+  ],
+  "input_sha256": {
+    "apps/api/main.py": "0D6E0F293F127AF3F078307AD59DEEA8691F4425F834A661C8EB276D184AC8B6",
+    "packages/persistence/store.py": "811AB49D800EF898C504200100CC78A29D817BB3B1F828555280B5F67E814128",
+    "services/discovery/search_profiles.py": "8653BCCDDB742F3A76209666FB3781BCBFD53D1EC2AEBEB340C6E8E5EAE86AAB",
+    "apps/web/src/main.tsx": "ADC8B7097BFD9A04D66A15F130CC16AD19E7288C627199037E59602DD9A1BAE1",
+    "apps/web/src/application-link-filter.tsx": "5B4612F3F1F648A8E38A92F40AA12B880BC0B8380288098E7415E18C7A679DBB",
+    "apps/web/src/application-capability-filter.tsx": "0FD60CB6C27044FD177C7BD977DEB1F1364221B5BE3BCC8CEBAA973C627B5696",
+    "apps/web/src/application-pipeline-status-filter.tsx": "D6DA85B2EAE691CAD3EA94A8732B2B76C47A690122443E4C7DB444B3F01FB908",
+    "apps/web/src/job-source-filter.tsx": "7BF0B2DA512BD751E52FEE06DAB998EF190DB56EC5C67FF059F947DA2560574C",
+    "tests/integration/test_saved_search_filters.py": "6514B97DEE99B79B4BC2A23380D86EBDEB3B705A3694F1DDD138AE515446E327",
+    "tests/integration/test_job_source_filter.py": "781272C94E3D71262612ECB1E96BF744B6986F69DC4BFEB2A1966D67E11B3952",
+    "tests/integration/test_application_link_filter.py": "D37F121F515564740BA8E26492ED955F2C77F0D05DEC35D7B89AE9BC247E1F46",
+    "tests/integration/test_application_capability_filter.py": "0A0AAC70E333AE6F6DFCB5F757D8AD5B3D7C46F785A5234812BE737DAFA33673",
+    "tests/integration/test_application_pipeline_search_filter.py": "94BC2B11731B7C2C24CD6C341D74691628192FE5BF0C2F22186BD26CD75AA94B",
+    "tests/browser/test_saved_search_filters.py": "E1B9F0DE61E086C2B18797597F85DD0911AEE6BBCB88AEFED2AE31D09D501283",
+    "tests/browser/test_application_link_filter.py": "A21F52B6E780395C12565773FB3B5711242A4EAE944B7F8A29E3A3030FBBD901",
+    "tests/browser/test_application_capability_filter.py": "0DF3D72273CEE052897A6184527DC507CF7096977DAFC20B598CBE5BC9409D67",
+    "tests/browser/test_application_pipeline_search_filter.py": "1BD1FC5BD4FD50736C1876EEA529A00AE471E84B319B5DC06D064E7244320E19"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "database": "isolated synthetic SQLite",
+    "browser": "local Chromium against loopback UI/API; off-origin requests blocked",
+    "frontend": "Vitest and TypeScript/Vite build",
+    "delivery": "local-only, no push or hosted automation"
+  },
+  "external_submission_enabled": false
+}

@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance readback. Local-only commits are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:23:40Z.",
     "current_verified_at": "2026-10-09T16:23:40Z"
   },
-  "current_milestone": "MJ-REQ-251-FIRST-RUN-RESUME-REVIEW-20261009",
-  "current_objective": "Continue solo, feature-first development; complete the connected first-run resume fact review acceptance, then choose the next unclaimed core workflow.",
+  "current_milestone": "MJ-REQ-189-COMPLETE-JOB-SEARCH-FILTERS-20261009",
+  "current_objective": "Continue solo feature-first MJobs delivery; after complete local acceptance of saved-search filters, choose the next unclaimed dependency-ready core workflow.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -707,7 +707,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile current claims and select the next high-value dependency-ready, unclaimed core workflow; preserve all existing lane claims/worktrees and the root untracked compose-target evidence.",
+  "recommended_resume_step": "Reconcile live issue/path claims and select the next unclaimed, dependency-ready P0/P1 product feature. Do not enter issue #517 source-candidate paths while stale worker assignments remain unresolved.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -741,7 +741,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "bd3b79691a1ddec38db239545486af974f70244d",
+  "last_implementation_commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under Codex integration lock; no PR or push.",
@@ -13624,12 +13624,68 @@
         "git_commit": "bd3b79691a1ddec38db239545486af974f70244d",
         "evidence_path": "docs/evidence/2026-10-09-first-run-resume-review.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-189-COMPLETE-JOB-SEARCH-FILTERS-20261009",
+      "timestamp": "2026-10-09T16:57:53Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+      "completed_steps": [
+        "Reconciled the accumulated #190 facets into one connected Jobs filter acceptance: all requested controls are present, criteria compose, and saved searches restore/clear by profile.",
+        "Corrected four connected browser tests to scope the saved-search selector to the Jobs filter panel after the first-run wizard exposed the same accessible label.",
+        "API/integration filters, four connected Chromium workflows, complete frontend tests/build, and local validators passed.",
+        "Requirement MJ-REQ-189 is PASS; PR-052 stays QUEUED because its unrelated bundle prerequisites are not satisfied. No push."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-complete-job-search-filters.json"
+      ],
+      "files_modified": [
+        "tests/browser/test_saved_search_filters.py",
+        "tests/browser/test_application_link_filter.py",
+        "tests/browser/test_application_capability_filter.py",
+        "tests/browser/test_application_pipeline_search_filter.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "source_commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
+      "source_tree": "fc61962383917b3d9290b8c0804fca7e1a1fc030",
+      "integrated_main": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
+      "integrated_tree": "fc61962383917b3d9290b8c0804fca7e1a1fc030",
+      "result": "PASS",
+      "acceptance": "MJ-REQ-189 full Jobs filter requirement passes locally, including all named facets, separate source/route/ATS/capability meanings, saved-search persistence and readback, profile isolation, and no collection/application side effects.",
+      "tests_completed": [
+        "API/integration: 34 passed, 9 subtests across saved search, source, application link, capability, and user-reported status filters.",
+        "Connected Chromium: 4 separate workflows passed for composed saved filters, application-link availability, route capability, and application pipeline status.",
+        "Frontend: 95 files / 540 tests; TypeScript/Vite build PASS with existing bundle-size advisory.",
+        "Python compilation, git diff check, local agent-skill and lane-coordination validation PASS."
+      ],
+      "tests_remaining": [
+        "Full Python suite and PostgreSQL runtime NOT_RUN.",
+        "Live providers, hosted actions/review NOT_RUN_BY_USER_POLICY.",
+        "External application submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Loopback UI/API using synthetic profile/job/source fixtures; external browser requests were blocked and no collection/application action occurred."
+      ],
+      "known_errors": [
+        "An initial multi-browser run exposed a stale global accessible-label locator; the test harness was scoped and all final runs passed."
+      ],
+      "known_limitations": [
+        "MJ-PR-052 remains QUEUED behind MJ-PR-051/MJ-PR-043; only MJ-REQ-189 acceptance is marked PASS."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
+        "evidence_path": "docs/evidence/2026-10-09-complete-job-search-filters.json"
+      }
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "bd3b79691a1ddec38db239545486af974f70244d",
-    "evidence_path": "docs/evidence/2026-10-09-first-run-resume-review.json"
+    "git_commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
+    "evidence_path": "docs/evidence/2026-10-09-complete-job-search-filters.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14109,7 +14165,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 252,
+  "active_development_issue": 190,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15268,9 +15324,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T16:48:15Z",
-  "current_verified_local_state": "Issue #252 / MJ-REQ-251 first-run resume fact review is PASS on local main bd3b79691a1ddec38db239545486af974f70244d (tree 8cc5a49af23aacc3d3cf86048ef1f74793be151a). Connected Chromium proves imported facts remain pending until the user explicitly verifies and approves; readback and reload preserve approval. Focused acceptance 52 passed, 7 subtests; build, py_compile and diff check pass. Untracked compose-target evidence remains preserved.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only commit not pushed. Issue #252 is open pending acceptance receipt/closeout. Hosted checks and review NOT_RUN_BY_USER_POLICY; PostgreSQL and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T16:48:15Z.",
+  "updated_at": "2026-10-09T16:57:53Z",
+  "current_verified_local_state": "Issue #190 / MJ-REQ-189 complete Jobs filter acceptance is PASS on main 66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b (tree fc61962383917b3d9290b8c0804fca7e1a1fc030). API/integration 34 tests and 9 subtests passed; four connected Chromium workflows passed; frontend 540 tests/build, compilation, diff, agent-skill, and lane validators passed. Existing PR-052 remains QUEUED behind PR-051/PR-043. Preserve untracked compose-target evidence.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only commits are not pushed. Issue #190 has local PASS evidence and remains open pending source synchronization. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, full Python suite, and live providers NOT_RUN; external application submission OFF. Verified 2026-10-09T16:57:53Z.",
   "next_candidates": [
     {
       "issue": 517,
