@@ -2,6 +2,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
@@ -34,18 +35,24 @@ class SupportedSourceCaptureTests(unittest.TestCase):
                 "title": "Systems Administrator", "description": "Synthetic fixture role.",
                 "skills": [], "location": "Remote", "remote_type": "REMOTE", "attributes": {},
             })
+            upsert(connection, m.jobs, {
+                "id": "job-2", "company_id": "employer", "requisition": "ROLE-2",
+                "title": "Network Administrator", "description": "Another synthetic fixture role.",
+                "skills": [], "location": "Remote", "remote_type": "REMOTE", "attributes": {},
+            })
 
     def tearDown(self):
         self.store.engine.dispose()
         self.temp.cleanup()
 
-    def _capture(self, *, source_url, application_url, request_id="capture-1", profile_id="fixture"):
+    def _capture(self, *, source_url, application_url, request_id="capture-1",
+                 profile_id="fixture", job_id="job-1"):
         with self.store.engine.begin() as connection:
             return record_supported_collection(
                 connection,
                 profile_id=profile_id,
                 request_id=request_id,
-                job_id="job-1",
+                job_id=job_id,
                 source_url=source_url,
                 application_url=application_url,
             )
@@ -91,6 +98,75 @@ class SupportedSourceCaptureTests(unittest.TestCase):
         self.assertEqual(observation["observed_hops"], [{"state": "UNKNOWN"}])
         self.assertNotIn("source-secret", str(candidate))
         self.assertNotIn("private-secret", str(candidate))
+
+    def test_replaying_same_capture_does_not_advance_candidate_last_seen(self):
+        first_seen = "2026-01-01T00:00:00+00:00"
+        replay_time = "2026-01-02T00:00:00+00:00"
+        args = {
+            "source_url": "https://employer.example/jobs.json",
+            "application_url": "https://jobs.example-ats.invalid/apply/1",
+            "request_id": "stable-capture-request",
+        }
+
+        with patch("services.source_candidates.catalogue.now",
+                   side_effect=[first_seen, replay_time]):
+            candidate_id = self._capture(**args)
+            replayed_id = self._capture(**args)
+
+        candidate = list_candidates(self.store, "fixture")["candidates"][0]
+        self.assertEqual(replayed_id, candidate_id)
+        self.assertEqual(candidate["first_seen_at"], first_seen)
+        self.assertEqual(candidate["last_seen_at"], first_seen)
+        self.assertEqual(len(candidate["observations"]), 1)
+        self.assertEqual(candidate["observations"][0]["observed_at"], first_seen)
+
+    def test_new_capture_updates_last_seen_and_preserves_distinct_routes(self):
+        first_seen = "2026-01-01T00:00:00+00:00"
+        second_seen = "2026-01-02T00:00:00+00:00"
+        with patch("services.source_candidates.catalogue.now",
+                   side_effect=[first_seen, second_seen]):
+            first_id = self._capture(
+                source_url="https://employer.example/jobs.json",
+                application_url="https://www.jobs.example-ats.invalid/apply/1",
+                request_id="first-route",
+            )
+            second_id = self._capture(
+                source_url="https://employer.example/jobs.json",
+                application_url="https://jobs.example-ats.invalid/apply/2",
+                request_id="second-route",
+                job_id="job-2",
+            )
+
+        candidate = list_candidates(self.store, "fixture")["candidates"][0]
+        self.assertEqual(first_id, second_id)
+        self.assertEqual(candidate["first_seen_at"], first_seen)
+        self.assertEqual(candidate["last_seen_at"], second_seen)
+        self.assertEqual(
+            [(row["application_url"], row["job_id"]) for row in candidate["observations"]],
+            [
+                ("https://www.jobs.example-ats.invalid/apply/1", "job-1"),
+                ("https://jobs.example-ats.invalid/apply/2", "job-2"),
+            ],
+        )
+
+    def test_provider_tenant_subdomains_remain_separate_candidates(self):
+        acme_id = self._capture(
+            source_url="https://employer.example/jobs.json",
+            application_url="https://acme.greenhouse.example/jobs/1",
+            request_id="tenant-acme",
+        )
+        globex_id = self._capture(
+            source_url="https://employer.example/jobs.json",
+            application_url="https://globex.greenhouse.example/jobs/2",
+            request_id="tenant-globex",
+        )
+
+        candidates = list_candidates(self.store, "fixture")["candidates"]
+        self.assertNotEqual(acme_id, globex_id)
+        self.assertEqual(
+            {candidate["domain"] for candidate in candidates},
+            {"acme.greenhouse.example", "globex.greenhouse.example"},
+        )
 
     def test_malformed_or_unknown_urls_do_not_create_false_attribution(self):
         malformed = self._capture(
