@@ -35,6 +35,9 @@ class SkillGapHeatmapUnknownsTests(unittest.TestCase):
             "approved_evidence_job_count": 0,
             "applied_job_count": 0,
             "interview_job_count": 0,
+            "no_evidence_required_job_count": 0,
+            "no_evidence_applied_job_count": 0,
+            "no_evidence_interview_job_count": 0,
         }])
 
     def test_duplicate_requirements_count_distinct_jobs_and_order_is_repeatable(self):
@@ -79,6 +82,37 @@ class SkillGapHeatmapUnknownsTests(unittest.TestCase):
         self.assertEqual(by_skill["SQL"]["no_approved_evidence_job_count"], 1)
         self.assertEqual(by_skill["KUBERNETES"]["unknown_posting_metadata_job_count"], 1)
         self.assertEqual(by_skill["KUBERNETES"]["no_approved_evidence_job_count"], 0)
+
+    def test_user_reported_interview_and_application_gaps_sort_before_unreported_gaps(self):
+        matches = [
+            {"job_id": "interview-job", "components": {"requirements": [
+                {"skill": "AWS", "strength": "REQUIRED",
+                 "profile_evidence": "NO_APPROVED_EVIDENCE"},
+            ]}},
+            {"job_id": "applied-job", "components": {"requirements": [
+                {"skill": "Linux", "strength": "REQUIRED",
+                 "profile_evidence": "NO_APPROVED_EVIDENCE"},
+            ]}},
+            {"job_id": "unreported-job", "components": {"requirements": [
+                {"skill": "Azure", "strength": "REQUIRED",
+                 "profile_evidence": "NO_APPROVED_EVIDENCE"},
+            ]}},
+        ]
+        reported = {
+            "interview-job": {"applied": set(), "interview": {"interview-job"}},
+            "applied-job": {"applied": {"applied-job"}, "interview": set()},
+        }
+
+        result = _aggregate(matches, reported)
+
+        self.assertEqual(
+            [row["skill_id"] for row in result["skills"]],
+            ["AWS", "LINUX", "AZURE"],
+        )
+        by_skill = {row["skill_id"]: row for row in result["skills"]}
+        self.assertEqual(by_skill["AWS"]["no_evidence_interview_job_count"], 1)
+        self.assertEqual(by_skill["LINUX"]["no_evidence_applied_job_count"], 1)
+        self.assertEqual(by_skill["AZURE"]["no_evidence_applied_job_count"], 0)
 
 
 if __name__ == "__main__":

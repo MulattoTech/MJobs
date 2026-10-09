@@ -79,6 +79,9 @@ class SkillGapHeatmapApiTests(unittest.TestCase):
         self.assertEqual(payload["skills"][0]["no_approved_evidence_job_count"], 1)
         self.assertEqual(payload["skills"][1]["unknown_posting_metadata_job_count"], 1)
         self.assertEqual(payload["skills"][1]["no_approved_evidence_job_count"], 0)
+        self.assertEqual(payload["skills"][0]["no_evidence_required_job_count"], 1)
+        self.assertEqual(payload["skills"][0]["no_evidence_applied_job_count"], 0)
+        self.assertEqual(payload["skills"][0]["no_evidence_interview_job_count"], 0)
         self.assertNotIn("Go", response.text)
 
     def test_empty_heatmap_is_a_successful_profile_scoped_read(self):

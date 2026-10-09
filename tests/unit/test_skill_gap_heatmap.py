@@ -73,6 +73,9 @@ class SkillGapHeatmapTests(unittest.TestCase):
         self.assertEqual(by_skill["Python"]["interview_job_count"], 0)
         self.assertEqual(by_skill["AWS"]["applied_job_count"], 1)
         self.assertEqual(by_skill["Kubernetes"]["applied_job_count"], 0)
+        self.assertEqual(by_skill["AWS"]["no_evidence_applied_job_count"], 1)
+        self.assertEqual(by_skill["Python"]["no_evidence_applied_job_count"], 0)
+        self.assertEqual(by_skill["Kubernetes"]["no_evidence_applied_job_count"], 0)
 
     def test_uses_only_current_profile_version_and_rejects_stale_version(self):
         original_version = self.store.profile("fixture")["version"]
@@ -128,6 +131,8 @@ class SkillGapHeatmapTests(unittest.TestCase):
         self.assertEqual(by_skill["AWS"]["interview_job_count"], 1)
         self.assertEqual(by_skill["Python"]["applied_job_count"], 0)
         self.assertEqual(by_skill["Kubernetes"]["interview_job_count"], 0)
+        self.assertEqual(by_skill["AWS"]["no_evidence_interview_job_count"], 1)
+        self.assertEqual(by_skill["Python"]["no_evidence_interview_job_count"], 0)
 
 
 if __name__ == "__main__":

@@ -75,6 +75,7 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
             "nice_to_have": set(), "unknown_metadata": set(),
             "no_approved_evidence": set(), "approved_evidence": set(),
             "applied": set(), "interview": set(),
+            "gap_required": set(), "gap_applied": set(), "gap_interview": set(),
         }
     )
     for match in matches:
@@ -120,14 +121,23 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
                 row["unknown_metadata"].add(job_id)
             if "APPROVED" in evidence:
                 row["approved_evidence"].add(job_id)
-            if ("NO_APPROVED_EVIDENCE" in evidence
-                    and bool(strengths & _CLASSIFIED_STRENGTHS)):
+            has_evidence_gap = (
+                "NO_APPROVED_EVIDENCE" in evidence
+                and bool(strengths & _CLASSIFIED_STRENGTHS)
+            )
+            if has_evidence_gap:
                 row["no_approved_evidence"].add(job_id)
+                if "REQUIRED" in strengths:
+                    row["gap_required"].add(job_id)
             user_events = reported.get(job_id) or {}
             if user_events.get("applied"):
                 row["applied"].add(job_id)
+                if has_evidence_gap:
+                    row["gap_applied"].add(job_id)
             if user_events.get("interview"):
                 row["interview"].add(job_id)
+                if has_evidence_gap:
+                    row["gap_interview"].add(job_id)
 
     skills = []
     for skill_id, signals in totals.items():
@@ -143,9 +153,16 @@ def _aggregate(matches: list[dict], reported: dict[str, dict[str, set[str]]]) ->
             "approved_evidence_job_count": len(signals["approved_evidence"]),
             "applied_job_count": len(signals["applied"]),
             "interview_job_count": len(signals["interview"]),
+            "no_evidence_required_job_count": len(signals["gap_required"]),
+            "no_evidence_applied_job_count": len(signals["gap_applied"]),
+            "no_evidence_interview_job_count": len(signals["gap_interview"]),
         })
     skills.sort(key=lambda row: (
-        -row["no_approved_evidence_job_count"], row["skill_id"]
+        -row["no_evidence_interview_job_count"],
+        -row["no_evidence_applied_job_count"],
+        -row["no_evidence_required_job_count"],
+        -row["no_approved_evidence_job_count"],
+        row["skill_id"],
     ))
     return {"jobs_examined": len(matches), "skills": skills}
 

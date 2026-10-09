@@ -15,6 +15,8 @@ from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
 from services.discovery.manual_capture import capture_manual_job
 from services.discovery.matching import recalculate
+from services.documents.generate import prepare
+from services.tracking.applications import set_application_pipeline_status
 from tests.integration.test_spine import PROFILE
 
 
@@ -40,7 +42,39 @@ class SkillGapHeatmapReloadRecoveryBrowserTests(unittest.TestCase):
                 "reference_url": "https://jobs.example.test/heatmap-retry-python",
                 "profile_id": "fixture",
             })
+            aws_job = capture_manual_job(store, {
+                "request_id": "heatmap-interview-aws",
+                "title": "Synthetic AWS infrastructure role",
+                "company": "Synthetic Interview Employer",
+                "description": "Required Qualifications:\nAWS\nPython\nResponsibilities:\nOperate synthetic infrastructure.",
+                "reference_url": "https://jobs.example.test/heatmap-interview-aws",
+                "profile_id": "fixture",
+            })["job"]
+            linux_job = capture_manual_job(store, {
+                "request_id": "heatmap-applied-linux",
+                "title": "Synthetic Linux operations role",
+                "company": "Synthetic Application Employer",
+                "description": "Required Qualifications:\nLinux\nPython\nResponsibilities:\nOperate synthetic systems.",
+                "reference_url": "https://jobs.example.test/heatmap-applied-linux",
+                "profile_id": "fixture",
+            })["job"]
+            capture_manual_job(store, {
+                "request_id": "heatmap-unreported-azure",
+                "title": "Synthetic Azure platform role",
+                "company": "Synthetic Unreported Employer",
+                "description": "Required Qualifications:\nAzure\nResponsibilities:\nOperate synthetic systems.",
+                "reference_url": "https://jobs.example.test/heatmap-unreported-azure",
+                "profile_id": "fixture",
+            })
             recalculate(store, "fixture")
+            interview_application = prepare(store, aws_job["id"], "fixture", root)
+            set_application_pipeline_status(
+                store, "fixture", interview_application, "INTERVIEW", "heatmap-interview"
+            )
+            applied_application = prepare(store, linux_job["id"], "fixture", root)
+            set_application_pipeline_status(
+                store, "fixture", applied_application, "APPLIED", "heatmap-applied"
+            )
 
             app = create_app(store, "http://127.0.0.1:1", root,
                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
@@ -103,9 +137,19 @@ class SkillGapHeatmapReloadRecoveryBrowserTests(unittest.TestCase):
                     self.assertEqual(retried_response.value.status, 200)
                     payload = retried_response.value.json()
                     self.assertEqual(payload["profile_id"], "fixture")
-                    self.assertEqual(payload["jobs_examined"], 1)
-                    self.assertEqual(payload["skills"][0]["skill_id"], "python")
-                    expect(heatmap).to_contain_text("Python")
+                    self.assertEqual(payload["jobs_examined"], 4)
+                    self.assertEqual(
+                        [row["skill_id"] for row in payload["skills"][:3]],
+                        ["AWS", "LINUX", "AZURE"],
+                    )
+                    by_skill = {row["skill_id"]: row for row in payload["skills"]}
+                    self.assertEqual(by_skill["AWS"]["no_evidence_interview_job_count"], 1)
+                    self.assertEqual(by_skill["LINUX"]["no_evidence_applied_job_count"], 1)
+                    self.assertEqual(by_skill["AZURE"]["no_evidence_applied_job_count"], 0)
+                    expect(heatmap).to_contain_text("AWS")
+                    expect(heatmap).to_contain_text("Linux")
+                    expect(heatmap).to_contain_text("Azure")
+                    expect(heatmap).to_contain_text("interview-reported gaps, applied-reported gaps")
                     expect(heatmap).to_contain_text(
                         "It does not confirm that you lack the skill.")
 

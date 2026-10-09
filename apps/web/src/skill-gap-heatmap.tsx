@@ -12,6 +12,9 @@ export type SkillGapHeatmapSkill = {
   approved_evidence_job_count: number;
   applied_job_count: number;
   interview_job_count: number;
+  no_evidence_required_job_count: number;
+  no_evidence_applied_job_count: number;
+  no_evidence_interview_job_count: number;
 };
 
 export type SkillGapHeatmapData = {
@@ -72,7 +75,7 @@ export function SkillGapHeatmap({ status, data, error, onRetry }: SkillGapHeatma
 
   return <section className="panel" aria-labelledby="skill-gap-title">
     <h2 id="skill-gap-title">Skill gap heatmap</h2>
-    <p>{count(data.jobs_examined)} scored jobs examined. Skills are ordered by how often approved profile evidence was not found in scored jobs.</p>
+    <p>{count(data.jobs_examined)} scored jobs examined. Priority order: interview-reported gaps, applied-reported gaps, required-gap frequency, then total gap frequency. Ties use the stable skill identifier.</p>
 
     <div className="notice" aria-label="How to read this heatmap">
       <strong>How to read this heatmap</strong>
@@ -87,7 +90,12 @@ export function SkillGapHeatmap({ status, data, error, onRetry }: SkillGapHeatma
       {data.skills.map(item => <article className="fact" key={item.skill_id}>
         <h3>{item.skill}</h3>
         <p>{count(item.no_approved_evidence_job_count)} of {jobs(item.job_count)} have no approved profile evidence for this skill.</p>
+        <p>No approved evidence in {jobs(item.no_evidence_applied_job_count)} with a user-reported application and {jobs(item.no_evidence_interview_job_count)} with a user-reported interview.</p>
         <dl>
+          <div>
+            <dt>Required mentions without approved evidence</dt>
+            <dd>{jobs(item.no_evidence_required_job_count)}</dd>
+          </div>
           <div>
             <dt>Required mentions</dt>
             <dd>{jobs(item.required_job_count)}</dd>

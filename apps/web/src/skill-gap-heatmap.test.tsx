@@ -19,6 +19,9 @@ const sample: SkillGapHeatmapData = {
       approved_evidence_job_count: 1,
       applied_job_count: 1,
       interview_job_count: 1,
+      no_evidence_required_job_count: 2,
+      no_evidence_applied_job_count: 1,
+      no_evidence_interview_job_count: 1,
     },
   ],
 };
@@ -65,6 +68,8 @@ describe('skill gap heatmap', () => {
     expect(html).toContain('2 of 3 jobs have no approved profile evidence for this skill.');
     expect(html).toContain('Applications (reported by you)');
     expect(html).toContain('Interviews (reported by you)');
+    expect(html).toContain('No approved evidence in 1 job with a user-reported application and 1 job with a user-reported interview.');
+    expect(html).toContain('Priority order: interview-reported gaps, applied-reported gaps, required-gap frequency, then total gap frequency.');
     expect(html).toContain('This activity is based on statuses you reported; it does not verify employer receipt or interview attendance.');
     expect(html).toContain('<h3>Python</h3>');
   });
