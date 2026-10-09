@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "issue": 401,
+  "requirement_id": "MJ-REF-031",
+  "acceptance_scope": "Connected browser-assisted extraction review and manual-capture persistence, including mandatory field review, rejected optional values, and provenance readback.",
+  "result": "PASS",
+  "whole_product_result": "PARTIAL",
+  "branch": "codex/solo-401-review-receipt-20261009",
+  "base_main": "08f582ec155c61e12dc1c593defa8e3f3640803e",
+  "source_commit": "1b3646b0f40b0685226aab313e8e52d05bbd717c",
+  "source_tree": "31f4a0831d22b5e52fad8397f85c885ca7bc83a5",
+  "verified_at_utc": "2026-10-09T14:57:06Z",
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "web_runtime": "local npm/Vitest/Vite toolchain",
+    "browser": "local Chromium via Playwright",
+    "storage": "isolated synthetic SQLite fixtures",
+    "network": "capture acceptance blocks external requests; no ATS/provider was contacted"
+  },
+  "behavior": {
+    "review_gate": "Manual job persistence rejects extraction payloads without a valid review receipt, required identity/description acknowledgements, all retained routes, and every low-confidence field.",
+    "user_visible_review": "The confirmation step requires a separate acknowledgement of the extracted or manually supplied description; removed extracted values require an explicit removal acknowledgement.",
+    "durable_receipt": "The saved posting retains the reviewed/rejected field lists, sanitized field values, per-field source/confidence/review state, and safe opaque capture reference.",
+    "rejection_recovery": "An explicitly rejected optional application route is omitted from canonical routes and saved raw fields while source/confidence provenance remains; a remaining reviewed listing route can still be captured.",
+    "preservation": "Changed extracted values still require user-corrected provenance; the unbounded capture payload is not persisted, sensitive URL query values/fragments are removed, and captured page instructions remain inert text data.",
+    "negative_controls": "Missing/incomplete receipts, invalid provenance, unreconciled fields, and unreviewed removals fail without durable writes; capture performs no external access or application submission."
+  },
+  "commands": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_job_extraction tests.unit.test_job_extraction_normalization tests.unit.test_job_extraction_untrusted_content tests.unit.test_manual_capture_extraction_provenance tests.integration.test_browser_job_extraction tests.integration.test_browser_job_extraction_api tests.integration.test_browser_job_extraction_application_api tests.integration.test_browser_job_extraction_confirm_capture_api tests.integration.test_manual_capture_extraction_provenance",
+      "result": "PASS: 46 tests"
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/browser-job-extraction-capture.test.ts src/browser-job-extraction-confirmation.test.tsx src/browser-job-extraction.test.tsx",
+      "result": "PASS: 3 files, 30 tests"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS: TypeScript and Vite build; emitted the existing >500 kB chunk advisory (736.18 kB JavaScript)."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_browser_job_extraction_confirm_capture",
+      "result": "PASS: 1 connected Chromium workflow, including review gating, retry, reload, and receipt/provenance readback"
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.reference_provenance; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS: all six local validators/checks"
+    }
+  ],
+  "source_sha256": {
+    "services/discovery/manual_capture.py": "01b9ec36b2a32cd254114f1b046da92601649f63690ec6b673c06d273a9c4572",
+    "apps/web/src/browser-job-extraction-capture.ts": "b3d7c4e4535dc28ed6f9371162973daf8269f62a4b4a4a9aa2aa4dbb7af56427",
+    "apps/web/src/browser-job-extraction-confirmation.tsx": "b9006c5a12137a033d8e1fe35408e15f06ec6f1678df9cd61bf0c64f2f06f533",
+    "tests/unit/test_manual_capture_extraction_provenance.py": "2544a979f0018d91a2c7779db1fdb1a94e7df2fc56c6978b7d9142d7f08e140c",
+    "tests/integration/test_manual_capture_extraction_provenance.py": "3df3788fe9dc1e0e5fe1fdc89ac671d915be175ac540448b04e34452212e7657",
+    "tests/integration/test_browser_job_extraction_confirm_capture_api.py": "8bebf9843e1c0cfde143c0ce3e9addc675dd88873160fce8b2ae2ce53176e781",
+    "tests/browser/test_browser_job_extraction_confirm_capture.py": "b5d267747532fc5b22a4694d0acc2410e5cfb621b1aff4642a48359ea26034df",
+    "apps/web/src/browser-job-extraction-capture.test.ts": "c59f0d3c5317b51ef8963670061c045e817b2c026e80dd0a7c8cbc2a29a8a5ee",
+    "apps/web/src/browser-job-extraction-confirmation.test.tsx": "24cb4391dd0eb9c18b602930d9b7b06d6e8bfa13bc649180b4960b670a129bcf",
+    "docs/reference/REFERENCE_INSPIRATION_LOG.md": "e482915e5599f92ae2a3742e7f1364ac1339ce5ae3b3ad6cbfdfe89952ceb8f2"
+  },
+  "not_run": [
+    "PostgreSQL validation",
+    "full repository suite",
+    "live ATS/provider access",
+    "hosted Actions/checks/reviews (local-only policy)",
+    "real external application submission"
+  ],
+  "external_submission": "OFF",
+  "notes": "Evidence is for the exact tested local source commit. This acceptance does not promote whole-product release status or claim hosted verification."
+}
