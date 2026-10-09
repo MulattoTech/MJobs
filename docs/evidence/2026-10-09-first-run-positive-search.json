@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-250-FIRST-RUN-POSITIVE-SEARCH-20261009",
+  "requirement_ids": [
+    "MJ-REQ-250"
+  ],
+  "github_issues": [
+    251
+  ],
+  "result": "PARTIAL",
+  "scope": "Strengthen the connected first-run final-search acceptance: run the real Greenhouse adapter, normalization and persistence path against deterministic synthetic HTTP responses; prove the durable search history records a nonzero result and the user can see that job in Jobs after reload.",
+  "source": {
+    "branch": "main",
+    "commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
+    "tree": "256ff3218d7bf7a8bed9c836f210ec7461d90acc"
+  },
+  "verified_at_utc": "2026-10-09T17:02:06Z",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "database": "isolated synthetic SQLite",
+    "browser": "local Chromium against loopback application",
+    "source_transport": "httpx.MockTransport with two synthetic Greenhouse API responses; no network access",
+    "delivery": "local-only; no push or hosted automation"
+  },
+  "acceptance": [
+    "The connected first-run wizard passes its selected profile, enabled source and saved-search ID through the durable DISCOVER operation.",
+    "The production Greenhouse adapter requests board metadata and a job inventory through an injected MockTransport, normalizes one synthetic Python Engineer posting and persists it.",
+    "Durable profile search history records COMPLETED with results=1 and the selected saved-search filter.",
+    "After browser reload/navigation, the Python Engineer posting is visible in the Jobs view.",
+    "Browser egress is blocked; the source adapter has no live transport; no application submission or collection scheduling outside the selected operation occurs."
+  ],
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/browser/test_first_run_wizard.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "1 connected Chromium first-run workflow passed in 10.11s, including fact review, manual-only gate, actual adapter/normalizer persistence, durable history, and visible positive job result."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_first_run_search.py tests/integration/test_greenhouse.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "33 integration and source-adapter tests passed in 16.43s."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_first_run_wizard.py; git diff --check; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "evidence": "Test compilation, whitespace and lane ownership validation passed."
+    }
+  ],
+  "input_sha256": {
+    "tests/browser/test_first_run_wizard.py": "C80447F92F81B736A8CC7876D50D9D05D365035B1C4A4A26D04D55CC316B3DFE",
+    "apps/web/src/first-run-wizard.tsx": "1709C8ED77FD45282D3BABDE7EA189A77210C32C3C2970E609C39597944DDAF6",
+    "apps/web/src/main.tsx": "ADC8B7097BFD9A04D66A15F130CC16AD19E7288C627199037E59602DD9A1BAE1",
+    "apps/api/main.py": "0D6E0F293F127AF3F078307AD59DEEA8691F4425F834A661C8EB276D184AC8B6",
+    "services/discovery/sources/greenhouse.py": "F7F30B67C28B31295B120C3B95A356F5D5B7449714EE7AF8E0D7298C18FD36EB",
+    "services/discovery/sources/collect.py": "3DF16837AEBD80736D4B379F88EC22FA49F95B949E6FBC1C5F3C804017504D4F",
+    "workers/tasks.py": "74C4D8E10E0D3833567A2B27A651907588419129EB3061B85F7BC313FEED9797"
+  },
+  "not_run": [
+    "A browser-created profile and actual resume file upload/extraction during this wizard run; the test begins with an isolated profile and a synthetic pending resume-derived fact.",
+    "Live job-provider requests, PostgreSQL, full Python repository suite, hosted checks/review.",
+    "Cross-device persistence of browser-local setup acknowledgments.",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "This improves the final search step but does not prove every first-run setup step through fresh profile creation, resume upload/extraction, and preference entry. MJ-REQ-250 remains PARTIAL.",
+    "Synthetic Greenhouse responses exercise the real adapter code but do not establish live provider availability or production credentials/terms.",
+    "GitHub issue #251 remains open pending local-only source synchronization; no push."
+  ],
+  "safety": {
+    "external_requests": "NONE; source adapter used MockTransport and browser routes blocked egress.",
+    "collection": "Only the explicitly selected local DISCOVER operation ran.",
+    "external_application_submission_enabled": false
+  }
+}

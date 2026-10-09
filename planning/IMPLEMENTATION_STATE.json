@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance readback. Local-only commits are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:23:40Z.",
     "current_verified_at": "2026-10-09T16:23:40Z"
   },
-  "current_milestone": "MJ-REQ-189-COMPLETE-JOB-SEARCH-FILTERS-20261009",
-  "current_objective": "Continue solo feature-first MJobs delivery; after complete local acceptance of saved-search filters, choose the next unclaimed dependency-ready core workflow.",
+  "current_milestone": "MJ-REQ-250-FIRST-RUN-POSITIVE-SEARCH-20261009",
+  "current_objective": "Continue solo feature-first delivery. Advance the connected first-run workflow beyond a zero-result demonstration while preserving manual-only application safety.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -707,7 +707,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile live issue/path claims and select the next unclaimed, dependency-ready P0/P1 product feature. Do not enter issue #517 source-candidate paths while stale worker assignments remain unresolved.",
+  "recommended_resume_step": "Continue the first-run setup as a connected user workflow, prioritizing fresh profile creation and resume upload/extraction through review, then configure an enabled source/search and verify durable positive results; preserve existing claims and no-submit gate.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -741,7 +741,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
+  "last_implementation_commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under Codex integration lock; no PR or push.",
@@ -13680,12 +13680,61 @@
         "git_commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
         "evidence_path": "docs/evidence/2026-10-09-complete-job-search-filters.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-250-FIRST-RUN-POSITIVE-SEARCH-20261009",
+      "timestamp": "2026-10-09T17:02:06Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Replaced the first-run connected test zero-result collector stub with the real Greenhouse collection, normalization and persistence path using a local MockTransport.",
+        "Verified the first-run saved search writes a durable completion record with one result and exposes Python Engineer in Jobs after reload.",
+        "Kept browser egress blocked and application submission disabled; no live provider endpoint was contacted."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-first-run-positive-search.json"
+      ],
+      "files_modified": [
+        "tests/browser/test_first_run_wizard.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md"
+      ],
+      "source_commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
+      "source_tree": "256ff3218d7bf7a8bed9c836f210ec7461d90acc",
+      "integrated_main": "9cd92d1098752d63e49fb97d42aa380ec3669186",
+      "integrated_tree": "256ff3218d7bf7a8bed9c836f210ec7461d90acc",
+      "result": "PARTIAL",
+      "acceptance": "The first-run final-search path now returns and displays a durable positive result from the actual Greenhouse adapter under deterministic synthetic transport; broader wizard acceptance remains PARTIAL.",
+      "tests_completed": [
+        "Connected Chromium first-run browser workflow 1/1 PASS.",
+        "First-run queue/API and Greenhouse adapter integration 33/33 PASS.",
+        "Test compilation, diff check and local lane validator PASS."
+      ],
+      "tests_remaining": [
+        "Fresh profile creation plus actual resume upload/extraction through reviewed first-run completion.",
+        "Live provider, PostgreSQL, full Python suite and hosted checks/review NOT_RUN.",
+        "External application submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic Greenhouse API responses delivered by httpx.MockTransport; no external request."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Current wizard test begins with an existing synthetic profile and pending resume-derived fact; upload/extraction during first-run is not proven.",
+        "The local test does not establish live provider access or cross-device persistence of browser-local acknowledgments."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
+        "evidence_path": "docs/evidence/2026-10-09-first-run-positive-search.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b",
-    "evidence_path": "docs/evidence/2026-10-09-complete-job-search-filters.json"
+    "git_commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
+    "evidence_path": "docs/evidence/2026-10-09-first-run-positive-search.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14165,7 +14214,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 190,
+  "active_development_issue": 251,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15324,9 +15373,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T16:57:53Z",
-  "current_verified_local_state": "Issue #190 / MJ-REQ-189 complete Jobs filter acceptance is PASS on main 66fb2d3ab94521fcfecc0f6058ddf7b5c587f07b (tree fc61962383917b3d9290b8c0804fca7e1a1fc030). API/integration 34 tests and 9 subtests passed; four connected Chromium workflows passed; frontend 540 tests/build, compilation, diff, agent-skill, and lane validators passed. Existing PR-052 remains QUEUED behind PR-051/PR-043. Preserve untracked compose-target evidence.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only commits are not pushed. Issue #190 has local PASS evidence and remains open pending source synchronization. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, full Python suite, and live providers NOT_RUN; external application submission OFF. Verified 2026-10-09T16:57:53Z.",
+  "updated_at": "2026-10-09T17:02:06Z",
+  "current_verified_local_state": "Issue #251 / MJ-REQ-250 connected first-run positive-search follow-up is PARTIAL at local main 9cd92d1098752d63e49fb97d42aa380ec3669186 (tree 256ff3218d7bf7a8bed9c836f210ec7461d90acc). The real Greenhouse adapter/normalizer persisted one synthetic posting via MockTransport; durable history reports results=1 and the Jobs view displays it after reload. Connected browser 1/1 and related integration/source-adapter 33/33 passed. Full fresh-user resume upload/setup, live provider, cross-device acknowledgments, PostgreSQL/full suite/hosted checks remain unverified; submission OFF. Preserve untracked compose-target evidence.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only commit not pushed. Issue #251 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, full suite and live providers NOT_RUN; external application submission OFF. Verified 2026-10-09T17:02:06Z.",
   "next_candidates": [
     {
       "issue": 517,

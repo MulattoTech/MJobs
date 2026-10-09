@@ -2112,9 +2112,10 @@
       "requirement_id": "MJ-REQ-250",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-first-run-wizard.json"
+        "docs/evidence/2026-10-09-first-run-wizard.json",
+        "docs/evidence/2026-10-09-first-run-positive-search.json"
       ],
-      "note": "Connected ten-step first-run guide uses saved profile, resume, fact-review, search, preference, AI, source, and manual-review controls. A selected enabled saved search is passed through scoped collection and durable history. Browser completion used a synthetic zero-result collector; live provider fetching and cross-device persistence remain unverified."
+      "note": "The ten-step guide is connected through existing profile, resume, review, preference, saved-search and source controls. Latest connected first-run acceptance now exercises the real Greenhouse adapter/normalizer with a synthetic MockTransport response, persists one job, records search history results=1, and displays Python Engineer after reload. Evidence: docs/evidence/2026-10-09-first-run-positive-search.json. Full fresh-user resume upload/extraction and every setup step are not yet proven; live provider, PostgreSQL and cross-device acknowledgments remain unverified."
     },
     {
       "requirement_id": "MJ-REQ-251",
