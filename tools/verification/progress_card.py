@@ -57,7 +57,7 @@ def render_svg(state: dict) -> str:
   <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Arial,sans-serif">
     <text x="30" y="35" font-size="16" font-weight="600" letter-spacing="0.5" fill="#AFB7C4">MJOBS — VERIFIED REQUIREMENT ACCEPTANCE</text>
     <text x="30" y="77" font-size="31" font-weight="700" fill="#F7FAFD">{c['pass']} / {c['total']}</text>
-    <text x="175" y="76" font-size="17" fill="#D0D5DD">original requirements fully accepted</text>
+    <text x="205" y="76" font-size="17" fill="#D0D5DD">original requirements fully accepted</text>
     <rect x="30" y="98" width="838" height="12" rx="6" fill="#303238"/>
     <rect x="30" y="98" width="{accepted_width}" height="12" rx="6" fill="#27B56E"/>
     <text x="30" y="139" font-size="15" fill="#CBD0D9">{c['partial']} partial · {c['not_run']} not yet validated</text>
