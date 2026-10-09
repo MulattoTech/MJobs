@@ -132,16 +132,24 @@ class MultipageApplicationStateTests(unittest.TestCase):
                    "page_id": "contact", "next_page_id": "eligibility",
                    "progress": {"contact": {"city": "Tulsa"}}}
         committed = transition_multipage_state(self.store, "profile", "application", request)
-        count = self.store.count("audit_events")
+        committed_event_count = self.store.count("audit_events")
 
+        database_url = self.store.url
+        self.store.engine.dispose()
+        self.store = Store(database_url)
+        self.assertEqual(load_multipage_state(self.store, "profile", "application"), committed)
         retried = transition_multipage_state(self.store, "profile", "application", request)
         self.assertEqual(retried, committed)
-        self.assertEqual(self.store.count("audit_events"), count)
+        self.assertEqual(retried["version"], committed["version"])
+        self.assertEqual(self.store.count("audit_events"), committed_event_count)
 
-        with self.assertRaises(MultipageStateConflict):
+        with self.assertRaises(MultipageStateConflict) as error:
             transition_multipage_state(self.store, "profile", "application", {
-                **request, "next_page_id": "references",
+                **request, "progress": {"contact": {"city": "Oklahoma City"}},
             })
+        self.assertEqual(error.exception.code, "MULTIPAGE_REQUEST_ID_CONFLICT")
+        self.assertEqual(load_multipage_state(self.store, "profile", "application"), committed)
+        self.assertEqual(self.store.count("audit_events"), committed_event_count)
 
     def test_review_does_not_allow_navigation_or_submission(self):
         self.transition("SAVE_PROGRESS", 0, "contact", page_order=["contact"], progress={})
