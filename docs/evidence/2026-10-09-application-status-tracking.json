@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-268"],
+  "github_issues": [269],
+  "result": "PASS",
+  "scope": "Users can manually set Applied, Recruiter Contact, Interview, Offer, Rejected, and Withdrawn in the connected Applications UI. Each change is recorded with USER_REPORTED attribution, appears in history, remains durable after page reload, and does not create a submission receipt or invoke external submission.",
+  "source": {
+    "branch": "codex/solo-269-application-status-tracking",
+    "commit": "0a5b3997c621cec5179ba51b7ecf385301dd40d7",
+    "tree": "4bcecc0427af08ea203c978043e7fdcf0fc03424"
+  },
+  "verified_at_utc": "2026-10-09T13:32:17Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixture database",
+    "frontend": "local Vite production build and Chromium"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_application_pipeline",
+      "result": "PASS",
+      "evidence": "All 9 pipeline integration tests passed. Coverage includes user-reported status/history persistence after Store reopen, profile isolation, invalid states writing no history, all supported workflow states, idempotency conflicts, and concurrent ordered history."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_status_tracking",
+      "result": "PASS",
+      "evidence": "Connected local Chromium selected every required status, observed USER_REPORTED API responses and visible history, reloaded the app, and read all six events back from the Applications UI. External network requests were blocked and none were attempted."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing advisory: generated JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_application_status_tracking.py; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "PostgreSQL integration",
+    "Hosted Actions or external review (disabled by local-only policy)",
+    "Automatic email-based status updates",
+    "External job application submission"
+  ],
+  "limitations": [
+    "The broader tests.browser.test_core_workflow_trial journey was attempted but did not reach its status assertions; existing scheduled-search selectors/messages failed first. The focused connected status browser test passed independently.",
+    "Status evidence remains user-reported and does not establish that an employer received an application."
+  ],
+  "safety": [
+    "Applied status remains separate from submission confirmation and operational application state.",
+    "Status history is profile-scoped; foreign-profile reads and writes return 404 in integration tests.",
+    "The browser test used only synthetic local data, blocked external network requests, and confirmed external_submission_enabled is false."
+  ]
+}
