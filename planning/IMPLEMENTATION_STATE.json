@@ -7,12 +7,12 @@
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main 31adef448b090cb04a4d0d5e237c9526b8d32b6f integrates the issue #134 / MJ-REQ-133 explicit local dynamic-form draft recovery slice. Evidence docs/evidence/2026-10-09-dynamic-form-device-draft.json. Local-only integration; external submission OFF. Verified at 2026-10-09T17:32:37Z.",
-    "current_verified_github_state": "GitHub origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 at 2026-10-09T17:32:37Z; issue #134 remains OPEN/PARTIAL; no push or hosted verification.",
-    "current_verified_at": "2026-10-09T17:32:37Z"
+    "current_verified_local_state": "Local main integrates issue #115 / MJ-REQ-114 weighted skill-evidence breakdown at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af (tree 282aaf80006e28bf505befba28c203c98fbdd0e2), following issue #267 route preference at a72d9bd6cd6c905cc0f9a8691d9304f07034127b. Evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json; focused exact-candidate tests PASS. Local-only; not pushed; external application submission OFF. Verified 2026-10-09T19:10:48Z.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead 359 commits and was not pushed. Issue #115 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/full repository suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:10:48Z.",
+    "current_verified_at": "2026-10-09T19:10:48Z"
   },
-  "current_milestone": "MJ-REQ-266-USER-PREFERRED-APPLICATION-ROUTE-20261009",
-  "current_objective": "Persist a profile-scoped preferred employer route in the connected job preparation flow while preserving evidence-based employer/ATS authority.",
+  "current_milestone": "MJ-REQ-114-WEIGHTED-SKILL-EVIDENCE-EXPLANATION-20261009",
+  "current_objective": "Expose the deterministic weighted skill-evidence contribution and base coverage arithmetic in connected job-match explanations without overstating qualification or selected-search score.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -94,7 +94,8 @@
     "Browser-assisted job extraction now persists a server-validated review receipt, rejected optional-route decision, sanitized raw fields, and field provenance through reload.",
     "MJ-REQ-252 / issue #253: editable remote infrastructure search seed with ten documented titles, remote-required/full-time criteria, profile-scoped API save/readback, reload persistence, and Jobs selection; scheduled discovery stayed off. Evidence docs/evidence/2026-10-09-search-profile-seed.json.",
     "MJ-REQ-253 / issue #254: 16 opt-in advisory technology preferences persist with saved searches, display after reload, survive pause/resume, and are selectable for Jobs filtering. They remain separate from required criteria and career facts. Evidence docs/evidence/2026-10-09-default-technology-seed.json.",
-    "Dynamic mock-ATS draft recovery: explicit on-device consent, exact profile/application/form-version scope, unreviewed restore, deletion, quota-failure recovery, and no employer writes."
+    "Dynamic mock-ATS draft recovery: explicit on-device consent, exact profile/application/form-version scope, unreviewed restore, deletion, quota-failure recovery, and no employer writes.",
+    "MJ-REQ-114 weighted coverage breakdown: required/preferred/nice-to-have/missing evidence arithmetic, per-skill contribution, connected job-detail readback, and base-vs-selected-search score distinction verified at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -173,7 +174,8 @@
     "Profile-controlled application route preference and evidence-qualified employer/ATS ranking, with explicit user route choice persisted through application preparation (MJ-REQ-266; trusted integrated-board tier remains PARTIAL).",
     "Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted).",
     "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported).",
-    "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL)."
+    "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL).",
+    "Explainable match coverage now shows covered/possible base skill weights and per-skill contributions (issue #115 / MJ-REQ-114; integrated 55c6a6036dc42bb15f6a5d8e60289afb73fb55af; evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json). Broader original score dimensions remain incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [],
@@ -469,7 +471,8 @@
     "MJ-REQ-244 exact-source acceptance: Python unit/integration/connected Chromium 27 passed with 5 subtests; frontend 13 passed; TypeScript/Vite production build, py_compile and diff check PASS.",
     "MJ-REF-031 / #401: 46 focused Python unit/integration tests, 30 focused web tests, TypeScript/Vite build, and two connected Chromium review/retry/reload tests PASS on the local integrated tree.",
     "MJ-REQ-267 bounded redirect-resolution slice at b2e514a8dab39996c7cfb448e1c02dbe93995947: 43 focused Python tests PASS (route resolver, API, existing route and public-fetch regressions); 533 frontend tests PASS; connected Chromium route-choice/check/preparation flow 1/1 PASS; TypeScript/Vite build, py_compile, and diff check PASS. Evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json.",
-    "MJ-REQ-250 complete fresh-profile first-run: connected Chromium 1/1; affected profile/resume/discovery integration 52/52; web 95 files / 540 tests; TypeScript/Vite build; py_compile, diff check and lane validator PASS locally."
+    "MJ-REQ-250 complete fresh-profile first-run: connected Chromium 1/1; affected profile/resume/discovery integration 52/52; web 95 files / 540 tests; TypeScript/Vite build; py_compile, diff check and lane validator PASS locally.",
+    "MJ-REQ-114 focused exact-candidate: 27 matching integration tests PASS; connected Chromium profile-scoped match detail 1/1 PASS with zero external requests/submissions; 17 focused matching explanation Vitest tests PASS; TypeScript/Vite build PASS; compilation, evidence hash and lane/diff checks PASS."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -592,7 +595,8 @@
     "MJ-REQ-267: live employer/ATS requests, PostgreSQL, full Python discovery, hosted Actions/review NOT_RUN; external application submission OFF.",
     "MJ-REQ-268: PostgreSQL, hosted Actions/review, automatic email updates, and external application submission NOT_RUN/OFF.",
     "MJ-REF-031/#401: PostgreSQL, full repository suite, live ATS/provider access, hosted checks/reviews, and real application submission NOT_RUN; external submission OFF.",
-    "MJ-REQ-250 live Greenhouse, PostgreSQL, full Python repository suite, hosted checks/review and cross-device browser-local acknowledgment persistence NOT_RUN; external submission OFF."
+    "MJ-REQ-250 live Greenhouse, PostgreSQL, full Python repository suite, hosted checks/review and cross-device browser-local acknowledgment persistence NOT_RUN; external submission OFF.",
+    "MJ-REQ-114 PostgreSQL-specific execution, full repository suite, hosted CI/review, and live employer/ATS integrations NOT_RUN under local-only policy; external application submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -13998,12 +14002,61 @@
         "evidence_path": "docs/evidence/2026-10-09-application-route-preference-map.json"
       },
       "issue_comment": "https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6087319835"
+    },
+    {
+      "milestone_id": "MJ-REQ-114-WEIGHTED-SKILL-EVIDENCE-EXPLANATION-20261009",
+      "timestamp": "2026-10-09T19:10:48Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added weighted covered/possible skill evidence to persisted match components without changing the score algorithm.",
+        "Added connected job detail coverage and per-skill contribution display, including a zero-denominator explanation and base-versus-selected-search score note.",
+        "Verified arithmetic, connected profile scope, zero external browser requests, focused frontend behavior and production build.",
+        "Fast-forward integrated exact tested candidate into local main; preserved unrelated untracked root evidence."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-explainable-skill-score-breakdown.json"
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "services/discovery/matching.py",
+        "tests/integration/test_explainable_matching.py",
+        "tests/browser/test_work_location_match_explanation.py"
+      ],
+      "integrated_main": "55c6a6036dc42bb15f6a5d8e60289afb73fb55af",
+      "source_tree": "282aaf80006e28bf505befba28c203c98fbdd0e2",
+      "acceptance": "MJ-REQ-114 remains PARTIAL. Weighted skill evidence is explained end-to-end; full original additive score dimensions remain incomplete.",
+      "limitations": [
+        "PostgreSQL, full repository suite, hosted checks/review and live employer/ATS checks NOT_RUN.",
+        "External application submission OFF."
+      ],
+      "tests_completed": [
+        "Matching integration tests 27/27 PASS.",
+        "Connected synthetic Chromium profile-scope detail workflow 1/1 PASS; browser observed zero external requests and no submission.",
+        "Focused frontend tests 17/17 PASS; TypeScript/Vite build PASS with existing bundle-size advisory.",
+        "Python compilation, source SHA-256 checks, lane validation, and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL-specific execution, full repository test suite, and hosted checks/review NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated local SQLite API plus synthetic connected Chromium; external network intercepted."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Full MJ-REQ-114 additive match dimensions remain incomplete."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "55c6a6036dc42bb15f6a5d8e60289afb73fb55af",
+        "evidence_path": "docs/evidence/2026-10-09-explainable-skill-score-breakdown.json"
+      },
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/115#issuecomment-6087555128"
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
-    "evidence_path": "docs/evidence/2026-10-09-application-route-preference-map.json"
+    "git_commit": "55c6a6036dc42bb15f6a5d8e60289afb73fb55af",
+    "evidence_path": "docs/evidence/2026-10-09-explainable-skill-score-breakdown.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14481,6 +14534,16 @@
       "integrated_at_utc": "2026-10-09T17:32:37Z",
       "evidence_path": "docs/evidence/2026-10-09-dynamic-form-device-draft.json",
       "remote_pushed": false
+    },
+    {
+      "commit": "55c6a6036dc42bb15f6a5d8e60289afb73fb55af",
+      "tree": "282aaf80006e28bf505befba28c203c98fbdd0e2",
+      "issue": 115,
+      "requirement_id": "MJ-REQ-114",
+      "result": "PASS_LOCAL_ONLY/PARTIAL_REQUIREMENT",
+      "integrated_at_utc": "2026-10-09T19:10:48Z",
+      "evidence_path": "docs/evidence/2026-10-09-explainable-skill-score-breakdown.json",
+      "remote_pushed": false
     }
   ],
   "live_reconciliation": {
@@ -14493,7 +14556,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 267,
+  "active_development_issue": 115,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15637,7 +15700,8 @@
     "Issue #190 / MJ-REQ-189 user-reported pipeline status facet integrated at local source e0a0b9d5591165976f8a590ba906c6afcf60190c (tree 30c5477a4ae75fd471a78d3e501908a900b49ab4); evidence docs/evidence/2026-10-08-application-pipeline-search-filter.json; API + connected browser 5/5, frontend 116/116, TypeScript/Vite build and diff check PASS. PostgreSQL, live providers, full suite and hosted checks NOT_RUN; issue and requirement remain OPEN/PARTIAL; external submission OFF.",
     "Issue #262 / MJ-REQ-261 provenance slice at e337115700a23b0d5d7b1e50abb1ffc26983e292 (tree 9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636); evidence docs/evidence/2026-10-08-source-ats-separation.json; API and connected Chromium 2/2, web 124/124, TypeScript/Vite build, API compilation and diff check PASS. PostgreSQL/live providers/full repository/hosted checks NOT_RUN; issue OPEN/PARTIAL; parent MJ-PR-071 QUEUED; external submission OFF.",
     "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d); evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json; focused Python/API/persistence/worker/connected browser 44 PASS and final Chromium 1 PASS, focused web 22 PASS, production build/compile/hash/lane/diff PASS. PostgreSQL/full suite/hosted NOT_RUN; external application submission OFF; requirement remains PARTIAL.",
-    "#378 / MJ-REF-008 integrated at 430d4724e36d063890c9511c7478b44257abcd59 (tree e768f9a6cb4e0d3429e05d9dd45bbdab152030a5); evidence docs/evidence/2026-10-09-grounded-interview-preparation.json; Python/API/migration/connected browser 20 PASS, frontend 13 PASS, build and local migration graph PASS. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF."
+    "#378 / MJ-REF-008 integrated at 430d4724e36d063890c9511c7478b44257abcd59 (tree e768f9a6cb4e0d3429e05d9dd45bbdab152030a5); evidence docs/evidence/2026-10-09-grounded-interview-preparation.json; Python/API/migration/connected browser 20 PASS, frontend 13 PASS, build and local migration graph PASS. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF.",
+    "Issue #115 / MJ-REQ-114 weighted skill-evidence score explanation integrated locally at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af (tree 282aaf80006e28bf505befba28c203c98fbdd0e2); evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json; focused matching integration 27 PASS, connected Chromium 1 PASS, focused Vitest 17 PASS, build/compile/lane/diff/hash PASS. Full original match dimensions remain PARTIAL; PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF."
   ],
   "ownership": "ROOT is the sole Luna High engineer in solo mode with zero active child agents. #253 / MJ-REQ-252 and #254 / MJ-REQ-253 are locally PASS and integrated. Preserve completed workers, unrelated branches/worktrees/claims, and untracked docs/evidence/2026-10-08-compose-target-isolation.json. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "delivery_policy": {
@@ -15652,14 +15716,14 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T18:57:20Z",
+  "updated_at": "2026-10-09T19:10:48Z",
   "current_verified_local_state": "Issue #267 / MJ-REQ-266 integrated on local main at a72d9bd6cd6c905cc0f9a8691d9304f07034127b (tree 47a9baf9eff07848246f5744bbe62c8002591124). Profile-scoped route preference saves, clears, reads back after reload, and influences default application preparation without outranking verified employer/ATS authority. Focused Python/API 25/25, connected Chromium 1/1, route-preference Vitest 2/2, TypeScript/Vite build, compilation, lane and diff checks PASS. MJ-REQ-266 remains PARTIAL because trusted integrated-board authority evidence is not persisted; external submission OFF.",
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 357 commits and this source was not pushed. Issue #267 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live ATS NOT_RUN; external application submission OFF. Verified 2026-10-09T18:57:20Z.",
   "next_candidates": [
     {
       "issue": 517,
       "requirement_id": null,
-      "status": "NEXT: complete the connected discovered-job-site source candidate catalogue and review workflow. Dependencies #507 and #390 are complete; no active local issue claim exists. Preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF."
+      "status": "NEXT: reconcile and continue the connected discovered-job-site source candidate catalogue and review workflow; preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF. Reconcile existing claims/worktrees before selecting owned paths."
     }
   ]
 }

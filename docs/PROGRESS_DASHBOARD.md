@@ -7,8 +7,8 @@ Original requirements: **97 PASS / 101 PARTIAL / 168 NOT_RUN** (366 total; 26.5%
 Additional reference gaps: **19 PASS / 4 PARTIAL / 36 NOT_RUN** (59 total; 32.2% fully accepted).
 Full-spec release readiness: **UNKNOWN** (separate from local slice tests).
 
-Original matrix as of: `2026-10-09T18:57:20Z`. Reference matrix as of: `2026-10-09T15:07:39Z`.
-Latest recorded implementation milestone: `MJ-REQ-266-USER-PREFERRED-APPLICATION-ROUTE-20261009`.
+Original matrix as of: `2026-10-09T19:10:48Z`. Reference matrix as of: `2026-10-09T15:07:39Z`.
+Latest recorded implementation milestone: `MJ-REQ-114-WEIGHTED-SKILL-EVIDENCE-EXPLANATION-20261009`.
 
 PASS requires evidence for the whole acceptance contract of that ID. PARTIAL is not a percentage. NOT_RUN does not necessarily mean no code exists. Local PASS is not hosted CI or full release acceptance.
 
