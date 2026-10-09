@@ -1326,7 +1326,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-037-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged. Additional #137 / MJ-REQ-136 application preview integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-application-preview.json. This is a read-only review slice only; parent requirement and dependencies remain PARTIAL/QUEUED. Additional #134 / MJ-REQ-133 bounded dynamic-form slice integrated on main 6ade66fd9ad2d35362264df403cacfa493a9b416; evidence docs/evidence/2026-10-08-dynamic-form-conditional-field.json. Exact reviewed dependent dropdown mapping succeeds; unknown newly-required fields persist REVIEW_REQUIRED before review/submit. 42 browser/pipeline/preflight tests PASS. PR-037 remains QUEUED behind PR-036 and PR-030; parent requirement remains PARTIAL.",
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Additional #136 / MJ-REQ-135 sensitive/legal question preflight slice integrated at e5fee45c0c3e074154ef523d252a2e78a2ffa2de; evidence docs/evidence/2026-10-08-sensitive-question-preflight.json. Fail-closed pre-browser slice only; dependencies/status unchanged. Additional #137 / MJ-REQ-136 application preview integrated and synchronized at 347d4e7e53058135246f734aa1c7e850be25e51d; evidence docs/evidence/2026-10-08-application-preview.json. This is a read-only review slice only; parent requirement and dependencies remain PARTIAL/QUEUED. Additional #134 / MJ-REQ-133 bounded dynamic-form slice integrated on main 6ade66fd9ad2d35362264df403cacfa493a9b416; evidence docs/evidence/2026-10-08-dynamic-form-conditional-field.json. Exact reviewed dependent dropdown mapping succeeds; unknown newly-required fields persist REVIEW_REQUIRED before review/submit. 42 browser/pipeline/preflight tests PASS. PR-037 remains QUEUED behind PR-036 and PR-030; parent requirement remains PARTIAL. Additional #134 / MJ-REQ-133 connected dynamic-form review integrated locally at 8a2c98135bb1748d7ec40658f11fdbc957a4468e; evidence docs/evidence/2026-10-09-dynamic-form-review.json. Profile/application/fingerprint-scoped browser-tab drafts restore after reload and require fresh review; external writes/submission remain OFF. Full requirement remains PARTIAL.",
       "slice_history": [
         {
           "name": "Connected read-only application preview",
@@ -1353,6 +1353,20 @@
             "Synthetic SQLite/MOCK ATS only; hosted checks/review, PostgreSQL, live ATS and full repository suite NOT_RUN.",
             "One conditional dropdown path covered; optional sections, repeatable rows and broader ATS dynamic forms remain incomplete.",
             "External submission remains OFF."
+          ]
+        },
+        {
+          "name": "Connected dynamic-form review and browser-tab recovery",
+          "issue": 134,
+          "requirement_id": "MJ-REQ-133",
+          "status": "INTEGRATED_PARTIAL",
+          "candidate_head": "8a2c98135bb1748d7ec40658f11fdbc957a4468e",
+          "evidence_path": "docs/evidence/2026-10-09-dynamic-form-review.json",
+          "validation": "PASS: 33 focused Python unit/API/integration/connected Chromium tests; 20 focused frontend tests; TypeScript/Vite production build; integrated source diff check.",
+          "limitations": [
+            "Synthetic local FIXTURE/mock-ATS only; live ATS, PostgreSQL, hosted checks, and full repository suite NOT_RUN.",
+            "Reviewed answers persist in browser-tab sessionStorage only; no durable server-side answer storage or employer form write.",
+            "External application submission remains OFF; parent requirement remains PARTIAL."
           ]
         }
       ]
@@ -4814,5 +4828,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T07:55:36Z"
+  "generated_at": "2026-10-09T08:48:49Z"
 }

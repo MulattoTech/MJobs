@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T01:18:26Z",
+  "timestamp": "2026-10-09T08:48:49Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1227,9 +1227,10 @@
       "requirement_id": "MJ-REQ-133",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-08-dynamic-form-conditional-field.json"
+        "docs/evidence/2026-10-08-dynamic-form-conditional-field.json",
+        "docs/evidence/2026-10-09-dynamic-form-review.json"
       ],
-      "note": "MOCK-only country-dependent required dropdown now fills only from an exact preflight mapping backed by a verified, user-approved profile answer. Newly revealed unknown required controls persist UNKNOWN/UNKNOWN_DYNAMIC_REQUIRED_FIELD and REVIEW_REQUIRED before review or submit; SQLite reopen and application detail API readback pass. Broader optional-section/repeatable-row/general ATS dynamic-form coverage remains incomplete."
+      "note": "Profile-scoped dynamic-fields API and connected mock-ATS review support conditional questions, dependent choices, optional sections, bounded repeatable rows, sensitive-field manual review, fingerprint staleness, and browser-tab reload recovery. Focused unit/API/connected Chromium and frontend/build checks pass. Answers remain browser-session only; no employer form write or submission occurs. Broader live ATS and durable server-side answer storage remain incomplete."
     },
     {
       "requirement_id": "MJ-REQ-134",

@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "issue": 134,
+  "requirement_id": "MJ-REQ-133",
+  "acceptance": "PARTIAL",
+  "recorded_at_utc": "2026-10-09T08:47:03Z",
+  "source": {
+    "branch": "codex/root-solo-req133-dynamic-forms-20261009",
+    "commit": "8a2c98135bb1748d7ec40658f11fdbc957a4468e",
+    "tree": "f931844a79d03b4d4de4744963004a3006cd4149",
+    "local_main_integration": "FAST_FORWARD",
+    "origin_main": "0a8719d4db524c90b632d990cc7b205add0c2577"
+  },
+  "verification": [
+    {
+      "target": "dynamic form state, persistence, scoped API, app mount, connected browser",
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_dynamic_form_state tests.unit.test_application_preflight_dynamic_metadata tests.integration.test_dynamic_application_fields_api tests.integration.test_dynamic_application_fields_app_mount tests.browser.test_dynamic_application_fields_root_flow -v",
+      "result": "PASS",
+      "summary": "33 tests passed, including synthetic Chromium UI-to-API field review and tab reload recovery."
+    },
+    {
+      "target": "dynamic form React component, client, connected component",
+      "command": "npm test -- --run src/dynamic-application-form-client.test.ts src/dynamic-application-form-connected.test.tsx src/dynamic-application-form.test.tsx src/application-dynamic-field-review.test.tsx",
+      "result": "PASS",
+      "summary": "20 tests passed across 4 files."
+    },
+    {
+      "target": "web production bundle",
+      "command": "npm run build",
+      "result": "PASS",
+      "summary": "TypeScript check and Vite build passed. Vite reported a 694.71 kB minified JavaScript chunk advisory."
+    },
+    {
+      "target": "integrated source commit whitespace check",
+      "command": "git show --check --oneline 8a2c98135bb1748d7ec40658f11fdbc957a4468e",
+      "result": "PASS"
+    }
+  ],
+  "observed_behavior": [
+    "Conditional fields follow the selected parent answer; dependent options are restricted to the matching choice set.",
+    "Optional sections and bounded repeatable rows render and are reviewed explicitly.",
+    "Sensitive controls are presented for manual review without collecting an answer or revealing the original field label or choices.",
+    "Reviewed answers and enabled optional sections persist in profile/application/fingerprint-scoped sessionStorage and restore after reload; review approvals reset.",
+    "The connected browser flow made only local GET requests; no answer API write, employer form fill, egress, or application submission occurred."
+  ],
+  "limitations": [
+    "This is a local synthetic mock-ATS workflow; no live employer or ATS form was contacted.",
+    "Draft answers live only in the browser tab session and are not durably stored by the server.",
+    "Full Python repository suite, PostgreSQL validation, hosted checks, and live ATS validation were NOT_RUN.",
+    "Requirement MJ-REQ-133 and GitHub issue #134 remain PARTIAL/OPEN; external application submission remains OFF."
+  ]
+}
