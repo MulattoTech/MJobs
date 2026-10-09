@@ -49,6 +49,22 @@ class ContactDetails(BaseModel):
         return value
 
 
+class CompanyDiscoveryPreferences(BaseModel):
+    """Profile-owned limits for automatically prioritizing new employer discovery."""
+
+    model_config = ConfigDict(strict=True, extra='forbid')
+    company_discovery_enabled: bool = True
+    minimum_match_for_discovery: int = Field(default=60, ge=0, le=100)
+    priority_match_for_discovery: int = Field(default=80, ge=0, le=100)
+    max_new_company_discoveries_per_hour: int = Field(default=12, ge=1, le=100)
+
+    @model_validator(mode='after')
+    def validate_match_thresholds(self):
+        if self.priority_match_for_discovery < self.minimum_match_for_discovery:
+            raise ValueError('Priority match threshold must be at least the minimum discovery score')
+        return self
+
+
 class JobPreferences(BaseModel):
     model_config = ConfigDict(strict=True, extra='forbid', allow_inf_nan=False)
     desired_roles: list[ShortText] = Field(default_factory=list, max_length=30)
@@ -66,6 +82,7 @@ class JobPreferences(BaseModel):
     sensitive_answer_policies: dict[SensitiveAnswerCategory, 'SensitiveAnswerPolicy'] = Field(
         default_factory=dict, max_length=6,
     )
+    company_discovery: CompanyDiscoveryPreferences = Field(default_factory=CompanyDiscoveryPreferences)
 
     def sensitive_answer_policy_for(self, category: SensitiveAnswerCategory) -> 'SensitiveAnswerPolicy':
         """Return the stored policy or the safe review-required default."""

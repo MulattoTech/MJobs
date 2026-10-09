@@ -4,7 +4,7 @@ from redis.exceptions import RedisError
 from rq import Queue
 from rq.job import Job
 from rq.exceptions import NoSuchJobError
-from sqlalchemy import select, text
+from sqlalchemy import case, select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
@@ -37,6 +37,17 @@ def _record_queued_preparation(connection, kind, profile_id, params, operation_i
             params["job_id"], operation_id)
 
 
+def _pending_operations(connection):
+    """Select durable outbox work with explicit high-priority discovery first."""
+    priority = case(
+        (m.operations.c.params["dispatch_priority"].as_string() == "HIGH", 0),
+        else_=1,
+    )
+    return list(connection.execute(select(m.operations).where(
+        m.operations.c.state == "QUEUED",
+    ).order_by(priority, m.operations.c.updated_at, m.operations.c.id)).mappings())
+
+
 def dispatch_pending(store, redis_url):
     recover_expired(store)
     redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
@@ -49,7 +60,7 @@ def dispatch_pending(store, redis_url):
                     return {"status": "DISPATCHER_ACTIVE", "count": 0}
             elif connection.dialect.name == "sqlite":
                 connection.exec_driver_sql("BEGIN IMMEDIATE")
-            rows = list(connection.execute(select(m.operations).where(m.operations.c.state == "QUEUED")).mappings())
+            rows = _pending_operations(connection)
             count = 0
             for row in rows:
                 try:

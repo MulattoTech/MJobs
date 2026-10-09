@@ -1,6 +1,7 @@
 """Transactional useful-job discovery intent and explicit candidate-origin review."""
 import hashlib
 import json
+from datetime import datetime, timedelta
 from uuid import uuid4
 from urllib.parse import urlsplit
 
@@ -109,9 +110,13 @@ def _queue(connection, request, website, authorization, evidence):
             or authorization == 'VERIFIED_DOMAIN' and resolved['company_id'] != request['company_id']):
         raise ValueError('DISCOVERY_COMPANY_IDENTITY_CONFLICT')
     revision = request['revision'] + 1
+    trigger_reason = ('HIGH_MATCH_JOB' if 'HIGH_MATCH_JOB' in request['reasons'] else
+                      'MATCH_ELIGIBLE_JOB' if 'MATCH_ELIGIBLE_JOB' in request['reasons'] else
+                      'PREVIOUSLY_UNSEEN_COMPANY')
     params = dict(candidate=candidate, fetch_mode='PUBLIC_HTTPS',
         profile_id=request['profile_id'], profile_version=request['profile_version'],
-        trigger_reason='HIGH_MATCH_JOB' if 'HIGH_MATCH_JOB' in request['reasons'] else 'PREVIOUSLY_UNSEEN_COMPANY',
+        trigger_reason=trigger_reason,
+        dispatch_priority='HIGH' if 'HIGH_MATCH_JOB' in request['reasons'] else 'NORMAL',
         discovery_request_id=request['id'], discovery_request_revision=revision)
     operation_id = enqueue_operation(None, 'COMPANY_DISCOVER', resolved['company_id'], params, connection=connection)
     connection.execute(update(m.company_discovery_requests).where(m.company_discovery_requests.c.id == request['id'])
@@ -165,11 +170,32 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     if profile:
         score = connection.execute(select(m.matches.c.score).where(m.matches.c.job_id == job_id,
             m.matches.c.profile_id == profile['id'], m.matches.c.profile_version == profile['version'])).scalar_one_or_none()
-    reasons = (['PREVIOUSLY_UNSEEN_COMPANY'] if is_new_company else []) + (['HIGH_MATCH_JOB'] if score is not None and score >= 80 else [])
+    preferences = (profile or {}).get('preferences') or {}
+    policy = preferences.get('company_discovery') or {}
+    if policy.get('company_discovery_enabled', True) is not True:
+        return None
+    minimum_match = policy.get('minimum_match_for_discovery', 60)
+    priority_match = policy.get('priority_match_for_discovery', 80)
+    hourly_cap = policy.get('max_new_company_discoveries_per_hour', 12)
+    reasons = ['PREVIOUSLY_UNSEEN_COMPANY'] if is_new_company else []
+    if score is not None and score >= minimum_match:
+        reasons.append('MATCH_ELIGIBLE_JOB')
+    if score is not None and score >= priority_match:
+        reasons.append('HIGH_MATCH_JOB')
     if not reasons:
         return None
     request_id = identity('company-discovery-request', job['company_id'], source['id'])
     timestamp = now()
+    if profile and connection.execute(select(m.company_discovery_requests.c.id).where(
+            m.company_discovery_requests.c.id == request_id)).scalar_one_or_none() is None:
+        cutoff = (datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                  - timedelta(hours=1)).isoformat()
+        recent_count = connection.execute(select(m.company_discovery_requests.c.id).where(
+            m.company_discovery_requests.c.profile_id == profile['id'],
+            m.company_discovery_requests.c.created_at >= cutoff,
+        )).scalars().all()
+        if len(recent_count) >= hourly_cap:
+            return None
     upsert(connection, m.company_discovery_requests, dict(id=request_id, company_id=job['company_id'],
         company_source_id=source['id'], candidate_id=selected, trigger_job_id=job_id,
         profile_id=profile['id'] if profile else None, profile_version=profile['version'] if profile else None,
