@@ -158,31 +158,27 @@ def _has_integrated_board_route_evidence(connection, route):
     provider = str(route.get("provider") or "").casefold()
     if provider not in TRUSTED_INTEGRATED_BOARD_PROVIDERS:
         return False
-    job = connection.execute(select(m.jobs.c.attributes).where(
-        m.jobs.c.id == route.get("job_id"),
-        m.jobs.c.company_id == route.get("company_id"),
-    )).first()
-    attributes = job[0] if job is not None else None
-    if not isinstance(attributes, dict):
-        return False
-    source_id = attributes.get("source_id")
-    if not isinstance(source_id, str) or not source_id.strip():
-        return False
-    if str(attributes.get("provider") or "").casefold() != provider:
-        return False
-    if str(attributes.get("tenant") or "").casefold() != str(route.get("tenant") or "").casefold():
-        return False
-    source = connection.execute(select(
-        m.job_sources.c.provider, m.job_sources.c.tenant, m.job_sources.c.capabilities,
-    ).where(m.job_sources.c.id == source_id)).mappings().first()
-    if source is None or str(source["provider"]).casefold() != provider:
-        return False
-    if str(source["tenant"]).casefold() != str(route.get("tenant") or "").casefold():
-        return False
-    capabilities = source["capabilities"]
-    return (isinstance(capabilities, dict)
-            and isinstance(capabilities.get("capabilities"), list)
-            and APPLICATION_REDIRECT_CAPABILITY in capabilities["capabilities"])
+    tenant = str(route.get("tenant") or "").casefold()
+    source_rows = connection.execute(select(m.job_sources.c.provider, m.job_sources.c.tenant,
+                                             m.job_sources.c.capabilities).select_from(
+        m.postings.join(m.company_sources, m.postings.c.source == m.company_sources.c.endpoint)
+        .join(m.job_sources, m.company_sources.c.collector_source_id == m.job_sources.c.id)
+    ).where(
+        m.postings.c.job_id == route.get("job_id"),
+        m.postings.c.application_url == route.get("url"),
+        m.company_sources.c.company_id == route.get("company_id"),
+        m.company_sources.c.provider == provider,
+        m.company_sources.c.tenant == tenant,
+        m.job_sources.c.provider == provider,
+        m.job_sources.c.tenant == tenant,
+    )).mappings().all()
+    for source in source_rows:
+        capabilities = source["capabilities"]
+        if (isinstance(capabilities, dict)
+                and isinstance(capabilities.get("capabilities"), list)
+                and APPLICATION_REDIRECT_CAPABILITY in capabilities["capabilities"]):
+            return True
+    return False
 
 
 def qualify_route_authority(connection, routes):

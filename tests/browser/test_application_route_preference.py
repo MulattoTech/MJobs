@@ -15,6 +15,7 @@ from sqlalchemy import insert
 import uvicorn
 
 from apps.api.main import create_app
+from services.company_discovery.sources import upsert_company_job_source
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.discovery.sources.collect import configure_source
@@ -69,6 +70,24 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     id="browser-route-posting", job_id=job_id, source="job-board",
                     source_job_id="route-choice", source_url="https://board.example/jobs/route-choice",
                     application_url="https://board.example/jobs/route-choice", raw={},
+                    fetched_at="2026-10-09T00:00:00Z",
+                ))
+            board_source = upsert_company_job_source(
+                store, company_id="browser-route-company", provider="remotive",
+                tenant_identifier="public", public_api_url="https://remotive.com/api/remote-jobs",
+                collection_strategy="PUBLIC_JSON",
+            )
+            with store.engine.begin() as connection:
+                connection.execute(
+                    m.company_sources.update().where(m.company_sources.c.id == board_source["id"])
+                    .values(collector_source_id=board_source_id)
+                )
+                connection.execute(insert(m.postings).values(
+                    id="browser-route-remotive-posting", job_id=job_id,
+                    source="https://remotive.com/api/remote-jobs",
+                    source_job_id="route-choice-board-copy",
+                    source_url="https://remotive.com/api/remote-jobs",
+                    application_url="https://remotive.com/remote-jobs/example/1", raw={},
                     fetched_at="2026-10-09T00:00:00Z",
                 ))
             app = create_app(store, "http://127.0.0.1:1", ROOT,

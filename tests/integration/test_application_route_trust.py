@@ -13,6 +13,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.dedupe.routes import plan_application_routes
 from services.discovery.sources.collect import configure_source
+from services.company_discovery.sources import upsert_company_job_source
 from tests.integration.test_spine import PROFILE
 
 
@@ -54,16 +55,37 @@ class ApplicationRouteTrustTests(unittest.TestCase):
                     "provider": provider, "tenant": tenant, "requisition": req,
                     "url": f"https://board.example/jobs/{route_id}",
                 })
-        self.board_source_id = configure_source(self.store, "public", provider="remotive")
+        self.board_source_id, self.company_board_source_id = self._register_board_route(
+            provider="remotive", tenant="public", route_id="remotive-route",
+            endpoint="https://remotive.com/api/remote-jobs",
+            route_url="https://remotive.com/remote-jobs/example/1", requisition="req-a",
+        )
         with self.store.engine.begin() as connection:
             connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(attributes={
                 "source_id": self.board_source_id, "provider": "remotive", "tenant": "public",
             }))
+
+    def _register_board_route(self, *, provider, tenant, route_id, endpoint, route_url, requisition):
+        source_id = configure_source(self.store, tenant, provider=provider)
+        company_source = upsert_company_job_source(
+            self.store, company_id="company-a", provider=provider, tenant_identifier=tenant,
+            public_api_url=endpoint, collection_strategy="PUBLIC_JSON",
+        )
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.company_sources).where(
+                m.company_sources.c.id == company_source["id"],
+            ).values(collector_source_id=source_id))
             upsert(connection, m.routes, {
-                "id": "remotive-route", "job_id": "job-a", "company_id": "company-a",
-                "provider": "remotive", "tenant": "public", "requisition": "req-a",
-                "url": "https://remotive.com/remote-jobs/example/1",
+                "id": route_id, "job_id": "job-a", "company_id": "company-a",
+                "provider": provider, "tenant": tenant, "requisition": requisition,
+                "url": route_url,
             })
+            upsert(connection, m.postings, {
+                "id": f"posting-{route_id}", "job_id": "job-a", "source": endpoint,
+                "source_job_id": requisition, "source_url": endpoint,
+                "application_url": route_url, "raw": {}, "fetched_at": "2026-10-09T00:00:00Z",
+            })
+        return source_id, company_source["id"]
 
     def tearDown(self):
         self.store.engine.dispose()
@@ -229,6 +251,28 @@ class ApplicationRouteTrustTests(unittest.TestCase):
         plan = plan_application_routes(routes, "DEFAULT")
         self.assertEqual(plan["selected"][0]["preferred_route"]["id"], "verified-ats")
 
+    def test_each_source_route_uses_its_own_captured_posting_evidence(self):
+        remoteok_source_id, _ = self._register_board_route(
+            provider="remoteok", tenant="public", route_id="remoteok-route",
+            endpoint="https://remoteok.com/api", route_url="https://remoteok.com/remote-jobs/example/2",
+            requisition="req-b",
+        )
+        with self.store.engine.begin() as connection:
+            # The canonical summary reflects only one recent source. Route authority
+            # must come from each route's own captured posting and configured source.
+            connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(attributes={
+                "source_id": self.board_source_id, "provider": "remotive", "tenant": "public",
+            }))
+        with self.client() as client:
+            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
+            self.assertEqual(response.status_code, 200, response.text)
+        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
+        self.assertEqual(next(route for route in routes if route["id"] == "remotive-route")["authority"],
+                         "TRUSTED_INTEGRATED_BOARD")
+        self.assertEqual(next(route for route in routes if route["id"] == "remoteok-route")["authority"],
+                         "TRUSTED_INTEGRATED_BOARD")
+        self.assertNotEqual(remoteok_source_id, self.board_source_id)
+
     def test_board_authority_fails_closed_when_source_identity_or_capability_does_not_match(self):
         with self.client() as client:
             response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
@@ -236,50 +280,27 @@ class ApplicationRouteTrustTests(unittest.TestCase):
         original = next(route for option in response.json()["all_options"] for route in option["aliases"]
                         if route["id"] == "remotive-route")
         self.assertEqual(original["authority"], "TRUSTED_INTEGRATED_BOARD")
-        with self.store.engine.begin() as connection:
-            connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(attributes={
-                "source_id": "different-source", "provider": "remotive", "tenant": "public",
-            }))
-        with self.client() as client:
-            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
-            self.assertEqual(response.status_code, 200, response.text)
-        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
-        self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")
-
-        for source_attributes in (
-            {"source_id": self.board_source_id, "provider": "remoteok", "tenant": "public"},
-            {"source_id": self.board_source_id, "provider": "remotive", "tenant": "different"},
+        for mutate in (
+            lambda c: c.execute(update(m.company_sources).where(
+                m.company_sources.c.id == self.company_board_source_id,
+            ).values(collector_source_id=None)),
+            lambda c: c.execute(update(m.company_sources).where(
+                m.company_sources.c.id == self.company_board_source_id,
+            ).values(provider="remoteok")),
+            lambda c: c.execute(update(m.company_sources).where(
+                m.company_sources.c.id == self.company_board_source_id,
+            ).values(tenant="different")),
+            lambda c: c.execute(update(m.job_sources).where(
+                m.job_sources.c.id == self.board_source_id,
+            ).values(capabilities={"strategy": "PUBLIC_JSON", "capabilities": ["DISCOVERY"]})),
+            lambda c: c.execute(update(m.postings).where(
+                m.postings.c.id == "posting-remotive-route",
+            ).values(application_url="https://elsewhere.example/job/1")),
         ):
             with self.store.engine.begin() as connection:
-                connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(
-                    attributes=source_attributes,
-                ))
+                mutate(connection)
             with self.client() as client:
                 response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
                 self.assertEqual(response.status_code, 200, response.text)
             routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
             self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")
-
-        with self.store.engine.begin() as connection:
-            connection.execute(update(m.jobs).where(m.jobs.c.id == "job-a").values(attributes={
-                "source_id": self.board_source_id, "provider": "remotive", "tenant": "public",
-            }))
-            connection.execute(update(m.job_sources).where(m.job_sources.c.id == self.board_source_id).values(
-                capabilities={"strategy": "PUBLIC_JSON", "capabilities": ["DISCOVERY"]},
-            ))
-        with self.client() as client:
-            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
-            self.assertEqual(response.status_code, 200, response.text)
-        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
-        self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")
-
-        with self.store.engine.begin() as connection:
-            connection.execute(update(m.job_sources).where(m.job_sources.c.id == self.board_source_id).values(
-                capabilities={"strategy": "PUBLIC_JSON", "capabilities": ["APPLICATION_REDIRECT"]},
-                tenant="wrong-tenant",
-            ))
-        with self.client() as client:
-            response = client.get(f"/jobs/job-a/routes?profile_id={self.profile['id']}")
-            self.assertEqual(response.status_code, 200, response.text)
-        routes = [route for option in response.json()["all_options"] for route in option["aliases"]]
-        self.assertEqual(next(r for r in routes if r["id"] == "remotive-route")["authority"], "AGGREGATOR")
