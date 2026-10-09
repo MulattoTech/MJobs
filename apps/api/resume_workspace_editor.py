@@ -4,13 +4,14 @@ from __future__ import annotations
 from datetime import datetime
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, Response
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from services.documents.resume_templates import list_resume_templates
 from services.documents.resume_workspace import list_resume_workspace_revisions, ResumeWorkspaceError
 from services.documents.resume_workspace_export import (
     read_reviewed_resume_workspace_export,
+    render_reviewed_resume_workspace_export,
     save_reviewed_resume_workspace_export,
 )
 from services.documents.resume_workspace_preview import build_resume_workspace_draft_preview
@@ -63,7 +64,7 @@ class SaveInput(BaseModel):
 
 def _raise(error: Exception):
     code = getattr(error, "code", "RESUME_WORKSPACE_SERVICE_ERROR")
-    status = 409 if ("STALE" in code or "CONFLICT" in code) else 404 if "NOT_FOUND" in code else 422 if code in {
+    status = 409 if ("STALE" in code or "CONFLICT" in code or code == "AVOID_LIST_BLOCKED") else 404 if "NOT_FOUND" in code else 422 if code in {
         "RESUME_WORKSPACE_INVALID", "RESUME_WORKSPACE_REVIEW_REQUIRED", "RESUME_WORKSPACE_PREVIEW_STALE",
     } else 500
     raise HTTPException(status, {"code": code}) from None
@@ -136,5 +137,21 @@ def create_resume_workspace_editor_router(store):
                 raise HTTPException(404, {"code": "RESUME_WORKSPACE_NOT_FOUND"}) from None
             _raise(error)
         return PlainTextResponse(text, headers={"Content-Disposition": f'attachment; filename="resume-workspace-v{version}.txt"'})
+
+    @router.get("/profiles/{profile_id}/jobs/{job_id}/resume-workspace/versions/{version}/{format}")
+    def export_format(profile_id: str, job_id: str, version: int, format: str):
+        if format not in {"docx", "pdf", "txt"}:
+            raise HTTPException(404, {"code": "RESUME_WORKSPACE_EXPORT_NOT_FOUND"})
+        try:
+            content = render_reviewed_resume_workspace_export(store, profile_id, job_id, version, format)
+        except Exception as error:
+            _raise(error)
+        media_type = {
+            "docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "pdf": "application/pdf",
+            "txt": "text/plain; charset=utf-8",
+        }[format]
+        return Response(content, media_type=media_type,
+                        headers={"Content-Disposition": f'attachment; filename="resume-workspace-v{version}.{format}"'})
 
     return router

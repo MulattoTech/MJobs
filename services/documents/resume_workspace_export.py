@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import re
+from pathlib import Path
+import tempfile
 from uuid import uuid4
 
 from sqlalchemy import select
@@ -166,4 +168,41 @@ def read_reviewed_resume_workspace_export(store, profile_id: str, job_id: str,
     if row is None or not isinstance(row.get("rendered_text"), str):
         raise ResumeWorkspaceError("RESUME_WORKSPACE_NOT_FOUND",
                                    "The reviewed text export is unavailable.")
+    try:
+        profile = store.profile(profile_id)
+    except Exception:
+        raise ResumeWorkspaceError("RESUME_WORKSPACE_NOT_FOUND",
+                                   "The reviewed text export is unavailable.") from None
+    from services.documents.avoid_list import validate_content
+    validate_content(row["rendered_text"], profile.get("preferences"), "resume")
     return row["rendered_text"]
+
+
+def render_reviewed_resume_workspace_export(store, profile_id: str, job_id: str,
+                                             version: int, format: str) -> bytes:
+    """Render the immutable saved text into a supported format and read it back."""
+    if format not in {"docx", "pdf", "txt"}:
+        raise ResumeWorkspaceError("RESUME_WORKSPACE_INVALID", "The requested export format is unsupported.")
+    text = read_reviewed_resume_workspace_export(store, profile_id, job_id, version)
+    paragraphs = text.splitlines()
+    if not paragraphs or "\n".join(paragraphs) != text:
+        raise ResumeWorkspaceError("RESUME_WORKSPACE_INVALID", "The saved text snapshot cannot be rendered faithfully.")
+
+    from docx import Document
+    from docx.shared import Pt
+    from services.documents.render import render_pdf
+    from services.documents.validation import validate_formats
+
+    with tempfile.TemporaryDirectory(prefix="mjobs-resume-workspace-export-") as directory:
+        root = Path(directory)
+        docx_path, pdf_path, txt_path = root / "resume.docx", root / "resume.pdf", root / "resume.txt"
+        document = Document()
+        document.styles["Normal"].font.name = "Arial"
+        document.styles["Normal"].font.size = Pt(11)
+        for line in paragraphs:
+            document.add_paragraph(line)
+        document.save(str(docx_path))
+        render_pdf(pdf_path, paragraphs)
+        txt_path.write_text(text + "\n", encoding="utf-8", newline="\n")
+        validate_formats({"docx": docx_path, "pdf": pdf_path, "txt": txt_path}, paragraphs)
+        return text.encode("utf-8") if format == "txt" else {"docx": docx_path, "pdf": pdf_path}[format].read_bytes()

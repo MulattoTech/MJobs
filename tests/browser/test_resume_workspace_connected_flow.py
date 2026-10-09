@@ -84,10 +84,21 @@ class ResumeWorkspaceConnectedFlowTests(unittest.TestCase):
                     workspace.get_by_role("button", name="Save reviewed version", exact=True).click()
                     expect(workspace.get_by_text("Version 1", exact=False)).to_be_visible()
                     with page.expect_download() as downloaded:
-                        workspace.get_by_role("link", name="Download exact saved TXT", exact=True).click()
-                    file = downloaded.value
-                    self.assertTrue(file.suggested_filename.endswith(".txt"))
-                    self.assertEqual(Path(file.path()).read_text(encoding="utf-8"), reviewed_text)
+                        workspace.get_by_role("link", name="Download TXT", exact=True).click()
+                    txt_file = downloaded.value
+                    self.assertEqual(Path(txt_file.path()).read_text(encoding="utf-8"), reviewed_text)
+                    with page.expect_download() as downloaded:
+                        workspace.get_by_role("link", name="Download DOCX", exact=True).click()
+                    docx_file = downloaded.value
+                    from docx import Document
+                    import io
+                    self.assertEqual([p.text for p in Document(io.BytesIO(Path(docx_file.path()).read_bytes())).paragraphs], reviewed_text.splitlines())
+                    with page.expect_download() as downloaded:
+                        workspace.get_by_role("link", name="Download PDF", exact=True).click()
+                    pdf_file = downloaded.value
+                    from pypdf import PdfReader
+                    pdf_text = " ".join(page.extract_text() for page in PdfReader(pdf_file.path()).pages)
+                    self.assertTrue(all(line in pdf_text for line in reviewed_text.splitlines()), pdf_text)
                     self.assertEqual(store.count("resume_workspace_revisions"), 1)
                     page.reload()
                     page.get_by_label("Active profile", exact=True).select_option(profile["id"])

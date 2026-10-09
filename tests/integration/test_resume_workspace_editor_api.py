@@ -5,6 +5,9 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from docx import Document
+from pypdf import PdfReader
+import io
 
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
@@ -90,6 +93,17 @@ class ResumeWorkspaceEditorApiTests(unittest.TestCase):
         self.assertEqual(export.status_code, 200, export.text)
         self.assertEqual(export.text, preview_body["rendered_text"])
         self.assertEqual(export.headers["content-type"].split(";")[0], "text/plain")
+        docx = self.client.get(self.path + "/versions/1/docx")
+        pdf = self.client.get(self.path + "/versions/1/pdf")
+        self.assertEqual(docx.status_code, 200, docx.text)
+        self.assertEqual(pdf.status_code, 200, pdf.text)
+        self.assertEqual(docx.headers["content-type"].split(";")[0],
+                         "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        self.assertEqual(pdf.headers["content-type"].split(";")[0], "application/pdf")
+        expected_paragraphs = preview_body["rendered_text"].splitlines()
+        self.assertEqual([p.text for p in Document(io.BytesIO(docx.content)).paragraphs], expected_paragraphs)
+        pdf_text = " ".join(page.extract_text() for page in PdfReader(io.BytesIO(pdf.content)).pages)
+        self.assertTrue(all(line in pdf_text for line in expected_paragraphs), pdf_text)
         self.assertEqual(self.store.count("documents"), 0)
         self.assertEqual(self.store.count("applications"), 0)
 
@@ -97,6 +111,20 @@ class ResumeWorkspaceEditorApiTests(unittest.TestCase):
         self.assertEqual(replay.status_code, 200, replay.text)
         self.assertTrue(replay.json()["replayed"])
         self.assertEqual(self.store.count("resume_workspace_revisions"), 1)
+        current_profile = self.store.profile("fixture")
+        changed_profile = dict(current_profile)
+        changed_profile["preferences"] = {**(current_profile.get("preferences") or {}),
+                                         "avoid_terms": ["Maintained approved production systems"]}
+        self.store.save_profile(changed_profile, expected_version=current_profile["version"],
+                                require_expected_version=True)
+        for format in ("txt", "docx", "pdf"):
+            blocked = self.client.get(self.path + f"/versions/1/{format}")
+            self.assertEqual(blocked.status_code, 409, blocked.text)
+            self.assertEqual(blocked.json()["detail"]["code"], "AVOID_LIST_BLOCKED")
+            self.assertNotIn("Maintained approved production systems", blocked.text)
+        self.assertEqual(self.store.count("resume_workspace_revisions"), 1)
+        self.assertEqual(self.store.count("documents"), 0)
+        self.assertEqual(self.store.count("applications"), 0)
 
     def test_unreviewed_stale_and_foreign_requests_fail_without_writes(self):
         preview = self.client.post(self.path + "/preview", json=self.preview_body)
