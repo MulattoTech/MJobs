@@ -159,6 +159,45 @@ class CompanySourceMonitoringTests(unittest.TestCase):
         self.assertEqual(self.monitor()['status'], 'HEALTHY')
         self.assertEqual(self.monitor()['failure_count'], 0)
 
+    def test_repeated_parser_failures_preserve_source_configuration_and_history_after_reopen(self):
+        self.configure()
+
+        def fail_feed(url, deadline):
+            if httpx.URL(url).path == '/jobs.json':
+                raise HTTPStatusError(503)
+            return self.fetch(url, deadline)
+
+        for _ in range(3):
+            current = self.monitor()
+            due = (datetime.fromisoformat(current['next_due']) + timedelta(seconds=1)
+                   if current['next_due'] else datetime.now(timezone.utc))
+            scheduled = schedule_company_sources(self.store, at=due)['scheduled']
+            self.assertEqual(len(scheduled), 1)
+            with patch.dict(os.environ, self.env), patch.object(
+                    PublicCompanyClient, '_request_once', side_effect=fail_feed):
+                execute_operation(scheduled[0]['operation_id'])
+
+        reopened = Store(self.store.url)
+        retained = next(row for row in list_company_source_view(reopened)
+                        if row['id'] == self.source['id'])
+        self.assertEqual(retained['id'], self.source['id'])
+        self.assertTrue(retained['enabled'])
+        self.assertTrue(retained['discovered_automatically'])
+        self.assertEqual(retained['provider'], 'json_feed')
+        self.assertEqual(retained['career_url'], 'https://employer.example/careers')
+        self.assertEqual(retained['collection_strategy'], 'PUBLIC_JSON')
+        self.assertEqual(retained['monitoring']['status'], 'FAILED')
+        self.assertEqual(retained['monitoring']['failure_count'], 3)
+        failures = [event for event in retained['provenance']['events']
+                    if event['action'] == 'COMPANY_SOURCE_REFRESH_FAILED']
+        self.assertEqual(len(failures), 3)
+        with reopened.engine.connect() as connection:
+            source = connection.execute(select(m.company_sources).where(
+                m.company_sources.c.id == self.source['id'])).mappings().one()
+        self.assertEqual(source['endpoint'], 'https://employer.example/jobs.json')
+        self.assertEqual(source['enabled'], True)
+        reopened.engine.dispose()
+
     def test_forbidden_feed_stays_blocked_without_automatic_retry(self):
         self.configure()
         scheduled = schedule_company_sources(self.store)['scheduled']
