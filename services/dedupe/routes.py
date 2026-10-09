@@ -76,7 +76,8 @@ def distinct_route_options(routes):
         group.append(row)
     result = []
     for key, group in groups.items():
-        preferred = max(group, key=lambda row: (rank[row["authority"]], str(row.get("id"))))
+        preferred = max(group, key=lambda row: (
+            rank[row["authority"]], bool(row.get("preferred_by_profile")), str(row.get("id"))))
         result.append({
             "underlying_key": key,
             "preferred_route": preferred,
@@ -131,6 +132,7 @@ def plan_application_routes(routes, mode="DEFAULT", route_id=None, preference="P
                 {"UNKNOWN": 0, "AGGREGATOR": 10, "DIRECT_EMPLOYER": 20, "VERIFIED_ATS": 30, "VERIFIED_EMPLOYER": 40}[
                     option["preferred_route"]["authority"]
                 ],
+                bool(option["preferred_route"].get("preferred_by_profile")),
                 option["underlying_key"],
             ),
         )]
@@ -198,7 +200,7 @@ def direct_employer_route_discovery(routes, source_route_id):
             "candidate_route_ids": candidates}
 
 
-def load_job_routes(store, job_id):
+def load_job_routes(store, job_id, profile_id=None):
     with store.engine.connect() as connection:
         routes = [
             dict(row)
@@ -207,6 +209,14 @@ def load_job_routes(store, job_id):
             ).mappings()
         ]
         qualified = qualify_route_authority(connection, routes)
+        preferred = set()
+        if profile_id:
+            company_ids = {route["company_id"] for route in qualified}
+            if len(company_ids) == 1:
+                from services.dedupe.route_trust import preferred_route_identities
+                preferred = preferred_route_identities(store, profile_id, next(iter(company_ids)))
+        for route in qualified:
+            route["preferred_by_profile"] = (route["provider"], route["tenant"]) in preferred
         for route in qualified:
             if route["authority"] == "AGGREGATOR":
                 route["direct_employer_resolution"] = direct_employer_route_discovery(

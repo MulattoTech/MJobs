@@ -144,6 +144,19 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     expect(page.get_by_role("link", name="Review detected ATS destination ↗")).to_have_attribute(
                         "href", "https://boards.greenhouse.io/routechoice/jobs/1")
                     expect(prepare).to_be_enabled()
+                    with page.expect_response(lambda response: response.request.method == "PUT"
+                                               and urlsplit(response.url).path == (
+                                                   f"/profiles/{PROFILE['id']}/companies/browser-route-company/"
+                                                   "preferred-application-route")):
+                        page.get_by_role("button", name="Prefer this route for this employer", exact=True).click()
+                    expect(page.get_by_role("button", name="Clear employer route preference", exact=True)).to_be_visible()
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name=re.compile(r"^Jobs(?:\s|$)")).click()
+                    page.get_by_role("button", name=re.compile("Route Selection Engineer")).click()
+                    route_picker = page.get_by_label("Choose the application route for this job")
+                    expect(route_picker).to_have_value("browser-route-board")
+                    expect(page.get_by_role("button", name="Clear employer route preference", exact=True)).to_be_visible()
+                    prepare = page.get_by_role("button", name="Prepare documents", exact=True)
                     prepare.click()
                     expect(page.get_by_text("Completed. Your workspace has been updated.", exact=False)).to_be_visible()
                     self.assertEqual(len(application_requests), 1)

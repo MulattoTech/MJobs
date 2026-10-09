@@ -239,6 +239,13 @@ class ApplicationInput(DiscoveryInput):
         return self
 
 
+class PreferredApplicationRouteInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    route_id: str = Field(min_length=1, max_length=128)
+    preferred: bool
+    request_id: str = Field(min_length=1, max_length=128)
+
+
 class ExternalApplicationInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid", allow_inf_nan=False)
     profile_id: str = Field(min_length=1, max_length=128)
@@ -1655,8 +1662,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return {"jobs": rows}
 
     @app.get("/jobs/{job_id}/routes")
-    def job_routes(job_id: str):
-        routes = load_job_routes(store, job_id)
+    def job_routes(job_id: str, profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
+        routes = load_job_routes(store, job_id, profile_id)
         with store.engine.connect() as connection:
             for route in routes:
                 route["adapter_knowledge"] = application_adapter_knowledge(connection, route["id"], operation_mode=operation_mode)
@@ -1664,6 +1671,21 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         with store.engine.connect() as connection:
             postings = [dict(row) for row in connection.execute(select(m.postings).where(m.postings.c.job_id == job_id).order_by(m.postings.c.id)).mappings()]
         return {**plan, "source_records": source_provenance_inventory(postings)}
+
+    @app.put("/profiles/{profile_id}/companies/{company_id}/preferred-application-route")
+    def preferred_application_route(profile_id: str, company_id: str,
+                                    value: PreferredApplicationRouteInput):
+        from services.dedupe.route_trust import set_preferred_application_route
+        try:
+            return {"preferred_route": set_preferred_application_route(
+                store, profile_id, company_id, value.route_id,
+                value.preferred, value.request_id,
+            )}
+        except LookupError as error:
+            raise HTTPException(404, str(error)) from None
+        except ValueError as error:
+            code = str(error)
+            raise HTTPException(409 if code.endswith("CONFLICT") else 422, code) from None
 
     @app.post("/jobs/{job_id}/routes/{route_id}/resolve")
     def resolve_job_application_route(job_id: str, route_id: str):
@@ -1696,7 +1718,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):
         result = store.job(job_id, profile_id)
-        result["routes"] = load_job_routes(store, job_id)
+        result["routes"] = load_job_routes(store, job_id, profile_id)
         result['alignment_fingerprint'] = target_fingerprint(result)
         if profile_id:
             from services.tracking.jobs import read_job_tracking
@@ -1887,7 +1909,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "application_route_preference", "PREFER_VERIFIED")
         if route_preference == "USER_CHOICE" and value.route_mode != "THIS_ROUTE":
             raise HTTPException(409, "APPLICATION_ROUTE_SELECTION_REQUIRED")
-        routes = load_job_routes(store, value.job_id)
+        routes = load_job_routes(store, value.job_id, value.profile_id)
         try:
             route_plan = plan_application_routes(
                 routes, value.route_mode, value.route_id, route_preference)
