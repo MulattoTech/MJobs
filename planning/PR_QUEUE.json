@@ -2711,7 +2711,30 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-066-performance-learning-history",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped original requirement MJ-REQ-244 (#245) is locally verified PASS and issue closed; acceptance evidence docs/evidence/2026-10-09-search-profile-suggestions.json, source/test commit 32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712. Suggestions derive from current profile/version strong matches; explicit user add updates only the selected saved search and confirms durable readback. Focused Python 27 plus 5 subtests, frontend 13, build/compile/diff PASS. MJ-PR-066 remains QUEUED; requirements MJ-REQ-243/245/246 and dependencies MJ-PR-065/MJ-PR-057 are unchanged.",
+      "slice_history": [
+        {
+          "name": "Current strong-match related-title suggestions with explicit saved-search add",
+          "issue": 245,
+          "requirement_id": "MJ-REQ-244",
+          "status": "INTEGRATED_PASS",
+          "base": "07c3b1c58b72ad6d44d9ec14442193c9bd200ab5",
+          "source_head": "32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712",
+          "source_tree": "897a4f62ec5b602d4b8d2d941e6e437eaa42e17e",
+          "integrated_head": "d222b475213f8d9a38994c6fca2406f1c7397e9b",
+          "integrated_tree": "a314c6e70ea7dd2642354a6b083d7da4a05b54b8",
+          "evidence_path": "docs/evidence/2026-10-09-search-profile-suggestions.json",
+          "integration_method": "NON_FORCE_FAST_FORWARD",
+          "validation": "Exact source: 27 Python unit/integration/connected Chromium tests plus 5 subtests PASS; 13 focused frontend tests PASS; TypeScript/Vite build, py_compile and diff check PASS.",
+          "issue_state": "CLOSED",
+          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/245#issuecomment-6083106380",
+          "limitations": [
+            "PostgreSQL/full repository suite and hosted checks NOT_RUN_BY_USER_POLICY.",
+            "Sibling requirements and MJ-PR-066 dependencies remain unchanged.",
+            "External application submission OFF."
+          ]
+        }
+      ]
     },
     {
       "id": "MJ-PR-067",

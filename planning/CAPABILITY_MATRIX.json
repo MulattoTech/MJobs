@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T14:25:33Z",
+  "timestamp": "2026-10-09T14:39:49Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2070,9 +2070,11 @@
     },
     {
       "requirement_id": "MJ-REQ-244",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-search-profile-suggestions.json"
+      ],
+      "note": "The connected Jobs workflow suggests related titles from current profile/version strong matches, explains observed counts, and requires explicit per-title addition to the selected saved search. Durable readback preserves existing criteria and no automatic application/search expansion occurs. Python unit/integration/Chromium 27 passed with 5 subtests; frontend 13/13 and TypeScript/Vite build, compilation, and diff check PASS. Evidence docs/evidence/2026-10-09-search-profile-suggestions.json. PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-245",
@@ -2209,25 +2211,33 @@
     {
       "requirement_id": "MJ-REQ-266",
       "result": "PARTIAL",
-      "evidence": ["docs/evidence/2026-10-09-application-route-preference.json"],
+      "evidence": [
+        "docs/evidence/2026-10-09-application-route-preference.json"
+      ],
       "note": "Profile can prefer evidence-qualified employer/ATS routes or require an explicit per-job choice; provider names alone do not qualify. The trusted integrated job-board tier is unimplemented because route-to-board trust evidence is not persisted."
     },
     {
       "requirement_id": "MJ-REQ-267",
       "result": "PARTIAL",
-      "evidence": ["docs/evidence/2026-10-09-direct-employer-route-discovery.json"],
+      "evidence": [
+        "docs/evidence/2026-10-09-direct-employer-route-discovery.json"
+      ],
       "note": "Connected route readback finds a same-employer/requisition verified ATS candidate using persisted evidence and leaves the user-selected route unchanged. No external redirect is followed; actual aggregator-to-ATS resolution remains unimplemented."
     },
     {
       "requirement_id": "MJ-REQ-268",
       "result": "PASS",
-      "evidence": ["docs/evidence/2026-10-09-application-status-tracking.json"],
+      "evidence": [
+        "docs/evidence/2026-10-09-application-status-tracking.json"
+      ],
       "note": "Connected Applications UI manually records all six required user-reported statuses, persists ordered history across reload, and keeps Applied separate from submission confirmation. Profile scope and invalid states are covered; automatic email updates remain out of scope."
     },
     {
       "requirement_id": "MJ-REQ-269",
       "result": "PARTIAL",
-      "evidence": ["docs/evidence/2026-10-09-document-fact-trace.json"],
+      "evidence": [
+        "docs/evidence/2026-10-09-document-fact-trace.json"
+      ],
       "note": "Connected generated-document history resolves saved fact IDs against the immutable generation profile snapshot and the UI shows fact text, source, and approval state. Focused browser acceptance confirms current edits and unapproved facts do not leak into historical trace. Live AI-provider generation was not exercised; see evidence limitations."
     },
     {
