@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-250"],
+  "github_issues": [251],
+  "result": "PARTIAL",
+  "scope": "Add a ten-step first-run guide connected to existing profile, resume, fact-review, saved-search, location, application preference, AI, source, manual-review, and discovery controls. Pass the selected saved-search ID through the source collection API with profile, enabled-state, and source-scope checks before durable work is queued.",
+  "source": {
+    "branch": "codex/solo-250-first-run-wizard-20261009",
+    "commit": "39405f08dd8071ef838f6aef4f7a6a5fce7f4f51",
+    "tree": "ebb1c35993dac2c678b048e5dc9527b435fe9846",
+    "integrated_main": "39405f08dd8071ef838f6aef4f7a6a5fce7f4f51"
+  },
+  "verified_at_utc": "2026-10-09T15:59:36Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and connected Chromium",
+    "delivery": "local-only; no push or hosted automation"
+  },
+  "input_sha256": {
+    "apps/api/main.py": "0D6E0F293F127AF3F078307AD59DEEA8691F4425F834A661C8EB276D184AC8B6",
+    "apps/web/src/main.tsx": "5A8900B1EAD68DD264DBA2B353E55C66ADAEAA1B78522939512B6768B3C50D46",
+    "apps/web/src/first-run-wizard.tsx": "45897AD4347473C6CB119DAD2CF42D3A299DD21DFAF2DCBF91C2FF5BEB693BB8",
+    "apps/web/src/first-run-wizard.test.tsx": "1DC764AF7EF0FEE0692EF0165B6F48273ABC2C329D7046474695B1BE1D459AC4",
+    "tests/integration/test_first_run_search.py": "C86FE26A15B09FFB77094B04589181DA777541D9324809A24D3B1CA7B46E6C60",
+    "tests/browser/test_first_run_wizard.py": "19709041734C70D142468B14BF6DE04151C42B3AF5870798FA8DBA60547573AF"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_first_run_search tests.integration.test_api_queue tests.integration.test_search_history_api tests.unit.test_search_history_events",
+      "result": "PASS",
+      "evidence": "26 tests passed. The selected enabled saved-search ID is persisted into the DISCOVER operation; disabled searches and profile/source mismatches are rejected before queueing. Existing source collection and search-history API/event behavior remains green."
+    },
+    {
+      "command": "npm test -- --run",
+      "result": "PASS",
+      "evidence": "93 frontend test files and 534 tests passed."
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing advisory: generated JavaScript chunk is 747.26 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_first_run_wizard",
+      "result": "PASS",
+      "evidence": "Connected Chromium navigated profile, resume, and saved-search steps; saved the manual-review acknowledgment; ran the selected profile/source search through the local API and durable worker lifecycle; read back completed, profile-scoped search history; and verified browser-local setup/resume behavior after reload. Browser egress and application-submission requests were blocked. The worker collector was stubbed to return zero jobs, so this does not verify a live provider fetch."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile apps/api/main.py tests/integration/test_first_run_search.py tests/browser/test_first_run_wizard.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Changed Python modules compile and the exact source commit has no diff-check errors."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "evidence": "Agent-skill, requirement catalogue, progress journal, dashboard freshness, and local lane-claim validators passed."
+    }
+  ],
+  "not_run": [
+    "Live employer/ATS source fetching; the connected browser worker used a zero-result synthetic collector and made no external request.",
+    "PostgreSQL integration and full Python repository test discovery.",
+    "Hosted Actions, hosted review, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "Skipped-step acknowledgments and the set-up-later choice are stored in browser localStorage, scoped to the active profile; they are not synchronized to a server or another browser.",
+    "The connected search path verifies API scope, queued worker completion, selected search criteria, and durable history, but the collector returned no jobs in its synthetic browser test. Real provider fetching remains unverified, so MJ-REQ-250 remains PARTIAL.",
+    "PostgreSQL, full Python suite, hosted checks, and external application submission remain unverified or disabled."
+  ],
+  "safety": [
+    "The wizard never enables a source automatically. The user explicitly selects an already-enabled source and a compatible enabled saved search before running collection.",
+    "The collection API enforces saved-search profile ownership, enabled state, and source scope before queueing. Search history must contain a completed operation before the final step is marked complete.",
+    "The only automation choice exposed is manual review. No external application submission control is introduced or enabled."
+  ]
+}
