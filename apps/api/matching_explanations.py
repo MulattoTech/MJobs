@@ -63,6 +63,7 @@ def _stored_contributions(components: Any, resolution) -> list[dict]:
         if (not isinstance(dimension, str) or not dimension.strip() or len(dimension) > 100
                 or dimension in seen or not _number(weight)
                 or not _number(raw_score, nullable=True) or not _number(weighted, nullable=True)
+                or (raw_score is None) != (weighted is None)
                 or not isinstance(explanation, str) or not explanation.strip()
                 or not isinstance(provenance, dict)
                 or set(provenance) - {"source", "evidence_ref"}):
@@ -108,6 +109,54 @@ def _stored_contributions(components: Any, resolution) -> list[dict]:
         })
     result.sort(key=lambda row: row["dimension"])
     return result
+
+
+def _validate_contribution_score(score: float, contributions: list[dict], resolution) -> None:
+    """Fail closed when persisted explanations cannot reproduce the saved score."""
+    profile = resolution.profile
+    expected_weights = None
+    thresholds = {}
+    if profile is not None:
+        expected_weights = dict(profile["weights"])
+        expected_weights.setdefault("skills", 100.0)
+        thresholds = dict(profile["thresholds"])
+
+    weighted_points = 0.0
+    active_weight = 0.0
+    for row in contributions:
+        dimension = row["dimension"]
+        weight = row["weight"]
+        raw_score = row["raw_score"]
+        if expected_weights is not None and (
+            dimension not in expected_weights or weight != expected_weights[dimension]
+        ):
+            _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+        if raw_score is None:
+            continue
+        active_weight += weight
+        effective_score = 0.0 if raw_score < thresholds.get(dimension, 0.0) else raw_score
+        # Contributions are normalized against the final active-weight denominator;
+        # calculate those values after the total is known below.
+        weighted_points += weight * effective_score
+
+    if not active_weight:
+        # An all-UNKNOWN configured profile intentionally preserves the legacy score.
+        return
+
+    for row in contributions:
+        raw_score = row["raw_score"]
+        if raw_score is None:
+            continue
+        effective_score = (
+            0.0 if raw_score < thresholds.get(row["dimension"], 0.0) else raw_score
+        )
+        expected_contribution = round(row["weight"] * effective_score / active_weight, 2)
+        if row["weighted_contribution"] != expected_contribution:
+            _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
+
+    recomposed_score = round(weighted_points / active_weight, 2)
+    if score != recomposed_score:
+        _error(409, "MATCH_EXPLANATION_STALE_CONTEXT")
 
 
 def create_matching_explanations_router(store) -> APIRouter:
@@ -195,6 +244,7 @@ def create_matching_explanations_router(store) -> APIRouter:
                 ),
                 "provenance": {"source": "LEGACY_MATCH_BASELINE"},
             }]
+        _validate_contribution_score(match["score"], contributions, resolution)
         return {
             "profile_id": profile_id,
             "search_profile_id": search_profile_id,

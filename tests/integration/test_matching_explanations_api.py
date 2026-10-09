@@ -145,7 +145,7 @@ class MatchingExplanationsApiTests(unittest.TestCase):
         self._save_scoring_profile()
         contributions = [{
             "dimension": "skills", "weight": 70.0, "raw_score": 72.5,
-            "weighted_contribution": 50.75, "explanation": "Stored score contribution.",
+            "weighted_contribution": 72.5, "explanation": "Stored score contribution.",
             "provenance": {"source": "LEGACY_MATCH_BASELINE"},
         }]
         self._replace_match_components({
