@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-09T05:52:55Z",
+  "generated_at": "2026-10-09T06:24:53Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -81,8 +81,10 @@
       ]
     },
     "MJ-REF-002": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-career-story-answer-citations.json"
+      ]
     },
     "MJ-REF-003": {
       "result": "PASS",

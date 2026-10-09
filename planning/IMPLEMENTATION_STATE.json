@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T06:04:21Z",
+  "generated_at": "2026-10-09T06:24:53Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR was created. Issue #121 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T06:04:21Z"
   },
-  "current_milestone": "MJ-REQ-120-MATCH-FEEDBACK-REPLAY-ROBUST-20261009",
-  "current_objective": "Continue solo feature development; next close reviewed preference application for match feedback or select the highest-impact ready matching workflow.",
+  "current_milestone": "MJ-REF-002-ANSWER-STORY-CITATIONS-20261009",
+  "current_objective": "MJ-REF-002 approved story citations are visible in job-specific answer review; source commit c8b8f88d is locally integrated. Citation persistence and document-generation selection remain incomplete.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -149,7 +149,8 @@
     "MOCK dynamic application form: exact reviewed dependent-dropdown mapping and durable fail-closed user review for unknown required fields (MJ-REQ-133); full requirement remains PARTIAL.",
     "Connected Jobs employment-type filter is integrated locally at 65914db2da7fb13c65fa2c115259017ee585f097: exact canonical categories and UNKNOWN composition persist in saved searches; evidence docs/evidence/2026-10-08-employment-type-search-filter.json.",
     "MOCK authentication-required attempts persist AUTH_REQUIRED and can resume after deliberate fixture authentication at 5ca978be11a78a71cf93a8be5755f7fede319e12; product UI still lacks a saved-profile sign-in opener, so MJ-REQ-142 remains PARTIAL.",
-    "Connected taxonomy-backed skill filter integrated at 57e667761de038f5a7ee1692e1053f6c4d5b95eb: exact skill ID/label matching before LIMIT, alias normalization, saved-search reload/clear, and profile isolation; evidence docs/evidence/2026-10-08-skill-search-filter.json. Whole MJ-REQ-189 remains PARTIAL."
+    "Connected taxonomy-backed skill filter integrated at 57e667761de038f5a7ee1692e1053f6c4d5b95eb: exact skill ID/label matching before LIMIT, alias normalization, saved-search reload/clear, and profile isolation; evidence docs/evidence/2026-10-08-skill-search-filter.json. Whole MJ-REQ-189 remains PARTIAL.",
+    "#372 / MJ-REF-002: connected answer-review workspace displays current approved career stories and linked fact fingerprints, requires explicit story-reference review/selection, suppresses sensitive-question lookup, and keeps answer text/review separate. Source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3; evidence docs/evidence/2026-10-09-career-story-answer-citations.json. Story citation is transient, not stored in answer export; document-generation selection and broader story-bank acceptance remain incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [
@@ -450,7 +451,8 @@
     "Requirement tracker/dashboard validators are rerun at accepted integration checkpoints; PostgreSQL/hosted/live ATS NOT_RUN; external application submission OFF.",
     "Root exact rebased #190 normalized skill filter validation: 17 connected API/integration/browser tests PASS, frontend 103/103 PASS, TypeScript/Vite build PASS, compile, agent-skills, eight source hashes, evidence JSON and diff check PASS; LOCAL_DELEGATED_REVIEW no material findings.",
     "Dashboard checkpoint after skill facet: original totals remain 83 PASS / 93 PARTIAL / 190 NOT_RUN; reference 13 PASS / 1 PARTIAL / 45 NOT_RUN; release UNKNOWN.",
-    "#190 / MJ-REQ-189 application-link facet: 34 focused Python, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, compilation, skill/lane validators, exact source hashes/blob IDs and local delegated review PASS at local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d."
+    "#190 / MJ-REQ-189 application-link facet: 34 focused Python, connected Chromium 1/1, frontend 3/3, TypeScript/Vite build, compilation, skill/lane validators, exact source hashes/blob IDs and local delegated review PASS at local main a2ddaee0cb31b4e539f27173a2baf911d3847d4d.",
+    "#372 / MJ-REF-002 exact source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3: answer matching API 4 tests + 6 subtests PASS; connected synthetic Chromium story citation flow 1 PASS; targeted frontend 25/25 PASS; TypeScript/Vite build and diff check PASS. Evidence docs/evidence/2026-10-09-career-story-answer-citations.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -475,7 +477,8 @@
     "Repository-wide unittest discovery at source 6d3b2893f18289fc76b29ce8955dfb2fb103b58d: 948 run, 2 failures, 9 errors, 28 skipped; test names were not all retained in terminal output, so no attribution is claimed. Recorded in docs/evidence/2026-10-07-safe-browser-debug-capture.json.",
     "Resolved test-harness attempt: combined 67-test run at 447afe1665af2c81a2e0d63149ca6e00068cbcfb had 66 PASS and one browser test failure while its profile-save interaction remained pending after preceding integration modules. Isolated browser passed; Activity UI test now seeds a value-free setting event rather than repeating that separate save workflow, and combined exact-main suite passes 67/67 at 26deecc77098471f0973e7e0b34193c1e4e0d0e3.",
     "MJ-REQ-176 candidate full Python suite at source 382db126a1b504754ec2ad748bb543df586d976b: 962 tests ran, 8 skipped, one failure at tests.browser.test_company_discovery_requests.CompanyDiscoveryRequestsBrowserTests.test_real_collection_request_review_worker_and_identity_separation because isolated Uvicorn thread remained alive at shutdown; same test isolated rerun passed. Overall suite remains a failed run, not PASS; see docs/evidence/2026-10-07-application-submit-audit.json.",
-    "Initial #190 application-link browser test wait timed out against a fixed saved-search UUID. Root cause was a brittle test expectation; Ezra Bridger changed it to use the persisted UUID and added saved-search clear-override coverage. Exact current browser test passes 1/1."
+    "Initial #190 application-link browser test wait timed out against a fixed saved-search UUID. Root cause was a brittle test expectation; Ezra Bridger changed it to use the persisted UUID and added saved-search clear-override coverage. Exact current browser test passes 1/1.",
+    "#372 adjacent answer-review browser regression at current local source failed at the application-switch step because a non-exact Application review locator resolves both existing Application review and Multi-page application review regions. The second region is already present in main's application-multipage-review.tsx; no changed path owns it. Record as a pre-existing test-selector ambiguity, not as feature PASS."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -556,7 +559,8 @@
     "Hosted GitHub checks/reviews remain NOT_RUN by local-only policy; PostgreSQL and whole-product E2E not run for this batch.",
     "Semantic criteria supplied only through search_profile_id remain post-LIMIT; new direct location filter is applied before LIMIT.",
     "Issue #134 / MJ-REQ-133 hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/live ATS/full repository suite NOT_RUN; only one synthetic dynamic dropdown variant implemented.",
-    "#190 application-link facet: PostgreSQL runtime, live production sources/ATS, full repository suite, hosted GitHub checks/review NOT_RUN; local-only policy."
+    "#190 application-link facet: PostgreSQL runtime, live production sources/ATS, full repository suite, hosted GitHub checks/review NOT_RUN; local-only policy.",
+    "#372: PostgreSQL runtime, full repository Python/web suites, hosted checks/review, live ATS/source access and external submission NOT_RUN or OFF; citation persistence and story selection for document generation remain unimplemented."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -12243,12 +12247,65 @@
         "git_commit": "0113022450d669c2ef8efff106ed04dcc7e75737",
         "evidence_path": "docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-002-ANSWER-STORY-CITATIONS-20261009",
+      "current_phase": "Issue #372 / MJ-REF-002 source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3 (tree c6944d74da56d1c9f67ade3e17a5c7e8eb937213) is integrated on local main. The answer-review workspace lists only current approved, fact-linked story revisions; users explicitly review references and select one. Sensitive questions suppress lookup. Citation state stays in the review workspace and is not persisted with exports. Evidence: docs/evidence/2026-10-09-career-story-answer-citations.json.",
+      "timestamp": "2026-10-09T06:24:53Z",
+      "completed_steps": [
+        "Reconciled solo mode, root lock, active claims and all existing worker states; no new agents spawned and unrelated worktrees preserved.",
+        "Mounted the profile/application/question-scoped approved story workspace alongside saved answer review.",
+        "Verified selected citations do not populate answer text, approve answer review, write an export or permit sensitive-question lookup.",
+        "Fast-forwarded the exact tested feature source into local main at c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3."
+      ],
+      "files_added": [
+        "apps/web/src/application-story-reference-workspace.tsx",
+        "apps/web/src/application-story-reference-workspace.test.tsx",
+        "tests/browser/test_application_answer_story_references.py",
+        "docs/evidence/2026-10-09-career-story-answer-citations.json"
+      ],
+      "files_modified": [
+        "apps/api/application_answer_matching.py",
+        "apps/web/src/application-answer-matching-client.ts",
+        "apps/web/src/application-answer-matching-client.test.ts",
+        "apps/web/src/main.tsx",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Focused answer-match API suite: 4 tests and 6 subtests PASS.",
+        "Connected synthetic story-citation Chromium flow: 1 PASS.",
+        "Focused frontend story-reference and answer-matching tests: 25/25 PASS.",
+        "TypeScript check and Vite production build PASS; existing chunk-size advisory remains.",
+        "Catalogue validation, progress-journal validation, four dashboard unit tests, and git diff --check PASS."
+      ],
+      "tests_remaining": [
+        "Answer citation is not persisted in reviewed export/history; document-generation selection from story bank is not implemented.",
+        "PostgreSQL runtime, full repository suite, hosted checks/review and live ATS/source validation NOT_RUN_BY_USER_POLICY or NOT_RUN.",
+        "Adjacent existing answer-review browser test has a pre-existing non-exact locator ambiguity between Application review and Multi-page application review."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic profile/job/story data, temporary SQLite, local API and Chromium only; no external network or employer action."
+      ],
+      "known_errors": [
+        "Adjacent answer-review browser regression stopped at an existing ambiguous region locator; the competing multi-page region exists on main outside the changed paths."
+      ],
+      "known_limitations": [
+        "MJ-REF-002 remains PARTIAL because story references are temporary and are not bound to generated documents or persisted answer exports."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3",
+        "evidence_path": "docs/evidence/2026-10-09-career-story-answer-citations.json"
+      }
     }
   ],
-  "current_phase": "Issue #377 / MJ-REF-007 complete and integrated PASS on local main at 0113022450d669c2ef8efff106ed04dcc7e75737. Local synthetic browser workflow verifies review, persistence, diff history, and matching DOCX/PDF/TXT downloads. Broader original resume requirements and overall release remain partial.",
+  "current_phase": "Issue #372 / MJ-REF-002 source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3 (tree c6944d74da56d1c9f67ade3e17a5c7e8eb937213) is integrated on local main. The answer-review workspace lists only current approved, fact-linked story revisions; users explicitly review references and select one. Sensitive questions suppress lookup. Citation state stays in the review workspace and is not persisted with exports. Evidence: docs/evidence/2026-10-09-career-story-answer-citations.json.",
   "last_safe_checkpoint": {
-    "git_commit": "0113022450d669c2ef8efff106ed04dcc7e75737",
-    "evidence_path": "docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json"
+    "git_commit": "c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3",
+    "evidence_path": "docs/evidence/2026-10-09-career-story-answer-citations.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -12606,14 +12663,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 121,
-    "url": "https://github.com/MulattoTech/MJobs/issues/121",
-    "branch": "codex/root-121-feedback-20261009",
+    "number": 372,
+    "url": "https://github.com/MulattoTech/MJobs/issues/372",
+    "branch": "codex/root-372-story-review-20261009",
     "status": "PARTIAL",
     "related_requirements": [
-      "MJ-REQ-120"
+      "MJ-REF-002"
     ],
-    "note": "Connected feedback capture/history and review-only proposal integrated; next implement explicit reviewed preference application before claiming full requirement acceptance."
+    "note": "Current approved fact-linked story references are mounted in application answer review; answer-export persistence and story selection for document generation remain incomplete."
   },
   "historical_control_snapshots": [
     {
@@ -13758,7 +13815,7 @@
     "Issue #190 / MJ-REQ-189 user-reported pipeline status facet integrated at local source e0a0b9d5591165976f8a590ba906c6afcf60190c (tree 30c5477a4ae75fd471a78d3e501908a900b49ab4); evidence docs/evidence/2026-10-08-application-pipeline-search-filter.json; API + connected browser 5/5, frontend 116/116, TypeScript/Vite build and diff check PASS. PostgreSQL, live providers, full suite and hosted checks NOT_RUN; issue and requirement remain OPEN/PARTIAL; external submission OFF.",
     "Issue #262 / MJ-REQ-261 provenance slice at e337115700a23b0d5d7b1e50abb1ffc26983e292 (tree 9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636); evidence docs/evidence/2026-10-08-source-ats-separation.json; API and connected Chromium 2/2, web 124/124, TypeScript/Vite build, API compilation and diff check PASS. PostgreSQL/live providers/full repository/hosted checks NOT_RUN; issue OPEN/PARTIAL; parent MJ-PR-071 QUEUED; external submission OFF."
   ],
-  "ownership": "Issue #177 / MJ-REQ-176 company-source setting Activity slice source 0c76b225f48a882e8aa90b5e7686d22a8891425e, source tree 3d7733e26c5d4d097518d3c911d6029c7f1c5e86, evidence and tests integrated at synchronized local/GitHub main 68a0630b690cfa855e43829bc4f1836cf6add246 under the Codex integration lock. GitHub issue checkpoint: https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6048627184. The issue remains OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/Docker NOT_RUN; external submission OFF.",
+  "ownership": "Root integrated #372 / MJ-REF-002 source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3 on local main by non-force fast-forward under the Codex integration lock. Evidence docs/evidence/2026-10-09-career-story-answer-citations.json. Root retains sole integration ownership. The source-story selection worker claim remains preserved; hosted checks/reviews are NOT_RUN_BY_USER_POLICY and external submission is OFF.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -13771,14 +13828,14 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T05:52:55Z",
-  "current_verified_local_state": "Local main 0113022450d669c2ef8efff106ed04dcc7e75737 (tree 176a525fd6352dc368ca7c45aad379037ee8ba37) completes MJ-REF-007 resume workspace with three-template layout, review, immutable history/diff, and exact validated DOCX/PDF/TXT export. Evidence: docs/evidence/2026-10-09-resume-workspace-reviewed-editor.json. Local main is 203 commits ahead of origin/main; the pre-existing untracked compose evidence is preserved.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Issue #377 scoped acceptance is locally PASS and an integration receipt is pending; no push/PR. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "updated_at": "2026-10-09T06:24:53Z",
+  "current_verified_local_state": "Executable local main source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3 (tree c6944d74da56d1c9f67ade3e17a5c7e8eb937213) integrates profile-scoped career-story references in answer review. Evidence: docs/evidence/2026-10-09-career-story-answer-citations.json. Canonical tracker refresh follows this source checkpoint. Preserve untracked docs/evidence/2026-10-08-compose-target-isolation.json.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issues #372 and #377 remain OPEN/PARTIAL or locally scoped acceptance as separately recorded. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 372,
       "requirement_id": "MJ-REF-002",
-      "status": "READY_FOR_ROOT_INTEGRATION: current-story API race fix and scoped citation workspace are committed; mount in answer preparation and verify the read-only review/selection flow."
+      "status": "PARTIAL_ON_LOCAL_MAIN: current approved story references are mounted in application answer review with explicit review/selection and sensitive-question suppression. Citation is not persisted with exports; document-generation story selection and full story-bank acceptance remain open."
     },
     {
       "issue": 377,

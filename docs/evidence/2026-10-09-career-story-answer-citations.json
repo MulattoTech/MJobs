@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "issue": 372,
+  "requirement": "MJ-REF-002",
+  "result": "PARTIAL",
+  "acceptance_status": "PARTIAL",
+  "scope": "Expose only current, approved, fact-linked career-story revisions as explicit optional citations within an application answer review. Keep citations separate from answer text and suppress them for sensitive questions.",
+  "tested_candidate": {
+    "branch": "codex/root-372-story-review-20261009",
+    "source_sha": "c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3",
+    "source_tree": "c6944d74da56d1c9f67ade3e17a5c7e8eb937213"
+  },
+  "integrated_main": {
+    "sha": "c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3",
+    "tree": "c6944d74da56d1c9f67ade3e17a5c7e8eb937213",
+    "method": "local non-force fast-forward under the Codex integration lock"
+  },
+  "tested_at_utc": "2026-10-09T06:24:53Z",
+  "validation": {
+    "answer_matching_api": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/integration/test_application_answer_matching_api.py -q",
+      "summary": "4 tests passed; 6 subtests passed. Covers profile/application scope, current approved references, stale revisions, and reference sanitization."
+    },
+    "citation_browser": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/browser/test_application_answer_story_references.py -q -s",
+      "summary": "One connected Chromium flow passed with synthetic SQLite data. Current approved story and fact provenance are visible; stale and foreign stories are excluded; explicit reference review is required; citation selection leaves answer text and answer-review consent unchanged; sensitive questions issue no lookup; mismatched profile/application scope is rejected; browser egress stays local."
+    },
+    "frontend_tests": {
+      "result": "PASS",
+      "command": "npm run test -- --run src/application-story-reference-workspace.test.tsx src/application-answer-matching.test.tsx src/application-answer-matching-client.test.ts",
+      "summary": "25 tests passed across 3 files."
+    },
+    "frontend_build": {
+      "result": "PASS",
+      "command": "npm run build",
+      "summary": "TypeScript check and Vite production build passed. Existing large-chunk advisory remains."
+    },
+    "answer_review_browser_regression": {
+      "result": "FAIL_PRE_EXISTING_SELECTOR_AMBIGUITY",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/browser/test_application_answer_matching_review_flow.py -q",
+      "summary": "The existing flow reaches its application-switch assertion, then its non-exact Application review locator matches both Application review and Multi-page application review. The second region already exists on main in application-multipage-review.tsx; the current change does not modify that component."
+    },
+    "diff_check": "PASS",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "full_repository_suite": "NOT_RUN",
+    "live_ats_or_source_access": "NOT_USED",
+    "external_application_submission": "OFF"
+  },
+  "limitations": [
+    "Selecting a citation is temporary review-panel state; it is not persisted with the answer export or application history.",
+    "Document generation cannot yet select from the story pool, so full MJ-REF-002 acceptance remains PARTIAL.",
+    "The browser run uses only synthetic profile, job, story and fact data; no live employer or external network was contacted."
+  ],
+  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+}
