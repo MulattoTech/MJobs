@@ -131,7 +131,10 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
     def test_create_app_mounts_scoped_versioned_profiles_and_read_only_explanations(self):
         initial = self.client.get(self._profile_url())
         self.assertEqual(initial.status_code, 200, initial.text)
-        self.assertEqual(initial.json(), {"profile": None})
+        self.assertEqual(initial.json(), {
+            "profile_id": "fixture", "search_profile_id": "selected-search",
+            "profile": None,
+        })
 
         created = self.client.put(self._profile_url(), json={
             "expected_version": None,
@@ -141,10 +144,13 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
         first = created.json()["profile"]
         self.assertTrue(first["id"])
         self.assertTrue(first["version"])
-        self.assertEqual(self.client.get(self._profile_url()).json(), {"profile": first})
+        self.assertEqual(self.client.get(self._profile_url()).json(), {
+            "profile_id": "fixture", "search_profile_id": "selected-search",
+            "profile": first,
+        })
         self.assertEqual(
             self.client.get(self._profile_url(search_id="second-search")).json(),
-            {"profile": None},
+            {"profile_id": "fixture", "search_profile_id": "second-search", "profile": None},
         )
 
         updated = self.client.put(self._profile_url(), json={
@@ -156,7 +162,10 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
         self.assertEqual(current["id"], first["id"])
         self.assertNotEqual(current["version"], first["version"])
         self.assertEqual(current["weights"], {"skills": 75.0})
-        self.assertEqual(self.client.get(self._profile_url()).json(), {"profile": current})
+        self.assertEqual(self.client.get(self._profile_url()).json(), {
+            "profile_id": "fixture", "search_profile_id": "selected-search",
+            "profile": current,
+        })
 
         self._persist_current_match_explanation(current)
         explanation = self.client.get(self._explanation_url())
@@ -184,7 +193,7 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
         self.assertEqual(self._saved_search_and_match_snapshot(), before_foreign_read)
         self.assertEqual(
             self.client.get(self._profile_url(search_id="second-search")).json(),
-            {"profile": None},
+            {"profile_id": "fixture", "search_profile_id": "second-search", "profile": None},
         )
 
 

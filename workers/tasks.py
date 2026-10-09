@@ -161,6 +161,7 @@ def execute_operation(operation_id):
                         recalculate(
                             store, primary, profile_version=params.get("profile_version"),
                             check=check, candidate_job_ids=candidate_job_ids,
+                            scoring_criteria=search_profile["criteria"],
                         )
                     for profile_id in profile_ids[1:]:
                         check()

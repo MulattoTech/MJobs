@@ -458,7 +458,8 @@ def _candidate_jobs(connection, candidate_job_ids):
     return sorted(jobs, key=lambda job: job["id"])
 
 
-def recalculate(store, profile_id, profile_version=None, check=None, *, candidate_job_ids=None):
+def recalculate(store, profile_id, profile_version=None, check=None, *, candidate_job_ids=None,
+                scoring_criteria=None):
     check = check or (lambda: None)
     candidate_job_ids = _normalize_candidate_job_ids(candidate_job_ids)
     with store.engine.begin() as connection:
@@ -473,6 +474,17 @@ def recalculate(store, profile_id, profile_version=None, check=None, *, candidat
         for job in _candidate_jobs(connection, candidate_job_ids):
             check()
             explanation = build_explanation(job, profile)
+            if scoring_criteria is not None:
+                from services.matching.selected_search_scoring import compose_selected_search_match
+                composed = compose_selected_search_match(
+                    job, {"score": explanation["score"]}, scoring_criteria,
+                )
+                explanation["score"] = composed["score"]
+                explanation["components"] = {
+                    **explanation["components"],
+                    "scoring_profile": composed["scoring_profile"],
+                    "scoring_contributions": composed["scoring_contributions"],
+                }
             had_profile_match = connection.execute(select(m.matches.c.id).where(
                 m.matches.c.job_id == job["id"],
                 m.matches.c.profile_id == profile_id,

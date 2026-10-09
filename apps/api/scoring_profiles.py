@@ -123,8 +123,9 @@ def create_scoring_profiles_router(store) -> APIRouter:
                              role_family: str | None = None):
         search = _load_search(store, profile_id, search_profile_id)
         profile = _stored_profile(search.get("criteria"))
+        scope = {"profile_id": profile_id, "search_profile_id": search_profile_id}
         if role_family is None:
-            return {"profile": profile}
+            return {**scope, "profile": profile}
 
         profiles_by_role_family = (
             {profile["role_family"]: profile} if profile is not None else {}
@@ -136,6 +137,7 @@ def create_scoring_profiles_router(store) -> APIRouter:
         except ValueError:
             _raise_api_error(422, "SCORING_PROFILE_ROLE_FAMILY_INVALID")
         return {
+            **scope,
             "profile": resolution.profile,
             "resolution": resolution.explanation,
         }
@@ -203,6 +205,10 @@ def create_scoring_profiles_router(store) -> APIRouter:
                 "search_profile_id": search_profile_id,
             })
 
-        return {"profile": saved}
+        return {
+            "profile_id": profile_id,
+            "search_profile_id": search_profile_id,
+            "profile": saved,
+        }
 
     return router

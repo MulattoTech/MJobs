@@ -88,7 +88,11 @@ class ScoringProfilesApiTests(unittest.TestCase):
         before_read = self._snapshot()
         initial = self.client.get(self._url())
         self.assertEqual(initial.status_code, 200, initial.text)
-        self.assertEqual(initial.json(), {"profile": None})
+        self.assertEqual(initial.json(), {
+            "profile_id": "fixture",
+            "search_profile_id": "fixture-search",
+            "profile": None,
+        })
         self.assertEqual(self._snapshot(), before_read)
 
         definition = self._definition(
@@ -102,6 +106,8 @@ class ScoringProfilesApiTests(unittest.TestCase):
             "profile": definition,
         })
         self.assertEqual(created.status_code, 200, created.text)
+        self.assertEqual(created.json()["profile_id"], "fixture")
+        self.assertEqual(created.json()["search_profile_id"], "fixture-search")
         profile = created.json()["profile"]
         self.assertTrue(profile["id"])
         self.assertTrue(profile["version"])
@@ -119,7 +125,7 @@ class ScoringProfilesApiTests(unittest.TestCase):
         self.assertEqual(self.client.get(self._url()).json(), created.json())
         self.assertEqual(
             self.client.get(self._url(search_profile_id="fixture-search-two")).json(),
-            {"profile": None},
+            {"profile_id": "fixture", "search_profile_id": "fixture-search-two", "profile": None},
         )
         after_create = self._snapshot()
         self.assertEqual(after_create[m.operations.name], before_create[m.operations.name])
@@ -131,6 +137,8 @@ class ScoringProfilesApiTests(unittest.TestCase):
         })
         self.assertEqual(matching_family.status_code, 200, matching_family.text)
         self.assertEqual(matching_family.json(), {
+            "profile_id": "fixture",
+            "search_profile_id": "fixture-search",
             "profile": profile,
             "resolution": {
                 "requested_role_family": "user defined family",
@@ -144,6 +152,8 @@ class ScoringProfilesApiTests(unittest.TestCase):
         unknown_family = self.client.get(self._url(), params={"role_family": "new family"})
         self.assertEqual(unknown_family.status_code, 200, unknown_family.text)
         self.assertEqual(unknown_family.json(), {
+            "profile_id": "fixture",
+            "search_profile_id": "fixture-search",
             "profile": None,
             "resolution": {
                 "requested_role_family": "new family",
@@ -181,12 +191,17 @@ class ScoringProfilesApiTests(unittest.TestCase):
         before_readback = self._snapshot()
         readback = self.client.get(self._url())
         self.assertEqual(readback.status_code, 200, readback.text)
-        self.assertEqual(readback.json(), {"profile": second})
+        self.assertEqual(readback.json(), {
+            "profile_id": "fixture", "search_profile_id": "fixture-search",
+            "profile": second,
+        })
         resolved_update = self.client.get(self._url(), params={
             "role_family": " family   two ",
         })
         self.assertEqual(resolved_update.status_code, 200, resolved_update.text)
         self.assertEqual(resolved_update.json(), {
+            "profile_id": "fixture",
+            "search_profile_id": "fixture-search",
             "profile": second,
             "resolution": {
                 "requested_role_family": "family two",

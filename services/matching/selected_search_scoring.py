@@ -16,8 +16,13 @@ def compose_selected_search_match(job, legacy_match, criteria):
     configuration preserves the legacy match score; configured data is sent
     through the shared profile resolver and scorer for validation and attribution.
     """
+    if not isinstance(job, Mapping):
+        raise ValueError("MATCH_JOB_INVALID")
     if not isinstance(criteria, Mapping):
         raise ValueError("SEARCH_PROFILE_CRITERIA_INVALID")
+    # SQLAlchemy RowMapping implements Mapping but specialized signal validation
+    # intentionally accepts plain dictionaries only. Normalize at this boundary.
+    job = dict(job)
 
     profile = criteria.get(_SCORING_PROFILE_KEY)
     if profile is None:

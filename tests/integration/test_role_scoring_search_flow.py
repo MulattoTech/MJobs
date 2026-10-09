@@ -180,9 +180,11 @@ class RoleScoringSearchFlowTests(unittest.TestCase):
             for job_id in ("scoring-job", "excluded-job")
         }
         self.assertEqual(eligible_before, {"scoring-job": True, "excluded-job": False})
-        self.assertEqual(self.client.get(self._profile_url()).json(), {"profile": None})
+        self.assertEqual(self.client.get(self._profile_url()).json(), {
+            "profile_id": "fixture", "search_profile_id": "selected-search", "profile": None,
+        })
         self.assertEqual(self.client.get(self._profile_url(search_id="second-search")).json(),
-                         {"profile": None})
+                         {"profile_id": "fixture", "search_profile_id": "second-search", "profile": None})
 
         first_response = self.client.put(self._profile_url(), json={
             "expected_version": None,
@@ -192,9 +194,12 @@ class RoleScoringSearchFlowTests(unittest.TestCase):
         })
         self.assertEqual(first_response.status_code, 200, first_response.text)
         first = first_response.json()["profile"]
-        self.assertEqual(self.client.get(self._profile_url()).json(), {"profile": first})
+        self.assertEqual(self.client.get(self._profile_url()).json(), {
+            "profile_id": "fixture", "search_profile_id": "selected-search", "profile": first,
+        })
         self.assertEqual(self.client.get(
-            self._profile_url(search_id="second-search")).json(), {"profile": None})
+            self._profile_url(search_id="second-search")).json(),
+            {"profile_id": "fixture", "search_profile_id": "second-search", "profile": None})
 
         legacy_one, composed_one = self._materialize_profiled_match(first)
         self.assertEqual(legacy_one["components"]["requirements"][0]["profile_evidence"],
@@ -285,7 +290,8 @@ class RoleScoringSearchFlowTests(unittest.TestCase):
         })
         self.assertEqual(foreign_search.status_code, 409, foreign_search.text)
         self.assertEqual(self.client.get(
-            self._profile_url(search_id="second-search")).json(), {"profile": None})
+            self._profile_url(search_id="second-search")).json(),
+            {"profile_id": "fixture", "search_profile_id": "second-search", "profile": None})
         foreign_explanation = self.client.get(
             self._explanation_url(search_id="other-search"))
         self.assertEqual(foreign_explanation.status_code, 404, foreign_explanation.text)
