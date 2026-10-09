@@ -4,10 +4,12 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from apps.api.application_multipage_state import create_application_multipage_state_router
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
@@ -37,6 +39,13 @@ class ApplicationMultipageStateApiTests(unittest.TestCase):
                          operation_mode="FIXTURE")
         app.include_router(create_application_multipage_state_router(self.store))
         return TestClient(app)
+
+    def _audit_snapshot(self):
+        with self.store.engine.connect() as connection:
+            rows = connection.execute(
+                select(m.audit).order_by(m.audit.c.id),
+            ).mappings().all()
+        return [dict(row) for row in rows]
 
     def tearDown(self):
         self.client.close()
@@ -160,6 +169,10 @@ class ApplicationMultipageStateApiTests(unittest.TestCase):
 
         created = self.client.post(self.url, json=payload)
         self.assertEqual(created.status_code, 200, created.text)
+        profile_before = self.store.profile("fixture")
+        application_before = self.store.application(self.application_id)
+        audit_before = self._audit_snapshot()
+        progress_before = self.client.get(self.url).json()
         stale = self.client.post(self.url, json={
             **payload,
             "request_id": "stale-save-1",
@@ -167,7 +180,14 @@ class ApplicationMultipageStateApiTests(unittest.TestCase):
             "progress": {"identity": {"full_name": "Stale Applicant"}},
         })
         self.assertEqual(stale.status_code, 409, stale.text)
-        self.assertEqual(self.client.get(self.url).json(), created.json())
+        self.assertEqual(stale.json(), {"detail": {"code": "MULTIPAGE_VERSION_CONFLICT"}})
+        self.assertNotIn("submit", stale.json())
+        self.assertNotIn("submission", stale.json())
+        self.assertEqual(self.store.profile("fixture"), profile_before)
+        self.assertEqual(self.store.application(self.application_id), application_before)
+        self.assertEqual(self._audit_snapshot(), audit_before)
+        self.assertEqual(self.client.get(self.url).json(), progress_before)
+        self.assertEqual(progress_before, created.json())
 
         attempted_submit = self.client.post(self.url, json={
             **payload,
