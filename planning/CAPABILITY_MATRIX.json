@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T13:00:14Z",
+  "timestamp": "2026-10-09T13:44:01Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2224,9 +2224,9 @@
     },
     {
       "requirement_id": "MJ-REQ-269",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": ["docs/evidence/2026-10-09-document-fact-trace.json"],
+      "note": "Connected generated-document history resolves saved fact IDs against the immutable generation profile snapshot and the UI shows fact text, source, and approval state. Focused browser acceptance confirms current edits and unapproved facts do not leak into historical trace. Live AI-provider generation was not exercised; see evidence limitations."
     },
     {
       "requirement_id": "MJ-REQ-270",

@@ -2850,7 +2850,7 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "main",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-268 manual application status tracking passed local connected UI/API persistence and profile-scope acceptance at 95ef4c151ba01e666a1a2a982a0f4b21aefb2a31; evidence docs/evidence/2026-10-09-application-status-tracking.json. MJ-REQ-269/270/271 remain unverified and declared dependencies MJ-PR-072/MJ-PR-063 remain incomplete; package stays partial. Hosted checks NOT_RUN; external submission OFF."
+      "notes": "MJ-REQ-268 manual application status tracking passed local connected UI/API persistence and profile-scope acceptance at 95ef4c151ba01e666a1a2a982a0f4b21aefb2a31; evidence docs/evidence/2026-10-09-application-status-tracking.json. MJ-REQ-269 is PARTIAL: connected immutable generated-document fact trace is verified at 1db36c4fe10eff95880ad37d5941829e31770000, evidence docs/evidence/2026-10-09-document-fact-trace.json; live AI provider path remains NOT_RUN. MJ-REQ-270/271 remain unverified and declared dependencies MJ-PR-072/MJ-PR-063 remain incomplete; package stays partial. Hosted checks NOT_RUN; external submission OFF."
     },
     {
       "id": "MJ-PR-074",

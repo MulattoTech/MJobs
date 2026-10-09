@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T13:32:17Z",
+  "generated_at": "2026-10-09T13:44:01Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main is 95ef4c151ba01e666a1a2a982a0f4b21aefb2a31 (tree dd1bb29eeda1ffbcb9a73fdf3cbfba98b93a87bc); #269 / MJ-REQ-268 manual application status tracking is locally PASS with evidence docs/evidence/2026-10-09-application-status-tracking.json. Preserve untracked user file docs/evidence/2026-10-08-compose-target-isolation.json and unrelated branches/worktrees.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #269 remains OPEN pending local acceptance receipt. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T13:32:17Z"
+    "current_verified_local_state": "Local main includes issue #270 / MJ-REQ-269 connected immutable generated-document fact-trace acceptance at 1db36c4fe10eff95880ad37d5941829e31770000; evidence docs/evidence/2026-10-09-document-fact-trace.json. Requirement remains PARTIAL because live AI-provider generation was not exercised. Preserve untracked user file docs/evidence/2026-10-08-compose-target-isolation.json and unrelated branches/worktrees.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #270 remains OPEN/PARTIAL with a local acceptance receipt. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+    "current_verified_at": "2026-10-09T13:44:01Z"
   },
-  "current_milestone": "MJ-REQ-268-APPLICATION-STATUS-TRACKING-20261009",
-  "current_objective": "Verify and complete the connected manual application-status lifecycle with user-reported attribution, scoped persistence, and reload readback.",
+  "current_milestone": "MJ-REQ-269-DOCUMENT-FACT-TRACE-20261009",
+  "current_objective": "Verify connected generated-document fact references against immutable profile snapshots and prevent unapproved or current-edited facts from leaking into history.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -88,7 +88,8 @@
     "Issue #378 / MJ-REF-008 grounded interview preparation integrated locally at 430d4724e36d063890c9511c7478b44257abcd59; structured questions, approved-story talking points and STAR prompts preserve source references; unsupported topics are disclosed; immutable profile/job versions reload and export deterministically without AI answers. Evidence docs/evidence/2026-10-09-grounded-interview-preparation.json.",
     "MJ-REQ-237 / issue #238: profile-scoped connected discovery history exposes triggers, operation attempt state/count, sanitized errors, ATS and verified-domain evidence/confidence basis, source creation, and bounded job enumeration/import/match results. Local acceptance PASS; evidence docs/evidence/2026-10-09-company-discovery-history.json.",
     "MJ-REQ-264/265: profile-controlled company discovery enablement, match thresholds, hourly cap, and durable priority ordering are locally verified PASS at f1036d6e7bce62eb5aa75f7a5a14102179f274ce; broader grouped MJ-PR-072 requirements remain partial.",
-    "Connected manual application status tracking for Applied, Recruiter Contact, Interview, Offer, Rejected, and Withdrawn, with user-reported history, profile-scoped durable readback, and no submission receipt (MJ-REQ-268)."
+    "Connected manual application status tracking for Applied, Recruiter Contact, Interview, Offer, Rejected, and Withdrawn, with user-reported history, profile-scoped durable readback, and no submission receipt (MJ-REQ-268).",
+    "MJ-REQ-269 PARTIAL: connected document history displays fact references resolved from the original profile snapshot; focused Chromium acceptance confirms later edits and unapproved facts do not leak. Live AI provider document generation remains NOT_RUN. Evidence docs/evidence/2026-10-09-document-fact-trace.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -697,7 +698,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Implement #270 / MJ-REQ-269 document fact trace: verify generated document lineage and existing fact IDs, expose user-readable per-document fact references without leaking unapproved facts, and test durability/scope through the connected UI.",
+  "recommended_resume_step": "Advance core explainable matching: inspect issue #115 / MJ-REQ-114 plus existing local-only salary and score-explanation branches, then implement the largest remaining connected match explanation gap without conflicting with preserved worktrees.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -14867,9 +14868,14 @@
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #265/#266 remain OPEN with local acceptance evidence; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T12:59:39Z.",
   "next_candidates": [
     {
+      "issue": 115,
+      "requirement_id": "MJ-REQ-114",
+      "status": "NEXT_SOLO_FEATURE: complete a missing user-visible explainable-match component, prioritizing truthful salary evidence and preserving unknowns."
+    },
+    {
       "issue": 270,
       "requirement_id": "MJ-REQ-269",
-      "status": "NEXT_SOLO_FEATURE: connected generated-document fact trace and user-visible explainability."
+      "status": "PARTIAL_INTEGRATED: immutable generated-document fact references are visible and tested; live AI provider generation remains NOT_RUN."
     },
     {
       "issue": 269,

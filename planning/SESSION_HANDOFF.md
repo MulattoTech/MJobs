@@ -1,4 +1,14 @@
-# Current solo session checkpoint — 2026-10-09T13:32:17Z
+# Current solo session checkpoint — 2026-10-09T13:44:01Z
+
+- Root: `C:\Tools\Dev\MJobs`; local main includes issue #270 acceptance at `1db36c4fe10eff95880ad37d5941829e31770000` (tree `888ac5c43c60a21f97e5fd198be7a5636009210c`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
+- Solo mode: zero active child agents. Completed agents remain checkpointed; all unrelated branches/worktrees and claims are preserved. Untracked user file `docs/evidence/2026-10-08-compose-target-isolation.json` remains untouched.
+- #270 / MJ-REQ-269 is PARTIAL. The connected history API resolves saved fact IDs against the immutable generation snapshot and the UI displays fact text/source/approval state. New focused Chromium acceptance passes after a current-profile edit and with an unapproved fact present. Evidence: `docs/evidence/2026-10-09-document-fact-trace.json`.
+- Checks: focused browser 1/1 PASS; web typecheck/Vite build PASS; document generation/read-model suites 9/10 PASS. One existing tamper test expects outdated error wording although rejection succeeds. Existing broad document-history browser suite still has unrelated comparison-alert and document-library reload/download failures. Live AI provider, PostgreSQL and hosted checks NOT_RUN; external submission OFF.
+- Next feature: #115 / MJ-REQ-114 explainable matching; inspect preserved salary explanation work and complete the largest remaining connected matching gap.
+
+---
+
+# Previous checkpoint — 2026-10-09T13:32:17Z
 
 - Root: `C:\Tools\Dev\MJobs`; local main `95ef4c151ba01e666a1a2a982a0f4b21aefb2a31` (tree `dd1bb29eeda1ffbcb9a73fdf3cbfba98b93a87bc`), origin/main `0a8719d4db524c90b632d990cc7b205add0c2577`; local main is not pushed.
 - Solo mode: zero child agents. Preserve completed-worker branches/worktrees, unrelated claims, and untracked user file `docs/evidence/2026-10-08-compose-target-isolation.json`.
