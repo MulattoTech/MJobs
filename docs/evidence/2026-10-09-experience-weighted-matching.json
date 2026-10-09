@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-117-VERIFIED-EXPERIENCE-WEIGHT-20261009",
+  "requirement_ids": ["MJ-REQ-117"],
+  "github_issues": [118],
+  "result": "PARTIAL",
+  "scope": "Add a usable saved-search weighting for verified candidate experience. Score only recognized job skills supported by verified, user-approved, source-backed experience facts; persist and explain the selected-search result. Missing or unsupported experience remains UNKNOWN and neutral.",
+  "source": {
+    "branch": "codex/solo-117-experience-weight-20261009",
+    "commit": "c9ed0540469593a1f8fcb8a99b60b4f03373999a",
+    "tree": "7d441a1b7c74adcd29128828184f8c5a89a6fa1e",
+    "base": "b4a00ba3a043ab67c2cdad0bba31d2eb1cd8148b"
+  },
+  "verified_at_utc": "2026-10-09T16:36:46Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixture",
+    "frontend": "local Vitest, TypeScript/Vite production build, connected Chromium",
+    "delivery": "local-only; no push or hosted automation"
+  },
+  "input_sha256": {
+    "apps/web/src/role-scoring-profile-editor.tsx": "D8C8F0969305DE90BED01C5C08B347E23119A9FEC884B143A301D471B13E44F7",
+    "apps/web/src/role-scoring-custom-dimensions.test.tsx": "F16B84C660C6B5A3D37C4CCA04E474479DD398B0D6D17947A245F42B5FC5A4B1",
+    "services/discovery/matching.py": "F45FB99448E3F114CEFFDC99495D8D2339A6FDB4B3436B26C496585F69EC4730",
+    "services/matching/profile_scoring.py": "2FD7697508D25976722E05F32E239C8A9B59C0EF77603D6F64682F6B70990CA9",
+    "services/matching/selected_search_scoring.py": "97E504DF853A0EAC9AA0CFF1F13F111DA0A17BFAB591DD1168A841E95CD21272",
+    "tests/unit/test_profile_scoring.py": "168E335BE20447354A962DDCE821EAFCFB062631D1AEB1955F520AE7745D9997",
+    "tests/integration/test_matching_explanation_contributions.py": "79346EE81015FD3A6C513386956D73F50B5BEDFDC24374F608CDD43EB50E52FF",
+    "tests/browser/test_role_scoring_profile_reload_match.py": "156CDAFC574EB35AF508461E6EF7C6B0E48377F1BC9F331670C09492061E82DD"
+  },
+  "acceptance": [
+    "The saved-search profile editor exposes a clearly described Verified experience dimension and persists weight edits through the existing profile API.",
+    "Experience scoring uses only facts marked verified and user-approved, with confidence at least 80 and a nonempty source; only normalized recognized skills shared with the job are scored.",
+    "Posting-provided experience signals cannot supply candidate experience. Missing or unmatched approved facts remain UNKNOWN, do not reduce the score, and do not enter its denominator.",
+    "Recalculation persists the weighted result and contribution explanation under the selected search. The connected browser readback verifies profile version, contribution value, provenance, and unchanged hard eligibility and other-search configuration.",
+    "No experience text, external request, AI request, or application submission is emitted by the connected workflow."
+  ],
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/unit/test_profile_scoring.py tests/unit/test_selected_search_scoring.py tests/integration/test_matching_explanation_contributions.py tests/integration/test_role_scoring_search_flow.py tests/integration/test_selected_search_recalculation.py tests/browser/test_role_scoring_profile_reload_match.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "31 tests passed; 2 subtests passed. Connected Chromium workflow passed against an isolated SQLite fixture."
+    },
+    {
+      "command": "npm run test -- --reporter=dot (apps/web)",
+      "result": "PASS",
+      "evidence": "95 frontend test files and 540 tests passed."
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing advisory: generated JavaScript is 750.46 kB, above the 500 kB warning threshold."
+    },
+    {
+      "command": "python -m py_compile services/matching/profile_scoring.py services/matching/selected_search_scoring.py services/discovery/matching.py tests/unit/test_profile_scoring.py tests/integration/test_matching_explanation_contributions.py tests/browser/test_role_scoring_profile_reload_match.py; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS",
+      "evidence": "Python compilation, lane validation, and whitespace validation passed."
+    }
+  ],
+  "not_run": [
+    "Full Python repository suite and PostgreSQL-specific persistence acceptance.",
+    "Hosted Actions and hosted review (disabled by local-only policy).",
+    "External job-source collection and real external application submission (OFF)."
+  ],
+  "limitations": [
+    "This closes the verified-experience weighting slice only. The broader MJ-REQ-117 configurable weighting requirement remains PARTIAL until all intended score dimensions and their user-facing scoring semantics are accepted together.",
+    "Skill recognition is bounded by the existing deterministic skill taxonomy; ambiguous, unrecognized, or missing facts remain UNKNOWN rather than inferred."
+  ],
+  "external_submission_enabled": false
+}
