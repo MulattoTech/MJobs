@@ -89,6 +89,8 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
         outside_requests = []
         requests = []
         injected_save_failures = 0
+        injected_next_failures = 0
+        durable_state_before_failed_next = []
 
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
@@ -96,7 +98,7 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
             context.add_init_script("localStorage.setItem('mjobs-profile', 'fixture')")
 
             def local_only(route):
-                nonlocal injected_save_failures
+                nonlocal injected_save_failures, injected_next_failures
                 request = route.request
                 parsed = urlsplit(request.url)
                 requests.append((request.method, parsed.path))
@@ -110,6 +112,18 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
                     injected_save_failures += 1
                     route.fulfill(status=503, content_type="application/json",
                                   body='{"detail":"temporary local fixture interruption"}')
+                    return
+                if (request.method == "POST" and parsed.path == self.application_url
+                        and request.post_data_json.get("action") == "NEXT"
+                        and injected_next_failures == 0):
+                    # The preceding SAVE_PROGRESS in the two-step navigation has
+                    # committed. Fail only the transition so reload must recover
+                    # from the durable source of truth before retrying Continue.
+                    durable_state_before_failed_next.append(
+                        self.client.get(self.application_url).json())
+                    injected_next_failures += 1
+                    route.fulfill(status=503, content_type="application/json",
+                                  body='{"detail":"local next-page transition interrupted"}')
                     return
                 route.continue_()
 
@@ -150,6 +164,22 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
                 "synthetic.applicant@example.invalid")
             expect(review.get_by_label("Phone", exact=True)).to_have_value("555-0101")
 
+            review.get_by_role("button", name="Continue", exact=True).click()
+            expect(review.get_by_role("alert")).to_be_visible()
+            self.assertEqual(len(durable_state_before_failed_next), 1)
+            durable_contact = durable_state_before_failed_next[0]
+            self.assertEqual(durable_contact["current_page_id"], "contact")
+            self.assertEqual(durable_contact["progress"]["contact"], {
+                "email": "synthetic.applicant@example.invalid", "phone": "555-0101"})
+
+            # The save completed before navigation failed. Reload restores that
+            # durable progress, and the user can retry Continue safely.
+            page.reload(wait_until="domcontentloaded")
+            review = self._open_application(page)
+            expect(review.get_by_role("heading", name="Contact information")).to_be_visible()
+            expect(review.get_by_label("Email", exact=True)).to_have_value(
+                "synthetic.applicant@example.invalid")
+            expect(review.get_by_label("Phone", exact=True)).to_have_value("555-0101")
             review.get_by_role("button", name="Continue", exact=True).click()
             expect(review.get_by_role("heading", name="Experience", exact=True)).to_be_visible()
             experience = self.client.get(self.application_url).json()
