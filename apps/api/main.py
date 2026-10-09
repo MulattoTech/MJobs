@@ -44,7 +44,9 @@ from services.documents.answers import (
     save_answer_confidence_policy,
 )
 from services.dedupe.reviews import list_duplicate_reviews, record_review_decision
-from services.dedupe.routes import load_job_routes, list_route_choices, plan_application_routes, route_authority, source_provenance_inventory
+from services.dedupe.routes import (load_job_routes, list_route_choices, plan_application_routes,
+                                    route_authority, save_verified_redirect_destination,
+                                    source_provenance_inventory)
 from services.dedupe.route_redirects import resolve_aggregator_redirect
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
@@ -1714,6 +1716,67 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             source["url"], verified_domains=domains, ats_tenants=tenants,
         )
         return {"source_route_id": route_id, **result}
+
+    @app.post("/jobs/{job_id}/routes/{route_id}/save-verified-destination")
+    def save_job_application_route_destination(job_id: str, route_id: str,
+                                               response: Response):
+        """Recheck and explicitly persist one verified destination as a selectable route."""
+        with store.engine.connect() as connection:
+            source = connection.execute(
+                select(m.routes).where(m.routes.c.job_id == job_id, m.routes.c.id == route_id)
+            ).mappings().first()
+            if source is None:
+                raise HTTPException(404, "Saved application route not found")
+            source = dict(source)
+            if route_authority(source) != "AGGREGATOR":
+                raise HTTPException(409, "Only an aggregator route can be checked")
+            domains = connection.execute(
+                select(m.company_domains.c.domain).where(
+                    m.company_domains.c.company_id == source["company_id"],
+                    m.company_domains.c.verified.is_(True),
+                ).order_by(m.company_domains.c.domain)
+            ).scalars().all()
+            tenants = [dict(row) for row in connection.execute(
+                select(m.company_ats_tenants).where(
+                    m.company_ats_tenants.c.company_id == source["company_id"]
+                ).order_by(m.company_ats_tenants.c.id)
+            ).mappings()]
+        result = resolve_aggregator_redirect(
+            source["url"], verified_domains=domains, ats_tenants=tenants,
+        )
+        try:
+            with store.engine.begin() as connection:
+                current = connection.execute(
+                    select(m.routes).where(
+                        m.routes.c.job_id == job_id, m.routes.c.id == route_id,
+                    )
+                ).mappings().first()
+                if (current is None or current["company_id"] != source["company_id"]
+                        or current["url"] != source["url"]
+                        or route_authority(dict(current)) != "AGGREGATOR"):
+                    raise HTTPException(409, "APPLICATION_ROUTE_CHANGED")
+                saved = save_verified_redirect_destination(connection, dict(current), result)
+                if saved["created"]:
+                    store._audit(connection, job_id, "APPLICATION_ROUTE_DESTINATION_SAVED", {
+                        "source_route_id": route_id,
+                        "destination_route_id": saved["route_id"],
+                        "provider": result.get("provider") or "employer",
+                        "tenant": result.get("tenant") or "",
+                    })
+        except ValueError as error:
+            code = str(error)
+            raise HTTPException(409 if code == "ROUTE_DESTINATION_NOT_VERIFIED" else 422, code) from None
+        saved_route = next(
+            route for route in load_job_routes(store, job_id)
+            if route["id"] == saved["route_id"]
+        )
+        response.status_code = 201 if saved["created"] else 200
+        return {
+            "source_route_id": route_id,
+            "status": result["status"],
+            "created": saved["created"],
+            "route": saved_route,
+        }
 
     @app.get("/jobs/{job_id}")
     def job(job_id: str, profile_id: str | None = None):

@@ -8,6 +8,7 @@ import threading
 import time
 import unittest
 from urllib.parse import urlsplit
+from unittest.mock import patch
 
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import insert
@@ -64,6 +65,15 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                 ))
             app = create_app(store, "http://127.0.0.1:1", ROOT,
                              "redis://127.0.0.1:1/0", operation_mode="PERSONAL")
+            route_resolution = patch(
+                "apps.api.main.resolve_aggregator_redirect",
+                return_value={
+                    "status": "RESOLVED_ATS_ROUTE",
+                    "candidate_url": "https://boards.greenhouse.io/routechoice/jobs/1",
+                    "provider": "greenhouse", "tenant": "routechoice",
+                },
+            )
+            route_resolution.start()
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
@@ -78,7 +88,7 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                 with sync_playwright() as playwright:
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context()
-                    external, errors, application_requests, route_checks = [], [], [], []
+                    external, errors, application_requests, route_checks, route_saves = [], [], [], [], []
 
                     def local_only(route):
                         parsed = urlsplit(route.request.url)
@@ -89,12 +99,12 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                         if (parsed.path == f"/jobs/{job_id}/routes/browser-route-board/resolve"
                                 and route.request.method == "POST"):
                             route_checks.append(route.request.post_data)
-                            route.fulfill(status=200, json={
-                                "source_route_id":"browser-route-board",
-                                "status":"RESOLVED_ATS_ROUTE",
-                                "candidate_url":"https://boards.greenhouse.io/routechoice/jobs/1",
-                                "provider":"greenhouse", "tenant":"routechoice",
-                            })
+                            route.continue_()
+                            return
+                        if (parsed.path.endswith("/save-verified-destination")
+                                and route.request.method == "POST"):
+                            route_saves.append(route.request.post_data)
+                            route.continue_()
                             return
                         if parsed.path == "/applications" and route.request.method == "POST":
                             application_requests.append(route.request.post_data_json)
@@ -144,6 +154,22 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     expect(page.get_by_role("link", name="Review detected ATS destination ↗")).to_have_attribute(
                         "href", "https://boards.greenhouse.io/routechoice/jobs/1")
                     expect(prepare).to_be_enabled()
+                    with page.expect_response(lambda response: response.request.method == "POST"
+                                               and response.url.endswith(
+                                                   "/jobs/" + job_id + "/routes/browser-route-board/"
+                                                   "save-verified-destination")) as saved_response:
+                        page.get_by_role("button", name="Save detected destination as selectable route",
+                                         exact=True).click()
+                    saved_route = saved_response.value.json()["route"]
+                    saved_route_id = saved_route["id"]
+                    expect(page.get_by_text(
+                        "Saved as a selectable route. Your current route selection is unchanged. Review the option above; preparation still follows your saved route preference. Nothing is submitted.",
+                        exact=True,
+                    )).to_be_visible()
+                    expect(route_picker).to_have_value("browser-route-board")
+                    expect(route_picker.locator(f"option[value='{saved_route_id}']")).to_contain_text(
+                        "greenhouse · routechoice · verified identity evidence",
+                    )
                     with page.expect_response(lambda response: response.request.method == "PUT"
                                                and urlsplit(response.url).path == (
                                                    f"/profiles/{PROFILE['id']}/companies/browser-route-company/"
@@ -155,14 +181,18 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name=re.compile("Route Selection Engineer")).click()
                     route_picker = page.get_by_label("Choose the application route for this job")
                     expect(route_picker).to_have_value("browser-route-board")
+                    expect(route_picker.locator(f"option[value='{saved_route_id}']")).to_be_attached()
                     expect(page.get_by_role("button", name="Clear employer route preference", exact=True)).to_be_visible()
                     prepare = page.get_by_role("button", name="Prepare documents", exact=True)
+                    route_picker.select_option(saved_route_id)
+                    expect(prepare).to_be_enabled()
                     prepare.click()
                     expect(page.get_by_text("Completed. Your workspace has been updated.", exact=False)).to_be_visible()
                     self.assertEqual(len(application_requests), 1)
                     self.assertEqual(application_requests[0]["route_mode"], "THIS_ROUTE")
-                    self.assertEqual(application_requests[0]["route_id"], "browser-route-board")
+                    self.assertEqual(application_requests[0]["route_id"], saved_route_id)
                     self.assertEqual(route_checks, [None])
+                    self.assertEqual(route_saves, [None])
                     self.assertEqual(errors, [])
                     self.assertEqual(external, [])
                     context.close()
@@ -172,4 +202,5 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                 thread.join(timeout=5)
                 sock.close()
                 store.engine.dispose()
+                route_resolution.stop()
                 self.assertFalse(thread.is_alive(), "Isolated route-preference API must stop")

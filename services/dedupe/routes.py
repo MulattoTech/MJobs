@@ -1,6 +1,7 @@
 """Preserve source provenance while planning genuinely distinct application routes."""
 from __future__ import annotations
 
+import hashlib
 from urllib.parse import urlsplit
 
 from sqlalchemy import select
@@ -172,6 +173,67 @@ def qualify_route_authority(connection, routes):
                 and any(isinstance(item, str) and item.strip() for item in tenants[0]["evidence"])):
             route["authority"] = "VERIFIED_ATS"
     return result
+
+
+def save_verified_redirect_destination(connection, source_route, resolution):
+    """Persist one freshly verified redirect candidate without selecting it."""
+    status = str(resolution.get("status") or "")
+    if status == "RESOLVED_ATS_ROUTE":
+        provider = str(resolution.get("provider") or "").casefold()
+        tenant = str(resolution.get("tenant") or "").strip()
+        expected_authority = "VERIFIED_ATS"
+        if provider not in FIRST_PARTY_PROVIDERS or not tenant:
+            raise ValueError("ROUTE_DESTINATION_NOT_VERIFIED")
+    elif status == "RESOLVED_EMPLOYER_ROUTE":
+        provider = "employer"
+        tenant = ""
+        expected_authority = "VERIFIED_EMPLOYER"
+    else:
+        raise ValueError("ROUTE_DESTINATION_NOT_VERIFIED")
+
+    url = str(resolution.get("candidate_url") or "")
+    parsed = urlsplit(url)
+    if (len(url) > 2000 or parsed.scheme.casefold() != "https" or not parsed.hostname
+            or parsed.username is not None or parsed.password is not None
+            or parsed.query or parsed.fragment):
+        raise ValueError("ROUTE_DESTINATION_NOT_VERIFIED")
+    try:
+        parsed.port
+    except ValueError:
+        raise ValueError("ROUTE_DESTINATION_NOT_VERIFIED") from None
+
+    company_id = str(source_route["company_id"])
+    job_id = str(source_route["job_id"])
+    existing = connection.execute(select(m.routes).where(
+        m.routes.c.job_id == job_id,
+        m.routes.c.company_id == company_id,
+        m.routes.c.provider == provider,
+        m.routes.c.tenant == tenant,
+        m.routes.c.url == url,
+    )).mappings().first()
+    if existing is not None:
+        if qualify_route_authority(connection, [dict(existing)])[0]["authority"] != expected_authority:
+            raise ValueError("ROUTE_DESTINATION_NOT_VERIFIED")
+        return {"route_id": str(existing["id"]), "created": False}
+
+    # The route table requires a requisition key. This opaque, stable key keeps
+    # redirected routes distinct without claiming the aggregator ID is an ATS ID.
+    requisition = "redirect-" + hashlib.sha256(
+        f"{job_id}\n{url}".encode("utf-8")
+    ).hexdigest()[:48]
+    route = {
+        "id": identity("verified-redirect-route", company_id, job_id, provider, tenant, url),
+        "job_id": job_id,
+        "company_id": company_id,
+        "provider": provider,
+        "tenant": tenant,
+        "requisition": requisition,
+        "url": url,
+    }
+    if qualify_route_authority(connection, [route])[0]["authority"] != expected_authority:
+        raise ValueError("ROUTE_DESTINATION_NOT_VERIFIED")
+    upsert(connection, m.routes, route)
+    return {"route_id": route["id"], "created": True}
 
 
 def direct_employer_route_discovery(routes, source_route_id):

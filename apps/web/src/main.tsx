@@ -1423,7 +1423,16 @@ function App() {
           {(detail.routes||[]).filter(route=>route.authority==='AGGREGATOR').map(route=><ApplicationRouteDiscovery
             key={`${detail.id}:${route.id}`} routeId={route.id} routeLabel={`${route.provider} · ${route.tenant||'tenant unknown'}`}
             disabled={!!busy} onCheck={routeId=>api<ApplicationRouteDiscoveryResult>(
-              `/jobs/${encodeURIComponent(detail.id)}/routes/${encodeURIComponent(routeId)}/resolve`, {method:'POST'})}/>)}
+              `/jobs/${encodeURIComponent(detail.id)}/routes/${encodeURIComponent(routeId)}/resolve`, {method:'POST'})}
+            onSaveDestination={async routeId=>{
+              await api<ApplicationRouteDiscoveryResult>(
+                `/jobs/${encodeURIComponent(detail.id)}/routes/${encodeURIComponent(routeId)}/save-verified-destination`,
+                {method:'POST'},
+              );
+              const profileQuery=profileId?'?profile_id='+encodeURIComponent(profileId):'';
+              const updated=await api<Job>('/jobs/'+encodeURIComponent(detail.id)+profileQuery);
+              setDetail(updated);
+            }}/>)}
           <button className="primary" disabled={!!busy||!profileId||(applicationRoutePreference==='USER_CHOICE'&&!selectedApplicationRouteId)||(tailorResume&&(!resumeAlignmentPreview||resumeAlignmentPreview.profileId!==profileId||resumeAlignmentPreview.jobId!==detail.id||resumeAlignmentPreview.jobFingerprint!==detail.alignment_fingerprint||(resumeSelection&&(!resumeSelection.version||!resumeSelection.ids.length||resumeAlignmentPreview.profileVersion!==resumeSelection.version))))||!!detail.attributes.source_resolution?.route_review_required||(detail.attributes.source_type==='MANUAL_USER_ENTRY'&&!detail.postings?.some(p=>p.source==='manual'&&p.raw?.submitted_fields?.application_url))} onClick={()=>void action('Preparing factual documents',()=>prepareJobRoute(detail,applicationRoutePreference==='USER_CHOICE'?'THIS_ROUTE':'DEFAULT',selectedApplicationRouteId||undefined))}>Prepare documents</button>
           {detail.attributes.source_type==='MANUAL_USER_ENTRY'&&!detail.postings?.some(p=>p.source==='manual'&&p.raw?.submitted_fields?.application_url)&&<p className="muted">Add an application URL before preparing documents. A job reference alone is not an application route.</p>}
           {!detail.attributes.fictional&&detail.application_url&&(!detail.attributes.source_type||detail.postings?.some(p=>p.source!=='manual'||Boolean(p.raw?.submitted_fields?.application_url)))&&<a className="button-link" href={detail.application_url} target="_blank" rel="noreferrer">Open employer application ↗</a>}

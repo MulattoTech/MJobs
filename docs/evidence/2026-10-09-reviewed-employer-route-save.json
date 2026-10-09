@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-267"],
+  "github_issues": [268],
+  "result": "PARTIAL",
+  "scope": "After an explicit route check reports a verified employer or ATS destination, a separate save action rechecks it, validates current persisted identity evidence, and adds an idempotent selectable route. The original route and selected/preferred route remain unchanged until the user chooses. No application is submitted.",
+  "source": {
+    "branch": "codex/solo-mj-req267-reviewed-route-save-20261009",
+    "base": "29fffc5f4c3770d236ec3963b340adef8354b414",
+    "tested_source_sha256": {
+      "apps/api/main.py": "D9241FBC6B692DB5C05027D53826049B6FD5A78A8FA005824F9CC7736AB43C71",
+      "services/dedupe/routes.py": "E045B01FB40BEB8A94EFA3471B7DA57F4797ACEE131E8DB4B2F5DFE2FAA5BF12",
+      "apps/web/src/main.tsx": "E8BD9DEE1188F14528E19A53F0919528F5419284CAB3FC461B3BDE2FB4B55067",
+      "apps/web/src/application-route-discovery.tsx": "DF8AEFC8AB6DF0E6635078FC9E511E66A34A9C8E9EF61975512F54C3F53DF324",
+      "tests/integration/test_reviewed_employer_route_save.py": "D60CFCA0813026862E4D276567C5EDE26162578241EB72E1EEE6DD32F33B4469",
+      "tests/browser/test_application_route_preference.py": "9C59F7AB7260623E500FB2CB42BA58CE68BCAF6419B20A28D91498D712F8DA0E"
+    }
+  },
+  "verified_at_utc": "2026-10-09T19:27:50Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and connected Chromium",
+    "delivery": "local-only; not pushed; hosted automation and review disabled"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_reviewed_employer_route_save tests.integration.test_application_route_trust tests.integration.test_job_route_provenance tests.unit.test_application_route_authority tests.unit.test_application_routes tests.unit.test_direct_employer_route_redirects -v",
+      "result": "PASS",
+      "evidence": "36 tests passed. Includes creation and idempotent replay, reload/readback, unchanged preference, exactly one audit event, revoked tenant evidence, foreign or non-aggregator route rejection, unresolved/blocked/unverified/unsafe/overlong destinations, and existing route trust/provenance regressions."
+    },
+    {
+      "command": "npm test -- --run src/application-route-discovery.test.tsx",
+      "result": "PASS",
+      "evidence": "2 route-discovery component tests passed."
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing advisory: generated JavaScript chunk is 763.12 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_route_preference -v",
+      "result": "PASS",
+      "evidence": "Connected Chromium checked and saved a synthetic verified destination, observed it in the route picker after API readback, preserved the original selection, then explicitly selected the new route for preparation. The isolated browser recorded zero external requests and zero external application submissions."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile apps/api/main.py services/dedupe/routes.py tests/integration/test_reviewed_employer_route_save.py tests/browser/test_application_route_preference.py; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS",
+      "evidence": "Python compilation, lane validation, and candidate whitespace validation passed."
+    }
+  ],
+  "not_run": [
+    "Live employer or ATS requests; browser and API acceptance used a synthetic verified redirect response.",
+    "PostgreSQL integration and full Python repository discovery.",
+    "Hosted Actions, hosted reviews, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "Saving is an explicit user action after a separate route check; it is not an automatic pre-submission gate.",
+    "Only a freshly rechecked public HTTPS destination matching current verified employer-domain or first-party ATS-tenant evidence can be saved. Query strings, fragments, credentials, and overlong URLs are rejected.",
+    "The saved destination becomes selectable, but MJobs retains the existing route preference until the user changes it.",
+    "MJ-REQ-267 remains PARTIAL; this does not authorize or perform external application submission."
+  ],
+  "safety": [
+    "Saving performs a fresh bounded route check and validates source-route identity again before the database write.",
+    "Creation is idempotent and records one audit event; the aggregator route and user route selection remain intact.",
+    "No real site request or application submission occurred in browser acceptance."
+  ],
+  "environment_notes": [
+    "A first test invocation used the system Python without SQLAlchemy installed; all focused Python validations then passed using the repository .venv interpreter."
+  ]
+}
