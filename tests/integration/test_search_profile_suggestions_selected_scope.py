@@ -43,6 +43,7 @@ class SearchProfileSuggestionsSelectedScopeTests(unittest.TestCase):
                 "id": "suggestion-selected-company", "name": "Synthetic Employer", "domain": "",
             })
             for search_id, profile_id, titles in (
+                ("empty-search", "fixture", []),
                 ("selected-search", "fixture", ["System Administrator", "Infrastructure Support Engineer"]),
                 ("foreign-search", "other", ["System Administrator"]),
             ):
@@ -70,7 +71,7 @@ class SearchProfileSuggestionsSelectedScopeTests(unittest.TestCase):
                     missing=[], components={},
                 ))
 
-    def test_selected_saved_search_excludes_its_titles_and_does_not_mutate_storage(self):
+    def test_selected_search_uses_its_own_includes_and_does_not_mutate_storage(self):
         with self.store.engine.connect() as connection:
             searches_before = [dict(row) for row in connection.execute(
                 select(m.search_profiles).order_by(m.search_profiles.c.id)).mappings()]
