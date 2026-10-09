@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T16:03:25Z",
+  "generated_at": "2026-10-09T16:16:08Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main 20661b676d20df064f1bec61d962d31248f579d3 (tree 44d608d064330a6915e2b00d60643278e0dd1c7a); issue #251 / MJ-REQ-250 First-Run Wizard is locally integrated with evidence docs/evidence/2026-10-09-first-run-wizard.json. The preexisting untracked compose-target evidence file remains preserved.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #251 remains OPEN/PARTIAL; local-only changes are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:03:25Z.",
-    "current_verified_at": "2026-10-09T16:03:25Z"
+    "current_verified_local_state": "Local main 5b86ae91e1e50e68b7db63347d190aa9cc227818 (tree 45c2c4adb7b1e37670042333958ff558299b9849); issue #253 / MJ-REQ-252 Search Profile Seed is locally integrated with evidence docs/evidence/2026-10-09-search-profile-seed.json. The preexisting untracked compose-target evidence remains preserved.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #253 is CLOSED after local acceptance readback; local-only changes are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:16:08Z.",
+    "current_verified_at": "2026-10-09T16:16:08Z"
   },
-  "current_milestone": "MJ-REQ-250-FIRST-RUN-WIZARD-20261009",
-  "current_objective": "Connect the ten-step first-run guide to saved profile, resume, review, search, preferences, source selection, and durable discovery history while preserving manual-review and no-submit gates.",
-  "status": "PARTIAL",
+  "current_milestone": "MJ-REQ-252-SEARCH-PROFILE-SEED-20261009",
+  "current_objective": "Provide an editable remote infrastructure/sysadmin search example that saves as a profile-scoped search and can be selected after reload to filter Jobs, without enabling scheduled collection.",
+  "status": "PASS",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
     "366 stable marked issues mapped; idempotent live reconciliation",
@@ -91,7 +91,8 @@
     "Connected manual application status tracking for Applied, Recruiter Contact, Interview, Offer, Rejected, and Withdrawn, with user-reported history, profile-scoped durable readback, and no submission receipt (MJ-REQ-268).",
     "MJ-REQ-269 PARTIAL: connected document history displays fact references resolved from the original profile snapshot; focused Chromium acceptance confirms later edits and unapproved facts do not leak. Live AI provider document generation remains NOT_RUN. Evidence docs/evidence/2026-10-09-document-fact-trace.json.",
     "Related job-title suggestions from current strong matches (MJ-REQ-244)",
-    "Browser-assisted job extraction now persists a server-validated review receipt, rejected optional-route decision, sanitized raw fields, and field provenance through reload."
+    "Browser-assisted job extraction now persists a server-validated review receipt, rejected optional-route decision, sanitized raw fields, and field provenance through reload.",
+    "MJ-REQ-252 / issue #253: editable remote infrastructure search seed with ten documented titles, remote-required/full-time criteria, profile-scoped API save/readback, reload persistence, and Jobs selection; scheduled discovery stayed off. Evidence docs/evidence/2026-10-09-search-profile-seed.json."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -631,13 +632,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "20661b676d20df064f1bec61d962d31248f579d3",
-    "tree": "44d608d064330a6915e2b00d60643278e0dd1c7a",
-    "result": "PARTIAL for #251 / MJ-REQ-250: connected first-run navigation and selected saved-search collection persist through durable operation history; live provider fetching and cross-device acknowledgment persistence remain unverified.",
+    "commit": "5b86ae91e1e50e68b7db63347d190aa9cc227818",
+    "tree": "45c2c4adb7b1e37670042333958ff558299b9849",
+    "result": "PASS for #253 / MJ-REQ-252: user can load the documented ten-title remote/full-time example into an editable form, save it to the selected profile, read it after reload, and select it for a Jobs query; no source collection starts.",
     "evidence": [
-      "docs/evidence/2026-10-09-first-run-wizard.json"
+      "docs/evidence/2026-10-09-search-profile-seed.json"
     ],
-    "verified_at_utc": "2026-10-09T16:03:25Z"
+    "verified_at_utc": "2026-10-09T16:15:12Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -704,7 +705,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "After this accepted local checkpoint, select the next dependency-ready user-facing workflow from the live backlog; preserve all existing branches/worktrees and untracked files. Keep external application submission OFF and do not publish to hosted automation.",
+  "recommended_resume_step": "Continue solo with the highest-value dependency-ready user-facing core feature. Dice adapter issue #302 is still owned by Antigravity; reconcile remaining #517 source-candidate acceptance for a non-overlapping discovery/tracking gap, preserving all active claims and worktrees.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",

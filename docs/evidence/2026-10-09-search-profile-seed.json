@@ -1,8 +1,12 @@
 {
   "schema_version": 1,
   "evidence_id": "MJ-REQ-252-REMOTE-INFRASTRUCTURE-SEARCH-SEED-20261009",
-  "requirement_ids": ["MJ-REQ-252"],
-  "github_issues": [253],
+  "requirement_ids": [
+    "MJ-REQ-252"
+  ],
+  "github_issues": [
+    253
+  ],
   "result": "PASS",
   "scope": "Provide an editable Remote Infrastructure / SysAdmin example with the ten specified IT titles, remote required, and full-time employment. Saving uses the existing profile-scoped search API; users can select the persisted profile after reload to filter Jobs. Scheduled discovery remains disabled until the user enables it.",
   "source": {
@@ -72,5 +76,13 @@
     "The seed loads draft field values only and creates no record until the user saves it.",
     "Source selection resets to all enabled sources; schedule remains off by default.",
     "The verification blocks all external browser requests and performs no application submission."
-  ]
+  ],
+  "git_blob_sha256": {
+    "apps/web/src/main.tsx": "B58AEB9C153FA5013CAA1C91A6B8475F1A5C75E4C42D80A3788DC00138EE2295",
+    "apps/web/src/search-profile-seed.tsx": "7B2D16CA9BBB3F39FFC565496C9CA8616F42A4C939F4FC015D6B302BB9165733",
+    "apps/web/src/search-profile-seed.test.tsx": "10C56E8BDB911930FB331D934F36B35E7CAB98B76D999D90D5CD6DC0541A510E",
+    "tests/browser/test_search_profile_seed.py": "6F091F5F87D4A7E80E0D1EB2DF8ABC6326A017BCB197BCC923657E396203DDF4",
+    "tests/browser/test_search_profile_selection.py": "C74FFB15C58539BE1F5D27CC4AD758707BD4B8C47BE4E77947EA335AAFF2E99F"
+  },
+  "input_hash_note": "input_sha256 records the exact feature-worktree bytes used for the first candidate tests. git_blob_sha256 records the canonical committed source blobs. Windows checkout line-ending conversion can make the main worktree byte hash differ; integrated-main frontend suite/build/connected browser checks were rerun successfully after fast-forward."
 }

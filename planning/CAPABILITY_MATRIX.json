@@ -2122,9 +2122,11 @@
     },
     {
       "requirement_id": "MJ-REQ-252",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-search-profile-seed.json"
+      ],
+      "note": "The editable remote infrastructure example includes all ten specified titles, remote required, and full-time employment. Connected acceptance saves the example through the profile-scoped API, reads it back after reload, and selects it for a Jobs query. Scheduled discovery remains off until user-enabled."
     },
     {
       "requirement_id": "MJ-REQ-253",

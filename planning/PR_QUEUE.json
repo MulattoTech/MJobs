@@ -2787,10 +2787,10 @@
         "MJ-PR-068",
         "MJ-PR-063"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-069-operations-ux-ci",
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "main",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-252 / issue #253 Search Profile Seed is locally PASS at main 5b86ae91e1e50e68b7db63347d190aa9cc227818; evidence docs/evidence/2026-10-09-search-profile-seed.json. All ten documented titles, remote-required/full-time criteria, save/readback after reload, and Jobs selection were verified in connected Chromium; no collection or schedule was started. MJ-REQ-253/254/255 remain separately incomplete or unverified; grouped package remains partial. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "id": "MJ-PR-070",
