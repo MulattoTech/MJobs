@@ -2012,9 +2012,11 @@
     },
     {
       "requirement_id": "MJ-REQ-237",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-company-discovery-history.json"
+      ],
+      "note": "Profile-scoped trigger, attempt, ATS/confidence, verified evidence, safe error, source-created state, and bounded discovery results are exposed in connected Activity history; focused API, UI, build, and Chromium acceptance PASS. Live external sources, PostgreSQL, full suite, and hosted checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-238",
