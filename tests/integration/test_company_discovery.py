@@ -153,6 +153,77 @@ class CompanyDiscoveryTests(unittest.TestCase):
         self.assertEqual(result["status"], "AMBIGUOUS")
         self.assertEqual(result["candidates"], ["one.example", "two.example"])
 
+    def test_domain_resolver_prefers_first_party_job_link_to_verified_existing_domain(self):
+        from services.company_discovery.domains import resolve_official_domain
+
+        result = resolve_official_domain([
+            {"domain": "existing.example", "method": "VERIFIED_EXISTING_DOMAIN"},
+            {"domain": "employer.example", "method": "FIRST_PARTY_JOB_LINK"},
+        ])
+
+        self.assertEqual(result["status"], "VERIFIED")
+        self.assertEqual(result["domain"], "employer.example")
+        self.assertEqual(result["method"], "FIRST_PARTY_JOB_LINK")
+
+    def test_discovery_reuses_verified_existing_domain_before_optional_search(self):
+        from types import SimpleNamespace
+        from services.company_discovery.domains import record_company_domain
+        from services.company_discovery.flywheel import discover_company_source
+
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                "id": "known-employer", "name": "Employer Example", "domain": "",
+            })
+        record_company_domain(
+            self.store, "known-employer", "employer.example", "FIRST_PARTY_JOB_LINK",
+            ["verified first-party careers posting"],
+        )
+        origin = "https://employer.example"
+
+        class FixtureTransport:
+            bounded_redirects = True
+            fixture_only = True
+
+            def __init__(self):
+                self.urls = []
+
+            def allowed(self, url):
+                from urllib.parse import urlsplit
+                return (urlsplit(url).scheme, urlsplit(url).netloc) == ("https", "employer.example")
+
+            def get(self, url):
+                self.urls.append(url)
+                pages = {
+                    origin + "/": SimpleNamespace(
+                        url=origin + "/", text='<h1>Employer Example</h1><a href="/careers">Careers</a>',
+                    ),
+                    origin + "/careers": SimpleNamespace(
+                        url=origin + "/careers",
+                        text='<a data-provider="mock-ats" data-tenant="employer" href="/ats/jobs">Jobs</a>',
+                    ),
+                }
+                if url == origin + "/ats/jobs":
+                    return SimpleNamespace(url=url, json=lambda: {"jobs": []})
+                if url.rstrip("/") == origin:
+                    url = origin + "/"
+                return pages[url]
+
+        class SearchProvider:
+            provider_id = "must-not-run"
+
+            def search(self, query, *, limit):
+                raise AssertionError("verified stored domain must precede web search")
+
+        client = FixtureTransport()
+        result = discover_company_source(
+            self.store, {"company_name": "Employer Example"}, client,
+            search_provider=SearchProvider(),
+        )
+
+        self.assertEqual(result["company"]["company_id"], "known-employer")
+        self.assertEqual(result["provider"], "mock-ats")
+        self.assertEqual(client.urls[0], origin)
+
     def test_company_domain_normalization_rejects_private_ip_literals(self):
         from services.company_discovery.domains import normalize_domain
 

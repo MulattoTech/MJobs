@@ -5,6 +5,7 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from services.company_discovery.flywheel import directly_monitored
+from services.company_discovery.domains import resolve_verified_company_domain
 from services.company_discovery.resolution import resolve_company
 from services.company_discovery.public_resolution import resolve_public_company
 from workers.dispatch import enqueue_operation
@@ -26,6 +27,13 @@ def queue_company_discovery(store, candidate, reason, profile_id=None, *, public
     reason = str(reason or "").upper()
     if reason not in TRIGGERS:
         raise ValueError("COMPANY_DISCOVERY_TRIGGER_INVALID")
+    candidate = dict(candidate)
+    if public and not (candidate.get("company_website") or candidate.get("website_url")):
+        existing = resolve_company(store, candidate)
+        if not existing["is_new"]:
+            official_domain = resolve_verified_company_domain(store, existing["company_id"])
+            if official_domain["status"] == "VERIFIED":
+                candidate["company_website"] = f"https://{official_domain['domain']}"
     resolved = resolve_public_company(store, candidate) if public else resolve_company(store, candidate)
     if directly_monitored(store, resolved["company_id"], public=public) and reason not in {"KNOWN_SOURCE_BROKEN", "NEW_ATS_TENANT"}:
         return {

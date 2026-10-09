@@ -13,7 +13,9 @@ from packages.persistence.store import now, upsert
 from services.company_discovery.career_pages import (
     common_career_routes, internal_career_links, parse_sitemap, sitemap_locations,
 )
-from services.company_discovery.domains import normalize_domain, record_company_domain
+from services.company_discovery.domains import (
+    normalize_domain, record_company_domain, resolve_verified_company_domain,
+)
 from services.company_discovery.endpoints import machine_readable_job_endpoints, parse_public_job_feed
 from services.company_discovery.fetch_policy import bounded_get
 from services.company_discovery.quality import record_known_feed_failure
@@ -134,8 +136,20 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     """Resolve one employer, prove its careers/ATS source, enroll, and enumerate immediately."""
     check = check or (lambda: None)
     fixture = bool(getattr(client, "fixture_only", False))
-    resolved = resolve_company(store, candidate) if fixture else resolve_public_company(store, candidate)
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
+    resolved_without_website = None
+    if not website:
+        resolved_without_website = resolve_company(store, candidate)
+        if not resolved_without_website["is_new"]:
+            known_domain = resolve_verified_company_domain(
+                store, resolved_without_website["company_id"],
+            )
+            if known_domain["status"] == "VERIFIED":
+                website = f"https://{known_domain['domain']}"
+                candidate = {**candidate, "company_website": website}
+    resolved = (resolve_company(store, candidate) if fixture else
+                resolve_public_company(store, candidate) if website else
+                resolved_without_website)
     search_context = None
     rejected_search_candidates = []
     homepage = None
@@ -197,6 +211,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 })
             raise ValueError("COMPANY_OFFICIAL_WEBSITE_NOT_FOUND")
         candidate = {**candidate, "company_website": website}
+        if not fixture:
+            resolved = resolve_public_company(store, candidate)
     check()
     if homepage is None:
         homepage = bounded_get(client, website)

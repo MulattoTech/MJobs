@@ -14,6 +14,7 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.public_resolution import resolve_public_company
+from services.company_discovery.resolution import resolve_company
 from services.company_discovery.public_client import PublicCompanyClient
 from services.company_discovery.domains import record_company_domain
 from services.company_discovery.sources import set_company_source_enabled
@@ -148,6 +149,40 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
             self.assertTrue(all(not row['verified'] for row in connection.execute(select(m.company_domains)).mappings()))
         self.assertEqual(set(seen),{'https://employer.example'+p for p in pages})
         self.assertGreaterEqual(seen.count('https://employer.example/jobs/1'),1)
+
+    def test_personal_worker_reuses_verified_domain_when_discovery_website_is_omitted(self):
+        candidate = {'company_name': 'Example Systems'}
+        resolved = resolve_company(self.store, candidate)
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.companies, {
+                'id': resolved['company_id'], 'name': 'Example Systems', 'domain': '',
+            })
+        record_company_domain(
+            self.store, resolved['company_id'], 'employer.example',
+            'FIRST_PARTY_JOB_LINK', ['verified first-party careers posting'],
+        )
+        seen = []
+        pages = {
+            '/robots.txt': 'User-agent: *\\nAllow: /',
+            '/': '<html>Example Systems<a rel="careers" href="/careers">Careers</a></html>',
+            '/careers': '<html>Example Systems<link rel="alternate" type="application/feed+json" href="/jobs.json"></html>',
+            '/jobs.json': '{"version":"https://jsonfeed.org/version/1.1","items":[]}',
+        }
+
+        def fetch(client, url, deadline):
+            seen.append(url)
+            request = httpx.Request('GET', url)
+            return httpx.Response(200, text=pages[request.url.path], request=request)
+
+        queued = queue_company_discovery(
+            self.store, candidate, 'USER_ADDED_COMPANY', profile_id='fixture', public=True,
+        )
+        with patch.dict(os.environ, self.env), patch.object(PublicCompanyClient, '_request_once', fetch):
+            result = execute_operation(queued['operation_id'])
+
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        self.assertTrue(seen)
+        self.assertTrue(all(url.startswith('https://employer.example') for url in seen))
 
     def test_stale_fixture_operation_remains_blocked_in_personal_mode(self):
         with patch.dict(os.environ,self.env):

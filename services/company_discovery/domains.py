@@ -30,6 +30,18 @@ METHOD_CONFIDENCE = {
     "PUBLIC_METADATA": 0.55,
     "CANDIDATE_DOMAIN_UNVERIFIED": 0.45,
 }
+METHOD_PRIORITY = {
+    method: index for index, method in enumerate((
+        "FIRST_PARTY_JOB_LINK",
+        "VERIFIED_EXISTING_DOMAIN",
+        "ATS_COMPANY_METADATA",
+        "OFFICIAL_CAREER_REDIRECT",
+        "OFFICIAL_STRUCTURED_METADATA",
+        "CONFIGURED_WEB_SEARCH",
+        "PUBLIC_METADATA",
+        "CANDIDATE_DOMAIN_UNVERIFIED",
+    ))
+}
 
 
 def normalize_domain(value):
@@ -94,15 +106,34 @@ def resolve_official_domain(candidates):
                        "evidence": list(candidate.get("evidence") or [])})
     if not usable:
         return {"status": "NOT_FOUND", "domain": "", "confidence": 0.0, "evidence": []}
-    highest = max(row["confidence"] for row in usable)
-    best = [row for row in usable if row["confidence"] == highest]
+    highest_priority = min(METHOD_PRIORITY[row["method"]] for row in usable)
+    best = [row for row in usable if METHOD_PRIORITY[row["method"]] == highest_priority]
     domains = sorted({row["domain"] for row in best})
     if len(domains) > 1:
-        return {"status": "AMBIGUOUS", "domain": "", "confidence": highest,
+        confidence = max(row["confidence"] for row in best)
+        return {"status": "AMBIGUOUS", "domain": "", "confidence": confidence,
                 "evidence": ["EQUAL_RANK_DOMAIN_CANDIDATES"], "candidates": domains}
     winner = best[0]
-    return {"status": "VERIFIED" if highest >= 0.90 else "CANDIDATE",
+    return {"status": "VERIFIED" if winner["confidence"] >= 0.90 else "CANDIDATE",
             **winner}
+
+
+def resolve_verified_company_domain(store, company_id):
+    """Select only persisted, evidenced official domains for an existing company."""
+    with store.engine.connect() as connection:
+        rows = connection.execute(select(m.company_domains).where(
+            m.company_domains.c.company_id == company_id,
+            m.company_domains.c.verified.is_(True),
+        )).mappings().all()
+    candidates = [
+        {"domain": row["domain"], "method": row["verification_method"],
+         "evidence": row["evidence"] or []}
+        for row in rows
+        if row["verification_method"] in VERIFIED_METHODS and row["evidence"]
+    ]
+    if not candidates:
+        return {"status": "NOT_FOUND", "domain": "", "confidence": 0.0, "evidence": []}
+    return resolve_official_domain(candidates)
 
 
 def record_company_domain(store, company_id, value, method="CANDIDATE_DOMAIN_UNVERIFIED", evidence=None):
