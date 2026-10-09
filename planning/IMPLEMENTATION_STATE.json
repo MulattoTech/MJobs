@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T11:46:44Z",
+  "generated_at": "2026-10-09T12:23:19Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only main is not pushed. Issue #61 remains OPEN/PARTIAL; integration receipt https://github.com/MulattoTech/MJobs/issues/61#issuecomment-6078683433. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T10:14:05Z"
   },
-  "current_milestone": "MJ-REQ-189-JOB-SOURCE-SAVED-FILTER-20261009",
-  "current_objective": "Add a truthful collection-source filter to the Jobs workflow with database-side filtering and profile-owned saved-search persistence; keep the broad filter requirement PARTIAL until full acceptance is proven.",
+  "current_milestone": "MJ-REF-026-HEATMAP-JOB-EVIDENCE-20261009",
+  "current_objective": "Make skill-gap ranking explainable by exposing bounded current-version scored-job evidence and reported pipeline relevance in the connected heatmap.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -625,13 +625,13 @@
     "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout’s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json."
   ],
   "last_verified_checkpoint": {
-    "commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
-    "tree": "60c7fe672498a64b8ce10f9f706a3b5bfc9eadae",
-    "result": "PASS for the connected job-source saved-filter slice; whole MJ-REQ-189 remains PARTIAL.",
+    "commit": "84e8ba15e139b84a6f87a208a952a123a1899518",
+    "tree": "254a58a28d69841e7af8fc1c01734c6a3d2dada3",
+    "result": "PASS for bounded skill-gap job evidence drill-down; MJ-REF-026 remains PARTIAL.",
     "evidence": [
-      "docs/evidence/2026-10-09-job-source-filter.json"
+      "docs/evidence/2026-10-09-skill-gap-job-evidence.json"
     ],
-    "verified_at_utc": "2026-10-09T12:12:23Z"
+    "verified_at_utc": "2026-10-09T12:23:19Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -698,7 +698,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile live issues and claims, then continue solo on the next highest-impact dependency-ready connected product workflow; keep original requirements PARTIAL unless their full contracts are proven.",
+  "recommended_resume_step": "Reconcile current open core issues and claims, then continue with the highest-value unclaimed connected jobseeker workflow; keep broader requirements PARTIAL until their whole acceptance is verified.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -732,22 +732,22 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "8029cd6636183bbd1ea8de9e445cba74e276c125",
+  "last_implementation_commit": "84e8ba15e139b84a6f87a208a952a123a1899518",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
-    "integration_method": "Ordinary non-force fast-forward into local main under the Codex integration lock; no PR opened or push performed.",
-    "integration_commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
-    "prior_main": "b3eb01110261c45f9e4ef73820380be8898f9b39",
-    "source_commit": "8029cd6636183bbd1ea8de9e445cba74e276c125",
-    "source_tree": "1492c63016e4be8dd5414901328d0555a6c526d3",
-    "integration_tree": "60c7fe672498a64b8ce10f9f706a3b5bfc9eadae",
+    "integration_method": "Ordinary non-force fast-forward into local main under Codex integration lock; no PR or push.",
+    "integration_commit": "a11da4f0df160ccbe4301e697cb3e86d8d343809",
+    "prior_main": "90f5cdea919363118bb2be3f55eff396f20b9dae",
+    "source_commit": "84e8ba15e139b84a6f87a208a952a123a1899518",
+    "source_tree": "254a58a28d69841e7af8fc1c01734c6a3d2dada3",
+    "integration_tree": "cf8367d03f586c84394dd2e4dc91c568d870a7a5",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "issue": 190,
+    "issue": 396,
     "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-09-job-source-filter.json",
-    "note": "Connected job-source filtering works locally through API, database query, Jobs control and profile-owned saved-search reload/clear. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF."
+    "evidence_path": "docs/evidence/2026-10-09-skill-gap-job-evidence.json",
+    "note": "Local main only; origin/main unchanged. PostgreSQL/full suite/hosted NOT_RUN; external application submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12970,12 +12970,54 @@
         "git_commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
         "evidence_path": "docs/evidence/2026-10-09-job-source-filter.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-026-HEATMAP-JOB-EVIDENCE-20261009",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "timestamp": "2026-10-09T12:23:19Z",
+      "completed_steps": [
+        "Added profile-scoped scored-job evidence behind each normalized heatmap skill, including posting strength, profile-evidence status and explicit user-reported application/interview context.",
+        "Capped displayed examples at ten per skill, prioritized user-reported interview then application relevance, and retained full-set aggregate counts.",
+        "Verified API privacy, component rendering and connected Chromium retry/reload; fast-forwarded the tested branch into local main."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-skill-gap-job-evidence.json"
+      ],
+      "files_modified": [
+        "services/learning/skill_gap_heatmap.py",
+        "apps/web/src/skill-gap-heatmap.tsx",
+        "tests/unit/test_skill_gap_heatmap.py",
+        "tests/integration/test_skill_gap_heatmap_api.py",
+        "tests/browser/test_skill_gap_heatmap_reload_recovery.py",
+        "apps/web/src/skill-gap-heatmap.test.tsx",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "12 focused Python unit/API/profile-isolation tests PASS; one connected Chromium retry/reload/drill-down PASS; four focused frontend tests PASS; TypeScript/Vite build and agent-skills validation PASS; py_compile and diff check PASS."
+      ],
+      "tests_remaining": [
+        "PostgreSQL, full repository suite, hosted Actions/review and live provider tests NOT_RUN; optional AI-assisted learning-plan generation remains unimplemented."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local profile/job matches only; no external requests, no AI/provider calls, no application submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "This slice explains matched-job evidence but does not generate a learning plan; MJ-REF-026 remains PARTIAL and release readiness UNKNOWN."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a11da4f0df160ccbe4301e697cb3e86d8d343809",
+        "evidence_path": "docs/evidence/2026-10-09-skill-gap-job-evidence.json"
+      }
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e",
-    "evidence_path": "docs/evidence/2026-10-09-job-source-filter.json"
+    "git_commit": "a11da4f0df160ccbe4301e697cb3e86d8d343809",
+    "evidence_path": "docs/evidence/2026-10-09-skill-gap-job-evidence.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13367,6 +13409,21 @@
       "hosted_checks": "NOT_RUN_BY_USER_POLICY",
       "postgresql": "NOT_RUN",
       "external_submission": "OFF"
+    },
+    {
+      "issue": 396,
+      "requirement_id": "MJ-REF-026",
+      "source_commit": "84e8ba15e139b84a6f87a208a952a123a1899518",
+      "source_tree": "254a58a28d69841e7af8fc1c01734c6a3d2dada3",
+      "integration_commit": "a11da4f0df160ccbe4301e697cb3e86d8d343809",
+      "integration_tree": "cf8367d03f586c84394dd2e4dc91c568d870a7a5",
+      "prior_main": "90f5cdea919363118bb2be3f55eff396f20b9dae",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "evidence_path": "docs/evidence/2026-10-09-skill-gap-job-evidence.json",
+      "issue_state": "OPEN/PARTIAL",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+      "external_submission": "OFF"
     }
   ],
   "live_reconciliation": {
@@ -13380,14 +13437,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 190,
-    "url": "https://github.com/MulattoTech/MJobs/issues/190",
+    "number": 396,
+    "url": "https://github.com/MulattoTech/MJobs/issues/396",
     "branch": "main",
     "status": "INTEGRATED_PARTIAL",
     "related_requirements": [
-      "MJ-REQ-189"
+      "MJ-REF-026"
     ],
-    "note": "Issue #190 / MJ-REQ-189 gained one locally verified vertical slice: filter by recorded collection source_id, distinct from application route provider/ATS, with profile-owned saved-search save/reload/clear. Evidence docs/evidence/2026-10-09-job-source-filter.json. The broad original requirement remains PARTIAL."
+    "note": "Issue #396 / MJ-REF-026 evidence drill-down is integrated on local main at a11da4f0df160ccbe4301e697cb3e86d8d343809 (tree cf8367d03f586c84394dd2e4dc91c568d870a7a5); implementation source 84e8ba15e139b84a6f87a208a952a123a1899518 (tree 254a58a28d69841e7af8fc1c01734c6a3d2dada3). The profile-scoped heatmap lists up to ten current scored jobs per skill, ordered by user-reported interview then application context, with full aggregate counts preserved. Evidence docs/evidence/2026-10-09-skill-gap-job-evidence.json. 12 Python, one connected Chromium, four frontend tests, build, agent-skill validation, compilation and diff checks PASS. PostgreSQL/full suite/hosted checks NOT_RUN; issue remains PARTIAL; submission OFF."
   },
   "historical_control_snapshots": [
     {
@@ -14547,9 +14604,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T12:12:23Z",
-  "current_verified_local_state": "Local main 0c0abdb810b6ea1ac41aa4b4121f1e7a8be7516e (tree 60c7fe672498a64b8ce10f9f706a3b5bfc9eadae); source filter slice from 8029cd6636183bbd1ea8de9e445cba74e276c125 / tree 1492c63016e4be8dd5414901328d0555a6c526d3 filters recorded job source_id before LIMIT and restores/clears through saved searches. API 27/27, Chromium 1/1, frontend 2/2, build, py_compile and diff PASS. Evidence docs/evidence/2026-10-09-job-source-filter.json. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF. MJ-REQ-189 remains PARTIAL.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #190 remains OPEN/PARTIAL with local-only evidence; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T12:12:23Z.",
+  "updated_at": "2026-10-09T12:23:19Z",
+  "current_verified_local_state": "Issue #396 / MJ-REF-026 evidence drill-down is integrated on local main at a11da4f0df160ccbe4301e697cb3e86d8d343809 (tree cf8367d03f586c84394dd2e4dc91c568d870a7a5); implementation source 84e8ba15e139b84a6f87a208a952a123a1899518 (tree 254a58a28d69841e7af8fc1c01734c6a3d2dada3). The profile-scoped heatmap lists up to ten current scored jobs per skill, ordered by user-reported interview then application context, with full aggregate counts preserved. Evidence docs/evidence/2026-10-09-skill-gap-job-evidence.json. 12 Python, one connected Chromium, four frontend tests, build, agent-skill validation, compilation and diff checks PASS. PostgreSQL/full suite/hosted checks NOT_RUN; issue remains PARTIAL; submission OFF.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issue #396 is OPEN/PARTIAL with local-only evidence; no push or PR. Hosted checks/review NOT_RUN_BY_USER_POLICY; external submission OFF. Verified at 2026-10-09T12:23:19Z.",
   "next_candidates": [
     {
       "issue": 517,

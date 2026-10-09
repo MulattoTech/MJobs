@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-10-09T11:57:19Z",
+  "generated_at": "2026-10-09T12:23:19Z",
   "canonical_namespace": "MJ-REF",
   "original_catalogue_count": 366,
   "reference_gap_count": 59,
@@ -214,7 +214,8 @@
     "MJ-REF-026": {
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-skill-gap-priority.json"
+        "docs/evidence/2026-10-09-skill-gap-priority.json",
+        "docs/evidence/2026-10-09-skill-gap-job-evidence.json"
       ]
     },
     "MJ-REF-027": {
