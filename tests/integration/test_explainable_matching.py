@@ -62,6 +62,32 @@ class ExplainableMatchingTests(unittest.TestCase):
         self.assertIn("does not state", requirements[0]["explanation"].lower())
         self.assertEqual(match["missing"], ["Windows Server"])
 
+    def test_explainable_match_reports_the_weighted_skill_coverage_math(self):
+        from services.discovery.matching import build_explanation
+
+        result = build_explanation({
+            "skills": ["Windows Server", "Active Directory", "Python"],
+            "attributes": {
+                "required_skills": ["Windows Server"],
+                "preferred_skills": ["Active Directory"],
+                "nice_to_have_skills": ["Python"],
+                "skill_evidence": "structured_required_skills",
+            },
+        }, self.profile)
+
+        self.assertEqual(result["score"], 42.86)
+        self.assertIn("skill_evidence_coverage", result["components"])
+        breakdown = result["components"]["skill_evidence_coverage"]
+        self.assertEqual(breakdown, {
+            "covered_weight": 0.75,
+            "possible_weight": 1.75,
+            "percentage": 42.86,
+        })
+        contributions = {row["skill"]: row for row in result["components"]["requirements"]}
+        self.assertEqual(contributions["Windows Server"]["covered_weight"], 0.0)
+        self.assertEqual(contributions["Active Directory"]["covered_weight"], 0.5)
+        self.assertEqual(contributions["Python"]["covered_weight"], 0.25)
+
     def test_manual_capture_section_strengths_survive_reopen_and_explain_match(self):
         description = (
             "Required Qualifications:\nWindows Server\n"

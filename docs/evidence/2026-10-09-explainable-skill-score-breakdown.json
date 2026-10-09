@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "issue": 115,
+  "requirement_id": "MJ-REQ-114",
+  "status": "PARTIAL",
+  "recorded_at_utc": "2026-10-09T19:10:48Z",
+  "branch": "codex/solo-mj-req114-score-breakdown-20261009",
+  "base_commit": "80830a8d1deb7f8aeb3ffc072e2657320d8e062f",
+  "outcome": "Match explanations now expose the deterministic base skill-evidence score as covered versus possible weighted evidence, and each detected skill row shows its individual contribution. The job detail distinguishes this base percentage from the displayed score when a saved-search scoring profile is selected. The existing scorer and fit-signal behavior are unchanged; no qualification claim or application submission is made.",
+  "acceptance": {
+    "required_preferred_and_nice_to_have_weights_are_explained": "PASS",
+    "missing_skill_contributes_zero_covered_weight": "PASS",
+    "approved_skill_contributes_its_strength_weight": "PASS",
+    "connected_job_detail_displays_base_coverage_and_per_skill_weights": "PASS",
+    "connected_browser_profile_scope_and_remote_location_explanation_regressions": "PASS",
+    "external_browser_requests": 0,
+    "external_application_submissions": 0
+  },
+  "verification": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_explainable_matching",
+      "result": "PASS",
+      "passed": 27
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_work_location_match_explanation.WorkLocationMatchExplanationBrowserTests.test_job_detail_explains_remote_region_and_profile_scopes_without_location_leak",
+      "result": "PASS",
+      "passed": 1
+    },
+    {
+      "command": "npm test -- --run src/matching-explanation.test.tsx src/matching-explanation-workflow.test.tsx",
+      "result": "PASS",
+      "passed": 17
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "environment": "Node 25.9.0; TypeScript and Vite passed with the existing bundle-size advisory"
+    },
+    {
+      "command": "python -m py_compile services/discovery/matching.py tests/integration/test_explainable_matching.py tests/browser/test_work_location_match_explanation.py; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "apps/web/src/main.tsx": "6BA7CD904CE3CF24170CC65529061E35813170AF86AC893B2311F8FB8D88C3DA",
+    "services/discovery/matching.py": "98DEBCEE7DEB819A49D5AC3D9C990D80081DD098AA70107B2F434DBBC4B297B6",
+    "tests/integration/test_explainable_matching.py": "CC9D1ED5BC8D4971BE3D9B8CEF5E362CAE2404278831C6B9AB322BB9FF4BAFDE",
+    "tests/browser/test_work_location_match_explanation.py": "06DCAEEB724BCA94977A163ED112CAEE8592205655ACD77827D4DDAFEE6649CE"
+  },
+  "remaining": [
+    "MJ-REQ-114 remains PARTIAL; this slice explains skill-evidence coverage but does not implement every original score dimension and additive example in docs/spec/areas/matching_ai.md.",
+    "PostgreSQL-specific execution, full repository tests, hosted checks, and hosted independent review were NOT_RUN under local-only policy.",
+    "External application submission remains disabled."
+  ]
+}

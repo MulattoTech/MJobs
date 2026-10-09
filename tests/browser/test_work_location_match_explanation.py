@@ -102,6 +102,12 @@ class WorkLocationMatchExplanationBrowserTests(unittest.TestCase):
                     expect(factors).not_to_contain_text("Oklahoma")
                     expect(factors).not_to_contain_text("Ontario")
                     expect(detail.locator(".big-score")).to_contain_text("100%")
+                    coverage = detail.get_by_role("group", name="Base skill evidence coverage")
+                    expect(coverage).to_be_visible()
+                    expect(coverage).to_contain_text("100%")
+                    expect(coverage).to_contain_text("weighted skill evidence")
+                    expect(detail.get_by_role("list", name="Skill match explanation")) \
+                        .to_contain_text("covered weight")
                     page.locator("#active-profile").select_option("other")
                     other_card = page.locator(".job-card").filter(has_text="Systems Administrator")
                     expect(other_card).to_be_visible()

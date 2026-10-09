@@ -588,6 +588,7 @@ def build_explanation(job, profile):
             "skill": skill,
             "strength": strength,
             "weight": weight,
+            "covered_weight": weight if has_evidence else 0.0,
             "profile_evidence": "APPROVED" if has_evidence else "NO_APPROVED_EVIDENCE",
             "explanation": ("Supported by an approved career fact." if has_evidence else
                             "No approved career fact supports this skill.") + (
@@ -607,6 +608,11 @@ def build_explanation(job, profile):
         "missing": missing,
         "components": {
             "method": method,
+            "skill_evidence_coverage": {
+                "covered_weight": round(weighted_covered, 2),
+                "possible_weight": round(weighted_total, 2),
+                "percentage": score,
+            },
             "fit_factors": _fit_factors(job, profile),
             "matched": matched,
             "detected": skills,
