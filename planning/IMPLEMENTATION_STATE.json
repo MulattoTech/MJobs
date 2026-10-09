@@ -11,9 +11,9 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance readback. Local-only commits are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:23:40Z.",
     "current_verified_at": "2026-10-09T16:23:40Z"
   },
-  "current_milestone": "MJ-REQ-253-DEFAULT-TECHNOLOGY-SEED-20261009",
-  "current_objective": "Add user-selected advisory technology preferences to saved searches; persist and display them without turning them into required job filters or career facts.",
-  "status": "PASS",
+  "current_milestone": "MJ-REQ-117-VERIFIED-EXPERIENCE-WEIGHT-20261009",
+  "current_objective": "Add saved-search weighting based only on verified, user-approved candidate experience facts and persist explainable selected-search results.",
+  "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
     "366 stable marked issues mapped; idempotent live reconciliation",
@@ -13522,12 +13522,67 @@
         "git_commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
         "evidence_path": "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-117-VERIFIED-EXPERIENCE-WEIGHT-20261009",
+      "timestamp": "2026-10-09T16:37:11Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added the Verified experience weight to the selected-search profile editor.",
+        "Scored only normalized job-skill overlap found in verified, user-approved, source-backed candidate experience facts; posting-provided experience signals are ignored.",
+        "Persisted selected-search score contribution and provenance during match recalculation; UNKNOWN experience is neutral.",
+        "Fast-forward integrated source c9ed0540469593a1f8fcb8a99b60b4f03373999a and evidence at local main a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06; issue #118 remains OPEN/PARTIAL and no push was made."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-experience-weighted-matching.json"
+      ],
+      "files_modified": [
+        "apps/web/src/role-scoring-profile-editor.tsx",
+        "apps/web/src/role-scoring-custom-dimensions.test.tsx",
+        "services/discovery/matching.py",
+        "services/matching/profile_scoring.py",
+        "services/matching/selected_search_scoring.py",
+        "tests/unit/test_profile_scoring.py",
+        "tests/integration/test_matching_explanation_contributions.py",
+        "tests/browser/test_role_scoring_profile_reload_match.py"
+      ],
+      "integrated_main": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
+      "source_tree": "5642fe155f7e01fb0d3ee67f8c00adca4130cebd",
+      "acceptance": "The bounded verified-experience weighting slice is PASS. MJ-REQ-117 overall remains PARTIAL pending the rest of configurable weighting acceptance.",
+      "limitations": [
+        "Full Python repository suite, PostgreSQL-specific acceptance, hosted Actions/review, and live job-source integrations NOT_RUN.",
+        "The existing Vite bundle size advisory remains (750.46 kB over 500 kB); build succeeded.",
+        "External application submission remains OFF."
+      ],
+      "tests_completed": [
+        "Focused Python unit/integration/connected Chromium: 31 passed, plus 2 subtests.",
+        "Frontend Vitest: 95 files and 540 tests passed.",
+        "TypeScript/Vite production build passed.",
+        "Python compilation, lane validation and git diff check passed."
+      ],
+      "tests_remaining": [
+        "Full Python suite, PostgreSQL-specific persistence acceptance, hosted checks/review and release eligibility remain NOT_RUN_BY_USER_POLICY.",
+        "Broader configurable weighting dimensions remain PARTIAL; external job-source collection and application submission remain OFF/NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Local connected Chromium against isolated SQLite with external, AI and submission requests blocked."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Skill recognition is limited to the existing deterministic taxonomy; unrecognized or ambiguous evidence remains UNKNOWN.",
+        "The complete MJ-REQ-117 configurable-weight requirement is not accepted by this bounded experience dimension alone."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
+        "evidence_path": "docs/evidence/2026-10-09-experience-weighted-matching.json"
+      }
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "b2e514a8dab39996c7cfb448e1c02dbe93995947",
-    "evidence_path": "docs/evidence/2026-10-09-direct-employer-route-resolution.json"
+    "git_commit": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
+    "evidence_path": "docs/evidence/2026-10-09-experience-weighted-matching.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14008,16 +14063,18 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 245,
-    "url": "https://github.com/MulattoTech/MJobs/issues/245",
-    "requirement_id": "MJ-REQ-244",
+    "number": 118,
+    "url": "https://github.com/MulattoTech/MJobs/issues/118",
+    "requirement_id": "MJ-REQ-117",
     "branch": "main",
-    "status": "LOCAL_MAIN_INTEGRATED_PASS",
-    "source_commit": "32bd7f50d97bf0c3f7d6742f9f5f34f92e31b712",
+    "status": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+    "source_commit": "c9ed0540469593a1f8fcb8a99b60b4f03373999a",
+    "integrated_main": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
+    "integrated_tree": "5642fe155f7e01fb0d3ee67f8c00adca4130cebd",
     "related_requirements": [
-      "MJ-REQ-244"
+      "MJ-REQ-117"
     ],
-    "note": "Requirement verified locally and issue closed; MJ-PR-066 still has sibling requirements and unchanged dependencies."
+    "note": "Verified-experience weighting slice is locally integrated; broader configurable weighting remains PARTIAL and issue #118 remains OPEN."
   },
   "historical_control_snapshots": [
     {

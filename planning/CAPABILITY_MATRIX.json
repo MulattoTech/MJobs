@@ -1122,9 +1122,10 @@
       "requirement_id": "MJ-REQ-117",
       "result": "PARTIAL",
       "evidence": [
+        "docs/evidence/2026-10-09-experience-weighted-matching.json",
         "docs/evidence/2026-10-09-role-scoring-profile-reload.json"
       ],
-      "note": "A connected selected-search scoring-profile workflow verifies durable weight edits, reload/readback, persisted match scoring and signal provenance. Broader configurable weighting acceptance remains PARTIAL."
+      "note": "Issue #118 bounded verified-experience weighting is integrated locally at a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06 (source c9ed0540469593a1f8fcb8a99b60b4f03373999a, tree 5642fe155f7e01fb0d3ee67f8c00adca4130cebd); approved/source-backed profile facts only, normalized skill overlap, UNKNOWN-neutral behavior, durable selected-search recalculation and connected explanation readback are verified. Focused Python/integration/Chromium 31 tests plus 2 subtests, web 540 tests, build, py_compile, lane and diff validation PASS. Broader configurable-weight acceptance remains PARTIAL; full Python/PostgreSQL/hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-118",

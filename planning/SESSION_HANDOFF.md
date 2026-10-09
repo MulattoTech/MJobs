@@ -1,3 +1,13 @@
+## 2026-10-09T16:37:11Z — Solo feature marathon: verified-experience matching integrated
+
+Local main advanced by non-force fast-forward from `b4a00ba3a043ab67c2cdad0bba31d2eb1cd8148b` to `a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06` (tree `5642fe155f7e01fb0d3ee67f8c00adca4130cebd`). Issue #118 / MJ-REQ-117 adds a user-configurable Verified experience dimension. Only verified, user-approved, source-backed profile experience facts (confidence >=80) can support normalized job-skill overlap; posting-provided experience signals are ignored, and missing evidence is UNKNOWN/neutral. The saved-search recalc persists an explainable contribution without changing hard eligibility. Evidence: `docs/evidence/2026-10-09-experience-weighted-matching.json`. Issue #118 remains OPEN/PARTIAL because broader configurable weighting acceptance is unfinished.
+
+Exact integrated-source checks: focused Python/unit/integration/connected Chromium 31 passed plus 2 subtests; frontend 95 files/540 tests passed; TypeScript/Vite build, Python compilation, lane validation and diff check PASS. Full Python suite, PostgreSQL and hosted checks NOT_RUN_BY_USER_POLICY. Vite emitted the existing 750.46 kB bundle advisory. External submission OFF. No push; `origin/main` remains behind local main. Preserved untracked `docs/evidence/2026-10-08-compose-target-isolation.json`. No Codex child agent is active; existing non-root lane/worktree records remain untouched.
+
+Continue in solo mode by reconciling the live issue backlog and selecting the next dependency-ready core workflow; preserve all other claims/worktrees and use the current local-only policy.
+
+---
+
 # Solo feature checkpoint — 2026-10-09T16:23:40Z
 
 - Root: `C:\Tools\Dev\MJobs`; integrated product code at local main `71e29e233d3af9af5dae57d8dc91aaab9c74bcbd` (tree `a573a70eaa22acb083862f91e182c8c302e1ed29`); `origin/main` remains `0a8719d4db524c90b632d990cc7b205add0c2577`; local-only delivery, no push. The Codex integration lock is held for this accepted tracker batch.
