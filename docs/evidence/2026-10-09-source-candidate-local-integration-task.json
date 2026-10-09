@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "issue": 517,
+  "requirement": "After source evaluation, create a bounded local integration task without requiring an external issue; retain the optional user-supplied issue link behavior.",
+  "result": "PASS",
+  "timestamp_utc": "2026-10-09T21:35:16Z",
+  "branch": "codex/solo-517-local-integration-task-20261009",
+  "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\solo-517-local-integration-task-20261009",
+  "source": {
+    "commit": "e7553f04e82b3b551feb74fbe3d374cf680241d4",
+    "tree": "efde066000cfe15f2ebdd4a96d579cd12ada7ecf",
+    "base": "e979bfd5c08d81a566f720b8968853e16e5f8d2f",
+    "files": [
+      {"path": "apps/api/main.py", "sha256": "E969E285CE56C9A0CA3B3D608698101F4D7B01B377D6FC16F7DE187E8F319296"},
+      {"path": "apps/web/src/source-candidate-review.tsx", "sha256": "33AA4A703F3C7FBC3CF71799F7D2F7F68AD80C17BA48FEEAE80C3C720AA1FCFD"},
+      {"path": "apps/web/src/source-candidate-review.test.tsx", "sha256": "3B1AEFD7200EA910D2A574C4B4D50D07FFA5D990D433849D1D4A06F9DC57CF13"},
+      {"path": "apps/web/src/source-candidate-local-task.test.tsx", "sha256": "13AD2CB2149DF60046A8F50F55685009A5CB25CB7501E54B2FA5F833B46D3547"},
+      {"path": "services/source_candidates/catalogue.py", "sha256": "06D14FC0396D61666B93DDEDE3602650F1A5B5471EFE15731207BA0F2F9EE562"},
+      {"path": "tests/integration/test_source_candidates.py", "sha256": "0FE4E55BE78FC470F4A79AD769743D3833945A3BFAD605AC7488AD6CA73EC0D2"},
+      {"path": "tests/browser/test_source_candidate_local_task.py", "sha256": "C32AE53741953BB5AFC7BBF8E33076AD592159D02DB6D4E81875D47B74E6B036"}
+    ]
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_source_candidates.py tests/browser/test_source_candidate_local_task.py -q",
+      "result": "PASS",
+      "passed": 11,
+      "evidence": "Ten API/service integration tests and one connected Chromium test passed. The browser queued a task with no issue number, read it back after reload, verified one durable review record, collection disabled, no page errors, and no non-loopback requests."
+    },
+    {
+      "command": "npm run test -- --run src/source-candidate-local-task.test.tsx src/source-candidate-review.test.tsx",
+      "result": "PASS",
+      "passed": 12
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed; existing chunk-size advisory remains."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile apps/api/main.py services/source_candidates/catalogue.py tests/integration/test_source_candidates.py tests/browser/test_source_candidate_local_task.py; git diff --check HEAD^ HEAD",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "PostgreSQL-specific integration",
+    "Full repository suite",
+    "Live job-source requests",
+    "Hosted Actions and hosted reviews (NOT_RUN_BY_USER_POLICY)",
+    "External application submission (OFF)"
+  ],
+  "limitations": [
+    "This completes only the bounded task-queue acceptance criterion; issue #517 remains OPEN/PARTIAL for broader candidate capture, review, and supported-provider integration acceptance.",
+    "The connected scenario uses isolated SQLite and synthetic profile/source data; no live provider was contacted."
+  ],
+  "safety": [
+    "A queued local task is keyed by the durable profile-scoped source candidate ID.",
+    "An optional linked issue remains user-supplied and is not externally verified.",
+    "Queueing does not enable collection, fetch a source, or submit an application."
+  ]
+}
