@@ -4,7 +4,10 @@ import re
 from collections.abc import Mapping
 from math import isfinite
 
-from services.matching.scoring_profiles import RoleScoringProfileResolution
+from services.matching.scoring_profiles import (
+    RoleScoringProfileResolution,
+    resolve_role_scoring_profile,
+)
 from services.matching.specialized_signals import score_specialized_signals
 
 
@@ -130,3 +133,26 @@ def compose_profile_scoring(job, legacy_match, resolution):
         "scoring_profile": dict(resolution.explanation),
         "scoring_contributions": rows,
     }
+
+
+def resolve_and_compose_profile_scoring(
+    job,
+    legacy_match,
+    *,
+    role_family,
+    profiles_by_role_family=None,
+    default_profile=None,
+):
+    """Resolve a user-edited role profile and explain its advisory score.
+
+    This is the reusable entry point for callers that have the selected role
+    family and the available profile catalog. Profile validation and fallback
+    selection stay centralized in :func:`resolve_role_scoring_profile`; score
+    composition then preserves the legacy baseline and UNKNOWN semantics.
+    """
+    resolution = resolve_role_scoring_profile(
+        role_family,
+        profiles_by_role_family,
+        default_profile=default_profile,
+    )
+    return compose_profile_scoring(job, legacy_match, resolution)

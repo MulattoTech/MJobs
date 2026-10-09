@@ -4,7 +4,10 @@ import math
 
 import pytest
 
-from services.matching.profile_scoring import compose_profile_scoring
+from services.matching.profile_scoring import (
+    compose_profile_scoring,
+    resolve_and_compose_profile_scoring,
+)
 from services.matching.scoring_profiles import resolve_role_scoring_profile
 
 
@@ -193,3 +196,70 @@ def test_configured_threshold_is_a_soft_score_gate_not_an_eligibility_result():
 def test_invalid_legacy_baseline_is_rejected(score):
     with pytest.raises(ValueError):
         compose_profile_scoring(_job(), _legacy(score), _resolution())
+
+
+def test_resolve_and_compose_applies_user_profile_weights_and_soft_threshold_with_attribution():
+    profile = _profile(
+        "cloud-v4", "Cloud Operations", {"skills": 40, "ai_intensity": 60},
+        {"ai_intensity": 70},
+    )
+    job = _job(("ai_intensity", _signal(60, "USER_CONFIRMED_SOURCE", "job:explicit-ai-signal")))
+
+    result = resolve_and_compose_profile_scoring(
+        job, _legacy(80), role_family="  CLOUD   OPERATIONS ",
+        profiles_by_role_family={"Cloud Operations": profile},
+    )
+
+    assert result["score"] == 32.0
+    assert result["scoring_profile"] == {
+        "requested_role_family": "cloud operations",
+        "selected_role_family": "Cloud Operations",
+        "profile_id": "cloud-v4",
+        "profile_version": "version-cloud-v4",
+        "selection": "ROLE_FAMILY",
+    }
+    rows = {row["dimension"]: row for row in result["scoring_contributions"]}
+    assert rows["skills"]["weighted_contribution"] == 32.0
+    assert rows["skills"]["provenance"] == {"source": "LEGACY_MATCH_BASELINE"}
+    assert rows["ai_intensity"]["raw_score"] == 60.0
+    assert rows["ai_intensity"]["weighted_contribution"] == 0.0
+    assert rows["ai_intensity"]["provenance"] == {
+        "source": "USER_CONFIRMED_SOURCE", "evidence_ref": "job:explicit-ai-signal",
+    }
+    assert "below the configured threshold" in rows["ai_intensity"]["explanation"]
+    assert "eligibility" not in result
+
+
+def test_resolve_and_compose_keeps_missing_configured_signal_explicitly_unknown():
+    profile = _profile("cloud-v1", "cloud", {"skills": 50, "hourly_comp_suitability": 50})
+
+    result = resolve_and_compose_profile_scoring(
+        _job(), _legacy(76), role_family="cloud",
+        profiles_by_role_family={"cloud": profile},
+    )
+
+    assert result["score"] == 76.0
+    assert result["scoring_profile"]["profile_id"] == "cloud-v1"
+    rows = {row["dimension"]: row for row in result["scoring_contributions"]}
+    assert rows["hourly_comp_suitability"]["raw_score"] is None
+    assert rows["hourly_comp_suitability"]["weighted_contribution"] is None
+    assert rows["hourly_comp_suitability"]["provenance"] == {"source": "UNKNOWN"}
+
+
+def test_resolve_and_compose_uses_explicit_default_and_legacy_fallbacks():
+    default = _profile("general", "General", {"skills": 100})
+
+    default_result = resolve_and_compose_profile_scoring(
+        _job(), _legacy(67), role_family="new occupation",
+        profiles_by_role_family={}, default_profile=default,
+    )
+    legacy_result = resolve_and_compose_profile_scoring(
+        _job(), _legacy(67), role_family="another new occupation",
+    )
+
+    assert default_result["score"] == 67
+    assert default_result["scoring_profile"]["selection"] == "DEFAULT_PROFILE"
+    assert default_result["scoring_profile"]["profile_id"] == "general"
+    assert legacy_result["score"] == 67
+    assert legacy_result["scoring_profile"]["selection"] == "LEGACY_DEFAULT"
+    assert legacy_result["scoring_contributions"][0]["weighted_contribution"] == 67
