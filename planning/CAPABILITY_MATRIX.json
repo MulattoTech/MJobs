@@ -1139,9 +1139,10 @@
       "requirement_id": "MJ-REQ-120",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-match-feedback-history.json"
+        "docs/evidence/2026-10-09-match-feedback-history.json",
+        "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
       ],
-      "note": "Scoped selected-job feedback, durable profile/job history, recovery, and review-only preference proposal verified; applying feedback to saved preferences/ranking remains incomplete."
+      "note": "Scoped selected-job feedback and durable history verified. Users can explicitly apply reviewed preferences; deterministic advisory application-priority weights and explanations update without changing hard rules or match scores. Saved-search/job-match scoring remains incomplete, and dimensions without explicit signals stay unknown."
     },
     {
       "requirement_id": "MJ-REQ-121",

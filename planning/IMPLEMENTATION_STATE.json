@@ -1,19 +1,19 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T07:03:17Z",
+  "generated_at": "2026-10-09T07:31:03Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c (tree 109f9461ae5616730ddd34410a7a2333fd79edde) integrates #517 source-candidate capture replay integrity and durable review-evidence readback. Exact tested code source 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Local main remains ahead of origin/main under local-only policy. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #517 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
-    "current_verified_at": "2026-10-09T07:03:17Z"
+    "current_verified_local_state": "Local main bb7983deb27059dda704a65bea122b27883928e5 (tree c6da9bd1f2af05d69dc51c981fda910fe25ccd77) integrates reviewed feedback preference application to explainable advisory application priority. Evidence docs/evidence/2026-10-09-reviewed-feedback-priority.json. Root continues issue #121 toward deterministic match scoring. Preserved untracked docs/evidence/2026-10-08-compose-target-isolation.json remains untouched.",
+    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; no push or PR. Issue #121 remains OPEN/PARTIAL; local integration receipt https://github.com/MulattoTech/MJobs/issues/121#issuecomment-6076515954. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+    "current_verified_at": "2026-10-09T07:31:03Z"
   },
-  "current_milestone": "MJ-REQ-238-APPLICATION-HISTORY-20261009",
-  "current_objective": "Complete the connected match-feedback preference application path: explicit user review, durable profile-scoped preference readback, deterministic advisory ranking effect, and no hard-rule mutation.",
-  "status": "PASS",
+  "current_milestone": "MJ-REQ-120-REVIEWED-PREFERENCE-PRIORITY-20261009",
+  "current_objective": "Extend reviewed feedback into deterministic job matching and recommendations without modifying hard eligibility rules.",
+  "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
     "366 stable marked issues mapped; idempotent live reconciliation",
@@ -681,7 +681,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue root solo implementation of issue #121 from branch codex/root-solo-121-feedback-ranking-20261009; verify the end-to-end review/apply/readback/ranking flow before updating acceptance.",
+  "recommended_resume_step": "Continue issue #121: inspect how persisted profile preferences flow through deterministic match scoring and saved-search ordering; add reviewed-feedback influence with hard-rule isolation, then validate the connected match workflow.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -715,16 +715,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "72bbc73f42179a33de71ba6c777abc721d162c52",
+  "last_implementation_commit": "bb7983deb27059dda704a65bea122b27883928e5",
   "publication": {
-    "result": "PASS_LOCAL_FAST_FORWARD; TRACKER_BATCH_LOCAL",
+    "result": "PASS_LOCAL_FAST_FORWARD; TRACKER_BATCH_PENDING",
     "integration_method": "Ordinary non-force fast-forward under root integration lock; no PR opened or push performed.",
-    "integration_commit": "59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c",
-    "prior_main": "269d964879457bde85767295bb6608f6c9aeb688",
+    "integration_commit": "bb7983deb27059dda704a65bea122b27883928e5",
+    "prior_main": "07079a4f3f4985db1bc5923f490f9f14645a177f",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "#517 source-candidate replay integrity and evidence readback integrated locally at 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c; receipt https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6076132647. GitHub origin remains unsynced under local-only policy."
+    "note": "Reviewed feedback preference application and advisory priority effect integrated locally at bb7983deb27059dda704a65bea122b27883928e5; issue #121 remains OPEN/PARTIAL. Receipt: https://github.com/MulattoTech/MJobs/issues/121#issuecomment-6076515954. No push; hosted checks remain NOT_RUN_BY_USER_POLICY."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12446,12 +12446,66 @@
         "git_commit": "43e268d8ba07f079df68690ddc1694a283509096",
         "evidence_path": "docs/evidence/2026-10-09-application-history.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-120-REVIEWED-PREFERENCE-PRIORITY-20261009",
+      "current_phase": "Issue #121 / MJ-REQ-120 is PARTIAL on local main at bb7983deb27059dda704a65bea122b27883928e5 (tree c6da9bd1f2af05d69dc51c981fda910fe25ccd77). Explicit review, durable profile-scoped preference application, advisory priority-weight changes and explanations pass focused Python, web, and connected Chromium checks. Hard profile rules and match score remain unchanged. Saved-search/job-match scoring remains incomplete. Evidence: docs/evidence/2026-10-09-reviewed-feedback-priority.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
+      "timestamp": "2026-10-09T07:31:03Z",
+      "completed_steps": [
+        "Added an explicit review/edit/apply step for a saved profile-scoped feedback proposal.",
+        "Persisted applied decisions as append-only audit events with idempotent retry and profile-scoped readback.",
+        "Applied preferences adjust deterministic advisory application-priority weights and include a factor explanation.",
+        "Connected the feedback UI to apply/readback/reload and displayed history-load and retry states.",
+        "Verified the synthetic browser journey and asserted hard profile rules and match scores remain unchanged.",
+        "Fast-forwarded exact tested source into local main at bb7983deb27059dda704a65bea122b27883928e5; issue #121 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
+      ],
+      "files_modified": [
+        "apps/api/application_priority.py",
+        "apps/api/match_feedback.py",
+        "apps/web/src/match-feedback-client.ts",
+        "apps/web/src/match-feedback.tsx",
+        "services/discovery/application_priority.py",
+        "services/matching/user_match_feedback.py",
+        "tests/browser/test_match_feedback_workflow.py",
+        "tests/integration/test_application_priority_api.py",
+        "tests/integration/test_match_feedback_api.py",
+        "tests/unit/test_application_priority.py",
+        "tests/unit/test_user_match_feedback.py"
+      ],
+      "tests_completed": [
+        "Focused Python unit/API tests: 33 passed plus 17 subtests.",
+        "Connected synthetic Chromium feedback/apply/readback/reload workflow: 1 passed.",
+        "Focused web client/component tests: 15 passed; TypeScript check and production Vite build passed.",
+        "Python compilation, agent-skill validation, and git diff --check passed."
+      ],
+      "tests_remaining": [
+        "PostgreSQL-specific validation NOT_RUN.",
+        "Hosted GitHub checks/review NOT_RUN_BY_USER_POLICY.",
+        "Saved-search/job-match scoring acceptance remains incomplete; company preference remains unknown without an explicit signal."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic local SQLite API and Chromium against local app assets; no external submission."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Requirement remains PARTIAL because applied feedback affects advisory application priority, not saved-search/job-match scores.",
+        "Dimensions without a concrete explicit source signal remain UNKNOWN.",
+        "External submission remains OFF and hosted automation remains disabled."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "bb7983deb27059dda704a65bea122b27883928e5",
+        "evidence_path": "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
+      }
     }
   ],
-  "current_phase": "Issue #239 / MJ-REQ-238 Application History verified PASS on local main 43e268d8ba07f079df68690ddc1694a283509096 (tree 10d67a7229b165e742a0083d08035e0c6040bd0f); 9 focused API/integration/connected Chromium reload, ordering and recovery tests plus web build PASS. Verification of existing behavior; no product code changed. Evidence: docs/evidence/2026-10-09-application-history.json. PostgreSQL and hosted checks NOT_RUN; release readiness remains unchanged.",
+  "current_phase": "Issue #121 / MJ-REQ-120 is PARTIAL on local main at bb7983deb27059dda704a65bea122b27883928e5 (tree c6da9bd1f2af05d69dc51c981fda910fe25ccd77). Explicit review, durable profile-scoped preference application, advisory priority-weight changes and explanations pass focused Python, web, and connected Chromium checks. Hard profile rules and match score remain unchanged. Saved-search/job-match scoring remains incomplete. Evidence: docs/evidence/2026-10-09-reviewed-feedback-priority.json. Hosted/PostgreSQL checks NOT_RUN; external submission OFF.",
   "last_safe_checkpoint": {
-    "git_commit": "43e268d8ba07f079df68690ddc1694a283509096",
-    "evidence_path": "docs/evidence/2026-10-09-application-history.json"
+    "git_commit": "bb7983deb27059dda704a65bea122b27883928e5",
+    "evidence_path": "docs/evidence/2026-10-09-reviewed-feedback-priority.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

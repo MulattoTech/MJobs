@@ -1215,9 +1215,9 @@
         "MJ-PR-025"
       ],
       "status": "INTEGRATED_PARTIAL",
-      "branch": "codex/root-121-feedback-20261009",
+      "branch": "codex/root-solo-121-feedback-ranking-20261009",
       "draft_until_verified": true,
-      "notes": "Issue #121 / MJ-REQ-120 partial locally integrated at 6fc9f3e771cf6d0e54fd273e71522027ecb4da3f; selected-job feedback persistence, recovery, history and review-only proposal pass synthetic API/browser tests. Remaining: explicitly reviewed proposal application to deterministic saved-search scoring preferences. Evidence docs/evidence/2026-10-09-match-feedback-history.json. No push; hosted checks NOT_RUN_BY_USER_POLICY. Root solo claim at 409f01e5be105eda32237f53c62626ea5e547d42: issue #121 / MJ-REQ-120 explicitly reviewed, profile-scoped proposal application to deterministic advisory priority/ranking is in progress on codex/root-solo-121-feedback-ranking-20261009. Owned feedback API/service/UI and priority scoring/panel paths are exclusive; hard eligibility invariants stay unchanged."
+      "notes": "Issue #121 / MJ-REQ-120 remains OPEN/PARTIAL. Reviewed feedback can now be explicitly applied and read back; deterministic advisory application-priority weights/explanations update without hard-rule or match-score changes. Source and local main integrated at bb7983deb27059dda704a65bea122b27883928e5. Evidence docs/evidence/2026-10-09-reviewed-feedback-priority.json plus prior history evidence. Remaining: saved-search/job-match scoring integration and explicit company preference evidence. Focused Python/API 33 plus 17 subtests, Chromium 1, web 15, production build, compilation, skill validation and diff check PASS. PostgreSQL-specific and hosted checks NOT_RUN by policy; external submission OFF; no push/PR."
     },
     {
       "id": "MJ-PR-034",
