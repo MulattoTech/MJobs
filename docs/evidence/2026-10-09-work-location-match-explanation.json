@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "issue": 115,
+  "requirement_id": "MJ-REQ-114",
+  "acceptance_scope": "Bounded score-neutral remote-work region fit explanation in persisted match details.",
+  "result": "PASS",
+  "whole_requirement_result": "PARTIAL",
+  "branch": "codex/solo-115-work-location-20261009",
+  "base_main": "489c0612cb89c3700452581201b7396baedc0383",
+  "source_commit": "8b3c30d9df2c941f2f49fc6f8f0cd108701d2810",
+  "source_tree": "0f3091ab72c65d792e41d1fee430b475fad019ca",
+  "verified_at_utc": "2026-10-09T14:25:33Z",
+  "environment": {
+    "os": "Windows",
+    "python": "repository .venv Python 3.12",
+    "browser": "local Chromium via Playwright",
+    "storage": "isolated synthetic SQLite fixture",
+    "network": "browser test blocks and asserts all non-local requests"
+  },
+  "behavior": {
+    "user_visible": "Job detail shows whether supported profile country/state directly aligns with known remote-work regions.",
+    "statuses": ["ALIGNS", "NO_DIRECT_MATCH", "UNKNOWN"],
+    "score_effect": "NONE",
+    "data_boundary": "Explanation does not expose the selected profile's country or state.",
+    "truthfulness": "Does not infer work authorization, residence verification, or on-site commute distance; unsupported or missing scope stays UNKNOWN."
+  },
+  "commands": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest tests/integration/test_explainable_matching.py tests/integration/test_role_scoring_search_flow.py tests/integration/test_selected_search_recalculation.py tests/browser/test_relevant_experience_match_explanation.py tests/browser/test_work_location_match_explanation.py -q",
+      "result": "PASS: 31 passed, 41 subtests passed in 24.73s"
+    },
+    {
+      "command": "python -m py_compile services/discovery/matching.py tests/integration/test_explainable_matching.py tests/browser/test_work_location_match_explanation.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "source_sha256": {
+    "services/discovery/matching.py": "2c9df8545800621b1298abd1080fe8e020f1a2db57ffe2009ac996c9e6f57dd1",
+    "tests/integration/test_explainable_matching.py": "d28dc224409af968215b577e6e4ca33b0665b2313f109b0940633be6cec9cf44",
+    "tests/browser/test_work_location_match_explanation.py": "2dbe9be81b1f7e837a598198d824e8e449e7f4713704fe6596e02c68335dcd9a"
+  },
+  "not_run": [
+    "PostgreSQL validation",
+    "full repository suite",
+    "web build (no frontend source changed; connected browser flow exercised existing generic fit-factor rendering)",
+    "hosted checks and reviews (local-only policy)"
+  ],
+  "external_submission": "OFF",
+  "notes": "A system-Python collection attempt lacked SQLAlchemy and Playwright; the repository .venv run above collected and passed the suite. This bounded factor does not complete MJ-REQ-114 or MJ-PR-031."
+}
