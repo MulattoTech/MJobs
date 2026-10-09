@@ -584,6 +584,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_job_risk_signals_router(store))
     from apps.api.recruiter_classification import create_recruiter_classification_router
     app.include_router(create_recruiter_classification_router(store))
+    from apps.api.application_priority import create_application_priority_router
+    app.include_router(create_application_priority_router(store))
     from apps.api.document_archive import create_document_archive_router
     app.include_router(create_document_archive_router(store))
     from apps.api.manual_auth import create_manual_auth_router
