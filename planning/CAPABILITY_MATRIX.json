@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T20:04:49Z",
+  "timestamp": "2026-10-09T20:18:31Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2093,9 +2093,11 @@
     },
     {
       "requirement_id": "MJ-REQ-246",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-source-failure-recovery.json"
+      ],
+      "note": "Monitored company-source retry recovery now shows HEALTHY → DEGRADED → FAILED, bounds automatic retries at three failures, permits manual recovery/reset, keeps 403 blocked, and preserves the structural rediscovery gate. Integrated locally at 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47. Other provider/source lifecycle failure paths remain outside this slice; hosted/PostgreSQL/full-suite checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-247",

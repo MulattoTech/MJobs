@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T18:07:31Z",
+  "generated_at": "2026-10-09T20:18:31Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-095-CONNECTED-REWRITE-REVIEW-20261009",
-  "current_objective": "Connect a job-scoped user-reviewed resume rewrite preview while preserving source provenance, protected-token checks, and explicit non-persistence before generation.",
+  "current_milestone": "MJ-REQ-246-SOURCE-FAILURE-RECOVERY-20261009",
+  "current_objective": "Implement bounded, user-visible retry and recovery for monitored company-source failures while retaining blocked and explicit rediscovery states.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -176,7 +176,8 @@
     "Connected route details identify exact persisted ATS siblings and provide an explicit bounded redirect check to verified employer/ATS destinations; candidate links are redacted, user-selected routes stay unchanged, and external submission remains OFF (MJ-REQ-267 remains PARTIAL because no automatic pre-submit path is enabled and redirect candidates are not persisted).",
     "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported).",
     "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL).",
-    "Explainable match coverage now shows covered/possible base skill weights and per-skill contributions (issue #115 / MJ-REQ-114; integrated 55c6a6036dc42bb15f6a5d8e60289afb73fb55af; evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json). Broader original score dimensions remain incomplete."
+    "Explainable match coverage now shows covered/possible base skill weights and per-skill contributions (issue #115 / MJ-REQ-114; integrated 55c6a6036dc42bb15f6a5d8e60289afb73fb55af; evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json). Broader original score dimensions remain incomplete.",
+    "Issue #247 / MJ-REQ-246: monitored company-source transient failures show bounded HEALTHY → DEGRADED → FAILED recovery, manual reset, blocked-access handling and preserved rediscovery gate. Local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; broader source failure lifecycle remains incomplete."
   ],
   "blocked_capabilities": [],
   "active_requirements": [],
@@ -716,7 +717,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Select the next highest-impact dependency-ready jobseeker feature from live original requirements and issue claims; prioritize usable discovery, matching, truthful documents, or application workflow.",
+  "recommended_resume_step": "Continue solo implementation with dependency-ready issue #248 / MJ-REQ-247 (preserve failed source configuration and history); first reconcile source deletion paths and dependencies.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -750,7 +751,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "225c7d1dd2db3fe9699518ffc5d9429d72d37913",
+  "last_implementation_commit": "4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
     "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
@@ -14104,12 +14105,61 @@
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": []
+    },
+    {
+      "milestone_id": "MJ-REQ-246-SOURCE-FAILURE-RECOVERY-20261009",
+      "timestamp": "2026-10-09T20:18:31Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added bounded retry state for monitored company sources with a visible DEGRADED state and terminal FAILED threshold.",
+        "Preserved BLOCKED handling for access denial, manual recovery/reset, and structural rediscovery review.",
+        "Fast-forward integrated the exact tested source and evidence into local main; issue #247 remains OPEN/PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-source-failure-recovery.json"
+      ],
+      "files_modified": [
+        "services/company_discovery/monitoring.py",
+        "services/company_discovery/sources.py",
+        "apps/web/src/company-source-monitoring.tsx",
+        "apps/web/src/company-source-monitoring.test.tsx",
+        "tests/integration/test_company_source_monitoring.py"
+      ],
+      "tests_completed": [
+        "Company source monitoring integration: 7 passed",
+        "Focused UI tests: 5 passed",
+        "TypeScript/Vite build, py_compile, diff check and lane validation passed"
+      ],
+      "tests_remaining": [
+        "PostgreSQL, full repository suites and live provider requests",
+        "Hosted CI/review NOT_RUN_BY_USER_POLICY",
+        "Broader source lifecycle failures and other provider recovery paths"
+      ],
+      "known_limitations": [
+        "Acceptance covers the monitored company-source path only.",
+        "Issue #247 / MJ-REQ-246 remains OPEN/PARTIAL.",
+        "External application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47",
+        "evidence_path": "docs/evidence/2026-10-09-source-failure-recovery.json"
+      },
+      "integrated_main": "4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47",
+      "source_tree": "f120f92fecbc2393c6e471a2ee75ed9ae09cbe56",
+      "acceptance": "PARTIAL: monitored company-source failure retries are bounded, surfaced and manually recoverable; broader discovery-source lifecycle acceptance remains incomplete.",
+      "limitations": [
+        "PostgreSQL/full repository/live provider/hosted checks NOT_RUN.",
+        "External application submission OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": []
     }
   ],
   "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "225c7d1dd2db3fe9699518ffc5d9429d72d37913",
-    "evidence_path": "docs/evidence/2026-10-09-resume-rewrite-review-connected.json"
+    "git_commit": "4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47",
+    "evidence_path": "docs/evidence/2026-10-09-source-failure-recovery.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14609,7 +14659,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 96,
+  "active_development_issue": null,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15754,7 +15804,8 @@
     "Issue #262 / MJ-REQ-261 provenance slice at e337115700a23b0d5d7b1e50abb1ffc26983e292 (tree 9bc0125ec6d9d4f4e62cd4d4fa04f9a8014c4636); evidence docs/evidence/2026-10-08-source-ats-separation.json; API and connected Chromium 2/2, web 124/124, TypeScript/Vite build, API compilation and diff check PASS. PostgreSQL/live providers/full repository/hosted checks NOT_RUN; issue OPEN/PARTIAL; parent MJ-PR-071 QUEUED; external submission OFF.",
     "Issue #372 / MJ-REF-002 cover-letter story reuse integrated locally at 75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1 (tree 09e06d85dbfb24412db997bcfa889b9660123d4d); evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json; focused Python/API/persistence/worker/connected browser 44 PASS and final Chromium 1 PASS, focused web 22 PASS, production build/compile/hash/lane/diff PASS. PostgreSQL/full suite/hosted NOT_RUN; external application submission OFF; requirement remains PARTIAL.",
     "#378 / MJ-REF-008 integrated at 430d4724e36d063890c9511c7478b44257abcd59 (tree e768f9a6cb4e0d3429e05d9dd45bbdab152030a5); evidence docs/evidence/2026-10-09-grounded-interview-preparation.json; Python/API/migration/connected browser 20 PASS, frontend 13 PASS, build and local migration graph PASS. PostgreSQL/full suite/hosted NOT_RUN; external submission OFF.",
-    "Issue #115 / MJ-REQ-114 weighted skill-evidence score explanation integrated locally at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af (tree 282aaf80006e28bf505befba28c203c98fbdd0e2); evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json; focused matching integration 27 PASS, connected Chromium 1 PASS, focused Vitest 17 PASS, build/compile/lane/diff/hash PASS. Full original match dimensions remain PARTIAL; PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF."
+    "Issue #115 / MJ-REQ-114 weighted skill-evidence score explanation integrated locally at 55c6a6036dc42bb15f6a5d8e60289afb73fb55af (tree 282aaf80006e28bf505befba28c203c98fbdd0e2); evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json; focused matching integration 27 PASS, connected Chromium 1 PASS, focused Vitest 17 PASS, build/compile/lane/diff/hash PASS. Full original match dimensions remain PARTIAL; PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF.",
+    "Issue #247 / MJ-REQ-246 exact integrated source 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47 (tree f120f92fecbc2393c6e471a2ee75ed9ae09cbe56): focused monitoring integration 7 PASS, component 5 PASS, TypeScript/Vite build, py_compile, diff check and lane validation PASS. Evidence docs/evidence/2026-10-09-source-failure-recovery.json; PostgreSQL/full suites/live providers/hosted NOT_RUN; external submission OFF."
   ],
   "ownership": "ROOT is the sole Luna High engineer in solo mode with zero active child agents. #253 / MJ-REQ-252 and #254 / MJ-REQ-253 are locally PASS and integrated. Preserve completed workers, unrelated branches/worktrees/claims, and untracked docs/evidence/2026-10-08-compose-target-isolation.json. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "delivery_policy": {
@@ -15769,9 +15820,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T20:04:49Z",
-  "current_verified_local_state": "Issue #96 / MJ-REQ-095 connected rewrite preview integrated locally on main at 225c7d1dd2db3fe9699518ffc5d9429d72d37913 (tree efd259071ec3eee93ec61f15d993aaec0176d34f). Approved facts can be paired with user-authored proposed text; the connected API returns exact source/proposal and protected date, number, and named-credential token audit. Explicit acknowledgement is temporary and clears on scope change or reload. No fact/document/application persistence, external request, or submission occurs. Evidence docs/evidence/2026-10-09-resume-rewrite-review-connected.json; focused Python/API 14, connected Chromium 1, frontend 10, build and diff checks PASS. Issue OPEN/PARTIAL; hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and was not pushed under local-only delivery. Issue #96 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified 2026-10-09T20:04:49Z.",
+  "updated_at": "2026-10-09T20:18:31Z",
+  "current_verified_local_state": "Issue #247 / MJ-REQ-246 is integrated locally at main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47 (tree f120f92fecbc2393c6e471a2ee75ed9ae09cbe56). Monitored company-source health shows bounded retry recovery; evidence docs/evidence/2026-10-09-source-failure-recovery.json. Focused monitoring integration 7/7, UI 5/5, build/compile/diff/lane checks PASS. Broader source failure lifecycle remains PARTIAL.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Issue #247 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/247#issuecomment-6088557993. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
   "next_candidates": [
     {
       "issue": 517,
@@ -15779,5 +15830,5 @@
       "status": "NEXT: reconcile and continue the connected discovered-job-site source candidate catalogue and review workflow; preserve passive capture, profile isolation, provenance, explicit evaluation, and collection OFF. Reconcile existing claims/worktrees before selecting owned paths."
     }
   ],
-  "current_verified_at": "2026-10-09T20:04:49Z"
+  "current_verified_at": "2026-10-09T20:18:31Z"
 }
