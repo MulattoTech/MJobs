@@ -2827,10 +2827,10 @@
         "MJ-PR-071",
         "MJ-PR-063"
       ],
-      "status": "QUEUED",
-      "branch": "codex/mj-pr-072-operations-ux-ci",
+      "status": "INTEGRATED_PARTIAL",
+      "branch": "main",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "MJ-REQ-264 and MJ-REQ-265 passed and integrated to local main at f1036d6e7bce62eb5aa75f7a5a14102179f274ce; evidence docs/evidence/2026-10-09-company-discovery-policy.json. MJ-REQ-266 and MJ-REQ-267 remain unverified; package remains partial. Local-only delivery; no push."
     },
     {
       "id": "MJ-PR-073",
@@ -4873,5 +4873,5 @@
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
     }
   ],
-  "generated_at": "2026-10-09T12:12:23Z"
+  "generated_at": "2026-10-09T12:59:39Z"
 }

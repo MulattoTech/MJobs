@@ -1,3 +1,13 @@
+# 2026-10-09 12:59Z — Solo company-discovery policy integrated
+
+- #265 / MJ-REQ-264 and #266 / MJ-REQ-265 are implemented and locally PASS at source/integrated main `f1036d6e7bce62eb5aa75f7a5a14102179f274ce` (tree `84aff12f991afffc520ee6838db479b2bcee1aeb`). Profile controls persist company discovery enablement, minimum/priority scores, and hourly cap. Eligible high-score requests carry durable HIGH priority and dispatch ahead of normal outbox work. Evidence: `docs/evidence/2026-10-09-company-discovery-policy.json`.
+- Exact-source validation: focused policy/discovery/connected Chromium suite 16 PASS; frontend 527 PASS; TypeScript/Vite build, `py_compile`, and `git diff --check` PASS. Full repository unittest discovery was started but interrupted after multiple failures outside the feature paths, including strict-locator browser failures; it did not complete and is not claimed as passing. PostgreSQL/hosted checks NOT_RUN; external submission OFF.
+- Local `main` fast-forwarded from `7bb573defc13bfb160f2621138af8c8b87fb9163` to `f1036d6e7bce62eb5aa75f7a5a14102179f274ce` under the Codex integration lock. `origin/main` remains `0a8719d4db524c90b632d990cc7b205add0c2577`; no push/PR. Issues remain open.
+- Solo transition: no subagents spawned. All prior native workers are completed; outstanding lane claims/worktrees and unrelated uncommitted branches remain preserved. Preserve root user file `docs/evidence/2026-10-08-compose-target-isolation.json`.
+- #265 and #266 concern this slice; grouped queue item MJ-PR-072 includes MJ-REQ-266/267 that remain unverified. Next: select the highest-impact dependency-ready core feature against live issues and current claims; continue sequentially.
+
+---
+
 # 2026-10-09 09:58Z — Solo #61 verified-domain reuse checkpoint
 
 - Feature branch `codex/solo-061-official-domain-evidence-order-20261009`, source commit `8f7fab9b330d554ef8659cf1232a9a23f006436f`, tree `5ede7429f9803831135ef8d9e19edd5742192e36`; base local main `3e2c9de6d746d913dedda36963082df32ddf4c8a`.

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T12:12:23Z",
+  "timestamp": "2026-10-09T13:00:14Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2190,15 +2190,19 @@
     },
     {
       "requirement_id": "MJ-REQ-264",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-company-discovery-policy.json"
+      ],
+      "note": "Configured high-match scores enqueue durable high-priority company discovery only when eligible company-source discovery is needed; operation is ordered ahead of normal outbox work. Evidence: docs/evidence/2026-10-09-company-discovery-policy.json"
     },
     {
       "requirement_id": "MJ-REQ-265",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-09-company-discovery-policy.json"
+      ],
+      "note": "Profile UI saves enablement, minimum/priority match thresholds, and hourly cap; API validation, request policy, rate cap, and reload readback are verified. Evidence: docs/evidence/2026-10-09-company-discovery-policy.json"
     },
     {
       "requirement_id": "MJ-REQ-266",
