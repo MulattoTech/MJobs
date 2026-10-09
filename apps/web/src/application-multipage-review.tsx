@@ -116,6 +116,7 @@ export async function moveApplicationMultipageReview(client:ApplicationMultipage
     if(!previousPageId)throw new Error('There is no prior form page to review.');
     return transition(client,profileId,applicationId,pages,{
       action:'PREVIOUS',expected_version:state.version,page_id:'review',page_order:pages.map(page=>page.id),previous_page_id:previousPageId,
+      progress:state.progress,
     },scopeIsCurrent);
   }
   const currentPageId=state.current_page_id||pages[0]?.id;
@@ -136,7 +137,7 @@ export async function moveApplicationMultipageReview(client:ApplicationMultipage
   const isFinal=direction==='NEXT'&&destinationIndex>=pages.length;
   const request:Omit<ApplicationMultipageTransition,'request_id'>={
     action:isFinal?'REVIEW':direction,expected_version:saved.version,page_id:saved.current_page_id||currentPageId,
-    page_order:pages.map(page=>page.id),
+    page_order:pages.map(page=>page.id),progress:saved.progress,
     ...(!isFinal&&direction==='NEXT'?{next_page_id:pages[destinationIndex].id}:{}),
     ...(direction==='PREVIOUS'?{previous_page_id:pages[destinationIndex].id}:{}),
   };

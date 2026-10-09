@@ -38,7 +38,7 @@ describe('multi-page application review',()=>{
       .mockResolvedValueOnce({...state,current_page_id:'experience',version:3})};
     await moveApplicationMultipageReview(client,'profile-a','application-a',state,pages,state.progress,'NEXT');
     expect(client.transition).toHaveBeenNthCalledWith(1,'profile-a','application-a',expect.objectContaining({
-      action:'NEXT',expected_version:2,page_id:'contact',next_page_id:'experience',
+      action:'NEXT',expected_version:2,page_id:'contact',next_page_id:'experience',progress:state.progress,
     }));
     const enteringReview={...state,current_page_id:'experience',version:4};
     client.transition.mockReset().mockResolvedValueOnce({...enteringReview,progress:{...state.progress,experience:{summary:'Relevant experience'}},version:5});
@@ -48,6 +48,7 @@ describe('multi-page application review',()=>{
       {...state.progress,experience:{summary:'Relevant experience'}},'NEXT');
     expect(client.transition).toHaveBeenLastCalledWith('profile-a','application-a',expect.objectContaining({
       action:'REVIEW',expected_version:5,page_id:'experience',
+      progress:{...state.progress,experience:{summary:'Relevant experience'}},
     }));
   });
 
@@ -68,7 +69,7 @@ describe('multi-page application review',()=>{
     expect(client.transition).toHaveBeenCalledTimes(3);
     expect(client.transition.mock.calls[0][2]).toMatchObject({action:'SAVE_PROGRESS',expected_version:2,progress:editedProgress});
     expect(client.transition.mock.calls[1][2]).toMatchObject({action:'NEXT',expected_version:3,next_page_id:'experience'});
-    expect(client.transition.mock.calls[2][2]).toMatchObject({action:'NEXT',expected_version:3,next_page_id:'experience'});
+    expect(client.transition.mock.calls[2][2]).toMatchObject({action:'NEXT',expected_version:3,next_page_id:'experience',progress:editedProgress});
   });
 
   it('does not write when a required value is missing',async()=>{
@@ -95,7 +96,7 @@ describe('multi-page application review',()=>{
     const client={load:vi.fn(),transition:vi.fn().mockResolvedValue({...reviewState,current_page_id:'experience',status:'IN_PROGRESS'})};
     await moveApplicationMultipageReview(client,'profile-a','application-a',reviewState,pages,state.progress,'PREVIOUS');
     expect(client.transition).toHaveBeenCalledWith('profile-a','application-a',expect.objectContaining({
-      action:'PREVIOUS',expected_version:2,page_id:'review',previous_page_id:'experience',
+      action:'PREVIOUS',expected_version:2,page_id:'review',previous_page_id:'experience',progress:state.progress,
     }));
   });
 
