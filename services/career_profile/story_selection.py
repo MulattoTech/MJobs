@@ -1,7 +1,17 @@
 """Read-only, job-specific selection of reusable career-story revisions."""
 from __future__ import annotations
 
-from services.career_profile.story_bank import StoryBankError, list_stories
+import hashlib
+
+from sqlalchemy import select
+
+from packages.persistence import models as m
+from services.career_profile.story_bank import (
+    StoryBankError,
+    _present_all,
+    _require_profile,
+    list_stories,
+)
 
 
 ALLOWED_DOCUMENT_USES = frozenset({"RESUME", "COVER_LETTER"})
@@ -61,7 +71,8 @@ def _document_story(story: dict) -> dict:
 
 
 def select_stories_for_job(store, profile_id: str, job_id: str, allowed_use: str,
-                           selected_story_ids: list[str] | None = None) -> dict:
+                           selected_story_ids: list[str] | None = None,
+                           connection=None) -> dict:
     """Offer eligible stories or validate an explicit ordered selection.
 
     A story is selectable only when the story-bank service reports its latest
@@ -74,7 +85,11 @@ def select_stories_for_job(store, profile_id: str, job_id: str, allowed_use: str
     """
     selected_story_ids = _validate_request(job_id, allowed_use, selected_story_ids)
     try:
-        revisions = list_stories(store, profile_id)
+        if connection is None:
+            revisions = list_stories(store, profile_id)
+        else:
+            profile = _require_profile(store, profile_id, connection)
+            revisions = _present_all(connection, profile_id, profile)
     except StoryBankError as error:
         raise StorySelectionError(error.code, error.status_code, str(error)) from error
 
@@ -106,3 +121,38 @@ def select_stories_for_job(store, profile_id: str, job_id: str, allowed_use: str
         "story_ids": [story["story_id"] for story in stories],
         "stories": stories,
     }
+
+
+def resolve_story_revisions(store, profile_id: str, refs: list[dict],
+                            profile_version: str, allowed_use: str) -> list[dict]:
+    """Resolve immutable source text for validating a saved document revision."""
+    resolved = []
+    with store.engine.connect() as connection:
+        for ref in refs:
+            row = connection.execute(select(m.career_stories).where(
+                m.career_stories.c.id == ref.get("story_id"),
+                m.career_stories.c.profile_id == profile_id,
+            )).mappings().one_or_none()
+            if row is None:
+                raise StorySelectionError(
+                    "STORY_REVISION_UNAVAILABLE", 409,
+                    "A saved cover-letter story source is unavailable",
+                )
+            story = dict(row)
+            text = story.get("text")
+            if (story.get("review_status") != "APPROVED"
+                    or story.get("revision") != ref.get("revision")
+                    or story.get("title") != ref.get("title")
+                    or story.get("profile_version") != profile_version
+                    or allowed_use not in story.get("allowed_uses", [])
+                    or story.get("fact_ids") != ref.get("fact_ids")
+                    or story.get("fact_fingerprints") != ref.get("fact_fingerprints")
+                    or not isinstance(text, str)
+                    or hashlib.sha256(text.encode("utf-8")).hexdigest()
+                    != ref.get("text_sha256")):
+                raise StorySelectionError(
+                    "STORY_REVISION_CHANGED", 409,
+                    "A saved cover-letter story no longer matches its reviewed source",
+                )
+            resolved.append({**ref, "text": text})
+    return resolved

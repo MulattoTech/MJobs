@@ -283,7 +283,10 @@ def execute_operation(operation_id):
                         cover_letter_style=operation['params'].get('cover_letter_style','professional'),
                         cover_letter_length=operation['params'].get('cover_letter_length','normal'),
                         role_lens_id=operation['params'].get('role_lens_id'),
-                        expected_role_lens_version=operation['params'].get('expected_role_lens_version'))
+                        expected_role_lens_version=operation['params'].get('expected_role_lens_version'),
+                        cover_letter_story_ids=operation['params'].get('cover_letter_story_ids'),
+                        cover_letter_story_job_fingerprint=operation['params'].get(
+                            'cover_letter_story_job_fingerprint'))
             elif operation["kind"] == "APPLY_MOCK":
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check,

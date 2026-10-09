@@ -13,6 +13,7 @@ const candidate: CareerStorySelectionCandidate = {
   revisionId: 'story-record-2',
   revision: 2,
   title: 'Improved service reliability',
+  text: 'I improved a reviewed, synthetic service.',
   reviewStatus: 'APPROVED',
   reviewedAt: '2026-10-08T14:00:00Z',
   isLatest: true,

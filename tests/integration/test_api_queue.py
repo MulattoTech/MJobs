@@ -14,6 +14,9 @@ from workers.dispatch import enqueue_operation, dispatch_pending
 from fixtures.mock_server import fixture_server
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.documents.history import application_documents
+from services.documents.tailor import target_fingerprint
+from services.career_profile.story_bank import create_story, review_story
 from workers.tasks import execute_operation
 
 
@@ -145,6 +148,51 @@ class ApiQueueTests(unittest.TestCase):
             cancelled = client.post("/operations/" + discovery["operation_id"] + "/cancel")
             self.assertEqual(cancelled.status_code, 202)
             self.assertEqual(cancelled.json()["state"], "CANCELLED")
+
+    def test_selected_career_story_survives_durable_preparation_and_document_readback(self):
+        with fixture_server() as origin, TestClient(create_app(
+                self.store, origin, self.root, operation_mode="FIXTURE")) as client:
+            client.put("/profiles", json=PROFILE).raise_for_status()
+            discover(self.store, origin, "fixture")
+            job = self.store.jobs()[0]
+            story = create_story(self.store, "fixture", {
+                "kind": "ACCOMPLISHMENT",
+                "title": "Reviewed Python accomplishment",
+                "text": "User-authored evidence: I improved a synthetic Python support workflow.",
+                "fact_ids": ["python"],
+                "tags": ["support"],
+                "allowed_uses": ["COVER_LETTER"],
+            })
+            story = review_story(
+                self.store, "fixture", story["story_id"], True, None,
+                expected_revision=story["revision"],
+            )
+            profile = self.store.profile("fixture")
+            fingerprint = target_fingerprint(job)
+            queued = client.post("/applications", json={
+                "profile_id": "fixture",
+                "job_id": job["id"],
+                "expected_profile_version": profile["version"],
+                "expected_job_fingerprint": fingerprint,
+                "cover_letter_story_ids": [story["story_id"]],
+            })
+            self.assertEqual(queued.status_code, 202, queued.text)
+            operation_id = queued.json()["operation_id"]
+            operation = client.get("/operations/" + operation_id).json()
+            self.assertEqual(operation["params"]["cover_letter_story_ids"], [story["story_id"]])
+            self.assertEqual(operation["params"]["cover_letter_story_job_fingerprint"], fingerprint)
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                            MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
+                            MJOBS_OPERATION_MODE="FIXTURE"):
+                self.assertEqual(execute_operation(operation_id)["status"], "COMPLETED")
+            docs = client.get(
+                f"/profiles/fixture/applications/{queued.json()['application_id']}/documents",
+            ).json()["documents"]
+            letter = next(row for row in docs if row["kind"] == "cover-letter")
+            self.assertIsNone(letter["preview_error"])
+            self.assertIn(story["text"], letter["preview_text"])
+            self.assertEqual(letter["generation_context"]["story_refs"][0]["story_id"],
+                             story["story_id"])
 
 
 if __name__ == "__main__":

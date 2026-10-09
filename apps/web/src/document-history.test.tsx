@@ -73,6 +73,14 @@ describe('document provenance',()=>{
     expect(blocked).toContain('Downloads are disabled until a valid version is prepared');
     expect(blocked).not.toContain('Download PDF');expect(blocked).not.toContain('Download TXT');
   });
+  it('shows exact reused story revision and linked fact provenance in document history',()=>{
+    const letter:GeneratedDocument={...historical,kind:'cover-letter',files:{txt:'letter.txt'},missing_fact_ids:[],
+      generation_context:{mode:'JOB_SPECIFIC_APPROVED_FACTS',style:'professional',length:'normal',skills:[],skill_strengths:{},responsibilities:[],company_identity:'SOURCE_LISTED',review_required:true,
+        story_refs:[{story_id:'story-revision-7',revision:2,title:'Reduced report latency',profile_version:'snapshot-1',fact_ids:['python'],fact_fingerprints:[{fact_id:'python',fingerprint:'fact-source-v1'}],text_sha256:'story-content-hash'}]}};
+    const html=renderToStaticMarkup(<DocumentHistory documents={[letter]}/>);
+    expect(html).toContain('Reused reviewed story revisions');expect(html).toContain('user-authored text preserved verbatim');
+    expect(html).toContain('Reduced report latency · revision 2 · linked facts python');
+  });
   it('labels a legacy cover letter whose original job snapshot was not recorded',()=>{
     const html=renderToStaticMarkup(<DocumentHistory documents={[{...historical,kind:'cover-letter',legacy_job_context_missing:true,
       preview_text:'Application for Earlier Title',preview_error:null,files:{txt:'letter.txt'},missing_fact_ids:[]}]}/>);

@@ -5,6 +5,7 @@ from pathlib import Path
 from sqlalchemy import select
 from packages.persistence import models as m
 from services.documents.avoid_list import validate_content as validate_avoid_list
+from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
 from services.documents.validation import validate_assertions, validate_formats
 
@@ -26,11 +27,39 @@ def validated_letter_preview(store, document, output_dir):
         paths[format] = path
     if not {"docx", "pdf", "txt"}.issubset(paths):
         raise PreparationError("DOCUMENT_CONTENT_MISMATCH", "Validated cover-letter formats are incomplete")
-    paragraphs = paths["txt"].read_text(encoding="utf-8").splitlines()
+    text = paths["txt"].read_text(encoding="utf-8")
     profile = store.profile(document["profile_id"], document["profile_version"])
+    context = document.get("generation_context") or {}
+    story_refs = context.get("story_refs", [])
+    selected_stories = []
+    if story_refs:
+        from services.career_profile.story_selection import (
+            StorySelectionError,
+            resolve_story_revisions,
+        )
+        try:
+            selected_stories = resolve_story_revisions(
+                store, document["profile_id"], story_refs,
+                document["profile_version"], "COVER_LETTER",
+            )
+        except StorySelectionError as error:
+            raise PreparationError(error.code, str(error)) from error
+    if document["template"] == COVER_LETTER_TEMPLATE:
+        paragraphs, _ = build_cover_letter(
+            profile, context.get("job_snapshot", {}), profile["facts"],
+            context.get("style"), context.get("length"),
+            selected_stories=selected_stories,
+        )
+        if text != "\n".join(paragraphs) + "\n":
+            raise PreparationError(
+                "DOCUMENT_CONTENT_MISMATCH",
+                "Cover-letter text differs from its reviewed facts and story sources",
+            )
+    else:
+        paragraphs = text.splitlines()
     validate_assertions("cover-letter", paragraphs, profile, document["fact_ids"],
                         document.get("job_title"), document["template"],
-                        generation_context=document.get("generation_context"))
+                        generation_context=context, selected_stories=selected_stories)
     validate_formats(paths, paragraphs)
     current_profile = store.profile(document["profile_id"])
     validate_avoid_list('\n'.join(paragraphs), current_profile.get('preferences'), 'cover letter')

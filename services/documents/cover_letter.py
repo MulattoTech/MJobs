@@ -128,7 +128,8 @@ def _tokens(value):
             if (token := word.casefold().rstrip(".")) and token not in _STOP}
 
 
-def build_cover_letter(profile, job, facts, style="professional", length="normal"):
+def build_cover_letter(profile, job, facts, style="professional", length="normal",
+                       selected_stories=None):
     style = _normalized_choice(style, STYLES)
     length = _normalized_choice(length, LENGTHS)
     if not style or not length:
@@ -175,6 +176,26 @@ def build_cover_letter(profile, job, facts, style="professional", length="normal
     chosen_responsibilities = responsibilities[:responsibility_limit]
     chosen_skills = list(dict.fromkeys(required + preferred + skills))[:skill_limit]
     chosen_facts = ranked[:fact_limit]
+    selected_stories = list(selected_stories or [])
+    story_refs = []
+    story_paragraphs = []
+    for index, story in enumerate(selected_stories, 1):
+        text = story.get("text")
+        if not isinstance(text, str) or not text.strip():
+            raise PreparationError("STORY_NOT_SELECTABLE", "A selected story has no reviewed text")
+        story_refs.append({
+            "story_id": story["story_id"],
+            "revision": story["revision"],
+            "title": story["title"],
+            "profile_version": story["profile_version"],
+            "fact_ids": list(story["fact_ids"]),
+            "fact_fingerprints": [dict(item) for item in story["fact_fingerprints"]],
+            "text_sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        })
+        story_paragraphs.extend((
+            f"Selected user-authored story {index} (verbatim; review before use):",
+            text,
+        ))
     company_context = _approved_company_context(job)
     if required:
         skill_paragraph = "The posting explicitly requires: " + "; ".join(required[:skill_limit]) + "."
@@ -190,6 +211,7 @@ def build_cover_letter(profile, job, facts, style="professional", length="normal
         "The posting describes this work: " + " ".join(chosen_responsibilities),
         skill_paragraph,
         "Approved career facts relevant to these details: " + "; ".join(row[2]["text"] for row in chosen_facts) + ".",
+        *story_paragraphs,
         *(["Company context (USER_PROVIDED; CONTENT UNVERIFIED; SOURCE IDENTITY VERIFIED; reviewed by you; source: "
            + company_context["source_url"] + "): " + company_context["content"]]
           if company_context else []),
@@ -215,4 +237,7 @@ def build_cover_letter(profile, job, facts, style="professional", length="normal
                                         "approved_company_context": company_context},
                          "responsibility_evidence": responsibilities},
     }
+    if story_refs:
+        context["story_refs"] = story_refs
+        context["review_required"] = True
     return paragraphs, context

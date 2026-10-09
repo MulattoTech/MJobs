@@ -10,6 +10,7 @@ from services.career_profile.story_bank import create_story, review_story
 from services.documents.errors import PreparationError
 from services.documents.generate import prepare
 from services.documents.history import application_documents
+from services.documents.tailor import target_fingerprint
 
 
 PROFILE = {
@@ -216,6 +217,64 @@ class RoleLensGenerationTests(unittest.TestCase):
         self.assertEqual(second_letter["sha256"], first_letter["sha256"])
         self.assertEqual(second_resume["fact_ids"], first_resume["fact_ids"])
         self.assertEqual(second_letter["fact_ids"], first_letter["fact_ids"])
+
+    def test_explicit_reviewed_story_is_reused_verbatim_in_cover_letter_with_provenance(self):
+        user_text = (
+            "Situation: synthetic reports were slow. Task: improve them.\n"
+            "Action: I optimized the reviewed Python queries. Result: reporting ran faster."
+        )
+        story = self._create_story(
+            "Reviewed reporting accomplishment", user_text, "support",
+        )
+        profile_before = self.store.profile("fixture")
+
+        application_id = prepare(
+            self.store, self.job_id, "fixture", self.root,
+            cover_letter_story_ids=[story["story_id"]],
+            cover_letter_story_job_fingerprint=target_fingerprint(
+                self.store.job(self.job_id)),
+        )
+
+        documents = application_documents(self.store, application_id, self.root)
+        letter = next(row for row in documents if row["kind"] == "cover-letter")
+        letter_text = (self.root / application_id / letter["files"]["txt"]).read_text(
+            encoding="utf-8",
+        )
+        self.assertIn(user_text, letter_text)
+        self.assertIsNone(letter["preview_error"])
+        self.assertIn(user_text, letter["preview_text"])
+        self.assertEqual(self.store.profile("fixture")["facts"], profile_before["facts"])
+        reference = letter["generation_context"]["story_refs"][0]
+        self.assertEqual({key: reference[key] for key in (
+            "story_id", "revision", "profile_version", "fact_ids", "fact_fingerprints",
+        )}, {
+            "story_id": story["story_id"],
+            "revision": story["revision"],
+            "profile_version": story["profile_version"],
+            "fact_ids": ["support"],
+            "fact_fingerprints": story["fact_fingerprints"],
+        })
+        self.assertEqual(len(reference["text_sha256"]), 64)
+        self.assertNotIn(user_text, str(letter["generation_context"]))
+
+    def test_cover_letter_rejects_unreviewed_story_without_new_documents(self):
+        pending = self._create_story(
+            "Pending accomplishment", "Pending user-authored text.", "support",
+            approve=False,
+        )
+        before_application_count = self.store.count("applications")
+        before_document_count = self.store.count("documents")
+        with self.assertRaises(PreparationError) as error:
+            prepare(
+                self.store, self.job_id, "fixture", self.root,
+                cover_letter_story_ids=[pending["story_id"]],
+                cover_letter_story_job_fingerprint=target_fingerprint(
+                    self.store.job(self.job_id)),
+            )
+        self.assertEqual(error.exception.code, "STORY_NOT_SELECTABLE")
+        self.assertEqual(self.store.count("applications"), before_application_count)
+        self.assertEqual(self.store.count("documents"), before_document_count)
+        self.assertFalse((self.root / identity(self.job_id, "fixture")).exists())
 
 
 if __name__ == "__main__":

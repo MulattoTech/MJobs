@@ -13,6 +13,7 @@ const candidate: CareerStorySelectionCandidate = {
   revisionId: 'story-record-2',
   revision: 2,
   title: 'Improved service reliability',
+  text: 'I improved a reviewed, synthetic service.',
   reviewStatus: 'APPROVED',
   reviewedAt: '2026-10-08T14:00:00Z',
   isLatest: true,
@@ -39,6 +40,8 @@ describe('career story selection', () => {
 
     expect(html).toContain('Story revisions for Systems Administrator');
     expect(html).toContain('Improved service reliability');
+    expect(html).toContain('Review story text');
+    expect(html).toContain('I improved a reviewed, synthetic service.');
     expect(html).toContain('Revision 2');
     expect(html).toContain('Review status: APPROVED');
     expect(html).toContain('Allowed uses: Cover letter');

@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "issue": 372,
+  "requirement": "MJ-REF-002",
+  "result": "PARTIAL",
+  "acceptance_status": "PARTIAL",
+  "scope": "Users can inspect and explicitly select current approved career-story revisions while preparing job-specific cover letters. The worker revalidates profile, job, story revision, allowed use, and linked-fact provenance; generated story text remains exact, local, and review-required; immutable document history resolves the referenced revision and shows its provenance.",
+  "source": {
+    "branch": "codex/solo-372-cover-letter-story-reuse-20261009",
+    "base": "4decc714b73030d8dee72b2a8fe75bef5b2b2240",
+    "input_sha256": {
+      "apps/api/main.py": "589c9712e3892a922ab114c51153e3df3da147dff73a1ba8a604ba8fc184fd28",
+      "apps/web/src/cover-letter-story-selection.tsx": "04de0c10658595e1df2aed5d94a15c61dfe4ef57a016767cbf1fa19a786eede6",
+      "apps/web/src/career-story-selection.tsx": "b6d9cccd5365777aba6d35682d7f1c63acbad36ed94183d5ff0a89b34628f4d7",
+      "apps/web/src/career-story-selection.test.tsx": "2971b1c7c0aba1c325a041718f11f08a1d133ef98a881528126ccc8377f27584",
+      "apps/web/src/career-story-selection-review.test.tsx": "76ec2580f69203b2fc50782a248044fd4587196fc29c30124a7f08ad6e0df664",
+      "apps/web/src/main.tsx": "544ab998861b67c00ad94bccd1341dfe1602d18d61f8fa49f60059c3ac6b8c04",
+      "apps/web/src/document-history.tsx": "d95c05d03bb6e490eb0fb7703e05b3a39e733ec5cc02f2d2c032f4825bf67873",
+      "apps/web/src/document-history.test.tsx": "74115066dbf13767f51be67e340069655677b634731370ee81cca4f4a0a0da87",
+      "services/career_profile/story_selection.py": "0298c6e67ec72e89574ca34338d7ac68f3174bb45d3b713a538f6491bb2549a1",
+      "services/documents/cover_letter.py": "7d991c4a8128f6378333e6694bc731ead3297ab700e5a7a7d4ecc3c974342e09",
+      "services/documents/generate.py": "70bcc207ede931a25b27f9c43041dae6a1af484d01fcd5d32b8ec6438623869c",
+      "services/documents/history.py": "fe51e0f522c2c9451c441080523895429d1a17ad31fcd43eabd43af751c3c28e",
+      "services/documents/validation.py": "3f96631f08d8f75b9bcc1e2b889b8b2e5ed46f06f073657308571de80bbcec41",
+      "workers/tasks.py": "093f4343b9852a03217c19d513777fee1be90fb91d9a2122b594975e79e403d7",
+      "tests/integration/test_api_queue.py": "6056a0ccd2edd1c48873d0281584c1fd8d9be84ad3195f6ce45e99c3fd662fee",
+      "tests/integration/test_role_lens_generation.py": "78677cb265ed773bda1c7ef260a99d6fecb34bdf0d1ded5e8952ace8b39a7664",
+      "tests/browser/test_cover_letter_story_reuse.py": "22f5c7e8b600a1d331409184045b550c7b78519e690af9df93889af4110ff57f"
+    }
+  },
+  "tested_at_utc": "2026-10-09T10:46:37Z",
+  "validation": {
+    "python_regressions": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_career_story_selection tests.unit.test_career_story_bank tests.integration.test_career_story_selection_api tests.integration.test_career_story_bank tests.integration.test_career_story_bank_durable_readback tests.integration.test_role_lens_generation tests.integration.test_api_queue tests.integration.test_document_validation tests.browser.test_cover_letter_story_reuse",
+      "summary": "44 focused unit, API, persistence, document-generation, durable-worker, recovery, and connected-browser tests passed on the feature worktree."
+    },
+    "connected_browser": {
+      "result": "PASS",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_cover_letter_story_reuse",
+      "summary": "1 Chromium workflow passed: the exact story preview starts unselected; explicit review and selection are required; durable PREPARE includes the observed profile/job snapshot; generated text and provenance survive readback; no external requests or application submissions occur."
+    },
+    "frontend_tests": {
+      "result": "PASS",
+      "command": "npm --prefix apps/web run test -- src/career-story-selection.test.tsx src/career-story-selection-review.test.tsx src/document-history.test.tsx",
+      "summary": "22 tests passed across the explicit-selection, review, and document-history components."
+    },
+    "frontend_build": {
+      "result": "PASS",
+      "command": "npm --prefix apps/web run build",
+      "summary": "TypeScript check and Vite production build passed; the existing large-chunk advisory remains."
+    },
+    "static_checks": {
+      "result": "PASS",
+      "commands": [
+        "git diff --check",
+        "python -m compileall -q services/career_profile/story_selection.py services/documents/cover_letter.py services/documents/generate.py services/documents/history.py services/documents/validation.py apps/api/main.py workers/tasks.py tests/integration/test_role_lens_generation.py tests/integration/test_api_queue.py tests/browser/test_cover_letter_story_reuse.py"
+      ]
+    },
+    "baseline_failure": {
+      "result": "FAIL_ON_UNMODIFIED_MAIN",
+      "test": "tests.integration.test_cover_letter_preview_api.CoverLetterPreviewApiTests.test_preview_returns_scoped_snapshots_and_provenance_without_writes_or_network",
+      "summary": "The same TypeError (company_context is None where the test indexes included) was reproduced on untouched local main and is excluded from this feature acceptance."
+    },
+    "postgresql": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "full_repository_suite": "NOT_RUN",
+    "external_application_submission": "OFF",
+    "live_ats_or_source_access": "NOT_USED"
+  },
+  "limitations": [
+    "Only explicit cover-letter story selection is implemented in this slice; resume story reuse and remaining MJ-REF-002 acceptance are incomplete, so the issue and requirement remain OPEN/PARTIAL.",
+    "PostgreSQL, hosted verification, and the full repository suite were not run."
+  ]
+}

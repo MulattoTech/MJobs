@@ -85,7 +85,7 @@ def _reject_novel_tokens(actual_texts, source_texts):
                                    f'Document adds a {claim_name} claim absent from approved facts')
 
 
-def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, template='verified-facts-v1', generation_context=None):
+def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, template='verified-facts-v1', generation_context=None, selected_stories=None):
     profile_facts = profile['facts']
     eligible = {row['fact_id']: row['text'] for row in profile_facts
                 if row['verified'] and row['user_approved'] and row['confidence'] >= 80 and row['source'].strip()}
@@ -143,7 +143,8 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
             raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter has no validated job-evidence snapshot')
         try:
             expected, expected_context = build_cover_letter(profile, snapshot, profile['facts'],
-                context.get('style'), context.get('length'))
+                context.get('style'), context.get('length'),
+                selected_stories=selected_stories)
         except PreparationError as error:
             raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter evidence is no longer valid') from error
         fact_paragraphs = [value for value in paragraphs
@@ -151,7 +152,9 @@ def validate_assertions(kind, paragraphs, profile, fact_ids, job_title=None, tem
         _reject_novel_tokens(fact_paragraphs,
                              [eligible[identifier] for identifier in expected_context['fact_ids']])
         if (paragraphs != expected or fact_ids != expected_context['fact_ids']
-                or context.get('fact_ids') != expected_context['fact_ids']):
+                or context.get('fact_ids') != expected_context['fact_ids']
+                or context.get('story_refs', []) != expected_context.get('story_refs', [])
+                or context.get('review_required', False) != expected_context.get('review_required', False)):
             raise PreparationError('UNSUPPORTED_CLAIM', 'Cover letter differs from the approved facts or saved job evidence')
         return _claim_evidence(fact_ids, eligible, profile_facts)
     elif kind == 'cover-letter' and template == 'verified-facts-v1':

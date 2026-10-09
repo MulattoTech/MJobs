@@ -11,6 +11,7 @@ export type CareerStorySelectionCandidate = {
   revisionId: string;
   revision: number;
   title: string;
+  text: string;
   reviewStatus: string;
   reviewedAt: string | null;
   isLatest: boolean;
@@ -190,8 +191,9 @@ export function CareerStorySelection({
               disabled={disabled}
               onChange={event => toggle(candidate.revisionId, event.target.checked)}
             />
-            <strong>{candidate.title}</strong> · Revision {candidate.revision}
+          <strong>{candidate.title}</strong> · Revision {candidate.revision}
           </label>
+          <details><summary>Review story text</summary><pre className="description" style={{whiteSpace:'pre-wrap',fontFamily:'inherit'}}>{candidate.text}</pre></details>
           <p>Review status: {candidate.reviewStatus}{candidate.reviewedAt ? ` · reviewed ${candidate.reviewedAt}` : ''}</p>
           {reason
             ? <p id={reasonId} role="status">Unavailable: {reason}</p>

@@ -211,6 +211,7 @@ class ApplicationInput(DiscoveryInput):
     role_lens_id: str | None = Field(default=None, strict=True, min_length=1, max_length=32,
                                      pattern=r'^[a-z][a-z0-9_]{0,31}$')
     expected_role_lens_version: int | None = Field(default=None, strict=True, ge=1, le=2147483647)
+    cover_letter_story_ids: list[Annotated[str,Field(strict=True,min_length=1,max_length=128)]] | None = Field(default=None,min_length=1,max_length=50)
 
     @model_validator(mode='after')
     def selected_facts_require_tailoring_and_snapshot(self):
@@ -219,10 +220,16 @@ class ApplicationInput(DiscoveryInput):
         if self.tailor_fact_rewrites is not None and (
                 not self.tailor_resume or self.tailor_fact_ids is None or not self.expected_profile_version):
             raise ValueError('Reviewed resume rewrites require selected facts, tailoring and the observed profile version')
-        if self.expected_job_fingerprint is not None and (not self.tailor_resume or not self.expected_profile_version):
-            raise ValueError('A resume alignment snapshot requires tailoring and the observed profile version')
+        if self.expected_job_fingerprint is not None and (
+                not (self.tailor_resume or self.cover_letter_story_ids)
+                or not self.expected_profile_version):
+            raise ValueError('A document preparation snapshot requires tailoring or selected stories and the observed profile version')
         if (self.role_lens_id is None) != (self.expected_role_lens_version is None):
             raise ValueError('A role lens requires its observed version')
+        if self.cover_letter_story_ids is not None and (
+                len(set(self.cover_letter_story_ids)) != len(self.cover_letter_story_ids)
+                or not self.expected_profile_version or not self.expected_job_fingerprint):
+            raise ValueError('Selected cover-letter stories require unique IDs and observed profile and job versions')
         return self
 
 
@@ -1778,6 +1785,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                     [rewrite.model_dump() for rewrite in value.tailor_fact_rewrites])
         except PreparationError as error:
             raise HTTPException(409,str(error)) from error
+        if value.cover_letter_story_ids is not None:
+            from services.career_profile.story_selection import StorySelectionError, select_stories_for_job
+            try:
+                selection = select_stories_for_job(
+                    store, value.profile_id, value.job_id, "COVER_LETTER",
+                    value.cover_letter_story_ids,
+                )
+            except StorySelectionError as error:
+                raise HTTPException(error.status_code, {"code": error.code}) from None
+            if any(story["profile_version"] != profile["version"]
+                   for story in selection["stories"]):
+                raise HTTPException(409, {"code": "STORY_SELECTION_CONTEXT_STALE"})
         with store.engine.connect() as connection:
             connection.execute(select(m.jobs.c.id).where(m.jobs.c.id == value.job_id)).one()
             try:
@@ -1796,6 +1815,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             "include_resume_contact": value.include_resume_contact,
             "cover_letter_length": value.cover_letter_length,
             "cover_letter_style": value.cover_letter_style,
+            **({'cover_letter_story_ids': value.cover_letter_story_ids,
+                'cover_letter_story_job_fingerprint': value.expected_job_fingerprint}
+               if value.cover_letter_story_ids is not None else {}),
             **({'tailor_fact_ids':value.tailor_fact_ids} if value.tailor_fact_ids is not None else {}),
             **({'tailor_fact_rewrites':[rewrite.model_dump() for rewrite in value.tailor_fact_rewrites]} if value.tailor_fact_rewrites is not None else {}),
             **({'role_lens_id': value.role_lens_id,
