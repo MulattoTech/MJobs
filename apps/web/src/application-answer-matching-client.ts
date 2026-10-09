@@ -17,12 +17,33 @@ export type ApplicationAnswerMatchCandidate={
   explanation:string;
 };
 
+export type ApplicationAnswerStoryFactProvenance={fact_id:string;fingerprint:string};
+
+/** User-authored source material kept separate from answer suggestion values. */
+export type ApplicationAnswerStoryReference={
+  story_id:string;
+  revision:number;
+  current_revision:number;
+  is_current:true;
+  title:string;
+  text:string;
+  allowed_use:'APPLICATION_ANSWER';
+  fact_provenance:ApplicationAnswerStoryFactProvenance[];
+  review_status:'APPROVED';
+};
+
 export type ApplicationAnswerMatchResponse={
   scope:ApplicationAnswerMatchScope;
   profile_id:string;
   application_id:string;
   question:string;
   candidates:ApplicationAnswerMatchCandidate[];
+  /** Optional only for existing view fixtures; the network client requires this field. */
+  story_references?:ApplicationAnswerStoryReference[];
+};
+
+export type LoadedApplicationAnswerMatchResponse=ApplicationAnswerMatchResponse & {
+  story_references:ApplicationAnswerStoryReference[];
 };
 
 export type ApplicationAnswerSuggestionDraft={
@@ -77,6 +98,29 @@ const isCandidate=(value:unknown):value is ApplicationAnswerMatchCandidate=>{
     typeof value.verified==='boolean'&&typeof value.user_approved==='boolean';
 };
 
+const isStoryFactProvenance=(value:unknown):value is ApplicationAnswerStoryFactProvenance=>{
+  if(!isRecord(value))return false;
+  return isText(value.fact_id)&&isText(value.fingerprint);
+};
+
+const isStoryReference=(value:unknown):value is ApplicationAnswerStoryReference=>{
+  if(!isRecord(value)||!isText(value.story_id)||!Number.isSafeInteger(value.revision)||
+     (value.revision as number)<1||!Number.isSafeInteger(value.current_revision)||
+     value.current_revision!==value.revision||value.is_current!==true||
+     !isText(value.title)||!isText(value.text)||
+     value.allowed_use!=='APPLICATION_ANSWER'||value.review_status!=='APPROVED'||
+     !Array.isArray(value.fact_provenance)||value.fact_provenance.length===0||
+     !value.fact_provenance.every(isStoryFactProvenance))return false;
+  const factIds=value.fact_provenance.map((row)=>row.fact_id);
+  return new Set(factIds).size===factIds.length;
+};
+
+const isStoryReferenceList=(value:unknown):value is ApplicationAnswerStoryReference[]=>{
+  if(!Array.isArray(value)||!value.every(isStoryReference))return false;
+  const storyIds=value.map((row)=>row.story_id);
+  return new Set(storyIds).size===storyIds.length;
+};
+
 function requestFailureMessage(status:number):string {
   if(status===404)return 'This profile or application is no longer available.';
   if(status===400||status===422)return 'The question could not be matched. Check it and try again.';
@@ -88,7 +132,7 @@ export async function matchApplicationAnswers(
   scope:ApplicationAnswerMatchScope,
   getActiveScope:()=>ApplicationAnswerMatchScope,
   fetcher:typeof fetch=globalThis.fetch,
-):Promise<ApplicationAnswerMatchResponse> {
+):Promise<LoadedApplicationAnswerMatchResponse> {
   if(!isText(scope?.profileId)||!isText(scope?.applicationId)||!isText(scope?.question))
     throw new AnswerMatchClientError('INVALID_REQUEST','Choose an application and enter a question before requesting suggestions.');
   if(isSensitiveAnswerQuestion(scope.question))
@@ -130,9 +174,17 @@ export async function matchApplicationAnswers(
     throw staleScope();
   if(!Array.isArray(payload.candidates)||payload.candidates.length>maxCandidates||!payload.candidates.every(isCandidate))
     throw invalidResponse();
+  if(!isStoryReferenceList(payload.story_references))throw invalidResponse();
 
   assertCurrentScope();
-  return {scope:{...scope},profile_id:payload.profile_id,application_id:payload.application_id,question:payload.question,candidates:payload.candidates};
+  return {
+    scope:{...scope},
+    profile_id:payload.profile_id,
+    application_id:payload.application_id,
+    question:payload.question,
+    candidates:payload.candidates,
+    story_references:payload.story_references,
+  };
 }
 
 /** Explicit click handler helper: returns only a bound, unreviewed draft proposal. */

@@ -12,11 +12,15 @@ const candidates=[
   {answer_id:'semantic-1',question:'Can you work weekends?',text:'Yes, with notice.',source:'Reviewed application answer',confidence:93,verified:true,user_approved:true,method:'CURATED_SEMANTIC',score:0.95,explanation:'Question wording matches the curated weekend availability paraphrase.'},
 ];
 
+const storyReferences=[
+  {story_id:'story-123',revision:4,current_revision:4,is_current:true,title:'Deployment automation',text:'I automated deployment checks; the exact wording remains user-authored.',allowed_use:'APPLICATION_ANSWER',fact_provenance:[{fact_id:'fact-456',fingerprint:'a'.repeat(64)}],review_status:'APPROVED'},
+];
+
 const scope:ApplicationAnswerMatchScope={
   profileId:'profile/one',applicationId:'application two',question:'Are you available to work weekends?',
 };
 
-const apiResponse={profile_id:scope.profileId,application_id:scope.applicationId,question:scope.question,candidates};
+const apiResponse={profile_id:scope.profileId,application_id:scope.applicationId,question:scope.question,candidates,story_references:storyReferences};
 
 afterEach(()=>vi.unstubAllGlobals());
 
@@ -72,6 +76,39 @@ describe('application answer matching API client',()=>{
 
     await expect(matchApplicationAnswers(scope,()=>scope))
       .rejects.toMatchObject({name:'AnswerMatchClientError',code:'INVALID_RESPONSE',message:'The answer suggestion service returned an invalid response.'});
+  });
+
+  it('preserves exact story reference text and fact provenance without converting them into answer candidates',async()=>{
+    vi.stubGlobal('fetch',vi.fn<typeof fetch>().mockResolvedValue(Response.json(apiResponse)));
+
+    const result=await matchApplicationAnswers(scope,()=>scope);
+
+    expect(result.story_references).toEqual(storyReferences);
+    expect(result.candidates).toEqual(candidates);
+    expect(result.story_references[0].text).not.toBe(result.candidates[0].text);
+  });
+
+  it('rejects omitted or malformed story references instead of silently dropping them',async()=>{
+    const malformedReferences=[
+      undefined,
+      null,
+      [{...storyReferences[0],story_id:''}],
+      [{...storyReferences[0],revision:0}],
+      [{...storyReferences[0],current_revision:5}],
+      [{...storyReferences[0],is_current:false}],
+      [{...storyReferences[0],allowed_use:'RESUME'}],
+      [{...storyReferences[0],review_status:'PENDING'}],
+      [{...storyReferences[0],fact_provenance:[{fact_id:'fact-456',fingerprint:''}]}],
+      [{...storyReferences[0],fact_provenance:[]}],
+    ];
+    const fetchMock=vi.fn<typeof fetch>();
+    vi.stubGlobal('fetch',fetchMock);
+
+    for(const rows of malformedReferences) {
+      const response={...apiResponse,story_references:rows};
+      fetchMock.mockResolvedValueOnce(Response.json(response));
+      await expect(matchApplicationAnswers(scope,()=>scope)).rejects.toMatchObject({code:'INVALID_RESPONSE'});
+    }
   });
 
   it('maps server failures without exposing details or invoking mutation actions',async()=>{
