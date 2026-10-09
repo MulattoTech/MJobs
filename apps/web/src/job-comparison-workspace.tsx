@@ -28,8 +28,8 @@ export type JobComparisonContribution = {
 
 export type ComparedJob = {
   job_id:string;
-  title:string;
-  company:string;
+  title:string|null;
+  company:string|null;
   match_score:number|null;
   scoring_contributions:JobComparisonContribution[];
 };
@@ -49,7 +49,9 @@ export type JobSpecificRequirement = {
 export type JobComparisonUnknown = {
   category:'required_terms'|'match_score'|'contributions';
   job_ids:string[];
-  reason:'MISSING_EVIDENCE'|'INVALID_STORED_EVIDENCE';
+  reason:'REQUIREMENTS_MISSING'|'REQUIREMENTS_INVALID'|'REQUIREMENT_TERM_UNKNOWN'
+    |'REQUIREMENT_PROVENANCE_UNKNOWN'|'MATCH_SCORE_MISSING'|'MATCH_SCORE_INVALID'
+    |'SCORING_CONTRIBUTIONS_MISSING'|'SCORING_CONTRIBUTIONS_INVALID';
 };
 
 export type JobComparisonResponse = {
@@ -146,8 +148,9 @@ function normalizeContribution(value:unknown):JobComparisonContribution {
 }
 
 function normalizeJob(value:unknown):ComparedJob {
-  if(!isRecord(value)||!isIdentifier(value.job_id)||!isText(value.title,300)
-    ||!isText(value.company,300)) throw invalidResponse();
+  if(!isRecord(value)||!isIdentifier(value.job_id)
+    ||(value.title!==null&&!isText(value.title,300))
+    ||(value.company!==null&&!isText(value.company,300))) throw invalidResponse();
   if(value.match_score!==undefined&&!isScore(value.match_score,true)) throw invalidResponse();
   const rawContributions=value.scoring_contributions;
   if(rawContributions!==undefined&&rawContributions!==null
@@ -155,7 +158,9 @@ function normalizeJob(value:unknown):ComparedJob {
   const contributions=(rawContributions??[]).map(normalizeContribution);
   if(new Set(contributions.map(row=>row.dimension)).size!==contributions.length) throw invalidResponse();
   return {
-    job_id:value.job_id,title:value.title.trim(),company:value.company.trim(),
+    job_id:value.job_id,
+    title:typeof value.title==='string'?value.title.trim():null,
+    company:typeof value.company==='string'?value.company.trim():null,
     match_score:value.match_score===undefined?null:value.match_score as number|null,
     scoring_contributions:contributions,
   };
@@ -186,7 +191,9 @@ function normalizeSpecificRequirement(value:unknown,selected:Set<string>):JobSpe
 
 function normalizeUnknown(value:unknown,selected:Set<string>):JobComparisonUnknown {
   if(!isRecord(value)||!['required_terms','match_score','contributions'].includes(String(value.category))
-    ||!['MISSING_EVIDENCE','INVALID_STORED_EVIDENCE'].includes(String(value.reason))
+    ||!['REQUIREMENTS_MISSING','REQUIREMENTS_INVALID','REQUIREMENT_TERM_UNKNOWN',
+      'REQUIREMENT_PROVENANCE_UNKNOWN','MATCH_SCORE_MISSING','MATCH_SCORE_INVALID',
+      'SCORING_CONTRIBUTIONS_MISSING','SCORING_CONTRIBUTIONS_INVALID'].includes(String(value.reason))
     ||!Array.isArray(value.job_ids)||value.job_ids.length<1||!value.job_ids.every(isIdentifier)
     ||new Set(value.job_ids).size!==value.job_ids.length) throw invalidResponse();
   const jobIds=value.job_ids as string[];
@@ -300,11 +307,15 @@ function categoryLabel(category:JobComparisonUnknown['category']):string {
   return 'score contributions';
 }
 
+function jobLabel(job:ComparedJob):string {
+  return `${job.title??job.job_id} — ${job.company??'Employer unavailable'}`;
+}
+
 function ContributionRows({job}: {job:ComparedJob}) {
   if(job.scoring_contributions.length===0) {
     return <p>Contribution evidence: UNKNOWN for this job.</p>;
   }
-  return <table aria-label={`Saved score contributions for ${job.title}`}>
+  return <table aria-label={`Saved score contributions for ${job.title??job.job_id}`}>
     <caption>Saved score contributions</caption>
     <thead><tr><th scope="col">Dimension</th><th scope="col">Weight</th>
       <th scope="col">Raw score</th><th scope="col">Contribution</th>
@@ -421,8 +432,8 @@ export function JobComparisonWorkspaceView({
       <p>Profile {safeResponse.profile_id}; saved search {safeResponse.search_profile_id}.</p>
       <div className="job-comparison-results">
         {safeResponse.jobs.map(job=><section key={job.job_id} aria-labelledby={`comparison-job-${job.job_id}`}>
-          <h3 id={`comparison-job-${job.job_id}`}>{job.title} — {job.company}</h3>
-          <p aria-label={`Saved match score for ${job.title}`}><strong>Saved match score:</strong> {scoreLabel(job.match_score)}</p>
+          <h3 id={`comparison-job-${job.job_id}`}>{jobLabel(job)}</h3>
+          <p aria-label={`Saved match score for ${job.title??job.job_id}`}><strong>Saved match score:</strong> {scoreLabel(job.match_score)}</p>
           <ContributionRows job={job}/>
         </section>)}
       </div>

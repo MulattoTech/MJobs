@@ -156,11 +156,11 @@ class JobComparisonAppMountTests(unittest.TestCase):
             ],
         }])
         self.assertEqual(body["job_specific_requirements"], [
-            {"term": "powershell", "job_id": "job-one", "provenance": {
-                "source": "fixture_source", "evidence_ref": "fixture:job-one:requirements",
-            }},
             {"term": "linux", "job_id": "job-two", "provenance": {
                 "source": "fixture_source", "evidence_ref": "fixture:job-two:requirements",
+            }},
+            {"term": "powershell", "job_id": "job-one", "provenance": {
+                "source": "fixture_source", "evidence_ref": "fixture:job-one:requirements",
             }},
         ])
         self.assertEqual(body["unknowns"], [])

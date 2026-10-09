@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   JobComparisonWorkspaceView,
   loadJobComparison,
+  normalizeJobComparisonResponse,
   type JobComparisonRequest,
   type JobComparisonResponse,
   type JobComparisonWorkspaceViewProps,
@@ -59,9 +60,9 @@ const response: JobComparisonResponse = {
     },
   ],
   unknowns: [
-    { category: 'match_score', job_ids: ['job-b'], reason: 'MISSING_EVIDENCE' },
-    { category: 'contributions', job_ids: ['job-b'], reason: 'MISSING_EVIDENCE' },
-    { category: 'required_terms', job_ids: ['job-b'], reason: 'MISSING_EVIDENCE' },
+    { category: 'match_score', job_ids: ['job-b'], reason: 'MATCH_SCORE_MISSING' },
+    { category: 'contributions', job_ids: ['job-b'], reason: 'SCORING_CONTRIBUTIONS_MISSING' },
+    { category: 'required_terms', job_ids: ['job-b'], reason: 'REQUIREMENTS_MISSING' },
   ],
 };
 
@@ -138,11 +139,45 @@ describe('job comparison workspace', () => {
     })} />);
     expect(html).toContain('Platform Engineer');
     expect(html).toContain('UNKNOWN');
-    expect(html).toContain('MISSING_EVIDENCE');
+    expect(html).toContain('MATCH_SCORE_MISSING');
+    expect(html).toContain('SCORING_CONTRIBUTIONS_MISSING');
+    expect(html).toContain('REQUIREMENTS_MISSING');
     expect(html).toContain('certification');
     expect(html).toContain('No stored certification contribution is available.');
     expect(html).toContain('No shared observed requirements are available (UNKNOWN evidence).');
     expect(html).not.toContain('The profile has Kubernetes');
+  });
+
+  it('renders the service unknown-reason contract and missing job labels without losing evidence', async () => {
+    const serviceResponse = {
+      ...response,
+      jobs: response.jobs.map(job => job.job_id === 'job-b'
+        ? { ...job, title: null, company: null }
+        : job),
+      unknowns: [
+        { category: 'required_terms', job_ids: ['job-b'], reason: 'REQUIREMENTS_MISSING' },
+        { category: 'match_score', job_ids: ['job-b'], reason: 'MATCH_SCORE_MISSING' },
+        { category: 'contributions', job_ids: ['job-b'], reason: 'SCORING_CONTRIBUTIONS_MISSING' },
+      ],
+    };
+    const request = {
+      profile_id: 'profile-a', search_profile_id: 'search-a', job_ids: ['job-a', 'job-b'],
+    };
+    const loaded = await loadJobComparison(vi.fn(async () => serviceResponse), request);
+
+    expect(loaded.state).toBe('ready');
+    expect(normalizeJobComparisonResponse(serviceResponse, request).unknowns.map(row => row.reason)).toEqual([
+      'REQUIREMENTS_MISSING', 'MATCH_SCORE_MISSING', 'SCORING_CONTRIBUTIONS_MISSING',
+    ]);
+    const html = renderToStaticMarkup(<JobComparisonWorkspaceView {...viewProps({
+      response: loaded.response,
+    })} />);
+    expect(html).toContain('Platform Engineer — Example Two');
+    expect(html).toContain('job-b — Employer unavailable');
+    expect(html).toContain('REQUIREMENTS_MISSING');
+    expect(html).toContain('MATCH_SCORE_MISSING');
+    expect(html).toContain('SCORING_CONTRIBUTIONS_MISSING');
+    expect(html).toContain('UNKNOWN evidence');
   });
 
   it('rejects foreign profile, saved-search, and job response scope without returning result data', async () => {
