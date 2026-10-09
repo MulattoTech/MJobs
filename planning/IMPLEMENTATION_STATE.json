@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T16:23:40Z",
+  "generated_at": "2026-10-09T17:32:37Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Local main 71e29e233d3af9af5dae57d8dc91aaab9c74bcbd integrates issues #253 / MJ-REQ-252 Search Profile Seed and #254 / MJ-REQ-253 Default Technology Seed. Both connected local search-profile workflows pass; evidence docs/evidence/2026-10-09-search-profile-seed.json and docs/evidence/2026-10-09-default-technology-seed.json. Preserve unrelated untracked compose-target evidence.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance readback. Local-only commits are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:23:40Z.",
-    "current_verified_at": "2026-10-09T16:23:40Z"
+    "current_verified_local_state": "Local main 31adef448b090cb04a4d0d5e237c9526b8d32b6f integrates the issue #134 / MJ-REQ-133 explicit local dynamic-form draft recovery slice. Evidence docs/evidence/2026-10-09-dynamic-form-device-draft.json. Local-only integration; external submission OFF. Verified at 2026-10-09T17:32:37Z.",
+    "current_verified_github_state": "GitHub origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 at 2026-10-09T17:32:37Z; issue #134 remains OPEN/PARTIAL; no push or hosted verification.",
+    "current_verified_at": "2026-10-09T17:32:37Z"
   },
-  "current_milestone": "MJ-REQ-250-FIRST-RUN-FRESH-PROFILE-COMPLETE-20261009",
-  "current_objective": "Continue solo feature-first delivery after locally verifying all ten first-run wizard steps from fresh profile creation through a positive saved search; keep external submission off.",
+  "current_milestone": "MJ-REQ-133-DEVICE-DRAFT-LOCAL-RECOVERY-20261009",
+  "current_objective": "Continue solo feature-first delivery; recover explicit user-reviewed dynamic-form drafts locally across browser restarts while keeping employer writes and external submission disabled.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -93,7 +93,8 @@
     "Related job-title suggestions from current strong matches (MJ-REQ-244)",
     "Browser-assisted job extraction now persists a server-validated review receipt, rejected optional-route decision, sanitized raw fields, and field provenance through reload.",
     "MJ-REQ-252 / issue #253: editable remote infrastructure search seed with ten documented titles, remote-required/full-time criteria, profile-scoped API save/readback, reload persistence, and Jobs selection; scheduled discovery stayed off. Evidence docs/evidence/2026-10-09-search-profile-seed.json.",
-    "MJ-REQ-253 / issue #254: 16 opt-in advisory technology preferences persist with saved searches, display after reload, survive pause/resume, and are selectable for Jobs filtering. They remain separate from required criteria and career facts. Evidence docs/evidence/2026-10-09-default-technology-seed.json."
+    "MJ-REQ-253 / issue #254: 16 opt-in advisory technology preferences persist with saved searches, display after reload, survive pause/resume, and are selectable for Jobs filtering. They remain separate from required criteria and career facts. Evidence docs/evidence/2026-10-09-default-technology-seed.json.",
+    "Dynamic mock-ATS draft recovery: explicit on-device consent, exact profile/application/form-version scope, unreviewed restore, deletion, quota-failure recovery, and no employer writes."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -635,14 +636,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "71e29e233d3af9af5dae57d8dc91aaab9c74bcbd",
-    "tree": "a573a70eaa22acb083862f91e182c8c302e1ed29",
-    "result": "PASS for issue #254 / MJ-REQ-253: opt-in technology preferences persist through save, reload and pause/resume; optional criteria remain advisory and select a saved search in Jobs.",
+    "commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+    "tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
+    "result": "PARTIAL for issue #134 / MJ-REQ-133; the local device-draft recovery slice is verified, while the full dynamic-forms requirement remains incomplete.",
     "evidence": [
-      "docs/evidence/2026-10-09-default-technology-seed.json",
-      "docs/evidence/2026-10-09-search-profile-seed.json"
+      "docs/evidence/2026-10-09-dynamic-form-device-draft.json"
     ],
-    "verified_at_utc": "2026-10-09T16:23:40Z"
+    "verified_at_utc": "2026-10-09T17:32:37Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -709,7 +709,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue the first-run setup as a connected user workflow, prioritizing fresh profile creation and resume upload/extraction through review, then configure an enabled source/search and verify durable positive results; preserve existing claims and no-submit gate.",
+  "recommended_resume_step": "Select the next dependency-ready jobseeker workflow after reconciling live issue/path claims; preserve all older worktrees and keep external submission OFF.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -743,22 +743,22 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+  "last_implementation_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
-    "integration_method": "Root-owned test acceptance commit on local main; no push, PR, hosted CI, or review.",
-    "integration_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
-    "prior_main": "47a9216b817d3f0582f6bc90a9a828b261d8c336",
-    "source_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
-    "source_tree": "074646cac5d88c3e3fe0f8fcebb47bcd0a19af13",
-    "integration_tree": "074646cac5d88c3e3fe0f8fcebb47bcd0a19af13",
+    "integration_method": "Root-owned non-force fast-forward into local main; no push, PR, hosted CI, or review.",
+    "integration_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+    "prior_main": "d5695fc49941d410bf6fa463e6e5ea55dba2c30d",
+    "source_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+    "source_tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
+    "integration_tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "issue": 251,
-    "issue_state": "OPEN/PASS_LOCAL",
-    "evidence_path": "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json",
-    "note": "All ten MJ-REQ-250 steps pass in connected local synthetic acceptance. No push; live provider, PostgreSQL, hosted checks/review and cross-device browser acknowledgments remain NOT_RUN. External submission OFF."
+    "issue": 134,
+    "issue_state": "OPEN/PARTIAL",
+    "evidence_path": "docs/evidence/2026-10-09-dynamic-form-device-draft.json",
+    "note": "Connected local mock ATS only. Live ATS, PostgreSQL, full Python suite, hosted checks/review NOT_RUN. External submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -13784,12 +13784,71 @@
         "git_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
         "evidence_path": "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-133-DEVICE-DRAFT-LOCAL-RECOVERY-20261009",
+      "timestamp": "2026-10-09T17:32:37Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Added explicit on-device persistence for a manually reviewed dynamic mock-ATS form draft after current fingerprint revalidation.",
+        "Bound saved state to profile, application and form fingerprint; restore text without review approval; provide a delete action and session-only fallback.",
+        "Verified browser restart, local storage failure recovery, sensitive-field exclusion, GET-only same-origin access and no submission."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-dynamic-form-device-draft.json"
+      ],
+      "files_modified": [
+        "apps/web/src/dynamic-application-form-connected.tsx",
+        "apps/web/src/dynamic-application-form-connected.test.tsx",
+        "tests/browser/test_dynamic_application_fields_root_flow.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "source_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+      "source_tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
+      "integrated_main": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+      "integrated_tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
+      "result": "PARTIAL",
+      "acceptance": "The on-device dynamic-form draft recovery slice passes locally. MJ-REQ-133 remains PARTIAL for broader ATS/provider acceptance.",
+      "tests_completed": [
+        "Focused frontend: 22 tests PASS across dynamic form, connected workflow and client files.",
+        "Python API/integration/browser selection: 28 tests PASS; final browser restart acceptance 1/1 PASS.",
+        "TypeScript/Vite build, py_compile, lane validation and diff check PASS."
+      ],
+      "tests_not_run": [
+        "PostgreSQL",
+        "full repository suite",
+        "live ATS",
+        "hosted CI/review"
+      ],
+      "issue": 134,
+      "issue_state": "OPEN/PARTIAL",
+      "external_application_submission": "OFF",
+      "tests_remaining": [
+        "Live ATS/provider workflow, PostgreSQL, full Python repository suite, and hosted CI/review remain NOT_RUN; broader MJ-REQ-133 is still PARTIAL."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Isolated local Chromium, loopback API, temporary SQLite fixture, and temporary browser profile only; no external ATS or employer traffic."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Local browser storage is readable by users of the same browser profile; the UI requires explicit consent and provides a delete control.",
+        "Live ATS compatibility, PostgreSQL persistence, and full requirement acceptance are not established."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+        "evidence_path": "docs/evidence/2026-10-09-dynamic-form-device-draft.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
-    "evidence_path": "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json"
+    "git_commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+    "evidence_path": "docs/evidence/2026-10-09-dynamic-form-device-draft.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14257,6 +14316,16 @@
       "hosted_checks": "NOT_RUN_BY_USER_POLICY",
       "external_submission": "OFF",
       "remote_main": "0a8719d4db524c90b632d990cc7b205add0c2577"
+    },
+    {
+      "commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+      "tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
+      "issue": 134,
+      "requirement_id": "MJ-REQ-133",
+      "result": "PASS_LOCAL_ONLY/PARTIAL_REQUIREMENT",
+      "integrated_at_utc": "2026-10-09T17:32:37Z",
+      "evidence_path": "docs/evidence/2026-10-09-dynamic-form-device-draft.json",
+      "remote_pushed": false
     }
   ],
   "live_reconciliation": {
@@ -14269,7 +14338,7 @@
     "main_branch_protected": false,
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
-  "active_development_issue": 251,
+  "active_development_issue": 134,
   "historical_control_snapshots": [
     {
       "archived_at": "2026-10-03T15:12:32.612186-05:00",
@@ -15428,7 +15497,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T17:10:32Z",
+  "updated_at": "2026-10-09T17:32:37Z",
   "current_verified_local_state": "Issue #251 / MJ-REQ-250 is PASS locally at source main 04f3b47851a6436f3ab8ba96926078cf61589cc7 (tree 074646cac5d88c3e3fe0f8fcebb47bcd0a19af13). Connected Chromium proved all ten visible first-run steps from a fresh browser: UI profile creation; synthetic PDF upload and production extraction; pending fact review, explicit verification/approval and API readback; remote and application-route preferences; AI kept disabled by user choice; Greenhouse board creation/enabling; saved Python Engineer search; manual-only application handling; and positive first search. The production Greenhouse adapter/normalizer used in-process MockTransport, persisted one result in profile history, and Jobs displayed it after reload. Browser 1/1, affected Python integration 52/52, web 540/540, TypeScript/Vite build and local validators PASS. Live provider, PostgreSQL, full Python suite, hosted checks/review and cross-device browser acknowledgments NOT_RUN; external submission OFF. Preserve unrelated untracked compose-target evidence.",
   "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and source is not pushed. GitHub issue #251 remains OPEN pending local-only source synchronization. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL and live provider NOT_RUN; external application submission OFF. Verified 2026-10-09T17:10:32Z.",
   "next_candidates": [

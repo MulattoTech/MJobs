@@ -1,3 +1,14 @@
+# Solo feature checkpoint — issue #134 / MJ-REQ-133
+
+- Local `main`: `31adef448b090cb04a4d0d5e237c9526b8d32b6f` (tree `d7faa9f98bb6de0fb8a470f93425156f456d5167`); `origin/main`: `0a8719d4db524c90b632d990cc7b205add0c2577`. Local-only delivery; no push.
+- A user can opt in to keep reviewed mock-ATS answer text in local browser storage for this application. Saved data is scoped by profile, application and form fingerprint; restore resets review approval; user can clear the local copy. Default tab-only behavior remains available. No employer request or submission occurs.
+- Evidence: `docs/evidence/2026-10-09-dynamic-form-device-draft.json`. Focused web tests 22/22 PASS; API/integration/browser modules 28/28 PASS; final browser restart 1/1 PASS; TypeScript/Vite build, Python compilation, lane validation and diff check PASS. The local build reports the existing large-chunk advisory; Vitest reports Node 25.9 outside its declared engine range, though tests passed.
+- Full MJ-REQ-133 remains PARTIAL. Live ATS, PostgreSQL, full Python suite, hosted CI/review NOT_RUN. External application submission OFF.
+- Preserve unrelated untracked `docs/evidence/2026-10-08-compose-target-isolation.json` and all prior worktrees.
+- Next: reconcile the highest-value remaining core workflow and its exact claims before claiming paths.
+
+---
+
 ## 2026-10-09T16:37:11Z — Solo feature marathon: verified-experience matching integrated
 
 Local main advanced by non-force fast-forward from `b4a00ba3a043ab67c2cdad0bba31d2eb1cd8148b` to `a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06` (tree `5642fe155f7e01fb0d3ee67f8c00adca4130cebd`). Issue #118 / MJ-REQ-117 adds a user-configurable Verified experience dimension. Only verified, user-approved, source-backed profile experience facts (confidence >=80) can support normalized job-skill overlap; posting-provided experience signals are ignored, and missing evidence is UNKNOWN/neutral. The saved-search recalc persists an explainable contribution without changing hard eligibility. Evidence: `docs/evidence/2026-10-09-experience-weighted-matching.json`. Issue #118 remains OPEN/PARTIAL because broader configurable weighting acceptance is unfinished.

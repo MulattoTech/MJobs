@@ -7,11 +7,6 @@
   "feature": "Explicit opt-in local browser-profile persistence for reviewed dynamic mock-ATS answers; exact profile/application/form-fingerprint scope; restored text requires fresh review; saved copy can be deleted.",
   "branch": "codex/solo-mj-req133-local-draft-20261009",
   "tested_base": "d5695fc49941d410bf6fa463e6e5ea55dba2c30d",
-  "source_sha256": {
-    "apps/web/src/dynamic-application-form-connected.tsx": "f132649edf0a4df84b87ae112c7df0b05925877083311662cbba10a23539e361",
-    "apps/web/src/dynamic-application-form-connected.test.tsx": "dc4b8e5fded6c356d349de8f39f6f2ba674e26246584cee2b94836b3f4d27be5",
-    "tests/browser/test_dynamic_application_fields_root_flow.py": "88eb2d4b6223ba121680f9253ea87f70301e05bf2970b64bd8aa4f1362498e54"
-  },
   "environment": {
     "platform": "Windows",
     "python": "3.12.10",
@@ -62,5 +57,49 @@
     "The overall dynamic-forms requirement remains PARTIAL for broader provider support and other original acceptance gaps.",
     "PostgreSQL, full repository suite, hosted CI/review, and live ATS verification were NOT_RUN_BY_USER_POLICY or out of scope."
   ],
-  "external_application_submission": "OFF"
+  "external_application_submission": "OFF",
+  "tested_worktree_source_sha256": {
+    "apps/web/src/dynamic-application-form-connected.tsx": "f132649edf0a4df84b87ae112c7df0b05925877083311662cbba10a23539e361",
+    "apps/web/src/dynamic-application-form-connected.test.tsx": "dc4b8e5fded6c356d349de8f39f6f2ba674e26246584cee2b94836b3f4d27be5",
+    "tests/browser/test_dynamic_application_fields_root_flow.py": "88eb2d4b6223ba121680f9253ea87f70301e05bf2970b64bd8aa4f1362498e54"
+  },
+  "integrated_source": {
+    "commit": "31adef448b090cb04a4d0d5e237c9526b8d32b6f",
+    "tree": "d7faa9f98bb6de0fb8a470f93425156f456d5167",
+    "hash_basis": "SHA-256 of committed Git blob bytes, independent of Windows autocrlf checkout conversion.",
+    "blob_sha256": {
+      "apps/web/src/dynamic-application-form-connected.tsx": "65e7e9492df3c1d08e4d381cd3f390996c7e2e66f1fcd44584ff0521c30f2c0b",
+      "apps/web/src/dynamic-application-form-connected.test.tsx": "754209164ce6ed01b62acdd943f88ae836135d09551754262a8feb0152d82581",
+      "tests/browser/test_dynamic_application_fields_root_flow.py": "88eb2d4b6223ba121680f9253ea87f70301e05bf2970b64bd8aa4f1362498e54"
+    },
+    "integrated_checkout_working_sha256": {
+      "apps/web/src/dynamic-application-form-connected.tsx": "ee9919feac5f3f4aa69b1bf86f18d714b438ba1053ce6644e3547b299aaaf8f1",
+      "apps/web/src/dynamic-application-form-connected.test.tsx": "56bfa0885966c4b4a7fcc0a77cd9da4918764e73a124f8e99ee76d1ec59622c7",
+      "tests/browser/test_dynamic_application_fields_root_flow.py": "88eb2d4b6223ba121680f9253ea87f70301e05bf2970b64bd8aa4f1362498e54"
+    }
+  },
+  "exact_integrated_main_verification": {
+    "verified_at_utc": "2026-10-09T17:34:39Z",
+    "commands": [
+      {
+        "command": "npm test -- --run src/dynamic-application-form.test.tsx src/dynamic-application-form-connected.test.tsx src/dynamic-application-form-client.test.ts",
+        "result": "PASS",
+        "tests": 22
+      },
+      {
+        "command": "npm run build",
+        "result": "PASS",
+        "notes": "TypeScript and Vite build pass; existing 753.06 kB chunk-size advisory."
+      },
+      {
+        "command": "python -m unittest tests.browser.test_dynamic_application_fields_root_flow",
+        "result": "PASS",
+        "tests": 1
+      },
+      {
+        "command": "python -m py_compile tests/browser/test_dynamic_application_fields_root_flow.py; git diff --check",
+        "result": "PASS"
+      }
+    ]
+  }
 }

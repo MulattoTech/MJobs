@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T15:32:11Z",
+  "timestamp": "2026-10-09T17:32:37Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1232,9 +1232,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-08-dynamic-form-conditional-field.json",
-        "docs/evidence/2026-10-09-dynamic-form-review.json"
+        "docs/evidence/2026-10-09-dynamic-form-review.json",
+        "docs/evidence/2026-10-09-dynamic-form-device-draft.json"
       ],
-      "note": "Profile-scoped dynamic-fields API and connected mock-ATS review support conditional questions, dependent choices, optional sections, bounded repeatable rows, sensitive-field manual review, fingerprint staleness, and browser-tab reload recovery. Focused unit/API/connected Chromium and frontend/build checks pass. Answers remain browser-session only; no employer form write or submission occurs. Broader live ATS and durable server-side answer storage remain incomplete."
+      "note": "Profile-scoped dynamic-fields API and connected mock-ATS review support conditional questions, dependent choices, optional sections, bounded repeatable rows, sensitive-field manual review, and fingerprint staleness. New browser recovery: explicit opt-in keeps reviewed answer text in local browser storage scoped to profile/application/form fingerprint; a restarted browser restores text without review approval; the saved copy can be cleared. Storage failures keep the form recoverable; browser verification records same-origin GET-only traffic and no ATS writes/submission. Evidence: docs/evidence/2026-10-09-dynamic-form-device-draft.json. Full requirement remains PARTIAL for broader ATS/provider support; hosted/live ATS/PostgreSQL checks NOT_RUN."
     },
     {
       "requirement_id": "MJ-REQ-134",
