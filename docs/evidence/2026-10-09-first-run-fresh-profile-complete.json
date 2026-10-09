@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-250-FIRST-RUN-FRESH-PROFILE-COMPLETE-20261009",
+  "requirement_ids": [
+    "MJ-REQ-250"
+  ],
+  "github_issues": [
+    251
+  ],
+  "result": "PASS",
+  "scope": "Prove the complete ten-step first-run wizard from a fresh browser through visible profile creation, synthetic resume upload and fact review, user preferences, enabled Greenhouse source, saved job-title search, manual-only automation choice, and a positive first search.",
+  "source": {
+    "branch": "main",
+    "commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+    "tree": "074646cac5d88c3e3fe0f8fcebb47bcd0a19af13"
+  },
+  "verified_at_utc": "2026-10-09T17:10:32Z",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "database": "isolated synthetic SQLite",
+    "browser": "local Chromium against loopback application",
+    "source_transport": "production Greenhouse adapter with in-process httpx.MockTransport responses; browser egress blocked",
+    "delivery": "local-only; no push or hosted automation"
+  },
+  "acceptance": [
+    "A fresh browser starts without a profile. The user creates one through the profile form and the saved profile is read back with no invented career facts.",
+    "The user uploads a synthetic PDF through Resume history. The production upload and extraction routes parse the file and show proposed facts for review; extracted contact data is not selected by default.",
+    "The user adds extracted career facts to the profile, sees them remain Pending and unchecked, explicitly verifies and approves them, saves, and confirms durable API readback after reload.",
+    "The user selects REMOTE work arrangements and a per-job application-route preference. The first-run flow records the explicit choice to leave AI disabled.",
+    "The user adds and enables a public Greenhouse board through Sources, creates an enabled Python Engineer saved search scoped to that source, and chooses manual review only.",
+    "The user runs the selected saved search. The supported Greenhouse adapter normalizes and persists one synthetic Python Engineer posting; profile search history reports COMPLETED with results=1 and the Jobs view shows the posting after reload.",
+    "The wizard reports all ten steps Complete. Browser egress is blocked, no live provider request is sent, and no application submission occurs."
+  ],
+  "checks": [
+    {
+      "command": "npm run build",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing bundle-size advisory remains."
+    },
+    {
+      "command": "npm test -- --run",
+      "result": "PASS",
+      "evidence": "95 web test files and 540 tests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_first_run_wizard -v",
+      "result": "PASS",
+      "evidence": "Connected Chromium exercised all ten wizard steps through fresh profile creation, actual synthetic resume upload/extraction/review, user preferences, UI source/search creation, positive Greenhouse adapter result, durable history, reload, and Jobs display; 1 test passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.integration.test_first_run_search tests.integration.test_greenhouse tests.integration.test_profile_import tests.integration.test_resume_upload -q",
+      "result": "PASS",
+      "evidence": "52 focused API, provider-adapter, profile-import and resume-upload tests passed."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_first_run_wizard.py; git diff --check; python -m tools.coordination.lane_coordination validate",
+      "result": "PASS",
+      "evidence": "Test compilation, whitespace validation and lane ownership validation passed."
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m unittest tests.unit.test_progress_dashboard -v; python -m tools.verification.progress_dashboard --check",
+      "result": "PASS",
+      "evidence": "All 366 original and 59 reference IDs validated; progress journal validated; 4 dashboard unit tests passed; generated dashboard is current."
+    }
+  ],
+  "input_sha256": {
+    "tests/browser/test_first_run_wizard.py": "E814E6D907EA283C8EC7C5CD6DDEADA0C538825E830D7AE50F6D592AD538EC91",
+    "apps/web/src/first-run-wizard.tsx": "1709C8ED77FD45282D3BABDE7EA189A77210C32C3C2970E609C39597944DDAF6",
+    "apps/web/src/resume-library.tsx": "D5B5E8066C99D91BFD17448E1F82D6AE4521D3A4B493CE01F20CBAE693D3BDD7",
+    "apps/web/src/main.tsx": "ADC8B7097BFD9A04D66A15F130CC16AD19E7288C627199037E59602DD9A1BAE1",
+    "apps/api/main.py": "0D6E0F293F127AF3F078307AD59DEEA8691F4425F834A661C8EB276D184AC8B6",
+    "services/career_profile/extraction.py": "9970DDBC5ED0AE30BA4EF2DBC0EF4597B1B6E9097B3B55A631E4A79182D6885D",
+    "services/documents/uploads.py": "3A8453F81875A0436AE98512EFB70371ABA85A0C63916337D7064966FC8BD3F1",
+    "services/discovery/sources/greenhouse.py": "F7F30B67C28B31295B120C3B95A356F5D5B7449714EE7AF8E0D7298C18FD36EB",
+    "services/discovery/sources/collect.py": "3DF16837AEBD80736D4B379F88EC22FA49F95B949E6FBC1C5F3C804017504D4F",
+    "workers/tasks.py": "74C4D8E10E0D3833567A2B27A651907588419129EB3061B85F7BC313FEED9797",
+    "tests/browser/test_profile_import.py": "CF2C556F614E80BD75D60D778E5C904A98172C0E362DEC98B206ADE8EACC6E69"
+  },
+  "not_run": [
+    "Live Greenhouse provider access; test responses were synthetic and used the production adapter with an in-process transport.",
+    "PostgreSQL, full Python repository suite, hosted checks or hosted review.",
+    "Cross-device persistence of browser-local first-run acknowledgments.",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "This PASS covers the ten-step MJ-REQ-250 first-run workflow in the local synthetic environment. It does not claim whole-product release eligibility or live provider availability.",
+    "Greenhouse was added and enabled through the user interface, but provider responses were mocked locally to prevent network access.",
+    "Issue #251 remains open pending local-only source synchronization; no push."
+  ],
+  "safety": {
+    "external_requests": "NONE; browser egress was blocked and the adapter used MockTransport.",
+    "collection": "Only the explicitly selected local DISCOVER operation ran.",
+    "external_application_submission_enabled": false
+  }
+}

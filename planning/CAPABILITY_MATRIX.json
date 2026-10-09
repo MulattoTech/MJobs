@@ -2110,12 +2110,13 @@
     },
     {
       "requirement_id": "MJ-REQ-250",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-09-first-run-wizard.json",
-        "docs/evidence/2026-10-09-first-run-positive-search.json"
+        "docs/evidence/2026-10-09-first-run-positive-search.json",
+        "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json"
       ],
-      "note": "The ten-step guide is connected through existing profile, resume, review, preference, saved-search and source controls. Latest connected first-run acceptance now exercises the real Greenhouse adapter/normalizer with a synthetic MockTransport response, persists one job, records search history results=1, and displays Python Engineer after reload. Evidence: docs/evidence/2026-10-09-first-run-positive-search.json. Full fresh-user resume upload/extraction and every setup step are not yet proven; live provider, PostgreSQL and cross-device acknowledgments remain unverified."
+      "note": "All ten first-run steps pass in a connected local Chromium workflow beginning with a fresh browser: profile creation, actual synthetic PDF upload and extraction, pending fact review and explicit approval, remote/location and application-route preferences, AI left disabled by explicit choice, Greenhouse source creation/enabling, saved job-title search, manual-only automation, and positive first search. The production Greenhouse adapter/normalizer used in-process synthetic responses; one result persisted in profile search history and appeared in Jobs after reload. Evidence: docs/evidence/2026-10-09-first-run-fresh-profile-complete.json. Live provider access, PostgreSQL and cross-device persistence of browser-local acknowledgments remain NOT_RUN; the full product release remains UNKNOWN and external submission OFF."
     },
     {
       "requirement_id": "MJ-REQ-251",

@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; issues #253 and #254 are CLOSED after local acceptance readback. Local-only commits are not pushed. Hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF. Verified at 2026-10-09T16:23:40Z.",
     "current_verified_at": "2026-10-09T16:23:40Z"
   },
-  "current_milestone": "MJ-REQ-250-FIRST-RUN-POSITIVE-SEARCH-20261009",
-  "current_objective": "Continue solo feature-first delivery. Advance the connected first-run workflow beyond a zero-result demonstration while preserving manual-only application safety.",
+  "current_milestone": "MJ-REQ-250-FIRST-RUN-FRESH-PROFILE-COMPLETE-20261009",
+  "current_objective": "Continue solo feature-first delivery after locally verifying all ten first-run wizard steps from fresh profile creation through a positive saved search; keep external submission off.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -465,7 +465,8 @@
     "Exact #115 remote-region matching slice: 31 focused Python integration/connected Chromium tests and 41 subtests; py_compile and diff check PASS (source 8b3c30d9).",
     "MJ-REQ-244 exact-source acceptance: Python unit/integration/connected Chromium 27 passed with 5 subtests; frontend 13 passed; TypeScript/Vite production build, py_compile and diff check PASS.",
     "MJ-REF-031 / #401: 46 focused Python unit/integration tests, 30 focused web tests, TypeScript/Vite build, and two connected Chromium review/retry/reload tests PASS on the local integrated tree.",
-    "MJ-REQ-267 bounded redirect-resolution slice at b2e514a8dab39996c7cfb448e1c02dbe93995947: 43 focused Python tests PASS (route resolver, API, existing route and public-fetch regressions); 533 frontend tests PASS; connected Chromium route-choice/check/preparation flow 1/1 PASS; TypeScript/Vite build, py_compile, and diff check PASS. Evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json."
+    "MJ-REQ-267 bounded redirect-resolution slice at b2e514a8dab39996c7cfb448e1c02dbe93995947: 43 focused Python tests PASS (route resolver, API, existing route and public-fetch regressions); 533 frontend tests PASS; connected Chromium route-choice/check/preparation flow 1/1 PASS; TypeScript/Vite build, py_compile, and diff check PASS. Evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json.",
+    "MJ-REQ-250 complete fresh-profile first-run: connected Chromium 1/1; affected profile/resume/discovery integration 52/52; web 95 files / 540 tests; TypeScript/Vite build; py_compile, diff check and lane validator PASS locally."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -587,7 +588,8 @@
     "MJ-REQ-266: PostgreSQL, hosted Actions/review, live employer/ATS resolution, and external application submission NOT_RUN/OFF.",
     "MJ-REQ-267: live employer/ATS requests, PostgreSQL, full Python discovery, hosted Actions/review NOT_RUN; external application submission OFF.",
     "MJ-REQ-268: PostgreSQL, hosted Actions/review, automatic email updates, and external application submission NOT_RUN/OFF.",
-    "MJ-REF-031/#401: PostgreSQL, full repository suite, live ATS/provider access, hosted checks/reviews, and real application submission NOT_RUN; external submission OFF."
+    "MJ-REF-031/#401: PostgreSQL, full repository suite, live ATS/provider access, hosted checks/reviews, and real application submission NOT_RUN; external submission OFF.",
+    "MJ-REQ-250 live Greenhouse, PostgreSQL, full Python repository suite, hosted checks/review and cross-device browser-local acknowledgment persistence NOT_RUN; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -741,22 +743,22 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
+  "last_implementation_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
   "publication": {
-    "result": "PASS_LOCAL_FAST_FORWARD",
-    "integration_method": "Ordinary non-force fast-forward into local main under Codex integration lock; no PR or push.",
-    "integration_commit": "f1036d6e7bce62eb5aa75f7a5a14102179f274ce",
-    "prior_main": "7bb573defc13bfb160f2621138af8c8b87fb9163",
-    "source_commit": "f1036d6e7bce62eb5aa75f7a5a14102179f274ce",
-    "source_tree": "84aff12f991afffc520ee6838db479b2bcee1aeb",
-    "integration_tree": "84aff12f991afffc520ee6838db479b2bcee1aeb",
+    "result": "PASS_LOCAL_ONLY",
+    "integration_method": "Root-owned test acceptance commit on local main; no push, PR, hosted CI, or review.",
+    "integration_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+    "prior_main": "47a9216b817d3f0582f6bc90a9a828b261d8c336",
+    "source_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+    "source_tree": "074646cac5d88c3e3fe0f8fcebb47bcd0a19af13",
+    "integration_tree": "074646cac5d88c3e3fe0f8fcebb47bcd0a19af13",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "issue": 266,
-    "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-09-company-discovery-policy.json",
-    "note": "MJ-REQ-264 and MJ-REQ-265 accepted locally; grouped requirements 266/267 unverified. origin/main unchanged; PostgreSQL/full-suite/hosted checks NOT_RUN or incomplete; external application submission OFF."
+    "issue": 251,
+    "issue_state": "OPEN/PASS_LOCAL",
+    "evidence_path": "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json",
+    "note": "All ten MJ-REQ-250 steps pass in connected local synthetic acceptance. No push; live provider, PostgreSQL, hosted checks/review and cross-device browser acknowledgments remain NOT_RUN. External submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -13729,12 +13731,65 @@
         "git_commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
         "evidence_path": "docs/evidence/2026-10-09-first-run-positive-search.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-250-FIRST-RUN-FRESH-PROFILE-COMPLETE-20261009",
+      "timestamp": "2026-10-09T17:10:32Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+      "completed_steps": [
+        "Expanded the connected first-run acceptance to begin with a fresh browser and create a profile through the visible UI.",
+        "Uploaded a synthetic PDF through Resume history, exercised production extraction, kept imported facts pending, explicitly reviewed and approved them, and verified API readback after reload.",
+        "Created and enabled a Greenhouse source and a scoped title search through the visible UI; selected remote and application-route preferences, kept AI disabled, and chose manual review only.",
+        "Ran the real Greenhouse adapter and normalization path using in-process synthetic responses; one posting was stored in durable history and displayed in Jobs after reload.",
+        "Verified all ten wizard steps report Complete without browser egress or application submission."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json"
+      ],
+      "files_modified": [
+        "tests/browser/test_first_run_wizard.py",
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "source_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+      "source_tree": "074646cac5d88c3e3fe0f8fcebb47bcd0a19af13",
+      "integrated_main": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+      "integrated_tree": "074646cac5d88c3e3fe0f8fcebb47bcd0a19af13",
+      "result": "PASS",
+      "acceptance": "MJ-REQ-250 ten-step first-run wizard passes in connected local synthetic acceptance. Whole-product release eligibility remains UNKNOWN.",
+      "tests_completed": [
+        "Connected Chromium first-run journey: 1/1 PASS after production web build.",
+        "First-run search, Greenhouse, profile import and resume upload integration: 52/52 PASS.",
+        "Frontend Vitest: 95 files / 540 tests PASS; TypeScript check and Vite production build PASS with existing bundle-size advisory.",
+        "Python test compilation, git diff check, lane coordination validator and progress catalogue/matrix/dashboard validation recorded at checkpoint."
+      ],
+      "tests_remaining": [
+        "Live Greenhouse access, PostgreSQL, full Python repository suite, hosted checks/review and cross-device browser-acknowledgment persistence NOT_RUN.",
+        "External application submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Loopback UI/API, isolated synthetic SQLite, a synthetic PDF and in-process Greenhouse MockTransport; browser egress blocked."
+      ],
+      "known_errors": [
+        "Early acceptance iterations exposed stale test assumptions about an existing fixture profile, accessible labels and a fixed search ID; the test was corrected and final exact-source browser and adjacent suite passed."
+      ],
+      "known_limitations": [
+        "Live provider availability is not established by synthetic transport. Browser-local setup acknowledgments were only verified across reload in the same browser context. Hosted checks/review remain NOT_RUN_BY_USER_POLICY."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+        "evidence_path": "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json"
+      }
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
   "last_safe_checkpoint": {
-    "git_commit": "9cd92d1098752d63e49fb97d42aa380ec3669186",
-    "evidence_path": "docs/evidence/2026-10-09-first-run-positive-search.json"
+    "git_commit": "04f3b47851a6436f3ab8ba96926078cf61589cc7",
+    "evidence_path": "docs/evidence/2026-10-09-first-run-fresh-profile-complete.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15373,9 +15428,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T17:02:06Z",
-  "current_verified_local_state": "Issue #251 / MJ-REQ-250 connected first-run positive-search follow-up is PARTIAL at local main 9cd92d1098752d63e49fb97d42aa380ec3669186 (tree 256ff3218d7bf7a8bed9c836f210ec7461d90acc). The real Greenhouse adapter/normalizer persisted one synthetic posting via MockTransport; durable history reports results=1 and the Jobs view displays it after reload. Connected browser 1/1 and related integration/source-adapter 33/33 passed. Full fresh-user resume upload/setup, live provider, cross-device acknowledgments, PostgreSQL/full suite/hosted checks remain unverified; submission OFF. Preserve untracked compose-target evidence.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only commit not pushed. Issue #251 remains OPEN/PARTIAL. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, full suite and live providers NOT_RUN; external application submission OFF. Verified 2026-10-09T17:02:06Z.",
+  "updated_at": "2026-10-09T17:10:32Z",
+  "current_verified_local_state": "Issue #251 / MJ-REQ-250 is PASS locally at source main 04f3b47851a6436f3ab8ba96926078cf61589cc7 (tree 074646cac5d88c3e3fe0f8fcebb47bcd0a19af13). Connected Chromium proved all ten visible first-run steps from a fresh browser: UI profile creation; synthetic PDF upload and production extraction; pending fact review, explicit verification/approval and API readback; remote and application-route preferences; AI kept disabled by user choice; Greenhouse board creation/enabling; saved Python Engineer search; manual-only application handling; and positive first search. The production Greenhouse adapter/normalizer used in-process MockTransport, persisted one result in profile history, and Jobs displayed it after reload. Browser 1/1, affected Python integration 52/52, web 540/540, TypeScript/Vite build and local validators PASS. Live provider, PostgreSQL, full Python suite, hosted checks/review and cross-device browser acknowledgments NOT_RUN; external submission OFF. Preserve unrelated untracked compose-target evidence.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and source is not pushed. GitHub issue #251 remains OPEN pending local-only source synchronization. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL and live provider NOT_RUN; external application submission OFF. Verified 2026-10-09T17:10:32Z.",
   "next_candidates": [
     {
       "issue": 517,
