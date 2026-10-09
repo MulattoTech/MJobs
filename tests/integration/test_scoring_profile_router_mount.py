@@ -92,7 +92,7 @@ class ScoringProfileRouterMountTests(unittest.TestCase):
         career = self.store.profile("fixture")
         contribution = {
             "dimension": "skills",
-            "weight": 100.0,
+            "weight": profile["weights"]["skills"],
             "raw_score": 73.0,
             "weighted_contribution": 73.0,
             "explanation": "The stored deterministic skill score contributes to this advisory match.",

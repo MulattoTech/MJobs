@@ -116,8 +116,11 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
 
             save_search_profile(store,{
                 "id":"cloud-search","profile_id":"fixture","name":"Cloud search",
-                "enabled":False,"include_titles":["Cloud Systems Engineer"],
-                "exclude_titles":[],"required_keywords":["Linux"],
+                "enabled":False,"include_titles":[
+                    "Cloud Systems Engineer","Platform Cloud Engineer",
+                    "Cloud Reliability Engineer",
+                ],
+                "exclude_titles":[],"required_keywords":[],
                 "optional_keywords":[],"excluded_keywords":[],"exact_phrases":[],
                 "technology_aliases":{},"remote":"ANY","employment_types":[],"source_ids":[],
             })
@@ -163,6 +166,13 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                         id=job_id,company_id="synthetic-employer",requisition=f"fixture-{job_id}",
                         title=title,description=description,skills=["Linux"],
                         location="Remote",remote_type="REMOTE",attributes={"fictional":True},
+                    ))
+
+                    connection.execute(m.routes.insert().values(
+                        id=f"route-{job_id}", job_id=job_id,
+                        company_id="synthetic-employer", provider="GREENHOUSE",
+                        tenant="synthetic-match-explanation", requisition=f"fixture-{job_id}",
+                        url=f"https://match-explanation.example.test/apply/{job_id}",
                     ))
 
                 score,rows=_known_rows(80,90,"approved_profile_skills","fixture:cloud-linux",
@@ -226,6 +236,7 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
             external_requests=[]
             ai_requests=[]
             submission_requests=[]
+            rescore_requests=[]
             cloud_two_attempts=0
             try:
                 thread.start()
@@ -235,6 +246,7 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                         self.fail("Isolated matching API did not start")
                     time.sleep(0.02)
                 database_before_browser=_snapshot(store)
+                database_after_refresh=None
 
                 with sync_playwright() as playwright:
                     browser=playwright.chromium.launch(headless=True)
@@ -258,6 +270,29 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                         )):
                             submission_requests.append((request.method,request.url))
                             route.abort()
+                        elif path=="/matches" and request.method=="POST":
+                            rescore_requests.append(request.post_data_json)
+                            route.fulfill(status=202,json={
+                                "operation_id":"synthetic-role-score-refresh",
+                                "state":"QUEUED",
+                            })
+                        elif path=="/operations/synthetic-role-score-refresh" and request.method=="GET":
+                            with store.engine.begin() as connection:
+                                stale_match=connection.execute(select(m.matches).where(
+                                    m.matches.c.job_id=="cloud-stale",
+                                    m.matches.c.profile_id=="fixture",
+                                )).mappings().one()
+                                components=dict(stale_match["components"])
+                                saved_profile=dict(components["scoring_profile"])
+                                saved_profile["profile_version"]="cloud-scoring-v2"
+                                components["scoring_profile"]=saved_profile
+                                connection.execute(update(m.matches).where(
+                                    m.matches.c.id==stale_match["id"],
+                                ).values(components=components))
+                            route.fulfill(json={
+                                "id":"synthetic-role-score-refresh","kind":"DISCOVER",
+                                "state":"COMPLETED","attempt_count":1,"error":None,
+                            })
                         elif path.endswith("/match-explanation"):
                             explanation_requests.append((request.method,request.url))
                             if path.endswith("/cloud-two/match-explanation") and cloud_two_attempts==0:
@@ -338,9 +373,46 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                         page.locator(".job-card").filter(has_text="Cloud Reliability Engineer").click()
                     self.assertEqual(stale_response.value.status,409)
                     expect(explanation.get_by_role("alert")).to_contain_text("out of date")
-                    expect(explanation.get_by_role("button",name=re.compile("refresh",re.IGNORECASE))).to_be_visible()
+                    refresh_matches=page.get_by_role("button",name="Refresh profile matches",exact=True)
+                    expect(refresh_matches).to_be_visible()
                     expect(explanation).not_to_contain_text("fixture:platform-skill")
                     expect(explanation).not_to_contain_text("43")
+
+                    with page.expect_request(lambda request:
+                        request.method=="POST" and urlsplit(request.url).path=="/matches"
+                    ) as rescore_request:
+                        with page.expect_response(lambda response:
+                            response.request.method=="GET"
+                            and urlsplit(response.url).path.endswith("/cloud-stale/match-explanation")
+                        ) as recovered_stale_response:
+                            refresh_matches.click()
+                    self.assertEqual(rescore_request.value.post_data_json["profile_id"],"fixture")
+                    self.assertEqual(recovered_stale_response.value.status,200)
+                    expect(explanation).to_contain_text("70")
+                    self.assertEqual(len(rescore_requests),1)
+                    database_after_refresh=_snapshot(store)
+                    match_table=m.matches.name
+                    before_matches={row["id"]:row for row in database_before_browser[match_table]}
+                    after_matches={row["id"]:row for row in database_after_refresh[match_table]}
+                    changed_matches=sorted(
+                        match_id for match_id in before_matches
+                        if before_matches[match_id]!=after_matches[match_id]
+                    )
+                    self.assertEqual(changed_matches,["match-cloud-stale"])
+                    self.assertEqual(
+                        before_matches["match-cloud-stale"]["components"]["scoring_profile"]["profile_version"],
+                        "old-scoring-version",
+                    )
+                    self.assertEqual(
+                        after_matches["match-cloud-stale"]["components"]["scoring_profile"]["profile_version"],
+                        "cloud-scoring-v2",
+                    )
+                    for table_name in database_before_browser:
+                        if table_name!=match_table:
+                            self.assertEqual(
+                                database_after_refresh[table_name],database_before_browser[table_name],
+                                f"Refreshing a match must not mutate {table_name}",
+                            )
 
                     page.get_by_label("Active profile",exact=True).select_option("other")
                     expect(page.get_by_label("Active profile",exact=True)).to_have_value("other")
@@ -362,14 +434,14 @@ class MatchingExplanationWorkflowBrowserTests(unittest.TestCase):
                     expect(explanation).not_to_contain_text("fixture:platform-skill")
 
                     self.assertEqual(cloud_two_attempts,1)
-                    self.assertGreaterEqual(len(explanation_requests),5)
+                    self.assertGreaterEqual(len(explanation_requests),6)
                     self.assertEqual(blocked_writes,[])
                     self.assertEqual(external_requests,[])
                     self.assertEqual(ai_requests,[])
                     self.assertEqual(submission_requests,[])
                     browser.close()
 
-                self.assertEqual(_snapshot(store),database_before_browser,
+                self.assertEqual(_snapshot(store),database_after_refresh,
                                  "Reading score explanations must not mutate any database rows")
             finally:
                 server.should_exit=True

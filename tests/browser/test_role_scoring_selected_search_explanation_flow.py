@@ -181,6 +181,17 @@ class RoleScoringSelectedSearchExplanationBrowserTests(unittest.TestCase):
                     }}},
                 ))
 
+                for job_id, requisition in (
+                    ("selected-job", "fixture-cloud"),
+                    ("other-job", "fixture-network"),
+                ):
+                    connection.execute(m.routes.insert().values(
+                        id=f"route-{job_id}", job_id=job_id,
+                        company_id="synthetic-company", provider="GREENHOUSE",
+                        tenant="synthetic-scoring-explanation", requisition=requisition,
+                        url=f"https://scoring-explanation.example.test/apply/{job_id}",
+                    ))
+
             app = create_app(
                 store, "http://127.0.0.1:1", root,
                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE",

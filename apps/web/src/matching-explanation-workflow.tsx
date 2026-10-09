@@ -10,7 +10,7 @@ export type MatchingExplanationWorkflowState = {
   state: 'loading' | 'error' | 'ready' | 'empty';
   explanation: MatchingExplanation | null;
   error: string | null;
-  recovery: 'NONE' | 'REFRESH' | 'RETRY';
+  recovery: 'NONE' | 'REFRESH' | 'RETRY' | 'REFRESHING';
   attempt: number;
 };
 
@@ -23,13 +23,17 @@ export type MatchingExplanationWorkflowEvent =
       error: string;
       recovery: 'NONE' | 'REFRESH' | 'RETRY';
     }
-  | { type: 'RETRY' };
+  | { type: 'RETRY' }
+  | { type: 'REFRESH_STARTED'; scopeKey: string }
+  | { type: 'REFRESH_FINISHED'; scopeKey: string }
+  | { type: 'REFRESH_FAILED'; scopeKey: string };
 
 export type MatchingExplanationWorkflowProps = {
   profileId: string | null;
   searchProfileId: string | null;
   jobId: string | null;
   client: MatchingExplanationClient;
+  onRefresh: () => Promise<void>;
 };
 
 export function createMatchingExplanationScopeKey(
@@ -66,7 +70,7 @@ export function reduceMatchingExplanationWorkflow(
   }
 
   if (event.type === 'RETRY') {
-    if (state.state !== 'error' || state.recovery === 'NONE') return state;
+    if (state.state !== 'error' || state.recovery !== 'RETRY') return state;
     return {
       ...state,
       state: 'loading',
@@ -74,6 +78,36 @@ export function reduceMatchingExplanationWorkflow(
       error: null,
       recovery: 'NONE',
       attempt: state.attempt + 1,
+    };
+  }
+
+  if (event.type === 'REFRESH_STARTED') {
+    if (event.scopeKey !== state.scopeKey || state.state !== 'error' || state.recovery !== 'REFRESH') {
+      return state;
+    }
+    return { ...state, recovery: 'REFRESHING' };
+  }
+
+  if (event.type === 'REFRESH_FINISHED') {
+    if (event.scopeKey !== state.scopeKey || state.recovery !== 'REFRESHING') return state;
+    return {
+      ...state,
+      state: 'loading',
+      explanation: null,
+      error: null,
+      recovery: 'NONE',
+      attempt: state.attempt + 1,
+    };
+  }
+
+  if (event.type === 'REFRESH_FAILED') {
+    if (event.scopeKey !== state.scopeKey || state.recovery !== 'REFRESHING') return state;
+    return {
+      ...state,
+      state: 'error',
+      explanation: null,
+      error: 'The match could not be refreshed. Check Activity and try again.',
+      recovery: 'REFRESH',
     };
   }
 
@@ -109,7 +143,7 @@ function describeFailure(error: unknown): {
   const failure = error as ClientFailure | null;
   if (failure && (failure.kind === 'STALE_CONTEXT' || failure.status === 409)) {
     return {
-      message: 'This saved explanation is out of date. Refresh the selected job to load current data.',
+      message: 'This saved explanation is out of date. Refresh profile matches to load current data for this job.',
       recovery: 'REFRESH',
     };
   }
@@ -130,6 +164,7 @@ export function MatchingExplanationWorkflow({
   searchProfileId,
   jobId,
   client,
+  onRefresh,
 }: MatchingExplanationWorkflowProps) {
   const scopeKey = createMatchingExplanationScopeKey(profileId, searchProfileId, jobId);
   const [workflow, dispatch] = useReducer(
@@ -168,7 +203,19 @@ export function MatchingExplanationWorkflow({
 
   const retry = () => dispatch({ type: 'RETRY' });
   const allowRetry = visible.state === 'error' && visible.recovery === 'RETRY';
-  const allowRefresh = visible.state === 'error' && visible.recovery === 'REFRESH';
+  const allowRefresh = visible.state === 'error'
+    && (visible.recovery === 'REFRESH' || visible.recovery === 'REFRESHING');
+
+  const refreshMatches = async () => {
+    if (!scopeKey || visible.recovery !== 'REFRESH') return;
+    dispatch({ type: 'REFRESH_STARTED', scopeKey });
+    try {
+      await onRefresh();
+      dispatch({ type: 'REFRESH_FINISHED', scopeKey });
+    } catch {
+      dispatch({ type: 'REFRESH_FAILED', scopeKey });
+    }
+  };
 
   return <div className="matching-explanation-workflow">
     <MatchingExplanationPanel
@@ -180,6 +227,9 @@ export function MatchingExplanationWorkflow({
       error={visible.error}
       onRetry={allowRetry ? retry : undefined}
     />
-    {allowRefresh && <button type="button" onClick={retry}>Refresh explanation</button>}
+    {allowRefresh && <button type="button" disabled={visible.recovery === 'REFRESHING'}
+      onClick={() => void refreshMatches()}>
+      {visible.recovery === 'REFRESHING' ? 'Refreshing profile matches…' : 'Refresh profile matches'}
+    </button>}
   </div>;
 }

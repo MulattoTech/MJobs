@@ -121,15 +121,19 @@ async function flushPromises(): Promise<void> {
 function renderWorkflow(
   client: MatchingExplanationClient,
   selected: { profileId: string | null; searchProfileId: string | null; jobId: string | null } = scope,
+  onRefresh: () => Promise<void> = async () => undefined,
 ): string {
   beginRender();
-  const tree = MatchingExplanationWorkflow({ ...selected, client });
+  const tree = MatchingExplanationWorkflow({ ...selected, client, onRefresh });
   return renderToStaticMarkup(tree);
 }
 
-function workflowTree(client: MatchingExplanationClient): React.ReactElement<any> {
+function workflowTree(
+  client: MatchingExplanationClient,
+  onRefresh: () => Promise<void> = async () => undefined,
+): React.ReactElement<any> {
   beginRender();
-  return MatchingExplanationWorkflow({ ...scope, client });
+  return MatchingExplanationWorkflow({ ...scope, client, onRefresh });
 }
 
 function findPanelElement(node: unknown): React.ReactElement<any> | null {
@@ -269,31 +273,91 @@ describe('MatchingExplanationWorkflow', () => {
     expect(workflowState).toMatchObject({ state: 'ready', explanation: response });
   });
 
-  it('maps a stale 409 to explicit refresh guidance without a retry action', async () => {
+  it('recalculates stale match data before reloading the selected explanation', async () => {
     const stale = Object.assign(new Error('private stale response detail'), {
       kind: 'STALE_CONTEXT', status: 409, recovery: 'REFRESH', retryable: false,
     });
     const client = {
-      load: vi.fn().mockRejectedValue(stale),
+      load: vi.fn()
+        .mockRejectedValueOnce(stale)
+        .mockResolvedValueOnce(response),
     } satisfies MatchingExplanationClient;
+    const refreshMatches = vi.fn(async () => undefined);
 
-    renderWorkflow(client);
+    renderWorkflow(client, scope, refreshMatches);
     runEffect();
     await flushPromises();
     expect(workflowState).toMatchObject({
       state: 'error', recovery: 'REFRESH', explanation: null,
     });
 
-    const markup = renderWorkflow(client);
-    expect(markup).toContain('Refresh explanation');
+    const markup = renderWorkflow(client, scope, refreshMatches);
+    expect(markup).toContain('Refresh profile matches');
     expect(markup).not.toContain('Retry explanation');
     expect(markup).not.toContain('private stale response detail');
-    const tree = workflowTree(client);
+    const tree = workflowTree(client, refreshMatches);
     expect(findPanelElement(tree)?.props.onRetry).toBeUndefined();
-    const refresh = findButton(tree, 'Refresh explanation');
+    const refresh = findButton(tree, 'Refresh profile matches');
     expect(refresh).not.toBeNull();
-    refresh?.props.onClick();
+    await refresh?.props.onClick();
+    expect(refreshMatches).toHaveBeenCalledExactlyOnceWith();
     expect(workflowState).toMatchObject({ state: 'loading', recovery: 'NONE', attempt: 1 });
+
+    renderWorkflow(client, scope, refreshMatches);
+    runEffect();
+    await flushPromises();
+    expect(client.load).toHaveBeenCalledTimes(2);
+    expect(workflowState).toMatchObject({ state: 'ready', explanation: response });
+  });
+
+  it('keeps stale-match recovery pending until the durable refresh finishes', async () => {
+    const stale = Object.assign(new Error('private stale response detail'), {
+      kind: 'STALE_CONTEXT', status: 409, recovery: 'REFRESH', retryable: false,
+    });
+    const client = { load: vi.fn().mockRejectedValue(stale) } satisfies MatchingExplanationClient;
+    let finishRefresh!: () => void;
+    const refreshMatches = vi.fn(() => new Promise<void>(resolve => { finishRefresh = resolve; }));
+
+    renderWorkflow(client, scope, refreshMatches);
+    runEffect();
+    await flushPromises();
+    const refresh = findButton(workflowTree(client, refreshMatches), 'Refresh profile matches');
+    refresh?.props.onClick();
+    expect(workflowState).toMatchObject({ state: 'error', recovery: 'REFRESHING' });
+
+    const pendingMarkup = renderWorkflow(client, scope, refreshMatches);
+    expect(pendingMarkup).toContain('Refreshing profile matches');
+    const pendingButton = findButton(workflowTree(client, refreshMatches), 'Refreshing profile matches…');
+    expect(pendingButton?.props.disabled).toBe(true);
+
+    finishRefresh();
+    await flushPromises();
+    expect(workflowState).toMatchObject({ state: 'loading', recovery: 'NONE', attempt: 1 });
+  });
+
+  it('keeps a failed stale-match refresh recoverable without exposing transport details', async () => {
+    const stale = Object.assign(new Error('private stale response detail'), {
+      kind: 'STALE_CONTEXT', status: 409, recovery: 'REFRESH', retryable: false,
+    });
+    const client = { load: vi.fn().mockRejectedValue(stale) } satisfies MatchingExplanationClient;
+    const refreshMatches = vi.fn().mockRejectedValue(new Error('private queue detail'));
+
+    renderWorkflow(client, scope, refreshMatches);
+    runEffect();
+    await flushPromises();
+    const refresh = findButton(workflowTree(client, refreshMatches), 'Refresh profile matches');
+    refresh?.props.onClick();
+    await flushPromises();
+
+    expect(refreshMatches).toHaveBeenCalledExactlyOnceWith();
+    expect(workflowState).toMatchObject({
+      state: 'error', recovery: 'REFRESH',
+      error: 'The match could not be refreshed. Check Activity and try again.',
+    });
+    const markup = renderWorkflow(client, scope, refreshMatches);
+    expect(markup).toContain('Refresh profile matches');
+    expect(markup).not.toContain('private queue detail');
+    expect(markup).not.toContain('private stale response detail');
   });
 
   it('renders UNKNOWN and provenance through the existing explanation panel', () => {
