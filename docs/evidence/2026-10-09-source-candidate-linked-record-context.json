@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "issue": 517,
+  "requirement": "Review candidate history shows human-readable linked job and application context; malformed or cross-linked client metadata is rejected.",
+  "status": "PASS",
+  "timestamp_utc": "2026-10-09T20:44:39Z",
+  "branch": "codex/solo-517-linked-record-context-20261009",
+  "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\solo-517-linked-record-context-20261009",
+  "source_commit": "ed01ceac20dfa9876172662ad4e954ef13696f84",
+  "source_tree": "5e723685d28f4fab375acb537d659cdc401d1c33",
+  "source_files": [
+    {
+      "path": "apps/web/src/source-candidate-review-client.test.ts",
+      "sha256": "920f1da916d7e0100801812bc41e43f77c155883432235b69dda18f85b459db2"
+    },
+    {
+      "path": "apps/web/src/source-candidate-review-client.ts",
+      "sha256": "8730476bb334fb15561e77540f952d1d20504a8f2a096b50bac08a6cb579fce1"
+    },
+    {
+      "path": "apps/web/src/source-candidate-review.test.tsx",
+      "sha256": "e40988a90a88ec3e8bcf7773624d1777c52104a3b30298e0dc0468d393744cd6"
+    },
+    {
+      "path": "apps/web/src/source-candidate-review.tsx",
+      "sha256": "989c91c6b10a0caba7d50df1733633ce7a991fcf76967773cce176b288306365"
+    },
+    {
+      "path": "services/source_candidates/catalogue.py",
+      "sha256": "fa559fa68efded60e6cfdbf40e8dca02862bfea147d2bd319fa3a38881961235"
+    },
+    {
+      "path": "tests/browser/test_source_candidate_review_panel_connected.py",
+      "sha256": "aa34259a9e82593b970368cc6e9ee6b3dc607e3fd7a570471be7ab3347c131d7"
+    },
+    {
+      "path": "tests/integration/test_source_candidates.py",
+      "sha256": "7c95ec7ab2e9e9a10542cca7b45b711f31a6bb2cb414d769d3a91d447fd7eb47"
+    }
+  ],
+  "checks": [
+    {
+      "command": "vitest run src/source-candidate-review-client.test.ts src/source-candidate-review.test.tsx",
+      "result": "PASS: 2 files, 16 tests"
+    },
+    {
+      "command": "npm run build",
+      "result": "PASS: tsc --noEmit and Vite production build; existing >500 kB chunk advisory"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest tests/integration/test_source_candidates.py -q",
+      "result": "PASS: 10 tests"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest tests/browser/test_source_candidate_review_panel_connected.py -q",
+      "result": "PASS: 1 connected local browser test"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m py_compile services/source_candidates/catalogue.py tests/integration/test_source_candidates.py tests/browser/test_source_candidate_review_panel_connected.py",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "PostgreSQL validation NOT_RUN",
+    "Full repository suite NOT_RUN",
+    "Live external provider/ATS tests NOT_RUN",
+    "GitHub Actions and hosted review NOT_RUN_BY_USER_POLICY",
+    "External application submission OFF"
+  ],
+  "workflow": "Connected local synthetic profile/application data only; linked application query remains profile-scoped; no collection or external submission."
+}
