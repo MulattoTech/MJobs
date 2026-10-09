@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "requirement_ids": ["MJ-REQ-267"],
+  "github_issues": [268],
+  "result": "PARTIAL",
+  "scope": "During route readback, compare an aggregator application route against persisted routes for the exact same employer and requisition. Surface a sole exact-evidence verified ATS sibling to the user; leave the route unchanged and preserve ambiguous or unresolved outcomes.",
+  "source": {
+    "branch": "codex/solo-268-direct-employer-route-discovery",
+    "commit": "8220a1dc5bec9707c3799c94c900b1f848071903",
+    "tree": "758626f6e1d19b556bbae6339a0422fad16f5e85"
+  },
+  "verified_at_utc": "2026-10-09T13:24:12Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vite production build and Chromium"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_application_routes tests.unit.test_application_route_authority tests.integration.test_job_route_provenance tests.integration.test_source_value_resolution",
+      "result": "PASS",
+      "evidence": "24 tests passed. Covers sole verified ATS sibling, no qualifying sibling, ambiguous multiple ATS candidates, explicit aggregator-route preservation, API readback, and existing route/provenance behavior."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/application-route-preference.test.tsx",
+      "result": "PASS",
+      "evidence": "2 route-preference component tests passed."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript check and Vite production build passed. Existing advisory: generated JavaScript chunk exceeds 500 kB."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.browser.test_application_route_preference",
+      "result": "PASS",
+      "evidence": "Connected local Chromium verified the profile route-choice flow displays a same-requisition verified ATS candidate; the user-selected route remains in the prepare request, and the test observed no external network requests or application submission."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile services/dedupe/routes.py apps/api/main.py tests/unit/test_application_routes.py tests/browser/test_application_route_preference.py; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "Cross-site HTTP redirect resolution against live employer or ATS sites",
+    "PostgreSQL integration",
+    "Hosted Actions or external review (disabled by local-only policy)",
+    "External job application submission"
+  ],
+  "limitations": [
+    "The discovery is a local persisted-evidence lookup, not a network redirect fetch. The current route model does not store an observed aggregator-to-ATS redirect relationship; live cross-origin resolution is not implemented. MJ-REQ-267 remains PARTIAL.",
+    "Ambiguous ATS siblings remain candidates for user review; no route is silently substituted.",
+    "The full repository unittest discovery earlier in the session was interrupted after failures in unrelated application-priority, company-preferences, and job-risk browser tests; that full-suite result is incomplete."
+  ],
+  "safety": [
+    "The resolver performs no network I/O and uses exact company/requisition identity plus exact persisted ATS tenant evidence.",
+    "User-selected routes are preserved even when another verified ATS candidate exists.",
+    "No CAPTCHA, MFA, access-control, or anti-bot behavior is touched.",
+    "External application submission remains OFF."
+  ]
+}
