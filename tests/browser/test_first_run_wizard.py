@@ -9,6 +9,7 @@ import unittest
 from urllib.parse import urlsplit
 from unittest.mock import patch
 
+from httpx import MockTransport, Response
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
@@ -17,7 +18,7 @@ from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.discovery.search_profiles import save_search_profile
-from services.discovery.sources.collect import configure_source
+from services.discovery.sources.collect import collect_source, configure_source
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
 
@@ -49,11 +50,11 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
             save_search_profile(store, {
                 "id": "wizard-search",
                 "profile_id": "fixture",
-                "name": "Systems administrator roles",
+                "name": "Remote Python engineer roles",
                 "enabled": True,
-                "include_titles": ["Systems Administrator"],
-                "remote": "REQUIRED",
-                "employment_types": ["FULL_TIME"],
+                "include_titles": ["Python Engineer"],
+                "remote": "ANY",
+                "employment_types": [],
                 "source_ids": [source_id],
             })
 
@@ -69,7 +70,29 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                 application_requests = []
                 collect_bodies = []
                 worker_results = []
+                source_requests = []
                 page_errors = []
+
+                synthetic_job = {
+                    "id": 82021,
+                    "title": "Python Engineer",
+                    "location": {"name": "Remote - United States"},
+                    "content": "<p>Build and support Python services.</p>",
+                    "updated_at": "2026-10-01T12:00:00Z",
+                    "absolute_url": "https://job-boards.greenhouse.io/fixture/jobs/82021",
+                }
+
+                def synthetic_greenhouse_transport(request):
+                    source_requests.append(request.url.path)
+                    if request.url.path.endswith("/jobs"):
+                        return Response(200, json={"jobs": [synthetic_job], "meta": {"total": 1}})
+                    return Response(200, json={"name": "Synthetic Greenhouse Employer"})
+
+                def collect_with_synthetic_provider(current_store, current_source_id,
+                                                    current_profile_id, **kwargs):
+                    return collect_source(
+                        current_store, current_source_id, current_profile_id,
+                        transport=MockTransport(synthetic_greenhouse_transport), **kwargs)
                 try:
                     server_thread.start()
                     deadline = time.monotonic() + 10
@@ -106,7 +129,8 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                                     "MJOBS_OUTPUT_DIR": str(root),
                                     "MJOBS_OPERATION_MODE": "FIXTURE",
                                 }):
-                                    with patch("workers.tasks.collect_source", return_value={"jobs_seen": 0}):
+                                    with patch("workers.tasks.collect_source",
+                                               side_effect=collect_with_synthetic_provider):
                                         worker_results.append(execute_operation(operation_id))
                             route.fulfill(response=response)
 
@@ -192,7 +216,16 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         history = history_response.json()
                         self.assertEqual(history["profile_id"], "fixture")
                         self.assertEqual(history["items"][0]["status"], "COMPLETED")
-                        self.assertEqual(history["items"][0]["filters"]["include_titles"], ["Systems Administrator"])
+                        self.assertEqual(history["items"][0]["filters"]["include_titles"], ["Python Engineer"])
+                        self.assertEqual(history["items"][0]["results"], 1)
+                        self.assertEqual(set(source_requests), {
+                            "/v1/boards/fixture", "/v1/boards/fixture/jobs",
+                        })
+                        page.reload(wait_until="domcontentloaded")
+                        wizard = page.get_by_role("region", name="First-run setup")
+                        page.get_by_role("button", name=re.compile(r"^Jobs")).click()
+                        expect(page.locator(".job-card").filter(
+                            has_text="Python Engineer")).to_be_visible()
                         wizard.get_by_role("button", name="Set up later", exact=True).click()
                         resume = page.get_by_role("button", name=re.compile(r"^Resume first-run setup"))
                         expect(resume).to_be_visible()
