@@ -4,6 +4,7 @@ import {
   type ApplicationAnswerMatchCandidate,
   type ApplicationAnswerMatchResponse,
   type ApplicationAnswerMatchScope,
+  type ApplicationAnswerSelectionThresholds,
   type ApplicationAnswerSuggestionDraft,
 } from './application-answer-matching-client';
 
@@ -12,6 +13,8 @@ export type ApplicationAnswerMatchingProps = {
   applicationId: string;
   question: string;
   response: ApplicationAnswerMatchResponse | null;
+  minimumConfidence?: number;
+  minimumMatchScore?: number;
   onFindMatches: () => void;
   onSelectDraft: (draft: ApplicationAnswerSuggestionDraft) => void;
   loading?: boolean;
@@ -40,6 +43,8 @@ export function ApplicationAnswerMatching({
   applicationId,
   question,
   response,
+  minimumConfidence,
+  minimumMatchScore,
   onFindMatches,
   onSelectDraft,
   loading = false,
@@ -47,6 +52,7 @@ export function ApplicationAnswerMatching({
   onRetry,
 }: ApplicationAnswerMatchingProps) {
   const activeScope = { profileId, applicationId, question };
+  const selectionThresholds: ApplicationAnswerSelectionThresholds = { minimumConfidence, minimumMatchScore };
   const scopeMatches = response !== null && responseScopeMatches(response, activeScope);
   const candidates = scopeMatches
     ? response.candidates.filter(isSelectableCandidate)
@@ -54,9 +60,16 @@ export function ApplicationAnswerMatching({
 
   const selectCandidate = (candidate: ApplicationAnswerMatchCandidate) => {
     if (!response || !scopeMatches) return;
-    const selected = selectApplicationAnswerSuggestion(candidate, response.scope, activeScope);
+    const selected = selectApplicationAnswerSuggestion(candidate, response.scope, activeScope, selectionThresholds);
     if (selected.ok) onSelectDraft(selected.draft);
   };
+
+  const confidenceThreshold = Math.max(80, minimumConfidence ?? 80);
+  const matchThreshold = Math.max(0.75, minimumMatchScore ?? 0.75);
+  const selectionThresholdsValid = Number.isFinite(confidenceThreshold) && confidenceThreshold <= 100 &&
+    Number.isFinite(matchThreshold) && matchThreshold <= 1;
+  const candidateMeetsThresholds = (candidate: ApplicationAnswerMatchCandidate) =>
+    selectionThresholdsValid && candidate.confidence >= confidenceThreshold && candidate.score >= matchThreshold;
 
   return <section aria-labelledby="application-answer-matching-heading">
     <h3 id="application-answer-matching-heading">Saved answer matches</h3>
@@ -83,7 +96,10 @@ export function ApplicationAnswerMatching({
             ? <p className="muted">No eligible saved answer matches were found.</p>
             : response !== null
               ? <ol aria-label="Saved answer match candidates">
-                {candidates.map((candidate, index) => <li key={`${candidate.answer_id}-${index}`} aria-label={`Answer match ${index + 1}`}>
+                {candidates.map((candidate, index) => {
+                  const meetsThresholds = candidateMeetsThresholds(candidate);
+                  const thresholdNoteId = `answer-match-threshold-note-${index + 1}`;
+                  return <li key={`${candidate.answer_id}-${index}`} aria-label={`Answer match ${index + 1}`}>
                   <h4>Rank {index + 1}</h4>
                   <p><strong>{methods[candidate.method]}</strong> · match score {Math.round(candidate.score * 100)}%</p>
                   <h5>Why it matched</h5>
@@ -92,14 +108,18 @@ export function ApplicationAnswerMatching({
                   <p><strong>Saved answer:</strong> {candidate.text}</p>
                   <p><strong>Source:</strong> {candidate.source}</p>
                   <p><strong>Approval status:</strong> Verified and approved for reuse · {candidate.confidence}% confidence</p>
+                  {!meetsThresholds && <p id={thresholdNoteId}>This candidate does not meet the active saved-answer thresholds and cannot be selected.</p>}
                   <button
                     type="button"
                     aria-label={`Select answer as draft: ${candidate.text}`}
+                    aria-describedby={!meetsThresholds ? thresholdNoteId : undefined}
+                    disabled={!meetsThresholds}
                     onClick={() => selectCandidate(candidate)}
                   >
                     Select answer as draft
                   </button>
-                </li>)}
+                </li>;
+                })}
               </ol>
               : <p className="muted">Run a lookup to review matching saved answers for this question.</p>}
   </section>;

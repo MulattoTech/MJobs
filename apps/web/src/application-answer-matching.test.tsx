@@ -16,12 +16,14 @@ function findButtons(node: ReactNode): ReactElement<{
   children?: ReactNode;
   onClick?: () => void;
   'aria-label'?: string;
+  disabled?: boolean;
 }>[] {
   return Children.toArray(node).flatMap(child => {
     if (!isValidElement<{
       children?: ReactNode;
       onClick?: () => void;
       'aria-label'?: string;
+      disabled?: boolean;
     }>(child)) return [];
     const current = child.type === 'button' ? [child] : [];
     return [...current, ...findButtons(child.props.children)];
@@ -112,6 +114,25 @@ describe('application answer matching picker', () => {
       user_approved: true,
       explanation: candidate.explanation,
     });
+  });
+
+  it('disables explicit selection below the active profile thresholds and keeps the candidate unreviewed', () => {
+    const stricterThresholds = [{ minimumConfidence: 95 }, { minimumMatchScore: 0.96 }];
+    for (const thresholds of stricterThresholds) {
+      const onSelectDraft = vi.fn<(draft: ApplicationAnswerSuggestionDraft) => void>();
+      const props = { ...baseProps, response, ...thresholds, onSelectDraft };
+      const markup = renderToStaticMarkup(<ApplicationAnswerMatching {...props} />);
+      const selectButton = findButtons(ApplicationAnswerMatching(props))
+        .find(button => button.props['aria-label'] === 'Select answer as draft: Yes, with advance notice.');
+
+      expect(markup).toContain('Unreviewed draft');
+      expect(markup).toContain('This candidate does not meet the active saved-answer thresholds and cannot be selected.');
+      expect(selectButton?.props.disabled).toBe(true);
+      selectButton?.props.onClick?.();
+      expect(onSelectDraft).not.toHaveBeenCalled();
+    }
+    expect(candidate).toMatchObject({ verified: true, user_approved: true });
+    expect('reviewed' in candidate).toBe(false);
   });
 
   it('offers an explicit lookup and never matches automatically on render', () => {
