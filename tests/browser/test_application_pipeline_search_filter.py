@@ -87,6 +87,7 @@ class ApplicationPipelineSearchFilterBrowserTests(unittest.TestCase):
                     context.route("**/*", local_only)
                     page = context.new_page()
                     page.set_default_timeout(8000)
+                    filters = page.locator(".filters")
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
@@ -112,11 +113,11 @@ class ApplicationPipelineSearchFilterBrowserTests(unittest.TestCase):
 
                     page.get_by_label("Saved search name", exact=True).fill("Applied roles")
                     page.get_by_role("button", name="Save current filters", exact=True).click()
-                    saved = page.get_by_label("Saved search profile", exact=True)
+                    saved = filters.get_by_label("Saved search profile", exact=True)
                     expect(saved.locator("option", has_text="Applied roles")).to_have_count(1)
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
-                    saved = page.get_by_label("Saved search profile", exact=True)
+                    saved = filters.get_by_label("Saved search profile", exact=True)
                     expect(saved.locator("option", has_text="Applied roles")).to_have_count(1)
                     with page.expect_response(lambda response:
                             response.url.startswith(origin + "/jobs?")
@@ -148,7 +149,7 @@ class ApplicationPipelineSearchFilterBrowserTests(unittest.TestCase):
                     expect(status_filter).to_have_value("")
 
                     page.get_by_label("Active profile", exact=True).select_option("other")
-                    isolated_search = page.get_by_label("Saved search profile", exact=True)
+                    isolated_search = filters.get_by_label("Saved search profile", exact=True)
                     expect(isolated_search).to_have_value("")
                     expect(isolated_search.locator("option", has_text="Applied roles")).to_have_count(0)
                     self.assertEqual(external, [])

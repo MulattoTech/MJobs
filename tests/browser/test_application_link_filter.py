@@ -97,6 +97,7 @@ class ApplicationLinkFilterBrowserTests(unittest.TestCase):
                     context.route("**/*", local_only)
                     page = context.new_page()
                     page.set_default_timeout(8000)
+                    filters = page.locator(".filters")
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
@@ -133,12 +134,12 @@ class ApplicationLinkFilterBrowserTests(unittest.TestCase):
                     page.get_by_label("Saved search name", exact=True).fill("Available application links")
                     availability.select_option("AVAILABLE")
                     page.get_by_role("button", name="Save current filters", exact=True).click()
-                    saved = page.get_by_label("Saved search profile", exact=True)
+                    saved = filters.get_by_label("Saved search profile", exact=True)
                     expect(saved.locator("option", has_text="Available application links")).to_have_count(1)
 
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
-                    saved = page.get_by_label("Saved search profile", exact=True)
+                    saved = filters.get_by_label("Saved search profile", exact=True)
                     expect(saved.locator("option", has_text="Available application links")).to_have_count(1)
                     selected_value = saved.locator(
                         "option", has_text="Available application links").get_attribute("value")
@@ -171,7 +172,7 @@ class ApplicationLinkFilterBrowserTests(unittest.TestCase):
                     expect(page.locator(".job-card").filter(has_text="A Unknown Link")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="B Missing Link")).to_be_visible()
                     expect(page.get_by_label("Application link", exact=True)).to_have_value("")
-                    expect(page.get_by_label("Saved search profile", exact=True)).to_have_value(selected_value)
+                    expect(filters.get_by_label("Saved search profile", exact=True)).to_have_value(selected_value)
                     saved_filters = page.request.get(
                         origin + "/search-profiles?profile_id=fixture")
                     self.assertEqual(saved_filters.status, 200)
