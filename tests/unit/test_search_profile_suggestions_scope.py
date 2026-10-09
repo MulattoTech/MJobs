@@ -24,13 +24,14 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
         )
         self.store.migrate()
         self.store.save_profile(dict(PROFILE))
+        self.store.save_profile({**PROFILE, "id": "other-profile"})
         self.next_job = 0
 
     def tearDown(self):
         self.store.engine.dispose()
         self.directory.cleanup()
 
-    def _match(self, title, score, *, profile_version=None):
+    def _match(self, title, score, *, profile_id="fixture", profile_version=None):
         self.next_job += 1
         job_id = f"scope-job-{self.next_job}"
         company_id = f"scope-company-{self.next_job}"
@@ -45,8 +46,8 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
                 attributes={},
             ))
             connection.execute(m.matches.insert().values(
-                id=f"scope-match-{job_id}", job_id=job_id, profile_id="fixture",
-                profile_version=profile_version or self.store.profile("fixture")["version"],
+                id=f"scope-match-{job_id}", job_id=job_id, profile_id=profile_id,
+                profile_version=profile_version or self.store.profile(profile_id)["version"],
                 score=score, missing=[], components={},
             ))
 
@@ -59,19 +60,25 @@ class SearchProfileSuggestionScopeTests(unittest.TestCase):
         self._match("Platform Administrator", 99, profile_version=previous_version)
         self._match("System Administrator", 95)
         self._match("Infrastructure Support Engineer", 75)
+        self._match("Infrastructure Support Engineer", 90)
         self._match("Review Only Engineer", 74)
+        self._match("Foreign Profile Engineer", 99, profile_id="other-profile")
 
         self.assertEqual(
             suggest_search_profile_titles(
                 self.store,
                 "fixture",
                 current_title=" system administrator ",
-                excluded_titles=[" PLATFORM ADMINISTRATOR "],
+                excluded_titles=[
+                    " PLATFORM ADMINISTRATOR ",
+                    "platform administrator",
+                    "  Platform Administrator  ",
+                ],
             ),
             [{
                 "title": "Infrastructure Support Engineer",
-                "strong_match_count": 1,
-                "reason": "Observed in 1 current strong match.",
+                "strong_match_count": 2,
+                "reason": "Observed in 2 current strong matches.",
             }],
         )
 
