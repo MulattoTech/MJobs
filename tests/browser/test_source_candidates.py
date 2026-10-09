@@ -87,7 +87,9 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     context = browser.new_context()
                     external = []
                     capture_requests = []
-                    failed_capture_count = 0
+                    retry_url = "https://jobs.unknown.invalid/retry-role"
+                    profile_switch_url = "https://jobs.unknown.invalid/profile-switch"
+                    failed_capture_urls = set()
 
                     def local_only(route):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
@@ -108,13 +110,12 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                         route.fulfill(response=response)
 
                     def fail_after_capture_commit(route):
-                        nonlocal failed_capture_count
                         payload = route.request.post_data_json
                         if route.request.method == "POST" and isinstance(payload, dict):
                             capture_requests.append(payload)
-                            if payload.get("source_url") == "https://jobs.unknown.invalid/retry-role":
-                                failed_capture_count += 1
-                            if payload.get("source_url") == "https://jobs.unknown.invalid/retry-role" and failed_capture_count == 1:
+                            source_url = payload.get("source_url")
+                            if source_url in {retry_url, profile_switch_url} and source_url not in failed_capture_urls:
+                                failed_capture_urls.add(source_url)
                                 response = route.fetch()
                                 self.assertEqual(response.status, 201, response.text())
                                 route.abort("failed")
@@ -235,7 +236,6 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     expect(reported).to_contain_text("Integration issue #302 · user supplied; not externally verified (USER_SUPPLIED_UNVERIFIED)")
                     expect(reported).to_contain_text("Collection is disabled")
 
-                    retry_url = "https://jobs.unknown.invalid/retry-role"
                     context.route("**/source-candidates", fail_after_capture_commit)
                     page.get_by_label("Source site URL").fill(retry_url)
                     page.get_by_label("Reported discovery origin for source site").fill("Indeed")
@@ -273,6 +273,20 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                         has_text="Source URL recorded for review")).to_be_visible()
                     self.assertEqual(len(capture_requests), 3)
                     self.assertNotEqual(capture_requests[0]["request_id"], capture_requests[-1]["request_id"])
+                    page.get_by_label("Source site URL").fill(profile_switch_url)
+                    page.get_by_role("button", name="Record source URL", exact=True).click()
+                    expect(page.get_by_role("alert")).to_be_visible()
+                    pending_profile_request_id = capture_requests[-1]["request_id"]
+                    page.locator("#active-profile").select_option("fixture")
+                    expect(page.get_by_label("Source site URL")).to_have_value("")
+                    page.locator("#active-profile").select_option("other")
+                    page.get_by_label("Source site URL").fill(profile_switch_url)
+                    page.get_by_label("Reported discovery origin for source site").fill("Indeed")
+                    page.get_by_role("button", name="Record source URL", exact=True).click()
+                    expect(page.get_by_role("status").filter(
+                        has_text="Source URL recorded for review")).to_be_visible()
+                    self.assertEqual(len(capture_requests), 5)
+                    self.assertNotEqual(pending_profile_request_id, capture_requests[-1]["request_id"])
                     page.locator("#active-profile").select_option("fixture")
                     expect(page.get_by_role("article", name="Source candidate talenthop.com")).to_be_visible()
                     self.assertEqual(external, [])
