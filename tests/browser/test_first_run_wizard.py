@@ -33,7 +33,18 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
             store = Store(f"sqlite:///{(root / 'wizard.db').as_posix()}")
             store.migrate()
             store.bind_workspace_mode("FIXTURE")
-            store.save_profile(dict(PROFILE))
+            store.save_profile({
+                **dict(PROFILE),
+                "facts": [{
+                    "id": "pending-imported-fact",
+                    "kind": "experience",
+                    "text": "Supported a synthetic Linux server environment.",
+                    "source": "synthetic uploaded resume",
+                    "confidence": 90,
+                    "verified": False,
+                    "user_approved": False,
+                }],
+            })
             source_id = configure_source(store, "fixture", provider="greenhouse")
             save_search_profile(store, {
                 "id": "wizard-search",
@@ -113,6 +124,39 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         expect(wizard).to_be_visible()
                         expect(wizard.get_by_role("listitem")).to_have_count(10)
                         expect(wizard).to_contain_text("External submission stays off")
+                        fact_step = wizard.get_by_role("listitem").nth(2)
+                        expect(fact_step).to_contain_text("Needs attention")
+                        expect(fact_step).to_contain_text(
+                            "Review and approve imported facts before MJobs uses them in tailored documents.")
+                        fact_step.get_by_role("button", name="Review facts", exact=True).click()
+                        expect(page.get_by_role("button", name="Profile", exact=True)).to_have_attribute(
+                            "aria-current", "page")
+                        # Scope by the imported fact's text so approvals cannot be
+                        # inherited from another career fact.
+                        pending_fact = page.locator("fieldset.fact").filter(
+                            has_text="Supported a synthetic Linux server environment.")
+                        expect(pending_fact).to_contain_text("Pending")
+                        expect(pending_fact.get_by_label("I verified this fact")).not_to_be_checked()
+                        expect(pending_fact.get_by_label("I approve its use in documents")).not_to_be_checked()
+                        expect(page.get_by_role("button", name="Submit application", exact=True)).to_have_count(0)
+                        pending_fact.get_by_label("I verified this fact").check()
+                        pending_fact.get_by_label("I approve its use in documents").check()
+                        with page.expect_response(lambda response:
+                                response.request.method == "PUT"
+                                and response.url == origin + "/profiles") as profile_saved:
+                            page.get_by_role("button", name="Save profile", exact=True).click()
+                        self.assertEqual(profile_saved.value.status, 200, profile_saved.value.text())
+                        profile_readback = page.request.get(origin + "/profiles/fixture")
+                        self.assertEqual(profile_readback.status, 200, profile_readback.text())
+                        saved_fact = next((item for item in profile_readback.json()["facts"]
+                                           if item.get("fact_id", item.get("id")) == "pending-imported-fact"), None)
+                        self.assertIsNotNone(saved_fact, profile_readback.text())
+                        self.assertTrue(saved_fact["verified"])
+                        self.assertTrue(saved_fact["user_approved"])
+                        page.reload(wait_until="domcontentloaded")
+                        wizard = page.get_by_role("region", name="First-run setup")
+                        expect(wizard.get_by_role("listitem").nth(2).get_by_text(
+                            "Complete", exact=True)).to_be_visible()
                         wizard.get_by_role("button", name="Open profile", exact=True).click()
                         expect(page.get_by_role("button", name="Profile", exact=True)).to_have_attribute("aria-current", "page")
                         wizard.get_by_role("button", name="Open resume library", exact=True).click()

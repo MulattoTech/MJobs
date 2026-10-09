@@ -1,0 +1,59 @@
+{
+  "evidence_id": "MJ-REQ-251-FIRST-RUN-RESUME-REVIEW-20261009",
+  "requirement_ids": ["MJ-REQ-251"],
+  "github_issues": [252],
+  "result": "PASS",
+  "scope": "Prove the first-run resume import path gives the user an explicit opportunity to inspect, verify, and approve extracted career facts before the profile is considered reviewed; imported facts remain pending by default and approval persists across readback and reload. This evidence covers MJ-REQ-251 only.",
+  "source": {
+    "branch": "codex/solo-252-first-run-resume-review-20261009",
+    "base": "24003973da1d5194d08aaa0a68b55c99cfd17d2c"
+  },
+  "verified_at_utc": "2026-10-09T16:47:49Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixture",
+    "frontend": "local Chromium connected to the application",
+    "delivery": "local-only; no push or hosted automation"
+  },
+  "acceptance": [
+    "A synthetic resume-derived fact enters the profile with verified=false and user_approved=false.",
+    "The first-run wizard marks review as needing attention and its Review facts action opens the persisted fact.",
+    "The user can explicitly verify and approve the fact; profile API readback confirms both flags persisted.",
+    "After browser reload, first-run review shows complete only after the persisted approval.",
+    "The connected flow exposes no application submission action and emits no external application or source requests."
+  ],
+  "input_sha256": {
+    "apps/web/src/first-run-wizard.tsx": "1709C8ED77FD45282D3BABDE7EA189A77210C32C3C2970E609C39597944DDAF6",
+    "apps/web/src/main.tsx": "ADC8B7097BFD9A04D66A15F130CC16AD19E7288C627199037E59602DD9A1BAE1",
+    "tests/browser/test_first_run_wizard.py": "DFCE95EA9FFC74A4D8C9DDA41FD16FC6AE960E43EF5DA2A11CEC3C413BC8AF51",
+    "tests/integration/test_profile_import.py": "E59880899BCF4F8122372EAC4EE437927DCD9982FF8645C8D6625DAE907B97D6",
+    "tests/unit/test_resume_extraction.py": "18054A337D032C31684FF631F9851DF9A0EBB0D7C4F88A082043B70FD94076B3",
+    "tests/integration/test_least_data_profile_access.py": "34853702FE31E606BEF16765D15E9090D78E116AA959448A076C242D54D2B6CE"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m pytest tests/integration/test_profile_import.py tests/unit/test_resume_extraction.py tests/integration/test_least_data_profile_access.py tests/browser/test_first_run_wizard.py -q --tb=short",
+      "result": "PASS",
+      "evidence": "52 passed; 7 subtests passed, including connected Chromium coverage."
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed; existing advisory bundle-size warning remains."
+    },
+    {
+      "command": ".venv\\Scripts\\python.exe -m py_compile tests/browser/test_first_run_wizard.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Test module compiles and patch whitespace validation passed."
+    }
+  ],
+  "not_run": [
+    "Full Python repository suite and PostgreSQL persistence acceptance.",
+    "Hosted Actions and hosted review (disabled by local-only policy).",
+    "Real external application submission (OFF)."
+  ],
+  "limitations": [
+    "This evidence proves the user review opportunity and persisted approval gate; it does not claim the broader first-run wizard requirement or the end-to-end product workflow is complete."
+  ],
+  "external_submission_enabled": false
+}
