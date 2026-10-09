@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-266-TRUSTED-INTEGRATED-BOARD-ROUTE-PASS-20261009",
-  "current_objective": "Select and begin the next highest-value dependency-ready core product feature after integrating exact trusted-board route ranking.",
+  "current_milestone": "MJ-FEATURE-517-AMBIGUOUS-RETRY-PASS-20261009",
+  "current_objective": "Continue solo feature-first development by selecting the next highest-impact dependency-ready core product workflow.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -479,7 +479,8 @@
     "MJ-REQ-267 bounded redirect-resolution slice at b2e514a8dab39996c7cfb448e1c02dbe93995947: 43 focused Python tests PASS (route resolver, API, existing route and public-fetch regressions); 533 frontend tests PASS; connected Chromium route-choice/check/preparation flow 1/1 PASS; TypeScript/Vite build, py_compile, and diff check PASS. Evidence docs/evidence/2026-10-09-direct-employer-route-resolution.json.",
     "MJ-REQ-250 complete fresh-profile first-run: connected Chromium 1/1; affected profile/resume/discovery integration 52/52; web 95 files / 540 tests; TypeScript/Vite build; py_compile, diff check and lane validator PASS locally.",
     "MJ-REQ-114 focused exact-candidate: 27 matching integration tests PASS; connected Chromium profile-scoped match detail 1/1 PASS with zero external requests/submissions; 17 focused matching explanation Vitest tests PASS; TypeScript/Vite build PASS; compilation, evidence hash and lane/diff checks PASS.",
-    "MJ-REQ-266 exact route-level trusted-board provenance: focused Python/API/connected Chromium 29 PASS; route-preference Vitest 2 PASS; TypeScript/Vite build, py_compile, lane validation, diff check PASS. Exact source a4286d189f2d7b8b583b17de229fecd38fd98813 tree 627040b5977f7b621d593864c6604af059af3349; evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json."
+    "MJ-REQ-266 exact route-level trusted-board provenance: focused Python/API/connected Chromium 29 PASS; route-preference Vitest 2 PASS; TypeScript/Vite build, py_compile, lane validation, diff check PASS. Exact source a4286d189f2d7b8b583b17de229fecd38fd98813 tree 627040b5977f7b621d593864c6604af059af3349; evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
+    "MJ-FEATURE-517 ambiguous source URL retry integrated locally at main d53c99002d68bc52adf4eb207fc65877b6c69f74 from tested code source 31af99f2767344b2a46dd28551f99dd765157702 (tree 90c96f3e90f6c947b7f5d73ad13906d6a658d419); connected acceptance test commit 7765c147c061bd088dee4c7a852446ba5acf38f4 (tree 612b874f426cbd9a8bafa3f5f8010b92c1dd5601). Same-profile retries after a committed/lost response retain the request ID and one durable observation; success, changed input, and profile switching use a fresh ID. Missing route authority safely renders UNKNOWN. Evidence docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json; 17 Python/unit/integration/connected Chromium tests, 25 web tests, TypeScript/Vite build, py_compile, lane validation, and diff checks PASS. PostgreSQL, full suite, live sources, hosted checks NOT_RUN; external submission OFF; #517 remains OPEN/PARTIAL."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -722,7 +723,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile live priority issues and claims; select and claim the next dependency-ready user-facing feature. Preserve local-only delivery, active worktrees, and external-submission OFF.",
+  "recommended_resume_step": "Reconcile live priority issues and active claims, then select and implement the next highest-impact dependency-ready core product workflow in solo mode. Preserve local-only delivery and external-submission OFF.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -756,7 +757,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "f6976147fcae7cdab121abcb3090b2c310a3a53f",
+  "last_implementation_commit": "31af99f2767344b2a46dd28551f99dd765157702",
   "publication": {
     "result": "PASS_LOCAL_ONLY",
     "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
@@ -14470,12 +14471,68 @@
       "migrations_applied": [],
       "live_integrations_tested": [],
       "known_errors": []
+    },
+    {
+      "milestone_id": "MJ-FEATURE-517-AMBIGUOUS-RETRY-PASS-20261009",
+      "timestamp": "2026-10-09T21:17:56Z",
+      "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
+      "completed_steps": [
+        "Kept one request ID for retries when selected profile, trimmed source URL, and reported origin match; reset it after successful readback or profile change.",
+        "Added a connected Chromium regression that lets the API commit and aborts the browser response, retries, and verifies one durable observation and changed-input request identity.",
+        "Made the route picker treat missing route authority as UNKNOWN so older/partial route records do not crash the connected workflow."
+      ],
+      "files_modified": [
+        "apps/web/src/main.tsx",
+        "tests/browser/test_source_candidates.py",
+        "planning/PR_QUEUE.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "evidence_path": "docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json",
+      "source_commit": "31af99f2767344b2a46dd28551f99dd765157702",
+      "source_tree": "90c96f3e90f6c947b7f5d73ad13906d6a658d419",
+      "integrated_main": "d53c99002d68bc52adf4eb207fc65877b6c69f74",
+      "tests_completed": [
+        "Python/unit/integration/connected Chromium: 17 passed",
+        "Source-candidate web tests: 25 passed",
+        "TypeScript/Vite production build passed with existing large-chunk advisory",
+        "py_compile, coordination validation, and diff checks passed"
+      ],
+      "limitations": [
+        "PostgreSQL and full repository suites NOT_RUN",
+        "Live providers and hosted checks NOT_RUN_BY_USER_POLICY",
+        "External application submission OFF",
+        "MJ-FEATURE-517 remains PARTIAL"
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json"
+      ],
+      "tests_remaining": [
+        "PostgreSQL-specific integration",
+        "Full repository test suite",
+        "Live job-source requests and hosted checks NOT_RUN_BY_USER_POLICY"
+      ],
+      "known_limitations": [
+        "Issue #517 remains OPEN/PARTIAL for source-provider/browser intake, source evaluation, and bounded integration linkage.",
+        "The local main is not pushed; external application submission remains OFF."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "d53c99002d68bc52adf4eb207fc65877b6c69f74",
+        "evidence_path": "docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json"
+      },
+      "acceptance": "PASS for ambiguous source URL retry idempotency and the connected regression; full MJ-FEATURE-517 remains PARTIAL.",
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "issue_comment": "https://github.com/MulattoTech/MJobs/issues/517#issuecomment-6089424102",
+      "test_commit": "7765c147c061bd088dee4c7a852446ba5acf38f4",
+      "test_tree": "612b874f426cbd9a8bafa3f5f8010b92c1dd5601"
     }
   ],
-  "current_phase": "LOCAL_MAIN_INTEGRATED_PASS",
+  "current_phase": "LOCAL_MAIN_INTEGRATED_PARTIAL",
   "last_safe_checkpoint": {
-    "git_commit": "64b123e4633b60cb655cc53a3b95188761860e8a",
-    "evidence_path": "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json"
+    "git_commit": "d53c99002d68bc52adf4eb207fc65877b6c69f74",
+    "evidence_path": "docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -14986,10 +15043,10 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": null,
-    "requirement_id": null,
-    "status": "NEXT_SLICE_SELECTION",
-    "outcome": "MJ-REQ-266 is locally PASS; select a dependency-ready core feature from live backlog without overlapping active claims."
+    "number": 517,
+    "requirement_id": "MJ-FEATURE-517",
+    "status": "INTEGRATED_PARTIAL",
+    "outcome": "Ambiguous source URL retry, changed-input identity, profile-switch identity, and missing-authority route compatibility are locally verified; broader source catalogue remains partial."
   },
   "historical_control_snapshots": [
     {
@@ -16153,8 +16210,8 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T20:52:00Z",
-  "current_verified_local_state": "MJ-REQ-266 / issue #267 is locally PASS at main 64b123e4633b60cb655cc53a3b95188761860e8a (tree 4eab257fa49b74fda6e59a36cd5251a8a80b2e3f), from tested source a4286d189f2d7b8b583b17de229fecd38fd98813 (tree 627040b5977f7b621d593864c6604af059af3349). Exact per-route provenance joins captured postings, company sources and configured collectors; the picker explains trusted board evidence; explicit route choice remains available. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
+  "updated_at": "2026-10-09T21:17:56Z",
+  "current_verified_local_state": "MJ-FEATURE-517 ambiguous source URL retry integrated locally at main d53c99002d68bc52adf4eb207fc65877b6c69f74 from tested code source 31af99f2767344b2a46dd28551f99dd765157702 (tree 90c96f3e90f6c947b7f5d73ad13906d6a658d419); connected acceptance test commit 7765c147c061bd088dee4c7a852446ba5acf38f4 (tree 612b874f426cbd9a8bafa3f5f8010b92c1dd5601). Same-profile retries after a committed/lost response retain the request ID and one durable observation; success, changed input, and profile switching use a fresh ID. Missing route authority safely renders UNKNOWN. Evidence docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json; 17 Python/unit/integration/connected Chromium tests, 25 web tests, TypeScript/Vite build, py_compile, lane validation, and diff checks PASS. PostgreSQL, full suite, live sources, hosted checks NOT_RUN; external submission OFF; #517 remains OPEN/PARTIAL.",
   "current_verified_github_state": "Issue #267 is CLOSED after local acceptance receipt https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6089238604. origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead and not pushed. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; PostgreSQL/full suite/live providers NOT_RUN; external submission OFF.",
   "next_candidates": [
     {
@@ -16163,5 +16220,5 @@
       "status": "Continue #517 with one dependency-ready capture-intake or source-evaluation/integration gap after verifying ownership; linked history is now understandable and navigable."
     }
   ],
-  "current_verified_at": "2026-10-09T21:05:23Z"
+  "current_verified_at": "2026-10-09T21:17:56Z"
 }
