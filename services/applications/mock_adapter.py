@@ -472,6 +472,16 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         check()
         profile = store.profile(application["profile_id"], application["profile_version"])
         current_profile = store.profile(application["profile_id"])
+        from services.applications.supporting_documents import (
+            SupportingDocumentError, read_selected_files,
+        )
+        try:
+            supporting_documents = read_selected_files(
+                store, output_dir, application["profile_id"], application_id,
+            )
+        except SupportingDocumentError as error:
+            store.transition(application_id, [application["state"]], "REVIEW_REQUIRED", error.code)
+            raise ValueError(error.code) from None
         root = Path(output_dir).resolve() / application_id
         files = {}
         for document in documents:
@@ -646,6 +656,18 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     page.get_by_label("Cover letter", exact=True).set_input_files(files[("cover-letter", "pdf")])
                     finish_step("COMPLETED")
                     store.transition(application_id, ["FILLING"], "FILLING", "UPLOAD_RESUME")
+                    if supporting_documents:
+                        start_step("UPLOAD_SUPPORTING_DOCUMENTS")
+                        page.set_default_timeout(_playwright_action_timeout_ms(check))
+                        page.get_by_label("Supporting documents", exact=True).set_input_files([
+                            {"name": document["filename"],
+                             "mimeType": document["media_type"],
+                             "buffer": document["content"]}
+                            for document in supporting_documents
+                        ])
+                        finish_step("COMPLETED")
+                        store.transition(application_id, ["FILLING"], "FILLING",
+                                         "UPLOAD_SUPPORTING_DOCUMENTS")
                     check()
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     start_step("FILL_CONTACT")

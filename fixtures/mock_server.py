@@ -1,6 +1,7 @@
 """Explicit fictional local ATS/aggregator fixtures, never production job data."""
 from contextlib import contextmanager
 from datetime import datetime, timezone
+import hashlib
 import json
 from pathlib import Path
 import socket
@@ -16,6 +17,7 @@ def create_mock_app(receipt_file=None):
     app = FastAPI(title="MJobs fictional mock ATS")
     receipts = json.loads(Path(receipt_file).read_text(encoding="utf-8")) if receipt_file and Path(receipt_file).exists() else {}
     request_counts = {"review": 0, "submit": 0}
+    supporting_uploads = []
     lock = threading.Lock()
 
     def jobs(origin):
@@ -119,6 +121,7 @@ def create_mock_app(receipt_file=None):
         <label>Email<input name="email" type="email" required></label>
         <label>Resume<input name="resume" type="file" accept=".pdf" required></label>
         <label>Cover letter<input name="cover" type="file" accept=".pdf" required></label>
+        <label>Supporting documents<input name="supporting" type="file" accept=".pdf,.docx,.txt" multiple></label>
         <label>Country<select id="country" name="country" required><option value="">Choose</option><option>United States</option></select></label>
         {f'<section id="conditional-field" hidden>{dynamic_field}</section>' if dynamic_mode else ''}
         <label>Remote role<input type="radio" name="remote" value="yes" required>Yes</label>
@@ -176,7 +179,30 @@ def create_mock_app(receipt_file=None):
             if len(data) > 2_000_000 or not data.startswith(b"%PDF-"):
                 await form.close()
                 return HTMLResponse('<p role="alert">Invalid document</p>', status_code=422)
+        received_supporting = []
+        for uploaded in form.getlist("supporting"):
+            filename = getattr(uploaded, "filename", "") or ""
+            if not filename:
+                continue
+            data = await uploaded.read(10 * 1024 * 1024 + 1)
+            extension = filename.rsplit(".", 1)[-1].casefold()
+            valid = (
+                len(data) <= 10 * 1024 * 1024
+                and ((extension == "pdf" and data.startswith(b"%PDF-"))
+                     or (extension == "docx" and data.startswith(b"PK"))
+                     or (extension == "txt" and bool(data)))
+            )
+            if not valid:
+                await form.close()
+                return HTMLResponse('<p role="alert">Invalid supporting document</p>', status_code=422)
+            received_supporting.append({
+                "filename": filename,
+                "size_bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            })
         await form.close()
+        with lock:
+            supporting_uploads.extend(received_supporting)
         # A fictional question, supplied only by an explicitly approved test answer.
         return f'''<h1>Review mock application</h1><p data-validated="true">Documents validated</p>
         <form method="post" action="/ats/submit/{requisition}">
@@ -228,6 +254,11 @@ def create_mock_app(receipt_file=None):
     def test_request_counts():
         with lock:
             return dict(request_counts)
+
+    @app.get("/_test/supporting-uploads")
+    def test_supporting_uploads():
+        with lock:
+            return {"uploads": list(supporting_uploads)}
 
     return app
 
