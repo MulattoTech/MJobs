@@ -151,7 +151,17 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
 
                     search_selector = page.get_by_label(
                         "Search profile for suggested titles", exact=True)
-                    search_selector.select_option("fixture-search")
+                    with page.expect_response(lambda response:
+                            urlsplit(response.url).path == "/jobs"
+                            and "search_profile_id=fixture-search" in response.url) as selected_search_response:
+                        search_selector.select_option("fixture-search")
+                    selected_search_query = parse_qs(
+                        urlsplit(selected_search_response.value.url).query)
+                    self.assertEqual(selected_search_query.get("q"), ["infrastructure operations"])
+                    self.assertEqual(selected_search_query.get("remote_type"), ["REMOTE"])
+                    self.assertEqual(selected_search_query.get("provider"), ["greenhouse"])
+                    expect(page.get_by_label("Search jobs", exact=True)).to_have_value(
+                        "infrastructure operations")
                     suggestions_section = page.locator("section").filter(
                         has=page.get_by_role("heading", name="Suggested job titles", exact=True))
                     expect(suggestions_section.get_by_role("alert")).to_contain_text(
@@ -261,6 +271,21 @@ class SearchProfileSuggestionsConnectedBrowserTests(unittest.TestCase):
                     self.assertEqual(durable["criteria"]["required_keywords"], ["Windows Server"])
                     self.assertEqual(durable["criteria"]["job_filters"], original_criteria["job_filters"])
                     self.assertEqual(durable["source_ids"], original_source_ids)
+
+                    saved_search = page.get_by_label("Saved search profile", exact=True)
+                    with page.expect_response(lambda response:
+                            urlsplit(response.url).path == "/jobs"
+                            and "search_profile_id=fixture-search" in response.url) as restored_search_response:
+                        saved_search.select_option("fixture-search")
+                    restored_search_query = parse_qs(
+                        urlsplit(restored_search_response.value.url).query)
+                    self.assertEqual(restored_search_query.get("q"), ["infrastructure operations"])
+                    self.assertEqual(restored_search_query.get("remote_type"), ["REMOTE"])
+                    self.assertEqual(restored_search_query.get("provider"), ["greenhouse"])
+                    expect(page.get_by_label("Search jobs", exact=True)).to_have_value(
+                        "infrastructure operations")
+                    expect(page.get_by_label("Saved search profile", exact=True)).to_have_value(
+                        "fixture-search")
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(external_requests, [])
                     self.assertEqual(submission_requests, [])
