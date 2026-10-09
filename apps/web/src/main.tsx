@@ -42,6 +42,7 @@ import { SensitiveAnswerPolicy, type SensitiveAnswerPolicyValue } from './sensit
 import { SavedSearchSchedule } from './saved-search-schedule';
 import { SearchProfileSuggestions, type SearchProfileTitleSuggestion } from './search-profile-suggestions';
 import { SearchProfileSeed, type SearchProfileSeedDraft } from './search-profile-seed';
+import { TechnologySkillSeed, displayTechnologySkillPreferences } from './technology-skill-seed';
 import { SkillGapHeatmap, type SkillGapHeatmapData } from './skill-gap-heatmap';
 import { JobPrefilter, type JobPrefilterCriteria, type JobPrefilterResponse } from './job-prefilter';
 import { ResumePageFit, type ResumePageFitGenerated, type ResumePageFitPreview } from './resume-page-fit';
@@ -161,7 +162,7 @@ const CLEARANCE_LEVELS:{id:ClearanceLevel;label:string}[]=[
   {id:'OTHER',label:'Other clearance'},
 ];
 type SearchSkill={id:string;label:string};
-type SearchProfile = {id:string;profile_id:string;name:string;enabled:boolean;scheduler?:{enabled:boolean;interval_seconds:number};criteria:Record<string,unknown> & {include_titles:string[];remote:string;employment_types:string[];scheduler?:{enabled:boolean;interval_seconds:number};job_filters?:{q:string;title?:string;company?:string;location?:string;salary_min?:string;salary_max?:string;min_match_score?:string;experience_level?:ExperienceLevel|'';employment_type?:EmploymentType|'';skill?:string;education_requirement?:EducationRequirement|'';clearance_level?:ClearanceLevel|'';posted_within_days?:string;ats_provider?:'greenhouse'|'mock-ats'|'';application_link_status?:ApplicationLinkStatusFilter;application_pipeline_status?:ApplicationPipelineStatusFilterValue;application_capability?:ApplicationCapabilityFilterValue;job_source_id?:string;remote_type:string;provider:string;sort:string}};source_ids:string[];created_at:string;updated_at:string};
+type SearchProfile = {id:string;profile_id:string;name:string;enabled:boolean;scheduler?:{enabled:boolean;interval_seconds:number};criteria:Record<string,unknown> & {include_titles:string[];remote:string;employment_types:string[];optional_skills?:string[];scheduler?:{enabled:boolean;interval_seconds:number};job_filters?:{q:string;title?:string;company?:string;location?:string;salary_min?:string;salary_max?:string;min_match_score?:string;experience_level?:ExperienceLevel|'';employment_type?:EmploymentType|'';skill?:string;education_requirement?:EducationRequirement|'';clearance_level?:ClearanceLevel|'';posted_within_days?:string;ats_provider?:'greenhouse'|'mock-ats'|'';application_link_status?:ApplicationLinkStatusFilter;application_pipeline_status?:ApplicationPipelineStatusFilterValue;application_capability?:ApplicationCapabilityFilterValue;job_source_id?:string;remote_type:string;provider:string;sort:string}};source_ids:string[];created_at:string;updated_at:string};
 type OperationMode = 'FIXTURE'|'PERSONAL';
 type Tab = 'Jobs'|'Profile'|'Career Stories'|'Learning'|'Sources'|'Applications'|'Review Queue'|'AI Settings'|'Activity';
 type AITaskKey = 'job_parsing'|'job_scoring'|'requirement_extraction'|'resume_tailoring'|'cover_letters'|'free_form_answers'|'company_summarization';
@@ -354,7 +355,7 @@ function App() {
   const [documentArchiveError,setDocumentArchiveError]=useState('');
   const [resumes,setResumes]=useState<Resume[]>([]);
   const [tenant,setTenant]=useState(''); const [sourceIntervalMinutes,setSourceIntervalMinutes]=useState(30); const [sourceConcurrency,setSourceConcurrency]=useState(1); const [sourceTimeout,setSourceTimeout]=useState(10); const [sourceRate,setSourceRate]=useState(60); const [sourceJitter,setSourceJitter]=useState(30);
-  const [searchProfiles,setSearchProfiles]=useState<SearchProfile[]>([]); const [searchScheduleDrafts,setSearchScheduleDrafts]=useState<Record<string,{enabled:boolean;interval:number}>>({}); const [selectedSearchProfileId,setSelectedSearchProfileId]=useState(''); const [searchName,setSearchName]=useState(''); const [searchTitles,setSearchTitles]=useState(''); const [searchRemote,setSearchRemote]=useState<'ANY'|'REQUIRED'|'EXCLUDED'>('ANY'); const [searchEmployment,setSearchEmployment]=useState('FULL_TIME'); const [searchSource,setSearchSource]=useState(''); const [savedJobSearchName,setSavedJobSearchName]=useState('');
+  const [searchProfiles,setSearchProfiles]=useState<SearchProfile[]>([]); const [searchScheduleDrafts,setSearchScheduleDrafts]=useState<Record<string,{enabled:boolean;interval:number}>>({}); const [selectedSearchProfileId,setSelectedSearchProfileId]=useState(''); const [searchName,setSearchName]=useState(''); const [searchTitles,setSearchTitles]=useState(''); const [searchOptionalSkills,setSearchOptionalSkills]=useState<string[]>([]); const [searchRemote,setSearchRemote]=useState<'ANY'|'REQUIRED'|'EXCLUDED'>('ANY'); const [searchEmployment,setSearchEmployment]=useState('FULL_TIME'); const [searchSource,setSearchSource]=useState(''); const [savedJobSearchName,setSavedJobSearchName]=useState('');
   const [firstRunAcknowledgements,setFirstRunAcknowledgements]=useState<Record<string,string[]>>({});
   const [firstRunSearchComplete,setFirstRunSearchComplete]=useState(false);
   const [firstRunSourceId,setFirstRunSourceId]=useState('');
@@ -498,6 +499,7 @@ function App() {
     setSearchRemote(seed.remote);
     setSearchEmployment(seed.employmentType);
     setSearchSource('');
+    setSearchOptionalSkills([]);
     setNotice('Example loaded into the form. Review or edit it, then save when ready.');
   }
   async function addSuggestedTitle(targetProfileId:string,suggestedTitle:string) {
@@ -1513,10 +1515,11 @@ function App() {
           <div className="toolbar"><div><h2 data-first-run-anchor="configure-desired-jobs">Scheduled search profiles</h2><p>Profiles are data-driven. The scheduler evaluates each enabled source independently and queues durable discovery work when it is due.</p></div><span className="tag">{searchProfiles.length} saved</span></div>
           {!profileId?<p className="muted">Select or create a career profile before adding a scheduled search.</p>:<form onSubmit={e=>{e.preventDefault();void action('Saving search profile',async()=>{
             const titles=searchTitles.split(/[\n,]+/).map(value=>value.trim()).filter(Boolean);
-            await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:crypto.randomUUID(),profile_id:profileId,name:searchName,enabled:true,include_titles:titles,remote:searchRemote,employment_types:searchEmployment?[searchEmployment]:[],source_ids:searchSource?[searchSource]:[],scheduler:{enabled:false,interval_seconds:3600}})});
-            setSearchName('');setSearchTitles('');setNotice('Search saved. Its schedule is off until you enable it on the saved search.');
+            await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:crypto.randomUUID(),profile_id:profileId,name:searchName,enabled:true,include_titles:titles,optional_skills:searchOptionalSkills,remote:searchRemote,employment_types:searchEmployment?[searchEmployment]:[],source_ids:searchSource?[searchSource]:[],scheduler:{enabled:false,interval_seconds:3600}})});
+            setSearchName('');setSearchTitles('');setSearchOptionalSkills([]);setNotice('Search saved. Its schedule is off until you enable it on the saved search.');
           });}}>
             <SearchProfileSeed disabled={!!busy} onApply={applySearchProfileSeed}/>
+            <TechnologySkillSeed values={searchOptionalSkills} disabled={!!busy} onChange={setSearchOptionalSkills}/>
             <div className="two-col">
               <label>Search name<input required maxLength={200} value={searchName} onChange={e=>setSearchName(e.target.value)} placeholder="Remote Infrastructure"/></label>
               <label>Source<select value={searchSource} onChange={e=>setSearchSource(e.target.value)}><option value="">All enabled sources</option>{sources.map(source=><option key={source.id} value={source.id}>{source.name}</option>)}</select></label>
@@ -1531,8 +1534,9 @@ function App() {
             const schedule=searchScheduleDrafts[search.id]||savedSchedule;
             return <div className="document" key={search.id}>
             <div className="toolbar"><div><strong>{search.name}</strong><p>{search.criteria.include_titles.join(', ')||'Any title'} · remote {search.criteria.remote.toLowerCase()} · {search.criteria.employment_types.join(', ')||'any employment type'}</p></div><span className="tag">{search.enabled?'Search enabled':'Search paused'}</span></div>
+            {(search.criteria.optional_skills?.length||0)>0&&<p className="muted">Optional technology preferences: {displayTechnologySkillPreferences(search.criteria.optional_skills).join(', ')}</p>}
             <p className="muted">{search.source_ids.length?(search.source_ids.length+' selected source(s)'):'All enabled sources'} · updated {stamp(search.updated_at)}</p>
-            <button type="button" className="quiet" disabled={!!busy} onClick={()=>void action(search.enabled?'Pausing search':'Resuming search',async()=>{await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:search.id,profile_id:search.profile_id,name:search.name,enabled:!search.enabled,include_titles:search.criteria.include_titles,remote:search.criteria.remote,employment_types:search.criteria.employment_types,source_ids:search.source_ids,scheduler:{enabled:savedSchedule.enabled,interval_seconds:savedSchedule.interval}})});})}>{search.enabled?'Pause search':'Resume search'}</button>
+            <button type="button" className="quiet" disabled={!!busy} onClick={()=>void action(search.enabled?'Pausing search':'Resuming search',async()=>{await api('/search-profiles',{method:'PUT',body:JSON.stringify({id:search.id,profile_id:search.profile_id,name:search.name,enabled:!search.enabled,include_titles:search.criteria.include_titles,optional_skills:search.criteria.optional_skills||[],remote:search.criteria.remote,employment_types:search.criteria.employment_types,source_ids:search.source_ids,scheduler:{enabled:savedSchedule.enabled,interval_seconds:savedSchedule.interval}})});})}>{search.enabled?'Pause search':'Resume search'}</button>
             <SavedSearchSchedule searchName={search.name} enabled={schedule.enabled} interval={schedule.interval} disabled={!!busy} onChange={next=>updateSearchScheduleDraft(search.id,savedSchedule,next)}/>
             {searchScheduleDrafts[search.id]&&<button type="button" disabled={!!busy} onClick={()=>void action('Saving saved-search schedule',async()=>{
               const latestSchedule=searchScheduleDraftsRef.current[search.id]||schedule;
