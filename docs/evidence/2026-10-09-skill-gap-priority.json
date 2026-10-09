@@ -53,5 +53,11 @@
     "No course/provider recommendations are generated; the slice explains deterministic skill priorities only. Full MJ-REF-026 remains PARTIAL.",
     "Original MJ-REQ-115/MJ-REQ-120 and whole-product release acceptance remain separately tracked."
   ],
-  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY"
+  "remote_integration": "NOT_PUBLISHED_BY_LOCAL_ONLY_POLICY",
+  "integrated_main": {
+    "sha": "de1e463ec42f2c5dca14c6df4112be9a249e75a2",
+    "tree": "b69539458323ce50c96f2b4135fd2fe54ec1b661",
+    "method": "local non-force fast-forward under the Codex integration lock"
+  },
+  "issue_state": "OPEN/PARTIAL"
 }

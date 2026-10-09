@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local-only integration was not pushed and no PR was opened. Issue #134 remains OPEN/PARTIAL. Hosted checks NOT_RUN_BY_USER_POLICY; external application submission OFF.",
     "current_verified_at": "2026-10-09T08:48:49Z"
   },
-  "current_milestone": "MJ-REF-002-ANSWER-EXPORT-CITATION-20261009",
-  "current_objective": "Continue solo feature-first product development. Reviewed, current career-story citations now persist with application-answer export history; keep MJ-REF-002 PARTIAL until document-generation story selection and the remaining acceptance are complete.",
+  "current_milestone": "MJ-REF-026-SKILL-GAP-PRIORITY-20261009",
+  "current_objective": "Continue solo feature-first development after integrating user-reported outcome prioritization into the deterministic skill-gap heatmap. Keep MJ-REF-026 PARTIAL until its remaining upskilling-plan acceptance is addressed.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -717,16 +717,16 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
+  "last_implementation_commit": "9f40bfcec64aad8033fb73b2bf95627ad5b4617a",
   "publication": {
     "result": "PASS_LOCAL_FAST_FORWARD",
     "integration_method": "Ordinary non-force fast-forward into local main under the existing Codex integration lock; no PR opened or push performed.",
-    "integration_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
-    "prior_main": "cd90d0127fd914b7f467a647c71c184429feb5cd",
+    "integration_commit": "de1e463ec42f2c5dca14c6df4112be9a249e75a2",
+    "prior_main": "67977a772368b6caa3414342764b38f9b4297a26",
     "pr_number": null,
     "pr_state": "NOT_OPENED_LOCAL_ONLY",
     "github_reports_merged": false,
-    "note": "Exact tested source integrated to local main. Batched evidence and progress-tracker refresh follows under the same lock. Hosted checks, PostgreSQL, and full repository suite remain NOT_RUN; external submission OFF."
+    "note": "Exact source 9f40bfcec64aad8033fb73b2bf95627ad5b4617a integrated locally as de1e463ec42f2c5dca14c6df4112be9a249e75a2; evidence checkpoint follows under the existing lock. Origin main remains unchanged; hosted checks, PostgreSQL and full suite remain NOT_RUN; external submission OFF."
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -12659,12 +12659,65 @@
         "git_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
         "evidence_path": "docs/evidence/2026-10-09-career-story-export-citations.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REF-026-SKILL-GAP-PRIORITY-20261009",
+      "current_phase": "Issue #396 / MJ-REF-026 priority slice integrated on local main at de1e463ec42f2c5dca14c6df4112be9a249e75a2 (tree b69539458323ce50c96f2b4135fd2fe54ec1b661). Skill-gap rows now include distinct-job intersections of missing approved evidence with user-reported application and interview status; a stable, explained ordering puts interview gaps first, then application gaps, required-gap frequency and total gap frequency. Evidence: docs/evidence/2026-10-09-skill-gap-priority.json.",
+      "timestamp": "2026-10-09T09:24:58Z",
+      "completed_steps": [
+        "Reconciled solo mode and active lane claims; selected unclaimed #396 after preserving competing discovery and document-generation work.",
+        "Added gap-specific, profile-scoped intersections of no-approved-evidence skills with user-reported applications and interviews.",
+        "Ranked skills deterministically: interview-gap jobs, application-gap jobs, required-gap jobs, total gap jobs, then skill ID; retained existing broad mention and activity totals.",
+        "Exposed the priority rule, required-gap frequency and gap-specific user-report counts in the connected heatmap UI.",
+        "Fast-forwarded exact tested source to local main at de1e463ec42f2c5dca14c6df4112be9a249e75a2; MJ-REF-026 remains PARTIAL."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-09-skill-gap-priority.json"
+      ],
+      "files_modified": [
+        "services/learning/skill_gap_heatmap.py",
+        "apps/web/src/skill-gap-heatmap.tsx",
+        "tests/unit/test_skill_gap_heatmap.py",
+        "tests/unit/test_skill_gap_heatmap_unknowns.py",
+        "tests/integration/test_skill_gap_heatmap_api.py",
+        "tests/browser/test_skill_gap_heatmap_reload_recovery.py",
+        "apps/web/src/skill-gap-heatmap.test.tsx",
+        "docs/reference/REFERENCE_INSPIRATION_LOG.md",
+        "planning/REFERENCE_GAP_MATRIX.json",
+        "docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md",
+        "planning/IMPLEMENTATION_STATE.json",
+        "docs/PROGRESS_DASHBOARD.md"
+      ],
+      "tests_completed": [
+        "Python heatmap unit/API/profile-isolation tests: 13 PASS.",
+        "Connected Chromium retry, reported-outcome priority and reload workflow: 1 PASS; synthetic local SQLite, no external requests.",
+        "Focused web heatmap tests: 4 PASS; TypeScript/Vite build PASS with existing chunk-size advisory.",
+        "Reference provenance, progress/catalogue and agent-skill validators plus diff check PASS."
+      ],
+      "tests_remaining": [
+        "AI theme clustering and course/resource recommendations are not implemented; issue remains PARTIAL.",
+        "PostgreSQL, full Python/web suites and hosted checks NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "Synthetic fixture postings and user-reported application/interview events; no live sources or employer submissions."
+      ],
+      "known_errors": [],
+      "known_limitations": [
+        "Reported application/interview events influence ranking only for the same skill when approved evidence is absent.",
+        "This slice does not assert that the user lacks a skill or infer employer outcomes.",
+        "AI-guided theme planning and course recommendations remain outside the completed slice."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "de1e463ec42f2c5dca14c6df4112be9a249e75a2",
+        "evidence_path": "docs/evidence/2026-10-09-skill-gap-priority.json"
+      }
     }
   ],
-  "current_phase": "Issue #372 / MJ-REF-002 citation-export slice integrated on local main at f5e53b0dfd2ba03d133df1efdf53411e4a540fdc (tree fbcf211cc142db645d67b476fe236383d837bd87). Users can explicitly review a current approved story for an answer, then retain its story revision and fact fingerprints in profile-scoped document history. The TXT answer bytes are unchanged. Evidence: docs/evidence/2026-10-09-career-story-export-citations.json.",
+  "current_phase": "Issue #396 / MJ-REF-026 priority slice integrated on local main at de1e463ec42f2c5dca14c6df4112be9a249e75a2 (tree b69539458323ce50c96f2b4135fd2fe54ec1b661). Skill-gap rows now include distinct-job intersections of missing approved evidence with user-reported application and interview status; a stable, explained ordering puts interview gaps first, then application gaps, required-gap frequency and total gap frequency. Evidence: docs/evidence/2026-10-09-skill-gap-priority.json.",
   "last_safe_checkpoint": {
-    "git_commit": "f5e53b0dfd2ba03d133df1efdf53411e4a540fdc",
-    "evidence_path": "docs/evidence/2026-10-09-career-story-export-citations.json"
+    "git_commit": "de1e463ec42f2c5dca14c6df4112be9a249e75a2",
+    "evidence_path": "docs/evidence/2026-10-09-skill-gap-priority.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -13053,14 +13106,14 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 372,
-    "url": "https://github.com/MulattoTech/MJobs/issues/372",
-    "branch": "codex/root-solo-372-citation-export-20261009",
+    "number": 396,
+    "url": "https://github.com/MulattoTech/MJobs/issues/396",
+    "branch": "codex/root-solo-396-heatmap-priority-20261009",
     "status": "INTEGRATED_PARTIAL",
     "related_requirements": [
-      "MJ-REF-002"
+      "MJ-REF-026"
     ],
-    "note": "Current approved story citations are now explicitly selected, revalidated, persisted as provenance-only audit links to immutable answer exports, and shown after document-history reload. Resume/cover-letter story selection remains incomplete; separate audit/export transaction failure recovery is a known limitation."
+    "note": "User-reported interview/application relevance now intersects the same skill's no-approved-evidence jobs and drives transparent priority ordering. Evidence-driven learning resources or AI theme grouping remain unimplemented."
   },
   "historical_control_snapshots": [
     {
@@ -14218,9 +14271,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T09:07:18Z",
-  "current_verified_local_state": "Local main f5e53b0dfd2ba03d133df1efdf53411e4a540fdc (tree fbcf211cc142db645d67b476fe236383d837bd87) includes the #372 reviewed story-citation export workflow. Current approved revision and exact fact fingerprints are revalidated; only provenance IDs are appended to application audit history and read back in profile-scoped document history. Connected API/Chromium 5/5, related existing Python 41/41, focused web 36/36, TypeScript/Vite build, agent-skill/catalogue/progress/reference validators and diff checks PASS. Answer TXT bytes remain unchanged; sensitive/stale/tampered citation negatives pass. MJ-REF-002 remains PARTIAL; full Python suite/PostgreSQL/hosted checks NOT_RUN.",
-  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577 under local-only policy; local main is ahead by 249 commits after this fast-forward. No push or PR. Issue #372 receives a local-integration receipt; hosted CI/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "updated_at": "2026-10-09T09:24:58Z",
+  "current_verified_local_state": "Local main de1e463ec42f2c5dca14c6df4112be9a249e75a2 (tree b69539458323ce50c96f2b4135fd2fe54ec1b661) includes deterministic profile-scoped skill-gap priority counts and UI explanation. Thirteen Python unit/integration tests, one connected Chromium recovery/reload workflow, four focused frontend tests, TypeScript/Vite build, reference provenance validation and diff checks PASS. MJ-REF-026 remains PARTIAL; no AI theme clustering or course recommendations.",
+  "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is 252 commits ahead. Issue #396 receives a local-only integration receipt. No push or PR; hosted checks/review NOT_RUN_BY_USER_POLICY; external application submission OFF.",
   "next_candidates": [
     {
       "issue": 517,

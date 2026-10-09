@@ -187,7 +187,7 @@ The canonical namespace is `MJ-REF`. Concurrent audit work produced a richer cat
 - #380 MJ-REF-010 — Deterministic resume preservation and claim-level mutation guard
 - #384 MJ-REF-014 — Least-data profile lookup interface for AI tasks
 - #395 MJ-REF-025 — Grounded networking outreach drafting
-- #396 MJ-REF-026 — Skill-gap heatmap and evidence-driven upskilling plan
+- #396 MJ-REF-026 — Skill-gap heatmap and evidence-driven upskilling plan — PARTIAL on local main: the deterministic heatmap now shows gap-specific counts for user-reported applications and interviews and prioritizes interview gaps, application gaps, required-gap frequency, and total gaps in that order. AI-guided theme grouping or course recommendations remain unimplemented. Evidence: `docs/evidence/2026-10-09-skill-gap-priority.json`.
 - #408 MJ-REF-038 — Role-specific scoring profiles and configurable specialized fit signals
 - #415 MJ-REF-039 — Multi-job-description comparison and optimization workspace
 - #424 MJ-REF-041 — Post-generation JD quality audit and bounded regeneration loop

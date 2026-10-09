@@ -206,8 +206,10 @@
       "evidence": []
     },
     "MJ-REF-026": {
-      "result": "NOT_RUN",
-      "evidence": []
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-09-skill-gap-priority.json"
+      ]
     },
     "MJ-REF-027": {
       "result": "NOT_RUN",
