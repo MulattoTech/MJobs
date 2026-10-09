@@ -103,8 +103,15 @@ class SearchProfileSuggestionsSelectedScopeTests(unittest.TestCase):
                 select(m.matches).order_by(m.matches.c.id)).mappings()], matches_before)
         self.assertEqual(self.store.count("worker_operations"), workers_before)
 
-    def test_missing_and_foreign_saved_searches_share_not_found_response(self):
-        for search_profile_id in ("missing-search", "foreign-search"):
+    def test_missing_foreign_and_stale_searches_share_not_found_without_mutation(self):
+        with self.store.engine.connect() as connection:
+            searches_before = [dict(row) for row in connection.execute(
+                select(m.search_profiles).order_by(m.search_profiles.c.id)).mappings()]
+            matches_before = [dict(row) for row in connection.execute(
+                select(m.matches).order_by(m.matches.c.id)).mappings()]
+        workers_before = self.store.count("worker_operations")
+
+        for search_profile_id in ("missing-search", "foreign-search", "stale-search"):
             with self.subTest(search_profile_id=search_profile_id):
                 response = self.client.get(
                     "/profiles/fixture/search-profile-suggestions",
@@ -114,6 +121,13 @@ class SearchProfileSuggestionsSelectedScopeTests(unittest.TestCase):
                 self.assertEqual(response.json()["detail"], {
                     "code": "SEARCH_PROFILE_SUGGESTIONS_SEARCH_NOT_FOUND",
                 })
+
+        with self.store.engine.connect() as connection:
+            self.assertEqual([dict(row) for row in connection.execute(
+                select(m.search_profiles).order_by(m.search_profiles.c.id)).mappings()], searches_before)
+            self.assertEqual([dict(row) for row in connection.execute(
+                select(m.matches).order_by(m.matches.c.id)).mappings()], matches_before)
+        self.assertEqual(self.store.count("worker_operations"), workers_before)
 
     def test_unselected_suggestions_remain_profile_scoped(self):
         response = self.client.get("/profiles/fixture/search-profile-suggestions")
