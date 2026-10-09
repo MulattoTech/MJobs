@@ -74,6 +74,8 @@ function ResumeFactSelectionView({profileId,jobId,jobFingerprint,disabled,choice
   }
   function reviewRewrite(reviews:readonly {fact_id:string;reviewed:boolean}[]){
     const reviewById=new Map(reviews.map(item=>[item.fact_id,item.reviewed]));
+    const hasChange=Object.entries(rewrites).some(([factId,item])=>item.reviewed!==(reviewById.get(factId)===true));
+    if(!hasChange)return;
     const next=Object.fromEntries(Object.entries(rewrites).map(([key,item])=>[
       key,{...item,reviewed:reviewById.get(key)===true},
     ]));

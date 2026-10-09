@@ -40,6 +40,7 @@ _RESPONSE_FIELDS = (
     "profile_version",
     "job_id",
     "job_fingerprint",
+    "selected_fact_ids",
     "read_only",
     "review_required",
     "semantic_equivalence",

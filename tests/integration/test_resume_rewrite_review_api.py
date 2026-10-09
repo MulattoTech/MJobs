@@ -134,6 +134,7 @@ class ResumeRewriteReviewApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         body = response.json()
         self.assertEqual(body["profile_id"], "fixture")
+        self.assertEqual(body["selected_fact_ids"], ["experience"])
         self.assertEqual(body["profile_version"], self.store.profile("fixture")["version"])
         self.assertEqual(body["job_id"], self.job_id)
         self.assertEqual(body["job_fingerprint"], target_fingerprint(

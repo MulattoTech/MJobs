@@ -111,8 +111,6 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                     context.route("**/*", local_only)
                     context.add_init_script("localStorage.setItem('mjobs-profile', 'fixture')")
                     page = context.new_page()
-                    page.on("response", lambda response: print("ALIGNMENT_RESPONSE", response.status, response.url) if "resume-alignment-preview" in response.url else None)
-                    page.on("requestfailed", lambda request: print("ALIGNMENT_FAILED", request.url, request.failure) if "resume-alignment-preview" in request.url else None)
                     page.set_default_timeout(10000)
                     page.goto(origin, wait_until="domcontentloaded")
 
@@ -122,18 +120,25 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                     page.get_by_label(
                         "Rewrite this experience: " + original_fact["text"], exact=True,
                     ).fill(proposed)
+                    rewrite_button = page.get_by_role("button", name="Preview exact resume rewrites", exact=True)
+                    expect(rewrite_button).to_be_enabled()
 
                     # A source-fact change after loading the source snapshot
                     # must fail closed. Reloading binds the preview to the updated
                     # approved fact and its fresh profile version.
                     current = store.profile("fixture")
                     changed = deepcopy(current)
-                    changed["facts"] = deepcopy(current["facts"])
+                    # Match the client contract: the public fact ID is fact_id;
+                    # the database row ID is an internal persistence UUID.
+                    changed["facts"] = [
+                        {**fact, "id": fact.get("fact_id") or fact["id"]}
+                        for fact in current["facts"]
+                    ]
                     changed["facts"][0]["text"] = "Supported Cisco CCNA network routing for 12 sites since 2020."
                     changed["expected_version"] = current["version"]
                     store.save_profile(changed, expected_version=current["version"])
                     facts_before = deepcopy(store.profile("fixture")["facts"])
-                    updated_fact = next(fact for fact in facts_before if fact["id"] == "experience")
+                    updated_fact = next(fact for fact in facts_before if fact["fact_id"] == "experience")
                     proposed = "Maintained Cisco CCNA network routing across 12 locations since 2020."
                     stale_endpoint = (
                         f"{origin}/profiles/fixture/jobs/{job['id']}/resume-rewrite-review-preview"
@@ -142,9 +147,7 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                         lambda response: response.url == stale_endpoint
                         and response.request.method == "POST"
                     ) as stale_preview:
-                        page.get_by_role(
-                            "button", name="Preview exact resume rewrites", exact=True,
-                        ).click()
+                        rewrite_button.click()
                     self.assertEqual(stale_preview.value.status, 409, stale_preview.value.text())
                     expect(page.get_by_role("alert")).to_be_visible()
                     self.assertEqual(self.counts(store), documents_before)
@@ -163,7 +166,6 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                         "Rewrite this experience: " + updated_fact["text"], exact=True,
                     )
                     proposed_box.fill(proposed)
-                    expect(acknowledgement).not_to_be_checked()
 
                     with page.expect_response(
                         lambda response: response.url == stale_endpoint
@@ -173,6 +175,8 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                             "button", name="Preview exact resume rewrites", exact=True,
                         ).click()
                     self.assertEqual(successful_preview.value.status, 200, successful_preview.value.text())
+                    expect(acknowledgement).to_be_visible()
+                    expect(acknowledgement).not_to_be_checked()
                     payload = successful_preview.value.request.post_data_json
                     result = successful_preview.value.json()
                     self.assertEqual(payload["selected_fact_ids"], ["experience"])
@@ -205,7 +209,7 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                     # Acknowledgement is local review state. It does not save a
                     # rewrite or create an application/document; this test never
                     # invokes the distinct PREPARE action.
-                    acknowledgement.check()
+                    acknowledgement.click()
                     expect(acknowledgement).to_be_checked()
                     self.assertEqual(store.profile("fixture")["facts"], facts_before)
                     self.assertEqual(self.counts(store), documents_before)
@@ -257,7 +261,7 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
                             audit = token_preview.value.json()["rewrites"][0]["protected_token_audit"]
                             self.assertTrue(any(item["type"] == missing_type for item in audit["missing"]), audit)
                             expect(page.get_by_role("region", name="Resume rewrite review preview", exact=True))\
-                                .to_contain_text("Missing " + missing_type)
+                                .to_contain_text("Missing " + missing_type.replace("_", " "))
                             expect(page.get_by_label(
                                 "I reviewed the proposed wording for fact experience", exact=True,
                             )).to_be_disabled()
@@ -287,7 +291,11 @@ class ResumeRewriteReviewBrowserTests(unittest.TestCase):
         expect(detail.get_by_role("heading", name="Resume workspace", exact=True)).to_be_visible()
         page.get_by_label("Order approved skills for this job", exact=True).check()
         choose = detail.get_by_label("Choose resume facts", exact=True).last
-        choose.check()
+        # Playwright's check action reports a failed transition when this
+        # controlled input rerenders during the same user event. Assert the
+        # actual user click and wait for the rendered state separately.
+        choose.click()
+        expect(choose).to_be_checked()
         fact = detail.get_by_label("Include " + source_text, exact=True)
         expect(fact).to_be_visible()
         fact.check()
