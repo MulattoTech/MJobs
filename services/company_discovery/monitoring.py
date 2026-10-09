@@ -169,6 +169,16 @@ def _enqueue(connection, source, monitor, profiles, at, manual):
     return dict(source_id=source['id'], operation_id=operation_id)
 
 
+def _enqueue_rediscovery(connection, source, monitor, request_id):
+    """Queue one identity-checked public rediscovery without replacing the reviewed source."""
+    _validate(connection, source, monitor)
+    candidate = dict(company_name='Stored employer', company_website=source['career_url'])
+    return enqueue_operation(None, 'COMPANY_DISCOVER', source['company_id'],
+        dict(candidate=candidate, fetch_mode='PUBLIC_HTTPS', monitoring_source_id=source['id'],
+             monitoring_revision=monitor['revision'], trigger_reason='KNOWN_SOURCE_BROKEN',
+             request_id=request_id, profile_id=None), connection=connection)
+
+
 def queue_refresh(store, source_id, profile_id):
     store.profile(profile_id)
     at = datetime.now(timezone.utc)
@@ -390,14 +400,10 @@ def refresh_company_source(store, operation, check=None):
                     else:
                         state = 'BLOCKED'
                     rediscovery = None
-                    if structural:
+                    rediscovery_due = structural or (retryable and failures == MAX_RETRYABLE_SOURCE_FAILURES)
+                    if rediscovery_due:
                         try:
-                            _validate(c, current_source, current)
-                            candidate = dict(company_name='Stored employer', company_website=current_source['career_url'])
-                            rediscovery = enqueue_operation(None, 'COMPANY_DISCOVER', current_source['company_id'],
-                                dict(candidate=candidate, fetch_mode='PUBLIC_HTTPS', monitoring_source_id=source_id,
-                                     monitoring_revision=current['revision'], trigger_reason='KNOWN_SOURCE_BROKEN',
-                                     request_id=operation['id'], profile_id=None), connection=c)
+                            rediscovery = _enqueue_rediscovery(c, current_source, current, operation['id'])
                         except (ValueError, PublicFetchError):
                             state = 'BLOCKED'
                     stamp = now()

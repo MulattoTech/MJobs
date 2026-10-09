@@ -139,12 +139,48 @@ class CompanySourceMonitoringTests(unittest.TestCase):
             current = self.monitor()
             self.assertEqual(current['failure_count'], failures)
             self.assertEqual(current['status'], 'FAILED' if failures == 3 else 'IDLE')
+            if failures < 3:
+                self.assertIsNone(current['rediscovery_operation_id'])
             source_view = next(row for row in list_company_source_view(self.store)
                                if row['id'] == self.source['id'])
             self.assertEqual(source_view['monitoring']['failure_count'], failures)
 
+        rediscovery_id = self.monitor()['rediscovery_operation_id']
+        self.assertIsNotNone(rediscovery_id, 'the third retryable failure should queue rediscovery')
+        with self.store.engine.connect() as connection:
+            rediscovery = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == rediscovery_id)).mappings().one())
+            queued_discoveries = [dict(row) for row in connection.execute(select(m.operations).where(
+                m.operations.c.kind == 'COMPANY_DISCOVER')).mappings()
+                if row['params'].get('monitoring_source_id') == self.source['id']]
+        self.assertEqual(rediscovery['kind'], 'COMPANY_DISCOVER')
+        self.assertEqual(rediscovery['state'], 'QUEUED')
+        self.assertEqual(rediscovery['params']['trigger_reason'], 'KNOWN_SOURCE_BROKEN')
+        self.assertEqual(rediscovery['params']['monitoring_source_id'], self.source['id'])
+        self.assertEqual(len(queued_discoveries), 1, 'only one rediscovery may be queued for this failure transition')
+        with self.store.engine.connect() as connection:
+            self.assertEqual(len(connection.execute(select(m.company_sources.c.id)).all()), 1)
+            self.assertEqual(connection.execute(select(m.company_sources.c.endpoint)).scalar_one(),
+                             'https://employer.example/jobs.json')
+
         due = datetime.fromisoformat(self.monitor()['next_due']) + timedelta(seconds=1)
         self.assertEqual(schedule_company_sources(self.store, at=due)['scheduled'], [])
+        with self.assertRaisesRegex(ValueError, 'MONITOR_ACTIVE_OPERATION'):
+            queue_refresh(self.store, self.source['id'], 'fixture')
+
+        # A failed rediscovery is terminal but does not replace the preserved
+        # source; the user can then choose to retry that source explicitly.
+        def fail_discovery(url, deadline):
+            if httpx.URL(url).path == '/robots.txt':
+                return self.fetch(url, deadline)
+            raise HTTPStatusError(503)
+        with patch.dict(os.environ, self.env), patch.object(
+                PublicCompanyClient, '_request_once', side_effect=fail_discovery):
+            rediscovery_result = execute_operation(rediscovery_id)
+        self.assertEqual(rediscovery_result['status'], 'BLOCKED', rediscovery_result)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.company_sources.c.endpoint)).scalar_one(),
+                             'https://employer.example/jobs.json')
 
         with self.store.engine.begin() as connection:
             old_attempt = (datetime.now(timezone.utc) - timedelta(minutes=10)).isoformat()
@@ -214,6 +250,7 @@ class CompanySourceMonitoringTests(unittest.TestCase):
 
         monitor = self.monitor()
         self.assertEqual(monitor['status'], 'BLOCKED')
+        self.assertIsNone(monitor['rediscovery_operation_id'])
         retry_at = datetime.fromisoformat(monitor['next_due']) + timedelta(seconds=1)
         self.assertEqual(schedule_company_sources(self.store, at=retry_at)['scheduled'], [])
 

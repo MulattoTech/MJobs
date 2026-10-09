@@ -67,4 +67,14 @@ describe('company source monitoring', () => {
     expect(stopped).toContain('3 (automatic retries stopped)');
     expect(stopped).toContain('Run now');
   });
+
+  it('explains that failed-source rediscovery is queued without changing the source', () => {
+    const html = renderToStaticMarkup(<CompanySourceMonitoring {...props} monitoring={{
+      ...healthy, status:'FAILED', failure_count:3,
+      rediscovery_operation_id:'rediscovery-1', last_error:'HTTP_STATUS_ERROR',
+    }} />);
+    expect(html).toContain('Repeated failures queued an employer-source rediscovery');
+    expect(html).toContain('existing failed source and its settings remain unchanged');
+    expect(html).toContain('review any findings');
+  });
 });
