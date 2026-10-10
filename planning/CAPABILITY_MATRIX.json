@@ -1163,9 +1163,11 @@
     },
     {
       "requirement_id": "MJ-REQ-122",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
+      ],
+      "note": "Bounded Greenhouse child #346 route/form validation and hash-verified fixture document selection integrated PARTIAL on local main at afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537. 31 focused unit/integration/Chromium tests pass. Public ATS upload, connected UI/API/worker wiring and durable confirmation/restart remain NOT_RUN; parent requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-123",

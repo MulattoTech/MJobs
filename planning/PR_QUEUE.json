@@ -1363,10 +1363,20 @@
       "depends_on": [
         "MJ-PR-030"
       ],
-      "status": "QUEUED",
+      "status": "INTEGRATED_PARTIAL",
       "branch": "codex/mj-pr-034-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Greenhouse child issue #346 is locally integrated fixture-only; public ATS upload, connected UI/API/worker composition and durable confirmation/restart remain incomplete. Exact tested source is recorded in docs/evidence/2026-10-10-greenhouse-application-adapter.json.",
+      "base": "f399e00da63c7bf14cd5281b71bba5daf8d62e10",
+      "candidate": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
+      "source_commit": "c6c744ad6db659b7f33c0ddc5caf54f2e31b5875",
+      "integration_commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "integrated_at": "2026-10-10T21:57:26Z",
+      "evidence_path": "docs/evidence/2026-10-10-greenhouse-application-adapter.json",
+      "scope_complete": false,
+      "scope_result": "PARTIAL",
+      "pr_state": "NOT_OPENED_LOCAL_ONLY"
     },
     {
       "id": "MJ-PR-035",

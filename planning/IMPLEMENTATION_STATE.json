@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "APPLICATION-RELIABILITY-WEBPRO-20261010",
-  "current_objective": "Verified durable local attempt history, receipt-only recovery and browser-verified upload bytes.",
+  "current_milestone": "GREENHOUSE-APPLICATION-ADAPTER-20261010",
+  "current_objective": "Integrate and verify a bounded, review-first Greenhouse adapter on synthetic loopback pages; preserve parent acceptance as partial.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -188,7 +188,9 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    "MJ-REQ-122.A01"
+  ],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -668,15 +670,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
-    "tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+    "commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
+    "tree": "1da9b1f5a3b62df294367ff5857bd63a0b315001",
     "result": "PARTIAL",
     "evidence": [
-      "docs/evidence/2026-10-10-durable-application-attempts.json",
-      "docs/evidence/2026-10-10-confirmation-reconciliation.json",
-      "docs/evidence/2026-10-10-verified-upload-bytes.json"
+      "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
     ],
-    "verified_at_utc": "2026-10-10T08:38:56.568551+00:00"
+    "verified_at_utc": "2026-10-10T21:57:26Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -743,7 +743,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "First recheck live claims. Remaining leaf: connect stable request identity through the durable worker operation boundary and prove same-operation retry/cancellation semantics without stealing unfinished reservations. Then complete provider adapter architecture before claiming real ATS adapters.",
+  "recommended_resume_step": "Reconcile issue #146 and current application-worker claims before choosing any connected Greenhouse API/UI/worker integration slice. Preserve the current Codex adapter branch/worktree history and do not overlap shared application worker ownership.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -777,7 +777,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+  "last_implementation_commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
   "publication": {
     "result": "PASS",
     "scope": "Source publication only; not full product acceptance",
@@ -14840,12 +14840,69 @@
         "git_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
         "evidence_path": "docs/evidence/2026-10-10-durable-application-attempts.json"
       }
+    },
+    {
+      "milestone_id": "MJ-REQ-122-A01-GREENHOUSE-FIXTURE-ADAPTER-20261010",
+      "timestamp": "2026-10-10T21:57:26Z",
+      "current_phase": "VERIFIED_PARTIAL_CHECKPOINT",
+      "requirements": [
+        "MJ-REQ-122.A01"
+      ],
+      "acceptance": "PARTIAL; exact Greenhouse fixture adapter slice locally verified and integrated; broad requirement remains open.",
+      "source_commit": "c6c744ad6db659b7f33c0ddc5caf54f2e31b5875",
+      "source_tree": "1da9b1f5a3b62df294367ff5857bd63a0b315001",
+      "integrated_main": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
+      "integration_method": "NON_FORCE_FAST_FORWARD",
+      "evidence_paths": [
+        "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
+      ],
+      "completed_steps": [
+        "Integrated bounded HTTPS Greenhouse route recognition and value-free form analysis.",
+        "Integrated fixture-only verified resume and cover-letter selection with native validity gating and hash checks.",
+        "Reran exact-source focused unit, integration and Chromium acceptance: 31 PASS."
+      ],
+      "files_added": [
+        "services/applications/adapters/greenhouse.py",
+        "tests/unit/test_greenhouse_application_adapter.py",
+        "tests/browser/test_greenhouse_application_adapter.py",
+        "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
+      ],
+      "tests_completed": [
+        "31 focused unit, integration and Chromium tests PASS.",
+        "Python compilation, lane validation and diff check PASS."
+      ],
+      "tests_remaining": [
+        "Connected shared API/UI/worker wiring and durable attempt/confirmation/restart behavior.",
+        "Live ATS, public upload, PostgreSQL and hosted verification are NOT_RUN."
+      ],
+      "known_limitations": [
+        "Adapter only operates on synthetic loopback fixtures; it cannot submit.",
+        "External application submission remains OFF."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "LOCAL_LOOPBACK_SYNTHETIC_FIXTURE"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
+        "evidence_path": "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
+      },
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/PR_QUEUE.json",
+        "planning/SESSION_HANDOFF.md",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg"
+      ],
+      "known_errors": []
     }
   ],
   "current_phase": "VERIFIED_PARTIAL_CHECKPOINT",
   "last_safe_checkpoint": {
-    "git_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
-    "evidence_path": "docs/evidence/2026-10-10-durable-application-attempts.json"
+    "git_commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
+    "evidence_path": "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15357,17 +15414,13 @@
   },
   "active_development_issue": {
     "numbers": [
-      139,
-      145,
-      135
+      346
     ],
     "requirement_ids": [
-      "MJ-REQ-138",
-      "MJ-REQ-144",
-      "MJ-REQ-134"
+      "MJ-REQ-122.A01"
     ],
     "status": "VERIFIED_PARTIAL_CHECKPOINT",
-    "outcome": "Three source commits published to main; full requirements stay OPEN/PARTIAL."
+    "outcome": "Bounded fixture-only Greenhouse adapter integrated locally. Parent MJ-REQ-122 remains OPEN/PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -16572,9 +16625,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-10T08:38:56.568551+00:00",
-  "current_verified_local_state": "Clean primary main and published feature branch contain verified source 25fea60889ad13cb5e837ab2263324f84fd20a04; exact combined source tree d2fcf4387ff9dfca71fa779eb37001e4caae924c. Three locally verified MOCK slices; 41/41 new Python tests, 84/86 combined with two reproduced baseline failures, 567/567 frontend, build PASS. Runtime production application was not restarted.",
-  "current_verified_github_state": "GitHub main and branch chatgpt/durable-application-attempts-20261010 read back at 25fea60889ad13cb5e837ab2263324f84fd20a04; non-force publication, no PR/hosted reviewer, Actions/workflows disabled, no active repository webhooks. The final metadata checkpoint can be a descendant of this tested source.",
+  "updated_at": "2026-10-10T21:57:26Z",
+  "current_verified_local_state": "Local main at afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537; 31 focused unit, integration and Chromium tests PASS for fixture-only Greenhouse form validation and verified document selection. Public ATS, shared UI/API/worker wiring, durable confirmation/restart, PostgreSQL and hosted checks are NOT_RUN; external submission remains OFF.",
+  "current_verified_github_state": "origin/main was read as f399e00da63c7bf14cd5281b71bba5daf8d62e10 immediately before this local-only integration. No push or PR was made; hosted checks/review remain NOT_RUN_BY_USER_POLICY; issue #346 stays OPEN/PARTIAL; external application submission remains OFF.",
   "next_candidates": [
     {
       "issue": 246,
@@ -16582,7 +16635,7 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-10T08:38:56.568551+00:00",
+  "current_verified_at": "2026-10-10T21:57:26Z",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [

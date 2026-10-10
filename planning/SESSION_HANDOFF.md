@@ -1,3 +1,11 @@
+# Current checkpoint — 2026-10-10 Greenhouse fixture adapter
+
+Local `main` is integrated at `afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537` from exact base `f399e00da63c7bf14cd5281b71bba5daf8d62e10` by non-force fast-forward under the Codex integration lock. Issue #346 / MJ-REQ-122.A01 is PARTIAL: review-first Greenhouse form recognition, native required-field gating and hash-verified local fixture uploads are implemented. The exact focused unit/integration/Chromium command passed 31 tests. Evidence: `docs/evidence/2026-10-10-greenhouse-application-adapter.json`. Public ATS access/upload, connected API/UI/worker orchestration and durable confirmation/restart are NOT_RUN; external submission remains OFF. The parent MJ-REQ-122 stays PARTIAL.
+
+Next: reconcile live #146 worker claims before choosing connected integration paths. Local/origin main were synchronized at the base before this integration; this local-only commit is not pushed.
+
+---
+
 # Current checkpoint ? 2026-10-10 application reliability sprint
 
 Published source `25fea60889ad13cb5e837ab2263324f84fd20a04` (tree `d2fcf4387ff9dfca71fa779eb37001e4caae924c`); three local application workflow improvements, not a full release PASS. Exact combined Python 84/86 with two reproduced baseline failures and zero skips; all 41 new tests pass. Full frontend 567/567 and build PASS. Original counts 102 PASS / 101 PARTIAL / 163 NOT_RUN out of 366; supplemental unchanged 19/4/36 out of 59.
