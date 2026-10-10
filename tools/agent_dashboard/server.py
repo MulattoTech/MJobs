@@ -53,11 +53,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     @app.get("/api/launcher/health")
     def launcher_health():
         return {
-            "service": "mjobs-mission-control", "version": 5, "status": "ready",
+            "service": "mjobs-mission-control", "version": 6, "status": "ready",
             "root": str(repo), "prompt_preview": True, "approval_required": True,
             "history_available": True, "history_refresh_seconds": 5,
             "visible_terminal": True, "subagent_controls": True,
-            "prompt_via_stdin": True,
+            "prompt_via_stdin": True, "console_output_binding": "CONOUT$",
         }
 
     def deny_legacy_process_controls():

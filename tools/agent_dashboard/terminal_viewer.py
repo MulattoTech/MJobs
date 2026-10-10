@@ -10,12 +10,22 @@ from pathlib import Path
 import sys
 import time
 
+if __package__:
+    from .console_io import bind_visible_console
+else:
+    from console_io import bind_visible_console
+
 
 def main() -> int:
     parser=argparse.ArgumentParser()
     parser.add_argument("--lane", required=True, choices=("codex", "antigravity", "claude", "ollama"))
     parser.add_argument("--log", required=True, type=Path)
     args=parser.parse_args()
+    try:
+        bind_visible_console(f"MJobs | {args.lane.upper()} | LIVE output viewer")
+    except (OSError, RuntimeError) as exc:
+        # There is no useful console if this fails; never spawn another agent.
+        return 3
     print(f"MJobs | {args.lane.upper()} | Existing run output", flush=True)
     print("Read-only transcript viewer. No new AI worker was started.", flush=True)
     print("Press Ctrl+C to close this viewer without stopping the coding agent.", flush=True)

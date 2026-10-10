@@ -16,6 +16,11 @@ import sys
 import time
 from typing import Any
 
+if __package__:
+    from .console_io import bind_visible_console, set_console_title
+else:
+    from console_io import bind_visible_console, set_console_title
+
 
 def _echo(text: str, logfile) -> None:
     logfile.write(text)
@@ -55,6 +60,15 @@ def run_manifest(manifest: Path) -> int:
         raise ValueError("Codex must read the reviewed prompt from stdin")
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with log_path.open("a", encoding="utf-8", errors="replace", buffering=1) as log:
+        if visible:
+            try:
+                bind_visible_console(
+                    "MJobs | " + str(settings.get("lane", "agent")).upper() + " | LIVE Coding CLI"
+                )
+            except (OSError, RuntimeError) as exc:
+                # Do not launch a paid model against a blank output window.
+                log.write("VISIBLE_CONSOLE_BIND_FAILED: " + str(exc)[:260] + "\n")
+                return 3
         _echo(
             "\n=== MJobs supervised agent: " + str(settings.get("lane")) +
             " | " + ("VISIBLE CONSOLE" if visible else "HEADLESS") + " ===\n"
@@ -86,6 +100,11 @@ def run_manifest(manifest: Path) -> int:
                 text=True, encoding="utf-8", errors="replace", bufsize=1,
                 env={**os.environ, "PYTHONIOENCODING": "utf-8"},
             )
+            if visible:
+                # The npm .cmd wrapper may set the title to cmd.exe when started.
+                set_console_title(
+                    "MJobs | " + str(settings.get("lane", "agent")).upper() + " | LIVE Coding CLI"
+                )
             assert process.stdout is not None
             if stdin_mode:
                 assert process.stdin is not None

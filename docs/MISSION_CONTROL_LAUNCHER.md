@@ -302,3 +302,53 @@ and confirms the prompt manifest is removed. The unit tests verify the real
 CREATE_NEW_CONSOLE flag and checked capacity flags without launching a
 coding model. Actual Codex tool-use results and subagent occupancy depend
 on the installed CLI, its account capacity, and the active issue backlog.
+
+
+## October 10: black "Administrator cmd.exe" window correction
+
+Root cause: CREATE_NEW_CONSOLE successfully allocates a Windows console
+window, but it does **not** guarantee that a child inherits output handles
+pointing at that new window. The Mission Control service is started headlessly
+with its own redirected standard streams. Its child terminal_host.py and the
+read-only terminal_viewer.py inherited those hidden streams. The result was
+a visible, BLACK cmd.exe/Windows console even while the coding CLI was
+running and the dashboard log contained real output.
+
+This is fixed by an explicit Windows console binding module:
+
+- tools/agent_dashboard/console_io.py binds stdout and stderr inside each
+  terminal process to the freshly allocated CONOUT$ screen buffer, sets
+  UTF-8 console output, and assigns a descriptive MJobs window title.
+- terminal_host.py runs the binding BEFORE spawning the approved coding
+  agent. If visible output cannot be attached, the runner fails closed and
+  records VISIBLE_CONSOLE_BIND_FAILED instead of silently running a paid AI
+  task in another black window. The host restores the MJobs window title
+  after launching Windows npm cmd.exe wrappers.
+- terminal_viewer.py uses the same binding. The View console / last output
+  action never launches a second coding agent and now displays actual text.
+- Headless mode retains redirected output and existing dashboard file logs.
+
+The application health endpoint is now v6 and advertises the CONOUT$ binding.
+Desktop launchers reject older v5 servers so a stale running dashboard cannot
+silently present the previous, uncorrected implementation.
+
+### Verification, without AI inference
+
+The Windows integration smoke test:
+
+    .\.venv\Scripts\python.exe tests\integration\mission_console_output_smoke.py
+
+It creates two short-lived Windows consoles with stdout=DEVNULL (emulating
+the hidden web server). It then **reads the Windows console screen buffers**
+using AttachConsole / ReadConsoleOutputCharacterW. A test passes only when
+the real host console shows a synthetic Codex response and the viewer
+console displays a synthetic log entry. Creating a window or writing a log
+alone is NOT sufficient to pass. Both test processes are terminated/exit
+without invoking Codex, generating tokens, or modifying the live MJobs tree.
+
+To view an already-started agent's log from Mission Control, choose
+View console / last output. It shows prior lines and tails new output.
+Closing this viewer does not stop the CLI. Do not close an existing black
+cmd.exe console belonging to an active coder; that may terminate its
+process tree. The installed control center is updated at a checkpoint only
+when there is no dashboard-supervised agent still running.
