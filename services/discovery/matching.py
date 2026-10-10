@@ -11,6 +11,7 @@ from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills
 from services.discovery.requirement_parsers import CERTIFICATION_PATTERNS, parse_certifications
 from services.discovery.search_semantics import normalize_title, parse_salary
 from services.audit_history import record_job_discovered, record_match_scored
+from services.matching.skill_evidence import collect_positive_skill_evidence, EXPERIENCE_KINDS
 
 
 _STRENGTH_WEIGHT = {"REQUIRED": 1.0, "PREFERRED": 0.5, "NICE_TO_HAVE": 0.25, "UNKNOWN": 0.25}
@@ -421,25 +422,13 @@ def _relevant_experience_fit_factor(job, profile):
             "score_effect": "NONE",
         }
 
-    experience_skills = set()
-    for fact in profile.get("facts", []):
-        if not isinstance(fact, dict) or fact.get("kind") not in {
-                "experience", "technology_experience", "responsibility", "project", "accomplishment"}:
-            continue
-        text = fact.get("text")
-        source = fact.get("source")
-        confidence = fact.get("confidence")
-        if (fact.get("verified") is not True or fact.get("user_approved") is not True
-                or type(confidence) not in (int, float) or confidence < 80
-                or not isinstance(text, str) or not text.strip()
-                or not isinstance(source, str) or not source.strip()):
-            continue
-        experience_skills.update(_canonical_set(extract_skills(text)["labels"]))
+    experience_evidence = collect_positive_skill_evidence(profile.get("facts"), EXPERIENCE_KINDS)
+    experience_skills = _canonical_set(experience_evidence["labels"])
 
     if not experience_skills:
         status = "UNKNOWN"
         explanation = (
-            "No approved, sufficiently confident experience facts contain locally recognized skills; "
+            "No approved, sufficiently confident experience facts contain positive locally recognized skill evidence; "
             "missing profile evidence does not show that relevant experience is absent."
         )
     else:
@@ -447,7 +436,7 @@ def _relevant_experience_fit_factor(job, profile):
         if matched:
             status = "ALIGNS"
             explanation = (
-                "Approved experience facts directly mention locally recognized job skills: "
+                "Approved experience facts positively support locally recognized job skills: "
                 + ", ".join(matched) + "."
             )
         else:
@@ -560,13 +549,9 @@ def build_explanation(job, profile):
     preferred = _canonical_set(attributes.get("preferred_skills"))
     nice_to_have = _canonical_set(attributes.get("nice_to_have_skills"))
     all_are_required = evidence_type == "structured_required_skills"
-    approved = set()
-    for row in profile.get("facts", []):
-        if (row["kind"] != "skill" or not row["verified"] or not row["user_approved"]
-                or row["confidence"] < 80 or not (row.get("source") or "").strip()):
-            continue
-        approved.add(row["text"].strip().casefold())
-        approved.update(skill.casefold() for skill in extract_skills(row["text"])["labels"])
+    career_evidence = collect_positive_skill_evidence(profile.get("facts"), {"skill"})
+    approved = set(career_evidence["exact"])
+    approved.update(label.casefold() for label in career_evidence["labels"])
     skills = []
     seen = set()
     for value in job.get("skills", []):
@@ -590,6 +575,19 @@ def build_explanation(job, profile):
             strength = "NICE_TO_HAVE"
         weight = _STRENGTH_WEIGHT[strength]
         has_evidence = folded in approved
+        identifier = canonical_skill_id(skill)
+        if has_evidence:
+            evidence_reason = "APPROVED_POSITIVE_EVIDENCE"
+            evidence_explanation = "Supported by an approved career fact containing positive skill evidence."
+        elif identifier in career_evidence["conflicting_ids"]:
+            evidence_reason = "CONFLICTING_APPROVED_EVIDENCE"
+            evidence_explanation = "Approved career facts conflict about this skill; review them before awarding evidence credit."
+        elif identifier in career_evidence["withheld_ids"]:
+            evidence_reason = "EXPLICIT_NEGATIVE_OR_UNCERTAIN_EVIDENCE"
+            evidence_explanation = "Explicitly negative or aspirational career wording is not positive skill evidence."
+        else:
+            evidence_reason = "NO_APPROVED_EVIDENCE"
+            evidence_explanation = "No approved career fact positively supports this skill."
         weighted_total += weight
         if has_evidence:
             weighted_covered += weight
@@ -599,8 +597,8 @@ def build_explanation(job, profile):
             "weight": weight,
             "covered_weight": weight if has_evidence else 0.0,
             "profile_evidence": "APPROVED" if has_evidence else "NO_APPROVED_EVIDENCE",
-            "explanation": ("Supported by an approved career fact." if has_evidence else
-                            "No approved career fact supports this skill.") + (
+            "evidence_reason": evidence_reason,
+            "explanation": evidence_explanation + (
                 " The posting does not state whether this mention is required or preferred."
                 if strength == "UNKNOWN" else ""),
         })

@@ -10,7 +10,8 @@ from services.matching.scoring_profiles import (
 )
 from services.matching.specialized_signals import score_specialized_signals
 from services.matching.preference_scoring import PREFERENCE_DIMENSIONS, preference_contributions
-from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
+from services.discovery.skill_taxonomy import canonical_skill_id, skill_label
+from services.matching.skill_evidence import collect_positive_skill_evidence, EXPERIENCE_KINDS
 
 
 _SPECIALIZED_DIMENSION_NAME = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
@@ -65,34 +66,16 @@ def _experience_contribution(job, candidate_profile, weight):
             if label:
                 target_labels[identifier] = label
     target_skills = set(target_labels)
-    experience_skills = set()
-    if isinstance(candidate_profile, Mapping):
-        facts = candidate_profile.get("facts")
-        if isinstance(facts, (list, tuple)):
-            for fact in facts:
-                if not isinstance(fact, Mapping) or fact.get("kind") not in {
-                    "experience", "technology_experience", "responsibility", "project", "accomplishment",
-                }:
-                    continue
-                text = fact.get("text")
-                source = fact.get("source")
-                confidence = fact.get("confidence")
-                if (fact.get("verified") is not True or fact.get("user_approved") is not True
-                        or type(confidence) not in (int, float) or not isfinite(confidence)
-                        or confidence < 80 or not isinstance(text, str) or not text.strip()
-                        or not isinstance(source, str) or not source.strip()):
-                    continue
-                for label in extract_skills(text).get("labels", []):
-                    identifier = canonical_skill_id(label)
-                    if identifier:
-                        experience_skills.add(identifier)
+    facts = candidate_profile.get("facts") if isinstance(candidate_profile, Mapping) else []
+    experience_evidence = collect_positive_skill_evidence(facts, EXPERIENCE_KINDS)
+    experience_skills = {canonical_skill_id(label) for label in experience_evidence["labels"]}
 
     matched = sorted(target_skills & experience_skills)
     if target_skills and matched:
         labels = [target_labels[identifier] for identifier in matched]
         raw_score = round(100 * len(matched) / len(target_skills), 2)
         explanation = (
-            f"Verified, user-approved experience facts match {len(matched)} of "
+            f"Verified, user-approved positive experience facts match {len(matched)} of "
             f"{len(target_skills)} recognized job skills: {', '.join(labels[:8])}."
         )
         provenance = {"source": "USER_APPROVED_EXPERIENCE_FACTS"}
@@ -103,6 +86,8 @@ def _experience_contribution(job, candidate_profile, weight):
             "user-approved, source-backed experience facts; no score penalty is applied."
         )
         provenance = {"source": "UNKNOWN"}
+    if experience_evidence["withheld_ids"]:
+        explanation += " Explicitly negative, aspirational or conflicting mentions were withheld from positive evidence; review conflicting facts."
     return {
         "dimension": "experience",
         "weight": weight,
