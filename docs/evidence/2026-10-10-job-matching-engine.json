@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-112-JOB-MATCHING-ENGINE-20261010",
+  "recorded_at_utc": "2026-10-10T22:21:50Z",
+  "result": "PASS",
+  "issues": [113],
+  "requirement_ids": ["MJ-REQ-112"],
+  "scope": "Job Matching Engine coordinating transparent score formatting ('91/100 — Excellent Match'), canonical match category classification, deterministic sorting, honest UNKNOWN semantics, and JobMatchScoreBadge UI component.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/113"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "transparent_scoring": "PASS; every job receives a transparent score formatted canonically as '91/100 — Excellent Match' (and tuned for all bands).",
+    "canonical_categories": "PASS; six canonical categories (EXCEPTIONAL 95-100, EXCELLENT 85-94, STRONG 75-84, POSSIBLE 60-74, WEAK 40-59, POOR 0-39) plus INCOMPLETE are deterministically classified.",
+    "batch_deterministic_sorting": "PASS; batch_score_job_matches provides zero-jitter deterministic ordering by score descending and job_id ascending.",
+    "frontend_components": "PASS; JobMatchScoreBadge renders transparent scores in both compact tag mode and full disclosure card mode with icons, dealbreaker alerts, and signal coverage.",
+    "safety": "PASS; external submission OFF asserted; no external API calls, unauthorized network requests, or background daemons."
+  },
+  "source_inputs": {
+    "services/matching/engine.py": {
+      "git_blob": "3e4490a0518f2d0cbde3eca84deadf81eeb52e80",
+      "git_object_content_sha256": "02ee315b2d55e403754fba1c85b4151d6a37771e068dbeed8c1367d1adcbbf7b"
+    },
+    "apps/web/src/job-match-score-badge.tsx": {
+      "git_blob": "3f99cd007a795b5058358507af88a1d89d435719",
+      "git_object_content_sha256": "466dfa5c4a6150856668811a18683eda9656f1427ee120edf597994b3a25c5f7"
+    },
+    "apps/web/src/job-match-score-badge.test.tsx": {
+      "git_blob": "ad4688c0b1a116d69754ce8bf3b2b12657ae9de0",
+      "git_object_content_sha256": "0d594f0b809ab628f8ab3e5ce427824d85b9c9b76fb00fa069d5fd140b85fdcc"
+    },
+    "tests/unit/test_job_matching_engine.py": {
+      "git_blob": "2820da234e29ddc369f5e387e4bf36ed4c3f7020",
+      "git_object_content_sha256": "e610fa8eeff6b0d09674edc28dd97586e6b48eb210572bd9d6adedb831fc25fa"
+    },
+    "tests/integration/test_job_matching_engine_integration.py": {
+      "git_blob": "215f731ba407c966adbdc982923d73de82c98cc9",
+      "git_object_content_sha256": "db9946b2dd5c7d656b3ca9b9dc357a65aec11ccfefce58051e3f5ce80183bd13"
+    }
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_job_matching_engine.py",
+      "target": "Unit tests for score formatting, category classification, single-job scoring, and batch sorting",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/integration/test_job_matching_engine_integration.py",
+      "target": "Integration tests with database jobs, dealbreakers, and batch ranking",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/job-match-score-badge.test.tsx",
+      "target": "Frontend JobMatchScoreBadge component tests",
+      "result": "PASS",
+      "tests": 5,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 102,
+      "tests": 579,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "target": "Lane coordination validation",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}
