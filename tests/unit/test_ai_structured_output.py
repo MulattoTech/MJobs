@@ -247,6 +247,38 @@ class AIStructuredOutputTests(unittest.TestCase):
                 )
         self.assertEqual(str(error.exception), "AI_PROVIDER_UNSUPPORTED")
 
+    def test_canonical_schemas_and_validation(self):
+        from services.ai.structured_output import (
+            CANONICAL_SCHEMAS,
+            get_canonical_schemas,
+            validate_structured_payload,
+        )
+
+        schemas = get_canonical_schemas()
+        self.assertEqual(set(schemas), set(CANONICAL_SCHEMAS))
+        self.assertIn("job_score", schemas)
+        self.assertIn("requirement_classification", schemas)
+        self.assertIn("company_summary", schemas)
+
+        # Validate valid payload
+        valid_json = '{"score":92,"category":"Excellent Match","rationale":"Good skills match"}'
+        result = validate_structured_payload(valid_json, "job_score")
+        self.assertTrue(result["valid"])
+        self.assertEqual(result["parsed"]["score"], 92)
+        self.assertIsNone(result["error_code"])
+
+        # Validate invalid payload (extra field) fails closed
+        invalid_json = '{"score":92,"category":"Excellent Match","rationale":"Good","extra":"leak"}'
+        bad_result = validate_structured_payload(invalid_json, "job_score")
+        self.assertFalse(bad_result["valid"])
+        self.assertEqual(bad_result["error_code"], "AI_STRUCTURED_OUTPUT_INVALID")
+        self.assertIsNone(bad_result["parsed"])
+
+        # Unknown schema fails closed
+        unknown_result = validate_structured_payload(valid_json, "nonexistent")
+        self.assertFalse(unknown_result["valid"])
+        self.assertEqual(unknown_result["error_code"], "AI_STRUCTURED_SCHEMA_INVALID")
+
 
 if __name__ == "__main__":
     unittest.main()

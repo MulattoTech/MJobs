@@ -103,10 +103,65 @@ def parse_structured_output(raw: object, result_model: object) -> ResultT:
         raise StructuredOutputError("AI_STRUCTURED_OUTPUT_INVALID") from None
 
 
+class JobScoreResult(StrictAIResult):
+    """Canonical schema for AI job scoring evaluations."""
+    score: int
+    category: str
+    rationale: str
+
+
+class RequirementClassificationResult(StrictAIResult):
+    """Canonical schema for requirement strength extraction."""
+    requirement: str
+    classification: str
+    confidence: float
+
+
+class CompanySummaryResult(StrictAIResult):
+    """Canonical schema for source-grounded company summaries."""
+    company_name: str
+    industry: str
+    summary: str
+    key_signals: list[str]
+
+
+CANONICAL_SCHEMAS: dict[str, type[StrictAIResult]] = {
+    "job_score": JobScoreResult,
+    "requirement_classification": RequirementClassificationResult,
+    "company_summary": CompanySummaryResult,
+}
+
+
+def get_canonical_schemas() -> dict[str, dict[str, object]]:
+    """Return JSON Schema definitions for all canonical structured output models."""
+    return {
+        name: output_schema_for(model)
+        for name, model in CANONICAL_SCHEMAS.items()
+    }
+
+
+def validate_structured_payload(raw: str, schema_name: str) -> dict[str, object]:
+    """Validate untrusted raw JSON against a canonical schema safely without leaking details."""
+    model = CANONICAL_SCHEMAS.get(schema_name)
+    if model is None:
+        return {"valid": False, "error_code": "AI_STRUCTURED_SCHEMA_INVALID", "parsed": None}
+    try:
+        parsed = parse_structured_output(raw, model)
+        return {"valid": True, "error_code": None, "parsed": parsed.model_dump()}
+    except StructuredOutputError as error:
+        return {"valid": False, "error_code": error.code, "parsed": None}
+
+
 __all__ = [
+    "CANONICAL_SCHEMAS",
+    "CompanySummaryResult",
+    "JobScoreResult",
     "MAX_STRUCTURED_OUTPUT_CHARACTERS",
+    "RequirementClassificationResult",
     "StrictAIResult",
     "StructuredOutputError",
+    "get_canonical_schemas",
     "output_schema_for",
     "parse_structured_output",
+    "validate_structured_payload",
 ]
