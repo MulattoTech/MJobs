@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJOBS-POSITIVE-CAREER-EVIDENCE-AND-UNIT-ACCEPTANCE-20261010",
+  "requirement_ids": [
+    "MJ-REQ-114",
+    "MJ-REQ-117",
+    "MJ-REQ-291"
+  ],
+  "github_issues": [
+    115,
+    118,
+    292
+  ],
+  "result": "PARTIAL",
+  "slice_result": "PASS",
+  "canonical_requirement_statuses": {
+    "MJ-REQ-114": "PARTIAL",
+    "MJ-REQ-117": "PARTIAL",
+    "MJ-REQ-291": "NOT_RUN"
+  },
+  "source": {
+    "branch": "chatgpt/preference-weighting-20261010",
+    "commit": "29e8dc2233c16484799d298f4a6cfe4501272af5",
+    "tree": "bad63297707d91c1e891cb3252fe65c753ec21ff",
+    "base": "e32bf1e51d3381c4cffbcae3fa20797b04fd79a7",
+    "product_commit": "97d5ea4dce1a9c0f49f585ff8516b3683079dd15",
+    "product_tree": "dd2fe52fdf84182b0a72969acc6daa5bb81f6730",
+    "baseline_main": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "verified_at_utc": "2026-10-10T16:24:23.967967+00:00",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "database": "isolated SQLite fixtures",
+    "browser": "local headless Chromium",
+    "frontend": "isolated copied node_modules; Vitest 5.0.3 and Vite 8.3.1"
+  },
+  "input_sha256": {
+    "services/discovery/matching.py": "8d99a7e757111956bcdf5c52b7a89ca77687a512322baef0949bbffc390cc996",
+    "services/matching/profile_scoring.py": "fc12580e2ede7f1ce23b65cda358a12e27b6dc58f7b53544ec0419b1cd8cdeb9",
+    "services/matching/skill_evidence.py": "2f1ed87f2f968f6f03c6de57b8a54a5b809e1dbbcfeba7c342f76411657129d2",
+    "tests/integration/test_positive_skill_evidence.py": "64f106e1c8e86f6d8a7903790bea50dfc7d78d4765c4aac91c7534ed54f675d2",
+    "tests/unit/test_compose_recovery.py": "970da110347225539c88dee135d1b1cef2e9d7df6f202d433b9bdebda950e87b",
+    "tests/unit/test_credential_store.py": "e43cd973319e05cd7859df008420fdfa5aaefb503aefac7ff12b8df70f45fbad",
+    "tests/unit/test_positive_skill_evidence.py": "943c9448ee561c81252b1682151527fb23b4cc0e3047b966a2eaf80a64a4e579",
+    "tests/unit/test_skill_gap_heatmap_unknowns.py": "77fe5301ed8370b18ad7eccd71c7dffb5eb142fb84ad6606040a879977ae8244"
+  },
+  "git_blob_sha256": {
+    "services/discovery/matching.py": "8d99a7e757111956bcdf5c52b7a89ca77687a512322baef0949bbffc390cc996",
+    "services/matching/profile_scoring.py": "fc12580e2ede7f1ce23b65cda358a12e27b6dc58f7b53544ec0419b1cd8cdeb9",
+    "services/matching/skill_evidence.py": "2f1ed87f2f968f6f03c6de57b8a54a5b809e1dbbcfeba7c342f76411657129d2",
+    "tests/integration/test_positive_skill_evidence.py": "64f106e1c8e86f6d8a7903790bea50dfc7d78d4765c4aac91c7534ed54f675d2",
+    "tests/unit/test_compose_recovery.py": "970da110347225539c88dee135d1b1cef2e9d7df6f202d433b9bdebda950e87b",
+    "tests/unit/test_credential_store.py": "e43cd973319e05cd7859df008420fdfa5aaefb503aefac7ff12b8df70f45fbad",
+    "tests/unit/test_positive_skill_evidence.py": "943c9448ee561c81252b1682151527fb23b4cc0e3047b966a2eaf80a64a4e579",
+    "tests/unit/test_skill_gap_heatmap_unknowns.py": "77fe5301ed8370b18ad7eccd71c7dffb5eb142fb84ad6606040a879977ae8244"
+  },
+  "sprint_product_and_test_git_blob_sha256": {
+    "apps/api/scoring_profiles.py": "6c56eed7a604f1ca81169e5448da45a519fc0d7066653b07c878ca1c040d8c15",
+    "apps/web/src/role-scoring-custom-dimensions.test.tsx": "adade44ed654d19a37b70200a391ac035109700dc3385bd91f19ba863994a3d8",
+    "apps/web/src/role-scoring-preference-dimensions.test.tsx": "21e370bb084293076577124787ba7e622e6f85ca343b463b8a0d3ed1326d8e99",
+    "apps/web/src/role-scoring-preview-client.ts": "929ed4d6c006691b58bca69b08e71088e85412b34d46d5d59735fdba1fa8b0fc",
+    "apps/web/src/role-scoring-preview.test.tsx": "0dbdd75d41d8c9f3a5522cd34c93d464f6153680dd37c9815eb33c6aa29a7335",
+    "apps/web/src/role-scoring-preview.tsx": "8da0e09f2ab07c8efe5268b4c8cb5d59c84dea879b7ebd43429abfe5f110b50c",
+    "apps/web/src/role-scoring-profile-editor.tsx": "c4cfbf9eb0a771be7db1c675f9b7dcd1ac187d372f4116874312008796314cf6",
+    "services/discovery/matching.py": "8d99a7e757111956bcdf5c52b7a89ca77687a512322baef0949bbffc390cc996",
+    "services/matching/draft_preview.py": "c86a2abaff8ced3d3c31613d286ce643161139d5e3bb8b2acfad01b8bc561605",
+    "services/matching/preference_scoring.py": "db358e9f9019f362838e35fc28bed69382d57dc2ca94d32ebd3b3dea580c5731",
+    "services/matching/profile_scoring.py": "fc12580e2ede7f1ce23b65cda358a12e27b6dc58f7b53544ec0419b1cd8cdeb9",
+    "services/matching/skill_evidence.py": "2f1ed87f2f968f6f03c6de57b8a54a5b809e1dbbcfeba7c342f76411657129d2",
+    "tests/browser/test_preference_weighting.py": "912bcff457824e704c74de4f8758f3ee703f6e5307870f5f5131ab6348b7072c",
+    "tests/browser/test_scoring_draft_preview.py": "ec42e4ff6c6ce317865dab5dd42373340c54d0dcfd17fda9521c0f4eae909dea",
+    "tests/integration/test_positive_skill_evidence.py": "64f106e1c8e86f6d8a7903790bea50dfc7d78d4765c4aac91c7534ed54f675d2",
+    "tests/integration/test_preference_weighting.py": "9a206dbb2ba044c1a57c2ad823214ae509161de0899c934155e068f77741c6d2",
+    "tests/integration/test_scoring_draft_preview.py": "633730e94a479d5e1bcb19f638d53c5cb7a7f406a750f8b12932ca7d2c8205f6",
+    "tests/unit/test_compose_recovery.py": "970da110347225539c88dee135d1b1cef2e9d7df6f202d433b9bdebda950e87b",
+    "tests/unit/test_credential_store.py": "e43cd973319e05cd7859df008420fdfa5aaefb503aefac7ff12b8df70f45fbad",
+    "tests/unit/test_positive_skill_evidence.py": "943c9448ee561c81252b1682151527fb23b4cc0e3047b966a2eaf80a64a4e579",
+    "tests/unit/test_preference_scoring.py": "c726384285e2b2fb9c6bf08f9fb321f7789abfc68942baf5c0e07ea17179414a",
+    "tests/unit/test_skill_gap_heatmap_unknowns.py": "77fe5301ed8370b18ad7eccd71c7dffb5eb142fb84ad6606040a879977ae8244"
+  },
+  "local_only_log_sha256": {
+    "mjobs-webmatching-sprint-accepted-20261010.log": "f9b04243063e1b6bc49ef312e735d2b5d2582a178745a451ebada1322c716209",
+    "mjobs-webmatching-sprint-accepted-20261010.xml": "78151374778374b5c656e12f5ad5f2ae172ec261011e40b76fa6cea7d3a108ea",
+    "mjobs-webmatching-sprint-web-accepted-20261010.log": "6c6df754072c84bc2bad020a66f7dfb99825b8a5a5d50ccded71c746ec22d7a2",
+    "mjobs-webmatching-sprint-build-accepted-20261010.log": "c81dfff9235918c814b97f7c05f09e66b86f4568c5e80a1715949c39d93803fd",
+    "mjobs-webmatching-baseline-failures-20261010.log": "e717234216acc012444e8877d25d310abc468d5c5529ff4f7f0f2ff6e5170332"
+  },
+  "acceptance": [
+    "Approved synthetic skill text I know Linux but have no Kubernetes experience previously scored 100 for those two skills. It now scores 50 with Linux supported and Kubernetes withheld from positive evidence.",
+    "Baseline skill coverage and optional experience weighting share bounded positive-evidence extraction. Supported English denials, aspirations, unknown wording and approved contradictions do not become positive skill claims.",
+    "Only approved, verified, source-backed facts with finite numeric confidence from 80 through 100 are eligible. NaN, infinity, booleans, strings, missing values and out-of-range confidence do not supply skill/experience evidence.",
+    "Supported contradictions retain NO_APPROVED_EVIDENCE plus a review reason rather than inferring lack of qualification. Unapproved negative text cannot invalidate approved facts; positive no-downtime/not-only controls retain credit.",
+    "Real fixture recalculation, job list and explanation API persist 50/100 skill-plus-experience scores for positive Linux and negative Active Directory evidence. SQLite reopening preserves exact explanations. Explicit fact correction creates a new profile version and permits 100 after recalculation.",
+    "Matching does not edit facts or approval flags. Added evidence reasons and explanations do not echo raw private fixture fact text.",
+    "Unit-contract repairs preserve existing assertions: project/port Compose contract and fixture isolation are checked, invalid targets never reach the runner, current heatmap evidence fields are asserted, and an imported production probe is no longer miscollected as a pytest test.",
+    "All three initial broad-suite failures reproduced on a pristine git archive of f399e00 before repair. No production credential, Compose or heatmap implementation was changed by the test repairs."
+  ],
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit tests/integration/test_positive_skill_evidence.py tests/integration/test_preference_weighting.py tests/integration/test_scoring_draft_preview.py tests/integration/test_explainable_matching.py tests/integration/test_matching_explanation_contributions.py tests/integration/test_matching_explanation_stale_context_recovery.py tests/integration/test_role_scoring_search_flow.py tests/integration/test_selected_search_recalculation.py tests/integration/test_selected_search_default_score_persistence.py tests/integration/test_scoring_profiles_api.py tests/integration/test_scoring_profile_router_mount.py tests/browser/test_preference_weighting.py tests/browser/test_scoring_draft_preview.py tests/browser/test_role_scoring_profile_reload_match.py -q --tb=short",
+      "scope": "All 125 unit test files plus the explicitly listed matching API/persistence and three browser journeys; not the entire integration/browser repository suite.",
+      "result": "PASS",
+      "passed": 1054,
+      "subtests_passed": 546,
+      "junit_cases_including_subtests": 1600,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run test -- --reporter=dot (apps/web)",
+      "result": "PASS",
+      "passed": 583,
+      "files_passed": 101,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "warning": "Existing chunk-size warning retained; final JavaScript asset 791.54 kB, gzip 212.53 kB. Exit 0. No performance-optimization claim."
+    },
+    {
+      "command": "python -m compileall -q [eight touched Python paths]; lane_coordination validate; git diff --check; staged diff checks",
+      "result": "PASS"
+    },
+    {
+      "command": "Narrow private-key/GitHub-token/provider-key pattern scan of eight changed files",
+      "result": "PASS",
+      "findings": 0,
+      "limitation": "Not a full security audit or proof every secret format is absent."
+    }
+  ],
+  "test_history": {
+    "positive_evidence_red_first": {
+      "failed": 22,
+      "passed": 8
+    },
+    "initial_broad_run": {
+      "passed": 1051,
+      "failed": 2,
+      "errors": 1,
+      "subtests_passed": 542
+    },
+    "pristine_baseline_reproduction": {
+      "commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10",
+      "command": "python -m pytest tests/unit/test_compose_recovery.py tests/unit/test_skill_gap_heatmap_unknowns.py tests/unit/test_credential_store.py -q --tb=short",
+      "passed": 10,
+      "failed": 2,
+      "errors": 1,
+      "subtests_passed": 4
+    },
+    "repaired_contracts": {
+      "passed": 13,
+      "subtests_passed": 8,
+      "failed": 0,
+      "errors": 0
+    },
+    "baseline_failures": [
+      "test_compose_recovery: old caller omitted required project/port",
+      "test_skill_gap_heatmap_unknowns: old exact expectation omitted evidence fields",
+      "test_credential_store: production test_provider_connection import accidentally collected with missing provider fixture"
+    ],
+    "counting_note": "Checkpoint runs overlap. Do not sum totals as unique tests. Final JUnit case count includes 546 subtests."
+  },
+  "canonical_acceptance_before": {
+    "MJ-REQ": {
+      "PASS": 102,
+      "PARTIAL": 101,
+      "NOT_RUN": 163,
+      "total": 366
+    },
+    "MJ-REF": {
+      "PASS": 19,
+      "total": 59
+    },
+    "release": "UNKNOWN"
+  },
+  "canonical_acceptance_after": {
+    "MJ-REQ": {
+      "PASS": 102,
+      "PARTIAL": 101,
+      "NOT_RUN": 163,
+      "total": 366
+    },
+    "MJ-REF": {
+      "PASS": 19,
+      "total": 59
+    },
+    "release": "UNKNOWN"
+  },
+  "integration": {
+    "status": "BLOCKED_BY_ACTIVE_INTEGRATOR",
+    "main_edited": false,
+    "canonical_tracker_edited": false,
+    "tracker_status": "TRACKER_REFRESH_PENDING",
+    "lock_owner_lane": "codex",
+    "lock_owner_pid": 24568
+  },
+  "limitations": [
+    "Career-text safeguards cover bounded explicit English phrases and recognized taxonomy skills, not general semantic, multilingual or proficiency verification; unsupported phrasing remains outside accepted coverage.",
+    "Conflicting approved evidence needs user review; there is no general chronology or intent resolver. A zero coverage score is not proof that an applicant lacks a skill or is ineligible.",
+    "Preview is a bounded diagnostic sample, not the submission queue. Advanced workspace job_filters fail closed; hidden/blacklisted historical matches can appear with the stated limitation.",
+    "PostgreSQL execution, remaining integration/browser suite, real employer/ATS submissions, hosted CI/AI review and independently delegated review are NOT_RUN.",
+    "Main lock owner was preserved. No deployment or canonical promotion is claimed; MJ-REQ-114 and 117 remain PARTIAL, and MJ-REQ-291 remains NOT_RUN.",
+    "Hosted execution and real submissions stayed OFF. Local build artifacts/dependencies and raw test logs are not published."
+  ],
+  "external_submission_enabled": false,
+  "hosted_execution_enabled": false
+}
