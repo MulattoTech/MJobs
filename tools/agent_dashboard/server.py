@@ -53,9 +53,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     @app.get("/api/launcher/health")
     def launcher_health():
         return {
-            "service": "mjobs-mission-control", "version": 4, "status": "ready",
+            "service": "mjobs-mission-control", "version": 5, "status": "ready",
             "root": str(repo), "prompt_preview": True, "approval_required": True,
             "history_available": True, "history_refresh_seconds": 5,
+            "visible_terminal": True, "subagent_controls": True,
+            "prompt_via_stdin": True,
         }
 
     def deny_legacy_process_controls():
@@ -113,6 +115,17 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
         try:
             return mission.launch(lane, options)
         except (ValueError, RuntimeError, FileNotFoundError) as exc:
+            raise HTTPException(409, str(exc))
+
+    @app.post("/api/launcher/{lane}/terminal-window")
+    def launcher_terminal_window(lane: str, request: Request):
+        """Show live or last stdout; NEVER creates another coding worker."""
+        mission.require_token(request, mission.token)
+        if lane not in ("codex", "antigravity", "claude"):
+            raise HTTPException(404, "Unknown CLI lane")
+        try:
+            return supervisor.open_log_console(lane)
+        except (RuntimeError, OSError, FileNotFoundError) as exc:
             raise HTTPException(409, str(exc))
 
     @app.post("/api/launcher/{lane}/stop")

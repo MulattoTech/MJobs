@@ -50,6 +50,27 @@
       <div class="model-tools"><span class="small-note launch-model-source">Discovering CLI models…</span>
         <button type="button" class="launch-refresh-models">Refresh models</button></div>
       <div class="small-note launch-effort-help"></div>
+      <div class="launch-capacity-settings">
+        <label>CLI visibility
+          <select class="launch-mode" aria-label="New coding CLI launch visibility">
+            <option value="terminal">Visible Windows terminal (recommended)</option>
+            <option value="headless">Headless background, dashboard logging</option>
+          </select>
+        </label>
+        <div class="launch-codex-capacity" hidden>
+          <div class="launch-split">
+            <label>Maximum concurrent subagents
+              <input class="launch-max-subagents" type="number" min="0" max="50" step="1" value="50"
+                aria-label="Hard maximum concurrent Codex subagents">
+            </label>
+            <label>Intended active subagents
+              <input class="launch-intended-subagents" type="number" min="0" max="50" step="1" value="8"
+                aria-label="Suggested number of productive Codex subagents">
+            </label>
+          </div>
+          <div class="small-note launch-capacity-note">Hard maximum enforced per CLI session. Intended target directs productive delegation, not a guaranteed minimum. Zero disables delegation.</div>
+        </div>
+      </div>
       <label>Agent / session name <select class="launch-agent-choice" aria-label="Agent session name"></select></label>
       <label class="launch-custom-wrap" hidden>Custom agent/session name
         <input class="launch-custom-agent" maxlength="80" spellcheck="false" placeholder="My Agent Name">
@@ -65,6 +86,7 @@
         <button type="button" class="launch-preview">Read prompt</button>
         <button type="button" class="launch-start primary" disabled title="Read and approve the exact prompt first">Launch CLI</button>
         <button class="launch-stop danger">Stop</button>
+        <button type="button" class="launch-view-terminal">View console / last output</button>
       </div>
       <div class="small-note launch-worktree"></div>
       <div class="small-note launch-runtime"></div>
@@ -186,6 +208,11 @@
       agent:custom ? $(".launch-custom-agent",card).value.trim() : agentChoice,
       instructions:$(".launch-instructions",card).value,
       auto_continue:$(".launch-autocontinue",card).checked,
+      launch_mode:$(".launch-mode",card).value,
+      max_subagents:card.dataset.slot==="codex"?
+        Number.parseInt($(".launch-max-subagents",card).value,10):50,
+      intended_subagents:card.dataset.slot==="codex"?
+        Number.parseInt($(".launch-intended-subagents",card).value,10):8,
     };
   }
   function isReviewed(card) {
@@ -199,8 +226,14 @@
     const running=Boolean(item.runtime?.pid) &&
       ["RUNNING","ADOPTED_RUNNING"].includes(item.runtime?.status);
     const ready=Boolean(item.available && (item.catalog?.models||[]).length && !running);
+    const selected=currentSelection(card);
+    const capacityValid=card.dataset.slot!=="codex" ||
+      (Number.isInteger(selected.max_subagents) && selected.max_subagents>=0 &&
+       selected.max_subagents<=50 && Number.isInteger(selected.intended_subagents) &&
+       selected.intended_subagents>=0 &&
+       selected.intended_subagents<=selected.max_subagents);
     const start=$(".launch-start",card);
-    start.disabled=!ready || !isReviewed(card);
+    start.disabled=!ready || !capacityValid || !isReviewed(card);
     start.title=!ready ?
       "CLI not ready, or process already running." :
       (isReviewed(card) ? "Launch the reviewed, unchanged prompt" :
@@ -215,7 +248,10 @@
       "Effort: "+(selected.effort||"n/a"),
       "Agent: "+(selected.agent||"Default agent"),
       selected.auto_continue?"Auto-continue ON":"Auto-continue OFF",
-    ].join(" · ");
+      selected.launch_mode==="terminal"?"VISIBLE TERMINAL":"HEADLESS",
+      card.dataset.slot==="codex"?
+        "Max children: "+selected.max_subagents+" · intended: "+selected.intended_subagents:"",
+    ].filter(Boolean).join(" · ");
     const text=state.loaded?.prompt || (state.error || "Assembling your exact prompt…");
     $("#launchReviewText").textContent=text;
     $("#launchReviewCommand").textContent=state.loaded ?
@@ -354,6 +390,12 @@
       picker.value=cfg.launch_profile;
     $(".launch-instructions",card).value=cfg.prompt_override||"";
     $(".launch-autocontinue",card).checked=Boolean(cfg.auto_continue);
+    $(".launch-mode",card).value=cfg.launch_mode||"terminal";
+    $(".launch-codex-capacity",card).hidden=item.lane!=="codex";
+    $(".launch-max-subagents",card).value=
+      Number.isInteger(cfg.max_subagents)?cfg.max_subagents:50;
+    $(".launch-intended-subagents",card).value=
+      Number.isInteger(cfg.intended_subagents)?cfg.intended_subagents:8;
     renderAgentNames(card,item);
     renderModelOptions(card,item,cfg.model||"",cfg.reasoning||"");
     card.dataset.catalogSignature=JSON.stringify(item.catalog?.models||[])+
@@ -385,6 +427,19 @@
     $(".launch-autocontinue",card).addEventListener("change",()=>{
       invalidatePreview(card,"Continuation policy changed. Revalidating launch…");
     });
+    $(".launch-mode",card).addEventListener("change",()=>{
+      invalidatePreview(card,"Terminal launch mode changed. Revalidating launch…");
+    });
+    $(".launch-max-subagents",card).addEventListener("input",()=>{
+      const max=Number.parseInt($(".launch-max-subagents",card).value,10);
+      const target=$(".launch-intended-subagents",card);
+      target.max=String(Math.max(0,max||0));
+      if(Number(target.value)>max && Number.isInteger(max))target.value=String(max);
+      invalidatePreview(card,"Native Codex subagent maximum changed. Rebuilding command…");
+    });
+    $(".launch-intended-subagents",card).addEventListener("input",()=>{
+      invalidatePreview(card,"Intended active subagents changed. Updating orchestration prompt…");
+    });
     $(".launch-preview-details",card).addEventListener("toggle",()=>{
       // Inline opening and closing refreshes from the real, read-only endpoint.
       if(!activePreviewCard || activePreviewCard!==card) void loadPreview(card);
@@ -408,6 +463,16 @@
     $(".launch-preview",card).onclick=()=>openPreview(card);
     $(".launch-start",card).onclick=()=>doAction(item.lane,card,"launch");
     $(".launch-stop",card).onclick=()=>doAction(item.lane,card,"stop");
+    $(".launch-view-terminal",card).onclick=async()=>{
+      try{
+        const reply=await fetchJson("/api/launcher/"+item.lane+"/terminal-window",{
+          method:"POST", headers:{"X-MJobs-Launch-Token":token}, body:"{}",
+        });
+        labelStatus(card,reply.reused?
+          "Reused existing console viewer (PID "+reply.pid+").":
+          "Opened read-only live log viewer (PID "+reply.pid+").","success");
+      }catch(error){labelStatus(card,error.message,"error");}
+    };
     previewState(card);
     updateCard(item);
     invalidatePreview(card,"Loading the current installed CLI profile and selected settings…");
@@ -433,8 +498,11 @@
     badge.className = "pill cli-state " + (running ? "running" : (item.available ? "completed" : "error"));
     $(".launch-worktree",card).textContent = "Worktree: " + item.worktree;
     $(".launch-runtime",card).textContent = state.pid
-      ? "PID " + state.pid + " · " + (state.status || "RUNNING") + " · " + (state.effective_model || "")
-      : "Stopped · branch " + item.branch;
+      ? "PID " + state.pid + " · " + (state.status || "RUNNING") +
+        " · " + (state.launch_mode==="terminal"?"VISIBLE WINDOW":"HEADLESS")+
+        " · " + (state.effective_model || "")
+      : (state.status||"Stopped")+" · branch " + item.branch +
+        (state.launch_mode?" · last run "+state.launch_mode:"");
     $(".launch-stop",card).disabled = !running;
     updateLaunchGate(card);
     if (!item.available && !$(".status-line",card).textContent)

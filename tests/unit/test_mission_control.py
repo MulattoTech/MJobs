@@ -297,7 +297,11 @@ class MissionControlTests(unittest.TestCase):
         self.assertEqual(data["agent"], "Application Architect")
         self.assertIn("gpt-6-luna", data["command"])
         self.assertIn('model_reasoning_effort="high"', data["command"])
-        self.assertIn("<reviewed prompt>", data["command"])
+        self.assertIn("<approved prompt via stdin>", data["command"])
+        self.assertIn("agents.max_concurrent_threads_per_session=50", data["command"])
+        self.assertEqual(data["launch_mode"], "terminal")
+        self.assertEqual(data["max_subagents"], 50)
+        self.assertEqual(data["intended_subagents"], 8)
         self.assertEqual(len(data["preview_hash"]), 64)
         self.assertEqual(len(data["prompt_sha256"]), 64)
         self.assertEqual(self.app.state.supervisor.lane_config("codex"), original_config)
@@ -424,6 +428,91 @@ class MissionControlTests(unittest.TestCase):
         self.assertEqual(client.get("/api/launcher/options").status_code, 200)
         # No legacy bypass was allowed to create an isolated checkout.
         self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
+    def test_visible_terminal_and_agent_capacity_are_exactly_previewed(self):
+        request=self._codex_request()
+        base=self._preview_request(request)
+        self.assertEqual(base.status_code,200,base.text)
+        first=base.json()
+        self.assertEqual(first["launch_mode"],"terminal")
+        self.assertEqual(first["max_subagents"],50)
+        self.assertEqual(first["intended_subagents"],8)
+        self.assertIn("agents.max_concurrent_threads_per_session=50",first["command"])
+        self.assertIn("<approved prompt via stdin>",first["command"])
+        for selection in (
+            {"launch_mode":"headless"},
+            {"max_subagents":16,"intended_subagents":8},
+            {"max_subagents":20,"intended_subagents":16},
+            {"intended_subagents":0},
+            {"max_subagents":0,"intended_subagents":0},
+        ):
+            with self.subTest(selection=selection):
+                response=self._preview_request({**request,**selection})
+                self.assertEqual(response.status_code,200,response.text)
+                choice=response.json()
+                self.assertNotEqual(choice["preview_hash"],first["preview_hash"])
+                self.assertEqual(choice["launch_mode"],selection.get("launch_mode","terminal"))
+                self.assertEqual(choice["intended_subagents"],selection.get("intended_subagents",8))
+                if selection.get("intended_subagents",8)==0:
+                    self.assertIn("features.multi_agent=false",choice["command"])
+                elif "max_subagents" in selection:
+                    self.assertIn(
+                        "agents.max_concurrent_threads_per_session="+str(selection["max_subagents"]),
+                        choice["command"],
+                    )
+
+    def test_staffing_policy_cannot_exceed_maximum_or_reuse_old_approval(self):
+        request=self._codex_request()
+        approved=self._preview_request({**request,"max_subagents":12,
+                                        "intended_subagents":8}).json()
+        token=self.client.get("/api/launcher/options").json()["token"]
+        for invalid in (
+            {"max_subagents":51,"intended_subagents":8},
+            {"max_subagents":-1,"intended_subagents":0},
+            {"max_subagents":2,"intended_subagents":8},
+            {"max_subagents":0,"intended_subagents":8},
+        ):
+            with self.subTest(invalid=invalid):
+                response=self._preview_request({**request,**invalid})
+                self.assertIn(response.status_code,(409,422))
+        for changed in (
+            {"max_subagents":16,"intended_subagents":8},
+            {"max_subagents":12,"intended_subagents":4},
+            {"max_subagents":12,"intended_subagents":8,"launch_mode":"headless"},
+        ):
+            with self.subTest(changed=changed),patch.object(
+                self.app.state.supervisor,"start",
+                side_effect=AssertionError("Stale approval must not spawn CLI")
+            ):
+                result=self.client.post("/api/launcher/codex/launch",
+                    headers={"X-MJobs-Launch-Token":token},
+                    json={**request,**changed,"preview_hash":approved["preview_hash"]},
+                )
+                self.assertEqual(result.status_code,409,result.text)
+                self.assertFalse((self.root.parent/"MJobs-Codex-App").exists())
+
+    def test_terminal_viewer_requires_authorization_but_not_a_new_agent(self):
+        token=self.client.get("/api/launcher/options").json()["token"]
+        self.assertEqual(self.client.post(
+            "/api/launcher/codex/terminal-window",json={}
+        ).status_code,403)
+        self.assertEqual(self.client.post(
+            "/api/launcher/codex/terminal-window",
+            headers={"X-MJobs-Launch-Token":token},json={}
+        ).status_code,409)
+        log=self.app.state.supervisor.log_path("codex")
+        log.write_text("previous safe log\n",encoding="utf-8")
+        with patch.object(self.app.state.supervisor,"open_log_console",
+                          return_value={"lane":"codex","pid":8008,"kind":"log_viewer",
+                                        "reused":False}) as viewer, patch.object(
+            self.app.state.supervisor,"start",
+            side_effect=AssertionError("Viewer cannot start an agent")
+        ):
+            response=self.client.post("/api/launcher/codex/terminal-window",
+                headers={"X-MJobs-Launch-Token":token},json={})
+            self.assertEqual(response.status_code,200,response.text)
+            self.assertEqual(response.json()["kind"],"log_viewer")
+            viewer.assert_called_once_with("codex")
+
 
 
 if __name__ == "__main__":

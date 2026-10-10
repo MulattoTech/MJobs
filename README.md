@@ -93,6 +93,12 @@ Double-click **MJobs Mission Control** on Windows or run
 `Start-MJobs-MissionControl.ps1`. Pick a Codex / Antigravity / Claude profile,
 model, agent and prompt in the [Mission Control launcher](docs/MISSION_CONTROL_LAUNCHER.md).
 The model selector discovers valid CLI model IDs and supported reasoning levels; you never type launch model flags.
+Mission Control also offers a visible Windows console (the default) or headless output,
+with a viewer for the current/previous CLI log. For Codex, choose separate hard
+maximum and intended active subagent counts (0–50). The exact reviewed prompt now
+reaches Codex via stdin to avoid Windows CLI truncation; all settings invalidate
+previous launch approval when changed. See the
+[Mission Control launcher guide](docs/MISSION_CONTROL_LAUNCHER.md#visible-terminals-and-codex-subagent-staffing-october-10).
 The integrated Development history panel polls local Git every five seconds, distinguishing core
 features, tests, docs, and bookkeeping by changed files, with expandable file details and separate
 Codex turn activity. Details: [Mission Control history](docs/MISSION_CONTROL_LAUNCHER.md#live-development-history-timeline-october-10).

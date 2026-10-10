@@ -179,3 +179,31 @@
 .history-empty {color:#9fb3c5;padding:26px;font-size:.83rem;text-align:center}
 @media(max-width:1100px) {.history-metrics {grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px) {.history-metrics {grid-template-columns:1fr 1fr;gap:7px}.history-panel {padding:.8rem}.history-entry-subject {flex-basis:180px}.history-entry-time {width:100%}.history-controls select {min-width:120px}}
+
+
+/* Explicit per-run console and Codex child-concurrency controls. */
+.launch-capacity-settings {
+  background: linear-gradient(145deg,#101e2e,#0a1824);
+  border: 1px solid #345365; border-radius:10px;
+  margin: .7rem 0 1rem; padding: 12px 14px;
+}
+.launch-capacity-settings > label { margin:0 0 10px; }
+.launch-capacity-settings select { width:100%; }
+.launch-codex-capacity[hidden] {display:none !important;}
+.launch-codex-capacity .launch-split {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.launch-codex-capacity label {display:block;min-width:0;font-size:.72rem;}
+.launch-codex-capacity input[type="number"] {
+  width:100%; min-width:0; padding:.68rem .78rem;
+  border:1px solid #4c7085;background:#091625;
+  color:#e5f4ff;border-radius:7px;
+  font-variant-numeric:tabular-nums;font-weight:750;font-size:.97rem;
+}
+.launch-codex-capacity input:focus-visible {outline:2px solid #67d7c8;outline-offset:2px;}
+.launch-codex-capacity input:invalid {border-color:#ea8392;}
+.launch-capacity-note {line-height:1.55;margin-top:3px;color:#a8c0d0;}
+.launch-view-terminal { color:#b7f0e2;background:#15353b;border:1px solid #4b8f84; font-size:.72rem; }
+.launch-view-terminal:hover {background:#224a51;}
+.launch-mode-hint {color:#7edcc3;font-size:.68rem;line-height:1.5;}
+@media(max-width:630px) {
+  .launch-codex-capacity .launch-split{grid-template-columns:1fr;}
+}

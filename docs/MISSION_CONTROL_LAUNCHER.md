@@ -214,3 +214,91 @@ will refuse to take it over rather than silently show a stale UI.
 
 Browser smoke testing can run against an isolated Mission Control process,
 without clicking Launch CLI and without changing main.
+
+
+## Visible terminals and Codex subagent staffing (October 10)
+
+Mission Control v5 fixes the previous invisible seven-second Codex run. The
+prior launcher passed a multi-line prompt through the Windows command line;
+the observed Codex log contained only the initial selection line, so the
+agent merely acknowledged the model. The installed Codex CLI explicitly
+supports a bare codex exec - argument, reading the complete instructions
+from standard input. The reviewed prompt is now carried in a short-lived,
+machine-local manifest and piped verbatim via stdin to Codex.
+
+### Launch modes
+
+Each CLI card now has a CLI visibility selector:
+
+- Visible Windows terminal (default): creates a real, separately visible
+  Windows console with the actual Codex/Antigravity/Claude subprocess and its
+  live stdout. The output is simultaneously mirrored into Mission Control's
+  local logs. A normal finish remains on screen for about 25 seconds for
+  inspection; then its supervisor status transitions to the real exit status.
+- Headless: executes the same supervised CLI in the background. Output
+  still streams into the local log without a visible window.
+- View console / last output: opens a separate read-only live-tail window
+  for an already-running or previously completed lane; it NEVER starts a
+  second coding agent, changes its working tree, or changes its launch mode.
+  Close that viewer with Ctrl+C without interrupting the agent.
+
+The supervisor owns the one approved CLI process (and its child-process
+tree), records the launcher process ID, and gracefully stops only that
+supervised lane when explicitly requested. An unrelated Codex Desktop/TUI
+session or external child not owned by Mission Control must not be terminated.
+The visible console is output from noninteractive codex exec, not a
+native interactive Codex TUI; for that, use Codex separately.
+
+### Subagent limits — Codex lane only
+
+Two distinct numeric options are displayed on the Codex card:
+
+- Maximum concurrent subagents (0-50): hard native Codex configuration
+  limit per launched root session, excluding that root. Passed using
+  -c agents.max_concurrent_threads_per_session=N with native multi_agent
+  enabled. When zero, use -c features.multi_agent=false.
+- Intended active subagents (0 through maximum): the root's desired
+  delegation target when safe and genuinely independent work is available.
+  This is inserted into the full reviewed prompt. It is NOT a scheduler
+  guarantee, forced quota, or reason to invent filler work. Zero also
+  disables native multi-agent execution for the launch.
+
+Defaults: maximum 50, intended 8. The user can choose 20/50 or solo 0/0
+before reviewing/approving. These are session-local overrides and do
+NOT change the user's global ~/.codex/config.toml, other sessions, or
+machine-level resource limits. No account-limit bypass or unattended
+background auto-continue is implied; the separate explicit auto-continue
+option remains off by default. Children follow configured default child
+models and required path/issue ownership, not necessarily the root model.
+
+### Prompt/review guarantees
+
+The full prompt review includes selected model, effort, agent/session name,
+visibility mode, native maximum and intended target. The CLI preview shows
+the exact argv (with an approved prompt via stdin placeholder in place of
+private text). Every change to these settings invalidates approval. The
+backend compares the full preview fingerprint again before launch, and the
+supervisor checks the full prompt SHA before spawning the CLI. A malformed
+target or an intended count above maximum is rejected before creating any
+worktree.
+
+The manifest containing private prompt text is unversioned, created inside
+Git-common local coordination, and removed as soon as the wrapper reads it.
+It is never committed, synced to GitHub, or exposed on a command line.
+Existing Git claim / lock and disabled external job submission rules remain
+unchanged.
+
+### Verification
+
+Run local, no-provider tests:
+
+    .\.venv\Scripts\python.exe -m unittest tests.unit.test_mission_visible_terminal -v
+    .\.venv\Scripts\python.exe -m unittest tests.unit.test_mission_control -v
+    node --check tools\agent_dashboard\static\mission.js
+
+The synthetic end-to-end stdin test sends a deliberately complex multi-line
+prompt to a local stub instead of any paid model, verifies the exact bytes,
+and confirms the prompt manifest is removed. The unit tests verify the real
+CREATE_NEW_CONSOLE flag and checked capacity flags without launching a
+coding model. Actual Codex tool-use results and subagent occupancy depend
+on the installed CLI, its account capacity, and the active issue backlog.

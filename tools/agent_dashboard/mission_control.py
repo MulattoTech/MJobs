@@ -16,7 +16,7 @@ import shutil
 import subprocess
 import threading
 import time
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
@@ -79,6 +79,9 @@ class LaunchRequest(BaseModel):
     agent: str = Field(default="", max_length=80)  # Safe session label, NOT an arbitrary CLI --agent
     instructions: str = Field(default="", max_length=6000)
     auto_continue: bool = False
+    launch_mode: Literal["terminal", "headless"] = "terminal"
+    max_subagents: int = Field(default=50, ge=0, le=50)
+    intended_subagents: int = Field(default=8, ge=0, le=50)
     preview_hash: str = Field(default="", max_length=64)
 
 
@@ -289,12 +292,14 @@ class MissionControl:
             raise ValueError("Invalid agent session label; use letters, digits, spaces, underscore, dots or hyphens.")
         if not (self.root / profile["path"]).is_file():
             raise ValueError("Profile file is missing from the repository.")
+        if lane == "codex" and config.intended_subagents > config.max_subagents:
+            raise ValueError("Intended active subagents cannot exceed the maximum.")
         return profile, chosen_model
 
     @staticmethod
     def _launch_patch(config: LaunchRequest, profile: dict[str, Any],
                       workspace: Path) -> dict[str, Any]:
-        return {
+        patch = {
             "launch_workspace": str(workspace),
             "launch_profile": profile["slug"],
             "prompt_file": profile["path"],
@@ -303,7 +308,14 @@ class MissionControl:
             "agent_name": config.agent,
             "prompt_override": config.instructions,
             "auto_continue": bool(config.auto_continue),
+            "launch_mode": config.launch_mode,
         }
+        if profile["lane"] == "codex":
+            patch.update({
+                "max_subagents": config.max_subagents,
+                "intended_subagents": config.intended_subagents,
+            })
+        return patch
 
     def preview(self, lane: str, config: LaunchRequest) -> dict[str, Any]:
         """Assemble the EXACT effective prompt and CLI arguments without launching.
@@ -321,11 +333,16 @@ class MissionControl:
         argv = self.supervisor._command(
             lane, workspace, config_override=effective,
         )
-        prompt_position = 2 if lane in {"antigravity", "claude"} else len(argv) - 1
-        if argv[prompt_position] != prompt:
-            raise RuntimeError("Cannot verify CLI prompt argument position; launch refused.")
         command = list(argv)
-        command[prompt_position] = "<reviewed prompt>"
+        if lane == "codex":
+            if not command or command[-1] != "-":
+                raise RuntimeError("Codex must receive its full approved prompt via stdin")
+            command[-1] = "<approved prompt via stdin>"
+        else:
+            prompt_position = 2 if lane in {"antigravity", "claude"} else len(argv)-1
+            if argv[prompt_position] != prompt:
+                raise RuntimeError("Cannot verify CLI prompt argument position; launch refused.")
+            command[prompt_position] = "<reviewed prompt>"
         payload = {
             "lane": lane,
             "profile": profile["slug"],
@@ -334,6 +351,9 @@ class MissionControl:
             "agent": config.agent,
             "instructions": config.instructions,
             "auto_continue": bool(config.auto_continue),
+            "launch_mode": config.launch_mode,
+            "max_subagents": config.max_subagents if lane == "codex" else None,
+            "intended_subagents": config.intended_subagents if lane == "codex" else None,
             "workspace": str(workspace),
             "branch": branch,
             "prompt": prompt,
@@ -353,6 +373,9 @@ class MissionControl:
             "effort": config.effort,
             "agent": config.agent or "Default agent",
             "auto_continue": bool(config.auto_continue),
+            "launch_mode": config.launch_mode,
+            "max_subagents": config.max_subagents if lane == "codex" else None,
+            "intended_subagents": config.intended_subagents if lane == "codex" else None,
             "workspace": str(workspace),
             "branch": branch,
             "command": command,
