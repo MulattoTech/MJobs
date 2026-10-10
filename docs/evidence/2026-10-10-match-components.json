@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-113-MATCH-COMPONENTS-20261010",
+  "recorded_at_utc": "2026-10-10T22:17:00Z",
+  "result": "PASS",
+  "issues": [114],
+  "requirement_ids": ["MJ-REQ-113"],
+  "scope": "12-dimension match components engine, dynamic denominator normalization, transparent provenance, and MatchComponentsBreakdown UI panel.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/114"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "twelve_dimensions_coverage": "PASS; all 12 dimensions specified in MJ-REQ-113 (title similarity, required skills, preferred skills, experience, education, certifications, remote/location, salary, employment type, industry, company preference, negative requirements) are explicitly modeled and evaluated.",
+    "honest_unknowns": "PASS; missing posting or candidate data is marked UNKNOWN with provenance, dynamically excluding missing weights from the score denominator rather than falsely penalizing candidate.",
+    "negative_requirements_gate": "PASS; explicit avoid terms, negative keywords, and dealbreakers trigger a heavy penalty with a visible alert banner in UI and provenance trace.",
+    "frontend_components": "PASS; MatchComponentsBreakdown renders the 12 dimensions, signal coverage bar, score meter, UNKNOWN status badges, dealbreaker alerts, and audit provenance.",
+    "safety": "PASS; external submission OFF asserted; no external calls, unauthorized network requests, or background daemons."
+  },
+  "source_inputs": {
+    "services/matching/components.py": {
+      "git_blob": "67209550301cf899e1f1b4bf493d6f1d46f3d1e9",
+      "git_object_content_sha256": "1fc71b0d727c44bb460e3ba9d858e988d1900b47d6e068ffd1e1b40905ebdf83"
+    },
+    "apps/web/src/match-components-breakdown.tsx": {
+      "git_blob": "1e788daa3c93887467fb948949c6d08bd3e1cd92",
+      "git_object_content_sha256": "d9222b822696fcca917b5885f0ea7d7922a49f55ae024032fe70651f51650d82"
+    },
+    "apps/web/src/match-components-breakdown.test.tsx": {
+      "git_blob": "005e7a5fcc7de9f693f6005f0411de3e62687945",
+      "git_object_content_sha256": "f5aae95ba8f2f518cfbe117761586d90d32e77ced6a8430b778d90011846729d"
+    },
+    "tests/unit/test_match_components.py": {
+      "git_blob": "7b6ae4f3951a50c53b135ead47324fb2a1d6691e",
+      "git_object_content_sha256": "f9545178c0fdd26886d9dfd5bee6406e85cb22179b3092e394271042929961b3"
+    },
+    "tests/integration/test_match_components_integration.py": {
+      "git_blob": "2f7a181b49889825bff45b3a60646c49600de0d7",
+      "git_object_content_sha256": "15e9e23084afb8115755b2b577ff4eec02ae0881db97a2a382d6fdeeeb6e51aa"
+    }
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_match_components.py",
+      "target": "Unit tests for 12-dimension match components evaluation, unknown handling, and custom weights",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/integration/test_match_components_integration.py",
+      "target": "Integration tests for database jobs, dealbreaker avoid terms, and sparse UNKNOWN jobs",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/match-components-breakdown.test.tsx",
+      "target": "Frontend MatchComponentsBreakdown component tests",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 101,
+      "tests": 574,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "target": "Lane coordination validation",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}
