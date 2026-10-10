@@ -16625,9 +16625,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-10T23:11:35Z",
+  "updated_at": "2026-10-10T23:15:27Z",
   "current_verified_local_state": "Local main integrated matching candidate e90ac3edb32b55d1e1b956109355642e5e7a6321 (tree ceb103970f9d1ccfc3c8def08a123ba97aa6ba28). Selected unit/integration/browser suite: 1056 passed, 553 subtests passed, 1 skipped; two browser cases passed after building the isolated worktree frontend. Web 583/583 and TypeScript/Vite build passed; agent skills, catalogue, progress, dashboard and lane validators passed. Evidence: docs/evidence/2026-10-10-matching-sprint-integration.json. MJ-REQ-114/117 remain PARTIAL; hosted/PostgreSQL NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "origin/main was read as f399e00da63c7bf14cd5281b71bba5daf8d62e10 immediately before this local-only integration. No push or PR was made; hosted checks/review remain NOT_RUN_BY_USER_POLICY; issue #346 stays OPEN/PARTIAL; external application submission remains OFF.",
+  "current_verified_github_state": "Non-force push published the accepted local Codex integration at a8bb25f1033a03b91a21b617d157ac51daabe586; origin/main and local main were fetched and verified equal at that SHA. No PR was opened and hosted checks/reviews remain NOT_RUN_BY_USER_POLICY. Issue #115/#118 remain OPEN/PARTIAL; PostgreSQL/live ATS NOT_RUN; external submission OFF. Verified 2026-10-10T23:12:00Z.",
   "next_candidates": [
     {
       "issue": 246,
@@ -16635,7 +16635,7 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-10T23:11:35Z",
+  "current_verified_at": "2026-10-10T23:15:27Z",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
