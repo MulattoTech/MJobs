@@ -10,6 +10,11 @@
   let slots = [];
   const cards = new Map();
   let inflight = false;
+  // Every launcher has independent preview/approval state. No agent starts merely
+  // because options or prompts are previewed.
+  const previewStates = new Map();
+  let activePreviewCard = null;
+  const dialog = $("#launchReviewDialog");
 
   async function fetchJson(url, init = {}) {
     const {headers = {}, ...other} = init;
@@ -45,6 +50,27 @@
       <div class="model-tools"><span class="small-note launch-model-source">Discovering CLI models…</span>
         <button type="button" class="launch-refresh-models">Refresh models</button></div>
       <div class="small-note launch-effort-help"></div>
+      <div class="launch-capacity-settings">
+        <label>CLI visibility
+          <select class="launch-mode" aria-label="New coding CLI launch visibility">
+            <option value="terminal">Visible Windows terminal (recommended)</option>
+            <option value="headless">Headless background, dashboard logging</option>
+          </select>
+        </label>
+        <div class="launch-codex-capacity" hidden>
+          <div class="launch-split">
+            <label>Maximum concurrent subagents
+              <input class="launch-max-subagents" type="number" min="0" max="50" step="1" value="50"
+                aria-label="Hard maximum concurrent Codex subagents">
+            </label>
+            <label>Intended active subagents
+              <input class="launch-intended-subagents" type="number" min="0" max="50" step="1" value="8"
+                aria-label="Suggested number of productive Codex subagents">
+            </label>
+          </div>
+          <div class="small-note launch-capacity-note">Hard maximum enforced per CLI session. Intended target directs productive delegation, not a guaranteed minimum. Zero disables delegation.</div>
+        </div>
+      </div>
       <label>Agent / session name <select class="launch-agent-choice" aria-label="Agent session name"></select></label>
       <label class="launch-custom-wrap" hidden>Custom agent/session name
         <input class="launch-custom-agent" maxlength="80" spellcheck="false" placeholder="My Agent Name">
@@ -57,15 +83,19 @@
         Continue after a successful CLI run (off by default)
       </label>
       <div class="launch-actions">
-        <button class="launch-preview">Read prompt</button>
-        <button class="launch-start primary">Launch CLI</button>
+        <button type="button" class="launch-preview">Read prompt</button>
+        <button type="button" class="launch-start primary" disabled title="Read and approve the exact prompt first">Launch CLI</button>
         <button class="launch-stop danger">Stop</button>
+        <button type="button" class="launch-view-terminal">View console / last output</button>
       </div>
       <div class="small-note launch-worktree"></div>
       <div class="small-note launch-runtime"></div>
+      <div class="small-note launch-run-type"></div>
       <div class="status-line" role="status" aria-live="polite"></div>
-      <details><summary>Selected prompt contents</summary>
-        <pre class="launch-prompt-preview">Choose “Read prompt” to view the full instructions.</pre>
+      <details class="launch-preview-details">
+        <summary>Exact effective prompt · synchronized with launch selections</summary>
+        <div class="small-note launch-preview-note" role="status">Verifying selected model and prompt…</div>
+        <pre class="launch-prompt-preview" tabindex="0">Preparing preview…</pre>
       </details>
     </div>`;
   }
@@ -159,63 +189,302 @@
     agentChoiceChanged(card);
   }
 
+  function previewState(card) {
+    const lane=card.dataset.slot;
+    if(!previewStates.has(lane)) {
+      previewStates.set(lane,{
+        generation:0, timer:null, loaded:null, selectionKey:null,
+        approvedHash:null, loading:false, error:null,
+      });
+    }
+    return previewStates.get(lane);
+  }
+  function currentSelection(card) {
+    const agentChoice=$(".launch-agent-choice",card).value;
+    const custom=agentChoice==="__custom__";
+    return {
+      profile:$(".launch-profile",card).value,
+      model:$(".launch-model",card).value,
+      effort:$(".launch-effort",card).value,
+      agent:custom ? $(".launch-custom-agent",card).value.trim() : agentChoice,
+      instructions:$(".launch-instructions",card).value,
+      auto_continue:$(".launch-autocontinue",card).checked,
+      launch_mode:$(".launch-mode",card).value,
+      max_subagents:card.dataset.slot==="codex"?
+        Number.parseInt($(".launch-max-subagents",card).value,10):50,
+      intended_subagents:card.dataset.slot==="codex"?
+        Number.parseInt($(".launch-intended-subagents",card).value,10):8,
+    };
+  }
+  function isReviewed(card) {
+    const state=previewState(card);
+    return Boolean(state.loaded && !state.loading && state.approvedHash &&
+      state.approvedHash===state.loaded.preview_hash &&
+      state.selectionKey===JSON.stringify(currentSelection(card)));
+  }
+  function updateLaunchGate(card) {
+    const item=currentSlot(card.dataset.slot)||{};
+    const running=Boolean(item.runtime?.pid) &&
+      ["RUNNING","ADOPTED_RUNNING"].includes(item.runtime?.status);
+    const ready=Boolean(item.available && (item.catalog?.models||[]).length && !running);
+    const selected=currentSelection(card);
+    const capacityValid=card.dataset.slot!=="codex" ||
+      (Number.isInteger(selected.max_subagents) && selected.max_subagents>=0 &&
+       selected.max_subagents<=50 && Number.isInteger(selected.intended_subagents) &&
+       selected.intended_subagents>=0 &&
+       selected.intended_subagents<=selected.max_subagents);
+    const start=$(".launch-start",card);
+    start.disabled=!ready || !capacityValid || !isReviewed(card);
+    start.title=!ready ?
+      "CLI not ready, or process already running." :
+      (isReviewed(card) ? "Launch the reviewed, unchanged prompt" :
+       "Open Read prompt and approve the exact current instructions first");
+  }
+  function renderModal(card) {
+    if(activePreviewCard!==card || !dialog.open) return;
+    const state=previewState(card), selected=currentSelection(card);
+    $("#launchReviewTitle").textContent="Review "+(card.dataset.slot||"CLI")+" prompt";
+    $("#launchReviewMetadata").textContent=[
+      "Profile: "+selected.profile,"Model: "+(selected.model||"not selected"),
+      "Effort: "+(selected.effort||"n/a"),
+      "Agent: "+(selected.agent||"Default agent"),
+      selected.auto_continue?"Auto-continue ON":"Auto-continue OFF",
+      selected.launch_mode==="terminal"?"VISIBLE TERMINAL":"HEADLESS",
+      card.dataset.slot==="codex"?
+        "Max children: "+selected.max_subagents+" · intended: "+selected.intended_subagents:"",
+    ].filter(Boolean).join(" · ");
+    const text=state.loaded?.prompt || (state.error || "Assembling your exact prompt…");
+    $("#launchReviewText").textContent=text;
+    $("#launchReviewCommand").textContent=state.loaded ?
+      state.loaded.command.join("\n") : "Waiting for validated CLI arguments.";
+    const ok=isReviewed(card);
+    const envInfo=state.loaded?.python_environment;
+    const envBlocked=envInfo?.available === false;
+    $("#launchReviewState").textContent=state.loading?"Refreshing from the launcher…":
+      state.error ? "Cannot preview: "+state.error :
+      envBlocked ? "Python test environment is not ready: "+envInfo.message :
+      ok ? "APPROVED — matches the current launch settings." :
+      state.loaded ? "Review the full prompt below. "+(
+        envInfo?.available === true
+          ? "Verified project Python: "+envInfo.interpreter+" · Playwright/SQLAlchemy available. "
+          : ""
+      )+"No CLI has started." :
+      "Waiting for the preview endpoint.";
+    $("#launchReviewState").className="launch-review-state "+
+      (state.error||envBlocked?"error":ok?"success":state.loading?"loading":"");
+    const approve=$("#launchReviewApprove");
+    approve.disabled=state.loading || Boolean(state.error) ||
+      envBlocked || !state.loaded || ok;
+    approve.textContent=ok?"Approved ✓":"Approve reviewed prompt";
+  }
+  function invalidatePreview(card, explanation="Selection changed. Rebuilding the exact prompt…") {
+    const state=previewState(card);
+    state.generation++;
+    state.loaded=null;
+    state.selectionKey=null;
+    state.approvedHash=null;
+    state.error=null;
+    state.loading=true;
+    $(".launch-prompt-preview",card).textContent=explanation;
+    $(".launch-preview-note",card).textContent="Approval cleared · "+explanation;
+    updateLaunchGate(card);
+    renderModal(card);
+    clearTimeout(state.timer);
+    state.timer=setTimeout(()=>{void loadPreview(card);},190);
+  }
+  async function loadPreview(card) {
+    const state=previewState(card);
+    clearTimeout(state.timer);
+    const generation=++state.generation;
+    const selected=currentSelection(card);
+    const key=JSON.stringify(selected);
+    state.loaded=null;
+    state.selectionKey=null;
+    state.loading=true;
+    state.error=null;
+    $(".launch-prompt-preview",card).textContent="Loading exact effective prompt…";
+    $(".launch-preview-note",card).textContent="Validating model, profile and launch parameters…";
+    updateLaunchGate(card);
+    renderModal(card);
+    if(!selected.profile || !selected.model || !selected.effort){
+      state.loading=false;
+      state.error="Select an installed CLI model, reasoning effort and development profile.";
+      $(".launch-prompt-preview",card).textContent=state.error;
+      $(".launch-preview-note",card).textContent="Preview unavailable.";
+      renderModal(card);
+      return;
+    }
+    try {
+      const payload=await fetchJson(
+        "/api/launcher/"+encodeURIComponent(card.dataset.slot)+"/preview",
+        {method:"POST", headers:{"X-MJobs-Launch-Token":token},
+         body:JSON.stringify(selected)}
+      );
+      if(state.generation!==generation || JSON.stringify(currentSelection(card))!==key)return;
+      state.loaded=payload;
+      state.selectionKey=key;
+      if(state.approvedHash!==payload.preview_hash)state.approvedHash=null;
+      const note="Verified preview · "+payload.model+" · "+payload.effort+
+        " · "+(payload.auto_continue?"auto-continue ON":"manual completion");
+      $(".launch-preview-note",card).textContent=note;
+      $(".launch-prompt-preview",card).textContent=payload.prompt;
+      labelStatus(card,"Preview ready. Click Read prompt and approve before launching.","");
+    }catch(error){
+      if(state.generation!==generation)return;
+      state.error=error.message;
+      state.approvedHash=null;
+      $(".launch-preview-note",card).textContent="Preview unavailable — launch locked.";
+      $(".launch-prompt-preview",card).textContent="Unable to build prompt: "+error.message;
+      labelStatus(card,"Launch locked: "+error.message,"error");
+    }finally{
+      if(state.generation===generation){
+        state.loading=false;
+        updateLaunchGate(card);
+        renderModal(card);
+      }
+    }
+  }
+  function openPreview(card) {
+    activePreviewCard=card;
+    // Reveal and synchronize the actual inline prompt as well as the modal.
+    $(".launch-preview-details",card).open=true;
+    if(!dialog.open)dialog.showModal();
+    renderModal(card);
+    void loadPreview(card);
+  }
+  $("#launchReviewClose").onclick=()=>dialog.close();
+  $("#launchReviewDone").onclick=()=>dialog.close();
+  $("#launchReviewRefresh").onclick=()=>{
+    if(activePreviewCard)void loadPreview(activePreviewCard);
+  };
+  $("#launchReviewApprove").onclick=()=>{
+    const card=activePreviewCard;
+    if(!card)return;
+    const state=previewState(card);
+    if(state.loading || !state.loaded ||
+       state.selectionKey!==JSON.stringify(currentSelection(card)))return;
+    state.approvedHash=state.loaded.preview_hash;
+    $(".launch-preview-note",card).textContent="APPROVED · "+state.loaded.model+
+      " · "+state.loaded.effort+" · exact current prompt.";
+    updateLaunchGate(card);
+    renderModal(card);
+    labelStatus(card,"Prompt approved. Launch CLI is now enabled until you change a selection.","success");
+    dialog.close();
+  };
+  dialog.addEventListener("close",()=>{
+    const card=activePreviewCard;
+    activePreviewCard=null;
+    if(card){
+      // The inline preview is always synchronized with its current form,
+      // including after Escape/Close. Closing never approves by itself.
+      void loadPreview(card);
+    }
+  });
+
   function mountCard(item) {
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = cardHtml(item);
-    const card = wrapper.firstElementChild;
-    cards.set(item.lane, card);
+    const wrapper=document.createElement("div");
+    wrapper.innerHTML=cardHtml(item);
+    const card=wrapper.firstElementChild;
+    cards.set(item.lane,card);
     $("#launchGrid").appendChild(card);
-    const picker = $(".launch-profile", card);
-    for (const p of profileList(item.lane)) {
-      const option = document.createElement("option");
-      option.value = p.slug;
-      option.textContent = p.label;
+    const picker=$(".launch-profile",card);
+    for(const profile of profileList(item.lane)){
+      const option=document.createElement("option");
+      option.value=profile.slug;
+      option.textContent=profile.label;
       picker.appendChild(option);
     }
-    const cfg = item.config || {};
-    if (cfg.launch_profile && profileList(item.lane).some(p => p.slug === cfg.launch_profile))
-      picker.value = cfg.launch_profile;
-    $(".launch-instructions",card).value = cfg.prompt_override || "";
-    $(".launch-autocontinue",card).checked = Boolean(cfg.auto_continue);
+    const cfg=item.config||{};
+    if(cfg.launch_profile && profileList(item.lane).some(p=>p.slug===cfg.launch_profile))
+      picker.value=cfg.launch_profile;
+    $(".launch-instructions",card).value=cfg.prompt_override||"";
+    $(".launch-autocontinue",card).checked=Boolean(cfg.auto_continue);
+    $(".launch-mode",card).value=cfg.launch_mode||"terminal";
+    $(".launch-codex-capacity",card).hidden=item.lane!=="codex";
+    $(".launch-max-subagents",card).value=
+      Number.isInteger(cfg.max_subagents)?cfg.max_subagents:50;
+    $(".launch-intended-subagents",card).value=
+      Number.isInteger(cfg.intended_subagents)?cfg.intended_subagents:8;
     renderAgentNames(card,item);
-    picker.addEventListener("change", () => {
-      const p = profiles.find(p => p.slug === picker.value);
-      renderModelOptions(card,currentSlot(item.lane),p?.default_model || "",p?.effort || "");
-      $(".launch-prompt-preview",card).textContent = "Click Read prompt for the selected profile.";
+    renderModelOptions(card,item,cfg.model||"",cfg.reasoning||"");
+    card.dataset.catalogSignature=JSON.stringify(item.catalog?.models||[])+
+      "|"+item.catalog?.source+"|"+Boolean(item.catalog?.stale);
+
+    picker.addEventListener("change",()=>{
+      const profile=profiles.find(p=>p.slug===picker.value);
+      renderModelOptions(card,currentSlot(item.lane),
+        profile?.default_model||"",profile?.effort||"");
+      invalidatePreview(card,"Profile changed. Loading its full effective prompt…");
     });
-    $(".launch-model",card).addEventListener("change", () => {
-      const current = currentSlot(item.lane);
-      renderEffortOptions(card,current);
+    $(".launch-model",card).addEventListener("change",()=>{
+      renderEffortOptions(card,currentSlot(item.lane));
+      invalidatePreview(card,"Model changed. Revalidating CLI flags and prompt…");
     });
-    $(".launch-agent-choice",card).addEventListener("change", () => agentChoiceChanged(card));
-    renderModelOptions(card,item,cfg.model || "",cfg.reasoning || "");
-    card.dataset.catalogSignature = JSON.stringify(item.catalog?.models || []) +
-      "|" + item.catalog?.source + "|" + Boolean(item.catalog?.stale);
-    $(".launch-refresh-models",card).onclick = async () => {
-      const button = $(".launch-refresh-models",card);
-      button.disabled = true;
-      try {
-        const refreshed = await fetchJson("/api/launcher/models/refresh", {
-          method: "POST", headers: {"X-MJobs-Launch-Token":token},
-          body: JSON.stringify({})
+    $(".launch-effort",card).addEventListener("change",()=>{
+      invalidatePreview(card,"Reasoning effort changed. Refreshing prompt…");
+    });
+    $(".launch-agent-choice",card).addEventListener("change",()=>{
+      agentChoiceChanged(card);
+      invalidatePreview(card,"Agent/session name changed. Refreshing prompt…");
+    });
+    $(".launch-custom-agent",card).addEventListener("input",()=>{
+      invalidatePreview(card,"Custom session name changed. Refreshing prompt…");
+    });
+    $(".launch-instructions",card).addEventListener("input",()=>{
+      invalidatePreview(card,"Extra instructions changed. Refreshing complete prompt…");
+    });
+    $(".launch-autocontinue",card).addEventListener("change",()=>{
+      invalidatePreview(card,"Continuation policy changed. Revalidating launch…");
+    });
+    $(".launch-mode",card).addEventListener("change",()=>{
+      invalidatePreview(card,"Terminal launch mode changed. Revalidating launch…");
+    });
+    $(".launch-max-subagents",card).addEventListener("input",()=>{
+      const max=Number.parseInt($(".launch-max-subagents",card).value,10);
+      const target=$(".launch-intended-subagents",card);
+      target.max=String(Math.max(0,max||0));
+      if(Number(target.value)>max && Number.isInteger(max))target.value=String(max);
+      invalidatePreview(card,"Native Codex subagent maximum changed. Rebuilding command…");
+    });
+    $(".launch-intended-subagents",card).addEventListener("input",()=>{
+      invalidatePreview(card,"Intended active subagents changed. Updating orchestration prompt…");
+    });
+    $(".launch-preview-details",card).addEventListener("toggle",()=>{
+      // Inline opening and closing refreshes from the real, read-only endpoint.
+      if(!activePreviewCard || activePreviewCard!==card) void loadPreview(card);
+    });
+    $(".launch-refresh-models",card).onclick=async()=>{
+      const button=$(".launch-refresh-models",card);
+      button.disabled=true;
+      try{
+        const refreshed=await fetchJson("/api/launcher/models/refresh",{
+          method:"POST",headers:{"X-MJobs-Launch-Token":token},
+          body:JSON.stringify({})
         });
         await refreshOptions();
-        const status = refreshed[item.lane];
-        labelStatus(card,status?.warning || "Installed CLI model lists refreshed.",
-          status?.warning ? "warn" : "success");
-      } catch (error) { labelStatus(card,error.message,"error"); }
-      finally { button.disabled = false; }
+        invalidatePreview(card,"Model inventory refreshed. Revalidating prompt…");
+        const status=refreshed[item.lane];
+        labelStatus(card,status?.warning||"Installed CLI model lists refreshed.",
+          status?.warning?"warn":"success");
+      }catch(error){labelStatus(card,error.message,"error");}
+      finally{button.disabled=false;}
     };
-    $(".launch-preview",card).onclick = async () => {
-      try {
-        const payload = await fetchJson("/api/launcher/profiles/" + encodeURIComponent(picker.value));
-        $(".launch-prompt-preview",card).textContent = payload.content;
-        $(".launch-prompt-preview",card).parentElement.open = true;
-      } catch (error) { labelStatus(card,error.message,"error"); }
+    $(".launch-preview",card).onclick=()=>openPreview(card);
+    $(".launch-start",card).onclick=()=>doAction(item.lane,card,"launch");
+    $(".launch-stop",card).onclick=()=>doAction(item.lane,card,"stop");
+    $(".launch-view-terminal",card).onclick=async()=>{
+      try{
+        const reply=await fetchJson("/api/launcher/"+item.lane+"/terminal-window",{
+          method:"POST", headers:{"X-MJobs-Launch-Token":token}, body:"{}",
+        });
+        labelStatus(card,reply.reused?
+          "Reused existing console viewer (PID "+reply.pid+").":
+          "Opened read-only live log viewer (PID "+reply.pid+").","success");
+      }catch(error){labelStatus(card,error.message,"error");}
     };
-    $(".launch-start",card).onclick = () => doAction(item.lane, card, "launch");
-    $(".launch-stop",card).onclick = () => doAction(item.lane, card, "stop");
+    previewState(card);
     updateCard(item);
+    invalidatePreview(card,"Loading the current installed CLI profile and selected settings…");
   }
 
   function updateCard(item) {
@@ -230,61 +499,64 @@
       const effort = $(".launch-effort",card).value || item.config?.reasoning || "";
       card.dataset.catalogSignature = signature;
       renderModelOptions(card,item,preferred,effort);
+      invalidatePreview(card,"CLI model catalogue changed. Revalidating your selection…");
     }
     const running = Boolean(state.pid) && ["RUNNING","ADOPTED_RUNNING"].includes(state.status);
     const badge = $(".cli-state",card);
     badge.textContent = (running ? "RUNNING" : (item.available ? "READY" : "NOT INSTALLED"));
     badge.className = "pill cli-state " + (running ? "running" : (item.available ? "completed" : "error"));
     $(".launch-worktree",card).textContent = "Worktree: " + item.worktree;
+    $(".launch-run-type",card).textContent = item.lane === "codex"
+      ? "Codex exec is a noninteractive, one-shot coding run. A visible log console is not the native interactive Codex TUI. Completion or PARTIAL means this run ended; use the next reviewed launch for another task."
+      : "This supervised CLI is a noninteractive, bounded coding turn, not the native interactive terminal UI.";
     $(".launch-runtime",card).textContent = state.pid
-      ? "PID " + state.pid + " · " + (state.status || "RUNNING") + " · " + (state.effective_model || "")
-      : "Stopped · branch " + item.branch;
-    $(".launch-start",card).disabled = !item.available || running || !(catalog.models || []).length;
+      ? "PID " + state.pid + " · " + (state.status || "RUNNING") +
+        " · " + (state.launch_mode==="terminal"?"VISIBLE WINDOW":"HEADLESS")+
+        " · " + (state.effective_model || "")
+      : (state.status||"Stopped")+" · branch " + item.branch +
+        (state.launch_mode?" · last run "+state.launch_mode:"");
     $(".launch-stop",card).disabled = !running;
+    updateLaunchGate(card);
     if (!item.available && !$(".status-line",card).textContent)
       labelStatus(card, item.name + " executable unavailable; no software will be installed.", "warn");
   }
 
-  async function doAction(lane, card, action) {
-    let chosenAgentName = "";
-    if (action === "launch") {
-      if (!$(".launch-model",card).value) {
-        labelStatus(card,"Choose a model from the installed CLI dropdown.","error"); return;
-      }
-      const choice = $(".launch-agent-choice",card).value;
-      chosenAgentName = choice === "__custom__"
-        ? $(".launch-custom-agent",card).value.trim() : choice;
-      if (choice === "__custom__" && !chosenAgentName) {
-        labelStatus(card,"Enter your custom agent/session name.","error"); return;
-      }
+  async function doAction(lane,card,action) {
+    const state=previewState(card);
+    if(action==="launch" && !isReviewed(card)){
+      labelStatus(card,"Read and approve the current exact prompt before launching.","error");
+      openPreview(card);
+      return;
     }
-    const btn = $(action === "launch" ? ".launch-start" : ".launch-stop",card);
-    btn.disabled = true;
-    labelStatus(card,action === "launch" ? "Preparing your isolated worktree…" : "Stopping supervised CLI…");
+    const btn=$(action==="launch"?".launch-start":".launch-stop",card);
+    btn.disabled=true;
+    labelStatus(card,action==="launch"?
+      "Verifying approved prompt and preparing isolated worktree…":
+      "Stopping supervised CLI…");
     try {
-      const body = action === "launch" ? {
-        profile: $(".launch-profile",card).value,
-        model: $(".launch-model",card).value,
-        effort: $(".launch-effort",card).value,
-        agent: chosenAgentName,
-        instructions: $(".launch-instructions",card).value,
-        auto_continue: $(".launch-autocontinue",card).checked
-      } : {};
-      const result = await fetchJson("/api/launcher/" + lane + "/" + action, {
-        method: "POST",
-        headers: {"X-MJobs-Launch-Token":token},
-        body: JSON.stringify(body)
+      const body=action==="launch"?
+        {...currentSelection(card),preview_hash:state.approvedHash}:{};
+      const result=await fetchJson("/api/launcher/"+lane+"/"+action,{
+        method:"POST",
+        headers:{"X-MJobs-Launch-Token":token},
+        body:JSON.stringify(body),
       });
-      if (action === "launch") {
-        const warnings = result.preflight?.warnings || [];
-        labelStatus(card,"Started process " + result.pid + ". " +
-          (warnings.length ? warnings.join(" ") : "Worktree prepared without changing main."),warnings.length?"warn":"success");
-      } else {
-        labelStatus(card, "Stop requested. This lane is now marked stopped.", "success");
+      if(action==="launch"){
+        state.approvedHash=null;
+        const warnings=result.preflight?.warnings||[];
+        labelStatus(card,"Started process "+result.pid+". "+
+          (warnings.length?warnings.join(" "):"Worktree prepared without changing main."),
+          warnings.length?"warn":"success");
+      }else{
+        labelStatus(card,"Stop requested. This lane is now marked stopped.","success");
       }
-    } catch (error) {
+    }catch(error){
+      state.approvedHash=null;
       labelStatus(card,error.message,"error");
-    } finally {
+      // Any failed launch requires explicit re-approval: never reuse a stale
+      // digest after a model, prompt, path or environment mismatch.
+    }finally{
+      updateLaunchGate(card);
       await refreshOptions();
     }
   }
@@ -292,6 +564,7 @@
   async function refreshOptions() {
     const data = await fetchJson("/api/launcher/options");
     token = data.token;
+    document.body.classList.toggle("mission-reviewed-launch-only", Boolean(data.mission_instance));
     profiles = data.profiles;
     slots = data.lanes;
     for (const item of slots) cards.has(item.lane) ? updateCard(item) : mountCard(item);

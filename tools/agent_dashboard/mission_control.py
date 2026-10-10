@@ -6,6 +6,8 @@ files, or pushes. Users explicitly start each paid/external coding CLI.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
+import json
 from pathlib import Path
 import hmac
 import re
@@ -14,12 +16,13 @@ import shutil
 import subprocess
 import threading
 import time
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from .model_catalog import ModelCatalog
+from .agent_environment import resolve_python_environment
 from tools.verification.progress_card import card_current
 from tools.verification.progress_dashboard import snapshot
 
@@ -77,6 +80,10 @@ class LaunchRequest(BaseModel):
     agent: str = Field(default="", max_length=80)  # Safe session label, NOT an arbitrary CLI --agent
     instructions: str = Field(default="", max_length=6000)
     auto_continue: bool = False
+    launch_mode: Literal["terminal", "headless"] = "terminal"
+    max_subagents: int = Field(default=50, ge=0, le=50)
+    intended_subagents: int = Field(default=8, ge=0, le=50)
+    preview_hash: str = Field(default="", max_length=64)
 
 
 class MissionControl:
@@ -126,7 +133,8 @@ class MissionControl:
                 "catalog": self.models.get(lane),
             } for lane in LAUNCH_LANES],
             "legacy_opencode_available": bool(shutil.which("opencode") and shutil.which("ollama")),
-            "model_selector_version": 3,
+            "model_selector_version": 4,
+            "mission_instance": bool(self.supervisor.mission_instance),
             "policy": "Never reset, stash, merge, or push root main during launch. Own files and claims before coding.",
         }
 
@@ -267,42 +275,164 @@ class MissionControl:
             "warnings": warnings,
         }
 
-    def launch(self, lane: str, config: LaunchRequest) -> dict[str, Any]:
+    def _validated_selection(
+        self, lane: str, config: LaunchRequest,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        """Pure launch validation shared by preview and actual execution."""
         if lane not in LAUNCH_LANES:
             raise ValueError("Unknown CLI slot")
         profile = PROFILES.get(config.profile)
         if profile is None or profile["lane"] != lane:
             raise ValueError("The selected profile does not belong to this CLI.")
         chosen_model = self.models.validate(lane, config.model, config.effort)
+        if chosen_model["catalog"].get("stale"):
+            raise ValueError("Model catalog is stale. Refresh models and review the prompt again before launching.")
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:/+-]{0,119}", config.model):
             raise ValueError("Use an exact model ID, without shell characters or spaces.")
         if config.agent and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 _.-]{0,79}", config.agent):
-            raise ValueError("Invalid agent session label; use only letters, digits, spaces, underscore, dots and hyphens.")
+            raise ValueError("Invalid agent session label; use letters, digits, spaces, underscore, dots or hyphens.")
         if not (self.root / profile["path"]).is_file():
             raise ValueError("Profile file is missing from the repository.")
+        if lane == "codex" and config.intended_subagents > config.max_subagents:
+            raise ValueError("Intended active subagents cannot exceed the maximum.")
+        return profile, chosen_model
+
+    @staticmethod
+    def _launch_patch(config: LaunchRequest, profile: dict[str, Any],
+                      workspace: Path) -> dict[str, Any]:
+        patch = {
+            "launch_workspace": str(workspace),
+            "launch_profile": profile["slug"],
+            "prompt_file": profile["path"],
+            "model": config.model,
+            "reasoning": config.effort,
+            "agent_name": config.agent,
+            "prompt_override": config.instructions,
+            "auto_continue": bool(config.auto_continue),
+            "launch_mode": config.launch_mode,
+        }
+        if profile["lane"] == "codex":
+            patch.update({
+                "max_subagents": config.max_subagents,
+                "intended_subagents": config.intended_subagents,
+            })
+        return patch
+
+    def preview(self, lane: str, config: LaunchRequest) -> dict[str, Any]:
+        """Assemble the EXACT effective prompt and CLI arguments without launching.
+
+        No worktree, user settings, command process, or existing agent is mutated.
+        The resulting fingerprint binds all selected arguments, prompt bytes, and
+        the intended workspace to a launch request; any change invalidates it.
+        """
+        profile, selected = self._validated_selection(lane, config)
+        workspace, branch = self.workspace(lane)
+        patch = self._launch_patch(config, profile, workspace)
+        effective = self.supervisor.lane_config(lane)
+        effective.update(patch)
+        prompt = self.supervisor._prompt(lane, config_override=effective)
+        argv = self.supervisor._command(
+            lane, workspace, config_override=effective,
+        )
+        # Read-only dependency preflight. Highlight the exact Python interpreter
+        # that future test commands will resolve, before spending model credits.
+        python_environment = {"available": None, "message": "Not inspected"}
+        if (self.root / "requirements.lock").is_file():
+            try:
+                selected_python = resolve_python_environment(self.root, workspace)
+                python_environment = {"available": True, **selected_python}
+            except RuntimeError as exc:
+                python_environment = {"available": False, "message": str(exc)}
+        command = list(argv)
+        if lane == "codex":
+            if not command or command[-1] != "-":
+                raise RuntimeError("Codex must receive its full approved prompt via stdin")
+            command[-1] = "<approved prompt via stdin>"
+        else:
+            prompt_position = 2 if lane in {"antigravity", "claude"} else len(argv)-1
+            if argv[prompt_position] != prompt:
+                raise RuntimeError("Cannot verify CLI prompt argument position; launch refused.")
+            command[prompt_position] = "<reviewed prompt>"
+        payload = {
+            "lane": lane,
+            "profile": profile["slug"],
+            "model": config.model,
+            "effort": config.effort,
+            "agent": config.agent,
+            "instructions": config.instructions,
+            "auto_continue": bool(config.auto_continue),
+            "launch_mode": config.launch_mode,
+            "max_subagents": config.max_subagents if lane == "codex" else None,
+            "intended_subagents": config.intended_subagents if lane == "codex" else None,
+            "workspace": str(workspace),
+            "branch": branch,
+            "python_environment": python_environment.get("interpreter") or python_environment.get("message"),
+            "prompt": prompt,
+            "command": command,
+        }
+        fingerprint = hashlib.sha256(
+            json.dumps(payload, sort_keys=True, ensure_ascii=False).encode("utf-8")
+        ).hexdigest()
+        return {
+            "preview_hash": fingerprint,
+            "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+            "prompt": prompt,
+            "profile": profile["slug"],
+            "profile_label": profile["label"],
+            "profile_path": profile["path"],
+            "model": config.model,
+            "effort": config.effort,
+            "agent": config.agent or "Default agent",
+            "auto_continue": bool(config.auto_continue),
+            "launch_mode": config.launch_mode,
+            "max_subagents": config.max_subagents if lane == "codex" else None,
+            "intended_subagents": config.intended_subagents if lane == "codex" else None,
+            "workspace": str(workspace),
+            "branch": branch,
+            "command": command,
+            "python_environment": python_environment,
+            "warnings": (
+                ["The installed CLI may require authentication or model entitlement at launch."]
+                + (["This worktree does not exist yet; it will be safely created at launch."]
+                   if not workspace.exists() else [])
+                + ([python_environment["message"]]
+                   if python_environment.get("available") is False else [])
+            ),
+        }
+
+    def launch(self, lane: str, config: LaunchRequest) -> dict[str, Any]:
+        """Fail closed unless the user approved the exact current prompt."""
         with self.mutex:
+            approved = self.preview(lane, config)
+            if (not config.preview_hash
+                    or not hmac.compare_digest(config.preview_hash, approved["preview_hash"])):
+                raise ValueError(
+                    "This selection has not been reviewed or has changed. "
+                    "Click Read prompt, review the full instructions, approve them, then launch."
+                )
             state = self.supervisor.runtime["lanes"][lane]
             from tools.agent_dashboard.supervisor import pid_alive
             if pid_alive(state.get("pid")):
-                raise RuntimeError("This CLI is already running. Stop it first; no implicit restart or session takeover.")
+                raise RuntimeError(
+                    "This CLI is already running. Stop it first; no implicit restart or session takeover."
+                )
+            # Execution capabilities and writeable worktree preparation are
+            # deliberately postponed until after successful preview validation.
             self.supervisor._runner_prefix(RUNNERS[lane])
             prepared = self.prepare(lane)
-            patch = {
-                "launch_workspace": prepared["workspace"],
-                "launch_profile": profile["slug"],
-                "prompt_file": profile["path"],
-                "model": config.model,
-                "reasoning": config.effort,
-                "agent_name": config.agent,
-                "prompt_override": config.instructions,
-                "auto_continue": bool(config.auto_continue),
+            profile = PROFILES[config.profile]
+            self.supervisor.update_config(
+                lane, self._launch_patch(config, profile, Path(prepared["workspace"])),
+            )
+            running = self.supervisor.start(
+                lane, manual=True, expected_prompt_hash=approved["prompt_sha256"],
+            )
+            return {
+                "status": running["status"], "pid": running["pid"],
+                "lane": lane, "profile": profile["slug"],
+                "preflight": prepared,
+                "approved_preview_hash": approved["preview_hash"],
             }
-            self.supervisor.update_config(lane, patch)
-            running = self.supervisor.start(lane, manual=True)
-            if chosen_model["catalog"].get("warning"):
-                prepared["warnings"].append(chosen_model["catalog"]["warning"])
-            return {"status": running["status"], "pid": running["pid"], "lane": lane,
-                    "profile": profile["slug"], "preflight": prepared}
 
     def stop(self, lane: str) -> dict[str, Any]:
         if lane not in LAUNCH_LANES:

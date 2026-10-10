@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MJobs Mission Control — Launch & Release Tracker</title>
-  <link rel="stylesheet" href="/static/mission.css?v=3">
+  <link rel="stylesheet" href="/static/mission.css?v=6">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -30,6 +30,54 @@
     <div id="releaseContent" aria-live="polite">Reading canonical matrices…</div>
   </section>
 
+  <section class="panel history-panel" id="historyTracker" aria-label="MJobs development history">
+    <div class="mission-heading">
+      <div>
+        <div class="history-eyebrow">LIVE LOCAL GIT · READ-ONLY DEVELOPMENT RECORD</div>
+        <h2>Development history</h2>
+        <p>See what actually changed: major product features, bug fixes, tests, documentation, and bookkeeping.</p>
+      </div>
+      <div class="history-header-actions">
+        <span class="sync-pill" id="historyStatus" role="status">Loading history…</span>
+        <button type="button" id="historyRefresh" title="Immediately read the latest local commits">↻ Refresh history</button>
+      </div>
+    </div>
+    <div class="history-metrics">
+      <div><span>CHECKPOINTS REVIEWED</span><strong id="historySample">—</strong><small>Most recent committed work</small></div>
+      <div><span>PRODUCT / CORE CHANGES</span><strong id="historyProduct">—</strong><small>File-classified implementation work</small></div>
+      <div><span>DOCUMENTS / BOOKKEEPING</span><strong id="historyBookkeeping">—</strong><small>Not counted as feature delivery</small></div>
+      <div><span>CODEX ROOT TURN</span><strong id="historyTurn">—</strong><small id="historyTurnDetail">Session activity, not proof of commit authorship</small></div>
+    </div>
+    <div class="history-meter" id="historyMeter" aria-label="Distribution of recent commit categories"></div>
+    <div class="history-controls">
+      <label for="historyCategory">Show work
+        <select id="historyCategory">
+          <option value="ALL">All categories</option>
+          <option value="CORE_FEATURE">Core features</option>
+          <option value="PRODUCT_FEATURE">Product features</option>
+          <option value="BUGFIX">Product bug fixes</option>
+          <option value="PRODUCT_CHANGE">Other product changes</option>
+          <option value="TEST">Tests</option>
+          <option value="DOCUMENTATION">Documentation</option>
+          <option value="BOOKKEEPING">Bookkeeping</option>
+          <option value="OPERATIONS">Developer operations</option>
+          <option value="OTHER">Other / merge</option>
+        </select>
+      </label>
+      <label for="historyLimit">History depth
+        <select id="historyLimit"><option value="25">25 commits</option><option value="50" selected>50 commits</option><option value="100">100 commits</option></select>
+      </label>
+      <div class="history-legend" id="historyCategoryLegend" aria-label="Recent work category totals"></div>
+    </div>
+    <div id="historyNewCommitNotice" class="history-new-notice" role="status" aria-live="polite"></div>
+    <div class="history-timeline" id="historyTimeline" aria-live="polite">Loading commits from the local MJobs checkout…</div>
+    <p class="history-disclaimer">
+      Each row represents a <strong>Git commit</strong>, not necessarily one Codex turn.
+      Labels use changed file paths and commit conventions. Counts are not verified acceptance or proof of AI authorship.
+      Auto-refreshes every five seconds while this page is visible, without any model calls or tracker commits.
+    </p>
+  </section>
+
   <section class="panel" id="launchStudio" aria-label="CLI launch studio">
     <div class="mission-heading">
       <div><h2>Launch studio</h2><p>Choose a model and profile, adjust instructions, then start. Each agent uses its own Git worktree.</p></div>
@@ -44,7 +92,7 @@
 
   <section id="alerts"></section>
   <details class="advanced-control">
-    <summary>Advanced agent telemetry, legacy runner & console controls</summary>
+    <summary>Advanced agent telemetry (legacy controls disabled in reviewed-launch mode)</summary>
     <section id="lanes" class="lane-grid"></section>
   </details>
 
@@ -202,7 +250,33 @@
   </article>
 </template>
 
+<dialog id="launchReviewDialog" class="launch-review-dialog" aria-labelledby="launchReviewTitle">
+  <div class="launch-dialog-top">
+    <div>
+      <div class="preview-kicker">PRE-LAUNCH SAFETY REVIEW · NO AGENT STARTED</div>
+      <h2 id="launchReviewTitle">Review effective CLI prompt</h2>
+      <p id="launchReviewMetadata">Loading selected profile and model…</p>
+    </div>
+    <button type="button" id="launchReviewClose" class="launch-dialog-close" aria-label="Close prompt preview">×</button>
+  </div>
+  <div id="launchReviewState" class="launch-review-state" role="status" aria-live="polite">Building exact launch instructions…</div>
+  <pre id="launchReviewText" class="launch-review-text" tabindex="0" aria-label="Complete prompt to be sent to the selected coding model"></pre>
+  <details class="launch-command-details">
+    <summary>Show executable and launch parameters (prompt omitted)</summary>
+    <pre id="launchReviewCommand"></pre>
+  </details>
+  <div class="launch-review-foot">
+    <span>Any profile, model, effort, agent, or instruction change invalidates approval.</span>
+    <div class="launch-review-buttons">
+      <button type="button" id="launchReviewRefresh">Refresh preview</button>
+      <button type="button" id="launchReviewApprove" class="primary" disabled>Approve reviewed prompt</button>
+      <button type="button" id="launchReviewDone">Close</button>
+    </div>
+  </div>
+</dialog>
+
 <script src="/static/app.js"></script>
-<script src="/static/mission.js?v=3"></script>
+<script src="/static/mission.js?v=6"></script>
+<script src="/static/history.js?v=1"></script>
 </body>
 </html>

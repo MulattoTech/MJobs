@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -13,6 +14,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from .agent_environment import resolve_python_environment
 
 from .observability import (
     antigravity_usage_snapshot,
@@ -36,6 +39,9 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "auto_continue": True,
         "prompt_file": "prompts/PARALLEL_CODEX_LANE.md",
         "runner": "codex",
+        "launch_mode": "terminal",
+        "max_subagents": 50,
+        "intended_subagents": 8,
     },
     "antigravity": {
         "model": "gemini-3.8-flash-medium",
@@ -43,6 +49,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "auto_continue": True,
         "prompt_file": "prompts/PARALLEL_ANTIGRAVITY_LANE.md",
         "runner": "agy",
+        "launch_mode": "terminal",
     },
     "ollama": {
         "model": "ollama/gemma4:26b",
@@ -58,6 +65,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "auto_continue": False,
         "prompt_file": "prompts/dual-agent/claude-release-audit.md",
         "runner": "claude",
+        "launch_mode": "terminal",
     },
 }
 
@@ -106,22 +114,38 @@ def pid_alive(pid: int | None) -> bool:
 
 
 def classify_exit(exit_code: int | None, tail: str) -> str:
+    """Classify overall Codex result, not an incidental blocked test in a diff.
+
+    A successful coding run can report PARTIAL acceptance and quote individual
+    BLOCKED_ENVIRONMENT tests. Those do not make the whole run blocked.
+    """
+    explicit = re.findall(
+        r"(?im)^\s*(?:\*\*)?Status\s*:\s*"
+        r"(PASS|PARTIAL|COMPLETED|BLOCKED_ENVIRONMENT|BLOCKED_QUOTA|"
+        r"WAITING_APPROVAL|BLOCKED_DESIGN)\b",
+        tail,
+    )
+    status = explicit[-1].upper() if explicit else None
+    if status in {"PARTIAL", "BLOCKED_ENVIRONMENT", "BLOCKED_QUOTA",
+                  "WAITING_APPROVAL", "BLOCKED_DESIGN"}:
+        return "WAITING_APPROVAL" if status == "BLOCKED_DESIGN" else status
+    if exit_code == 0:
+        if re.search(
+            r"(?im)^\s*(?:do you approve|please approve|waiting for your approval)\b",
+            tail,
+        ):
+            return "WAITING_APPROVAL"
+        return "COMPLETED"
     lowered = tail.casefold()
     if any(x in lowered for x in (
-        "do you approve", "waiting for your approval", "please approve",
-        "blocked_design", "i’m stopping before source changes",
-        "i'm stopping before source changes",
-    )):
-        return "WAITING_APPROVAL"
-    if any(x in lowered for x in (
-        "usage limit", "rate limit", "quota", "credits exhausted", "usage ran out",
-        "resource_exhausted",
+        "usage limit", "rate limit", "quota", "credits exhausted",
+        "usage ran out", "resource_exhausted",
     )):
         return "BLOCKED_QUOTA"
-    if any(x in lowered for x in ("blocked_environment", "environment blocker")):
+    if "blocked_environment" in lowered or "environment blocker" in lowered:
         return "BLOCKED_ENVIRONMENT"
-    if exit_code == 0:
-        return "COMPLETED"
+    if any(x in lowered for x in ("waiting for your approval", "blocked_design")):
+        return "WAITING_APPROVAL"
     return "ERROR"
 
 
@@ -148,6 +172,7 @@ class AgentSupervisor:
         self.native_log_dir.mkdir(parents=True, exist_ok=True)
         self._lock = threading.RLock()
         self._children: dict[str, Child] = {}
+        self._viewers: dict[str, subprocess.Popen[str]] = {}
         self._stop_requested: set[str] = set()
         self._fast_exits: dict[str, list[float]] = {lane: [] for lane in LANES}
         self._telemetry_cache: dict[str, tuple[float, Any]] = {}
@@ -195,6 +220,25 @@ class AgentSupervisor:
                 "stopped_at": None, "exit_code": None, "restart_count": 0,
                 "last_reason": None,
             })
+        # Repair older false blocked banners only for FINISHED zero-exit runs.
+        # Previous versions searched raw diffs for BLOCKED_ENVIRONMENT, so an
+        # individual missing-test dependency was mistaken for a blocked agent.
+        for lane, state in base["lanes"].items():
+            if (state.get("pid") is None
+                    and state.get("status") == "BLOCKED_ENVIRONMENT"
+                    and state.get("exit_code") == 0):
+                log_path = self.log_dir / f"{lane}.log"
+                try:
+                    with log_path.open("rb") as handle:
+                        end = handle.seek(0, os.SEEK_END)
+                        handle.seek(max(0, end - 180_000), os.SEEK_SET)
+                        segment = handle.read().decode("utf-8", "replace")
+                    revised = classify_exit(0, "\n".join(segment.splitlines()[-100:]))
+                    if revised != "BLOCKED_ENVIRONMENT":
+                        state["status"] = revised
+                        state["last_reason"] = revised
+                except OSError:
+                    pass
         self._write_json(self.runtime_path, base)
         return base
 
@@ -218,7 +262,21 @@ class AgentSupervisor:
             "model", "reasoning", "auto_continue", "prompt_file",
             "prompt_override", "gpu_offload_percent", "agent_name",
             "launch_workspace", "launch_profile",
+            "launch_mode", "max_subagents", "intended_subagents",
         }
+        if "launch_mode" in patch and patch["launch_mode"] not in {"terminal", "headless"}:
+            raise ValueError("Select terminal or headless mode")
+        if lane != "codex" and any(
+            k in patch for k in ("max_subagents", "intended_subagents")
+        ):
+            raise ValueError("Native Codex subagent controls only apply to the Codex lane")
+        if lane == "codex":
+            current = self.config["lanes"][lane]
+            maximum = patch.get("max_subagents", current.get("max_subagents", 50))
+            intended = patch.get("intended_subagents", current.get("intended_subagents", 8))
+            if (type(maximum) is not int or not 0 <= maximum <= 50
+                    or type(intended) is not int or not 0 <= intended <= maximum):
+                raise ValueError("Codex subagent target must be 0..maximum and maximum must be 0..50")
         with self._lock:
             for key, value in patch.items():
                 if key in allowed:
@@ -262,15 +320,36 @@ class AgentSupervisor:
         except Exception:
             return result.stdout[:7000]
 
-    def _prompt(self, lane: str) -> str:
-        cfg = self.config["lanes"][lane]
+    def _prompt(self, lane: str, *, config_override: dict[str, Any] | None = None) -> str:
+        cfg = config_override if config_override is not None else self.config["lanes"][lane]
         path = self.root / cfg["prompt_file"]
         base = path.read_text(encoding="utf-8") if path.exists() else ""
         override = (cfg.get("prompt_override") or "").strip()
         suffix = f"\n\nDASHBOARD PROMPT OVERRIDE:\n{override}\n" if override else ""
         if cfg.get("launch_profile"):
+            max_subagents = int(cfg.get("max_subagents", 50)) if lane == "codex" else 0
+            intended = int(cfg.get("intended_subagents", 8)) if lane == "codex" else 0
+            capacity_note = (
+                f"CODEX SUBAGENT POLICY FOR THIS LAUNCH: hard maximum {max_subagents} "
+                f"concurrent child threads excluding root; intended active target {intended}. "
+                "The maximum is enforced by the native Codex CLI configuration override. "
+                "The intended target is an orchestration instruction, not a minimum "
+                "guarantee or automatic worker spawner. During this authorized "
+                "session, delegate promptly to distinct dependency-ready features "
+                "with exclusive file/issue/worktree claims, refill safe slots when "
+                "productive work remains, and never spawn filler, collide on files, "
+                "circumvent account limits or continue unattended. "
+                "If target is zero, do not delegate. If maximum is zero, native "
+                "multi-agent execution is disabled for this launch.\n\n"
+            ) if lane == "codex" else ""
             return (
-                "USER-STARTED MISSION CONTROL SESSION. Read AGENTS.md, "
+                "CURRENT EXPLICIT LAUNCH SELECTION: "
+                f"model={cfg.get('model')}; reasoning={cfg.get('reasoning')}; "
+                f"auto_continue={bool(cfg.get('auto_continue'))}; "
+                f"launch_mode={cfg.get('launch_mode', 'terminal')}. "
+                "These actual CLI settings supersede incidental model labels in preset profile text.\n\n"
+                + capacity_note
+                + "USER-STARTED MISSION CONTROL SESSION. Read AGENTS.md, "
                 "docs/DUAL_AGENT_COORDINATION.md, planning/lanes/README.md and "
                 "docs/PROGRESS_TRACKING.md. You are limited to the exact selected "
                 f"lane={lane}, worktree={cfg.get('launch_workspace')}, "
@@ -325,16 +404,29 @@ class AgentSupervisor:
         workspace: Path | None = None,
         model_override: str | None = None,
         native_log_path: Path | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> list[str]:
-        cfg = self.config["lanes"][lane]
-        prompt = self._prompt(lane)
+        cfg = config_override if config_override is not None else self.config["lanes"][lane]
+        prompt = self._prompt(lane, config_override=config_override)
         workspace = workspace or self.root
         model = model_override or str(cfg["model"])
         if lane == "codex":
+            maximum = int(cfg.get("max_subagents", 50))
+            intended = int(cfg.get("intended_subagents", 8))
+            if not (0 <= intended <= maximum <= 50):
+                raise ValueError("Invalid Codex subagent configuration")
+            options = (
+                ["-c", "features.multi_agent=false"]
+                if maximum == 0 or intended == 0
+                else ["-c", "features.multi_agent=true",
+                      "-c", f"agents.max_concurrent_threads_per_session={maximum}"]
+            )
+            # The bare "-" tells Codex to read the COMPLETE approved prompt from
+            # stdin. Never interpolate multiline prompts through cmd.exe /c.
             return [
                 "codex", "exec", "-C", str(workspace), "-m", model,
                 "-c", f'model_reasoning_effort="{cfg.get("reasoning", "high")}"',
-                "-s", "danger-full-access", prompt,
+                *options, "-s", "danger-full-access", "-",
             ]
         if lane == "antigravity":
             native_log = native_log_path or (self.native_log_dir / "antigravity-preview.log")
@@ -467,6 +559,32 @@ class AgentSupervisor:
             raise RuntimeError(created.stderr.strip() or created.stdout.strip())
         return workspace
 
+    def open_log_console(self, lane: str) -> dict[str, Any]:
+        """View current/previous CLI output in a window without spawning an agent."""
+        self._require_lane(lane)
+        if os.name != "nt":
+            raise RuntimeError("A visible log console is only supported on Windows")
+        path = self.log_path(lane)
+        if not path.is_file():
+            raise RuntimeError("No output log yet. Launch the agent to create one.")
+        with self._lock:
+            existing = self._viewers.get(lane)
+            if existing is not None and existing.poll() is None:
+                return {"lane": lane, "pid": existing.pid, "reused": True, "kind": "log_viewer"}
+            script = Path(__file__).parent / "terminal_viewer.py"
+            startup = subprocess.STARTUPINFO()
+            startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            startup.wShowWindow = 1
+            proc = subprocess.Popen(
+                [sys.executable, str(script), "--lane", lane, "--log", str(path)],
+                cwd=str(self.root), stdin=subprocess.DEVNULL,
+                stdout=None, stderr=None, env=dict(os.environ),
+                creationflags=subprocess.CREATE_NEW_CONSOLE,
+                startupinfo=startup,
+            )
+            self._viewers[lane] = proc
+            return {"lane": lane, "pid": proc.pid, "reused": False, "kind": "log_viewer"}
+
     def log_path(self, lane: str) -> Path:
         return self.log_dir / f"{lane}.log"
 
@@ -537,10 +655,17 @@ class AgentSupervisor:
                 continue
         return None
 
-    def start(self, lane: str, *, manual: bool = True) -> dict[str, Any]:
+    def start(self, lane: str, *, manual: bool = True,
+              expected_prompt_hash: str | None = None) -> dict[str, Any]:
         self._require_lane(lane)
         with self._lock:
             current = self.runtime["lanes"][lane]
+            if expected_prompt_hash is not None:
+                actual_prompt_hash = hashlib.sha256(
+                    self._prompt(lane).encode("utf-8")
+                ).hexdigest()
+                if actual_prompt_hash != expected_prompt_hash:
+                    raise RuntimeError("Prompt changed after review; read and approve it again. Nothing launched.")
             if pid_alive(current.get("pid")):
                 return dict(current)
             if manual:
@@ -556,37 +681,78 @@ class AgentSupervisor:
                     self.bus,
                 )
             run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+            # Fail before spending AI credits if the coding worktree would use
+            # global Python without the pinned Playwright/SQLAlchemy packages.
+            python_environment = resolve_python_environment(self.root, workspace)
             log_path = self.log_path(lane)
             log_start_offset = log_path.stat().st_size if log_path.exists() else 0
             native_log_path = (
                 self.native_log_dir / f"{lane}-{run_id}.log"
                 if lane == "antigravity" else None
             )
-            handle = open(log_path, "a", encoding="utf-8", buffering=1)
-            handle.write(
-                f"\n\n===== START {utc_now()} workspace={workspace} =====\n"
-            )
+            with open(log_path, "a", encoding="utf-8", buffering=1) as handle:
+                handle.write(
+                    f"\n\n===== START {utc_now()} workspace={workspace} =====\n"
+                )
+            cfg = self.config["lanes"][lane]
+            mode = str(cfg.get("launch_mode", "terminal"))
+            if mode not in {"terminal", "headless"}:
+                raise RuntimeError("Unrecognized console launch mode")
+            if mode == "terminal" and os.name != "nt":
+                raise RuntimeError("Visible Windows terminals require a Windows desktop")
             env = dict(os.environ)
             env["MJOBS_LANE"] = lane
-            flags = subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0
-            process = subprocess.Popen(
-                self._launch_command(
-                    lane,
-                    workspace,
-                    model_override=effective_model,
-                    native_log_path=native_log_path,
-                ),
-                cwd=str(workspace), env=env,
-                stdin=subprocess.DEVNULL, stdout=handle, stderr=subprocess.STDOUT,
-                text=True, creationflags=flags,
+            env["MJOBS_LAUNCH_MODE"] = mode
+            command = self._launch_command(
+                lane, workspace, model_override=effective_model,
+                native_log_path=native_log_path,
             )
-            self._children[lane] = Child(process, handle, time.monotonic())
+            # Single-use manifest avoids passing multiline prompts through
+            # Windows cmd.exe/PowerShell argument parsing. The helper deletes
+            # the manifest after loading it and copies live stdout to console/log.
+            manifest_dir = self.bus / "agent-launch-manifests"
+            manifest_dir.mkdir(parents=True, exist_ok=True)
+            manifest = manifest_dir / f"{lane}-{run_id}.json"
+            self._write_json(manifest, {
+                "lane": lane, "argv": command,
+                "prompt": self._prompt(lane),
+                "workspace": str(workspace), "log": str(log_path),
+                "mode": mode, "hold_seconds": 25 if mode == "terminal" else 0,
+                "python_environment": python_environment,
+            })
+            helper = Path(__file__).parent / "terminal_host.py"
+            flags = (
+                subprocess.CREATE_NEW_CONSOLE if mode == "terminal"
+                else getattr(subprocess, "CREATE_NO_WINDOW", 0)
+            ) if os.name == "nt" else 0
+            startup = None
+            if mode == "terminal" and os.name == "nt":
+                startup = subprocess.STARTUPINFO()
+                startup.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                startup.wShowWindow = 1  # SW_SHOWNORMAL
+            try:
+                process = subprocess.Popen(
+                    [sys.executable, str(helper), "--manifest", str(manifest)],
+                    cwd=str(workspace), env=env,
+                    stdin=subprocess.DEVNULL,
+                    stdout=None if mode == "terminal" else subprocess.DEVNULL,
+                    stderr=None if mode == "terminal" else subprocess.DEVNULL,
+                    creationflags=flags, startupinfo=startup,
+                )
+            except BaseException:
+                manifest.unlink(missing_ok=True)
+                raise
+            self._children[lane] = Child(process, None, time.monotonic())
             current.update({
                 "pid": process.pid, "status": "RUNNING", "started_at": utc_now(),
                 "stopped_at": None, "exit_code": None, "last_reason": None,
                 "workspace": str(workspace),
                 "effective_model": effective_model,
                 "gpu_offload": gpu_offload,
+                "launch_mode": mode,
+                "terminal_visible": mode == "terminal",
+                "python_interpreter": python_environment["interpreter"],
+                "python_environment_source": python_environment["source"],
                 "run_id": run_id,
                 "log_start_offset": log_start_offset,
                 "native_log_path": str(native_log_path) if native_log_path else None,
@@ -608,7 +774,7 @@ class AgentSupervisor:
                 "last_reason": "STOP_REQUESTED",
             })
             child = self._children.pop(lane, None)
-            if child:
+            if child and child.log_handle is not None:
                 try:
                     child.log_handle.close()
                 except Exception:
@@ -672,11 +838,12 @@ class AgentSupervisor:
                         state["status"] = "RUNNING"
                     return
                 runtime_seconds = time.monotonic() - child.started_monotonic
-                try:
-                    child.log_handle.flush()
-                    child.log_handle.close()
-                except Exception:
-                    pass
+                if child.log_handle is not None:
+                    try:
+                        child.log_handle.flush()
+                        child.log_handle.close()
+                    except Exception:
+                        pass
                 self._children.pop(lane, None)
             else:
                 if pid_alive(pid):
