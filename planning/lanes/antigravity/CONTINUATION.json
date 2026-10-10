@@ -8,11 +8,11 @@
   "canonical_main_at_pause": "f399e00da63c7bf14cd5281b71bba5daf8d62e10",
   "current_issue": null,
   "current_requirement": null,
-  "last_completed_issue": 110,
-  "last_completed_requirement": "MJ-REQ-109 (AI Task Configuration), MJ-REQ-108.A03 (Azure OpenAI), MJ-REQ-117 (Match Weight Configuration), MJ-REQ-114 (Explainable Matching), MJ-REQ-108.A01/A02/A05 (AI Providers), MJ-REF-015 (LLM Telemetry), MJ-REQ-115 (Required vs Preferred), MJ-REQ-112 (Matching Engine), MJ-REQ-113 (Match Components), MJ-REQ-118/119 (Priority)",
-  "last_integrated_head": "43e76f05",
+  "last_completed_issue": 271,
+  "last_completed_requirement": "MJ-REQ-270 (AI Prompt Versioning), MJ-REQ-111 (AI Structured Output), MJ-REQ-108.A04 (Ollama), MJ-REQ-110 (AI Cost Controls), MJ-REQ-109 (AI Task Configuration), MJ-REQ-108.A03 (Azure OpenAI), MJ-REQ-117 (Match Weight Configuration), MJ-REQ-114 (Explainable Matching), MJ-REQ-108.A01/A02/A05 (AI Providers), MJ-REF-015 (LLM Telemetry), MJ-REQ-115 (Required vs Preferred), MJ-REQ-112 (Matching Engine), MJ-REQ-113 (Match Components), MJ-REQ-118/119 (Priority)",
+  "last_integrated_head": "464e08c3",
   "next_selection_rule": "Continue delivering outstanding matching and AI features according to backlog priority.",
-  "candidate_issues": [111, 112, 121, 343],
+  "candidate_issues": [121, 272],
   "external_submission_enabled": false,
   "github_actions_enabled": false
 }
