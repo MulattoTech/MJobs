@@ -60,3 +60,79 @@
 .launch-card .launch-effort-help {margin:.1rem 0 .35rem}
 .launch-card .launch-custom-wrap[hidden] {display:none !important}
 .launch-card .launch-model option {background:#111926;color:#eef4fc}
+
+
+/* Mission Control v4: real full-screen readable pre-launch review. */
+.launch-card .launch-preview-details { border-top:1px solid #39475a; padding-top:.65rem; margin-top:.9rem; }
+.launch-card .launch-preview-note { color:#91c8ca; font-weight:650; line-height:1.45; padding:.35rem 0 .5rem; }
+.launch-card .launch-prompt-preview {
+  min-height:100px; max-height:300px; margin:.35rem 0 0;
+  overflow:auto; overflow-wrap:anywhere; white-space:pre-wrap;
+  color:#d5e4ed; background:#07121e; font:12px/1.6 Consolas,"Cascadia Code",monospace;
+  user-select:text;
+}
+.launch-card .launch-actions .launch-preview { border-color:#417c8a; color:#a7f1e6; background:#132d38; }
+.launch-card .launch-actions .launch-start:disabled { cursor:not-allowed; filter:grayscale(.85); opacity:.43; }
+.launch-review-dialog {
+  position:fixed; inset:0; margin:auto; padding:0;
+  width:min(1150px,calc(100vw - 38px)); max-width:1150px;
+  max-height:min(90vh,980px); color:#e3edfa;
+  border:1px solid #4a7180; border-radius:17px; background:#0e1827;
+  box-shadow:0 20px 100px rgba(0,0,0,.85);
+  overflow:hidden;
+}
+.launch-review-dialog[open] { display:flex; flex-direction:column; }
+.launch-review-dialog::backdrop { background:rgba(0,5,12,.79); backdrop-filter:blur(5px); }
+.launch-dialog-top {
+  display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+  padding:24px 26px 17px; background:linear-gradient(120deg,#153140,#111a2a);
+  border-bottom:1px solid #34505e; flex-shrink:0;
+}
+.launch-dialog-top h2 { font-size:clamp(1.15rem,2vw,1.65rem); margin:.3rem 0 .6rem; }
+.launch-dialog-top p { color:#b7cddd; font-size:.82rem; line-height:1.5; overflow-wrap:anywhere; }
+.preview-kicker { font-size:.65rem; color:#7fe6d3; font-weight:800; letter-spacing:.12em; }
+.launch-dialog-close { background:#202c41; border:1px solid #40546d; border-radius:8px; font-size:1.2rem; padding:.35rem .78rem; }
+.launch-review-state { margin:15px 25px 6px; font-size:.79rem; color:#a2d4d6; }
+.launch-review-state.error { color:#ff9b9b; }
+.launch-review-state.success { color:#7be3af; }
+.launch-review-text {
+  flex:1; min-height:130px; max-height:60vh; margin:8px 25px 12px;
+  font:12px/1.7 "Cascadia Code",Consolas,monospace;
+  color:#d9eee8; border:1px solid #32626a; background:#06131c;
+  padding:17px 19px; border-radius:10px;
+  white-space:pre-wrap; overflow-wrap:anywhere; overflow:auto; user-select:text;
+}
+.launch-command-details { margin:0 25px 12px; flex-shrink:0; }
+.launch-command-details summary { font-size:.75rem; color:#a3cddd; }
+.launch-command-details pre { max-height:90px; font-size:.71rem; white-space:pre-wrap; overflow-wrap:anywhere; }
+.launch-review-foot {
+  flex-shrink:0; display:flex; align-items:center; justify-content:space-between;
+  padding:13px 25px 17px; gap:12px; background:#122237;
+  border-top:1px solid #2c485c;
+}
+.launch-review-foot > span { font-size:.7rem; color:#91a9c4; max-width:350px; }
+.launch-review-buttons { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+.launch-review-buttons button { font-size:.77rem; white-space:nowrap; padding:.7rem .95rem; }
+.launch-review-buttons button:disabled { opacity:.45; cursor:not-allowed; }
+@media(max-width:790px) {
+  .launch-review-dialog { width:calc(100vw - 12px); max-height:calc(100vh - 12px); }
+  .launch-dialog-top { padding:16px 15px 12px; }
+  .launch-review-state { margin:10px 15px 5px; }
+  .launch-review-text { margin:7px 15px 11px; padding:12px; font-size:11px; max-height:48vh; }
+  .launch-command-details { margin:0 15px 10px; }
+  .launch-review-foot { padding:12px 15px; flex-direction:column; align-items:stretch; }
+  .launch-review-buttons { justify-content:flex-start; }
+}
+
+
+/* Reviewed-launch mode must not expose legacy bypass buttons or controls. */
+.mission-reviewed-launch-only #stopAllBtn,
+.mission-reviewed-launch-only .advanced-control .buttons,
+.mission-reviewed-launch-only .advanced-control .gpu-control,
+.mission-reviewed-launch-only .advanced-control .auto-continue,
+.mission-reviewed-launch-only .advanced-control .save,
+.mission-reviewed-launch-only .advanced-control .start,
+.mission-reviewed-launch-only .advanced-control .restart,
+.mission-reviewed-launch-only .advanced-control .stop {
+  display:none !important;
+}

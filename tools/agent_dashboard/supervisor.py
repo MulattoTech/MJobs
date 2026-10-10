@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -262,14 +263,18 @@ class AgentSupervisor:
         except Exception:
             return result.stdout[:7000]
 
-    def _prompt(self, lane: str) -> str:
-        cfg = self.config["lanes"][lane]
+    def _prompt(self, lane: str, *, config_override: dict[str, Any] | None = None) -> str:
+        cfg = config_override if config_override is not None else self.config["lanes"][lane]
         path = self.root / cfg["prompt_file"]
         base = path.read_text(encoding="utf-8") if path.exists() else ""
         override = (cfg.get("prompt_override") or "").strip()
         suffix = f"\n\nDASHBOARD PROMPT OVERRIDE:\n{override}\n" if override else ""
         if cfg.get("launch_profile"):
             return (
+                "CURRENT EXPLICIT LAUNCH SELECTION: "
+                f"model={cfg.get('model')}; reasoning={cfg.get('reasoning')}; "
+                f"auto_continue={bool(cfg.get('auto_continue'))}. "
+                "These actual CLI settings supersede incidental model labels in preset profile text.\n\n"
                 "USER-STARTED MISSION CONTROL SESSION. Read AGENTS.md, "
                 "docs/DUAL_AGENT_COORDINATION.md, planning/lanes/README.md and "
                 "docs/PROGRESS_TRACKING.md. You are limited to the exact selected "
@@ -325,9 +330,10 @@ class AgentSupervisor:
         workspace: Path | None = None,
         model_override: str | None = None,
         native_log_path: Path | None = None,
+        config_override: dict[str, Any] | None = None,
     ) -> list[str]:
-        cfg = self.config["lanes"][lane]
-        prompt = self._prompt(lane)
+        cfg = config_override if config_override is not None else self.config["lanes"][lane]
+        prompt = self._prompt(lane, config_override=config_override)
         workspace = workspace or self.root
         model = model_override or str(cfg["model"])
         if lane == "codex":
@@ -537,10 +543,17 @@ class AgentSupervisor:
                 continue
         return None
 
-    def start(self, lane: str, *, manual: bool = True) -> dict[str, Any]:
+    def start(self, lane: str, *, manual: bool = True,
+              expected_prompt_hash: str | None = None) -> dict[str, Any]:
         self._require_lane(lane)
         with self._lock:
             current = self.runtime["lanes"][lane]
+            if expected_prompt_hash is not None:
+                actual_prompt_hash = hashlib.sha256(
+                    self._prompt(lane).encode("utf-8")
+                ).hexdigest()
+                if actual_prompt_hash != expected_prompt_hash:
+                    raise RuntimeError("Prompt changed after review; read and approve it again. Nothing launched.")
             if pid_alive(current.get("pid")):
                 return dict(current)
             if manual:

@@ -49,7 +49,17 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.get("/api/launcher/health")
     def launcher_health():
-        return {"service": "mjobs-mission-control", "version": 2, "status": "ready"}
+        return {
+            "service": "mjobs-mission-control", "version": 3, "status": "ready",
+            "root": str(repo), "prompt_preview": True, "approval_required": True,
+        }
+
+    def deny_legacy_process_controls():
+        if mission_instance:
+            raise HTTPException(
+                403, "Legacy controls are disabled in Mission Control. "
+                     "Use Read prompt, approve the effective prompt, then Launch CLI."
+            )
 
     @app.get("/api/launcher/options")
     def launcher_options():
@@ -73,6 +83,16 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
         if not path.is_file():
             raise HTTPException(404, "Profile file missing")
         return {"profile": slug, "content": path.read_text(encoding="utf-8")}
+
+    @app.post("/api/launcher/{lane}/preview")
+    def launcher_preview(lane: str, options: LaunchRequest, request: Request):
+        # Same authenticated origin as launch, but without any worktree,
+        # configuration, process or model-execution side effects.
+        mission.require_token(request, mission.token)
+        try:
+            return mission.preview(lane, options)
+        except (ValueError, RuntimeError, FileNotFoundError, OSError) as exc:
+            raise HTTPException(409, str(exc))
 
     @app.post("/api/launcher/{lane}/launch")
     def launcher_launch(lane: str, options: LaunchRequest, request: Request):
@@ -107,6 +127,7 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.post("/api/lanes/{lane}/start")
     def start(lane: str):
+        deny_legacy_process_controls()
         try:
             return supervisor.start(lane)
         except KeyError:
@@ -116,6 +137,7 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.post("/api/lanes/{lane}/stop")
     def stop(lane: str):
+        deny_legacy_process_controls()
         try:
             return supervisor.stop(lane)
         except KeyError:
@@ -123,6 +145,7 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.post("/api/lanes/{lane}/restart")
     def restart(lane: str):
+        deny_legacy_process_controls()
         try:
             return supervisor.restart(lane)
         except KeyError:
@@ -132,6 +155,7 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.patch("/api/lanes/{lane}/config")
     def config(lane: str, patch: LanePatch):
+        deny_legacy_process_controls()
         try:
             values: dict[str, Any] = {
                 key: value for key, value in patch.model_dump().items() if value is not None
@@ -203,6 +227,7 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.post("/api/stop-all")
     def stop_all():
+        deny_legacy_process_controls()
         return {lane: supervisor.stop(lane) for lane in LANES}
 
     @app.exception_handler(KeyError)

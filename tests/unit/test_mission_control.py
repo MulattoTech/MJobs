@@ -34,7 +34,7 @@ class MissionControlTests(unittest.TestCase):
         run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
         prompts = self.root / "prompts" / "dual-agent"
         prompts.mkdir(parents=True)
-        for slug in ("codex-luna-high", "antigravity-opus", "claude-release-audit"):
+        for slug in ("codex-luna-high", "codex-sol-6-1-high", "antigravity-opus", "claude-release-audit"):
             (prompts / (slug + ".md")).write_text("GOAL and verified implementation rules\n", encoding="utf-8")
         planning = self.root / "planning"
         planning.mkdir()
@@ -65,7 +65,10 @@ class MissionControlTests(unittest.TestCase):
         # a Windows child process can keep the temporary directory in use.
         def fake_discovery(_catalog, lane):
             choices = {
-                "codex": [_choice("gpt-6-luna","Luna",["medium","high"],"high")],
+                "codex": [
+                    _choice("gpt-6-luna","Luna",["medium","high"],"high"),
+                    _choice("gpt-6.1-sol","Sol",["medium","high","xhigh"],"high"),
+                ],
                 "antigravity": [_choice("opus","Opus",["high"],"high")],
                 "claude": [_choice("sonnet","Sonnet",["high"],"high")],
             }
@@ -147,15 +150,20 @@ class MissionControlTests(unittest.TestCase):
 
     def test_start_runs_only_on_explicit_authorized_action(self):
         token = self.client.get("/api/launcher/options").json()["token"]
+        request = {"profile": "codex-luna-high", "model": "gpt-6-luna",
+                   "effort": "high", "agent": "Application Architect",
+                   "instructions": "Do not submit.", "auto_continue": False}
+        headers = {"X-MJobs-Launch-Token": token}
+        preview = self.client.post("/api/launcher/codex/preview",
+                                   headers=headers, json=request)
+        self.assertEqual(preview.status_code, 200, preview.text)
+        self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
         with patch.object(self.app.state.supervisor, "_runner_prefix", return_value=["stub"]):
             with patch.object(self.app.state.supervisor, "start",
                               return_value={"status": "RUNNING", "pid": 12345}) as started:
                 reply = self.client.post(
-                    "/api/launcher/codex/launch",
-                    headers={"X-MJobs-Launch-Token": token},
-                    json={"profile": "codex-luna-high", "model": "gpt-6-luna",
-                          "effort": "high", "agent": "Application Architect", "instructions": "Do not submit.",
-                          "auto_continue": False},
+                    "/api/launcher/codex/launch", headers=headers,
+                    json={**request, "preview_hash": preview.json()["preview_hash"]},
                 )
         self.assertEqual(reply.status_code, 200, reply.text)
         self.assertEqual(reply.json()["pid"], 12345)
@@ -255,6 +263,167 @@ class MissionControlTests(unittest.TestCase):
         self.assertEqual(second["original"]["pass"], 2)
         self.assertEqual(second["original_as_of"], "2026-10-09T23:00:00Z")
         self.assertFalse(second["checkpoint_current"])
+
+    def _codex_request(self):
+        return {
+            "profile": "codex-luna-high",
+            "model": "gpt-6-luna",
+            "effort": "high",
+            "agent": "Application Architect",
+            "instructions": "Use only test fixtures.",
+            "auto_continue": False,
+        }
+
+    def _preview_request(self, request):
+        token = self.client.get("/api/launcher/options").json()["token"]
+        return self.client.post(
+            "/api/launcher/codex/preview",
+            headers={"X-MJobs-Launch-Token": token},
+            json=request,
+        )
+
+    def test_preview_contains_actual_effective_prompt_and_cli_model_flags(self):
+        request = self._codex_request()
+        original_config = self.app.state.supervisor.lane_config("codex")
+        response = self._preview_request(request)
+        self.assertEqual(response.status_code, 200, response.text)
+        data = response.json()
+        self.assertIn("CURRENT EXPLICIT LAUNCH SELECTION: model=gpt-6-luna;", data["prompt"])
+        self.assertIn("Session label=Application Architect", data["prompt"])
+        self.assertIn("Use only test fixtures.", data["prompt"])
+        self.assertIn("GOAL and verified implementation rules", data["prompt"])
+        self.assertEqual(data["effort"], "high")
+        self.assertEqual(data["model"], "gpt-6-luna")
+        self.assertEqual(data["agent"], "Application Architect")
+        self.assertIn("gpt-6-luna", data["command"])
+        self.assertIn('model_reasoning_effort="high"', data["command"])
+        self.assertIn("<reviewed prompt>", data["command"])
+        self.assertEqual(len(data["preview_hash"]), 64)
+        self.assertEqual(len(data["prompt_sha256"]), 64)
+        self.assertEqual(self.app.state.supervisor.lane_config("codex"), original_config)
+        self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
+
+    def test_all_launch_selection_changes_invalidate_preview_hash(self):
+        original = self._preview_request(self._codex_request()).json()["preview_hash"]
+        cases = [
+            {"profile": "codex-sol-6-1-high"},
+            {"model": "gpt-6.1-sol"},
+            {"effort": "medium"},
+            {"agent": "Another Engineer"},
+            {"instructions": "Change approved output."},
+            {"auto_continue": True},
+        ]
+        for change in cases:
+            with self.subTest(change=change):
+                request = {**self._codex_request(), **change}
+                response = self._preview_request(request)
+                self.assertEqual(response.status_code, 200, response.text)
+                data = response.json()
+                self.assertNotEqual(data["preview_hash"], original)
+                self.assertEqual(data["model"], request["model"])
+                self.assertEqual(data["effort"], request["effort"])
+                self.assertEqual(data["auto_continue"], request["auto_continue"])
+                self.assertIn(str(request["model"]), data["prompt"])
+
+    def test_preview_does_not_create_worktree_or_start_agent(self):
+        self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
+        with patch.object(self.app.state.supervisor, "start",
+                          side_effect=AssertionError("Preview attempted agent launch")):
+            response = self._preview_request(self._codex_request())
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
+        self.assertIn("will be safely created at launch",
+                      " ".join(response.json()["warnings"]))
+
+    def test_launch_missing_wrong_or_stale_prompt_is_rejected_before_worktree(self):
+        token = self.client.get("/api/launcher/options").json()["token"]
+        headers = {"X-MJobs-Launch-Token": token}
+        request = self._codex_request()
+        preview = self._preview_request(request).json()
+        invalid = [
+            request,
+            {**request, "preview_hash": "f" * 64},
+            {**request, "preview_hash": preview["preview_hash"],
+             "instructions": "Changed after approval."},
+            {**request, "preview_hash": preview["preview_hash"],
+             "model": "gpt-6.1-sol"},
+        ]
+        for config in invalid:
+            with self.subTest(config=config):
+                with patch.object(self.app.state.supervisor, "start",
+                                  side_effect=AssertionError("Should not spawn a CLI")):
+                    response = self.client.post(
+                        "/api/launcher/codex/launch",
+                        headers=headers, json=config,
+                    )
+                self.assertEqual(response.status_code, 409, response.text)
+                self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
+
+    def test_file_modification_after_preview_invalidates_prior_approval(self):
+        request = self._codex_request()
+        approved = self._preview_request(request).json()
+        profile_path = self.root / "prompts/dual-agent/codex-luna-high.md"
+        profile_path.write_text("Updated canonical prompt file.\n", encoding="utf-8")
+        after = self._preview_request(request).json()
+        self.assertNotEqual(approved["preview_hash"], after["preview_hash"])
+        token = self.client.get("/api/launcher/options").json()["token"]
+        with patch.object(self.app.state.supervisor, "start",
+                          side_effect=AssertionError("Should not launch")):
+            response = self.client.post(
+                "/api/launcher/codex/launch",
+                headers={"X-MJobs-Launch-Token": token},
+                json={**request, "preview_hash": approved["preview_hash"]},
+            )
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
+
+    def test_prompt_guard_rejects_last_second_mismatch_before_spawning(self):
+        sup = self.app.state.supervisor
+        sup.update_config("codex", {
+            "launch_profile": "codex-luna-high",
+            "launch_workspace": str(self.root),
+            "prompt_file": "prompts/dual-agent/codex-luna-high.md",
+            "model": "gpt-6-luna",
+            "reasoning": "high",
+            "auto_continue": False,
+        })
+        with patch.object(sup, "_launch_command",
+                          side_effect=AssertionError("Should not spawn CLI")):
+            with self.assertRaisesRegex(RuntimeError, "Prompt changed after review"):
+                sup.start("codex", manual=True, expected_prompt_hash="0" * 64)
+
+    def test_preview_requires_same_authorization_as_launch(self):
+        request = self._codex_request()
+        missing = self.client.post("/api/launcher/codex/preview", json=request)
+        self.assertEqual(missing.status_code, 403)
+        token = self.client.get("/api/launcher/options").json()["token"]
+        foreign = self.client.post(
+            "/api/launcher/codex/preview", json=request,
+            headers={"X-MJobs-Launch-Token": token, "Origin": "https://evil.example"},
+        )
+        self.assertEqual(foreign.status_code, 403)
+
+    def test_reviewed_launch_mode_disables_legacy_control_bypasses(self):
+        mission_app = create_app(self.root, mission_instance=True)
+        client = TestClient(mission_app)
+        health = client.get("/api/launcher/health").json()
+        self.assertGreaterEqual(health["version"], 3)
+        self.assertTrue(health["prompt_preview"])
+        self.assertTrue(health["approval_required"])
+        self.assertEqual(health["root"], str(self.root))
+        self.assertTrue(client.get("/api/launcher/options").json()["mission_instance"])
+        for endpoint in (
+            "/api/lanes/codex/start", "/api/lanes/codex/stop",
+            "/api/lanes/codex/restart", "/api/stop-all",
+        ):
+            with self.subTest(endpoint=endpoint):
+                self.assertEqual(client.post(endpoint, json={}).status_code, 403)
+        self.assertEqual(client.patch(
+            "/api/lanes/codex/config", json={"model": "gpt-6.1-sol"}
+        ).status_code, 403)
+        self.assertEqual(client.get("/api/launcher/options").status_code, 200)
+        # No legacy bypass was allowed to create an isolated checkout.
+        self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
 
 
 if __name__ == "__main__":

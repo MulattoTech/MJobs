@@ -58,3 +58,88 @@ python -m unittest tests.unit.test_mission_control tests.unit.test_agent_dashboa
 python -m tools.verification.progress_dashboard --check
 python -m tools.coordination.lane_coordination validate
 ```
+
+
+## Exact pre-launch prompt review (October 10 reliability fix)
+
+**Read prompt opens a dedicated, scrollable review window.** It displays the
+complete effective prompt as assembled by the same supervisor logic that will
+execute the CLI; it includes Mission Control's safety/ownership instructions,
+the selected versioned profile, and any additional user instructions. The
+model, reasoning effort, agent/session label, auto-continue policy, CLI
+arguments (with the prompt itself redacted), and intended worktree are
+available before launch.
+
+The original control displayed only the profile file in a collapsed inline
+section. This was not a reliable reflection of actual CLI execution.
+
+The new preview uses POST /api/launcher/{lane}/preview with the same local
+same-origin token required by Launch CLI. The endpoint is read-only: it does
+not start an AI, invoke a model, create a worktree, change CLI settings, or
+acquire an integration lock. It validates the selected CLI-model/effort pair
+and refuses stale model catalogues until manually refreshed.
+
+**Launch CLI remains locked until the exact current preview is approved.**
+Click Read prompt, inspect the entire prompt, and click Approve reviewed
+prompt. Any change in profile, model, reasoning effort, agent name, extra
+instructions, or auto-continue clears approval immediately, regenerates the
+effective preview, and requires reapproval.
+
+The inline Selected prompt contents display and the large review window
+refresh together. Both opening and closing the large viewer and expanding or
+collapsing the inline disclosure refresh the view. In-flight response
+versioning prevents an older request from replacing the latest selection.
+
+For safety, the server binds an SHA-256 preview fingerprint to the complete
+prompt, selected options, intended worktree and command arguments. The
+actual launch reassembles these data and rejects missing/stale/mismatched
+approvals **before creating or modifying any claimed worktree**. The
+supervisor also compares the final prompt bytes again immediately before
+starting the subprocess. No profile editing or race condition may silently
+substitute a different prompt.
+
+**Preview does not guarantee model entitlement or successful external
+authentication.** The local installed CLI may still reject its own model
+selection or encounter a provider quota at execution. Normal MJobs Git
+claim exclusivity and external-submission-off policies continue to apply.
+
+Verification without launching any real CLI:
+
+    .\.venv\Scripts\python.exe -m unittest tests.unit.test_mission_control -v
+    node --check tools\agent_dashboard\static\mission.js
+
+A full browser scenario additionally tests model/profile/effort switching,
+editable instructions, closing/reopening the prompt, approval invalidation
+and absence of launch network requests. Never click Launch CLI during a
+smoke test.
+
+
+## Safe rollout while main's integration lock is held
+
+If the root Codex integration lock is active, do not copy these files into the
+live MJobs main checkout. Publish the verified branch and install a separate
+versioned code checkout instead:
+
+    git clone --single-branch --branch fix/mission-control-prompt-preview-20261010 https://github.com/MulattoTech/MJobs.git C:\Tools\Dev\MJobs-MissionControl-Launch
+
+The entrypoint in that checkout uses the *actual* MJobs repository for data,
+issue claims, prompts, worktrees, and model catalogs without changing main's
+tracked files. Once the prior Mission Control dashboard is confirmed to have
+no supervised CLIs running, stop only its own server process, then start:
+
+    C:\Tools\Dev\MJobs-MissionControl-Launch\Start-MJobs-PreviewSafe.ps1 -RepoRoot C:\Tools\Dev\MJobs
+
+To create or update the desktop shortcut with a backup of the old shortcut:
+
+    C:\Tools\Dev\MJobs-MissionControl-Launch\Install-MJobs-PreviewSafeShortcut.ps1 -RepoRoot C:\Tools\Dev\MJobs
+
+The launcher requires health API v3 with the exact-prompt and mandatory
+approval capabilities; it refuses to reuse an old or unrelated server and
+**never kills agents or forces a port takeover**. The shortcut installer
+backs up the old shortcut under LOCALAPPDATA/MJobs/backups. Both scripts
+are versioned, support other Windows checkouts, and do not start coding agents.
+
+After a permitted integration checkpoint, the same code can be included in
+main by an authorized integrator and the standalone code checkout retired
+only after inspecting the active dashboard/runner ownership. Do not replace
+the primary checkout while it is dirty or locked.

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MJobs Mission Control — Launch & Release Tracker</title>
-  <link rel="stylesheet" href="/static/mission.css?v=3">
+  <link rel="stylesheet" href="/static/mission.css?v=4">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -44,7 +44,7 @@
 
   <section id="alerts"></section>
   <details class="advanced-control">
-    <summary>Advanced agent telemetry, legacy runner & console controls</summary>
+    <summary>Advanced agent telemetry (legacy controls disabled in reviewed-launch mode)</summary>
     <section id="lanes" class="lane-grid"></section>
   </details>
 
@@ -202,7 +202,32 @@
   </article>
 </template>
 
+<dialog id="launchReviewDialog" class="launch-review-dialog" aria-labelledby="launchReviewTitle">
+  <div class="launch-dialog-top">
+    <div>
+      <div class="preview-kicker">PRE-LAUNCH SAFETY REVIEW · NO AGENT STARTED</div>
+      <h2 id="launchReviewTitle">Review effective CLI prompt</h2>
+      <p id="launchReviewMetadata">Loading selected profile and model…</p>
+    </div>
+    <button type="button" id="launchReviewClose" class="launch-dialog-close" aria-label="Close prompt preview">×</button>
+  </div>
+  <div id="launchReviewState" class="launch-review-state" role="status" aria-live="polite">Building exact launch instructions…</div>
+  <pre id="launchReviewText" class="launch-review-text" tabindex="0" aria-label="Complete prompt to be sent to the selected coding model"></pre>
+  <details class="launch-command-details">
+    <summary>Show executable and launch parameters (prompt omitted)</summary>
+    <pre id="launchReviewCommand"></pre>
+  </details>
+  <div class="launch-review-foot">
+    <span>Any profile, model, effort, agent, or instruction change invalidates approval.</span>
+    <div class="launch-review-buttons">
+      <button type="button" id="launchReviewRefresh">Refresh preview</button>
+      <button type="button" id="launchReviewApprove" class="primary" disabled>Approve reviewed prompt</button>
+      <button type="button" id="launchReviewDone">Close</button>
+    </div>
+  </div>
+</dialog>
+
 <script src="/static/app.js"></script>
-<script src="/static/mission.js?v=3"></script>
+<script src="/static/mission.js?v=4"></script>
 </body>
 </html>
