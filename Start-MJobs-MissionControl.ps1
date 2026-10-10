@@ -22,13 +22,14 @@ function LogLine($message) {
 function Probe {
   try {
     $reply = Invoke-RestMethod -Uri "$base/api/launcher/health" -TimeoutSec 1 -ErrorAction Stop
-    return ($reply.service -eq 'mjobs-mission-control' -and $reply.version -ge 7 -and
+    return ($reply.service -eq 'mjobs-mission-control' -and $reply.version -ge 8 -and
       $reply.prompt_preview -eq $true -and $reply.approval_required -eq $true -and
       $reply.history_available -eq $true -and $reply.visible_terminal -eq $true -and
       $reply.subagent_controls -eq $true -and $reply.prompt_via_stdin -eq $true -and
       $reply.console_output_binding -eq 'CONOUT$' -and
       $reply.python_environment_preflight -eq $true -and
-      $reply.accurate_partial_state -eq $true)
+      $reply.accurate_partial_state -eq $true -and
+      $reply.crlf_summary_fix -eq $true)
   } catch { return $false }
 }
 try {

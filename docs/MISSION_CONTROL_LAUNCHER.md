@@ -356,8 +356,10 @@ when there is no dashboard-supervised agent still running.
 
 ## October 10: correct false environment blockers and fragmented CLI output
 
-Mission Control v7 repairs two independently observed defects in supervised
-Codex development on Windows.
+Mission Control v8 repairs two independently observed defects in supervised
+Codex development on Windows, including a Windows CRLF line-ending bug in
+the concise log viewer. The latest Codex run summary is extracted from CRLF
+transcripts, not an arbitrary diff fragment.
 
 ### 1. Reuse the actual pinned project Python environment
 

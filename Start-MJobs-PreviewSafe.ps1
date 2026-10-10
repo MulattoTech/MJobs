@@ -26,13 +26,14 @@ $current=Get-CurrentHealth
 $listener=Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
 if($listener){
   if($current -and $current.service -eq 'mjobs-mission-control' -and
-     $current.version -ge 7 -and $current.prompt_preview -eq $true -and
+     $current.version -ge 8 -and $current.prompt_preview -eq $true -and
      $current.approval_required -eq $true -and $current.history_available -eq $true -and
      $current.visible_terminal -eq $true -and $current.subagent_controls -eq $true -and
      $current.prompt_via_stdin -eq $true -and
      $current.console_output_binding -eq 'CONOUT$' -and
      $current.python_environment_preflight -eq $true -and
      $current.accurate_partial_state -eq $true -and
+     $current.crlf_summary_fix -eq $true -and
      [IO.Path]::GetFullPath([string]$current.root) -eq $RepoRoot){
     Write-Host "Reusing verified safe Mission Control at $base/" -ForegroundColor Cyan
   }else{
@@ -54,13 +55,14 @@ if($listener){
     if($proc.HasExited){break}
     $health=Get-CurrentHealth
     if($health -and $health.service -eq 'mjobs-mission-control' -and
-       $health.version -ge 7 -and $health.prompt_preview -eq $true -and
+       $health.version -ge 8 -and $health.prompt_preview -eq $true -and
        $health.approval_required -eq $true -and $health.history_available -eq $true -and
        $health.visible_terminal -eq $true -and $health.subagent_controls -eq $true -and
        $health.prompt_via_stdin -eq $true -and
        $health.console_output_binding -eq 'CONOUT$' -and
        $health.python_environment_preflight -eq $true -and
        $health.accurate_partial_state -eq $true -and
+       $health.crlf_summary_fix -eq $true -and
        [IO.Path]::GetFullPath([string]$health.root) -eq $RepoRoot){
       $ready=$true
       break

@@ -26,10 +26,14 @@ def latest_run_excerpt(raw: str, *, max_chars: int = 16000) -> str:
         footer = "CLI still running or finished without an exit marker"
         body = current
     # Codex prints a distinct final-response segment after token counts.
-    marker = body.rfind("\ntokens used\n")
-    if marker >= 0:
-        response = body[marker + len("\ntokens used\n"):]
-        lines = response.splitlines()
+    # Windows console logs commonly use CRLF. A fixed "\\ntokens used\\n"
+    # search misses that separator and falls back to raw diff fragments.
+    markers = list(re.finditer(r"(?m)^[ \t]*tokens used[ \t]*\r?$", body))
+    if markers:
+        response = body[markers[-1].end():]
+        lines = [line for line in response.splitlines()]
+        while lines and not lines[0].strip():
+            lines.pop(0)
         if lines and re.fullmatch(r"[0-9,]+", lines[0].strip()):
             lines = lines[1:]
         summary = "\n".join(lines).strip()

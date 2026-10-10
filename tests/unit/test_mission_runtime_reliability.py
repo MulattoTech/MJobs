@@ -170,6 +170,12 @@ class ReadableLogTests(unittest.TestCase):
         self.assertNotIn("+++ b/", summary)
         self.assertIn("CLI EXIT 0", summary)
 
+    def test_windows_crlf_console_log_uses_final_summary_not_diff(self):
+        summary = latest_run_excerpt(self.SAMPLE.replace("\n", "\r\n"))
+        self.assertIn("LATEST CODEX RUN SUMMARY", summary)
+        self.assertIn("Status: PARTIAL", summary)
+        self.assertNotIn("diff --git", summary)
+
     def test_live_stream_keeps_codex_activity_but_omits_patch_lines(self):
         presenter = LiveDisplay()
         self.assertIn("exec", presenter.feed("exec\n"))
