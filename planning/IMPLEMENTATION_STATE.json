@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-09T21:37:30Z",
+  "generated_at": "2026-10-10T08:38:56.568551+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MJ-REQ-245-AUTOMATED-SOURCE-LEARNING-20261009",
-  "current_objective": "Implement evidence-based bounded adaptive scheduling for monitored public company sources using existing feed observations and current-profile match scores.",
+  "current_milestone": "APPLICATION-RELIABILITY-WEBPRO-20261010",
+  "current_objective": "Verified durable local attempt history, receipt-only recovery and browser-verified upload bytes.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -182,7 +182,10 @@
     "Explainable match coverage now shows covered/possible base skill weights and per-skill contributions (issue #115 / MJ-REQ-114; integrated 55c6a6036dc42bb15f6a5d8e60289afb73fb55af; evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json). Broader original score dimensions remain incomplete.",
     "Issue #247 / MJ-REQ-246: monitored company-source transient failures show bounded HEALTHY → DEGRADED → FAILED recovery, manual reset, blocked-access handling and preserved rediscovery gate. Local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; broader source failure lifecycle remains incomplete.",
     "Issue #247 / MJ-REQ-247 PASS: a failed parser does not remove or rewrite the employer source; enabled configuration, provider/endpoints, terminal monitoring state and all failure events survive a fresh Store readback. Main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40; evidence docs/evidence/2026-10-09-failed-source-preservation.json.",
-    "Issue #517 discovered source-site catalogue remains PARTIAL: other provider/browser intake and overall source suitability/integration acceptance are incomplete."
+    "Issue #517 discovered source-site catalogue remains PARTIAL: other provider/browser intake and overall source suitability/integration acceptance are incomplete.",
+    "2026-10-10 MJ-REQ-138 durable mock attempt lifecycle and connected history",
+    "2026-10-10 MJ-REQ-144 explicit local receipt-only reconciliation",
+    "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
   "active_requirements": [],
@@ -482,7 +485,8 @@
     "MJ-REQ-114 focused exact-candidate: 27 matching integration tests PASS; connected Chromium profile-scoped match detail 1/1 PASS with zero external requests/submissions; 17 focused matching explanation Vitest tests PASS; TypeScript/Vite build PASS; compilation, evidence hash and lane/diff checks PASS.",
     "MJ-REQ-266 exact route-level trusted-board provenance: focused Python/API/connected Chromium 29 PASS; route-preference Vitest 2 PASS; TypeScript/Vite build, py_compile, lane validation, diff check PASS. Exact source a4286d189f2d7b8b583b17de229fecd38fd98813 tree 627040b5977f7b621d593864c6604af059af3349; evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
     "MJ-FEATURE-517 ambiguous source URL retry integrated locally at main d53c99002d68bc52adf4eb207fc65877b6c69f74 from tested code source 31af99f2767344b2a46dd28551f99dd765157702 (tree 90c96f3e90f6c947b7f5d73ad13906d6a658d419); connected acceptance test commit 7765c147c061bd088dee4c7a852446ba5acf38f4 (tree 612b874f426cbd9a8bafa3f5f8010b92c1dd5601). Same-profile retries after a committed/lost response retain the request ID and one durable observation; success, changed input, and profile switching use a fresh ID. Missing route authority safely renders UNKNOWN. Evidence docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json; 17 Python/unit/integration/connected Chromium tests, 25 web tests, TypeScript/Vite build, py_compile, lane validation, and diff checks PASS. PostgreSQL, full suite, live sources, hosted checks NOT_RUN; external submission OFF; #517 remains OPEN/PARTIAL.",
-    "2026-10-09 #517 local integration task exact-source acceptance: API/service integration plus connected Chromium 11 PASS; focused web 12 PASS; TypeScript/Vite build, py_compile, lane validation and diff check PASS; docs/evidence/2026-10-09-source-candidate-local-integration-task.json."
+    "2026-10-09 #517 local integration task exact-source acceptance: API/service integration plus connected Chromium 11 PASS; focused web 12 PASS; TypeScript/Vite build, py_compile, lane validation and diff check PASS; docs/evidence/2026-10-09-source-candidate-local-integration-task.json.",
+    "2026-10-10 Web application sprint: all 41 new Python tests PASS; combined run 84/86 with two reproduced baseline failures; frontend 567/567 across 99 files; TypeScript/Vite build PASS. Exact source 25fea60889ad13cb5e837ab2263324f84fd20a04; docs/evidence/2026-10-10-durable-application-attempts.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -511,7 +515,18 @@
     "#372 adjacent answer-review browser regression at current local source failed at the application-switch step because a non-exact Application review locator resolves both existing Application review and Multi-page application review regions. The second region is already present in main's application-multipage-review.tsx; no changed path owns it. Record as a pre-existing test-selector ambiguity, not as feature PASS.",
     "#372 adjacent cover-letter preview regression remains FAIL_ON_UNMODIFIED_MAIN: reproduced identically on untouched main because company_context is None; excluded from this feature acceptance.",
     "Full repository unittest discovery was interrupted after multiple failures outside changed feature paths, including strict-locator browser failures in application-priority, company-preferences, and job-risk tests; command did not complete and is not a passing full-suite result. See docs/evidence/2026-10-09-company-discovery-policy.json.",
-    "RESOLVED on integrated source: checkpointed #401 retry browser test initially used stale review-stage labels, asserted an unsupported response field, and classified read-only GET /applications as submission; the test now follows the current UI/API contract and passes."
+    "RESOLVED on integrated source: checkpointed #401 retry browser test initially used stale review-stage labels, asserted an unsupported response field, and classified read-only GET /applications as submission; the test now follows the current UI/API contract and passes.",
+    {
+      "timestamp": "2026-10-10T08:38:56.568551+00:00",
+      "source_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+      "baseline_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
+      "failures": [
+        "tests.browser.test_mock_application.MockApplicationTests.test_conditional_required_dropdown_uses_known_preflight_mapping",
+        "tests.browser.test_mock_application.MockApplicationTests.test_sensitive_required_question_persists_review_and_stops_before_browser"
+      ],
+      "classification": "PREEXISTING_REPRODUCED_BASELINE",
+      "note": "Do not treat the full combined suite as PASS. Active foreign form-analysis claims remain untouched."
+    }
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -607,7 +622,8 @@
     "MJ-REF-031/#401: PostgreSQL, full repository suite, live ATS/provider access, hosted checks/reviews, and real application submission NOT_RUN; external submission OFF.",
     "MJ-REQ-250 live Greenhouse, PostgreSQL, full Python repository suite, hosted checks/review and cross-device browser-local acknowledgment persistence NOT_RUN; external submission OFF.",
     "MJ-REQ-114 PostgreSQL-specific execution, full repository suite, hosted CI/review, and live employer/ATS integrations NOT_RUN under local-only policy; external application submission OFF.",
-    "MJ-REQ-266: PostgreSQL-specific and full repository suites, live providers, hosted Actions/reviews NOT_RUN; external application submission OFF."
+    "MJ-REQ-266: PostgreSQL-specific and full repository suites, live providers, hosted Actions/reviews NOT_RUN; external application submission OFF.",
+    "2026-10-10 sprint: full repository Python discovery, PostgreSQL, real ATS, hosted CI/review, hard-crash reservation takeover, and user-personal runtime acceptance NOT_RUN."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -652,13 +668,15 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "64b123e4633b60cb655cc53a3b95188761860e8a",
-    "tree": "4eab257fa49b74fda6e59a36cd5251a8a80b2e3f",
-    "result": "PASS_LOCAL for full original MJ-REQ-266 acceptance at issue #267; release readiness remains UNKNOWN.",
+    "commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+    "tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+    "result": "PARTIAL",
     "evidence": [
-      "docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json"
+      "docs/evidence/2026-10-10-durable-application-attempts.json",
+      "docs/evidence/2026-10-10-confirmation-reconciliation.json",
+      "docs/evidence/2026-10-10-verified-upload-bytes.json"
     ],
-    "verified_at_utc": "2026-10-09T21:05:23Z"
+    "verified_at_utc": "2026-10-10T08:38:56.568551+00:00"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -725,7 +743,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue isolated issue #246 / MJ-REQ-245 on the exact claimed branch; prove productivity and no-relevance bounds, explain learned intervals in the connected UI, and preserve configured/global limits.",
+  "recommended_resume_step": "First recheck live claims. Remaining leaf: connect stable request identity through the durable worker operation boundary and prove same-operation retry/cancellation semantics without stealing unfinished reservations. Then complete provider adapter architecture before claiming real ATS adapters.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -759,23 +777,24 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "173215d66c68944238f1b224c8855bce3670cb13",
+  "last_implementation_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
   "publication": {
-    "result": "PASS_LOCAL_ONLY",
-    "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
-    "integration_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
-    "prior_main": "b108465f3ad826501f2159010428e2bdc89bb1ba",
-    "source_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
-    "source_tree": "47a9baf9eff07848246f5744bbe62c8002591124",
-    "integration_tree": "47a9baf9eff07848246f5744bbe62c8002591124",
+    "result": "PASS",
+    "scope": "Source publication only; not full product acceptance",
+    "integration_method": "Non-force feature branch push and fast-forward primary main under owned integration lock",
+    "integration_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+    "source_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+    "source_tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+    "prior_main": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "pr_number": null,
-    "pr_state": "NOT_OPENED_LOCAL_ONLY",
+    "pr_state": "NOT_OPENED_TO_AVOID_HOSTED_AGENTS",
     "github_reports_merged": false,
-    "issue": 267,
-    "issue_state": "OPEN/PARTIAL",
-    "evidence_path": "docs/evidence/2026-10-09-application-route-preference-map.json",
-    "note": "Focused Python/API tests 25/25, connected browser flow 1/1, focused Vitest 2/2, frontend build, compilation and coordination validation PASS. PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF.",
-    "issue_comment": "https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6087319835"
+    "evidence_paths": [
+      "docs/evidence/2026-10-10-durable-application-attempts.json",
+      "docs/evidence/2026-10-10-confirmation-reconciliation.json",
+      "docs/evidence/2026-10-10-verified-upload-bytes.json"
+    ],
+    "verified_at_utc": "2026-10-10T08:38:56.568551+00:00"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -14729,12 +14748,104 @@
       "live_integrations_tested": [],
       "known_errors": [],
       "issue_claim": "https://github.com/MulattoTech/MJobs/issues/246"
+    },
+    {
+      "milestone_id": "APPLICATION-RELIABILITY-WEBPRO-20261010",
+      "timestamp": "2026-10-10T08:38:56.568551+00:00",
+      "current_phase": "VERIFIED_PARTIAL_CHECKPOINT",
+      "source_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+      "source_tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+      "integrated_main": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+      "requirements": [
+        "MJ-REQ-138",
+        "MJ-REQ-144",
+        "MJ-REQ-134"
+      ],
+      "acceptance": "PARTIAL full requirements; all scoped new tests PASS; baseline failures retained",
+      "evidence_paths": [
+        "docs/evidence/2026-10-10-durable-application-attempts.json",
+        "docs/evidence/2026-10-10-confirmation-reconciliation.json",
+        "docs/evidence/2026-10-10-verified-upload-bytes.json"
+      ],
+      "original_before": {
+        "PARTIAL": 99,
+        "PASS": 102,
+        "NOT_RUN": 165
+      },
+      "original_after": {
+        "PARTIAL": 101,
+        "PASS": 102,
+        "NOT_RUN": 163
+      },
+      "supplemental_unchanged": {
+        "PARTIAL": 4,
+        "PASS": 19,
+        "NOT_RUN": 36
+      },
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "LOCAL_FICTIONAL_MOCK_ATS_ONLY"
+      ],
+      "completed_steps": [
+        "Implemented and published immutable attempt admission/history with a connected profile-scoped API/UI.",
+        "Implemented and published explicit receipt-only lost-confirmation recovery; exactly one mock submission across restart and replay.",
+        "Implemented and published immutable hash-verified upload buffers and bounded Chromium File readback before review.",
+        "Reproduced both retained baseline failures on untouched main; fixed both introduced debug-capture regressions."
+      ],
+      "files_added": [
+        "apps/api/application_attempt_history.py",
+        "apps/api/application_confirmation_recovery.py",
+        "apps/web/src/application-attempt-history.test.tsx",
+        "apps/web/src/application-attempt-history.tsx",
+        "apps/web/src/application-confirmation-recovery.test.tsx",
+        "apps/web/src/application-confirmation-recovery.tsx",
+        "services/applications/attempt_history.py",
+        "services/applications/confirmation_recovery.py",
+        "services/applications/upload_integrity.py",
+        "tests/browser/test_application_attempt_history.py",
+        "tests/browser/test_application_confirmation_recovery.py",
+        "tests/browser/test_application_upload_integrity.py",
+        "tests/integration/test_application_attempt_history.py",
+        "tests/integration/test_application_confirmation_recovery.py",
+        "tests/unit/test_application_upload_integrity.py"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/applications/mock_adapter.py"
+      ],
+      "tests_completed": [
+        "Combined exact-source Python suite: 86 run, 84 passed, 2 reproduced baseline failures, 0 skipped; 41/41 new tests pass.",
+        "Full frontend: 99 test files, 567/567 tests pass.",
+        "TypeScript/Vite production build passes; existing large-bundle warning retained."
+      ],
+      "tests_remaining": [
+        "Full repository Python discovery NOT_RUN.",
+        "PostgreSQL runtime NOT_RUN.",
+        "Real ATS adapters and live external submission NOT_RUN.",
+        "Hosted CI/review NOT_RUN_BY_USER_POLICY."
+      ],
+      "known_errors": [
+        "Baseline: test_conditional_required_dropdown_uses_known_preflight_mapping",
+        "Baseline: test_sensitive_required_question_persists_review_and_stops_before_browser"
+      ],
+      "known_limitations": [
+        "The verified adapter is local MOCK only; full original requirements remain PARTIAL.",
+        "Unfinished RUNNING reservations are not automatically stolen or recovered.",
+        "The durable worker does not yet pass a stable caller request ID.",
+        "Browser file verification does not claim external provider acceptance.",
+        "Personal production runtime was not restarted or redeployed."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+        "evidence_path": "docs/evidence/2026-10-10-durable-application-attempts.json"
+      }
     }
   ],
-  "current_phase": "IMPLEMENTATION_IN_PROGRESS",
+  "current_phase": "VERIFIED_PARTIAL_CHECKPOINT",
   "last_safe_checkpoint": {
-    "git_commit": "f895d456fedb03f337deaa969abf8288e6edcaae",
-    "evidence_path": "docs/evidence/2026-10-09-source-failure-rediscovery.json"
+    "git_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+    "evidence_path": "docs/evidence/2026-10-10-durable-application-attempts.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15245,10 +15356,18 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "number": 246,
-    "requirement_id": "MJ-REQ-245",
-    "status": "ACTIVE_IMPLEMENTATION",
-    "outcome": "Monitored company-source performance informs next poll frequency within existing 5-minute to 7-day bounds, with a visible reason; user-configured interval remains the baseline."
+    "numbers": [
+      139,
+      145,
+      135
+    ],
+    "requirement_ids": [
+      "MJ-REQ-138",
+      "MJ-REQ-144",
+      "MJ-REQ-134"
+    ],
+    "status": "VERIFIED_PARTIAL_CHECKPOINT",
+    "outcome": "Three source commits published to main; full requirements stay OPEN/PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -16227,6 +16346,46 @@
           "note": "Current recorded checkpoint 7151348 passed independent review, but push and pull_request Verification jobs did not start because GitHub reported account payment/spending-limit restriction; no artifacts exist. Keep draft until billing access is restored and both exact-head gates pass."
         }
       ]
+    },
+    {
+      "captured_at": "2026-10-10T08:38:56.568551+00:00",
+      "reason": "Preserve previous checkpoint fields; active foreign claims remain governed by the live claim bus.",
+      "snapshot": {
+        "current_milestone": "MJ-REQ-245-AUTOMATED-SOURCE-LEARNING-20261009",
+        "current_objective": "Implement evidence-based bounded adaptive scheduling for monitored public company sources using existing feed observations and current-profile match scores.",
+        "current_phase": "IMPLEMENTATION_IN_PROGRESS",
+        "active_development_issue": {
+          "number": 246,
+          "requirement_id": "MJ-REQ-245",
+          "status": "ACTIVE_IMPLEMENTATION",
+          "outcome": "Monitored company-source performance informs next poll frequency within existing 5-minute to 7-day bounds, with a visible reason; user-configured interval remains the baseline."
+        },
+        "ownership": "ROOT is the sole Luna High engineer in solo mode with zero active child agents. #253 / MJ-REQ-252 and #254 / MJ-REQ-253 are locally PASS and integrated. Preserve completed workers, unrelated branches/worktrees/claims, and untracked docs/evidence/2026-10-08-compose-target-isolation.json. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+        "session_control": {
+          "owner": "ChatGPT current user-directed budget reconciliation",
+          "write_lanes": 0,
+          "status": "RELEASED",
+          "requested_action": "LOCAL_ONLY_HANDOFF",
+          "note": "No further implementation authorized by this historical session receipt. Current user can invoke the checked-in local-only prompt."
+        },
+        "publication": {
+          "result": "PASS_LOCAL_ONLY",
+          "integration_method": "Root-owned non-force fast-forward into local main under the Codex integration lock; no push, PR, hosted CI, or hosted review.",
+          "integration_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+          "prior_main": "b108465f3ad826501f2159010428e2bdc89bb1ba",
+          "source_commit": "a72d9bd6cd6c905cc0f9a8691d9304f07034127b",
+          "source_tree": "47a9baf9eff07848246f5744bbe62c8002591124",
+          "integration_tree": "47a9baf9eff07848246f5744bbe62c8002591124",
+          "pr_number": null,
+          "pr_state": "NOT_OPENED_LOCAL_ONLY",
+          "github_reports_merged": false,
+          "issue": 267,
+          "issue_state": "OPEN/PARTIAL",
+          "evidence_path": "docs/evidence/2026-10-09-application-route-preference-map.json",
+          "note": "Focused Python/API tests 25/25, connected browser flow 1/1, focused Vitest 2/2, frontend build, compilation and coordination validation PASS. PostgreSQL/full suite/hosted checks NOT_RUN; external submission OFF.",
+          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6087319835"
+        }
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -16319,11 +16478,11 @@
     }
   },
   "session_control": {
-    "owner": "ChatGPT current user-directed budget reconciliation",
-    "write_lanes": 0,
-    "status": "RELEASED",
-    "requested_action": "LOCAL_ONLY_HANDOFF",
-    "note": "No further implementation authorized by this historical session receipt. Current user can invoke the checked-in local-only prompt."
+    "owner": "ChatGPT Web user-authorized application sprint",
+    "write_lanes": 1,
+    "status": "HANDOFF_READY",
+    "requested_action": "FINISH_OWNED_METADATA_PUBLICATION_AND_RELEASE_OWN_CLAIMS",
+    "note": "No background work or new agents. Historical records do not override live claims; other writers are not stopped."
   },
   "pr023_completion": {
     "timestamp": "2026-10-03T20:33:37.729938-05:00",
@@ -16400,7 +16559,7 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "ROOT is the sole Luna High engineer in solo mode with zero active child agents. #253 / MJ-REQ-252 and #254 / MJ-REQ-253 are locally PASS and integrated. Preserve completed workers, unrelated branches/worktrees/claims, and untracked docs/evidence/2026-10-08-compose-target-isolation.json. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external application submission OFF.",
+  "ownership": "This ChatGPT Web session owns only its three explicit claims and the recorded codex integration lock. All other agent claims and worktrees are preserved; live coordination is authoritative.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -16413,9 +16572,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-09T22:29:00Z",
-  "current_verified_local_state": "Issue #247 / MJ-REQ-246 PASS at exact local main 189e2d1062c7bb2c571febbced44410f1678a02c (tree 04c2c6661691d557900624e28d1b2415190e3215). The connected monitored company-source flow progresses HEALTHY → DEGRADED → FAILED, stops retrying at three failures, preserves 403 BLOCKED and structural-review behavior, resets on successful manual refresh, and queues identity-checked rediscovery after the third retryable failure without changing the source/configuration. Exact integrated tree: 16 Python integration tests, 2 connected Chromium tests, 6 focused Vitest tests, TypeScript/Vite build, compilation and diff checks PASS. Evidence docs/evidence/2026-10-09-source-failure-recovery.json and docs/evidence/2026-10-09-source-failure-rediscovery.json. PostgreSQL/full suite/live providers/hosted checks NOT_RUN; submission OFF.",
-  "current_verified_github_state": "Issue #247 / MJ-REQ-246 is CLOSED after local PASS receipt https://github.com/MulattoTech/MJobs/issues/247#issuecomment-6090161101. Local main 189e2d1062c7bb2c571febbced44410f1678a02c is not pushed; origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577. Hosted checks/reviews NOT_RUN_BY_USER_POLICY; external submission OFF.",
+  "updated_at": "2026-10-10T08:38:56.568551+00:00",
+  "current_verified_local_state": "Clean primary main and published feature branch contain verified source 25fea60889ad13cb5e837ab2263324f84fd20a04; exact combined source tree d2fcf4387ff9dfca71fa779eb37001e4caae924c. Three locally verified MOCK slices; 41/41 new Python tests, 84/86 combined with two reproduced baseline failures, 567/567 frontend, build PASS. Runtime production application was not restarted.",
+  "current_verified_github_state": "GitHub main and branch chatgpt/durable-application-attempts-20261010 read back at 25fea60889ad13cb5e837ab2263324f84fd20a04; non-force publication, no PR/hosted reviewer, Actions/workflows disabled, no active repository webhooks. The final metadata checkpoint can be a descendant of this tested source.",
   "next_candidates": [
     {
       "issue": 246,
@@ -16423,5 +16582,36 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-09T22:19:00Z"
+  "current_verified_at": "2026-10-10T08:38:56.568551+00:00",
+  "webpro_application_sprint": {
+    "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
+    "source_commits": [
+      "75f285f95fae7039fa5c83b9cd11eba4ad6cb0f6",
+      "96beac44b2115230c04b967ac113a5939855f19b",
+      "25fea60889ad13cb5e837ab2263324f84fd20a04"
+    ],
+    "evidence_paths": [
+      "docs/evidence/2026-10-10-durable-application-attempts.json",
+      "docs/evidence/2026-10-10-confirmation-reconciliation.json",
+      "docs/evidence/2026-10-10-verified-upload-bytes.json"
+    ],
+    "handoff": "docs/handoffs/2026-10-10-webpro-application-sprint.md",
+    "original_denominator": 366,
+    "supplemental_denominator": 59,
+    "original_before": {
+      "PARTIAL": 99,
+      "PASS": 102,
+      "NOT_RUN": 165
+    },
+    "original_after": {
+      "PARTIAL": 101,
+      "PASS": 102,
+      "NOT_RUN": 163
+    },
+    "supplemental_unchanged": {
+      "PARTIAL": 4,
+      "PASS": 19,
+      "NOT_RUN": 36
+    }
+  }
 }

@@ -1483,6 +1483,30 @@
             "Fictional local mock ATS only; real ATS upload adapters unsupported.",
             "External submission OFF; hosted checks and PostgreSQL NOT_RUN."
           ]
+        },
+        {
+          "name": "Verified local application reliability vertical slice",
+          "issue": 135,
+          "requirement_id": "MJ-REQ-134",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-036",
+            "MJ-PR-030"
+          ],
+          "source_head": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+          "source_tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+          "integrated_main": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+          "evidence_path": "docs/evidence/2026-10-10-verified-upload-bytes.json",
+          "issue_state": "OPEN/PARTIAL",
+          "external_submission": "OFF",
+          "validation": {
+            "new_python_tests": "41/41 PASS",
+            "combined_python": "84/86; two reproduced baseline failures; zero skips",
+            "frontend": "567/567 PASS",
+            "build": "PASS",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          }
         }
       ]
     },
@@ -1504,7 +1528,33 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-038-application-automation",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #140 / MJ-REQ-139 bounded durable MOCK application step-trace/failure-phase slice integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-application-step-trace.json. Root combined trace/debug/privacy/application suite 36/36 PASS; broader requirement remains PARTIAL and PR status/dependencies unchanged."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #140 / MJ-REQ-139 bounded durable MOCK application step-trace/failure-phase slice integrated locally at 7f8f76f8d33eb1dc1f4fce91e86e1f6139ccbe56; evidence docs/evidence/2026-10-08-application-step-trace.json. Root combined trace/debug/privacy/application suite 36/36 PASS; broader requirement remains PARTIAL and PR status/dependencies unchanged.",
+      "slice_history": [
+        {
+          "name": "Verified local application reliability vertical slice",
+          "issue": 139,
+          "requirement_id": "MJ-REQ-138",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-037",
+            "MJ-PR-030"
+          ],
+          "source_head": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+          "source_tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+          "integrated_main": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+          "evidence_path": "docs/evidence/2026-10-10-durable-application-attempts.json",
+          "issue_state": "OPEN/PARTIAL",
+          "external_submission": "OFF",
+          "validation": {
+            "new_python_tests": "41/41 PASS",
+            "combined_python": "84/86; two reproduced baseline failures; zero skips",
+            "frontend": "567/567 PASS",
+            "build": "PASS",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          }
+        }
+      ]
     },
     {
       "id": "MJ-PR-039",
@@ -1571,6 +1621,30 @@
             "No user-visible saved-profile opener for manual sign-in",
             "Real ATS auth and external submission remain out of scope/off"
           ]
+        },
+        {
+          "name": "Verified local application reliability vertical slice",
+          "issue": 145,
+          "requirement_id": "MJ-REQ-144",
+          "status": "INTEGRATED_PARTIAL",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-038",
+            "MJ-PR-030"
+          ],
+          "source_head": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+          "source_tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+          "integrated_main": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+          "evidence_path": "docs/evidence/2026-10-10-confirmation-reconciliation.json",
+          "issue_state": "OPEN/PARTIAL",
+          "external_submission": "OFF",
+          "validation": {
+            "new_python_tests": "41/41 PASS",
+            "combined_python": "84/86; two reproduced baseline failures; zero skips",
+            "frontend": "567/567 PASS",
+            "build": "PASS",
+            "hosted": "NOT_RUN_BY_USER_POLICY"
+          }
         }
       ]
     },

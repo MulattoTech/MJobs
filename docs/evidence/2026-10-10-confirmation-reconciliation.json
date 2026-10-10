@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-144"
+  ],
+  "issues": [
+    145
+  ],
+  "scope_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "timestamp": "2026-10-10T08:27:58.931771+00:00",
+  "source_commit": "96beac44b2115230c04b967ac113a5939855f19b",
+  "source_tree": "a8365e780efc7f96abf0ed8b6cc847ccf7b06bc5",
+  "tested_input_sha256": {
+    "services/applications/confirmation_recovery.py": "2539c5d08f43577b4869cd3e782f66b18cb139ddc0558c45efeb4dc19ce4dc57",
+    "apps/api/application_confirmation_recovery.py": "23ea74db5cbdd02628300dfbdc1965b8a244c2c865ae4117a518aa4c8086fad6",
+    "apps/api/main.py": "4810507ed83cc3bb482c3c899368466fb3cdd14eb4efe5a4831dcb18cbd07473",
+    "apps/web/src/main.tsx": "ed67a559ca5f3d70574495be8e44533b18b3d6beb4833ae8095721343b407385",
+    "apps/web/src/application-confirmation-recovery.tsx": "112e7a1b04a487254911b32d0177d807179eadefa6ccd111a92d78668ae85ab5",
+    "apps/web/src/application-confirmation-recovery.test.tsx": "c415161545384842c69b1462d3430ee26463d4c3f6b5714916b6b416d55c6ccb",
+    "tests/integration/test_application_confirmation_recovery.py": "52dd35f5622dac1029a50ea672ea361f703fce00481311283a9d44453493b6b4",
+    "tests/browser/test_application_confirmation_recovery.py": "009fb2c24f32bdc86c80f872a3ae0391864ed36cd81019408a1abd3dbc6ae39b"
+  },
+  "implemented": [
+    "Explicit profile-scoped receipt-only API and connected UI",
+    "Immutable idempotent lookup audit",
+    "No provider submission or browser launch",
+    "Active execution reservations are not stolen",
+    "Prior confirmation is distinguished from fresh provider evidence",
+    "Original uncertain attempt history remains immutable"
+  ],
+  "validation": [
+    {
+      "command": "python -m unittest tests.integration.test_application_confirmation_recovery tests.browser.test_application_confirmation_recovery -v",
+      "tests": 13,
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm test --prefix apps/web -- src/application-attempt-history.test.tsx src/application-confirmation-recovery.test.tsx",
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "note": "Includes 6 prior-slice frontend checks; do not double count"
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "warning": "Main bundle exceeds 500 kB warning threshold"
+    }
+  ],
+  "restart_acceptance": {
+    "fixture_review_requests": 1,
+    "fixture_submission_requests_before_reconciliation": 1,
+    "fixture_submission_requests_after_reconciliation_and_replay": 1,
+    "original_attempt_history_unchanged": true,
+    "application_state_before": "SUBMISSION_UNCONFIRMED",
+    "application_state_after": "CONFIRMED",
+    "external_browser_requests": 0
+  },
+  "limitations": [
+    "Local fictional mock provider only; real ATS NOT_RUN",
+    "Unfinished RUNNING attempts or workers remain blocked, even after lease expiry; no automatic crash takeover",
+    "PostgreSQL and hosted CI/reviews NOT_RUN",
+    "Full MJ-REQ-144 remains PARTIAL"
+  ],
+  "external_submission": "OFF",
+  "published": true,
+  "publication": {
+    "result": "PASS",
+    "verified_at_utc": "2026-10-10T08:38:56.568551+00:00",
+    "main_contains_source_at": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+    "branch": "chatgpt/durable-application-attempts-20261010",
+    "method": "Non-force branch publication and fast-forward main; GitHub app and git readback verified",
+    "hosted_checks": "OFF"
+  },
+  "git_blob_sha256": {
+    "services/applications/confirmation_recovery.py": "2539c5d08f43577b4869cd3e782f66b18cb139ddc0558c45efeb4dc19ce4dc57",
+    "apps/api/application_confirmation_recovery.py": "23ea74db5cbdd02628300dfbdc1965b8a244c2c865ae4117a518aa4c8086fad6",
+    "apps/api/main.py": "4810507ed83cc3bb482c3c899368466fb3cdd14eb4efe5a4831dcb18cbd07473",
+    "apps/web/src/main.tsx": "ed67a559ca5f3d70574495be8e44533b18b3d6beb4833ae8095721343b407385",
+    "apps/web/src/application-confirmation-recovery.tsx": "112e7a1b04a487254911b32d0177d807179eadefa6ccd111a92d78668ae85ab5",
+    "apps/web/src/application-confirmation-recovery.test.tsx": "c415161545384842c69b1462d3430ee26463d4c3f6b5714916b6b416d55c6ccb",
+    "tests/integration/test_application_confirmation_recovery.py": "52dd35f5622dac1029a50ea672ea361f703fce00481311283a9d44453493b6b4",
+    "tests/browser/test_application_confirmation_recovery.py": "009fb2c24f32bdc86c80f872a3ae0391864ed36cd81019408a1abd3dbc6ae39b"
+  },
+  "combined_acceptance_evidence": "docs/evidence/2026-10-10-durable-application-attempts.json#integrated_batch_validation"
+}

@@ -1,3 +1,13 @@
+# Current checkpoint ? 2026-10-10 application reliability sprint
+
+Published source `25fea60889ad13cb5e837ab2263324f84fd20a04` (tree `d2fcf4387ff9dfca71fa779eb37001e4caae924c`); three local application workflow improvements, not a full release PASS. Exact combined Python 84/86 with two reproduced baseline failures and zero skips; all 41 new tests pass. Full frontend 567/567 and build PASS. Original counts 102 PASS / 101 PARTIAL / 163 NOT_RUN out of 366; supplemental unchanged 19/4/36 out of 59.
+
+Current detailed handoff: `docs/handoffs/2026-10-10-webpro-application-sprint.md`. Final checkpoint publication can advance main beyond the tested source; use GitHub readback and issue #139/#145/#135 receipts. Only this session's three claims/lock may be released. Existing claims, worktrees, active agents and personal runtime are preserved. Real ATS, PostgreSQL and full Python suite remain unverified; hosted automation and external submission OFF.
+
+---
+
+## Historical checkpoint records (not current live ownership)
+
 # Solo feature checkpoint — issue #134 / MJ-REQ-133
 
 - Local `main`: `31adef448b090cb04a4d0d5e237c9526b8d32b6f` (tree `d7faa9f98bb6de0fb8a470f93425156f456d5167`); `origin/main`: `0a8719d4db524c90b632d990cc7b205add0c2577`. Local-only delivery; no push.

@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-138",
+    "MJ-REQ-145"
+  ],
+  "issues": [
+    139
+  ],
+  "scope_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "timestamp": "2026-10-10T08:18:55.707225+00:00",
+  "source_commit": "75f285f95fae7039fa5c83b9cd11eba4ad6cb0f6",
+  "source_tree": "38f384b77623f076fb5993354f3bb7e18af73ea2",
+  "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
+  "tested_input_sha256": {
+    "services/applications/attempt_history.py": "bfa63c73ad327bd1e0ceb4094f5101d49c446acdf97bcf6122c161703407c388",
+    "services/applications/mock_adapter.py": "8274f472cb51f89a4eb210c05e7073d3e0b033c1a7e9c671c62f1151c4aef24c",
+    "apps/api/application_attempt_history.py": "6f8503bb6700cc4c2b5dbfd52c5abd9d16236ac49aac18dbc25bb6669c5775c2",
+    "apps/api/main.py": "5e07668f32518eb0fb954b76fed1bf54822b8c3336031353cf155630c5e9131f",
+    "apps/web/src/main.tsx": "2bc80cc002c158d226530a1b9ecd1f47e73fbd94c98ef304fe5e0e0af1814abb",
+    "apps/web/src/application-attempt-history.tsx": "95302804c287ec133fe1e62ca7ee17b2237c2fc2af8484d989aa512e12e34766",
+    "apps/web/src/application-attempt-history.test.tsx": "b08ead0eaf48350fb8e7c05d33ad751b75fe8908ca4366d4c7380f495b6ea9b8",
+    "tests/integration/test_application_attempt_history.py": "944f37f432995fef846a2fa03770e262c16c1c5c435c013c55c022b1fa665961",
+    "tests/browser/test_application_attempt_history.py": "fb7c9b1714d91ac401269e1c3e9b6d8d51078d535e1766ab89ddb84c5ed97286"
+  },
+  "implemented": [
+    "Exclusive database-serialized attempt admission",
+    "Stable replay identity and changed-input rejection",
+    "Frozen route/profile/document fingerprints",
+    "Immutable fixed-code finish/failure receipts",
+    "Profile-scoped bounded API and connected UI",
+    "Legacy metadata remains null rather than fabricated"
+  ],
+  "validation": [
+    {
+      "command": "python -m unittest tests.integration.test_application_attempt_history tests.browser.test_application_attempt_history tests.browser.test_mock_application.MockApplicationTests.test_opt_in_browser_failure_capture_is_redacted_and_does_not_change_review_state tests.browser.test_mock_application.MockApplicationTests.test_opt_in_capture_preserves_unconfirmed_submission_without_retry -v",
+      "tests": 17,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm test --prefix apps/web -- src/application-attempt-history.test.tsx",
+      "tests": 6,
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "warning": "Existing main bundle exceeds the 500 kB Vite warning threshold"
+    }
+  ],
+  "regression_investigation": {
+    "initial_tests": 39,
+    "initial_failures": 4,
+    "baseline_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
+    "baseline_reproduced_failures": [
+      "test_conditional_required_dropdown_uses_known_preflight_mapping",
+      "test_sensitive_required_question_persists_review_and_stops_before_browser"
+    ],
+    "introduced_failures_fixed": [
+      "test_opt_in_browser_failure_capture_is_redacted_and_does_not_change_review_state",
+      "test_opt_in_capture_preserves_unconfirmed_submission_without_retry"
+    ],
+    "fix": "Retain the existing 32-hex attempt-ID/debug-capture contract with deterministic UUID5 IDs",
+    "full_regression_rerun": "COMPLETE: combined 86 tests, 84 passed, 2 unchanged baseline failures, zero skips."
+  },
+  "limitations": [
+    "Only the installed local mock adapter is instrumented",
+    "No automatic takeover of unfinished/legacy running attempts",
+    "Explicit request replay is available at the adapter boundary; the existing worker currently generates ordinary new invocations",
+    "PostgreSQL NOT_RUN; live ATS NOT_RUN; hosted CI and reviewers OFF",
+    "Full original requirement remains PARTIAL"
+  ],
+  "external_submission": "OFF",
+  "published": true,
+  "publication": {
+    "result": "PASS",
+    "verified_at_utc": "2026-10-10T08:38:56.568551+00:00",
+    "main_contains_source_at": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+    "branch": "chatgpt/durable-application-attempts-20261010",
+    "method": "Non-force branch publication and fast-forward main; GitHub app and git readback verified",
+    "hosted_checks": "OFF"
+  },
+  "git_blob_sha256": {
+    "services/applications/attempt_history.py": "bfa63c73ad327bd1e0ceb4094f5101d49c446acdf97bcf6122c161703407c388",
+    "services/applications/mock_adapter.py": "8274f472cb51f89a4eb210c05e7073d3e0b033c1a7e9c671c62f1151c4aef24c",
+    "apps/api/application_attempt_history.py": "6f8503bb6700cc4c2b5dbfd52c5abd9d16236ac49aac18dbc25bb6669c5775c2",
+    "apps/api/main.py": "5e07668f32518eb0fb954b76fed1bf54822b8c3336031353cf155630c5e9131f",
+    "apps/web/src/main.tsx": "2bc80cc002c158d226530a1b9ecd1f47e73fbd94c98ef304fe5e0e0af1814abb",
+    "apps/web/src/application-attempt-history.tsx": "95302804c287ec133fe1e62ca7ee17b2237c2fc2af8484d989aa512e12e34766",
+    "apps/web/src/application-attempt-history.test.tsx": "b08ead0eaf48350fb8e7c05d33ad751b75fe8908ca4366d4c7380f495b6ea9b8",
+    "tests/integration/test_application_attempt_history.py": "944f37f432995fef846a2fa03770e262c16c1c5c435c013c55c022b1fa665961",
+    "tests/browser/test_application_attempt_history.py": "fb7c9b1714d91ac401269e1c3e9b6d8d51078d535e1766ab89ddb84c5ed97286"
+  },
+  "combined_acceptance_evidence": "docs/evidence/2026-10-10-durable-application-attempts.json#integrated_batch_validation",
+  "integrated_batch_validation": {
+    "source_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
+    "source_tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
+    "started_at_utc": "2026-10-10T08:32:51.742009+00:00",
+    "finished_at_utc": "2026-10-10T08:35:44.629133+00:00",
+    "result": "PARTIAL",
+    "tests": 86,
+    "passed": 84,
+    "failed": 2,
+    "skipped": 0,
+    "new_tests": 41,
+    "new_tests_passed": 41,
+    "modules": [
+      "tests.integration.test_application_attempt_history",
+      "tests.integration.test_application_confirmation_recovery",
+      "tests.unit.test_application_upload_integrity",
+      "tests.browser.test_application_attempt_history",
+      "tests.browser.test_application_confirmation_recovery",
+      "tests.browser.test_application_upload_integrity",
+      "tests.browser.test_mock_application",
+      "tests.browser.test_application_pipeline",
+      "tests.integration.test_application_knowledge",
+      "tests.integration.test_application_supporting_documents",
+      "tests.browser.test_application_supporting_documents"
+    ],
+    "failures": [
+      "tests.browser.test_mock_application.MockApplicationTests.test_conditional_required_dropdown_uses_known_preflight_mapping",
+      "tests.browser.test_mock_application.MockApplicationTests.test_sensitive_required_question_persists_review_and_stops_before_browser"
+    ],
+    "baseline_reproduction_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
+    "baseline_reproduction_result": "Both same failures reproduced on untouched clean baseline; two introduced debug-capture failures were repaired and passed final regression.",
+    "source_unchanged_during_run": true,
+    "tested_worktree_sha256": {
+      "apps/api/application_attempt_history.py": "6f8503bb6700cc4c2b5dbfd52c5abd9d16236ac49aac18dbc25bb6669c5775c2",
+      "apps/api/application_confirmation_recovery.py": "23ea74db5cbdd02628300dfbdc1965b8a244c2c865ae4117a518aa4c8086fad6",
+      "apps/api/main.py": "4810507ed83cc3bb482c3c899368466fb3cdd14eb4efe5a4831dcb18cbd07473",
+      "apps/web/src/application-attempt-history.test.tsx": "cfd9b0c8fd4904a46e0291f07ad1fa338bcfbdc216504d367d26b3ffa2aefc2a",
+      "apps/web/src/application-attempt-history.tsx": "ebd2eba678b8d161f75eed9a6766ed60b3dc60fdba167ea538e400b3f99f3c5e",
+      "apps/web/src/application-confirmation-recovery.test.tsx": "c415161545384842c69b1462d3430ee26463d4c3f6b5714916b6b416d55c6ccb",
+      "apps/web/src/application-confirmation-recovery.tsx": "112e7a1b04a487254911b32d0177d807179eadefa6ccd111a92d78668ae85ab5",
+      "apps/web/src/main.tsx": "ed67a559ca5f3d70574495be8e44533b18b3d6beb4833ae8095721343b407385",
+      "services/applications/attempt_history.py": "10c3db124ea17b4a5c442360d94ebd9a8b90978a7bb3dc2b9a66401010929941",
+      "services/applications/confirmation_recovery.py": "2539c5d08f43577b4869cd3e782f66b18cb139ddc0558c45efeb4dc19ce4dc57",
+      "services/applications/mock_adapter.py": "7debf0d0e68f75654cc30aaf7d24ca389df3670cd42469e8ba01f7c1aac2793b",
+      "services/applications/upload_integrity.py": "7f64189cb153f730b0a8d8bd93c507a0b7f8ceb9414f8e189642293d303d9b2e",
+      "tests/browser/test_application_attempt_history.py": "f61e3f2bf42fc69f744052b273ac0050dff50d069049af75bb1abe743bf45c28",
+      "tests/browser/test_application_confirmation_recovery.py": "009fb2c24f32bdc86c80f872a3ae0391864ed36cd81019408a1abd3dbc6ae39b",
+      "tests/browser/test_application_upload_integrity.py": "0ade667c7570d333c43ed405b9603a97e90f33ba2392e586d0aedf01c5b8f4fd",
+      "tests/integration/test_application_attempt_history.py": "944f37f432995fef846a2fa03770e262c16c1c5c435c013c55c022b1fa665961",
+      "tests/integration/test_application_confirmation_recovery.py": "52dd35f5622dac1029a50ea672ea361f703fce00481311283a9d44453493b6b4",
+      "tests/unit/test_application_upload_integrity.py": "d705348359e158aac69f2ffe2da49c9060a46d36e363f11cd9c1b61029e3414d"
+    },
+    "git_blob_sha256": {
+      "apps/api/application_attempt_history.py": "6f8503bb6700cc4c2b5dbfd52c5abd9d16236ac49aac18dbc25bb6669c5775c2",
+      "apps/api/application_confirmation_recovery.py": "23ea74db5cbdd02628300dfbdc1965b8a244c2c865ae4117a518aa4c8086fad6",
+      "apps/api/main.py": "4810507ed83cc3bb482c3c899368466fb3cdd14eb4efe5a4831dcb18cbd07473",
+      "apps/web/src/application-attempt-history.test.tsx": "cfd9b0c8fd4904a46e0291f07ad1fa338bcfbdc216504d367d26b3ffa2aefc2a",
+      "apps/web/src/application-attempt-history.tsx": "ebd2eba678b8d161f75eed9a6766ed60b3dc60fdba167ea538e400b3f99f3c5e",
+      "apps/web/src/application-confirmation-recovery.test.tsx": "c415161545384842c69b1462d3430ee26463d4c3f6b5714916b6b416d55c6ccb",
+      "apps/web/src/application-confirmation-recovery.tsx": "112e7a1b04a487254911b32d0177d807179eadefa6ccd111a92d78668ae85ab5",
+      "apps/web/src/main.tsx": "ed67a559ca5f3d70574495be8e44533b18b3d6beb4833ae8095721343b407385",
+      "services/applications/attempt_history.py": "10c3db124ea17b4a5c442360d94ebd9a8b90978a7bb3dc2b9a66401010929941",
+      "services/applications/confirmation_recovery.py": "2539c5d08f43577b4869cd3e782f66b18cb139ddc0558c45efeb4dc19ce4dc57",
+      "services/applications/mock_adapter.py": "7debf0d0e68f75654cc30aaf7d24ca389df3670cd42469e8ba01f7c1aac2793b",
+      "services/applications/upload_integrity.py": "7f64189cb153f730b0a8d8bd93c507a0b7f8ceb9414f8e189642293d303d9b2e",
+      "tests/browser/test_application_attempt_history.py": "f61e3f2bf42fc69f744052b273ac0050dff50d069049af75bb1abe743bf45c28",
+      "tests/browser/test_application_confirmation_recovery.py": "009fb2c24f32bdc86c80f872a3ae0391864ed36cd81019408a1abd3dbc6ae39b",
+      "tests/browser/test_application_upload_integrity.py": "0ade667c7570d333c43ed405b9603a97e90f33ba2392e586d0aedf01c5b8f4fd",
+      "tests/integration/test_application_attempt_history.py": "944f37f432995fef846a2fa03770e262c16c1c5c435c013c55c022b1fa665961",
+      "tests/integration/test_application_confirmation_recovery.py": "52dd35f5622dac1029a50ea672ea361f703fce00481311283a9d44453493b6b4",
+      "tests/unit/test_application_upload_integrity.py": "d705348359e158aac69f2ffe2da49c9060a46d36e363f11cd9c1b61029e3414d"
+    },
+    "frontend": {
+      "test_files": 99,
+      "tests": 567,
+      "passed": 567,
+      "failed": 0,
+      "skipped": 0,
+      "build": "PASS",
+      "bundle_warning_kb": 783.24
+    },
+    "full_repository_python_suite": "NOT_RUN",
+    "postgresql": "NOT_RUN",
+    "real_ats": "NOT_RUN",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+  }
+}

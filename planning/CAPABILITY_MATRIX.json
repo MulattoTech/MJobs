@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-09T21:58:04Z",
+  "timestamp": "2026-10-10T08:38:56.568551+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1245,9 +1245,10 @@
       "requirement_id": "MJ-REQ-134",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-supporting-document-mock-application.json"
+        "docs/evidence/2026-10-09-supporting-document-mock-application.json",
+        "docs/evidence/2026-10-10-verified-upload-bytes.json"
       ],
-      "note": "Connected profile- and application-scoped supporting-document selection is durable and reloadable for a prepared fictional mock ATS application. The mock dry run verifies selected revision identity and bytes, uploads only the selected file, records the upload step, and stops before submission; archived selections require manual review before any mock request. Evidence: docs/evidence/2026-10-09-supporting-document-mock-application.json. Real ATS upload adapters remain unsupported; external submission, hosted checks, and PostgreSQL validation are NOT_RUN. Full MJ-REQ-134 remains PARTIAL."
+      "note": "Prepared PDF bytes are hash-checked and frozen before browser admission; all selected browser Files are SHA-256 checked after attachment and again before review. Supporting selections are pinned in request identity. The history UI shows bounded digest/size manifests without claiming provider acceptance. Controlled file-change and browser-tamper negatives prevented review/submission. Real provider upload acceptance remains unverified; PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-135",
@@ -1273,9 +1274,11 @@
     },
     {
       "requirement_id": "MJ-REQ-138",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-10-durable-application-attempts.json"
+      ],
+      "note": "Durable MOCK execution identity, serialized admission, immutable route/profile/document snapshots, fixed-code completion/failure, read-only profile-scoped history API and connected UI are locally verified. All 41 new batch tests passed; combined 84/86 retains two reproduced baseline failures. Real ATS, PostgreSQL and automatic takeover of unfinished attempts are NOT_RUN/unsupported; full requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-139",
@@ -1316,17 +1319,20 @@
     },
     {
       "requirement_id": "MJ-REQ-144",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-10-confirmation-reconciliation.json"
+      ],
+      "note": "Explicit profile-scoped receipt-only reconciliation recovered a real controlled mock submission after missing confirmation and database restart. The connected UI and repeated request verified exactly one provider submission, no recovery browser, immutable original attempt history, and preserved uncertainty without a valid receipt. Active reservations are not stolen; real ATS and complete hard-crash takeover remain unverified. Full requirement PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-145",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-10-10-durable-application-attempts.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open"
+      "note": "Additional local evidence: serialized attempt admission rejects concurrent browser owners, deterministic explicit request identities reject changed inputs and replay success without a second browser, and supporting selections are fingerprinted. Existing worker invocation does not yet pass a stable caller request ID; real-ATS/worker-crash coverage is incomplete. Remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-146",
