@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 
 from tools.agent_dashboard.server import create_app
 from tools.agent_dashboard.mission_control import MissionControl, LaunchRequest
+from tools.agent_dashboard.model_catalog import ModelCatalog, _choice
 from tools.coordination.lane_coordination import claim_key
 
 
@@ -60,11 +61,25 @@ class MissionControlTests(unittest.TestCase):
             "domain": ("application_automation" if i <= 2 else "matching_ai"),
             "priority": "P0",
         }) for i in range(1, 4)) + "\n", encoding="utf-8")
+        # Never start installed CLI discovery inside disposable test repos:
+        # a Windows child process can keep the temporary directory in use.
+        def fake_discovery(_catalog, lane):
+            choices = {
+                "codex": [_choice("gpt-6-luna","Luna",["medium","high"],"high")],
+                "antigravity": [_choice("opus","Opus",["high"],"high")],
+                "claude": [_choice("sonnet","Sonnet",["high"],"high")],
+            }
+            return choices[lane], "fixture_cli_catalog"
+        self.discovery_patch = patch.object(
+            ModelCatalog,"_discover",autospec=True,side_effect=fake_discovery
+        )
+        self.discovery_patch.start()
         self.app = create_app(self.root)
         self.client = TestClient(self.app)
         self.manager: MissionControl = self.app.state.mission_control
 
     def tearDown(self):
+        self.discovery_patch.stop()
         self.temporary.cleanup()
 
     def test_progress_is_derived_from_canonical_matrix_without_mutations(self):
@@ -139,7 +154,7 @@ class MissionControlTests(unittest.TestCase):
                     "/api/launcher/codex/launch",
                     headers={"X-MJobs-Launch-Token": token},
                     json={"profile": "codex-luna-high", "model": "gpt-6-luna",
-                          "effort": "high", "agent": "", "instructions": "Do not submit.",
+                          "effort": "high", "agent": "Application Architect", "instructions": "Do not submit.",
                           "auto_continue": False},
                 )
         self.assertEqual(reply.status_code, 200, reply.text)
@@ -148,7 +163,56 @@ class MissionControlTests(unittest.TestCase):
         cfg = self.app.state.supervisor.lane_config("codex")
         self.assertEqual(cfg["launch_profile"], "codex-luna-high")
         self.assertEqual(cfg["prompt_override"], "Do not submit.")
+        self.assertEqual(cfg["agent_name"], "Application Architect")
         self.assertFalse(cfg["auto_continue"])
+
+    def test_model_selector_blocks_unknown_ids_and_invalid_efforts(self):
+        token = self.client.get("/api/launcher/options").json()["token"]
+        headers = {"X-MJobs-Launch-Token":token}
+        base = {"profile":"codex-luna-high","effort":"high",
+                "agent":"Application Architect","instructions":"","auto_continue":False}
+        for model,effort in (("made-up-model","high"),("gpt-6-luna","ultra")):
+            request = {**base,"model":model,"effort":effort}
+            response = self.client.post("/api/launcher/codex/launch",headers=headers,json=request)
+            self.assertEqual(response.status_code,409,response.text)
+        self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
+
+    def test_agent_session_names_cannot_be_unverified_cli_flags(self):
+        sup = self.app.state.supervisor
+        for lane,slug,model in (
+            ("antigravity","antigravity-opus","opus"),
+            ("claude","claude-release-audit","sonnet"),
+        ):
+            sup.update_config(lane,{
+                "prompt_file":"prompts/dual-agent/"+slug+".md",
+                "launch_profile":slug,"model":model,
+                "launch_workspace":str(self.root),
+                "agent_name":"Custom Name 7"
+            })
+            args = sup._command(lane,self.root)
+            self.assertNotIn("--agent",args)
+            self.assertIn("Session label=Custom Name 7",args[2])
+
+    def test_manual_model_refresh_requires_valid_session_token(self):
+        forbidden = self.client.post("/api/launcher/models/refresh",json={})
+        self.assertEqual(forbidden.status_code,403)
+        token = self.client.get("/api/launcher/options").json()["token"]
+        response = self.client.post("/api/launcher/models/refresh",
+                                    headers={"X-MJobs-Launch-Token":token},json={})
+        self.assertEqual(response.status_code,200,response.text)
+        self.assertEqual(response.json()["codex"]["models"][0]["id"],"gpt-6-luna")
+
+    def test_antigravity_tier_model_omits_conflicting_effort_flag(self):
+        sup = self.app.state.supervisor
+        sup.update_config("antigravity",{
+            "prompt_file":"prompts/dual-agent/antigravity-opus.md",
+            "launch_profile":"antigravity-opus","model":"gemini-3.8-flash-medium",
+            "reasoning":"medium","agent_name":"Scoring Specialist",
+        })
+        args = sup._command("antigravity",self.root)
+        self.assertIn("gemini-3.8-flash-medium",args)
+        self.assertNotIn("--effort",args)
+        self.assertNotIn("--agent",args)
 
     def test_cli_agents_have_distinct_path_claim_keys(self):
         self.assertEqual(claim_key("codex", "launch"), "codex:launch")

@@ -275,6 +275,8 @@ class AgentSupervisor:
                 "docs/PROGRESS_TRACKING.md. You are limited to the exact selected "
                 f"lane={lane}, worktree={cfg.get('launch_workspace')}, "
                 f"profile={cfg.get('launch_profile')}. "
+                f"Session label={cfg.get('agent_name') or 'Default agent'}. "
+                "This label identifies the session, not an installed CLI agent. "
                 "Git main may be dirty or move: NEVER reset, clean, stash, "
                 "force-push, or overwrite another writer. Reconcile inside your "
                 "owned lane, identify live conflicting GitHub/local claims, and "
@@ -339,11 +341,15 @@ class AgentSupervisor:
             if cfg.get("launch_profile"):
                 command = [
                     "agy", "--print", prompt, "--model", model,
-                    "--effort", str(cfg.get("reasoning", "high")),
                     "--mode", "accept-edits", "--log-file", str(native_log),
                 ]
-                if cfg.get("agent_name"):
-                    command.extend(["--agent", str(cfg["agent_name"])])
+                # Antigravity publishes effort-tier model IDs (e.g. "-medium" or "-high").
+                # Those tiers already select the reasoning setting: do not send a
+                # conflicting --effort flag for the same model.
+                if not re.search(r"-(low|medium|high|xhigh|max)$", model):
+                    command.extend(["--effort", str(cfg.get("reasoning", "high"))])
+                # Agent name is a session label in the instructions, not an
+                # unverified native CLI --agent ID.
                 return command
             return [
                 "agy", "--print", prompt, "--model", model,
@@ -353,10 +359,11 @@ class AgentSupervisor:
         if lane == "claude":
             command = [
                 "claude", "--print", prompt, "--model", model,
+                "--effort", str(cfg.get("reasoning", "high")),
                 "--permission-mode", "acceptEdits",
             ]
-            if cfg.get("agent_name"):
-                command.extend(["--agent", str(cfg["agent_name"])])
+            # Session label is placed in the instructions, not passed as an
+            # unknown --agent name which would cause Claude CLI to fail.
             return command
         return [
             "opencode", "run", "--pure", "--model", model,

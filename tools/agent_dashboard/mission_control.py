@@ -19,13 +19,14 @@ from typing import Any
 from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
+from .model_catalog import ModelCatalog
 from tools.verification.progress_card import card_current
 from tools.verification.progress_dashboard import snapshot
 
 PROFILE_ROWS = (
     ("codex", "codex-luna-high", "Luna High — Greenhouse application workflow", "gpt-6-luna", "high"),
-    ("codex", "codex-sol-6-1-high", "Sol 6.1 High — resilient applications", "", "high"),
-    ("codex", "codex-astra-high", "Astra High — adapter and form review", "", "high"),
+    ("codex", "codex-sol-6-1-high", "Sol 6.1 High — resilient applications", "gpt-6.1-sol", "high"),
+    ("codex", "codex-astra-high", "Astra High — adapter and form review", "gpt-6-astra", "high"),
     ("antigravity", "antigravity-opus", "Opus — explainable AI matching", "claude-opus-4-6-thinking", "high"),
     ("antigravity", "antigravity-sonnet", "Sonnet — weighted scoring", "claude-sonnet-4-6", "high"),
     ("antigravity", "antigravity-gemini-3-8-flash-medium", "Gemini 3.8 Flash Medium — scoring components", "gemini-3.8-flash-medium", "medium"),
@@ -73,7 +74,7 @@ class LaunchRequest(BaseModel):
     profile: str
     model: str = Field(min_length=1, max_length=120)
     effort: str = Field(default="high")
-    agent: str = Field(default="", max_length=80)
+    agent: str = Field(default="", max_length=80)  # Safe session label, NOT an arbitrary CLI --agent
     instructions: str = Field(default="", max_length=6000)
     auto_continue: bool = False
 
@@ -85,6 +86,7 @@ class MissionControl:
         self.token = secrets.token_urlsafe(32)
         self.mutex = threading.RLock()
         self._remote_cache: tuple[float, str | None, str] | None = None
+        self.models = ModelCatalog(supervisor)
 
     @staticmethod
     def require_token(request: Request, token: str) -> None:
@@ -121,10 +123,16 @@ class MissionControl:
                 "branch": self.workspace(lane)[1],
                 "config": self.supervisor.lane_config(lane),
                 "runtime": dict(self.supervisor.runtime["lanes"][lane]),
+                "catalog": self.models.get(lane),
             } for lane in LAUNCH_LANES],
             "legacy_opencode_available": bool(shutil.which("opencode") and shutil.which("ollama")),
+            "model_selector_version": 3,
             "policy": "Never reset, stash, merge, or push root main during launch. Own files and claims before coding.",
         }
+
+    def refresh_models(self) -> dict[str, Any]:
+        """Explicit manual model discovery, without launching or changing any CLI session."""
+        return {lane: self.models.get(lane, refresh=True) for lane in LAUNCH_LANES}
 
     def _remote_sha(self) -> tuple[str | None, str]:
         now = time.monotonic()
@@ -265,12 +273,11 @@ class MissionControl:
         profile = PROFILES.get(config.profile)
         if profile is None or profile["lane"] != lane:
             raise ValueError("The selected profile does not belong to this CLI.")
-        if config.effort not in {"low", "medium", "high", "xhigh", "max"}:
-            raise ValueError("Unsupported reasoning effort")
+        chosen_model = self.models.validate(lane, config.model, config.effort)
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:/+-]{0,119}", config.model):
             raise ValueError("Use an exact model ID, without shell characters or spaces.")
-        if config.agent and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}", config.agent):
-            raise ValueError("Invalid CLI agent name")
+        if config.agent and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9 _.-]{0,79}", config.agent):
+            raise ValueError("Invalid agent session label; use only letters, digits, spaces, underscore, dots and hyphens.")
         if not (self.root / profile["path"]).is_file():
             raise ValueError("Profile file is missing from the repository.")
         with self.mutex:
@@ -292,6 +299,8 @@ class MissionControl:
             }
             self.supervisor.update_config(lane, patch)
             running = self.supervisor.start(lane, manual=True)
+            if chosen_model["catalog"].get("warning"):
+                prepared["warnings"].append(chosen_model["catalog"]["warning"])
             return {"status": running["status"], "pid": running["pid"], "lane": lane,
                     "profile": profile["slug"], "preflight": prepared}
 

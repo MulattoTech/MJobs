@@ -92,5 +92,8 @@ For isolated local Codex application automation and Antigravity AI matching, fol
 Double-click **MJobs Mission Control** on Windows or run
 `Start-MJobs-MissionControl.ps1`. Pick a Codex / Antigravity / Claude profile,
 model, agent and prompt in the [Mission Control launcher](docs/MISSION_CONTROL_LAUNCHER.md).
+The model selector discovers valid CLI model IDs and supported reasoning levels; you never type launch model flags.
+Choose a preset agent/session name or create your own label.
+For a sustained ChatGPT Web coding session, use the [maximum-impact development prompt](prompts/CHATGPT_WEB_PRO_MJOBS_MAXIMUM_SPRINT.md).
 It can start independent worktrees while root `main` is dirty and it displays
 the same canonical requirement acceptance as the [mjobs-progress skill](skills/mjobs-progress/SKILL.md).

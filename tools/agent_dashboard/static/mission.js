@@ -12,9 +12,9 @@
   let inflight = false;
 
   async function fetchJson(url, init = {}) {
+    const {headers = {}, ...other} = init;
     const response = await fetch(url, {
-      headers: {"Content-Type":"application/json", ...(init.headers || {})},
-      ...init
+      ...other, headers: {"Content-Type":"application/json", ...headers}
     });
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.detail || "HTTP " + response.status);
@@ -39,16 +39,17 @@
         <select class="launch-profile" aria-label="${safe(lane.name)} profile"></select>
       </label>
       <div class="launch-split">
-        <label>CLI model ID <input class="launch-model" spellcheck="false" autocomplete="off" placeholder="Exact installed model ID"></label>
-        <label>Reasoning <select class="launch-effort">
-          <option value="low">Low</option><option value="medium">Medium</option>
-          <option value="high">High</option><option value="xhigh">Extra high</option>
-          <option value="max">Maximum</option>
-        </select></label>
+        <label>Model from installed CLI <select class="launch-model" required aria-label="Select installed CLI model"></select></label>
+        <label>Reasoning / effort <select class="launch-effort" aria-label="Supported reasoning effort"></select></label>
       </div>
-      <label>Agent name (optional, Antigravity/Claude)
-        <input class="launch-agent" spellcheck="false" placeholder="CLI agent name">
+      <div class="model-tools"><span class="small-note launch-model-source">Discovering CLI models…</span>
+        <button type="button" class="launch-refresh-models">Refresh models</button></div>
+      <div class="small-note launch-effort-help"></div>
+      <label>Agent / session name <select class="launch-agent-choice" aria-label="Agent session name"></select></label>
+      <label class="launch-custom-wrap" hidden>Custom agent/session name
+        <input class="launch-custom-agent" maxlength="80" spellcheck="false" placeholder="My Agent Name">
       </label>
+      <div class="small-note">Names label the session and guide its prompt; they do not require an installed native CLI agent.</div>
       <label>Extra instructions (optional)
         <textarea class="launch-instructions" rows="3" maxlength="6000" placeholder="Anything else you want this agent to focus on…"></textarea>
       </label>
@@ -69,6 +70,95 @@
     </div>`;
   }
 
+  const EFFORT_LABELS = {
+    low: "Low", medium: "Medium", high: "High", xhigh: "Extra high",
+    max: "Maximum", ultra: "Ultra"
+  };
+  function currentSlot(lane) { return slots.find(item => item.lane === lane); }
+
+  function renderEffortOptions(card, item, preferred = "") {
+    const select = $(".launch-effort",card);
+    const current = select.value;
+    const modelId = $(".launch-model",card).value;
+    const model = (item?.catalog?.models || []).find(m => m.id === modelId);
+    const efforts = model?.efforts || [];
+    select.replaceChildren();
+    for (const effort of efforts) {
+      const option = document.createElement("option");
+      option.value = effort;
+      option.textContent = EFFORT_LABELS[effort] || effort;
+      select.appendChild(option);
+    }
+    const profile = profiles.find(p => p.slug === $(".launch-profile",card).value);
+    select.value = [preferred, current, profile?.effort, model?.default_effort, efforts[0]]
+      .find(value => efforts.includes(value)) || "";
+    select.disabled = efforts.length <= 1;
+    $(".launch-effort-help",card).textContent = model?.effort_embedded
+      ? "Effort is built into this model ID; no conflicting CLI flags are needed."
+      : model ? "Only supported reasoning levels are selectable." : "No model catalog available.";
+  }
+
+  function renderModelOptions(card, item, preferred = "", effort = "") {
+    const catalog = item?.catalog || {};
+    const models = catalog.models || [];
+    const select = $(".launch-model",card);
+    select.replaceChildren();
+    for (const model of models) {
+      const option = document.createElement("option");
+      option.value = model.id;
+      option.textContent = model.label + " · " + model.id;
+      select.appendChild(option);
+    }
+    if (!models.length) {
+      const option = document.createElement("option");
+      option.value = ""; option.textContent = "No models discovered — refresh or check CLI";
+      select.appendChild(option);
+    }
+    const profile = profiles.find(p => p.slug === $(".launch-profile",card).value);
+    const chosen = [preferred, profile?.default_model, models[0]?.id]
+      .find(candidate => models.some(model => model.id === candidate));
+    select.value = chosen || "";
+    select.disabled = models.length === 0;
+    renderEffortOptions(card,item,effort || profile?.effort);
+    const sources = {
+      live_codex_catalog: "Codex CLI catalog",
+      live_antigravity_catalog: "Antigravity CLI catalog",
+      cli_documented_aliases: "Claude CLI aliases",
+      cached_catalog: "Last cached CLI catalog",
+      unavailable: "CLI catalog unavailable"
+    };
+    const origin = sources[catalog.source] || catalog.source || "Unavailable";
+    const note = $(".launch-model-source",card);
+    note.textContent = origin + " · " + models.length + " models" + (catalog.stale ? " · STALE" : "");
+    note.title = catalog.warning || catalog.discovered_at || "";
+    note.classList.toggle("warning",Boolean(catalog.warning));
+  }
+
+  function agentChoiceChanged(card) {
+    const custom = $(".launch-agent-choice",card).value === "__custom__";
+    $(".launch-custom-wrap",card).hidden = !custom;
+    $(".launch-custom-agent",card).required = custom;
+  }
+
+  function renderAgentNames(card, item) {
+    const select = $(".launch-agent-choice",card);
+    const current = item.config?.agent_name || "";
+    select.replaceChildren();
+    const option = (value,label) => {
+      const item = document.createElement("option");
+      item.value = value; item.textContent = label;
+      select.appendChild(item);
+    };
+    option("","Use profile default");
+    for (const name of (item.catalog?.agent_presets || [])) option(name,name);
+    option("__custom__","Custom name…");
+    if (current && !(item.catalog?.agent_presets || []).includes(current)) {
+      select.value = "__custom__";
+      $(".launch-custom-agent",card).value = current;
+    } else select.value = current;
+    agentChoiceChanged(card);
+  }
+
   function mountCard(item) {
     const wrapper = document.createElement("div");
     wrapper.innerHTML = cardHtml(item);
@@ -87,21 +177,35 @@
       picker.value = cfg.launch_profile;
     $(".launch-instructions",card).value = cfg.prompt_override || "";
     $(".launch-autocontinue",card).checked = Boolean(cfg.auto_continue);
-    $(".launch-agent",card).value = cfg.agent_name || "";
-    function selectionChanged() {
+    renderAgentNames(card,item);
+    picker.addEventListener("change", () => {
       const p = profiles.find(p => p.slug === picker.value);
-      $(".launch-model",card).value = p?.default_model || "";
-      $(".launch-effort",card).value = p?.effort || "high";
-      const note = p && !p.default_model ? "Enter the exact model ID reported by your CLI before launching." : "";
-      labelStatus(card, note, note ? "warn" : "");
+      renderModelOptions(card,currentSlot(item.lane),p?.default_model || "",p?.effort || "");
       $(".launch-prompt-preview",card).textContent = "Click Read prompt for the selected profile.";
-    }
-    picker.addEventListener("change", selectionChanged);
-    selectionChanged();
-    if (cfg.launch_profile) {
-      $(".launch-model",card).value = cfg.model || $(".launch-model",card).value;
-      $(".launch-effort",card).value = cfg.reasoning || "high";
-    }
+    });
+    $(".launch-model",card).addEventListener("change", () => {
+      const current = currentSlot(item.lane);
+      renderEffortOptions(card,current);
+    });
+    $(".launch-agent-choice",card).addEventListener("change", () => agentChoiceChanged(card));
+    renderModelOptions(card,item,cfg.model || "",cfg.reasoning || "");
+    card.dataset.catalogSignature = JSON.stringify(item.catalog?.models || []) +
+      "|" + item.catalog?.source + "|" + Boolean(item.catalog?.stale);
+    $(".launch-refresh-models",card).onclick = async () => {
+      const button = $(".launch-refresh-models",card);
+      button.disabled = true;
+      try {
+        const refreshed = await fetchJson("/api/launcher/models/refresh", {
+          method: "POST", headers: {"X-MJobs-Launch-Token":token},
+          body: JSON.stringify({})
+        });
+        await refreshOptions();
+        const status = refreshed[item.lane];
+        labelStatus(card,status?.warning || "Installed CLI model lists refreshed.",
+          status?.warning ? "warn" : "success");
+      } catch (error) { labelStatus(card,error.message,"error"); }
+      finally { button.disabled = false; }
+    };
     $(".launch-preview",card).onclick = async () => {
       try {
         const payload = await fetchJson("/api/launcher/profiles/" + encodeURIComponent(picker.value));
@@ -118,6 +222,15 @@
     const card = cards.get(item.lane);
     if (!card) return;
     const state = item.runtime || {};
+    const catalog = item.catalog || {};
+    const signature = JSON.stringify(catalog.models || []) +
+      "|" + catalog.source + "|" + Boolean(catalog.stale);
+    if (card.dataset.catalogSignature !== signature) {
+      const preferred = $(".launch-model",card).value || item.config?.model || "";
+      const effort = $(".launch-effort",card).value || item.config?.reasoning || "";
+      card.dataset.catalogSignature = signature;
+      renderModelOptions(card,item,preferred,effort);
+    }
     const running = Boolean(state.pid) && ["RUNNING","ADOPTED_RUNNING"].includes(state.status);
     const badge = $(".cli-state",card);
     badge.textContent = (running ? "RUNNING" : (item.available ? "READY" : "NOT INSTALLED"));
@@ -126,16 +239,24 @@
     $(".launch-runtime",card).textContent = state.pid
       ? "PID " + state.pid + " · " + (state.status || "RUNNING") + " · " + (state.effective_model || "")
       : "Stopped · branch " + item.branch;
-    $(".launch-start",card).disabled = !item.available || running;
+    $(".launch-start",card).disabled = !item.available || running || !(catalog.models || []).length;
     $(".launch-stop",card).disabled = !running;
     if (!item.available && !$(".status-line",card).textContent)
       labelStatus(card, item.name + " executable unavailable; no software will be installed.", "warn");
   }
 
   async function doAction(lane, card, action) {
+    let chosenAgentName = "";
     if (action === "launch") {
-      const model = $(".launch-model",card).value.trim();
-      if (!model) { labelStatus(card,"Enter a real CLI model ID to start this profile.","error"); return; }
+      if (!$(".launch-model",card).value) {
+        labelStatus(card,"Choose a model from the installed CLI dropdown.","error"); return;
+      }
+      const choice = $(".launch-agent-choice",card).value;
+      chosenAgentName = choice === "__custom__"
+        ? $(".launch-custom-agent",card).value.trim() : choice;
+      if (choice === "__custom__" && !chosenAgentName) {
+        labelStatus(card,"Enter your custom agent/session name.","error"); return;
+      }
     }
     const btn = $(action === "launch" ? ".launch-start" : ".launch-stop",card);
     btn.disabled = true;
@@ -143,9 +264,9 @@
     try {
       const body = action === "launch" ? {
         profile: $(".launch-profile",card).value,
-        model: $(".launch-model",card).value.trim(),
+        model: $(".launch-model",card).value,
         effort: $(".launch-effort",card).value,
-        agent: $(".launch-agent",card).value.trim(),
+        agent: chosenAgentName,
         instructions: $(".launch-instructions",card).value,
         auto_continue: $(".launch-autocontinue",card).checked
       } : {};

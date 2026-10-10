@@ -55,6 +55,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     def launcher_options():
         return mission.options()
 
+    @app.post("/api/launcher/models/refresh")
+    def refresh_models(request: Request):
+        mission.require_token(request, mission.token)
+        return mission.refresh_models()
+
     @app.get("/api/progress")
     def release_progress():
         return mission.progress()
