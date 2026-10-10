@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-114-EXPLAINABLE-MATCHING-20261010",
+  "recorded_at_utc": "2026-10-10T23:14:00Z",
+  "result": "PASS",
+  "issues": [115],
+  "requirement_ids": ["MJ-REQ-114"],
+  "scope": "Explainable Matching Breakdown engine providing canonical signed line-item factor attribution (+pts positive match factors, -pts missing preferred deductions, final Score calculation, and canonical text formatting) and ExplainableMatchingBreakdown React component.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/115"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "signed_line_item_breakdown": "PASS; formats positive match factors (+pts) and negative deductions (-pts) matching the authoritative specification verbatim.",
+    "canonical_text_formatting_and_parsing": "PASS; parse_explainable_text_block and format_canonical_breakdown_text reproduce the canonical 91/100 specification example with zero drift.",
+    "match_components_integration": "PASS; generate_job_match_explanation maps 12-dimension match components into attributed factor items and computes bounded [0, 100] scores.",
+    "frontend_components": "PASS; ExplainableMatchingBreakdown renders score badges, positive factor pills, deduction pills, positive/negative point sums, and canonical text block with copy action.",
+    "safety": "PASS; external submission OFF asserted; deterministic local calculations without network calls or hallucinations."
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_matching_explainable_breakdown.py",
+      "target": "Unit tests for parsing, formatting, clamping, and job match explanation generation",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/explainable-matching-breakdown.test.tsx",
+      "target": "Frontend ExplainableMatchingBreakdown component tests",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 106,
+      "tests": 588,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "target": "Lane coordination validation",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}
