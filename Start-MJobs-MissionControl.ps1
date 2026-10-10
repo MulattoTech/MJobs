@@ -22,8 +22,9 @@ function LogLine($message) {
 function Probe {
   try {
     $reply = Invoke-RestMethod -Uri "$base/api/launcher/health" -TimeoutSec 1 -ErrorAction Stop
-    return ($reply.service -eq 'mjobs-mission-control' -and $reply.version -ge 3 -and
-      $reply.prompt_preview -eq $true -and $reply.approval_required -eq $true)
+    return ($reply.service -eq 'mjobs-mission-control' -and $reply.version -ge 4 -and
+      $reply.prompt_preview -eq $true -and $reply.approval_required -eq $true -and
+      $reply.history_available -eq $true)
   } catch { return $false }
 }
 try {

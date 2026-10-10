@@ -15,6 +15,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .supervisor import AgentSupervisor, LANES
 from .mission_control import MissionControl, LaunchRequest
+from .work_history import WorkHistory
 
 
 class LanePatch(BaseModel):
@@ -46,12 +47,15 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     app.state.supervisor = supervisor
     mission = MissionControl(supervisor)
     app.state.mission_control = mission
+    history = WorkHistory(repo)
+    app.state.work_history = history
 
     @app.get("/api/launcher/health")
     def launcher_health():
         return {
-            "service": "mjobs-mission-control", "version": 3, "status": "ready",
+            "service": "mjobs-mission-control", "version": 4, "status": "ready",
             "root": str(repo), "prompt_preview": True, "approval_required": True,
+            "history_available": True, "history_refresh_seconds": 5,
         }
 
     def deny_legacy_process_controls():
@@ -73,6 +77,15 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     @app.get("/api/progress")
     def release_progress():
         return mission.progress()
+
+    @app.get("/api/history")
+    def recent_work_history(limit: int = Query(default=50, ge=1, le=100),
+                            refresh: bool = False):
+        """Read-only local Git + separate Codex session activity. No API/model calls."""
+        try:
+            return history.snapshot(limit=limit, force=refresh)
+        except (RuntimeError, OSError, ValueError) as exc:
+            raise HTTPException(503, str(exc)) from exc
 
     @app.get("/api/launcher/profiles/{slug}")
     def launcher_profile(slug: str):

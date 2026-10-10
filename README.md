@@ -93,6 +93,9 @@ Double-click **MJobs Mission Control** on Windows or run
 `Start-MJobs-MissionControl.ps1`. Pick a Codex / Antigravity / Claude profile,
 model, agent and prompt in the [Mission Control launcher](docs/MISSION_CONTROL_LAUNCHER.md).
 The model selector discovers valid CLI model IDs and supported reasoning levels; you never type launch model flags.
+The integrated Development history panel polls local Git every five seconds, distinguishing core
+features, tests, docs, and bookkeeping by changed files, with expandable file details and separate
+Codex turn activity. Details: [Mission Control history](docs/MISSION_CONTROL_LAUNCHER.md#live-development-history-timeline-october-10).
 Choose a preset agent/session name or create your own label.
 For a sustained ChatGPT Web coding session, use the [maximum-impact development prompt](prompts/CHATGPT_WEB_PRO_MJOBS_MAXIMUM_SPRINT.md).
 It can start independent worktrees while root `main` is dirty and it displays
