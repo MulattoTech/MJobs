@@ -1,0 +1,44 @@
+{
+  "requirement_id": "MJ-REQ-108.A04",
+  "issue": 343,
+  "title": "AI provider implementation: Ollama",
+  "parent_requirement": "MJ-REQ-108",
+  "lane": "antigravity",
+  "model": "gemini-3.8-flash-high",
+  "timestamp_utc": "2026-10-10T23:31:20Z",
+  "verdict": "PASS",
+  "git_branch": "antigravity/priority-matching-ai-20261010",
+  "implemented_files": [
+    "services/ai/providers/ollama.py",
+    "tests/unit/test_ollama_provider.py"
+  ],
+  "capabilities": {
+    "text_generation": true,
+    "structured_output": true,
+    "streaming": false
+  },
+  "safety_invariants": {
+    "loopback_restriction": "Base URL must resolve to a valid loopback HTTP address (127.0.0.1 or ::1); non-loopback addresses fail closed with AI_PROVIDER_CONFIGURATION_INVALID.",
+    "proxy_bypass": "trust_env=False is explicitly enforced on httpx clients to prevent leaking prompts to OS/environment proxy servers.",
+    "byte_limits": "Max prompt characters: 200,000; max schema bytes: 256,000; max request bytes: 512,000; max response bytes: 2,000,000; max timeout: 300 seconds.",
+    "cancellation_support": "Background watcher thread aborts connections upon cancellation_event trigger with zero prompt leaks.",
+    "external_application_submission": "OFF"
+  },
+  "verification": {
+    "python_unit_tests": {
+      "command": "python -m pytest tests/unit/test_ollama_provider.py",
+      "result": "PASS",
+      "tests_passed": 10
+    },
+    "matching_ai_python_suite": {
+      "command": "python -m pytest tests/unit/test_ai_*.py tests/unit/test_matching_*.py",
+      "result": "PASS",
+      "tests_passed": 134
+    },
+    "frontend_vitest": {
+      "command": "npx vitest run src/ai-provider-settings.test.tsx",
+      "result": "PASS",
+      "tests_passed": 2
+    }
+  }
+}
