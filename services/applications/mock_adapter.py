@@ -441,7 +441,7 @@ def open_mock_authentication(store, application_id, attempt_id, mock_origin,
 
 
 def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None,
-               debug_capture=False):
+               debug_capture=False, request_id=None):
     check = check or (lambda: None)
     if type(submit) is not bool:
         raise ValueError("Mock submission selection must be explicit boolean")
@@ -538,9 +538,13 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         answer = {fact.id: fact.text for fact in answers}
         facts = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
                                       for row in profile["facts"]], application["fact_ids"])
-        attempt_id = uuid4().hex
-        with store.engine.begin() as connection:
-            connection.execute(m.attempts.insert().values(id=attempt_id, application_id=application_id, state="RUNNING", steps=[], started_at=now()))
+        from services.applications.attempt_history import start_attempt, finish_attempt
+        reservation = start_attempt(store, application, route, documents,
+                                    submit=submit, request_id=request_id)
+        if reservation["replayed"]:
+            return store.application(application_id)
+        attempt_id = reservation["id"]
+        attempt_error = None
         page = None
         browser_events = []
         browser_failure_handled = False
@@ -789,13 +793,12 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                 finally:
                     context.close()
         except Exception as error:
+            attempt_error = error
             if not browser_failure_handled:
                 handle_browser_failure(error)
             raise
         finally:
             completed = store.application(application_id)
-            with store.engine.begin() as connection:
-                connection.execute(update(m.attempts).where(
-                    m.attempts.c.id == attempt_id).values(state=completed["state"]))
+            finish_attempt(store, attempt_id, completed, error=attempt_error)
     finally:
         client.close()
