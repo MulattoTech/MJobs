@@ -6,13 +6,13 @@
   "current_issue": null,
   "requirement_id": null,
   "branch": "antigravity/priority-matching-ai-20261010",
-  "head": "42fe6932ec717e137a67e42d76ee64db27c2f602",
+  "head": "c3961fc726ff1b3127a69c072221b65f375f3a0d",
   "worktree": "C:/Tools/Dev/MJobs-Antigravity-Matching",
   "result": "CHECKPOINTS_PUBLISHED",
   "last_completed": {
-    "issue": 116,
-    "requirement_id": "MJ-REQ-115",
-    "evidence_path": "docs/evidence/2026-10-10-required-vs-preferred.json"
+    "issue": 385,
+    "requirement_id": "MJ-REF-015",
+    "evidence_path": "docs/evidence/2026-10-10-llm-telemetry.json"
   },
   "delivered_features": [
     {
@@ -38,6 +38,12 @@
       "requirement_id": "MJ-REQ-115",
       "commit": "42fe6932ec717e137a67e42d76ee64db27c2f602",
       "evidence": "docs/evidence/2026-10-10-required-vs-preferred.json"
+    },
+    {
+      "issue": 385,
+      "requirement_id": "MJ-REF-015",
+      "commit": "c3961fc726ff1b3127a69c072221b65f375f3a0d",
+      "evidence": "docs/evidence/2026-10-10-llm-telemetry.json"
     }
   ],
   "do_not_overlap": [
