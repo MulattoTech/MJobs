@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-117-NATIVE-PREFERENCE-WEIGHTING-20261010",
+  "requirement_ids": [
+    "MJ-REQ-117",
+    "MJ-REQ-114"
+  ],
+  "github_issues": [
+    118,
+    115
+  ],
+  "result": "PARTIAL",
+  "slice_result": "PASS",
+  "scope": "Five opt-in native preference dimensions, durable saved-search ranking and explanation readback. Entire original requirements remain PARTIAL.",
+  "source": {
+    "branch": "chatgpt/preference-weighting-20261010",
+    "commit": "d2bccd8d7eaf01ec1e6c3986a7d99d79d513ee03",
+    "tree": "6e26f9c461873432597b2d585e57fb1160f4934e",
+    "base": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "verified_at_utc": "2026-10-10T15:45:50.978698+00:00",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "database": "isolated SQLite fixtures",
+    "browser": "local headless Chromium",
+    "frontend": "isolated copied dependencies; Vitest 5.0.3 and Vite 8.3.1"
+  },
+  "input_sha256": {
+    "apps/web/src/role-scoring-custom-dimensions.test.tsx": "adade44ed654d19a37b70200a391ac035109700dc3385bd91f19ba863994a3d8",
+    "apps/web/src/role-scoring-preference-dimensions.test.tsx": "21e370bb084293076577124787ba7e622e6f85ca343b463b8a0d3ed1326d8e99",
+    "apps/web/src/role-scoring-profile-editor.tsx": "241ee114c2212ad60373abaa737dfe6bbc37602e0bf8f6e94fcf7fcbbd35e5b3",
+    "services/discovery/matching.py": "2422f39b1cf840f0c4237f67726941799a6c16fde545752d72e89afe5b82cb52",
+    "services/matching/preference_scoring.py": "db358e9f9019f362838e35fc28bed69382d57dc2ca94d32ebd3b3dea580c5731",
+    "services/matching/profile_scoring.py": "50d72c00c31a20877498d4b11f602c578736387af0a6f08c5c1a198d788795d0",
+    "tests/browser/test_preference_weighting.py": "912bcff457824e704c74de4f8758f3ee703f6e5307870f5f5131ab6348b7072c",
+    "tests/integration/test_preference_weighting.py": "9a206dbb2ba044c1a57c2ad823214ae509161de0899c934155e068f77741c6d2",
+    "tests/unit/test_preference_scoring.py": "c726384285e2b2fb9c6bf08f9fb321f7789abfc68942baf5c0e07ea17179414a"
+  },
+  "git_blob_sha256": {
+    "apps/web/src/role-scoring-custom-dimensions.test.tsx": "adade44ed654d19a37b70200a391ac035109700dc3385bd91f19ba863994a3d8",
+    "apps/web/src/role-scoring-preference-dimensions.test.tsx": "21e370bb084293076577124787ba7e622e6f85ca343b463b8a0d3ed1326d8e99",
+    "apps/web/src/role-scoring-profile-editor.tsx": "241ee114c2212ad60373abaa737dfe6bbc37602e0bf8f6e94fcf7fcbbd35e5b3",
+    "services/discovery/matching.py": "2422f39b1cf840f0c4237f67726941799a6c16fde545752d72e89afe5b82cb52",
+    "services/matching/preference_scoring.py": "db358e9f9019f362838e35fc28bed69382d57dc2ca94d32ebd3b3dea580c5731",
+    "services/matching/profile_scoring.py": "50d72c00c31a20877498d4b11f602c578736387af0a6f08c5c1a198d788795d0",
+    "tests/browser/test_preference_weighting.py": "912bcff457824e704c74de4f8758f3ee703f6e5307870f5f5131ab6348b7072c",
+    "tests/integration/test_preference_weighting.py": "9a206dbb2ba044c1a57c2ad823214ae509161de0899c934155e068f77741c6d2",
+    "tests/unit/test_preference_scoring.py": "c726384285e2b2fb9c6bf08f9fb321f7789abfc68942baf5c0e07ea17179414a"
+  },
+  "acceptance": [
+    "Title, annual-USD salary overlap, work arrangement, employment type and supported remote-region fit use the same deterministic profile/job evidence as the base explanation.",
+    "Source-provided specialized scores cannot override these native personal-fit dimensions. Missing, unsupported or malformed evidence remains UNKNOWN, excluded from the denominator.",
+    "Explicitly enabled known matches contribute 100/100; supported direct preference mismatches contribute 0/100. These are advisory preferences, not candidate qualification or hard-eligibility findings.",
+    "The real fixture ranking is aligned=75, unknown=50, mismatch=35. Scores and exact contribution/provenance readback survive Store disposal and reopening against the same SQLite file.",
+    "Connected Chromium edits all six weights, saves, reloads and reads the real persisted 75/100 explanation with native provenance. No outside request or forbidden write is observed.",
+    "Other-profile reads return 404; stale configuration returns 409 until recalculation; stale edits do not mutate state. Candidate facts, hard filters and the other saved search remain unchanged.",
+    "No profile salary bounds, desired-role strings, addresses or source-supplied personal-fit provenance are echoed in the added contribution explanations."
+  ],
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_preference_scoring.py tests/unit/test_profile_scoring.py tests/unit/test_selected_search_scoring.py tests/unit/test_scoring_profiles.py tests/integration/test_preference_weighting.py tests/integration/test_explainable_matching.py tests/integration/test_matching_explanation_contributions.py tests/integration/test_matching_explanation_stale_context_recovery.py tests/integration/test_role_scoring_search_flow.py tests/integration/test_selected_search_recalculation.py tests/integration/test_selected_search_default_score_persistence.py tests/browser/test_preference_weighting.py tests/browser/test_role_scoring_profile_reload_match.py -q --tb=short",
+      "result": "PASS",
+      "passed": 109,
+      "subtests_passed": 52,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run test -- --reporter=dot (apps/web)",
+      "result": "PASS",
+      "files_passed": 100,
+      "passed": 569,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "note": "TypeScript and Vite production build. JavaScript bundle 783.85 kB; no optimization claim."
+    },
+    {
+      "command": "python -m compileall -q [touched Python paths]; lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "red_first": {
+    "passed": 13,
+    "failed": 12,
+    "purpose": "Before implementation, native preference weights did not use personal evidence and source scores could override them."
+  },
+  "limitations": [
+    "No canonical acceptance or progress tracker mutation: another session holds the integration lock; TRACKER_REFRESH_PENDING.",
+    "This is branch acceptance, not main integration or full MJ-REQ-117/MJ-REQ-114 PASS.",
+    "Supported title/currency/region comparisons remain deliberately bounded. On-site commute, work authorization, salary negotiation, certification and education weighting are not newly accepted.",
+    "Full Python repository suite, PostgreSQL, external employer/ATS, hosted CI and independent delegated review NOT_RUN.",
+    "Local deterministic tests used Node 25.9.0; no broader runtime support certification is claimed."
+  ],
+  "baseline_acceptance": {
+    "MJ-REQ": {
+      "PASS": 102,
+      "PARTIAL": 101,
+      "NOT_RUN": 163,
+      "total": 366
+    },
+    "MJ-REF": {
+      "PASS": 19,
+      "total": 59
+    }
+  },
+  "external_submission_enabled": false,
+  "hosted_execution_enabled": false
+}
