@@ -6,13 +6,13 @@
   "current_issue": null,
   "requirement_id": null,
   "branch": "antigravity/priority-matching-ai-20261010",
-  "head": "a1de7a149d8a56291ae883b6fbfda52f750b3e51",
+  "head": "42fe6932ec717e137a67e42d76ee64db27c2f602",
   "worktree": "C:/Tools/Dev/MJobs-Antigravity-Matching",
   "result": "CHECKPOINTS_PUBLISHED",
   "last_completed": {
-    "issue": 113,
-    "requirement_id": "MJ-REQ-112",
-    "evidence_path": "docs/evidence/2026-10-10-job-matching-engine.json"
+    "issue": 116,
+    "requirement_id": "MJ-REQ-115",
+    "evidence_path": "docs/evidence/2026-10-10-required-vs-preferred.json"
   },
   "delivered_features": [
     {
@@ -32,6 +32,12 @@
       "requirement_id": "MJ-REQ-112",
       "commit": "a1de7a149d8a56291ae883b6fbfda52f750b3e51",
       "evidence": "docs/evidence/2026-10-10-job-matching-engine.json"
+    },
+    {
+      "issue": 116,
+      "requirement_id": "MJ-REQ-115",
+      "commit": "42fe6932ec717e137a67e42d76ee64db27c2f602",
+      "evidence": "docs/evidence/2026-10-10-required-vs-preferred.json"
     }
   ],
   "do_not_overlap": [
