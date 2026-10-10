@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import {RoleScoringPreview} from './role-scoring-preview';
 
 export const ROLE_SCORING_DIMENSIONS = [
   'skills', 'title', 'experience', 'salary', 'work_arrangement', 'employment_type',
@@ -90,11 +91,11 @@ export function addCustomScoringDimension(
 }
 
 export function createRoleScoringProfileDraft(profile?:SavedRoleScoringProfile|null):RoleScoringProfileDraft {
-  if(!profile) return {schema_version:1,role_family:'',weights:{ai_intensity:0},thresholds:{}};
+  if(!profile) return {schema_version:1,role_family:'',weights:{skills:100,ai_intensity:0},thresholds:{}};
   return {
     schema_version:1,
     role_family:profile.role_family,
-    weights:{...profile.weights,ai_intensity:profile.weights.ai_intensity??0},
+    weights:{...profile.weights,skills:profile.weights.skills??100,ai_intensity:profile.weights.ai_intensity??0},
     thresholds:{...profile.thresholds},
   };
 }
@@ -340,6 +341,8 @@ export function RoleScoringProfileEditorView({
         {state==='stale'?'Reload latest profile':'Reload saved profile'}
       </button>
       <button type="button" disabled={busy||!canSave} onClick={onSave}>{state==='saving'?'Saving profile…':'Save profile'}</button>
+      {profileId&&searchProfileId&&<RoleScoringPreview profileId={profileId} searchProfileId={searchProfileId}
+        draft={draft} expectedVersion={profile?.version??null} disabled={!canSave||busy}/>}
     </>}
   </section>;
 }

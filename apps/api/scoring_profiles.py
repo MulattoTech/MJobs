@@ -211,4 +211,19 @@ def create_scoring_profiles_router(store) -> APIRouter:
             "profile": saved,
         }
 
+    @router.post(
+        "/profiles/{profile_id}/search-profiles/{search_profile_id}/role-scoring-profile/preview"
+    )
+    def preview_scoring_profile(profile_id: str, search_profile_id: str, value: Any = Body(...)):
+        from services.matching.draft_preview import DraftPreviewError, preview_draft
+
+        try:
+            expected_version, normalized = _normalize_update(value)
+        except (KeyError, TypeError, ValueError):
+            _raise_api_error(422, "SCORING_PREVIEW_DRAFT_INVALID")
+        try:
+            return preview_draft(store, profile_id, search_profile_id, normalized, expected_version)
+        except DraftPreviewError as error:
+            _raise_api_error(error.status, error.code)
+
     return router
