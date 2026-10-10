@@ -236,7 +236,7 @@ class AIStructuredOutputTests(unittest.TestCase):
             score: int
 
         router = AITaskRouter(AITaskConfiguration.from_mapping({
-            "job_scoring": {"provider": "openai", "model": "test-model"},
+            "job_scoring": {"provider": "anthropic", "model": "test-model"},
         }))
         with patch.object(socket, "create_connection",
                            side_effect=AssertionError("unexpected network")):

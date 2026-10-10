@@ -95,7 +95,7 @@ class AITaskConfigurationTests(unittest.TestCase):
         from services.ai.tasks import AITaskConfiguration, AITaskRouter
 
         configuration = AITaskConfiguration.from_mapping({
-            "job_scoring": {"provider": "openai", "model": "model-x"},
+            "job_scoring": {"provider": "anthropic", "model": "model-x"},
         })
         router = AITaskRouter(configuration)
         with patch.object(socket, "create_connection", side_effect=AssertionError("unexpected network")):
