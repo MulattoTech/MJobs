@@ -3,59 +3,46 @@
   "issue": 346,
   "requirement_id": "MJ-REQ-122.A01",
   "result": "PARTIAL",
-  "recorded_at_utc": "2026-10-10T20:12:15Z",
+  "recorded_at_utc": "2026-10-10T20:19:42Z",
   "branch": "codex/priority-app-automation-20261009",
   "base_sha": "f399e00da63c7bf14cd5281bba5daf8d62e10",
-  "source_commit": "90829ffa1b81e156db9bded60af97d3b0ffd2fc0",
-  "source_tree": "86e15d99fcccb40b73b443e38aea20a6644f41e8",
-  "scope": "Review-first Greenhouse route recognition, privacy-safe form metadata, and hash-verified resume and cover-letter selection on synthetic loopback pages.",
+  "source_commit": "c6c744ad6db659b7f33c0ddc5caf54f2e31b5875",
+  "source_tree": "6908314a74c2c4f4170be3dae6036398b16b55c7",
+  "scope": "Review-first Greenhouse route recognition, privacy-safe form metadata, native field validation with human resume, and hash-verified resume and cover-letter selection on synthetic loopback pages.",
   "implemented": [
     "Normalize supported HTTPS Greenhouse job routes to one canonical boards.greenhouse.io URL and reject untrusted hosts, credentials, ports, mismatched provider data, and malformed paths.",
     "Use the shared bounded analyzer to read allowlisted form metadata without returning current values; unknown, ambiguous, sensitive, or credential fields require human review.",
+    "Check browser-native validity without reading or returning applicant values. Invalid forms stop before file selection with a fixed review status; manual completion resumes preparation without adapter autofill. File inputs are validated through the immutable document snapshots.",
     "Select prepared resume and cover-letter snapshots only on HTTP loopback fixtures. Re-analyze to reject stale forms, require exactly one recognized file field per document, revalidate immutable PDF bytes, and verify selected browser bytes by digest.",
     "Keep public ATS document upload, live form interaction, and submission unsupported. Fixture upload does not click or submit the form."
   ],
   "validation": [
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_greenhouse_application_adapter tests.browser.test_greenhouse_application_adapter -v",
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_greenhouse_application_adapter tests.browser.test_greenhouse_application_adapter tests.unit.test_application_upload_integrity tests.browser.test_application_upload_integrity tests.unit.test_application_form_analysis tests.integration.test_application_form_analysis -v",
       "result": "PASS",
-      "detail": "8 unit and Chromium tests passed, including exact synthetic resume/cover-letter byte verification, sensitive-form stop, public-origin refusal, value-free extraction, and zero submit events."
-    },
-    {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.unit.test_greenhouse_application_adapter tests.unit.test_application_form_analysis tests.unit.test_application_upload_integrity tests.browser.test_greenhouse_application_adapter tests.browser.test_application_upload_integrity tests.browser.test_mock_application tests.browser.test_application_attempt_history tests.browser.test_application_confirmation_recovery tests.browser.test_application_pipeline -v",
-      "result": "PARTIAL",
-      "detail": "62 tests ran; 2 pre-existing failures in unchanged generic mock-application tests (conditional required dropdown ended REVIEW_REQUIRED; sensitive-question report included additional metadata), and 9 UI tests skipped because apps/web was not built. Relevant paths in this change passed."
-    },
-    {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.integration.test_application_form_analysis tests.integration.test_application_attempt_history tests.integration.test_application_confirmation_recovery tests.integration.test_application_supporting_documents tests.browser.test_mock_application.MockApplicationTests.test_dry_run_fills_two_pages_uploads_and_stops_before_submit tests.browser.test_mock_application.MockApplicationTests.test_mock_submission_confirmed_once_and_survives_restart -v",
-      "result": "PARTIAL",
-      "detail": "34 tests ran; 1 existing failure in unchanged confirmation-recovery test_cross_profile_missing_and_nonpost_requests_are_rejected (GET returned 405 while the test expected 404). Remaining tests passed, including dry-run stop, exactly-once mock confirmation across store restart, attempt history, audit, form-analysis persistence, and upload selection."
-    },
-    {
-      "command": "npm run build --prefix apps/web",
-      "result": "BLOCKED_ENVIRONMENT",
-      "detail": "Build could not start because tsc is not recognized in this checkout; no dependency installation was attempted."
+      "detail": "31 unit, integration, and Chromium tests passed. Includes a red-green regression for required-field validation: invalid required input produced a review stop and no selected files; manual completion resumed fixture upload; the validation response contained no field values. Existing origin, uncertainty, exact-byte, persistence metadata, and no-submit controls also passed."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m py_compile services/applications/adapters/greenhouse.py tests/unit/test_greenhouse_application_adapter.py tests/browser/test_greenhouse_application_adapter.py",
       "result": "PASS"
     },
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.verification.agent_skills",
-      "result": "PASS"
-    },
-    {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m tools.coordination.lane_coordination validate",
+      "command": "python -m tools.coordination.lane_coordination validate",
       "result": "PASS"
     },
     {
       "command": "git diff --check",
       "result": "PASS"
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m unittest tests.browser.test_greenhouse_application_adapter.GreenhouseApplicationAdapterBrowserTests.test_required_fields_must_be_valid_before_fixture_upload -v (before implementation)",
+      "result": "PASS",
+      "detail": "Expected RED reproduced: upload returned without raising GREENHOUSE_REQUIRED_FIELDS_INVALID for a blank required email field. The same regression passed in the post-change 31-test run."
     }
   ],
   "not_run": [
-    "Direct UI-to-Greenhouse-adapter wiring and a connected Greenhouse attempt are outside this lane's claimed paths; the existing durable mock workflow was verified separately and is not presented as Greenhouse wiring.",
-    "Connected UI restart/readback for this adapter; web build is blocked by missing TypeScript dependencies.",
+    "Direct UI-to-Greenhouse-adapter wiring and a connected Greenhouse attempt are outside this lane's claimed paths; no Greenhouse confirmation, audit/readback, or restart recovery is claimed.",
+    "Web UI build and connected UI restart/readback for this adapter were not run in this validation checkpoint.",
     "Live Greenhouse requests, public ATS uploads, external submission, GitHub-hosted tests and hosted reviews."
   ],
   "limitations": [
@@ -66,8 +53,8 @@
   "external_submission": "OFF",
   "hosted_validation": "NOT_RUN_BY_USER_POLICY",
   "file_sha256": {
-    "services/applications/adapters/greenhouse.py": "844a4dadd281397676a5b72ac1c08b310916718cf8791690271b8f492d495082",
+    "services/applications/adapters/greenhouse.py": "9b037e815d97e1079e66a3557f691e39d5f007b17a1c70b82a8d2e7ff0a1ab4e",
     "tests/unit/test_greenhouse_application_adapter.py": "75f257aeb5fc0805000b78d6ef52317e6cd528aae7340019e741c8082280bba9",
-    "tests/browser/test_greenhouse_application_adapter.py": "ead810454d958f2e9b993c53ff139e54bab74e45b089344c9fc177dad16b5a61"
+    "tests/browser/test_greenhouse_application_adapter.py": "6abf28e1c52ba73ce7e75e05f4ab2169782f143274143082f6cc7e1321b0d2f4"
   }
 }
