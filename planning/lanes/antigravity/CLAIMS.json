@@ -1,5 +1,25 @@
 {
   "schema_version": 1,
   "lane": "antigravity",
-  "claims": []
+  "claims": [
+    {
+      "claim_key": "antigravity:priority-queue-engine-20261010",
+      "issue": 119,
+      "requirement_id": "MJ-REQ-118",
+      "branch": "antigravity/priority-matching-ai-20261010",
+      "worktree": "C:/Tools/Dev/MJobs-Antigravity-Matching",
+      "paths": [
+        "services/matching/application_priority.py",
+        "services/matching/queue_priority.py",
+        "apps/web/src/application-priority-panel.tsx",
+        "apps/web/src/fresh-job-priority-badge.tsx",
+        "apps/web/src/application-priority-panel.test.tsx",
+        "apps/web/src/fresh-job-priority-badge.test.tsx",
+        "tests/unit/test_matching_application_priority.py",
+        "tests/unit/test_fresh_job_queue_priority.py",
+        "tests/integration/test_matching_queue_priority_api.py",
+        "docs/evidence/2026-10-10-application-and-queue-priority.json"
+      ]
+    }
+  ]
 }

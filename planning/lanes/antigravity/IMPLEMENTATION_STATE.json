@@ -1,20 +1,26 @@
 {
   "schema_version": 1,
   "lane": "antigravity",
-  "status": "IDLE_READY",
-  "base_main": "2b5dd36d5080d2b478be989eec9720d74e0513dd",
-  "current_issue": null,
-  "requirement_id": null,
-  "branch": null,
+  "status": "COMPLETED_SPRINT_CHECKPOINT",
+  "base_main": "f399e00da63c7bf14cd5281b71bba5daf8d62e10",
+  "current_issue": 119,
+  "requirement_id": "MJ-REQ-118",
+  "branch": "antigravity/priority-matching-ai-20261010",
   "head": null,
-  "worktree": null,
+  "worktree": "C:/Tools/Dev/MJobs-Antigravity-Matching",
   "result": "PASS",
   "last_completed": {
-    "issue": 308,
-    "requirement_id": "MJ-REQ-017.S07",
-    "integration_commit": "2b5dd36d5080d2b478be989eec9720d74e0513dd"
+    "issue": 119,
+    "requirement_id": "MJ-REQ-118, MJ-REQ-119",
+    "evidence_path": "docs/evidence/2026-10-10-application-and-queue-priority.json"
   },
-  "next_candidates": [],
+  "next_candidates": [
+    {
+      "issue": 113,
+      "requirement_id": "MJ-REQ-112",
+      "status": "READY_NEXT_SELECTION"
+    }
+  ],
   "do_not_overlap": [
     "Codex active claims",
     "services/ai while Codex AI lane is active",

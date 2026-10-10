@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-118-119-APPLICATION-AND-QUEUE-PRIORITY-20261010",
+  "recorded_at_utc": "2026-10-10T22:09:30Z",
+  "result": "PASS",
+  "issues": [119, 120],
+  "requirement_ids": ["MJ-REQ-118", "MJ-REQ-119"],
+  "scope": "Explainable 8-dimension application priority, mathematical divergence analysis (match vs priority), and multi-tier fresh job queue prioritization (new excellent matches processed ahead of stale lower-quality jobs via queue priorities).",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/119",
+      "https://github.com/MulattoTech/MJobs/issues/120"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "application_priority_dimensions": "PASS; all 8 dimensions (match, posting age, salary, company preference, direct employer availability, application complexity, source freshness, expiration risk) evaluated with honest UNKNOWNs and honest weights without mutating underlying facts.",
+    "divergence_analysis": "PASS; mathematical delta (priority - match) classifies MATCH_DOMINANT, PRIORITY_BOOSTED, STRONGLY_ALIGNED, MODERATELY_ALIGNED with top booster and drag factors.",
+    "fresh_job_queue_priority": "PASS; multi-tier queue matrix assigns Tier 0 Critical to fresh (<24h) excellent (>=85%) matches, demoting stale (>30d) or weak matches (<60%) to lower tiers; queue ordering guarantees fresh excellent matches are processed first with zero jitter.",
+    "operation_dispatch_integration": "PASS; to_operation_dispatch_params outputs dispatch_priority == 'HIGH' for Tier 0 and Tier 1 jobs, integrating directly with workers outbox.",
+    "frontend_components": "PASS; FreshJobPriorityBadge and ApplicationPriorityPanel render accessible status badges, tier indicators, and explanations.",
+    "safety": "PASS; external submission OFF asserted; no external calls or unauthorized background processes."
+  },
+  "source_inputs": {
+    "services/matching/application_priority.py": {
+      "git_blob": "2e371f9c928a0ad4e159b761910d0f059fa6c566",
+      "git_object_content_sha256": "7dc601b339f7f7289376c993a5d637c9677c2b218e00567972a8f2d283eea9f6"
+    },
+    "services/matching/queue_priority.py": {
+      "git_blob": "a0c401d71e9d684b7d5c51c6311c7dae32da992e",
+      "git_object_content_sha256": "315473bd8231e69aefe373cc67b1c1c11e4562e44b7b4d4d2e07dc67118f73c5"
+    },
+    "apps/web/src/fresh-job-priority-badge.tsx": {
+      "git_blob": "7ec1a4d37a22ac68a3168e4b86c2ae30dd964331",
+      "git_object_content_sha256": "9c7fa13395074840a20b7a6f1b897f5fc0fe37a3fb5a87d1e3a19e6236bc196b"
+    },
+    "apps/web/src/fresh-job-priority-badge.test.tsx": {
+      "git_blob": "ee24b4228abc6b41e75b3f42565534be988580e3",
+      "git_object_content_sha256": "e74376cef1ab736cfdd3548445bea473b2a1efc05c0f4e03813e999bd3cddab3"
+    },
+    "tests/unit/test_matching_application_priority.py": {
+      "git_blob": "1e3bfd590dd1c65802ba676ec30e04e8c885924f",
+      "git_object_content_sha256": "807315f43fd52c789d2bea565f36044bbc9728fdf99df650167ace0c3be33471"
+    },
+    "tests/unit/test_fresh_job_queue_priority.py": {
+      "git_blob": "6c8167e3c754f2b1e9fe987405c1d0a4057cc144",
+      "git_object_content_sha256": "7369b3b18cb0eefa6259cdcb1d49ebca4e0b667a16c41ffd079649fec01cf9b8"
+    },
+    "tests/integration/test_matching_queue_priority_api.py": {
+      "git_blob": "a72d0074241ac3c491c867bb077dbfcabb8d0b60",
+      "git_object_content_sha256": "33c9db753e2f89f32229ad68aebf81e46d80019a7304679563ad456e9108cda1"
+    }
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_fresh_job_queue_priority.py",
+      "target": "Fresh job queue priority tier calculation, ordering, stability, and dispatch params",
+      "result": "PASS",
+      "tests": 13,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/unit/test_matching_application_priority.py",
+      "target": "Application priority divergence analysis and full evaluation",
+      "result": "PASS",
+      "tests": 5,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/integration/test_matching_queue_priority_api.py",
+      "target": "Integration test for database job queue prioritization and dispatch mapping",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/fresh-job-priority-badge.test.tsx",
+      "target": "Frontend badge component rendering and accessibility",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest suite",
+      "result": "PASS",
+      "files": 100,
+      "tests": 571,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    }
+  ]
+}
