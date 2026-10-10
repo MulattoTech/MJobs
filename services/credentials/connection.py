@@ -30,5 +30,7 @@ def test_provider_connection(provider: str, secret: str,
         if response.status_code in (401, 403):
             return {"status": "FAILED", "code": "CREDENTIAL_REJECTED"}
         return {"status": "FAILED", "code": "CREDENTIAL_PROVIDER_UNAVAILABLE"}
+    except httpx.TimeoutException:
+        return {"status": "FAILED", "code": "CREDENTIAL_PROVIDER_TIMEOUT"}
     except Exception:
         return {"status": "FAILED", "code": "CREDENTIAL_PROVIDER_UNAVAILABLE"}
