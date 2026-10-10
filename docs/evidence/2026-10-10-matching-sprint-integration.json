@@ -1,0 +1,20 @@
+{
+  "result": "PASS",
+  "acceptance_scope": "Local integration of bounded MJ-REQ-114 and MJ-REQ-117 matching slices; broader requirements remain PARTIAL.",
+  "issues": [115, 118],
+  "source_branch": "codex/integrate-matching-sprint-20261010",
+  "tested_source_commit": "e90ac3edb32b55d1e1b956109355642e5e7a6321",
+  "tested_source_tree": "ceb103970f9d1ccfc3c8def08a123ba97aa6ba28",
+  "integrated_local_main_commit": "e90ac3edb32b55d1e1b956109355642e5e7a6321",
+  "verification": {
+    "python": "pytest selected unit, matching integration, and matching browser suites: 1056 passed, 553 subtests passed, 1 skipped; the first run had 2 browser failures because this fresh worktree had no ignored web build output.",
+    "browser_recovery": "After building the exact candidate frontend, both previously failing connected local Chromium cases passed (2 passed). The browser route blocks all cross-origin requests; no network/provider call or application submission occurred.",
+    "frontend": "Vitest 101 files / 583 tests passed; TypeScript and Vite production build passed. Existing bundle-size warning: 791.54 kB JavaScript.",
+    "validators": "agent_skills, catalogue, progress validate, progress_dashboard --check, lane validate, and git diff --check passed.",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY",
+    "postgresql": "NOT_RUN",
+    "external_ats": "NOT_RUN; external submission remains OFF"
+  },
+  "preserved_test_artifact": "A zero-byte untracked events.jsonl created by the isolated browser run remains preserved in its integration worktree.",
+  "verified_at_utc": "2026-10-10T23:11:35Z"
+}
