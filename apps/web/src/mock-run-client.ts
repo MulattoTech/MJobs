@@ -66,3 +66,28 @@ export async function cancelMockRun(operationId:string,request:typeof fetch=fetc
   const response=await request(`/operations/${encodeURIComponent(operationId)}/cancel`,{method:'POST'});
   if(!response.ok)throw safeError(response,await response.json());
 }
+
+/** Separate user-requested manual-auth resume; never inherits submission consent. */
+export async function resumeMockDryRun(scope:MockRunScope,storage:IntentStorage,
+  request:typeof fetch=fetch,makeRequestId:()=>string=()=>crypto.randomUUID()):Promise<MockRunReceipt> {
+  let saved=loadMockRunIntent(storage,scope);
+  if(saved) {
+    const current=await lookupMockRun(scope,saved,request);
+    if(current?.state==='COMPLETED')return current; // Lost completion acknowledgement: read only.
+    if(current&&['QUEUED','RUNNING'].includes(current.state)) {
+      if(saved.submit)throw new Error('Resolve the saved submission request in Activity before starting a dry-run.');
+      return current; // Resume waiting; do not POST again or allocate another ID.
+    }
+    if(current&&mockRunTerminal.has(current.state)) {
+      // This button is a fresh explicit non-submitting action after terminal review.
+      forgetTerminalMockRun(storage,scope,current);saved=null;
+    } else if(saved.submit) {
+      throw new Error('Resolve the saved submission request in Activity before starting a dry-run.');
+    }
+  }
+  if(!saved) {
+    saved={version:1,requestId:makeRequestId(),submit:false};
+    saveMockRunIntent(storage,scope,saved);
+  }
+  return postMockRun(scope,saved,request);
+}

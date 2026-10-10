@@ -156,9 +156,12 @@ class ManualAuthSessionConnectedBrowserTests(unittest.TestCase):
                             with page.expect_response(lambda response:
                                     response.url.endswith("/mock-run") and response.status == 202):
                                 rerun_button.click()
-                            self.assertEqual(ui_requests[-1], (
-                                "POST", f"/profiles/fixture/applications/{application_id}/mock-run",
-                                {"submit": False}))
+                            self.assertEqual(ui_requests[-1][:2], (
+                                "POST", f"/profiles/fixture/applications/{application_id}/mock-run"))
+                            payload=ui_requests[-1][2]
+                            self.assertEqual(set(payload), {"submit", "request_id"})
+                            self.assertIs(payload["submit"], False)
+                            self.assertRegex(payload["request_id"], r"^[0-9a-f-]{36}$")
                             self.assertEqual(store.count("application_attempts"), attempt_count)
                             self.assertEqual(store.application(application_id)["state"], "AUTH_REQUIRED")
                             self.assertFalse(external_requests)

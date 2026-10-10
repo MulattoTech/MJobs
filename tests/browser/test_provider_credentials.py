@@ -53,7 +53,8 @@ class ProviderCredentialBrowserTests(unittest.TestCase):
 
                 external, errors = [], []
                 with patch("services.credentials.connection.test_provider_connection",
-                           return_value={"status": "CONNECTED", "code": None}), sync_playwright() as pw:
+                           side_effect=[{"status": "FAILED", "code": "CREDENTIAL_PROVIDER_TIMEOUT"},
+                                        {"status": "CONNECTED", "code": None}]), sync_playwright() as pw:
                     browser = pw.chromium.launch(headless=True)
                     context = browser.new_context(viewport={"width": 1280, "height": 900})
 
@@ -87,6 +88,11 @@ class ProviderCredentialBrowserTests(unittest.TestCase):
                     expect(panel.get_by_text("Configured · ********", exact=False)).to_be_visible()
                     openai = panel.get_by_role("group", name="OpenAI")
                     check = openai.get_by_role("button", name="Test connection", exact=True)
+                    check.click()
+                    timeout = openai.get_by_role("alert")
+                    expect(timeout).to_contain_text("timed out")
+                    expect(timeout).to_contain_text("does not mean the credential was rejected")
+                    self.assertNotIn(secret, timeout.inner_text())
                     check.click()
                     expect(page.get_by_role("status").filter(has_text="Provider authentication succeeded")).to_be_visible()
 

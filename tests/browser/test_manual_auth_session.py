@@ -125,7 +125,10 @@ class ManualAuthSessionBrowserTests(unittest.TestCase):
                                 auth_panel.get_by_role(
                                     "button", name="Rerun MOCK application", exact=True).click()
                             self.assertEqual(len(rerun_requests), 1)
-                            self.assertEqual(rerun_requests[0].post_data_json, {"submit": False})
+                            payload=rerun_requests[0].post_data_json
+                            self.assertEqual(set(payload), {"submit", "request_id"})
+                            self.assertIs(payload["submit"], False)
+                            self.assertRegex(payload["request_id"], r"^[0-9a-f-]{36}$")
                             self.assertEqual(store.application(application_id)["state"], "AUTH_REQUIRED")
                             self.assertFalse(external)
                             context.close()

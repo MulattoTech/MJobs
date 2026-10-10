@@ -5,7 +5,7 @@ import {cancelMockRun,forgetTerminalMockRun,loadMockRunIntent,lookupMockRun,mock
 const editable=new Set(['PREPARED','DRY_RUN_COMPLETE','REVIEW_REQUIRED','AUTH_REQUIRED']);
 type Props=MockRunScope&{applicationState:string;disabled?:boolean;onRefresh:()=>void|Promise<void>};
 type ViewProps={intent:MockRunIntent|null;receipt:MockRunReceipt|null;busy:boolean;disabled:boolean;
-  canStart:boolean;consent:boolean;error:string;notice:string;storageBlocked:boolean;
+  canStart:boolean;canCancel:boolean;consent:boolean;error:string;notice:string;storageBlocked:boolean;
   onConsent:(value:boolean)=>void;onBegin:(submit:boolean)=>void;onLookup:()=>void;
   onResend:()=>void;onNew:()=>void;onCancel:()=>void};
 
@@ -22,7 +22,7 @@ export function MockRunControlsView(props:ViewProps) {
       <p>Reloading only checks this request. It does not start another browser or submit another application.</p>
       <button disabled={locked} onClick={props.onLookup}>Refresh run status</button>
       {!props.receipt&&<button disabled={locked||!props.canStart||(props.intent.submit&&!props.consent)} onClick={props.onResend}>Resend same request</button>}
-      {active&&<button disabled={locked||!props.canStart} onClick={props.onCancel}>Cancel queued or running test</button>}
+      {active&&<button disabled={locked||!props.canCancel} onClick={props.onCancel}>Cancel queued or running test</button>}
       {terminal&&<button disabled={locked||!props.canStart||!!props.error} onClick={props.onNew}>Start a new reviewed run</button>}
     </>}
     {!props.intent&&<button disabled={locked||!props.canStart} onClick={()=>props.onBegin(false)}>Run dry-run</button>}
@@ -145,7 +145,7 @@ function MockRunController(props:Props) {
       if(alive.current)setNotice('Cancellation requested. A submit reservation requires receipt reconciliation, not another submission.');});
   }
   return <MockRunControlsView intent={intent} receipt={run} busy={busy} disabled={!!props.disabled}
-    canStart={editable.has(props.applicationState)} consent={consent} error={error} notice={notice} storageBlocked={storageBlocked}
+    canStart={editable.has(props.applicationState)} canCancel={!['SUBMITTING','SUBMISSION_UNCONFIRMED','CONFIRMED'].includes(props.applicationState)} consent={consent} error={error} notice={notice} storageBlocked={storageBlocked}
     onConsent={setConsent} onBegin={value=>void begin(value)} onLookup={()=>{const saved=currentIntent.current;if(saved)void perform(()=>lookup(saved));}}
     onResend={()=>void resend()} onNew={newReviewedRun} onCancel={()=>void cancel()}/>;
 }

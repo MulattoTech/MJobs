@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 @unittest.skipUnless((ROOT / "apps/web/dist/index.html").is_file(), "Build apps/web before connected acceptance")
-class MockRunControlsBrowserTests(unittest.TestCase):
+class MockRunBrowserHarness(unittest.TestCase):
     def setUp(self):
         directory = self.enterContext(tempfile.TemporaryDirectory(prefix="mjobs-run-controls-"))
         self.root = Path(directory)
@@ -76,13 +76,14 @@ class MockRunControlsBrowserTests(unittest.TestCase):
         self.server.should_exit=True; self.thread.join(timeout=10); self.socket.close()
         self.assertFalse(self.thread.is_alive(), "Test-owned API did not stop")
 
-    def open_application(self):
+    def open_application(self, run_controls=True):
         self.page.reload(wait_until="domcontentloaded")
         self.page.get_by_role("button", name="Applications", exact=False).click()
         self.page.get_by_role("region", name="Application pipeline").get_by_role(
             "button", name=self.job["title"], exact=False).click()
         self.panel = self.page.get_by_role("region", name="Recoverable mock run", exact=True)
-        expect(self.panel).to_be_visible()
+        if run_controls:
+            expect(self.panel).to_be_visible()
 
     def operations(self):
         with self.store.engine.connect() as connection:
@@ -92,18 +93,23 @@ class MockRunControlsBrowserTests(unittest.TestCase):
     def counts(self):
         return httpx.get(self.fixture+"/_test/request-counts", trust_env=False).json()
 
-    def run_worker(self, operation_id):
+    def run_worker(self, operation_id, expected_status="COMPLETED", refresh_panel=True):
         env={**os.environ, "MJOBS_DATABASE_URL":self.store.url, "MJOBS_OUTPUT_DIR":str(self.root),
              "MJOBS_MOCK_ORIGIN":self.fixture, "MJOBS_OPERATION_MODE":"FIXTURE", "PYTHONUTF8":"1"}
         code="import json,sys;from workers.tasks import execute_operation;print(json.dumps(execute_operation(sys.argv[1])))"
         child=subprocess.run([sys.executable,"-c",code,operation_id],cwd=ROOT,env=env,capture_output=True,text=True,timeout=90)
         self.assertEqual(child.returncode,0,child.stderr[-2000:])
         result=json.loads(child.stdout.strip().splitlines()[-1])
-        self.assertEqual(result["status"],"COMPLETED",result)
+        self.assertEqual(result["status"],expected_status,result)
+        if not refresh_panel:
+            return result
         expect(self.panel.get_by_role("button",name="Refresh run status",exact=True)).to_be_enabled()
         self.panel.get_by_role("button",name="Refresh run status",exact=True).click()
         expect(self.panel).to_contain_text("COMPLETED")
 
+
+
+class MockRunControlsBrowserTests(MockRunBrowserHarness):
     def test_lost_acknowledgement_reload_and_explicit_new_intent_are_distinct(self):
         committed=[]
         def lose_acknowledgement(route):

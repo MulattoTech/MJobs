@@ -1,6 +1,6 @@
 import {describe,expect,it,vi} from 'vitest';
 import {cancelMockRun,forgetTerminalMockRun,loadMockRunIntent,lookupMockRun,mockRunEndpoint,mockRunStorageKey,
-  postMockRun,saveMockRunIntent,type IntentStorage,type MockRunIntent,type MockRunReceipt} from './mock-run-client';
+  postMockRun,resumeMockDryRun,saveMockRunIntent,type IntentStorage,type MockRunIntent,type MockRunReceipt} from './mock-run-client';
 const scope={profileId:'fixture',applicationId:'app-1'};
 const intent:MockRunIntent={version:1,requestId:'reviewed-run-1',submit:false};
 const queued:MockRunReceipt={operation_id:'operation-1',state:'QUEUED',error_code:null,replayed:false,
@@ -78,5 +78,63 @@ describe('durable mock run client',()=>{
     expect(send).toHaveBeenCalledExactlyOnceWith('/operations/operation-1/cancel',{method:'POST'});
     await expect(cancelMockRun('operation-1',request({detail:{code:'RECONCILIATION_REQUIRED'}},409))).rejects.toThrow('RECONCILIATION_REQUIRED');
     await expect(cancelMockRun('../bad',send)).rejects.toThrow('Invalid');
+  });
+});
+
+describe('separate non-submitting manual-auth resume',()=>{
+  it('saves a new dry-run intent before posting',async()=>{
+    const local=storage(),send=request();
+    send.mockImplementation(async()=>{
+      expect(loadMockRunIntent(local,scope)).toEqual({version:1,requestId:'manual-new',submit:false});
+      return new Response(JSON.stringify(queued),{status:202});
+    });
+    await resumeMockDryRun(scope,local,send,()=>'manual-new');
+    expect(send.mock.calls[0][1]).toMatchObject({method:'POST',body:JSON.stringify({request_id:'manual-new',submit:false})});
+  });
+  it('replaces only an acknowledged terminal auth intent and never inherits submit mode',async()=>{
+    for(const submit of [false,true]) {
+      const local=storage();saveMockRunIntent(local,scope,{...intent,submit});
+      const send=request();
+      send.mockResolvedValueOnce(new Response(JSON.stringify({...queued,state:'BLOCKED',error_code:'AUTH_REQUIRED'})));
+      await resumeMockDryRun(scope,local,send,()=>'manual-new');
+      expect(send.mock.calls).toHaveLength(2);
+      expect(send.mock.calls[1][1]).toMatchObject({method:'POST',body:JSON.stringify({request_id:'manual-new',submit:false})});
+      expect(loadMockRunIntent(local,scope)?.requestId).toBe('manual-new');
+    }
+  });
+  it.each(['QUEUED','RUNNING','COMPLETED'])('recovers %s without posting or changing identity',async(state)=>{
+    const local=storage();saveMockRunIntent(local,scope,intent);
+    const send=request({...queued,state});
+    expect((await resumeMockDryRun(scope,local,send,()=>{throw new Error('new ID allocated');})).state).toBe(state);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send.mock.calls[0][1]).toEqual({method:'GET'});
+    expect(loadMockRunIntent(local,scope)).toEqual(intent);
+  });
+  it('reuses the identical dry-run request when admission is not yet found',async()=>{
+    const local=storage();saveMockRunIntent(local,scope,intent);
+    const send=request();send.mockResolvedValueOnce(new Response('{}',{status:404}));
+    await resumeMockDryRun(scope,local,send,()=>{throw new Error('new ID allocated');});
+    expect(send.mock.calls[1][1]).toMatchObject({method:'POST',body:JSON.stringify({request_id:intent.requestId,submit:false})});
+  });
+  it('does not replace an unknown pending intent during a failed lookup',async()=>{
+    const local=storage();saveMockRunIntent(local,scope,intent);
+    const send=request();send.mockRejectedValueOnce(new TypeError('network lost'));
+    await expect(resumeMockDryRun(scope,local,send)).rejects.toThrow('network lost');
+    expect(send).toHaveBeenCalledTimes(1);expect(loadMockRunIntent(local,scope)).toEqual(intent);
+  });
+  it('never replays an unresolved submission intent from the non-submitting resume button',async()=>{
+    for(const missing of [false,true]) {
+      const local=storage();saveMockRunIntent(local,scope,{...intent,submit:true});
+      const send=missing?request({},404):request(queued);
+      await expect(resumeMockDryRun(scope,local,send)).rejects.toThrow('Resolve the saved submission request');
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(send.mock.calls[0][1]).toEqual({method:'GET'});
+      expect(loadMockRunIntent(local,scope)?.submit).toBe(true);
+    }
+  });
+  it('does not send the request when saving the new intent fails',async()=>{
+    const local={...storage(),setItem:()=>{throw new Error('quota');}},send=request();
+    await expect(resumeMockDryRun(scope,local,send)).rejects.toThrow('quota');
+    expect(send).not.toHaveBeenCalled();
   });
 });

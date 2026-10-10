@@ -151,6 +151,18 @@ class ApplicationRunRequestTests(unittest.TestCase):
             self.assertEqual(client.post(endpoint, json={"submit": False, "request_id": "bad id"}).status_code, 422)
         self.assertEqual(self.store.count("worker_operations"), 1)
 
+    def test_personal_mode_rejects_explicit_admission_and_recovery(self):
+        personal=Store(f"sqlite:///{(self.root / 'personal.db').as_posix()}")
+        try:
+            personal.migrate();personal.bind_workspace_mode("PERSONAL")
+            with TestClient(create_app(personal,"http://127.0.0.1:8090",self.root,operation_mode="PERSONAL")) as client:
+                endpoint=f"/profiles/fixture/applications/{self.app_id}/mock-run"
+                self.assertEqual(client.post(endpoint,json={"submit":True,"request_id":"must-not-run"}).status_code,409)
+                self.assertEqual(client.get(endpoint+"s/must-not-run").status_code,409)
+            self.assertEqual(personal.count("worker_operations"),0)
+        finally:
+            personal.engine.dispose()
+
 
 if __name__ == "__main__":
     unittest.main()

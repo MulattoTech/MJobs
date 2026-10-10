@@ -5,7 +5,7 @@ import type {MockRunIntent,MockRunReceipt} from './mock-run-client';
 const intent:MockRunIntent={version:1,requestId:'reviewed-run-1',submit:false};
 const receipt:MockRunReceipt={operation_id:'operation-1',state:'QUEUED',error_code:null,replayed:false,
   input_fingerprint:'a'.repeat(64),external_submission_enabled:false};
-const base={intent:null,receipt:null,busy:false,disabled:false,canStart:true,consent:false,
+const base={intent:null,receipt:null,busy:false,disabled:false,canStart:true,canCancel:true,consent:false,
   error:'',notice:'',storageBlocked:false,onConsent:()=>{},onBegin:()=>{},onLookup:()=>{},onResend:()=>{},onNew:()=>{},onCancel:()=>{}};
 const render=(change:Partial<Parameters<typeof MockRunControlsView>[0]>={})=>renderToStaticMarkup(<MockRunControlsView {...base} {...change}/>);
 
@@ -43,4 +43,11 @@ describe('reviewed run recovery controls',()=>{
     expect(html).not.toContain('<script>');expect(html).toContain('&lt;script&gt;');
     expect(html).toContain('<button disabled="">Run dry-run</button>');
   });
+});
+
+it('keeps cancellation available while filling but prevents a new run',()=>{
+  const html=render({intent,receipt:{...receipt,state:'RUNNING'},canStart:false,canCancel:true});
+  expect(html).toContain('<button>Cancel queued or running test</button>');
+  expect(render({intent,receipt:{...receipt,state:'RUNNING'},canStart:false,canCancel:false}))
+    .toContain('<button disabled="">Cancel queued or running test</button>');
 });
