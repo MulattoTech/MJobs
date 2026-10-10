@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "scope_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "timestamp": "2026-10-10T14:55:03.995909+00:00",
+  "source_commit": "fcc292652b08a4a53a88744693055b7b7c1bbaf5",
+  "source_tree": "457a1523897349cbc41cec94dd29a91b5b4fff24",
+  "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10",
+  "tested_input_sha256": {
+    "apps/api/main.py": "0b8238e75705e4b858937e07ecccfcb8a1a289181a6a9d973391a13de510269f",
+    "apps/web/src/main.tsx": "67b9affc292e4c0923a820d0a849c6595a9635e80061185371652891d7af5adb",
+    "apps/web/src/mock-run-client.test.ts": "60b897675a1f6b59f37ce89e48b8f04ac7d746067845b2c4f25bdd682e78298f",
+    "apps/web/src/mock-run-client.ts": "74c416b61eb97157af799a202bf37127a41e1848a7d01844b3cfd3632c2f6835",
+    "apps/web/src/mock-run-controls.test.tsx": "7f6944d32a837d210d911ad7fc21cde3e7517e030fb27da69dd26248a3a46ac1",
+    "apps/web/src/mock-run-controls.tsx": "0269da94b4d08aad3e8932feaa1998d0f8f5bfb2e904b636b1aa8dc48529e318",
+    "services/applications/attempt_history.py": "6ab60ce61878c62eeb8822d0eff6cf6bf41fd6215ba283ed5ca706642cb4918c",
+    "services/applications/mock_adapter.py": "d458a59f7ab94f1e9ec08643db83a73c81b31104fbae831e66b09b8c820e785f",
+    "services/applications/run_requests.py": "f3ddd3c192444c2e4b3e9dc9cf1a4c321ccb3d4b97dc8a81e2b58ae2610ae776",
+    "workers/operations.py": "72ffda1a4ea8ba469586fd45488d265c90d1e278c1fcbcac7f3c5144813b4314",
+    "workers/tasks.py": "b2a8a48e3056332a3a19d289b78cee702849b86fe6367fa49c0dcd0801367635",
+    "tests/browser/test_mock_run_controls.py": "8987eaebec8483e224839ebc62b19e95a19c99ce454d7426bc873a914c8661f7",
+    "tests/browser/test_worker_attempt_recovery.py": "8f8944ef12363d5b9d5ee6bf99407b9032cfda688184f0f9b1eed2190f132702",
+    "tests/integration/test_application_run_requests.py": "fd12e74c8f8240de23deea0490505b89991807c3d8c59a333fd3b4bef2942a05",
+    "tests/integration/test_worker_attempt_identity.py": "f5cdf50e898acc1179f2417a756b2f9f80b26b4f843fa65bcf410afb2ca59918"
+  },
+  "git_blob_ids": {
+    "apps/api/main.py": "cb2961a33ccd343eec43f86ba6703c042dde0483",
+    "apps/web/src/main.tsx": "a8295ac107e5adc34bee2ec51882735e9e3ba2aa",
+    "apps/web/src/mock-run-client.test.ts": "0c56d19527db8a09fd17fccd713ee64cd01b5bcd",
+    "apps/web/src/mock-run-client.ts": "37fb968cc836d69a665d04cc13a43a8818bb1978",
+    "apps/web/src/mock-run-controls.test.tsx": "a52ba1ff96d43bd5f06b904179ab03b161bca1f4",
+    "apps/web/src/mock-run-controls.tsx": "73916b947af209f26a524d6440ed9e37cd0be42e",
+    "services/applications/attempt_history.py": "017f1031ad12fbdd859570cc6060a8313230eb21",
+    "services/applications/mock_adapter.py": "521be04adf492c8cece982240dd404d90e751763",
+    "services/applications/run_requests.py": "b6347ff0d70621f8e207a1bddebb432eb58df968",
+    "workers/operations.py": "dbbdf27d244b986a204647c26f7868e040a5aa8e",
+    "workers/tasks.py": "f0575c99a7494e326c3253c69a1ae4f6ed98cc9d",
+    "tests/browser/test_mock_run_controls.py": "0b08d45dbafff6d2af6a95865bcb2c042e2aaff0",
+    "tests/browser/test_worker_attempt_recovery.py": "acf1b48ccefc3901a98cff7cb19a943e109101fe",
+    "tests/integration/test_application_run_requests.py": "04774e09e23349a966d7b1acdf0f0ef2749b7a91",
+    "tests/integration/test_worker_attempt_identity.py": "1542aae1fc571b30c1d13eeb7db1ed277486fbb4"
+  },
+  "hash_convention": "SHA-256 of committed normalized Git blobs; every tested working file matched its committed blob through repository filters.",
+  "environment": {
+    "python": "3.12.10",
+    "node": "v25.9.0",
+    "platform": "Windows; isolated SQLite and loopback mock provider; existing local Chromium"
+  },
+  "python_batch": {
+    "command": "python -m unittest tests.integration.test_application_run_requests tests.integration.test_application_attempt_history tests.integration.test_worker_attempt_identity tests.integration.test_worker_lifecycle tests.integration.test_dead_letter_queue tests.integration.test_api_queue tests.browser.test_worker_attempt_recovery tests.browser.test_mock_run_controls -v",
+    "cwd": ".",
+    "started_at": "2026-10-10T14:46:46.837907+00:00",
+    "finished_at": "2026-10-10T14:48:48.291129+00:00",
+    "duration_seconds": 121.453,
+    "exit_code": 0,
+    "tests_run": 80,
+    "passed": 79,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "skip_reason": "PostgreSQLWorkerCrashRecoveryTests: MJOBS_WORKER_RECOVERY_POSTGRES_URL for an isolated recovery database was not configured."
+  },
+  "safety": {
+    "external_employer_submissions": 0,
+    "hosted_ci": "OFF",
+    "hosted_ai_review": "OFF",
+    "new_paid_integrations": "NONE",
+    "personal_runtime": "UNCHANGED",
+    "schema_migrations": "NONE"
+  },
+  "limitations": [
+    "Local MOCK provider acceptance only; real ATS and external employer submission remain NOT_RUN/disabled.",
+    "No automatic takeover or fabricated completion of a RUNNING browser attempt; manual process-death confirmation/recovery for such a reservation remains a separate requirement.",
+    "PostgreSQL crash recovery skipped; these new scenarios use SQLite. No claim of new Redis or multi-host recovery acceptance.",
+    "Legacy API callers without request_id retain their original outbox identity and do not acquire the new frozen queue contract.",
+    "The existing Node v25.9.0 emits a Vitest supported-engine-range warning. Installed versions were not changed; tests and build actually passed."
+  ],
+  "requirement_ids": [
+    "MJ-REQ-145",
+    "MJ-REQ-138"
+  ],
+  "issues": [
+    146,
+    139
+  ],
+  "implemented": [
+    "Atomic caller-scoped run admission with frozen route/profile/document/supporting-selection metadata and mode.",
+    "Read-only scoped recovery of a lost acknowledgement; request reuse cannot change inputs or reopen terminal operations.",
+    "Stable worker operation ID passed into physical browser attempt identity, including retry/restart generations.",
+    "Current frozen inputs checked before adapter execution and again under physical admission lock.",
+    "Dead-letter retry, recovery and queue readback share unfinished-attempt and competing-operation fences.",
+    "Cancellation preserves immutable attempt evidence and never cancels through an ambiguous submission reservation."
+  ],
+  "new_python_tests": 26,
+  "observed_cases": [
+    {
+      "test": "tests.browser.test_worker_attempt_recovery.WorkerBrowserRecoveryTests.test_real_worker_exit_after_browser_completion_replays_without_second_browser",
+      "result": "PASS",
+      "observed": "Test-owned worker exited 73 after its real Chromium attempt committed. Reopened database plus expired lease produced COMPLETED with operation attempt_count=2, exactly one physical attempt, review=1 and submit=0. Chromium relaunch was guarded to fail."
+    },
+    {
+      "test": "tests.browser.test_worker_attempt_recovery.WorkerBrowserRecoveryTests.test_cooperative_browser_cancel_preserves_history_and_requires_new_reviewed_run",
+      "result": "PASS",
+      "observed": "Real browser cancellation completed immutably with OPERATION_CANCELLED and zero provider review/submits; replay remained cancelled; a new reviewed intent completed with preserved old receipt."
+    },
+    {
+      "test": "tests.browser.test_worker_attempt_recovery.WorkerBrowserRecoveryTests.test_worker_lost_receipt_and_restart_recovery_never_repeat_mock_submission",
+      "result": "PASS",
+      "observed": "Lost response left SUBMISSION_UNCONFIRMED and a dead-lettered worker. After database reopen, receipt-only API reconciliation confirmed the application; original attempt/operation history was retained and provider submit count stayed one."
+    },
+    {
+      "test": "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests.test_expired_lease_cannot_steal_unfinished_browser_reservation",
+      "result": "PASS",
+      "observed": "Expired operation was BLOCKED, RUNNING browser receipt and PREPARED application preserved, and another browser intent refused."
+    },
+    {
+      "test": "tests.integration.test_worker_attempt_identity.WorkerAttemptIdentityTests.test_dead_letter_retry_cannot_compete_with_a_new_reviewed_intent",
+      "result": "PASS",
+      "observed": "Old dead letter remained terminal while the separately reviewed new request remained the only queued run."
+    }
+  ]
+}
