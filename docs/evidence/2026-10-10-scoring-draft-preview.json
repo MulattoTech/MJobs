@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-117-DRAFT-RANKING-PREVIEW-20261010",
+  "requirement_ids": [
+    "MJ-REQ-117"
+  ],
+  "github_issues": [
+    118
+  ],
+  "result": "PARTIAL",
+  "slice_result": "PASS",
+  "source": {
+    "branch": "chatgpt/preference-weighting-20261010",
+    "commit": "1cbfc585f7445f35d6109cba51676b95aae7f688",
+    "tree": "4282530889b18c211e75fdea160fcb5705628c35",
+    "base": "94639160433e2a9ce787279ebeab0c70e0c51808"
+  },
+  "verified_at_utc": "2026-10-10T16:01:34.398207+00:00",
+  "input_sha256": {
+    "apps/api/scoring_profiles.py": "6c56eed7a604f1ca81169e5448da45a519fc0d7066653b07c878ca1c040d8c15",
+    "apps/web/src/role-scoring-preview-client.ts": "929ed4d6c006691b58bca69b08e71088e85412b34d46d5d59735fdba1fa8b0fc",
+    "apps/web/src/role-scoring-preview.test.tsx": "0dbdd75d41d8c9f3a5522cd34c93d464f6153680dd37c9815eb33c6aa29a7335",
+    "apps/web/src/role-scoring-preview.tsx": "8da0e09f2ab07c8efe5268b4c8cb5d59c84dea879b7ebd43429abfe5f110b50c",
+    "apps/web/src/role-scoring-profile-editor.tsx": "c4cfbf9eb0a771be7db1c675f9b7dcd1ac187d372f4116874312008796314cf6",
+    "services/matching/draft_preview.py": "c86a2abaff8ced3d3c31613d286ce643161139d5e3bb8b2acfad01b8bc561605",
+    "tests/browser/test_scoring_draft_preview.py": "ec42e4ff6c6ce317865dab5dd42373340c54d0dcfd17fda9521c0f4eae909dea",
+    "tests/integration/test_scoring_draft_preview.py": "633730e94a479d5e1bcb19f638d53c5cb7a7f406a750f8b12932ca7d2c8205f6"
+  },
+  "git_blob_sha256": {
+    "apps/api/scoring_profiles.py": "6c56eed7a604f1ca81169e5448da45a519fc0d7066653b07c878ca1c040d8c15",
+    "apps/web/src/role-scoring-preview-client.ts": "929ed4d6c006691b58bca69b08e71088e85412b34d46d5d59735fdba1fa8b0fc",
+    "apps/web/src/role-scoring-preview.test.tsx": "0dbdd75d41d8c9f3a5522cd34c93d464f6153680dd37c9815eb33c6aa29a7335",
+    "apps/web/src/role-scoring-preview.tsx": "8da0e09f2ab07c8efe5268b4c8cb5d59c84dea879b7ebd43429abfe5f110b50c",
+    "apps/web/src/role-scoring-profile-editor.tsx": "c4cfbf9eb0a771be7db1c675f9b7dcd1ac187d372f4116874312008796314cf6",
+    "services/matching/draft_preview.py": "c86a2abaff8ced3d3c31613d286ce643161139d5e3bb8b2acfad01b8bc561605",
+    "tests/browser/test_scoring_draft_preview.py": "ec42e4ff6c6ce317865dab5dd42373340c54d0dcfd17fda9521c0f4eae909dea",
+    "tests/integration/test_scoring_draft_preview.py": "633730e94a479d5e1bcb19f638d53c5cb7a7f406a750f8b12932ca7d2c8205f6"
+  },
+  "acceptance": [
+    "Explicit preview button compares recomputed current and unsaved draft scoring on at most 100 current-profile/current-version stored matches; reports sample ranks, score delta, contributions and provenance.",
+    "Uses one database read snapshot, saved-search semantic and source filters, stable ties, bounded dimensions and explicit truncation. Does not audit, save, rescore persisted matches, submit or call providers.",
+    "Scope mismatches are 404; stale expected versions are 409; invalid, empty or over-32-dimension drafts are 422. Advanced workspace job_filters are explicitly rejected rather than silently ignored.",
+    "Connected Chromium preview produces aligned current=75, draft=100, delta=25; every table is unchanged. Editing hides results immediately; a held stale response after editing never restores them; changing scope also hides them.",
+    "Client verifies scope/version, count caps, unique jobs/dimensions, rank ordering, score deltas and weighted contributions against the actual requested draft. UNKNOWN null provenance and legacy all-unknown fallback remain explicit.",
+    "Editor shows the effective default Skills weight of 100 for old sparse and new drafts; explicit zero remains zero. No hidden baseline score weighting."
+  ],
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_preference_scoring.py tests/unit/test_profile_scoring.py tests/unit/test_selected_search_scoring.py tests/unit/test_scoring_profiles.py tests/integration/test_preference_weighting.py tests/integration/test_scoring_draft_preview.py tests/integration/test_explainable_matching.py tests/integration/test_matching_explanation_contributions.py tests/integration/test_matching_explanation_stale_context_recovery.py tests/integration/test_role_scoring_search_flow.py tests/integration/test_selected_search_recalculation.py tests/integration/test_selected_search_default_score_persistence.py tests/integration/test_scoring_profiles_api.py tests/integration/test_scoring_profile_router_mount.py tests/browser/test_preference_weighting.py tests/browser/test_scoring_draft_preview.py tests/browser/test_role_scoring_profile_reload_match.py -q --tb=short",
+      "result": "PASS",
+      "passed": 130,
+      "subtests_passed": 67,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run test -- --reporter=dot (apps/web)",
+      "result": "PASS",
+      "passed": 583,
+      "files_passed": 101,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "npm run build (apps/web)",
+      "result": "PASS",
+      "note": "TypeScript and Vite build; existing chunk-size warning remains. Node 25.9.0, Python 3.12.10."
+    },
+    {
+      "command": "lane_coordination validate; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "red_first": {
+    "failed": 12,
+    "passed": 0,
+    "note": "Preview endpoint absent before implementation; all acceptance cases failed first."
+  },
+  "limitations": [
+    "Sample is not the live application queue: it can contain hidden/blacklisted historical matches; the UI states this. Workspace-only advanced job_filters currently fail closed.",
+    "100-row cap can omit other relevant jobs; ranks are explicitly local to the inspected sample, never global claims.",
+    "Store scores are not updated until normal explicit save/recalculation. Current scores in preview are recomputed, not durable score readback.",
+    "PostgreSQL path implemented but NOT_RUN. Full repository Python suite, external ATS and independently delegated review NOT_RUN.",
+    "Main integration BLOCKED_BY_ACTIVE_INTEGRATOR; canonical tracker unchanged, TRACKER_REFRESH_PENDING. Whole MJ-REQ-117 remains PARTIAL.",
+    "Hosted CI/review, new paid services and real employer submissions OFF."
+  ]
+}
