@@ -63,6 +63,9 @@ class TaskModelSelection:
                 or self.model.casefold().startswith(_SECRET_PREFIXES)):
             raise ValueError("AI_MODEL_ID_INVALID")
 
+    def to_dict(self) -> dict[str, str | None]:
+        return {"provider": self.provider, "model": self.model}
+
 
 @dataclass(frozen=True)
 class AITaskConfiguration:
@@ -112,6 +115,21 @@ class AITaskConfiguration:
             raise ValueError("AI_TASK_UNSUPPORTED")
         return self._selections[task]
 
+    def to_dict(self) -> dict[str, dict[str, str | None]]:
+        return {task: selection.to_dict() for task, selection in self._selections.items()}
+
+    def with_update(self, updates: Mapping[str, Mapping[str, object]]) -> "AITaskConfiguration":
+        if not isinstance(updates, Mapping):
+            raise ValueError("AI_TASK_CONFIG_INVALID")
+        current = self.to_dict()
+        for task, value in updates.items():
+            if task not in AI_TASKS:
+                raise ValueError("AI_TASK_UNSUPPORTED")
+            if not isinstance(value, Mapping):
+                raise ValueError("AI_TASK_CONFIG_INVALID")
+            current[task] = dict(value)
+        return self.from_mapping(current)
+
 
 def fallback_capabilities() -> dict[str, dict[str, str]]:
     """Return explicit no-provider behavior for every configured AI task."""
@@ -128,6 +146,19 @@ class AITaskRouter:
                  provider_factory: Callable[[str], AIProvider] = create_provider) -> None:
         self.configuration = configuration or AITaskConfiguration.default()
         self.provider_factory = provider_factory
+
+    def get_task_summary(self) -> dict[str, dict[str, object]]:
+        fallbacks = fallback_capabilities()
+        return {
+            task: {
+                "task": task,
+                "provider": self.configuration.for_task(task).provider,
+                "model": self.configuration.for_task(task).model,
+                "fallback_mode": fallbacks[task]["mode"],
+                "fallback_description": fallbacks[task]["description"],
+            }
+            for task in AI_TASKS
+        }
 
     def generate(self, *, task: str | AITask, prompt: str, timeout_seconds: float) -> str:
         selection = self.configuration.for_task(task)
