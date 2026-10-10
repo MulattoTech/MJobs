@@ -39,9 +39,9 @@ See docs/GITHUB_WORKFLOW.md and prompts/LOCAL_ONLY_LUNA_ITERATION.md.
 
 ## 2026-10-09 user-authorized two-agent interactive exception
 
-The current user explicitly authorized **one Codex CLI root** and **one Google Antigravity root** to work concurrently on separate MJobs areas. This overrides earlier statements that only one interactive coding root may run **for this two-session pairing only**; it does not authorize hosted agents, automated GitHub Actions, paid hosted reviews, unattended runs, or a second integration owner. Additional child agents require scoped, independently nonoverlapping claims and proven host capacity; neither root should automatically fan out 50 workers.
+The current user explicitly authorized **one Codex CLI root**, **one Google Antigravity root** and **a separate Claude CLI delivery/test root** to work concurrently on disjoint MJobs areas through the Mission Control web launcher. The Claude slot may be left idle when unused. This overrides earlier statements that only one interactive coding root may run **for these specifically isolated launch slots only**; it does not authorize hosted agents, automated GitHub Actions, paid hosted reviews, unattended runs, or a second integration owner. Additional child agents require scoped, independently nonoverlapping claims and proven host capacity; neither root should automatically fan out 50 workers.
 
-**Required operating contract:** read `docs/DUAL_AGENT_COORDINATION.md`, `planning/lanes/README.md`, and `docs/PROGRESS_TRACKING.md` before starting either paired session. Codex owns the claimed application-automation implementation files; Antigravity owns claimed matching/AI implementation files. Use isolated branches and worktrees, exact issue/path claims with GitHub comment mirror, and serial integration. Only one integrator may update canonical planning, shared interfaces/migrations and `main`. If a claim overlaps or a checkout is dirty unexpectedly, preserve it and stop that slice. Both clients' model-specific `/goal` and complete prompts live under `prompts/dual-agent/`. External real submission stays OFF. These rules persist only where compatible with a later explicit user instruction.
+**Required operating contract:** read `docs/DUAL_AGENT_COORDINATION.md`, `planning/lanes/README.md`, and `docs/PROGRESS_TRACKING.md` before starting any implementation session. Mission Control may launch using owned isolated worktrees without a clean root `main`; it must never reset/stash others' work, and it must still honor issue/path claims. Codex owns the claimed application-automation implementation files; Antigravity owns claimed matching/AI implementation files. Use isolated branches and worktrees, exact issue/path claims with GitHub comment mirror, and serial integration. Only one integrator may update canonical planning, shared interfaces/migrations and `main`. If a claim overlaps or a checkout is dirty unexpectedly, preserve it and stop that slice. Both clients' model-specific `/goal` and complete prompts live under `prompts/dual-agent/`. External real submission stays OFF. These rules persist only where compatible with a later explicit user instruction.
 
 ## Mandatory low-overhead progress tracking — every AI, every session
 
@@ -197,3 +197,17 @@ For those supervised lanes:
 This does not authorize weakening safety, inventing requirements, external
 application submission, bypassing access controls, or overriding an explicit user
 decision gate.
+
+
+## One-click Mission Control launch (2026-10-09)
+
+The latest user request authorizes the **Codex, Antigravity, and Claude CLI**
+interactive slots from the local browser-based Mission Control. Read
+`docs/MISSION_CONTROL_LAUNCHER.md` before editing its behavior. GUI launch
+from a dirty or stale primary main is permitted **only through non-destructive
+isolated lane worktree preparation**. The launcher MUST NOT reset, stash,
+clean, force-push, auto-merge diverged branches, or bypass another issue/path
+claim. Agent models/runner names are allowlisted; no installed software is
+silently replaced. The project acceptance card is a read-only view of
+canonical requirement evidence unless the integration owner explicitly
+accepts and publishes a checkpoint.

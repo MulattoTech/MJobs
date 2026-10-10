@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-LANES = ("codex", "antigravity", "ollama")
+LANES = ("codex", "antigravity", "ollama", "claude")
 SCHEMA_VERSION = 1
 
 
@@ -162,8 +162,8 @@ def paths_overlap(a: str, b: str) -> bool:
 def claim_key(lane: str, child_id: str | None = None) -> str:
     if child_id is None:
         return lane
-    if lane != "codex":
-        raise ValueError("child-scoped claims are currently supported only for the Codex lane")
+    if lane not in LANES:
+        raise ValueError("Child claim requires a registered implementation lane")
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,63}", child_id):
         raise ValueError("child id must be 1-64 letters, digits, dots, underscores, or hyphens")
     return f"{lane}:{child_id}"
@@ -335,12 +335,12 @@ def parser() -> argparse.ArgumentParser:
     c.add_argument("--worktree", required=True)
     c.add_argument("--head")
     c.add_argument("--pid", type=int)
-    c.add_argument("--child-id", help="stable per-child key (Codex only); legacy lane claims remain supported")
+    c.add_argument("--child-id", help="stable per-session key for any registered lane")
     c.add_argument("--path", action="append", default=[])
 
     rc = sub.add_parser("release-claim")
     rc.add_argument("--lane", required=True, choices=LANES)
-    rc.add_argument("--child-id", help="release only this Codex child claim")
+    rc.add_argument("--child-id", help="release only this session-scoped claim")
     return p
 
 

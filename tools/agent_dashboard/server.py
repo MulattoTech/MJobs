@@ -7,13 +7,14 @@ from pathlib import Path
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .supervisor import AgentSupervisor, LANES
+from .mission_control import MissionControl, LaunchRequest
 
 
 class LanePatch(BaseModel):
@@ -26,9 +27,9 @@ class LanePatch(BaseModel):
     gpu_offload_percent: int | None = Field(default=None, ge=0, le=100)
 
 
-def create_app(root: Path | None = None) -> FastAPI:
+def create_app(root: Path | None = None, *, mission_instance: bool = False) -> FastAPI:
     repo = (root or Path.cwd()).resolve()
-    supervisor = AgentSupervisor(repo)
+    supervisor = AgentSupervisor(repo, mission_instance=mission_instance)
     static_dir = Path(__file__).parent / "static"
 
     app = FastAPI(
@@ -43,6 +44,46 @@ def create_app(root: Path | None = None) -> FastAPI:
     )
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
     app.state.supervisor = supervisor
+    mission = MissionControl(supervisor)
+    app.state.mission_control = mission
+
+    @app.get("/api/launcher/health")
+    def launcher_health():
+        return {"service": "mjobs-mission-control", "version": 2, "status": "ready"}
+
+    @app.get("/api/launcher/options")
+    def launcher_options():
+        return mission.options()
+
+    @app.get("/api/progress")
+    def release_progress():
+        return mission.progress()
+
+    @app.get("/api/launcher/profiles/{slug}")
+    def launcher_profile(slug: str):
+        from .mission_control import PROFILES
+        if slug not in PROFILES:
+            raise HTTPException(404, "Unknown profile")
+        path = repo / PROFILES[slug]["path"]
+        if not path.is_file():
+            raise HTTPException(404, "Profile file missing")
+        return {"profile": slug, "content": path.read_text(encoding="utf-8")}
+
+    @app.post("/api/launcher/{lane}/launch")
+    def launcher_launch(lane: str, options: LaunchRequest, request: Request):
+        mission.require_token(request, mission.token)
+        try:
+            return mission.launch(lane, options)
+        except (ValueError, RuntimeError, FileNotFoundError) as exc:
+            raise HTTPException(409, str(exc))
+
+    @app.post("/api/launcher/{lane}/stop")
+    def launcher_stop(lane: str, request: Request):
+        mission.require_token(request, mission.token)
+        try:
+            return mission.stop(lane)
+        except (ValueError, RuntimeError, FileNotFoundError) as exc:
+            raise HTTPException(409, str(exc))
 
     @app.get("/")
     def index():
@@ -172,10 +213,11 @@ def main() -> int:
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", default=18704, type=int)
     parser.add_argument("--no-open", action="store_true")
+    parser.add_argument("--mission-control", action="store_true", help="use isolated Mission Control settings and runtime")
     args = parser.parse_args()
     if args.host not in {"127.0.0.1", "localhost"}:
         parser.error("Agent dashboard is loopback-only; use 127.0.0.1 or localhost")
-    app = create_app(Path(args.root))
+    app = create_app(Path(args.root), mission_instance=args.mission_control)
     if not args.no_open:
         import webbrowser
         webbrowser.open(f"http://127.0.0.1:{args.port}/")

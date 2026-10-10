@@ -4,7 +4,7 @@ Use **one** Codex model/profile and **one** Antigravity model/profile at a time.
 
 ## One-time working-directory preparation (integration owner)
 
-Run only after current root `main` is fully reconciled and GitHub `main` matches it. Confirm existing locations/branch names are free and preserve anything already there.
+**Recommended:** double-click the **MJobs Mission Control** desktop shortcut and use the web-based Launch Studio instead of running these commands by hand. The launcher creates missing worktrees, reuses existing lane work, fetches recent GitHub state when available, and never needs root `main` to be clean. The manual commands below remain for advanced use and assume a fresh setup.
 
 ```powershell
 cd C:\Tools\Dev\MJobs
@@ -32,3 +32,13 @@ Each profile contains both the **/goal** sentence and the **full prompt**. Paste
 ## After both lanes
 
 The designated integration owner alone takes the lock, reviews both exact branch commits, serializes any shared wiring, runs the local acceptance tests, updates the canonical progress matrix, pushes accepted `main`, and confirms the remote hash. Next, prioritize P0 **MJ-REQ-292** / [issue #293](https://github.com/MulattoTech/MJobs/issues/293) as an actual reproducible end-to-end product acceptance run, not paperwork-only PASS. Real employer submissions remain OFF.
+
+
+## Third usable CLI lane — Claude Code
+
+The web Launch Studio also supports installed `claude` with independent
+`claude/priority-delivery-tests-20261009` worktree, using
+[delivery release audit](claude-release-audit.md) or
+[controlled test harness](claude-test-harness.md).
+It operates under distinct claims and cannot mutate root `main` or canonical
+matrices; the sole integration owner performs final release acceptance.

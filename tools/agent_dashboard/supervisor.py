@@ -27,7 +27,7 @@ from .observability import (
     windows_process_snapshot,
 )
 
-LANES = ("codex", "antigravity", "ollama")
+LANES = ("codex", "antigravity", "ollama", "claude")
 
 DEFAULTS: dict[str, dict[str, Any]] = {
     "codex": {
@@ -47,10 +47,17 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "ollama": {
         "model": "ollama/gemma4:26b",
         "reasoning": "high",
-        "auto_continue": True,
+        "auto_continue": False,
         "prompt_file": "prompts/PARALLEL_OLLAMA_LANE.md",
         "runner": "opencode",
         "gpu_offload_percent": 100,
+    },
+    "claude": {
+        "model": "sonnet",
+        "reasoning": "high",
+        "auto_continue": False,
+        "prompt_file": "prompts/dual-agent/claude-release-audit.md",
+        "runner": "claude",
     },
 }
 
@@ -126,14 +133,16 @@ class Child:
 
 
 class AgentSupervisor:
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, *, mission_instance: bool = False):
         self.root = root.resolve()
         self.common = git_common_dir(self.root)
         self.bus = self.common / "mjobs-coordination"
         self.bus.mkdir(parents=True, exist_ok=True)
-        self.config_path = self.bus / "dashboard.json"
-        self.runtime_path = self.bus / "dashboard-runtime.json"
-        self.log_dir = self.root / "outputs" / "agent-dashboard"
+        self.mission_instance = mission_instance
+        prefix = "mission-control-v2" if mission_instance else "dashboard"
+        self.config_path = self.bus / f"{prefix}.json"
+        self.runtime_path = self.bus / f"{prefix}-runtime.json"
+        self.log_dir = self.root / "outputs" / ("mission-control-v2" if mission_instance else "agent-dashboard")
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.native_log_dir = self.log_dir / "native"
         self.native_log_dir.mkdir(parents=True, exist_ok=True)
@@ -156,6 +165,9 @@ class AgentSupervisor:
             "max_fast_exits": 3,
             "lanes": {lane: dict(DEFAULTS[lane], prompt_override="") for lane in LANES},
         }
+        if self.mission_instance:
+            for item in base["lanes"].values():
+                item["auto_continue"] = False
         if self.config_path.exists():
             try:
                 saved = json.loads(self.config_path.read_text(encoding="utf-8"))
@@ -204,7 +216,8 @@ class AgentSupervisor:
         self._require_lane(lane)
         allowed = {
             "model", "reasoning", "auto_continue", "prompt_file",
-            "prompt_override", "gpu_offload_percent",
+            "prompt_override", "gpu_offload_percent", "agent_name",
+            "launch_workspace", "launch_profile",
         }
         with self._lock:
             for key, value in patch.items():
@@ -255,6 +268,25 @@ class AgentSupervisor:
         base = path.read_text(encoding="utf-8") if path.exists() else ""
         override = (cfg.get("prompt_override") or "").strip()
         suffix = f"\n\nDASHBOARD PROMPT OVERRIDE:\n{override}\n" if override else ""
+        if cfg.get("launch_profile"):
+            return (
+                "USER-STARTED MISSION CONTROL SESSION. Read AGENTS.md, "
+                "docs/DUAL_AGENT_COORDINATION.md, planning/lanes/README.md and "
+                "docs/PROGRESS_TRACKING.md. You are limited to the exact selected "
+                f"lane={lane}, worktree={cfg.get('launch_workspace')}, "
+                f"profile={cfg.get('launch_profile')}. "
+                "Git main may be dirty or move: NEVER reset, clean, stash, "
+                "force-push, or overwrite another writer. Reconcile inside your "
+                "owned lane, identify live conflicting GitHub/local claims, and "
+                "acquire a unique exact issue/path claim BEFORE any implementation "
+                "mutation. A conflicting claim blocks that feature slice, not "
+                "launch itself. Only the sole integrator may edit canonical "
+                "planning, shared migrations, release acceptance or main. "
+                "Preserve safety gates, no hosted CI, no real application submit. "
+                "Do not start unrelated agent fleets. No unattended continuation "
+                "unless the current user specifically enabled it.\n\n"
+                + base + suffix
+            )
         claim = self._live_claim(lane)
         if claim:
             issue_brief = self._issue_brief(claim)
@@ -304,11 +336,28 @@ class AgentSupervisor:
             ]
         if lane == "antigravity":
             native_log = native_log_path or (self.native_log_dir / "antigravity-preview.log")
+            if cfg.get("launch_profile"):
+                command = [
+                    "agy", "--print", prompt, "--model", model,
+                    "--effort", str(cfg.get("reasoning", "high")),
+                    "--mode", "accept-edits", "--log-file", str(native_log),
+                ]
+                if cfg.get("agent_name"):
+                    command.extend(["--agent", str(cfg["agent_name"])])
+                return command
             return [
                 "agy", "--print", prompt, "--model", model,
                 "--mode", "accept-edits", "--dangerously-skip-permissions",
                 "--log-file", str(native_log),
             ]
+        if lane == "claude":
+            command = [
+                "claude", "--print", prompt, "--model", model,
+                "--permission-mode", "acceptEdits",
+            ]
+            if cfg.get("agent_name"):
+                command.extend(["--agent", str(cfg["agent_name"])])
+            return command
         return [
             "opencode", "run", "--pure", "--model", model,
             "--auto", "--print-logs", "--log-level", "INFO", "--thinking",
@@ -321,7 +370,8 @@ class AgentSupervisor:
         workspace = Path(claim["worktree"]) if claim.get("worktree") else self.root
         command = self._command(lane, workspace)
         if command:
-            command[-1] = "<prompt>"
+            index = 2 if lane in {"antigravity", "claude"} else len(command) - 1
+            command[index] = "<prompt>"
         return command
 
     def _runner_prefix(self, name: str) -> list[str]:
@@ -373,6 +423,12 @@ class AgentSupervisor:
         return self._runner_prefix(command[0]) + command[1:]
 
     def _workspace_for_lane(self, lane: str) -> Path:
+        cfg = self.config["lanes"][lane]
+        if cfg.get("launch_workspace"):
+            workspace = Path(str(cfg["launch_workspace"])).resolve()
+            if not workspace.is_dir():
+                raise RuntimeError("Configured Mission Control worktree is missing; use the launch wizard.")
+            return workspace
         claim = self._live_claim(lane)
         worktree_value = claim.get("worktree")
         branch = claim.get("branch")
@@ -684,7 +740,8 @@ class AgentSupervisor:
         processes = self._cached_telemetry("processes", 2.5, windows_process_snapshot)
         gpu = self._cached_telemetry("gpu", 3.0, windows_gpu_snapshot)
         codex_usage = self._cached_telemetry("codex_usage", 30.0, read_codex_rate_limits)
-        ollama = self._cached_telemetry("ollama_ps", 3.0, ollama_ps)
+        ollama = (self._cached_telemetry("ollama_ps", 3.0, ollama_ps)
+                  if shutil.which("ollama") else {"available": False, "models": []})
         return {
             "processes": processes,
             "gpu": gpu,
@@ -800,6 +857,12 @@ class AgentSupervisor:
                         if current_conversation.get("conversation_id"):
                             activity["session_id"] = current_conversation["conversation_id"]
                     visibility = "agy --print supervised process + structured Antigravity transcript telemetry"
+                elif lane == "claude":
+                    usage = {
+                        "available": False,
+                        "message": "Claude CLI is supervised locally; token and quota telemetry is not available in this dashboard.",
+                    }
+                    visibility = "Claude CLI local supervised --print session; no cloud automation or hosted reviews"
                 else:
                     workspace = state.get("workspace") or (
                         self._live_claim(lane).get("worktree")

@@ -85,3 +85,12 @@ For browser-driven test/feedback development in VS Code, see [docs/LIVE_FEEDBACK
 ## Dual-agent feature implementation (Codex + Antigravity)
 
 For isolated local Codex application automation and Antigravity AI matching, follow [the ownership and integration contract](docs/DUAL_AGENT_COORDINATION.md) and [the seven model-specific launch profiles](prompts/dual-agent/README.md). Only the integration owner merges accepted evidence into `main`. Project-hosted Actions/agent runs remain disabled and real external applications are not submitted.
+
+
+### Launch coding agents visually
+
+Double-click **MJobs Mission Control** on Windows or run
+`Start-MJobs-MissionControl.ps1`. Pick a Codex / Antigravity / Claude profile,
+model, agent and prompt in the [Mission Control launcher](docs/MISSION_CONTROL_LAUNCHER.md).
+It can start independent worktrees while root `main` is dirty and it displays
+the same canonical requirement acceptance as the [mjobs-progress skill](skills/mjobs-progress/SKILL.md).

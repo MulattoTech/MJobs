@@ -506,5 +506,11 @@ $("#stopAllBtn").onclick=async()=>{
   if(!confirm("Stop every supervised agent lane?")) return;
   await api("/api/stop-all",{method:"POST",body:"{}"}); await refresh();
 };
+const advancedPanel = document.querySelector(".advanced-control");
+if (advancedPanel) advancedPanel.addEventListener("toggle", () => {
+  if (advancedPanel.open) refresh();
+});
 refresh();
-setInterval(refresh,2500);
+setInterval(() => {
+  if (!document.hidden && (!advancedPanel || advancedPanel.open)) refresh();
+}, 6000);

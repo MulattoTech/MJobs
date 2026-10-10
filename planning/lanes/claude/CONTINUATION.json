@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "lane": "claude",
+  "status": "IDLE_READY",
+  "preferred_model": "sonnet",
+  "prompt_file": "prompts/dual-agent/claude-release-audit.md",
+  "external_submission_enabled": false,
+  "github_actions_enabled": false
+}

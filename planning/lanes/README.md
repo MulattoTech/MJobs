@@ -7,13 +7,14 @@ Each active implementation CLI owns exactly one lane:
 
 - `planning/lanes/codex/`
 - `planning/lanes/antigravity/`
-- `planning/lanes/ollama/`
+- `planning/lanes/ollama/` (legacy OpenCode, optional)
+- `planning/lanes/claude/` (third installed CLI, delivery/test harness)
 
-For concurrent Codex child agents, the root integrator owns the shared Codex lane
-files. Each child uses a unique child-ID claim and issue comment, writes only its
-exclusive source/test/evidence paths, and must not modify `planning/lanes/codex/**`
-or canonical planning. This prevents children in the same Codex lane from racing on
-one lane handoff while retaining independent issue/path claims.
+For concurrent Codex, Antigravity and Claude sessions, use a unique child/session
+ID for the machine-local claim and mirror the claim on the owning GitHub issue.
+Each session writes only exclusive claimed paths and unique sanitized evidence.
+One integrator owns canonical planning, shared APIs and root main. Existing older
+lane-level claims are preserved rather than replaced by a new session.
 
 Each lane contains:
 
@@ -60,7 +61,8 @@ Before source mutation, record a lane claim and post the same sanitized claim on
 GitHub issue. Claims must include issue, requirement, branch, worktree and expected
 paths. Do not choose work overlapping another lane's active paths.
 
-The local claim bus supports multiple concurrent Codex children by a stable child ID.
+The local claim bus supports scoped concurrent sessions in any registered lane
+(Codex, Antigravity, Claude or legacy Ollama) using a stable unique child ID.
 Keep the legacy lane-level claim for existing sessions; use `--child-id` for each new
 Codex child, and release only that child with the same ID. Claim updates are serialized
 across local processes, active path overlap is rejected across all lanes, and an

@@ -26,3 +26,12 @@ If your ChatGPT plan/workspace exposes skills, navigate to **Plugins → Skills 
 ## Safe integration
 
 This feature branch can be reviewed/cherry-picked into the current **local** MJobs main when the root integrator releases its lock. Before merging, reconcile the long-lived local-versus-remote Git divergence and update generated JSON/SVG via --write from fresh local matrices. Do **not** overwrite docs/PROGRESS_DASHBOARD.md or planning matrices to match GitHub's older published numbers. Never turn on GitHub Actions, cloud reviewers, external submit, or automatic pushes as part of this feature.
+
+
+## Live local Mission Control display
+
+The desktop **MJobs Mission Control** shortcut opens a browser dashboard that
+reads the same canonical matrices directly and displays per-area acceptance
+and local-vs-GitHub publication state. It refreshes visually without running
+`--write`. The integration owner alone refreshes generated JSON/SVG/Markdown
+at accepted checkpoints. See [MISSION_CONTROL_LAUNCHER.md](MISSION_CONTROL_LAUNCHER.md).

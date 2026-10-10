@@ -114,3 +114,5 @@ code { font-family:"Cascadia Code",Consolas,monospace; font-size:.95em; }
 .codex-raw-stats, .antigravity-raw-stats { max-height:28rem; }
 
 .pill.idle_unassigned { border-color:#466494; color:#9fc2ff; }
+.advanced-control { margin:1rem 0; }
+.advanced-control > summary { margin-bottom:1rem; font-size:.85rem; font-weight:650; }

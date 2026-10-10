@@ -176,3 +176,26 @@ A prior supervisor stop/restart does not masquerade as a user block. Explicit st
 actions record `STOP_REQUESTED`. A writable lane still requires a live claim before
 Start; this preserves worktree/path isolation instead of silently choosing arbitrary
 GitHub work.
+
+
+## Mission Control v2 — GUI launch studio and acceptance tracker
+
+**Preferred startup:** use the **MJobs Mission Control** desktop shortcut, opening
+`http://127.0.0.1:18726/`. This uses the same loopback-only supervisor plus a
+new Launch Studio with selectable Codex, Antigravity and Claude model/profile
+pairs, full-prompt preview, optional agent/instructions, an explicit Launch CLI
+button and per-lane Stop. Legacy OpenCode/Ollama controls remain advanced and
+are unavailable when the CLI has been uninstalled.
+
+No root-main clean state is required. Existing isolated worktrees and uncommitted
+changes are preserved, cached origin/main is used only if fetching fails,
+and only clean behind-only lane branches may fast-forward. No automatic
+rebase, merge of diverged history, main mutation, or issue-claim takeover.
+
+The live Release Acceptance panel uses the **exact same canonical acceptance
+matrices** as the `mjobs-progress` ChatGPT skill, not a guess from commits.
+It refreshes read-only around every 11 seconds, shows separate MJ-REQ/MJ-REF
+percentages, under-accepted feature areas, source timestamps, checkpoint
+freshness and remote GitHub SHA. Accepted changes still require an integration
+owner to update and publish the generated card. See
+[MISSION_CONTROL_LAUNCHER.md](MISSION_CONTROL_LAUNCHER.md).

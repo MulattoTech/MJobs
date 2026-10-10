@@ -23,11 +23,11 @@ class AgentDashboardApiTests(unittest.TestCase):
     def tearDown(self):
         self.temp.cleanup()
 
-    def test_state_is_available_and_loopback_dashboard_has_three_lanes(self):
+    def test_state_is_available_and_loopback_dashboard_has_four_lanes(self):
         response = self.client.get("/api/state")
         self.assertEqual(response.status_code, 200)
         body = response.json()
-        self.assertEqual(set(body["lanes"]), {"codex", "antigravity", "ollama"})
+        self.assertEqual(set(body["lanes"]), {"codex", "antigravity", "ollama", "claude"})
         self.assertIn("git", body)
         self.assertIn("coordination", body)
 
