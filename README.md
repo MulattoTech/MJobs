@@ -82,6 +82,18 @@ For a product-level walkthrough, use [docs/GUIDED_PRODUCT_REVIEW.md](docs/GUIDED
 For browser-driven test/feedback development in VS Code, see [docs/LIVE_FEEDBACK_DEVELOPMENT.md](docs/LIVE_FEEDBACK_DEVELOPMENT.md). Checked-in VS Code tasks can start PERSONAL or FIXTURE mode and a privacy-conscious headed-browser recorder. Session data stays under ignored `outputs/live-feedback/`; use `prompts/VS_CODE_LIVE_FEEDBACK.md` with Codex to turn the latest observation into a test, patch, validation, and retest cycle.
 
 
+## VS Code — all local MJobs development workspaces
+
+Run the portable Open-MJobs-VSCode.cmd launcher or the PowerShell script
+Open-MJobs-VSCode.ps1 in the Mission Control code checkout. It discovers
+registered local MJobs Git worktrees and separate private MJobs clones,
+builds a manageable generated multi-root VS Code workspace, and opens it.
+Local commits appear in Source Control Graph before they are pushed to
+GitHub. All registered worktrees are indexed even if not individually opened
+in VS Code. The generated machine-specific workspace lives OUTSIDE main.
+See [VS Code multi-repository development](docs/VSCode_MULTIROOT_DEVELOPMENT.md)
+for commands, dynamic refresh, full-worktree mode and safety guidance.
+
 ## Dual-agent feature implementation (Codex + Antigravity)
 
 For isolated local Codex application automation and Antigravity AI matching, follow [the ownership and integration contract](docs/DUAL_AGENT_COORDINATION.md) and [the seven model-specific launch profiles](prompts/dual-agent/README.md). Only the integration owner merges accepted evidence into `main`. Project-hosted Actions/agent runs remain disabled and real external applications are not submitted.
