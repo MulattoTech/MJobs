@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 export const ROLE_SCORING_DIMENSIONS = [
   'skills', 'title', 'experience', 'salary', 'work_arrangement', 'employment_type',
-  'certification', 'education', 'ai_intensity',
+  'certification', 'education', 'ai_intensity', 'remote_location',
 ] as const;
 
 export type BuiltInRoleScoringDimension = typeof ROLE_SCORING_DIMENSIONS[number];
@@ -42,18 +42,20 @@ const DIMENSION_LABELS:Record<BuiltInRoleScoringDimension,string> = {
   certification:'Certification',
   education:'Education',
   ai_intensity:'AI intensity',
+  remote_location:'Remote work region',
 };
 
 const DIMENSION_DETAILS:Record<BuiltInRoleScoringDimension,string> = {
   skills:'Approved profile skills compared with evidence in the job posting.',
-  title:'The job title compared with this editable role family.',
+  title:'Normalized job title compared with your career profile desired roles, not the role-family label. Direct match is 100; no direct match is 0; unknown is neutral.',
   experience:'Recognized job skills matched by verified, user-approved, source-backed career experience. Missing evidence stays neutral.',
-  salary:'Source-provided compensation compared with saved preferences.',
-  work_arrangement:'Source-provided remote, hybrid, or on-site information.',
-  employment_type:'Source-provided employment type compared with preferences.',
+  salary:'Explicit annual USD posting range compared with your career profile salary preference. Overlap is 100; no overlap is 0; ambiguous amounts or currencies stay neutral.',
+  work_arrangement:'Known remote, hybrid, or on-site arrangement compared with your career profile preferences. Match is 100; mismatch is 0; unknown stays neutral.',
+  employment_type:'Known employment type compared with your career profile preferences. Match is 100; mismatch is 0; unknown stays neutral.',
   certification:'Approved certification facts compared with posting requirements.',
   education:'Approved education facts compared with posting requirements.',
   ai_intensity:'Optional signal from source-provided job metadata; it says nothing about candidate identity.',
+  remote_location:'Supported remote regions compared with your profile country/state. Region match is 100; mismatch is 0; unknown stays neutral. This does not verify work authorization or commute distance.',
 };
 
 function isRecord(value:unknown):value is Record<string,unknown> {

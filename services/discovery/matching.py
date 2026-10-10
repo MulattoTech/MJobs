@@ -462,8 +462,12 @@ def _relevant_experience_fit_factor(job, profile):
     }
 
 
-def _fit_factors(job, profile):
-    """Describe directly comparable profile preferences and job attributes."""
+def build_preference_fit_factors(job, profile):
+    """Build pure, score-neutral preference evidence shared by both scorers.
+
+    These comparisons describe preferences, not candidate qualifications. Callers
+    may explicitly weight them, but must never use source-provided fit scores.
+    """
     attributes = job.get("attributes") or {}
     preferences = profile.get("preferences") or {}
     factors = []
@@ -537,6 +541,11 @@ def _fit_factors(job, profile):
         explanation = f"The known job employment type ({employment_type.lower().replace('_', ' ')}) is not among the configured preferences; no score penalty is applied."
     factors.append({"id": "employment_type", "label": "Employment type", "status": status,
                     "explanation": explanation, "score_effect": "NONE"})
+    return factors
+
+
+def _fit_factors(job, profile):
+    factors = build_preference_fit_factors(job, profile)
     factors.extend(_certification_fit_factors(job, profile))
     factors.extend(_education_fit_factors(job, profile))
     factors.append(_relevant_experience_fit_factor(job, profile))

@@ -9,6 +9,7 @@ from services.matching.scoring_profiles import (
     resolve_role_scoring_profile,
 )
 from services.matching.specialized_signals import score_specialized_signals
+from services.matching.preference_scoring import PREFERENCE_DIMENSIONS, preference_contributions
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
 
 
@@ -120,6 +121,8 @@ def compose_profile_scoring(job, legacy_match, resolution, *, candidate_profile=
     the legacy match score supplies the ``skills`` dimension unless its configured
     weight is zero. Specialized dimensions use only validated normalized metadata;
     unknown signals have null contributions and do not enter the denominator.
+    Native personal-fit dimensions use deterministic profile/job comparisons,
+    never employer-provided specialized scores.
     """
     if not isinstance(resolution, RoleScoringProfileResolution):
         raise ValueError("A role-scoring profile resolution is required")
@@ -135,7 +138,8 @@ def compose_profile_scoring(job, legacy_match, resolution, *, candidate_profile=
 
     supported_weights = {
         dimension: weight for dimension, weight in weights.items()
-        if _SPECIALIZED_DIMENSION_NAME.fullmatch(dimension) and dimension != "experience"
+        if _SPECIALIZED_DIMENSION_NAME.fullmatch(dimension)
+        and dimension not in PREFERENCE_DIMENSIONS and dimension != "experience"
     }
     unsupported_dimensions = {
         dimension: weight for dimension, weight in weights.items()
@@ -149,6 +153,7 @@ def compose_profile_scoring(job, legacy_match, resolution, *, candidate_profile=
         job, weights=supported_weights, thresholds=supported_thresholds,
     )
     rows = list(signal_result["contributions"])
+    rows.extend(preference_contributions(job, candidate_profile, weights))
     experience_weight = weights.get("experience", 0.0)
     if experience_weight > 0:
         rows.append(_experience_contribution(job, candidate_profile, experience_weight))
