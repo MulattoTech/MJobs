@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REF-015-LLM-TELEMETRY-20261010",
+  "recorded_at_utc": "2026-10-10T22:55:00Z",
+  "result": "PASS",
+  "issues": [385],
+  "requirement_ids": ["MJ-REF-015"],
+  "scope": "LLM token, cost, provider-attempt, and concurrency telemetry engine with global and per-provider rate caps, fallback chains, budget warnings/stops, and privacy-preserving LLMTelemetryDashboard UI component.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/385"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "token_cost_provenance": "PASS; records provider/model, latency, prompt/output token counts, and estimated cost provenance ($0 for local/ollama).",
+    "attempt_chains_and_fallbacks": "PASS; records full attempt chains with error codes and fallback reasons when primary providers fail or rate-limit.",
+    "concurrency_and_rate_caps": "PASS; thread-safe global and per-provider concurrency slots enforced via acquire_slot context manager with AIConcurrencyLimitError.",
+    "budget_controls": "PASS; budget ceilings enforced with automatic warning thresholds and hard stops via AIBudgetExceededError.",
+    "privacy_assurance": "PASS; zero prompt text, user profile facts, or candidate PII stored in telemetry records.",
+    "frontend_components": "PASS; LLMTelemetryDashboard renders cost dials, token breakdown, concurrency saturation meters, provider error rates, task rollups, and attempt logs.",
+    "safety": "PASS; external submission OFF asserted; no external calls or unauthorized background daemons."
+  },
+  "source_inputs": {
+    "services/ai/telemetry.py": {
+      "git_blob": "ff0e60f500f9c4514997a2ce171f7ec122c16a61",
+      "git_object_content_sha256": "3652849afb76c5c741e0b658441a712bd5da015543bbcffadfb1ad63d4231dc8"
+    },
+    "apps/web/src/llm-telemetry-dashboard.tsx": {
+      "git_blob": "5b85302fda31ecc88f31e9480bca22f479f1fa4a",
+      "git_object_content_sha256": "5c32cf2d54fb91e79b170817030bf7ca6fe920e3fd84f18aea7fd6209d38c76e"
+    },
+    "apps/web/src/llm-telemetry-dashboard.test.tsx": {
+      "git_blob": "e6a0bc63b379ad49a2fd6359269845435b383a9c",
+      "git_object_content_sha256": "7962fcea53bed9ed4e1d547c1b32e8f3d59f62ecc6ef65717107af5b737c35f1"
+    },
+    "tests/unit/test_llm_telemetry.py": {
+      "git_blob": "3c85cc348c90b46e1ee1d1b8307ea1148662bd28",
+      "git_object_content_sha256": "574da401dd250d05e48651c410d55987e2bb8ce677ffc2779479c7c61de796f3"
+    },
+    "tests/integration/test_llm_telemetry_integration.py": {
+      "git_blob": "adee64a8ef9ef1124e15b22eb90cd2fa03ec7f42",
+      "git_object_content_sha256": "204d047c86e1f976f3e543bf738283eb50b9566e91252d08ad7be9c08bc71a90"
+    }
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_llm_telemetry.py",
+      "target": "Unit tests for token cost calculations, attempt records, fallback chains, concurrency, and budget ceilings",
+      "result": "PASS",
+      "tests": 4,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/integration/test_llm_telemetry_integration.py",
+      "target": "Multi-threaded concurrency, rate cap saturation, and privacy verification tests",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/llm-telemetry-dashboard.test.tsx",
+      "target": "Frontend LLMTelemetryDashboard component tests",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 104,
+      "tests": 584,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "target": "Lane coordination validation",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}
