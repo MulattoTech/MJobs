@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 export interface AIProviderConfig {
   id: string;
   name: string;
-  providerType: 'openai' | 'openai-compatible' | 'local' | 'ollama' | 'disabled';
+  providerType: 'openai' | 'openai-compatible' | 'azure-openai' | 'local' | 'ollama' | 'disabled';
   baseUrl: string;
   hasApiKey: boolean;
   maskedApiKey?: string;

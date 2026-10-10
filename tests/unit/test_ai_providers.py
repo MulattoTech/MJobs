@@ -11,6 +11,7 @@ import httpx
 
 from services.ai.providers import (
     AIProviderError,
+    AzureOpenAIProvider,
     DisabledAIProvider,
     LocalEndpointProvider,
     OllamaProvider,
@@ -29,6 +30,8 @@ class AIProvidersFactoryTests(unittest.TestCase):
         self.assertIsInstance(create_provider("openai"), OpenAIProvider)
         self.assertIsInstance(create_provider("openai-compatible"), OpenAICompatibleProvider)
         self.assertIsInstance(create_provider("local"), LocalEndpointProvider)
+        self.assertIsInstance(create_provider("azure-openai"), AzureOpenAIProvider)
+        self.assertIsInstance(create_provider("azure"), AzureOpenAIProvider)
 
     def test_factory_rejects_unknown_provider(self):
         with self.assertRaises(ValueError) as error:

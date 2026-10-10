@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-108-A03-AZURE-OPENAI-20261010",
+  "recorded_at_utc": "2026-10-10T23:19:00Z",
+  "result": "PASS",
+  "issues": [342],
+  "requirement_ids": ["MJ-REQ-108.A03"],
+  "scope": "AzureOpenAIProvider implementation with deployment-aware routing (/openai/deployments/{deployment}/chat/completions), api-version query handling, api-key header authentication, JSON Schema structured output, cancellation watch, and LLM telemetry recording.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/342"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "deployment_routing": "PASS; dynamically formats deployment chat completion endpoints with api-version parameters matching Azure OpenAI specs.",
+    "authentication": "PASS; sends api-key header resolved from AZURE_OPENAI_API_KEY environment variable or constructor arguments.",
+    "structured_output": "PASS; sets response_format={'type': 'json_object'} when response_schema is provided.",
+    "error_and_cancellation_handling": "PASS; translates 4xx/5xx HTTP errors, timeouts, connection dropouts, and cancellation events safely without leaking prompt text.",
+    "telemetry_integration": "PASS; records token counts and cost provenance with LLMTelemetryEngine.",
+    "safety": "PASS; external submission OFF asserted; no real network calls during automated synthetic transport tests."
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_azure_openai_provider.py",
+      "target": "Unit and contract tests for AzureOpenAIProvider",
+      "result": "PASS",
+      "tests": 7,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/unit/test_ai_providers.py",
+      "target": "Full AI providers factory and contract tests",
+      "result": "PASS",
+      "tests": 12,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 107,
+      "tests": 591,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "target": "Lane coordination validation",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}
