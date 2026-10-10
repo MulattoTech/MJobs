@@ -1,18 +1,84 @@
-# Antigravity lane handoff
+# Antigravity Lane Handoff
 
-Status: **COMPLETED_SPRINT_CHECKPOINT**
+Status: **COMPLETED_SPRINT_CHECKPOINT — CLEAN HANDOFF**
 
-- **Issue:** #119 (MJ-REQ-118: Application Priority) & #120 (MJ-REQ-119: Fresh Job Priority)
+- **Product Lane:** Matching & AI Services
+- **Working Tree:** `C:/Tools/Dev/MJobs-Antigravity-Matching`
 - **Branch:** `antigravity/priority-matching-ai-20261010`
-- **Base:** `f399e00da63c7bf14cd5281b71bba5daf8d62e10`
-- **Components:**
-  - `services/matching/application_priority.py`: Unified 8-dimension application priority scoring with mathematical divergence analysis (Match vs Priority delta).
-  - `services/matching/queue_priority.py`: Deterministic fresh job queue prioritization processing new excellent matches ahead of stale lower-quality jobs.
-  - `apps/web/src/fresh-job-priority-badge.tsx`: UI priority badge and card component for queue priority and freshness visualization.
-  - `apps/web/src/fresh-job-priority-badge.test.tsx`: Vitest tests for the priority badge component.
-  - `tests/unit/test_matching_application_priority.py`: 5 unit tests for application priority and divergence analysis.
-  - `tests/unit/test_fresh_job_queue_priority.py`: 13 unit tests for queue tiers, deterministic sorting, and dispatch mapping.
-  - `tests/integration/test_matching_queue_priority_api.py`: 3 integration tests for database queue ranking and outbox dispatch mapping.
-- **Evidence:** `docs/evidence/2026-10-10-application-and-queue-priority.json`
-- **Validation:** 21 focused unit/integration tests passed; 100 frontend test files (571 tests) passed; frontend build passed; 72 matching regression tests passed; connected browser sorting passed.
-- **Integration:** Ready for non-force merge by integration lock holder. External submissions remain OFF.
+- **Remote Tracking:** `origin/antigravity/priority-matching-ai-20261010` (synchronized up-to-date)
+- **Current Head:** `43e76f05`
+- **Active Claims:** None (all claims released cleanly on coordination bus)
+
+## Delivered, Tested, Committed, and Pushed Checkpoints (10 Major Product Features)
+
+1. **AI Task Configuration (`MJ-REQ-109` / Issue #110)**:
+   - **Commit:** `43e76f05`
+   - **Delivered:** `services/ai/tasks.py` (bidirectional mapping serialization `to_dict`, immutable `with_update`, routing inspection `get_task_summary` with fallback policies), `apps/web/src/ai-task-configuration.tsx` (task model routing HUD component), `apps/web/src/ai-task-configuration.test.tsx` (8 Vitest tests), `tests/unit/test_ai_task_configuration.py` (10 pytest tests).
+   - **Evidence:** `docs/evidence/2026-10-10-ai-task-configuration.json`
+   - **Receipt:** Posted on Issue #110.
+
+2. **Azure OpenAI AI Provider (`MJ-REQ-108.A03` / Issue #342)**:
+   - **Commit:** `59658084`
+   - **Delivered:** `services/ai/providers/azure_openai.py`, registration in `services/ai/providers/__init__.py`, `tests/unit/test_azure_openai_provider.py` (7 tests), updated `apps/web/src/ai-provider-settings.tsx`.
+   - **Evidence:** `docs/evidence/2026-10-10-azure-openai-provider.json`
+   - **Receipt:** Posted on Issue #342.
+
+3. **Match Weight Configuration Presets & Normalization (`MJ-REQ-117` / Issue #118)**:
+   - **Commit:** `47ecf77a`
+   - **Delivered:** `services/matching/weight_configuration.py`, `apps/web/src/match-weight-configuration.tsx`, `apps/web/src/match-weight-configuration.test.tsx`, `tests/unit/test_matching_weight_configuration.py`.
+   - **Evidence:** `docs/evidence/2026-10-10-match-weight-configuration.json`
+   - **Receipt:** Posted on Issue #118.
+
+4. **Explainable Matching Breakdown Engine & UI (`MJ-REQ-114` / Issue #115)**:
+   - **Commit:** `baddaa08`
+   - **Delivered:** `services/matching/explainable_breakdown.py`, `apps/web/src/explainable-matching-breakdown.tsx`, `apps/web/src/explainable-matching-breakdown.test.tsx`, `tests/unit/test_matching_explainable_breakdown.py`.
+   - **Evidence:** `docs/evidence/2026-10-10-explainable-matching.json`
+   - **Receipt:** Posted on Issue #115.
+
+5. **AI Provider Abstraction Implementations (`MJ-REQ-108.A01`, `MJ-REQ-108.A02`, `MJ-REQ-108.A05` / Issues #340, #341, #344)**:
+   - **Commit:** `f0e06585`
+   - **Delivered:** `services/ai/providers/openai_compatible.py`, `services/ai/providers/openai.py`, `services/ai/providers/local_endpoint.py`, `apps/web/src/ai-provider-settings.tsx`, `apps/web/src/ai-provider-settings.test.tsx`, 12 Python tests, 2 Vitest tests.
+   - **Evidence:** `docs/evidence/2026-10-10-ai-providers.json`
+   - **Receipts:** Posted on Issues #340, #341, #344.
+
+6. **LLM Telemetry, Token & Concurrency Accounting (`MJ-REF-015` / Issue #385)**:
+   - **Commit:** `c3961fc7`
+   - **Delivered:** `services/ai/telemetry.py` (token accounting, cost estimation tables, thread-safe global & per-provider concurrency slots, budget warnings/stops, zero-PII storage), `apps/web/src/llm-telemetry-dashboard.tsx`, 6 Python tests, 3 Vitest tests.
+   - **Evidence:** `docs/evidence/2026-10-10-llm-telemetry.json`
+   - **Receipt:** Posted on Issue #385.
+
+7. **Required Vs Preferred Qualifications Engine (`MJ-REQ-115` / Issue #116)**:
+   - **Commit:** `42fe6932`
+   - **Delivered:** `services/matching/requirement_strength.py` (distinguishing `REQUIRED`, `PREFERRED`, `NICE_TO_HAVE`, `UNKNOWN` with bounded <= 50% preferred penalty), `apps/web/src/qualification-strength-breakdown.tsx`, 4 Python tests, 2 Vitest tests.
+   - **Evidence:** `docs/evidence/2026-10-10-required-vs-preferred.json`
+   - **Receipt:** Posted on Issue #116.
+
+8. **Transparent Job Matching Engine (`MJ-REQ-112` / Issue #113)**:
+   - **Commit:** `a1de7a14`
+   - **Delivered:** `services/matching/engine.py` (canonical formatting `91/100 — Excellent Match` and 6 canonical categories), `apps/web/src/job-match-score-badge.tsx`, 6 Python tests, 5 Vitest tests.
+   - **Evidence:** `docs/evidence/2026-10-10-job-matching-engine.json`
+   - **Receipt:** Posted on Issue #113.
+
+9. **12-Dimension Match Components Engine (`MJ-REQ-113` / Issue #114)**:
+   - **Commit:** `a45f3304`
+   - **Delivered:** `services/matching/components.py`, `apps/web/src/match-components-breakdown.tsx`, 7 Python tests, 3 Vitest tests.
+   - **Evidence:** `docs/evidence/2026-10-10-match-components.json`
+   - **Receipt:** Posted on Issue #114.
+
+10. **Application Priority & Fresh Job Queue Priority (`MJ-REQ-118`, `MJ-REQ-119` / Issues #119, #120)**:
+    - **Commit:** `1d4b249c`
+    - **Delivered:** `services/matching/application_priority.py`, `services/matching/queue_priority.py`, `apps/web/src/fresh-job-priority-badge.tsx`, 21 Python tests, 4 Vitest tests.
+    - **Evidence:** `docs/evidence/2026-10-10-application-and-queue-priority.json`
+    - **Receipts:** Posted on Issues #119, #120.
+
+## Complete Verification Receipts
+
+- **Python Tests:** 134 unit tests in matching and AI pass in ~10.07s (`python -m pytest tests/unit/test_ai_*.py tests/unit/test_matching_*.py`).
+- **Frontend Vitest:** 108 test files (599 tests) pass in ~10.87s (`npx vitest run` in `apps/web`).
+- **Production Build:** `npm run build` succeeds cleanly with zero errors.
+- **Safety Invariants:**
+  - Zero PII retained; model validation forbids credential/secret tokens (`sk-`, `ghp_`, `gho_`, `hf_`).
+  - Loopback IP enforcement on local endpoints (`http://127.0.0.1:*`, `http://[::1]:*`).
+  - External job application auto-submission is strictly **OFF**.
+  - Hosted CI / GitHub Actions remained disabled per local-only delivery policy.
+- **Integration Lock:** Canonical planning and main integration reserved for the designated integration lock holder.
