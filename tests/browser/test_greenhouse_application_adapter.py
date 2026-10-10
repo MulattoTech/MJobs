@@ -1,12 +1,94 @@
 """Synthetic browser contract for the review-first Greenhouse adapter."""
+import hashlib
 import unittest
 
 from playwright.sync_api import sync_playwright
 
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
+from services.applications.upload_integrity import snapshot_bytes
 
 
 class GreenhouseApplicationAdapterBrowserTests(unittest.TestCase):
+    def test_uploads_only_verified_documents_to_a_local_unambiguous_fixture(self):
+        html = """<!doctype html><html><body><form id="application">
+          <input id="candidate-name" name="name" aria-label="Name" required>
+          <input id="resume-file" name="resume" aria-label="Resume" type="file" required>
+          <input id="cover-letter-file" name="cover_letter" aria-label="Cover letter" type="file">
+          <button type="submit">Submit application</button>
+        </form><script>
+          window.mjobsActions = {submits: 0};
+          document.querySelector('#application').addEventListener('submit', event => {
+            event.preventDefault(); window.mjobsActions.submits++;
+          });
+        </script></body></html>"""
+        resume_bytes = b"%PDF-1.4\nsynthetic resume\n"
+        letter_bytes = b"%PDF-1.4\nsynthetic cover letter\n"
+        snapshots = [
+            snapshot_bytes("resume", "resume-1", "resume.pdf", "application/pdf",
+                           resume_bytes, hashlib.sha256(resume_bytes).hexdigest()),
+            snapshot_bytes("cover-letter", "letter-1", "letter.pdf", "application/pdf",
+                           letter_bytes, hashlib.sha256(letter_bytes).hexdigest()),
+        ]
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.route("http://127.0.0.1:8765/**", lambda route: route.fulfill(
+                status=200, content_type="text/html", body=html))
+            page.goto("http://127.0.0.1:8765/fixture")
+            adapter = GreenhouseApplicationAdapter()
+            analysis = adapter.analyze_page(page)
+
+            manifest = adapter.upload_mock_fixture_documents(page, analysis, snapshots)
+
+            self.assertEqual(manifest, [
+                {"kind": "resume", "document_id": "resume-1", "size_bytes": len(resume_bytes),
+                 "sha256": hashlib.sha256(resume_bytes).hexdigest()},
+                {"kind": "cover-letter", "document_id": "letter-1", "size_bytes": len(letter_bytes),
+                 "sha256": hashlib.sha256(letter_bytes).hexdigest()},
+            ])
+            self.assertEqual(page.locator("input[type=file]").evaluate_all(
+                "nodes => nodes.map(node => Array.from(node.files).map(file => file.name))"),
+                [["resume.pdf"], ["letter.pdf"]])
+            self.assertEqual(page.evaluate("window.mjobsActions.submits"), 0)
+            browser.close()
+
+    def test_uncertain_form_and_nonlocal_origin_block_fixture_upload(self):
+        html = """<!doctype html><html><body><form>
+          <input id="resume-file" name="resume" aria-label="Resume" type="file">
+          <input id="gender" name="gender" aria-label="Gender">
+          <input id="cover-letter-file" name="cover_letter" aria-label="Cover letter" type="file">
+        </form></body></html>"""
+        resume_bytes = b"%PDF-1.4\nsynthetic resume\n"
+        letter_bytes = b"%PDF-1.4\nsynthetic cover letter\n"
+        snapshots = [
+            snapshot_bytes("resume", "resume-1", "resume.pdf", "application/pdf",
+                           resume_bytes, hashlib.sha256(resume_bytes).hexdigest()),
+            snapshot_bytes("cover-letter", "letter-1", "letter.pdf", "application/pdf",
+                           letter_bytes, hashlib.sha256(letter_bytes).hexdigest()),
+        ]
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.route("http://127.0.0.1:8765/**", lambda route: route.fulfill(
+                status=200, content_type="text/html", body=html))
+            page.goto("http://127.0.0.1:8765/fixture")
+            adapter = GreenhouseApplicationAdapter()
+            analysis = adapter.analyze_page(page)
+            with self.assertRaisesRegex(ValueError, "GREENHOUSE_FORM_REQUIRES_HUMAN_REVIEW"):
+                adapter.upload_mock_fixture_documents(page, analysis, snapshots)
+            self.assertEqual(page.locator("input[type=file]").evaluate_all(
+                "nodes => nodes.map(node => node.files.length)"), [0, 0])
+
+            page.route("https://boards.greenhouse.io/**", lambda route: route.fulfill(
+                status=200, content_type="text/html", body=html))
+            page.goto("https://boards.greenhouse.io/example/jobs/1234")
+            analysis = adapter.analyze_page(page)
+            with self.assertRaisesRegex(ValueError, "GREENHOUSE_FIXTURE_ORIGIN_REQUIRED"):
+                adapter.upload_mock_fixture_documents(page, analysis, snapshots)
+            browser.close()
+
     def test_extracts_safe_form_metadata_and_leaves_application_untouched(self):
         html = """<!doctype html>
 <html><body>

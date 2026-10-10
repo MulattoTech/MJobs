@@ -1,16 +1,21 @@
-"""Review-first, read-only capability boundary for Greenhouse application routes.
+"""Review-first capability boundary for Greenhouse application routes.
 
 This adapter identifies normalized public job routes and extracts only the
-existing form analyzer's allowlisted DOM metadata. It does not interact with a
-live form, upload files, or submit applications.
+existing form analyzer's allowlisted DOM metadata. Document selection is limited
+to verified synthetic files on loopback fixtures; public ATS forms are never
+interacted with or submitted.
 """
 from __future__ import annotations
 
+import ipaddress
 import re
 from collections.abc import Mapping
 from urllib.parse import urlsplit
 
 from services.applications.form_analysis import analyze_form_page
+from services.applications.upload_integrity import (
+    UploadSnapshot, attach_verified_files, snapshot_bytes,
+)
 
 
 _GREENHOUSE_HOSTS = {"boards.greenhouse.io", "job-boards.greenhouse.io"}
@@ -29,6 +34,7 @@ class GreenhouseApplicationAdapter:
             "route_normalization": True,
             "form_metadata_extraction": True,
             "human_review_for_uncertainty": True,
+            "mock_fixture_upload": True,
             "document_upload": False,
             "live_form_interaction": False,
             "submission": False,
@@ -79,6 +85,82 @@ class GreenhouseApplicationAdapter:
     def analyze_page(self, page) -> dict:
         """Read one loaded form using the shared value-free DOM analyzer."""
         return analyze_form_page(page)
+
+    def upload_mock_fixture_documents(self, page, analysis, snapshots):
+        """Select verified resume and letter bytes only on a loopback fixture page.
+
+        This helper never uploads to a public ATS. It rejects uncertain forms,
+        unsupported file controls, changed DOMs, and documents outside the
+        prepared resume/cover-letter contract. Selection is verified by reading
+        the browser File objects back and hashing their exact bytes.
+        """
+        parsed = None
+        try:
+            parsed = urlsplit(page.url)
+            host = parsed.hostname
+            is_loopback = isinstance(host, str) and host.casefold() == "localhost"
+            if host:
+                try:
+                    is_loopback = is_loopback or ipaddress.ip_address(host).is_loopback
+                except ValueError:
+                    pass
+        except (AttributeError, ValueError):
+            is_loopback = False
+        if (parsed is None or parsed.scheme.casefold() != "http" or not is_loopback
+                or parsed.username is not None or parsed.password is not None):
+            raise ValueError("GREENHOUSE_FIXTURE_ORIGIN_REQUIRED")
+
+        current = self.analyze_page(page)
+        if current != analysis or self.requires_human_review(current):
+            raise ValueError("GREENHOUSE_FORM_REQUIRES_HUMAN_REVIEW")
+        if not isinstance(snapshots, (list, tuple)) or len(snapshots) != 2:
+            raise ValueError("GREENHOUSE_FIXTURE_DOCUMENT_SET_INVALID")
+
+        by_kind = {}
+        for item in snapshots:
+            if not isinstance(item, UploadSnapshot) or item.kind not in {"resume", "cover-letter"}:
+                raise ValueError("GREENHOUSE_FIXTURE_DOCUMENT_SET_INVALID")
+            if item.kind in by_kind:
+                raise ValueError("GREENHOUSE_FIXTURE_DOCUMENT_SET_INVALID")
+            try:
+                verified = snapshot_bytes(item.kind, item.document_id, item.filename,
+                                          item.media_type, item.content, item.sha256)
+            except ValueError:
+                raise ValueError("GREENHOUSE_FIXTURE_DOCUMENT_INVALID") from None
+            by_kind[item.kind] = verified
+        if set(by_kind) != {"resume", "cover-letter"}:
+            raise ValueError("GREENHOUSE_FIXTURE_DOCUMENT_SET_INVALID")
+
+        fields = current["fields"]
+        file_fields = [field for field in fields
+                       if (field.get("input_type") or "").casefold() == "file"]
+        locator = page.locator('form input[type="file"]')
+        if len(file_fields) != 2 or locator.count() != len(file_fields):
+            raise ValueError("GREENHOUSE_FILE_FIELDS_UNSUPPORTED")
+
+        targets = {}
+        for file_index, field in enumerate(file_fields):
+            identity = " ".join(str(field.get(key) or "") for key in
+                                 ("name", "id", "aria_label", "placeholder")).casefold()
+            compact = re.sub(r"[^a-z0-9]+", " ", identity).strip()
+            if re.search(r"\b(resume|cv)\b", compact):
+                kind = "resume"
+            elif re.search(r"\bcover\s*letter\b", compact):
+                kind = "cover-letter"
+            else:
+                raise ValueError("GREENHOUSE_FILE_FIELD_UNRECOGNIZED")
+            if kind in targets:
+                raise ValueError("GREENHOUSE_FILE_FIELD_AMBIGUOUS")
+            targets[kind] = file_index
+        if set(targets) != set(by_kind):
+            raise ValueError("GREENHOUSE_FILE_FIELDS_UNSUPPORTED")
+
+        manifest = []
+        for kind in ("resume", "cover-letter"):
+            manifest.extend(attach_verified_files(
+                locator.nth(targets[kind]), [by_kind[kind]],
+            ))
+        return manifest
 
     @staticmethod
     def requires_human_review(analysis) -> bool:
