@@ -538,9 +538,20 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         answer = {fact.id: fact.text for fact in answers}
         facts = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
                                       for row in profile["facts"]], application["fact_ids"])
+        from services.applications.upload_integrity import (
+            snapshot_prepared, snapshot_supporting, attach_verified_files,
+            verify_file_selection, record_verified_uploads,
+        )
+        # Freeze the exact validated bytes before browser admission. Passing a
+        # filesystem path later would permit a validation/use race.
+        upload_snapshots = {document["kind"]: snapshot_prepared(
+            document, files[(document["kind"], "pdf")]) for document in documents}
+        supporting_snapshots = [snapshot_supporting(document)
+                                for document in supporting_documents]
         from services.applications.attempt_history import start_attempt, finish_attempt
         reservation = start_attempt(store, application, route, documents,
-                                    submit=submit, request_id=request_id)
+                                    submit=submit, request_id=request_id,
+                                    supporting_documents=supporting_documents)
         if reservation["replayed"]:
             return store.application(application_id)
         attempt_id = reservation["id"]
@@ -655,20 +666,18 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     store.transition(application_id, ["FILLING"], "FILLING", "DETECT_FORM")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
                     start_step("UPLOAD_RESUME")
-                    page.get_by_label("Resume", exact=True).set_input_files(files[("resume", "pdf")])
+                    attach_verified_files(page.get_by_label("Resume", exact=True),
+                                          [upload_snapshots["resume"]], check=check)
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
-                    page.get_by_label("Cover letter", exact=True).set_input_files(files[("cover-letter", "pdf")])
+                    attach_verified_files(page.get_by_label("Cover letter", exact=True),
+                                          [upload_snapshots["cover-letter"]], check=check)
                     finish_step("COMPLETED")
                     store.transition(application_id, ["FILLING"], "FILLING", "UPLOAD_RESUME")
                     if supporting_documents:
                         start_step("UPLOAD_SUPPORTING_DOCUMENTS")
                         page.set_default_timeout(_playwright_action_timeout_ms(check))
-                        page.get_by_label("Supporting documents", exact=True).set_input_files([
-                            {"name": document["filename"],
-                             "mimeType": document["media_type"],
-                             "buffer": document["content"]}
-                            for document in supporting_documents
-                        ])
+                        attach_verified_files(page.get_by_label("Supporting documents", exact=True),
+                                              supporting_snapshots, check=check)
                         finish_step("COMPLETED")
                         store.transition(application_id, ["FILLING"], "FILLING",
                                          "UPLOAD_SUPPORTING_DOCUMENTS")
@@ -738,6 +747,18 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     if not page.locator("form").evaluate("form => form.checkValidity()"):
                         raise ValueError("Mock form validation failed")
                     page.set_default_timeout(_playwright_action_timeout_ms(check))
+                    # Recheck after every autofill event, immediately before the
+                    # review POST. Page scripts may have replaced selected Files.
+                    upload_manifest = []
+                    for label, snapshots in [("Resume", [upload_snapshots["resume"]]),
+                                             ("Cover letter", [upload_snapshots["cover-letter"]]),
+                                             *([("Supporting documents", supporting_snapshots)]
+                                               if supporting_snapshots else [])]:
+                        page.set_default_timeout(_playwright_action_timeout_ms(check))
+                        upload_manifest.extend(verify_file_selection(
+                            page.get_by_label(label, exact=True), snapshots, check=check))
+                    record_verified_uploads(store, application_id, attempt_id, upload_manifest)
+                    check()
                     page.get_by_role("button", name="Review application", exact=True).click()
                     check()
                     page.set_default_timeout(_playwright_action_timeout_ms(check))

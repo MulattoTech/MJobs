@@ -50,7 +50,8 @@ def _steps(values):
             and value.split(":")[0] in _PHASES and value.split(":")[1] in _STATUSES]
 
 
-def start_attempt(store, application, route, documents, *, submit=False, request_id=None):
+def start_attempt(store, application, route, documents, *, submit=False, request_id=None,
+                  supporting_documents=()):
     """Atomically reserve one physical browser execution; replay never opens it.
 
     Stable caller request IDs are scoped to an application and immutable inputs.
@@ -75,11 +76,17 @@ def start_attempt(store, application, route, documents, *, submit=False, request
         "documents": sorted([{"id": row["id"], "kind": row["kind"],
                                "sha256": row["sha256"]} for row in documents],
                             key=lambda row: (row["kind"], row["id"])),
+        "supporting_documents": sorted([
+            {"revision_id": item["revision_id"], "sha256": item["sha256"],
+             "job_id": item["job_id"]} for item in supporting_documents
+        ], key=lambda item: item["revision_id"]),
         "mode": "MOCK_SUBMISSION" if submit else "DRY_RUN",
     }
     fingerprint = hashlib.sha256(json.dumps(
         snapshot, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     # Keep the existing 32-hex attempt-ID contract used by private debug capture.
+    if any(item["job_id"] != application["job_id"] for item in supporting_documents):
+        raise AttemptConflict("APPLICATION_ATTEMPT_SUPPORTING_SCOPE_MISMATCH")
     attempt_id = uuid5(NAMESPACE_URL, identity(
         "application-attempt-v1", application["id"], request_id)).hex
     with store.engine.begin() as connection:
@@ -142,7 +149,8 @@ def failure_code(error):
     # local paths, query strings, or credentials.
     return {"OperationCancelled": "OPERATION_CANCELLED",
             "OperationTimedOut": "OPERATION_TIMEOUT",
-            "TimeoutError": "BROWSER_TIMEOUT"}.get(type(error).__name__,
+            "TimeoutError": "BROWSER_TIMEOUT",
+            "UploadIntegrityError": "UPLOAD_INTEGRITY_FAILED"}.get(type(error).__name__,
                                                    "APPLICATION_EXECUTION_FAILED")
 
 
@@ -200,6 +208,8 @@ def read_attempt_history(store, profile_id, application_id):
                 m.attempts.c.started_at.desc(), m.attempts.c.id.desc()).limit(101)).mappings())
         event_ids = [_event_id(action, row["id"]) for row in rows[:100]
                      for action in (STARTED, FINISHED)]
+        from services.applications.upload_integrity import ACTION as UPLOAD_ACTION
+        event_ids.extend(identity(UPLOAD_ACTION, row["id"]) for row in rows[:100])
         events = {row["id"]: row["payload"] for row in connection.execute(
             select(m.audit.c.id, m.audit.c.payload).where(m.audit.c.id.in_(event_ids))).mappings()}
         result = []
@@ -222,6 +232,7 @@ def read_attempt_history(store, profile_id, application_id):
                 "document_version": snapshot.get("document_version"),
                 "mode": snapshot.get("mode"), "steps": steps,
                 "legacy_metadata": not bool(started),
+                "verified_uploads": events.get(identity(UPLOAD_ACTION, row["id"]), {}).get("documents", []),
             })
     return {"profile_id": profile_id, "application_id": application_id,
             "attempts": result, "has_more": len(rows) > 100,

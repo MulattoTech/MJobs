@@ -8,6 +8,7 @@ export type ApplicationAttempt = {
   profile_version: number | null; document_version: number | null; mode: string | null;
   confirmation: {reference_number: string; timestamp: string | null} | null;
   steps: string[]; legacy_metadata: boolean;
+  verified_uploads?: {kind: string; document_id: string; size_bytes: number; sha256: string}[];
 };
 export type AttemptHistory = {
   profile_id: string; application_id: string; attempts: ApplicationAttempt[];
@@ -32,6 +33,13 @@ export function AttemptHistoryView({history}: {history: AttemptHistory}) {
           {attempt.route_id && <p>Route identity: <code>{attempt.route_id}</code></p>}
           {attempt.input_fingerprint && <p>Input fingerprint: <code>{attempt.input_fingerprint}</code></p>}
           {attempt.confirmation && <p>Verified fixture receipt: <code>{attempt.confirmation.reference_number}</code></p>}
+          {!!attempt.verified_uploads?.length && <section aria-label="Verified browser file selection">
+            <h4>Browser file selection verified</h4>
+            <p>Exact selected bytes were checked before review. This is not proof of provider acceptance.</p>
+            <ul>{attempt.verified_uploads.map((file, index) => <li key={`${index}:${file.document_id}`}>
+              {file.kind} ? {file.size_bytes} bytes ? SHA-256 <code>{file.sha256}</code>
+            </li>)}</ul>
+          </section>}
           <ol aria-label={`Steps for attempt ${attempt.attempt_id}`}>
             {attempt.steps.map((step, index) => <li key={`${index}:${step}`}>{step}</li>)}
           </ol>

@@ -40,6 +40,12 @@ describe('durable application attempt history', () => {
     expect(html).not.toContain('<script>');
     expect(html).toContain('&lt;script&gt;');
   });
+  it('shows verified browser bytes without claiming provider acceptance', () => {
+    const html = render({verified_uploads:[{kind:'resume',document_id:'doc',size_bytes:123,sha256:'abc'}]});
+    expect(html).toContain('Browser file selection verified');
+    expect(html).toContain('not proof of provider acceptance');
+    expect(html).toContain('123 bytes');
+  });
   it('reports bounded and empty history honestly', () => {
     expect(renderToStaticMarkup(<AttemptHistoryView history={{...history,attempts:[]}}/>)).toContain('No browser attempts');
     expect(renderToStaticMarkup(<AttemptHistoryView history={{...history,has_more:true}}/>)).toContain('latest 100 attempts');
