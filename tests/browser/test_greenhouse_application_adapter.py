@@ -11,20 +11,20 @@ class GreenhouseApplicationAdapterBrowserTests(unittest.TestCase):
         html = """<!doctype html>
 <html><body>
   <form id="application" action="/applications/submit" method="post">
-    <label for="first-name">First name</label>
-    <input id="first-name" name="first_name" autocomplete="given-name"
+    <label for="first-name"></label>
+    <input id="first-name" name="first_name" aria-label="First name" autocomplete="given-name"
            value="PRIVATE-DECOY-FIRST" required>
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" value="private@example.invalid" required>
-    <label for="gender">Gender</label>
-    <select id="gender" name="gender" required>
+    <label for="email"></label>
+    <input id="email" name="email" aria-label="Email" type="email" value="private@example.invalid" required>
+    <label for="gender"></label>
+    <select id="gender" name="gender" aria-label="Gender" required>
       <option value="">Choose</option>
     <option value="PRIVATE-DECOY-OPTION">Self-identification</option>
     </select>
-    <label for="resume">Resume</label>
-    <input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" required>
-    <label for="cover-letter">Cover letter</label>
-    <input id="cover-letter" name="cover_letter" type="file" accept=".pdf,.doc,.docx">
+    <label for="resume"></label>
+    <input id="resume" name="resume" aria-label="Resume" type="file" accept=".pdf,.doc,.docx" required>
+    <label for="cover-letter"></label>
+    <input id="cover-letter" name="cover_letter" aria-label="Cover letter" type="file" accept=".pdf,.doc,.docx">
     <button id="submit-application" type="submit">Submit application</button>
   </form>
   <output id="activity"></output>
