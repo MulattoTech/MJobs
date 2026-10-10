@@ -1,24 +1,37 @@
 {
   "schema_version": 1,
   "lane": "antigravity",
-  "status": "COMPLETED_SPRINT_CHECKPOINT",
+  "status": "ACTIVE_FEATURE_SPRINT",
   "base_main": "f399e00da63c7bf14cd5281b71bba5daf8d62e10",
-  "current_issue": 119,
-  "requirement_id": "MJ-REQ-118",
+  "current_issue": null,
+  "requirement_id": null,
   "branch": "antigravity/priority-matching-ai-20261010",
-  "head": null,
+  "head": "a1de7a149d8a56291ae883b6fbfda52f750b3e51",
   "worktree": "C:/Tools/Dev/MJobs-Antigravity-Matching",
-  "result": "PASS",
+  "result": "CHECKPOINTS_PUBLISHED",
   "last_completed": {
-    "issue": 119,
-    "requirement_id": "MJ-REQ-118, MJ-REQ-119",
-    "evidence_path": "docs/evidence/2026-10-10-application-and-queue-priority.json"
+    "issue": 113,
+    "requirement_id": "MJ-REQ-112",
+    "evidence_path": "docs/evidence/2026-10-10-job-matching-engine.json"
   },
-  "next_candidates": [
+  "delivered_features": [
+    {
+      "issue": 119,
+      "requirement_id": "MJ-REQ-118, MJ-REQ-119",
+      "commit": "1d4b249c7014631173aea9ba93c8306e5fa675a2",
+      "evidence": "docs/evidence/2026-10-10-application-and-queue-priority.json"
+    },
+    {
+      "issue": 114,
+      "requirement_id": "MJ-REQ-113",
+      "commit": "a45f3304a085942416dfb4cba799d501b8a53198",
+      "evidence": "docs/evidence/2026-10-10-match-components.json"
+    },
     {
       "issue": 113,
       "requirement_id": "MJ-REQ-112",
-      "status": "READY_NEXT_SELECTION"
+      "commit": "a1de7a149d8a56291ae883b6fbfda52f750b3e51",
+      "evidence": "docs/evidence/2026-10-10-job-matching-engine.json"
     }
   ],
   "do_not_overlap": [

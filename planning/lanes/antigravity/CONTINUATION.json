@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
   "lane": "antigravity",
-  "status": "COMPLETED_SPRINT_CHECKPOINT",
+  "status": "ACTIVE_FEATURE_SPRINT",
   "preferred_model": "gemini-3.8-flash-high",
   "preferred_reasoning": "high",
   "conversation_id": "2a268de4-4022-4cbe-b7b7-284a0c2b52b4",
   "canonical_main_at_pause": "f399e00da63c7bf14cd5281b71bba5daf8d62e10",
-  "current_issue": 119,
-  "current_requirement": "MJ-REQ-118",
+  "current_issue": 114,
+  "current_requirement": "MJ-REQ-113",
   "last_completed_issue": 119,
   "last_completed_requirement": "MJ-REQ-118, MJ-REQ-119",
   "last_integrated_head": null,
-  "next_selection_rule": "Deliver complete vertical slice for explainable score engine (#113 / MJ-REQ-112).",
-  "candidate_issues": [113, 114, 115],
+  "next_selection_rule": "Deliver complete 12-dimension Match Components engine (#114 / MJ-REQ-113).",
+  "candidate_issues": [114, 113, 115],
   "external_submission_enabled": false,
   "github_actions_enabled": false
 }
