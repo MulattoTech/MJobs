@@ -352,3 +352,80 @@ Closing this viewer does not stop the CLI. Do not close an existing black
 cmd.exe console belonging to an active coder; that may terminate its
 process tree. The installed control center is updated at a checkpoint only
 when there is no dashboard-supervised agent still running.
+
+
+## October 10: correct false environment blockers and fragmented CLI output
+
+Mission Control v7 repairs two independently observed defects in supervised
+Codex development on Windows.
+
+### 1. Reuse the actual pinned project Python environment
+
+The isolated C:\Tools\Dev\MJobs-Codex-App Git worktree has no .venv. The
+previous runner inherited the global Python, so Playwright and SQLAlchemy
+appeared unavailable despite being installed in the primary MJobs .venv.
+This caused avoidable per-test BLOCKED_ENVIRONMENT records.
+
+The launcher now checks requirements.lock compatibility, locates and probes
+a verified venv in the worktree or primary checkout, and prepends its Scripts
+directory to the child CLI subprocess PATH. It sets VIRTUAL_ENV for the
+child only, without installing packages or modifying machine-global Python.
+The selected interpreter appears during Read Prompt; missing compatible
+venvs block approval and paid CLI startup with an actionable error.
+
+Verified on MulattoTechBox: the existing pinned interpreter passed all three
+previously blocked Greenhouse browser and integration tests. A simulated
+PowerShell shell launched with the corrected agent environment resolved
+python to C:\Tools\Dev\MJobs\.venv\Scripts\python.exe and successfully
+located both Playwright and SQLAlchemy. All source mutations remain in the
+separately claimed Git worktree.
+
+### 2. Honest completed/partial states, not raw word matching
+
+The previous run classifier scanned raw Git diffs for BLOCKED_ENVIRONMENT.
+Thus, even a Codex exec exit 0 with final Status: PARTIAL was shown as a
+large BLOCKED_ENVIRONMENT banner. The new classifier recognizes final
+PARTIAL status separately, trusts clean exit code 0 unless the final
+status explicitly says otherwise, and retains genuine approval/quota/
+environment failures. On startup, previously finished zero-exit runs
+falsely blocked are reclassified by the last run's final status.
+
+PARTIAL does not mean release PASS. The cited Greenhouse work is still
+incomplete; independent integration ownership and missing UI/upload/worker
+behavior remain legitimate blockers.
+
+### 3. Readable console viewer versus genuine interactive Codex TUI
+
+Mission Control supervises noninteractive codex exec, not the interactive
+full-screen Codex TUI. A visible console displays the CLI's output but
+does not turn exec into the interactive application.
+
+Previously, View console / last output tailed an arbitrary 22KB raw text
+chunk, often starting in the middle of a Git diff. The updated viewer shows
+a coherent final run summary, or recent non-diff activity if unfinished.
+Live diff fragments are suppressed in the viewer, while the complete raw
+log is still saved under outputs/mission-control-v2 and accessible via
+the dashboard. The --raw argument allows manual unfiltered viewing.
+The launcher UI clearly identifies its noninteractive one-shot behavior.
+
+### 4. Why the coding session stops
+
+Auto-continue is OFF by default. A supervised Codex exec run ends at the
+end of its authorized task even when other GitHub issues remain. That is
+normal one-shot behavior, not a crashed interactive session. Do not enable
+unattended restarts without explicit authorization and session boundaries.
+
+Claims/path isolation, the sole main integration lock, the four-active-PR
+limit and real external job submission OFF remain fully enforced. An
+application adapter may be locally implemented yet still PARTIAL until
+shared API/UI/worker integration can be performed by the authorized owner.
+
+### Validation
+
+    .\.venv\Scripts\python.exe -m unittest tests.unit.test_mission_runtime_reliability -v
+    .\.venv\Scripts\python.exe -m unittest tests.unit.test_mission_visible_terminal tests.unit.test_mission_control -q
+    node --check tools\agent_dashboard\static\mission.js
+
+Both environment selection and readable transcript formatting are
+read-only helper modules with deterministic local tests. No model,
+download, package installation or GitHub-hosted CI is started.

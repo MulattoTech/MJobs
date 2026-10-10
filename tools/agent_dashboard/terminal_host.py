@@ -18,8 +18,10 @@ from typing import Any
 
 if __package__:
     from .console_io import bind_visible_console, set_console_title
+    from .agent_environment import build_subprocess_environment
 else:
     from console_io import bind_visible_console, set_console_title
+    from agent_environment import build_subprocess_environment
 
 
 def _echo(text: str, logfile) -> None:
@@ -56,6 +58,9 @@ def run_manifest(manifest: Path) -> int:
     if not 0 <= hold_seconds <= 60:
         raise ValueError("Invalid visible-console linger")
     stdin_mode = settings.get("lane") == "codex"
+    selected_environment = settings.get("python_environment")
+    if selected_environment is not None and not isinstance(selected_environment, dict):
+        raise ValueError("Invalid Python environment manifest")
     if stdin_mode and command[-1] != "-":
         raise ValueError("Codex must read the reviewed prompt from stdin")
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -80,7 +85,10 @@ def run_manifest(manifest: Path) -> int:
                 else "<approved prompt>" if arg == prompt else arg
                 for arg in command
             ) + "\n"
-            "This is the actual coding CLI process, not a duplicate log replay.\n\n",
+            "This is the actual coding CLI process, not a duplicate log replay.\n" +
+            ("Pinned Python: "+str(selected_environment.get("interpreter"))+
+             " ["+str(selected_environment.get("source"))+"]\n\n"
+             if selected_environment else "\n"),
             log,
         )
         if visible and os.name == "nt":
@@ -93,12 +101,16 @@ def run_manifest(manifest: Path) -> int:
                 _echo("Console handle diagnostic unavailable.\n", log)
         process = None
         try:
+            child_env = build_subprocess_environment(
+                {**os.environ, "PYTHONIOENCODING": "utf-8"},
+                venv_dir=(selected_environment or {}).get("venv"),
+            )
             process = subprocess.Popen(
                 command, cwd=str(workspace),
                 stdin=subprocess.PIPE if stdin_mode else subprocess.DEVNULL,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                 text=True, encoding="utf-8", errors="replace", bufsize=1,
-                env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+                env=child_env,
             )
             if visible:
                 # The npm .cmd wrapper may set the title to cmd.exe when started.

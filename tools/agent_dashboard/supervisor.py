@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .agent_environment import resolve_python_environment
+
 from .observability import (
     antigravity_usage_snapshot,
     codex_usage_snapshot,
@@ -112,22 +114,38 @@ def pid_alive(pid: int | None) -> bool:
 
 
 def classify_exit(exit_code: int | None, tail: str) -> str:
+    """Classify overall Codex result, not an incidental blocked test in a diff.
+
+    A successful coding run can report PARTIAL acceptance and quote individual
+    BLOCKED_ENVIRONMENT tests. Those do not make the whole run blocked.
+    """
+    explicit = re.findall(
+        r"(?im)^\s*(?:\*\*)?Status\s*:\s*"
+        r"(PASS|PARTIAL|COMPLETED|BLOCKED_ENVIRONMENT|BLOCKED_QUOTA|"
+        r"WAITING_APPROVAL|BLOCKED_DESIGN)\b",
+        tail,
+    )
+    status = explicit[-1].upper() if explicit else None
+    if status in {"PARTIAL", "BLOCKED_ENVIRONMENT", "BLOCKED_QUOTA",
+                  "WAITING_APPROVAL", "BLOCKED_DESIGN"}:
+        return "WAITING_APPROVAL" if status == "BLOCKED_DESIGN" else status
+    if exit_code == 0:
+        if re.search(
+            r"(?im)^\s*(?:do you approve|please approve|waiting for your approval)\b",
+            tail,
+        ):
+            return "WAITING_APPROVAL"
+        return "COMPLETED"
     lowered = tail.casefold()
     if any(x in lowered for x in (
-        "do you approve", "waiting for your approval", "please approve",
-        "blocked_design", "i’m stopping before source changes",
-        "i'm stopping before source changes",
-    )):
-        return "WAITING_APPROVAL"
-    if any(x in lowered for x in (
-        "usage limit", "rate limit", "quota", "credits exhausted", "usage ran out",
-        "resource_exhausted",
+        "usage limit", "rate limit", "quota", "credits exhausted",
+        "usage ran out", "resource_exhausted",
     )):
         return "BLOCKED_QUOTA"
-    if any(x in lowered for x in ("blocked_environment", "environment blocker")):
+    if "blocked_environment" in lowered or "environment blocker" in lowered:
         return "BLOCKED_ENVIRONMENT"
-    if exit_code == 0:
-        return "COMPLETED"
+    if any(x in lowered for x in ("waiting for your approval", "blocked_design")):
+        return "WAITING_APPROVAL"
     return "ERROR"
 
 
@@ -202,6 +220,25 @@ class AgentSupervisor:
                 "stopped_at": None, "exit_code": None, "restart_count": 0,
                 "last_reason": None,
             })
+        # Repair older false blocked banners only for FINISHED zero-exit runs.
+        # Previous versions searched raw diffs for BLOCKED_ENVIRONMENT, so an
+        # individual missing-test dependency was mistaken for a blocked agent.
+        for lane, state in base["lanes"].items():
+            if (state.get("pid") is None
+                    and state.get("status") == "BLOCKED_ENVIRONMENT"
+                    and state.get("exit_code") == 0):
+                log_path = self.log_dir / f"{lane}.log"
+                try:
+                    with log_path.open("rb") as handle:
+                        end = handle.seek(0, os.SEEK_END)
+                        handle.seek(max(0, end - 180_000), os.SEEK_SET)
+                        segment = handle.read().decode("utf-8", "replace")
+                    revised = classify_exit(0, "\n".join(segment.splitlines()[-100:]))
+                    if revised != "BLOCKED_ENVIRONMENT":
+                        state["status"] = revised
+                        state["last_reason"] = revised
+                except OSError:
+                    pass
         self._write_json(self.runtime_path, base)
         return base
 
@@ -644,6 +681,9 @@ class AgentSupervisor:
                     self.bus,
                 )
             run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S.%fZ")
+            # Fail before spending AI credits if the coding worktree would use
+            # global Python without the pinned Playwright/SQLAlchemy packages.
+            python_environment = resolve_python_environment(self.root, workspace)
             log_path = self.log_path(lane)
             log_start_offset = log_path.stat().st_size if log_path.exists() else 0
             native_log_path = (
@@ -678,6 +718,7 @@ class AgentSupervisor:
                 "prompt": self._prompt(lane),
                 "workspace": str(workspace), "log": str(log_path),
                 "mode": mode, "hold_seconds": 25 if mode == "terminal" else 0,
+                "python_environment": python_environment,
             })
             helper = Path(__file__).parent / "terminal_host.py"
             flags = (
@@ -710,6 +751,8 @@ class AgentSupervisor:
                 "gpu_offload": gpu_offload,
                 "launch_mode": mode,
                 "terminal_visible": mode == "terminal",
+                "python_interpreter": python_environment["interpreter"],
+                "python_environment_source": python_environment["source"],
                 "run_id": run_id,
                 "log_start_offset": log_start_offset,
                 "native_log_path": str(native_log_path) if native_log_path else None,

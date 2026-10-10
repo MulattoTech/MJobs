@@ -99,6 +99,13 @@ maximum and intended active subagent counts (0–50). The exact reviewed prompt 
 reaches Codex via stdin to avoid Windows CLI truncation; all settings invalidate
 previous launch approval when changed. See the
 [Mission Control launcher guide](docs/MISSION_CONTROL_LAUNCHER.md#visible-terminals-and-codex-subagent-staffing-october-10).
+The Codex launcher now verifies and reuses the pinned MJobs Python virtual environment
+for isolated worktrees (avoiding missing Playwright/SQLAlchemy errors), distinguishes
+PARTIAL feature acceptance from actual blocked CLI runs, and offers a readable
+recent-run summary in the separate output viewer while retaining full raw logs.
+These supervised launches remain noninteractive Codex exec sessions; see the
+[launcher troubleshooting guide](docs/MISSION_CONTROL_LAUNCHER.md#october-10-correct-false-environment-blockers-and-fragmented-cli-output).
+
 The integrated Development history panel polls local Git every five seconds, distinguishing core
 features, tests, docs, and bookkeeping by changed files, with expandable file details and separate
 Codex turn activity. Details: [Mission Control history](docs/MISSION_CONTROL_LAUNCHER.md#live-development-history-timeline-october-10).

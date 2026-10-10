@@ -22,6 +22,7 @@ from fastapi import HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from .model_catalog import ModelCatalog
+from .agent_environment import resolve_python_environment
 from tools.verification.progress_card import card_current
 from tools.verification.progress_dashboard import snapshot
 
@@ -333,6 +334,15 @@ class MissionControl:
         argv = self.supervisor._command(
             lane, workspace, config_override=effective,
         )
+        # Read-only dependency preflight. Highlight the exact Python interpreter
+        # that future test commands will resolve, before spending model credits.
+        python_environment = {"available": None, "message": "Not inspected"}
+        if (self.root / "requirements.lock").is_file():
+            try:
+                selected_python = resolve_python_environment(self.root, workspace)
+                python_environment = {"available": True, **selected_python}
+            except RuntimeError as exc:
+                python_environment = {"available": False, "message": str(exc)}
         command = list(argv)
         if lane == "codex":
             if not command or command[-1] != "-":
@@ -356,6 +366,7 @@ class MissionControl:
             "intended_subagents": config.intended_subagents if lane == "codex" else None,
             "workspace": str(workspace),
             "branch": branch,
+            "python_environment": python_environment.get("interpreter") or python_environment.get("message"),
             "prompt": prompt,
             "command": command,
         }
@@ -379,10 +390,13 @@ class MissionControl:
             "workspace": str(workspace),
             "branch": branch,
             "command": command,
+            "python_environment": python_environment,
             "warnings": (
                 ["The installed CLI may require authentication or model entitlement at launch."]
                 + (["This worktree does not exist yet; it will be safely created at launch."]
                    if not workspace.exists() else [])
+                + ([python_environment["message"]]
+                   if python_environment.get("available") is False else [])
             ),
         }
 

@@ -166,6 +166,9 @@ class VisibleTerminalTests(unittest.TestCase):
         mock_process.poll.return_value=None
         with patch.object(self.supervisor,"_launch_command",
                           return_value=[sys.executable,"fixture.py","-"]), \
+             patch("tools.agent_dashboard.supervisor.resolve_python_environment",
+                   return_value={"venv":str(self.root), "interpreter":sys.executable,
+                                 "source":"unit fixture", "verified_modules":[]}), \
              patch("tools.agent_dashboard.supervisor.subprocess.Popen",
                    return_value=mock_process) as launched:
             state=self.supervisor.start(
@@ -201,6 +204,9 @@ class VisibleTerminalTests(unittest.TestCase):
         fake.poll.return_value=None
         with patch.object(self.supervisor,"_launch_command",
                           return_value=[sys.executable,"fixture.py","-"]),\
+             patch("tools.agent_dashboard.supervisor.resolve_python_environment",
+                   return_value={"venv":str(self.root), "interpreter":sys.executable,
+                                 "source":"unit fixture", "verified_modules":[]}),\
              patch("tools.agent_dashboard.supervisor.subprocess.Popen",
                    return_value=fake) as launched:
             state=self.supervisor.start("codex")

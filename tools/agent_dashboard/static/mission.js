@@ -90,6 +90,7 @@
       </div>
       <div class="small-note launch-worktree"></div>
       <div class="small-note launch-runtime"></div>
+      <div class="small-note launch-run-type"></div>
       <div class="status-line" role="status" aria-live="polite"></div>
       <details class="launch-preview-details">
         <summary>Exact effective prompt · synchronized with launch selections</summary>
@@ -257,15 +258,23 @@
     $("#launchReviewCommand").textContent=state.loaded ?
       state.loaded.command.join("\n") : "Waiting for validated CLI arguments.";
     const ok=isReviewed(card);
+    const envInfo=state.loaded?.python_environment;
+    const envBlocked=envInfo?.available === false;
     $("#launchReviewState").textContent=state.loading?"Refreshing from the launcher…":
       state.error ? "Cannot preview: "+state.error :
+      envBlocked ? "Python test environment is not ready: "+envInfo.message :
       ok ? "APPROVED — matches the current launch settings." :
-      state.loaded ? "Review the full prompt below. No CLI has started." :
+      state.loaded ? "Review the full prompt below. "+(
+        envInfo?.available === true
+          ? "Verified project Python: "+envInfo.interpreter+" · Playwright/SQLAlchemy available. "
+          : ""
+      )+"No CLI has started." :
       "Waiting for the preview endpoint.";
     $("#launchReviewState").className="launch-review-state "+
-      (state.error?"error":ok?"success":state.loading?"loading":"");
+      (state.error||envBlocked?"error":ok?"success":state.loading?"loading":"");
     const approve=$("#launchReviewApprove");
-    approve.disabled=state.loading || Boolean(state.error) || !state.loaded || ok;
+    approve.disabled=state.loading || Boolean(state.error) ||
+      envBlocked || !state.loaded || ok;
     approve.textContent=ok?"Approved ✓":"Approve reviewed prompt";
   }
   function invalidatePreview(card, explanation="Selection changed. Rebuilding the exact prompt…") {
@@ -497,6 +506,9 @@
     badge.textContent = (running ? "RUNNING" : (item.available ? "READY" : "NOT INSTALLED"));
     badge.className = "pill cli-state " + (running ? "running" : (item.available ? "completed" : "error"));
     $(".launch-worktree",card).textContent = "Worktree: " + item.worktree;
+    $(".launch-run-type",card).textContent = item.lane === "codex"
+      ? "Codex exec is a noninteractive, one-shot coding run. A visible log console is not the native interactive Codex TUI. Completion or PARTIAL means this run ended; use the next reviewed launch for another task."
+      : "This supervised CLI is a noninteractive, bounded coding turn, not the native interactive terminal UI.";
     $(".launch-runtime",card).textContent = state.pid
       ? "PID " + state.pid + " · " + (state.status || "RUNNING") +
         " · " + (state.launch_mode==="terminal"?"VISIBLE WINDOW":"HEADLESS")+
