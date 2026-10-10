@@ -38,6 +38,13 @@ class SkillGapHeatmapUnknownsTests(unittest.TestCase):
             "no_evidence_required_job_count": 0,
             "no_evidence_applied_job_count": 0,
             "no_evidence_interview_job_count": 0,
+            "evidence_job_count": 1,
+            "evidence_jobs": [{
+                "job_id": "job-unknown", "title": None, "company": None,
+                "posting_strengths": ["UNKNOWN"],
+                "profile_evidence": ["NO_APPROVED_EVIDENCE"],
+                "user_reported_applied": False, "user_reported_interview": False,
+            }],
         }])
 
     def test_duplicate_requirements_count_distinct_jobs_and_order_is_repeatable(self):

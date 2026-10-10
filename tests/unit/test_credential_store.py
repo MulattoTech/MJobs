@@ -4,7 +4,7 @@ import unittest
 
 import httpx
 
-from services.credentials.connection import test_provider_connection
+from services.credentials.connection import test_provider_connection as probe_provider_connection
 from services.credentials.vault import CredentialCipher, CredentialConfigurationError
 
 
@@ -46,7 +46,7 @@ class ProviderConnectionTests(unittest.TestCase):
         def client_factory(**kwargs):
             return httpx.Client(transport=httpx.MockTransport(handler), **kwargs)
 
-        result = test_provider_connection("openai", secret, client_factory=client_factory)
+        result = probe_provider_connection("openai", secret, client_factory=client_factory)
         self.assertEqual(result, {"status": "CONNECTED", "code": None})
         self.assertEqual(len(requests), 1)
         self.assertEqual(str(requests[0].url), "https://api.openai.com/v1/models")
@@ -60,7 +60,7 @@ class ProviderConnectionTests(unittest.TestCase):
         def client_factory(**kwargs):
             return httpx.Client(transport=httpx.MockTransport(handler), **kwargs)
 
-        result = test_provider_connection("anthropic", "synthetic-anthropic-secret", client_factory=client_factory)
+        result = probe_provider_connection("anthropic", "synthetic-anthropic-secret", client_factory=client_factory)
         self.assertEqual(result, {"status": "FAILED", "code": "CREDENTIAL_REJECTED"})
         self.assertNotIn("synthetic-secret-reflected-by-server", repr(result))
 
@@ -68,7 +68,7 @@ class ProviderConnectionTests(unittest.TestCase):
         def fail_if_called(**_kwargs):
             raise AssertionError("unknown provider attempted network access")
 
-        result = test_provider_connection("https://127.0.0.1/private", "synthetic-secret",
+        result = probe_provider_connection("https://127.0.0.1/private", "synthetic-secret",
                                           client_factory=fail_if_called)
         self.assertEqual(result, {"status": "FAILED", "code": "CREDENTIAL_PROVIDER_UNSUPPORTED"})
 
