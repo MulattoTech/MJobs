@@ -9,6 +9,52 @@ from services.applications.upload_integrity import snapshot_bytes
 
 
 class GreenhouseApplicationAdapterBrowserTests(unittest.TestCase):
+    def test_required_fields_must_be_valid_before_fixture_upload(self):
+        html = """<!doctype html><html><body><form id="application">
+          <input id="candidate-email" name="email" aria-label="Email" type="email" required>
+          <input id="resume-file" name="resume" aria-label="Resume" type="file" required>
+          <input id="cover-letter-file" name="cover_letter" aria-label="Cover letter" type="file">
+        </form></body></html>"""
+        resume_bytes = b"%PDF-1.4\nsynthetic resume\n"
+        letter_bytes = b"%PDF-1.4\nsynthetic cover letter\n"
+        snapshots = [
+            snapshot_bytes("resume", "resume-1", "resume.pdf", "application/pdf",
+                           resume_bytes, hashlib.sha256(resume_bytes).hexdigest()),
+            snapshot_bytes("cover-letter", "letter-1", "letter.pdf", "application/pdf",
+                           letter_bytes, hashlib.sha256(letter_bytes).hexdigest()),
+        ]
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.route("http://127.0.0.1:8765/**", lambda route: route.fulfill(
+                status=200, content_type="text/html", body=html))
+            page.goto("http://127.0.0.1:8765/fixture")
+            adapter = GreenhouseApplicationAdapter()
+            analysis = adapter.analyze_page(page)
+
+            validation = adapter.validate_page(page, analysis)
+            self.assertEqual(validation, {
+                "status": "REVIEW_REQUIRED", "reason": "FORM_FIELDS_INVALID",
+            })
+            self.assertNotIn("applicant@example.invalid", repr(validation))
+            with self.assertRaisesRegex(ValueError, "GREENHOUSE_REQUIRED_FIELDS_INVALID"):
+                adapter.upload_mock_fixture_documents(page, analysis, snapshots)
+            self.assertEqual(page.locator("input[type=file]").evaluate_all(
+                "nodes => nodes.map(node => node.files.length)"), [0, 0])
+
+            # Manual completion resumes the same review-first flow without adapter autofill.
+            page.locator("#candidate-email").fill("applicant@example.invalid")
+            analysis = adapter.analyze_page(page)
+            self.assertEqual(adapter.validate_page(page, analysis), {
+                "status": "PASS", "reason": None,
+            })
+            manifest = adapter.upload_mock_fixture_documents(page, analysis, snapshots)
+            self.assertEqual([item["kind"] for item in manifest], ["resume", "cover-letter"])
+            self.assertEqual(page.locator("#candidate-email").input_value(),
+                             "applicant@example.invalid")
+            browser.close()
+
     def test_uploads_only_verified_documents_to_a_local_unambiguous_fixture(self):
         html = """<!doctype html><html><body><form id="application">
           <input id="candidate-name" name="name" aria-label="Name" required>
@@ -36,6 +82,7 @@ class GreenhouseApplicationAdapterBrowserTests(unittest.TestCase):
             page.route("http://127.0.0.1:8765/**", lambda route: route.fulfill(
                 status=200, content_type="text/html", body=html))
             page.goto("http://127.0.0.1:8765/fixture")
+            page.locator("#candidate-name").fill("Synthetic Applicant")
             adapter = GreenhouseApplicationAdapter()
             analysis = adapter.analyze_page(page)
 

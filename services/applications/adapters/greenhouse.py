@@ -86,6 +86,35 @@ class GreenhouseApplicationAdapter:
         """Read one loaded form using the shared value-free DOM analyzer."""
         return analyze_form_page(page)
 
+    def validate_page(self, page, analysis=None) -> dict:
+        """Check native form validity without reading or returning applicant values."""
+        current = self.analyze_page(page)
+        if analysis is not None and current != analysis:
+            return {"status": "UNKNOWN", "reason": "FORM_CHANGED"}
+        if self.requires_human_review(current):
+            return {"status": "REVIEW_REQUIRED", "reason": "FORM_REQUIRES_HUMAN_REVIEW"}
+        try:
+            validity = page.locator(
+                'form input:not([type="file"]), form select, form textarea'
+            ).evaluate_all(
+                "nodes => nodes.map(node => ({"
+                "validates: Boolean(node.willValidate), "
+                "valid: Boolean(node.validity && node.validity.valid)"
+                "}))"
+            )
+        except Exception:
+            # Browser failures can include page data; return only a fixed reason.
+            return {"status": "UNKNOWN", "reason": "FORM_VALIDATION_UNAVAILABLE"}
+        non_file_fields = [field for field in current["fields"]
+                           if (field.get("input_type") or "").casefold() != "file"]
+        if not isinstance(validity, list) or len(validity) != len(non_file_fields):
+            return {"status": "UNKNOWN", "reason": "FORM_CONTROL_COUNT_CHANGED"}
+        if any(not isinstance(item, Mapping)
+               or (item.get("validates") is True and item.get("valid") is not True)
+               for item in validity):
+            return {"status": "REVIEW_REQUIRED", "reason": "FORM_FIELDS_INVALID"}
+        return {"status": "PASS", "reason": None}
+
     def upload_mock_fixture_documents(self, page, analysis, snapshots):
         """Select verified resume and letter bytes only on a loopback fixture page.
 
@@ -113,6 +142,9 @@ class GreenhouseApplicationAdapter:
         current = self.analyze_page(page)
         if current != analysis or self.requires_human_review(current):
             raise ValueError("GREENHOUSE_FORM_REQUIRES_HUMAN_REVIEW")
+        validation = self.validate_page(page, current)
+        if validation["status"] != "PASS":
+            raise ValueError("GREENHOUSE_REQUIRED_FIELDS_INVALID")
         if not isinstance(snapshots, (list, tuple)) or len(snapshots) != 2:
             raise ValueError("GREENHOUSE_FIXTURE_DOCUMENT_SET_INVALID")
 
