@@ -9,6 +9,8 @@ from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now
 from services.applications.mock_adapter import apply_mock
+from services.applications.attempt_history import AttemptConflict
+from services.applications.run_requests import validate_run_operation
 from services.discovery.pipeline import discover, MockClient
 from services.company_discovery.flywheel import discover_company_source
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
@@ -291,9 +293,12 @@ def execute_operation(operation_id):
                         resume_story_job_fingerprint=operation['params'].get(
                             'resume_story_job_fingerprint'))
             elif operation["kind"] == "APPLY_MOCK":
+                validate_run_operation(store, operation)
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
                            submit=operation["params"].get("submit", False), check=check,
-                           debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1")
+                           debug_capture=os.environ.get("MJOBS_BROWSER_DEBUG_CAPTURE", "0") == "1",
+                           request_id=operation_id,
+                           expected_fingerprint=operation["params"].get("input_fingerprint"))
                 if application["state"] not in ("CONFIRMED", "DRY_RUN_COMPLETE"):
                     state, error = "BLOCKED", application["state"]
             else:
@@ -311,6 +316,8 @@ def execute_operation(operation_id):
             if (operation["kind"] != "APPLY_MOCK"
                     or application["state"] not in ("CONFIRMED", "SUBMISSION_UNCONFIRMED")):
                 check()
+        except AttemptConflict as failure:
+            state, error = "BLOCKED", failure.code
         except OperationTimedOut:
             state, error = "FAILED", "OPERATION_TIMEOUT"
         except OperationCancelled:

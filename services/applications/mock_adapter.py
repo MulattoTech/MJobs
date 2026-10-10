@@ -441,7 +441,7 @@ def open_mock_authentication(store, application_id, attempt_id, mock_origin,
 
 
 def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None,
-               debug_capture=False, request_id=None):
+               debug_capture=False, request_id=None, expected_fingerprint=None):
     check = check or (lambda: None)
     if type(submit) is not bool:
         raise ValueError("Mock submission selection must be explicit boolean")
@@ -551,7 +551,8 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         from services.applications.attempt_history import start_attempt, finish_attempt
         reservation = start_attempt(store, application, route, documents,
                                     submit=submit, request_id=request_id,
-                                    supporting_documents=supporting_documents)
+                                    supporting_documents=supporting_documents,
+                                    expected_fingerprint=expected_fingerprint)
         if reservation["replayed"]:
             return store.application(application_id)
         attempt_id = reservation["id"]

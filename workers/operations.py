@@ -227,16 +227,10 @@ def retry_dead_letter(store, operation_id):
         if row["kind"] not in QUEUES:
             raise OperationActionError("OPERATION_NOT_RETRYABLE")
         if row["kind"] == "APPLY_MOCK":
-            application = connection.execute(select(m.applications.c.state).where(
-                m.applications.c.id == row["entity_id"]).with_for_update()).scalar_one_or_none()
-            if application is None:
-                raise OperationActionError("APPLICATION_NOT_FOUND")
-            if application in ("SUBMITTING", "SUBMISSION_UNCONFIRMED"):
-                raise OperationActionError("RECONCILIATION_REQUIRED")
-            if application == "CONFIRMED":
-                raise OperationActionError("APPLICATION_ALREADY_CONFIRMED")
-            if application not in ("PREPARED", "DRY_RUN_COMPLETE"):
-                raise OperationActionError("APPLICATION_REVIEW_REQUIRED")
+            from services.applications.run_requests import application_retry_blocker
+            blocker = application_retry_blocker(connection, row)
+            if blocker:
+                raise OperationActionError(blocker)
         values = {"state": "QUEUED", "cancel_requested": False,
                   "lease_expires_at": None, "updated_at": timestamp}
         changed = connection.execute(update(m.operations).where(
@@ -297,9 +291,15 @@ def recover_expired(store):
                 elif application["state"] in ("SUBMITTING", "SUBMISSION_UNCONFIRMED"):
                     # Retain application state; this retry can only look up a receipt.
                     state, error = ("QUEUED", "RECONCILIATION_REQUIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("BLOCKED", "RECONCILIATION_REQUIRED")
-                elif application["state"] not in ("PREPARED", "DRY_RUN_COMPLETE"):
-                    state, error = "BLOCKED", "PRE_SUBMIT_REVIEW_REQUIRED"
-                    connection.execute(update(m.applications).where(m.applications.c.id == application["id"]).values(state="REVIEW_REQUIRED"))
+                else:
+                    from services.applications.run_requests import application_retry_blocker
+                    blocker = application_retry_blocker(connection, row)
+                    if blocker:
+                        state, error = "BLOCKED", blocker
+                        if blocker == "APPLICATION_REVIEW_REQUIRED":
+                            error = "PRE_SUBMIT_REVIEW_REQUIRED"
+                            connection.execute(update(m.applications).where(
+                                m.applications.c.id == application["id"]).values(state="REVIEW_REQUIRED"))
             values = {"state": state, "error": error, "lease_expires_at": None,
                       "updated_at": timestamp}
             if state == "DEAD_LETTERED":

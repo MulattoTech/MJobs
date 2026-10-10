@@ -32,6 +32,10 @@ _REQUEST = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 class AttemptConflict(ValueError):
     """A fixed public error code, never a browser exception or form value."""
 
+    def __init__(self, code):
+        self.code = code
+        super().__init__(code)
+
 
 def _lock(connection):
     if connection.dialect.name == "sqlite":
@@ -50,21 +54,8 @@ def _steps(values):
             and value.split(":")[0] in _PHASES and value.split(":")[1] in _STATUSES]
 
 
-def start_attempt(store, application, route, documents, *, submit=False, request_id=None,
-                  supporting_documents=()):
-    """Atomically reserve one physical browser execution; replay never opens it.
-
-    Stable caller request IDs are scoped to an application and immutable inputs.
-    A retry with different inputs fails closed. A genuinely new execution requires
-    a new request ID. Running and failed replays are explicit conflicts.
-    """
-    request_id = uuid4().hex if request_id is None else request_id
-    if not isinstance(request_id, str) or not _REQUEST.fullmatch(request_id):
-        raise AttemptConflict("APPLICATION_ATTEMPT_REQUEST_INVALID")
-    if type(submit) is not bool:
-        raise AttemptConflict("APPLICATION_ATTEMPT_MODE_INVALID")
-    if application["target"] != "MOCK" or route["provider"] != "mock-ats":
-        raise AttemptConflict("APPLICATION_ATTEMPT_TARGET_UNSUPPORTED")
+def input_snapshot(application, route, documents, *, submit=False, supporting_documents=()):
+    """Stable v1 input contract shared by queue admission and browser reservation."""
     snapshot = {
         "route_id": application["route_id"],
         "provider": route["provider"], "tenant": route.get("tenant"),
@@ -82,13 +73,43 @@ def start_attempt(store, application, route, documents, *, submit=False, request
         ], key=lambda item: item["revision_id"]),
         "mode": "MOCK_SUBMISSION" if submit else "DRY_RUN",
     }
-    fingerprint = hashlib.sha256(json.dumps(
+    return snapshot
+
+
+def input_fingerprint(snapshot):
+    return hashlib.sha256(json.dumps(
         snapshot, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+
+
+def attempt_id_for_request(application_id, request_id):
+    return uuid5(NAMESPACE_URL, identity(
+        "application-attempt-v1", application_id, request_id)).hex
+
+
+def start_attempt(store, application, route, documents, *, submit=False, request_id=None,
+                  supporting_documents=(), expected_fingerprint=None):
+    """Atomically reserve one physical browser execution; replay never opens it.
+
+    Stable caller request IDs are scoped to an application and immutable inputs.
+    A retry with different inputs fails closed. A genuinely new execution requires
+    a new request ID. Running and failed replays are explicit conflicts.
+    """
+    request_id = uuid4().hex if request_id is None else request_id
+    if not isinstance(request_id, str) or not _REQUEST.fullmatch(request_id):
+        raise AttemptConflict("APPLICATION_ATTEMPT_REQUEST_INVALID")
+    if type(submit) is not bool:
+        raise AttemptConflict("APPLICATION_ATTEMPT_MODE_INVALID")
+    if application["target"] != "MOCK" or route["provider"] != "mock-ats":
+        raise AttemptConflict("APPLICATION_ATTEMPT_TARGET_UNSUPPORTED")
+    snapshot = input_snapshot(application, route, documents, submit=submit,
+                              supporting_documents=supporting_documents)
+    fingerprint = input_fingerprint(snapshot)
+    if expected_fingerprint is not None and expected_fingerprint != fingerprint:
+        raise AttemptConflict("APPLICATION_RUN_INPUT_CHANGED")
     # Keep the existing 32-hex attempt-ID contract used by private debug capture.
     if any(item["job_id"] != application["job_id"] for item in supporting_documents):
         raise AttemptConflict("APPLICATION_ATTEMPT_SUPPORTING_SCOPE_MISMATCH")
-    attempt_id = uuid5(NAMESPACE_URL, identity(
-        "application-attempt-v1", application["id"], request_id)).hex
+    attempt_id = attempt_id_for_request(application["id"], request_id)
     with store.engine.begin() as connection:
         _lock(connection)
         current = connection.execute(select(m.applications).where(
@@ -109,6 +130,12 @@ def start_attempt(store, application, route, documents, *, submit=False, request
         ], key=lambda row: (row["kind"], row["id"]))
         if live_documents != snapshot["documents"]:
             raise AttemptConflict("APPLICATION_ATTEMPT_INPUT_CHANGED")
+        if expected_fingerprint is not None:
+            # Recheck the queue snapshot under the same admission lock, including
+            # supporting selection changed during browser preflight.
+            from services.applications.run_requests import current_input_snapshot
+            if input_fingerprint(current_input_snapshot(connection, current, submit=submit)) != expected_fingerprint:
+                raise AttemptConflict("APPLICATION_RUN_INPUT_CHANGED")
         previous = connection.execute(select(m.audit.c.payload).where(
             m.audit.c.id == _event_id(STARTED, attempt_id))).scalar_one_or_none()
         if previous is not None:

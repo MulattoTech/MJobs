@@ -1,0 +1,156 @@
+"""Durable user run admission: no browser, queue server, or external provider."""
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+import tempfile
+import unittest
+from unittest.mock import patch
+
+from fastapi.testclient import TestClient
+from sqlalchemy import select, update
+
+from apps.api.main import create_app
+from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
+from packages.persistence.store import Store
+from services.applications.attempt_history import AttemptConflict
+from services.applications.run_requests import queue_mock_run, read_mock_run, validate_run_operation
+from services.discovery.pipeline import discover
+from services.documents.generate import prepare
+from tests.integration.test_spine import PROFILE
+
+
+class ApplicationRunRequestTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix="mjobs-run-request-")
+        self.root = Path(self.temp.name)
+        self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        self.store.migrate(); self.store.bind_workspace_mode("FIXTURE")
+        self.store.save_profile(dict(PROFILE))
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+        self.app_id = prepare(self.store, self.store.jobs("fixture")[0]["id"], "fixture", self.root)
+
+    def tearDown(self):
+        self.store.engine.dispose(); self.temp.cleanup()
+
+    def queue(self, request="reviewed-run-1", submit=False):
+        return queue_mock_run(self.store, "fixture", self.app_id, submit=submit, request_id=request)
+
+    def operation(self, identifier):
+        with self.store.engine.connect() as connection:
+            return dict(connection.execute(select(m.operations).where(m.operations.c.id == identifier)).mappings().one())
+
+    def test_duplicate_user_request_and_database_reopen_keep_one_operation(self):
+        first = self.queue()
+        second = self.queue()
+        self.assertEqual(first["operation_id"], second["operation_id"])
+        self.assertFalse(first["replayed"]); self.assertTrue(second["replayed"])
+        self.assertEqual(self.store.count("worker_operations"), 1)
+        self.store.engine.dispose()
+        reopened = Store(self.store.url)
+        try:
+            self.assertEqual(read_mock_run(reopened, "fixture", self.app_id, "reviewed-run-1")["operation_id"], first["operation_id"])
+        finally:
+            reopened.engine.dispose()
+
+    def test_concurrent_double_click_is_one_atomic_admission(self):
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(lambda _: self.queue(), range(2)))
+        self.assertEqual(results[0]["operation_id"], results[1]["operation_id"])
+        self.assertEqual(sum(not row["replayed"] for row in results), 1)
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_request_id_cannot_switch_from_review_to_submission(self):
+        self.queue()
+        with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_REQUEST_REUSED"):
+            self.queue(submit=True)
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_new_intent_cannot_compete_with_queued_run(self):
+        self.queue()
+        with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_IN_PROGRESS"):
+            self.queue("second-intent")
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_terminal_request_replay_never_reopens_operation(self):
+        for state in ("COMPLETED", "CANCELLED", "DEAD_LETTERED", "DISCARDED", "BLOCKED"):
+            with self.subTest(state=state):
+                request = "terminal-" + state
+                first = self.queue(request)
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(m.operations.c.id == first["operation_id"]).values(state=state))
+                self.assertEqual(self.queue(request)["state"], state)
+                self.assertEqual(self.operation(first["operation_id"])["state"], state)
+
+    def test_explicit_new_intent_after_cancel_does_not_reuse_cancelled_row(self):
+        first = self.queue()
+        from workers.operations import request_cancel
+        self.assertEqual(request_cancel(self.store, first["operation_id"])["state"], "CANCELLED")
+        second = self.queue("new-after-cancel")
+        self.assertNotEqual(first["operation_id"], second["operation_id"])
+        self.assertEqual(second["state"], "QUEUED")
+        self.assertEqual(self.queue()["state"], "CANCELLED")
+
+    def test_queued_input_change_is_rejected_before_execution(self):
+        first = self.queue()
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.applications).where(m.applications.c.id == self.app_id).values(document_version="unreviewed-version"))
+        with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_INPUT_CHANGED"):
+            validate_run_operation(self.store, self.operation(first["operation_id"]))
+        with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_REQUEST_REUSED"):
+            self.queue()
+        self.assertEqual(self.store.count("application_attempts"), 0)
+
+    def test_route_rewrite_cannot_silently_change_a_reviewed_run(self):
+        first = self.queue()
+        app = self.store.application(self.app_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(m.routes.c.id == app["route_id"]).values(url="http://127.0.0.1:1/changed"))
+        with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_INPUT_CHANGED"):
+            validate_run_operation(self.store, self.operation(first["operation_id"]))
+
+    def test_request_identity_is_strict_bounded_and_not_normalized(self):
+        for value in (None, "", " leading", "a b", "x" * 129, 17, "../escape", "💥"):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_REQUEST_INVALID"):
+                    self.queue(value)
+        self.assertEqual(self.store.count("worker_operations"), 0)
+
+    def test_mode_requires_a_real_boolean(self):
+        for value in (1, "true", None):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_MODE_INVALID"):
+                    self.queue(submit=value)
+
+    def test_ambiguous_and_confirmed_applications_do_not_admit_new_browser_work(self):
+        for state, code in (("SUBMITTING", "RECONCILIATION_REQUIRED"), ("SUBMISSION_UNCONFIRMED", "RECONCILIATION_REQUIRED"), ("CONFIRMED", "APPLICATION_ALREADY_CONFIRMED")):
+            with self.subTest(state=state):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.applications).where(m.applications.c.id == self.app_id).values(state=state))
+                with self.assertRaisesRegex(AttemptConflict, code):
+                    self.queue()
+        self.assertEqual(self.store.count("worker_operations"), 0)
+
+    def test_api_admission_lookup_and_profile_scope_are_durable(self):
+        app = create_app(self.store, "http://127.0.0.1:8090", self.root, operation_mode="FIXTURE")
+        endpoint = f"/profiles/fixture/applications/{self.app_id}/mock-run"
+        with TestClient(app) as client, patch("services.applications.mock_adapter.sync_playwright", side_effect=AssertionError("Admission opened a browser")):
+            first = client.post(endpoint, json={"submit": False, "request_id": "api-run"})
+            self.assertEqual(first.status_code, 202, first.text)
+            self.assertEqual(client.post(endpoint, json={"submit": False, "request_id": "api-run"}).json()["operation_id"], first.json()["operation_id"])
+            changed = client.post(endpoint, json={"submit": True, "request_id": "api-run"})
+            self.assertEqual(changed.status_code, 409)
+            self.assertEqual(changed.json()["detail"]["code"], "APPLICATION_RUN_REQUEST_REUSED")
+            lookup = client.get(endpoint + "s/api-run")
+            self.assertEqual(lookup.status_code, 200, lookup.text)
+            self.assertEqual(lookup.json()["state"], "QUEUED")
+            self.assertFalse(lookup.json()["external_submission_enabled"])
+            self.assertEqual(client.get(endpoint.replace("/fixture/", "/other/") + "s/api-run").status_code, 404)
+            self.assertEqual(client.post(endpoint.replace("/fixture/", "/other/"), json={"submit": False, "request_id": "other"}).status_code, 404)
+            self.assertEqual(client.get(endpoint + "s/unknown").status_code, 404)
+            self.assertEqual(client.post(endpoint, json={"submit": False, "request_id": "bad id"}).status_code, 422)
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

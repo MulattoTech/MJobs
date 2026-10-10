@@ -513,6 +513,8 @@ class ApplicationNoteInput(BaseModel):
 class MockRunInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     submit: bool = False
+    request_id: str | None = Field(default=None, min_length=1, max_length=128,
+                                   pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 
 
 class DedupeDecisionInput(BaseModel):
@@ -2266,7 +2268,27 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise NoResultFound("Application is not owned by this profile")
         if application["target"] != "MOCK":
             raise HTTPException(409, "External submission is disabled; this application supports manual preparation only")
-        return queued("APPLY_MOCK", application_id, {"submit": value.submit})
+        if value.request_id is None:
+            # Existing clients retain their original deterministic outbox identity.
+            return queued("APPLY_MOCK", application_id, {"submit": value.submit})
+        from services.applications.run_requests import queue_mock_run
+        from services.applications.attempt_history import AttemptConflict
+        try:
+            return queue_mock_run(store, profile_id, application_id,
+                                  submit=value.submit, request_id=value.request_id)
+        except AttemptConflict as error:
+            raise HTTPException(409, {"code": error.code}) from None
+
+    @app.get("/profiles/{profile_id}/applications/{application_id}/mock-runs/{request_id}")
+    def mock_run_request(profile_id: str, application_id: str, request_id: str):
+        if operation_mode != "FIXTURE":
+            raise HTTPException(409, "Fictional application actions are available only in verification mode")
+        from services.applications.run_requests import read_mock_run
+        from services.applications.attempt_history import AttemptConflict
+        try:
+            return read_mock_run(store, profile_id, application_id, request_id)
+        except AttemptConflict as error:
+            raise HTTPException(409, {"code": error.code}) from None
 
     @app.get("/operations")
     def operations(profile_id: str | None = None):
@@ -2292,13 +2314,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 item = dict(row)
                 item.pop("queue_count", None)
                 if item["kind"] == "APPLY_MOCK":
-                    application_state = connection.execute(select(m.applications.c.state).where(
-                        m.applications.c.id == item["entity_id"])).scalar_one_or_none()
-                    item["retryable"] = application_state in ("PREPARED", "DRY_RUN_COMPLETE")
-                    if application_state in ("SUBMITTING", "SUBMISSION_UNCONFIRMED"):
-                        item["retry_blocked_reason"] = "RECONCILIATION_REQUIRED"
-                    elif application_state not in ("PREPARED", "DRY_RUN_COMPLETE"):
-                        item["retry_blocked_reason"] = "APPLICATION_REVIEW_REQUIRED"
+                    from services.applications.run_requests import application_retry_blocker
+                    blocker = application_retry_blocker(connection, item, lock=False)
+                    item["retryable"] = blocker is None
+                    if blocker:
+                        item["retry_blocked_reason"] = blocker
                 else:
                     item["retryable"] = item["kind"] in QUEUES
                     if not item["retryable"]:
