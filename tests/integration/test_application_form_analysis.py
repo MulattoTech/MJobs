@@ -130,12 +130,23 @@ class ApplicationFormAnalysisIntegrationTests(unittest.TestCase):
             result = self.analyze(origin, application, route, profile, add_sensitive_metadata)
 
             self.assertEqual(result["result"], "UNKNOWN")
-            self.assertEqual(result["reason"], "FORM_ANALYSIS_REQUIRES_REVIEW")
+            self.assertEqual(result["reason"], "UNMAPPED_REQUIRED_QUESTION")
+            from services.applications.preflight import latest_preflight
+            preflight = latest_preflight(self.store, application["id"])
+            self.assertEqual(preflight["reason"], "UNMAPPED_REQUIRED_QUESTION")
+            unmapped = next(row for row in preflight["mappings"]
+                            if row["question_id"] == "fixture_question")
+            self.assertEqual(unmapped["question"], "Additional identifier")
+            self.assertEqual(unmapped["answer_ids"], [])
+            self.assertEqual(unmapped["fact_ids"], [])
+            self.assertNotIn("PRIVATE_SENSITIVE_VALUE", json.dumps(preflight))
             event = self.form_analysis_event(application["id"])
             field = next(row for row in event["payload"]["fields"]
                          if row["id"] == "fixture_question")
             self.assertEqual(field["sensitivity"], "SENSITIVE")
             self.assertNotIn("PRIVATE_SENSITIVE_VALUE", json.dumps(event["payload"]))
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
             with self.store.engine.connect() as connection:
                 attempt_count = connection.execute(select(m.attempts.c.id).where(
                     m.attempts.c.application_id == application["id"])).all()
