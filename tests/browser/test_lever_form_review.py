@@ -174,8 +174,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                     self.assertEqual(result["status"], "COMPLETED", result)
                     self.assertEqual(fetched_urls, [LEVER_ROUTE])
 
-                    fields_region = review.get_by_role(
-                        "region", name="Inspected form fields")
+                    fields_region = review.locator('[aria-label="Inspected form fields"]')
                     expect(fields_region).to_contain_text("first_name")
                     expect(fields_region).to_contain_text("gender")
                     gender_field = fields_region.locator("li").filter(has_text="gender")
@@ -205,8 +204,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                         "region", name="Application review", exact=True)
                     expect(application_review).to_contain_text("lever · example")
                     review = page.get_by_role("region", name="Application form review")
-                    fields_region = review.get_by_role(
-                        "region", name="Inspected form fields")
+                    fields_region = review.locator('[aria-label="Inspected form fields"]')
                     expect(fields_region).to_contain_text("first_name")
                     gender_field = fields_region.locator("li").filter(has_text="gender")
                     expect(gender_field).to_contain_text("Review required")
