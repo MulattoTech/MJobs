@@ -6,7 +6,10 @@ import re
 
 from fastapi import APIRouter, Body, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 
+from packages.persistence import models as m
 from services.operations.pipeline_actions import (
     action_fingerprint,
     bind_prepare_request,
@@ -58,7 +61,7 @@ def _safe_operation(value, *, request_id: str, job_id: str) -> dict:
 def _snapshot_item(store, profile_id: str, job_id: str) -> tuple[dict, dict]:
     try:
         snapshot = _read_workbench(store, profile_id)
-    except LookupError:
+    except (LookupError, NoResultFound):
         _error(404, "PIPELINE_PROFILE_NOT_FOUND")
     except Exception:
         _error(503, "PIPELINE_WORKBENCH_UNAVAILABLE")
@@ -83,7 +86,9 @@ def create_pipeline_workbench_router(store, prepare_callback) -> APIRouter:
             _error(404, "PIPELINE_PROFILE_NOT_FOUND")
         try:
             result = _read_workbench(store, profile_id)
-        except LookupError:
+        except HTTPException:
+            raise
+        except (LookupError, NoResultFound):
             _error(404, "PIPELINE_PROFILE_NOT_FOUND")
         except Exception:
             _error(503, "PIPELINE_WORKBENCH_UNAVAILABLE")
@@ -113,72 +118,96 @@ def create_pipeline_workbench_router(store, prepare_callback) -> APIRouter:
             readiness_fingerprint=value.fingerprint,
         )
         try:
-            existing = find_prepare_request(store, profile_id, value.request_id)
-            if existing is not None:
-                return _safe_operation(
-                    replay_prepare_request(existing, request_fingerprint),
-                    request_id=value.request_id,
-                    job_id=job_id,
+            with store.engine.begin() as connection:
+                if connection.dialect.name == "sqlite":
+                    connection.exec_driver_sql("BEGIN IMMEDIATE")
+                profile_statement = select(m.profiles.c.id).where(
+                    m.profiles.c.id == profile_id,
                 )
-        except ValueError as exc:
-            code = str(exc)
-            _error(409, code if code in {
-                "PIPELINE_PREPARE_REQUEST_CONFLICT", "PIPELINE_PREPARE_STATE_INVALID",
-            } else "PIPELINE_PREPARE_REQUEST_CONFLICT")
+                if connection.dialect.name == "postgresql":
+                    profile_statement = profile_statement.with_for_update()
+                if connection.execute(profile_statement).scalar_one_or_none() is None:
+                    _error(404, "PIPELINE_PROFILE_NOT_FOUND")
 
-        snapshot, item = _snapshot_item(store, profile_id, job_id)
-        if (value.expected_profile_version != snapshot["profile_version"]
-                or value.fingerprint != item.get("fingerprint")):
-            _error(409, "PIPELINE_READINESS_STALE")
-        if item.get("can_prepare") is not True:
-            _error(409, "PIPELINE_PREPARE_NOT_READY")
-        route_mode = item.get("route_mode")
-        route_id = item.get("route_id")
-        if (not isinstance(route_mode, str)
-                or route_mode not in {"DEFAULT", "THIS_ROUTE"}
-                or not isinstance(route_id, str)
-                or not _ID.fullmatch(route_id)):
-            _error(409, "PIPELINE_PREPARE_NOT_READY")
+                existing = find_prepare_request(
+                    store, profile_id, value.request_id, connection=connection,
+                )
+                if existing is not None:
+                    try:
+                        replay = replay_prepare_request(existing, request_fingerprint)
+                    except ValueError as exc:
+                        code = str(exc)
+                        _error(409, code if code in {
+                            "PIPELINE_PREPARE_REQUEST_CONFLICT",
+                            "PIPELINE_PREPARE_STATE_INVALID",
+                        } else "PIPELINE_PREPARE_REQUEST_CONFLICT")
+                    return _safe_operation(
+                        replay, request_id=value.request_id, job_id=job_id,
+                    )
 
-        callback_values = {
-            "profile_id": profile_id,
-            "job_id": job_id,
-            "request_id": value.request_id,
-            "expected_profile_version": value.expected_profile_version,
-            "route_mode": "THIS_ROUTE",
-            "route_id": route_id,
-        }
-        try:
-            result = prepare_callback(callback_values)
-        except HTTPException as exc:
-            detail = exc.detail
-            code = detail.get("code") if isinstance(detail, dict) else None
-            if not isinstance(code, str) or not re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", code):
-                code = "PIPELINE_PREPARE_VALIDATION_FAILED"
-            _error(exc.status_code if 400 <= exc.status_code < 500 else 503, code)
+                snapshot, item = _snapshot_item(store, profile_id, job_id)
+                if (value.expected_profile_version != snapshot["profile_version"]
+                        or value.fingerprint != item.get("fingerprint")):
+                    _error(409, "PIPELINE_READINESS_STALE")
+                if item.get("can_prepare") is not True:
+                    _error(409, "PIPELINE_PREPARE_NOT_READY")
+                route_mode = item.get("route_mode")
+                route_id = item.get("route_id")
+                if (not isinstance(route_mode, str)
+                        or route_mode not in {"DEFAULT", "THIS_ROUTE"}
+                        or not isinstance(route_id, str)
+                        or not _ID.fullmatch(route_id)):
+                    _error(409, "PIPELINE_PREPARE_NOT_READY")
+
+                callback_values = {
+                    "profile_id": profile_id,
+                    "job_id": job_id,
+                    "request_id": value.request_id,
+                    "expected_profile_version": value.expected_profile_version,
+                    "route_mode": "THIS_ROUTE",
+                    "route_id": route_id,
+                }
+                try:
+                    result = prepare_callback(callback_values, connection)
+                except HTTPException as exc:
+                    detail = exc.detail
+                    code = detail.get("code") if isinstance(detail, dict) else None
+                    if not isinstance(code, str) or not re.fullmatch(
+                            r"[A-Z][A-Z0-9_]{0,63}", code):
+                        code = "PIPELINE_PREPARE_VALIDATION_FAILED"
+                    _error(exc.status_code if 400 <= exc.status_code < 500 else 503, code)
+                except Exception:
+                    _error(503, "PIPELINE_PREPARE_UNAVAILABLE")
+
+                operation = _safe_operation(
+                    result, request_id=value.request_id, job_id=job_id,
+                )
+                try:
+                    persisted = bind_prepare_request(
+                        store,
+                        operation["operation_id"],
+                        request_fingerprint,
+                        profile_id=profile_id,
+                        job_id=job_id,
+                        request_id=value.request_id,
+                        expected_profile_version=value.expected_profile_version,
+                        connection=connection,
+                    )
+                except ValueError as exc:
+                    code = str(exc)
+                    _error(409 if code == "PIPELINE_PREPARE_REQUEST_CONFLICT" else 503,
+                           code if code in {
+                               "PIPELINE_PREPARE_REQUEST_CONFLICT",
+                               "PIPELINE_PREPARE_OPERATION_NOT_FOUND",
+                               "PIPELINE_PREPARE_OPERATION_SCOPE_MISMATCH",
+                           } else "PIPELINE_PREPARE_UNAVAILABLE")
+                return _safe_operation(persisted, request_id=value.request_id, job_id=job_id)
+        except HTTPException:
+            raise
+        except (LookupError, NoResultFound):
+            _error(404, "PIPELINE_PROFILE_NOT_FOUND")
         except Exception:
             _error(503, "PIPELINE_PREPARE_UNAVAILABLE")
-
-        operation = _safe_operation(result, request_id=value.request_id, job_id=job_id)
-        try:
-            persisted = bind_prepare_request(
-                store,
-                operation["operation_id"],
-                request_fingerprint,
-                profile_id=profile_id,
-                job_id=job_id,
-                request_id=value.request_id,
-                expected_profile_version=value.expected_profile_version,
-            )
-        except ValueError as exc:
-            code = str(exc)
-            _error(409 if code == "PIPELINE_PREPARE_REQUEST_CONFLICT" else 503,
-                   code if code in {
-                       "PIPELINE_PREPARE_REQUEST_CONFLICT",
-                       "PIPELINE_PREPARE_OPERATION_NOT_FOUND",
-                       "PIPELINE_PREPARE_OPERATION_SCOPE_MISMATCH",
-                   } else "PIPELINE_PREPARE_UNAVAILABLE")
-        return _safe_operation(persisted, request_id=value.request_id, job_id=job_id)
 
     return router
 

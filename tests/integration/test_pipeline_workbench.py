@@ -13,6 +13,7 @@ from apps.api.main import ApplicationInput
 from apps.api.pipeline_workbench import create_pipeline_workbench_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.operations.pipeline_workbench import read_pipeline_workbench
 from tests.integration.test_spine import PROFILE
 from workers.dispatch import enqueue_operation
 
@@ -44,23 +45,21 @@ class PipelineWorkbenchActionTests(unittest.TestCase):
         }
         self.callback_calls = []
 
-        def prepare_callback(values):
+        def prepare_callback(values, connection):
             self.callback_calls.append(dict(values))
             ApplicationInput(**values)
             operation_id = enqueue_operation(self.store, "PREPARE", values["profile_id"], {
-                "profile_id": values["profile_id"],
                 "job_id": values["job_id"],
                 "request_id": values["request_id"],
                 "profile_version": values["expected_profile_version"],
                 "route_mode": values["route_mode"],
                 "route_id": values["route_id"],
-            })
-            with self.store.engine.connect() as connection:
-                state = connection.execute(
-                    m.operations.select().with_only_columns(m.operations.c.state).where(
-                        m.operations.c.id == operation_id,
-                    )
-                ).scalar_one()
+            }, connection=connection)
+            state = connection.execute(
+                m.operations.select().with_only_columns(m.operations.c.state).where(
+                    m.operations.c.id == operation_id,
+                )
+            ).scalar_one()
             return {"operation_id": operation_id, "state": state}
 
         self.app = FastAPI()
@@ -106,6 +105,58 @@ class PipelineWorkbenchActionTests(unittest.TestCase):
         self.assertEqual(payload["profile_id"], "fixture")
         self.assertEqual(payload["items"], [])
         self.assertEqual(payload["counts"]["total"], 0)
+
+    def test_read_route_hides_missing_profile_as_not_found(self):
+        self.snapshot_patch.stop()
+        try:
+            response = self.client.get("/profiles/missing-profile/pipeline-workbench")
+        finally:
+            self.snapshot_patch.start()
+        self.assertEqual(response.status_code, 404, response.text)
+        self.assertEqual(response.json(), {
+            "detail": {"code": "PIPELINE_PROFILE_NOT_FOUND"},
+        })
+
+    def test_persisted_ready_job_queues_through_real_workbench_projection(self):
+        profile_version = self.store.profile("fixture")["version"]
+        with self.store.engine.begin() as connection:
+            connection.execute(m.companies.insert().values(
+                id="pipeline-company", name="Synthetic Pipeline Company",
+                domain="pipeline.example.test",
+            ))
+            connection.execute(m.jobs.insert().values(
+                id=self.JOB_ID, company_id="pipeline-company",
+                requisition="PIPELINE-001", title="Synthetic Platform Engineer",
+                description="A synthetic role for local acceptance coverage.",
+                skills=["python"], location="Remote", remote_type="REMOTE",
+                attributes={},
+            ))
+            connection.execute(m.matches.insert().values(
+                id="pipeline-match", job_id=self.JOB_ID, profile_id="fixture",
+                profile_version=profile_version, score=87, missing=[],
+                components={"skills": 87},
+            ))
+            connection.execute(m.routes.insert().values(
+                id="pipeline-route", job_id=self.JOB_ID, company_id="pipeline-company",
+                provider="greenhouse", tenant="synthetic", requisition="PIPELINE-001",
+                url="https://jobs.example.test/PIPELINE-001?private=synthetic",
+            ))
+
+        self.snapshot_patch.stop()
+        try:
+            snapshot = read_pipeline_workbench(self.store, "fixture")
+            item = snapshot["items"][0]
+            self.assertTrue(item["can_prepare"])
+            self.assertEqual(item["route_id"], "pipeline-route")
+            self.snapshot = snapshot
+            self.item = item
+            response = self._queue(request_id="synthetic-real-projection")
+        finally:
+            self.snapshot_patch.start()
+        self.assertEqual(response.status_code, 202, response.text)
+        self.assertEqual(response.json()["state"], "QUEUED")
+        self.assertEqual(self.callback_calls[0]["route_id"], "pipeline-route")
+        self.assertNotIn("private=synthetic", response.text)
 
     def test_fresh_ready_request_queues_once_and_replays_actual_state(self):
         first = self._queue()
@@ -183,15 +234,36 @@ class PipelineWorkbenchActionTests(unittest.TestCase):
         self.assertEqual(replay.json()["next_action"], "REFRESH_WORKBENCH")
         self.assertEqual(len(self.callback_calls), 1)
 
-    def test_response_never_serializes_callback_payload(self):
-        def unsafe_callback(values):
-            self.callback_calls.append(dict(values))
+    def test_initial_ack_reads_state_from_persisted_operation(self):
+        def already_started(values, connection):
             operation_id = enqueue_operation(self.store, "PREPARE", values["profile_id"], {
-                "profile_id": values["profile_id"], "job_id": values["job_id"],
+                "job_id": values["job_id"],
                 "request_id": values["request_id"],
                 "profile_version": values["expected_profile_version"],
                 "route_mode": values["route_mode"], "route_id": values["route_id"],
-            })
+            }, connection=connection)
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == operation_id,
+            ).values(state="RUNNING"))
+            return {"operation_id": operation_id, "state": "QUEUED"}
+
+        self.app.router.routes.clear()
+        self.app.include_router(create_pipeline_workbench_router(
+            self.store, prepare_callback=already_started,
+        ))
+        response = self._queue()
+        self.assertEqual(response.status_code, 202, response.text)
+        self.assertEqual(response.json()["state"], "RUNNING")
+
+    def test_response_never_serializes_callback_payload(self):
+        def unsafe_callback(values, connection):
+            self.callback_calls.append(dict(values))
+            operation_id = enqueue_operation(self.store, "PREPARE", values["profile_id"], {
+                "job_id": values["job_id"],
+                "request_id": values["request_id"],
+                "profile_version": values["expected_profile_version"],
+                "route_mode": values["route_mode"], "route_id": values["route_id"],
+            }, connection=connection)
             return {
                 "operation_id": operation_id, "state": "QUEUED",
                 "raw_params": {"secret": "SYNTHETIC_PRIVATE_PAYLOAD"},
@@ -207,19 +279,33 @@ class PipelineWorkbenchActionTests(unittest.TestCase):
         self.assertNotIn("SYNTHETIC_PRIVATE_PAYLOAD", response.text)
         self.assertNotIn("SYNTHETIC_RAW_ERROR", response.text)
 
-    def test_malformed_callback_state_fails_closed_without_raw_exception(self):
+    def test_malformed_callback_rolls_back_queued_operation_and_binding(self):
+        def invalid_ack(values, connection):
+            operation_id = enqueue_operation(self.store, "PREPARE", values["profile_id"], {
+                "job_id": values["job_id"],
+                "request_id": values["request_id"],
+                "profile_version": values["expected_profile_version"],
+                "route_mode": values["route_mode"], "route_id": values["route_id"],
+            }, connection=connection)
+            self.assertTrue(operation_id)
+            return {"operation_id": operation_id, "state": []}
+
         self.app.router.routes.clear()
         self.app.include_router(create_pipeline_workbench_router(
-            self.store,
-            prepare_callback=lambda values: {
-                "operation_id": "synthetic-operation", "state": [],
-            },
+            self.store, prepare_callback=invalid_ack,
         ))
         response = self._queue()
         self.assertEqual(response.status_code, 503, response.text)
         self.assertEqual(response.json(), {
             "detail": {"code": "PIPELINE_PREPARE_UNAVAILABLE"},
         })
+        with self.store.engine.connect() as connection:
+            count = connection.execute(
+                m.operations.select().with_only_columns(m.operations.c.id).where(
+                    m.operations.c.kind == "PREPARE",
+                )
+            ).all()
+        self.assertEqual(count, [])
 
 
 if __name__ == "__main__":

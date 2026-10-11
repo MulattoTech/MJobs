@@ -31,9 +31,9 @@ def action_fingerprint(*, profile_id: str, job_id: str, request_id: str,
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def find_prepare_request(store, profile_id: str, request_id: str):
+def find_prepare_request(store, profile_id: str, request_id: str, *, connection=None):
     """Find a previous profile-scoped PREPARE request without returning its payload."""
-    with store.engine.connect() as connection:
+    def find(connection):
         rows = connection.execute(select(m.operations).where(
             m.operations.c.kind == "PREPARE",
             m.operations.c.entity_id == profile_id,
@@ -42,14 +42,18 @@ def find_prepare_request(store, profile_id: str, request_id: str):
             params = row["params"] if isinstance(row["params"], dict) else {}
             if params.get("request_id") == request_id:
                 return dict(row)
-    return None
+        return None
+    if connection is not None:
+        return find(connection)
+    with store.engine.connect() as owned_connection:
+        return find(owned_connection)
 
 
 def bind_prepare_request(store, operation_id: str, request_fingerprint: str, *,
                          profile_id: str, job_id: str, request_id: str,
-                         expected_profile_version: str) -> dict:
+                         expected_profile_version: str, connection=None) -> dict:
     """Persist the workbench request binding beside the durable PREPARE outbox row."""
-    with store.engine.begin() as connection:
+    def bind(connection):
         row = connection.execute(select(m.operations).where(
             m.operations.c.id == operation_id,
             m.operations.c.kind == "PREPARE",
@@ -58,7 +62,6 @@ def bind_prepare_request(store, operation_id: str, request_fingerprint: str, *,
             raise ValueError("PIPELINE_PREPARE_OPERATION_NOT_FOUND")
         params = row["params"] if isinstance(row["params"], dict) else {}
         if (row["entity_id"] != profile_id
-                or params.get("profile_id") != profile_id
                 or params.get("job_id") != job_id
                 or params.get("request_id") != request_id
                 or params.get("profile_version") != expected_profile_version):
@@ -74,6 +77,10 @@ def bind_prepare_request(store, operation_id: str, request_fingerprint: str, *,
                 m.operations.c.id == operation_id,
             ).values(params=params))
         return {"operation_id": row["id"], "state": row["state"]}
+    if connection is not None:
+        return bind(connection)
+    with store.engine.begin() as owned_connection:
+        return bind(owned_connection)
 
 
 def replay_prepare_request(row, request_fingerprint: str) -> dict:
