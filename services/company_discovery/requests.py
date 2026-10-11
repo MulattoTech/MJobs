@@ -88,22 +88,22 @@ def _confirmation_record(request, website):
     return record
 
 
-def _lock_source_rows(connection, request):
+def _lock_source_rows(connection, request, *, lock=True):
     source_query = select(m.company_sources).where(m.company_sources.c.id == request['company_source_id'])
-    if connection.dialect.name == 'postgresql':
+    if lock and connection.dialect.name == 'postgresql':
         source_query = source_query.with_for_update()
     source = connection.execute(source_query).mappings().one_or_none()
     if source is None:
         raise ValueError('DISCOVERY_SOURCE_CHANGED')
     if source['collector_source_id']:
         collector_query = select(m.job_sources).where(m.job_sources.c.id == source['collector_source_id'])
-        if connection.dialect.name == 'postgresql':
+        if lock and connection.dialect.name == 'postgresql':
             collector_query = collector_query.with_for_update()
         connection.execute(collector_query).mappings().one_or_none()
     return source
 
 
-def _lock_source_owners_for_domain(connection, host, expected_company_id, *, request_source_id=None):
+def _lock_source_owners_for_domain(connection, host, expected_company_id, *, request_source_id=None, lock=True):
     """Refuse a user attestation that conflicts with an already enrolled portal."""
     rows = connection.execute(select(m.company_sources).order_by(m.company_sources.c.id)).mappings().all()
     related = []
@@ -117,7 +117,7 @@ def _lock_source_owners_for_domain(connection, host, expected_company_id, *, req
     if request_source_id:
         lock_ids.add(request_source_id)
     locked = related
-    if connection.dialect.name == 'postgresql' and lock_ids:
+    if lock and connection.dialect.name == 'postgresql' and lock_ids:
         locked = connection.execute(select(m.company_sources).where(
             m.company_sources.c.id.in_(sorted(lock_ids)))
             .order_by(m.company_sources.c.id).with_for_update()).mappings().all()
@@ -131,17 +131,27 @@ def _lock_source_owners_for_domain(connection, host, expected_company_id, *, req
     collector_ids = sorted({row['collector_source_id'] for row in locked if row['collector_source_id']})
     for collector_id in collector_ids:
         collector_query = select(m.job_sources).where(m.job_sources.c.id == collector_id)
-        if connection.dialect.name == 'postgresql':
+        if lock and connection.dialect.name == 'postgresql':
             collector_query = collector_query.with_for_update()
         connection.execute(collector_query).mappings().one_or_none()
     return next((row for row in locked if row['id'] == request_source_id), None)
 
 
-def _user_confirmation_proof(connection, request):
+def _domain_evidence_rows(connection, host, *, lock=True):
+    if lock:
+        return lock_domain_evidence(connection, host)
+    domain = normalize_domain(host)
+    if not domain:
+        raise ValueError('COMPANY_DOMAIN_INVALID')
+    return [dict(row) for row in connection.execute(select(m.company_domains).where(
+        m.company_domains.c.domain == domain).order_by(m.company_domains.c.id)).mappings()]
+
+
+def _user_confirmation_proof(connection, request, *, lock=True):
     host = normalize_domain(request['selected_website'])
     if not host:
         return None
-    rows = lock_domain_evidence(connection, host)
+    rows = _domain_evidence_rows(connection, host, lock=lock)
     if any(row['company_id'] != request['company_id'] for row in rows):
         return None
     expected = _confirmation_record(dict(request, revision=request['revision'] - 1), request['selected_website'])
@@ -423,27 +433,39 @@ def authorize_discovery_request(store, operation, *, connection=None):
     """Queued parameters are historical evidence; authorize from live state before egress."""
     if connection is None:
         with store.engine.connect() as owned_connection:
-            return authorize_discovery_request(store, operation, connection=owned_connection)
+            # This path is a standalone, observational egress check. It can run
+            # while the import transaction already owns the identity locks, so
+            # it must revalidate live evidence without reacquiring those locks.
+            return _authorize_discovery_request(store, operation, owned_connection, lock=False)
+    return _authorize_discovery_request(store, operation, connection, lock=True)
+
+
+def _authorize_discovery_request(store, operation, connection, *, lock):
     params = operation['params']
     try:
         initial = connection.execute(select(m.company_discovery_requests).where(
             m.company_discovery_requests.c.id == params['discovery_request_id'])).mappings().one_or_none()
         if initial is None:
             raise ValueError('DISCOVERY_AUTHORIZATION_CHANGED')
-        lock_company_ingestion(connection, [initial['company_id']])
+        if lock:
+            lock_company_ingestion(connection, [initial['company_id']])
         if initial['authorization'] in {'VERIFIED_DOMAIN', 'USER_CONFIRMED_DOMAIN'}:
             host = normalize_domain(initial['selected_website'])
-            lock_domain_evidence(connection, host)
+            _domain_evidence_rows(connection, host, lock=lock)
             if initial['authorization'] == 'USER_CONFIRMED_DOMAIN':
-                lock_company_source_hosts(connection, [host])
+                if lock:
+                    lock_company_source_hosts(connection, [host])
                 _lock_source_owners_for_domain(connection, host, initial['company_id'],
-                    request_source_id=initial['company_source_id'])
+                    request_source_id=initial['company_source_id'], lock=lock)
             else:
-                _lock_source_rows(connection, initial)
+                _lock_source_rows(connection, initial, lock=lock)
         else:
-            _lock_source_rows(connection, initial)
-        row = connection.execute(select(m.company_discovery_requests).where(
-            m.company_discovery_requests.c.id == params['discovery_request_id']).with_for_update()).mappings().one_or_none()
+            _lock_source_rows(connection, initial, lock=lock)
+        request_query = select(m.company_discovery_requests).where(
+            m.company_discovery_requests.c.id == params['discovery_request_id'])
+        if lock:
+            request_query = request_query.with_for_update()
+        row = connection.execute(request_query).mappings().one_or_none()
         if (not _personal(connection) or row is None
                 or row['company_id'] != initial['company_id']
                 or row['company_source_id'] != initial['company_source_id']
@@ -458,7 +480,7 @@ def authorize_discovery_request(store, operation, *, connection=None):
             if website != row['selected_website'] or evidence != row['domain_evidence']:
                 raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         elif row['authorization'] == 'USER_CONFIRMED_DOMAIN':
-            evidence = _user_confirmation_proof(connection, row)
+            evidence = _user_confirmation_proof(connection, row, lock=lock)
             if evidence is None or evidence != row['domain_evidence']:
                 raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         elif row['authorization'] != 'USER_CANDIDATE':
