@@ -1,0 +1,65 @@
+{
+  "requirement_id": "MJ-REQ-270",
+  "issue": 271,
+  "title": "AI Prompt Versioning",
+  "lane": "antigravity",
+  "model": "gemini-3.8-flash-high",
+  "timestamp_utc": "2026-10-10T23:35:30Z",
+  "verdict": "PASS",
+  "git_branch": "antigravity/priority-matching-ai-20261010",
+  "implemented_files": [
+    "services/ai/prompt_versioning.py",
+    "tests/unit/test_ai_prompt_versioning.py",
+    "apps/web/src/ai-prompt-versioning.tsx",
+    "apps/web/src/ai-prompt-versioning.test.tsx"
+  ],
+  "authoritative_targets": [
+    {
+      "target": "resume",
+      "title": "Resume Tailoring Prompt",
+      "default_version": "1.0.0",
+      "variables": ["job_title", "company_name", "career_facts"]
+    },
+    {
+      "target": "cover_letter",
+      "title": "Cover Letter Prompt",
+      "default_version": "1.0.0",
+      "variables": ["job_title", "company_name", "candidate_profile", "qualifications"]
+    },
+    {
+      "target": "screening_answers",
+      "title": "Screening Answers Prompt",
+      "default_version": "1.0.0",
+      "variables": ["question_text", "job_title", "company_name", "approved_answers"]
+    },
+    {
+      "target": "job_parsing",
+      "title": "Job Parsing Prompt",
+      "default_version": "1.0.0",
+      "variables": ["raw_content"]
+    }
+  ],
+  "verification": {
+    "python_unit_tests": {
+      "command": "python -m pytest tests/unit/test_ai_prompt_versioning.py",
+      "result": "PASS",
+      "tests_passed": 7
+    },
+    "frontend_vitest": {
+      "command": "npx vitest run src/ai-prompt-versioning.test.tsx",
+      "result": "PASS",
+      "tests_passed": 4
+    },
+    "frontend_production_build": {
+      "command": "npm run build in apps/web",
+      "result": "PASS",
+      "clean_compile": true
+    }
+  },
+  "safety_invariants": {
+    "cryptographic_fingerprinting": "Every template version computes immutable SHA-256 fingerprint; tampered or mismatched templates are rejected immediately.",
+    "reproducibility_tracing": "Prompt renders return (rendered_prompt, version_identifier) to enable exact audit trail in generated artifacts.",
+    "variable_fail_closed": "Missing required template variables immediately raises PROMPT_VARIABLE_MISSING without executing LLM requests.",
+    "external_application_submission": "OFF"
+  }
+}

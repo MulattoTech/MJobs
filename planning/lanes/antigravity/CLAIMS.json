@@ -1,5 +1,21 @@
 {
   "schema_version": 1,
   "lane": "antigravity",
-  "claims": []
+  "claims": [
+    {
+      "claim_key": "antigravity:match-components-engine-20261010",
+      "issue": 114,
+      "requirement_id": "MJ-REQ-113",
+      "branch": "antigravity/priority-matching-ai-20261010",
+      "worktree": "C:/Tools/Dev/MJobs-Antigravity-Matching",
+      "paths": [
+        "services/matching/components.py",
+        "apps/web/src/match-components-breakdown.tsx",
+        "apps/web/src/match-components-breakdown.test.tsx",
+        "tests/unit/test_match_components.py",
+        "tests/integration/test_match_components_integration.py",
+        "docs/evidence/2026-10-10-match-components.json"
+      ]
+    }
+  ]
 }

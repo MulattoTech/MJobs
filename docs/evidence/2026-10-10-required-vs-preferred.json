@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-115-REQUIRED-VS-PREFERRED-20261010",
+  "recorded_at_utc": "2026-10-10T22:26:10Z",
+  "result": "PASS",
+  "issues": [116],
+  "requirement_ids": ["MJ-REQ-115"],
+  "scope": "Qualification requirement strength extraction and differential scoring distinguishing REQUIRED, PREFERRED, NICE_TO_HAVE, and UNKNOWN, ensuring missing preferred technologies do not penalize as severely as mandatory qualifications, with QualificationStrengthBreakdown UI component.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/116"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "four_strength_distinction": "PASS; requirements explicitly distinguished across REQUIRED (1.0 weight), PREFERRED (0.5 weight), NICE_TO_HAVE (0.25 weight), and UNKNOWN (0.25 weight).",
+    "mathematical_penalty_bound": "PASS; missing a preferred technology is bounded to <=50% penalty of missing a mandatory qualification (0.5 weight vs 1.0 weight).",
+    "frontend_components": "PASS; QualificationStrengthBreakdown renders the 4 tiers, KPI summary cards, filter tabs, candidate coverage badges, and impact disclosures.",
+    "safety": "PASS; external submission OFF asserted; no external API calls, unauthorized network requests, or background daemons."
+  },
+  "source_inputs": {
+    "services/matching/requirement_strength.py": {
+      "git_blob": "cb0c74d79a2cbb1af8241bdc4fb060d1900a186c",
+      "git_object_content_sha256": "447e302985722ff8944d425b002742eca3906768eaa0a6dd87d9bfdfc2ba5006"
+    },
+    "apps/web/src/qualification-strength-breakdown.tsx": {
+      "git_blob": "9d7f016f71131920a03acddf9829b45789f3c798",
+      "git_object_content_sha256": "9cbd21a3fa7c9b2fb9178405af8cb40aa022eb97bda8a002014d0ed7169bc8e0"
+    },
+    "apps/web/src/qualification-strength-breakdown.test.tsx": {
+      "git_blob": "a0ac3750ae8d279a22edb80af80823272da3a8af",
+      "git_object_content_sha256": "707c54e1b9a115415739c79c436c0f17a74fc0acdca5b68b8e273d37a659569e"
+    },
+    "tests/unit/test_qualification_strength.py": {
+      "git_blob": "caee629e5ab69a3fcc35f2f0039563315700086a",
+      "git_object_content_sha256": "22574bb1dd9ef19088286be156dbbf892a02acca5cbdd2cad3f5c66f97e1b20c"
+    },
+    "tests/integration/test_qualification_strength_integration.py": {
+      "git_blob": "e6683732e22dd515bd1182f35e608ce0acfab74a",
+      "git_object_content_sha256": "6ec8bd747affdc4540292cd4d9d276a6d7327bce3026dff60d1d9906c11cb40d"
+    }
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_qualification_strength.py",
+      "target": "Unit tests for 4-tier classification, mathematical penalty bounds, and alignment analysis",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/integration/test_qualification_strength_integration.py",
+      "target": "Integration tests with database job attributes and verified profile",
+      "result": "PASS",
+      "tests": 1,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/qualification-strength-breakdown.test.tsx",
+      "target": "Frontend QualificationStrengthBreakdown component tests",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 103,
+      "tests": 581,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "target": "Lane coordination validation",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}

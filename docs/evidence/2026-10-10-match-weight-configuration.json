@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-117-WEIGHT-CONFIGURATION-20261010",
+  "recorded_at_utc": "2026-10-10T23:16:00Z",
+  "result": "PASS",
+  "issues": [118],
+  "requirement_ids": ["MJ-REQ-117"],
+  "scope": "Match Weight Configuration engine providing canonical presets (Balanced Default title:20, skills:25, experience:15, location:15, salary:10, education:5, company:5, industry:5; Technical Skills; Seniority/Experience; Remote/Compensation; Custom), mathematical normalization, adapter mapping to 12-dimension matching components, and MatchWeightConfiguration interactive UI component.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/118"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "canonical_preset": "PASS; PRESET_BALANCED_DEFAULT reproduces the authoritative example (title 20, skills 25, experience 15, location 15, salary 10, education 5, company 5, industry 5) summing to 100.0%.",
+    "multiple_models": "PASS; supports multiple preset models rather than hardcoding a single model, plus flexible custom weighting.",
+    "normalization_algorithm": "PASS; normalize_weights scales arbitrary dimension weights to 100.0% preserving relative proportions and correcting rounding drift.",
+    "component_weights_adapter": "PASS; to_component_dimension_weights bridges 8-dimension user models into 12-dimension match components, dividing skills into required (65%) and preferred (35%).",
+    "frontend_components": "PASS; MatchWeightConfiguration renders preset dropdowns, per-dimension sliders, total weight balance gauges, auto-normalize action, and reset/save controls.",
+    "safety": "PASS; external submission OFF asserted; purely deterministic local calculations."
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_matching_weight_configuration.py",
+      "target": "Unit tests for preset models, normalization, validation, and adapter mapping",
+      "result": "PASS",
+      "tests": 7,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/match-weight-configuration.test.tsx",
+      "target": "Frontend MatchWeightConfiguration component tests",
+      "result": "PASS",
+      "tests": 3,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 107,
+      "tests": 591,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "target": "Lane coordination validation",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}

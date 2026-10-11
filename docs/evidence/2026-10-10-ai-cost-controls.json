@@ -1,0 +1,75 @@
+{
+  "requirement_id": "MJ-REQ-110",
+  "issue": 111,
+  "title": "AI Cost Controls",
+  "lane": "antigravity",
+  "model": "gemini-3.8-flash-high",
+  "timestamp_utc": "2026-10-10T23:30:25Z",
+  "verdict": "PASS",
+  "git_branch": "antigravity/priority-matching-ai-20261010",
+  "implemented_files": [
+    "services/ai/cost_controls.py",
+    "tests/unit/test_ai_cost_controls.py",
+    "apps/web/src/ai-cost-funnel.tsx",
+    "apps/web/src/ai-cost-funnel.test.tsx"
+  ],
+  "authoritative_funnel_stages": [
+    {
+      "stage": "discovered",
+      "label": "Inbound Discovery",
+      "default_cap": 5000,
+      "policy_bound": "max_input_candidates"
+    },
+    {
+      "stage": "deduplicated",
+      "label": "Deterministic Deduplication",
+      "policy_bound": "collapses identical candidate identifiers and rejects identity conflicts"
+    },
+    {
+      "stage": "filtered",
+      "label": "Plausible Pre-Filters",
+      "policy_bound": "deterministic criteria before LLM evaluation"
+    },
+    {
+      "stage": "scored",
+      "label": "Deterministic Score Gate",
+      "default_threshold": 75,
+      "policy_bound": "minimum_score"
+    },
+    {
+      "stage": "ai_evaluated",
+      "label": "AI Candidate Evaluation",
+      "default_cap": 75,
+      "policy_bound": "max_ai_candidates"
+    },
+    {
+      "stage": "documents_generated",
+      "label": "Review-Gated Documents",
+      "default_cap": 20,
+      "policy_bound": "max_document_candidates (strictly <= max_ai_candidates, requires document_reviewed=True)"
+    }
+  ],
+  "verification": {
+    "python_unit_tests": {
+      "command": "python -m pytest tests/unit/test_ai_cost_controls.py tests/unit/test_ai_cost_consumer.py",
+      "result": "PASS",
+      "tests_passed": 16
+    },
+    "frontend_vitest": {
+      "command": "npx vitest run src/ai-cost-funnel.test.tsx",
+      "result": "PASS",
+      "tests_passed": 8
+    },
+    "frontend_production_build": {
+      "command": "npm run build in apps/web",
+      "result": "PASS",
+      "clean_compile": true
+    }
+  },
+  "safety_invariants": {
+    "deterministic_pre_gating": "AI evaluation is never invoked on raw discovered postings without deterministic score qualification.",
+    "document_review_gate": "Only reviewed candidate jobs are admitted to document candidate generation ceilings.",
+    "strict_limits": "max_document_candidates can never exceed max_ai_candidates; input is capped at max_input_candidates before reading lazy streams.",
+    "external_application_submission": "OFF"
+  }
+}

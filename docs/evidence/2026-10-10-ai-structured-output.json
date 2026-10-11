@@ -1,0 +1,59 @@
+{
+  "requirement_id": "MJ-REQ-111",
+  "issue": 112,
+  "title": "AI Structured Output",
+  "lane": "antigravity",
+  "model": "gemini-3.8-flash-high",
+  "timestamp_utc": "2026-10-10T23:33:05Z",
+  "verdict": "PASS",
+  "git_branch": "antigravity/priority-matching-ai-20261010",
+  "implemented_files": [
+    "services/ai/structured_output.py",
+    "tests/unit/test_ai_structured_output.py",
+    "apps/web/src/ai-structured-output-inspector.tsx",
+    "apps/web/src/ai-structured-output-inspector.test.tsx"
+  ],
+  "canonical_schemas": [
+    {
+      "schema_name": "job_score",
+      "model": "JobScoreResult",
+      "fields": ["score: int", "category: str", "rationale: str"],
+      "strict_config": "strict=True, extra='forbid', additionalProperties=False"
+    },
+    {
+      "schema_name": "requirement_classification",
+      "model": "RequirementClassificationResult",
+      "fields": ["requirement: str", "classification: str", "confidence: float"],
+      "strict_config": "strict=True, extra='forbid', additionalProperties=False"
+    },
+    {
+      "schema_name": "company_summary",
+      "model": "CompanySummaryResult",
+      "fields": ["company_name: str", "industry: str", "summary: str", "key_signals: list[str]"],
+      "strict_config": "strict=True, extra='forbid', additionalProperties=False"
+    }
+  ],
+  "verification": {
+    "python_unit_tests": {
+      "command": "python -m pytest tests/unit/test_ai_structured_output.py",
+      "result": "PASS",
+      "tests_passed": 9
+    },
+    "frontend_vitest": {
+      "command": "npx vitest run src/ai-structured-output-inspector.test.tsx",
+      "result": "PASS",
+      "tests_passed": 5
+    },
+    "frontend_production_build": {
+      "command": "npm run build in apps/web",
+      "result": "PASS",
+      "clean_compile": true
+    }
+  },
+  "safety_invariants": {
+    "extra_attributes_forbidden": "Pydantic ConfigDict(extra='forbid') and JSON Schema additionalProperties: false are strictly enforced. Extra fields fail closed.",
+    "character_and_type_limits": "MAX_STRUCTURED_OUTPUT_CHARACTERS (100,000) limits raw payload size; duplicate JSON keys and non-standard constants (NaN, Infinity) are rejected.",
+    "sanitized_error_codes": "Failures return stable error codes (AI_STRUCTURED_OUTPUT_INVALID, AI_STRUCTURED_SCHEMA_INVALID) without echoing model content.",
+    "external_application_submission": "OFF"
+  }
+}

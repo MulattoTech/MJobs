@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "evidence_id": "MJ-REQ-108-AI-PROVIDERS-20261010",
+  "recorded_at_utc": "2026-10-10T23:08:00Z",
+  "result": "PASS",
+  "issues": [340, 341, 344],
+  "requirement_ids": ["MJ-REQ-108.A01", "MJ-REQ-108.A02", "MJ-REQ-108.A05"],
+  "scope": "Safe, bounded OpenAI-compatible (MJ-REQ-108.A01), OpenAI (MJ-REQ-108.A02), and loopback-only Local Endpoint (MJ-REQ-108.A05) AI providers with telemetry integration, SSRF defense, and AIProviderSettings UI component.",
+  "authority": {
+    "repository": "MulattoTech/MJobs",
+    "issue_urls": [
+      "https://github.com/MulattoTech/MJobs/issues/340",
+      "https://github.com/MulattoTech/MJobs/issues/341",
+      "https://github.com/MulattoTech/MJobs/issues/344"
+    ],
+    "base_commit": "f399e00da63c7bf14cd5281b71bba5daf8d62e10"
+  },
+  "acceptance": {
+    "openai_compatible": "PASS; OpenAICompatibleProvider supports /chat/completions, structured output (json_object), telemetry recording, and safe cancellation.",
+    "openai_provider": "PASS; OpenAIProvider defaults to https://api.openai.com/v1 with Bearer token authentication from environment.",
+    "local_endpoint_provider": "PASS; LocalEndpointProvider strictly enforces loopback IP addresses (127.0.0.1, [::1]) to prevent SSRF while enabling local model servers (LM Studio, LocalAI, vLLM).",
+    "provider_factory": "PASS; create_provider maps 'disabled', 'ollama', 'openai', 'openai-compatible', 'local' cleanly and safely rejects unsupported providers.",
+    "frontend_settings": "PASS; AIProviderSettings renders provider cards with status indicators, capability badges, model identifiers, concurrency slots, and masked API keys.",
+    "safety": "PASS; external submission OFF asserted; no live inference or paid API execution during automated tests."
+  },
+  "checks": [
+    {
+      "command": "python -m pytest tests/unit/test_ai_providers.py",
+      "target": "Unit and contract tests for OpenAICompatibleProvider, OpenAIProvider, and LocalEndpointProvider",
+      "result": "PASS",
+      "tests": 12,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest tests/unit/test_ai_task_configuration.py tests/unit/test_ai_structured_output.py",
+      "target": "AI task router and structured output validation tests",
+      "result": "PASS",
+      "tests": 15,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run src/ai-provider-settings.test.tsx",
+      "target": "Frontend AIProviderSettings component tests",
+      "result": "PASS",
+      "tests": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npx vitest run",
+      "target": "Full frontend Vitest test suite",
+      "result": "PASS",
+      "files": 105,
+      "tests": 586,
+      "failures": 0,
+      "skips": 0
+    },
+    {
+      "command": "npm run build",
+      "target": "TypeScript check and Vite production client build",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "win32",
+    "submission_gates": "SUBMISSION_DISABLED_BY_POLICY"
+  }
+}

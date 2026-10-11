@@ -1,0 +1,94 @@
+{
+  "requirement_id": "MJ-REQ-109",
+  "issue": 110,
+  "title": "AI Task Configuration",
+  "lane": "antigravity",
+  "model": "gemini-3.8-flash-high",
+  "timestamp_utc": "2026-10-10T23:27:30Z",
+  "verdict": "PASS",
+  "git_branch": "antigravity/priority-matching-ai-20261010",
+  "implemented_files": [
+    "services/ai/tasks.py",
+    "tests/unit/test_ai_task_configuration.py",
+    "apps/web/src/ai-task-configuration.tsx",
+    "apps/web/src/ai-task-configuration.test.tsx"
+  ],
+  "authoritative_tasks_supported": [
+    {
+      "task": "job_parsing",
+      "title": "Job Parsing",
+      "fallback_mode": "DETERMINISTIC",
+      "fallback_policy": "Use normalized fields supplied by job-source parsers; do not invent missing fields."
+    },
+    {
+      "task": "job_scoring",
+      "title": "Job Scoring",
+      "fallback_mode": "DETERMINISTIC",
+      "fallback_policy": "Rule-based, explainable match scores and filters remain available."
+    },
+    {
+      "task": "requirement_extraction",
+      "title": "Requirement Extraction",
+      "fallback_mode": "DETERMINISTIC",
+      "fallback_policy": "Use explicit posting requirements; keep unrecognized qualifications unknown."
+    },
+    {
+      "task": "resume_tailoring",
+      "title": "Resume Tailoring",
+      "fallback_mode": "DETERMINISTIC",
+      "fallback_policy": "Select and reorder approved career facts with safe templates; do not add or rephrase claims."
+    },
+    {
+      "task": "cover_letters",
+      "title": "Cover Letters",
+      "fallback_mode": "DETERMINISTIC",
+      "fallback_policy": "Build a factual cover letter from the approved profile and job fields."
+    },
+    {
+      "task": "free_form_answers",
+      "title": "Free-form Answers",
+      "fallback_mode": "UNAVAILABLE",
+      "fallback_policy": "No new answer is generated; review and reuse only explicitly approved saved answers."
+    },
+    {
+      "task": "company_summarization",
+      "title": "Company Summarization",
+      "fallback_mode": "UNAVAILABLE",
+      "fallback_policy": "No company summary is generated; source-grounded company facts remain available."
+    }
+  ],
+  "verification": {
+    "python_unit_tests": {
+      "command": "python -m pytest tests/unit/test_ai_task_configuration.py",
+      "result": "PASS",
+      "tests_passed": 10
+    },
+    "matching_ai_python_suite": {
+      "command": "python -m pytest tests/unit/test_ai_*.py tests/unit/test_matching_*.py",
+      "result": "PASS",
+      "tests_passed": 134
+    },
+    "frontend_vitest": {
+      "command": "npx vitest run src/ai-task-configuration.test.tsx",
+      "result": "PASS",
+      "tests_passed": 8
+    },
+    "full_web_vitest_suite": {
+      "command": "npx vitest run",
+      "result": "PASS",
+      "test_files": 108,
+      "tests_passed": 599
+    },
+    "frontend_production_build": {
+      "command": "npm run build in apps/web",
+      "result": "PASS",
+      "clean_compile": true
+    }
+  },
+  "safety_invariants": {
+    "secret_leak_prevention": "Model identifiers with credential prefixes (sk-, ghp_, gho_, hf_) are rejected safely without echoing inputs.",
+    "model_id_validation": "Model ID is required whenever provider is not disabled.",
+    "loopback_and_budget_controls": "All local inference routes strictly honor loopback constraints without environment proxy leaks.",
+    "external_application_submission": "OFF"
+  }
+}

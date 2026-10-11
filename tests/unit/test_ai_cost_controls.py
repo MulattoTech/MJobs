@@ -97,6 +97,62 @@ class AICostControlTests(unittest.TestCase):
         self.assertEqual(str(error.exception), "AI_FUNNEL_INPUT_LIMIT")
         self.assertEqual(consumed, [0, 1, 2, 3, 4, 5])
 
+    def test_policy_serialization_and_roundtrip(self):
+        from services.ai.cost_controls import AICostPolicy
+
+        policy = AICostPolicy(minimum_score=80, max_input_candidates=3000,
+                              max_ai_candidates=50, max_document_candidates=15)
+        serialized = policy.to_dict()
+        self.assertEqual(serialized, {
+            "minimum_score": 80,
+            "max_input_candidates": 3000,
+            "max_ai_candidates": 50,
+            "max_document_candidates": 15,
+        })
+        reconstructed = AICostPolicy.from_dict(serialized)
+        self.assertEqual(reconstructed, policy)
+
+    def test_policy_with_update_validates_constraints(self):
+        from services.ai.cost_controls import AICostPolicy
+
+        policy = AICostPolicy()
+        updated = policy.with_update(minimum_score=85, max_ai_candidates=50, max_document_candidates=10)
+        self.assertEqual(updated.minimum_score, 85)
+        self.assertEqual(updated.max_ai_candidates, 50)
+        self.assertEqual(updated.max_document_candidates, 10)
+
+        # max_document_candidates cannot exceed max_ai_candidates
+        with self.assertRaises(ValueError) as error:
+            policy.with_update(max_ai_candidates=10, max_document_candidates=20)
+        self.assertEqual(str(error.exception), "AI_FUNNEL_POLICY_INVALID")
+
+    def test_canonical_stages_and_work_plan_serialization(self):
+        from services.ai.cost_controls import AICostPolicy, CandidateScore
+
+        policy = AICostPolicy(minimum_score=80, max_ai_candidates=2, max_document_candidates=1)
+        plan = policy.plan([
+            CandidateScore("job-1", 95, document_reviewed=True),
+            CandidateScore("job-2", 85, document_reviewed=False),
+            CandidateScore("job-3", 75, document_reviewed=True),
+        ])
+
+        stages = policy.canonical_stages(plan)
+        self.assertEqual(len(stages), 5)
+        self.assertEqual(stages[0]["stage"], "discovered")
+        self.assertEqual(stages[0]["count"], 3)
+        self.assertEqual(stages[2]["stage"], "scored_eligible")
+        self.assertEqual(stages[2]["count"], 2)
+        self.assertEqual(stages[3]["stage"], "ai_evaluated")
+        self.assertEqual(stages[3]["count"], 2)
+        self.assertEqual(stages[4]["stage"], "documents_generated")
+        self.assertEqual(stages[4]["count"], 1)
+
+        plan_dict = plan.to_dict()
+        self.assertEqual(plan_dict["received_count"], 3)
+        self.assertEqual(plan_dict["eligible_count"], 2)
+        self.assertEqual(plan_dict["ai_candidate_count"], 2)
+        self.assertEqual(plan_dict["document_candidate_count"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

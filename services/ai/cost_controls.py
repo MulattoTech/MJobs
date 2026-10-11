@@ -35,6 +35,17 @@ class AIWorkPlan:
     ai_candidate_ids: tuple[str, ...]
     document_candidate_ids: tuple[str, ...]
 
+    def to_dict(self) -> dict[str, object]:
+        return {
+            "received_count": self.received_count,
+            "unique_count": self.unique_count,
+            "eligible_count": self.eligible_count,
+            "ai_candidate_count": len(self.ai_candidate_ids),
+            "ai_candidate_ids": list(self.ai_candidate_ids),
+            "document_candidate_count": len(self.document_candidate_ids),
+            "document_candidate_ids": list(self.document_candidate_ids),
+        }
+
 
 @dataclass(frozen=True)
 class AICostPolicy:
@@ -55,6 +66,68 @@ class AICostPolicy:
                 or not 0 <= self.max_ai_candidates <= 100_000
                 or not 0 <= self.max_document_candidates <= self.max_ai_candidates):
             raise ValueError("AI_FUNNEL_POLICY_INVALID")
+
+    def to_dict(self) -> dict[str, int]:
+        return {
+            "minimum_score": self.minimum_score,
+            "max_input_candidates": self.max_input_candidates,
+            "max_ai_candidates": self.max_ai_candidates,
+            "max_document_candidates": self.max_document_candidates,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, object]) -> "AICostPolicy":
+        if not isinstance(data, Mapping):
+            raise ValueError("AI_FUNNEL_POLICY_INVALID")
+        kwargs: dict[str, object] = {}
+        for key in ("minimum_score", "max_input_candidates", "max_ai_candidates", "max_document_candidates"):
+            if key in data:
+                kwargs[key] = data[key]
+        return cls(**kwargs)
+
+    def with_update(self, **updates: object) -> "AICostPolicy":
+        current: dict[str, object] = dict(self.to_dict())
+        current.update(updates)
+        return self.from_dict(current)
+
+    def canonical_stages(self, plan: AIWorkPlan | None = None) -> list[dict[str, object]]:
+        """Return the canonical multi-stage progression with configured caps."""
+        return [
+            {
+                "stage": "discovered",
+                "label": "Discovered Postings",
+                "description": "Total inbound jobs ingested from discovery adapters.",
+                "cap": self.max_input_candidates,
+                "count": plan.received_count if plan else None,
+            },
+            {
+                "stage": "deduplicated",
+                "label": "Deduplicated Postings",
+                "description": "Unique postings following title, company, and location deduplication.",
+                "count": plan.unique_count if plan else None,
+            },
+            {
+                "stage": "scored_eligible",
+                "label": "Deterministic Score Threshold",
+                "description": f"Candidates meeting or exceeding deterministic match threshold ({self.minimum_score}/100).",
+                "threshold": self.minimum_score,
+                "count": plan.eligible_count if plan else None,
+            },
+            {
+                "stage": "ai_evaluated",
+                "label": "AI Evaluated Candidates",
+                "description": "Top-ranked eligible candidates sent for advisory AI evaluation.",
+                "cap": self.max_ai_candidates,
+                "count": len(plan.ai_candidate_ids) if plan else None,
+            },
+            {
+                "stage": "documents_generated",
+                "label": "Documents Generated",
+                "description": "Separately review-gated candidates eligible for tailored document generation.",
+                "cap": self.max_document_candidates,
+                "count": len(plan.document_candidate_ids) if plan else None,
+            },
+        ]
 
     def plan(self, candidates: Iterable[CandidateScore]) -> AIWorkPlan:
         """Deduplicate, apply deterministic threshold, then cap AI and reviewed-doc work."""

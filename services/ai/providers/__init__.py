@@ -77,18 +77,34 @@ def create_provider(name: str) -> AIProvider:
         return DisabledAIProvider()
     if name == "ollama":
         return OllamaProvider.from_environment()
+    if name == "openai":
+        return OpenAIProvider.from_environment()
+    if name == "openai-compatible":
+        return OpenAICompatibleProvider.from_environment()
+    if name == "local":
+        return LocalEndpointProvider.from_environment()
+    if name in ("azure-openai", "azure"):
+        return AzureOpenAIProvider.from_environment()
     raise ValueError("AI_PROVIDER_UNSUPPORTED")
 
 
+from services.ai.providers.azure_openai import AzureOpenAIProvider
+from services.ai.providers.local_endpoint import LocalEndpointProvider
 from services.ai.providers.ollama import OllamaProvider
+from services.ai.providers.openai import OpenAIProvider
+from services.ai.providers.openai_compatible import OpenAICompatibleProvider
 
 
 __all__ = [
     "AIProvider",
     "AIProviderDisabled",
     "AIProviderError",
+    "AzureOpenAIProvider",
     "DisabledAIProvider",
+    "LocalEndpointProvider",
     "OllamaProvider",
+    "OpenAICompatibleProvider",
+    "OpenAIProvider",
     "ProviderCapabilities",
     "create_provider",
 ]

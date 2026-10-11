@@ -95,7 +95,7 @@ class AITaskConfigurationTests(unittest.TestCase):
         from services.ai.tasks import AITaskConfiguration, AITaskRouter
 
         configuration = AITaskConfiguration.from_mapping({
-            "job_scoring": {"provider": "openai", "model": "model-x"},
+            "job_scoring": {"provider": "anthropic", "model": "model-x"},
         })
         router = AITaskRouter(configuration)
         with patch.object(socket, "create_connection", side_effect=AssertionError("unexpected network")):
@@ -104,6 +104,56 @@ class AITaskConfigurationTests(unittest.TestCase):
 
         self.assertEqual(str(error.exception), "AI_PROVIDER_UNSUPPORTED")
         self.assertNotIn("private prompt", str(error.exception))
+
+    def test_configuration_serialization_and_roundtrip(self):
+        from services.ai.tasks import AI_TASKS, AITaskConfiguration
+
+        config = AITaskConfiguration.from_mapping({
+            "job_scoring": {"provider": "openai", "model": "gpt-4o-mini"},
+            "resume_tailoring": {"provider": "ollama", "model": "llama3.2"},
+        })
+        serialized = config.to_dict()
+
+        self.assertEqual(len(serialized), len(AI_TASKS))
+        self.assertEqual(serialized["job_scoring"], {"provider": "openai", "model": "gpt-4o-mini"})
+        self.assertEqual(serialized["resume_tailoring"], {"provider": "ollama", "model": "llama3.2"})
+        self.assertEqual(serialized["job_parsing"], {"provider": "disabled", "model": None})
+
+        # Roundtrip reconstruction
+        reconstructed = AITaskConfiguration.from_mapping(serialized)
+        self.assertEqual(reconstructed.to_dict(), serialized)
+
+    def test_with_update_returns_immutable_updated_configuration(self):
+        from services.ai.tasks import AITaskConfiguration
+
+        initial = AITaskConfiguration.default()
+        updated = initial.with_update({
+            "job_scoring": {"provider": "openai", "model": "gpt-4o-mini"},
+        })
+
+        self.assertEqual(initial.for_task("job_scoring").provider, "disabled")
+        self.assertEqual(updated.for_task("job_scoring").provider, "openai")
+        self.assertEqual(updated.for_task("job_scoring").model, "gpt-4o-mini")
+
+        with self.assertRaises(ValueError) as error:
+            initial.with_update({"invalid_task": {"provider": "openai", "model": "gpt-4o"}})
+        self.assertEqual(str(error.exception), "AI_TASK_UNSUPPORTED")
+
+    def test_router_get_task_summary_includes_fallbacks(self):
+        from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter
+
+        config = AITaskConfiguration.from_mapping({
+            "job_scoring": {"provider": "openai", "model": "gpt-4o-mini"},
+        })
+        router = AITaskRouter(config)
+        summary = router.get_task_summary()
+
+        self.assertEqual(set(summary), set(AI_TASKS))
+        self.assertEqual(summary["job_scoring"]["provider"], "openai")
+        self.assertEqual(summary["job_scoring"]["model"], "gpt-4o-mini")
+        self.assertEqual(summary["job_scoring"]["fallback_mode"], "DETERMINISTIC")
+        self.assertEqual(summary["free_form_answers"]["provider"], "disabled")
+        self.assertEqual(summary["free_form_answers"]["fallback_mode"], "UNAVAILABLE")
 
 
 if __name__ == "__main__":
