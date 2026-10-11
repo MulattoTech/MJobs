@@ -2,6 +2,14 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 19: serial mock-ATS HTML security publication
+
+- Same live runner10584 and sole mutation owner; immutable goal0/7. PR545 protected merged `5cad0b32de38249f4eb56ad2ca050a6d5c37f580`, verified remote main. Exact4a2ecdad requiredCI/Compose/all3integration+aggregate PASS. Full browser38182179831/attempt1:207cases/23FAIL/0SKIP, all4artifact identities/hashes preserved; no unchanged rerun.
+- #524: restored reviewed security bytes from preserved3d7f54b3 onto fresh branch `fix/mock-ats-html-current-524-20261011` based on that main. Encode requisition route segments and HTML text/attributes including restored receipt references; JSON identities, uploads and exactly-once mock confirmation retained. Old security branch unchanged.
+- Fresh focused66PASS/12subtests both snapshot and canonical. Initial aggregate1FAIL/1397PASS/753subtests because root-local TEMP invalidated outside-path fixture; corrected external disposable TEMP recovery11PASS/14subtests and fullunit1362PASS/752subtests. No source/assertion changes for environment recovery. Validators/diff PASS; local Luna review no critical/important issue. Exact source hashes/commands in `docs/evidence/2026-10-11-mock-ats-html-security.json`.
+- Hosted candidate identity belongs in AFK queue/events after publication. Current main38open CodeQL35high/3medium; targeted20-22 closure unverified. No parent acceptance promoted. Original dirty plan and search-history marker preserved/excluded; private config/data untouched, submissions OFF. Rollback via revert; no migration/config changes.
+- Next: inspect exact candidate hosted/security/Compose/integration/browser jobs, fix actionable failures and integrate only through protection. Then advance connected saved-search filtering/scoring; preserve unresolved browser failures and scoped acceptance repairs.
+
 ## Iteration 18: profile-save selection and stale list repair
 
 - Same live installed runner10584 and sole mutation owner; immutable goal remains0/7. PR544 protected merged `02a326d0542b96f117089422d0b5d60018fa88fb`; exact a6ca5078 required CI, Compose and all integration shards/aggregate PASS. Full browser38181480065/attempt1:205reported cases,25failures,0skips. Exact job packets/JUnit preserved locally; no unchanged rerun.

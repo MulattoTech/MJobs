@@ -1,0 +1,88 @@
+{
+  "issue": 524,
+  "scope": "CodeQL reflective-XSS alerts20-22 and sibling confirmation output",
+  "base": "12466a8cc820712b4842af02c9f2d4482102827a",
+  "utc": "2026-10-11T22:06:15.663439+00:00",
+  "sourceHashes": {
+    "fixtures/mock_server.py": "fea1ee687cb865cc355ef76adeccb7673c30eb3f45156be64d14f7c3cc516f2a",
+    "tests/unit/test_mock_html_security.py": "136fba83db34c486f28468806fc664b94aedea6fddac72b1e60cd33d5c05bcce",
+    "tests/browser/test_mock_html_security.py": "d7c40299bc78f2158557670989e153c7c6a13536de65fc2bb3c03b7bf3651720"
+  },
+  "reproduction": "13 failing markup/route regressions before fix",
+  "validation": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_mock_html_security.py tests/unit/test_mock_answer_bindings.py tests/unit/test_mock_discovery_client.py",
+      "result": "31 PASS;10 subtests PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_mock_html_security.py",
+      "result": "1 PASS Chromium and real HTTP"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_mock_application.py tests/integration/test_application_pipeline.py",
+      "result": "34 PASS;2 subtests PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit",
+      "result": "1362 PASS;751 subtests PASS"
+    },
+    {
+      "command": "tools.verification.catalogue;tools.verification.progress validate;tools.verification.agent_skills;git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "review": "Fresh local Luna read-only review: no concrete bypass or regression",
+  "compatibility": "Normal A/B review, dynamic fields, fixture manual login, uploads, receipt readback/restart and exactly-once confirmation verified",
+  "remaining": "New candidate hosted checks pending publication; current main38open CodeQL alerts and full browser23failures;#524 and whole goal remain PARTIAL. No release acceptance promotion.",
+  "externalApplications": "OFF",
+  "revalidation": {
+    "iteration": 19,
+    "utc": "2026-10-11T23:08:15.373293+00:00",
+    "base": "5cad0b32de38249f4eb56ad2ca050a6d5c37f580",
+    "preservedOriginalCommit": "3d7f54b368d96865d45789a9753078a206ee69cb",
+    "sourceHashes": {
+      "fixtures/mock_server.py": "fea1ee687cb865cc355ef76adeccb7673c30eb3f45156be64d14f7c3cc516f2a",
+      "tests/unit/test_mock_html_security.py": "136fba83db34c486f28468806fc664b94aedea6fddac72b1e60cd33d5c05bcce",
+      "tests/browser/test_mock_html_security.py": "d7c40299bc78f2158557670989e153c7c6a13536de65fc2bb3c03b7bf3651720"
+    },
+    "focused": "66 PASS /12 subtests both isolated source snapshot and canonical root",
+    "finalCombined": "1 FAIL /1397 PASS /753 subtests; repository-local TEMP invalidated outside-path fixture premise",
+    "failureRecovery": "Dedicated disposable TEMP outside project; recovery11PASS/14subtests, corrected full units1362PASS/752subtests; no source/assertion changes",
+    "review": "Fresh read-only local Luna review found no critical or important issue; tests not run by reviewer; encoded-slash route cases not covered",
+    "currentMainBrowser": {
+      "head": "4a2ecdad3f8030fd080092764367ab5c2a9f5e8c",
+      "run": 38182179831,
+      "attempt": 1,
+      "cases": 207,
+      "failures": 23,
+      "skips": 0,
+      "allFourShardsObserved": true
+    },
+    "currentMainRequired": "PR545 exact4a2ecdad requiredCI/Compose/all3integration+aggregate PASS; protected merge5cad0b32 verified against remote main",
+    "codeql": "Current main38open alerts35high/3medium; findings20-22 remain open until patch scanner evidence. No dismissal or parent promotion.",
+    "hostedCandidate": "NOT_RUN until publication",
+    "guardrails": "Single live installed runner10584; immutable goal0/7; preserved dirty plan/search-history marker and original security branch; external submissionsOFF; no private config/data touched",
+    "commands": [
+      {
+        "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_mock_html_security.py tests/unit/test_mock_answer_bindings.py tests/unit/test_mock_discovery_client.py tests/browser/test_mock_html_security.py tests/browser/test_mock_application.py tests/integration/test_application_pipeline.py",
+        "result": "66PASS/12subtests; same result isolated and canonical"
+      },
+      {
+        "command": ".venv/Scripts/python.exe -m pytest -q tests/unit tests/browser/test_mock_html_security.py tests/browser/test_mock_application.py tests/integration/test_application_pipeline.py",
+        "result": "1FAIL/1397PASS/753subtests; root-local TEMP makes outside confinement fixture inside root"
+      },
+      {
+        "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_compose_recovery_target.py",
+        "result": "11PASS/14subtests using disposable TEMP outside root"
+      },
+      {
+        "command": ".venv/Scripts/python.exe -m pytest -q tests/unit",
+        "result": "1362PASS/752subtests using corrected external TEMP"
+      },
+      {
+        "command": "catalogue;progress validate;progress_dashboard --check;agent_skills;git diff --check",
+        "result": "PASS"
+      }
+    ]
+  }
+}

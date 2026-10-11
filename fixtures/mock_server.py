@@ -1,12 +1,14 @@
 """Explicit fictional local ATS/aggregator fixtures, never production job data."""
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from html import escape
 import hashlib
 import json
 from pathlib import Path
 import socket
 import threading
 import time
+from urllib.parse import quote
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -42,7 +44,7 @@ def create_mock_app(receipt_file=None):
 
     @app.get("/board/apply/{requisition}")
     def application_redirect(requisition: str):
-        return RedirectResponse("/ats/apply/" + requisition)
+        return RedirectResponse("/ats/apply/" + quote(requisition, safe=""))
 
     @app.get("/company", response_class=HTMLResponse)
     def company():
@@ -96,11 +98,12 @@ def create_mock_app(receipt_file=None):
     @app.get("/ats/apply/{requisition}", response_class=HTMLResponse)
     def application(requisition: str, request: Request, challenge: bool = False,
                     dynamic: str | None = None, auth_expired: bool = False):
+        requisition_path = quote(requisition, safe="")
         if challenge:
             return '<h1 data-intervention="CAPTCHA">Manual challenge required</h1>'
         if auth_expired and request.cookies.get("mock_session") != "fixture-authenticated":
             return (f'<h1 data-auth-required="true">Sign in required</h1>'
-                    f'<a href="/ats/login/{requisition}">Sign in manually</a>')
+                    f'<a href="/ats/login/{requisition_path}">Sign in manually</a>')
         dynamic_mode = dynamic if dynamic in {"known", "unknown"} else None
         dynamic_field = ""
         if dynamic_mode == "known":
@@ -115,8 +118,8 @@ def create_mock_app(receipt_file=None):
                 <input id="unlisted" name="unlisted" data-mjobs-dynamic-field
                        data-mjobs-question-id="unlisted">'''
         review_query = f"?dynamic={dynamic_mode}" if dynamic_mode else ""
-        return f'''<h1>Mock ATS application {requisition}</h1>
-        <form action="/ats/review/{requisition}{review_query}" method="post" enctype="multipart/form-data">
+        return f'''<h1>Mock ATS application {escape(requisition)}</h1>
+        <form action="/ats/review/{requisition_path}{review_query}" method="post" enctype="multipart/form-data">
         <label>Name<input name="name" required maxlength="200"></label>
         <label>Email<input name="email" type="email" required></label>
         <label>Resume<input name="resume" type="file" accept=".pdf" required></label>
@@ -205,7 +208,7 @@ def create_mock_app(receipt_file=None):
             supporting_uploads.extend(received_supporting)
         # A fictional question, supplied only by an explicitly approved test answer.
         return f'''<h1>Review mock application</h1><p data-validated="true">Documents validated</p>
-        <form method="post" action="/ats/submit/{requisition}">
+        <form method="post" action="/ats/submit/{quote(requisition, safe="")}">
         <label>Application ID<input name="application_id" required></label>
         <label>Approved fixture answer<textarea name="answer" required></textarea></label>
         <label><input name="confirmed" type="checkbox" required>Confirm fictional test submission</label>
@@ -241,9 +244,11 @@ def create_mock_app(receipt_file=None):
                 temporary.replace(path)
         await form.close()
         receipt = receipts[application_id]
-        return (f'<h1 data-confirmation="{receipt["reference_number"]}">Thank you for applying.</h1>'
+        # Encode at rendering time, including references restored from receipt_file.
+        reference_html = escape(receipt["reference_number"], quote=True)
+        return (f'<h1 data-confirmation="{reference_html}">Thank you for applying.</h1>'
                 f'<p>Application received.</p><p>Application reference: '
-                f'{receipt["reference_number"]}</p>')
+                f'{reference_html}</p>')
 
     @app.get("/ats/receipts/{application_id}")
     def receipt(application_id: str):
