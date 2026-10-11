@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+from contextlib import contextmanager
 import subprocess
 from unittest.mock import patch
 import tempfile
@@ -17,6 +19,20 @@ from tools.agent_dashboard.observability import (
 )
 
 
+@contextmanager
+def directory_link(link, target):
+    # Junctions need no Windows symlink privilege; all targets are disposable.
+    if os.name == "nt":
+        subprocess.run(["cmd", "/c", "mklink", "/J", str(link), str(target)],
+                       check=True, capture_output=True)
+    else:
+        link.symlink_to(target, target_is_directory=True)
+    try:
+        yield
+    finally:
+        link.rmdir() if os.name == "nt" else link.unlink()
+
+
 class AgentDashboardSupervisorTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -28,6 +44,53 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def test_log_path_rejects_unknown_lane_before_path_construction(self):
+        supervisor = AgentSupervisor(self.root)
+        with self.assertRaises(KeyError):
+            supervisor.log_path("../private")
+
+    def test_quota_reader_ignores_native_log_outside_log_directory(self):
+        supervisor = AgentSupervisor(self.root)
+        private = self.root / "private.txt"
+        private.write_text("RESOURCE_EXHAUSTED: Individual quota reached", encoding="utf-8")
+        self.assertIsNotNone(supervisor._quota_error_from_text(private.read_text(encoding="utf-8")))
+        self.assertIsNone(supervisor._live_quota_error(
+            "antigravity", {"native_log_path": str(private)}))
+
+    def test_runtime_reload_discards_unknown_lanes(self):
+        supervisor = AgentSupervisor(self.root)
+        runtime = json.loads(supervisor.runtime_path.read_text(encoding="utf-8"))
+        runtime["lanes"]["../../private"] = {
+            "pid": None, "status": "BLOCKED_ENVIRONMENT", "exit_code": 0}
+        supervisor.runtime_path.write_text(json.dumps(runtime), encoding="utf-8")
+        self.assertNotIn("../../private", supervisor._load_runtime()["lanes"])
+
+    def test_native_log_directory_redirect_is_not_authorized(self):
+        supervisor = AgentSupervisor(self.root)
+        private = self.root / "private-logs"
+        private.mkdir()
+        (private / "secret.log").write_text("PRIVATE SENTINEL", encoding="utf-8")
+        supervisor.native_log_dir.rmdir()
+        with directory_link(supervisor.native_log_dir, private):
+            supervisor.runtime["lanes"]["antigravity"]["native_log_path"] = str(
+                supervisor.native_log_dir / "secret.log")
+            self.assertEqual([item["name"] for item in
+                              supervisor.terminal_sources("antigravity")["sources"]], ["stdout"])
+
+    def test_runtime_repair_skips_redirected_log_directory(self):
+        supervisor = AgentSupervisor(self.root)
+        supervisor.runtime["lanes"]["codex"].update({
+            "pid": None, "status": "BLOCKED_ENVIRONMENT", "exit_code": 0})
+        supervisor.save()
+        supervisor.native_log_dir.rmdir()
+        supervisor.log_dir.rmdir()
+        private = self.root / "private-logs"
+        private.mkdir()
+        (private / "codex.log").write_text("PRIVATE SENTINEL", encoding="utf-8")
+        with directory_link(supervisor.log_dir, private):
+            reloaded = supervisor._load_runtime()
+            self.assertEqual(reloaded["lanes"]["codex"]["status"], "BLOCKED_ENVIRONMENT")
 
 
 

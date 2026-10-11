@@ -1,0 +1,47 @@
+{
+  "issue": 524,
+  "utc": "2026-10-11T23:43:14.055196+00:00",
+  "base": "d5e94dd9066766cf8e245b3301a0412901c3984f",
+  "revisionAtRecording": "d5e94dd9066766cf8e245b3301a0412901c3984f",
+  "sourceHashes": {
+    "tools/agent_dashboard/supervisor.py": "2b3271249e4bdd67ee3564954fe404ac7ce372cbd492210ca4ede98cacd28bcb",
+    "tools/agent_dashboard/server.py": "e98a36b26329c1b8f2b5a7eaeb74d538aa9cf6117f3b2d23dae43bcaafbadd7e",
+    "tests/unit/test_agent_dashboard.py": "fdb1f34ed65eeb8cbfaa9241eda3c0654b749d7e9819bcfc3d0d10285d70ddbd",
+    "tests/unit/test_agent_dashboard_api.py": "34676dc880a905170a56d5bc430ba9264ed09dc63bfc89a9d36339ee34f64338"
+  },
+  "behavior": "Confine dashboard terminal and quota sources to non-redirected designated log directories; reject unknown persisted lanes; preserve normal streams and reload.",
+  "red": [
+    "Predecessor exposed outside native file over real TestClient WebSocket; lane traversal and unknown persisted lane controls failed.",
+    "Corrected quota oracle failed against exact predecessor method loaded in memory.",
+    "Real Windows junction controls reproduced native-directory authorization and outside-log-based runtime repair."
+  ],
+  "focused": {
+    "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_agent_dashboard.py tests/unit/test_agent_dashboard_api.py",
+    "result": "29 PASS, zero skips",
+    "artifact": "outputs/ci/iteration22-dashboard-final.xml"
+  },
+  "fullUnit": {
+    "result": "1373 PASS; 752 subtests PASS; zero failures/skips; unchanged final source",
+    "command": ".venv/Scripts/python.exe -m pytest -q tests/unit",
+    "artifact": "outputs/ci/iteration22-unit-final.xml"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "fixtures": "Disposable synthetic external TEMP; no private configuration/data"
+  },
+  "otherChecks": [
+    "production web build PASS",
+    "catalogue PASS",
+    "progress validate PASS",
+    "dashboard CURRENT",
+    "agent skills PASS",
+    "git diff --check PASS"
+  ],
+  "review": "Read-only local Luna review; startup/root redirection findings corrected and re-reviewed; no important issue remaining in persisted-path scope.",
+  "limits": [
+    "Hosted current-head checks and CodeQL findings resolution require fresh evidence.",
+    "Concurrent filesystem replacement between validation and opening remains outside persisted-data-only protection.",
+    "Whole goal remains 0/7; no acceptance authority promoted; real submissions OFF."
+  ]
+}
