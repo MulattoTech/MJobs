@@ -71,7 +71,8 @@ def _receipt_view(payload: dict, timestamp: str, *, replayed: bool | None = None
     return receipt
 
 
-def _latest_review(store, profile_id: str, application_id: str) -> dict | None:
+def _latest_review(store, profile_id: str, application_id: str,
+                   preview: dict) -> dict | None:
     with store.engine.connect() as connection:
         rows = connection.execute(select(
             m.audit.c.payload, m.audit.c.timestamp,
@@ -92,7 +93,10 @@ def _latest_review(store, profile_id: str, application_id: str) -> dict | None:
                     or not isinstance(payload.get("profile_version"), str)
                     or not _PROFILE_VERSION.fullmatch(payload["profile_version"])
                     or not isinstance(payload.get("route_id"), str)
-                    or not payload["route_id"]):
+                    or not payload["route_id"]
+                    or payload.get("fingerprint") != preview.get("fingerprint")
+                    or payload.get("profile_version") != preview.get("profile_version")
+                    or payload.get("route_id") != preview.get("route_id")):
                 continue
             return _receipt_view(payload, row["timestamp"])
     return None
@@ -103,7 +107,10 @@ def get_application_rehearsal(store, profile_id: str, application_id: str) -> di
     preview = build_rehearsal(store, profile_id, application_id)
     if not isinstance(preview, dict):
         raise RehearsalStoreError("APPLICATION_REHEARSAL_INVALID")
-    return {**preview, "latest_review": _latest_review(store, profile_id, application_id)}
+    return {
+        **preview,
+        "latest_review": _latest_review(store, profile_id, application_id, preview),
+    }
 
 
 def acknowledge_application_rehearsal(store, profile_id: str, application_id: str,
@@ -119,7 +126,7 @@ def acknowledge_application_rehearsal(store, profile_id: str, application_id: st
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         application = connection.execute(select(
-            m.applications.c.id,
+            m.applications.c.id, m.applications.c.route_id,
         ).where(
             m.applications.c.id == application_id,
             m.applications.c.profile_id == profile_id,
@@ -127,7 +134,25 @@ def acknowledge_application_rehearsal(store, profile_id: str, application_id: st
         if application is None:
             raise RehearsalStoreError("APPLICATION_NOT_FOUND")
 
+        locked_profile = connection.execute(select(
+            m.profiles.c.version,
+        ).where(
+            m.profiles.c.id == profile_id,
+        ).with_for_update()).scalar_one_or_none()
+        if locked_profile is None:
+            raise RehearsalStoreError("PROFILE_NOT_FOUND")
+        locked_route = connection.execute(select(
+            m.routes.c.id,
+        ).where(
+            m.routes.c.id == application.route_id,
+        ).with_for_update()).scalar_one_or_none()
+        if locked_route is None:
+            raise RehearsalStoreError("APPLICATION_NOT_FOUND")
+
         preview = build_rehearsal(store, profile_id, application_id)
+        if (preview.get("profile_version") != locked_profile
+                or preview.get("route_id") != locked_route):
+            raise RehearsalStoreError("APPLICATION_REHEARSAL_STALE")
         expected = _receipt_payload(profile_id, application_id, request_id, preview)
         if expected["fingerprint"] != fingerprint:
             raise RehearsalStoreError("APPLICATION_REHEARSAL_STALE")

@@ -176,17 +176,41 @@ class ApplicationRehearsalApiTests(unittest.TestCase):
         self.assertTrue(latest.json()["latest_review"]["acknowledged"])
         self.assertFalse(latest.json()["submission_enabled"])
 
-    def test_profile_or_route_change_makes_review_stale_without_writing_receipt(self):
+    def test_profile_change_hides_old_receipt_and_rejects_stale_acknowledgement(self):
         fingerprint, _ = self._fingerprint()
+        first = self._review("receipt-before-profile-change", fingerprint)
+        self.assertEqual(first.status_code, 200, first.text)
         changed = deepcopy(PROFILE)
         changed["email"] = "updated@example.test"
         self.store.save_profile(changed)
 
+        refreshed = self.client.get(self._path())
+        self.assertEqual(refreshed.status_code, 200, refreshed.text)
+        self.assertIsNone(refreshed.json()["latest_review"])
         response = self._review("stale-after-profile-change", fingerprint)
 
         self.assertEqual(response.status_code, 409, response.text)
         self.assertEqual(response.json()["detail"]["code"], "APPLICATION_REHEARSAL_STALE")
-        self.assertEqual(self._review_events(), [])
+        self.assertEqual(len(self._review_events()), 1)
+
+    def test_route_change_hides_old_receipt_and_rejects_stale_acknowledgement(self):
+        fingerprint, _ = self._fingerprint()
+        first = self._review("receipt-before-route-change", fingerprint)
+        self.assertEqual(first.status_code, 200, first.text)
+        application = self.store.application(self.application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == application["route_id"],
+            ).values(url="https://boards.greenhouse.io/example/jobs/7654321"))
+
+        refreshed = self.client.get(self._path())
+        self.assertEqual(refreshed.status_code, 200, refreshed.text)
+        self.assertIsNone(refreshed.json()["latest_review"])
+        response = self._review("stale-after-route-change", fingerprint)
+
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"], "APPLICATION_REHEARSAL_STALE")
+        self.assertEqual(len(self._review_events()), 1)
 
     def test_cross_profile_unknown_app_and_missing_form_review_fail_closed(self):
         denied = self.client.get(self._path("another-profile"))
