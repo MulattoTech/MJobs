@@ -139,7 +139,8 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value(
                         "fixture")
-                    page.get_by_role("button", name="Review Queue", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name="Review Queue", exact=False).click()
                     queue = page.get_by_role("region", name="Application review queue")
                     expect(queue).to_contain_text(job["company"])
                     queue.get_by_role("button", name=(
@@ -152,27 +153,38 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     question_row = unresolved.locator("li").filter(has_text=QUESTION)
                     question_row.get_by_role(
                         "button", name="Review this question", exact=True).click()
-                    editor = page.get_by_role("region", name="Question answer", exact=True)
-                    expect(editor.get_by_label("Question answer", exact=True)).to_have_value(
+                    editor = page.get_by_role(
+                        "region", name="Application answers", exact=True).get_by_role(
+                            "group", name="Question 1")
+                    expect(editor.get_by_role("textbox", name="Employer question", exact=True)).to_have_value(
                         QUESTION)
-                    answer = editor.get_by_label("Your answer", exact=True)
+                    answer = editor.get_by_role("textbox", name="Answer", exact=True)
                     expect(answer).to_have_value("")
                     expect(editor).not_to_contain_text("Suggested answer")
                     expect(editor).not_to_contain_text("Confidence")
-                    continue_button = editor.get_by_role(
-                        "button", name="Continue", exact=True)
-                    expect(continue_button).to_be_disabled()
+                    bank_button = editor.get_by_role(
+                        "button", name="Save to Answer Bank", exact=True)
+                    expect(bank_button).to_be_disabled()
 
                     # Editing and reviewing text remains local until the explicit save.
                     answer.fill(MANUAL_ANSWER)
-                    editor.get_by_label("I reviewed this answer", exact=True).check()
+                    editor.get_by_label("I reviewed this exact answer for this job", exact=True).check()
                     self.assertEqual(writes, [],
                                      "Typing and review acknowledgement must not persist")
                     self.assertFalse(any(item.get("text") == MANUAL_ANSWER
                                          for item in store.profile("fixture")["answers"]))
-                    expect(continue_button).to_be_disabled()
+                    expect(bank_button).to_be_enabled()
+                    bank_button.click()
+                    confirmation = editor.locator('[aria-label="Answer Bank confirmation for question 1"]')
+                    confirm_save = confirmation.get_by_role(
+                        "button", name="Confirm and save to Answer Bank", exact=True)
+                    expect(confirm_save).to_be_disabled()
+                    confirmation.get_by_label(
+                        "I confirm this answer is accurate and may be reused", exact=True).check()
+                    expect(confirm_save).to_be_enabled()
+                    self.assertEqual(writes, [], "Confirmation is local until explicit save")
 
-                    # Change the profile after the editor loaded its expected version.
+                    # Change the profile after the save reads its expected version.
                     # The first save must be rejected without persisting this answer.
                     def concurrent_profile_change(route):
                         if (route.request.method == "PUT"
@@ -195,19 +207,20 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     with page.expect_response(lambda response:
                             response.request.method == "PUT"
                             and urlsplit(response.url).path == "/profiles") as stale_save:
-                        editor.get_by_role("button", name="Save to Answer Bank",
-                                           exact=True).click()
+                        confirm_save.click()
                     self.assertEqual(stale_save.value.status, 409)
-                    expect(page.get_by_role("alert")).to_be_visible()
+                    expect(page.locator('main > .alert[role="alert"]')).to_contain_text(
+                        "Profile changed while this answer was being saved")
                     self.assertFalse(any(item.get("text") == MANUAL_ANSWER
                                          for item in store.profile("fixture")["answers"]))
-                    expect(continue_button).to_be_disabled()
+                    expect(confirmation).to_be_visible()
                     context.unroute("**/profiles", concurrent_profile_change)
 
                     # Reload obtains the current profile version. Saving now must
-                    # return the persisted text before Continue becomes available.
+                    # return the persisted text before reporting a successful bank save.
                     page.reload(wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Review Queue", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name="Review Queue", exact=False).click()
                     queue = page.get_by_role("region", name="Application review queue")
                     queue.get_by_role("button", name=(
                         f"Review application: {job['title']} at {job['company']}"
@@ -218,13 +231,19 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     question_row = unresolved.locator("li").filter(has_text=QUESTION)
                     question_row.get_by_role(
                         "button", name="Review this question", exact=True).click()
-                    editor = page.get_by_role("region", name="Question answer", exact=True)
-                    answer = editor.get_by_label("Your answer", exact=True)
+                    editor = page.get_by_role(
+                        "region", name="Application answers", exact=True).get_by_role(
+                            "group", name="Question 1")
+                    answer = editor.get_by_role("textbox", name="Answer", exact=True)
                     answer.fill(MANUAL_ANSWER)
-                    editor.get_by_label("I reviewed this answer", exact=True).check()
-                    continue_button = editor.get_by_role(
-                        "button", name="Continue", exact=True)
-                    expect(continue_button).to_be_disabled()
+                    editor.get_by_label("I reviewed this exact answer for this job", exact=True).check()
+                    editor.get_by_role("button", name="Save to Answer Bank", exact=True).click()
+                    confirmation = editor.locator('[aria-label="Answer Bank confirmation for question 1"]')
+                    confirm_save = confirmation.get_by_role(
+                        "button", name="Confirm and save to Answer Bank", exact=True)
+                    expect(confirm_save).to_be_disabled()
+                    confirmation.get_by_label(
+                        "I confirm this answer is accurate and may be reused", exact=True).check()
                     with page.expect_response(lambda response:
                             response.request.method == "PUT"
                             and urlsplit(response.url).path == "/profiles") as saved_response:
@@ -232,8 +251,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                                 response.request.method == "GET"
                                 and urlsplit(response.url).path == "/profiles/fixture"
                                 and MANUAL_ANSWER in response.text()) as saved_readback:
-                            editor.get_by_role("button", name="Save to Answer Bank",
-                                               exact=True).click()
+                            confirm_save.click()
                     self.assertEqual(saved_response.value.status, 200)
                     payload = saved_response.value.json()
                     self.assertEqual(payload["id"], "fixture")
@@ -251,14 +269,17 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(persisted["text"], MANUAL_ANSWER)
                     self.assertTrue(persisted["user_approved"])
                     self.assertTrue(persisted["verified"])
+                    self.assertTrue(any(item.get("id") == CONCURRENT_ANSWER_ID
+                                        for item in saved_profile["answers"]),
+                                    "Retry must preserve the concurrent profile edit")
                     self.assertNotEqual(saved_profile["version"],
                                         applications_before[0]["profile_version"])
-                    expect(continue_button).to_be_enabled()
-
-                    before_continue_writes = len(writes)
-                    continue_button.click()
-                    self.assertEqual(len(writes), before_continue_writes,
-                                     "Continue must not submit or write application state")
+                    expect(page.get_by_role("status").filter(has_text="Reviewed answer saved")).to_contain_text(
+                        "Reviewed answer saved to this profile's Answer Bank")
+                    expect(confirm_save).to_be_disabled()
+                    expect(editor).to_contain_text("Selected draft only")
+                    self.assertEqual(len(writes), 2,
+                                     "Readback and selection must not write application state")
 
                     # A browser reload followed by the profile-scoped answers read
                     # route proves that the exact user text survived the page lifecycle.
@@ -278,7 +299,8 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     # A different profile sees no answer from profile A.
                     page.get_by_label("Active profile", exact=True).select_option(
                         "other-profile")
-                    page.get_by_role("button", name="Review Queue", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name="Review Queue", exact=False).click()
                     other_queue = page.get_by_role(
                         "region", name="Application review queue")
                     other_queue.get_by_role("button", name=(
@@ -291,13 +313,14 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     question_row.get_by_role(
                         "button", name="Review this question", exact=True).click()
                     other_editor = page.get_by_role(
-                        "region", name="Question answer", exact=True)
-                    expect(other_editor.get_by_label("Your answer", exact=True)).to_have_value("")
+                        "region", name="Application answers", exact=True).get_by_role("group", name="Question 1")
+                    expect(other_editor.get_by_role("textbox", name="Answer", exact=True)).to_have_value("")
                     self.assertFalse(any(item.get("text") == MANUAL_ANSWER
                                          for item in store.profile("other-profile")["answers"]))
 
                     # Sensitive prompts cannot be promoted into the reusable bank.
-                    page.get_by_role("button", name="Review Queue", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name="Review Queue", exact=False).click()
                     other_queue = page.get_by_role(
                         "region", name="Application review queue")
                     other_queue.get_by_role("button", name=(
@@ -311,24 +334,36 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     sensitive_row.get_by_role(
                         "button", name="Review this question", exact=True).click()
                     sensitive_editor = page.get_by_role(
-                        "region", name="Question answer", exact=True)
-                    expect(sensitive_editor.get_by_label(
-                        "Question answer", exact=True)).to_have_value(SENSITIVE_QUESTION)
-                    expect(sensitive_editor.get_by_text(
-                        "Manual review required", exact=False)).to_be_visible()
+                        "region", name="Application answers", exact=True).get_by_role("group", name="Question 1")
                     expect(sensitive_editor.get_by_role(
-                        "button", name="Save to Answer Bank", exact=True)).to_be_disabled()
+                        "textbox", name="Employer question", exact=True)).to_have_value(SENSITIVE_QUESTION)
+                    expect(sensitive_editor).to_contain_text(
+                        "Sensitive or legal question: enter your answer for this application.")
+                    sensitive_editor.get_by_role("textbox", name="Answer", exact=True).fill("Synthetic application-only answer")
+                    sensitive_editor.get_by_label(
+                        "I reviewed this exact answer for this job", exact=True).check()
                     expect(sensitive_editor.get_by_role(
-                        "button", name="Continue", exact=True)).to_be_disabled()
+                        "button", name="Save to Answer Bank", exact=True)).to_have_count(0)
+                    expect(sensitive_editor.get_by_role(
+                        "button", name="Confirm and save to Answer Bank", exact=True)).to_have_count(0)
 
                     self.assertEqual(writes, [
                         ("PUT", "/profiles"),
                         ("PUT", "/profiles"),
                     ])
                     self.assertEqual(len(request_bodies), 2)
+                    for profile_id in ("fixture", "other-profile"):
+                        self.assertFalse(any(
+                            item.get("text") == "Synthetic application-only answer"
+                            for item in store.profile(profile_id)["answers"]))
+                    self.assertTrue(any(item.get("id") == CONCURRENT_ANSWER_ID
+                                        for item in request_bodies[-1]["answers"]))
                     for body in request_bodies:
                         self.assertEqual(body["id"], "fixture")
                         self.assertTrue(body["expected_version"])
+                        self.assertFalse(any(
+                            item.get("text") == "Synthetic application-only answer"
+                            for item in body["answers"]))
                         self.assertTrue(any(
                             item.get("question") == QUESTION
                             and item.get("text") == MANUAL_ANSWER
