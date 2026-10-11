@@ -1,0 +1,64 @@
+{
+  "status": "PASS_LOCAL_HOSTED_NEW_HEAD_PENDING",
+  "iteration": 15,
+  "timestampUtc": "2026-10-11T22:24:01.856047+00:00",
+  "issue": 532,
+  "requirement": "MJ-REQ-255",
+  "pr": 543,
+  "sourceParent": "b0196fdf519e98ed5e066cc7d6998d9e82a35d59",
+  "sourceSha256": {
+    "apps/web/src/search-history-panel.tsx": "7e1ff8fbb981fe15fc70a6337d0a63ec0408925ad3f16f3f01301cf45280c2f3",
+    "apps/web/src/style.css": "8ac50853bb61be660dc58f302af1de8a4e7f6b537d4e4ba306491ec06925e580",
+    "tests/browser/test_search_history_connected.py": "59a7503d6b7d2d471229af0e986cfaec48f9e997b770c3e4e81197aed13a7ebf"
+  },
+  "outcome": "Activity table scrolls within panel with keyboard access; reload and profile isolation preserved",
+  "negativeControl": {
+    "before": "scrollWidth1669px at viewport390px",
+    "artifact": "outputs/ci/iteration15-mobile-red.xml"
+  },
+  "verification": [
+    {
+      "command": "python -m pytest -q tests/browser/test_search_history_connected.py tests/browser/test_company_discovery_activity.py tests/browser/test_uploaded_resume_comparison.py",
+      "result": "4 PASS",
+      "artifact": "outputs/ci/iteration15-browser-final.xml",
+      "runtime": "Chromium; disposable SQLite; project-local TEMP"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_search_history_service.py tests/unit/test_search_history_events.py tests/integration/test_search_history_api.py",
+      "result": "21 PASS/4 subtests",
+      "artifact": "outputs/ci/iteration15-history.xml"
+    },
+    {
+      "command": "npm --prefix apps/web run test",
+      "result": "768 PASS/131 files"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS; approved child-process execution"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "review": "Read-only local Luna review: no concrete correctness/accessibility/regression findings; no reviewer tests",
+  "environment": [
+    "Default TEMP ACL blocked SQLite setup; isolated project-local TEMP used for these non-confinement tests",
+    "Vite sandbox child process EPERM; approved execution passed",
+    "Browser wait string hit CSP unsafe-eval; function predicate passed without policy changes"
+  ],
+  "predecessorPostgreSQL": {
+    "head": "b0196fdf519e98ed5e066cc7d6998d9e82a35d59",
+    "run": 38179775393,
+    "attempt": 1,
+    "job": 114589675384,
+    "result": "5 durable comparison tests PASS/0 SKIP; shard354PASS/16SKIP/89subtests",
+    "artifactSha256": "3946b7c97494e692418b1c9a3762bd917133c51b42c83a843818d75c725a0b95"
+  },
+  "limitations": [
+    "New revision hosted CI/Compose/full browser NOT_RUN at local checkpoint",
+    "Local full Compose NOT_RUN: Docker unavailable",
+    "All parent acceptance remains PARTIAL; goal0/7",
+    "Original dirty plan preserved; real submissions OFF"
+  ]
+}

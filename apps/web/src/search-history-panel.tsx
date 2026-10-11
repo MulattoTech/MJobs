@@ -139,7 +139,7 @@ export function SearchHistoryPanelView({
         : state.response.items.length === 0
           ? <p className="muted">No search history for this profile yet.</p>
           : <>
-          <div className="table-scroll">
+          <div className="table-scroll" role="region" aria-label="Scrollable search history" tabIndex={0}>
             <table>
               <caption>Saved search runs for profile {profileId}</caption>
               <thead>

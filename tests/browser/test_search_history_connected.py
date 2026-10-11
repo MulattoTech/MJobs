@@ -191,6 +191,26 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                             for title in item["filters"].get("include_titles", []):
                                 expect(row).to_contain_text(title)
 
+                        # History must stay usable inside the Activity panel on mobile.
+                        page.set_viewport_size({"width": 390, "height": 844})
+                        overflow = page.evaluate("""() => ({
+                            width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
+                            outside: [...document.querySelectorAll('main *')]
+                                .filter(el => el.getBoundingClientRect().right > innerWidth)
+                                .slice(0, 12).map(el => ({tag: el.tagName, class: el.className,
+                                    right: el.getBoundingClientRect().right}))
+                        })""")
+                        self.assertLessEqual(overflow["scrollWidth"], overflow["width"], overflow)
+                        scroller = panel.get_by_role("region", name="Scrollable search history", exact=True)
+                        self.assertTrue(scroller.evaluate("el => el.scrollWidth > el.clientWidth"))
+                        scroller.focus()
+                        page.keyboard.press("ArrowRight")
+                        page.wait_for_function("() => document.querySelector('.table-scroll').scrollLeft > 0")
+                        table.get_by_role("columnheader", name="Filters and details", exact=True).scroll_into_view_if_needed()
+                        self.assertTrue(scroller.evaluate("el => el.scrollLeft > 0"))
+                        self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+                        page.set_viewport_size({"width": 1280, "height": 720})
+
                         # A full reload must read the same completed run from the API.
                         page.reload(wait_until="domcontentloaded")
                         expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")

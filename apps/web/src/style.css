@@ -17,3 +17,5 @@
 /* Archive scope identifiers must wrap without hiding controls or history. */
 .document-archive{min-width:0;overflow-wrap:anywhere}
 .source-relationship-links small{overflow-wrap:anywhere}
+.table-scroll{max-width:100%;overflow-x:auto}
+.table-scroll:focus-visible{outline:3px solid #a56837;outline-offset:3px}
