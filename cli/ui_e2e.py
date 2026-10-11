@@ -270,7 +270,7 @@ def run(base_url, evidence_path, onboarding=False):
                     time.sleep(0.5)
                 assert discovery_operation["state"] == "COMPLETED", discovery_operation
                 assert discovery_operation["params"]["request_id"] == discovery_request_id
-                assert discovery_operation["params"]["search_profile_id"] == saved_search["id"]
+                assert discovery_operation["entity_id"] == profile_id
                 assert saved_search["source_ids"] == []
                 discovery_jobs = request("/jobs?profile_id=" + profile_id)["jobs"]
                 assert discovery_jobs, "fixture discovery produced no profile-scoped job results"
@@ -287,7 +287,7 @@ def run(base_url, evidence_path, onboarding=False):
                     if row["id"] == saved_search["id"])
                 assert search_after_discovery["criteria"]["job_filters"]["remote_type"] == "REMOTE"
                 assert search_after_discovery["source_ids"] == []
-                actions.append({"action": "Saved remote IT search before local fixture collection; user-triggered Sources control completed discovery and profile-scoped jobs/history read back for the same profile", "result": "PASS", "boundary": "UI button → HTTP API /discovery", "request_id": discovery_request_id, "operation_id": discovery_operation_id, "search_profile_id": saved_search["id"]})
+                actions.append({"action": "Saved remote IT search before local fixture collection; user-triggered Sources control completed discovery and profile-scoped jobs/history read back for the same profile", "result": "PASS", "boundary": "UI button → HTTP API /discovery", "request_id": discovery_request_id, "operation_id": discovery_operation_id, "saved_search_id": saved_search["id"]})
             else:
                 page.get_by_role("button", name="Load fictional demo", exact=True).click()
                 expect(page.get_by_role("status").filter(has_text="Fictional demo loaded")).to_be_visible()
