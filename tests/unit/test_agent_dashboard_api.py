@@ -76,6 +76,28 @@ class AgentDashboardApiTests(unittest.TestCase):
             self.assertEqual(message["type"], "run")
             self.assertIn("status", message)
 
+    def test_terminal_websocket_rejects_native_log_outside_log_directory(self):
+        supervisor = self.client.app.state.supervisor
+        private = self.root / "private.txt"
+        private.write_text("PRIVATE SENTINEL", encoding="utf-8")
+        supervisor.runtime["lanes"]["antigravity"]["native_log_path"] = str(private)
+        supervisor.save()
+        supervisor.runtime = supervisor._load_runtime()
+        with self.client.websocket_connect("/ws/lanes/antigravity/terminal") as ws:
+            self.assertEqual(ws.receive_json()["type"], "run")
+            self.assertEqual(ws.receive_json()["type"], "heartbeat")
+
+    def test_terminal_websocket_streams_confined_native_log(self):
+        supervisor = self.client.app.state.supervisor
+        native = supervisor.native_log_dir / "antigravity-test.log"
+        native.write_text("SAFE NATIVE OUTPUT", encoding="utf-8")
+        supervisor.runtime["lanes"]["antigravity"]["native_log_path"] = str(native)
+        with self.client.websocket_connect("/ws/lanes/antigravity/terminal") as ws:
+            self.assertEqual(ws.receive_json()["type"], "run")
+            message = ws.receive_json()
+            self.assertEqual(message["source"], "native")
+            self.assertEqual(message["data"], "SAFE NATIVE OUTPUT")
+
     def test_ollama_gpu_offload_percent_is_validated_and_persisted(self):
         response = self.client.patch(
             "/api/lanes/ollama/config",

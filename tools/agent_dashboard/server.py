@@ -221,7 +221,13 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
                 sent = False
                 for source in info.get("sources", []):
                     name = source["name"]
-                    path = Path(source["path"])
+                    directory = (supervisor.native_log_dir if name == "native"
+                                 else supervisor.log_dir if name == "stdout" else None)
+                    if directory is None:
+                        continue
+                    path = supervisor._confined_log_path(source["path"], directory)
+                    if path is None:
+                        continue
                     if not path.exists():
                         continue
                     pos = positions.get(name, int(source.get("start_offset") or 0))

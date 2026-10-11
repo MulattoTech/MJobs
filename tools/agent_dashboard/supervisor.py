@@ -214,6 +214,9 @@ class AgentSupervisor:
             except Exception:
                 pass
         base.setdefault("lanes", {})
+        # Runtime JSON is persisted input, not authority to construct paths.
+        base["lanes"] = {lane: state for lane, state in base["lanes"].items()
+                         if lane in LANES}
         for lane in LANES:
             base["lanes"].setdefault(lane, {
                 "pid": None, "status": "STOPPED", "started_at": None,
@@ -223,12 +226,13 @@ class AgentSupervisor:
         # Repair older false blocked banners only for FINISHED zero-exit runs.
         # Previous versions searched raw diffs for BLOCKED_ENVIRONMENT, so an
         # individual missing-test dependency was mistaken for a blocked agent.
-        for lane, state in base["lanes"].items():
+        for lane in LANES:
+            state = base["lanes"][lane]
             if (state.get("pid") is None
                     and state.get("status") == "BLOCKED_ENVIRONMENT"
                     and state.get("exit_code") == 0):
-                log_path = self.log_dir / f"{lane}.log"
                 try:
+                    log_path = self.log_path(lane)
                     with log_path.open("rb") as handle:
                         end = handle.seek(0, os.SEEK_END)
                         handle.seek(max(0, end - 180_000), os.SEEK_SET)
@@ -237,7 +241,7 @@ class AgentSupervisor:
                     if revised != "BLOCKED_ENVIRONMENT":
                         state["status"] = revised
                         state["last_reason"] = revised
-                except OSError:
+                except (OSError, ValueError):
                     pass
         self._write_json(self.runtime_path, base)
         return base
@@ -586,11 +590,32 @@ class AgentSupervisor:
             return {"lane": lane, "pid": proc.pid, "reused": False, "kind": "log_viewer"}
 
     def log_path(self, lane: str) -> Path:
-        return self.log_dir / f"{lane}.log"
+        self._require_lane(lane)
+        paths = {name: self.log_dir / f"{name}.log" for name in LANES}
+        path = self._confined_log_path(paths[lane], self.log_dir)
+        if path is None:
+            raise ValueError("Log path is invalid")
+        return path
+
+    @staticmethod
+    def _confined_log_path(value: Any, directory: Path) -> Path | None:
+        if not isinstance(value, (str, Path)):
+            return None
+        try:
+            root = directory.resolve()
+            if root != directory.absolute():
+                return None
+            path = Path(value).resolve()
+            return path if path != root and path.is_relative_to(root) else None
+        except (OSError, ValueError, RuntimeError):
+            return None
 
     def log_tail(self, lane: str, lines: int = 120) -> str:
         self._require_lane(lane)
-        path = self.log_path(lane)
+        try:
+            path = self.log_path(lane)
+        except ValueError:
+            return ""
         if not path.exists():
             return ""
         data = path.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -599,13 +624,16 @@ class AgentSupervisor:
     def terminal_sources(self, lane: str) -> dict[str, Any]:
         self._require_lane(lane)
         state = dict(self.runtime["lanes"][lane])
-        sources = [{
-            "name": "stdout",
-            "path": str(self.log_path(lane)),
-            "start_offset": int(state.get("log_start_offset") or 0),
-        }]
-        native = state.get("native_log_path")
-        if native:
+        sources = []
+        try:
+            stdout = self.log_path(lane)
+        except ValueError:
+            pass
+        else:
+            sources.append({"name": "stdout", "path": str(stdout),
+                            "start_offset": int(state.get("log_start_offset") or 0)})
+        native = self._confined_log_path(state.get("native_log_path"), self.native_log_dir)
+        if native is not None:
             sources.append({
                 "name": "native",
                 "path": str(native),
@@ -635,11 +663,14 @@ class AgentSupervisor:
         return match.group(1).strip() if match else None
 
     def _live_quota_error(self, lane: str, state: dict[str, Any]) -> str | None:
-        entries: list[tuple[Path, int]] = [
-            (self.log_path(lane), int(state.get("log_start_offset") or 0))
-        ]
-        if state.get("native_log_path"):
-            entries.append((Path(state["native_log_path"]), 0))
+        entries: list[tuple[Path, int]] = []
+        try:
+            entries.append((self.log_path(lane), int(state.get("log_start_offset") or 0)))
+        except ValueError:
+            pass
+        native = self._confined_log_path(state.get("native_log_path"), self.native_log_dir)
+        if native is not None:
+            entries.append((native, 0))
         for path, run_start in entries:
             try:
                 if not path.exists():
@@ -977,7 +1008,10 @@ class AgentSupervisor:
                     )
                 if state.get("pid") and not pid_alive(state["pid"]):
                     state["status"] = "EXITED_UNRECONCILED"
-                activity = log_activity(self.log_path(lane), lane)
+                try:
+                    activity = log_activity(self.log_path(lane), lane)
+                except ValueError:
+                    activity = {}
                 tree = process_tree(telemetry.get("processes") or [], state.get("pid"))
                 tree_gpu = [
                     float(gpu_by_pid.get(str(item.get("pid")), 0.0))

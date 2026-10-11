@@ -1,4 +1,6 @@
 # Reviewed historical false positives only; no rule or directory-wide suppression.
+# Verified SHA-256 of committed tests/unit/test_agent_dashboard_api.py; not a credential.
+12e9165538d571809af8e5270c39e6eca59d788b:docs/evidence/2026-10-11-dashboard-log-confinement.json:generic-api-key:10
 # Evidence file/container SHA-256 digest; not a credential
 dd0d66c8ba2ddd386ed97a236ccd9bd4754270c3:docs/evidence/2026-10-11-six-team-followups.json:generic-api-key:33
 # Evidence file/container SHA-256 digest; not a credential
