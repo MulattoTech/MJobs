@@ -186,6 +186,34 @@ class AITaskSettingsApiTests(unittest.TestCase):
         result = self.client.get("/profiles/not-a-profile/ai-task-settings")
         self.assertEqual(result.status_code, 404)
 
+    def test_unsafe_provider_transport_cannot_change_saved_settings_or_audit(self):
+        initial = self.client.get('/profiles/fixture/ai-task-settings').json()['tasks']
+        with self.store.engine.connect() as connection:
+            before_audit = list(connection.execute(select(m.audit.c.id)).scalars())
+        for provider, endpoint_name in (
+            ('openai-compatible', 'MJOBS_OPENAI_COMPATIBLE_BASE_URL'),
+            ('openai', 'MJOBS_OPENAI_BASE_URL'),
+            ('azure-openai', 'AZURE_OPENAI_ENDPOINT'),
+        ):
+            with self.subTest(provider=provider), patch.dict('os.environ', {
+                endpoint_name: 'http://remote.example/v1',
+            }, clear=True), patch('httpx.Client', side_effect=AssertionError('no provider I/O')):
+                response = self.client.put('/profiles/fixture/ai-task-settings', json={
+                    'tasks': {'job_scoring': {'provider': provider, 'model': 'synthetic-model'}},
+                })
+            self.assertEqual(response.status_code, 422, response.text)
+            self.assertEqual(response.json()['detail'], {'code': 'AI_PROVIDER_CONFIGURATION_INVALID'})
+            self.assertNotIn('remote.example', response.text)
+            self.assertEqual(self.client.get('/profiles/fixture/ai-task-settings').json()['tasks'], initial)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(list(connection.execute(select(m.audit.c.id)).scalars()), before_audit)
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        with TestClient(create_app(self.store, 'http://127.0.0.1:8090', self.root,
+                'redis://127.0.0.1:1/0', operation_mode='PERSONAL')) as client:
+            self.assertEqual(client.get('/profiles/fixture/ai-task-settings').json()['tasks'], initial)
+
 
 if __name__ == "__main__":
     unittest.main()

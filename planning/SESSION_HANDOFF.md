@@ -2,6 +2,16 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 6: provider transport security slice
+
+- Base main/public main: `83b46cc7654e80485de2dd60f798ecb70a8a296d`; branch `fix/provider-secure-transport-20261011`. One mutation owner; root coordinator remains read-only. Seven open dependency PRs are separate work.
+- #524 / MJ-REQ-175 (#176): OpenAI-compatible/OpenAI/Azure reject remote HTTP and malformed URL controls before provider I/O; literal loopback HTTP and remote HTTPS still work. Request-level redirect denial prevents prompt replay. Rejected profile settings leave settings/audit unchanged across store reopen.
+- Acceptance remains PARTIAL: this slice does not triage every CodeQL alert or satisfy all secret-management/P0/P1 criteria. Original 106/366 PASS and reference 19/59 PASS are unchanged. Goal statement and completion command were preserved; seven obligations plus browser/CI requirements normalized in AFK state.
+- Focused checks: 53 tests + 95 subtests PASS; baseline regressions fail against original validators (49 security/API cases), redirect regression fails without request-level denial (6 cases). Local GPT-6.1 Sol Medium review found no blocking issues. Catalogue/progress/dashboard/agent-skills/diff checks PASS. Production build PASS after authorized sandbox escalation for Vite spawn EPERM.
+- Full unit suite is running at this checkpoint; record its final result in AFK evidence before publishing. Local full browser/PostgreSQL/Redis and live paid provider calls NOT_RUN. Gate FAIL: 96 unmet requirements; exact-main connected/browser NOT_RUN; private security CLI access 401. Hosted checks for this candidate await publication.
+- Pre-existing dirty `docs/superpowers/plans/2026-10-11-release-candidate.md` is preserved and excluded from source staging. Private configuration, original keys, documents and populated volumes were untouched; real external submission OFF. Runner owner lock/history retained; no new background supervisor.
+- Next: publish this reviewed branch through a short-lived PR, inspect exact-head hosted jobs and use native protected auto-merge when gates permit; then resume package 1 security triage or package 2 browser reproduction. CLI auth is invalid; connected GitHub tools work. Local source hashes/red logs are in `.git/afk-dev/provider-transport-*`.
+
 ## Current development contract
 
 Read `AGENTS.md`, the compact requirement index and the affected issue/spec. Use one mutation owner, short-lived reviewable PRs, required hosted checks and native auto-merge. There is no artificial approving human review, old lane system or expired four-hour project deadline. Explicitly authorized AFK-DEV work retains real account/runtime/approval limits and anti-stagnation safeguards.

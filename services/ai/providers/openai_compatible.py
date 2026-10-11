@@ -8,12 +8,12 @@ import re
 import threading
 import time
 from typing import Callable, Mapping
-from urllib.parse import urlsplit
 
 import httpx
 
 from services.ai.providers import AIProviderError, ProviderCapabilities
 from services.ai.telemetry import get_default_telemetry_engine
+from services.ai.providers.endpoint_security import secure_base_url
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8000/v1"
@@ -27,27 +27,8 @@ _MODEL = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}\Z")
 
 
 def _sanitize_base_url(value: object) -> str:
-    """Validate endpoint URL, ensuring safe scheme and path structure."""
-    if not isinstance(value, str) or not 1 <= len(value) <= 2048:
-        raise AIProviderError("AI_PROVIDER_CONFIGURATION_INVALID")
-    try:
-        parsed = urlsplit(value)
-        port = parsed.port
-    except (ValueError, TypeError):
-        raise AIProviderError("AI_PROVIDER_CONFIGURATION_INVALID") from None
-
-    if parsed.scheme not in ("http", "https") or not parsed.hostname:
-        raise AIProviderError("AI_PROVIDER_CONFIGURATION_INVALID")
-    if parsed.username is not None or parsed.password is not None:
-        raise AIProviderError("AI_PROVIDER_CONFIGURATION_INVALID")
-    if parsed.query or parsed.fragment:
-        raise AIProviderError("AI_PROVIDER_CONFIGURATION_INVALID")
-    if port is not None and not 1 <= port <= 65535:
-        raise AIProviderError("AI_PROVIDER_CONFIGURATION_INVALID")
-
-    # Preserve scheme, netloc and optional path prefix (e.g. /v1)
-    path = parsed.path.rstrip("/")
-    return f"{parsed.scheme}://{parsed.netloc}{path}"
+    """Require HTTPS for remote providers; allow literal loopback HTTP."""
+    return secure_base_url(value)
 
 
 def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -180,7 +161,7 @@ class OpenAICompatibleProvider:
                 watcher.start()
 
             with client:
-                with client.stream("POST", self.endpoint, json=payload, headers=headers) as response:
+                with client.stream("POST", self.endpoint, json=payload, headers=headers, follow_redirects=False) as response:
                     if not 200 <= response.status_code < 300:
                         raise AIProviderError("AI_PROVIDER_HTTP_ERROR")
                     body = bytearray()
