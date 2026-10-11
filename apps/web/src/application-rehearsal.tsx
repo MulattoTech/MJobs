@@ -13,7 +13,7 @@ export type ApplicationRehearsalField = {
 export type ApplicationRehearsalReceipt = {
   request_id: string;
   fingerprint: string;
-  profile_version: number;
+  profile_version: string;
   reviewed_at: string;
   acknowledged: true;
 };
@@ -21,7 +21,7 @@ export type ApplicationRehearsalReceipt = {
 export type ApplicationRehearsalSnapshot = {
   profile_id: string;
   application_id: string;
-  profile_version: number;
+  profile_version: string;
   route_id: string | null;
   fingerprint: string;
   fields: ApplicationRehearsalField[];
@@ -67,13 +67,13 @@ const isFieldValue = (value: unknown): value is ApplicationRehearsalField['value
 function parseReceipt(value: unknown): ApplicationRehearsalReceipt | null | undefined {
   if (value === null) return null;
   if (!isRecord(value) || !isId(value.request_id) || !isFingerprint(value.fingerprint)
-      || !Number.isInteger(value.profile_version) || (value.profile_version as number) < 0
+      || !isFingerprint(value.profile_version)
       || typeof value.reviewed_at !== 'string' || value.reviewed_at.length > 64
       || value.acknowledged !== true) return undefined;
   return {
     request_id: value.request_id,
     fingerprint: value.fingerprint,
-    profile_version: value.profile_version as number,
+    profile_version: value.profile_version,
     reviewed_at: value.reviewed_at,
     acknowledged: true,
   };
@@ -81,7 +81,7 @@ function parseReceipt(value: unknown): ApplicationRehearsalReceipt | null | unde
 
 function parseSnapshot(value: unknown, profileId: string, applicationId: string): ApplicationRehearsalSnapshot {
   if (!isRecord(value) || value.profile_id !== profileId || value.application_id !== applicationId
-      || !Number.isInteger(value.profile_version) || (value.profile_version as number) < 0
+      || !isFingerprint(value.profile_version)
       || value.route_id !== null && typeof value.route_id !== 'string'
       || !isFingerprint(value.fingerprint) || !Array.isArray(value.fields) || value.fields.length > 200
       || !Array.isArray(value.blockers) || value.blockers.length > 100
@@ -117,7 +117,7 @@ function parseSnapshot(value: unknown, profileId: string, applicationId: string)
   return {
     profile_id: profileId,
     application_id: applicationId,
-    profile_version: value.profile_version as number,
+    profile_version: value.profile_version,
     route_id: value.route_id as string | null,
     fingerprint: value.fingerprint,
     fields,

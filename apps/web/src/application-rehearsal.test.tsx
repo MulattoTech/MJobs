@@ -11,6 +11,7 @@ import {
 
 const profileId = 'profile/a';
 const applicationId = 'application&b';
+const profileVersion = '19d5918fa4de2a66b301a612a8ab7564b1da2b64793b855cbc5c3458960cea08';
 const field: ApplicationRehearsalField = {
   key: 'email', label: 'Email address', type: 'email', required: true,
   value: 'local.person@example.test', source: 'CONTACT', reason_code: null,
@@ -22,7 +23,7 @@ const unresolved: ApplicationRehearsalField = {
 const snapshot: ApplicationRehearsalSnapshot = {
   profile_id: profileId,
   application_id: applicationId,
-  profile_version: 4,
+  profile_version: profileVersion,
   route_id: 'route-greenhouse',
   fingerprint: 'a'.repeat(64),
   fields: [field, unresolved],
@@ -51,6 +52,20 @@ describe('local application rehearsal', () => {
       '/profiles/profile%2Fa/applications/application%26b/rehearsal',
       expect.objectContaining({ method: 'GET', cache: 'no-store', credentials: 'same-origin' }),
     );
+  });
+
+  it('accepts the API hash version on the snapshot and latest review receipt', async () => {
+    const hydrated = {
+      ...snapshot,
+      latest_review: {
+        request_id: 'receipt-1', fingerprint: snapshot.fingerprint,
+        profile_version: profileVersion, reviewed_at: '2026-10-11T15:00:00Z', acknowledged: true as const,
+      },
+    };
+    const client = createApplicationRehearsalClient(profileId, applicationId,
+      vi.fn<typeof fetch>().mockResolvedValue(Response.json(hydrated)));
+
+    await expect(client.load()).resolves.toEqual(hydrated);
   });
 
   it('renders values as read-only text, explicit sources, and safe missing-field reasons', () => {
@@ -94,7 +109,7 @@ describe('local application rehearsal', () => {
       ...snapshot,
       latest_review: {
         request_id: 'receipt-1', fingerprint: snapshot.fingerprint,
-        profile_version: 4, reviewed_at: '2026-10-11T15:00:00Z', acknowledged: true as const,
+        profile_version: profileVersion, reviewed_at: '2026-10-11T15:00:00Z', acknowledged: true as const,
       },
     };
     const html = renderToStaticMarkup(<ApplicationRehearsalView
@@ -138,6 +153,11 @@ describe('local application rehearsal', () => {
   it('rejects malformed, cross-scope, or externally enabled rehearsal snapshots', async () => {
     const badSnapshots = [
       { ...snapshot, application_id: 'other-application' },
+      { ...snapshot, profile_version: 4 },
+      { ...snapshot, latest_review: {
+        request_id: 'receipt-1', fingerprint: snapshot.fingerprint,
+        profile_version: 4, reviewed_at: '2026-10-11T15:00:00Z', acknowledged: true,
+      } },
       { ...snapshot, submission_enabled: true },
       { ...snapshot, fingerprint: '' },
     ];
