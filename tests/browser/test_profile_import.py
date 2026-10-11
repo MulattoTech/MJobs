@@ -99,12 +99,13 @@ class ProfileImportBrowserTests(unittest.TestCase):
             def block_until_cancelled(data, format, source, cancellation_event):
                 started.set()
                 deadline = time.monotonic() + 5
-                while not cancellation_event.is_set() and time.monotonic() < deadline:
-                    time.sleep(0.005)
-                if cancellation_event.is_set():
+                from workers.tasks import OperationCancelled
+                try:
+                    while not cancellation_event.is_set() and time.monotonic() < deadline:
+                        time.sleep(0.005)
+                except OperationCancelled:
                     cancelled.set()
-                    from services.career_profile.extraction import ResumeExtractionCancelled
-                    raise ResumeExtractionCancelled()
+                    raise
                 raise AssertionError('explicit browser cancellation did not reach extraction work')
 
             thread.start()
