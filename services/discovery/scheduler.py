@@ -7,10 +7,12 @@ import os
 import time
 
 from sqlalchemy import select
+from redis import Redis
 
 from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.runtime_health import publish_scheduler_heartbeat
 from workers.dispatch import enqueue_operation
 
 
@@ -239,6 +241,14 @@ def run_transient_retention_if_configured(environ=None, *, runner=None, store=No
     return summary
 
 
+def scheduler_tick(store, redis_connection, at=None, interval_seconds=30):
+    """Run one complete scheduler pass and refresh health only on success."""
+    result = schedule_due_sources(store, at)
+    publish_scheduler_heartbeat(redis_connection, at=at,
+                                interval_seconds=interval_seconds)
+    return result
+
+
 def run_forever():
     mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
@@ -250,11 +260,13 @@ def run_forever():
     if not 300 <= retention_interval <= 2592000:
         raise ValueError(f"{RETENTION_INTERVAL_ENV} must be 300 through 2592000")
     store.bind_workspace_mode(mode)
+    redis = Redis.from_url(os.environ["MJOBS_REDIS_URL"],
+                           socket_connect_timeout=2, socket_timeout=2)
     next_retention_at = 0.0
     try:
         while True:
             try:
-                schedule_due_sources(store)
+                scheduler_tick(store, redis, interval_seconds=interval)
             except Exception:
                 import logging
                 logging.exception("Scheduler tick failed; retrying without losing durable state")
@@ -264,6 +276,7 @@ def run_forever():
                 next_retention_at = current + retention_interval
             time.sleep(interval)
     finally:
+        redis.close()
         store.engine.dispose()
 
 
