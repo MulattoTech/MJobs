@@ -587,10 +587,31 @@ class MockApplicationTests(unittest.TestCase):
             report = latest_preflight(self.store, app_id)
             self.assertEqual(report["result"], "UNKNOWN")
             self.assertEqual(report["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
-            self.assertEqual(report["missing"], [{
+            expected_missing = [{
                 "question_id": "gender", "question": "What is your gender?",
-            }])
+                "fact_ids": [], "answer_ids": [], "profile_paths": [],
+                "document_kinds": [], "application_context": [],
+            }]
+            self.assertEqual(report["missing"], expected_missing)
+            gender_mapping = next(row for row in report["mappings"]
+                                  if row["question_id"] == "gender")
+            self.assertEqual(gender_mapping["question"], "What is your gender?")
+            for key in ("fact_ids", "answer_ids", "profile_paths", "document_kinds",
+                        "application_context"):
+                self.assertEqual(gender_mapping[key], [])
             self.assertNotIn(answer_value, json.dumps(report))
+
+            with self.store.engine.connect() as connection:
+                audit = connection.execute(select(m.audit.c.payload).where(
+                    m.audit.c.entity_id == app_id,
+                    m.audit.c.action == "APPLICATION_QUESTION_PREFLIGHT",
+                ).order_by(m.audit.c.timestamp.desc()).limit(1)).mappings().one()
+            self.assertEqual(audit["payload"]["reason"],
+                             "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
+            self.assertEqual(audit["payload"]["missing"], expected_missing)
+            self.assertNotIn(answer_value, json.dumps(audit["payload"]))
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
 
             with TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
                                        operation_mode="FIXTURE")) as client:
@@ -601,7 +622,7 @@ class MockApplicationTests(unittest.TestCase):
             self.assertEqual(detail.json()["question_preflight"]["missing"][0]["question"],
                              "What is your gender?")
 
-    def test_conditional_required_dropdown_uses_known_preflight_mapping(self):
+    def test_conditional_required_dropdown_with_known_mapping_pauses_for_review(self):
         profile = dict(PROFILE, answers=[*PROFILE["answers"], {
             "id": "state", "question": "State or province", "text": "Oklahoma",
             "source": "Synthetic test", "verified": True, "user_approved": True,
@@ -618,11 +639,35 @@ class MockApplicationTests(unittest.TestCase):
 
             result = apply_mock(self.store, app_id, origin, self.root)
 
-            self.assertEqual(result["state"], "DRY_RUN_COMPLETE")
+            self.assertEqual(result["state"], "REVIEW_REQUIRED")
+            self.assertIn("DYNAMIC_REQUIRED_FIELDS_REVIEW_REQUIRED", result["trace"])
+            from services.applications.preflight import latest_preflight
+            report = latest_preflight(self.store, app_id)
+            self.assertEqual(report["result"], "UNKNOWN")
+            self.assertEqual(report["reason"], "DYNAMIC_REQUIRED_FIELDS_REVIEW_REQUIRED")
+            region = next(row for row in report["mappings"]
+                          if row["question_id"] == "region")
+            self.assertEqual(region["question"], "State or province")
+            self.assertEqual(region["answer_ids"], ["state"])
+            self.assertEqual(region["fact_ids"], [])
+            self.assertEqual(report["missing"][0]["question"], "State or province")
+            self.assertEqual(report["missing"][0]["question_id"], "region")
+            self.assertNotIn("Oklahoma", json.dumps(report))
+            with self.store.engine.connect() as connection:
+                audit = connection.execute(select(m.audit.c.payload).where(
+                    m.audit.c.entity_id == app_id,
+                    m.audit.c.action == "APPLICATION_QUESTION_PREFLIGHT",
+                ).order_by(m.audit.c.timestamp.desc()).limit(1)).mappings().one()
+            self.assertEqual(audit["payload"]["reason"],
+                             "DYNAMIC_REQUIRED_FIELDS_REVIEW_REQUIRED")
+            audit_region = next(row for row in audit["payload"]["mappings"]
+                                if row["question_id"] == "region")
+            self.assertEqual(audit_region["question"], "State or province")
+            self.assertEqual(audit_region["answer_ids"], ["state"])
+            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
+                             {"review": 0, "submit": 0})
             self.assertEqual(httpx.get(origin + "/ats/receipts/" + app_id).json(),
                              {"status": "not_found"})
-            self.assertEqual(httpx.get(origin + "/_test/request-counts").json(),
-                             {"review": 1, "submit": 0})
 
     def test_unknown_conditional_required_field_is_reviewed_before_review_or_submit(self):
         with fixture_server() as origin:
