@@ -2,8 +2,14 @@ import base64
 import copy
 import hashlib
 import json
+from pathlib import Path
+import tempfile
 import unittest
 
+from packages.persistence.store import Store
+from services.career_profile.story_bank import create_story
+from services.data_export import export_profile_backup
+from services.documents.uploads import save_resume
 from services.profile_restore import (
     ProfileRestoreError,
     build_restore_plan,
@@ -31,6 +37,7 @@ def _payload():
     current_version = "v-current"
     contents = b"synthetic uploaded resume"
     generated = b"synthetic generated text"
+    upload_id = _identity("uploaded-resume", profile_id, hashlib.sha256(contents).hexdigest())
     profile = {
         "id": profile_id,
         "name": "Synthetic Person",
@@ -39,7 +46,6 @@ def _payload():
     }
     current_snapshot = {
         "id": _identity(profile_id, current_version),
-        "profile_id": profile_id,
         "version": current_version,
         "contact": {
             "name": profile["name"],
@@ -67,24 +73,25 @@ def _payload():
         "profile": profile,
         "profile_versions": [current_snapshot],
         "facts": [{
-            "id": "fact-row-1", "profile_id": profile_id, "version": current_version,
+            "id": _identity(profile_id, current_version, "fact-1"), "version": current_version,
             "fact_id": "fact-1", "kind": "skill", "text": "Python",
             "source": "resume extraction", "verified": True, "user_approved": True,
             "confidence": 95,
         }],
         "uploaded_resumes": [{
-            "id": "upload-1", "filename": "resume.pdf", "format": "pdf",
+            "id": upload_id, "filename": "resume.pdf", "format": "pdf",
             "media_type": "application/pdf", "size_bytes": len(contents),
             "sha256": hashlib.sha256(contents).hexdigest(), "status": "READY",
             "created_at": "2026-10-11T12:00:00Z",
         }],
         "resume_revisions": [{
-            "id": "resume-revision-1", "profile_id": profile_id, "upload_id": "upload-1",
+            "id": _identity("resume-revision", profile_id, "series-1", upload_id),
+            "upload_id": upload_id,
             "series_id": "series-1", "label": "Base", "version": 1,
             "document_kind": "BASE_RESUME",
         }],
         "document_files": [
-            _file_record("upload-1", "pdf", contents),
+            _file_record(upload_id, "pdf", contents),
             _file_record("generated-doc-1", "txt", generated),
         ],
         "documents": [{
@@ -103,6 +110,49 @@ def _payload():
 
 
 class ProfileRestoreTests(unittest.TestCase):
+    def test_real_profile_backup_export_round_trips_with_large_uploaded_resume(self):
+        with tempfile.TemporaryDirectory(prefix="profile-restore-roundtrip-") as temporary:
+            root = Path(temporary)
+            store = Store(f"sqlite:///{(root / 'profile.db').as_posix()}")
+            store.migrate()
+            store.save_profile({
+                "id": "real-source-profile", "name": "Real Synthetic Person",
+                "email": "real@example.test",
+                "facts": [{
+                    "id": "real-fact", "text": "Linux administration", "source": "user",
+                    "verified": True, "user_approved": True, "confidence": 99.0,
+                    "kind": "skill",
+                }],
+                "answers": [{
+                    "id": "real-answer", "text": "Synthetic response", "source": "user",
+                    "verified": True, "user_approved": True, "confidence": 100.0,
+                    "question": "Synthetic question?",
+                }],
+            })
+            create_story(store, "real-source-profile", {
+                "kind": "STAR_STORY", "title": "Synthetic story",
+                "text": "A synthetic user reviewed achievement.", "fact_ids": ["real-fact"],
+                "tags": [], "allowed_uses": [],
+            })
+            content = (b"Synthetic resume content for import.\n" * 2400)
+            save_resume(store, root / "files", "real-source-profile", "source.txt",
+                        "text/plain", content)
+            try:
+                backup = export_profile_backup(store, "real-source-profile", output_dir=root / "files")
+                self.assertNotIn("profile_id", backup["profile_versions"][0])
+                self.assertNotIn("profile_id", backup["facts"][0])
+                self.assertNotIn("profile_id", backup["resume_revisions"][0])
+                self.assertNotIn("profile_id", backup["career_stories"][0])
+                preview = preview_profile_restore(backup)
+                plan = build_restore_plan(backup, "real-restored-profile")
+                self.assertEqual(preview["counts"]["facts"], 1)
+                self.assertEqual(preview["counts"]["answers"], 1)
+                self.assertEqual(preview["counts"]["uploaded_files"], 1)
+                self.assertEqual(plan["uploaded_files"][0]["content"], content)
+                self.assertFalse(plan["profile"]["facts"][0]["verified"])
+            finally:
+                store.engine.dispose()
+
     def test_preview_is_value_free_bounded_and_reports_fixed_sections(self):
         payload = _payload()
 

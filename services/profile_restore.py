@@ -88,7 +88,7 @@ def _normalize_payload(payload):
 
     nodes = 0
 
-    def inspect(value, depth):
+    def inspect(value, depth, field_name=None):
         nonlocal nodes
         nodes += 1
         if nodes > MAX_IMPORT_NODES or depth > MAX_IMPORT_DEPTH:
@@ -99,14 +99,15 @@ def _normalize_payload(payload):
             for key, nested in value.items():
                 if not isinstance(key, str) or len(key) > 256:
                     _fail()
-                inspect(nested, depth + 1)
+                inspect(nested, depth + 1, key)
         elif isinstance(value, list):
             if len(value) > MAX_IMPORT_ROWS:
                 _fail("RESTORE_LIMIT_EXCEEDED")
             for nested in value:
-                inspect(nested, depth + 1)
+                inspect(nested, depth + 1, field_name)
         elif isinstance(value, str):
-            if len(value) > MAX_IMPORT_STRING or "\x00" in value:
+            string_limit = MAX_IMPORT_BYTES if field_name == "content_base64" else MAX_IMPORT_STRING
+            if len(value) > string_limit or "\x00" in value:
                 _fail("RESTORE_LIMIT_EXCEEDED")
             try:
                 value.encode("utf-8", errors="strict")
@@ -155,6 +156,11 @@ def _object(value):
     return value
 
 
+def _optional_profile_scope(row, source_id):
+    if "profile_id" in row and _identifier(row["profile_id"]) != source_id:
+        _fail("RESTORE_LINKAGE_INVALID")
+
+
 def _source_profile(payload):
     if type(payload.get("schema_version")) is not int or payload["schema_version"] != 1:
         _fail("RESTORE_SCHEMA_UNSUPPORTED")
@@ -175,9 +181,9 @@ def _source_profile(payload):
     for row_value in versions:
         row = _object(row_value)
         row_id = _identifier(row.get("id"))
-        row_profile = _identifier(row.get("profile_id"))
+        _optional_profile_scope(row, source_id)
         row_version = _string(row.get("version"), max_length=64)
-        if row_id in seen_rows or row_profile != source_id or row_version in by_version:
+        if row_id in seen_rows or row_version in by_version:
             _fail("RESTORE_LINKAGE_INVALID")
         seen_rows.add(row_id)
         if row_id != _profile_version_id(source_id, row_version):
@@ -205,6 +211,23 @@ def _profile_version_id(profile_id, version):
     return hashlib.sha256(data.encode("utf-8")).hexdigest()
 
 
+def _profile_fact_id(profile_id, version, fact_id):
+    data = json.dumps((profile_id, version, fact_id), ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+
+def _resume_revision_id(profile_id, series_id, upload_id):
+    data = json.dumps(("resume-revision", profile_id, series_id, upload_id),
+                      ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+
+def _uploaded_resume_id(profile_id, digest):
+    data = json.dumps(("uploaded-resume", profile_id, digest),
+                      ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+
 def _facts(payload, source_id, current_version, versions):
     rows = _list(payload.get("facts"), name="facts")
     seen_row_ids = set()
@@ -213,13 +236,16 @@ def _facts(payload, source_id, current_version, versions):
     for value in rows:
         row = _object(value)
         row_id = _identifier(row.get("id"))
-        if row_id in seen_row_ids or _identifier(row.get("profile_id")) != source_id:
+        if row_id in seen_row_ids:
             _fail("RESTORE_LINKAGE_INVALID")
+        _optional_profile_scope(row, source_id)
         seen_row_ids.add(row_id)
         version = _string(row.get("version"), max_length=64)
         if version not in versions:
             _fail("RESTORE_LINKAGE_INVALID")
         fact_id = _identifier(row.get("fact_id"))
+        if row_id != _profile_fact_id(source_id, version, fact_id):
+            _fail("RESTORE_LINKAGE_INVALID")
         kind = _string(row.get("kind"), max_length=32)
         text = _string(row.get("text"), max_length=10_000)
         source = _string(row.get("source"), max_length=1_000)
@@ -248,8 +274,9 @@ def _facts(payload, source_id, current_version, versions):
     for story_value in stories:
         story = _object(story_value)
         story_id = _identifier(story.get("id"))
-        if story_id in seen_story_ids or _identifier(story.get("profile_id")) != source_id:
+        if story_id in seen_story_ids:
             _fail("RESTORE_LINKAGE_INVALID")
+        _optional_profile_scope(story, source_id)
         seen_story_ids.add(story_id)
         story_version = _string(story.get("profile_version"), max_length=64)
         if story_version not in versions:
@@ -302,6 +329,7 @@ def _uploaded_files(payload, source_id):
     for value in uploads:
         row = _object(value)
         identifier = _identifier(row.get("id"))
+        _optional_profile_scope(row, source_id)
         if identifier in upload_by_id:
             _fail("RESTORE_LINKAGE_INVALID")
         filename = _string(row.get("filename"), max_length=200)
@@ -318,6 +346,8 @@ def _uploaded_files(payload, source_id):
         if (type(size) is not int or not 0 < size <= MAX_IMPORTED_FILE_BYTES
                 or not isinstance(digest, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", digest)):
             _fail("RESTORE_DOCUMENT_INVALID")
+        if identifier != _uploaded_resume_id(source_id, digest.casefold()):
+            _fail("RESTORE_LINKAGE_INVALID")
         upload_by_id[identifier] = {
             "source_id": identifier, "filename": filename, "format": file_format,
             "media_type": media_type, "size_bytes": size, "sha256": digest.casefold(),
@@ -330,17 +360,19 @@ def _uploaded_files(payload, source_id):
     for value in revisions:
         row = _object(value)
         revision_id = _identifier(row.get("id"))
-        revision_profile_id = _identifier(row.get("profile_id"))
+        _optional_profile_scope(row, source_id)
         upload_id = _identifier(row.get("upload_id"))
         series_id = _identifier(row.get("series_id"))
         _string(row.get("label"), max_length=200)
         version = row.get("version")
         document_kind = row.get("document_kind")
         if (revision_id in seen_revision_ids or upload_id not in upload_by_id
-                or revision_profile_id != source_id or type(version) is not int or version < 1
+                or type(version) is not int or version < 1
                 or document_kind not in {"BASE_RESUME", "MASTER_RESUME", "TAILORED_RESUME",
                                          "COVER_LETTER", "APPLICATION_ANSWER_EXPORT",
                                          "SUPPORTING_DOCUMENT", "CERTIFICATION"}):
+            _fail("RESTORE_LINKAGE_INVALID")
+        if revision_id != _resume_revision_id(source_id, series_id, upload_id):
             _fail("RESTORE_LINKAGE_INVALID")
         if ((series_id, version) in seen_series_versions
                 or (series_id, upload_id) in seen_series_uploads):
