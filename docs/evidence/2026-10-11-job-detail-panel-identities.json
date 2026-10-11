@@ -1,0 +1,43 @@
+{
+  "status": "PARTIAL_HOSTED_PENDING",
+  "iteration": 17,
+  "utc": "2026-10-11T22:41:29.472087+00:00",
+  "issue": 532,
+  "sourceParent": "2036cc5b600c226afe281a9d3139972abbb31493",
+  "sourceSha256": {
+    "apps/web/src/main.tsx": "b5436595cbed453a93d21905b2c770d23efd8e6162c64614dc57b7ecf7b47a3c",
+    "tests/browser/test_application_priority_mount.py": "745d4a8ccdc8b636e06e720f2817cafc81bc58a86b77bfca38c18be23e6b464b"
+  },
+  "behavior": "Eight job-detail panels have unique stable scope keys; no orphan panels after profile/job updates",
+  "negativeControl": {
+    "result": "FAIL strict-mode2priorityRegions",
+    "artifact": "outputs/ci/iteration17-priority-red.xml"
+  },
+  "checks": [
+    {
+      "command": "pytest affected eight browser modules",
+      "result": "7PASS/1FAIL/0SKIP",
+      "artifact": "outputs/ci/iteration17-expanded-final.xml"
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "768PASS/131files"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "remainingFailure": "Capture Sources card expects Linked job: ID but displays Linked job: title at company (ID); linked metadata present. Predecessor has same failure. Do not rerun unchanged.",
+  "review": "Local Luna review found four additional sibling collisions; corrected and follow-up found no important issues",
+  "limits": [
+    "Full browser and exact new-head hosted gates pending",
+    "No parent requirement promoted",
+    "Release acceptance0/7",
+    "Real external submissions OFF"
+  ]
+}

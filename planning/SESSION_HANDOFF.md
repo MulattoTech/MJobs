@@ -2,6 +2,13 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 17: job-detail panel identity repair
+
+- Single installed runner10584 owner; goal.json preserved, acceptance0/7. PR543 merged2036cc5b600c226afe281a9d3139972abbb31493 after exact af0e8e10 Compose38180921229/attempt1 and integration38180921202/attempt1 all3shards/aggregate PASS.
+- New branch `fix/job-detail-identities-532-20261011` based on that main tree. #532: reproduced duplicate priority regions; all eight colliding job-detail sibling keys now distinguish component type while retaining profile/job identity. Regression asserts eight unique regions after transitions and retains retry/mismatch/read-only/DB readback checks.
+- Expanded Chromium7PASS/1FAIL/0SKIP; known capture Sources assertion expects bare linked ID but UI includes title/company then ID. Same predecessor failure; no unchanged rerun. Frontend768PASS/131files, production build and catalogue/progress/dashboard/agent-skills/diff PASS. Local Luna review corrected four further collisions; follow-up no important findings. Source hashes/scopes: `docs/evidence/2026-10-11-job-detail-panel-identities.json`.
+- Exact publication identity belongs in AFK queue/events. Current-head hosted/full-browser checks pending. Security3d7f54b3 remains preserved for serial publication. Original dirty plan and content-equivalent search-history marker preserved; no acceptance authority promoted. Submissions OFF. Next: inspect protected checks, then publish security slice. Rollback via revert; no data/config/migration changes.
+
 ## Iteration 16: active comparison row mobile repair
 
 - Same installed runner10584, single mutation owner, root checkout and PR #543 branch. Parent source `009a85ac20b7d439c43387f606a8246d2f8a1dfe`; publication identity is recorded in AFK queue/events. Goal contract and original dirty release-candidate plan preserved.
