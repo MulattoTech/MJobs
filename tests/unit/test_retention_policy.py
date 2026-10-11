@@ -27,13 +27,13 @@ class RetentionPolicyTests(unittest.TestCase):
         self.root.mkdir()
         self.config = self._config()
 
-    def _config(self, *, prune_enabled=True, pattern="capture-*.png", max_age=30):
+    def _config(self, *, prune_enabled=True, dry_run=False, pattern="capture-*.png", max_age=30):
         return {
             "configured_root": str(self.root),
             "allowed_roots": [str(self.root)],
             "summary_path": str(self.root / "retention-summary.json"),
             "prune_enabled": prune_enabled,
-            "dry_run": True,
+            "dry_run": dry_run,
             "rules": [{
                 "id": "debug-captures",
                 "category": "DEBUG_SCREENSHOT",
@@ -64,7 +64,8 @@ class RetentionPolicyTests(unittest.TestCase):
 
     def test_save_is_atomic_versioned_and_survives_store_reopen(self):
         policy = save_retention_policy(
-            self.store, self.config, expected_revision=0, enabled=True,
+            self.store, self.config, expected_revision=0,
+            expected_config_fingerprint=read_retention_policy(self.store, self.config)["config_fingerprint"], enabled=True,
             max_age_days_by_rule={"debug-captures": 10, "rotated-logs": 365},
         )
         self.store.engine.dispose()
@@ -81,7 +82,8 @@ class RetentionPolicyTests(unittest.TestCase):
 
     def test_config_change_invalidates_consent_and_restores_new_defaults(self):
         saved = save_retention_policy(
-            self.store, self.config, expected_revision=0, enabled=True,
+            self.store, self.config, expected_revision=0,
+            expected_config_fingerprint=read_retention_policy(self.store, self.config)["config_fingerprint"], enabled=True,
             max_age_days_by_rule={"debug-captures": 10, "rotated-logs": 20},
         )
         changed = self._config(pattern="capture-v2-*.png", max_age=45)
@@ -99,13 +101,28 @@ class RetentionPolicyTests(unittest.TestCase):
         self.assertFalse(effective["prune_enabled"])
         self.assertEqual(effective["rules"][0]["max_age_days"], 45)
 
+    def test_save_rejects_config_changed_since_get_even_when_revision_matches(self):
+        seen_at_get = read_retention_policy(self.store, self.config)
+        changed = self._config(pattern="capture-v2-*.png", max_age=45)
+
+        with self.assertRaises(RetentionPolicyError) as caught:
+            save_retention_policy(
+                self.store, changed, expected_revision=seen_at_get["revision"],
+                expected_config_fingerprint=seen_at_get["config_fingerprint"], enabled=True,
+                max_age_days_by_rule={"debug-captures": 10, "rotated-logs": 14},
+            )
+
+        self.assertEqual(caught.exception.code, "RETENTION_POLICY_CONFIG_CHANGED")
+        self.assertEqual(read_retention_policy(self.store, changed)["revision"], 0)
+
     def test_admin_prune_ceiling_requires_literal_true(self):
         disabled = self._config(prune_enabled=False)
         policy = read_retention_policy(self.store, disabled)
         self.assertFalse(policy["pruning_allowed"])
         with self.assertRaises(RetentionPolicyError) as caught:
             save_retention_policy(
-                self.store, disabled, expected_revision=0, enabled=True,
+                self.store, disabled, expected_revision=0,
+                expected_config_fingerprint=policy["config_fingerprint"], enabled=True,
                 max_age_days_by_rule={"debug-captures": 30, "rotated-logs": 14},
             )
         self.assertEqual(caught.exception.code, "RETENTION_POLICY_ADMIN_DISABLED")
@@ -114,6 +131,17 @@ class RetentionPolicyTests(unittest.TestCase):
         with self.assertRaises(RetentionPolicyError) as invalid:
             read_retention_policy(self.store, invalid_admin)
         self.assertEqual(invalid.exception.code, "RETENTION_POLICY_INVALID_CONFIG")
+
+        admin_dry_run = self._config(dry_run=True)
+        dry_policy = read_retention_policy(self.store, admin_dry_run)
+        self.assertFalse(dry_policy["pruning_allowed"])
+        with self.assertRaises(RetentionPolicyError) as dry_disabled:
+            save_retention_policy(
+                self.store, admin_dry_run, expected_revision=0,
+                expected_config_fingerprint=dry_policy["config_fingerprint"], enabled=True,
+                max_age_days_by_rule={"debug-captures": 30, "rotated-logs": 14},
+            )
+        self.assertEqual(dry_disabled.exception.code, "RETENTION_POLICY_ADMIN_DISABLED")
 
     def test_config_rejects_traversal_protected_roots_and_broad_patterns(self):
         for update in (
@@ -130,10 +158,11 @@ class RetentionPolicyTests(unittest.TestCase):
 
     def test_runtime_summary_is_ignored_but_execution_flags_invalidate_consent(self):
         saved = save_retention_policy(
-            self.store, self.config, expected_revision=0, enabled=True,
+            self.store, self.config, expected_revision=0,
+            expected_config_fingerprint=read_retention_policy(self.store, self.config)["config_fingerprint"], enabled=True,
             max_age_days_by_rule={"debug-captures": 10, "rotated-logs": 20},
         )
-        runtime_only = dict(self.config, dry_run=False,
+        runtime_only = dict(self.config, dry_run=True,
                             summary_path=str(self.root / "another-summary.json"))
 
         current = read_retention_policy(self.store, runtime_only)
@@ -149,7 +178,8 @@ class RetentionPolicyTests(unittest.TestCase):
         # the user setting and the server's administrative ceiling allow it.
         authorized = dict(self.config, dry_run=False)
         save_retention_policy(
-            self.store, authorized, expected_revision=1, enabled=True,
+            self.store, authorized, expected_revision=1,
+            expected_config_fingerprint=read_retention_policy(self.store, authorized)["config_fingerprint"], enabled=True,
             max_age_days_by_rule={"debug-captures": 10, "rotated-logs": 20},
         )
         effective = effective_retention_config(self.store, authorized)
@@ -158,12 +188,14 @@ class RetentionPolicyTests(unittest.TestCase):
 
     def test_revision_conflicts_and_exact_rule_age_bounds_are_fixed_code(self):
         save_retention_policy(
-            self.store, self.config, expected_revision=0, enabled=False,
+            self.store, self.config, expected_revision=0,
+            expected_config_fingerprint=read_retention_policy(self.store, self.config)["config_fingerprint"], enabled=False,
             max_age_days_by_rule={"debug-captures": 1, "rotated-logs": 365},
         )
         with self.assertRaises(RetentionPolicyError) as stale:
             save_retention_policy(
-                self.store, self.config, expected_revision=0, enabled=False,
+                self.store, self.config, expected_revision=0,
+                expected_config_fingerprint=read_retention_policy(self.store, self.config)["config_fingerprint"], enabled=False,
                 max_age_days_by_rule={"debug-captures": 2, "rotated-logs": 14},
             )
         self.assertEqual(stale.exception.code, "RETENTION_POLICY_REVISION_CONFLICT")
@@ -177,7 +209,8 @@ class RetentionPolicyTests(unittest.TestCase):
         ):
             with self.subTest(ages=ages), self.assertRaises(RetentionPolicyError) as invalid:
                 save_retention_policy(
-                    self.store, self.config, expected_revision=1, enabled=False,
+                    self.store, self.config, expected_revision=1,
+                    expected_config_fingerprint=read_retention_policy(self.store, self.config)["config_fingerprint"], enabled=False,
                     max_age_days_by_rule=ages,
                 )
             self.assertEqual(invalid.exception.code, "RETENTION_POLICY_INVALID_SETTINGS")
@@ -186,7 +219,8 @@ class RetentionPolicyTests(unittest.TestCase):
         def save(age):
             try:
                 return save_retention_policy(
-                    self.store, self.config, expected_revision=0, enabled=False,
+                    self.store, self.config, expected_revision=0,
+                    expected_config_fingerprint=read_retention_policy(self.store, self.config)["config_fingerprint"], enabled=False,
                     max_age_days_by_rule={"debug-captures": age, "rotated-logs": 14},
                 )["revision"]
             except RetentionPolicyError as error:

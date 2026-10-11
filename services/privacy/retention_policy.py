@@ -100,7 +100,7 @@ def _normalize_config(config):
                                                      ensure_ascii=False).encode("utf-8")).hexdigest()
         return {"configured_root": configured_root, "allowed_roots": allowed_roots,
                 "rules": rules, "fingerprint": fingerprint,
-                "pruning_allowed": config["prune_enabled"] is True,
+                "pruning_allowed": config["prune_enabled"] is True and config["dry_run"] is False,
                 "dry_run": config["dry_run"]}
     except RetentionPolicyError:
         raise
@@ -190,8 +190,11 @@ def _validate_save(normalized, expected_revision, enabled, ages):
     return {rule_id: ages[rule_id] for rule_id in sorted(expected_ids)}
 
 
-def save_retention_policy(store, config, *, expected_revision, enabled, max_age_days_by_rule):
+def save_retention_policy(store, config, *, expected_revision, expected_config_fingerprint,
+                          enabled, max_age_days_by_rule):
     normalized = _normalize_config(config)
+    if expected_config_fingerprint != normalized["fingerprint"]:
+        _fail("RETENTION_POLICY_CONFIG_CHANGED")
     ages = _validate_save(normalized, expected_revision, enabled, max_age_days_by_rule)
     if enabled and not normalized["pruning_allowed"]:
         _fail("RETENTION_POLICY_ADMIN_DISABLED")
