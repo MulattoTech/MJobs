@@ -544,9 +544,18 @@ operations = table("worker_operations", Column("kind", String(64), nullable=Fals
                    Column("params", JSON, nullable=False), Column("state", String(64), nullable=False),
                    Column("error", String(1000)), Column("updated_at", String(64), nullable=False),
                    Column("attempt_count", Integer, nullable=False, server_default="0"),
+                   Column("current_step", String(128)),
+                   Column("progress", Integer, nullable=False, server_default="0"),
+                   Column("started_at", String(64)), Column("completed_at", String(64)),
+                   Column("retry_count", Integer, nullable=False, server_default="0"),
+                   Column("recovery_metadata", JSON, nullable=False, server_default="{}"),
                    Column("cancel_requested", Boolean, nullable=False, server_default=false()),
                    Column("lease_expires_at", String(64)),
                    Column("last_attempt_at", String(64)), Column("dead_lettered_at", String(64)),
-                   Column("discarded_at", String(64)))
+                   Column("discarded_at", String(64)),
+                   constraints=(CheckConstraint(
+                       "progress >= 0 AND progress <= 100",
+                       name="ck_worker_operations_progress_range",
+                   ),))
 audit = table("audit_events", Column("entity_id", String(128), nullable=False), Column("action", String(64), nullable=False),
               Column("payload", JSON, nullable=False), Column("timestamp", String(64), nullable=False))
