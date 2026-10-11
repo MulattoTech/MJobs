@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-10-11T09:47:08.227075+00:00",
-  "source_revision": "0635e5deccfc8d0bdda1f723bfac1a473a76480f",
+  "timestamp": "2026-10-11T09:47:27.330502+00:00",
+  "source_revision": "750907d529d94f6f8359b8c0a4caae4a1fda2ed0",
   "requirement_ids": [
     "MJ-REQ-156",
     "MJ-REQ-292",
@@ -176,6 +176,8 @@
     "dump_sha256": "f653a1e091a46abf0d5f11147e9e9d3079785f96e71119dc3f290591313722ce"
   },
   "followup_checks": [
+    "Document-history browser repair 0635e5de: root 2 passed / 18.04s; immutable facts/revision/download/comparison assertions preserved.",
+    "Final catalogue/progress/agent-skills/dashboard/diff checks PASS; all child agents stopped. Full corrected Python rerun NOT_RUN; full browser gate unresolved.",
     "Actual readiness utility PASS for both deployed stacks after final image rollout: current schema, PostgreSQL, Redis, scheduler and all four worker queues.",
     "Source relationship graph: real 390px page overflow fixed with one scoped wrapping rule; internal map scroll and node click preserved. Root focused browser pair 2 passed / 12.81s; child frontend 768 passed and root/child production builds PASS. Final image deployed to both controlled stacks and served CSS rule verified.",
     "Unintegrated selector-only branch 5a980be9 preserves all answer-export assertions: module 3 passed / 1 failed later in avoid-term safe-reason flow with dynamic-field/rehearsal errors. Not merged as a passing feature.",
