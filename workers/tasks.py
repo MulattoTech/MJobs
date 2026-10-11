@@ -24,6 +24,7 @@ from services.discovery.search_history import record_search_history
 from services.discovery.search_history_events import build_search_history_record
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
 from workers.structured_logging import log_operation_finished
+from workers.application_form_review import FormReviewError, handle_form_review
 
 
 class FixtureOperationDisabled(Exception):
@@ -274,6 +275,28 @@ def execute_operation(operation_id):
             elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
                 from services.company_discovery.monitoring import refresh_company_source
                 result = refresh_company_source(store, operation, check=check)
+            elif operation["kind"] == "APPLICATION_FORM_REVIEW":
+                route_url = operation["params"]["route_url"]
+
+                def fetch_form_html(url):
+                    check()
+                    client = PublicCompanyClient(
+                        url, check=check,
+                        total_timeout=min(30, max(2, check.remaining_seconds())),
+                    )
+                    try:
+                        response = client.get(url)
+                        content_type = response.headers.get("content-type", "")
+                        if (not client.allowed(str(response.url))
+                                or content_type.split(";", 1)[0].strip().casefold() != "text/html"):
+                            raise FormReviewError("FORM_REVIEW_CONTENT_TYPE_UNSUPPORTED")
+                        return response.content
+                    finally:
+                        client.close()
+
+                result = handle_form_review(
+                    store, operation, fetch_html=fetch_form_html, check=check,
+                )
             elif operation["kind"] == "PREPARE":
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
                         check=check, profile_version=operation["params"].get("profile_version"),
@@ -327,7 +350,9 @@ def execute_operation(operation_id):
         except FixtureOperationDisabled:
             state, error = "BLOCKED", "FIXTURE_OPERATION_DISABLED"
         except Exception as failure:
-            state, error = "FAILED", failure.code if isinstance(failure, (SourceError, PreparationError)) else type(failure).__name__
+            state, error = "FAILED", failure.code if isinstance(
+                failure, (SourceError, PreparationError, FormReviewError)
+            ) else type(failure).__name__
             history_counts = {}
         with store.engine.begin() as connection:
             if state == "FAILED":

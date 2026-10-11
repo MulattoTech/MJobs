@@ -1,13 +1,27 @@
 """A browser worker cannot consume discovery or document jobs."""
 import os
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
+import yaml
 from workers import main as worker_main
 from workers.operations import QUEUES
 
 
 class WorkerQueueBindingTests(unittest.TestCase):
+    def test_company_discovery_uses_a_queue_separate_from_source_collection(self):
+        self.assertNotEqual(QUEUES["COMPANY_DISCOVER"], QUEUES["DISCOVER"])
+        self.assertNotEqual(QUEUES["COMPANY_SOURCE_REFRESH"], QUEUES["DISCOVER"])
+        self.assertEqual(QUEUES["COMPANY_DISCOVER"], QUEUES["COMPANY_SOURCE_REFRESH"])
+
+    def test_compose_runs_company_discovery_on_its_dedicated_queue(self):
+        compose = yaml.safe_load(Path("compose.yml").read_text(encoding="utf-8"))
+        service = compose["services"]["company-discovery-worker"]
+        self.assertEqual(service["command"], ["python", "-m", "workers.company_discovery_worker"])
+        self.assertEqual(service["environment"]["MJOBS_WORKER_QUEUE"], "mjobs-company-discovery")
+        self.assertIn("source-egress", service["networks"])
+
     def test_each_worker_consumes_only_its_configured_queue(self):
         for queue in QUEUES.values():
             with self.subTest(queue=queue), patch.dict(os.environ, {

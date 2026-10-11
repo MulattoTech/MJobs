@@ -24,10 +24,11 @@ from services.documents.avoid_list import validate_content as validate_avoid_lis
 from services.documents.artifacts import atomic_generate, publish_directory
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
+from services.documents.failure_status import validate_generated_outputs
 from services.documents.history import application_documents
 from services.documents.page_fit import fit_to_page_target
 from services.documents.render import render_pdf
-from services.documents.validation import VALIDATOR, validate_assertions, validate_formats
+from services.documents.validation import VALIDATOR, validate_assertions
 from services.documents.templates import BASE_TEMPLATE, resume_layout, template_pair, contact_header, RESPONSIBILITY_EMPHASIS_TEMPLATES
 
 
@@ -624,7 +625,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 '\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n'))
             atomic_generate(pdf_path, lambda path: render_pdf(
                 path, paragraphs, heading_indices=headings, bold_indices=bold_indices))
-            validate_formats({'docx': docx_path, 'pdf': pdf_path, 'txt': txt_path}, paragraphs)
+            validate_generated_outputs({'docx': docx_path, 'pdf': pdf_path, 'txt': txt_path})
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,
                 "kind": kind, "version": revision, "profile_version": profile["version"],
                 "files": {path.suffix[1:]: relative + '/' + path.name for path in (docx_path, pdf_path, txt_path)},

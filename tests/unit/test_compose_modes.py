@@ -116,6 +116,7 @@ class ComposeModeTests(unittest.TestCase):
         self.assertEqual(set(services), {
             "postgres", "redis", "migrate", "api", "mock", "worker",
             "scheduler", "source-worker", "document-worker",
+            "company-discovery-worker",
         })
         for name, service in services.items():
             with self.subTest(service=name):

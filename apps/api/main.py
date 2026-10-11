@@ -656,6 +656,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_application_attempt_history_router(store))
     from apps.api.application_confirmation_recovery import create_application_confirmation_recovery_router
     app.include_router(create_application_confirmation_recovery_router(store, mock_origin, operation_mode))
+    from apps.api.application_form_review import create_application_form_review_router
+    app.include_router(create_application_form_review_router(store))
     from apps.api.dynamic_application_fields import create_dynamic_application_fields_router
     app.include_router(create_dynamic_application_fields_router(store))
     from apps.api.document_archive import create_document_archive_router
@@ -664,6 +666,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_manual_auth_router(store, mock_origin, output_dir, operation_mode))
     from apps.api.company_discovery_activity import create_company_discovery_activity_router
     app.include_router(create_company_discovery_activity_router(store))
+    from apps.api.company_discovery_queue import create_company_discovery_queue_router
+    app.include_router(create_company_discovery_queue_router(store))
     from apps.api.skill_gap_heatmap import create_skill_gap_heatmap_router
     app.include_router(create_skill_gap_heatmap_router(store))
     from apps.api.search_profile_suggestions import create_search_profile_suggestions_router
@@ -1421,6 +1425,26 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             if str(error) == "Search profile belongs to a different career profile":
                 raise HTTPException(409, str(error)) from error
             raise HTTPException(422, str(error)) from error
+
+    @app.get("/profiles/{profile_id}/settings/export")
+    def profile_settings_export(profile_id: str):
+        from services.settings_transfer import export_settings
+        try:
+            return export_settings(store, profile_id)
+        except ValueError as error:
+            if str(error) == "Career profile does not exist":
+                raise HTTPException(404, "Career profile not found") from None
+            raise HTTPException(422, "Settings export is unavailable") from None
+
+    @app.post("/profiles/{profile_id}/settings/import")
+    def profile_settings_import(profile_id: str, payload: dict):
+        from services.settings_transfer import import_settings
+        try:
+            return import_settings(store, profile_id, payload)
+        except ValueError as error:
+            if str(error) == "Career profile does not exist":
+                raise HTTPException(404, "Career profile not found") from None
+            raise HTTPException(422, "Settings document is invalid or unsupported") from None
 
     @app.put("/sources")
     def source_configure(value: SourceInput):

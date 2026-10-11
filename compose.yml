@@ -122,6 +122,18 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
+  company-discovery-worker:
+    <<: *runtime
+    networks: [private, source-egress]
+    command: [python, -m, workers.company_discovery_worker]
+    restart: unless-stopped
+    environment:
+      <<: *environment
+      MJOBS_WORKER_QUEUE: mjobs-company-discovery
+      MJOBS_BROWSER_DEBUG_CAPTURE: ${MJOBS_BROWSER_DEBUG_CAPTURE:-0}
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
   document-worker:
     <<: *runtime
     command: [python, -m, workers.main]

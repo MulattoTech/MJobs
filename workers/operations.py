@@ -9,9 +9,9 @@ from packages.persistence import models as m
 from packages.persistence.store import now
 from services.audit_history import record_application_preparation_event
 
-QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-discovery",
-          "COMPANY_SOURCE_REFRESH": "mjobs-discovery", "PREPARE": "mjobs-document",
-          "APPLY_MOCK": "mjobs-application"}
+QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-company-discovery",
+          "COMPANY_SOURCE_REFRESH": "mjobs-company-discovery", "PREPARE": "mjobs-document",
+          "APPLY_MOCK": "mjobs-application", "APPLICATION_FORM_REVIEW": "mjobs-application"}
 OPERATION_CATEGORIES = {
     "DISCOVER": "source_collection",
     "COMPANY_DISCOVER": "company_discovery",
@@ -21,6 +21,7 @@ OPERATION_CATEGORIES = {
     "UPLOADED_RESUME_COMPARE": "document_generation",
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
+    "APPLICATION_FORM_REVIEW": "application_automation",
 }
 CATEGORY_LIMITS = {
     "source_collection": (2, 4),
