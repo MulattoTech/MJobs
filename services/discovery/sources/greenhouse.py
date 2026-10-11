@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
@@ -257,7 +258,7 @@ class Greenhouse:
     def normalize(self, raw):
         if not isinstance(raw, dict) or type(raw.get("id")) is not int or raw["id"] <= 0 or not isinstance(raw.get("title"), str) or not raw["title"].strip():
             raise SourceError("SOURCE_INVALID_JOB")
-        description = plain_text(raw.get("content"))[:50000]
+        description = structured_text(raw.get("content"))[:50000]
         if raw.get("location") and not isinstance(raw["location"], dict):
             raise SourceError("SOURCE_INVALID_JOB_LOCATION")
         location = plain_text((raw.get("location") or {}).get("name") or "Unknown")[:1000]

@@ -38,6 +38,18 @@ _ACTION_VERBS = {
 }
 _STOP = {"and", "are", "for", "from", "have", "into", "that", "the", "their", "this", "with", "your"}
 _WORD = re.compile(r"[a-z0-9+#.]{2,}", re.I)
+_RESPONSIBILITY_HEADING = re.compile(
+    r"^(?:(?:your|key|role|job)\s+)*(?:responsibilit\w*|what you(?:'|’)ll do|"
+    r"what you will do|duties|day to day)$",
+    re.I,
+)
+_SECTION_HEADING = re.compile(
+    r"^(?:(?:your|key|role|job|required|preferred|additional|basic|minimum|essential|core)\s+)*"
+    r"(?:responsibilit\w*|what you(?:'|’)ll do|what you will do|duties|day to day|"
+    r"requirements|qualifications|what you bring|preferred skills|benefits)"
+    r"(?:\s*:\s*.*)?$",
+    re.I,
+)
 
 
 def _approved_company_context(job):
@@ -93,7 +105,14 @@ def _normalized_choice(value, choices):
 def _responsibilities(description):
     rows = []
     in_section = False
-    for line in str(description or "").replace("\r", "\n").splitlines():
+    lines = str(description or "").replace("\r", "\n").splitlines()
+    has_explicit_section = any(
+        _SECTION_HEADING.fullmatch(
+            re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", line).rstrip(":").strip()
+        )
+        for line in lines
+    )
+    for line in lines:
         bullet = bool(re.match(r"^\s*(?:[-*•]+|\d+[.)])\s*", line))
         value = re.sub(r"^\s*(?:[-*•]+|\d+[.)])\s*", "", line).strip()
         if not value:
@@ -104,19 +123,19 @@ def _responsibilities(description):
             in_section = True
             if not value:
                 continue
-        heading = value.rstrip(":").strip().casefold()
-        if any(marker in heading for marker in ("responsibilit", "what you'll do", "what you will do", "duties", "day to day")):
+        if _RESPONSIBILITY_HEADING.fullmatch(value.rstrip(":").strip()):
             in_section = True
             continue
-        if in_section and any(marker in heading for marker in ("requirements", "qualifications", "what you bring", "preferred skills", "benefits")):
+        if _SECTION_HEADING.fullmatch(value.strip()):
             in_section = False
+            continue
         if in_section and len(value) <= 80 and value.endswith(":"):
             in_section = False
         first = (_WORD.findall(value) or [""])[0].casefold().rstrip(".")
         action_line = first in _ACTION_VERBS or value.casefold().startswith(("you will ", "you'll "))
         if in_section and not action_line and not bullet:
             in_section = False
-        if action_line or (in_section and bullet):
+        if (action_line and (in_section or not has_explicit_section)) or (in_section and bullet):
             rows.append(value[:500])
         if len(rows) >= 5:
             break

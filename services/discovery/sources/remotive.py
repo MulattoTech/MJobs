@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
@@ -205,7 +206,7 @@ class Remotive:
             raise SourceError("SOURCE_INVALID_JOB")
 
         title = plain_text(raw["title"])[:500]
-        description = plain_text(raw.get("description"))[:50000]
+        description = structured_text(raw.get("description"))[:50000]
         company_name = plain_text(raw.get("company_name") or "Unknown Company")[:200]
         location_raw = plain_text(raw.get("candidate_required_location") or "Remote")[:1000]
         location_facts = classify_location(location_raw, description)

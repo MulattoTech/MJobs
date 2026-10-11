@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
@@ -336,7 +337,7 @@ class WeWorkRemotely:
 
         company_name_raw, title_raw = _extract_company_title(raw["title"])
         title = plain_text(title_raw)[:500]
-        description = plain_text(raw.get("description"))[:50000]
+        description = structured_text(raw.get("description"))[:50000]
         company_name = plain_text(company_name_raw)[:200]
 
         # Location from region, country, state
