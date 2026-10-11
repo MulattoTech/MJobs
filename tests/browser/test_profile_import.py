@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 @contextmanager
-def dispatch_queued_resume_extractions(store, output_dir):
+def dispatch_queued_resume_extractions(store, output_dir, worker_gate=None):
     """Run the real worker locally for this browser test; no Redis service needed."""
     from apps.api import main as api_main
     from workers.tasks import execute_operation
@@ -42,6 +42,8 @@ def dispatch_queued_resume_extractions(store, output_dir):
         queued = real_queue(*args, **kwargs)
         def run():
             try:
+                if worker_gate is not None and not worker_gate.wait(15):
+                    raise TimeoutError("browser test did not release queued extraction worker")
                 with patch.dict(os.environ, worker_env):
                     execute_operation(queued["operation_id"])
             except BaseException as error:
@@ -201,10 +203,22 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     page.get_by_label('Resume label', exact=True).fill('Engineering')
                     page.get_by_role('button', name='Store resume', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Resume stored locally')).to_be_visible()
-                    with dispatch_queued_resume_extractions(store, root):
+                    worker_gate = threading.Event()
+                    with dispatch_queued_resume_extractions(store, root, worker_gate):
                         page.get_by_role('button', name='Extract and review', exact=True).click()
+                        deadline = time.monotonic() + 5
+                        while store.count('worker_operations') < 1 and time.monotonic() < deadline:
+                            time.sleep(0.02)
+                        self.assertEqual(store.count('worker_operations'), 1)
+                        page.reload(wait_until='domcontentloaded')
+                        page.get_by_role('button', name='Profile', exact=True).click()
+                        row = page.locator('[data-resume-version="1"]')
+                        expect(row.get_by_role('button', name='Cancel extraction', exact=True)).to_be_visible()
+                        self.assertEqual(store.count('worker_operations'), 1)
+                        worker_gate.set()
                         review = page.get_by_role('region', name='Resume extraction review')
                         expect(review).to_be_visible()
+                        self.assertTrue(all(not box.is_checked() for box in review.locator('input[type=checkbox]').all()))
                     expect(review.get_by_label('Add contact email', exact=False)).not_to_be_checked()
                     expect(review.get_by_label('Add contact github', exact=False)).not_to_be_checked()
                     expect(review.get_by_text('Maintained support@example.invalid routing.', exact=False)).to_be_visible()

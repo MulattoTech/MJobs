@@ -32,6 +32,8 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
   const input = useRef<HTMLInputElement>(null);
   const mounted = useRef(true);
   const generation = useRef(0);
+  const resumeScopeKey=JSON.stringify(resumes.map(resume=>({id:resume.id,version:resume.version,sha256:resume.sha256}))
+    .sort((a,b)=>a.id.localeCompare(b.id)));
   useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;};},[]);
   useEffect(()=>{
     const current=++generation.current;
@@ -67,7 +69,7 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
     }
     void restoreLatest();
     return ()=>{active=false;if(generation.current===current)generation.current++;};
-  },[profileId,resumes]);
+  },[profileId,resumeScopeKey]);
   const groups = Array.from(new Map(resumes.map(resume=>[resume.series_id,resume.label])).entries());
   const toggle = (setter:React.Dispatch<React.SetStateAction<Set<string>>>, key:string, checked:boolean) =>
     setter(current=>{const next=new Set(current);if(checked)next.add(key);else next.delete(key);return next;});
@@ -99,24 +101,29 @@ export function ResumeLibrary({profileId, saved, resumes, busy, action, onStored
     }
   }
   async function pollExtraction(resume:Resume,operationId:string,current:number) {
-    while(mounted.current&&generation.current===current) {
-      const status=await api<DurableExtraction>(extractionPath(profileId,resume.id,operationId));
-      if(!mounted.current||generation.current!==current)return;
-      setExtractionProgress(status);
-      if(status.state==='COMPLETED'){
-        if(status.result){setExtraction(status.result);setSelectedFacts(new Set());setSelectedContact(new Set());}
-        if(window.localStorage.getItem(extractionIntentKey(profileId,resume.id))===status.request_id)
-          window.localStorage.removeItem(extractionIntentKey(profileId,resume.id));
-        return;
+    try {
+      while(mounted.current&&generation.current===current) {
+        const status=await api<DurableExtraction>(extractionPath(profileId,resume.id,operationId));
+        if(!mounted.current||generation.current!==current)return;
+        setExtractionProgress(status);
+        if(status.state==='COMPLETED'){
+          if(status.result){setExtraction(status.result);setSelectedFacts(new Set());setSelectedContact(new Set());}
+          if(window.localStorage.getItem(extractionIntentKey(profileId,resume.id))===status.request_id)
+            window.localStorage.removeItem(extractionIntentKey(profileId,resume.id));
+          return;
+        }
+        if(['FAILED','BLOCKED','CANCELLED','DEAD_LETTERED','DISCARDED'].includes(status.state)){
+          if(window.localStorage.getItem(extractionIntentKey(profileId,resume.id))===status.request_id)
+            window.localStorage.removeItem(extractionIntentKey(profileId,resume.id));
+          setCancelNotice(status.state==='CANCELLED'?'Resume extraction was cancelled.':
+            'Resume extraction ended with '+status.state.replaceAll('_',' ').toLowerCase()+'.');
+          return;
+        }
+        await new Promise(resolve=>window.setTimeout(resolve,600));
       }
-      if(['FAILED','BLOCKED','CANCELLED','DEAD_LETTERED','DISCARDED'].includes(status.state)){
-        if(window.localStorage.getItem(extractionIntentKey(profileId,resume.id))===status.request_id)
-          window.localStorage.removeItem(extractionIntentKey(profileId,resume.id));
-        setCancelNotice(status.state==='CANCELLED'?'Resume extraction was cancelled.':
-          'Resume extraction ended with '+status.state.replaceAll('_',' ').toLowerCase()+'.');
-        return;
-      }
-      await new Promise(resolve=>window.setTimeout(resolve,600));
+    } catch {
+      if(mounted.current&&generation.current===current)
+        setCancelNotice('Extraction status is temporarily unavailable. Its saved request can be resumed later.');
     }
   }
   async function cancelExtraction(resume:Resume) {
