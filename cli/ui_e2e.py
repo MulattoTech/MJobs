@@ -509,12 +509,16 @@ def run(base_url, evidence_path, onboarding=False):
         finally:
             context.close()
             browser.close()
-    evidence = {"result": "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
+    evidence = {"result": "PARTIAL" if onboarding else "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
         "command": "python -m cli.ui_e2e --base-url " + base_url + (" --onboarding" if onboarding else ""), "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
         "profile_id": profile_id, "application_id": identifier, "operation_id": repeated["operation_id"], "request_id": intent['requestId'], "confirmation": confirmed["confirmation"], "external_submission_enabled": False,
         "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
         "discovery_operation_id": discovery_operation_id if onboarding else None,
         "discovery_request_id": discovery_request_id if onboarding else None,
+        "limitations": ([
+            "The remote IT search is persisted separately; the Sources fixture collection performs general profile-scoped discovery without applying saved-search filters.",
+            "Source identity/deduplication and live public-source proof are outside this local fixture run.",
+        ] if onboarding else []),
         "actions": actions, "artifacts": [str(path) for path in artifacts.glob("*") if path.name != "failure.png"]}
     Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(evidence, indent=2))
