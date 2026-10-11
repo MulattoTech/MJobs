@@ -1,3 +1,3 @@
-# MJobs repository guidance
+# MJobs source contributor instructions
 
-All code-writing assistants must follow `AGENTS.md` and `docs/PROGRESS_TRACKING.md`. Keep acceptance evidence truthful, worker-owned and concise. Only the integration-lock owner updates canonical status and runs the dashboard generator after an accepted integration batch or changed closeout; never once per chat turn or commit. Preserve private files, existing claims, disabled GitHub Actions/paid review, and external-application submission OFF. This guidance does not enable any hosted AI service.
+Read the canonical [AGENTS.md](../AGENTS.md). This repository uses one Codex development path, evidence-backed acceptance, and GitHub `main`; it does not use separate standing agent lanes. Preserve all P0 safety and truthful career-data requirements.

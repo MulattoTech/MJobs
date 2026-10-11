@@ -368,5 +368,1837 @@
     "MJ-REQ-298": 299,
     "MJ-REQ-299": 300,
     "MJ-REQ-300": 301
+  },
+  "metadata": {
+    "MJ-REQ-000": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-001": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-002": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-003": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-004": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-005": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-006": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-007": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-008": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-009": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-010": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-011": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-012": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-013": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-014": {
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature"
+    },
+    "MJ-REQ-015": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-016": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-018": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-019": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-020": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-021": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-022": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-023": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-024": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-025": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-026": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-027": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-028": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-029": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-030": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-031": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-032": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-033": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-034": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-035": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-036": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-037": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-038": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-039": {
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-040": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-041": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-042": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-043": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-044": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-045": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-046": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-047": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-048": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-049": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-050": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-051": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-052": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-053": {
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature"
+    },
+    "MJ-REQ-054": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-055": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-056": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-057": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-058": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-059": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-060": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-061": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-062": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-064": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-065": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-066": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-067": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-068": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-069": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-070": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-071": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-072": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-073": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-074": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-075": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-076": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-077": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-078": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-079": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-080": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-081": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-082": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-083": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-084": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-085": {
+      "priority": "P2",
+      "area": "job_lifecycle",
+      "category": "major-feature"
+    },
+    "MJ-REQ-086": {
+      "priority": "P2",
+      "area": "job_lifecycle",
+      "category": "major-feature"
+    },
+    "MJ-REQ-087": {
+      "priority": "P2",
+      "area": "job_lifecycle",
+      "category": "major-feature"
+    },
+    "MJ-REQ-088": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-089": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-090": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-091": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-092": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-093": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-094": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-095": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-096": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-097": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-098": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-099": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-100": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-101": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-102": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-103": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-104": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-105": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-106": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-107": {
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature"
+    },
+    "MJ-REQ-108": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-109": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-110": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-111": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-112": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-113": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-114": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-115": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-116": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-117": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-118": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-119": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-120": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-121": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-123": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-124": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-125": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-126": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-127": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-128": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-129": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-130": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-131": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-132": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-133": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-134": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-135": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-136": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-137": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-138": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-139": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-140": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-141": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-142": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-143": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-144": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-145": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-146": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-147": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-148": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-149": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-150": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-151": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-152": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-153": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-154": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-155": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-156": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-157": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-158": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-159": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-160": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-161": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-162": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-163": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-164": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-165": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-166": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-167": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-168": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-169": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-170": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-171": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-172": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-173": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-174": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-175": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-176": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-177": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-178": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-179": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-180": {
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature"
+    },
+    "MJ-REQ-181": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-182": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-183": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-184": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-185": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-186": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-187": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-188": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-189": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-190": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-191": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-192": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-193": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-194": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-195": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-196": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-197": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-198": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-199": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-200": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-201": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-202": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-203": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-204": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-205": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-206": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-207": {
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-208": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-209": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-210": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-211": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-212": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-213": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-214": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-215": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-216": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-217": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-218": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-219": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-220": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-221": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-222": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-223": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-224": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-225": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-226": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-227": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-228": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-229": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-230": {
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature"
+    },
+    "MJ-REQ-231": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-232": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-233": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-234": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-235": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-236": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-237": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-238": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-239": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-240": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-241": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-242": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-243": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-244": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-245": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-246": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-247": {
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature"
+    },
+    "MJ-REQ-248": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-249": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-250": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-251": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-252": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-253": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-254": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-255": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-256": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-257": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-258": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-259": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-260": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-261": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-262": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-263": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-264": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-265": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-266": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-267": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-268": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-269": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-270": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-271": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-272": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-273": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-274": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-275": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-276": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-277": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-278": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-279": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-280": {
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature"
+    },
+    "MJ-REQ-281": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "major-feature"
+    },
+    "MJ-REQ-282": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-283": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-284": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-285": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-286": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-287": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-288": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "major-feature"
+    },
+    "MJ-REQ-289": {
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "major-feature"
+    },
+    "MJ-REQ-290": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-291": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-292": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-293": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-294": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-295": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-296": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-297": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-298": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-299": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-300": {
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping"
+    },
+    "MJ-REQ-017.S01": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S02": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S03": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S04": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S05": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S06": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S07": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S08": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.S09": {
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.F01": {
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.F02": {
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.F03": {
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.F04": {
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.F05": {
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.F06": {
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-017.F07": {
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D01": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D02": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D03": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D04": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D05": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D06": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D07": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D08": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D09": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D10": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D11": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D12": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D13": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D14": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D15": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D16": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D17": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D18": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D19": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D20": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D21": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-063.D22": {
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature"
+    },
+    "MJ-REQ-108.A01": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-108.A02": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-108.A03": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-108.A04": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-108.A05": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-108.A06": {
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A01": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A02": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A03": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A04": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A05": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A06": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A07": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A08": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A09": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.A10": {
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.L01": {
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.L02": {
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.L03": {
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.L04": {
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.L05": {
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-122.L06": {
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature"
+    },
+    "MJ-REQ-204.N01": {
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-204.N02": {
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-204.N03": {
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-204.N04": {
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    },
+    "MJ-REQ-204.N05": {
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature"
+    }
   }
 }

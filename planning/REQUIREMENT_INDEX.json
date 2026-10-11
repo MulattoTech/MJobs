@@ -1,0 +1,3454 @@
+{
+  "schema_version": 1,
+  "source": "ISSUE_SEED + CAPABILITY_MATRIX + REFERENCE_GAP_MATRIX",
+  "requirements": [
+    {
+      "id": "MJ-REF-001",
+      "issue": 371,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PARTIAL",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-002",
+      "issue": 372,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PARTIAL",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-003",
+      "issue": 373,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-004",
+      "issue": 374,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-005",
+      "issue": 375,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-006",
+      "issue": 376,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-007",
+      "issue": 377,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-008",
+      "issue": 378,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-009",
+      "issue": 379,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-010",
+      "issue": 380,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-011",
+      "issue": 381,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-012",
+      "issue": 382,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-013",
+      "issue": 383,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-014",
+      "issue": 384,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-015",
+      "issue": 385,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-016",
+      "issue": 386,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-017",
+      "issue": 387,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-018",
+      "issue": 388,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-019",
+      "issue": 389,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-020",
+      "issue": 390,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-021",
+      "issue": 391,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-022",
+      "issue": 392,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-023",
+      "issue": 393,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-024",
+      "issue": 394,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-025",
+      "issue": 395,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-026",
+      "issue": 396,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PARTIAL",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-027",
+      "issue": 397,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-028",
+      "issue": 398,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-029",
+      "issue": 399,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-030",
+      "issue": 400,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-031",
+      "issue": 401,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-032",
+      "issue": 402,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-033",
+      "issue": 403,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PARTIAL",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-034",
+      "issue": 404,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-035",
+      "issue": 405,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-036",
+      "issue": 406,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-037",
+      "issue": 407,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-038",
+      "issue": 408,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "PASS",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-039",
+      "issue": 415,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-040",
+      "issue": 416,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-041",
+      "issue": 424,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-042",
+      "issue": 426,
+      "priority": "P3",
+      "area": "untriaged",
+      "category": "subfeature",
+      "status": "NOT_RUN",
+      "triage_required": true
+    },
+    {
+      "id": "MJ-REF-043",
+      "issue": 454,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-044",
+      "issue": 455,
+      "priority": "P4",
+      "area": "career_profile_documents",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-045",
+      "issue": 456,
+      "priority": "P4",
+      "area": "web_api_analytics",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-046",
+      "issue": 457,
+      "priority": "P4",
+      "area": "company_ats_discovery",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-047",
+      "issue": 458,
+      "priority": "P4",
+      "area": "web_api_analytics",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-048",
+      "issue": 459,
+      "priority": "P4",
+      "area": "orchestration_data_security",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-049",
+      "issue": 460,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-050",
+      "issue": 461,
+      "priority": "P4",
+      "area": "web_api_analytics",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-051",
+      "issue": 462,
+      "priority": "P4",
+      "area": "career_profile_documents",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-052",
+      "issue": 463,
+      "priority": "P4",
+      "area": "career_profile_documents",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-053",
+      "issue": 464,
+      "priority": "P4",
+      "area": "matching_ai",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-054",
+      "issue": 465,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-055",
+      "issue": 466,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-056",
+      "issue": 467,
+      "priority": "P3",
+      "area": "core_search_model",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-057",
+      "issue": 468,
+      "priority": "P4",
+      "area": "career_profile_documents",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-058",
+      "issue": 469,
+      "priority": "P5",
+      "area": "operations_ux_ci",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REF-059",
+      "issue": 470,
+      "priority": "P5",
+      "area": "operations_ux_ci",
+      "category": "subfeature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-000",
+      "issue": 1,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "bookkeeping",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-001",
+      "issue": 2,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "bookkeeping",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-002",
+      "issue": 3,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-003",
+      "issue": 4,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-004",
+      "issue": 5,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-005",
+      "issue": 6,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-006",
+      "issue": 7,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-007",
+      "issue": 8,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "bookkeeping",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-008",
+      "issue": 9,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-009",
+      "issue": 10,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-010",
+      "issue": 11,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-011",
+      "issue": 12,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-012",
+      "issue": 13,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-013",
+      "issue": 14,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-014",
+      "issue": 15,
+      "priority": "P0",
+      "area": "governance_safety",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-015",
+      "issue": 16,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-016",
+      "issue": 17,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-017",
+      "issue": 18,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-017.F01",
+      "issue": 311,
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.F02",
+      "issue": 312,
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.F03",
+      "issue": 313,
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.F04",
+      "issue": 314,
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.F05",
+      "issue": 315,
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.F06",
+      "issue": 316,
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.F07",
+      "issue": 317,
+      "priority": "P6",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.S01",
+      "issue": 302,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.S02",
+      "issue": 303,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-017.S03",
+      "issue": 304,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.S04",
+      "issue": 305,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.S05",
+      "issue": 306,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.S06",
+      "issue": 307,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-017.S07",
+      "issue": 308,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-017.S08",
+      "issue": 309,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-017.S09",
+      "issue": 310,
+      "priority": "P5",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-018",
+      "issue": 19,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-019",
+      "issue": 20,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-020",
+      "issue": 21,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "bookkeeping",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-021",
+      "issue": 22,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-022",
+      "issue": 23,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-023",
+      "issue": 24,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-024",
+      "issue": 25,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-025",
+      "issue": 26,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-026",
+      "issue": 27,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-027",
+      "issue": 28,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-028",
+      "issue": 29,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-029",
+      "issue": 30,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-030",
+      "issue": 31,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-031",
+      "issue": 32,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-032",
+      "issue": 33,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-033",
+      "issue": 34,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-034",
+      "issue": 35,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-035",
+      "issue": 36,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-036",
+      "issue": 37,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-037",
+      "issue": 38,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-038",
+      "issue": 39,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-039",
+      "issue": 40,
+      "priority": "P1",
+      "area": "core_search_model",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-040",
+      "issue": 41,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-041",
+      "issue": 42,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-042",
+      "issue": 43,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-043",
+      "issue": 44,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-044",
+      "issue": 45,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-045",
+      "issue": 46,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-046",
+      "issue": 47,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-047",
+      "issue": 48,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-048",
+      "issue": 49,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-049",
+      "issue": 50,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-050",
+      "issue": 51,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-051",
+      "issue": 52,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-052",
+      "issue": 53,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-053",
+      "issue": 54,
+      "priority": "P2",
+      "area": "job_identity_dedupe",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-054",
+      "issue": 55,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-055",
+      "issue": 56,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-056",
+      "issue": 57,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-057",
+      "issue": 58,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-058",
+      "issue": 59,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-059",
+      "issue": 60,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-060",
+      "issue": 61,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-061",
+      "issue": 62,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-062",
+      "issue": 63,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-063",
+      "issue": 64,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-063.D01",
+      "issue": 318,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-063.D02",
+      "issue": 319,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D03",
+      "issue": 320,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D04",
+      "issue": 321,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D05",
+      "issue": 322,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D06",
+      "issue": 323,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D07",
+      "issue": 324,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D08",
+      "issue": 325,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D09",
+      "issue": 326,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D10",
+      "issue": 327,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D11",
+      "issue": 328,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D12",
+      "issue": 329,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D13",
+      "issue": 330,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D14",
+      "issue": 331,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D15",
+      "issue": 332,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D16",
+      "issue": 333,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D17",
+      "issue": 334,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D18",
+      "issue": 335,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D19",
+      "issue": 336,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D20",
+      "issue": 337,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D21",
+      "issue": 338,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-063.D22",
+      "issue": 339,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-064",
+      "issue": 65,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-065",
+      "issue": 66,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-066",
+      "issue": 67,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-067",
+      "issue": 68,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-068",
+      "issue": 69,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-069",
+      "issue": 70,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-070",
+      "issue": 71,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-071",
+      "issue": 72,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-072",
+      "issue": 73,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-073",
+      "issue": 74,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-074",
+      "issue": 75,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-075",
+      "issue": 76,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-076",
+      "issue": 77,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-077",
+      "issue": 78,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-078",
+      "issue": 79,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-079",
+      "issue": 80,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-080",
+      "issue": 81,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-081",
+      "issue": 82,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-082",
+      "issue": 83,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-083",
+      "issue": 84,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-084",
+      "issue": 85,
+      "priority": "P2",
+      "area": "company_ats_discovery",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-085",
+      "issue": 86,
+      "priority": "P2",
+      "area": "job_lifecycle",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-086",
+      "issue": 87,
+      "priority": "P2",
+      "area": "job_lifecycle",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-087",
+      "issue": 88,
+      "priority": "P2",
+      "area": "job_lifecycle",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-088",
+      "issue": 89,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-089",
+      "issue": 90,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-090",
+      "issue": 91,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-091",
+      "issue": 92,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-092",
+      "issue": 93,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-093",
+      "issue": 94,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-094",
+      "issue": 95,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-095",
+      "issue": 96,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-096",
+      "issue": 97,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-097",
+      "issue": 98,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-098",
+      "issue": 99,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-099",
+      "issue": 100,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-100",
+      "issue": 101,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-101",
+      "issue": 102,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-102",
+      "issue": 103,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-103",
+      "issue": 104,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-104",
+      "issue": 105,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-105",
+      "issue": 106,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-106",
+      "issue": 107,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-107",
+      "issue": 108,
+      "priority": "P3",
+      "area": "career_profile_documents",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-108",
+      "issue": 109,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-108.A01",
+      "issue": 340,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-108.A02",
+      "issue": 341,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-108.A03",
+      "issue": 342,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-108.A04",
+      "issue": 343,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-108.A05",
+      "issue": 344,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-108.A06",
+      "issue": 345,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-109",
+      "issue": 110,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-110",
+      "issue": 111,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-111",
+      "issue": 112,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-112",
+      "issue": 113,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-113",
+      "issue": 114,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-114",
+      "issue": 115,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-115",
+      "issue": 116,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-116",
+      "issue": 117,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-117",
+      "issue": 118,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-118",
+      "issue": 119,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-119",
+      "issue": 120,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-120",
+      "issue": 121,
+      "priority": "P3",
+      "area": "matching_ai",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-121",
+      "issue": 122,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-122",
+      "issue": 123,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-122.A01",
+      "issue": 346,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-122.A02",
+      "issue": 347,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-122.A03",
+      "issue": 348,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.A04",
+      "issue": 349,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.A05",
+      "issue": 350,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.A06",
+      "issue": 351,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.A07",
+      "issue": 352,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.A08",
+      "issue": 353,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.A09",
+      "issue": 354,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.A10",
+      "issue": 355,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.L01",
+      "issue": 356,
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.L02",
+      "issue": 357,
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.L03",
+      "issue": 358,
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.L04",
+      "issue": 359,
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.L05",
+      "issue": 360,
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-122.L06",
+      "issue": 361,
+      "priority": "P5",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-123",
+      "issue": 124,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-124",
+      "issue": 125,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-125",
+      "issue": 126,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-126",
+      "issue": 127,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-127",
+      "issue": 128,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-128",
+      "issue": 129,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-129",
+      "issue": 130,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-130",
+      "issue": 131,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-131",
+      "issue": 132,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-132",
+      "issue": 133,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-133",
+      "issue": 134,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-134",
+      "issue": 135,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-135",
+      "issue": 136,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-136",
+      "issue": 137,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-137",
+      "issue": 138,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-138",
+      "issue": 139,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-139",
+      "issue": 140,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-140",
+      "issue": 141,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-141",
+      "issue": 142,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-142",
+      "issue": 143,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-143",
+      "issue": 144,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-144",
+      "issue": 145,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-145",
+      "issue": 146,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-146",
+      "issue": 147,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-147",
+      "issue": 148,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-148",
+      "issue": 149,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-149",
+      "issue": 150,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-150",
+      "issue": 151,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-151",
+      "issue": 152,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-152",
+      "issue": 153,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-153",
+      "issue": 154,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-154",
+      "issue": 155,
+      "priority": "P4",
+      "area": "application_automation",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-155",
+      "issue": 156,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-156",
+      "issue": 157,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-157",
+      "issue": 158,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-158",
+      "issue": 159,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-159",
+      "issue": 160,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-160",
+      "issue": 161,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-161",
+      "issue": 162,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-162",
+      "issue": 163,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-163",
+      "issue": 164,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-164",
+      "issue": 165,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-165",
+      "issue": 166,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-166",
+      "issue": 167,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-167",
+      "issue": 168,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-168",
+      "issue": 169,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-169",
+      "issue": 170,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-170",
+      "issue": 171,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-171",
+      "issue": 172,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-172",
+      "issue": 173,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-173",
+      "issue": 174,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-174",
+      "issue": 175,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-175",
+      "issue": 176,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-176",
+      "issue": 177,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-177",
+      "issue": 178,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-178",
+      "issue": 179,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-179",
+      "issue": 180,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-180",
+      "issue": 181,
+      "priority": "P1",
+      "area": "orchestration_data_security",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-181",
+      "issue": 182,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-182",
+      "issue": 183,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-183",
+      "issue": 184,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-184",
+      "issue": 185,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-185",
+      "issue": 186,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-186",
+      "issue": 187,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-187",
+      "issue": 188,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-188",
+      "issue": 189,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-189",
+      "issue": 190,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-190",
+      "issue": 191,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-191",
+      "issue": 192,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-192",
+      "issue": 193,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-193",
+      "issue": 194,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-194",
+      "issue": 195,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-195",
+      "issue": 196,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-196",
+      "issue": 197,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-197",
+      "issue": 198,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-198",
+      "issue": 199,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-199",
+      "issue": 200,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-200",
+      "issue": 201,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-201",
+      "issue": 202,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-202",
+      "issue": 203,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-203",
+      "issue": 204,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-204",
+      "issue": 205,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-204.N01",
+      "issue": 362,
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-204.N02",
+      "issue": 363,
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-204.N03",
+      "issue": 364,
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-204.N04",
+      "issue": 365,
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-204.N05",
+      "issue": 366,
+      "priority": "P6",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-205",
+      "issue": 206,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-206",
+      "issue": 207,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-207",
+      "issue": 208,
+      "priority": "P5",
+      "area": "web_api_analytics",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-208",
+      "issue": 209,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-209",
+      "issue": 210,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-210",
+      "issue": 211,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-211",
+      "issue": 212,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-212",
+      "issue": 213,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-213",
+      "issue": 214,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-214",
+      "issue": 215,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-215",
+      "issue": 216,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-216",
+      "issue": 217,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-217",
+      "issue": 218,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-218",
+      "issue": 219,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-219",
+      "issue": 220,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-220",
+      "issue": 221,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-221",
+      "issue": 222,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-222",
+      "issue": 223,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-223",
+      "issue": 224,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-224",
+      "issue": 225,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-225",
+      "issue": 226,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-226",
+      "issue": 227,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-227",
+      "issue": 228,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-228",
+      "issue": 229,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-229",
+      "issue": 230,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-230",
+      "issue": 231,
+      "priority": "P1",
+      "area": "test_harness",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-231",
+      "issue": 232,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-232",
+      "issue": 233,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-233",
+      "issue": 234,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-234",
+      "issue": 235,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-235",
+      "issue": 236,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-236",
+      "issue": 237,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-237",
+      "issue": 238,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-238",
+      "issue": 239,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-239",
+      "issue": 240,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-240",
+      "issue": 241,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-241",
+      "issue": 242,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-242",
+      "issue": 243,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-243",
+      "issue": 244,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-244",
+      "issue": 245,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-245",
+      "issue": 246,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-246",
+      "issue": 247,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-247",
+      "issue": 248,
+      "priority": "P2",
+      "area": "performance_learning_history",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-248",
+      "issue": 249,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-249",
+      "issue": 250,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-250",
+      "issue": 251,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-251",
+      "issue": 252,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-252",
+      "issue": 253,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-253",
+      "issue": 254,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-254",
+      "issue": 255,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-255",
+      "issue": 256,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-256",
+      "issue": 257,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-257",
+      "issue": 258,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-258",
+      "issue": 259,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-259",
+      "issue": 260,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-260",
+      "issue": 261,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-261",
+      "issue": 262,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-262",
+      "issue": 263,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-263",
+      "issue": 264,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-264",
+      "issue": 265,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-265",
+      "issue": 266,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-266",
+      "issue": 267,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-267",
+      "issue": 268,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-268",
+      "issue": 269,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PASS"
+    },
+    {
+      "id": "MJ-REQ-269",
+      "issue": 270,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-270",
+      "issue": 271,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-271",
+      "issue": 272,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-272",
+      "issue": 273,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-273",
+      "issue": 274,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-274",
+      "issue": 275,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-275",
+      "issue": 276,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-276",
+      "issue": 277,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-277",
+      "issue": 278,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "PARTIAL"
+    },
+    {
+      "id": "MJ-REQ-278",
+      "issue": 279,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-279",
+      "issue": 280,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-280",
+      "issue": 281,
+      "priority": "P1",
+      "area": "operations_ux_ci",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-281",
+      "issue": 282,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-282",
+      "issue": 283,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-283",
+      "issue": 284,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-284",
+      "issue": 285,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-285",
+      "issue": 286,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-286",
+      "issue": 287,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-287",
+      "issue": 288,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-288",
+      "issue": 289,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-289",
+      "issue": 290,
+      "priority": "P1",
+      "area": "docs_verification",
+      "category": "major-feature",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-290",
+      "issue": 291,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-291",
+      "issue": 292,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-292",
+      "issue": 293,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-293",
+      "issue": 294,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-294",
+      "issue": 295,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-295",
+      "issue": 296,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-296",
+      "issue": 297,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-297",
+      "issue": 298,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-298",
+      "issue": 299,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-299",
+      "issue": 300,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "MJ-REQ-300",
+      "issue": 301,
+      "priority": "P0",
+      "area": "delivery_control",
+      "category": "bookkeeping",
+      "status": "NOT_RUN"
+    }
+  ],
+  "summary": {
+    "PARTIAL": 113,
+    "PASS": 121,
+    "NOT_RUN": 191
+  },
+  "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
+}

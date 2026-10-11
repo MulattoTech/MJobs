@@ -130,5 +130,53 @@
   {
     "name": "area:delivery_control",
     "description": "MJobs area: delivery_control"
+  },
+  {
+    "name": "category:bookkeeping",
+    "description": "MJobs issue category: bookkeeping"
+  },
+  {
+    "name": "category:major-feature",
+    "description": "MJobs issue category: major-feature"
+  },
+  {
+    "name": "category:subfeature",
+    "description": "MJobs issue category: subfeature"
+  },
+  {
+    "name": "category:bug",
+    "description": "MJobs issue category: bug"
+  },
+  {
+    "name": "category:documentation",
+    "description": "MJobs issue category: documentation"
+  },
+  {
+    "name": "category:integration",
+    "description": "MJobs issue category: integration"
+  },
+  {
+    "name": "category:testing",
+    "description": "MJobs issue category: testing"
+  },
+  {
+    "name": "category:operations",
+    "description": "MJobs issue category: operations"
+  },
+  {
+    "name": "category:security",
+    "description": "MJobs issue category: security"
+  },
+  {
+    "name": "category:other",
+    "description": "MJobs issue category: other"
+  },
+  {
+    "name": "area:untriaged",
+    "description": "Classification requires human triage"
+  },
+  {
+    "name": "triage:priority-inferred",
+    "description": "Classification requires human triage"
   }
 ]

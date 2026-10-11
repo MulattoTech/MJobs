@@ -1,7 +1,0 @@
-{
-  "schema_version": 1,
-  "lane": "claude",
-  "status": "IDLE_READY",
-  "scope": "P0 delivery-control acceptance and isolated test-harness improvements. Claims required before writes. No canonical or shared files.",
-  "last_verified_at": null
-}

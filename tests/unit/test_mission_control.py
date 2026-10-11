@@ -32,9 +32,9 @@ class MissionControlTests(unittest.TestCase):
         run(self.root, "-c", "user.name=Test",
             "-c", "user.email=test@example.test", "commit", "--allow-empty", "-m", "init")
         run(self.root, "update-ref", "refs/remotes/origin/main", "HEAD")
-        prompts = self.root / "prompts" / "dual-agent"
+        prompts = self.root / "prompts" / "codex"
         prompts.mkdir(parents=True)
-        for slug in ("codex-luna-high", "codex-sol-6-1-high", "antigravity-opus", "claude-release-audit"):
+        for slug in ("codex-general", "codex-luna-high", "codex-sol-6-1-high", "codex-astra-high"):
             (prompts / (slug + ".md")).write_text("GOAL and verified implementation rules\n", encoding="utf-8")
         planning = self.root / "planning"
         planning.mkdir()
@@ -103,8 +103,9 @@ class MissionControlTests(unittest.TestCase):
     def test_dirty_root_main_does_not_block_isolated_creation(self):
         (self.root / "unsaved-main.txt").write_text("Do not lose this", encoding="utf-8")
         data = self.manager.prepare("codex")
-        self.assertEqual(data["branch"], "codex/priority-app-automation-20261009")
-        self.assertFalse(data["dirty"])
+        self.assertEqual(data["branch"], "main")
+        self.assertTrue(data["dirty"])
+        self.assertEqual(Path(data["workspace"]), self.root)
         self.assertTrue((self.root / "unsaved-main.txt").exists())
         self.assertEqual(run(self.root, "branch", "--show-current"), "main")
         self.assertIn("?? unsaved-main.txt", run(self.root, "status", "--porcelain"))
@@ -121,12 +122,12 @@ class MissionControlTests(unittest.TestCase):
         self.assertTrue(any("preserved" in x for x in second["warnings"]))
 
     def test_does_not_take_over_unrelated_directory(self):
-        dest = self.root.parent / "MJobs-Antigravity-Matching"
+        dest = self.root.parent / "MJobs-Unrelated-Workspace"
         dest.mkdir()
         marker = dest / "important.txt"
         marker.write_text("Do not delete", encoding="utf-8")
-        with self.assertRaises(RuntimeError):
-            self.manager.prepare("antigravity")
+        with self.assertRaises(ValueError):
+            self.manager.prepare("unsupported")
         self.assertEqual(marker.read_text(), "Do not delete")
 
     def test_profile_and_cross_origin_launch_are_rejected(self):
@@ -336,8 +337,7 @@ class MissionControlTests(unittest.TestCase):
             response = self._preview_request(self._codex_request())
         self.assertEqual(response.status_code, 200, response.text)
         self.assertFalse((self.root.parent / "MJobs-Codex-App").exists())
-        self.assertIn("will be safely created at launch",
-                      " ".join(response.json()["warnings"]))
+        self.assertEqual(Path(response.json()["workspace"]), self.root)
 
     def test_launch_missing_wrong_or_stale_prompt_is_rejected_before_worktree(self):
         token = self.client.get("/api/launcher/options").json()["token"]
@@ -366,7 +366,7 @@ class MissionControlTests(unittest.TestCase):
     def test_file_modification_after_preview_invalidates_prior_approval(self):
         request = self._codex_request()
         approved = self._preview_request(request).json()
-        profile_path = self.root / "prompts/dual-agent/codex-luna-high.md"
+        profile_path = self.root / "prompts/codex/codex-luna-high.md"
         profile_path.write_text("Updated canonical prompt file.\n", encoding="utf-8")
         after = self._preview_request(request).json()
         self.assertNotEqual(approved["preview_hash"], after["preview_hash"])
@@ -386,7 +386,7 @@ class MissionControlTests(unittest.TestCase):
         sup.update_config("codex", {
             "launch_profile": "codex-luna-high",
             "launch_workspace": str(self.root),
-            "prompt_file": "prompts/dual-agent/codex-luna-high.md",
+            "prompt_file": "prompts/codex/codex-luna-high.md",
             "model": "gpt-6-luna",
             "reasoning": "high",
             "auto_continue": False,

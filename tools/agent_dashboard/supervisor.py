@@ -924,14 +924,21 @@ class AgentSupervisor:
         }
 
     def coordination(self) -> dict[str, Any]:
-        script = [sys.executable, "-m", "tools.coordination.lane_coordination", "status"]
-        result = _run(script, self.root, timeout=10)
-        if result.returncode:
-            return {"error": result.stderr.strip(), "raw": result.stdout}
+        """Read retired coordination state without resurrecting old exclusive claims."""
+        path = self.root / "planning" / "CLAIMS.json"
         try:
-            return json.loads(result.stdout)
-        except json.JSONDecodeError:
-            return {"raw": result.stdout}
+            data = json.loads(path.read_text(encoding="utf-8"))
+            claims = data.get("claims") or []
+            if not isinstance(claims, list):
+                raise ValueError("Claims must be an array")
+            return {
+                "mode": "single-codex",
+                "claims": {},
+                "claim_count": len(claims),
+                "active_count": sum(x.get("status") == "ACTIVE" for x in claims if isinstance(x, dict)),
+            }
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            return {"mode": "single-codex", "claims": {}, "active_count": 0}
 
     def git_state(self) -> dict[str, Any]:
         branch = _run(["git", "branch", "--show-current"], self.root).stdout.strip()

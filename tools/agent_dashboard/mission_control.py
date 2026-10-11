@@ -27,15 +27,10 @@ from tools.verification.progress_card import card_current
 from tools.verification.progress_dashboard import snapshot
 
 PROFILE_ROWS = (
-    ("codex", "codex-luna-high", "Luna High — Greenhouse application workflow", "gpt-6-luna", "high"),
-    ("codex", "codex-sol-6-1-high", "Sol 6.1 High — resilient applications", "gpt-6.1-sol", "high"),
-    ("codex", "codex-astra-high", "Astra High — adapter and form review", "gpt-6-astra", "high"),
-    ("antigravity", "antigravity-opus", "Opus — explainable AI matching", "claude-opus-4-6-thinking", "high"),
-    ("antigravity", "antigravity-sonnet", "Sonnet — weighted scoring", "claude-sonnet-4-6", "high"),
-    ("antigravity", "antigravity-gemini-3-8-flash-medium", "Gemini 3.8 Flash Medium — scoring components", "gemini-3.8-flash-medium", "medium"),
-    ("antigravity", "antigravity-gemini-3-8-flash-high", "Gemini 3.8 Flash High — scoring pipeline", "gemini-3.8-flash-high", "high"),
-    ("claude", "claude-release-audit", "Claude — independent release/test gap validation", "sonnet", "high"),
-    ("claude", "claude-test-harness", "Claude — controlled test-harness implementation", "opus", "high"),
+    ("codex", "codex-general", "General MJobs development", "gpt-6.1-sol", "high"),
+    ("codex", "codex-luna-high", "Application workflow and recovery", "gpt-6-luna", "high"),
+    ("codex", "codex-sol-6-1-high", "Safety and core integration", "gpt-6.1-sol", "high"),
+    ("codex", "codex-astra-high", "Adapters and frontend", "gpt-6-astra", "high"),
 )
 PROFILES = {slug: {
     "lane": lane,
@@ -43,15 +38,11 @@ PROFILES = {slug: {
     "label": label,
     "default_model": model,
     "effort": effort,
-    "path": f"prompts/dual-agent/{slug}.md",
+    "path": f"prompts/codex/{slug}.md",
 } for lane, slug, label, model, effort in PROFILE_ROWS}
-LAUNCH_LANES = ("codex", "antigravity", "claude")
-WORKTREES = {
-    "codex": ("MJobs-Codex-App", "codex/priority-app-automation-20261009"),
-    "antigravity": ("MJobs-Antigravity-Matching", "antigravity/priority-matching-ai-20261009"),
-    "claude": ("MJobs-Claude-Delivery", "claude/priority-delivery-tests-20261009"),
-}
-RUNNERS = {"codex": "codex", "antigravity": "agy", "claude": "claude"}
+LAUNCH_LANES = ("codex",)
+WORKTREES = {"codex": ("MJobs", "main")}
+RUNNERS = {"codex": "codex"}
 
 
 def utc_now() -> str:
@@ -106,10 +97,9 @@ class MissionControl:
                 raise HTTPException(status_code=403, detail="Cross-origin process control is not allowed.")
 
     def workspace(self, lane: str) -> tuple[Path, str]:
-        if lane not in LAUNCH_LANES:
-            raise ValueError("Unknown implementation lane")
-        suffix, branch = WORKTREES[lane]
-        return self.root.parent / suffix, branch
+        if lane != "codex":
+            raise ValueError("Only the Codex integration slot is supported")
+        return self.root, "main"
 
     def models_available(self, lane: str) -> bool:
         try:
@@ -124,7 +114,7 @@ class MissionControl:
             "profiles": list(PROFILES.values()),
             "lanes": [{
                 "lane": lane,
-                "name": {"codex": "Codex CLI", "antigravity": "Antigravity CLI", "claude": "Claude CLI"}[lane],
+                "name": "Codex CLI",
                 "available": self.models_available(lane),
                 "worktree": str(self.workspace(lane)[0]),
                 "branch": self.workspace(lane)[1],
@@ -132,10 +122,10 @@ class MissionControl:
                 "runtime": dict(self.supervisor.runtime["lanes"][lane]),
                 "catalog": self.models.get(lane),
             } for lane in LAUNCH_LANES],
-            "legacy_opencode_available": bool(shutil.which("opencode") and shutil.which("ollama")),
+            "legacy_opencode_available": False,
             "model_selector_version": 4,
             "mission_instance": bool(self.supervisor.mission_instance),
-            "policy": "Never reset, stash, merge, or push root main during launch. Own files and claims before coding.",
+            "policy": "One Codex development workspace. No unattended execution, automatic claims, or changes to main during launch.",
         }
 
     def refresh_models(self) -> dict[str, Any]:
@@ -348,11 +338,6 @@ class MissionControl:
             if not command or command[-1] != "-":
                 raise RuntimeError("Codex must receive its full approved prompt via stdin")
             command[-1] = "<approved prompt via stdin>"
-        else:
-            prompt_position = 2 if lane in {"antigravity", "claude"} else len(argv)-1
-            if argv[prompt_position] != prompt:
-                raise RuntimeError("Cannot verify CLI prompt argument position; launch refused.")
-            command[prompt_position] = "<reviewed prompt>"
         payload = {
             "lane": lane,
             "profile": profile["slug"],

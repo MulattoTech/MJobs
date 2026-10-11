@@ -84,11 +84,9 @@ class ApplicationFormReviewWorkerTests(unittest.TestCase):
 
     def with_analysis_service(self, report=SAFE_ANALYSIS):
         parser = Mock(return_value=copy.deepcopy(report))
-        module = types.ModuleType("services.applications.form_review")
-        module.analyze_form_html = parser
-        return patch.dict("sys.modules", {
-            "services.applications.form_review": module,
-        }), parser
+        # Patch the import actually used by the worker; the legacy parser
+        # module was replaced by the provider-aware analysis interface.
+        return patch("workers.application_form_review.analyze_application_form", parser), parser
 
     def audit_events(self, operation_id):
         with self.store.engine.connect() as connection:

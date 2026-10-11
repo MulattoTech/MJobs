@@ -20,6 +20,28 @@ def validate_catalogue(root: Path) -> list[str]:
         markers = re.findall(r"<!-- mj-requirement:(.*?) -->", seed["body"])
         if markers != [requirement]:
             errors.append(f"Invalid requirement marker: {requirement}")
+    # Optional on older test fixtures; mandatory in the canonical repository.
+    capability_path = root / "planning/CAPABILITY_MATRIX.json"
+    if capability_path.exists():
+        capability = json.loads(capability_path.read_text(encoding="utf-8"))
+        entries = capability.get("requirements", [])
+        seed_by_id = {item["id"]: item for item in seeds}
+        entry_by_id = {entry["requirement_id"]: entry for entry in entries
+                       if isinstance(entry, dict) and "requirement_id" in entry}
+        if set(entry_by_id) != set(seed_by_id) or len(entries) != len(entry_by_id):
+            errors.append("Capability matrix must have one entry per seed requirement")
+        for rid, entry in entry_by_id.items():
+            if rid not in seed_by_id:
+                continue
+            expected = seed_by_id[rid]
+            if entry.get("priority") != expected.get("priority") or entry.get("priority") not in {
+                f"P{i}" for i in range(7)
+            }:
+                errors.append(f"Invalid or missing priority in capability matrix: {rid}")
+            if entry.get("area") != expected.get("domain"):
+                errors.append(f"Invalid or missing area in capability matrix: {rid}")
+            if entry.get("category") not in {"bookkeeping", "major-feature", "subfeature"}:
+                errors.append(f"Invalid or missing category in capability matrix: {rid}")
     queue = {}
     covered = set()
     for item in items:

@@ -1,4 +1,9 @@
-param([switch]$NoFollow,[switch]$NoOpen,[int]$Port=18704)
+param()
 $ErrorActionPreference='Stop'
-& (Join-Path $PSScriptRoot 'Start-AgentLane.ps1') -Lane codex -Model 'gpt-6-luna' -Reasoning 'high' -Port $Port -NoFollow:$NoFollow -NoOpen:$NoOpen
+Set-Location -LiteralPath $PSScriptRoot
+if(-not (Get-Command codex -ErrorAction SilentlyContinue)) {
+  throw 'Codex CLI is not installed on PATH.'
+}
+Write-Host "Launching interactive Codex in $PSScriptRoot"
+& codex
 exit $LASTEXITCODE
