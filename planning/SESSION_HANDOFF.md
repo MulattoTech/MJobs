@@ -2,6 +2,14 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 20: explicit HTML attribute boundary for PR546
+
+- Same installed runner10584 and sole mutation owner; immutable goal0/7. PR546 auto-merged predecessor8611a156 as934fb3a2 during verification. Successor branch `fix/mock-html-boundary-524-20261011` starts on934fb3a2; its tree equals tested base8611 exactly. Cherry-picked verified patch preserves all source hashes. Original dirty plan/search-history marker preserved and excluded. Publication identity is recorded in AFK events/queue.
+- #524: exact8611 requiredCI/Compose/all3integration+aggregate PASS; CodeQL aggregate114599920674FAIL reports newhigh alert58 at application HTML121-141 while all language analyses succeed. No unchanged retry or dismissal. Baseline19securityPASS incl Chromium and expanded23characterizationPASS did not reproduce executable injection. URL quoting/allowlist already protect behavior; explicit HTML escaping now layers the attribute boundary for route and query strings.
+- Final focused37PASS; connected45PASS/16subtests; fullunits1366PASS/752subtests/0FAIL/0SKIP using verified external TEMP; catalogue/progress/dashboard/skills/diff PASS. Read-only local Luna review no critical/important finding; characterization tests pass before wrappers and do not independently establish scanner resolution. Exact source/artifact hashes: `docs/evidence/2026-10-11-mock-ats-html-boundary.json`.
+- Current repair-head hosted/security/Compose/integration/browser checks require fresh evidence; parent #524 and all7goal criteria remain incomplete. Predecessor fullbrowser23FAIL retained; no acceptance promotion. Scoped lesson records analysis-versus-aggregate distinction; TEMP selectors verified. Private data untouched; submissionsOFF. Rollback by revert, no migration/config changes.
+- Next: inspect fresh-head CodeQL alert58/checks and protected integration. If scanner persists, inspect exact remaining flow rather than rerun unchanged; then advance next connected browser/saved-search defect.
+
 ## Iteration 19: serial mock-ATS HTML security publication
 
 - Same live runner10584 and sole mutation owner; immutable goal0/7. PR545 protected merged `5cad0b32de38249f4eb56ad2ca050a6d5c37f580`, verified remote main. Exact4a2ecdad requiredCI/Compose/all3integration+aggregate PASS. Full browser38182179831/attempt1:207cases/23FAIL/0SKIP, all4artifact identities/hashes preserved; no unchanged rerun.

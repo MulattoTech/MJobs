@@ -98,7 +98,9 @@ def create_mock_app(receipt_file=None):
     @app.get("/ats/apply/{requisition}", response_class=HTMLResponse)
     def application(requisition: str, request: Request, challenge: bool = False,
                     dynamic: str | None = None, auth_expired: bool = False):
-        requisition_path = quote(requisition, safe="")
+        # Route encoding preserves identity; HTML encoding protects the attribute
+        # boundary independently, even if the route representation changes.
+        requisition_path = escape(quote(requisition, safe=""), quote=True)
         if challenge:
             return '<h1 data-intervention="CAPTCHA">Manual challenge required</h1>'
         if auth_expired and request.cookies.get("mock_session") != "fixture-authenticated":
@@ -117,7 +119,7 @@ def create_mock_app(receipt_file=None):
             dynamic_field = '''<label for="unlisted">Additional required field</label>
                 <input id="unlisted" name="unlisted" data-mjobs-dynamic-field
                        data-mjobs-question-id="unlisted">'''
-        review_query = f"?dynamic={dynamic_mode}" if dynamic_mode else ""
+        review_query = escape(f"?dynamic={dynamic_mode}", quote=True) if dynamic_mode else ""
         return f'''<h1>Mock ATS application {escape(requisition)}</h1>
         <form action="/ats/review/{requisition_path}{review_query}" method="post" enctype="multipart/form-data">
         <label>Name<input name="name" required maxlength="200"></label>
@@ -208,7 +210,7 @@ def create_mock_app(receipt_file=None):
             supporting_uploads.extend(received_supporting)
         # A fictional question, supplied only by an explicitly approved test answer.
         return f'''<h1>Review mock application</h1><p data-validated="true">Documents validated</p>
-        <form method="post" action="/ats/submit/{quote(requisition, safe="")}">
+        <form method="post" action="/ats/submit/{escape(quote(requisition, safe=""), quote=True)}">
         <label>Application ID<input name="application_id" required></label>
         <label>Approved fixture answer<textarea name="answer" required></textarea></label>
         <label><input name="confirmed" type="checkbox" required>Confirm fictional test submission</label>

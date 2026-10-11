@@ -87,6 +87,30 @@ def test_normal_review_and_confirmation_keep_fixture_contract():
         assert client.get('/ats/receipts/fixture-123').json()['submission_count'] == 1
 
 
+@pytest.mark.parametrize('mode,expected_query', [
+    ('known', 'dynamic=known'), ('unknown', 'dynamic=unknown'),
+    ('known" onmouseover="window.pwned=1', ''),
+    ('<img src=x onerror=window.pwned=1>', ''),
+])
+def test_dynamic_query_cannot_change_form_attributes(mode, expected_query):
+    requisition = 'A&"B'
+    with TestClient(create_mock_app()) as client:
+        response = client.get('/ats/apply/' + quote(requisition, safe=''),
+                              params={'dynamic': mode})
+        assert response.status_code == 200
+        markup = Markup(response.text)
+        forms = [attrs for tag, attrs in markup.elements if tag == 'form']
+        assert len(forms) == 1
+        assert set(forms[0]) == {'action', 'method', 'enctype'}
+        parsed = urlsplit(forms[0]['action'])
+        assert unquote(parsed.path) == '/ats/review/' + requisition
+        assert parsed.query == expected_query and not parsed.fragment
+        assert not any(tag in {'img', 'svg'} for tag, _ in markup.elements)
+        assert len([tag for tag, _ in markup.elements if tag == 'script']) == bool(expected_query)
+        assert not any(key.lower().startswith('on')
+                       for _, attrs in markup.elements for key in attrs)
+
+
 def test_percent_encoded_requisition_keeps_identity_over_real_http():
     # TestClient decodes percent escapes twice; the real HTTP boundary must
     # preserve a literal percent escape across rendered route transitions.
