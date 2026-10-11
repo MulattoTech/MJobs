@@ -12,10 +12,12 @@ class PublicSourceReadbackTests(unittest.TestCase):
         self.assertEqual(result["application"], application)
 
     def test_missing_responsibility_evidence_must_block_without_application(self):
-        result = classify_public_preparation([], "FAILED: COVER_LETTER_JOB_CONTEXT_MISSING")
-        self.assertEqual(result["status"], "BLOCKED_MISSING_JOB_CONTEXT")
-        self.assertIsNone(result["application"])
-        self.assertIn("no document or application was created", result["reason"])
+        for state in ('FAILED', 'DEAD_LETTERED'):
+            with self.subTest(state=state):
+                result = classify_public_preparation([], state + ": COVER_LETTER_JOB_CONTEXT_MISSING")
+                self.assertEqual(result["status"], "BLOCKED_MISSING_JOB_CONTEXT")
+                self.assertIsNone(result["application"])
+                self.assertIn("no document or application was created", result["reason"])
 
     def test_known_browser_alert_wrapper_preserves_exact_missing_context_block(self):
         result = classify_public_preparation(

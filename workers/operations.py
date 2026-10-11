@@ -102,7 +102,8 @@ def claim(store, operation_id):
         category = OPERATION_CATEGORIES[kind]
         _lock(connection, category)
         row = connection.execute(select(m.operations).where(m.operations.c.id == operation_id).with_for_update()).mappings().one()
-        if row["state"] != "QUEUED" or row["cancel_requested"]:
+        if (row["state"] != "QUEUED" or row["cancel_requested"]
+                or (row["next_attempt_at"] and row["next_attempt_at"] > now())):
             return None
         active = connection.execute(select(func.count()).select_from(m.operations).where(
             m.operations.c.kind.in_(CATEGORY_KINDS[category]), m.operations.c.state == "RUNNING")).scalar_one()
@@ -113,6 +114,7 @@ def claim(store, operation_id):
                   "last_attempt_at": timestamp, "updated_at": timestamp,
                   "current_step": "PREPARING", "progress": max(1, row["progress"] or 0),
                   "started_at": row["started_at"] or timestamp, "completed_at": None,
+                  "next_attempt_at": None,
                   "lease_expires_at": (datetime.now(timezone.utc) + timedelta(seconds=timeout() + 30)).isoformat()}
         connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
         store._audit(connection, operation_id, "OPERATION_ATTEMPT_STARTED",
@@ -224,6 +226,7 @@ def request_cancel(store, operation_id):
                   "updated_at": timestamp}
         if queued_cancel:
             values.update(completed_at=timestamp, current_step="FINALIZING",
+                          next_attempt_at=None,
                           recovery_metadata={"action": "NONE"})
         connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
         store._audit(connection, operation_id, "CANCELLATION_REQUESTED", {})
@@ -250,6 +253,7 @@ def retry_dead_letter(store, operation_id):
             if blocker:
                 raise OperationActionError(blocker)
         values = {"state": "QUEUED", "cancel_requested": False,
+                  "next_attempt_at": None,
                   "lease_expires_at": None, "updated_at": timestamp,
                   "current_step": "RETRYING", "completed_at": None,
                   "retry_count": row["retry_count"] + 1,

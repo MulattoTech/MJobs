@@ -30,7 +30,8 @@ class PersistentOperationProgressMigrationTests(unittest.TestCase):
             config = self._config(url)
             script = ScriptDirectory.from_config(config)
             self.assertEqual(script.get_revision(EXPECTED_MIGRATION).down_revision, PARENT_REVISION)
-            self.assertEqual(script.get_heads(), [EXPECTED_MIGRATION])
+            self.assertEqual(len(script.get_heads()), 1)
+            self.assertIn(EXPECTED_MIGRATION, {revision.revision for revision in script.walk_revisions()})
 
             with patch.dict(os.environ, {"MJOBS_DATABASE_URL": url}):
                 command.upgrade(config, PARENT_REVISION)

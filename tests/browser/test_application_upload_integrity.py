@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 import httpx
+from playwright.sync_api import sync_playwright
 from sqlalchemy import select
 
 from apps.api.main import create_app
@@ -22,6 +23,27 @@ from tests.integration.test_spine import PROFILE
 
 
 class UploadIntegrityBrowserTests(unittest.TestCase):
+    def test_file_verification_works_on_insecure_controlled_container_origin(self):
+        content = b"%PDF-synthetic container upload"
+        snapshot = upload_integrity.snapshot_bytes("resume", "synthetic-document",
+            "resume.pdf", "application/pdf", content, hashlib.sha256(content).hexdigest())
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch()
+            try:
+                page = browser.new_page()
+                page.route("**/*", lambda route: route.fulfill(
+                    content_type="text/html", body='<input type="file" aria-label="Resume">'))
+                page.goto("http://controlled-mock.invalid/apply")
+                self.assertFalse(page.evaluate("window.isSecureContext"))
+                self.assertEqual(upload_integrity.attach_verified_files(
+                    page.get_by_label("Resume"), [snapshot]), [snapshot.manifest()])
+                page.get_by_label("Resume").set_input_files({"name": "resume.pdf",
+                    "mimeType": "application/pdf", "buffer": b"%PDF-tampered container upload!"})
+                with self.assertRaisesRegex(upload_integrity.UploadIntegrityError, "BROWSER_BYTES_MISMATCH"):
+                    upload_integrity.verify_file_selection(page.get_by_label("Resume"), [snapshot])
+            finally:
+                browser.close()
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-upload-integrity-")
         self.root = Path(self.temp.name)

@@ -1,4 +1,5 @@
 """Bounded immutable upload snapshot and browser readback contracts."""
+import base64
 import hashlib
 from pathlib import Path
 import tempfile
@@ -55,15 +56,17 @@ class UploadIntegrityTests(unittest.TestCase):
             path.write_bytes(b"%PDF-changed")
             locator = Mock()
             locator.evaluate.return_value = [{"name": "resume.pdf", "type": "application/pdf",
-                "size": len(item.content), "sha256": digest}]
+                "size": len(item.content), "content": base64.b64encode(item.content).decode("ascii")}]
             attach_verified_files(locator, [item])
             self.assertEqual(locator.set_input_files.call_args.args[0][0]["buffer"], b"%PDF-original")
 
     def test_exact_browser_count_size_type_name_and_digest_are_required(self):
         item = self.snapshot()
         expected = {"name": item.filename, "type": item.media_type,
-                    "size": len(item.content), "sha256": item.sha256}
-        for actual in (None, [], [expected, expected], [{**expected, "sha256": "0" * 64}],
+                    "size": len(item.content), "content": base64.b64encode(item.content).decode("ascii")}
+        for actual in (None, [], [expected, expected], [{**expected, "content": "!" * len(expected["content"])}],
+                       [{**expected, "content": base64.b64encode(b"x" * len(item.content)).decode("ascii")}],
+                       [{**expected, "content": expected["content"] + "A"}],
                        [{**expected, "size": 1}], [{**expected, "name": "another.pdf"}],
                        [{**expected, "type": "text/plain"}]):
             with self.subTest(actual=actual), self.assertRaisesRegex(UploadIntegrityError, "BROWSER_BYTES_MISMATCH"):

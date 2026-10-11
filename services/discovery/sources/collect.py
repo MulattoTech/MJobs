@@ -229,7 +229,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         # DB failures and local programming errors are not evidence of an outage.
         if available is None and (isinstance(failure, httpx.HTTPError) or isinstance(failure, SourceError)
                                  and (failure.code.startswith('SOURCE_HTTP_') or failure.code in {
-                                     'SOURCE_RATE_LIMITED', 'SOURCE_REDIRECT_BLOCKED', 'SOURCE_TIME_LIMIT'})):
+                                     'SOURCE_RATE_LIMITED', 'SOURCE_REDIRECT_BLOCKED', 'SOURCE_TIME_LIMIT',
+                                     'SOURCE_TIMEOUT', 'SOURCE_NETWORK_ERROR', 'SOURCE_SERVER_ERROR'})):
             available = False
         seconds = failure.retry_seconds if isinstance(failure, SourceError) else 60
         disabled = seconds > 31536000

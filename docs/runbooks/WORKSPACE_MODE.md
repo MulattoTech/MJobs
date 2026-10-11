@@ -13,7 +13,7 @@ apply the new schema without starting the API. For the default fictional
 project, run:
 
 ```powershell
-docker compose -p mjobs --profile fixture stop api worker source-worker document-worker
+docker compose -p mjobs --profile fixture stop api worker source-worker document-worker scheduler company-discovery-worker
 docker compose -p mjobs up -d postgres
 docker compose -p mjobs --profile fixture build migrate api
 docker compose -p mjobs --profile fixture run --rm --no-deps migrate
@@ -44,3 +44,23 @@ If the project cannot be confidently classified, keep it stopped and preserve it
 volumes for review. Do not copy its rows into another mode or remove the identity
 record to bypass the check. A code rollback may retain the new identity table; a
 migration downgrade refuses to drop it after binding.
+
+## Missing credential-encryption key at startup
+
+Fresh launchers create both `POSTGRES_PASSWORD` and a separate 32-byte
+`MJOBS_CREDENTIAL_ENCRYPTION_KEY` in the ignored `.env`, publishing the complete
+file atomically. Existing files are preserved, including files from older
+launchers that contain only a database password.
+
+If startup reports a missing or invalid encryption key, restore the original
+key from your protected configuration backup. An environment variable can
+also supply the original key without rewriting `.env`. Do not print it or
+commit it. Existing encrypted provider credentials cannot be recovered with a
+new key. Neither the launcher nor `python -m cli.init_env` replaces an existing
+configuration file or rotates keys automatically.
+
+For a new workspace with no stored encrypted credentials, generate a separate
+32-byte base64url key locally and store it privately alongside the existing
+database password. Confirm the workspace has no encrypted credentials before
+choosing a new key. Keep this configuration in your protected backup process;
+the portable database/document archive deliberately excludes secrets.

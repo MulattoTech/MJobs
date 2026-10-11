@@ -38,8 +38,8 @@ class ResumeSelectionTests(unittest.TestCase):
         rows=[r for r in application_documents(self.store,app) if r['version']==2]
         resume=next(r for r in rows if r['kind']=='resume');cover=next(r for r in rows if r['kind']=='cover-letter')
         self.assertEqual(resume['fact_ids'],['python','duty'])
-        self.assertEqual(cover['fact_ids'],['python','sql','duty'])
-        self.assertEqual(self.store.application(app)['fact_ids'],cover['fact_ids'])
+        self.assertCountEqual(cover['fact_ids'],['python','sql','duty'])
+        self.assertCountEqual(self.store.application(app)['fact_ids'],cover['fact_ids'])
         self.assertEqual(resume['generation_model'],'deterministic-fact-selection-and-bullet-emphasis-v1')
         self.assertEqual(resume['generation_context']['selected_fact_ids'],['python','duty'])
         self.assertEqual(resume['generation_context']['omitted_fact_ids'],['sql'])

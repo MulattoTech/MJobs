@@ -22,12 +22,12 @@ the repository. Existing archives are never overwritten.
 
 ```powershell
 $project = 'mjobs-personal'
-docker compose -p $project stop api worker source-worker document-worker
+docker compose -p $project stop api worker source-worker document-worker scheduler company-discovery-worker
 .venv\Scripts\python.exe -m cli.local_backup backup --project $project --archive 'D:\PrivateBackups\mjobs-2026-10-01'
 .venv\Scripts\python.exe -m cli.local_backup verify --archive 'D:\PrivateBackups\mjobs-2026-10-01'
 ```
 
-The backup command refuses to run while the API, any worker, or a migration
+The backup command refuses to run while the API, scheduler, any worker, or a migration
 container is active. PostgreSQL must remain running. It writes a custom-format
 logical dump, copies the document volume, excludes browser profiles, records
 the bound FIXTURE/PERSONAL mode and migration revision, and checks SHA-256 for

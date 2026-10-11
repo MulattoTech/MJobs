@@ -5,10 +5,12 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
+from sqlalchemy import update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
+from packages.persistence import models as m
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.operations.progress import record_operation_progress
@@ -17,6 +19,15 @@ from workers.dispatch import enqueue_operation
 
 
 class PersistentOperationProgressApiTests(unittest.TestCase):
+    def test_profile_progress_exposes_retry_deadline_without_internal_payloads(self):
+        identifier = self._operation("fixture", "PRIVATE_OPERATION_PARAMS_SENTINEL")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == identifier).values(
+                state="QUEUED", current_step="RETRY_WAIT", next_attempt_at="2026-10-11T12:00:00+00:00"))
+        row = self._read("fixture")[0]
+        self.assertEqual(row["next_attempt_at"], "2026-10-11T12:00:00+00:00")
+        self.assertNotIn("PRIVATE_OPERATION_PARAMS_SENTINEL", str(row))
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="mjobs-operation-progress-api-")
         self.root = Path(self.directory.name)
@@ -78,7 +89,7 @@ class PersistentOperationProgressApiTests(unittest.TestCase):
         self.assertEqual(set(operation), {
             "operation_id", "operation_type", "entity_id", "state", "current_step",
             "progress", "started_at", "updated_at", "completed_at", "retry_count",
-            "recovery_summary",
+            "recovery_summary", "next_attempt_at",
         })
         self.assertEqual(operation["operation_id"], operation_id)
         self.assertEqual(operation["operation_type"], "DISCOVER")

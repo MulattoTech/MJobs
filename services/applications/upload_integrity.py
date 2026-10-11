@@ -4,6 +4,8 @@ Proof is limited to the selected browser File objects. It is not an assertion
 that an external ATS accepted, stored, or submitted these documents.
 """
 from dataclasses import dataclass
+import base64
+import binascii
 import hashlib
 import re
 
@@ -100,18 +102,41 @@ def verify_file_selection(locator, snapshots, *, check=lambda: None):
         return await Promise.race([
           Promise.all(files.map(async file => ({
             name: file.name, size: file.size, type: file.type,
-            sha256: Array.from(new Uint8Array(await crypto.subtle.digest(
-              'SHA-256', await file.arrayBuffer())))
-                .map(byte => byte.toString(16).padStart(2,'0')).join('')
+            content: await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result).split(',')[1]);
+              reader.onerror = () => reject(new Error('UPLOAD_FILE_READ_FAILED'));
+              reader.readAsDataURL(file);
+            })
           }))),
           new Promise(resolve => {timer = setTimeout(() => resolve(null), 5000);})
         ]);
       } finally {clearTimeout(timer);}
     }""")
     check()
+    # Container HTTP names are not secure browser contexts, so Web Crypto is
+    # unavailable there. Hash the bounded File readback locally instead. Raw
+    # bytes are transient and never enter the audit manifest or diagnostics.
+    if not isinstance(actual, list) or len(actual) != len(snapshots):
+        raise UploadIntegrityError("UPLOAD_BROWSER_BYTES_MISMATCH")
+    verified = []
+    for row, snapshot in zip(actual, snapshots):
+        if (not isinstance(row, dict) or set(row) != {"name", "size", "type", "content"}
+                or type(row["size"]) is not int or row["size"] != len(snapshot.content)
+                or not isinstance(row["content"], str)
+                or len(row["content"]) != 4 * ((len(snapshot.content) + 2) // 3)):
+            raise UploadIntegrityError("UPLOAD_BROWSER_BYTES_MISMATCH")
+        try:
+            content = base64.b64decode(row["content"], validate=True)
+        except (ValueError, binascii.Error):
+            raise UploadIntegrityError("UPLOAD_BROWSER_BYTES_MISMATCH") from None
+        if len(content) != len(snapshot.content):
+            raise UploadIntegrityError("UPLOAD_BROWSER_BYTES_MISMATCH")
+        verified.append({"name": row["name"], "size": row["size"],
+                         "type": row["type"], "sha256": hashlib.sha256(content).hexdigest()})
     expected = [{"name": item.filename, "size": len(item.content),
                  "type": item.media_type, "sha256": item.sha256} for item in snapshots]
-    if actual != expected:
+    if verified != expected:
         raise UploadIntegrityError("UPLOAD_BROWSER_BYTES_MISMATCH")
     return [item.manifest() for item in snapshots]
 

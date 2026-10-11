@@ -174,7 +174,7 @@ class DocumentValidationTests(unittest.TestCase):
                 with self.assertRaises(generate.PreparationError) as error:
                     generate.prepare(self.store, job['id'], 'fixture', self.root)
             self.assertEqual(error.exception.code, 'UNSUPPORTED_CLAIM')
-            self.assertIn('date claim', str(error.exception))
+            self.assertIn('approved facts', str(error.exception))
             self.store.save_profile(dict(PROFILE, facts=[dict(PROFILE['facts'][0],text='Python 中文 systems')]))
             with self.assertRaises(generate.PreparationError) as error:
                 generate.prepare(self.store,job['id'],'fixture',self.root)

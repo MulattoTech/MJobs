@@ -18,6 +18,15 @@ const operation: OperationProgressRecord = {
 };
 
 describe('persistent operation progress', () => {
+  it('shows the persisted retry deadline while safely queued', () => {
+    const waiting = { ...operation, state: 'QUEUED', current_step: 'RETRY_WAIT',
+      next_attempt_at: '2026-10-11T10:04:00Z', completed_at: null };
+    const html = renderToStaticMarkup(<OperationProgress operations={[waiting]} />);
+    expect(html).toContain('Waiting to retry');
+    expect(html).toContain('Next retry');
+    expect(html).toContain('2026-10-11T10:04:00.000Z');
+    expect(html).not.toContain('<dt>Completed</dt>');
+  });
   it('shows safe operation identity, step, progress, timestamps, retries, and recovery summary', () => {
     const html = renderToStaticMarkup(<OperationProgress operations={[operation]} />);
 

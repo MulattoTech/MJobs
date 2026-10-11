@@ -28,7 +28,7 @@ class InterviewPreparationMigrationTests(unittest.TestCase):
 
     def _upgrade(self, config, url):
         with patch.dict(os.environ, {"MJOBS_DATABASE_URL": url}):
-            command.upgrade(config, "head")
+            command.upgrade(config, EXPECTED_MIGRATION)
 
     def _insert_pack(self, engine):
         with engine.begin() as connection:
@@ -70,8 +70,9 @@ class InterviewPreparationMigrationTests(unittest.TestCase):
             config = self._config(url)
             script = ScriptDirectory.from_config(config)
             heads = script.get_heads()
-            self.assertEqual(heads, [EXPECTED_MIGRATION])
-            self.assertEqual(script.get_revision(heads[0]).down_revision, PARENT_REVISION)
+            self.assertEqual(len(heads), 1)
+            self.assertIn(EXPECTED_MIGRATION, {item.revision for item in script.walk_revisions()})
+            self.assertEqual(script.get_revision(EXPECTED_MIGRATION).down_revision, PARENT_REVISION)
 
             engine = create_engine(url)
             try:

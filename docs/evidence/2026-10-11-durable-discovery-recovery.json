@@ -1,0 +1,169 @@
+{
+  "timestamp": "2026-10-11T06:58:38.491887+00:00",
+  "base_revision": "22fd8b765a7d9027aa00043a53fbf87869c7b1b4",
+  "source_sha256": {
+    "Start-MJobs.ps1": "19cc6e6944b758dcc55ddeedf547372b98502d3ba48ba6f176dfa5fe49700c8a",
+    "apps/api/operation_progress.py": "d0a8c9754606e85e98309abacf46df9e8293825bfb4d67b85f0a23d23b00262f",
+    "apps/web/src/main.tsx": "d440b5bf8b1e5c58c060ed10eec23b2ac8a4a3656475ca24e6b9a1a70bb2b7a6",
+    "apps/web/src/operation-progress.test.tsx": "932c9fdcf70eebdf1b0498db7febe87e7d43a53d54bd1e9bd6af4dee89f82618",
+    "apps/web/src/operation-progress.tsx": "91832adbaa6baa6712e304275581dc0cbdcbe30193f524f2d9fa9896280d8619",
+    "apps/web/src/resume-fact-selection.tsx": "052ee10c7b6090abc22891f864ae712a515309cfaf75a3fa2cf3036f64349596",
+    "cli/local_backup.py": "58ea0b46e9cd7e596a71973a2bc0798f5c20e440566273ee522f37862e814b15",
+    "cli/ui_e2e.py": "bdc5ff3d10e1d2456ecff148c2b5b57fecb7ca2f17f8dac53da1d90b2f9cda62",
+    "cli/ui_source_readback.py": "b7cc199e6443476f90bae7765f62f4586741317d7052f26b713c77ad1a75852a",
+    "packages/persistence/models.py": "43882de8d4b8572f1860ccfa82f2e207a7bdaf4b5204c941a7adfba2499a9ba1",
+    "services/applications/upload_integrity.py": "894d476f4921684c4841bb73ca4c82f7ea71d5aa20e684ad7a476b587475f065",
+    "services/discovery/sources/collect.py": "52c957e45c43e2849646959e055bad61af0d681018a5203e85262856656eb246",
+    "services/discovery/sources/greenhouse.py": "88a259960f160bd2b0c4b82086aa1a5b2a4ac8ba371cab0b2a09dd9f3ec57ef9",
+    "services/discovery/sources/remoteok.py": "e144f4152d5c4fbe1aa0a558d43f56f681d5e1922d33214c1a2dfca1791aa893",
+    "services/discovery/sources/remotive.py": "31c81c278e21c6243eb65b9edf603d508ef0f06e3aef533be80ead88d1249980",
+    "services/discovery/sources/wwr.py": "255de78978575595a984eff6ce8521853b46d1652b832909bd7c867d4b4124e3",
+    "services/operations/progress.py": "729e05adbbcea59a060bdfad86944be356cd9263d4fc7a27a1bcbd3afbe4640f",
+    "tests/browser/test_application_upload_integrity.py": "0ace65845ceff2291f822b5b31633e3192af5ee01aca00a33ab461d87aa14db0",
+    "tests/browser/test_mock_run_controls.py": "c6f0588d38694459f33be024f36f94dd9d6267816ec5ca2b39f27b660143f4f5",
+    "tests/browser/test_operation_progress.py": "512cbeac35c8051e7edfb10ca81a1c8fef578d4b4deedf9959763439eea39608",
+    "tests/browser/test_resume_alignment_preview.py": "dfd5c3d32e14f46be51b48577579f2eccc11a61a22de9fea9465a63a195ed084",
+    "tests/integration/test_ai_task_settings_api.py": "9ce0f2525cf9a62f86ac2374fb5df711c5c54b190c76ee94223038502df6e826",
+    "tests/integration/test_ats_templates.py": "192735ceb60b5928cf9f894200c220a863b7b7839dfbbbb41d503658d7f3f440",
+    "tests/integration/test_career_story_bank_migration.py": "38bf31208be82ee5a11221880db3bc4cf2de80ee6201123624268c2220e59603",
+    "tests/integration/test_company_monitoring_recovery.py": "86fae73a5627536d013f1b6fcb63c4aa00924e072b2e80a5a49663a1ab1be0c7",
+    "tests/integration/test_cover_letter_preview_api.py": "4b3cc5dbcb983a344c4ae99348d4418bbafcdf3d3672d38633909da2a2e77630",
+    "tests/integration/test_document_validation.py": "74c8d9593792cc7215b7e415ffd0ac0d9c13d141fda426940a7b0aea8cf77cdb",
+    "tests/integration/test_interview_preparation_migration.py": "f16333987c92f777bc3c824049d8e8d2dde82a676cca842b357b776410936090",
+    "tests/integration/test_migration_graph.py": "d124dc050eb723b0f1f76f43dbf046698d20d5740d2f0ac8b71fbdcd9f373e62",
+    "tests/integration/test_persistent_operation_progress.py": "edf6ebc53926a83d12c80f245cc0fa3da278350218e501999bed4bb59c5536f4",
+    "tests/integration/test_persistent_operation_progress_migration.py": "5d88cbe17b61591cbd58c60b21152a586f36940e35627dfc257e0c4412d09d02",
+    "tests/integration/test_resume_selection.py": "53e2ec29d6d449c25c6db850d02b1bdce656514184c506f0c32a5d9f9ebcfecf",
+    "tests/integration/test_source_policy_scheduler.py": "c8a4a8aeb5894033181059046d39f1b39fee9e51df79f0dec0d7f05908e1e9c9",
+    "tests/integration/test_technology_emphasis.py": "5a928ce6670be8ba29e2b652e498f3c9b90ced08de847f4fa1f2d16a31514b01",
+    "tests/unit/test_application_upload_integrity.py": "cea65a4e5d3bbe769dfdef8471e6cd01f7d7f4a3888c7f1aff19a1a940c9b66f",
+    "tests/unit/test_local_backup.py": "cde6f0ca72af2be8f9acbd58d79b9008eb16945e50ea9202f3311d776035c0a0",
+    "tests/unit/test_operation_progress.py": "cd671798ac02a03c5c02c7b12520cc82681960dfc0c0bd4963c16993e27e1613",
+    "tests/unit/test_ui_source_readback.py": "d6ea260055235b58c1e99f07beeb4236dea48797daa001e293eaefbfb858b220",
+    "workers/dispatch.py": "f6d3857ba9cc5d90961ebf91b2d744db75539ffa70111cad5c61db4abbe907d1",
+    "workers/operations.py": "70aa617ff4dac660aeac74eab716210b472cd72e5be2d45314bd688a86147c1e",
+    "workers/tasks.py": "62bfc6fed31227e029d273783ca661822597ace246da8d7691eac5969f2a18e7",
+    "migrations/versions/20261011rt01_operation_retry_deadline.py": "d53f68f93c01aec17aff3584ad8467d3aa8240f2bafb4eee190b4a3ea8948024",
+    "services/discovery/sources/errors.py": "56db073c314c6f04d65618c2a28ac7819b2d7b8adc321e7b1f774e1f52aac66f",
+    "workers/retries.py": "e5fc2da7b25f0bab9a136d2dd5fef2574bdd1578c596ca99332f466764cf6694",
+    "tests/integration/test_operation_retries.py": "f1a8e0df62ca9ab2ee710ed74429512248f29c21b2cc3ec6d8af334f9b27cc1a",
+    "tests/integration/test_operation_retry_migration.py": "1da93cd83acb60072b002665dba7b0cafb4a1df6762f9b7991013db15306eb0c",
+    "tests/unit/test_discovery_retry_policy.py": "3f6963aec66046fed75420ab2077e2b04c5407ce13ac4d49eb3175952af1b476",
+    "tests/unit/test_start_mjobs.py": "0b2bf3b264e0c95663b853d3fe56eaf2f3683c232a272398b412072dcee62ecb"
+  },
+  "requirements": [
+    "MJ-REQ-014",
+    "MJ-REQ-160",
+    "MJ-REQ-167",
+    "MJ-REQ-168",
+    "MJ-REQ-292"
+  ],
+  "acceptance": "PARTIAL",
+  "implemented": [
+    "Atomic fresh PowerShell configuration and fail-closed legacy key validation",
+    "Persisted bounded reversible discovery retries with provider cooldown and attempt fencing",
+    "Shared provider exception contract",
+    "Reviewed fact preview and navigation race fixes",
+    "HTTP browser file-byte integrity validation",
+    "Backup quiescence includes every writer"
+  ],
+  "verified": {
+    "postgres_integration": "44 passed, 12 subtests",
+    "source_retry_integration": "78 passed, 19 subtests; 7 PostgreSQL skips covered separately",
+    "browser_regression": "10 passed",
+    "frontend": "766 passed; TypeScript/Vite build passed",
+    "startup_backup_probe": "21 passed, 12 subtests",
+    "python_full_regression": "IN_PROGRESS; two failures observed, not acceptance evidence"
+  },
+  "connected_mock_journey": {
+    "result": "PASS",
+    "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18810",
+    "timestamp": "2026-10-11T06:42:32.693420+00:00",
+    "submission_count": 1
+  },
+  "recovery": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T06:46:33.272687+00:00",
+    "project": "mjobs-rc-20261011",
+    "scope": [
+      "Redis outage returns readiness 503; HTTP discovery persists",
+      "Worker restarts after queue failure",
+      "Durable outbox completes after Redis returns",
+      "All services restart; jobs, documents and confirmed application persist",
+      "Same explicit request replays original operation; independently persisted mock receipt count is one"
+    ],
+    "external_submission_enabled": false,
+    "operation_id": "92c2036d3a213be3d05bbf63a5eedefb110ae4fbcde0a2544df0509e2d96de8a"
+  },
+  "restore": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T06:49:08.711485+00:00",
+    "source_project": "mjobs-rc-20261011",
+    "fresh_target_project": "mjobs-restore-20261011",
+    "operation_mode": "FIXTURE",
+    "archive_files_verified": 306,
+    "archive_revision": "20261011rt01",
+    "database": {
+      "career_profiles": {
+        "rows": 18,
+        "database_content_md5": "4033c7232339041c45b108eff73e2ce8",
+        "identical": true
+      },
+      "profile_versions": {
+        "rows": 37,
+        "database_content_md5": "48a3d2a04092d766db84c5735fb1b661",
+        "identical": true
+      },
+      "canonical_jobs": {
+        "rows": 65,
+        "database_content_md5": "42442abca30bbb90a3529d27f7bbb042",
+        "identical": true
+      },
+      "job_postings": {
+        "rows": 67,
+        "database_content_md5": "90073ce4558db49b16473a72b1511031",
+        "identical": true
+      },
+      "company_job_sources": {
+        "rows": 2,
+        "database_content_md5": "d7a0fec63eb44c9613538f6be4096c0d",
+        "identical": true
+      },
+      "documents": {
+        "rows": 98,
+        "database_content_md5": "6204ebaaa0dfbbc47c2a6a851608cc7a",
+        "identical": true
+      },
+      "applications": {
+        "rows": 12,
+        "database_content_md5": "e7374b030bea79de49da9d9c6ffc2e58",
+        "identical": true
+      }
+    },
+    "confirmed_application_retained": true,
+    "external_submission_enabled": false,
+    "configuration": "Synthetic private environment reused; secrets are separately protected and excluded from archive",
+    "limits": [
+      "No real user data used",
+      "No host reboot",
+      "Backup without all writers stopped is refused",
+      "Mock-provider receipt volume is not a backup input; application confirmation history is retained",
+      "Provider-credential restore is not proven in this batch"
+    ]
+  },
+  "public_read_only": {
+    "provider": "greenhouse",
+    "tenant": "tailscale",
+    "jobs": 63,
+    "browser_readback": "PASS",
+    "preparation": "BLOCKED_MISSING_JOB_CONTEXT"
+  },
+  "limits": [
+    "Hosted checks NOT_RUN by policy",
+    "No real external submission",
+    "Full requirement acceptance and release-candidate journey not proven",
+    "Existing root .env lacks original encryption key; preserved unchanged; isolated synthetic configuration used",
+    "Provider credential restore not proven",
+    "No physical host reboot"
+  ]
+}

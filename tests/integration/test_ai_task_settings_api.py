@@ -156,7 +156,7 @@ class AITaskSettingsApiTests(unittest.TestCase):
         self.assertNotIn("private-task", unknown_task.text)
 
         unsupported = self.client.put("/profiles/fixture/ai-task-settings", json={
-            "tasks": {"job_scoring": {"provider": "openai", "model": "gpt-test"}},
+            "tasks": {"job_scoring": {"provider": "unsupported-provider", "model": "synthetic-model"}},
         })
         self.assertEqual(unsupported.status_code, 422)
         self.assertEqual(unsupported.json()["detail"]["code"], "AI_PROVIDER_UNSUPPORTED")

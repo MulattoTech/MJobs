@@ -44,6 +44,10 @@ def run(base_url, evidence_path):
             expect(page.get_by_role("status").filter(has_text="Profile saved")).to_be_visible()
 
         def prepare():
+            if page.get_by_label("Order approved skills for this job", exact=True).is_checked():
+                preview = page.get_by_role("region", name="Resume keyword alignment preview", exact=True)
+                preview.get_by_role("button", name="Preview keyword alignment", exact=True).click()
+                expect(preview.get_by_role("status")).to_contain_text("Read-only preview")
             page.get_by_role("button", name="Prepare documents", exact=True).click()
             expect(page.get_by_role("heading", name="Application details", exact=True)).to_be_visible()
             expect(page.get_by_role("button", name="Run dry-run", exact=True)).to_be_enabled()
@@ -57,21 +61,21 @@ def run(base_url, evidence_path):
             expect(page.get_by_role("heading", name="Why this match?", exact=True)).to_be_visible()
 
         try:
-            page.goto(base_url, wait_until="networkidle")
+            page.goto(base_url, wait_until="domcontentloaded")
             expect(page.get_by_role("heading", name="Find your next opportunity.")).to_be_visible()
             page.get_by_role("button", name="Load fictional demo", exact=True).click()
             expect(page.get_by_role("status").filter(has_text="Fictional demo loaded")).to_be_visible()
             profile_id = page.get_by_label("Active profile").input_value()
             assert profile_id.startswith("demo-")
             select_data_job()
-            expect(page.locator(".big-score")).to_have_text("100%")
+            expect(page.locator(".big-score")).to_have_text("100% · Exceptional")
             actions.append({"action": "Explicit fictional demo, connected search, match explanation and raw provenance", "result": "PASS"})
 
             navigation("Profile")
             page.get_by_label("I approve its use in documents").nth(1).uncheck()
             save_profile()
             select_data_job()
-            expect(page.locator(".big-score")).to_have_text("50%")
+            expect(page.locator(".big-score")).to_have_text("50% · Weak")
             prepare()
             application = request("/applications?profile_id=" + profile_id)["applications"][0]
             identifier = application["id"]
@@ -101,7 +105,7 @@ def run(base_url, evidence_path):
             page.get_by_label("I approve its use in documents").nth(1).check()
             save_profile()
             select_data_job()
-            expect(page.locator(".big-score")).to_have_text("100%")
+            expect(page.locator(".big-score")).to_have_text("100% · Exceptional")
             prepare()
             revised = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert revised["document_version"] == 2 and set(revised["fact_ids"]) == {"python", "sql"}
@@ -121,10 +125,10 @@ def run(base_url, evidence_path):
             page.get_by_label('Order approved skills for this job',exact=True).check()
             prepare()
             tailored=next(row for row in request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents'] if row['version']==3 and row['kind']=='resume')
-            assert tailored['generation_model']=='deterministic-skill-order-v3'
-            assert tailored['template']=='approved-skill-emphasis-v1'
+            assert tailored['generation_model']=='deterministic-target-relevant-bullets-summary-skill-responsibility-order-v4'
+            assert tailored['template']=='approved-target-relevant-bullets-summary-skill-responsibility-and-bullet-emphasis-v5'
             assert tailored['generation_context']['emphasized_fact_ids']
-            expect(page.get_by_role('region',name='resume version 3',exact=True).get_by_text('Job-matched skill and technology facts in bold:',exact=False)).to_be_visible()
+            expect(page.get_by_role('region',name='resume version 3',exact=True).get_by_text('Job-matched approved facts in bold: 2.',exact=False)).to_be_visible()
             emphasized_doc=Document(io.BytesIO(download_document(tailored['id'],'docx')))
             assert any(p.text=='Python' and all(r.bold for r in p.runs) for p in emphasized_doc.paragraphs)
             actions.append({'action':'Job-matched technology emphasis reaches worker, DOCX download and visible provenance','result':'PASS'})
@@ -171,7 +175,7 @@ def run(base_url, evidence_path):
             selected_documents=request('/profiles/'+profile_id+'/applications/'+identifier+'/documents')['documents']
             selected_resume=next(row for row in selected_documents if row['version']==4 and row['kind']=='resume')
             selected_cover=next(row for row in selected_documents if row['version']==4 and row['kind']=='cover-letter')
-            assert selected_resume['generation_model']=='deterministic-fact-selection-v2'
+            assert selected_resume['generation_model']=='deterministic-fact-selection-and-bullet-emphasis-v1'
             assert selected_resume['fact_ids']==['python'] and set(selected_cover['fact_ids'])=={'python','sql'}
             assert selected_resume['generation_context']['omitted_fact_ids']==['sql']
             selected_history=page.get_by_role('region',name='resume version 4',exact=True)
@@ -214,19 +218,27 @@ def run(base_url, evidence_path):
             expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE", timeout=15000)
             dry = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
+            page.get_by_role("button", name="Start a new reviewed run", exact=True).click()
             page.get_by_label("I approve one fictional mock submission").check()
             page.get_by_role("button", name="Submit to local mock", exact=True).click()
             expect(page.locator(".job-detail > .tag")).to_have_text("CONFIRMED")
             confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert confirmed["target"] == "MOCK" and confirmed["confirmation"]["submission_count"] == 1
             assert request("/health")["external_submission_enabled"] is False
-            repeated = context.request.post(base_url + "/profiles/" + profile_id + "/applications/" + identifier + "/mock-run", data={"submit": True}).json()
+            controls = page.get_by_role('region', name='Recoverable mock run', exact=True)
+            expect(controls.get_by_role('status').filter(has_text='Operation')).to_contain_text('COMPLETED')
+            intent = page.evaluate("([profile, application]) => JSON.parse(localStorage.getItem('mjobs-mock-run-v1:'+encodeURIComponent(profile)+':'+encodeURIComponent(application)))", [profile_id, identifier])
+            assert intent['submit'] is True
+            repeated_response = context.request.post(base_url + "/profiles/" + profile_id + "/applications/" + identifier + "/mock-run", data={"submit": True, "request_id": intent['requestId']})
+            assert repeated_response.status == 202
+            repeated = repeated_response.json()
             assert repeated["state"] == "COMPLETED"
+            assert repeated['replayed'] is True
             assert request("/profiles/" + profile_id + "/applications/" + identifier)["confirmation"] == confirmed["confirmation"]
             capture_redacted_screenshot(page, artifacts / "application-confirmed.png")
             actions.append({"action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat", "result": "PASS"})
 
-            page.reload(wait_until="networkidle")
+            page.reload(wait_until="domcontentloaded")
             expect(page.get_by_label("Active profile")).to_have_value(profile_id)
             navigation("Applications")
             page.get_by_role("button").filter(has=page.get_by_role("heading", name="Data Engineer", exact=True)).click()
@@ -264,7 +276,7 @@ def run(base_url, evidence_path):
             browser.close()
     evidence = {"result": "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
         "command": "python -m cli.ui_e2e --base-url " + base_url, "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
-        "profile_id": profile_id, "application_id": identifier, "operation_id": repeated["operation_id"], "confirmation": confirmed["confirmation"], "external_submission_enabled": False,
+        "profile_id": profile_id, "application_id": identifier, "operation_id": repeated["operation_id"], "request_id": intent['requestId'], "confirmation": confirmed["confirmation"], "external_submission_enabled": False,
         "actions": actions, "artifacts": [str(path) for path in artifacts.glob("*") if path.name != "failure.png"]}
     Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(evidence, indent=2))

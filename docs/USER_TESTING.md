@@ -15,6 +15,9 @@ configuration and volumes are preserved. It waits for PostgreSQL, Redis, the
 scheduler, all three worker queues, and the mock service. No separate
 Node/Python install is needed
 for normal use.
+If an older `.env` lacks `MJOBS_CREDENTIAL_ENCRYPTION_KEY`, the launcher preserves
+it and stops before Compose. Follow the [configuration recovery runbook](runbooks/WORKSPACE_MODE.md);
+never replace a key that protected stored credentials.
 For startup without opening a browser, add `-NoOpen`. Use `-NoBuild` only when
 the current source has already been built.
 
@@ -130,37 +133,44 @@ paths under the project:
 $env:TEMP = Join-Path (Get-Location) 'outputs\test-tmp'
 $env:TMP = $env:TEMP
 New-Item -ItemType Directory -Force $env:TEMP | Out-Null
-.venv\Scripts\python.exe -m unittest discover -s tests -p 'test_*.py' -v
+.venv\Scripts\python.exe -m pytest -q tests/unit tests/integration
 .venv\Scripts\python.exe -m tools.verification.catalogue
 .venv\Scripts\python.exe -m cli.ui_e2e --evidence outputs/ui-proof.json
-.venv\Scripts\python.exe -m cli.compose_recovery --baseline outputs/ui-proof.json --evidence outputs/recovery-proof.json
+# Recovery intentionally requires a separately launched mjobs-fixture-<12 hex>
+# project and its explicit port; never target personal data.
 ```
 
 The Compose image build runs frontend tests, strict TypeScript checking, and a
-production Vite build under Node 24. This avoids the host's unsupported Node 25
-test-runner version and managed Windows child-process restriction. Live source
+production Vite build under pinned Node 24. Host development checks also use
+`npm --prefix apps/web test -- --run` and `npm --prefix apps/web run build`. Live source
 verification is opt-in with `python -m cli.public_source_probe --tenant <token>
 --evidence outputs/public-source.json`; it respects the persisted cooldown.
+Browser readback can select that exact source/profile with
+`python -m cli.ui_source_readback --baseline outputs/public-source.json --evidence outputs/public-browser.json`.
 
 ## Limits of this milestone
 
 - Local single-user testing only; the API is bound to loopback and has no
   multi-user authentication or authorization. Personal data remains in ignored
   local database/document/browser volumes. Do not publish those volumes.
-- Greenhouse configured public boards are the only live provider implemented.
-  No global aggregator search, automatic employer-site enrollment, recurring
-  scheduling, or real application automation is claimed.
-- Documents are factual fact-list templates, not a completed tailoring/AI system.
-  Imports, advanced matching, portfolio layout, and broad document-quality gates
-  remain in the backlog.
-- Real applications have manual preparation tracking; updating manually submitted
-  statuses and manual CAPTCHA/login intervention resume remain future work.
+- Configured Greenhouse boards support live public read-only collection. Remotive,
+  RemoteOK and We Work Remotely adapters also exist; each provider needs separate
+  live verification. Company discovery, source enrollment, deduplication and
+  recurring scheduling have implementation and controlled tests; their complete
+  connected live-source acceptance remains open.
+- Deterministic tailoring preserves approved facts, records provenance and supports
+  explicit fact selection, contact headers, comparisons and reviewed adjustments.
+  Resume import and additional document workflows exist. Full document-quality and
+  AI-provider acceptance remains open; no paid AI call is required for the tested
+  deterministic journey.
+- Real applications support manual preparation and user-reported tracking. Live
+  Greenhouse/Lever browser filling and submission are not verified. External
+  submission stays OFF; mock confirmation proves only the controlled fixture.
 - A normal generation failure/cancellation removes its uncommitted files. A
   process kill can leave unreferenced files in the local document volume; no
   automatic retention/garbage-collection policy is implemented yet.
-- GitHub Actions workflow authorization was restored on 2026-09-30. Local
-  validation and exact-head remote CI remain separate evidence; newer
-  implementation PRs stay draft until their own checks pass.
+- GitHub Actions and paid hosted reviews are disabled. Hosted checks are NOT_RUN;
+  local validation does not establish full release or catalogue acceptance.
 
 The full requirement catalogue is preserved. These limits are delivery scope,
 not deleted requirements.

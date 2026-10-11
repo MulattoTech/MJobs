@@ -152,6 +152,17 @@ class OperationProgressBrowserTests(unittest.TestCase):
                     expect(reloaded_card).to_contain_text("47%")
                     expect(reloaded_card).to_contain_text("2")
 
+                    with store.engine.begin() as connection:
+                        connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                            state="QUEUED", current_step="RETRY_WAIT", completed_at=None,
+                            next_attempt_at="2026-10-11T12:00:00+00:00"))
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Activity", exact=True).click()
+                    waiting = page.get_by_role("article", name="Discovery operation", exact=True)
+                    expect(waiting).to_contain_text("Waiting to retry")
+                    expect(waiting).to_contain_text("Next retry")
+                    expect(waiting.locator('time[datetime="2026-10-11T12:00:00.000Z"]')).to_be_visible()
+
                     other_path = "/profiles/other/operations/progress"
                     with page.expect_response(lambda item:
                             urlsplit(item.url).path == other_path):

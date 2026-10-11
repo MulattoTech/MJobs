@@ -302,10 +302,10 @@ Path(os.environ["MJOBS_WORKER_REPORT"]).write_text(
         from cli.compose_recovery import RECOVERY_RESTART_SERVICES, restart_recovery_services
 
         with patch("cli.compose_recovery.compose") as compose:
-            restart_recovery_services()
+            restart_recovery_services("mjobs-fixture-012345abcdef", 18877)
 
         self.assertIn("scheduler", RECOVERY_RESTART_SERVICES)
-        compose.assert_called_once_with("restart", *RECOVERY_RESTART_SERVICES)
+        compose.assert_called_once_with("mjobs-fixture-012345abcdef", 18877, "restart", *RECOVERY_RESTART_SERVICES)
 
 
 if __name__ == "__main__":

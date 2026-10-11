@@ -11,6 +11,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.documents.errors import PreparationError
 from services.documents.history import application_documents
 from services.documents.comparison import compare_resumes
 from services.documents.library import document_library
@@ -85,7 +86,8 @@ class AtsTemplateTests(unittest.TestCase):
             doc.paragraphs[2].text='Certified Expert';doc.save(path)
             with self.store.engine.begin() as c:c.execute(update(m.documents).where(m.documents.c.id==row['id']).values(sha256={**row['sha256'],'docx':hashlib.sha256(path.read_bytes()).hexdigest()}))
             with patch('services.applications.mock_adapter.sync_playwright') as browser:
-                with self.assertRaisesRegex(ValueError,'assertions'):
+                with self.assertRaises(PreparationError) as error:
                     apply_mock(self.store,app,origin,self.root)
+                self.assertEqual(error.exception.code, 'UNSUPPORTED_CLAIM')
                 browser.assert_not_called()
             self.assertEqual(self.store.application(app)['state'],'REVIEW_REQUIRED')

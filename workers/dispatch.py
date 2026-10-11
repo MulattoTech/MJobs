@@ -4,7 +4,7 @@ from redis.exceptions import RedisError
 from rq import Queue
 from rq.job import Job
 from rq.exceptions import NoSuchJobError
-from sqlalchemy import case, select, text
+from sqlalchemy import case, or_, select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
@@ -45,6 +45,7 @@ def _pending_operations(connection):
     )
     return list(connection.execute(select(m.operations).where(
         m.operations.c.state == "QUEUED",
+        or_(m.operations.c.next_attempt_at.is_(None), m.operations.c.next_attempt_at <= now()),
     ).order_by(priority, m.operations.c.updated_at, m.operations.c.id)).mappings())
 
 

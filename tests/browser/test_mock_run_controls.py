@@ -110,6 +110,29 @@ class MockRunBrowserHarness(unittest.TestCase):
 
 
 class MockRunControlsBrowserTests(MockRunBrowserHarness):
+    def test_late_terminal_refresh_does_not_navigate_away_from_profile(self):
+        button = self.panel.get_by_role("button", name="Run dry-run", exact=True)
+        expect(button).to_be_enabled(); button.click()
+        expect(self.panel).to_contain_text("QUEUED")
+        held = []
+        def delay_application(route):
+            held.append((route, route.fetch()))
+        self.page.route(f"{self.origin}/profiles/fixture/applications/{self.app_id}", delay_application)
+        self.run_worker(self.operations()[0]["id"], refresh_panel=False)
+        expect(self.panel).to_contain_text("COMPLETED")
+        deadline = time.monotonic() + 5
+        while not held and time.monotonic() < deadline:
+            self.page.wait_for_timeout(20)
+        self.assertEqual(len(held), 1)
+        self.page.get_by_role("navigation").get_by_role("button", name="Profile", exact=True).click()
+        library = self.page.get_by_role("region", name="Document library", exact=True)
+        expect(library).to_be_visible()
+        with self.page.expect_response(lambda response: urlsplit(response.url).path == "/profiles"):
+            held[0][0].fulfill(response=held[0][1])
+        expect(library).to_be_visible()
+        self.assertEqual(self.counts(), {"review": 1, "submit": 0})
+        self.assertFalse(self.external)
+
     def test_lost_acknowledgement_reload_and_explicit_new_intent_are_distinct(self):
         committed=[]
         def lose_acknowledgement(route):

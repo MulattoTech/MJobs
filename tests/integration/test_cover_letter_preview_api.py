@@ -106,8 +106,10 @@ class CoverLetterPreviewApiTests(unittest.TestCase):
         self.assertTrue(result["job_evidence"]["responsibility_source"])
         self.assertTrue(result["read_only"])
         self.assertFalse(result["document_created"])
-        self.assertFalse(result["company_context"]["included"])
-        self.assertIn("USER_PROVIDED / CONTENT UNVERIFIED", result["company_context"]["caveat"])
+        self.assertIsNone(result["company_context"])
+        self.assertFalse(result["company_context_evidence"]["included"])
+        self.assertEqual(result["company_context_evidence"]["status"], "OMITTED_UNVERIFIED")
+        self.assertIn("USER_PROVIDED / CONTENT UNVERIFIED", result["company_context_caveat"])
         self.assertEqual(self._write_counts(), before)
 
     def test_stale_profile_or_job_snapshot_is_rejected_with_stable_conflict(self):

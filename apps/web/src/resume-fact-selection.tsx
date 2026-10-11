@@ -3,6 +3,7 @@ import {api,eligible} from './api';
 import {ResumeRewriteReviewPreview} from './resume-rewrite-review';
 
 type Fact={fact_id:string;kind:string;text:string;source:string;verified:boolean;user_approved:boolean;confidence:number};
+const EMPTY_FACT_IDS:string[]=[];
 type AlignmentPreview={profile_id:string;profile_version:string;job_id:string;job_fingerprint:string;selected_fact_ids:string[];selection_mode:'ALL_ELIGIBLE'|'EXPLICIT_SELECTION';matches:{skills:{term:string;fact_ids:string[]}[];responsibilities:{term:string;fact_ids:string[]}[]};unmatched:{skills:string[];responsibilities:string[]};read_only:true};
 export type ResumeFactRewrite={fact_id:string;text:string;reviewed:boolean};
 export type ResumeFactChoice={profileId:string;jobId:string;version:string;ids:string[];rewrites:ResumeFactRewrite[]};
@@ -23,9 +24,10 @@ function ResumeFactSelectionView({profileId,jobId,jobFingerprint,disabled,choice
   const onChangeRef=useRef(onChange);onChangeRef.current=onChange;
   const onPreviewReadyRef=useRef(onPreviewReady);onPreviewReadyRef.current=onPreviewReady;
   const choiceRef=useRef(choice);choiceRef.current=choice;
+  const previewRequest=useRef(0);
   const choose=choice?.profileId===profileId&&choice.jobId===jobId;
   const version=choose&&choice.version?choice.version:profileVersion;
-  const ids=choose?choice.ids:[];
+  const ids=choose?choice.ids:EMPTY_FACT_IDS;
   const rewrites=Object.fromEntries((choose?choice.rewrites:[]).map(item=>[item.fact_id,item]));
   useEffect(()=>{
     const controller=new AbortController();let active=true;
@@ -51,15 +53,19 @@ function ResumeFactSelectionView({profileId,jobId,jobFingerprint,disabled,choice
     return result;
   },[version,jobFingerprint,choose,ids,facts,profileId,jobId]);
   useEffect(()=>{
-    setPreview(null);setPreviewError('');onPreviewReadyRef.current(null);
+    previewRequest.current+=1;
+    setPreview(null);setPreviewError('');setPreviewLoading(false);onPreviewReadyRef.current(null);
+    return ()=>{previewRequest.current+=1;};
   },[version,profileId,jobId,jobFingerprint,refresh,choose,ids,facts]);
   async function previewAlignment(){
+    const request=++previewRequest.current;
     setPreviewLoading(true);setPreviewError('');setPreview(null);onPreviewReadyRef.current(null);
     try{
       const result=await requestAlignmentPreview();
+      if(request!==previewRequest.current)return;
       setPreview(result);onPreviewReadyRef.current({profileId,jobId,profileVersion:version,jobFingerprint});
-    }catch(failure){setPreviewError(String(failure));}
-    finally{setPreviewLoading(false);}
+    }catch(failure){if(request===previewRequest.current)setPreviewError(String(failure));}
+    finally{if(request===previewRequest.current)setPreviewLoading(false);}
   }
   function select(id:string,checked:boolean){
     const next=checked?[...ids,id]:ids.filter(value=>value!==id);

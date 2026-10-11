@@ -255,7 +255,7 @@ class CompanyMonitoringRecoveryTests(unittest.TestCase):
         self.assertEqual(result["status"], "BLOCKED")
         self.assertEqual(result["error_category"], "HTTP_STATUS_ERROR")
         monitor = self.fixture.monitor()
-        self.assertEqual(monitor["status"], "FAILED")
+        self.assertEqual(monitor["status"], "IDLE")
         self.assertEqual(monitor["failure_count"], 1)
         self.assertIsNone(monitor["completed_operation_id"])
         self.assertEqual(self.store.count("source_quality_observations"), 1)

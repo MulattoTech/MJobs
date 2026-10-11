@@ -44,7 +44,7 @@ class TechnologyEmphasisTests(unittest.TestCase):
         self.assertEqual([p.text for p in doc.paragraphs],(self.root/app/row['files']['txt']).read_text(encoding='utf-8').splitlines())
         self.assertEqual(self.store.profile('fixture'),before)
         compared=compare_resumes(self.store,self.root,app,base['id'],row['id'])
-        self.assertEqual(compared['omitted'],[])
+        self.assertEqual(compared['omitted'],[{'fact_id':'unrelated-duty', 'kind':'responsibility', 'text':unrelated['text']}])
         self.assertIn('tech',[fact['fact_id'] for fact in compared['emphasized_skills']])
         self.assertIn('python-duty',[fact['fact_id'] for fact in compared['emphasized_skills']])
         from services.documents.uploads import save_resume

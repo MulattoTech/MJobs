@@ -27,7 +27,8 @@ class BackupError(ValueError):
     """An archive, Docker operation, or recovery precondition failed."""
 
 
-WRITERS = ("api", "worker", "source-worker", "document-worker", "migrate")
+WRITERS = ("api", "worker", "source-worker", "document-worker", "migrate",
+           "scheduler", "company-discovery-worker")
 MAX_CAPTURED_STDOUT_BYTES = 2 * 1024 * 1024
 _OUTPUT_CHUNK_BYTES = 64 * 1024
 

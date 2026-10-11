@@ -19,6 +19,8 @@ def classify_public_preparation(applications, alert_text):
     if alert_lines in (
         ["FAILED: COVER_LETTER_JOB_CONTEXT_MISSING"],
         ["Action needs attention", "FAILED: COVER_LETTER_JOB_CONTEXT_MISSING"],
+        ["DEAD_LETTERED: COVER_LETTER_JOB_CONTEXT_MISSING"],
+        ["Action needs attention", "DEAD_LETTERED: COVER_LETTER_JOB_CONTEXT_MISSING"],
     ):
         return {
             "status": "BLOCKED_MISSING_JOB_CONTEXT",
@@ -28,26 +30,34 @@ def classify_public_preparation(applications, alert_text):
     raise AssertionError("Public-job preparation neither completed safely nor reported the expected missing-context block")
 
 
-def run(base_url, evidence_path):
+def run(base_url, evidence_path, baseline_path=None):
+    baseline = json.loads(Path(baseline_path).read_text(encoding='utf-8')) if baseline_path else None
+    if baseline and (baseline.get('result') != 'PASS' or baseline.get('external_submission_enabled') is not False):
+        raise ValueError('A successful read-only public source baseline is required')
     with sync_playwright() as browser_api:
         browser = browser_api.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1440, "height": 1000})
         page = context.new_page()
         page.set_default_timeout(45000)
-        page.goto(base_url, wait_until="networkidle")
+        page.goto(base_url, wait_until="domcontentloaded")
         profiles = context.request.get(base_url + "/profiles").json()["profiles"]
-        profile = next(row for row in profiles if row["id"].startswith("public-probe-fictional-"))
+        profile = next(row for row in profiles if row["id"].startswith("public-probe-fictional-")
+            and (not baseline or row['id'] == baseline['profile_id']))
+        sources = context.request.get(base_url + '/sources').json()['sources']
+        source = next(row for row in sources if row['provider'] == 'greenhouse'
+            and (row['id'] == baseline['source_id'] if baseline else row['tenant'] == 'greenhouse'))
         page.get_by_label("Active profile").select_option(profile["id"])
-        page.get_by_label("Source", exact=True).select_option("greenhouse")
+        page.get_by_label("Application provider", exact=True).select_option("greenhouse")
+        page.get_by_label('Job source', exact=True).select_option(source['id'])
         expect(page.locator(".job-list .job-card").first).to_be_visible()
-        expect(page.locator(".job-list .job-card").first).to_contain_text("greenhouse · read only")
+        expect(page.locator(".job-list .job-card").first.get_by_label('Job route provenance')).to_contain_text('greenhouse')
         page.locator(".job-list .job-card").first.click()
         expect(page.get_by_text("Weighted coverage of detected skill evidence; this is not a qualification assessment.", exact=True)).to_be_visible()
         expect(page.get_by_role("link", name="Open employer application")).to_be_visible()
         page.get_by_role("button", name="Prepare documents", exact=True).click()
         page.wait_for_function("""() => {
           const text = document.body.innerText;
-          return text.includes('Application details') || text.includes('FAILED: COVER_LETTER_JOB_CONTEXT_MISSING');
+          return text.includes('Application details') || text.includes('COVER_LETTER_JOB_CONTEXT_MISSING');
         }""", timeout=45000)
         applications = context.request.get(base_url + "/applications?profile_id=" + profile["id"]).json()["applications"]
         alert_text = page.get_by_role("alert").inner_text() if page.get_by_role("alert").count() else ""
@@ -61,11 +71,11 @@ def run(base_url, evidence_path):
             assert rejected.status == 409
             actions = [{"action": "Public job prepared only as a manual-only real application; server rejects mock submission", "result": "PASS"}]
         else:
-            expect(page.get_by_role("alert")).to_contain_text("FAILED: COVER_LETTER_JOB_CONTEXT_MISSING")
+            expect(page.get_by_role("alert")).to_contain_text("COVER_LETTER_JOB_CONTEXT_MISSING")
             assert applications == []
             actions = [{"action": "Live posting without a clear responsibility excerpt is blocked before document/application creation", "result": "PASS", "reason": preparation["reason"]}]
         # An ordinary second collection within cooldown executes zero provider requests.
-        source = next(row for row in context.request.get(base_url + "/sources").json()["sources"] if row["tenant"] == "greenhouse")
+        source = next(row for row in context.request.get(base_url + "/sources").json()["sources"] if row['id'] == source['id'])
         # Temporarily make the local cooldown test deterministic, preserving policy.
         policy = {
             "tenant": source["tenant"], "enabled": source["enabled"],
@@ -80,7 +90,7 @@ def run(base_url, evidence_path):
         if within_interval:
             try:
                 page.get_by_role("navigation").get_by_role("button", name="Sources").click()
-                page.get_by_role("button", name="Collect now", exact=True).click()
+                page.locator('section.panel').filter(has=page.get_by_role('heading', name=source['name'], exact=True)).get_by_role("button", name="Collect now", exact=True).click()
                 expect(page.get_by_role("alert")).to_contain_text("SOURCE_COOLDOWN")
                 actions.append({"action": "Source cooldown is visible as a failed operation without repeating public requests", "result": "PASS"})
             finally:
@@ -104,5 +114,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--base-url", default="http://127.0.0.1:18700")
     parser.add_argument("--evidence", required=True)
+    parser.add_argument('--baseline', help='PASS evidence from cli.public_source_probe; selects its exact profile and source')
     args = parser.parse_args()
-    run(args.base_url, args.evidence)
+    run(args.base_url, args.evidence, args.baseline)

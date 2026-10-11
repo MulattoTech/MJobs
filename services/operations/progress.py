@@ -76,6 +76,7 @@ def _read_model(row):
         "started_at": row["started_at"],
         "updated_at": row["updated_at"],
         "completed_at": row["completed_at"],
+        "next_attempt_at": row["next_attempt_at"],
         "retry_count": row["retry_count"],
         "recovery_summary": _recovery_summary(metadata),
     }

@@ -24,6 +24,7 @@ from services.discovery.search_history import record_search_history
 from services.discovery.search_history_events import build_search_history_record
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
 from workers.structured_logging import log_operation_finished
+from workers.retries import discovery_retry_plan
 from workers.application_form_review import FormReviewError, handle_form_review
 
 
@@ -165,6 +166,7 @@ def execute_operation(operation_id):
             history_filters = {}
             before_job_ids = {}
             history_results = None
+        retry_failure = None
         try:
             deadline = time.monotonic() + timeout()
 
@@ -347,24 +349,40 @@ def execute_operation(operation_id):
             state, error = "CANCELLED", "CANCEL_REQUESTED"
         except PublicFetchError as failure:
             state, error = "BLOCKED", failure.code
+            retry_failure = failure
         except FixtureOperationDisabled:
             state, error = "BLOCKED", "FIXTURE_OPERATION_DISABLED"
         except Exception as failure:
+            retry_failure = failure
             state, error = "FAILED", failure.code if isinstance(
                 failure, (SourceError, PreparationError, FormReviewError)
             ) else type(failure).__name__
             history_counts = {}
         with store.engine.begin() as connection:
+            if connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+            current = connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id).with_for_update()).mappings().one()
+            if current["state"] != "RUNNING" or current["attempt_count"] != operation["attempt_count"]:
+                return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
+            if current["cancel_requested"] and operation["kind"] != "APPLY_MOCK":
+                state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
+            finished_at = now()
+            retry = discovery_retry_plan(connection, operation, retry_failure, finished_at)
+            if retry is not None:
+                state, error = "QUEUED", retry["error"]
             if state == "FAILED":
                 state = "DEAD_LETTERED"
                 error = error or "OPERATION_FAILED"
-            finished_at = now()
             values = {"state": state, "error": error, "lease_expires_at": None,
                       "updated_at": finished_at,
                       "current_step": "COMPLETED" if state == "COMPLETED" else "FINALIZING",
-                      "completed_at": finished_at,
+                      "completed_at": None if retry else finished_at,
+                      "next_attempt_at": None,
                       "recovery_metadata": ({"action": "NONE"} if state == "COMPLETED" else
                                             {"action": "MANUAL_REVIEW"} if state in {"DEAD_LETTERED", "BLOCKED"} else {})}
+            if retry is not None:
+                values.update(retry, current_step="RETRY_WAIT", retry_count=operation["retry_count"] + 1)
             if state == "COMPLETED":
                 values["progress"] = 100
             if state == "DEAD_LETTERED":
@@ -374,6 +392,7 @@ def execute_operation(operation_id):
             if changed.rowcount != 1:
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
             store._audit(connection, operation_id,
+                         "OPERATION_RETRY_SCHEDULED" if retry else
                          "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",
                          {"state": state, "error": error,
                           "attempt_count": int(operation["attempt_count"])})

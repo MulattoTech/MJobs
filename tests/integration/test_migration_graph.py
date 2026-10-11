@@ -30,8 +30,9 @@ class MigrationGraphTests(unittest.TestCase):
             heads = script.get_heads()
             self.assertEqual(len(heads), 1, f"expected one migration head, found {heads}")
 
-            merge = script.get_revision(heads[0])
+            merge = script.get_revision("e2a4c9d0b721")
             self.assertEqual(set(merge.down_revision), set(EXPECTED_PARENTS))
+            self.assertIn(merge.revision, {revision.revision for revision in script.iterate_revisions(heads[0], "base")})
 
             engine = create_engine(url)
             try:

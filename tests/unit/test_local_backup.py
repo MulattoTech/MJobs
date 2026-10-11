@@ -81,6 +81,20 @@ class LocalBackupTests(unittest.TestCase):
         with self.assertRaisesRegex(local_backup.BackupError, "source-worker"):
             local_backup.require_stopped_writers(states)
 
+    def test_backup_requires_scheduler_and_company_discovery_to_be_quiescent(self):
+        states = {service: "exited" for service in (
+            "api", "worker", "source-worker", "document-worker", "migrate",
+            "scheduler", "company-discovery-worker")}
+        states["postgres"] = "running"
+        for service in ("scheduler", "company-discovery-worker"):
+            for state in ("running", "restarting", None):
+                with self.subTest(service=service, state=state):
+                    unsafe = dict(states)
+                    unsafe[service] = state
+                    with self.assertRaisesRegex(local_backup.BackupError, service):
+                        local_backup.require_stopped_writers(unsafe)
+        local_backup.require_stopped_writers(states)
+
     def test_restore_refuses_any_existing_target_volume(self):
         self.assertTrue(hasattr(local_backup, "require_empty_target"), "Fresh-target guard is missing")
         with self.assertRaisesRegex(local_backup.BackupError, "already exists"):

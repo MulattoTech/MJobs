@@ -12,6 +12,8 @@ from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
 import httpx
 
+from services.discovery.sources.errors import SourceError
+
 from services.discovery.sources.contract import (
     CollectionStrategy, SearchBatch, SourceCapabilities, SourceCapability,
     SourceCompany, SourceItem,
@@ -29,11 +31,6 @@ API_URL = "https://remoteok.com/api"
 CANCELLATION_POLL_INTERVAL = 0.05
 
 
-class SourceError(ValueError):
-    def __init__(self, code, retry_seconds=60):
-        super().__init__(code)
-        self.code = code
-        self.retry_seconds = retry_seconds
 
 
 def plain_text(value):

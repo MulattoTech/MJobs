@@ -11,6 +11,7 @@ export type OperationProgressRecord = {
   started_at?: string | null;
   updated_at?: string | null;
   completed_at?: string | null;
+  next_attempt_at?: string | null;
   retry_count?: number | null;
   recovery_summary?: string | null;
 };
@@ -63,6 +64,7 @@ const SAFE_STEPS: Record<string, string> = {
   RECOVERING: 'Recovering',
   RENDERING: 'Rendering',
   RETRYING: 'Retrying',
+  RETRY_WAIT: 'Waiting to retry',
   RUNNING: 'In progress',
   VALIDATING: 'Validating',
   WAITING_FOR_CAPACITY: 'Waiting for capacity',
@@ -144,6 +146,7 @@ function OperationCard({ operation }: { operation: OperationProgressRecord }) {
       {timestamp('Started', operation.started_at)}
       {timestamp('Last updated', operation.updated_at)}
       {timestamp('Completed', operation.completed_at)}
+      {stateCode === 'QUEUED' && timestamp('Next retry', operation.next_attempt_at)}
       <div><dt>Retry attempts</dt><dd>{retries === null ? 'Not reported' : retries}</dd></div>
     </dl>
     {summary && <p><strong>Recovery:</strong> {summary}</p>}
