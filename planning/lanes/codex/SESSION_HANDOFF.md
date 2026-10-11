@@ -1,3 +1,17 @@
+# STOP checkpoint — 2026-10-11T02:40:52.233028Z
+
+User explicitly requested immediate commit, wrap-up and STOP ALL USAGE. No agents or unattended continuation are running.
+
+- Canonical checkout: `C:\Tools\Dev\MJobs`, local `main`; implementation commit `7673eec498594c80a824b36bdc3f49938cde2ddf`, tree `b8fcce09bd2560efa2d2f9bcca54e2296a7e7f16`. This handoff/evidence-only commit follows it. Remote main remains `e884ee9a649e3fcff0b24697cb7078473aa9c2a5`; nothing pushed.
+- Five connected local workflows: ROGUE #209 rehearsal/review receipts; PHOENIX #169 fresh-profile backup restore; GHOST #156 pipeline readiness and atomic preparation; MANDALORE #171 saved retention controls; ANDOR #261 explicit email-status review/history. These are scoped local acceptance, not full P0 backlog completion; these five parent issues are P1 and remain PARTIAL.
+- Final verification: 110 combined Python/API/Chromium tests PASS, including all five connected browser workflows; 765 frontend tests PASS; TypeScript/Vite build PASS with existing bundle advisory. PostgreSQL/Compose, full Python repository suite, live providers and hosted checks NOT_RUN; real submission OFF.
+- Durable evidence and all 15 branch/worktree ownership records: `docs/evidence/2026-10-11-feature-batch2-closeout.json`. All component commits are integrated locally; worker branches/worktrees remain preserved. The current UI-selected `C:\Tools\Dev\MJobs-Codex-App` worktree remains separate and must not be reset or merged blindly.
+- This batch's local child/root claims are released. Integration lock is released as the final closeout operation. External Antigravity #302, Ollama #318 and older claims remain untouched. GitHub release-comment mirrors for #209/#169/#156/#171/#261 are PENDING because the user ordered immediate stop.
+- Preserve unrelated untracked `events.jsonl`, `services/ai/ai_failure_mode.py`, `tests/unit/test_ai_failure_behavior.py`.
+- **TRACKER_REFRESH_PENDING:** next user-authorized Luna session must reconcile this evidence into the five canonical requirement entries and dashboard; no full requirement was promoted here. Then reconcile accumulated local commits versus remote before safe publication or new P0 selection. Do not start work from this handoff without a new user invocation.
+
+---
+
 ## 2026-10-08T12:47:30Z — #190 posted-date filter integrated locally
 
 Local main checkpoint `09449f4cc3b14cf5f7f351b1fb9d845580deb7f3`; origin sync and receipt pending. Evidence `docs/evidence/2026-10-08-posted-date-search-filter.json` pins tested source `6f2f722df3d893c3d0c33ca0420fdfb78238468b`. Integration 12/12, connected browser 1/1, frontend 103/103/build, compile, evidence hashes, skills, dashboard/catalogue/progress validators, local delegated review PASS. PostgreSQL and hosted checks NOT_RUN; full #190 remains OPEN/PARTIAL. Global Codex children: none active. #96/MJ-REQ-095 has a completed, unintegrated worker branch that needs root exact-base reconciliation; preserve its active ownership until safely resolved. #197 review queue claim reconciled RELEASED from its integration receipt at b633578. Preserve external lane claims #302/#318 and submission OFF.

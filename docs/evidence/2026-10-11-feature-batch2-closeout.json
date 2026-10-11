@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "verified_at_utc": "2026-10-11T02:40:52.233028Z",
+  "source_commit": "7673eec498594c80a824b36bdc3f49938cde2ddf",
+  "source_tree": "b8fcce09bd2560efa2d2f9bcca54e2296a7e7f16",
+  "result": "PARTIAL",
+  "issues": [
+    209,
+    169,
+    156,
+    171,
+    261
+  ],
+  "scope": "Five locally accepted connected workflows: application rehearsal receipts, fresh-profile restore, pipeline preparation workbench, saved bounded retention, and reviewed email-status import. Broader requirements remain partial.",
+  "validation": {
+    "python_api_browser": "PASS: final combined 110 tests in 96.296 seconds, including five Chromium workflows",
+    "frontend": "PASS: 765 tests in 131 files",
+    "production_build": "PASS: TypeScript and Vite; existing large-bundle advisory",
+    "hosted": "NOT_RUN by policy",
+    "postgresql_compose": "NOT_RUN",
+    "full_python_repository": "NOT_RUN",
+    "external_submission": "OFF"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "npm": "11.12.1",
+    "database": "isolated SQLite fixtures",
+    "browser": "local Chromium with external requests blocked"
+  },
+  "tested_source_sha256": {
+    "apps/api/application_rehearsal.py": "a9617f79b7ed4b7ae196c0b1b1eafa9b860d7ce4823cb7e4ce512546175e90cf",
+    "apps/api/email_status.py": "405157ad2b949ceeedc203c40cbb503f7f538e67190822f474af64426464453c",
+    "apps/api/main.py": "c5ff0da8b5c1c45e69159371daf89436765d9cace8879265d0993b9425583ad0",
+    "apps/api/pipeline_workbench.py": "bcf22cd102181c9de6abad16f055263518f76903a5cde4969301b7e246b75e57",
+    "apps/api/profile_restore.py": "904991d9218c8762d208607f27883e1180d2d112e506a4c9b3876f80f496a3e8",
+    "apps/api/transient_retention.py": "ade2a798147b75b91d654f5bfdd32bfdf0137d2ac3b09454611f59e02dfe1c61",
+    "apps/web/src/application-rehearsal.test.tsx": "ad67fffbf7c827d766141d6bc4b947c16b742c87bdaa3194bc5c60e32464ff94",
+    "apps/web/src/application-rehearsal.tsx": "cc6a875ad0e2dc58199991f0f99bfc253ccde68f7c3c32a852acbc5a3d88acb9",
+    "apps/web/src/email-status-review.test.tsx": "6d74f6a8da1edcb5bcac84a17afe59b899247bfc2a7b64b933e7025e515c8f63",
+    "apps/web/src/email-status-review.tsx": "1e7b444f9ee83e7b50e729b1fbae740b98a663cc0038cf2ff41cd2f09410fc81",
+    "apps/web/src/main.tsx": "7eeeea319b8324a2edfc67cbd0589f1254e30845f07c537ff257ec974bd7feda",
+    "apps/web/src/pipeline-workbench.test.tsx": "4dde13932a64faf4b863dd088470843cddb5c0f3582072e2f22edb4ffe541d72",
+    "apps/web/src/pipeline-workbench.tsx": "14c4724c1bb4ed3229873dd1361cf19b2e299cd5e9671d1ff61b06ef5f6d8392",
+    "apps/web/src/profile-restore.test.tsx": "904e706e6474539c7a0b6bf546a50c1b67a87a1f9f7984e22dfb81442dae8b08",
+    "apps/web/src/profile-restore.tsx": "16c741696b20739aef4b208918290e261ddb0300744b15b320f8af2d3bfa05d8",
+    "apps/web/src/retention-policy.test.tsx": "c7b518e6da49bbcd60d0b8782f63261c791721f01ab28ad8962194f43f6fe153",
+    "apps/web/src/retention-policy.tsx": "2a764aa04d25f525ec1eab67ccf11edac1b3efa050744f618f1b4224a0a15fea",
+    "packages/persistence/profile_restore.py": "915fef3d2559c514c49c2bf75eff21baff7c28e1c015e764ea6608870c13b80b",
+    "services/applications/rehearsal.py": "c1600fc67dee87cb6e5acb82dc9dff545c38bd025dfc16431de282c0afb26448",
+    "services/applications/rehearsal_store.py": "d0e33116b8d245e9d17bfc934eee69ea263cabd7304cda27d20a2dcb456e7810",
+    "services/discovery/scheduler.py": "1c32ad0b2135e2d1036bcfe5faf6bd3fd0c8f90082e468609df7768dacc3b775",
+    "services/operations/pipeline_actions.py": "783aba48b1477a55c2bfb773e889ea9ca8ba064fd05ed3acaee344508416c11d",
+    "services/operations/pipeline_workbench.py": "ddc6273880c77fa46e3e82d99d54503add5b02785116569e8b38e4c970804c75",
+    "services/privacy/retention_policy.py": "ecb241fd3479464ac49e9889ad99e203b69297726692ae515372d6e12ae6de8a",
+    "services/profile_restore.py": "981149348206bb77dc0e6f4538f0e14c033c3c030b985888e9d71cb60808bb19",
+    "services/tracking/email_status.py": "891a258d2a93cd2ea9bd7eb12cc292fe4d748aecfea99d4874b6cb0eba631e17",
+    "services/tracking/email_status_store.py": "6c0b43ccc19c1aa638acc98688cc2f113a89cacbf295c53b1eda7bb23412a518",
+    "tests/browser/test_application_rehearsal.py": "85a1e48998450130c2b3e4294a4dd4bf129c9026a68fc1c75cf8b78f5be3938d",
+    "tests/browser/test_email_status.py": "225c0d74a8f654a019e34e90828f1fbefea941ffbb8e9cab9cd3811d04922b41",
+    "tests/browser/test_pipeline_workbench.py": "d2e5e43470fb15b8e2dc4e932dd17e7f4a460e84bc5dd151f48a9035b2cb1655",
+    "tests/browser/test_profile_restore.py": "079d8431d1d82aabd88bbafc5ee852a4d33ef7479414ed11ecb51bed067fe9d6",
+    "tests/browser/test_retention_policy.py": "3d5d61362772238e37235a2e551b0b27f6002779af7e8e90e6c566c6aa68ef7b",
+    "tests/integration/test_application_rehearsal.py": "c8fcc01582c06bc5b524b151ec15e70dd8e964a3744275c9753c076338322d85",
+    "tests/integration/test_email_status.py": "a73f0cbabe7301d86769fae1460fd47ebc60ca77ff312424d7c037c6519be449",
+    "tests/integration/test_feature_batch2_wiring.py": "08edfc68fd6f29a213930710f3c482f509fc4928e188f9624633900373f86ebf",
+    "tests/integration/test_pipeline_workbench.py": "6144fa409149d508ac7b7dac8944c5a58927d5b54959df7554f9211b05093b8a",
+    "tests/integration/test_profile_restore.py": "e00bdb339e479461906aa22641dd87d4cb6b24c09dfa6441e9eaf4db25406776",
+    "tests/integration/test_retention_policy.py": "c5c39aad3b807376bcbeed40f2a02d44e4e78a7c5e33d2ae48a5fb89e810aa7b",
+    "tests/unit/test_application_rehearsal.py": "5ad0cbca48b81270b4988b1e716b6c0e2593e30ec2f199668843739c7b455f11",
+    "tests/unit/test_email_status.py": "e8c129dfcca099ef7c070dfd786dba276acea6244e2c706224454d3de9196c85",
+    "tests/unit/test_pipeline_workbench.py": "919d6dfbf68a0f3e64bd4e7a1ea168310b70007c496d0d0e5ef1a5fd7b3c660e",
+    "tests/unit/test_profile_restore.py": "9b2e45c0023d408042d22f8259a98f12eb12e621be34789c0d11688465c014cf",
+    "tests/unit/test_retention_policy.py": "6e03ed5e0e85f89c1ab464fad1f2d46c3368a008143042a89b2f740ae4e2367c",
+    "tests/unit/test_transient_retention_scheduler.py": "efd929767541f7d7bf2f3534d90036a848431545a4439c9401b9945fe4c79803",
+    "workers/transient_retention.py": "56d3c6994315baaacc97d1fb138e6982f693afb679f825762abe28f1be68bcd0"
+  },
+  "worker_roster": [
+    {
+      "agent": "rogue_leia",
+      "claim": "rogue_leia_b2",
+      "issue": 209,
+      "requirement": "MJ-REQ-208",
+      "branch": "codex/b2-rogue-leia-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-rogue-leia-20261011",
+      "paths": [
+        "services/applications/rehearsal.py",
+        "tests/unit/test_application_rehearsal.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "rogue_luke",
+      "claim": "rogue_luke_b2",
+      "issue": 209,
+      "requirement": "MJ-REQ-208",
+      "branch": "codex/b2-rogue-luke-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-rogue-luke-20261011",
+      "paths": [
+        "apps/web/src/application-rehearsal.tsx",
+        "apps/web/src/application-rehearsal.test.tsx"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "rogue_han",
+      "claim": "rogue_han_b2",
+      "issue": 209,
+      "requirement": "MJ-REQ-208",
+      "branch": "codex/b2-rogue-han-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-rogue-han-20261011",
+      "paths": [
+        "services/applications/rehearsal_store.py",
+        "apps/api/application_rehearsal.py",
+        "tests/integration/test_application_rehearsal.py",
+        "tests/browser/test_application_rehearsal.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "phoenix_hera",
+      "claim": "phoenix_hera_b2",
+      "issue": 169,
+      "requirement": "MJ-REQ-168",
+      "branch": "codex/b2-phoenix-hera-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-phoenix-hera-20261011",
+      "paths": [
+        "services/profile_restore.py",
+        "tests/unit/test_profile_restore.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "phoenix_kanan",
+      "claim": "phoenix_kanan_b2",
+      "issue": 169,
+      "requirement": "MJ-REQ-168",
+      "branch": "codex/b2-phoenix-kanan-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-phoenix-kanan-20261011",
+      "paths": [
+        "apps/web/src/profile-restore.tsx",
+        "apps/web/src/profile-restore.test.tsx"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "phoenix_sabine",
+      "claim": "phoenix_sabine_b2",
+      "issue": 169,
+      "requirement": "MJ-REQ-168",
+      "branch": "codex/b2-phoenix-sabine-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-phoenix-sabine-20261011",
+      "paths": [
+        "packages/persistence/profile_restore.py",
+        "apps/api/profile_restore.py",
+        "tests/integration/test_profile_restore.py",
+        "tests/browser/test_profile_restore.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "ghost_ahsoka",
+      "claim": "ghost_ahsoka_b2",
+      "issue": 156,
+      "requirement": "MJ-REQ-155",
+      "branch": "codex/b2-ghost-ahsoka-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-ghost-ahsoka-20261011",
+      "paths": [
+        "services/operations/pipeline_workbench.py",
+        "tests/unit/test_pipeline_workbench.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "ghost_ezra",
+      "claim": "ghost_ezra_b2",
+      "issue": 156,
+      "requirement": "MJ-REQ-155",
+      "branch": "codex/b2-ghost-ezra-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-ghost-ezra-20261011",
+      "paths": [
+        "apps/web/src/pipeline-workbench.tsx",
+        "apps/web/src/pipeline-workbench.test.tsx"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "ghost_zeb",
+      "claim": "ghost_zeb_b2",
+      "issue": 156,
+      "requirement": "MJ-REQ-155",
+      "branch": "codex/b2-ghost-zeb-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-ghost-zeb-20261011",
+      "paths": [
+        "services/operations/pipeline_actions.py",
+        "apps/api/pipeline_workbench.py",
+        "tests/integration/test_pipeline_workbench.py",
+        "tests/browser/test_pipeline_workbench.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "mandalore_din",
+      "claim": "mandalore_din_b2",
+      "issue": 171,
+      "requirement": "MJ-REQ-170",
+      "branch": "codex/b2-mandalore-din-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-mandalore-din-20261011",
+      "paths": [
+        "services/privacy/retention_policy.py",
+        "tests/unit/test_retention_policy.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "mandalore_bo_katan",
+      "claim": "mandalore_bo_katan_b2",
+      "issue": 171,
+      "requirement": "MJ-REQ-170",
+      "branch": "codex/b2-mandalore-bo_katan-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-mandalore-bo_katan-20261011",
+      "paths": [
+        "apps/web/src/retention-policy.tsx",
+        "apps/web/src/retention-policy.test.tsx"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "mandalore_paz",
+      "claim": "mandalore_paz_b2",
+      "issue": 171,
+      "requirement": "MJ-REQ-170",
+      "branch": "codex/b2-mandalore-paz-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-mandalore-paz-20261011",
+      "paths": [
+        "apps/api/transient_retention.py",
+        "workers/transient_retention.py",
+        "tests/integration/test_retention_policy.py",
+        "tests/browser/test_retention_policy.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "andor_cassian",
+      "claim": "andor_cassian_b2",
+      "issue": 261,
+      "requirement": "MJ-REQ-260",
+      "branch": "codex/b2-andor-cassian-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-andor-cassian-20261011",
+      "paths": [
+        "services/tracking/email_status.py",
+        "tests/unit/test_email_status.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "andor_bix",
+      "claim": "andor_bix_b2",
+      "issue": 261,
+      "requirement": "MJ-REQ-260",
+      "branch": "codex/b2-andor-bix-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-andor-bix-20261011",
+      "paths": [
+        "apps/web/src/email-status-review.tsx",
+        "apps/web/src/email-status-review.test.tsx"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    },
+    {
+      "agent": "andor_luthen",
+      "claim": "andor_luthen_b2",
+      "issue": 261,
+      "requirement": "MJ-REQ-260",
+      "branch": "codex/b2-andor-luthen-20261011",
+      "worktree": "C:\\Tools\\Dev\\MJobs\\.worktrees\\b2-andor-luthen-20261011",
+      "paths": [
+        "services/tracking/email_status_store.py",
+        "apps/api/email_status.py",
+        "tests/integration/test_email_status.py",
+        "tests/browser/test_email_status.py"
+      ],
+      "base": "d456e93841954ce78e8b91e69d632e958455f6cf"
+    }
+  ],
+  "released_local_claims": [
+    "codex:rogue_leia_b2",
+    "codex:rogue_luke_b2",
+    "codex:rogue_han_b2",
+    "codex:phoenix_hera_b2",
+    "codex:phoenix_kanan_b2",
+    "codex:phoenix_sabine_b2",
+    "codex:ghost_ahsoka_b2",
+    "codex:ghost_ezra_b2",
+    "codex:ghost_zeb_b2",
+    "codex:mandalore_din_b2",
+    "codex:mandalore_bo_katan_b2",
+    "codex:mandalore_paz_b2",
+    "codex:andor_cassian_b2",
+    "codex:andor_luthen_b2",
+    "codex:batch2_root_composition"
+  ],
+  "remote_main": "e884ee9a649e3fcff0b24697cb7078473aa9c2a5",
+  "publication": "Local only; not pushed. User explicitly stopped all usage at closeout.",
+  "remaining": [
+    "TRACKER_REFRESH_PENDING: reconcile five requirement entries and render canonical dashboard on next authorized session.",
+    "GitHub release-comment mirror pending for issues 209,169,156,171,261; common-Git batch claims are released.",
+    "Reconcile accumulated unpublished local main before any remote publication."
+  ],
+  "preserved_untracked": [
+    "events.jsonl",
+    "services/ai/ai_failure_mode.py",
+    "tests/unit/test_ai_failure_behavior.py"
+  ]
+}

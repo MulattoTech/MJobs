@@ -1,3 +1,17 @@
+# STOP checkpoint — 2026-10-11T02:40:52.233028Z
+
+User explicitly requested immediate commit, wrap-up and STOP ALL USAGE. No agents or unattended continuation are running.
+
+- Canonical checkout: `C:\Tools\Dev\MJobs`, local `main`; implementation commit `7673eec498594c80a824b36bdc3f49938cde2ddf`, tree `b8fcce09bd2560efa2d2f9bcca54e2296a7e7f16`. This handoff/evidence-only commit follows it. Remote main remains `e884ee9a649e3fcff0b24697cb7078473aa9c2a5`; nothing pushed.
+- Five connected local workflows: ROGUE #209 rehearsal/review receipts; PHOENIX #169 fresh-profile backup restore; GHOST #156 pipeline readiness and atomic preparation; MANDALORE #171 saved retention controls; ANDOR #261 explicit email-status review/history. These are scoped local acceptance, not full P0 backlog completion; these five parent issues are P1 and remain PARTIAL.
+- Final verification: 110 combined Python/API/Chromium tests PASS, including all five connected browser workflows; 765 frontend tests PASS; TypeScript/Vite build PASS with existing bundle advisory. PostgreSQL/Compose, full Python repository suite, live providers and hosted checks NOT_RUN; real submission OFF.
+- Durable evidence and all 15 branch/worktree ownership records: `docs/evidence/2026-10-11-feature-batch2-closeout.json`. All component commits are integrated locally; worker branches/worktrees remain preserved. The current UI-selected `C:\Tools\Dev\MJobs-Codex-App` worktree remains separate and must not be reset or merged blindly.
+- This batch's local child/root claims are released. Integration lock is released as the final closeout operation. External Antigravity #302, Ollama #318 and older claims remain untouched. GitHub release-comment mirrors for #209/#169/#156/#171/#261 are PENDING because the user ordered immediate stop.
+- Preserve unrelated untracked `events.jsonl`, `services/ai/ai_failure_mode.py`, `tests/unit/test_ai_failure_behavior.py`.
+- **TRACKER_REFRESH_PENDING:** next user-authorized Luna session must reconcile this evidence into the five canonical requirement entries and dashboard; no full requirement was promoted here. Then reconcile accumulated local commits versus remote before safe publication or new P0 selection. Do not start work from this handoff without a new user invocation.
+
+---
+
 # Current Codex checkpoint — 2026-10-11T00:53Z
 
 - Root: `C:\Tools\Dev\MJobs`; local `main` is `5a00de653023193367c278fa4c63fc59878c7518` (tree `7953fd05441ff89c72e1c591af19f84af6867dad`), three commits ahead of `origin/main` at `e884ee9a649e3fcff0b24697cb7078473aa9c2a5`; not pushed. The stale Codex integration lock (PID 72372, absent from the process table) was released manually and replaced with this session's live lock. Preserve untracked `events.jsonl`, `services/ai/ai_failure_mode.py`, and `tests/unit/test_ai_failure_behavior.py`; they were outside this batch.
