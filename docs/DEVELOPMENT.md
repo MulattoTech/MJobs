@@ -8,7 +8,7 @@ Python 3.12, Node.js 24 and Docker with Linux containers match CI. Keep tools pr
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.lock -r .github/test-requirements.txt -r .github/docs-requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt -r .github/test-requirements.txt -r .github/docs-requirements.txt
 npm ci --prefix apps/web
 .\.venv\Scripts\python.exe -m playwright install chromium
 ```
@@ -46,3 +46,5 @@ Use the checked-in [sprint plan](../prompts/codex/next-plan.md), [goal](../promp
 ## Project synchronization
 
 `python tools/maintenance/sync_project.py` audits the Project. Add `--apply` after a verified acceptance checkpoint to update it using your existing `gh` login and Projects permission. The command never changes issue states or acceptance evidence. No broad personal token is stored in public repository secrets.
+
+The canonical pinned runtime manifest is `requirements.txt`. Older `-r requirements.lock` commands remain valid through a compatibility include. Change versions only in the canonical file and run `python -m pip check` plus the hosted integration gates.

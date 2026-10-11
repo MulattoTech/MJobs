@@ -1,0 +1,48 @@
+name: Verification-only documentation review
+on:
+  workflow_run:
+    workflows:
+      - CI - fast
+      - Integration - PostgreSQL and Redis
+      - Connected acceptance — synthetic
+      - Dependency review
+      - Secret scan - reviewed history
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Owner-authored documentation PR to verify
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: verified-documentation-review
+  cancel-in-progress: false
+jobs:
+  review:
+    if: >-
+      github.repository == 'MulattoTech/MJobs' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      checks: read
+      pull-requests: write
+    steps:
+      - name: Load trusted default-branch policy only, never PR source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: main
+          persist-credentials: false
+      - name: Verify exact-head gates and submit a clearly identified bot review
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
+        env:
+          PR_NUMBER: ${{ inputs.pr_number || '' }}
+        with:
+          script: |
+            const {run} = require('./tools/ci/verified_review.cjs');
+            await run({github, context, core});

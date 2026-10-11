@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import re
 import sys
+from tools.ci.python_requirements import requirement_files
 
 
 _REQUIRED_FILES = (
@@ -70,11 +71,12 @@ def validate_gpu_independence(root: Path) -> list[str]:
     if missing:
         return findings
 
-    requirements_path = root / "requirements.lock"
-    findings.extend(_package_findings(
-        _python_package_names(requirements_path.read_text(encoding="utf-8")),
-        "requirements.lock",
-    ))
+    try:
+        manifests = requirement_files(root)
+        for manifest, content in manifests.items():
+            findings.extend(_package_findings(_python_package_names(content), manifest))
+    except (OSError, ValueError):
+        findings.append("PYTHON_REQUIREMENTS_INVALID")
 
     try:
         package_json = json.loads((root / "apps/web/package.json").read_text(encoding="utf-8"))

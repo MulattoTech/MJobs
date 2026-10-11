@@ -25,7 +25,7 @@ jobs:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: |
-            requirements.lock
+            requirements.txt
             .github/test-requirements.txt
       - run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
       - name: Execute unit regressions
@@ -61,6 +61,8 @@ jobs:
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - run: npm ci --prefix apps/web --no-audit --no-fund
+      - name: Test trusted automated-review policy and rejection cases
+        run: node --test tests/ci/verified_review.test.cjs
       - run: npm test --prefix apps/web
       - run: npm run build --prefix apps/web
   repository:

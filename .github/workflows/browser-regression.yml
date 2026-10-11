@@ -28,7 +28,7 @@ jobs:
         with:
           python-version: '3.12'
           cache: pip
-          cache-dependency-path: requirements.lock
+          cache-dependency-path: requirements.txt
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'

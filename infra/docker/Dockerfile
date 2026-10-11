@@ -9,7 +9,7 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core poppler-utils tesseract-ocr tesseract-ocr-eng && rm -rf /var/lib/apt/lists/*
-COPY requirements.lock ./requirements.lock
+COPY requirements.txt requirements.lock ./
 RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
 COPY . .
 COPY --from=web /web/dist /app/apps/web/dist

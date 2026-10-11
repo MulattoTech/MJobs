@@ -67,6 +67,11 @@ def check_workflows(root: Path) -> list[str]:
                 action = step.get('uses')
                 if action and not action.startswith('./') and not PIN.fullmatch(action):
                     errors.append(f'{path.name}/{name}: action is not SHA-pinned: {action}')
+                if 'workflow_run' in names:
+                    if action and action.startswith('actions/download-artifact@'):
+                        errors.append(f'{path.name}/{name}: privileged review must not consume PR artifacts')
+                    if action and action.startswith('actions/checkout@') and step.get('with', {}).get('ref') != 'main':
+                        errors.append(f'{path.name}/{name}: workflow_run checkout must explicitly use trusted main')
                 if action and action.startswith('actions/checkout@'):
                     if step.get('with', {}).get('persist-credentials') != 'false':
                         errors.append(f'{path.name}/{name}: checkout must not persist credentials')

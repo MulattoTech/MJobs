@@ -11,6 +11,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+from tools.ci.python_requirements import requirement_lines
 from typing import Any
 
 NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
@@ -22,13 +23,13 @@ def _python_at(directory: Path) -> Path:
 
 
 def _dependencies_match(root: Path, workspace: Path) -> bool:
-    base = root / "requirements.lock"
-    target = workspace / "requirements.lock"
-    # Only share environments across worktrees containing compatible pinned
-    # requirements. New deps must be installed intentionally at a checkpoint.
-    if base.is_file() and target.is_file():
-        return base.read_bytes() == target.read_bytes()
-    return True
+    # Compare actual pinned requirements, including the compatibility include.
+    # Malformed/missing include targets may never silently reuse an environment.
+    try:
+        return requirement_lines(root) == requirement_lines(workspace)
+    except (OSError, ValueError):
+        return False
+
 
 
 def resolve_python_environment(root: Path, workspace: Path) -> dict[str, Any]:
