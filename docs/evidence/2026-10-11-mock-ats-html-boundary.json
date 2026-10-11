@@ -1,0 +1,89 @@
+{
+  "issue": 524,
+  "iteration": 20,
+  "base": "8611a1561167dda9342d20b7594180fa8a14c1ea",
+  "utc": "2026-10-11T23:15:39.320690+00:00",
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "browser": "local headless Chromium",
+    "temp": "isolated writable directory outside repository"
+  },
+  "scope": "PR546 CodeQL alert58 py/reflective-xss application HTML attributes",
+  "triage": "No executable injection reproduced on8611: 19 baseline security tests PASS including Chromium. URL quoting already excludes attribute delimiters, and dynamic is allowlisted. Explicit html.escape at HTML attribute boundary added as defense in depth and scanner-visible sanitizer. No false-positive dismissal or alert-resolution claim.",
+  "sourceHashes": {
+    "fixtures/mock_server.py": "01f324fd616e0e02b95c93c4cbec874a78bdb0ea361df76324d50675df6995ec",
+    "tests/unit/test_mock_html_security.py": "32728c1a7989ab3ae7192815ef553c38f9a297f87f7135c1046772a9c84b63fa",
+    "tests/browser/test_mock_html_security.py": "d7c40299bc78f2158557670989e153c7c6a13536de65fc2bb3c03b7bf3651720"
+  },
+  "validation": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_mock_html_security.py tests/browser/test_mock_html_security.py",
+      "result": "19 baseline PASS; expanded23 characterization PASS before source change"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_mock_html_security.py tests/browser/test_mock_html_security.py tests/unit/test_application_form_review_worker.py tests/unit/test_application_rehearsal.py",
+      "result": "37PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_mock_application.py tests/integration/test_application_pipeline.py tests/unit/test_compose_recovery_target.py",
+      "result": "45PASS/16subtests"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit",
+      "result": "1366PASS/752subtests/0FAIL/0SKIP;188.96s"
+    }
+  ],
+  "review": "Read-only local Luna review: no critical/important finding. New tests protect allowlist and URL identity; they pass before added escape wrappers and do not establish a new exploitable behavior or scanner resolution.",
+  "predecessorHosted": {
+    "head": "8611a1561167dda9342d20b7594180fa8a14c1ea",
+    "requiredCI": "PASS",
+    "compose": "PASS",
+    "integration": "all3shards and aggregate PASS",
+    "codeql": "FAIL newhigh alert58; all language analyses succeeded"
+  },
+  "remaining": "Current repair-head hosted checks pending publication; #524 and seven goal criteria incomplete; full browser predecessor23FAIL; no acceptance promotion.",
+  "externalApplications": "OFF",
+  "rollback": "Revert patch commit; no migration/config/data changes.",
+  "artifacts": {
+    "iteration20-baseline-security.xml": {
+      "sha256": "de7d24fa26c0518b799c0ea0493bbb2f9286a57ed3b9d3c66dc17a7c36cca1b3",
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    "iteration20-characterization.xml": {
+      "sha256": "840ac7392842bfd4325ba0e6d7e3fdd3f1688117c856859e223a747ed530d2d5",
+      "tests": "23",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    "iteration20-focused.xml": {
+      "sha256": "304c9e9b0aac0369a8881811597429ce8f256b33fbdcc2c707a3ae63f07b90e1",
+      "tests": "37",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    "iteration20-connected.xml": {
+      "sha256": "b43d1fa799e9a8e0a9e8c6c5527cc280a49a43cffd67d53925a7079389e52ff3",
+      "tests": "61",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    "iteration20-unit.xml": {
+      "sha256": "ce0f1878a84193a0ebdc4621ca37c3302cc886c82d39ffcfc0471211303accc5",
+      "tests": "2118",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  }
+}
