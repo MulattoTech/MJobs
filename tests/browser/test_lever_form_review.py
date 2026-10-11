@@ -219,15 +219,15 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                     self.assertFalse(page.get_by_role(
                         "button", name="Submit application", exact=False).count())
                     browser.close()
+                self.assertEqual(store.application(application_id), before_application)
+                self.assertEqual(store.count("documents"), before_documents)
+                self.assertEqual(store.count("application_attempts"), before_attempts)
             finally:
                 server.should_exit = True
                 thread.join(timeout=10)
                 sock.close()
                 store.engine.dispose()
             self.assertFalse(thread.is_alive(), "Isolated Lever review server must stop")
-            self.assertEqual(store.application(application_id), before_application)
-            self.assertEqual(store.count("documents"), before_documents)
-            self.assertEqual(store.count("application_attempts"), before_attempts)
 
 
 if __name__ == "__main__":
