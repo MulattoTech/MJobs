@@ -35,3 +35,7 @@ The CodeQL baseline still contains 35 high and three medium open findings (#524)
 The private recovery directory contains complete worktree inventories, intact retired folders, Git metadata and verified bundles. Public pointer deletion cannot recall downloaded copies. Remaining dirty or externally used worktrees are not erased to produce a misleadingly small count.
 
 Projects synchronization uses the owner's existing local GitHub login and is incremental; no broad personal token was installed in public repository secrets. Run it after accepted implementation batches. Native auto-merge is not a human approving review.
+
+## Verified continuation
+
+[The linked closeout and launch guide](MODERNIZATION_CLOSEOUT.md) records PR #533, the repaired dependency automation, verified review policy, exact regression baseline and new/resume AFK launch commands.
