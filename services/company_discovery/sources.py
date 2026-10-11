@@ -12,6 +12,7 @@ from sqlalchemy import func, select, update
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now, upsert
 from services.audit_history import record_company_discovered, record_company_source_enrolled
+from services.company_discovery.source_host_locks import lock_company_source_hosts
 
 
 _PRIORITIES = {"USER_PINNED", "HIGH", "NORMAL", "LOW", "DORMANT"}
@@ -144,6 +145,9 @@ def upsert_company_job_source(store, *, company_id, provider, tenant_identifier,
     # for one company/ATS tenant remain distinct durable sources.
     context = store.engine.begin() if isinstance(store, Store) else nullcontext(store)
     with context as connection:
+        # Serialize source writes against reviewed-domain owner scans. Acquire
+        # all URL host suffixes before reading or changing any portal row.
+        lock_company_source_hosts(connection, (endpoint, career_url, search_url, feed_url, public_api_url))
         if connection.execute(select(m.companies.c.id).where(m.companies.c.id == company_id)).first() is None:
             raise ValueError("COMPANY_SOURCE_COMPANY_NOT_FOUND")
         if ats_tenant_id:

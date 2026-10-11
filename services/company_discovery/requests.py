@@ -14,6 +14,7 @@ from services.company_discovery.domains import (
 )
 from services.company_discovery.public_client import PublicFetchError, _parse_url
 from services.company_discovery.public_resolution import resolve_public_company
+from services.company_discovery.source_host_locks import lock_company_source_hosts
 from services.company_discovery.sources import _url
 from services.dedupe.ingestion_identity import lock_company_ingestion
 from workers.dispatch import enqueue_operation
@@ -387,6 +388,7 @@ def approve_discovery_request(store, request_id, website, revision, confirm_comp
             confirmation_rows = lock_domain_evidence(connection, host)
             if any(row['company_id'] != initial['company_id'] for row in confirmation_rows):
                 raise ValueError('DISCOVERY_COMPANY_IDENTITY_CONFLICT')
+            lock_company_source_hosts(connection, [host])
             _lock_source_owners_for_domain(connection, host, initial['company_id'],
                 request_source_id=initial['company_source_id'])
         row = _locked_request(connection, request_id, revision, transaction_locked=confirm_company_identity)
@@ -433,6 +435,7 @@ def authorize_discovery_request(store, operation, *, connection=None):
             host = normalize_domain(initial['selected_website'])
             lock_domain_evidence(connection, host)
             if initial['authorization'] == 'USER_CONFIRMED_DOMAIN':
+                lock_company_source_hosts(connection, [host])
                 _lock_source_owners_for_domain(connection, host, initial['company_id'],
                     request_source_id=initial['company_source_id'])
             else:
