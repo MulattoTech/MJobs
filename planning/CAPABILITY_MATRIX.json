@@ -216,9 +216,10 @@
         "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
         "docs/evidence/2026-09-30-ci-430.json",
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
-        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
+        "docs/evidence/2026-10-11-six-team-integration.json"
       ],
-      "note": "First-run launcher and fresh direct Compose reached API/worker/Chromium readiness; a browser-uploaded resume survived a separate-project offline restore. Migration of a pre-upload PERSONAL archive retained its profile and 21 jobs. Complete startup/recovery and physical host restart acceptance remain open.",
+      "note": "Atomic fresh PowerShell configuration and fail-closed legacy key validation; actual isolated launcher, connected browser, Redis/full-service recovery verified. Original root legacy key remains missing and was preserved. Full host-restart acceptance remains open.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
@@ -255,9 +256,10 @@
       "evidence": [
         "docs/evidence/2026-10-06-remotive-job-source-adapter.json",
         "docs/evidence/2026-10-06-we-work-remotely-job-source-adapter.json",
-        "docs/evidence/2026-10-06-remote-ok-job-source-adapter.json"
+        "docs/evidence/2026-10-06-remote-ok-job-source-adapter.json",
+        "docs/evidence/2026-10-11-six-team-integration.json"
       ],
-      "note": "Global job-source adapters Remotive (MJ-REQ-017.S08), We Work Remotely (MJ-REQ-017.S02), and Remote OK (MJ-REQ-017.S07) implemented and verified with multi-company attribution, search semantics normalization, error/rate-limit handling, and registry integration. Remaining sources pending.",
+      "note": "Supported Greenhouse/Remotive/RemoteOK/WWR sources can now be enrolled through API/UI with canonical global tenants. Aggregator provenance no longer asserts ATS tenancy; company identity remains low-confidence. Controlled enrollment/reload/toggle/collection and bounded live Greenhouse read-only preparation verified. Remaining global targets pending.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -268,9 +270,10 @@
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-09-30-source-adapter-foundation.json",
-        "docs/evidence/2026-09-30-ci-429.json"
+        "docs/evidence/2026-09-30-ci-429.json",
+        "docs/evidence/2026-10-11-six-team-integration.json"
       ],
-      "note": "PARTIAL: documented Greenhouse public API collection is bounded and browser-free; strategy ladder for other providers is not implemented or verified. Both exact-head deployed CI runs passed Greenhouse API public reads.",
+      "note": "Four supported adapters expose bounded collection policies through the API/UI. HTML source structure and raw provenance survive document preparation. Greenhouse live read-only collection/preparation verified; other provider live evidence and broader strategy ladder remain incomplete.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -1922,9 +1925,10 @@
       "requirement_id": "MJ-REQ-160",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-07-dead-letter-queue.json"
+        "docs/evidence/2026-10-07-dead-letter-queue.json",
+        "docs/evidence/2026-10-11-six-team-integration.json"
       ],
-      "note": "Not implemented or verified in current milestones Bounded lease-expiry attempts, explicit retry/discard and attempt history are covered in MJ-REF-016; the complete transient-error policy remains open.",
+      "note": "Persisted capped transient discovery retries survive reopen and honor provider cooldown/backoff; attempt ownership/cancellation fenced; actual provider exception contracts unified. PostgreSQL and real collector boundary tests verified. Application/AI/browser retries and complete broader retry policy remain open; ambiguous applications never automatically resubmit.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -1994,21 +1998,23 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
-        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
+        "docs/evidence/2026-10-11-six-team-integration.json"
       ],
-      "note": "Quiescent FIXTURE/PERSONAL archives passed manifest and inventory verification. Uploaded originals and metadata survived exact-checksum fresh restore. Protected host configuration and complete operational backup acceptance remain open.",
+      "note": "Quiescent database/uploaded/generated-document archives verified, including every writer. Fresh restore preserves 312 files and encrypted credentials; original key is retained separately. Important configuration backup tooling and broader operational backup acceptance remain open.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-168",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
-        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
+        "docs/evidence/2026-10-11-six-team-integration.json"
       ],
-      "note": "Fresh FIXTURE/PERSONAL restores preserved PostgreSQL records, generated documents and uploaded originals with readiness and external submission disabled. An older PERSONAL archive migrated while retaining its profile and jobs. Protected host configuration and complete failure-recovery acceptance remain open.",
+      "note": "Documented fresh-project restore executed against actual PostgreSQL and document volumes: 312 files, eight database inventories including credential ciphertext match; confirmation retained. Original protected key decrypts; wrong/missing keys fail closed without ciphertext mutation. Full unrelated recovery/security requirements remain separately tracked.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2875,9 +2881,11 @@
     },
     {
       "requirement_id": "MJ-REQ-248",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-11-six-team-integration.json"
+      ],
+      "note": "/health, /ready and compatible /readiness verified with real PostgreSQL/Redis/RQ workers. Database, queue, each worker queue and fresh scheduler ticks are observed; actual stopped PostgreSQL, company worker and scheduler degrade readiness and restart restores it. Browser status remains optional.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3275,18 +3283,22 @@
     },
     {
       "requirement_id": "MJ-REQ-288",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-six-team-integration.json"
+      ],
+      "note": "Live verification command reports observed configuration, actual PostgreSQL migration heads, Redis, scheduler freshness and each exact worker queue; stopped/malformed/stale dependencies fail closed. Full source/application/deep-check summary remains incomplete.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-289",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-11-six-team-integration.json"
+      ],
+      "note": "Separately invoked cli.ui_e2e ran connected React/API/PostgreSQL/Redis/Chromium discovery, factual documents, reviewed dry run, controlled mock confirmation, persistence/readback and same-request duplicate protection. No startup hook invokes it. External submission remains disabled; full product acceptance is separate.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "major-feature"
@@ -3311,9 +3323,11 @@
     },
     {
       "requirement_id": "MJ-REQ-292",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-six-team-integration.json"
+      ],
+      "note": "Representative connected browser journey, live authorized public-source manual preparation, controlled mock confirmation, persistence/recovery and credential-bearing restore executed. Full original end-to-end acceptance sequence, all providers, and release eligibility remain unproven.",
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping"

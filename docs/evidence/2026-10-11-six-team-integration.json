@@ -1,0 +1,495 @@
+{
+  "timestamp": "2026-10-11T07:31:59.190888+00:00",
+  "source_revision": "6cf78872bb83c25e38a3c851e192ff9805a3a65b",
+  "runtime_revision": "3be4ebd0",
+  "runtime_image_id": "sha256:2b66195b4ff8c65e63b23fb8ab02137dfbd9f296102eb9ee2d23024be790ca86",
+  "delivery": "Six Luna High teams, three developers each; sole root integration owner; no hosted checks",
+  "feature_commits": {
+    "structured_postings": "050005e4",
+    "source_enrollment": "bfdb7295",
+    "source_ui": "485bc543",
+    "credential_restore": "f55fb44e",
+    "lever_review": "df7e0a38",
+    "recovery_utility": "9f7aff09",
+    "runtime_health": "1d9d2cdc",
+    "api_readiness": "4fd5c414",
+    "ready_alias": "3be4ebd0",
+    "cursor_release": "6cf78872"
+  },
+  "local_tests": {
+    "posting_suite": "93 passed, 9 subtests",
+    "sources_suite": "11 passed",
+    "lever_integrated_api_browser": "8 passed, 8 subtests",
+    "runtime_api_unit": "28 passed, 5 subtests",
+    "credential_postgres": "1 passed",
+    "cursor_route_integration": "13 passed; open-cursor red regression reproduced",
+    "source_browser_and_baseline_fixes": "4 passed",
+    "frontend": "766 tests/build passed in Docker",
+    "python_baseline": "2339 passed, 16 skipped, 1027 subtests; 2 failures: global time mock and leaked cursor; both repaired with focused regressions",
+    "post_integration_python": "IN_PROGRESS, observed pre-cursor-fix failure; no full green claim",
+    "recovery_override_guards": "18 passed, 30 subtests on integrated main; paths, labels, junctions, restart-count and foreign-target negative controls",
+    "live_verification_command": "python -m cli.verify_readiness --api http://127.0.0.1:18813: all 10 observed checks PASS"
+  },
+  "deep_test": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:20:40.584782+00:00",
+    "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18813",
+    "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
+    "profile_id": "demo-60d9f901-a57e-4ed0-8c5b-240e69302173",
+    "application_id": "b8e9d265b8c97a542e40fc8b10b520e57966411d4a8845bc0f4867ac6ef8c875",
+    "operation_id": "07ac52743f8abcf14595b3516dd90dd4af84d1e2695d04e0b411c9f280c9ad4a",
+    "request_id": "d08deabd-c757-471d-9f09-bad3affcfe9a",
+    "confirmation": {
+      "application_id": "b8e9d265b8c97a542e40fc8b10b520e57966411d4a8845bc0f4867ac6ef8c875",
+      "requisition": "B",
+      "receipt": "MOCK-b8e9d265b8c97a54",
+      "timestamp": "2026-10-11T07:20:36.952186+00:00",
+      "confirmation_url": "http://mock:8090/ats/submit/B",
+      "confirmation_text": "Thank you for applying. Application received. Application reference: MOCK-b8e9d265b8c97a54",
+      "reference_number": "MOCK-b8e9d265b8c97a54",
+      "submission_count": 1
+    },
+    "external_submission_enabled": false,
+    "actions": [
+      {
+        "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+        "result": "PASS"
+      },
+      {
+        "action": "ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording",
+        "result": "PASS"
+      },
+      {
+        "action": "Original approved facts, generation metadata and checksum-verified TXT download visible through the browser",
+        "result": "PASS"
+      },
+      {
+        "action": "Pending fact excluded from matching and downloaded factual DOCX",
+        "result": "PASS"
+      },
+      {
+        "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+        "result": "PASS"
+      },
+      {
+        "action": "Job-matched technology emphasis reaches worker, DOCX download and visible provenance",
+        "result": "PASS"
+      },
+      {
+        "action": "Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision",
+        "result": "PASS"
+      },
+      {
+        "action": "Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI",
+        "result": "PASS"
+      },
+      {
+        "action": "Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes",
+        "result": "PASS"
+      },
+      {
+        "action": "Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions",
+        "result": "PASS"
+      },
+      {
+        "action": "Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged",
+        "result": "PASS"
+      },
+      {
+        "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+        "result": "PASS"
+      },
+      {
+        "action": "Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts",
+        "result": "PASS"
+      },
+      {
+        "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+        "result": "PASS"
+      }
+    ],
+    "artifacts": [
+      "outputs\\ui-e2e\\18813\\activity-mobile.png",
+      "outputs\\ui-e2e\\18813\\application-confirmed.png",
+      "outputs\\ui-e2e\\18813\\fictional-document.pdf"
+    ]
+  },
+  "public_read_only": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:16:11.163723+00:00",
+    "command": "python -m cli.ui_source_readback",
+    "target": "Actual browser readback of persisted first-party public jobs",
+    "application_id": "e8ebed3a27a7dcdda789d7cea54fb34660e92deb961821a41ebdef3c77de6927",
+    "preparation_status": "PREPARED",
+    "external_submission_enabled": false,
+    "actions": [
+      {
+        "action": "Stored live public jobs render heuristic match limitation and provider URL; preparation outcome is explicit and remains manual-only",
+        "result": "PASS"
+      },
+      {
+        "action": "Public job prepared only as a manual-only real application; server rejects mock submission",
+        "result": "PASS"
+      },
+      {
+        "action": "Source cooldown is visible as a failed operation without repeating public requests",
+        "result": "PASS"
+      }
+    ],
+    "artifact": "outputs\\ui-e2e\\public-source-policy.png"
+  },
+  "credential_restore": {
+    "credential_original_key": "PASS",
+    "wrong_and_missing_keys": "FAIL_CLOSED",
+    "ciphertext_unchanged": true,
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:20:01.138074+00:00",
+    "source_project": "mjobs-rc-20261011",
+    "fresh_target_project": "mjobs-fixture-202610110001",
+    "operation_mode": "FIXTURE",
+    "archive_files_verified": 312,
+    "archive_revision": "20261011rt01",
+    "database": {
+      "career_profiles": {
+        "rows": 20,
+        "database_content_md5": "983e6f18c7fcd4f98e599c8a3bc12311",
+        "identical": true
+      },
+      "profile_versions": {
+        "rows": 39,
+        "database_content_md5": "8c86f854077aa31efe919145b7feed5a",
+        "identical": true
+      },
+      "canonical_jobs": {
+        "rows": 65,
+        "database_content_md5": "15329a70501da2b143887130437216fd",
+        "identical": true
+      },
+      "job_postings": {
+        "rows": 67,
+        "database_content_md5": "6fe3a10f3aea9d6e8c4013a01a7949dc",
+        "identical": true
+      },
+      "company_job_sources": {
+        "rows": 2,
+        "database_content_md5": "e602cc9329eaece0a518d477312beceb",
+        "identical": true
+      },
+      "documents": {
+        "rows": 100,
+        "database_content_md5": "50f01decbbd1e7879d7919a2fac9b55a",
+        "identical": true
+      },
+      "applications": {
+        "rows": 13,
+        "database_content_md5": "bcf00d707ec3a0daf0d8cdd5bbb675a7",
+        "identical": true
+      },
+      "provider_credentials": {
+        "rows": 1,
+        "database_content_md5": "273efc5757ee6f0e6207bdfe9cb05b25",
+        "identical": true
+      }
+    },
+    "confirmed_application_retained": true,
+    "external_submission_enabled": false,
+    "configuration": "Synthetic private environment reused; secrets are separately protected and excluded from archive",
+    "limits": [
+      "No real user data used",
+      "No host reboot",
+      "Backup without all writers stopped is refused",
+      "Mock-provider receipt volume is not a backup input; application confirmation history is retained",
+      "No real provider connection was attempted"
+    ]
+  },
+  "runtime_health": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:17:51.784138+00:00",
+    "project": "mjobs-rc-20261011",
+    "initial": {
+      "status": "ready",
+      "checks": {
+        "configuration": true,
+        "database": true,
+        "queue": true,
+        "worker": true,
+        "scheduler": true,
+        "workers": {
+          "mjobs-application": true,
+          "mjobs-company-discovery": true,
+          "mjobs-discovery": true,
+          "mjobs-document": true
+        },
+        "schema": true,
+        "mock": true
+      },
+      "db_backend": "postgresql"
+    },
+    "stopped": {
+      "configuration": true,
+      "database": true,
+      "queue": true,
+      "worker": false,
+      "scheduler": false,
+      "workers": {
+        "mjobs-application": true,
+        "mjobs-company-discovery": false,
+        "mjobs-discovery": true,
+        "mjobs-document": true
+      },
+      "schema": true,
+      "mock": true
+    },
+    "restored": {
+      "status": "ready",
+      "checks": {
+        "configuration": true,
+        "database": true,
+        "queue": true,
+        "worker": true,
+        "scheduler": true,
+        "workers": {
+          "mjobs-application": true,
+          "mjobs-company-discovery": true,
+          "mjobs-discovery": true,
+          "mjobs-document": true
+        },
+        "schema": true,
+        "mock": true
+      },
+      "db_backend": "postgresql"
+    },
+    "external_submission_enabled": false
+  },
+  "database_health": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:25:32.150926+00:00",
+    "project": "mjobs-rc-20261011",
+    "initial": {
+      "status": "ready",
+      "checks": {
+        "configuration": true,
+        "database": true,
+        "queue": true,
+        "worker": true,
+        "scheduler": true,
+        "workers": {
+          "mjobs-application": true,
+          "mjobs-company-discovery": true,
+          "mjobs-discovery": true,
+          "mjobs-document": true
+        },
+        "schema": true,
+        "mock": true
+      },
+      "db_backend": "postgresql"
+    },
+    "database_stopped": {
+      "status": "degraded",
+      "checks": {
+        "configuration": false,
+        "database": false,
+        "queue": true,
+        "worker": true,
+        "scheduler": true,
+        "workers": {
+          "mjobs-application": true,
+          "mjobs-company-discovery": true,
+          "mjobs-discovery": true,
+          "mjobs-document": true
+        },
+        "schema": false,
+        "mock": true
+      },
+      "db_backend": "postgresql"
+    },
+    "restored": {
+      "status": "ready",
+      "checks": {
+        "configuration": true,
+        "database": true,
+        "queue": true,
+        "worker": true,
+        "scheduler": true,
+        "workers": {
+          "mjobs-application": true,
+          "mjobs-company-discovery": true,
+          "mjobs-discovery": true,
+          "mjobs-document": true
+        },
+        "schema": true,
+        "mock": true
+      },
+      "db_backend": "postgresql"
+    },
+    "external_submission_enabled": false
+  },
+  "commands": [
+    "python -m cli.ui_e2e --base-url http://127.0.0.1:18813 --evidence outputs/rc-20261011/fixture-ui-six-teams.json",
+    "python -m cli.verify_readiness --api http://127.0.0.1:18810",
+    "python -m cli.public_source_probe --base-url http://127.0.0.1:18810 --tenant tailscale --required-mode FIXTURE --evidence outputs/rc-20261011/live-source-structured.json",
+    "python -m cli.ui_source_readback --base-url http://127.0.0.1:18810 --baseline outputs/rc-20261011/live-source-structured.json --evidence outputs/rc-20261011/live-browser-structured.json"
+  ],
+  "acceptance": {
+    "MJ-REQ-168": "PASS: documented fresh restore, database/documents/ciphertext preserved, original key works, wrong/missing key fail closed",
+    "MJ-REQ-248": "PASS: health/ready endpoints; actual database, queue and worker readiness; controlled stopped dependencies degrade and recover",
+    "MJ-REQ-289": "PASS: separately invoked connected deep test; no startup invocation",
+    "MJ-REQ-288": "PARTIAL: live dependency verifier; full source/application checklist reporting incomplete",
+    "MJ-REQ-292": "PARTIAL: representative connected journeys executed; complete original acceptance journey not executed"
+  },
+  "limits": [
+    "No full release-candidate or full acceptance claim",
+    "Hosted CI/review NOT_RUN by policy",
+    "External submission disabled; only controlled mock submissions executed",
+    "Original root .env preserved and missing encryption key remains a normal-workspace startup gate",
+    "Aggregator same-name company identity remains low confidence",
+    "Live Greenhouse/Lever browser filling and submission unverified",
+    "HTML conversion does not evaluate stylesheet-only hidden classes",
+    "Backup protects key separately; full configuration backup tooling remains partial"
+  ],
+  "recovery_utility_revision": "85673f35",
+  "supported_recovery": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:31:43.782218+00:00",
+    "command": [
+      "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe",
+      "-m",
+      "cli.compose_recovery",
+      "--baseline",
+      "outputs/rc-20261011/fixture-ui-six-teams.json",
+      "--evidence",
+      "outputs/rc-20261011/supported-recovery.json",
+      "--project-name",
+      "mjobs-fixture-202610110001",
+      "--port",
+      "18813"
+    ],
+    "compose_target": {
+      "project_name": "mjobs-fixture-202610110001",
+      "port": 18813,
+      "compose_files": [
+        "C:\\Tools\\Dev\\MJobs\\compose.yml",
+        "C:\\Tools\\Dev\\MJobs\\outputs\\rc-20261011\\runtime.override.yml"
+      ],
+      "compose_config_files_label": "C:\\Tools\\Dev\\MJobs\\compose.yml,C:\\Tools\\Dev\\MJobs\\outputs\\rc-20261011\\runtime.override.yml",
+      "project_directory": "C:\\Tools\\Dev\\MJobs",
+      "profile": "fixture",
+      "services": [
+        "postgres",
+        "redis",
+        "mock",
+        "api",
+        "scheduler",
+        "worker",
+        "source-worker",
+        "company-discovery-worker",
+        "document-worker"
+      ]
+    },
+    "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery",
+    "actions": [
+      {
+        "action": "Redis disconnected; discovery persisted",
+        "result": "PASS",
+        "operation_id": "8414a4cd1106d94f2d0594e13a808ea85b904a1890ce1afcfb4be0714fc4c2fe"
+      },
+      {
+        "action": "Worker supervision and durable outbox recovered after Redis returned",
+        "result": "PASS"
+      },
+      {
+        "action": "All services restarted; original application, operation and independent receipt survived without another submission",
+        "result": "PASS"
+      }
+    ],
+    "application_id": "b8e9d265b8c97a542e40fc8b10b520e57966411d4a8845bc0f4867ac6ef8c875",
+    "external_submission_enabled": false
+  },
+  "final_runtime_revision": "85673f35",
+  "final_runtime_image_id": "sha256:02320af61345d48b93744b6d86b16e0987daa2cc3612ecaf7f81a8fc048ea7a3",
+  "final_runtime_deep_test": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:33:19.023835+00:00",
+    "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18810",
+    "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
+    "profile_id": "demo-b54173af-3364-4899-9006-abadeec33bdd",
+    "application_id": "fe0ffe9131cd4b41117304061744a44d27557155d5234c17d95bc78290a0bfa1",
+    "operation_id": "2d5eda87868f0106a59f1e5f46a90a0d2330bd264e8d0fd3cbb46fb251c0de1e",
+    "request_id": "e60c4d5d-cfcd-4a8b-9ef7-630f428064a0",
+    "confirmation": {
+      "application_id": "fe0ffe9131cd4b41117304061744a44d27557155d5234c17d95bc78290a0bfa1",
+      "requisition": "B",
+      "receipt": "MOCK-fe0ffe9131cd4b41",
+      "timestamp": "2026-10-11T07:33:15.301536+00:00",
+      "confirmation_url": "http://mock:8090/ats/submit/B",
+      "confirmation_text": "Thank you for applying. Application received. Application reference: MOCK-fe0ffe9131cd4b41",
+      "reference_number": "MOCK-fe0ffe9131cd4b41",
+      "submission_count": 1
+    },
+    "external_submission_enabled": false,
+    "actions": [
+      {
+        "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+        "result": "PASS"
+      },
+      {
+        "action": "ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording",
+        "result": "PASS"
+      },
+      {
+        "action": "Original approved facts, generation metadata and checksum-verified TXT download visible through the browser",
+        "result": "PASS"
+      },
+      {
+        "action": "Pending fact excluded from matching and downloaded factual DOCX",
+        "result": "PASS"
+      },
+      {
+        "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+        "result": "PASS"
+      },
+      {
+        "action": "Job-matched technology emphasis reaches worker, DOCX download and visible provenance",
+        "result": "PASS"
+      },
+      {
+        "action": "Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision",
+        "result": "PASS"
+      },
+      {
+        "action": "Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI",
+        "result": "PASS"
+      },
+      {
+        "action": "Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes",
+        "result": "PASS"
+      },
+      {
+        "action": "Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions",
+        "result": "PASS"
+      },
+      {
+        "action": "Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged",
+        "result": "PASS"
+      },
+      {
+        "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+        "result": "PASS"
+      },
+      {
+        "action": "Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts",
+        "result": "PASS"
+      },
+      {
+        "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+        "result": "PASS"
+      }
+    ],
+    "artifacts": [
+      "outputs\\ui-e2e\\18810\\activity-mobile.png",
+      "outputs\\ui-e2e\\18810\\application-confirmed.png",
+      "outputs\\ui-e2e\\18810\\fictional-document.pdf"
+    ]
+  },
+  "final_runtime_note": "Final source image rebuilt and launched in owned source stack; connected mock browser journey rerun PASS. Earlier restore/outage evidence retains its stated runtime revision."
+}

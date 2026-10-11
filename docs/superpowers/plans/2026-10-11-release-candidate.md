@@ -26,7 +26,7 @@ Baseline reconciled 2026-10-11: clean local/remote `22fd8b765a7d9027aa00043a53fb
 - [ ] **Implement minimal repair:** retain Docker-only normal startup, stage complete configuration then atomically publish without replacing a concurrent/existing file. Validate effective key without printing it. Never generate a replacement key for an existing workspace.
 - [ ] **Verify:** launcher/initializer/Compose tests, host-safety guard, real isolated fresh startup and safe fixture journey; current full relevant regressions and diff review. No acceptance promotion from a stubbed launcher test alone.
 - [ ] **Record and publish:** sanitized evidence with current source hashes/UTC, concise existing handoff, AI provenance trailers and provenance validator. Confirm unchanged remote main and disabled Actions before non-force fast-forward push. No new claims or coordination state.
-- [ ] **Next substantial slice:** classified persistent retry/backoff (#161), retaining existing leases/idempotency; begin with failing transient-error/restart tests, not an orchestration rewrite.
+- [x] **Durable retry slice:** classified persistent discovery retry/backoff (#161), with PostgreSQL reopen, fencing, cancellation and cooldown tests. Application/AI retry scope remains PARTIAL.
 
 ## Review focus and rollback
 
