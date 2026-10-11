@@ -1,0 +1,22 @@
+name: Dependency review
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: dependencies-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  review:
+    name: Dependencies / introduced vulnerabilities
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: never

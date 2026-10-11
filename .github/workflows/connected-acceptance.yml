@@ -1,6 +1,8 @@
 name: Connected acceptance — synthetic
 
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: '17 8 * * 1' # Weekly, UTC
@@ -9,8 +11,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: synthetic-acceptance
-  cancel-in-progress: false
+  group: synthetic-acceptance-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   full-stack:

@@ -10,3 +10,13 @@ docs/spec/source
 **/node_modules
 apps/web/dist
 test-tmp
+
+**/.pytest_cache
+**/*.bundle
+**/*.pfx
+**/*.p12
+docs/assets
+docs/maintainers
+docs/site
+prompts
+.vscode

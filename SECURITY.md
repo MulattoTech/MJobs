@@ -1,9 +1,11 @@
 # Security policy
 
-MJobs is an actively developed, self-hosted application handling potentially sensitive employment and applicant information. **External job submission is off** in current test builds.
+MJobs is a developer preview handling potentially sensitive career information. Public code, successful CI and a completed CodeQL run do not constitute production-security certification. Existing open findings are tracked rather than silently dismissed.
 
-Please do not post exploit details, credentials, real resumes, browser session material, or private application data in public GitHub issues.
+Use GitHub **Security → Advisories → Report a vulnerability** for private reports. Private vulnerability reporting is enabled. Include affected commit, impact and a minimal synthetic reproduction; do not put exploit payloads, real resumes, credentials, cookies or private application records in public issues.
 
-If you discover a security problem, use **GitHub's private vulnerability reporting** for this repository when available, or contact the repository owner privately through an established secure channel. Provide a minimal reproducible description and affected version/commit; use synthetic test data.
+CI runs on disposable GitHub-hosted machines with synthetic data and least-privilege permissions. Public PR jobs do not receive personal secrets or a write token. Never connect an untrusted public workflow to the maintainer's workstation.
 
-The public code is not a guarantee of production-readiness, security support SLAs, or a formal vulnerability disclosure program. Public test workflows never need personal user credentials or database dumps. See [safe operation and testing](docs/USER_TESTING.md).
+Source control is not a secret store. If a credential is exposed, revoke/rotate it through its provider before considering history cleanup. Preserve necessary private recovery evidence. Removing a public tag, release or commit cannot recall copies already downloaded.
+
+[Safe installation](docs/INSTALLATION.md) and [automation controls](docs/maintainers/AUTOMATION.md) describe the supported boundaries. External job submission remains off.

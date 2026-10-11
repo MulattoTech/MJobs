@@ -1,45 +1,39 @@
-# MJobs
+<div align="center">
 
-**A local-first workspace for finding opportunities, reviewing career evidence, and preparing job applications.**
+# MJobs
+### Your career facts. Your job search. Your workspace.
+
+A self-hosted workspace for discovering opportunities, reviewing your career evidence,
+and preparing applications without losing control of your data.
 
 [![CI](https://github.com/MulattoTech/MJobs/actions/workflows/ci.yml/badge.svg)](https://github.com/MulattoTech/MJobs/actions/workflows/ci.yml)
-[![Release acceptance](docs/PROGRESS_CARD.svg)](docs/PROGRESS_DASHBOARD.md)
+[![Integration](https://github.com/MulattoTech/MJobs/actions/workflows/integration.yml/badge.svg)](https://github.com/MulattoTech/MJobs/actions/workflows/integration.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
+[Install](docs/INSTALLATION.md) · [Try the demo](docs/USER_TESTING.md) · [Architecture](docs/ARCHITECTURE.md) · [Develop](docs/DEVELOPMENT.md) · [Roadmap](https://github.com/users/MulattoTech/projects/1)
+
+</div>
+
+![The MJobs pipeline workbench using an explicitly fictional career profile](docs/assets/mjobs-pipeline-demo.png)
 
 > [!IMPORTANT]
-> **Active development / public preview — not production-ready.** MJobs is designed to keep applicant data in a self-hosted workspace. External employer applications are **never submitted automatically** by the current release. Verify all information and submit real applications yourself. A green build is not proof that the entire requirements catalogue is complete.
+> **Public developer preview, not a production-ready release.** Working components and passing builds are not proof that the full product is accepted. External employer submissions stay **OFF**. Review the [acceptance dashboard](docs/PROGRESS_DASHBOARD.md) and [security policy](SECURITY.md) before using personal data.
 
-![MJobs pipeline workbench with a fictional test profile](docs/assets/mjobs-pipeline-demo.png)
+## What you can explore
 
-<details>
-<summary>More actual application screenshots (fictional test workspace)</summary>
+| Workflow | Current building blocks |
+|---|---|
+| Build a career profile | Import original documents, explicitly review facts, keep versions and approved answers. |
+| Find opportunities | Supported read-only sources, employer/source records, normalized jobs and source provenance. |
+| Decide what matters | Saved searches, explainable matching components, shortlist and pipeline views. |
+| Prepare carefully | Factual resume/cover-letter components, document history, ATS route and form review. |
+| Recover your work | Durable operations, bounded retries, service readiness, isolated modes and backup/restore tools. |
 
-### Employer sources and provenance
+These are implemented components, **not a promise of complete end-to-end acceptance**. Automatic employer enrollment, advanced matching, durable document comparison, several ATS workflows and browser regressions still have open requirements.
 
-![MJobs source relationship graph](docs/assets/mjobs-sources-demo.png)
+## Start on Windows
 
-### First-run setup
-
-![MJobs first-run setup checklist](docs/assets/mjobs-dashboard-fixture.png)
-
-Screenshots were captured from the running **FIXTURE** mode on October 11, 2026. Profiles are synthetic; some job listings are publicly sourced. No personal workspace was used.
-</details>
-
-## What MJobs does today
-
-MJobs combines a React frontend, a Python/FastAPI backend, PostgreSQL, Redis-backed background workers, and browser-assisted **local testing**. Implemented components include:
-
-- **Career profiles:** resume import, explicit review of sourced facts, approved answers, document storage and version history.
-- **Job discovery:** supported public read-only job sources, employer-source registration and monitoring, raw source provenance, normalized job records and search.
-- **Relevance and tracking:** saved search profiles, explainable matching components, shortlist/pipeline views, and auditable application history.
-- **Document preparation:** factual resume and cover-letter generation, with controlled review and local artifact storage.
-- **Application review:** ATS route detection, safe form analysis, manual review gates, and synthetic mock-application testing.
-- **Recovery:** durable work operations and retries, service health checks, isolated personal/fixture environments, and local backup/restore tooling.
-
-**Limits matter:** full ATS automation, automatic employer discovery, complete browser acceptance, and other requirements remain in progress. See the [evidence-backed progress dashboard](docs/PROGRESS_DASHBOARD.md); individual working slices do not imply full product acceptance.
-
-## Quick start — Windows
-
-**Requirements:** Windows with PowerShell and Docker Desktop running **Linux containers**. Keep Docker running during startup.
+Install Git and Docker Desktop. Start Docker Desktop in **Linux-container mode**, then open PowerShell:
 
 ```powershell
 git clone https://github.com/MulattoTech/MJobs.git
@@ -47,50 +41,69 @@ cd MJobs
 .\Start-MJobs.ps1
 ```
 
-The launcher builds and starts the isolated fictional test environment, applies migrations, waits for API/database/Redis/workers to become ready, and opens [http://127.0.0.1:18700](http://127.0.0.1:18700).
+Open **http://127.0.0.1:18700**. The launcher builds the application, initializes a fresh fictional workspace, runs migrations and waits for service readiness. The first build takes longer than later starts.
 
-From the dashboard, load **fictional demo** data, explore Jobs and Sources, prepare sample documents, and use the controlled mock application workflow. Nothing is submitted to a real employer.
+Load the fictional demo, inspect Jobs and Sources, review a profile, prepare sample documents and exercise the local mock application. Nothing is sent to a real employer.
 
-### Use your own career data
-
-Run a **separate personal** installation instead of mixing your data with test fixtures:
+### Keep personal data separate
 
 ```powershell
 .\Start-MJobs.ps1 -Personal
 ```
 
-Open [http://127.0.0.1:18701](http://127.0.0.1:18701). PERSONAL and FIXTURE modes use separate Compose projects and persistent volumes. Personal mode disables fictional actions and all real external submission.
+Use **http://127.0.0.1:18701**. PERSONAL and FIXTURE modes have separate Compose projects and persistent volumes. Do not use real resumes in the fictional test workspace.
 
-**Preserve your existing configuration:** if upgrading an older installation, do not delete or regenerate its ignored `.env` or existing database/document volumes. An older encryption key may be needed to read previously saved credentials. Use the [workspace mode](docs/runbooks/WORKSPACE_MODE.md) and [backup/restore](docs/runbooks/LOCAL_BACKUP.md) runbooks before migrating.
+**Upgrading an existing installation?** Preserve its `.env`, original credential-encryption key and database/document volumes. Do not regenerate keys or delete volumes to repair startup. Read the [installation and upgrade guide](docs/INSTALLATION.md) and [backup/restore runbook](docs/runbooks/LOCAL_BACKUP.md) first.
 
-For a step-by-step demo, diagnostics, prerequisites and known limitations, see [Local user testing](docs/USER_TESTING.md).
+## A look inside
 
-## Developer guide
+<details>
+<summary><strong>Employer sources and provenance</strong></summary>
 
-| Task | Entry point |
-|---|---|
-| Local test setup | [Developer/Codespaces guide](docs/CODESPACES.md) |
-| Source and runtime architecture | [Repository map](docs/REPO_MAP.md) |
-| Existing test and release policy | [Verification instructions](AGENTS.md) |
-| Current engineering state | [Session handoff](planning/SESSION_HANDOFF.md) |
-| Requirement and product acceptance | [Progress dashboard](docs/PROGRESS_DASHBOARD.md) |
-| Public CI modernization | [Modernization plan](docs/maintainers/PUBLIC_REPOSITORY_MODERNIZATION.md) |
+![Source relationship graph from the actual running fixture application](docs/assets/mjobs-sources-demo.png)
 
-For a pinned Python environment (Python 3.12), run `python -m pytest -q tests/unit` after installing `requirements.lock`. For the web app (Node.js 24):
+</details>
 
-```powershell
-npm ci --prefix apps/web
-npm test --prefix apps/web
-npm run build --prefix apps/web
+<details>
+<summary><strong>First-run setup</strong></summary>
+
+![First-run checklist from the actual running fixture application](docs/assets/mjobs-dashboard-fixture.png)
+
+</details>
+
+Screenshots were captured on October 11, 2026 using a synthetic profile. Some listings are publicly sourced. They show real application screens, not rendered product mockups.
+
+## How the pieces fit
+
+```mermaid
+flowchart LR
+    UI[React user interface] --> API[FastAPI]
+    API --> DB[(PostgreSQL)]
+    API --> Q[(Redis queue)]
+    Q --> W[Discovery / document / application workers]
+    W --> DB
+    W --> D[Local document storage]
+    W --> S[Allowed read-only sources]
+    W --> M[Controlled mock ATS]
 ```
 
-Automated GitHub checks validate fresh clones independently; a successful CI job cannot replace isolated user-facing acceptance tests.
+The [architecture guide](docs/ARCHITECTURE.md) distinguishes implemented boundaries from outstanding product goals.
 
-## Safety, privacy and contributions
+## Development and project health
 
-- Do not commit resumes, credentials, API tokens, local `.env` files, database backups, browser sessions or private test evidence.
-- Third-party job postings are untrusted input. Real-world source access must respect provider rules, rate limits, access controls and manual authentication.
-- Report security vulnerabilities **privately**, following [SECURITY.md](SECURITY.md). Use [CONTRIBUTING.md](CONTRIBUTING.md) for proposed changes and checks.
-- This repository is publicly readable, but **public access is not a software license**. The project owner has not yet declared redistribution/modification terms; review license expectations before reusing or distributing the code.
+Start with [DEVELOPMENT.md](docs/DEVELOPMENT.md), [CONTRIBUTING.md](CONTRIBUTING.md) and the short [agent contract](AGENTS.md). Use one integration owner, short-lived pull requests and independent hosted checks. The [automation guide](docs/maintainers/AUTOMATION.md) explains required checks, test artifacts, Projects synchronization and release gates.
 
-MJobs is under active development. The project's acceptance numbers are intentionally conservative and tied to executed evidence, not an arbitrary completion percentage.
+| Need | Go here |
+|---|---|
+| User walkthrough and known limits | [Local user testing](docs/USER_TESTING.md) |
+| Product acceptance | [Evidence-backed dashboard](docs/PROGRESS_DASHBOARD.md) |
+| Priority work and security backlog | [GitHub Project](https://github.com/users/MulattoTech/projects/1) |
+| Current implementation handoff | [Session handoff](planning/SESSION_HANDOFF.md) |
+| Versioning and distribution | [Release guide](docs/maintainers/RELEASES.md) |
+| Private security reporting | [Security policy](SECURITY.md) |
+
+## License and responsible use
+
+Original MJobs work is licensed under [Apache-2.0](LICENSE). Dependencies and third-party materials retain their own terms; see [NOTICE](NOTICE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+Never commit resumes, application answers, cookies, credentials, private `.env` files or database backups. Third-party job content is untrusted input. Respect source policies and access controls; never use real external submissions as automated tests.

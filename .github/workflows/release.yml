@@ -1,0 +1,128 @@
+name: Release validation and guarded publication
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish only after the full acceptance and security gate passes
+        type: boolean
+        default: false
+      version:
+        description: Version tag matching VERSION (required only for publication)
+        type: string
+        default: ''
+permissions:
+  contents: read
+concurrency:
+  group: release-validation
+  cancel-in-progress: false
+jobs:
+  validate:
+    name: Build candidate without publication
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Report actual acceptance without granting publication permission
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p outputs/ci
+          python -m tools.ci.release_gate --scope all --online --report > outputs/ci/release-readiness.json
+          python - <<'PY'
+          import json,os
+          data=json.load(open('outputs/ci/release-readiness.json'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:
+            f.write('## Release readiness: '+('READY' if data['ready'] else 'BLOCKED')+'\n')
+            f.write('\n'.join('- '+e for e in data['errors'])+'\n\nA successful image build is not a product release.\n')
+          PY
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - name: Build source-traceable candidate
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: infra/docker/Dockerfile
+          push: false
+          tags: mjobs-validation:${{ github.sha }}
+          cache-from: type=gha,scope=mjobs-image
+          cache-to: type=gha,mode=max,scope=mjobs-image
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: release-readiness
+          path: outputs/ci/release-readiness.json
+          retention-days: 7
+  publish:
+    name: Publish only a verified main release
+    needs: validate
+    if: inputs.publish && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+      security-events: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Enforce complete acceptance, current main checks and security readiness
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m tools.ci.release_gate --scope all --online
+      - name: Validate the exact version before registry authentication
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          python - <<'PY'
+          import os,re
+          from pathlib import Path
+          value=os.environ['RELEASE_VERSION']
+          if not re.fullmatch(r'v[0-9]+\.[0-9]+\.[0-9]+(?:-(?:alpha|beta|rc)\.[0-9]+)?',value):
+            raise SystemExit('A valid explicit release version is required')
+          if value!='v'+Path('VERSION').read_text().strip():
+            raise SystemExit('Release version must match the reviewed VERSION file')
+          PY
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Publish reviewed image and software bill of materials
+        id: image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: .
+          file: infra/docker/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/mulattotech/mjobs:${{ inputs.version }}
+            ghcr.io/mulattotech/mjobs:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/MulattoTech/MJobs
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.licenses=Apache-2.0
+          sbom: true
+          provenance: mode=max
+          cache-from: type=gha,scope=mjobs-image
+      - name: Attest image origin
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6
+        with:
+          subject-name: ghcr.io/mulattotech/mjobs
+          subject-digest: ${{ steps.image.outputs.digest }}
+          push-to-registry: true
+      - name: Create a traceable prerelease without rewriting existing tags
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: gh release create "$RELEASE_VERSION" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --generate-notes --prerelease

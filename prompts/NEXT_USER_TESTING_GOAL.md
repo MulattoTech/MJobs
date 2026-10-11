@@ -1,7 +1,8 @@
-> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
-> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
-> gates and expired deadlines below are historical where they conflict with
-> AGENTS.md's active local-only policy. Use explicit local verification; missing
-> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+# Retired compatibility entry point
 
-/goal Extend the verified MJobs local user-testing milestone into a practical personal job-search workflow. Read AGENTS.md, planning/IMPLEMENTATION_STATE.json and the latest user-testing evidence first; re-verify Git/GitHub and preserve newer work. Resolve the GitHub Actions workflow-scope gate through native account consent, publish the staged workflow and verify CI before integrating draft PRs in dependency order. Then implement user-confirmed manual application status updates with notes, dates and durable audit history; improve profile editing and document readability without inventing facts; add safe resume import with explicit fact review; and make configured public sources and operations recover predictably after interruption. Use coherent reviewable slices, at most four active implementation PRs, meaningful targeted tests, actual browser acceptance and restart evidence. Keep real external submission OFF and do not perform a real application submission without separate explicit enablement. Preserve the complete requirement catalogue and report exact remaining limitations.
+This filename is retained for old links, not as an independent development policy.
+Use [AGENTS.md](../AGENTS.md), the current [sprint plan](codex/next-plan.md),
+[goal](codex/next-goal.md), and [implementation directive](codex/next-main.md).
+
+Historical instructions remain in Git history and verified private recovery.
+Do not reactivate old lane claims, disabled-CI policies or expired session deadlines.

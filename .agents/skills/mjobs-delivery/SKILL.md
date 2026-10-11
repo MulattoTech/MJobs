@@ -7,9 +7,9 @@ compatibility: Codex Agent Skills SKILL.md
 
 # MJobs development (Codex only)
 
-Read the current user's request, `AGENTS.md`, live Git/GitHub state, `planning/REQUIREMENT_INDEX.json`, the affected issue, spec and code. Do not load historical full journals, spawn other CLI roots, run background agents, or create parallel lane claims.
+Read the current user's request, `AGENTS.md`, live Git/GitHub state, `planning/REQUIREMENT_INDEX.json`, the affected issue, spec and code. Do not load historical full journals, spawn competing CLI roots or create parallel lane claims. Explicitly user-authorized AFK-DEV iterations may use one mutation owner, fresh context and independently verified completion within normal permission/runtime limits.
 
-Work in `C:\Tools\Dev\MJobs` and publish only tested, safe fast-forward changes to GitHub `main`. Keep existing uncommitted data and historical unmerged work intact unless an explicit, verified backup makes removal safe. The current issue's priority/category/area labels guide the next authorized slice; code and executed tests—not issue closure or merge alone—determine acceptance.
+Work in `C:\Tools\Dev\MJobs` and publish tested changes through short-lived reviewable PRs and native required checks into GitHub `main`. Native auto-merge is not a human review. Keep existing uncommitted data and historical unmerged work intact unless an explicit, verified backup makes removal safe. The current issue's priority/category/area labels guide the next authorized slice; code and executed tests—not issue closure or merge alone—determine acceptance.
 
 Load only the relevant specialized playbook:
 - database schema: `references/db-migration.md`

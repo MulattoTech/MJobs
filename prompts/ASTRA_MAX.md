@@ -1,15 +1,8 @@
-> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
-> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
-> gates and expired deadlines below are historical where they conflict with
-> AGENTS.md's active local-only policy. Use explicit local verification; missing
-> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+# Retired compatibility entry point
 
-# Astra Max: difficult prerequisite and correctness session
+This filename is retained for old links, not as an independent development policy.
+Use [AGENTS.md](../AGENTS.md), the current [sprint plan](codex/next-plan.md),
+[goal](codex/next-goal.md), and [implementation directive](codex/next-main.md).
 
-Read prompts/ASTRA_DELIVERY_CONTRACT.md and execute it. Use the current model setting; a prompt does not change reasoning effort.
-
-Your emphasis is the hardest high-value blocker on the next delivery path: data/provenance correctness, schema evolution, concurrency, recovery, authorization or a recurrent test/CI defect. Investigate the current repository and evidence, identify falsifiable failure hypotheses, and reproduce the real gap before redesigning anything. Use deeper reasoning to simplify the solution and reduce downstream rework, not to enlarge the scope.
-
-Keep one implementation owner by default. A separate read-only reviewer should challenge invariants and edge cases. Add independent implementation only where ownership and dependency contracts are explicit. Deliver the working fix, affected database/browser/regression evidence, and exact-head CI; then continue with the next dependent slice rather than ending with a research report.
-
-Use the installed relevant skills and tools through the common contract. Do not create another memory hierarchy, turn on disabled skills, or run all expensive checks after every edit. If the bottleneck is routine independent work rather than a hard reasoning problem, record that and proceed proportionately instead of manufacturing complexity.
+Historical instructions remain in Git history and verified private recovery.
+Do not reactivate old lane claims, disabled-CI policies or expired session deadlines.
