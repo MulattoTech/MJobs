@@ -34,3 +34,16 @@ Group minor/patch updates weekly and cap concurrent PRs. Keep major updates sepa
 ## Troubleshooting and measurements
 
 Use `gh pr checks <number>` and `gh run view <run> --log-failed` for the exact candidate. Record workflow, run, attempt and source SHA; do not combine unrelated failure tails. Inspect test artifacts for counts/skips. Track turnaround time, repeated flaky tests, open high-severity findings, and actual P0/P1 acceptance rather than commit volume.
+
+
+## Verification-only documentation approvals
+
+`verified-review.yml` is an explicitly identified bot review, not a human/code/security review. It runs only trusted `main` policy, never PR code or downloaded artifacts. It can approve owner-authored, same-repository documentation-only PRs after all five current required GitHub Actions checks succeed for that exact head. Drafts, deleted files, foreign authors/forks, changed head, incomplete listings, workflow/source/requirement/license edits and unresolved requested changes are rejected. Native branch rules remain authoritative; this workflow cannot push or merge code.
+
+`workflow_run` automatically rechecks eligibility after the required workflows complete. A maintainer may also manually dispatch it with a PR number. The policy has deterministic rejection tests in `tests/ci/verified_review.test.cjs`. Ordinary code PRs still use required checks and native auto-merge; an automated pass is never evidence that all application acceptance criteria are satisfied.
+
+## Python and runtime dependency maintenance
+
+`requirements.txt` is the single authoritative set of pinned application versions. `requirements.lock` is a backward-compatible `-r requirements.txt` entry point, not another copy. Docker and CI include/cache the authoritative file. Dependency comparisons and the GPU-independence guard follow bounded checkout-local includes, so identical wrappers cannot conceal different pins. `.python-version` records Python 3.12. Docker major-version updates are held for intentional runtime compatibility work; patch/minor updates remain enabled.
+
+`Start-CodexSprint.ps1` now previews the exact effective invocation without starting Codex. `-Run -Resume` resumes the stored goal/verification contract rather than reloading a possibly changed prompt. `-Status` only reads progress. No model loop was launched during verification.

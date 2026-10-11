@@ -63,6 +63,19 @@ class PublicCITests(unittest.TestCase):
         self.assertTrue(any('SHA-pinned' in error for error in errors))
         self.assertTrue(any('personal runner' in error for error in errors))
 
+    def test_workflow_run_cannot_load_pull_request_code_or_artifacts(self):
+        folder = self.root / '.github/workflows'
+        folder.mkdir(parents=True)
+        (folder / 'bad-review.yml').write_text(
+            'on: workflow_run\npermissions: {contents: read}\njobs:\n'
+            '  review:\n    runs-on: ubuntu-24.04\n    timeout-minutes: 5\n'
+            '    steps:\n      - uses: actions/checkout@' + 'a' * 40 + '\n'
+            '        with: {ref: untrusted, persist-credentials: false}\n'
+            '      - uses: actions/download-artifact@' + 'a' * 40 + '\n')
+        errors = check_workflows(self.root)
+        self.assertTrue(any('trusted main' in error for error in errors))
+        self.assertTrue(any('PR artifacts' in error for error in errors))
+
     def test_release_gate_rejects_partial_and_empty_acceptance(self):
         rows = [{'id': 'A', 'priority': 'P0', 'status': 'PASS'},
                 {'id': 'B', 'priority': 'P1', 'status': 'PARTIAL'},
