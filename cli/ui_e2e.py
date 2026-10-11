@@ -152,7 +152,8 @@ def run(base_url, evidence_path, onboarding=False):
 
         def fact_editor(text):
             for fieldset in page.locator("fieldset.fact").all():
-                if fieldset.get_by_label("Fact text", exact=True).input_value() == text:
+                value = fieldset.get_by_role("textbox", name="Fact text", exact=True)
+                if value.count() and value.input_value() == text:
                     return fieldset
             raise AssertionError("Expected exact profile fact text was not found: " + text)
 
@@ -207,6 +208,11 @@ def run(base_url, evidence_path, onboarding=False):
                 resume_row.get_by_role("button", name="Extract and review", exact=True).click()
                 review = page.get_by_role("region", name="Resume extraction review")
                 expect(review).to_be_visible()
+                suggestions = review.locator('label.fact-suggestion:has(strong) input[type="checkbox"]')
+                assert suggestions.count() > 0
+                for suggestion in suggestions.all():
+                    expect(suggestion).not_to_be_checked()
+                    suggestion.check()
                 expect(review.get_by_role("button", name="Add selected to profile editor", exact=True)).to_be_enabled()
                 review.get_by_role("button", name="Add selected to profile editor", exact=True).click()
                 imported_rows = page.locator("fieldset.fact")
@@ -225,15 +231,33 @@ def run(base_url, evidence_path, onboarding=False):
 
                 for fact_text in ("Python", "SQL"):
                     page.get_by_role("button", name="Add fact", exact=True).click()
-                    fact_editor = page.locator("fieldset.fact").last
-                    fact_editor.get_by_label("Type", exact=True).select_option("skill")
-                    fact_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
-                    fact_editor.get_by_label("Fact text", exact=True).fill(fact_text)
-                    fact_editor.get_by_label("Evidence / source", exact=True).fill("Explicitly reviewed synthetic onboarding fact")
-                    fact_editor.get_by_label("I verified this fact", exact=True).check()
-                    fact_editor.get_by_label("I approve its use in documents", exact=True).check()
+                    new_fact_editor = page.locator("fieldset.fact").last
+                    new_fact_editor.get_by_role("combobox").select_option("skill")
+                    new_fact_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
+                    new_fact_editor.get_by_label("Fact text", exact=True).fill(fact_text)
+                    new_fact_editor.get_by_label("Evidence / source", exact=True).fill("Explicitly reviewed synthetic onboarding fact")
+                    new_fact_editor.get_by_label("I verified this fact", exact=True).check()
+                    new_fact_editor.get_by_label("I approve its use in documents", exact=True).check()
+                for question, answer_text in (
+                    ("Country", "United States"),
+                    ("Remote role", "yes"),
+                    ("Approved fixture answer", "Controlled fictional test application."),
+                ):
+                    page.get_by_role("button", name="Add answer", exact=True).click()
+                    answer_editor = page.locator("fieldset.fact").last
+                    answer_editor.get_by_role("textbox", name="Question this answer addresses", exact=True).fill(question)
+                    answer_editor.get_by_role("textbox", name="Answer text", exact=True).fill(answer_text)
+                    answer_editor.get_by_label("Provenance", exact=True).fill("Explicit synthetic mock-form review")
+                    answer_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
+                    answer_editor.get_by_label("I reviewed and verified this answer", exact=True).check()
+                    answer_editor.get_by_label("I approve exact reuse for this question", exact=True).check()
                 save_profile()
                 profile = request("/profiles/" + profile_id)
+                assert len(profile["answers"]) == 3
+                assert all(row["verified"] and row["user_approved"] and row["confidence"] == 100
+                           and row["question"] for row in profile["answers"])
+                assert not {row["id"] for row in profile["answers"]} & {"country", "remote", "fixture_question"}
+                actions.append({"action": "Explicit UI review saves question-specific synthetic mock answers under normal generated IDs", "result": "PASS"})
                 skill_fact_ids = assert_onboarding_profile_facts(profile, pending_fact_ids)
                 python_fact_id = skill_fact_ids["Python"]
                 sql_fact_id = skill_fact_ids["SQL"]
