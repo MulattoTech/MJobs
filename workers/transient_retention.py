@@ -10,6 +10,7 @@ from pathlib import Path
 import tempfile
 from typing import Callable
 
+from services.privacy.retention_policy import effective_retention_config, read_retention_policy
 from services.privacy.transient_retention import run_transient_retention
 
 
@@ -197,6 +198,92 @@ def _failure(code: str, *, dry_run: bool = True) -> dict:
     }
 
 
+def _policy_rules(config: Mapping, policy: Mapping) -> list[dict] | None:
+    """Overlay persisted ages on exact server-defined rules only."""
+    rules = config.get("rules")
+    policy_rules = policy.get("rules")
+    if (not isinstance(rules, Sequence) or isinstance(rules, (str, bytes))
+            or not isinstance(policy_rules, Sequence)
+            or isinstance(policy_rules, (str, bytes))):
+        return None
+    configured = {rule.get("id"): rule for rule in rules if isinstance(rule, Mapping)}
+    if len(configured) != len(rules) or len(policy_rules) != len(configured):
+        return None
+    ages = {}
+    for item in policy_rules:
+        if not isinstance(item, Mapping):
+            return None
+        rule_id = item.get("id")
+        rule = configured.get(rule_id)
+        age = item.get("max_age_days")
+        if (rule is None or item.get("category") != rule.get("category")
+                or type(age) is not int or not 1 <= age <= 365 or rule_id in ages):
+            return None
+        ages[rule_id] = age
+    if set(ages) != set(configured):
+        return None
+    return [{**dict(rule), "max_age_days": ages[rule["id"]]} for rule in rules]
+
+
+def _load_policy(
+    store,
+    parsed: Mapping,
+    *,
+    policy_record: Mapping | None = None,
+) -> dict | None:
+    if store is None:
+        return None
+    if policy_record is not None:
+        policy = policy_record
+    else:
+        reader = read_retention_policy
+        try:
+            policy = reader(store, parsed)
+        except Exception:
+            return {"_error": "POLICY_READ_FAILED"}
+    if (not isinstance(policy, Mapping) or type(policy.get("enabled")) is not bool
+            or type(policy.get("pruning_allowed")) is not bool
+            or type(policy.get("requires_review")) is not bool):
+        return {"_error": "POLICY_INVALID_RESULT"}
+    return dict(policy)
+
+
+def _effective_config(store, parsed: Mapping) -> dict | None:
+    try:
+        value = effective_retention_config(store, parsed)
+    except Exception:
+        return {"_error": "POLICY_READ_FAILED"}
+    if not isinstance(value, Mapping):
+        return {"_error": "POLICY_INVALID_RESULT"}
+    try:
+        effective = parse_config(value)
+    except RetentionConfigError:
+        return {"_error": "POLICY_INVALID_RESULT"}
+    if (effective["configured_root"] != parsed["configured_root"]
+            or effective["allowed_roots"] != parsed["allowed_roots"]
+            or effective["summary_path"] != parsed["summary_path"]
+            or len(effective["rules"]) != len(parsed["rules"])):
+        return {"_error": "POLICY_INVALID_RESULT"}
+    expected = {rule.get("id"): rule for rule in parsed["rules"]}
+    observed = {rule.get("id"): rule for rule in effective["rules"]}
+    if (len(expected) != len(parsed["rules"]) or len(observed) != len(effective["rules"])
+            or set(expected) != set(observed)):
+        return {"_error": "POLICY_INVALID_RESULT"}
+    for rule_id, original in expected.items():
+        current = observed[rule_id]
+        if any(current.get(field) != original.get(field)
+               for field in ("category", "relative_root", "pattern")):
+            return {"_error": "POLICY_INVALID_RESULT"}
+        age = current.get("max_age_days")
+        if type(age) is not int or not 1 <= age <= 365:
+            return {"_error": "POLICY_INVALID_RESULT"}
+    if ((not parsed["prune_enabled"] and effective["prune_enabled"])
+            or (parsed["dry_run"] and not effective["dry_run"])
+            or (effective["prune_enabled"] and effective["dry_run"])):
+        return {"_error": "POLICY_INVALID_RESULT"}
+    return effective
+
+
 def _write_summary(path: Path, summary: Mapping) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temp_name = tempfile.mkstemp(
@@ -228,6 +315,7 @@ def _write_summary(path: Path, summary: Mapping) -> None:
 def run_with_config(
     config: str | Mapping | None,
     *,
+    store=None,
     engine: Callable = run_transient_retention,
     now: datetime | None = None,
 ) -> dict:
@@ -236,11 +324,22 @@ def run_with_config(
         parsed = parse_config(config)
     except RetentionConfigError as error:
         return _failure(error.code)
-    may_prune = parsed["prune_enabled"] and not parsed["dry_run"]
+    effective = _effective_config(store, parsed) if store is not None else None
+    if effective is not None:
+        if "_error" in effective:
+            return _failure(effective["_error"])
+        rules = effective["rules"]
+        # The policy service returns the full effective server config with both
+        # consent and admin ceilings already applied. Keep the worker's final
+        # delete gate explicit as a second fail-closed boundary.
+        may_prune = effective["prune_enabled"] and not effective["dry_run"]
+    else:
+        rules = parsed["rules"]
+        may_prune = parsed["prune_enabled"] and not parsed["dry_run"]
     effective_dry_run = not may_prune
     try:
         result = engine(
-            parsed["configured_root"], parsed["rules"],
+            parsed["configured_root"], rules,
             allowed_roots=parsed["allowed_roots"],
             now=now, dry_run=effective_dry_run,
         )
@@ -258,12 +357,26 @@ def run_with_config(
     return summary
 
 
-def preview_with_config(config: str | Mapping, *, engine: Callable = run_transient_retention) -> dict:
+def preview_with_config(
+    config: str | Mapping,
+    *,
+    store=None,
+    policy_record: Mapping | None = None,
+    engine: Callable = run_transient_retention,
+) -> dict:
     """Run a read-only preview regardless of the configured prune enablement."""
     try:
         parsed = parse_config(config)
     except RetentionConfigError as error:
         return _failure(error.code)
+    policy = _load_policy(store, parsed, policy_record=policy_record)
+    if policy is not None:
+        if "_error" in policy:
+            return _failure(policy["_error"])
+        rules = _policy_rules(parsed, policy)
+        if rules is None:
+            return _failure("POLICY_INVALID_RESULT")
+        parsed = {**parsed, "rules": rules}
     try:
         result = engine(
             parsed["configured_root"], parsed["rules"],
@@ -290,11 +403,11 @@ def read_saved_summary(config: str | Mapping) -> dict | None:
         return None
 
 
-def run_from_environment(environ: Mapping | None = None, *, output=None) -> int:
+def run_from_environment(environ: Mapping | None = None, *, output=None, store=None) -> int:
     """Print a sanitized summary and return a local process status."""
     environment = os.environ if environ is None else environ
     config = environment.get(CONFIG_ENV)
-    summary = run_with_config(config)
+    summary = run_with_config(config, store=store)
     print(json.dumps(summary, sort_keys=True, ensure_ascii=False), file=output)
     return 0 if summary["status"] == "OK" else 1
 
