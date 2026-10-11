@@ -195,6 +195,7 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                     known_card.click()
                     panel = page.get_by_role(
                         "region", name="Application priority explanation", exact=True)
+                    expect(panel).to_have_count(1)
                     expect(panel).to_be_visible()
                     expect(panel.get_by_role("alert")).to_contain_text(
                         "Application priority could not be loaded")
@@ -264,6 +265,13 @@ class ApplicationPriorityMountedPanelBrowserTests(unittest.TestCase):
                         "region", name="Application priority explanation", exact=True)
                     expect(panel.get_by_role("list", name="Priority factors", exact=True)).to_be_visible()
                     expect(panel).to_contain_text("Application priority is advisory only.")
+
+                    # Refreshes and profile/job transitions must not orphan keyed siblings.
+                    for name in ("Application priority explanation", "Potential Risk signals",
+                                 "Employer type classification", "Job match feedback",
+                                 "Resume PDF page fit", "Interview preparation",
+                                 "Role lens selection", "Review captured job details"):
+                        expect(page.get_by_role("region", name=name, exact=True)).to_have_count(1)
 
                     self.assertFalse(fail_known_once)
                     self.assertFalse(misbind_job_once)
