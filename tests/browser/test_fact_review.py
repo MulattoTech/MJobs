@@ -39,6 +39,12 @@ class FactReviewBrowserTests(unittest.TestCase):
         self.exercise('kind', 'technology_experience')
 
     def test_demo_profile_stays_read_only_until_saved_version_loads(self):
+        self.exercise_demo_navigation(True)
+
+    def test_demo_completion_opens_jobs_without_intervening_navigation(self):
+        self.exercise_demo_navigation(False)
+
+    def exercise_demo_navigation(self, navigate_while_loading):
         with tempfile.TemporaryDirectory(prefix='mjobs-demo-profile-load-') as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root/'test.db').as_posix()}")
@@ -86,23 +92,44 @@ class FactReviewBrowserTests(unittest.TestCase):
                         body='{"id":"demo-op","kind":"DISCOVERY","state":"COMPLETED","error":null}'))
                     page = context.new_page()
                     page.goto(origin)
+                    if not navigate_while_loading:
+                        page.get_by_role('navigation', name='Main navigation').get_by_role(
+                            'button', name='Profile', exact=True).click()
                     page.get_by_role('button', name='Load fictional demo', exact=True).first.click()
                     deadline = time.monotonic() + 5
                     while not profile_read_started.is_set() and time.monotonic() < deadline:
                         page.wait_for_timeout(25)
                     self.assertTrue(profile_read_started.is_set(), 'selected profile read did not start')
-                    expect(page.get_by_role('status').filter(has_text='Fictional demo loaded.')).to_be_visible()
-                    page.get_by_role('button', name='Profile', exact=True).click()
-                    save = page.get_by_role('button', name='Save profile and answers', exact=True)
-                    expect(page.get_by_role('status').filter(
-                        has_text='Loading the selected profile before edits can be made.')).to_be_visible(timeout=1000)
-                    expect(save).to_be_disabled()
-                    expect(page.get_by_role('textbox', name='Full name', exact=True)).to_be_disabled()
+                    expect(page.get_by_role('status').filter(has_text='Loading fictional demo')).to_be_visible()
+                    save = page.get_by_role('button', name='Save profile', exact=True)
+                    if navigate_while_loading:
+                        page.get_by_role('button', name='Profile', exact=True).click()
+                        expect(page.get_by_role('status').filter(
+                            has_text='Loading the selected profile before edits can be made.')).to_be_visible(timeout=1000)
+                        expect(save).to_be_disabled()
+                        expect(page.get_by_role('textbox', name='Full name', exact=True)).to_be_disabled()
                     release_profile_read.set()
-                    expect(save).to_be_enabled(timeout=5000)
-                    expect(page.get_by_role('textbox', name='Full name', exact=True)).to_have_value('Fictional Test Applicant')
+                    expect(page.get_by_role('status').filter(has_text='Fictional demo loaded.')).to_be_visible()
+                    if navigate_while_loading:
+                        expect(save).to_be_visible()
+                        expect(save).to_be_enabled(timeout=5000)
+                        expect(page.get_by_role('textbox', name='Full name', exact=True)).to_have_value('Fictional Test Applicant')
+                    else:
+                        expect(page.get_by_role('heading', name='No matching jobs yet.', exact=True)).to_be_visible()
+                        expect(save).to_have_count(0)
                     demo_id = next(p['id'] for p in store.profiles() if p['name'] == 'Fictional Test Applicant')
                     self.assertTrue(store.profile(demo_id)['version'])
+                    if navigate_while_loading:
+                        name = page.get_by_role('textbox', name='Full name', exact=True)
+                        name.fill('Reviewed Fictional Applicant')
+                        save.click()
+                        expect(page.get_by_role('status').filter(has_text='Profile saved.')).to_be_visible()
+                        self.assertEqual(store.profile(demo_id)['name'], 'Reviewed Fictional Applicant')
+                        page.reload(wait_until='domcontentloaded')
+                        page.get_by_role('navigation', name='Main navigation').get_by_role(
+                            'button', name='Profile', exact=True).click()
+                        expect(name).to_have_value('Reviewed Fictional Applicant')
+                    self.assertEqual(store.count('applications'), 0)
                     context.close()
                     browser.close()
             finally:
