@@ -1,0 +1,113 @@
+{
+  "timestamp": "2026-10-11T09:19:36.854870+00:00",
+  "source_revision": "93f40b7a767aa437fd3ce7451db7ee6a376dcd0c",
+  "requirement_ids": [
+    "MJ-REQ-156",
+    "MJ-REQ-292",
+    "MJ-REQ-273"
+  ],
+  "result": "PARTIAL",
+  "input_sha256": {
+    "apps/api/main.py": "ebbd95bc57b593c9bd7cf74297c4dd643ee35d2d7ec358d8a5242c685f669d75",
+    "apps/api/operation_progress.py": "bcc88b89d6a1070141411690068f770090f1c7b70a4692642c2a7a7a6fcff5be",
+    "apps/web/src/main.tsx": "d16363d2a7ce351ebdfa8500def7c351c3c0db977f6d7a17824e0a0724242209",
+    "apps/web/src/resume-library.tsx": "f3c753c8f86090aa9bcaf32e5c04efa5f499aecedd30ce96620db5c546f296fa",
+    "cli/ui_e2e.py": "86af675582035844d66c7dc6b4f2bd4b699f1c6e7391c3f698ad38cf77b334b9",
+    "migrations/versions/20261011rx01_durable_resume_extraction_results.py": "bc31f3a3df62751c8daa19676249f923a9cf5c51675b19ab508a7df07b640f06",
+    "packages/persistence/models.py": "4542d495cdd300adf4a2b0a29dc05b4c5a917a4c290583e0178f834d9d57ef02",
+    "services/applications/mock_adapter.py": "1e5d7ccd09f3a7bf64b639d277c30cc9441697c2db807b2cb3e55a3b5e53de52",
+    "services/applications/mock_answer_bindings.py": "7adf11c8e3df139b93f3990e6f8bf1c89b19e85a4b06557e4be4feed046b7045",
+    "services/career_profile/durable_extraction.py": "9eaf8097ae91bc8aba7d595cd71fd683d485d80658e4432cad7c6fd1631d7149",
+    "tests/browser/test_core_workflow_trial.py": "da7bf9d1102ad2acfd4951544990d332466f87d5bb7c6a78667f260197602f90",
+    "tests/browser/test_first_run_wizard.py": "95060ba42383669785879b1c24f2f2f2dca0e04054eb2649dc9416586c45ae9e",
+    "tests/browser/test_fixture_profile_discovery.py": "bb8595c8ffd67cf64c1449cb94dc24f2ac29d6eb66dbd2fa94a41ddb67fe7c59",
+    "tests/browser/test_mock_answer_bindings.py": "c20a05bffda1b11ff92196eef5a57707e79927bcb03ef1f3e68c5220d21cee76",
+    "tests/browser/test_profile_import.py": "1bcd316570641ab67d9ebac18059feb679e7d6d2741a80a6f30de488535927ba",
+    "tests/integration/test_durable_resume_extraction.py": "9d82697c16eb9dc9e1e49c2b256ce8abe91d91046936a69664d97aae62bc9618",
+    "tests/integration/test_durable_resume_extraction_postgres.py": "f857744302c14ae50fac536c4e113394bceb265b3905631966039f52beee7aff",
+    "tests/unit/test_mock_answer_bindings.py": "7e0442c697995052fd232e9d2271262fee648b47a4969fed27404c94c446d159",
+    "tests/unit/test_ui_e2e_onboarding.py": "f1042f49b224fc49e7f5342b91c968c5fe072df889faab735ac3ddd3b24c7581",
+    "workers/operations.py": "60929ec9d6cd43aedebf07bb96cf0d67ecc1f14c58aaedced6606fb438ad4dc1",
+    "workers/tasks.py": "fa3f868cdc5a1dc87708e53905bc8c81390c8eb43ab14f55b77ef5c68c7c5fcf",
+    "tests/browser/test_mock_application.py": "32a40b8049ea5785729d483d15a01da9020da91972b3126769acda2bbe6a172c"
+  },
+  "implemented": [
+    "Queued resume extraction persists immutable source identity, explicit intent and pending-only results. Completion and result publication share the worker fence transaction; cancellation, deadlines, bounded safe retry and lease recovery apply.",
+    "The UI resumes queued work and completed suggestions across navigation/reload. Explicit selection and approval remain separate; extraction does not change the career profile.",
+    "Controlled mock forms bind unique reviewed exact-question answers under normal UI-generated IDs; ambiguous, mismatched, unsourced, unapproved or low-confidence answers fail closed. No automatic external submission.",
+    "Opt-in loopback fixture onboarding uses one newly created profile through PDF import, deliberate fact/answer review, saved remote IT search, fixture discovery, truthful document revisions/comparison, dry run, mock confirmation and history reload."
+  ],
+  "verification": [
+    {
+      "command": "python -m pytest -q tests/unit tests/integration --tb=short --durations=10",
+      "source_revision": "1962de2125640d547978c652a9bc1b0db762f9b1b4",
+      "result": "2441 passed, 26 skipped, 1062 subtests; 1652.61s. Earlier frozen baseline, not certification of newer extraction/answer code."
+    },
+    {
+      "command": "python -m pytest -q tests/unit --tb=short",
+      "source_revision": "a928643720ebd30ba1f1d98fb43a6a70064e0e54",
+      "result": "1302 passed, 674 subtests; 321.63s. New answer-binding tests run separately after integration."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_mock_answer_bindings.py tests/browser/test_mock_answer_bindings.py tests/integration/test_application_preflight.py --tb=short",
+      "result": "28 passed, 15 subtests; 50.85s. Positive mock review=1/submit=0; rejected review=0/submit=0."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_profile_import.py tests/browser/test_core_workflow_trial.py tests/browser/test_first_run_wizard.py tests/browser/test_fixture_profile_discovery.py --tb=short",
+      "result": "5 passed, 2 subtests; 50.95s. Isolated HTTP/browser tests dispatch the real extraction worker in the correct workspace mode."
+    },
+    {
+      "command": "python outputs/rc-20261011/durable_extraction_pg.py (private loopback PostgreSQL wrapper)",
+      "result": "5 passed, 5.43s: actual process exit after parsing, real HTTP disconnect after admission, immutable replay, atomic rollback, stale-worker fence. UUID schemas in disposable mjobs_test_* DB; metadata creation is separate from migration proof."
+    },
+    {
+      "command": "python outputs/rc-20261011/application_crash_pg.py (private loopback PostgreSQL wrapper)",
+      "result": "2 passed, 25.90s after answer-binding integration; successful local mock POST then process exit, receipt HTTP503 recovery, count remains one."
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run; npm --prefix apps/web run build",
+      "result": "768 frontend tests passed; production build passed (existing chunk-size advisory)."
+    },
+    {
+      "command": "Start-MJobs.ps1 -NoBuild -NoOpen with private controlled fixture/Personal project configuration",
+      "result": "Both deployed stacks ready. Existing PostgreSQL upgraded to 20261011rx01; all 38 pre-existing profiles and 19 applications retain identical canonical hashes before creating new test profiles."
+    },
+    {
+      "command": "python -m cli.ui_e2e --onboarding --base-url http://127.0.0.1:18810 --evidence <private output>",
+      "result": "Completed all bounded actions; overall PARTIAL. Same-profile PDF/queued extraction, explicit approval, saved search, fixture discovery, document versions/comparison, reviewed UUID answers, dry-run, local mock confirmation and idempotent replay."
+    },
+    {
+      "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18810 --evidence <private output>",
+      "result": "PASS for existing bounded fictional workflow; does not certify full release acceptance."
+    },
+    {
+      "command": "Private actual Personal React/API/PostgreSQL browser onboarding helper at 18815",
+      "result": "PASS: PDF extraction, unchecked suggestions, correction/explicit approval of one fact, source-free remote IT saved search and reload; zero browser errors."
+    },
+    {
+      "command": "Exact owned-project docker compose restart api postgres redis worker scheduler source-worker company-discovery-worker document-worker mock; private browser/API restart checker",
+      "result": "PASS: actual readiness restored, same persisted extraction restored unchecked in fresh browser/reload, profile unchanged, application still CONFIRMED, operation replay unchanged. Independent persisted mock receipt GET reports submission_count=1."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_ui_e2e_onboarding.py --tb=short",
+      "result": "5 passed, 10 subtests: loopback/fixture guards and provenance helper boundaries."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_mock_application.py tests/browser/test_mock_answer_bindings.py --tb=short",
+      "result": "32 passed, 2 subtests; 89.12s. Stale conditional-field oracle aligned with accepted explicit-review policy from 2055b295; stronger audit/mapping/no-answer-leak and zero-egress assertions. No runtime gate weakened."
+    }
+  ],
+  "known_limits": [
+    "MJ-REQ-156 remains PARTIAL: AI_EVALUATE and UPLOADED_RESUME_COMPARE still have HTTP-bound execution paths. Legacy inline resume extraction remains supported for compatibility.",
+    "MJ-REQ-292 remains PARTIAL: saved search is persisted separately; the fixture collection does not apply its criteria. Live public-source behavior, automatic employer identity/discovery/enrollment, cross-source deduplication and all 60 original acceptance steps are not certified by this fixture journey.",
+    "Extraction PostgreSQL tests use disposable metadata schemas; the separate existing-data Compose upgrade proves migration execution.",
+    "The compose_recovery CLI rejected the root controlled project name by its existing fixture-only naming guard; no guard was weakened. This checkpoint uses a separately verified exact owned-project restart, not a claimed CLI PASS.",
+    "Existing real root .env lacks its original credential encryption key; preserve it and recover the original key before using that existing-data launcher. Controlled fresh project credentials remain private and ignored.",
+    "Hosted CI/reviews NOT_RUN by policy; external application submission remains OFF. No whole-product RC or 100% acceptance claim."
+  ],
+  "final_regression": {
+    "source_revision": "96abd4c9",
+    "command": "python -m pytest -q tests/unit tests/integration --tb=short --durations=10",
+    "result": "IN_PROGRESS; final outcome appended at session checkpoint."
+  }
+}
