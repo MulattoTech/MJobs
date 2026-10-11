@@ -1,6 +1,8 @@
 """Real local browser/API acceptance for resume-first profile updates."""
 from io import BytesIO
 from pathlib import Path
+from contextlib import contextmanager
+import os
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.resume_scans import scanned_resume
 import tempfile
@@ -21,6 +23,42 @@ from services.documents.uploads import save_resume
 from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@contextmanager
+def dispatch_queued_resume_extractions(store, output_dir):
+    """Run the real worker locally for this browser test; no Redis service needed."""
+    from apps.api import main as api_main
+    from workers.tasks import execute_operation
+    real_queue = api_main.queue_durable_extraction
+    threads, failures = [], []
+    worker_env = {
+        "MJOBS_DATABASE_URL": store.engine.url.render_as_string(hide_password=False),
+        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_OUTPUT_DIR": str(output_dir),
+    }
+
+    def admit_then_start(*args, **kwargs):
+        queued = real_queue(*args, **kwargs)
+        def run():
+            try:
+                with patch.dict(os.environ, worker_env):
+                    execute_operation(queued["operation_id"])
+            except BaseException as error:
+                failures.append(error)
+        thread = threading.Thread(target=run, daemon=True)
+        threads.append(thread)
+        thread.start()
+        return queued
+
+    with patch.object(api_main, "queue_durable_extraction", side_effect=admit_then_start):
+        yield
+    for thread in threads:
+        thread.join(timeout=15)
+        if thread.is_alive():
+            raise AssertionError("queued resume extraction worker did not settle")
+    if failures:
+        raise failures[0]
 
 
 def resume_pdf(extra=''):
@@ -74,7 +112,8 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     if not thread.is_alive() or time.monotonic() > deadline:
                         self.fail('Isolated browser cancellation API did not start')
                     time.sleep(0.02)
-                with patch('apps.api.main.extract_resume', side_effect=block_until_cancelled):
+                from services.career_profile import durable_extraction
+                with patch.object(durable_extraction, 'extract_resume', side_effect=block_until_cancelled):
                     with sync_playwright() as pw:
                         browser = pw.chromium.launch(headless=True)
                         page = browser.new_page()
@@ -83,13 +122,14 @@ class ProfileImportBrowserTests(unittest.TestCase):
                         page.locator('#active-profile').select_option(PROFILE['id'])
                         row = page.locator('[data-resume-version="1"]')
                         expect(row).to_be_visible()
-                        row.get_by_role('button', name='Extract and review').click()
-                        self.assertTrue(started.wait(5), 'browser extraction request did not start')
-                        row.get_by_role('button', name='Cancel extraction', exact=True).click()
-                        expect(page.get_by_role('status').filter(has_text='cancellation requested')).to_be_visible()
-                        self.assertTrue(cancelled.wait(5), 'browser cancel control did not stop extraction work')
-                        self.assertEqual(store.profile(PROFILE['id']), before)
-                        self.assertEqual(store.count('applications'), 0)
+                        with dispatch_queued_resume_extractions(store, root):
+                            row.get_by_role('button', name='Extract and review').click()
+                            self.assertTrue(started.wait(5), 'browser extraction request did not start')
+                            row.get_by_role('button', name='Cancel extraction', exact=True).click()
+                            expect(page.get_by_role('status').filter(has_text='cancellation requested')).to_be_visible()
+                            self.assertTrue(cancelled.wait(5), 'browser cancel control did not stop extraction work')
+                            self.assertEqual(store.profile(PROFILE['id']), before)
+                            self.assertEqual(store.count('applications'), 0)
                         browser.close()
             finally:
                 server.should_exit = True
@@ -161,9 +201,10 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     page.get_by_label('Resume label', exact=True).fill('Engineering')
                     page.get_by_role('button', name='Store resume', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Resume stored locally')).to_be_visible()
-                    page.get_by_role('button', name='Extract and review', exact=True).click()
-                    review = page.get_by_role('region', name='Resume extraction review')
-                    expect(review).to_be_visible()
+                    with dispatch_queued_resume_extractions(store, root):
+                        page.get_by_role('button', name='Extract and review', exact=True).click()
+                        review = page.get_by_role('region', name='Resume extraction review')
+                        expect(review).to_be_visible()
                     expect(review.get_by_label('Add contact email', exact=False)).not_to_be_checked()
                     expect(review.get_by_label('Add contact github', exact=False)).not_to_be_checked()
                     expect(review.get_by_text('Maintained support@example.invalid routing.', exact=False)).to_be_visible()
@@ -200,8 +241,9 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     expect(page.get_by_label('Email', exact=True)).to_have_value('imported@example.invalid')
                     expect(page.get_by_label('Sponsorship needs')).to_have_value('NOT_REQUIRED')
                     expect(page.get_by_label('Work authorization details')).to_have_value('Authorized in the United States')
-                    page.get_by_role('button', name='Extract and review', exact=True).click()
-                    expect(review).to_be_visible()
+                    with dispatch_queued_resume_extractions(store, root):
+                        page.get_by_role('button', name='Extract and review', exact=True).click()
+                        expect(review).to_be_visible()
                     page.get_by_role('button', name='Add selected to profile editor', exact=True).click()
                     page.get_by_role('button', name='Save profile', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Profile saved')).to_be_visible()
@@ -221,11 +263,12 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), \
                          patch.object(ocr.shutil, 'which', side_effect=lambda name:'/synthetic/'+name), \
                          patch.object(ocr, '_run_tool', side_effect=ocr.OCRToolFailure(7, 64, False)):
-                        scanned.get_by_role('button', name='Extract and review', exact=True).click()
-                        review = page.get_by_role('region', name='Resume extraction review')
-                        expect(review.get_by_text('Extraction review: READY FOR REVIEW', exact=True)).to_be_visible()
-                        expect(review.get_by_text('OCR tool exited with status 7', exact=False)).to_be_visible()
-                        expect(review.get_by_text('Diagnostic output was captured and omitted for privacy.', exact=False)).to_be_visible()
+                        with dispatch_queued_resume_extractions(store, root):
+                            scanned.get_by_role('button', name='Extract and review', exact=True).click()
+                            review = page.get_by_role('region', name='Resume extraction review')
+                            expect(review.get_by_text('Extraction review: READY FOR REVIEW', exact=True)).to_be_visible()
+                            expect(review.get_by_text('OCR tool exited with status 7', exact=False)).to_be_visible()
+                            expect(review.get_by_text('Diagnostic output was captured and omitted for privacy.', exact=False)).to_be_visible()
                     expect(review).to_be_visible()
                     self.assertEqual(store.profile(profile_id), profile_before_failed_ocr)
                     page.reload(wait_until='domcontentloaded')

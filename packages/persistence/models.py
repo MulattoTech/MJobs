@@ -560,5 +560,15 @@ operations = table("worker_operations", Column("kind", String(64), nullable=Fals
                    ),))
 
 Index("ix_worker_operations_retry_due", operations.c.state, operations.c.next_attempt_at)
+resume_extraction_results = Table(
+    "resume_extraction_results", metadata,
+    Column("id", String(128), ForeignKey("worker_operations.id", ondelete="CASCADE"), primary_key=True),
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("resume_id", ForeignKey("uploaded_resumes.id", ondelete="CASCADE"), nullable=False),
+    Column("resume_sha256", String(64), nullable=False),
+    Column("extractor_version", Integer, nullable=False),
+    Column("result", JSON, nullable=False),
+    Column("created_at", String(64), nullable=False),
+)
 audit = table("audit_events", Column("entity_id", String(128), nullable=False), Column("action", String(64), nullable=False),
               Column("payload", JSON, nullable=False), Column("timestamp", String(64), nullable=False))

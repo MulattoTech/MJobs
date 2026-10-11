@@ -32,10 +32,13 @@ def create_operation_progress_router(store) -> APIRouter:
 
             owned_applications = select(m.applications.c.id).where(
                 m.applications.c.profile_id == profile_id)
+            owned_resumes = select(m.uploaded_resumes.c.id).where(
+                m.uploaded_resumes.c.profile_id == profile_id)
             operation_ids = list(connection.execute(
                 select(m.operations.c.id).where(
                     (m.operations.c.entity_id == profile_id)
                     | m.operations.c.entity_id.in_(owned_applications)
+                    | m.operations.c.entity_id.in_(owned_resumes)
                 ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc())
                 .limit(limit)
             ).scalars())

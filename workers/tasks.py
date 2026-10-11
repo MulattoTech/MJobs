@@ -19,6 +19,9 @@ from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
+from services.career_profile.durable_extraction import (
+    DurableExtractionError, extract_for_operation, persist_result,
+)
 from services.audit_history import record_application_preparation_event
 from services.discovery.search_history import record_search_history
 from services.discovery.search_history_events import build_search_history_record
@@ -167,6 +170,7 @@ def execute_operation(operation_id):
             before_job_ids = {}
             history_results = None
         retry_failure = None
+        durable_resume_result = None
         try:
             deadline = time.monotonic() + timeout()
 
@@ -320,6 +324,9 @@ def execute_operation(operation_id):
                         resume_story_ids=operation['params'].get('resume_story_ids'),
                         resume_story_job_fingerprint=operation['params'].get(
                             'resume_story_job_fingerprint'))
+            elif operation["kind"] == "RESUME_EXTRACT_QUEUED":
+                durable_resume_result = extract_for_operation(
+                    store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check)
             elif operation["kind"] == "APPLY_MOCK":
                 validate_run_operation(store, operation)
                 application = apply_mock(store, operation["entity_id"], origin, Path(os.environ["MJOBS_OUTPUT_DIR"]),
@@ -350,6 +357,8 @@ def execute_operation(operation_id):
             state, error = "FAILED", "OPERATION_TIMEOUT"
         except OperationCancelled:
             state, error = "CANCELLED", "CANCEL_REQUESTED"
+        except DurableExtractionError as failure:
+            state, error = "BLOCKED", failure.code
         except PublicFetchError as failure:
             state, error = "BLOCKED", failure.code
             retry_failure = failure
@@ -394,6 +403,10 @@ def execute_operation(operation_id):
                 m.operations.c.state == "RUNNING", m.operations.c.attempt_count == operation["attempt_count"]).values(**values))
             if changed.rowcount != 1:
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
+            if operation["kind"] == "RESUME_EXTRACT_QUEUED" and state == "COMPLETED":
+                if durable_resume_result is None:
+                    raise RuntimeError("Completed resume extraction has no result")
+                persist_result(connection, operation, durable_resume_result)
             store._audit(connection, operation_id,
                          "OPERATION_RETRY_SCHEDULED" if retry else
                          "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",

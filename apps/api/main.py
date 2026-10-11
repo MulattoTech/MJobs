@@ -30,6 +30,10 @@ from packages.persistence.store import ProfileVersionConflict, Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from packages.domain.profile import ContactDetails, JobPreferences
 from services.career_profile.extraction import ResumeExtractionCancelled, extract_resume
+from services.career_profile.durable_extraction import (
+    DurableExtractionError, OPERATION_KIND as DURABLE_RESUME_EXTRACT_KIND,
+    read_extraction as read_durable_extraction, queue_extraction as queue_durable_extraction,
+)
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import (
@@ -195,6 +199,11 @@ class ResumeFactRewriteInput(BaseModel):
     fact_id: str = Field(min_length=1, max_length=128)
     text: str = Field(min_length=1, max_length=10000)
     reviewed: bool
+
+
+class ResumeExtractionQueueInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    request_id: str = Field(min_length=16, max_length=128)
 
 
 class ApplicationInput(DiscoveryInput):
@@ -1291,6 +1300,35 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                     if not events:
                         app.state.resume_extraction_events.pop(key, None)
 
+    @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract/queued', status_code=202)
+    def profile_resume_extract_queued(profile_id: str, resume_id: str, value: ResumeExtractionQueueInput):
+        try:
+            record, _ = read_resume(store, output_dir, profile_id, resume_id)
+        except NoResultFound:
+            raise HTTPException(404, "Resume not found") from None
+        except UploadIntegrityError as error:
+            raise HTTPException(409, str(error)) from None
+        try:
+            return queue_durable_extraction(store, profile_id, record, value.request_id)
+        except DurableExtractionError as error:
+            status = 409 if error.code.endswith("CONFLICT") else 422
+            raise HTTPException(status, {"code": error.code}) from None
+
+    def durable_resume_extraction_read(profile_id: str, resume_id: str, operation_id=None):
+        try:
+            return read_durable_extraction(store, output_dir, profile_id, resume_id, operation_id)
+        except DurableExtractionError as error:
+            status = 404 if error.code == "RESUME_EXTRACTION_NOT_FOUND" else 409
+            raise HTTPException(status, {"code": error.code}) from None
+
+    @app.get('/profiles/{profile_id}/resumes/{resume_id}/extract/queued')
+    def profile_resume_extract_latest(profile_id: str, resume_id: str):
+        return durable_resume_extraction_read(profile_id, resume_id)
+
+    @app.get('/profiles/{profile_id}/resumes/{resume_id}/extract/queued/{operation_id}')
+    def profile_resume_extract_result(profile_id: str, resume_id: str, operation_id: str):
+        return durable_resume_extraction_read(profile_id, resume_id, operation_id)
+
     @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract/cancel')
     def profile_resume_extract_cancel(profile_id: str, resume_id: str):
         if not any(resume['id'] == resume_id for resume in list_resumes(store, profile_id)):
@@ -1299,9 +1337,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             active_operations = list(connection.execute(select(
                 m.operations.c.id, m.operations.c.cancel_requested,
             ).where(
-                m.operations.c.kind == "RESUME_EXTRACT",
+                m.operations.c.kind.in_(("RESUME_EXTRACT", DURABLE_RESUME_EXTRACT_KIND)),
                 m.operations.c.entity_id == resume_id,
-                m.operations.c.state == "RUNNING",
+                m.operations.c.state.in_(("QUEUED", "RUNNING")),
             )).mappings())
         durable_cancelled = False
         for operation in active_operations:
@@ -2377,7 +2415,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             statement = select(m.operations)
             if profile_id:
                 app_ids = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
-                statement = statement.where((m.operations.c.entity_id == profile_id) | m.operations.c.entity_id.in_(app_ids))
+                resume_ids = select(m.uploaded_resumes.c.id).where(m.uploaded_resumes.c.profile_id == profile_id)
+                statement = statement.where((m.operations.c.entity_id == profile_id)
+                    | m.operations.c.entity_id.in_(app_ids)
+                    | m.operations.c.entity_id.in_(resume_ids))
             return {"operations": [dict(row) for row in connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings()]}
 
     @app.get("/operations/dead-letter-queue")
@@ -2385,7 +2426,10 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         statement = select(m.operations).where(m.operations.c.state == "DEAD_LETTERED")
         if profile_id:
             app_ids = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
-            statement = statement.where((m.operations.c.entity_id == profile_id) | m.operations.c.entity_id.in_(app_ids))
+            resume_ids = select(m.uploaded_resumes.c.id).where(m.uploaded_resumes.c.profile_id == profile_id)
+            statement = statement.where((m.operations.c.entity_id == profile_id)
+                | m.operations.c.entity_id.in_(app_ids)
+                | m.operations.c.entity_id.in_(resume_ids))
         with store.engine.connect() as connection:
             rows = list(connection.execute(statement.add_columns(func.count().over().label("queue_count")).order_by(
                 m.operations.c.dead_lettered_at.desc().nullslast(), m.operations.c.updated_at.desc()).limit(100)).mappings())

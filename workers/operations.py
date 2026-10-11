@@ -11,6 +11,7 @@ from services.audit_history import record_application_preparation_event
 
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-company-discovery",
           "COMPANY_SOURCE_REFRESH": "mjobs-company-discovery", "PREPARE": "mjobs-document",
+          "RESUME_EXTRACT_QUEUED": "mjobs-document",
           "APPLY_MOCK": "mjobs-application", "APPLICATION_FORM_REVIEW": "mjobs-application"}
 OPERATION_CATEGORIES = {
     "DISCOVER": "source_collection",
@@ -18,6 +19,7 @@ OPERATION_CATEGORIES = {
     "COMPANY_SOURCE_REFRESH": "company_discovery",
     "AI_EVALUATE": "ai",
     "RESUME_EXTRACT": "document_generation",
+    "RESUME_EXTRACT_QUEUED": "document_generation",
     "UPLOADED_RESUME_COMPARE": "document_generation",
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
