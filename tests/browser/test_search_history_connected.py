@@ -18,6 +18,10 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.search_profiles import save_search_profile
+from services.documents.durable_comparison import queue_comparison
+from services.documents.generate import prepare
+from services.documents.history import application_documents
+from services.documents.uploads import save_resume
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
 
@@ -130,6 +134,20 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                                 m.operations.c.id == operation_id)).mappings().one()
                         self.assertEqual(operation["state"], "COMPLETED")
 
+                        # Admit a valid owned comparison through the production queue contract.
+                        application_id = prepare(store, store.jobs()[0]["id"], "fixture", root,
+                                                 tailor_resume=True)
+                        target = next(row for row in application_documents(store, application_id)
+                                      if row["kind"] == "resume")
+                        uploaded = save_resume(store, root, "fixture", "synthetic-base.txt",
+                                               "text/plain", b"Alex Fixture\nSkills\nSQL; Python\n")
+                        queued_comparison = queue_comparison(
+                            store, root, "fixture", application_id, uploaded["revision_id"],
+                            target["id"], "browser-mobile-active-comparison",
+                        )
+                        active_operation_id = queued_comparison["operation_id"]
+                        self.assertEqual(queued_comparison["state"], "QUEUED")
+
                         history_path = "/profiles/fixture/search-history"
                         history_response = page.request.get(origin + history_path + "?limit=50")
                         self.assertEqual(history_response.status, 200, history_response.text())
@@ -141,6 +159,11 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         with page.expect_response(lambda response:
                                 urlsplit(response.url).path == history_path):
                             page.get_by_role("button", name="Activity", exact=True).click()
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == "/operations"):
+                            page.get_by_role("button", name="Refresh activity", exact=True).click()
+                        expect(page.locator(".operation").filter(
+                            has_text="UPLOADED_RESUME_COMPARE_QUEUED")).to_have_count(1)
                         panel = page.get_by_role("region", name="Search history", exact=True)
                         expect(panel.get_by_role("heading", name="Search history", exact=True)).to_be_visible()
                         expect(panel).to_contain_text("Read-only search history")
@@ -191,6 +214,52 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                             for title in item["filters"].get("include_titles", []):
                                 expect(row).to_contain_text(title)
 
+                        # History must stay usable inside the Activity panel on mobile.
+                        page.set_viewport_size({"width": 390, "height": 844})
+                        overflow = page.evaluate("""() => ({
+                            width: innerWidth, scrollWidth: document.documentElement.scrollWidth,
+                            outside: [...document.querySelectorAll('main *')]
+                                .filter(el => el.getBoundingClientRect().right > innerWidth)
+                                .slice(0, 12).map(el => ({tag: el.tagName, class: el.className,
+                                    right: el.getBoundingClientRect().right}))
+                        })""")
+                        self.assertLessEqual(overflow["scrollWidth"], overflow["width"], overflow)
+                        active_row = page.locator(".operation").filter(
+                            has_text="UPLOADED_RESUME_COMPARE_QUEUED")
+                        expect(active_row).to_have_count(1)
+                        expect(active_row).to_contain_text("QUEUED")
+                        cancel = active_row.get_by_role("button", name="Cancel", exact=True)
+                        expect(cancel).to_be_visible()
+                        expect(cancel).to_be_enabled()
+                        bounds = cancel.bounding_box()
+                        self.assertIsNotNone(bounds)
+                        self.assertGreaterEqual(bounds["x"], 0)
+                        self.assertLessEqual(bounds["x"] + bounds["width"], 390)
+                        label = active_row.locator("strong")
+                        self.assertLessEqual(label.evaluate("el => el.getBoundingClientRect().right"), 390)
+                        self.assertLessEqual(label.evaluate("el => el.scrollWidth"),
+                                             active_row.evaluate("el => el.clientWidth"))
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == "/operations/" + active_operation_id + "/cancel") as cancelled:
+                            cancel.click()
+                        self.assertEqual(cancelled.value.status, 202)
+                        expect(active_row).to_contain_text("CANCELLED")
+                        expect(active_row.get_by_role("button", name="Cancel", exact=True)).to_have_count(0)
+                        with store.engine.connect() as connection:
+                            persisted = connection.execute(select(m.operations).where(
+                                m.operations.c.id == active_operation_id)).mappings().one()
+                        self.assertEqual(persisted["state"], "CANCELLED")
+                        self.assertTrue(persisted["cancel_requested"])
+                        scroller = panel.get_by_role("region", name="Scrollable search history", exact=True)
+                        self.assertTrue(scroller.evaluate("el => el.scrollWidth > el.clientWidth"))
+                        scroller.focus()
+                        page.keyboard.press("ArrowRight")
+                        page.wait_for_function("() => document.querySelector('.table-scroll').scrollLeft > 0")
+                        table.get_by_role("columnheader", name="Filters and details", exact=True).scroll_into_view_if_needed()
+                        self.assertTrue(scroller.evaluate("el => el.scrollLeft > 0"))
+                        self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
+                        page.set_viewport_size({"width": 1280, "height": 720})
+
                         # A full reload must read the same completed run from the API.
                         page.reload(wait_until="domcontentloaded")
                         expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
@@ -201,6 +270,8 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         reloaded_table = reloaded_panel.get_by_role(
                             "table", name="Saved search runs for profile fixture")
                         expect(reloaded_table).to_be_visible()
+                        expect(page.locator(".operation").filter(
+                            has_text="UPLOADED_RESUME_COMPARE_QUEUED")).to_contain_text("CANCELLED")
                         reloaded_body = page.request.get(origin + history_path + "?limit=50").json()
                         self.assertEqual({item["id"] for item in reloaded_body["items"]},
                                          {item["id"] for item in history_body["items"]})
@@ -224,6 +295,8 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         expect(other_panel.get_by_text(
                             "No search history for this profile yet.", exact=True)).to_be_visible()
                         expect(other_panel).not_to_contain_text(request_id)
+                        expect(page.locator(".operation").filter(
+                            has_text="UPLOADED_RESUME_COMPARE_QUEUED")).to_have_count(0)
                         self.assertEqual(external_requests, [])
                         self.assertEqual(submission_requests, [])
                         self.assertEqual(page_errors, [])

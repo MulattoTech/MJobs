@@ -560,6 +560,14 @@ operations = table("worker_operations", Column("kind", String(64), nullable=Fals
                    ),))
 
 Index("ix_worker_operations_retry_due", operations.c.state, operations.c.next_attempt_at)
+uploaded_comparison_results = Table(
+    "uploaded_comparison_results", metadata,
+    Column("id", String(128), ForeignKey("worker_operations.id", ondelete="CASCADE"), primary_key=True),
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("application_id", ForeignKey("applications.id", ondelete="CASCADE"), nullable=False),
+    Column("result", JSON, nullable=False),
+    Column("created_at", String(64), nullable=False),
+)
 resume_extraction_results = Table(
     "resume_extraction_results", metadata,
     Column("id", String(128), ForeignKey("worker_operations.id", ondelete="CASCADE"), primary_key=True),

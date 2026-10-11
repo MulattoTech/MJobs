@@ -1,0 +1,82 @@
+{
+  "utc": "2026-10-11T22:16:11.988980+00:00",
+  "requirement": "#157 / MJ-REQ-156",
+  "scopeStatus": "PARTIAL: replay repair locally verified; PostgreSQL and hosted repair revision pending",
+  "baseSha": "9e1f3231e0c53bf24795f6ed3fce40e8d59dcc5e",
+  "remoteMain": "12466a8cc820712b4842af02c9f2d4482102827a",
+  "branch": "feat/durable-uploaded-comparison-157-20261011",
+  "sourceHashes": {
+    "services/documents/durable_comparison.py": "37d7cf3efd1076472df17fc9361129e5e167c4840457e9ea2568ee572e56be10",
+    "tests/integration/test_durable_uploaded_comparison.py": "6dfab5e6a6ef56af9ae8345fa238c0a17baa8c0e1c6b848c07bd35ddcb46c040",
+    "tests/integration/test_durable_uploaded_comparison_postgres.py": "4683368ef6ad8455f37dec53951d290f6b6d3683d1658705c1145ce4f1f4703b"
+  },
+  "behavior": "INSERT ON CONFLICT RETURNING identity reports new/replayed admission without relying on driver rowcount; retains row lock, immutable identity validation and terminal state",
+  "reproduction": "Prior exact PostgreSQL run38178346299/attempt1/job114585403128 replay false; new real SQLite regression with unknown INSERT rowcount reproduced False instead of True before fix",
+  "causeStatus": "Driver count dependency proven by regression and SQLAlchemy insert cursor lifecycle; PostgreSQL repair confirmation pending",
+  "sourceTrace": [
+    "SQLAlchemy2.1.1 engine/default.py:_setup_dml_or_text_result closes non-RETURNING INSERT before rowcount access",
+    "psycopg3.3.6 _cursor_base.py:_close calls _reset which sets _rowcount=-1"
+  ],
+  "environmentRecovery": "Initial full-unit run:1344PASS/751subtests and one confinement subfailure because project-local TEMP makes an outside fixture inside the allowed root. Correct default outside-repo TEMP passes11confinement/14subtests; current full suite rerun without sandbox TEMP override.",
+  "checks": {
+    "iteration14-comparison.xml": {
+      "tests": "36",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "5",
+      "time": "31.057"
+    },
+    "iteration14-browser.xml": {
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "23.096"
+    },
+    "iteration14-unit-native.xml": {
+      "tests": "2096",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "171.982"
+    },
+    "iteration14-confinement-native.xml": {
+      "tests": "25",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.844"
+    }
+  },
+  "commands": [
+    ".venv/Scripts/python.exe -m pytest -q tests/integration/test_durable_uploaded_comparison.py tests/integration/test_durable_uploaded_comparison_postgres.py tests/integration/test_uploaded_resume_comparison.py tests/unit/test_uploaded_resume_comparison.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/browser/test_uploaded_resume_comparison.py tests/browser/test_resume_alignment_preview.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/unit",
+    "npm --prefix apps/web run build",
+    ".venv/Scripts/python.exe -m tools.verification.catalogue",
+    ".venv/Scripts/python.exe -m tools.verification.progress validate",
+    ".venv/Scripts/python.exe -m tools.verification.progress_dashboard --check",
+    ".venv/Scripts/python.exe -m tools.verification.agent_skills",
+    "git diff --check"
+  ],
+  "runtime": "Windows Python3.12, SQLAlchemy2.1.1, psycopg3.3.6, SQLite3.49.1, controlled Chromium",
+  "review": "Read-only local Luna review: no critical/important issue; reviewer independently could not run test due default temp ACL. Owner used project-local disposable TEMP and verified real writes.",
+  "notRun": [
+    "5 PostgreSQL tests: Docker daemon unavailable, no native service found",
+    "repair exact-head hosted checks",
+    "whole release oracle; known incomplete acceptance"
+  ],
+  "preserved": [
+    "original dirty release-candidate plan",
+    "security branch3d7f54b368d96865d45789a9753078a206ee69cb",
+    "immutable AFK goal/runner owner lock",
+    "real external submissions OFF",
+    "existing private configuration and data"
+  ],
+  "knownUnresolved": [
+    "Compose mobile overflow",
+    "full browser failures",
+    "high CodeQL findings and incomplete parent acceptance"
+  ],
+  "rollback": "Normal source revert; no schema/data change"
+}

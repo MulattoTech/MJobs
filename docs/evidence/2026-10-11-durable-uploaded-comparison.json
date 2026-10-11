@@ -1,0 +1,70 @@
+{
+  "utc": "2026-10-11T21:53:33.060118+00:00",
+  "requirements": [
+    "#157 / MJ-REQ-156",
+    "#100 / MJ-REQ-099",
+    "explicit AFK durable comparison goal"
+  ],
+  "scopeStatus": "PARTIAL pending exact-head hosted PostgreSQL/Redis and protected integration; parents not promoted",
+  "baseSha": "12466a8cc820712b4842af02c9f2d4482102827a",
+  "branch": "feat/durable-uploaded-comparison-157-20261011",
+  "sourceHashes": {
+    ".github/workflows/integration.yml": "069af14a675b35f720e7b903b306f37d1bc716e5ea968f1840688dc2dead9430",
+    "apps/api/main.py": "c0e364ddaeb61c753ef4401c157e5b59cc3f123bbf38b6a2a9c4f22ebae9e522",
+    "apps/web/src/resume-comparison.tsx": "5a678cd2d005eb85b2849434bf95aa372f3b1792d315a0ce8ccfe8e70ab6e247",
+    "packages/persistence/models.py": "fa025450b22c8a0e100f4a538dc4b02a7fd7474432923849c055255a28904af4",
+    "workers/operations.py": "591d8e417c56378cffe2729176de109f7fb0ff29d81005a62108067dd478a926",
+    "workers/tasks.py": "7c38d546cec6adf6c40b86904c25ac6593323352742160e2d99d1802278ce03b",
+    "services/documents/durable_comparison.py": "557eef91ba399fc31536233a9d1ab3425032761c492c431b17421b3444af55c0",
+    "migrations/versions/20261011uc01_durable_uploaded_comparison.py": "ab77062eda398b2de45f8f6f9d908cdf754322596450b303a9d217f2d6d1c0f1",
+    "tests/integration/test_durable_uploaded_comparison.py": "6cc0bec9e7d17ca9436602029a0fc81f989579a6e78c72d1df75be1d959d8ca4",
+    "tests/integration/test_durable_uploaded_comparison_postgres.py": "46dd88020fb38f74d6a910f1a2bf6f50f38bb60bc95e7ff3958aaf60edab9abc",
+    "tests/browser/test_uploaded_resume_comparison.py": "7d499fa38f953b778d63cd5068f026876c7e56b05b59fcdd291ddf642411097f"
+  },
+  "behavior": [
+    "Explicit immutable owner/profile/application/base/target queue admission and idempotent user intent",
+    "Existing worker claim/outbox/category limits, bounded lease recovery, cancellation and attempt fencing",
+    "Result and COMPLETED state committed atomically; populated-result downgrade refused",
+    "Scoped browser queued reload, completed reload, cancel, lost-response terminal replay and integrity rejection",
+    "Legacy inline API retained; browser uploaded path uses durable worker operation; real submissions OFF"
+  ],
+  "validation": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit tests/integration/test_durable_uploaded_comparison.py tests/integration/test_durable_uploaded_comparison_postgres.py --junitxml=outputs/ci/iteration12-unit-durability.xml",
+      "result": "1356 PASS; 752 subtests PASS; 4 PostgreSQL SKIP (prerequisite absent)"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_uploaded_resume_comparison.py tests/integration/test_durable_uploaded_comparison.py --junitxml=outputs/ci/iteration12-final-connected.xml",
+      "result": "14 PASS on final relevant source; controlled Chromium/API/SQLite; zero external requests"
+    },
+    {
+      "command": "Focused original comparison, extraction, operation progress/concurrency and migration graph regression",
+      "result": "45 PASS; 38 subtests PASS before final UI edge-case refinements"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run; npm --prefix apps/web run build",
+      "result": "768 PASS; production build PASS on final UI source"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "migration": {
+    "revision": "20261011uc01",
+    "parent": "20261011rx01",
+    "table": "uploaded_comparison_results",
+    "sqlite": "Upgrade, empty downgrade/re-upgrade and populated refusal PASS",
+    "postgresql": "NOT_RUN locally; isolated schema CI coverage enabled"
+  },
+  "review": "Local Luna read-only review: progress, terminal replay and premature cancellation issues corrected; final no remaining concrete blocker; no independent certification claim",
+  "hostedBaseline": {
+    "run": 38176330301,
+    "attempt": 1,
+    "head": "911e9bc352c541e4cad5cc2151d335beeda1a991",
+    "results": "All 4 shards FAIL; 173 PASS / 32 FAIL / 15 subtests PASS; exact failure packets retained privately",
+    "currentCandidate": "NOT_RUN at evidence preparation; no unchanged baseline rerun"
+  },
+  "release": "INCOMPLETE; independent release gate NOT_RUN; original106/366 and reference19/59 PASS unchanged; AFK0/7",
+  "rollback": "Revert source via a new commit; do not downgrade populated results or alter original uploads/private data"
+}

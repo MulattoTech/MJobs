@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {api} from './api';
+import {api,terminal} from './api';
 import type {GeneratedDocument} from './document-history';
 
 type Fact={fact_id:string;kind:string;text:string};
@@ -14,6 +14,7 @@ export type Comparison={
   section_availability?:{summary_changes:boolean;bullet_changes:boolean};
 };
 type UploadedBase={revision_id:string;version:number;label:string;filename:string};
+type ComparisonOperation={operation_id:string;state:string;current_step:string|null;progress:number|null;error:string|null;result?:Comparison};
 
 function Changes({title,rows,available=true}:{title:string;rows:Change[];available?:boolean}) {
   return <section aria-label={title}><h4>{title}</h4>{!available?<p>Source section unavailable or ambiguous; review the original text.</p>:rows.length?<ul>{rows.map(row=><li key={row.fact_id}>
@@ -75,6 +76,10 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
   const [base,setBase]=useState(bases[0]?'g:'+bases[0].id:'');const [target,setTarget]=useState(targets[0]?.id||'');
   const [result,setResult]=useState<Comparison|null>(null);const [error,setError]=useState('');const [notice,setNotice]=useState('');const [busy,setBusy]=useState(false);
   const comparisonController=useRef<AbortController|null>(null);
+  const operationRef=useRef<{url:string;id:string}|null>(null);
+  const [operationReady,setOperationReady]=useState(false);
+  const requestRef=useRef<{key:string;id:string}|null>(null);
+  const [recovery,setRecovery]=useState(0);
   const [uploaded,setUploaded]=useState<UploadedBase[]>([]);const [loading,setLoading]=useState(false);const [loadError,setLoadError]=useState('');
   const [refresh,setRefresh]=useState(0);const profileId=documents[0]?.profile_id;
   useEffect(()=>{
@@ -85,7 +90,48 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
       .catch(e=>{if(active)setLoadError(String(e));}).finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;controller.abort();};
   },[profileId,refresh]);
-  useEffect(()=>()=>comparisonController.current?.abort(),[]);
+  function operationUrl(row:GeneratedDocument){
+    return '/profiles/'+encodeURIComponent(profileId||'')+'/applications/'+encodeURIComponent(row.application_id||'')+'/uploaded-resume-comparison/operations';
+  }
+  async function observe(url:string,params:URLSearchParams,controller:AbortController,initial?:ComparisonOperation){
+    // Admission responses carry status, while the scoped GET owns result readback.
+    let operation=initial?.state==='COMPLETED'&&!initial.result?undefined:initial;
+    if(initial)params.set('operation_id',initial.operation_id);
+    try{
+      while(!controller.signal.aborted){
+        if(!operation){
+          const response=await fetch(url+'?'+params,{signal:controller.signal});
+          if(response.status===404)return;
+          if(!response.ok)throw new Error('Saved comparison is unavailable. Check the selected revisions and try again.');
+          operation=await response.json() as ComparisonOperation;
+        }
+        if(controller.signal.aborted||comparisonController.current!==controller)return;
+        operationRef.current={url,id:operation.operation_id};
+        setOperationReady(true);
+        params.set('operation_id',operation.operation_id);
+        setNotice('Comparison '+operation.state+(operation.current_step?' · '+operation.current_step:''));
+        if(terminal.has(operation.state)){
+          if(operation.state==='COMPLETED'&&operation.result)setResult(operation.result);
+          else if(operation.state==='CANCELLED')setNotice('Comparison cancelled.');
+          else setError(operation.error||'Comparison did not complete. You can start a new comparison.');
+          return;
+        }
+        setBusy(true);
+        await new Promise(resolve=>setTimeout(resolve,500));
+        operation=undefined;
+      }
+    }catch(e){if(!controller.signal.aborted&&comparisonController.current===controller)setError(String(e));}
+    finally{if(comparisonController.current===controller){comparisonController.current=null;operationRef.current=null;setOperationReady(false);setBusy(false);}}
+  }
+  // Reopen the selected immutable pair from server state; navigation only stops polling.
+  useEffect(()=>{
+    comparisonController.current?.abort();operationRef.current=null;setOperationReady(false);setBusy(false);setResult(null);setError('');setNotice('');
+    const row=targets.find(row=>row.id===target);
+    if(!base.startsWith('u:')||!profileId||!row?.application_id)return;
+    const controller=new AbortController();comparisonController.current=controller;
+    void observe(operationUrl(row),new URLSearchParams({base_revision_id:base.slice(2),tailored_document_id:target}),controller);
+    return ()=>controller.abort();
+  },[profileId,base,target,recovery]);
   if(!targets.length)return <p>Base ↔ tailored comparison needs a generated tailored resume for this application.</p>;
   async function compare(){
     const controller=new AbortController();comparisonController.current=controller;
@@ -96,20 +142,25 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
       if(!profileId||row.profile_id!==profileId)throw new Error('Selected resume does not belong to the active profile.');
       const fromUpload=base.startsWith('u:');
       const params:Record<string,string>=fromUpload?{base_revision_id:base.slice(2),tailored_document_id:target}:{base_document_id:base.slice(2),tailored_document_id:target};
-      setResult(await api<Comparison>('/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(row.application_id)+(fromUpload?'/uploaded-resume-comparison?':'/document-comparison?')+new URLSearchParams(params),{signal:controller.signal}));
-    }catch(e){const message=String(e);if(controller.signal.aborted||message.toLowerCase().includes('comparison cancelled'))setNotice('Comparison cancelled.');else setError(message);}finally{if(comparisonController.current===controller)comparisonController.current=null;setBusy(false);}
+      if(fromUpload){
+        const url=operationUrl(row);const key=url+'?'+new URLSearchParams(params);
+        if(requestRef.current?.key!==key)requestRef.current={key,id:crypto.randomUUID()};
+        const admitted=await api<ComparisonOperation>(url+'?'+new URLSearchParams({...params,request_id:requestRef.current.id}),{method:'POST',signal:controller.signal});
+        requestRef.current=null;
+        await observe(url,new URLSearchParams(params),controller,admitted);
+      }else setResult(await api<Comparison>('/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(row.application_id)+'/document-comparison?'+new URLSearchParams(params),{signal:controller.signal}));
+    }catch(e){if(!controller.signal.aborted&&comparisonController.current===controller)setError(String(e));}finally{if(comparisonController.current===controller){comparisonController.current=null;setBusy(false);}}
   }
   async function cancelComparison(){
     const controller=comparisonController.current;
     if(!controller)return;
-    const row=targets.find(row=>row.id===target);
-    if(base.startsWith('u:')&&profileId&&row?.application_id){
-      const params=new URLSearchParams({base_revision_id:base.slice(2),tailored_document_id:target});
-      try{const outcome=await api<{cancelled:boolean}>('/profiles/'+encodeURIComponent(profileId)+'/applications/'+encodeURIComponent(row.application_id)+'/uploaded-resume-comparison/cancel?'+params,{method:'POST'});
-        if(!outcome.cancelled){setNotice('Cancellation was not confirmed. The comparison may still finish.');return;}}
+    const operation=operationRef.current;
+    if(base.startsWith('u:')&&operation){
+      try{const outcome=await api<ComparisonOperation>(operation.url+'/'+encodeURIComponent(operation.id)+'/cancel',{method:'POST'});
+        if(outcome.state==='COMPLETED'){setNotice('Comparison already completed.');return;}
+        setNotice(outcome.state==='CANCELLED'?'Comparison cancelled.':'Cancellation requested.');}
       catch(e){setError('Cancellation request failed: '+String(e));return;}
-    }
-    controller.abort();
+    }else return;
   }
   return <section aria-label="Compare base and tailored resumes">
     <h3>Base ↔ tailored resume</h3>
@@ -123,7 +174,8 @@ export function ResumeComparison({documents}:{documents:GeneratedDocument[]}) {
     {!loading&&!bases.length&&!uploaded.length&&<p>Upload a base resume in Profile, then refresh this list.</p>}
     <label>Tailored version<select aria-label="Tailored version" value={target} disabled={busy} onChange={e=>{setTarget(e.target.value);setResult(null);setError('');}}>{targets.map(row=><option key={row.id} value={row.id}>v{row.version}</option>)}</select></label>
     <button disabled={busy||!base} onClick={()=>void compare()}>{busy?'Comparing…':'Compare selected resumes'}</button>
-    {busy&&base.startsWith('u:')&&<button type="button" onClick={()=>void cancelComparison()}>Cancel comparison</button>}
+    {busy&&base.startsWith('u:')&&<button type="button" disabled={!operationReady} onClick={()=>void cancelComparison()}>Cancel comparison</button>}
+    {base.startsWith('u:')&&<><p>Uploaded comparisons run in the background. Reopen these revisions to recover progress or the saved result.</p><button type="button" disabled={busy} onClick={()=>setRecovery(value=>value+1)}>Recover saved comparison</button></>}
     {notice&&<p role="status">{notice}</p>}
     {error&&<p role="alert">Comparison unavailable: {error}</p>}
     {result&&<ComparisonResult result={result}/>}

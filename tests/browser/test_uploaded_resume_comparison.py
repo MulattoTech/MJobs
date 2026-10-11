@@ -106,6 +106,8 @@ class UploadedResumeComparisonBrowserTests(unittest.TestCase):
                     expect(job_card).to_be_visible()
                     job_card.click()
                     page.get_by_label('Order approved skills for this job', exact=True).check()
+                    page.get_by_role('button', name='Preview keyword alignment', exact=True).click()
+                    expect(page.get_by_role('region', name='Resume keyword alignment preview', exact=True)).to_be_visible()
                     with page.expect_response(lambda response: response.url == origin + '/applications' and
                                               response.request.method == 'POST') as event:
                         page.get_by_role('button', name='Prepare documents', exact=True).click()
@@ -140,17 +142,29 @@ class UploadedResumeComparisonBrowserTests(unittest.TestCase):
                     self.assertEqual(store.profile('fixture'), profile_before)
 
                     page.reload(wait_until='domcontentloaded')
-                    page.get_by_role('navigation').get_by_role('button', name='Applications', exact=False).first.click()
+                    page.get_by_role('navigation', name='Main navigation', exact=True).get_by_role('button', name='Applications', exact=False).click()
                     page.locator('.job-card').filter(has_text=job['title']).first.click()
                     comparison = page.get_by_role('region', name='Compare base and tailored resumes', exact=True)
                     comparison.get_by_label('Base resume', exact=True).select_option('u:' + uploaded['revision_id'])
                     comparison.get_by_label('Tailored version', exact=True).select_option(generated['id'])
-                    with page.expect_response(lambda response: response.url.startswith(
-                            origin + f'/profiles/fixture/applications/{application_id}/uploaded-resume-comparison?')) as compared:
+                    with page.expect_response(lambda response: response.request.method == 'POST' and response.url.startswith(
+                            origin + f'/profiles/fixture/applications/{application_id}/uploaded-resume-comparison/operations?')) as compared:
                         comparison.get_by_role('button', name='Compare selected resumes', exact=True).click()
-                    self.assertEqual(compared.value.status, 200, compared.value.text())
-                    self.assertEqual(compared.value.json()['section_availability'],
-                                     {'summary_changes': True, 'bullet_changes': True})
+                    self.assertEqual(compared.value.status, 202, compared.value.text())
+                    comparison_operation = compared.value.json()['operation_id']
+                    expect(comparison).to_contain_text('QUEUED')
+                    # HTTP lifetime is irrelevant: reload while queued, then run a new worker.
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('navigation', name='Main navigation', exact=True).get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').filter(has_text=job['title']).first.click()
+                    comparison = page.get_by_role('region', name='Compare base and tailored resumes', exact=True)
+                    comparison.get_by_label('Base resume', exact=True).select_option('u:' + uploaded['revision_id'])
+                    comparison.get_by_label('Tailored version', exact=True).select_option(generated['id'])
+                    expect(comparison).to_contain_text('QUEUED')
+                    with patch.dict('os.environ', MJOBS_DATABASE_URL=database_url,
+                                    MJOBS_MOCK_ORIGIN='http://127.0.0.1:1', MJOBS_OUTPUT_DIR=str(root),
+                                    MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(comparison_operation)['status'], 'COMPLETED')
 
                     result = comparison.get_by_role('region', name='Resume comparison result', exact=True)
                     expect(result.get_by_role('heading', name='Uploaded base · v1', exact=True)).to_be_visible()
@@ -171,6 +185,48 @@ class UploadedResumeComparisonBrowserTests(unittest.TestCase):
                     expect(omitted).to_contain_text(excluded_summary)
                     self.assertNotIn(invented_job_only_text, result.inner_text())
                     self.assertNotIn('Built a lunar satellite telemetry platform.', result.inner_text())
+                    # Completed readback survives another full browser reload without recomputation.
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('navigation', name='Main navigation', exact=True).get_by_role('button', name='Applications', exact=False).click()
+                    page.locator('.job-card').filter(has_text=job['title']).first.click()
+                    comparison = page.get_by_role('region', name='Compare base and tailored resumes', exact=True)
+                    comparison.get_by_label('Base resume', exact=True).select_option('u:' + uploaded['revision_id'])
+                    comparison.get_by_label('Tailored version', exact=True).select_option(generated['id'])
+                    expect(comparison.get_by_role('region', name='Resume comparison result', exact=True)).to_contain_text('Source summary text.')
+                    # A new explicit queued intent can be cancelled from the browser and stays cancelled.
+                    with page.expect_response(lambda response: response.request.method == 'POST' and '/uploaded-resume-comparison/operations?' in response.url) as queued_again:
+                        comparison.get_by_role('button', name='Compare selected resumes', exact=True).click()
+                    self.assertNotEqual(queued_again.value.json()['operation_id'], comparison_operation)
+                    comparison.get_by_role('button', name='Cancel comparison', exact=True).click()
+                    expect(comparison).to_contain_text('Comparison cancelled.')
+                    expect(comparison.get_by_role('region', name='Resume comparison result', exact=True)).to_have_count(0)
+                    # Lose the admission response after the server queues and completes work.
+                    # The retry must reuse that intent and fetch its completed saved result.
+                    held = []
+                    def hold_admission(route):
+                        if route.request.method == 'POST':
+                            held.append(route)
+                        else:
+                            route.continue_()
+                    page.route('**/uploaded-resume-comparison/operations?*', hold_admission)
+                    comparison.get_by_role('button', name='Compare selected resumes', exact=True).click()
+                    expect(comparison.get_by_role('button', name='Cancel comparison', exact=True)).to_be_disabled()
+                    self.assertEqual(len(held), 1)
+                    admission = held[0].fetch()
+                    self.assertEqual(admission.status, 202)
+                    lost_operation = admission.json()['operation_id']
+                    with patch.dict('os.environ', MJOBS_DATABASE_URL=database_url,
+                                    MJOBS_MOCK_ORIGIN='http://127.0.0.1:1', MJOBS_OUTPUT_DIR=str(root),
+                                    MJOBS_OPERATION_MODE='FIXTURE'):
+                        self.assertEqual(execute_operation(lost_operation)['status'], 'COMPLETED')
+                    held[0].abort()
+                    page.unroute('**/uploaded-resume-comparison/operations?*', hold_admission)
+                    expect(comparison.get_by_role('alert')).to_be_visible()
+                    with page.expect_response(lambda response: response.request.method == 'POST' and '/uploaded-resume-comparison/operations?' in response.url) as replayed:
+                        comparison.get_by_role('button', name='Compare selected resumes', exact=True).click()
+                    self.assertEqual(replayed.value.json()['operation_id'], lost_operation)
+                    self.assertEqual(replayed.value.json()['state'], 'COMPLETED')
+                    expect(comparison.get_by_role('region', name='Resume comparison result', exact=True)).to_contain_text('Source summary text.')
                     self.assertFalse(external)
                     context.close()
                     browser.close()
@@ -285,13 +341,13 @@ class UploadedResumeComparisonBrowserTests(unittest.TestCase):
                     page = context.new_page()
                     page.goto(origin, wait_until='domcontentloaded')
                     page.get_by_label('Active profile', exact=True).select_option('fixture')
-                    page.get_by_role('navigation').get_by_role('button', name='Applications', exact=False).first.click()
+                    page.get_by_role('navigation', name='Main navigation', exact=True).get_by_role('button', name='Applications', exact=False).click()
                     page.locator('.job-card').filter(has_text=job['title']).first.click()
                     comparison = page.get_by_role('region', name='Compare base and tailored resumes', exact=True)
                     comparison.get_by_label('Base resume', exact=True).select_option('u:' + uploaded['revision_id'])
                     comparison.get_by_label('Tailored version', exact=True).select_option(generated['id'])
-                    with page.expect_response(lambda response: response.url.startswith(
-                            origin + f'/profiles/fixture/applications/{application_id}/uploaded-resume-comparison?')) as compared:
+                    with page.expect_response(lambda response: response.request.method == 'POST' and response.url.startswith(
+                            origin + f'/profiles/fixture/applications/{application_id}/uploaded-resume-comparison/operations?')) as compared:
                         comparison.get_by_role('button', name='Compare selected resumes', exact=True).click()
                     self.assertEqual(compared.value.status, 409, compared.value.text())
                     alert = comparison.get_by_role('alert')
