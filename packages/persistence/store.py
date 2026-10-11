@@ -1037,10 +1037,14 @@ class Store:
                     m.jobs.c.id,
                 )
             if application_capability is not None:
-                rows = (canonical_job_view(dict(row)) for row in connection.execute(statement).mappings())
-                return self._filter_job_application_capability(
-                    connection, rows, application_capability, limit,
-                )
+                # The filter can stop before exhausting the SQL iterator. Close
+                # its cursor deterministically rather than retaining a read
+                # transaction/file handle until generator garbage collection.
+                with connection.execute(statement) as result:
+                    rows = (canonical_job_view(dict(row)) for row in result.mappings())
+                    return self._filter_job_application_capability(
+                        connection, rows, application_capability, limit,
+                    )
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     @staticmethod

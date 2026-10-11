@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from sqlalchemy import event
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
@@ -139,6 +140,28 @@ class ApplicationCapabilityFilterApiTests(unittest.TestCase):
         self.assertEqual(self.store.count("worker_operations"), before_workers)
         self.assertEqual(self.store.count("applications"), before_apps)
         self.assertEqual(self.store.count("application_attempts"), before_attempts)
+
+    def test_limited_capability_filter_closes_its_database_cursor(self):
+        results = []
+
+        def capture(connection, statement, multiparams, params, execution_options, result):
+            if "application_route_id" in str(statement):
+                results.append(result)
+
+        event.listen(self.store.engine, "after_execute", capture)
+        try:
+            response = self.client.get("/jobs", params={
+                "application_capability": "FIXTURE_ONLY", "sort": "title", "limit": 1,
+            })
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(len(response.json()["jobs"]), 1)
+            self.assertTrue(results, "The capability-filtered query must be observed")
+            self.assertTrue(all(result.closed for result in results),
+                            "Returning a limited result must release every database cursor")
+        finally:
+            event.remove(self.store.engine, "after_execute", capture)
+            for result in results:
+                result.close()
 
     def test_saved_filter_round_trip_clear_and_profile_isolation(self):
         saved = self._save_search("FIXTURE_ONLY")
