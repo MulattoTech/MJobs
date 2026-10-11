@@ -21,6 +21,7 @@ jobs:
       MJOBS_OPERATION_MODE: FIXTURE
       MJOBS_COMPOSE_MOCK: '1'
       COMPOSE_PROFILES: fixture
+      MJOBS_PORT: '18700'
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -36,6 +37,10 @@ jobs:
         run: python -m playwright install --with-deps chromium
       - name: Generate disposable synthetic secrets
         run: python -m cli.init_env
+      - name: Assign a disposable, recovery-guard-compliant Compose project
+        shell: bash
+        run: |
+          echo "COMPOSE_PROJECT_NAME=mjobs-fixture-$(python -c 'import secrets; print(secrets.token_hex(6))')" >> "$GITHUB_ENV"
       - name: Build and start disposable fixture stack
         run: docker compose --profile fixture up -d --build --wait --wait-timeout 180
       - name: Controlled mock source + ATS end-to-end
@@ -43,7 +48,7 @@ jobs:
       - name: Browser-integrated UI acceptance
         run: python -m cli.ui_e2e --evidence outputs/ci-ui.json
       - name: Restart and persistence recovery
-        run: python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json --evidence outputs/ci-recovery.json --project-name mjobs --port 18700
+        run: python -m cli.compose_recovery --baseline outputs/ci-ui.json --evidence outputs/ci-recovery.json --project-name "$COMPOSE_PROJECT_NAME" --port "$MJOBS_PORT"
       - name: Upload bounded fictional result summaries
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
