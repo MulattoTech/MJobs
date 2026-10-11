@@ -12,7 +12,6 @@ from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
 from apps.api.main import create_app
-from apps.api.profile_restore import create_profile_restore_router
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
 from services.data_export import export_profile_backup
@@ -39,17 +38,6 @@ class ProfileRestoreBrowserTests(unittest.TestCase):
                 store, 'http://127.0.0.1:1', root,
                 'redis://127.0.0.1:1/0', operation_mode='PERSONAL',
             )
-            # Keep this acceptance usable before root's shared router mount lands,
-            # while avoiding a duplicate route after that mount is integrated.
-            if not any(getattr(route, 'path', None) == '/profile-restores/preview'
-                       for route in app.routes):
-                static_mount = next((route for route in app.routes
-                                     if getattr(route, 'path', None) == '/'), None)
-                if static_mount is not None:
-                    app.routes.remove(static_mount)
-                app.include_router(create_profile_restore_router(store, root))
-                if static_mount is not None:
-                    app.routes.append(static_mount)
 
             sock = bound_browser_socket()
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
@@ -98,7 +86,9 @@ class ProfileRestoreBrowserTests(unittest.TestCase):
                             and response.url.endswith('/profile-restores/preview')) as preview_response:
                         page.get_by_role('button', name='Preview backup', exact=True).click()
                     self.assertEqual(preview_response.value.status, 200, preview_response.value.text)
-                    expect(page.get_by_text('Synthetic Restore Source', exact=True)).to_be_visible()
+                    preview = page.get_by_role(
+                        'region', name='Restore a profile backup', exact=True)
+                    expect(preview).to_contain_text('Synthetic Restore Source')
                     confirm = page.get_by_label(
                         'I understand this creates a new profile and imported information must be reviewed.',
                         exact=True,
