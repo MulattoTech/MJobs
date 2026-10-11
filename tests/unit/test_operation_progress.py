@@ -106,6 +106,7 @@ class OperationProgressTests(unittest.TestCase):
             {"current_step": "FETCH", "progress": 101},
             {"current_step": "bad value", "progress": 10},
             {"current_step": "FETCH", "progress": 10, "state": "COMPLETED"},
+            {"current_step": "FETCH", "progress": 10, "state": ["RUNNING"]},
             {"current_step": "FETCH", "progress": 10,
              "recovery_metadata": {"api_token": "secret"}},
             {"current_step": "FETCH", "progress": 10,

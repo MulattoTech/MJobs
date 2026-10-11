@@ -103,7 +103,9 @@ def record_operation_progress(store, operation_id, *, current_step, progress, st
         raise ValueError("CURRENT_STEP_INVALID")
     if type(progress) is not int or not 0 <= progress <= 100:
         raise ValueError("PROGRESS_INVALID")
-    if state is not None and state not in _TERMINAL_STATES | {"QUEUED", "RUNNING"}:
+    if state is not None and (
+        not isinstance(state, str) or state not in _TERMINAL_STATES | {"QUEUED", "RUNNING"}
+    ):
         raise ValueError("OPERATION_STATE_INVALID")
     if error is not None:
         _validate_code(error, "OPERATION_ERROR")
