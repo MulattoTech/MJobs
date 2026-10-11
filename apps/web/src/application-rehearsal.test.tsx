@@ -5,16 +5,17 @@ import {
   ApplicationRehearsal,
   ApplicationRehearsalView,
   createApplicationRehearsalClient,
+  type ApplicationRehearsalField,
   type ApplicationRehearsalSnapshot,
 } from './application-rehearsal';
 
 const profileId = 'profile/a';
 const applicationId = 'application&b';
-const field = {
+const field: ApplicationRehearsalField = {
   key: 'email', label: 'Email address', type: 'email', required: true,
   value: 'local.person@example.test', source: 'CONTACT', reason_code: null,
 };
-const unresolved = {
+const unresolved: ApplicationRehearsalField = {
   key: 'work_auth', label: 'Work authorization', type: 'select', required: true,
   value: null, source: 'UNRESOLVED', reason_code: 'NO_APPROVED_ANSWER',
 };
@@ -30,9 +31,10 @@ const snapshot: ApplicationRehearsalSnapshot = {
   submission_enabled: false,
   latest_review: null,
 };
-type ButtonProps = { children?: ReactNode; type?: string; disabled?: boolean; onClick?: () => void };
-type InputProps = { type?: string; checked?: boolean; disabled?: boolean; onChange?: (event: { currentTarget: { checked: boolean } }) => void };
-function findElements<T extends object>(node: ReactNode, type: string): ReactElement<T>[] {
+type TreeProps = { children?: ReactNode };
+type ButtonProps = TreeProps & { type?: string; disabled?: boolean; onClick?: () => void };
+type InputProps = TreeProps & { type?: string; checked?: boolean; disabled?: boolean; onChange?: (event: { currentTarget: { checked: boolean } }) => void };
+function findElements<T extends TreeProps>(node: ReactNode, type: string): ReactElement<T>[] {
   return Children.toArray(node).flatMap((child) => {
     if (!isValidElement<T>(child)) return [];
     return [...(child.type === type ? [child] : []), ...findElements<T>(child.props.children, type)];
