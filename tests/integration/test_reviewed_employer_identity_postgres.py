@@ -31,7 +31,7 @@ class ReviewedIdentityPostgreSQLTests(unittest.TestCase):
         with self.admin.begin() as connection:
             connection.execute(text('CREATE SCHEMA "' + self.schema + '"'))
         self.addCleanup(self.cleanup_schema)
-        self.url = url.update_query_dict({'options': '-csearch_path=' + self.schema}).render_as_string(hide_password=False)
+        self.url = url.update_query_dict({'options': '-csearch_path=' + self.schema + ' -clock_timeout=5000 -cstatement_timeout=20000'}).render_as_string(hide_password=False)
         target_url = self.url
         class TestStore(Store):
             def __init__(self, ignored):
@@ -39,9 +39,12 @@ class ReviewedIdentityPostgreSQLTests(unittest.TestCase):
             def migrate(self):
                 from packages.persistence import resume_workspace  # noqa: F401
                 m.metadata.create_all(self.engine)
+        self.test_store_class = TestStore
         self.case = continuity.ReviewedEmployerIdentityContinuityTests()
-        with patch.object(continuity, 'Store', TestStore):
-            self.case.setUp()
+        store_patch = patch.object(continuity, 'Store', TestStore)
+        store_patch.start()
+        self.addCleanup(store_patch.stop)
+        self.case.setUp()
         self.addCleanup(self.case.tearDown)
 
     def cleanup_schema(self):
@@ -108,3 +111,9 @@ class ReviewedIdentityPostgreSQLTests(unittest.TestCase):
             insert_foreign(connection)
         with self.assertRaisesRegex(Exception, 'DISCOVERY_COMPANY_IDENTITY_CONFLICT'):
             authorize_discovery_request(case.store, operation)
+
+    def test_browser_review_and_worker_import_use_actual_postgresql(self):
+        from tests.browser import test_company_discovery_requests as browser_request
+        case = browser_request.CompanyDiscoveryRequestsBrowserTests()
+        with patch.object(browser_request, 'Store', self.test_store_class):
+            case.test_real_collection_request_review_worker_and_identity_separation()
