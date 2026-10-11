@@ -1,36 +1,36 @@
-name: Codespaces Environment
-# Archived for reference; no automatic events or executable jobs.
-# Re-enablement requires an explicit new user instruction.
+name: Codespaces environment
+
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/codespaces.yml'
+      - '.github/workflows/ci.yml'
+
 permissions:
   contents: read
 
+concurrency:
+  group: codespaces-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   devcontainer-smoke:
-    # User budget policy: repository Actions is also disabled.
-    if: ${{ false }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - name: Require the tested PR merge tree to equal the exact candidate tree
-        if: github.event_name == 'pull_request'
-        env:
-          PR_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          git fetch --no-tags --depth=1 origin "$PR_HEAD"
-          test "$(git rev-parse HEAD^{tree})" = "$(git rev-parse "${PR_HEAD}^{tree}")"
-      - name: Build MJobs dev container and smoke-test it
-        uses: devcontainers/ci@v0.3
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Bootstrap devcontainer without launching agents
+        uses: devcontainers/ci@513af61f4de4f75d37e4438f184ba4358f0fc1ca # v0.3
         with:
           push: never
           runCmd: |
             bash -euo pipefail -c '
               bash .devcontainer/setup.sh
               bash .devcontainer/test-bootstrap.sh
-              bash .devcontainer/bootstrap-codex.sh
-              codex --version
               test -f .agents/skills/mjobs-delivery/SKILL.md
               bash .devcontainer/verify.sh quick
             '

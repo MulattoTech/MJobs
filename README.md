@@ -1,125 +1,96 @@
 # MJobs
 
-[![MJobs verified requirement acceptance](docs/PROGRESS_CARD.svg)](docs/PROGRESS_DASHBOARD.md)
+**A local-first workspace for finding opportunities, reviewing career evidence, and preparing job applications.**
 
-> **Development:** One canonical checkout: `C:\Tools\Dev\MJobs`. Codex CLI, Codex in VS Code/Desktop, and explicitly authorized ChatGPT Web GitHub work only. Read [AGENTS.md](AGENTS.md) and [CODEX_START.md](CODEX_START.md). GitHub `main` is the publication branch; obsolete parallel-agent lanes are retired.
+[![CI](https://github.com/MulattoTech/MJobs/actions/workflows/ci.yml/badge.svg)](https://github.com/MulattoTech/MJobs/actions/workflows/ci.yml)
+[![Release acceptance](docs/PROGRESS_CARD.svg)](docs/PROGRESS_DASHBOARD.md)
 
-> **Progress:** [Requirement index](planning/REQUIREMENT_INDEX.json) (~58 KB), [acceptance dashboard](docs/PROGRESS_DASHBOARD.md), and [concise handoff](planning/SESSION_HANDOFF.md). Full acceptance status is evidence-based, not inferred from commits. Hosted GitHub Actions/reviews are disabled; external job application submission stays OFF.
+> [!IMPORTANT]
+> **Active development / public preview — not production-ready.** MJobs is designed to keep applicant data in a self-hosted workspace. External employer applications are **never submitted automatically** by the current release. Verify all information and submit real applications yourself. A green build is not proof that the entire requirements catalogue is complete.
 
-Local-first job discovery, factual document preparation, and application tracking.
-The current user-testing slice includes a connected web application, a public
-Greenhouse read-only source, and a controlled fictional application fixture.
-Real external submission is disabled.
+![MJobs pipeline workbench with a fictional test profile](docs/assets/mjobs-pipeline-demo.png)
 
-For the current delivery checkpoint and next ChatGPT session, read the
-[session handoff](planning/SESSION_HANDOFF.md) and
-[copyable ChatGPT prompt](prompts/CHATGPT_WEB_HANDOFF.md).
+<details>
+<summary>More actual application screenshots (fictional test workspace)</summary>
 
-With Docker Desktop running Linux containers, start from PowerShell:
+### Employer sources and provenance
+
+![MJobs source relationship graph](docs/assets/mjobs-sources-demo.png)
+
+### First-run setup
+
+![MJobs first-run setup checklist](docs/assets/mjobs-dashboard-fixture.png)
+
+Screenshots were captured from the running **FIXTURE** mode on October 11, 2026. Profiles are synthetic; some job listings are publicly sourced. No personal workspace was used.
+</details>
+
+## What MJobs does today
+
+MJobs combines a React frontend, a Python/FastAPI backend, PostgreSQL, Redis-backed background workers, and browser-assisted **local testing**. Implemented components include:
+
+- **Career profiles:** resume import, explicit review of sourced facts, approved answers, document storage and version history.
+- **Job discovery:** supported public read-only job sources, employer-source registration and monitoring, raw source provenance, normalized job records and search.
+- **Relevance and tracking:** saved search profiles, explainable matching components, shortlist/pipeline views, and auditable application history.
+- **Document preparation:** factual resume and cover-letter generation, with controlled review and local artifact storage.
+- **Application review:** ATS route detection, safe form analysis, manual review gates, and synthetic mock-application testing.
+- **Recovery:** durable work operations and retries, service health checks, isolated personal/fixture environments, and local backup/restore tooling.
+
+**Limits matter:** full ATS automation, automatic employer discovery, complete browser acceptance, and other requirements remain in progress. See the [evidence-backed progress dashboard](docs/PROGRESS_DASHBOARD.md); individual working slices do not imply full product acceptance.
+
+## Quick start — Windows
+
+**Requirements:** Windows with PowerShell and Docker Desktop running **Linux containers**. Keep Docker running during startup.
 
 ```powershell
-cd C:\Tools\Dev\MJobs
+git clone https://github.com/MulattoTech/MJobs.git
+cd MJobs
 .\Start-MJobs.ps1
 ```
 
-The command preserves local data, builds the application, applies migrations,
-checks the workers, and opens http://127.0.0.1:18700. See
-[the user-testing guide](docs/USER_TESTING.md) for the connected journey,
-diagnostics, verification commands, and current limitations.
-Run the same command after Docker Desktop restarts to reconcile services without
-deleting their named data volumes. The PostgreSQL, Redis, API, and worker
-containers use `unless-stopped` restart policies; applying a newer Compose file
-to an existing project requires another launcher run.
+The launcher builds and starts the isolated fictional test environment, applies migrations, waits for API/database/Redis/workers to become ready, and opens [http://127.0.0.1:18700](http://127.0.0.1:18700).
 
-For a separate personal workspace without fictional discovery or mock application
-actions, run `./Start-MJobs.ps1 -Personal` in PowerShell. It uses a separate
-Compose project and data volumes at http://127.0.0.1:18701. Public read-only
-source collection and factual manual preparation remain available. Real external
-auto-submit stays off in both modes.
+From the dashboard, load **fictional demo** data, explore Jobs and Sources, prepare sample documents, and use the controlled mock application workflow. Nothing is submitted to a real employer.
 
-For an offline PostgreSQL and document backup, followed by a restore into a
-separate empty Compose project, use the
-[local backup runbook](docs/runbooks/LOCAL_BACKUP.md). Keep backup archives
-outside this repository and protect them as personal data.
+### Use your own career data
 
-## GitHub Codespaces
+Run a **separate personal** installation instead of mixing your data with test fixtures:
 
-MJobs includes a Codespaces/dev-container environment that mirrors the project
-runtime with Python 3.12, Node 24, Docker Compose, Playwright and Codex tooling.
-Use it when you want builds, tests, containers and AI development to run on the
-Codespace VM rather than the local workstation. See
-[docs/CODESPACES.md](docs/CODESPACES.md) for the one-command creation flow,
-cloud startup commands, port forwarding, verification and shutdown.
-Codex CLI is installed automatically in a new Codespace; sign in explicitly and
-use [the bounded iteration entrypoint](prompts/CODESPACES_ITERATION.md). Setup
-does not launch agents, start MJobs or install global AFK/PMM skills.
+```powershell
+.\Start-MJobs.ps1 -Personal
+```
 
-Repository operating instructions live in [AGENTS.md](AGENTS.md). The complete
-requirements remain in the GitHub backlog and scoped [area specifications](docs/spec/areas).
-This milestone does not represent completion of the full specification.
+Open [http://127.0.0.1:18701](http://127.0.0.1:18701). PERSONAL and FIXTURE modes use separate Compose projects and persistent volumes. Personal mode disables fictional actions and all real external submission.
 
-## Project progress
+**Preserve your existing configuration:** if upgrading an older installation, do not delete or regenerate its ignored `.env` or existing database/document volumes. An older encryption key may be needed to read previously saved credentials. Use the [workspace mode](docs/runbooks/WORKSPACE_MODE.md) and [backup/restore](docs/runbooks/LOCAL_BACKUP.md) runbooks before migrating.
 
-See the [colored progress dashboard](docs/PROGRESS_DASHBOARD.md) for the current evidence-backed original-requirement, reference-gap, PR-queue, active-work, and known-issue status. The dashboard deliberately separates merged GitHub state from local/uncommitted Codex work.
+For a step-by-step demo, diagnostics, prerequisites and known limitations, see [Local user testing](docs/USER_TESTING.md).
 
-## Reference-project gap tracking
+## Developer guide
 
-MJobs also maintains an additive reference-project audit covering JobSpy, CareerWeaver, Resume Matcher, AutoApply, Personal JobPilot, ResuMorph, and AIHawk. See [docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md](docs/reference/REFERENCE_PROJECT_GAP_ANALYSIS.md) and [docs/FEATURE_COMPLETENESS.md](docs/FEATURE_COMPLETENESS.md). The canonical additive backlog is `MJ-REF-001..059`; original `MJ-REQ` completion and reference-gap completion are reported separately.
+| Task | Entry point |
+|---|---|
+| Local test setup | [Developer/Codespaces guide](docs/CODESPACES.md) |
+| Source and runtime architecture | [Repository map](docs/REPO_MAP.md) |
+| Existing test and release policy | [Verification instructions](AGENTS.md) |
+| Current engineering state | [Session handoff](planning/SESSION_HANDOFF.md) |
+| Requirement and product acceptance | [Progress dashboard](docs/PROGRESS_DASHBOARD.md) |
+| Public CI modernization | [Modernization plan](docs/maintainers/PUBLIC_REPOSITORY_MODERNIZATION.md) |
 
-## Live feedback development
+For a pinned Python environment (Python 3.12), run `python -m pytest -q tests/unit` after installing `requirements.lock`. For the web app (Node.js 24):
 
-Double-click **Start-Feedback.cmd** for the local **Development & Feedback** page:
-20 guided tasks, automatic draft saving, restored sessions, and a saved-report
-history. No manual template editing is needed, and it works without Docker.
-The equivalent VS Code task is **MJobs: Development & Feedback**. Reports remain
-private and local; **Ready for Codex** prepares the files for the next instruction
-to process your feedback.
+```powershell
+npm ci --prefix apps/web
+npm test --prefix apps/web
+npm run build --prefix apps/web
+```
 
-For a product-level walkthrough, use [docs/GUIDED_PRODUCT_REVIEW.md](docs/GUIDED_PRODUCT_REVIEW.md) and the VS Code tasks **MJobs: Guided Product Review - Personal/Fixture**.
+Automated GitHub checks validate fresh clones independently; a successful CI job cannot replace isolated user-facing acceptance tests.
 
-For browser-driven test/feedback development in VS Code, see [docs/LIVE_FEEDBACK_DEVELOPMENT.md](docs/LIVE_FEEDBACK_DEVELOPMENT.md). Checked-in VS Code tasks can start PERSONAL or FIXTURE mode and a privacy-conscious headed-browser recorder. Session data stays under ignored `outputs/live-feedback/`; use `prompts/VS_CODE_LIVE_FEEDBACK.md` with Codex to turn the latest observation into a test, patch, validation, and retest cycle.
+## Safety, privacy and contributions
 
+- Do not commit resumes, credentials, API tokens, local `.env` files, database backups, browser sessions or private test evidence.
+- Third-party job postings are untrusted input. Real-world source access must respect provider rules, rate limits, access controls and manual authentication.
+- Report security vulnerabilities **privately**, following [SECURITY.md](SECURITY.md). Use [CONTRIBUTING.md](CONTRIBUTING.md) for proposed changes and checks.
+- This repository is publicly readable, but **public access is not a software license**. The project owner has not yet declared redistribution/modification terms; review license expectations before reusing or distributing the code.
 
-## VS Code — all local MJobs development workspaces
-
-Run the portable Open-MJobs-VSCode.cmd launcher or the PowerShell script
-Open-MJobs-VSCode.ps1 in the Mission Control code checkout. It discovers
-registered local MJobs Git worktrees and separate private MJobs clones,
-builds a manageable generated multi-root VS Code workspace, and opens it.
-Local commits appear in Source Control Graph before they are pushed to
-GitHub. All registered worktrees are indexed even if not individually opened
-in VS Code. The generated machine-specific workspace lives OUTSIDE main.
-See [VS Code multi-repository development](docs/VSCode_MULTIROOT_DEVELOPMENT.md)
-for commands, dynamic refresh, full-worktree mode and safety guidance.
-
-## Dual-agent feature implementation (Codex + Antigravity)
-
-For isolated local Codex application automation and Antigravity AI matching, follow [the ownership and integration contract](docs/DUAL_AGENT_COORDINATION.md) and [the seven model-specific launch profiles](prompts/dual-agent/README.md). Only the integration owner merges accepted evidence into `main`. Project-hosted Actions/agent runs remain disabled and real external applications are not submitted.
-
-
-### Launch coding agents visually
-
-Double-click **MJobs Mission Control** on Windows or run
-`Start-MJobs-MissionControl.ps1`. Pick a Codex / Antigravity / Claude profile,
-model, agent and prompt in the [Mission Control launcher](docs/MISSION_CONTROL_LAUNCHER.md).
-The model selector discovers valid CLI model IDs and supported reasoning levels; you never type launch model flags.
-Mission Control also offers a visible Windows console (the default) or headless output,
-with a viewer for the current/previous CLI log. For Codex, choose separate hard
-maximum and intended active subagent counts (0–50). The exact reviewed prompt now
-reaches Codex via stdin to avoid Windows CLI truncation; all settings invalidate
-previous launch approval when changed. See the
-[Mission Control launcher guide](docs/MISSION_CONTROL_LAUNCHER.md#visible-terminals-and-codex-subagent-staffing-october-10).
-The Codex launcher now verifies and reuses the pinned MJobs Python virtual environment
-for isolated worktrees (avoiding missing Playwright/SQLAlchemy errors), distinguishes
-PARTIAL feature acceptance from actual blocked CLI runs, and offers a readable
-recent-run summary in the separate output viewer while retaining full raw logs.
-These supervised launches remain noninteractive Codex exec sessions; see the
-[launcher troubleshooting guide](docs/MISSION_CONTROL_LAUNCHER.md#october-10-correct-false-environment-blockers-and-fragmented-cli-output).
-
-The integrated Development history panel polls local Git every five seconds, distinguishing core
-features, tests, docs, and bookkeeping by changed files, with expandable file details and separate
-Codex turn activity. Details: [Mission Control history](docs/MISSION_CONTROL_LAUNCHER.md#live-development-history-timeline-october-10).
-Choose a preset agent/session name or create your own label.
-For a sustained ChatGPT Web coding session, use the [maximum-impact development prompt](prompts/CHATGPT_WEB_PRO_MJOBS_MAXIMUM_SPRINT.md).
-It can start independent worktrees while root `main` is dirty and it displays
-the same canonical requirement acceptance as the [mjobs-progress skill](skills/mjobs-progress/SKILL.md).
+MJobs is under active development. The project's acceptance numbers are intentionally conservative and tied to executed evidence, not an arbitrary completion percentage.

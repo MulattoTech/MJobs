@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability (private)
+    url: https://github.com/MulattoTech/MJobs/security/advisories/new
+    about: Please do not disclose vulnerabilities or real applicant information in a public issue.

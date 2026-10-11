@@ -1,0 +1,34 @@
+name: Bug report
+description: Report a reproducible MJobs bug without personal user data
+title: "[Bug] "
+labels: ["category:bug", "area:untriaged", "priority:P3", "triage:priority-inferred"]
+body:
+  - type: markdown
+    attributes:
+      value: "Use fictional/synthetic data only. Never attach personal resumes, credentials, cookies, or database dumps."
+  - type: input
+    id: revision
+    attributes:
+      label: MJobs version or Git commit
+      placeholder: "main @ 01234567"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      description: Short, reproducible sequence using synthetic data
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected versus observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Tests, error category, or sanitized log excerpt
+    validations:
+      required: false

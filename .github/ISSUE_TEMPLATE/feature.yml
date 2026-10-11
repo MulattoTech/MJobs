@@ -1,0 +1,26 @@
+name: Feature proposal
+description: Suggest a testable user-facing MJobs feature or improvement
+title: "[Feature] "
+labels: ["category:major-feature", "area:untriaged", "priority:P3", "triage:priority-inferred"]
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: What user outcome should improve?
+      description: Describe the real user behavior rather than an implementation technology.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Measurable acceptance criteria
+      description: What executable or manual evidence would establish PASS?
+    validations:
+      required: true
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Safety, privacy, and integration constraints
+      description: Which existing flows and restrictions must remain unchanged?
+    validations:
+      required: false

@@ -21,6 +21,6 @@ Load only the relevant specialized playbook:
 
 When borrowing inspiration, use `docs/reference/REFERENCE_IMPLEMENTATION_POLICY.md` and `python -m tools.verification.reference_provenance`. Never copy unlicensed work, bypass anti-bot/access limits, invent career facts, or submit real applications without explicit user authorization.
 
-For each verified slice: inspect → implement → run affected unit/integration/browser checks → review diff → record exact evidence and remaining gaps → update affected acceptance only → refresh compact index/dashboard at a checkpoint → commit with AI attribution trailers → safely publish. GitHub Actions and paid hosted reviews remain disabled. Report skipped checks as NOT_RUN; partial parent issues remain PARTIAL.
+For each verified slice: inspect → implement → run affected unit/integration/browser checks → review diff → record exact evidence and remaining gaps → update affected acceptance only → refresh compact index/dashboard at a checkpoint → commit with AI attribution trailers → safely publish. Reviewed public GitHub Actions run exact-head CI and synthetic checks; paid hosted AI reviews remain disabled. Report skipped checks as NOT_RUN; partial parent issues remain PARTIAL.
 
 Local checks include `python -m tools.verification.catalogue`, `python -m tools.verification.progress validate`, `python -m tools.verification.agent_skills`, targeted Python tests, frontend tests/build, and `git diff --check`. See `docs/PROGRESS_TRACKING.md` and `docs/USER_TESTING.md`. At the end keep `planning/SESSION_HANDOFF.md` short.
