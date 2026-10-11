@@ -22,7 +22,8 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 COMPOSE_FILE = REPOSITORY_ROOT / "compose.yml"
 PROJECT_NAME_PATTERN = re.compile(r"mjobs-fixture-[a-f0-9]{12}\Z")
 RECOVERY_RESTART_SERVICES = (
-    "postgres", "redis", "mock", "api", "scheduler", "worker", "source-worker", "document-worker",
+    "postgres", "redis", "mock", "api", "scheduler", "worker", "source-worker",
+    "company-discovery-worker", "document-worker",
 )
 RECOVERY_MUTATION_SERVICES = RECOVERY_RESTART_SERVICES
 REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
@@ -128,9 +129,81 @@ def validate_port(value):
     return value
 
 
-def compose(project_name, port, *arguments):
+def _path_contains_symlink(path):
+    candidate = Path(path)
+    absolute = candidate if candidate.is_absolute() else REPOSITORY_ROOT / candidate
+    current = Path(absolute.anchor)
+    for part in absolute.parts[1:]:
+        if part == "..":
+            current = current.parent
+            continue
+        if part == ".":
+            continue
+        current = current / part
+        is_junction = getattr(current, "is_junction", None)
+        if current.is_symlink() or (is_junction is not None and is_junction()):
+            return True
+    return False
+
+
+def resolve_compose_files(value=None):
+    """Resolve an explicit root-first Compose file list confined to this checkout."""
+    root = REPOSITORY_ROOT.resolve(strict=True)
+    if _path_contains_symlink(COMPOSE_FILE):
+        raise ValueError("Compose files must not be symlinks")
+    root_compose = COMPOSE_FILE.resolve(strict=True)
+    if value is None:
+        value = os.environ.get("COMPOSE_FILE")
+    raw_files = [str(root_compose)] if value is None or value == "" else value.split(os.pathsep)
+    if not raw_files or any(not raw_path for raw_path in raw_files):
+        raise ValueError("COMPOSE_FILE must contain non-empty file paths")
+
+    resolved_files = []
+    seen = set()
+    for raw_path in raw_files:
+        candidate = Path(raw_path)
+        if not candidate.is_absolute():
+            candidate = root / candidate
+        if _path_contains_symlink(candidate):
+            raise ValueError("Compose files must not be symlinks")
+        try:
+            resolved = candidate.resolve(strict=True)
+        except OSError as exc:
+            raise ValueError("Compose file does not exist") from exc
+        try:
+            resolved.relative_to(root)
+        except ValueError as exc:
+            raise ValueError("Compose files must resolve inside the canonical workspace") from exc
+        if not resolved.is_file():
+            raise ValueError("Compose files must be regular files")
+        if "," in str(resolved):
+            raise ValueError("Compose file paths cannot contain commas")
+        identity = os.path.normcase(str(resolved))
+        if identity in seen:
+            raise ValueError("COMPOSE_FILE must not contain duplicate paths")
+        seen.add(identity)
+        resolved_files.append(resolved)
+
+    if not resolved_files or os.path.normcase(str(resolved_files[0])) != os.path.normcase(str(root_compose)):
+        raise ValueError("COMPOSE_FILE must start with the repository compose.yml")
+    return tuple(resolved_files)
+
+
+def expected_config_files_label(config_files=None):
+    config_files = _validated_compose_files(config_files)
+    return ",".join(str(path) for path in config_files)
+
+
+def _validated_compose_files(config_files=None):
+    if config_files is None:
+        return resolve_compose_files()
+    return resolve_compose_files(os.pathsep.join(str(path) for path in config_files))
+
+
+def compose(project_name, port, *arguments, config_files=None):
     project_name = validate_project_name(project_name)
     port = validate_port(port)
+    config_files = _validated_compose_files(config_files)
     environment = os.environ.copy()
     environment.update(
         MJOBS_OPERATION_MODE="FIXTURE",
@@ -138,10 +211,12 @@ def compose(project_name, port, *arguments):
         COMPOSE_PROFILES="fixture",
         COMPOSE_PROJECT_NAME=project_name,
         MJOBS_PORT=str(port),
+        COMPOSE_FILE=os.pathsep.join(str(path) for path in config_files),
     )
     command = [
-        "docker", "compose", "--file", str(COMPOSE_FILE),
-        "--project-directory", str(REPOSITORY_ROOT),
+        "docker", "compose",
+        *[item for path in config_files for item in ("--file", str(path))],
+        "--project-directory", str(REPOSITORY_ROOT.resolve()),
         "--profile", "fixture", "--project-name", project_name,
         *arguments,
     ]
@@ -149,20 +224,20 @@ def compose(project_name, port, *arguments):
                         environment=environment, timeout=90, action="Project Compose action")
 
 
-def restart_recovery_services(project_name, port):
+def restart_recovery_services(project_name, port, *, config_files=None):
     """Restart every stateful service, including the durable discovery scheduler."""
-    return compose(project_name, port, "restart", *RECOVERY_RESTART_SERVICES)
+    return compose(project_name, port, "restart", *RECOVERY_RESTART_SERVICES, config_files=config_files)
 
 
-def worker_restart_count(project_name, port):
+def worker_restart_count(project_name, port, *, config_files=None):
     """Read the restart count for this project's worker only."""
-    containers = compose(project_name, port, "ps", "--all", "-q", "worker").split()
+    containers = compose(project_name, port, "ps", "--all", "-q", "worker", config_files=config_files).split()
     if len(containers) != 1:
         raise RuntimeError("Project recovery worker target was missing or ambiguous")
-    return inspect_container(project_name, "worker", containers[0])["restart_count"]
+    return inspect_container(project_name, "worker", containers[0], config_files=config_files)["restart_count"]
 
 
-def inspect_container(project_name, service, container_id):
+def inspect_container(project_name, service, container_id, *, config_files=None):
     inspected = _run_bounded(
         ["docker", "inspect", "--format",
          "{{json .Config.Labels}}|{{.RestartCount}}|{{.State.Status}}", container_id],
@@ -179,7 +254,7 @@ def inspect_container(project_name, service, container_id):
     expected_labels = {
         "com.docker.compose.project": project_name,
         "com.docker.compose.service": service,
-        "com.docker.compose.project.config_files": str(COMPOSE_FILE.resolve()),
+        "com.docker.compose.project.config_files": expected_config_files_label(config_files),
         "com.docker.compose.project.working_dir": str(REPOSITORY_ROOT.resolve()),
     }
     if not isinstance(labels, dict) or any(labels.get(key) != value for key, value in expected_labels.items()):
@@ -189,14 +264,14 @@ def inspect_container(project_name, service, container_id):
     return {"restart_count": count, "status": pieces[2]}
 
 
-def preflight_recovery_targets(project_name, port):
+def preflight_recovery_targets(project_name, port, *, config_files=None):
     """Verify every container target before any recovery stop/start/restart command."""
     targets = {}
     for service in RECOVERY_MUTATION_SERVICES:
-        containers = compose(project_name, port, "ps", "--all", "-q", service).split()
+        containers = compose(project_name, port, "ps", "--all", "-q", service, config_files=config_files).split()
         if len(containers) != 1:
             raise RuntimeError(f"Project recovery {service} target was missing or ambiguous")
-        inspected = inspect_container(project_name, service, containers[0])
+        inspected = inspect_container(project_name, service, containers[0], config_files=config_files)
         targets[service] = {"container_id": containers[0], **inspected}
     return targets
 
@@ -245,7 +320,8 @@ def run(baseline_path, evidence_path, project_name, port):
     project_name = validate_project_name(project_name)
     port = validate_port(port)
     baseline = validate_baseline(json.loads(Path(baseline_path).read_text(encoding="utf-8")))
-    initial_targets = preflight_recovery_targets(project_name, port)
+    config_files = resolve_compose_files()
+    initial_targets = preflight_recovery_targets(project_name, port, config_files=config_files)
     api = f"http://127.0.0.1:{port}"
     actions = []
     with httpx.Client(base_url=api, timeout=15, trust_env=False) as client:
@@ -273,7 +349,8 @@ def run(baseline_path, evidence_path, project_name, port):
             if initial_targets[service]["status"] == "running"
         )
         try:
-            compose(project_name, port, "stop", "worker", "source-worker", "document-worker", "redis")
+            compose(project_name, port, "stop", "worker", "source-worker", "company-discovery-worker",
+                    "document-worker", "redis", config_files=config_files)
             profile = dict(PROFILE, id="recovery-fictional-" + uuid4().hex[:12])
             request("PUT", "/profiles", json=profile)
             queued = request("POST", "/discovery", json={"profile_id": profile["id"]})
@@ -282,14 +359,18 @@ def run(baseline_path, evidence_path, project_name, port):
             assert degraded.status_code == 503 and degraded.json()["checks"]["queue"] is False
             actions.append({"action": "Redis disconnected; discovery persisted", "result": "PASS", "operation_id": queued["operation_id"]})
             # --no-deps prevents Compose from helpfully restoring Redis early.
-            compose(project_name, port, "up", "-d", "--no-deps", "--no-build", "worker")
-            until(lambda: worker_restart_count(project_name, port) > 0)
-            compose(project_name, port, "start", "redis")
-            compose(project_name, port, "start", "worker", "source-worker", "document-worker")
+            compose(project_name, port, "up", "-d", "--no-deps", "--no-build", "worker",
+                    config_files=config_files)
+            initial_worker_restart_count = initial_targets["worker"]["restart_count"]
+            until(lambda: worker_restart_count(project_name, port, config_files=config_files)
+                  > initial_worker_restart_count)
+            compose(project_name, port, "start", "redis", config_files=config_files)
+            compose(project_name, port, "start", "worker", "source-worker", "company-discovery-worker",
+                    "document-worker", config_files=config_files)
             until(lambda: request("GET", "/operations/" + queued["operation_id"])["state"] == "COMPLETED")
             until(lambda: client.get("/readiness").status_code == 200)
             actions.append({"action": "Worker supervision and durable outbox recovered after Redis returned", "result": "PASS"})
-            restart_recovery_services(project_name, port)
+            restart_recovery_services(project_name, port, config_files=config_files)
             until(lambda: client.get("/readiness").status_code == 200)
             application_path = verify_recovered_application(request, baseline)
             again = request("POST", application_path + "/mock-run", json={
@@ -302,17 +383,19 @@ def run(baseline_path, evidence_path, project_name, port):
                 raise RuntimeError("Explicit mock run replay returned an unexpected operation")
             # Verify the restarted mock server's independently persisted receipt.
             program = "import json,sys,urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://mock:8090/ats/receipts/'+sys.argv[1],timeout=5))))"
-            receipt = json.loads(compose(project_name, port, "exec", "-T", "api", "python", "-c", program, baseline["application_id"]))
+            receipt = json.loads(compose(project_name, port, "exec", "-T", "api", "python", "-c", program,
+                                         baseline["application_id"], config_files=config_files))
             assert receipt == baseline["confirmation"] and receipt["submission_count"] == 1
             actions.append({"action": "All services restarted; original application, operation and independent receipt survived without another submission", "result": "PASS"})
         finally:
-            compose(project_name, port, "start", *services_to_restore)
+            compose(project_name, port, "start", *services_to_restore, config_files=config_files)
     evidence = {"result": "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
         "command": [sys.executable, "-m", "cli.compose_recovery", "--baseline", str(baseline_path),
                     "--evidence", str(evidence_path), "--project-name", project_name,
                     "--port", str(port)],
         "compose_target": {"project_name": project_name, "port": port,
-                           "compose_file": str(COMPOSE_FILE.resolve()),
+                           "compose_files": [str(path) for path in config_files],
+                           "compose_config_files_label": expected_config_files_label(config_files),
                            "project_directory": str(REPOSITORY_ROOT.resolve()),
                            "profile": "fixture", "services": list(RECOVERY_RESTART_SERVICES)},
         "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery", "actions": actions,

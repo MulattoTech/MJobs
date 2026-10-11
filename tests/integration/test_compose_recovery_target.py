@@ -1,5 +1,6 @@
 """Compose recovery always targets an explicitly isolated fixture project."""
 import json
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -74,6 +75,7 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
             return next(ready_responses)
 
         client.get.side_effect = get
+        worker_counts = iter((1, 1, 2))
 
         def run_bounded(command, *, timeout, action, environment=None):
             compose_calls.append((list(command), dict(environment or {})))
@@ -90,22 +92,29 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
                 labels = {
                     "com.docker.compose.project": PROJECT,
                     "com.docker.compose.service": service,
-                    "com.docker.compose.project.config_files": str(compose_recovery.COMPOSE_FILE),
+                    "com.docker.compose.project.config_files": compose_recovery.expected_config_files_label(
+                        compose_recovery.resolve_compose_files()),
                     "com.docker.compose.project.working_dir": str(compose_recovery.REPOSITORY_ROOT),
                 }
                 return json.dumps(labels) + "|1|running\n"
             self.fail(f"unexpected subprocess target: {command!r}")
 
         root = Path(compose_recovery.__file__).resolve().parents[1]
-        with tempfile.TemporaryDirectory() as temporary:
+        with tempfile.TemporaryDirectory(dir=root) as temporary:
+            override_path = Path(temporary) / "runtime.override.yml"
+            override_path.write_text("services: {}\n", encoding="utf-8")
+            config_paths = (str((root / "compose.yml").resolve()), str(override_path.resolve()))
             baseline_path = Path(temporary) / "baseline.json"
             evidence_path = Path(temporary) / "evidence.json"
             baseline_path.write_text(json.dumps(BASELINE), encoding="utf-8")
 
-            with patch.object(compose_recovery.httpx, "Client", return_value=client) as http_client, \
+            with patch.dict(os.environ, {"COMPOSE_FILE": os.pathsep.join(config_paths)}), \
+                    patch.object(compose_recovery.httpx, "Client", return_value=client) as http_client, \
                     patch.object(compose_recovery, "_run_bounded", side_effect=run_bounded), \
+                    patch.object(compose_recovery, "worker_restart_count", side_effect=lambda *args, **kwargs: next(worker_counts)) as restart_count, \
                     patch.object(compose_recovery.subprocess, "Popen", side_effect=AssertionError("subprocess must be stubbed")):
                 compose_recovery.run(baseline_path, evidence_path, project_name=PROJECT, port=PORT)
+                self.assertEqual(restart_count.call_count, 3)
 
             http_client.assert_called_once_with(
                 base_url=f"http://127.0.0.1:{PORT}", timeout=15, trust_env=False,
@@ -116,21 +125,26 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         compose_file = str(root / "compose.yml")
         for command, environment in compose_calls:
             if command[:2] == ["docker", "compose"]:
-                self.assertIn("--file", command)
-                self.assertEqual(command[command.index("--file") + 1], compose_file)
+                file_flags = [index for index, item in enumerate(command) if item == "--file"]
+                self.assertEqual([command[index + 1] for index in file_flags], list(config_paths))
                 self.assertEqual(command[command.index("--profile") + 1], "fixture")
                 self.assertEqual(command[command.index("--project-name") + 1], PROJECT)
                 self.assertEqual(environment.get("MJOBS_PORT"), str(PORT))
                 self.assertEqual(environment.get("COMPOSE_PROFILES"), "fixture")
+                self.assertEqual(environment.get("COMPOSE_FILE"), os.pathsep.join(config_paths))
             else:
                 self.assertEqual(command[:2], ["docker", "inspect"])
         self.assertTrue(any(command[:2] == ["docker", "inspect"]
                             and command[-1] == "container-fixture-worker" for command, _ in compose_calls))
 
         inspect_calls = [command for command, _ in compose_calls if command[:2] == ["docker", "inspect"]]
-        self.assertEqual(len(inspect_calls), len(compose_recovery.RECOVERY_MUTATION_SERVICES) + 1)
+        self.assertEqual(len(inspect_calls), len(compose_recovery.RECOVERY_MUTATION_SERVICES))
         self.assertTrue(any(command[-4:] == ["ps", "--all", "-q", "worker"] for command, _ in compose_calls
                             if command[:2] == ["docker", "compose"]))
+        self.assertTrue(any("stop" in command and "company-discovery-worker" in command
+                            for command, _ in compose_calls))
+        self.assertTrue(any("start" in command and "company-discovery-worker" in command
+                            for command, _ in compose_calls))
         self.assertEqual(evidence["result"], "PASS")
 
         urls = [call[1] for call in http_calls]
@@ -166,7 +180,8 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         self.assertEqual(evidence["compose_target"], {
             "project_name": PROJECT,
             "port": PORT,
-            "compose_file": str(Path(compose_recovery.__file__).resolve().parents[1] / "compose.yml"),
+            "compose_files": list(config_paths),
+            "compose_config_files_label": ",".join(config_paths),
             "project_directory": str(Path(compose_recovery.__file__).resolve().parents[1]),
             "profile": "fixture",
             "services": list(compose_recovery.RECOVERY_RESTART_SERVICES),
@@ -193,7 +208,8 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
                     patch.object(compose_recovery, "compose") as compose:
                 with self.assertRaisesRegex(RuntimeError, "same confirmed mock receipt"):
                     compose_recovery.run(baseline_path, evidence_path, PROJECT, PORT)
-        preflight.assert_called_once_with(PROJECT, PORT)
+        preflight.assert_called_once_with(
+            PROJECT, PORT, config_files=compose_recovery.resolve_compose_files())
         self.assertFalse(any(method == "POST" and path.endswith("/mock-run")
                              for method, path, _ in calls))
         compose.assert_not_called()

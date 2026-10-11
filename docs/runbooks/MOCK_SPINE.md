@@ -45,9 +45,13 @@ application, completed operation, and stable caller `request_id`.
 $fixtureSuffix = [guid]::NewGuid().ToString('N').Substring(0, 12)
 $project = "mjobs-fixture-$fixtureSuffix"
 $port = 18741
+$composeFiles = @((Resolve-Path compose.yml).Path)
+# For an approved workspace-local runtime override, append its resolved path here.
+# $composeFiles += (Resolve-Path outputs/rc-2026-11/runtime.override.yml).Path
+$env:COMPOSE_FILE = [string]::Join([IO.Path]::PathSeparator, $composeFiles)
 $env:MJOBS_PORT = "$port"
 $env:COMPOSE_PROJECT_NAME = $project
-docker compose --file compose.yml --project-directory . --profile fixture --project-name $project up -d --build
+docker compose --project-directory . --profile fixture --project-name $project up -d --build
 .venv\Scripts\python -m cli.ui_e2e --base-url "http://127.0.0.1:$port" --evidence outputs/ui-e2e.json
 .venv\Scripts\python -m cli.compose_recovery --baseline outputs/ui-e2e.json --evidence outputs/recovery.json --project-name $project --port $port
 ```
@@ -55,6 +59,12 @@ docker compose --file compose.yml --project-directory . --profile fixture --proj
 The recovery command requires explicit project and port arguments and checks
 every target container's Compose project, service, Compose file, working
 directory, uniqueness, and running state before it changes service state. It
+accepts a workspace-local runtime override through `COMPOSE_FILE` when the
+root `compose.yml` is first and each override follows it, separated by the
+platform path-list separator (semicolon in PowerShell). The same list must be
+set when starting the project and running recovery; its exact comma-separated
+Compose label is recorded in recovery evidence. Outside-workspace, duplicate,
+missing, directory, symlink, and junction entries are rejected before mutation. It
 then stops only this fixture's Redis and workers, persists a discovery request
 while disconnected, starts the worker without dependencies, restores Redis,
 and restarts the fixture services. After restart it reads the same explicit

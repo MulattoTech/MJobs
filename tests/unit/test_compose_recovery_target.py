@@ -1,5 +1,7 @@
 """Unit checks for explicit fixture-only Compose targeting."""
 from pathlib import Path
+import os
+import tempfile
 import unittest
 from unittest.mock import patch
 
@@ -34,6 +36,105 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         self.assertEqual(environment["COMPOSE_PROFILES"], "fixture")
         self.assertEqual(environment["COMPOSE_PROJECT_NAME"], VALID_PROJECT)
         self.assertEqual(environment["MJOBS_PORT"], "18701")
+
+    def test_compose_uses_validated_root_and_override_files_for_command_and_labels(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+            override = Path(temporary) / "runtime.override.yml"
+            override.write_text("services: {}\n", encoding="utf-8")
+            compose_files = (str(compose_recovery.COMPOSE_FILE.resolve()), str(override.resolve()))
+            with patch.dict(os.environ, {"COMPOSE_FILE": os.pathsep.join(compose_files)}), \
+                    patch("cli.compose_recovery._run_bounded", return_value="ok") as runner:
+                compose_recovery.compose(VALID_PROJECT, 18701, "ps", "-q", "api")
+                self.assertEqual(compose_recovery.expected_config_files_label(compose_files), ",".join(compose_files))
+
+        command, = runner.call_args.args
+        first_file = command.index("--file")
+        second_file = command.index("--file", first_file + 1)
+        self.assertEqual(command[first_file + 1], compose_files[0])
+        self.assertEqual(command[second_file + 1], compose_files[1])
+        environment = runner.call_args.kwargs["environment"]
+        self.assertEqual(environment["COMPOSE_FILE"], os.pathsep.join(compose_files))
+
+    def test_compose_rejects_invalid_file_lists_before_running_docker(self):
+        with tempfile.TemporaryDirectory() as outside:
+            outside_file = Path(outside) / "outside.yml"
+            outside_file.write_text("services: {}\n", encoding="utf-8")
+            with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+                override = Path(temporary) / "runtime.override.yml"
+                override.write_text("services: {}\n", encoding="utf-8")
+                valid_override = str(override.resolve())
+                invalid_lists = (
+                    os.pathsep.join((str(compose_recovery.COMPOSE_FILE.resolve()), str(outside_file.resolve()))),
+                    os.pathsep.join((valid_override, str(compose_recovery.COMPOSE_FILE.resolve()))),
+                    os.pathsep.join((str(compose_recovery.COMPOSE_FILE.resolve()), str(compose_recovery.COMPOSE_FILE.resolve()))),
+                    os.pathsep.join((str(compose_recovery.COMPOSE_FILE.resolve()), "")),
+                    os.pathsep.join((str(compose_recovery.COMPOSE_FILE.resolve()), temporary)),
+                )
+                for compose_file_list in invalid_lists:
+                    with self.subTest(compose_file_list=compose_file_list), \
+                            patch.dict(os.environ, {"COMPOSE_FILE": compose_file_list}), \
+                            patch("cli.compose_recovery._run_bounded") as run:
+                        with self.assertRaises(ValueError):
+                            compose_recovery.compose(VALID_PROJECT, 18701, "ps", "-q", "api")
+                        run.assert_not_called()
+
+    def test_compose_rejects_symlink_override_before_running_docker(self):
+        with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+            target = Path(temporary) / "real.override.yml"
+            link = Path(temporary) / "linked.override.yml"
+            target.write_text("services: {}\n", encoding="utf-8")
+            compose_file_list = os.pathsep.join((str(compose_recovery.COMPOSE_FILE.resolve()), str(link)))
+            is_symlink = Path.is_symlink
+
+            def mark_test_link(path):
+                if path == link:
+                    return True
+                return is_symlink(path)
+
+            with patch.dict(os.environ, {"COMPOSE_FILE": compose_file_list}), \
+                    patch.object(Path, "is_symlink", autospec=True, side_effect=mark_test_link), \
+                    patch("cli.compose_recovery._run_bounded") as run:
+                with self.assertRaisesRegex(ValueError, "symlinks"):
+                    compose_recovery.compose(VALID_PROJECT, 18701, "ps", "-q", "api")
+                run.assert_not_called()
+
+    def test_compose_rejects_symlink_at_root_compose_path(self):
+        root_link = compose_recovery.REPOSITORY_ROOT / "compose.yml"
+        is_symlink = Path.is_symlink
+
+        def mark_root_link(path):
+            if path == root_link:
+                return True
+            return is_symlink(path)
+
+        with patch.object(Path, "is_symlink", autospec=True, side_effect=mark_root_link), \
+                patch("cli.compose_recovery._run_bounded") as run:
+            with self.assertRaisesRegex(ValueError, "symlinks"):
+                compose_recovery.compose(VALID_PROJECT, 18701, "ps", "-q", "api")
+            run.assert_not_called()
+
+    def test_compose_rejects_junction_override_before_running_docker(self):
+        if not hasattr(Path, "is_junction"):
+            self.skipTest("Path.is_junction is unavailable")
+        with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+            junction_path = Path(temporary) / "junction.override.yml"
+            compose_file_list = os.pathsep.join((str(compose_recovery.COMPOSE_FILE.resolve()), str(junction_path)))
+            is_junction = Path.is_junction
+
+            def mark_test_junction(path):
+                if path == junction_path:
+                    return True
+                return is_junction(path)
+
+            with patch.dict(os.environ, {"COMPOSE_FILE": compose_file_list}), \
+                    patch.object(Path, "is_junction", autospec=True, side_effect=mark_test_junction), \
+                    patch("cli.compose_recovery._run_bounded") as run:
+                with self.assertRaisesRegex(ValueError, "symlinks"):
+                    compose_recovery.compose(VALID_PROJECT, 18701, "ps", "-q", "api")
+                run.assert_not_called()
+
+    def test_recovery_restart_targets_include_company_discovery_worker(self):
+        self.assertIn("company-discovery-worker", compose_recovery.RECOVERY_RESTART_SERVICES)
 
     def test_cli_requires_explicit_project_name_and_port(self):
         with patch("cli.compose_recovery.run") as run:
