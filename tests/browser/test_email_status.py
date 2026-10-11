@@ -99,12 +99,13 @@ class EmailStatusBrowserTests(unittest.TestCase):
 
                     review = page.get_by_role("region", name="Review email status", exact=True)
                     expect(review.get_by_role("heading", name="Review email status", exact=True)).to_be_visible()
+                    draft = review.get_by_label("Paste email text", exact=True)
                     message = (
                         f"From: {private_values[1]}\nSubject: {private_values[0]}\n\n"
                         "Thank you for applying. We have received your application.\n"
                         + private_values[2]
                     )
-                    review.get_by_label("Paste email text", exact=True).fill(message)
+                    draft.fill(message)
                     preview_path = (
                         f"/profiles/fixture/applications/{application_id}/email-status/preview")
                     with page.expect_response(lambda response:
@@ -119,8 +120,9 @@ class EmailStatusBrowserTests(unittest.TestCase):
                         "region", name="Email status preview", exact=True)
                     expect(preview_panel).to_contain_text("Application confirmation")
                     expect(preview_panel).to_contain_text("Application confirmed")
+                    expect(draft).to_have_value(message)
                     for private_value in private_values:
-                        expect(page.locator("body")).not_to_contain_text(private_value)
+                        expect(preview_panel).not_to_contain_text(private_value)
                         self.assertNotIn(private_value, preview_response.value.text())
 
                     review.get_by_label(
@@ -136,12 +138,16 @@ class EmailStatusBrowserTests(unittest.TestCase):
                             "button", name="Confirm reported status", exact=True).click()
                     self.assertEqual(applied_response.value.status, 200,
                                      applied_response.value.text())
-                    expect(review.get_by_role(
+                    history = review.get_by_role(
                         "region", name="Reported email status history", exact=True
-                    )).to_contain_text("Reported by you from email")
-                    expect(review.get_by_role(
-                        "region", name="Reported email status history", exact=True
-                    )).to_contain_text("Application confirmed")
+                    )
+                    expect(history).to_contain_text("Reported by you from email")
+                    expect(history).to_contain_text("Application confirmed")
+                    expect(draft).to_have_value("")
+                    for private_value in private_values:
+                        expect(history).not_to_contain_text(private_value)
+                        self.assertNotIn(private_value, applied_response.value.text())
+                        expect(page.locator("body")).not_to_contain_text(private_value)
 
                     tracking = read_application_tracking(store, "fixture", application_id)
                     self.assertEqual(tracking["status"], "APPLIED")
