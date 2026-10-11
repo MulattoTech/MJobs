@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-263",
+    "MJ-REQ-272",
+    "MJ-REQ-277",
+    "MJ-REQ-122.A01",
+    "MJ-REQ-122.A02"
+  ],
+  "github_issues": [264, 273, 278, 346, 347],
+  "result": "PARTIAL",
+  "scope": "Integrated five independent local-first user workflows: a durable company discovery queue and Activity view; fail-closed document generation with explicit recovery; profile-scoped validated settings transfer; read-only Greenhouse form inspection with durable review readback; and supported Lever route/form analysis. The broader requirements remain PARTIAL.",
+  "source": {
+    "branch": "main",
+    "commit": "5a00de653023193367c278fa4c63fc59878c7518",
+    "tree": "7953fd05441ff89c72e1c591af19f84af6867dad",
+    "base": "9e409897a38426bf9e67442a85746b92cb46c0ad",
+    "tested_source_sha256": {
+      "apps/api/main.py": "F44FD042F8F82E61B83B7167C8C53F59D014614A6C3561B4F0EE7008ED9BBCB0",
+      "apps/web/src/main.tsx": "7A680B0F69E785B1E56612B1714BE7B4F9A1EFDE9B014F5CFF4AF944CFFFACEC",
+      "workers/operations.py": "49F68E8B9680C151E675CB44C9D8A3133348A798E9AC959E7288CC0A201FA559",
+      "workers/tasks.py": "8928EE372C5ABA76C30C3C3F3F6BB018AA31D5390FBC155487A1008A77E36289",
+      "services/documents/generate.py": "5B86F06D3367F063797C90CBEB4593432E170A0359DF092FBD8088EE27829485"
+    }
+  },
+  "verified_at_utc": "2026-10-11T00:53:32Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vitest and Vite production build",
+    "browser": "local Chromium with synthetic fixtures",
+    "delivery": "local-only; not pushed; hosted automation and review disabled"
+  },
+  "checks": [
+    {
+      "command": "python -m unittest tests.unit.test_worker_queue_binding tests.unit.test_company_discovery_queue_status tests.unit.test_company_discovery_worker tests.integration.test_company_discovery_queue_api tests.integration.test_settings_transfer_flow tests.unit.test_settings_transfer tests.integration.test_document_generation_failure_flow tests.unit.test_document_failure_status tests.unit.test_document_validation tests.unit.test_application_form_review tests.unit.test_application_form_review_worker tests.integration.test_application_form_review_flow tests.unit.test_lever_application_adapter tests.unit.test_lever_markup tests.unit.test_greenhouse_application_adapter -v",
+      "result": "PASS",
+      "evidence": "55 targeted Python unit and integration tests passed, covering queue isolation and profile scoping; export/import privacy, atomicity and reload; corrupt document failure and explicit recovery; and Greenhouse/Lever form review validation, idempotency, cancellation and sanitized readback."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/company-discovery-queue.test.tsx src/document-generation-failure.test.tsx src/settings-transfer.test.tsx src/application-form-review-connected.test.tsx src/application-form-review.test.tsx",
+      "result": "PASS",
+      "evidence": "24 focused frontend tests passed."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run",
+      "result": "PASS",
+      "evidence": "690 tests passed across 121 frontend test files."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing advisory: generated JavaScript chunk is 814.24 kB."
+    },
+    {
+      "command": "python -m unittest tests.browser.test_greenhouse_application_adapter tests.browser.test_lever_application_adapter -v",
+      "result": "PASS",
+      "evidence": "Six local Chromium adapter acceptance tests passed using synthetic pages. Greenhouse rejected ambiguous forms and verified fixture uploads; Lever route/form analysis returned no submitted values."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.coordination.lane_coordination validate; python -m compileall -q apps/api services/company_discovery services/documents workers tests/integration/test_application_form_review_flow.py tests/integration/test_company_discovery_queue_api.py tests/integration/test_document_generation_failure_flow.py tests/integration/test_settings_transfer_flow.py; git diff --check",
+      "result": "PASS",
+      "evidence": "Skill validation, lane coordination validation, scoped Python compilation, and whitespace checks passed."
+    },
+    {
+      "command": "python -m unittest discover -s tests -p 'test_*.py'",
+      "result": "PARTIAL",
+      "evidence": "The repository-wide run was interrupted after more than ten minutes because real Chromium browser cases made it slow and emitted existing strict-locator failures in unrelated application-priority, company-preference and job-risk-signal browser tests. This broad run was not completed and is not acceptance evidence for this batch."
+    }
+  ],
+  "not_run": [
+    "PostgreSQL and Compose runtime acceptance.",
+    "Live Greenhouse or Lever requests; provider workflows used synthetic fixtures or a mocked bounded public client.",
+    "Hosted Actions, hosted reviews, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "Issues #264, #273, #278, #346 and #347 remain OPEN/PARTIAL; this batch does not assert whole-requirement completion.",
+    "Lever adapter analysis is integrated and verified, but the durable connected form-review worker currently remains Greenhouse-specific.",
+    "Repository-wide Python/browser suite remains incomplete; failures observed were in unrelated existing UI tests and need a separate scoped triage."
+  ],
+  "safety": [
+    "No real application form was filled, uploaded to, or submitted.",
+    "Application form inspection requires an explicit user click, performs only a bounded public read, and persists sanitized field metadata.",
+    "Settings export excludes career facts, documents and secret material; import validates the full payload before replacing only target-profile settings.",
+    "Failed or corrupt document generation does not publish incomplete files or mark an application prepared."
+  ]
+}

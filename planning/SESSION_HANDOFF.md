@@ -1,3 +1,13 @@
+# Current Codex checkpoint — 2026-10-11T00:53Z
+
+- Root: `C:\Tools\Dev\MJobs`; local `main` is `5a00de653023193367c278fa4c63fc59878c7518` (tree `7953fd05441ff89c72e1c591af19f84af6867dad`), three commits ahead of `origin/main` at `e884ee9a649e3fcff0b24697cb7078473aa9c2a5`; not pushed. The stale Codex integration lock (PID 72372, absent from the process table) was released manually and replaced with this session's live lock. Preserve untracked `events.jsonl`, `services/ai/ai_failure_mode.py`, and `tests/unit/test_ai_failure_behavior.py`; they were outside this batch.
+- Accepted local feature batch: #264/MJ-REQ-263 independent company discovery worker + profile-scoped Activity queue; #273/MJ-REQ-272 fail-closed document generation and explicit recovery; #278/MJ-REQ-277 versioned, profile-scoped settings export/import; #346/MJ-REQ-122.A01 user-triggered read-only Greenhouse form inspection with durable sanitized readback; #347/MJ-REQ-122.A02 Lever route/form analysis. All five requirements remain PARTIAL; #347 is not yet connected to the durable review worker.
+- Evidence: `docs/evidence/2026-10-11-connected-feature-batch.json`. Exact checks on the accepted source: 55 targeted Python tests PASS; full frontend suite 690/690 PASS; TypeScript/Vite build PASS; synthetic Greenhouse/Lever Chromium 6/6 PASS; validators and diff check PASS. Full Python discovery was interrupted after >10 minutes with unrelated strict-locator browser failures in application-priority, company-preference and job-risk-signal cases. PostgreSQL/Compose runtime, live ATS, hosted checks/review NOT_RUN; external submission OFF.
+- Codex child claims for the 15 completed feature workers should be released and mirrored as completed/partial on issues #264, #273, #278, #346, and #347. Antigravity #302 and Ollama #318 remain untouched. The Codex app-automation branch/worktree at `C:\Tools\Dev\MJobs-Codex-App` is separately preserved at its own head; do not merge it blindly into this local main.
+- Next: reconcile current P0 issue contracts and active lane claims, then assign new independent product implementation work only after completing the current five issue claim closeouts. Canonical progress matrices/dashboard are refreshed for this batch; hosted and release eligibility remain NOT_RUN/UNKNOWN.
+
+---
+
 # Current Codex checkpoint — 2026-10-11T00:02:17Z
 
 - Root: `C:\Tools\Dev\MJobs`; local `main` is `e3115f1e826de9e6ea01cb663caeef2045854adc`; `origin/main` remains `7bbec704b54bcd412ead484af8b33584c2d0e2ec`. Local-only fast-forward; not pushed.

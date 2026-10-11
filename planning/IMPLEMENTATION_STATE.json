@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-10T08:38:56.568551+00:00",
+  "generated_at": "2026-10-11T00:53:32Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Issue #268 / MJ-REQ-267 reviewed destination save integrated locally to main at b2413668e11b8af84ad4ba0c1d81527b27c3691e (tree f0e3cbb6f202e04df42def163055b173112c83c6). The connected user action rechecks destination identity evidence, persists an idempotent route, reads it back into the picker, and preserves the current selection until explicit user choice. 36 focused Python, 2 component, 1 connected browser tests, TypeScript/Vite build, compilation, lane validation, and diff checks PASS. Evidence docs/evidence/2026-10-09-reviewed-employer-route-save.json; issue OPEN/PARTIAL; hosted/PostgreSQL/live-site/full-suite checks NOT_RUN; external submission OFF.",
-    "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
-    "current_verified_at": "2026-10-09T19:29:04Z"
+    "current_verified_local_state": "Five bounded user workflows for issues #264, #273, #278, #346, and #347 are integrated locally on main at 5a00de653023193367c278fa4c63fc59878c7518 (tree 7953fd05441ff89c72e1c591af19f84af6867dad); evidence docs/evidence/2026-10-11-connected-feature-batch.json. Targeted Python 55/55, frontend 690/690, production build, and six local Chromium adapter tests PASS. Broader Python discovery was interrupted after unrelated browser locator failures; PostgreSQL, live providers, hosted checks NOT_RUN; external submission OFF.",
+    "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is three commits ahead and was not pushed. Issues #264/#273/#278/#346/#347 remain OPEN/PARTIAL. Hosted checks/reviews disabled by policy; no live ATS requests or external submissions.",
+    "current_verified_at": "2026-10-11T00:53:32Z"
   },
-  "current_milestone": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010",
-  "current_objective": "Integrate the transferred durable MOCK run identity, recovery, manual-auth rerun, and credential-timeout UI into local main with exact-source synthetic acceptance; continue to next dependency-ready user workflow.",
+  "current_milestone": "CONNECTED-FIVE-FEATURE-LOCAL-20261011",
+  "current_objective": "Continue local integration and implement the next dependency-ready user-facing MJobs features after accepting the five connected workflow slices.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -100,7 +100,8 @@
     "Issue #244 / MJ-REQ-243 PASS: saved-search source prefilter previews and persists profile-scoped title/keyword criteria, feeds actual discovery-worker candidate scoring, and preserves source rows across reject/defer/errors. Main 88b781bfc45c44363cd024e61af4b9a8d01866e4; evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json.",
     "Issue #517 bounded queue-integrity slice PASS at main f6976147fcae7cdab121abcb3090b2c310a3a53f: source-candidate integration cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue; API/service fail closed and connected UI persists/readbacks the linked issue without enabling collection. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader catalogue issue remains PARTIAL.",
     "MJ-REQ-266 PASS locally at 64b123e4633b60cb655cc53a3b95188761860e8a: verified employer/ATS > exact trusted integrated-board provenance > aggregator; persisted route-to-posting/source/collector evidence, connected authority explanation, explicit user choice. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
-    "MJ-REQ-190 PASS: the connected Jobs interface exposes and verifies Best Match, Newest, Application Priority, Salary, Company, and Title sorting; see docs/evidence/2026-10-09-complete-job-sorting.json."
+    "MJ-REQ-190 PASS: the connected Jobs interface exposes and verifies Best Match, Newest, Application Priority, Salary, Company, and Title sorting; see docs/evidence/2026-10-09-complete-job-sorting.json.",
+    "2026-10-11: Connected durable company discovery queue, fail-closed document generation recovery, profile-scoped settings transfer, read-only Greenhouse form review, and Lever route/form analysis integrated locally on main; issue scopes remain PARTIAL."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -488,7 +489,8 @@
     "MJ-REQ-266 exact route-level trusted-board provenance: focused Python/API/connected Chromium 29 PASS; route-preference Vitest 2 PASS; TypeScript/Vite build, py_compile, lane validation, diff check PASS. Exact source a4286d189f2d7b8b583b17de229fecd38fd98813 tree 627040b5977f7b621d593864c6604af059af3349; evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
     "MJ-FEATURE-517 ambiguous source URL retry integrated locally at main d53c99002d68bc52adf4eb207fc65877b6c69f74 from tested code source 31af99f2767344b2a46dd28551f99dd765157702 (tree 90c96f3e90f6c947b7f5d73ad13906d6a658d419); connected acceptance test commit 7765c147c061bd088dee4c7a852446ba5acf38f4 (tree 612b874f426cbd9a8bafa3f5f8010b92c1dd5601). Same-profile retries after a committed/lost response retain the request ID and one durable observation; success, changed input, and profile switching use a fresh ID. Missing route authority safely renders UNKNOWN. Evidence docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json; 17 Python/unit/integration/connected Chromium tests, 25 web tests, TypeScript/Vite build, py_compile, lane validation, and diff checks PASS. PostgreSQL, full suite, live sources, hosted checks NOT_RUN; external submission OFF; #517 remains OPEN/PARTIAL.",
     "2026-10-09 #517 local integration task exact-source acceptance: API/service integration plus connected Chromium 11 PASS; focused web 12 PASS; TypeScript/Vite build, py_compile, lane validation and diff check PASS; docs/evidence/2026-10-09-source-candidate-local-integration-task.json.",
-    "2026-10-10 Web application sprint: all 41 new Python tests PASS; combined run 84/86 with two reproduced baseline failures; frontend 567/567 across 99 files; TypeScript/Vite build PASS. Exact source 25fea60889ad13cb5e837ab2263324f84fd20a04; docs/evidence/2026-10-10-durable-application-attempts.json."
+    "2026-10-10 Web application sprint: all 41 new Python tests PASS; combined run 84/86 with two reproduced baseline failures; frontend 567/567 across 99 files; TypeScript/Vite build PASS. Exact source 25fea60889ad13cb5e837ab2263324f84fd20a04; docs/evidence/2026-10-10-durable-application-attempts.json.",
+    "2026-10-11 five-feature batch: 55 focused Python unit/API/worker tests; 690 frontend tests; TypeScript/Vite production build; six synthetic Greenhouse/Lever Chromium adapter checks; skill, lane, compile and diff validators PASS at 5a00de653023193367c278fa4c63fc59878c7518."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -528,7 +530,8 @@
       ],
       "classification": "PREEXISTING_REPRODUCED_BASELINE",
       "note": "Do not treat the full combined suite as PASS. Active foreign form-analysis claims remain untouched."
-    }
+    },
+    "2026-10-11 full Python discovery was interrupted after more than ten minutes; unrelated browser cases reported strict-locator failures in application-priority, company-preference and job-risk-signal tests. It is incomplete and is not PASS evidence."
   ],
   "tests_not_run": [
     "Remaining full-spec integrations and product/release requirements",
@@ -625,7 +628,8 @@
     "MJ-REQ-250 live Greenhouse, PostgreSQL, full Python repository suite, hosted checks/review and cross-device browser-local acknowledgment persistence NOT_RUN; external submission OFF.",
     "MJ-REQ-114 PostgreSQL-specific execution, full repository suite, hosted CI/review, and live employer/ATS integrations NOT_RUN under local-only policy; external application submission OFF.",
     "MJ-REQ-266: PostgreSQL-specific and full repository suites, live providers, hosted Actions/reviews NOT_RUN; external application submission OFF.",
-    "2026-10-10 sprint: full repository Python discovery, PostgreSQL, real ATS, hosted CI/review, hard-crash reservation takeover, and user-personal runtime acceptance NOT_RUN."
+    "2026-10-10 sprint: full repository Python discovery, PostgreSQL, real ATS, hosted CI/review, hard-crash reservation takeover, and user-personal runtime acceptance NOT_RUN.",
+    "2026-10-11: PostgreSQL/Compose runtime, live ATS, hosted CI/review and real submission remain NOT_RUN/OFF; external submission OFF."
   ],
   "known_external_limitations": [
     "No production search provider is configured; the optional provider abstraction is verified with its disabled default and injected test provider. No production employer site was fetched in MJ-PR-018.",
@@ -670,13 +674,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
-    "tree": "1da9b1f5a3b62df294367ff5857bd63a0b315001",
+    "commit": "5a00de653023193367c278fa4c63fc59878c7518",
+    "tree": "7953fd05441ff89c72e1c591af19f84af6867dad",
     "result": "PARTIAL",
     "evidence": [
-      "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
+      "docs/evidence/2026-10-11-connected-feature-batch.json"
     ],
-    "verified_at_utc": "2026-10-10T21:57:26Z"
+    "verified_at_utc": "2026-10-11T00:53:32Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",

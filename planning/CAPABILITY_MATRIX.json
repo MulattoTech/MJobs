@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-11T00:02:17Z",
+  "timestamp": "2026-10-11T00:53:32Z",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2229,9 +2229,11 @@
     },
     {
       "requirement_id": "MJ-REQ-263",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-connected-feature-batch.json"
+      ],
+      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence."
     },
     {
       "requirement_id": "MJ-REQ-264",
@@ -2299,9 +2301,11 @@
     },
     {
       "requirement_id": "MJ-REQ-272",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-connected-feature-batch.json"
+      ],
+      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence."
     },
     {
       "requirement_id": "MJ-REQ-273",
@@ -2333,9 +2337,11 @@
     },
     {
       "requirement_id": "MJ-REQ-277",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-connected-feature-batch.json"
+      ],
+      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence."
     },
     {
       "requirement_id": "MJ-REQ-278",
@@ -2751,15 +2757,19 @@
     },
     {
       "requirement_id": "MJ-REQ-122.A01",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-connected-feature-batch.json"
+      ],
+      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence."
     },
     {
       "requirement_id": "MJ-REQ-122.A02",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-connected-feature-batch.json"
+      ],
+      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence."
     },
     {
       "requirement_id": "MJ-REQ-122.A03",
