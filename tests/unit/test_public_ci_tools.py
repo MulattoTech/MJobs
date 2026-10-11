@@ -5,6 +5,7 @@ import unittest
 from tools.ci.check_repository import check_markdown, check_workflows
 from tools.ci.run_shard import select_files
 from tools.ci.test_summary import summarize
+from tools.ci.release_gate import unmet
 
 
 class PublicCITests(unittest.TestCase):
@@ -53,6 +54,14 @@ class PublicCITests(unittest.TestCase):
         self.assertTrue(any('privileged' in error for error in errors))
         self.assertTrue(any('SHA-pinned' in error for error in errors))
         self.assertTrue(any('personal runner' in error for error in errors))
+
+    def test_release_gate_rejects_partial_and_empty_acceptance(self):
+        rows = [{'id': 'A', 'priority': 'P0', 'status': 'PASS'},
+                {'id': 'B', 'priority': 'P1', 'status': 'PARTIAL'},
+                {'id': 'C', 'priority': 'P4', 'status': 'NOT_RUN'}]
+        self.assertEqual(unmet(rows, 'p0p1'), ['B'])
+        self.assertEqual(unmet(rows, 'all'), ['B', 'C'])
+        self.assertTrue(unmet([], 'all'))
 
     def test_safe_readonly_workflow_is_accepted(self):
         folder = self.root / '.github/workflows'

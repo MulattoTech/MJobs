@@ -60,6 +60,9 @@ def check_workflows(root: Path) -> list[str]:
                 errors.append(f'{path.name}/{name}: explicit timeout required')
             if 'pull_request' in names and any(v == 'write' for v in job.get('permissions', {}).values()):
                 errors.append(f'{path.name}/{name}: PR job must not have write permissions')
+            for service in job.get('services', {}).values():
+                if "--health-cmd '" in service.get('options', ''):
+                    errors.append(f'{path.name}/{name}: service health commands require runner-compatible double quotes')
             for step in job.get('steps', []):
                 action = step.get('uses')
                 if action and not action.startswith('./') and not PIN.fullmatch(action):

@@ -1,3 +1,6 @@
 # Test tooling for GitHub runners, kept separate from application runtime.
 pytest==9.0.2
 PyYAML==6.0.3
+
+# Static documentation builder is exercised by unit tests.
+-r docs-requirements.txt
