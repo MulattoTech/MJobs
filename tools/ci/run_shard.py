@@ -11,7 +11,8 @@ ROOT = Path(__file__).resolve().parents[2]
 def select_files(root: Path, suite: str, index: int, count: int) -> list[str]:
     if suite not in {'browser', 'integration'} or count < 1 or not 0 <= index < count:
         raise ValueError('Invalid test shard')
-    files = sorted((root / 'tests' / suite).glob('test_*.py'))
+    folder = root / 'tests' / suite
+    files = sorted(set(folder.rglob('test_*.py')) | set(folder.rglob('*_test.py')))
     return [path.relative_to(root).as_posix() for n, path in enumerate(files) if n % count == index]
 
 

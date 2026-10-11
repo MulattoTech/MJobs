@@ -36,6 +36,14 @@ class PublicCITests(unittest.TestCase):
         self.assertEqual(len(set(flat)), 11)
         self.assertEqual(groups[0], select_files(self.root, 'browser', 0, 4))
 
+    def test_nested_and_suffix_tests_are_not_omitted(self):
+        folder = self.root / 'tests/integration/nested'
+        folder.mkdir(parents=True)
+        (folder / 'test_nested.py').write_text('')
+        (folder / 'suffix_test.py').write_text('')
+        selected = select_files(self.root, 'integration', 0, 1)
+        self.assertEqual(len(selected), 2)
+
     def test_invalid_shards_rejected(self):
         for args in [('browser', 4, 4), ('unknown', 0, 1), ('browser', -1, 4)]:
             with self.assertRaises(ValueError):

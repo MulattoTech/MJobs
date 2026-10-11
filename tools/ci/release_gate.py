@@ -7,7 +7,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[2]
 REPO = 'MulattoTech/MJobs'
-WORKFLOWS = ('ci.yml', 'integration.yml', 'connected-acceptance.yml', 'browser-regression.yml')
+WORKFLOWS = ('ci.yml', 'integration.yml', 'connected-acceptance.yml', 'browser-regression.yml', 'secret-scan.yml')
 
 
 def unmet(rows: list[dict], scope: str) -> list[str]:

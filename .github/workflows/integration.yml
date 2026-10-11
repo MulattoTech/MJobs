@@ -12,10 +12,15 @@ concurrency:
   group: integration-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 jobs:
-  integration:
-    name: Integration / PostgreSQL and Redis
+  shard:
+    name: Integration / shard ${{ matrix.shard }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        shard: [0, 1, 2]
     services:
       postgres:
         image: postgres:17
@@ -55,15 +60,35 @@ jobs:
         run: psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_worker_recovery'
       - name: Install controlled browser dependency for worker tests
         run: python -m playwright install --with-deps chromium
-      - name: Integration tests with disposable services
-        run: python -m pytest -q tests/integration --junitxml=outputs/ci/integration.xml
+      - name: Execute each integration test file in exactly one isolated shard
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: python -m tools.ci.run_shard --suite integration --index "$SHARD" --count 3
       - name: Test summary
         if: always() && hashFiles('tools/ci/test_summary.py') != ''
-        run: python -m tools.ci.test_summary outputs/ci/integration.xml
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: python -m tools.ci.test_summary "outputs/ci/integration-$SHARD.xml"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         if: always()
         with:
-          name: integration-results
-          path: outputs/ci/integration.xml
+          name: integration-results-${{ matrix.shard }}
+          path: outputs/ci/integration-*.xml
           retention-days: 7
           if-no-files-found: ignore
+  required:
+    name: Integration / PostgreSQL and Redis
+    needs: shard
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    env:
+      RESULT: ${{ needs.shard.result }}
+    steps:
+      - name: Require all integration shards to have passed
+        run: |
+          if [ "$RESULT" != success ]; then
+            echo "Integration shards did not all succeed: $RESULT"
+            exit 1
+          fi
+          echo 'Every integration shard passed with isolated PostgreSQL and Redis.'

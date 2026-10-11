@@ -77,7 +77,10 @@ def main() -> int:
     updates = []
     for issue in issues:
         labels = [label['name'] for label in issue.get('labels', [])]
+        old_status = prior_values.get(issue['number'], {}).get('status', 'Todo')
+        status = 'Done' if issue['state'] == 'closed' else ('Todo' if old_status == 'Done' else old_status)
         values = {
+            'Status': status,
             'Priority': next((s.split(':', 1)[1] for s in labels if s.startswith('priority:')), 'P3'),
             'Acceptance': acceptance.get(issue['number'], 'UNTRACKED'),
             'Area': next((s.split(':', 1)[1] for s in labels if s.startswith('area:')), 'untriaged'),

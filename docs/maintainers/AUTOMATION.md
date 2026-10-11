@@ -5,7 +5,7 @@
 | Gate | Trigger | Evidence |
 |---|---|---|
 | CI - fast | PR and main | Unit tests, Vitest/TypeScript/build, public workflow policy, documentation build and canonical validators. |
-| Integration | PR and main | Full Python integration directory with disposable PostgreSQL/Redis and explicit guarded recovery database. |
+| Integration | PR and main | All Python integration files across three isolated shards with disposable PostgreSQL/Redis and explicit guarded recovery database. |
 | Connected acceptance | PR/manual/weekly | Existing controlled Compose, mock ATS, browser journey and restart/persistence checks. |
 | Browser regression | Manual/twice weekly | Every browser test file assigned to one of four disjoint shards. Known failures stay failures. |
 | Dependency review | PR | New high/critical dependency vulnerabilities block the check. |
