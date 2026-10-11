@@ -704,7 +704,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     from apps.api.data_export import create_data_export_router
     app.include_router(create_data_export_router(store, output_dir=output_dir))
     from apps.api.transient_retention import create_transient_retention_router
-    app.include_router(create_transient_retention_router())
+    app.include_router(create_transient_retention_router(store=store))
     from apps.api.operation_progress import create_operation_progress_router
     app.include_router(create_operation_progress_router(store))
     app.state.resume_extraction_events = {}
@@ -787,10 +787,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         ready = all(checks.values())
         return JSONResponse({"status": "ready" if ready else "degraded", "checks": checks}, status_code=200 if ready else 503)
 
-    def queued(kind, entity_id, params):
-        operation_id = enqueue_operation(store, kind, entity_id, params)
-        with store.engine.connect() as connection:
-            state = connection.execute(select(m.operations.c.state).where(m.operations.c.id == operation_id)).scalar_one()
+    def queued(kind, entity_id, params, *, connection=None):
+        operation_id = enqueue_operation(store, kind, entity_id, params, connection=connection)
+        if connection is None:
+            with store.engine.connect() as owned_connection:
+                state = owned_connection.execute(select(m.operations.c.state).where(
+                    m.operations.c.id == operation_id)).scalar_one()
+        else:
+            state = connection.execute(select(m.operations.c.state).where(
+                m.operations.c.id == operation_id)).scalar_one()
         return {"operation_id": operation_id, "state": state}
 
     @app.get("/settings")
@@ -1957,8 +1962,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return add_application_note(store, profile_id, application_id,
                                     value.text, value.request_id)
 
-    @app.post("/applications", status_code=202)
-    def application(value: ApplicationInput):
+    def prepare_application(value: ApplicationInput, *, operation_connection=None):
         from services.dedupe.source_values import require_route_review
         from services.documents.tailor import eligible_rows, select_resume_rows, validate_user_rewrites
         from services.documents.errors import PreparationError
@@ -2050,9 +2054,13 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             **({'role_lens_id': value.role_lens_id,
                 'expected_role_lens_version': value.expected_role_lens_version}
                if value.role_lens_id is not None else {}),
-        })
+        }, connection=operation_connection)
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}
+
+    @app.post("/applications", status_code=202)
+    def application(value: ApplicationInput):
+        return prepare_application(value)
 
     @app.get("/profiles/{profile_id}/applications/{application_id}")
     def application_read(profile_id: str, application_id: str):
@@ -2396,6 +2404,19 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         if result.get("reason") == "RECONCILIATION_REQUIRED":
             return JSONResponse(result, status_code=409)
         return result
+
+    # Keep these routes before the static application fallback. All preparation
+    # actions reuse the existing route, fact, and document validation boundary.
+    from apps.api.application_rehearsal import create_application_rehearsal_router
+    from apps.api.profile_restore import create_profile_restore_router
+    from apps.api.pipeline_workbench import create_pipeline_workbench_router
+    from apps.api.email_status import create_email_status_router
+    app.include_router(create_application_rehearsal_router(store))
+    app.include_router(create_profile_restore_router(store, output_dir))
+    app.include_router(create_pipeline_workbench_router(
+        store, prepare_callback=lambda values, connection: prepare_application(
+            ApplicationInput(**values), operation_connection=connection)))
+    app.include_router(create_email_status_router(store))
 
     web = Path(__file__).resolve().parents[1] / "web" / "dist"
     if web.is_dir():

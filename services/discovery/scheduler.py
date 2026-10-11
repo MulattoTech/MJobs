@@ -212,7 +212,7 @@ def schedule_due_sources(store, at=None):
             "company_sources": schedule_company_sources(store, at)}
 
 
-def run_transient_retention_if_configured(environ=None, *, runner=None):
+def run_transient_retention_if_configured(environ=None, *, runner=None, store=None):
     """Run only the operator-configured managed-root retention policy.
 
     The policy parser and worker keep preview mode as the default. File removal
@@ -227,7 +227,7 @@ def run_transient_retention_if_configured(environ=None, *, runner=None):
         return None
     execute = run_with_config if runner is None else runner
     try:
-        summary = execute(raw_config)
+        summary = execute(raw_config, **({"store": store} if store is not None else {}))
     except Exception as error:
         logging.warning("Transient retention tick failed: %s", type(error).__name__)
         return None
@@ -260,7 +260,7 @@ def run_forever():
                 logging.exception("Scheduler tick failed; retrying without losing durable state")
             current = time.monotonic()
             if current >= next_retention_at:
-                run_transient_retention_if_configured()
+                run_transient_retention_if_configured(store=store)
                 next_retention_at = current + retention_interval
             time.sleep(interval)
     finally:

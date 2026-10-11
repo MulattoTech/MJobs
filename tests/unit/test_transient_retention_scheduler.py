@@ -6,6 +6,15 @@ from services.discovery.scheduler import run_transient_retention_if_configured
 
 
 class TransientRetentionSchedulerTests(unittest.TestCase):
+    def test_scheduler_passes_store_for_durable_user_policy(self):
+        config = '{"configured_root":"synthetic"}'
+        store = object()
+        runner = Mock(return_value={"status": "OK", "dry_run": True})
+
+        run_transient_retention_if_configured({CONFIG_ENV: config}, runner=runner, store=store)
+
+        runner.assert_called_once_with(config, store=store)
+
     def test_missing_policy_is_a_noop_and_never_selects_a_root(self):
         runner = Mock()
         self.assertIsNone(run_transient_retention_if_configured({}, runner=runner))
