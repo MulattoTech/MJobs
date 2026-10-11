@@ -1,15 +1,15 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-11T21:53:33.060118+00:00",
+  "generated_at": "2026-10-11T22:16:11.988980+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Durable uploaded comparison on scoped feature branch based on 12466a8cc820712b4842af02c9f2d4482102827a; final connected14PASS, full unit/durability1356PASS/752subtests and4PGskip, frontend768/buildPASS. Exact source hashes: docs/evidence/2026-10-11-durable-uploaded-comparison.json. Pre-existing dirty plan preserved.",
-    "current_verified_github_state": "Protected main12466a8cc820712b4842af02c9f2d4482102827a; PR542 merged. Durable comparison candidate publication/checks pending; original/reference acceptance unchanged.",
-    "current_verified_at": "2026-10-11T21:53:33.060118+00:00"
+    "current_verified_local_state": "PR543 replay metadata repair locally verified:25comparisonPASS/6subtests,3connectedChromiumPASS,unit/build/validatorsPASS;5PostgreSQLNOT_RUN. Exact source hashes docs/evidence/2026-10-11-comparison-replay-metadata.json; original dirty plan preserved.",
+    "current_verified_github_state": "Live remote main12466a8cc820712b4842af02c9f2d4482102827a and PR543 predecessor9e1f3231 verified; predecessor integration replay/Compose overflow FAIL. Repair publication and exact-head checks tracked in AFK state; original/reference acceptance unchanged.",
+    "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DURABLE-UPLOADED-COMPARISON-20261011",
   "current_objective": "Verify exact-head hosted PostgreSQL/Redis and protected integration of durable uploaded comparison; preserve parent PARTIAL and unresolved full-browser/security release gates.",

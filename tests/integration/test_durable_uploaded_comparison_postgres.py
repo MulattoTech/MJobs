@@ -42,6 +42,9 @@ class DurableComparisonPostgreSQLTests(unittest.TestCase):
     def test_durable_admission_replay_and_reopen(self):
         self.case.test_admit_disconnect_execute_reopen_and_replay_preserves_result()
 
+    def test_admission_replay_with_unknown_driver_rowcount(self):
+        self.case.test_admission_replay_with_unknown_driver_rowcount()
+
     def test_atomic_result_crash_recovery(self):
         self.case.test_result_write_crash_rolls_back_completion_then_recovers_once()
 

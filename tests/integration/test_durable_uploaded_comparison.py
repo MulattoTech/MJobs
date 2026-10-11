@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select, update
+from sqlalchemy import event, select, update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -60,6 +60,7 @@ class DurableUploadedComparisonTests(unittest.TestCase):
         before = self.store.profile('fixture')
         with TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root, operation_mode='FIXTURE')) as client:
             url, admitted = self.admission(client, app, target, upload)
+            self.assertFalse(admitted['replayed'])
             _, replay = self.admission(client, app, target, upload)
             self.assertEqual(replay['operation_id'], admitted['operation_id'])
             self.assertTrue(replay['replayed'])
@@ -76,9 +77,36 @@ class DurableUploadedComparisonTests(unittest.TestCase):
                 self.assertIn('Original summary', result['result']['base']['text'])
                 _, replay = self.admission(client, app, target, upload)
                 self.assertEqual(replay['state'], 'COMPLETED')
+                self.assertTrue(replay['replayed'])
             self.assertEqual(reopened.profile('fixture'), before)
         finally:
             reopened.engine.dispose()
+
+    def test_admission_replay_with_unknown_driver_rowcount(self):
+        """Unknown INSERT counts must not change real intent/replay identity."""
+        app, target = self.target(); upload = self.upload()
+
+        def unknown_insert_count(connection, clause, multiparams, params, options, result):
+            if getattr(clause, 'is_insert', False) and clause.table is m.operations:
+                # Model a driver's unknown count while preserving the real INSERT
+                # and any returned rows. No admission or persistence is mocked.
+                result.__dict__['rowcount'] = -1
+
+        event.listen(self.store.engine, 'after_execute', unknown_insert_count)
+        try:
+            with TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root, operation_mode='FIXTURE')) as client:
+                _, admitted = self.admission(client, app, target, upload)
+                self.assertFalse(admitted['replayed'])
+                _, replay = self.admission(client, app, target, upload)
+                self.assertTrue(replay['replayed'])
+                self.assertEqual(replay['operation_id'], admitted['operation_id'])
+            with self.store.engine.connect() as connection:
+                rows = connection.execute(select(m.operations).where(
+                    m.operations.c.id == admitted['operation_id'])).mappings().all()
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]['state'], 'QUEUED')
+        finally:
+            event.remove(self.store.engine, 'after_execute', unknown_insert_count)
 
     def test_conflicting_intent_and_foreign_profile_are_rejected(self):
         app, target = self.target(); upload = self.upload(); other = self.upload('docx')

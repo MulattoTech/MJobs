@@ -75,16 +75,19 @@ def queue_comparison(store, output_dir, profile_id, application_id, base_revisio
             from sqlalchemy.dialects.postgresql import insert as dialect_insert
         else:
             raise DurableComparisonError('COMPARISON_DATABASE_UNSUPPORTED')
-        inserted = connection.execute(dialect_insert(m.operations).values(
+        inserted_id = connection.execute(dialect_insert(m.operations).values(
             id=operation_id, kind=KIND, entity_id=application_id, params=params,
             state='QUEUED', error=None, updated_at=now(),
-        ).on_conflict_do_nothing(index_elements=[m.operations.c.id]))
+        ).on_conflict_do_nothing(index_elements=[m.operations.c.id])
+            .returning(m.operations.c.id)).scalar_one_or_none()
         current = connection.execute(select(m.operations).where(
             m.operations.c.id == operation_id).with_for_update()).mappings().one()
         if (current['kind'] != KIND or current['entity_id'] != application_id
                 or {k:v for k,v in current['params'].items() if k != 'queued_at'} != {k:v for k,v in params.items() if k != 'queued_at'}):
             raise DurableComparisonError('COMPARISON_IDENTITY_CONFLICT')
-        return {**status(current), 'replayed': inserted.rowcount == 0}
+        # INSERT rowcount may be unknown after the driver closes its cursor.
+        # RETURNING has one identity only when this transaction inserted it.
+        return {**status(current), 'replayed': inserted_id is None}
 
 
 def owned_operation(store, profile_id, application_id, operation_id):
