@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 import threading
 import time
 from uuid import uuid4
@@ -23,6 +24,8 @@ PROJECT_NAME_PATTERN = re.compile(r"mjobs-fixture-[a-f0-9]{12}\Z")
 RECOVERY_RESTART_SERVICES = (
     "postgres", "redis", "mock", "api", "scheduler", "worker", "source-worker", "document-worker",
 )
+RECOVERY_MUTATION_SERVICES = RECOVERY_RESTART_SERVICES
+REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 
 
 def _run_bounded(command, *, timeout, action, environment=None):
@@ -153,35 +156,96 @@ def restart_recovery_services(project_name, port):
 
 def worker_restart_count(project_name, port):
     """Read the restart count for this project's worker only."""
-    containers = compose(project_name, port, "ps", "-q", "worker").split()
+    containers = compose(project_name, port, "ps", "--all", "-q", "worker").split()
     if len(containers) != 1:
         raise RuntimeError("Project recovery worker target was missing or ambiguous")
+    return inspect_container(project_name, "worker", containers[0])["restart_count"]
+
+
+def inspect_container(project_name, service, container_id):
     inspected = _run_bounded(
-        ["docker", "inspect", "--format", "{{json .Config.Labels}}|{{.RestartCount}}", containers[0]],
-        timeout=10, action="Inspect recovery worker",
+        ["docker", "inspect", "--format",
+         "{{json .Config.Labels}}|{{.RestartCount}}|{{.State.Status}}", container_id],
+        timeout=10, action="Inspect recovery container",
     ).strip()
-    labels_json, separator, restart_count = inspected.partition("|")
-    if not separator:
-        raise RuntimeError("Project recovery worker inspection was malformed")
+    pieces = inspected.split("|")
+    if len(pieces) != 3:
+        raise RuntimeError("Project recovery container inspection was malformed")
     try:
-        labels = json.loads(labels_json)
-        count = int(restart_count)
+        labels = json.loads(pieces[0])
+        count = int(pieces[1])
     except (TypeError, ValueError, json.JSONDecodeError) as exc:
-        raise RuntimeError("Project recovery worker inspection was malformed") from exc
-    if (not isinstance(labels, dict)
-            or labels.get("com.docker.compose.project") != project_name
-            or labels.get("com.docker.compose.service") != "worker"):
-        raise RuntimeError("Project recovery worker inspection returned an unexpected target")
-    return count
+        raise RuntimeError("Project recovery container inspection was malformed") from exc
+    expected_labels = {
+        "com.docker.compose.project": project_name,
+        "com.docker.compose.service": service,
+        "com.docker.compose.project.config_files": str(COMPOSE_FILE.resolve()),
+        "com.docker.compose.project.working_dir": str(REPOSITORY_ROOT.resolve()),
+    }
+    if not isinstance(labels, dict) or any(labels.get(key) != value for key, value in expected_labels.items()):
+        raise RuntimeError(f"Project recovery {service} inspection returned an unexpected target")
+    if pieces[2] != "running":
+        raise RuntimeError(f"Project recovery {service} target is not running")
+    return {"restart_count": count, "status": pieces[2]}
+
+
+def preflight_recovery_targets(project_name, port):
+    """Verify every container target before any recovery stop/start/restart command."""
+    targets = {}
+    for service in RECOVERY_MUTATION_SERVICES:
+        containers = compose(project_name, port, "ps", "--all", "-q", service).split()
+        if len(containers) != 1:
+            raise RuntimeError(f"Project recovery {service} target was missing or ambiguous")
+        inspected = inspect_container(project_name, service, containers[0])
+        targets[service] = {"container_id": containers[0], **inspected}
+    return targets
+
+
+def validate_baseline(baseline):
+    """Require the exact connected UI evidence needed for receipt-only replay."""
+    if not isinstance(baseline, dict):
+        raise ValueError("Baseline must be a UI evidence object")
+    for key in ("profile_id", "application_id", "operation_id", "request_id"):
+        value = baseline.get(key)
+        if not isinstance(value, str) or REQUEST_ID_PATTERN.fullmatch(value) is None:
+            raise ValueError("Baseline is missing or has an invalid recovery identifier: " + key)
+    if baseline.get("external_submission_enabled") is not False:
+        raise ValueError("Baseline must prove external submission is disabled")
+    confirmation = baseline.get("confirmation")
+    if (not isinstance(confirmation, dict)
+            or confirmation.get("application_id") != baseline["application_id"]
+            or not isinstance(confirmation.get("receipt"), str)
+            or not confirmation["receipt"]
+            or type(confirmation.get("submission_count")) is not int
+            or confirmation["submission_count"] != 1):
+        raise ValueError("Baseline must contain the matching single mock confirmation")
+    return baseline
+
+
+def verify_recovered_application(request, baseline):
+    """Read current durable state and request identity; never queue an unknown intent."""
+    prefix = ("/profiles/" + baseline["profile_id"] + "/applications/"
+              + baseline["application_id"])
+    application = request("GET", prefix)
+    if (application.get("state") != "CONFIRMED"
+            or application.get("confirmation") != baseline["confirmation"]):
+        raise RuntimeError("Baseline application is not the same confirmed mock receipt")
+    operation = request("GET", "/operations/" + baseline["operation_id"])
+    if operation.get("state") != "COMPLETED":
+        raise RuntimeError("Baseline application operation is not completed")
+    recovered = request("GET", prefix + "/mock-runs/" + baseline["request_id"])
+    if (recovered.get("state") != "COMPLETED"
+            or recovered.get("operation_id") != baseline["operation_id"]
+            or recovered.get("external_submission_enabled") is not False):
+        raise RuntimeError("Baseline explicit mock run was not recovered as completed")
+    return prefix
 
 
 def run(baseline_path, evidence_path, project_name, port):
     project_name = validate_project_name(project_name)
     port = validate_port(port)
-    baseline = json.loads(Path(baseline_path).read_text(encoding="utf-8"))
-    for key in ("application_id", "operation_id", "confirmation"):
-        if key not in baseline:
-            raise ValueError("Baseline is missing required recovery evidence: " + key)
+    baseline = validate_baseline(json.loads(Path(baseline_path).read_text(encoding="utf-8")))
+    initial_targets = preflight_recovery_targets(project_name, port)
     api = f"http://127.0.0.1:{port}"
     actions = []
     with httpx.Client(base_url=api, timeout=15, trust_env=False) as client:
@@ -202,6 +266,12 @@ def run(baseline_path, evidence_path, project_name, port):
                 time.sleep(0.5)
             raise TimeoutError("Project recovery did not complete within 120 seconds")
 
+        # Validate supplied UI evidence and durable caller identity before stopping anything.
+        application_path = verify_recovered_application(request, baseline)
+        services_to_restore = tuple(
+            service for service in RECOVERY_RESTART_SERVICES
+            if initial_targets[service]["status"] == "running"
+        )
         try:
             compose(project_name, port, "stop", "worker", "source-worker", "document-worker", "redis")
             profile = dict(PROFILE, id="recovery-fictional-" + uuid4().hex[:12])
@@ -221,24 +291,30 @@ def run(baseline_path, evidence_path, project_name, port):
             actions.append({"action": "Worker supervision and durable outbox recovered after Redis returned", "result": "PASS"})
             restart_recovery_services(project_name, port)
             until(lambda: client.get("/readiness").status_code == 200)
-            application = request("GET", "/profiles/" + baseline["profile_id"] + "/applications/" + baseline["application_id"])
-            assert application["state"] == "CONFIRMED"
-            assert application["confirmation"] == baseline["confirmation"]
-            operation = request("GET", "/operations/" + baseline["operation_id"])
-            assert operation["state"] == "COMPLETED"
-            again = request("POST", "/profiles/" + baseline["profile_id"] + "/applications/" + baseline["application_id"] + "/mock-run", json={"submit": True})
-            assert again["operation_id"] == baseline["operation_id"] and again["state"] == "COMPLETED"
+            application_path = verify_recovered_application(request, baseline)
+            again = request("POST", application_path + "/mock-run", json={
+                "submit": True, "request_id": baseline["request_id"],
+            })
+            if (again.get("operation_id") != baseline["operation_id"]
+                    or again.get("state") != "COMPLETED"
+                    or again.get("replayed") is not True
+                    or again.get("external_submission_enabled") is not False):
+                raise RuntimeError("Explicit mock run replay returned an unexpected operation")
             # Verify the restarted mock server's independently persisted receipt.
             program = "import json,sys,urllib.request; print(json.dumps(json.load(urllib.request.urlopen('http://mock:8090/ats/receipts/'+sys.argv[1],timeout=5))))"
             receipt = json.loads(compose(project_name, port, "exec", "-T", "api", "python", "-c", program, baseline["application_id"]))
             assert receipt == baseline["confirmation"] and receipt["submission_count"] == 1
             actions.append({"action": "All services restarted; original application, operation and independent receipt survived without another submission", "result": "PASS"})
         finally:
-            compose(project_name, port, "start", "redis", "worker", "source-worker", "document-worker")
+            compose(project_name, port, "start", *services_to_restore)
     evidence = {"result": "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
-        "command": ("python -m cli.compose_recovery --baseline " + str(baseline_path)
-                    + " --evidence " + str(evidence_path)
-                    + " --project-name " + project_name + " --port " + str(port)),
+        "command": [sys.executable, "-m", "cli.compose_recovery", "--baseline", str(baseline_path),
+                    "--evidence", str(evidence_path), "--project-name", project_name,
+                    "--port", str(port)],
+        "compose_target": {"project_name": project_name, "port": port,
+                           "compose_file": str(COMPOSE_FILE.resolve()),
+                           "project_directory": str(REPOSITORY_ROOT.resolve()),
+                           "profile": "fixture", "services": list(RECOVERY_RESTART_SERVICES)},
         "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery", "actions": actions,
         "application_id": baseline["application_id"], "external_submission_enabled": False}
     Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")

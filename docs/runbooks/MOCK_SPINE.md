@@ -36,15 +36,33 @@ Profile facts and approved answers must be explicit, sourced and verified.
 
 ## Persistence and outage proof
 
+Run the browser proof against a disposable fixture project with a unique
+`mjobs-fixture-` project name and an unused loopback port. The browser proof
+writes the baseline consumed by recovery; it contains the confirmed mock
+application, completed operation, and stable caller `request_id`.
+
 ```powershell
-.venv\Scripts\python -m cli.compose_recovery --baseline outputs/mock-e2e.json --evidence outputs/recovery.json
+$fixtureSuffix = [guid]::NewGuid().ToString('N').Substring(0, 12)
+$project = "mjobs-fixture-$fixtureSuffix"
+$port = 18741
+$env:MJOBS_PORT = "$port"
+$env:COMPOSE_PROJECT_NAME = $project
+docker compose --file compose.yml --project-directory . --profile fixture --project-name $project up -d --build
+.venv\Scripts\python -m cli.ui_e2e --base-url "http://127.0.0.1:$port" --evidence outputs/ui-e2e.json
+.venv\Scripts\python -m cli.compose_recovery --baseline outputs/ui-e2e.json --evidence outputs/recovery.json --project-name $project --port $port
 ```
 
-This explicitly stops only this project's Redis/worker, persists a discovery
-request while disconnected, starts the worker without dependencies, restores
-Redis, then restarts all five long-running services. It checks the original
-application, operation and independent mock receipt and requires submission
-count one. Do not run two recovery proofs concurrently.
+The recovery command requires explicit project and port arguments and checks
+every target container's Compose project, service, Compose file, working
+directory, uniqueness, and running state before it changes service state. It
+then stops only this fixture's Redis and workers, persists a discovery request
+while disconnected, starts the worker without dependencies, restores Redis,
+and restarts the fixture services. After restart it reads the same explicit
+mock-run request before replaying it, and verifies that the original operation
+and independent mock receipt remain completed with submission count one. An
+unconfirmed application or missing/mismatched baseline stops before replay.
+External submission remains disabled. Do not run two recovery proofs
+concurrently.
 
 `docker compose --profile fixture stop` stops the project. `docker compose --profile fixture down` removes project
 containers/networks while preserving named volumes. Do not remove volumes when

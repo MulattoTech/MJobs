@@ -12,7 +12,10 @@ BASELINE = {
     "application_id": "application-fixture-1",
     "operation_id": "operation-baseline-1",
     "profile_id": "profile-fixture-1",
-    "confirmation": {"receipt_id": "receipt-fixture-1", "submission_count": 1},
+    "request_id": "ui-recovery-request-1",
+    "confirmation": {"application_id": "application-fixture-1", "receipt": "MOCK-application-fixture-1",
+                      "submission_count": 1},
+    "external_submission_enabled": False,
 }
 
 
@@ -35,6 +38,7 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
 
         compose_calls = []
         http_calls = []
+        events = []
         ready_responses = iter((
             _Response({"checks": {"queue": False}}, status_code=503),
             _Response({"checks": {"queue": True}}),
@@ -43,16 +47,22 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
 
         def request(method, path, **kwargs):
             http_calls.append((method, path, kwargs))
+            events.append(("http", method, path))
             if method == "POST" and path == "/discovery":
                 return _Response({"state": "QUEUED", "operation_id": "operation-recovery-1"})
             if method == "GET" and path == "/operations/operation-recovery-1":
                 return _Response({"state": "COMPLETED"})
-            if method == "GET" and path.startswith("/profiles/profile-fixture-1/applications/"):
+            if method == "GET" and path == "/profiles/profile-fixture-1/applications/application-fixture-1":
                 return _Response({"state": "CONFIRMED", "confirmation": BASELINE["confirmation"]})
             if method == "GET" and path == "/operations/operation-baseline-1":
                 return _Response({"state": "COMPLETED"})
+            if method == "GET" and path.endswith("/mock-runs/" + BASELINE["request_id"]):
+                return _Response({"operation_id": BASELINE["operation_id"], "state": "COMPLETED",
+                                  "external_submission_enabled": False})
             if method == "POST" and path.endswith("/mock-run"):
-                return _Response({"operation_id": BASELINE["operation_id"], "state": "COMPLETED"})
+                self.assertEqual(kwargs["json"]["request_id"], BASELINE["request_id"])
+                return _Response({"operation_id": BASELINE["operation_id"], "state": "COMPLETED",
+                                  "replayed": True, "external_submission_enabled": False})
             return _Response({})
 
         client = unittest.mock.MagicMock()
@@ -67,18 +77,23 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
 
         def run_bounded(command, *, timeout, action, environment=None):
             compose_calls.append((list(command), dict(environment or {})))
+            events.append(("docker", tuple(command)))
             if command[:2] == ["docker", "compose"]:
                 if "ps" in command:
-                    return "container-fixture-worker\n"
+                    service = command[-1]
+                    return "container-fixture-" + service + "\n"
                 if "exec" in command:
                     return json.dumps(BASELINE["confirmation"])
                 return ""
             if command[:2] == ["docker", "inspect"]:
+                service = command[-1].removeprefix("container-fixture-")
                 labels = {
                     "com.docker.compose.project": PROJECT,
-                    "com.docker.compose.service": "worker",
+                    "com.docker.compose.service": service,
+                    "com.docker.compose.project.config_files": str(compose_recovery.COMPOSE_FILE),
+                    "com.docker.compose.project.working_dir": str(compose_recovery.REPOSITORY_ROOT),
                 }
-                return json.dumps(labels) + "|1\n"
+                return json.dumps(labels) + "|1|running\n"
             self.fail(f"unexpected subprocess target: {command!r}")
 
         root = Path(compose_recovery.__file__).resolve().parents[1]
@@ -109,17 +124,181 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
                 self.assertEqual(environment.get("COMPOSE_PROFILES"), "fixture")
             else:
                 self.assertEqual(command[:2], ["docker", "inspect"])
-                self.assertIn("container-fixture-worker", command)
+        self.assertTrue(any(command[:2] == ["docker", "inspect"]
+                            and command[-1] == "container-fixture-worker" for command, _ in compose_calls))
 
         inspect_calls = [command for command, _ in compose_calls if command[:2] == ["docker", "inspect"]]
-        self.assertEqual(len(inspect_calls), 1)
-        self.assertTrue(any(command[-3:] == ["ps", "-q", "worker"] for command, _ in compose_calls
+        self.assertEqual(len(inspect_calls), len(compose_recovery.RECOVERY_MUTATION_SERVICES) + 1)
+        self.assertTrue(any(command[-4:] == ["ps", "--all", "-q", "worker"] for command, _ in compose_calls
                             if command[:2] == ["docker", "compose"]))
         self.assertEqual(evidence["result"], "PASS")
 
         urls = [call[1] for call in http_calls]
         self.assertIn("/discovery", urls)
         self.assertIn("/operations/operation-recovery-1", urls)
+        recovery_request_path = ("/profiles/profile-fixture-1/applications/application-fixture-1/"
+                                 "mock-runs/" + BASELINE["request_id"])
+        self.assertIn(recovery_request_path, urls)
+        recovery_reads = [index for index, call in enumerate(http_calls)
+                          if call[0] == "GET" and call[1] == recovery_request_path]
+        self.assertEqual(len(recovery_reads), 2)
+        replay_index = next(index for index, call in enumerate(http_calls)
+                            if call[0] == "POST" and call[1].endswith("/mock-run"))
+        self.assertLess(recovery_reads[0], recovery_reads[1])
+        self.assertLess(recovery_reads[1], replay_index)
+        restart_event = max(index for index, event in enumerate(events)
+                            if event[0] == "docker" and "restart" in event[1])
+        replay_event = next(index for index, event in enumerate(events)
+                            if event[0] == "http" and event[1] == "POST" and event[2].endswith("/mock-run"))
+        post_restart_read_event = max(index for index, event in enumerate(events)
+                                      if event[0] == "http" and event[1] == "GET"
+                                      and event[2] == recovery_request_path)
+        self.assertLess(restart_event, post_restart_read_event)
+        self.assertLess(post_restart_read_event, replay_event)
+        self.assertEqual(http_calls[replay_index][2]["json"], {
+            "submit": True, "request_id": BASELINE["request_id"],
+        })
+        self.assertTrue(all(call[0] != "POST" or not call[1].endswith("/mock-run")
+                            or call[2]["json"].get("request_id") == BASELINE["request_id"]
+                            for call in http_calls))
+        self.assertTrue(any(command[:2] == ["docker", "compose"]
+                            and "ps" in command and "--all" in command for command, _ in compose_calls))
+        self.assertEqual(evidence["compose_target"], {
+            "project_name": PROJECT,
+            "port": PORT,
+            "compose_file": str(Path(compose_recovery.__file__).resolve().parents[1] / "compose.yml"),
+            "project_directory": str(Path(compose_recovery.__file__).resolve().parents[1]),
+            "profile": "fixture",
+            "services": list(compose_recovery.RECOVERY_RESTART_SERVICES),
+        })
+
+    def test_unconfirmed_application_never_replays_request(self):
+        from cli import compose_recovery
+
+        calls = []
+        client = unittest.mock.MagicMock()
+        client.__enter__.return_value = client
+        client.request.side_effect = lambda method, path, **kwargs: (
+            calls.append((method, path, kwargs))
+            or _Response({"state": "SUBMISSION_UNCONFIRMED", "confirmation": None})
+        )
+        with tempfile.TemporaryDirectory() as temporary:
+            baseline_path = Path(temporary) / "baseline.json"
+            evidence_path = Path(temporary) / "evidence.json"
+            baseline_path.write_text(json.dumps(BASELINE), encoding="utf-8")
+            with patch.object(compose_recovery, "preflight_recovery_targets", return_value={
+                    service: {"status": "running"} for service in compose_recovery.RECOVERY_MUTATION_SERVICES
+            }) as preflight, \
+                    patch.object(compose_recovery.httpx, "Client", return_value=client), \
+                    patch.object(compose_recovery, "compose") as compose:
+                with self.assertRaisesRegex(RuntimeError, "same confirmed mock receipt"):
+                    compose_recovery.run(baseline_path, evidence_path, PROJECT, PORT)
+        preflight.assert_called_once_with(PROJECT, PORT)
+        self.assertFalse(any(method == "POST" and path.endswith("/mock-run")
+                             for method, path, _ in calls))
+        compose.assert_not_called()
+
+    def test_invalid_ui_baseline_fails_before_runtime_access(self):
+        from cli import compose_recovery
+
+        for change in (
+            {"request_id": None},
+            {"external_submission_enabled": True},
+            {"confirmation": {"receipt_id": "receipt-fixture-1", "submission_count": 2}},
+            {"profile_id": "fixture/profile?admin=true"},
+            {"application_id": "../other-application"},
+        ):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as temporary:
+                baseline = dict(BASELINE)
+                baseline.update(change)
+                baseline_path = Path(temporary) / "baseline.json"
+                evidence_path = Path(temporary) / "evidence.json"
+                baseline_path.write_text(json.dumps(baseline), encoding="utf-8")
+                with patch.object(compose_recovery, "_run_bounded") as docker, \
+                        patch.object(compose_recovery.httpx, "Client") as client:
+                    with self.assertRaises(ValueError):
+                        compose_recovery.run(baseline_path, evidence_path, PROJECT, PORT)
+                docker.assert_not_called()
+                client.assert_not_called()
+
+    def test_container_preflight_failure_has_no_mutation_or_finalizer_start(self):
+        from cli import compose_recovery
+
+        label_mismatches = (
+            ("com.docker.compose.project", "mjobs-fixture-ffffffffffff"),
+            ("com.docker.compose.service", "foreign-service"),
+            ("com.docker.compose.project.config_files", "C:/different/compose.yml"),
+            ("com.docker.compose.project.working_dir", "C:/different/workdir"),
+        )
+        for label, foreign_value in label_mismatches:
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as temporary:
+                commands = []
+                service_name = [None]
+
+                def run_bounded(command, *, timeout, action, environment=None):
+                    commands.append(list(command))
+                    if command[:2] == ["docker", "compose"]:
+                        service_name[0] = command[-1]
+                        return "foreign-container\n"
+                    labels = {
+                        "com.docker.compose.project": PROJECT,
+                        "com.docker.compose.service": service_name[0],
+                        "com.docker.compose.project.config_files": str(compose_recovery.COMPOSE_FILE.resolve()),
+                        "com.docker.compose.project.working_dir": str(compose_recovery.REPOSITORY_ROOT.resolve()),
+                    }
+                    labels[label] = foreign_value
+                    return json.dumps(labels) + "|0|running\n"
+
+                baseline_path = Path(temporary) / "baseline.json"
+                evidence_path = Path(temporary) / "evidence.json"
+                baseline_path.write_text(json.dumps(BASELINE), encoding="utf-8")
+                with patch.object(compose_recovery, "_run_bounded", side_effect=run_bounded), \
+                        patch.object(compose_recovery.httpx, "Client") as client:
+                    with self.assertRaisesRegex(RuntimeError, "unexpected target"):
+                        compose_recovery.run(baseline_path, evidence_path, PROJECT, PORT)
+
+                self.assertTrue(commands)
+                self.assertTrue(all("stop" not in command and "start" not in command and "restart" not in command
+                                    and "up" not in command for command in commands))
+                client.assert_not_called()
+
+    def test_preflight_rejects_missing_ambiguous_or_stopped_services(self):
+        from cli import compose_recovery
+
+        cases = (("", "missing or ambiguous"), ("container-a\ncontainer-b\n", "missing or ambiguous"),
+                 ("container-a\n", "not running"))
+        for container_ids, expected_error in cases:
+            with self.subTest(container_ids=container_ids, expected_error=expected_error), \
+                    tempfile.TemporaryDirectory() as temporary:
+                baseline_path = Path(temporary) / "baseline.json"
+                evidence_path = Path(temporary) / "evidence.json"
+                baseline_path.write_text(json.dumps(BASELINE), encoding="utf-8")
+                commands = []
+                service_name = [None]
+
+                def run_bounded(command, *, timeout, action, environment=None):
+                    commands.append(list(command))
+                    if command[:2] == ["docker", "compose"]:
+                        service_name[0] = command[-1]
+                        return container_ids
+                    labels = {
+                        "com.docker.compose.project": PROJECT,
+                        "com.docker.compose.service": service_name[0],
+                        "com.docker.compose.project.config_files": str(compose_recovery.COMPOSE_FILE.resolve()),
+                        "com.docker.compose.project.working_dir": str(compose_recovery.REPOSITORY_ROOT.resolve()),
+                    }
+                    status = "exited" if expected_error == "not running" else "running"
+                    return json.dumps(labels) + "|0|" + status + "\n"
+
+                with patch.object(compose_recovery, "_run_bounded", side_effect=run_bounded), \
+                        patch.object(compose_recovery.httpx, "Client") as client:
+                    with self.assertRaisesRegex(RuntimeError, expected_error):
+                        compose_recovery.run(baseline_path, evidence_path, PROJECT, PORT)
+
+                self.assertTrue(commands)
+                self.assertTrue(all((command[:2] == ["docker", "compose"] and "ps" in command)
+                                    or command[:2] == ["docker", "inspect"] for command in commands))
+                client.assert_not_called()
 
     def test_invalid_or_missing_target_is_rejected_before_compose_or_http(self):
         from cli import compose_recovery
