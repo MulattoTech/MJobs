@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "requirement_ids": [
+    "MJ-REQ-156",
+    "MJ-REQ-169",
+    "MJ-REQ-170",
+    "MJ-REQ-262"
+  ],
+  "github_issues": [157, 170, 171, 263],
+  "result": "PARTIAL",
+  "scope": "Integrated four connected local user workflows: persisted operation progress in Activity; profile-scoped CSV, JSON, and backup downloads in Profile; dry-run transient retention preview and scheduled cleanup; and source relationship graph selection/readback in Sources. Parent requirements remain partial.",
+  "source": {
+    "branch": "main",
+    "commit": "61305d46f809217511e7d708b0ede45c54d5919e",
+    "tree": "b3f2def3d8241de48f04cb2351f5a297eec09262",
+    "implementation_commit": "2ae4481d332a2c9ca54fa87b8abb1bbc0081ec1b",
+    "base": "e884ee9a649e3fcff0b24697cb7078473aa9c2a5"
+  },
+  "verified_at_utc": "2026-10-11T01:47:52Z",
+  "environment": {
+    "os": "Windows",
+    "database": "isolated SQLite fixtures",
+    "frontend": "local Vitest and Vite production build",
+    "browser": "local Chromium with synthetic profile/job fixtures and blocked external browser egress",
+    "delivery": "local-only; not pushed; hosted automation and review disabled"
+  },
+  "checks": [
+    {
+      "command": ".venv\\Scripts\\python.exe -m unittest tests.unit.test_source_relationship_graph tests.unit.test_data_export tests.unit.test_transient_retention tests.unit.test_operation_progress tests.unit.test_transient_retention_scheduler tests.integration.test_source_relationship_graph tests.integration.test_data_export_flow tests.integration.test_transient_retention tests.integration.test_persistent_operation_progress tests.integration.test_operation_progress_lifecycle tests.browser.test_source_relationship_graph tests.browser.test_data_export tests.browser.test_transient_retention tests.browser.test_operation_progress -q",
+      "result": "PASS",
+      "evidence": "47 focused unit, integration, and connected Chromium tests passed. Browser workflows verified source graph selection and persisted readback; all four profile export downloads with content, empty-state and isolation checks; read-only retention preview/reload with protected files preserved; and safe profile-scoped operation progress across reload."
+    },
+    {
+      "command": "npm test --prefix apps/web -- --run src/source-relationship-graph.test.tsx src/data-export.test.tsx src/transient-retention.test.tsx src/operation-progress.test.tsx src/feature-connections.test.tsx",
+      "result": "PASS",
+      "evidence": "27 focused frontend tests passed across 5 files."
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "evidence": "TypeScript and Vite production build passed. Existing advisory: generated JavaScript chunk is 841.84 kB."
+    },
+    {
+      "command": "python -m tools.verification.agent_skills; python -m tools.coordination.lane_coordination validate; git diff --check",
+      "result": "PASS",
+      "evidence": "Skill validation, lane coordination validation, and whitespace checks passed."
+    }
+  ],
+  "not_run": [
+    "PostgreSQL and Compose runtime acceptance.",
+    "Hosted Actions, hosted reviews, or external certification (disabled by local-only policy).",
+    "External application submission (OFF)."
+  ],
+  "limitations": [
+    "The operation progress, export, retention, and graph issues remain OPEN/PARTIAL; this checkpoint does not assert whole-requirement completion.",
+    "Retention cleanup requires a validated explicit local policy; preview is read-only, and the default behavior is no-op/dry-run."
+  ],
+  "safety": [
+    "No live provider requests or real application submissions were made.",
+    "Cross-profile reads were rejected or excluded in connected tests.",
+    "Retention preview and reload did not delete files; unrecognized and core application-history files were preserved.",
+    "Operation progress read models omitted private parameters and error sentinels."
+  ]
+}

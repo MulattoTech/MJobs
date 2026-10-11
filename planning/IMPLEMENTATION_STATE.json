@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-11T00:53:32Z",
+  "generated_at": "2026-10-11T01:47:52Z",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "Five bounded user workflows for issues #264, #273, #278, #346, and #347 are integrated locally on main at 5a00de653023193367c278fa4c63fc59878c7518 (tree 7953fd05441ff89c72e1c591af19f84af6867dad); evidence docs/evidence/2026-10-11-connected-feature-batch.json. Targeted Python 55/55, frontend 690/690, production build, and six local Chromium adapter tests PASS. Broader Python discovery was interrupted after unrelated browser locator failures; PostgreSQL, live providers, hosted checks NOT_RUN; external submission OFF.",
-    "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is three commits ahead and was not pushed. Issues #264/#273/#278/#346/#347 remain OPEN/PARTIAL. Hosted checks/reviews disabled by policy; no live ATS requests or external submissions.",
-    "current_verified_at": "2026-10-11T00:53:32Z"
+    "current_verified_local_state": "Four connected feature slices for #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262); evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json. Focused Python/API/Chromium 47/47, frontend 27/27, production build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
+    "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and was not pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL. Hosted checks/reviews disabled by policy; no live ATS requests or external submissions.",
+    "current_verified_at": "2026-10-11T01:47:52Z"
   },
-  "current_milestone": "CONNECTED-FIVE-FEATURE-LOCAL-20261011",
-  "current_objective": "Continue local integration and implement the next dependency-ready user-facing MJobs features after accepting the five connected workflow slices.",
+  "current_milestone": "CONNECTED-FOUR-FEATURE-ACCEPTANCE-20261011",
+  "current_objective": "Four additional connected workflows for data export, relationship graph, retention and operation progress are integrated and locally accepted as partial requirement slices. Continue with the next dependency-ready user-facing backlog issue after reconciling source and application ownership.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -101,7 +101,8 @@
     "Issue #517 bounded queue-integrity slice PASS at main f6976147fcae7cdab121abcb3090b2c310a3a53f: source-candidate integration cannot enter INTEGRATION_QUEUED without a user-supplied existing provider issue; API/service fail closed and connected UI persists/readbacks the linked issue without enabling collection. Evidence docs/evidence/2026-10-09-source-candidate-queue-guard.json. Broader catalogue issue remains PARTIAL.",
     "MJ-REQ-266 PASS locally at 64b123e4633b60cb655cc53a3b95188761860e8a: verified employer/ATS > exact trusted integrated-board provenance > aggregator; persisted route-to-posting/source/collector evidence, connected authority explanation, explicit user choice. Evidence docs/evidence/2026-10-09-trusted-integrated-board-route-authority.json.",
     "MJ-REQ-190 PASS: the connected Jobs interface exposes and verifies Best Match, Newest, Application Priority, Salary, Company, and Title sorting; see docs/evidence/2026-10-09-complete-job-sorting.json.",
-    "2026-10-11: Connected durable company discovery queue, fail-closed document generation recovery, profile-scoped settings transfer, read-only Greenhouse form review, and Lever route/form analysis integrated locally on main; issue scopes remain PARTIAL."
+    "2026-10-11: Connected durable company discovery queue, fail-closed document generation recovery, profile-scoped settings transfer, read-only Greenhouse form review, and Lever route/form analysis integrated locally on main; issue scopes remain PARTIAL.",
+    "2026-10-11: Profile-scoped CSV/JSON/complete-backup downloads, selectable source relationship graph, dry-run retention preview with configured scheduler, and durable Activity operation progress are wired into the app shell. Connected browser reload/isolation/safety acceptance and focused service/UI tests pass at local main 61305d46; full requirements remain PARTIAL."
   ],
   "partially_completed_capabilities": [
     "Single-user localhost profile and connected screens verified; broader UI, authentication and API requirements remain open",
@@ -490,7 +491,8 @@
     "MJ-FEATURE-517 ambiguous source URL retry integrated locally at main d53c99002d68bc52adf4eb207fc65877b6c69f74 from tested code source 31af99f2767344b2a46dd28551f99dd765157702 (tree 90c96f3e90f6c947b7f5d73ad13906d6a658d419); connected acceptance test commit 7765c147c061bd088dee4c7a852446ba5acf38f4 (tree 612b874f426cbd9a8bafa3f5f8010b92c1dd5601). Same-profile retries after a committed/lost response retain the request ID and one durable observation; success, changed input, and profile switching use a fresh ID. Missing route authority safely renders UNKNOWN. Evidence docs/evidence/2026-10-09-source-candidate-ambiguous-retry.json; 17 Python/unit/integration/connected Chromium tests, 25 web tests, TypeScript/Vite build, py_compile, lane validation, and diff checks PASS. PostgreSQL, full suite, live sources, hosted checks NOT_RUN; external submission OFF; #517 remains OPEN/PARTIAL.",
     "2026-10-09 #517 local integration task exact-source acceptance: API/service integration plus connected Chromium 11 PASS; focused web 12 PASS; TypeScript/Vite build, py_compile, lane validation and diff check PASS; docs/evidence/2026-10-09-source-candidate-local-integration-task.json.",
     "2026-10-10 Web application sprint: all 41 new Python tests PASS; combined run 84/86 with two reproduced baseline failures; frontend 567/567 across 99 files; TypeScript/Vite build PASS. Exact source 25fea60889ad13cb5e837ab2263324f84fd20a04; docs/evidence/2026-10-10-durable-application-attempts.json.",
-    "2026-10-11 five-feature batch: 55 focused Python unit/API/worker tests; 690 frontend tests; TypeScript/Vite production build; six synthetic Greenhouse/Lever Chromium adapter checks; skill, lane, compile and diff validators PASS at 5a00de653023193367c278fa4c63fc59878c7518."
+    "2026-10-11 five-feature batch: 55 focused Python unit/API/worker tests; 690 frontend tests; TypeScript/Vite production build; six synthetic Greenhouse/Lever Chromium adapter checks; skill, lane, compile and diff validators PASS at 5a00de653023193367c278fa4c63fc59878c7518.",
+    "2026-10-11 four-feature connected batch at 61305d46: 47 focused Python unit/API/Chromium tests; 27 frontend tests; TypeScript/Vite production build; agent-skill, lane-coordination, JSON and diff validation PASS. Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json."
   ],
   "tests_failed": [
     "MJ-REQ-004 clean-tree guard full local suite: 661 tests, 1 failure, 0 skips. Existing timing-sensitive application-pipeline browser test failed its server-thread shutdown assertion; isolated rerun passed. See docs/evidence/2026-10-06-fact-review-clean-tree.json and %TEMP%\\mjobs-req004-clean-tree-full-suite.log.",
@@ -674,13 +676,14 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "5a00de653023193367c278fa4c63fc59878c7518",
-    "tree": "7953fd05441ff89c72e1c591af19f84af6867dad",
+    "commit": "61305d46f809217511e7d708b0ede45c54d5919e",
+    "tree": "b3f2def3d8241de48f04cb2351f5a297eec09262",
     "result": "PARTIAL",
     "evidence": [
-      "docs/evidence/2026-10-11-connected-feature-batch.json"
+      "docs/evidence/2026-10-11-connected-feature-batch.json",
+      "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
     ],
-    "verified_at_utc": "2026-10-11T00:53:32Z"
+    "verified_at_utc": "2026-10-11T01:47:52Z"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -781,13 +784,13 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "e3115f1e826de9e6ea01cb663caeef2045854adc",
+  "last_implementation_commit": "61305d46f809217511e7d708b0ede45c54d5919e",
   "publication": {
     "result": "PARTIAL",
     "scope": "Local fast-forward integration only; current local main is not published.",
     "integration_method": "Non-force fast-forward from current origin/main under the local Codex integration lock.",
-    "local_main": "e3115f1e826de9e6ea01cb663caeef2045854adc",
-    "origin_main": "7bbec704b54bcd412ead484af8b33584c2d0e2ec",
+    "local_main": "61305d46f809217511e7d708b0ede45c54d5919e",
+    "origin_main": "e884ee9a649e3fcff0b24697cb7078473aa9c2a5",
     "hosted_checks": "NOT_RUN_BY_USER_POLICY"
   },
   "optional_afk_journal": {
@@ -16675,7 +16678,7 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "Current Codex root holds the local integration lock and owns only the transferred #5/#139/#143/#146 claims on codex/app-workflow-recovery-takeover-20261010. Previous branches/worktrees and dirty files remain preserved; no other lane claims were changed.",
+  "ownership": "Current Codex root holds the local integration lock; claims for integrated #157/#170/#171/#263 paths were released after issue comments and local acceptance. Previous branches/worktrees and user-owned untracked files remain preserved; no other lane claims were changed.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -16688,9 +16691,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-11T00:02:17Z",
-  "current_verified_local_state": "Local main fast-forward integrated the transferred application workflow at e3115f1e826de9e6ea01cb663caeef2045854adc (source commit 1c7f439bae47ad3f06653c4d129446364742a4d4, tree 7ce4d8d6b2a091c469bf6fd491e79900c11b6530). Exact focused local checks: 125 passed, 0 failed, 1 dedicated PostgreSQL recovery skip; 34 frontend tests and TypeScript/Vite build pass. Evidence: docs/evidence/2026-10-10-application-recovery-transfer-validation.json. External submissions OFF; real ATS and hosted checks NOT_RUN.",
-  "current_verified_github_state": "origin/main remains 7bbec704b54bcd412ead484af8b33584c2d0e2ec; local main is four accepted commits ahead and has not been pushed. GitHub ownership-transfer and active-claim comments are recorded on issues #5, #139, #143 and #146.",
+  "updated_at": "2026-10-11T01:47:52Z",
+  "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
+  "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
     {
       "issue": 246,
@@ -16698,7 +16701,7 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-11T00:02:17Z",
+  "current_verified_at": "2026-10-11T01:47:52Z",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [

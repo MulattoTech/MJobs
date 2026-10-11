@@ -1411,9 +1411,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-10-07-dead-letter-queue.json"
+        "docs/evidence/2026-10-07-dead-letter-queue.json",
+        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open Persistent worker-operation slice adds durable dead-letter state and operator actions; complete requirement remains open."
+      "note": "Durable operation progress, safe profile-scoped API readback, worker lifecycle timestamps, and connected Activity reload acceptance are integrated locally. Four-feature acceptance evidence records focused checks. Full operation orchestration/recovery requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-157",
@@ -1507,17 +1508,20 @@
     },
     {
       "requirement_id": "MJ-REQ-169",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
+      ],
+      "note": "Profile-scoped jobs/applications CSV, JSON, and document-byte backup routes are mounted and connected to the Profile UI. Connected browser acceptance downloads and parses all four formats, checks profile isolation and empty CSV states; full backup/recovery requirement remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-170",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-07-live-feedback-retention.json"
+        "docs/evidence/2026-10-07-live-feedback-retention.json",
+        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
       ],
-      "note": "Issue #171 adds a 30-day automatic retention policy for timestamped live-feedback session folders, including latest-pointer recovery; isolated temporary-filesystem tests and focused adjacent GUI/Chromium validation pass. Broader old raw payloads, other diagnostic screenshots/HTML, temporary generated files and rotated-log cleanup remain NOT_RUN. Full MJ-REQ-170 remains PARTIAL. Evidence docs/evidence/2026-10-07-live-feedback-retention.json."
+      "note": "A bounded transient-file service, fixed-scope read-only API preview, protected-file checks, and explicit-config scheduler are integrated locally. Connected browser preview/reload and 14 focused service/API/browser tests pass. Default behavior is no-op/dry-run; whole-host retention coverage remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-171",
@@ -2223,9 +2227,11 @@
     },
     {
       "requirement_id": "MJ-REQ-262",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones"
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
+      ],
+      "note": "Profile-scoped company/source/job/route/application relationship graph is exposed through a read-only API and connected Sources UI with selection, refresh, empty/error states, and durable browser readback. Broader graph editing/lineage acceptance remains PARTIAL."
     },
     {
       "requirement_id": "MJ-REQ-263",

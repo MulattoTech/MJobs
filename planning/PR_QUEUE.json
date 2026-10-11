@@ -1733,7 +1733,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-043-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #386 / MJ-REF-016 dead-letter slice integrated at b778917a56d266a50f3cb1e21c9f4220bb20a28c; evidence docs/evidence/2026-10-07-dead-letter-queue.json. Broader MJ-REQ-156/160/183/184 orchestration and operations scope remains open."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #386 / MJ-REF-016 dead-letter slice integrated at b778917a56d266a50f3cb1e21c9f4220bb20a28c; evidence docs/evidence/2026-10-07-dead-letter-queue.json. Local #157 progress slice now adds durable worker progress/timestamps, a safe scoped read API, connected Activity view, and reload/profile-isolation browser proof at main 61305d46; evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json. Broader MJ-REQ-156/160/183/184 orchestration and operations scope remains open."
     },
     {
       "id": "MJ-PR-044",
@@ -1793,7 +1793,7 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "codex/mj-req170-feedback-retention-20261007",
       "draft_until_verified": true,
-      "notes": "Issue #171 / MJ-REQ-170 scoped retention slice integrated at main 64dfebcd51d0d1c926d9b3856a42028ec577f88d. New live-feedback sessions prune only recognized directories older than 30 days; 24 focused/adjacent feedback tests and validators pass. Backup/restore, data export and broader retention remain incomplete; keep this grouped PR partial and preserve its dependencies. Evidence docs/evidence/2026-10-07-live-feedback-retention.json.",
+      "notes": "Issue #171 / MJ-REQ-170 scoped retention slice integrated at main 64dfebcd51d0d1c926d9b3856a42028ec577f88d. The current local batch adds profile-scoped jobs/applications CSV, JSON, verified document-byte backup downloads, a read-only retention preview and explicit-config scheduler; connected browser acceptance verifies all four downloads, profile isolation, retention reload and protected-file preservation. Main 61305d46; evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json. PostgreSQL/Compose and broader backup/restore acceptance remain incomplete; keep this grouped PR partial and preserve its dependencies.",
       "scope_complete": false,
       "evidence_path": "docs/evidence/2026-10-07-live-feedback-retention.json",
       "base": "9a6612e48040d2e17af7ba13a579fc66521a5fea",
