@@ -18,7 +18,7 @@ from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.discovery.sources.collect import collect_source
-from tests.browser.test_profile_import import resume_pdf
+from tests.browser.test_profile_import import dispatch_queued_resume_extractions, resume_pdf
 from workers.tasks import execute_operation
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -141,13 +141,19 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         page.get_by_role("button", name="Store resume", exact=True).click()
                         resume_row = page.locator("[data-resume-version='1']")
                         expect(resume_row).to_be_visible()
-                        resume_row.get_by_role("button", name="Extract and review", exact=True).click()
-                        review = page.get_by_role("region", name="Resume extraction review")
-                        expect(review).to_be_visible()
-                        expect(review.get_by_text(
-                            "Supported synthetic Linux servers for a fictional lab.", exact=False
-                        )).to_be_visible()
+                        with dispatch_queued_resume_extractions(store, root, operation_mode="FIXTURE"):
+                            resume_row.get_by_role("button", name="Extract and review", exact=True).click()
+                            review = page.get_by_role("region", name="Resume extraction review")
+                            expect(review).to_be_visible()
+                            expect(review.get_by_text(
+                                "Supported synthetic Linux servers for a fictional lab.", exact=False
+                            )).to_be_visible()
                         expect(review.get_by_label("Add contact email", exact=False)).not_to_be_checked()
+                        pending_suggestion = review.locator("label.fact-suggestion").filter(
+                            has_text="Supported synthetic Linux servers for a fictional lab.")
+                        suggestion_check = pending_suggestion.locator('input[type="checkbox"]')
+                        self.assertFalse(suggestion_check.is_checked())
+                        suggestion_check.check()
                         review.get_by_role("button", name="Add selected to profile editor", exact=True).click()
                         pending_fact = page.locator("fieldset.fact").filter(
                             has_text="Supported synthetic Linux servers for a fictional lab.")

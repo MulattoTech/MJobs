@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 @contextmanager
-def dispatch_queued_resume_extractions(store, output_dir, worker_gate=None):
+def dispatch_queued_resume_extractions(store, output_dir, operation_mode="PERSONAL", worker_gate=None):
     """Run the real worker locally for this browser test; no Redis service needed."""
     from apps.api import main as api_main
     from workers.tasks import execute_operation
@@ -34,7 +34,7 @@ def dispatch_queued_resume_extractions(store, output_dir, worker_gate=None):
     threads, failures = [], []
     worker_env = {
         "MJOBS_DATABASE_URL": store.engine.url.render_as_string(hide_password=False),
-        "MJOBS_OPERATION_MODE": "PERSONAL",
+        "MJOBS_OPERATION_MODE": operation_mode,
         "MJOBS_OUTPUT_DIR": str(output_dir),
     }
 
@@ -205,7 +205,7 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     page.get_by_role('button', name='Store resume', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Resume stored locally')).to_be_visible()
                     worker_gate = threading.Event()
-                    with dispatch_queued_resume_extractions(store, root, worker_gate):
+                    with dispatch_queued_resume_extractions(store, root, worker_gate=worker_gate):
                         page.get_by_role('button', name='Extract and review', exact=True).click()
                         deadline = time.monotonic() + 5
                         while store.count('worker_operations') < 1 and time.monotonic() < deadline:
@@ -225,6 +225,11 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     expect(review.get_by_text('Maintained support@example.invalid routing.', exact=False)).to_be_visible()
                     expect(review.get_by_text('Dates to review: 2020 to 2024.', exact=False)).to_be_visible()
                     expect(review.get_by_text('responsibility', exact=True)).to_be_visible()
+                    career_suggestions = review.locator('label.fact-suggestion:has(strong) input[type="checkbox"]')
+                    self.assertGreater(career_suggestions.count(), 0)
+                    for index in range(career_suggestions.count()):
+                        self.assertFalse(career_suggestions.nth(index).is_checked())
+                        career_suggestions.nth(index).check()
                     review.get_by_label('Add contact email', exact=False).check()
                     review.get_by_label('Add contact phones', exact=False).check()
                     review.get_by_label('Add contact github', exact=False).check()
@@ -259,6 +264,10 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     with dispatch_queued_resume_extractions(store, root):
                         page.get_by_role('button', name='Extract and review', exact=True).click()
                         expect(review).to_be_visible()
+                        repeated_suggestions = review.locator(
+                            'label.fact-suggestion:has(strong) input[type="checkbox"]')
+                        for index in range(repeated_suggestions.count()):
+                            repeated_suggestions.nth(index).check()
                     page.get_by_role('button', name='Add selected to profile editor', exact=True).click()
                     page.get_by_role('button', name='Save profile', exact=True).click()
                     expect(page.get_by_role('status').filter(has_text='Profile saved')).to_be_visible()

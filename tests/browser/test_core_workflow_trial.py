@@ -15,7 +15,7 @@ import uvicorn
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
-from tests.browser.test_profile_import import resume_pdf
+from tests.browser.test_profile_import import dispatch_queued_resume_extractions, resume_pdf
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -125,14 +125,19 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     page.get_by_label("Resume label", exact=True).fill("Synthetic IT Resume")
                     page.get_by_role("button", name="Store resume", exact=True).click()
                     expect(page.get_by_role("status").filter(has_text="Resume stored locally")).to_be_visible()
-                    page.get_by_role("button", name="Extract and review", exact=True).click()
-                    review = page.get_by_role("region", name="Resume extraction review")
-                    expect(review).to_be_visible()
+                    with dispatch_queued_resume_extractions(store, root, operation_mode="FIXTURE"):
+                        page.get_by_role("button", name="Extract and review", exact=True).click()
+                        review = page.get_by_role("region", name="Resume extraction review")
+                        expect(review).to_be_visible()
                     expect(review.get_by_text("Maintained support@example.invalid routing.",
                                               exact=False)).to_be_visible()
                     selected = review.locator(
                         'label.fact-suggestion:has(strong) input[type="checkbox"]')
                     self.assertGreater(selected.count(), 0)
+                    self.assertTrue(all(not selected.nth(index).is_checked()
+                                        for index in range(selected.count())))
+                    for index in range(selected.count()):
+                        selected.nth(index).check()
                     self.assertTrue(all(selected.nth(index).is_checked()
                                         for index in range(selected.count())))
                     review.get_by_role("button", name="Add selected to profile editor",
