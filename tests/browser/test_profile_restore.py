@@ -67,6 +67,7 @@ class ProfileRestoreBrowserTests(unittest.TestCase):
                     context.route('**/*', local_only)
                     page = context.new_page()
                     page.add_init_script(
+                        "if (!localStorage.getItem('mjobs-profile')) "
                         "localStorage.setItem('mjobs-profile', 'restore-browser-source')")
                     page.on('pageerror', lambda error: errors.append(str(error)))
                     page.on('request', lambda request: requests.append(
