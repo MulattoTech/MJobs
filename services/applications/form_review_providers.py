@@ -125,7 +125,11 @@ def analyze_application_form(provider, html, *, route_url) -> dict:
             return analyze_form_html(
                 normalized_provider, html, route_url=route["url"],
             )
-        return _lever_report(analyze_lever_markup(html))
+        # The durable worker supplies the same bounded response bytes as the
+        # Greenhouse path. Lever's static markup parser accepts text, so decode
+        # locally while preserving fail-closed human review for malformed text.
+        markup = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
+        return _lever_report(analyze_lever_markup(markup))
     except Exception:
         # Parser exception text is untrusted and may contain supplied markup.
         return {"status": "REVIEW_REQUIRED", "reason": "ANALYSIS_FAILED", "fields": []}

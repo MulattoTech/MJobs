@@ -9,7 +9,10 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import now
-from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
+from services.applications.form_review_providers import (
+    analyze_application_form,
+    normalize_application_route,
+)
 from workers.operations import OperationCancelled, OperationTimedOut
 
 
@@ -168,19 +171,16 @@ def _validate_application(connection, operation, params):
             or row["provider"] != params["provider"]
             or row["url"] != params["route_url"]):
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")
-    if params["provider"] != "greenhouse":
+    if params["provider"] not in {"greenhouse", "lever"}:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
-    normalized = GreenhouseApplicationAdapter().normalize_route({
-        "provider": row["provider"], "url": row["url"],
-        "tenant": row["tenant"], "requisition": row["requisition"],
-    })
+    normalized = normalize_application_route(row["provider"], row["url"])
     if normalized is None:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     return normalized
 
 
 def handle_form_review(store, operation, *, fetch_html, check):
-    """Analyze one frozen Greenhouse application route and persist a safe report.
+    """Analyze one frozen supported application route and persist a safe report.
 
     `fetch_html` must be the caller's bounded, read-only public request function.
     `check` is the operation cancellation/deadline checkpoint; its exceptions
@@ -223,9 +223,8 @@ def handle_form_review(store, operation, *, fetch_html, check):
         raise FormReviewError("FORM_REVIEW_FETCH_FAILED") from None
 
     try:
-        from services.applications.form_review import analyze_form_html
-        analysis = _safe_report(analyze_form_html(
-            "greenhouse", html, route_url=normalized["url"],
+        analysis = _safe_report(analyze_application_form(
+            params["provider"], html, route_url=normalized["url"],
         ))
     except FormReviewError:
         raise
@@ -239,7 +238,7 @@ def handle_form_review(store, operation, *, fetch_html, check):
         "input_fingerprint": params["input_fingerprint"],
         "profile_id": params["profile_id"],
         "route_id": params["route_id"],
-        "provider": "greenhouse",
+        "provider": params["provider"],
         "analysis": analysis,
     }
     with store.engine.begin() as connection:

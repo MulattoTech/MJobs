@@ -11,7 +11,7 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity
-from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
+from services.applications.form_review_providers import normalize_application_route
 from workers.dispatch import enqueue_operation
 
 
@@ -40,12 +40,9 @@ def _application_route(store, profile_id: str, application_id: str):
         )).where(m.applications.c.id == application_id)).mappings().one_or_none()
     if row is None or row["profile_id"] != profile_id:
         raise HTTPException(404, "Application not found for this profile")
-    if row["provider"] != "greenhouse" or row["target"] == "MOCK":
+    if row["provider"] not in {"greenhouse", "lever"} or row["target"] == "MOCK":
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
-    normalized = GreenhouseApplicationAdapter().normalize_route({
-        "provider": row["provider"], "tenant": row["tenant"],
-        "requisition": row["requisition"], "url": row["url"],
-    })
+    normalized = normalize_application_route(row["provider"], row["url"])
     if normalized is None:
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
     return dict(row), normalized
@@ -53,6 +50,41 @@ def _application_route(store, profile_id: str, application_id: str):
 
 def create_application_form_review_router(store) -> APIRouter:
     router = APIRouter()
+
+    def review_response(profile_id: str, application_id: str, request_id: str | None):
+        filters = [
+            m.operations.c.kind == _KIND,
+            m.operations.c.entity_id == application_id,
+            m.operations.c.params["profile_id"].as_string() == profile_id,
+        ]
+        if request_id is not None:
+            filters.append(m.operations.c.params["request_id"].as_string() == request_id)
+        with store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                *filters,
+            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc()).limit(1)).mappings().one_or_none()
+            if row is None:
+                return {
+                    "request_id": None,
+                    "state": "IDLE",
+                    "error_code": None,
+                    "analysis": None,
+                }
+            event_rows = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == application_id,
+                m.audit.c.action == _KIND,
+            )).mappings()
+            report = next((event["payload"].get("analysis") for event in event_rows
+                           if isinstance(event["payload"], dict)
+                           and event["payload"].get("operation_id") == row["id"]), None)
+        params = row["params"] if isinstance(row["params"], dict) else {}
+        error = row["error"] if isinstance(row["error"], str) and _SAFE_ERROR.fullmatch(row["error"]) else None
+        return {
+            "request_id": params.get("request_id"),
+            "state": row["state"],
+            "error_code": error,
+            "analysis": report,
+        }
 
     @router.post(
         "/profiles/{profile_id}/applications/{application_id}/form-reviews",
@@ -82,27 +114,19 @@ def create_application_form_review_router(store) -> APIRouter:
         return {"request_id": value.request_id, "operation_id": operation_id, "state": state}
 
     @router.get(
+        "/profiles/{profile_id}/applications/{application_id}/form-reviews/latest",
+    )
+    def read_latest_form_review(profile_id: str, application_id: str):
+        row, _ = _application_route(store, profile_id, application_id)
+        return review_response(profile_id, application_id, None)
+
+    @router.get(
         "/profiles/{profile_id}/applications/{application_id}/form-reviews/{request_id}",
     )
     def read_form_review(profile_id: str, application_id: str, request_id: str):
-        with store.engine.connect() as connection:
-            row = connection.execute(select(m.operations).where(
-                m.operations.c.kind == _KIND,
-                m.operations.c.entity_id == application_id,
-                m.operations.c.params["profile_id"].as_string() == profile_id,
-                m.operations.c.params["request_id"].as_string() == request_id,
-            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc()).limit(1)).mappings().one_or_none()
-            if row is None:
-                raise HTTPException(404, "Form review request not found")
-            event_rows = connection.execute(select(m.audit.c.payload).where(
-                m.audit.c.entity_id == application_id,
-                m.audit.c.action == _KIND,
-            )).mappings()
-            report = next((event["payload"].get("analysis") for event in event_rows
-                           if isinstance(event["payload"], dict)
-                           and event["payload"].get("operation_id") == row["id"]), None)
-        error = row["error"] if isinstance(row["error"], str) and _SAFE_ERROR.fullmatch(row["error"]) else None
-        return {"request_id": request_id, "state": row["state"], "error_code": error,
-                "analysis": report}
+        response = review_response(profile_id, application_id, request_id)
+        if response["request_id"] is None:
+            raise HTTPException(404, "Form review request not found")
+        return response
 
     return router
