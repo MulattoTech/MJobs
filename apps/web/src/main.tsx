@@ -1565,8 +1565,8 @@ function App() {
           <p className="safety">Review status is not collection authorization. No source is enabled by capture or review.</p>
         </section>
         {operationMode==='PERSONAL'&&<CompanyDiscoveryRequests rows={discoveryRequests} busy={!!busy}
-          onReview={(row,website)=>action('Reviewing company website',async()=>{
-            try {await queue('/company-discovery/requests/'+encodeURIComponent(row.id)+'/review',{website:website.trim(),revision:row.revision});}
+          onReview={(row,website,confirmCompanyIdentity)=>action('Reviewing company website',async()=>{
+            try {await queue('/company-discovery/requests/'+encodeURIComponent(row.id)+'/review',{website:website.trim(),revision:row.revision,confirm_company_identity:confirmCompanyIdentity});}
             finally {await refresh(profileRef.current);}
           })}
           onDismiss={row=>action('Dismissing company request',async()=>{

@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import httpx
 from playwright.sync_api import expect, sync_playwright
-from sqlalchemy import select
+from sqlalchemy import select, update
 import uvicorn
 
 from apps.api.main import create_app
@@ -115,9 +115,69 @@ class CompanyDiscoveryRequestsBrowserTests(unittest.TestCase):
                         expect(card).to_contain_text("Company not seen before")
                         expect(card).to_contain_text("Strong job match")
                         expect(card).to_contain_text("Reviewing a site does not verify employer ownership")
+                        confirm_identity = card.get_by_label("I confirm this website belongs to Example Public Employer", exact=True)
+                        expect(confirm_identity).not_to_be_checked()
                         card.get_by_label("Website to review (HTTPS)").fill("https://employer.example/")
+
+                        default_payload = []
+                        def reject_default_review(route):
+                            default_payload.append(route.request.post_data_json)
+                            route.fulfill(status=409, json={"detail": "Controlled stale-review response"})
+
+                        page.route("**/company-discovery/requests/*/review", reject_default_review)
+                        with page.expect_response(lambda response: response.request.method == "POST" and "/company-discovery/requests/" in response.url and response.url.endswith("/review")) as default_review:
+                            card.get_by_role("button", name="Review website and discover", exact=True).click()
+                        self.assertEqual(default_review.value.status, 409)
+                        self.assertEqual(default_payload, [{
+                            "website": "https://employer.example/", "revision": request["revision"],
+                            "confirm_company_identity": False,
+                        }])
+                        page.unroute("**/company-discovery/requests/*/review", reject_default_review)
+                        expect(card.get_by_role("button", name="Review website and discover", exact=True)).to_be_enabled()
+                        expect(confirm_identity).not_to_be_checked()
+
+                        card.get_by_label("Website to review (HTTPS)").fill("https://other.example/")
+                        confirm_identity.check()
+                        card.get_by_label("Website to review (HTTPS)").fill("https://employer.example/")
+                        expect(confirm_identity).not_to_be_checked()
+                        confirm_identity.check()
+                        with store.engine.begin() as connection:
+                            connection.execute(update(m.company_discovery_requests).where(
+                                m.company_discovery_requests.c.id == request["id"],
+                            ).values(revision=request["revision"] + 1))
+                        page.get_by_role("button", name="Activity", exact=True).click()
+                        with page.expect_response(lambda response: response.request.method == "GET" and response.url.endswith("/company-discovery/requests")):
+                            page.get_by_role("button", name="Refresh activity", exact=True).click()
+                        page.get_by_role("button", name="Sources", exact=True).click()
+                        card = page.locator("article[aria-label$='discovery request']").filter(has_text="Example Public Employer").first
+                        confirm_identity = card.get_by_label("I confirm this website belongs to Example Public Employer", exact=True)
+                        expect(confirm_identity).not_to_be_checked()
+                        card.get_by_label("Website to review (HTTPS)").fill("https://employer.example/")
+                        confirm_identity.check()
+
+                        confirmed_payload = []
+                        def reject_confirmed_review(route):
+                            confirmed_payload.append(route.request.post_data_json)
+                            route.fulfill(status=409, json={"detail": "Controlled stale-review response"})
+
+                        page.route("**/company-discovery/requests/*/review", reject_confirmed_review)
+                        with page.expect_response(lambda response: response.request.method == "POST" and "/company-discovery/requests/" in response.url and response.url.endswith("/review")) as confirmed_review:
+                            card.get_by_role("button", name="Review website and discover", exact=True).click()
+                        self.assertEqual(confirmed_review.value.status, 409)
+                        self.assertEqual(confirmed_payload, [{
+                            "website": "https://employer.example/", "revision": request["revision"] + 1,
+                            "confirm_company_identity": True,
+                        }])
+                        page.unroute("**/company-discovery/requests/*/review", reject_confirmed_review)
+                        expect(card.get_by_role("button", name="Review website and discover", exact=True)).to_be_enabled()
+                        expect(confirm_identity).to_be_checked()
+                        confirm_identity.uncheck()
                         with page.expect_response(lambda response: response.request.method == "POST" and "/company-discovery/requests/" in response.url and response.url.endswith("/review")) as review_response:
                             card.get_by_role("button", name="Review website and discover", exact=True).click()
+                        self.assertEqual(review_response.value.request.post_data_json, {
+                            "website": "https://employer.example/", "revision": request["revision"] + 1,
+                            "confirm_company_identity": False,
+                        })
                         operation_id = review_response.value.json()["operation_id"]
                         self.assertTrue(operation_id)
 
