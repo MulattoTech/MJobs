@@ -33,7 +33,7 @@ class PersistentOperationProgressApiTests(unittest.TestCase):
     def _client(self):
         return TestClient(create_app(
             self.store, "http://127.0.0.1:1", self.root,
-            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+            "redis://127.0.0.1:1/0", operation_mode="FIXTURE"))
 
     def tearDown(self):
         self.client.close()

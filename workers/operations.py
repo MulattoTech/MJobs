@@ -111,6 +111,8 @@ def claim(store, operation_id):
         timestamp = now()
         values = {"state": "RUNNING", "attempt_count": row["attempt_count"] + 1,
                   "last_attempt_at": timestamp, "updated_at": timestamp,
+                  "current_step": "PREPARING", "progress": max(1, row["progress"] or 0),
+                  "started_at": row["started_at"] or timestamp, "completed_at": None,
                   "lease_expires_at": (datetime.now(timezone.utc) + timedelta(seconds=timeout() + 30)).isoformat()}
         connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
         store._audit(connection, operation_id, "OPERATION_ATTEMPT_STARTED",
@@ -138,7 +140,8 @@ def admit_inline(store, kind, entity_id):
             m.operations.c.state == "RUNNING",
             m.operations.c.lease_expires_at <= timestamp,
         ).values(state="FAILED", error="LEASE_EXPIRED", lease_expires_at=None,
-                 updated_at=timestamp))
+                 updated_at=timestamp, completed_at=timestamp,
+                 current_step="FINALIZING"))
         active = connection.execute(select(func.count()).select_from(m.operations).where(
             m.operations.c.kind.in_(CATEGORY_KINDS[category]),
             m.operations.c.state == "RUNNING")).scalar_one()
@@ -147,6 +150,8 @@ def admit_inline(store, kind, entity_id):
         connection.execute(m.operations.insert().values(
             id=operation_id, kind=kind, entity_id=entity_id, params={},
             state="RUNNING", error=None, updated_at=timestamp, attempt_count=1,
+            current_step="PREPARING", progress=1, started_at=timestamp,
+            completed_at=None, retry_count=0, recovery_metadata={},
             cancel_requested=False,
             lease_expires_at=(datetime.now(timezone.utc)
                               + timedelta(seconds=timeout() + 30)).isoformat(),
@@ -168,11 +173,16 @@ def finish_inline(store, operation_id, state, error=None):
             return False
         if row.cancel_requested and state == "COMPLETED":
             state, error = "CANCELLED", "CANCEL_REQUESTED"
+        finished_at = now()
+        completed = state == "COMPLETED"
+        progress_values = {"progress": 100} if completed else {}
         connection.execute(update(m.operations).where(
             m.operations.c.id == operation_id,
             m.operations.c.kind.in_(INLINE_KINDS),
             m.operations.c.state == "RUNNING",
-        ).values(state=state, error=error, updated_at=now(), lease_expires_at=None))
+        ).values(state=state, error=error, updated_at=finished_at,
+                 current_step="COMPLETED" if completed else "FINALIZING",
+                 completed_at=finished_at, lease_expires_at=None, **progress_values))
         return True
 
 
@@ -207,7 +217,14 @@ def request_cancel(store, operation_id):
                 return {**row, "reason": "RECONCILIATION_REQUIRED"}
         if row["state"] not in ("QUEUED", "RUNNING"):
             return {**row, "reason": "TERMINAL_OPERATION"}
-        values = {"cancel_requested": True, "state": "CANCELLED" if row["state"] == "QUEUED" else row["state"], "updated_at": now()}
+        timestamp = now()
+        queued_cancel = row["state"] == "QUEUED"
+        values = {"cancel_requested": True,
+                  "state": "CANCELLED" if queued_cancel else row["state"],
+                  "updated_at": timestamp}
+        if queued_cancel:
+            values.update(completed_at=timestamp, current_step="FINALIZING",
+                          recovery_metadata={"action": "NONE"})
         connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(**values))
         store._audit(connection, operation_id, "CANCELLATION_REQUESTED", {})
         return {**row, **values}
@@ -233,7 +250,10 @@ def retry_dead_letter(store, operation_id):
             if blocker:
                 raise OperationActionError(blocker)
         values = {"state": "QUEUED", "cancel_requested": False,
-                  "lease_expires_at": None, "updated_at": timestamp}
+                  "lease_expires_at": None, "updated_at": timestamp,
+                  "current_step": "RETRYING", "completed_at": None,
+                  "retry_count": row["retry_count"] + 1,
+                  "recovery_metadata": {"action": "RETRY"}}
         changed = connection.execute(update(m.operations).where(
             m.operations.c.id == operation_id,
             m.operations.c.state == "DEAD_LETTERED").values(**values))
@@ -259,7 +279,9 @@ def discard_dead_letter(store, operation_id):
         if row["state"] != "DEAD_LETTERED":
             raise OperationActionError("OPERATION_NOT_DEAD_LETTERED")
         values = {"state": "DISCARDED", "discarded_at": timestamp,
-                  "lease_expires_at": None, "updated_at": timestamp}
+                  "lease_expires_at": None, "updated_at": timestamp,
+                  "completed_at": timestamp, "current_step": "FINALIZING",
+                  "recovery_metadata": {"action": "MANUAL_REVIEW"}}
         changed = connection.execute(update(m.operations).where(
             m.operations.c.id == operation_id,
             m.operations.c.state == "DEAD_LETTERED").values(**values))
@@ -302,7 +324,15 @@ def recover_expired(store):
                             connection.execute(update(m.applications).where(
                                 m.applications.c.id == application["id"]).values(state="REVIEW_REQUIRED"))
             values = {"state": state, "error": error, "lease_expires_at": None,
-                      "updated_at": timestamp}
+                      "updated_at": timestamp,
+                      "current_step": "RECOVERING",
+                      "retry_count": row["retry_count"] + (1 if state == "QUEUED" else 0),
+                      "recovery_metadata": {"action": "RESUME" if state == "QUEUED" else "MANUAL_REVIEW"}}
+            if state in {"COMPLETED", "CANCELLED", "FAILED", "BLOCKED", "DEAD_LETTERED"}:
+                values["completed_at"] = timestamp
+                if state == "COMPLETED":
+                    values["current_step"] = "COMPLETED"
+                    values["progress"] = 100
             if state == "DEAD_LETTERED":
                 values["dead_lettered_at"] = timestamp
             connection.execute(update(m.operations).where(

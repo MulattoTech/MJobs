@@ -15,6 +15,8 @@ from workers.dispatch import enqueue_operation
 
 
 ACTIVE_STATES = {"QUEUED", "RUNNING"}
+RETENTION_INTERVAL_ENV = "MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS"
+DEFAULT_RETENTION_INTERVAL_SECONDS = 86400
 
 
 def _parse_timestamp(value):
@@ -210,13 +212,45 @@ def schedule_due_sources(store, at=None):
             "company_sources": schedule_company_sources(store, at)}
 
 
+def run_transient_retention_if_configured(environ=None, *, runner=None):
+    """Run only the operator-configured managed-root retention policy.
+
+    The policy parser and worker keep preview mode as the default. File removal
+    requires the explicit ``prune_enabled`` and ``dry_run`` configuration gates.
+    """
+    import logging
+    from workers.transient_retention import CONFIG_ENV, run_with_config
+
+    environment = os.environ if environ is None else environ
+    raw_config = environment.get(CONFIG_ENV)
+    if not isinstance(raw_config, str) or not raw_config.strip():
+        return None
+    execute = run_with_config if runner is None else runner
+    try:
+        summary = execute(raw_config)
+    except Exception as error:
+        logging.warning("Transient retention tick failed: %s", type(error).__name__)
+        return None
+    if isinstance(summary, dict):
+        logging.info("Transient retention status=%s dry_run=%s removed_count=%s removed_bytes=%s error_codes=%s",
+                     summary.get("status"), summary.get("dry_run"),
+                     summary.get("removed_count"), summary.get("removed_bytes"),
+                     summary.get("errors", []))
+    return summary
+
+
 def run_forever():
     mode = operation_mode_from_env()
     store = Store(os.environ["MJOBS_DATABASE_URL"])
     interval = int(os.environ.get("MJOBS_SCHEDULER_TICK_SECONDS", "30"))
     if not 5 <= interval <= 300:
         raise ValueError("MJOBS_SCHEDULER_TICK_SECONDS must be 5 through 300")
+    retention_interval = int(os.environ.get(RETENTION_INTERVAL_ENV,
+                                            str(DEFAULT_RETENTION_INTERVAL_SECONDS)))
+    if not 300 <= retention_interval <= 2592000:
+        raise ValueError(f"{RETENTION_INTERVAL_ENV} must be 300 through 2592000")
     store.bind_workspace_mode(mode)
+    next_retention_at = 0.0
     try:
         while True:
             try:
@@ -224,6 +258,10 @@ def run_forever():
             except Exception:
                 import logging
                 logging.exception("Scheduler tick failed; retrying without losing durable state")
+            current = time.monotonic()
+            if current >= next_retention_at:
+                run_transient_retention_if_configured()
+                next_retention_at = current + retention_interval
             time.sleep(interval)
     finally:
         store.engine.dispose()

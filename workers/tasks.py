@@ -360,7 +360,13 @@ def execute_operation(operation_id):
                 error = error or "OPERATION_FAILED"
             finished_at = now()
             values = {"state": state, "error": error, "lease_expires_at": None,
-                      "updated_at": finished_at}
+                      "updated_at": finished_at,
+                      "current_step": "COMPLETED" if state == "COMPLETED" else "FINALIZING",
+                      "completed_at": finished_at,
+                      "recovery_metadata": ({"action": "NONE"} if state == "COMPLETED" else
+                                            {"action": "MANUAL_REVIEW"} if state in {"DEAD_LETTERED", "BLOCKED"} else {})}
+            if state == "COMPLETED":
+                values["progress"] = 100
             if state == "DEAD_LETTERED":
                 values["dead_lettered_at"] = finished_at
             changed = connection.execute(update(m.operations).where(m.operations.c.id == operation_id,

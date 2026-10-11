@@ -699,6 +699,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_match_feedback_router(store))
     from apps.api.company_preferences import create_company_preferences_router
     app.include_router(create_company_preferences_router(store))
+    from apps.api.source_relationship_graph import create_source_relationship_graph_router
+    app.include_router(create_source_relationship_graph_router(store))
+    from apps.api.data_export import create_data_export_router
+    app.include_router(create_data_export_router(store, output_dir=output_dir))
+    from apps.api.transient_retention import create_transient_retention_router
+    app.include_router(create_transient_retention_router())
+    from apps.api.operation_progress import create_operation_progress_router
+    app.include_router(create_operation_progress_router(store))
     app.state.resume_extraction_events = {}
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
