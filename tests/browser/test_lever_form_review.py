@@ -192,7 +192,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                         field["name"] == "gender"
                         and field["review_reason"] == "SENSITIVE_FIELD"
                         for field in durable_payload["analysis"]["fields"]))
-                    self.assertFalse(any(marker in durable.content for marker in PRIVATE_MARKERS))
+                    self.assertFalse(any(marker in durable.body() for marker in PRIVATE_MARKERS))
 
                     # A full app reload and reopening the persisted Lever application
                     # must recover the completed safe inspection from durable state.
