@@ -2,6 +2,14 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 16: active comparison row mobile repair
+
+- Same installed runner10584, single mutation owner, root checkout and PR #543 branch. Parent source `009a85ac20b7d439c43387f606a8246d2f8a1dfe`; publication identity is recorded in AFK queue/events. Goal contract and original dirty release-candidate plan preserved.
+- #532 / MJ-REQ-255: table containment did not constrain an active operation; connected browser reproduced437px document width at390px. Operation text now shrinks/wraps and Cancel remains reachable. Regression uses real prepare/upload/queue admission, clicks Cancel, verifies202/CANCELLED and database persistence, reload and profile isolation.
+- Final focused Chromium4PASS/0SKIP; frontend768PASS/131files; production build, catalogue, agent-skills, progress/dashboard and diff checks PASS. Local Luna review found malformed seed; corrected via production admission and reverified; follow-up found no important issue. Evidence: `docs/evidence/2026-10-11-activity-operation-mobile.json`.
+- Predecessor hosted: integration all3shards/aggregate PASS; Compose run38180343193/attempt1/job114591365134 FAIL mobile overflow; full browser run38180341193 all4shards FAIL. Exact failure packet/log preserved; no unchanged rerun. Corrected-head hosted checks remain pending. Parent requirements and goal0/7 remain incomplete; full local Compose NOT_RUN (Docker unavailable); submissions OFF.
+- Next: inspect corrected-head Compose/integration/browser jobs and repair remaining concrete failures before protected integration. Preserved security branch3d7f54b3 waits for serial publication. Rollback via source revert; no data/migration/configuration changes.
+
 ## Iteration 15: Activity mobile repair; predecessor PostgreSQL proof passed
 
 - One mutation owner under live runner10584 lock; immutable AFK goal remains0/7. Root `C:\Tools\Dev\MJobs`, branch `feat/durable-uploaded-comparison-157-20261011`, predecessor `b0196fdf519e98ed5e066cc7d6998d9e82a35d59`; remote main `12466a8cc820712b4842af02c9f2d4482102827a`. Original dirty release-candidate plan remains preserved and excluded from staging. Exact publication identity lives in AFK queue/events.

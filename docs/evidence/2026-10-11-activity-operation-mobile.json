@@ -1,0 +1,53 @@
+{
+  "status": "PASS_LOCAL_HOSTED_PENDING",
+  "iteration": 16,
+  "utc": "2026-10-11T22:31:20.685316+00:00",
+  "issue": 532,
+  "requirement": "MJ-REQ-255",
+  "sourceParent": "009a85ac20b7d439c43387f606a8246d2f8a1dfe",
+  "sourceSha256": {
+    "apps/web/src/style.css": "850ceaa1e8c712e54cf6aec0ec1e38ce0dcdbd4094d8d11bc3fe16b24240457f",
+    "tests/browser/test_search_history_connected.py": "397ccccca6ef463605a856058ff513ff40a3b7d62eed8ad427ba25ff22bd5df4"
+  },
+  "behavior": "Active operation full label/status/Cancel fit390px; cancellation durable, reload/profile isolation preserved",
+  "negativeControl": {
+    "result": "FAIL437>390",
+    "artifact": "outputs/ci/iteration16-mobile-red.xml"
+  },
+  "checks": [
+    {
+      "command": "python -m pytest -q tests/browser/test_search_history_connected.py tests/browser/test_company_discovery_activity.py tests/browser/test_uploaded_resume_comparison.py",
+      "result": "4PASS/0SKIP",
+      "artifact": "outputs/ci/iteration16-browser-green-final.xml"
+    },
+    {
+      "command": "npm --prefix apps/web run test",
+      "result": "768PASS/131files"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS; approved child-process execution"
+    },
+    {
+      "command": "agent_skills; catalogue; progress validate; progress_dashboard --check; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "predecessor": {
+    "head": "009a85ac20b7d439c43387f606a8246d2f8a1dfe",
+    "composeRun": 38180343193,
+    "attempt": 1,
+    "job": 114591365134,
+    "result": "FAIL mobile overflow; exact job log retrieved",
+    "integration": "all3shards and aggregate PASS",
+    "browser": "all4shards FAIL; no unchanged rerun"
+  },
+  "limits": [
+    "Valid comparison admission through prepare/save_resume/queue_comparison; execution/crash criteria belong to separate comparison acceptance",
+    "Full hosted checks pending on correction",
+    "Docker unavailable locally; full Compose NOT_RUN",
+    "Parent and goal acceptance unchanged",
+    "Private data untouched; submissions OFF"
+  ],
+  "review": "Local Luna review identified malformed seed; replaced with production admission and reran4Chromium; follow-up review found no remaining important issue"
+}
