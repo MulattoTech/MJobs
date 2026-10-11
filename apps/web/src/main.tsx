@@ -1620,7 +1620,8 @@ function App() {
               <label>Employment type<select value={searchEmployment} onChange={e=>setSearchEmployment(e.target.value)}><option value="">Any</option><option value="FULL_TIME">Full-time</option><option value="PART_TIME">Part-time</option><option value="CONTRACT">Contract</option><option value="CONTRACT_TO_HIRE">Contract-to-hire</option><option value="TEMPORARY">Temporary</option><option value="INTERNSHIP">Internship</option><option value="OTHER">Other</option></select></label>
             </div>
             <label>Include titles<textarea required value={searchTitles} onChange={e=>setSearchTitles(e.target.value)} placeholder={"System Administrator\nInfrastructure Engineer\nNOC Engineer"}/></label>
-            <button disabled={!!busy||sources.length===0}>Save search</button>
+            <button disabled={!!busy}>Save search</button>
+            {sources.length===0&&<p className="muted">No sources enrolled yet. Save this search now and add sources next; scheduled discovery stays off.</p>}
           </form>}
           {searchProfiles.map(search=>{
             const savedSchedule={enabled:search.scheduler?.enabled??false,interval:search.scheduler?.interval_seconds??3600};

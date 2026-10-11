@@ -12,7 +12,6 @@ import uvicorn
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
-from services.discovery.sources.collect import configure_source
 from tests.integration.test_spine import PROFILE
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,8 +30,7 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
             profile_id = "remote-infrastructure-seed-profile"
             store.save_profile({**PROFILE, "id": profile_id, "name": "Seed Fixture",
                                 "email": "seed@example.test"})
-            configure_source(store, "seed-browser-source", provider="greenhouse", enabled=True,
-                             jitter_seconds=0)
+            self.assertEqual(store.count("job_sources"), 0)
             store.engine.dispose()
             store = Store(database_url)
 
@@ -94,6 +92,7 @@ class SearchProfileSeedBrowserTests(unittest.TestCase):
                     expect(page.get_by_role("combobox", name="Remote preference", exact=True)).to_have_value("REQUIRED")
                     expect(page.get_by_role("combobox", name="Employment type", exact=True)).to_have_value("FULL_TIME")
 
+                    expect(page.get_by_role("button", name="Save search", exact=True)).to_be_enabled()
                     page.get_by_role("button", name="Save search", exact=True).click()
                     expect(page.get_by_role("region", name="Schedule “Remote Infrastructure / SysAdmin”")).to_be_visible()
                     schedule = page.get_by_role("region", name="Schedule “Remote Infrastructure / SysAdmin”")
