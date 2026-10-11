@@ -14,7 +14,6 @@ from urllib.parse import unquote
 from uuid import uuid4
 
 from fastapi import FastAPI, HTTPException, Request, Query
-from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -724,7 +723,19 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             code = ("AI_TASK_CONFIG_INVALID" if request.url.path.endswith("/ai-task-settings")
                     else "AI_FUNNEL_POLICY_INVALID")
             return JSONResponse({"detail": {"code": code}}, status_code=422)
-        return await request_validation_exception_handler(request, error)
+        # Pydantic's default response includes each rejected value under
+        # `input`. Validation failures can contain credentials, application
+        # answers, or other private user data, so retain only structural
+        # diagnostics that cannot echo request content.
+        safe_errors = []
+        for item in error.errors():
+            location = item.get("loc", ())
+            safe_errors.append({
+                "loc": [str(part) for part in location],
+                "msg": str(item.get("msg", "Invalid request"))[:240],
+                "type": str(item.get("type", "value_error"))[:96],
+            })
+        return JSONResponse({"detail": safe_errors}, status_code=422)
 
     @app.exception_handler(NoResultFound)
     async def missing(_, error):
