@@ -1,0 +1,5 @@
+/plan Continue MJobs from the current published main and existing release-candidate plan. Read AGENTS.md, the current handoff, requirement index, current GitHub security findings, open P0/P1 issues and exact failed CI/browser results. Do not repeat the modernization or write another broad roadmap.
+
+Return three dependency-ready engineering packages, ranked by security/data-loss risk, importance to the actual user journey, technical difficulty and how much other work they unlock. First distinguish real product defects from stale test assumptions. Start with high/critical security findings that affect real execution paths, then browser/navigation/review blockers, durable document comparison, saved-search-driven discovery and employer/ATS workflow completion.
+
+For each package give issue IDs, concrete end-to-end behavior, affected interfaces, failure/recovery cases and decisive tests. Keep this plan short. Reuse working infrastructure. After the plan is established, return to execution and use the installed AFK-DEV loop under the main directive. No speculative PASS, no arbitrary session-length goal, no extra integration owners.

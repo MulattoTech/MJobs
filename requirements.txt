@@ -1,0 +1,2 @@
+# Dependency entry point for maintenance tooling; runtime is pinned in requirements.lock.
+-r requirements.lock

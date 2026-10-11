@@ -1,0 +1,135 @@
+# Reviewed historical false positives only; no rule or directory-wide suppression.
+# Evidence file/container SHA-256 digest; not a credential
+dd0d66c8ba2ddd386ed97a236ccd9bd4754270c3:docs/evidence/2026-10-11-six-team-followups.json:generic-api-key:33
+# Evidence file/container SHA-256 digest; not a credential
+15f4219c7372b027f4012751493504be4c5c9136:docs/evidence/2026-10-11-durable-discovery-recovery.json:generic-api-key:26
+# Evidence file/container SHA-256 digest; not a credential
+15f4219c7372b027f4012751493504be4c5c9136:docs/evidence/2026-10-11-durable-discovery-recovery.json:generic-api-key:30
+# Evidence file/container SHA-256 digest; not a credential
+e3115f1e826de9e6ea01cb663caeef2045854adc:docs/evidence/2026-10-10-application-recovery-transfer-validation.json:generic-api-key:28
+# Evidence file/container SHA-256 digest; not a credential
+e3115f1e826de9e6ea01cb663caeef2045854adc:docs/evidence/2026-10-10-application-recovery-transfer-validation.json:generic-api-key:29
+# Evidence file/container SHA-256 digest; not a credential
+e3115f1e826de9e6ea01cb663caeef2045854adc:docs/evidence/2026-10-10-application-recovery-transfer-validation.json:generic-api-key:31
+# Verified Git object ID in evidence metadata; not a credential
+e3115f1e826de9e6ea01cb663caeef2045854adc:docs/evidence/2026-10-10-application-recovery-transfer-validation.json:generic-api-key:51
+# Verified Git object ID in evidence metadata; not a credential
+e3115f1e826de9e6ea01cb663caeef2045854adc:docs/evidence/2026-10-10-application-recovery-transfer-validation.json:generic-api-key:52
+# Verified Git object ID in evidence metadata; not a credential
+e3115f1e826de9e6ea01cb663caeef2045854adc:docs/evidence/2026-10-10-application-recovery-transfer-validation.json:generic-api-key:54
+# Literal synthetic provider key inside a unit-test mock/assertion
+f0e06585720a0a46eda42d13587af30519675df7:tests/unit/test_ai_providers.py:generic-api-key:214
+# Literal synthetic provider key inside a unit-test mock/assertion
+f0e06585720a0a46eda42d13587af30519675df7:tests/unit/test_ai_providers.py:generic-api-key:218
+# Evidence file/container SHA-256 digest; not a credential
+e90ac3edb32b55d1e1b956109355642e5e7a6321:docs/evidence/2026-10-10-positive-skill-evidence.json:generic-api-key:45
+# Evidence file/container SHA-256 digest; not a credential
+e90ac3edb32b55d1e1b956109355642e5e7a6321:docs/evidence/2026-10-10-positive-skill-evidence.json:generic-api-key:55
+# Evidence file/container SHA-256 digest; not a credential
+e90ac3edb32b55d1e1b956109355642e5e7a6321:docs/evidence/2026-10-10-positive-skill-evidence.json:generic-api-key:78
+# Evidence file/container SHA-256 digest; not a credential
+50a34f58e96da161b01f1a4da5561ef06a85011d:docs/evidence/2026-10-10-positive-skill-evidence.json:generic-api-key:45
+# Evidence file/container SHA-256 digest; not a credential
+50a34f58e96da161b01f1a4da5561ef06a85011d:docs/evidence/2026-10-10-positive-skill-evidence.json:generic-api-key:55
+# Evidence file/container SHA-256 digest; not a credential
+50a34f58e96da161b01f1a4da5561ef06a85011d:docs/evidence/2026-10-10-positive-skill-evidence.json:generic-api-key:78
+# Evidence file/container SHA-256 digest; not a credential
+17e5abd10402a0a5a5f378ef27d66b3e76931ba8:docs/evidence/2026-10-09-complete-job-sorting.json:generic-api-key:108
+# Evidence file/container SHA-256 digest; not a credential
+88b781bfc45c44363cd024e61af4b9a8d01866e4:docs/evidence/2026-10-09-company-source-cheap-prefilter.json:generic-api-key:26
+# Evidence file/container SHA-256 digest; not a credential
+225c7d1dd2db3fe9699518ffc5d9429d72d37913:docs/evidence/2026-10-09-resume-rewrite-review-connected.json:generic-api-key:19
+# Evidence file/container SHA-256 digest; not a credential
+d75c078f2d0733c6d85aa6364845098435daf0b5:docs/evidence/2026-10-09-resume-rewrite-preview-connection.json:generic-api-key:21
+# Evidence file/container SHA-256 digest; not a credential
+f3676457971e9c1353cc6a9d796e0535b28fc3fa:docs/evidence/2026-10-09-resume-rewrite-preview-connection.json:generic-api-key:21
+# Evidence file/container SHA-256 digest; not a credential
+bd3b79691a1ddec38db239545486af974f70244d:docs/evidence/2026-10-09-first-run-resume-review.json:generic-api-key:31
+# Evidence file/container SHA-256 digest; not a credential
+881eec071104ebe88ee85cb0cfc505646e4ff674:docs/evidence/2026-10-09-browser-extraction-review-receipt.json:generic-api-key:57
+# Evidence file/container SHA-256 digest; not a credential
+a11da4f0df160ccbe4301e697cb3e86d8d343809:docs/evidence/2026-10-09-skill-gap-job-evidence.json:generic-api-key:16
+# Evidence file/container SHA-256 digest; not a credential
+9adee1f554283eb4ee5f46913eacc175671e428c:docs/evidence/2026-10-09-resume-story-reuse.json:generic-api-key:28
+# Evidence file/container SHA-256 digest; not a credential
+9adee1f554283eb4ee5f46913eacc175671e428c:docs/evidence/2026-10-09-resume-story-reuse.json:generic-api-key:29
+# Evidence file/container SHA-256 digest; not a credential
+75917b4c956eeadda0ac4a0a4c43101c2bbd9bd1:docs/evidence/2026-10-09-cover-letter-story-reuse.json:generic-api-key:26
+# Evidence file/container SHA-256 digest; not a credential
+3e2c9de6d746d913dedda36963082df32ddf4c8a:docs/evidence/2026-10-09-company-preferences.json:generic-api-key:76
+# Evidence file/container SHA-256 digest; not a credential
+75443f145659e67e0254cf19a281b687e453b1ae:docs/evidence/2026-10-09-company-preferences.json:generic-api-key:73
+# Evidence file/container SHA-256 digest; not a credential
+75443f145659e67e0254cf19a281b687e453b1ae:docs/evidence/2026-10-09-company-preferences.json:generic-api-key:75
+# Evidence file/container SHA-256 digest; not a credential
+de1e463ec42f2c5dca14c6df4112be9a249e75a2:docs/evidence/2026-10-09-skill-gap-priority.json:generic-api-key:48
+# Evidence file/container SHA-256 digest; not a credential
+6e93487755b6cf6b62b0cb54f61509b6b4fd55ba:docs/evidence/2026-10-09-feedback-seniority-priority.json:generic-api-key:25
+# Documented Git dependency commit ID; not a credential
+3cf0f7aa53a8b83978cca6675d0f0174dd8f94bb:tests/browser/test_company_workspace_history_connected.py:generic-api-key:24
+# Documented Git dependency commit ID; not a credential
+3cf0f7aa53a8b83978cca6675d0f0174dd8f94bb:tests/browser/test_company_workspace_history_connected.py:generic-api-key:25
+# Evidence file/container SHA-256 digest; not a credential
+4ae3948363fcc0d4c6a4d4af33036dfe186a3c55:docs/evidence/2026-10-08-manual-mock-authentication-v2.json:generic-api-key:10
+# Evidence file/container SHA-256 digest; not a credential
+4ae3948363fcc0d4c6a4d4af33036dfe186a3c55:docs/evidence/2026-10-08-manual-mock-authentication-v2.json:generic-api-key:11
+# Evidence file/container SHA-256 digest; not a credential
+4ae3948363fcc0d4c6a4d4af33036dfe186a3c55:docs/evidence/2026-10-08-manual-mock-authentication-v2.json:generic-api-key:13
+# Evidence file/container SHA-256 digest; not a credential
+4ae3948363fcc0d4c6a4d4af33036dfe186a3c55:docs/evidence/2026-10-08-manual-mock-authentication-v2.json:generic-api-key:14
+# Evidence file/container SHA-256 digest; not a credential
+4ae3948363fcc0d4c6a4d4af33036dfe186a3c55:docs/evidence/2026-10-08-manual-mock-authentication-v2.json:generic-api-key:15
+# Evidence file/container SHA-256 digest; not a credential
+4ae3948363fcc0d4c6a4d4af33036dfe186a3c55:docs/evidence/2026-10-08-manual-mock-authentication-v2.json:generic-api-key:16
+# Evidence file/container SHA-256 digest; not a credential
+0214b4bf022cee4bb8498468aa7535decb71392e:docs/evidence/2026-10-08-saved-search-scheduler.json:generic-api-key:21
+# Evidence file/container SHA-256 digest; not a credential
+0214b4bf022cee4bb8498468aa7535decb71392e:docs/evidence/2026-10-08-saved-search-scheduler.json:generic-api-key:22
+# Evidence file/container SHA-256 digest; not a credential
+0214b4bf022cee4bb8498468aa7535decb71392e:docs/evidence/2026-10-08-saved-search-scheduler.json:generic-api-key:23
+# Evidence file/container SHA-256 digest; not a credential
+0342cfe2310ab9b2fa41555a8e23aa7fe5c6aa17:docs/evidence/2026-10-08-ats-search-filter.json:generic-api-key:86
+# Evidence file/container SHA-256 digest; not a credential
+fcd3a0d08e767bee8ff28d7a04c958663c3064af:docs/evidence/2026-10-08-salary-match-explanation.json:generic-api-key:59
+# Evidence file/container SHA-256 digest; not a credential
+fcd3a0d08e767bee8ff28d7a04c958663c3064af:docs/evidence/2026-10-08-salary-match-explanation.json:generic-api-key:61
+# Evidence file/container SHA-256 digest; not a credential
+797095371c6e5f089bed9b58a73c7e5698f1e7b8:docs/evidence/2026-10-07-no-ai-fallback.json:generic-api-key:20
+# Evidence file/container SHA-256 digest; not a credential
+8bb20aeb08dbb696af0629bfc861833c7bce0220:docs/evidence/2026-10-07-ai-operation-outcomes.json:generic-api-key:13
+# Evidence file/container SHA-256 digest; not a credential
+f57118de20796c19b27eb6d1a94d02754ab9d1bf:docs/evidence/2026-10-06-ai-cost-review-gated-documents.json:generic-api-key:97
+# Evidence file/container SHA-256 digest; not a credential
+e0cc3ba4a3222414945931a674fd6069ce8a33d0:docs/evidence/2026-10-06-ai-cost-evaluation-history.json:generic-api-key:98
+# Evidence file/container SHA-256 digest; not a credential
+543e68bc687cd4c7a8571e88684e22c88cad404f:docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json:generic-api-key:76
+# Evidence file/container SHA-256 digest; not a credential
+e477c233f92b6684504a762d6175a1eaa73076d8:docs/evidence/2026-10-06-ai-cost-consumer-main-reconcile.json:generic-api-key:67
+# Evidence file/container SHA-256 digest; not a credential
+dfcdd276d2efd77293f6daf11a1717486943efd6:docs/evidence/2026-10-06-ai-cost-consumer-resume.json:generic-api-key:61
+# Evidence file/container SHA-256 digest; not a credential
+5e1b9da7e9e214029140c42b3b478ea0a08bb70b:docs/evidence/2026-10-06-ai-cost-consumer.json:generic-api-key:69
+# Evidence file/container SHA-256 digest; not a credential
+a6e6625651aebd8ee3d07cbb31a496195f29de65:docs/evidence/2026-10-06-ai-cost-controls-ui.json:generic-api-key:26
+# Evidence file/container SHA-256 digest; not a credential
+f6549b8dd2cb7bced64223f30b3870511cd1ba3a:docs/evidence/2026-10-06-ai-task-settings-persistence.json:generic-api-key:22
+# Evidence file/container SHA-256 digest; not a credential
+d953bc55a80b9f0c3ed5986b1f42fbc3fe439a87:docs/evidence/2026-10-06-staged-local-operation.json:generic-api-key:27
+# Evidence file/container SHA-256 digest; not a credential
+901cbc09b910e8432745bd8c433f5895c0331b48:docs/evidence/2026-10-06-least-data-profile-access.json:generic-api-key:16
+# Evidence file/container SHA-256 digest; not a credential
+901cbc09b910e8432745bd8c433f5895c0331b48:docs/evidence/2026-10-06-least-data-profile-access.json:generic-api-key:17
+# Evidence file/container SHA-256 digest; not a credential
+c3ce5abf0c2de33533c78635b724c080a9164dea:docs/evidence/2026-10-06-avoid-list.json:generic-api-key:18
+# Evidence file/container SHA-256 digest; not a credential
+25ce0cdc1fd9754022db51845e4d676d0f4c1fd6:docs/evidence/2026-10-04-fact-review-exact-head-ci.json:generic-api-key:207
+# Evidence file/container SHA-256 digest; not a credential
+bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline.json:generic-api-key:352
+# Evidence file/container SHA-256 digest; not a credential
+bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline.json:generic-api-key:353
+# Evidence file/container SHA-256 digest; not a credential
+bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline.json:generic-api-key:490
+# Evidence file/container SHA-256 digest; not a credential
+bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline.json:generic-api-key:497
+# Evidence file/container SHA-256 digest; not a credential
+bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline.json:generic-api-key:504

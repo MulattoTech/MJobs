@@ -1,0 +1,14 @@
+{
+  "scanner": "gitleaks 8.30.1",
+  "scope": "All refs in the preserved local repository before public archival-pointer retirement",
+  "raw_candidates": 67,
+  "classified_non_credentials": 67,
+  "unclassified_candidates": 0,
+  "classifications": {
+    "Evidence file/container SHA-256 digest; not a credential": 60,
+    "Verified Git object ID in evidence metadata; not a credential": 3,
+    "Literal synthetic provider key inside a unit-test mock/assertion": 2,
+    "Documented Git dependency commit ID; not a credential": 2
+  },
+  "limitations": "A pattern scanner does not prove absence of PII, all possible secrets, copyright issues, or security vulnerabilities. No main history rewrite was performed."
+}

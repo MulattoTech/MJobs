@@ -1,0 +1,12 @@
+changelog:
+  exclude:
+    labels: [skip-changelog]
+  categories:
+    - title: Features and improvements
+      labels: ['category:major-feature', 'category:subfeature', enhancement]
+    - title: Reliability and security
+      labels: ['category:bug', 'category:security', bug, security]
+    - title: Dependencies
+      labels: [dependencies]
+    - title: Maintenance and documentation
+      labels: ['*']

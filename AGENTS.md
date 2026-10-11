@@ -4,9 +4,9 @@
 
 ## Authority and scope
 1. Follow the current user's instruction first, then this contract, the affected GitHub issue, the relevant `docs/spec/areas/*.md` specification, and accepted source contracts.
-2. Codex CLI, Codex in VS Code, Codex Desktop, and explicitly requested ChatGPT Web/GitHub work are the supported development interfaces. Use **one active integration path**. No standing worker claims, parallel agent lanes, automatic background execution, or unattended task selection.
+2. Codex CLI, Codex in VS Code, Codex Desktop, and explicitly requested ChatGPT Web/GitHub work are the supported development interfaces. Use **one active integration path**. No standing worker claims or parallel integration lanes. User-authorized AFK-DEV iterations may continue with one mutation owner, independent verification and normal runtime/approval limits; never launch an AFK loop without authorization.
 3. Before writing, inspect `git status`, current `main`, open issues, and the **small** `planning/REQUIREMENT_INDEX.json`. Read only the affected issue/spec/code/tests. Do **not** load the giant historical journals or master prompt by default.
-4. New implementation starts only on user authorization. Default to direct, serial, locally verified integration; make a short-lived branch only if the change warrants a PR. Never reset someone else's work, force-push, or delete unmerged or dirty work without a verified recovery copy.
+4. New implementation starts only on user authorization. Use serial, short-lived pull requests and required hosted checks; main is the sole publication history. Native auto-merge may wait for passing gates, but no automated check is a human review. Never reset someone else's work, force-push, or delete unmerged or dirty work without a verified recovery copy.
 
 ## Delivery
 - Favor the highest unblocked, meaningful issue. Priorities are `priority:P0` through `priority:P6`; each GitHub issue also has one `category:*` and `area:*`. P0 protects data, safety, and truth; P1 completes core user workflows. The broader order is in `docs/spec/EXECUTION_KERNEL.source.md`.

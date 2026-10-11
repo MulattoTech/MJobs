@@ -6,6 +6,7 @@ import ipaddress
 import json
 import os
 import re
+import socket
 import threading
 from typing import Callable, Mapping
 from urllib.parse import urlsplit
@@ -55,6 +56,25 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 def _reject_constant(_value: str) -> None:
     raise ValueError("non-standard JSON constant")
+
+
+def _shutdown_response_socket(response) -> None:
+    """Wake an in-flight read before close; close alone can leave Linux recv blocked.
+
+    HTTPX exposes the request-owned network stream as a documented response
+    extension. Custom transports may omit it; their normal close still applies.
+    No socket is reused: this request's client is closed immediately afterward.
+    """
+    if response is None:
+        return
+    try:
+        stream = response.extensions.get("network_stream")
+        connection = stream.get_extra_info("socket") if stream is not None else None
+        if isinstance(connection, socket.socket):
+            connection.shutdown(socket.SHUT_RDWR)
+    except (AttributeError, OSError, TypeError, ValueError, NotImplementedError):
+        # A concurrent close or a transport without socket metadata is harmless.
+        return
 
 
 class OllamaProvider:
@@ -119,6 +139,7 @@ class OllamaProvider:
             raise AIProviderError("AI_PROVIDER_CANCELLED")
 
         client = None
+        active_response = None
         stop_cancellation_watch = threading.Event()
         watcher = None
         try:
@@ -131,6 +152,7 @@ class OllamaProvider:
                     while not stop_cancellation_watch.wait(0.01):
                         if cancellation_event.is_set():
                             try:
+                                _shutdown_response_socket(active_response)
                                 client.close()
                             except Exception:
                                 pass
@@ -144,6 +166,10 @@ class OllamaProvider:
                 watcher.start()
             with client:
                 with client.stream("POST", self.endpoint, json=payload) as response:
+                    active_response = response
+                    if cancellation_event is not None and cancellation_event.is_set():
+                        _shutdown_response_socket(response)
+                        raise AIProviderError("AI_PROVIDER_CANCELLED")
                     if not 200 <= response.status_code < 300:
                         raise AIProviderError("AI_PROVIDER_HTTP_ERROR")
                     body = bytearray()

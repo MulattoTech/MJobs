@@ -1,39 +1,8 @@
-> **Current budget policy:** GitHub Actions, hosted tests, bot/cloud-agent reviews
-> and extra AI reviewer sessions are disabled by the user. Older hosted-review/CI
-> gates and expired deadlines below are historical where they conflict with
-> AGENTS.md's active local-only policy. Use explicit local verification; missing
-> hosted checks are NOT_RUN, never PASS. Do not restore billing or automation.
+# Retired compatibility entry point
 
-# Start a fresh MJobs delivery session
+This filename is retained for old links, not as an independent development policy.
+Use [AGENTS.md](../AGENTS.md), the current [sprint plan](codex/next-plan.md),
+[goal](codex/next-goal.md), and [implementation directive](codex/next-main.md).
 
-Choose one profile, not three concurrent owners of the same checkout.
-
-Windows/local checkout:
-
-```powershell
-codex -C C:\Tools\Dev\MJobs -m gpt-6-astra -c 'model_reasoning_effort="xhigh"'
-```
-
-GitHub Codespace/Linux checkout, from the repository root:
-
-```bash
-codex -C "$PWD" -m gpt-6-astra -c 'model_reasoning_effort="xhigh"'
-```
-
-Replace `xhigh` with `max` or `ultra` for the other profiles. These values
-were present in the local Codex 0.160.0 catalogue on 2026-10-04; recheck
-`/model` after upgrades. Select the effort in the model picker if shell quoting
-differs.
-
-Then paste the matching instruction:
-
-- XHigh: Read `prompts/ASTRA_XHIGH.md` and its shared delivery contract, then begin authorized implementation.
-- Max: Read `prompts/ASTRA_MAX.md` and its shared delivery contract, then resolve the highest-value hard prerequisite and continue.
-- Ultra: Read `prompts/ASTRA_ULTRA.md` and its shared delivery contract, then use bounded native delegation on genuinely independent ready work.
-
-In a Codespace, treat that Codespace as the single writable MJobs checkout for
-the delivery session; do not simultaneously mutate the Windows checkout.
-
-Do not resume an old session rooted in an archived worktree. Normal
-sandbox/approval controls remain enabled. The larger effort setting does not
-authorize destructive actions, production access or increased concurrency.
+Historical instructions remain in Git history and verified private recovery.
+Do not reactivate old lane claims, disabled-CI policies or expired session deadlines.

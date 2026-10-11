@@ -1,17 +1,9 @@
 # Contributing to MJobs
 
-MJobs is public for visibility and testing, but **no source license has been selected yet**. Please review that constraint before copying, redistributing or substantially modifying code.
+Original MJobs contributions use [Apache-2.0](LICENSE); dependencies and incorporated third-party material retain their own terms. Preserve attribution and use the reference-provenance policy before importing code from another project.
 
-## Suggest a feature or report a bug
-Search existing GitHub issues first. Include a version/commit, observed and expected behavior, reproduction steps with synthetic data, and the relevant P0–P6 priority/category/area when known. Do not post sensitive career profiles, credentials, browser cookies, or real applicant data.
+Use existing issues before opening duplicates. Include expected behavior, exact revision and a minimal reproduction with synthetic data. Never post real resumes, answers, tokens, browser sessions or private logs. Report vulnerabilities through [SECURITY.md](SECURITY.md).
 
-## Propose a code change
-1. Discuss major architectural changes in an issue before implementing them.
-2. Work from a current main commit on a short-lived branch; preserve local state.
-3. Write regression tests for the changed behavior. Do not hide failures or weaken acceptance.
-4. Run focused Python tests and/or Vitest/TypeScript build, plus the applicable hosted checks.
-5. Submit a PR referencing issue(s), limitations, test results and the exact affected acceptance criteria.
+For code changes, use a short-lived branch, regression tests and a reviewable PR. Link requirements, report actual checks and limitations, and preserve personal runtime state. The sole integration owner may use native auto-merge after required checks; automation is not human review. Major dependency/security/workflow changes still require explicit maintainer/authorized-agent inspection.
 
-Hosted CI is advisory until baseline suites have been repaired and required checks are configured. Changes to security or application submission controls need explicit review. **Never submit real external job applications as tests.**
-
-The canonical contributor/agent safety contract is [AGENTS.md](AGENTS.md), and the developer quick start is in [README.md](README.md).
+Follow [AGENTS.md](AGENTS.md), [development setup](docs/DEVELOPMENT.md) and [automation policy](docs/maintainers/AUTOMATION.md). Do not close a parent requirement after validating only one slice. No automated test submits a real external application.

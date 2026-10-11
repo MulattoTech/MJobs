@@ -1,11 +1,9 @@
-# MJobs — Codex start
+# MJobs - Codex start
 
-Open `C:\Tools\Dev\MJobs` with Codex CLI, VS Code, or Codex Desktop.
+1. Open `C:\Tools\Dev\MJobs`; read [AGENTS.md](AGENTS.md), live Git state and [the current handoff](planning/SESSION_HANDOFF.md).
+2. Choose a dependency-ready product issue from the priority labels and compact requirement index.
+3. Use the [plan](prompts/codex/next-plan.md), [goal](prompts/codex/next-goal.md) and [main directive](prompts/codex/next-main.md).
+4. Implement and test a coherent end-to-end change; submit a short-lived PR and use required hosted checks before integration.
+5. Preserve exact evidence and honest acceptance. Explicitly authorized AFK-DEV work uses [Start-CodexSprint.ps1](Start-CodexSprint.ps1), dry-run first.
 
-1. Read [AGENTS.md](AGENTS.md) and inspect `git status --short --branch` plus `git fetch --prune`.
-2. Check the next user-authorized issue on GitHub, its `priority:*`, `category:*`, and `area:*` labels; read `planning/REQUIREMENT_INDEX.json` for a small progress index.
-3. Review only the relevant spec, code and tests. Implement one coherent, usable feature at a time.
-4. Run local checks; document what actually passed and what remains untested.
-5. Commit with the provenance trailers defined in AGENTS.md and publish by safe fast-forward to GitHub `main`.
-
-Previous worktrees/parallel-session instructions are retired. The current handoff is `planning/SESSION_HANDOFF.md`. Never submit an external job application without the user's explicit enablement.
+One integration owner, no old lane system, no unrelated host changes, no real external application submissions.
