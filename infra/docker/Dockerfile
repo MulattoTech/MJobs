@@ -1,4 +1,4 @@
-FROM node:24-slim AS web
+FROM node:25-slim AS web
 WORKDIR /web
 COPY apps/web/package.json apps/web/package-lock.json ./
 RUN npm ci --no-audit --no-fund
