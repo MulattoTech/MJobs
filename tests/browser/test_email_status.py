@@ -88,7 +88,9 @@ class EmailStatusBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
-                    page.get_by_role("button", name="Applications", exact=True).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name=re.compile(r"^Applications(?:\s|$)")
+                    ).click()
                     pipeline = page.get_by_role("region", name="Application pipeline", exact=True)
                     application_card = pipeline.get_by_role(
                         "button", name=re.compile(re.escape(job["title"])))
@@ -150,7 +152,9 @@ class EmailStatusBrowserTests(unittest.TestCase):
 
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
-                    page.get_by_role("button", name="Applications", exact=True).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name=re.compile(r"^Applications(?:\s|$)")
+                    ).click()
                     pipeline = page.get_by_role("region", name="Application pipeline", exact=True)
                     pipeline.get_by_role(
                         "button", name=re.compile(re.escape(job["title"]))).click()
