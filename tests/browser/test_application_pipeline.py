@@ -83,7 +83,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                         page.goto(origin, wait_until="domcontentloaded")
                         page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                         page.reload(wait_until="domcontentloaded")
-                        page.get_by_role("button", name="Applications", exact=False).click()
+                        page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
                         board = page.get_by_role("region", name="Application pipeline")
                         card = board.get_by_role("region", name="Not tracked", exact=True).get_by_role(
                             "button", name=job["title"], exact=False)
@@ -115,7 +115,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                         self.assertFalse(external)
 
                         page.reload(wait_until="domcontentloaded")
-                        page.get_by_role("button", name="Applications", exact=False).click()
+                        page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
                         board = page.get_by_role("region", name="Application pipeline")
                         card = board.get_by_role("region", name="Not tracked", exact=True).get_by_role(
                             "button", name=job["title"], exact=False)
@@ -193,7 +193,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Applications", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
 
                     board = page.get_by_role("region", name="Application pipeline")
                     expect(board).to_be_visible()
@@ -233,7 +233,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     self.assertFalse(external)
 
                     page.reload(wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Applications", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
                     board = page.get_by_role("region", name="Application pipeline")
                     applied_card = board.get_by_role("region", name="Applied").get_by_role(
                         "button", name=job["title"], exact=False)
@@ -319,7 +319,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     await page.goto(origin, wait_until="domcontentloaded")
                     await page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     await page.reload(wait_until="domcontentloaded")
-                    await page.get_by_role("button", name="Applications", exact=False).click()
+                    await page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
                     board = page.get_by_role("region", name="Application pipeline")
                     card = board.get_by_role("region", name="Not tracked", exact=True) \
                         .get_by_role("button", name=job["title"], exact=False)
@@ -483,7 +483,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Applications", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
                     board = page.get_by_role("region", name="Application pipeline")
                     first_card = board.get_by_role("button", name=first_job["title"], exact=False)
                     second_card = board.get_by_role("button", name=second_job["title"], exact=False)
@@ -506,7 +506,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     note_page.goto(origin, wait_until="domcontentloaded")
                     note_page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     note_page.reload(wait_until="domcontentloaded")
-                    note_page.get_by_role("button", name="Applications", exact=False).click()
+                    note_page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
                     note_board = note_page.get_by_role("region", name="Application pipeline")
                     note_board.get_by_role("region", name="Applied — reported by you", exact=True) \
                         .get_by_role("button", name=first_job["title"], exact=False).click()
@@ -609,7 +609,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Applications", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role("button", name="Applications", exact=False).click()
                     board = page.get_by_role("region", name="Application pipeline")
                     board.get_by_role("region", name="Not tracked", exact=True) \
                         .get_by_role("button", name=job["title"], exact=False).click()
@@ -617,7 +617,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
                     expect(tracking).to_contain_text("Not tracked")
                     page.get_by_label("Manual application status", exact=True).select_option("RECRUITER_CONTACT")
                     tracking.get_by_role("button", name="Update status", exact=True).click()
-                    expect(page.get_by_role("alert")).to_be_visible()
+                    expect(page.get_by_role("alert").filter(has_text="Action needs attention")).to_be_visible()
 
                     page.get_by_label("Manual application status", exact=True).select_option("INTERVIEW")
                     expect(tracking.get_by_role("button", name="Update status", exact=True)).to_be_enabled()
@@ -632,7 +632,7 @@ class ApplicationPipelineBrowserTests(unittest.TestCase):
 
                     page.get_by_label("Application note", exact=True).fill("Synthetic original note")
                     tracking.get_by_role("button", name="Add application note", exact=True).click()
-                    expect(page.get_by_role("alert")).to_be_visible()
+                    expect(page.get_by_role("alert").filter(has_text="Action needs attention")).to_be_visible()
                     page.get_by_label("Application note", exact=True).fill("Synthetic revised note")
                     tracking.get_by_role("button", name="Add application note", exact=True).click()
                     history = tracking.get_by_role("list", name="Application history")

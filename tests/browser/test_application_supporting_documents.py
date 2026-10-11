@@ -26,6 +26,12 @@ ROOT = Path(__file__).resolve().parents[2]
                      "Build apps/web before browser acceptance")
 class ApplicationSupportingDocumentsBrowserTests(unittest.TestCase):
     def test_select_reload_and_recover_job_scoped_supporting_document(self):
+        self.exercise_selection()
+
+    def test_parent_refresh_preserves_one_live_selection_panel(self):
+        self.exercise_selection(rerender_parent=True)
+
+    def exercise_selection(self, rerender_parent=False):
         with tempfile.TemporaryDirectory(prefix="mjobs-supporting-documents-browser-") as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'supporting-documents.db').as_posix()}")
@@ -96,6 +102,11 @@ class ApplicationSupportingDocumentsBrowserTests(unittest.TestCase):
                     expect(panel).to_be_visible()
                     checkbox = panel.get_by_role("checkbox", name="Synthetic supporting evidence")
                     checkbox.check()
+                    if rerender_parent:
+                        page.get_by_label("External application company", exact=True).fill(
+                            "Synthetic parent rerender")
+                        expect(panel).to_have_count(1)
+                        expect(checkbox).to_be_checked()
                     panel.get_by_role(
                         "button", name="Save supporting document selection", exact=True,
                     ).click()
