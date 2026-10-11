@@ -6,6 +6,8 @@ export const PIPELINE_STAGES = [
 ] as const;
 export type PipelineStage = typeof PIPELINE_STAGES[number];
 export type PipelineNextAction = 'REVIEW_MATCH'|'PREPARE'|'WAIT_FOR_OPERATION'|'OPEN_APPLICATION'|'REVIEW_ROUTE'|'NONE';
+export const PIPELINE_OPERATION_STATES = ['QUEUED','RUNNING','COMPLETED','FAILED','BLOCKED','CANCELLED','DEAD_LETTERED','DISCARDED'] as const;
+export type PipelineOperationState = typeof PIPELINE_OPERATION_STATES[number];
 export type PipelineWorkbenchItem = {
   job_id:string;
   title:string;
@@ -27,7 +29,7 @@ export type PipelineWorkbenchResponse = {
   counts:{total:number;by_stage:Partial<Record<PipelineStage,number>>};
 };
 export type PipelinePrepareRequest = {request_id:string;expected_profile_version:string;fingerprint:string};
-export type PipelinePrepareAcknowledgement = {request_id:string;job_id:string;state:'QUEUED';next_action:'REFRESH_WORKBENCH'};
+export type PipelinePrepareAcknowledgement = {request_id:string;job_id:string;operation_id:string;state:PipelineOperationState;next_action:'REFRESH_WORKBENCH'};
 export type PipelineWorkbenchClient = {
   prepare:(profileId:string,jobId:string,body:PipelinePrepareRequest)=>Promise<unknown>;
 };
@@ -49,6 +51,23 @@ const NEXT_ACTION_LABELS:Record<PipelineNextAction,string> = {
   REVIEW_ROUTE:'Review application route',
   NONE:'No next action recorded',
 };
+const SAFE_BLOCKERS:Record<string,string> = {
+  SCORE_MISSING:'This job needs a current profile score.',
+  SCORE_STALE:'The profile changed since this job was scored.',
+  SCORE_INVALID:'The stored profile score is not usable.',
+  DOCUMENTS_MISSING:'Resume and cover letter have not been prepared.',
+  DOCUMENTS_STALE:'Prepared documents use an older profile version.',
+  DOCUMENTS_INCOMPLETE:'Resume and cover letter are not both available.',
+  FACTS_UNVERIFIED:'At least one verified, approved profile fact is required.',
+  ROUTE_UNAVAILABLE:'No usable application route is available.',
+  ROUTE_REVIEW_REQUIRED:'Choose the application route that matches this posting.',
+  ROUTE_SELECTION_REQUIRED:'Choose an application route before preparing.',
+  MOCK_ROUTE_IN_PERSONAL_MODE:'Fixture routes are unavailable in personal mode.',
+  APPLICATION_STATE_LOCKED:'The existing application state needs review.',
+  PREPARATION_FAILED:'The last preparation attempt failed and needs review.',
+  DISCOVERY_RUNNING:'A current profile scoring operation is still running.',
+  WORKSPACE_MODE_UNAVAILABLE:'Bind this workspace to an operation mode before preparing.',
+};
 const STAGE_FILTERS = ['ALL',...PIPELINE_STAGES] as const;
 type StageFilter = typeof STAGE_FILTERS[number];
 
@@ -65,6 +84,9 @@ function isStage(value:unknown):value is PipelineStage {
 function isNextAction(value:unknown):value is PipelineNextAction {
   return value==='REVIEW_MATCH'||value==='PREPARE'||value==='WAIT_FOR_OPERATION'||
     value==='OPEN_APPLICATION'||value==='REVIEW_ROUTE'||value==='NONE';
+}
+function isPipelineOperationState(value:unknown):value is PipelineOperationState {
+  return typeof value==='string'&&(PIPELINE_OPERATION_STATES as readonly string[]).includes(value);
 }
 function validOptionalId(value:unknown):value is string|null {
   return value===null||(typeof value==='string'&&value.length>0&&value.length<=200);
@@ -99,7 +121,7 @@ export function parsePipelineWorkbench(value:unknown,profileId:string):PipelineW
       if(!isRecord(blocker))throw new Error('PIPELINE_RESPONSE_INVALID');
       const code=boundedText(blocker.code,100);
       const message=boundedText(blocker.message,400);
-      if(!code||!message)throw new Error('PIPELINE_RESPONSE_INVALID');
+      if(!code||!message||SAFE_BLOCKERS[code]!==message)throw new Error('PIPELINE_RESPONSE_INVALID');
       blockers.push({code,message});
     }
     jobIds.add(row.job_id);
@@ -134,10 +156,36 @@ export async function queuePipelinePreparation(
   const body={request_id:requestId,expected_profile_version:profileVersion,fingerprint:item.fingerprint};
   const response=await client.prepare(profileId,item.job_id,body);
   if(!isRecord(response)||response.request_id!==requestId||response.job_id!==item.job_id||
-     response.state!=='QUEUED'||response.next_action!=='REFRESH_WORKBENCH') {
+     typeof response.operation_id!=='string'||!response.operation_id||response.operation_id.length>200||
+     !isPipelineOperationState(response.state)||response.next_action!=='REFRESH_WORKBENCH') {
     throw new Error('PIPELINE_QUEUE_ACK_INVALID');
   }
-  return {request_id:requestId,job_id:item.job_id,state:'QUEUED',next_action:'REFRESH_WORKBENCH'};
+  return {request_id:requestId,job_id:item.job_id,operation_id:response.operation_id,state:response.state,next_action:'REFRESH_WORKBENCH'};
+}
+
+export function requestIdForPipelinePreparation(
+  requestIds:Map<string,string>,profileId:string,jobId:string,createId:()=>string=()=>crypto.randomUUID(),
+):string {
+  const key=`${profileId}\u0000${jobId}`;
+  const existing=requestIds.get(key);
+  if(existing)return existing;
+  const requestId=createId();
+  if(!requestId||requestId.length>200)throw new Error('PIPELINE_REQUEST_ID_INVALID');
+  requestIds.set(key,requestId);
+  return requestId;
+}
+
+export function pipelinePreparationNotice(state:PipelineOperationState):string {
+  switch(state) {
+    case 'QUEUED':return 'Preparation queued. It has not been submitted.';
+    case 'RUNNING':return 'Preparation is in progress. It has not been submitted.';
+    case 'COMPLETED':return 'Preparation completed. No employer submission was made.';
+    case 'FAILED':return 'Preparation failed. Refresh readiness to review safe reasons. No employer submission was made.';
+    case 'BLOCKED':return 'Preparation is blocked. Refresh readiness to review safe reasons. No employer submission was made.';
+    case 'CANCELLED':return 'Preparation was cancelled. No employer submission was made.';
+    case 'DEAD_LETTERED':return 'Preparation stopped after repeated failures. Refresh readiness to review safe reasons. No employer submission was made.';
+    case 'DISCARDED':return 'Preparation was discarded. No employer submission was made.';
+  }
 }
 
 const apiClient:PipelineWorkbenchClient&{load:(profileId:string)=>Promise<unknown>}={
@@ -266,15 +314,13 @@ export function PipelineWorkbench({profileId,onOpenApplication}:{profileId:strin
   async function prepare(item:PipelineWorkbenchItem) {
     if(!profileId||!loaded||loadedProfileId!==profileId||busyJobId)return;
     const activeProfile=profileId;
-    const requestKey=`${activeProfile}\u0000${item.job_id}`;
-    let requestId=requestIds.current.get(requestKey);
-    if(!requestId){requestId=crypto.randomUUID();requestIds.current.set(requestKey,requestId);}
+    const requestId=requestIdForPipelinePreparation(requestIds.current,activeProfile,item.job_id);
     setBusyJobId(item.job_id);setActionError(null);
     try {
-      await queuePipelinePreparation(apiClient,activeProfile,loaded.profile_version,item,requestId);
+      const acknowledgement=await queuePipelinePreparation(apiClient,activeProfile,loaded.profile_version,item,requestId);
       if(scope.current!==activeProfile)return;
-      requestIds.current.delete(requestKey);
-      setNotice({profileId:activeProfile,text:'Preparation queued. It has not been submitted.'});
+      requestIds.current.delete(`${activeProfile}\u0000${item.job_id}`);
+      setNotice({profileId:activeProfile,text:pipelinePreparationNotice(acknowledgement.state)});
       setAttempt(value=>value+1);
     } catch {
       if(scope.current===activeProfile)setActionError({profileId:activeProfile,text:'Readiness may have changed or preparation could not be queued. Refresh to review the latest reasons.'});

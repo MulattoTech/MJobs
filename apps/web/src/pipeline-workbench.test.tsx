@@ -5,6 +5,8 @@ import {
   parsePipelineWorkbench,
   PipelineWorkbenchView,
   queuePipelinePreparation,
+  requestIdForPipelinePreparation,
+  pipelinePreparationNotice,
   type PipelineWorkbenchResponse,
   type PipelineWorkbenchItem,
 } from './pipeline-workbench';
@@ -21,10 +23,10 @@ const workbench:PipelineWorkbenchResponse = {
   items:[
     item(),
     item({job_id:'private-job-b',title:'Cloud Administrator',company:'Acme',stage:'NEEDS_REVIEW',score:null,
-      blockers:[{code:'ROUTE_REVIEW_REQUIRED',message:'Choose a verified application route.'}],can_prepare:false,
+      blockers:[{code:'ROUTE_REVIEW_REQUIRED',message:'Choose the application route that matches this posting.'}],can_prepare:false,
       fingerprint:null,route_id:null,next_action:'REVIEW_ROUTE'}),
     item({job_id:'private-job-c',title:'Network Engineer',company:'Example Co',stage:'DISCOVERED',score:null,
-      blockers:[{code:'SCORE_NOT_AVAILABLE',message:'This job has not been scored for the selected profile.'}],
+      blockers:[{code:'SCORE_MISSING',message:'This job needs a current profile score.'}],
       can_prepare:false,fingerprint:null,route_id:null,next_action:'REVIEW_MATCH'}),
   ],
 };
@@ -43,8 +45,9 @@ describe('PipelineWorkbenchView',()=>{
     const html=renderToStaticMarkup(<PipelineWorkbenchView profileId="profile-a" workbench={workbench}
       loading={false} error={false} onRetry={vi.fn()} onPrepare={vi.fn()} onOpenApplication={vi.fn()}/>);
     for(const text of ['3 jobs in this profile','Newly discovered','Needs review','Ready to prepare',
-      'Systems Administrator','Northwind Systems','91','Unknown score — not treated as zero','Choose a verified application route.',
-      'This job has not been scored for the selected profile.','Queue acceptance is not employer submission']) expect(html).toContain(text);
+      'Systems Administrator','Northwind Systems','91','Unknown score — not treated as zero',
+      'Choose the application route that matches this posting.','This job needs a current profile score.',
+      'Queue acceptance is not employer submission']) expect(html).toContain(text);
     for(const privateValue of ['private-job-a','private-job-b','private-profile-version','private-readiness-fingerprint','private-route-a']) {
       expect(html).not.toContain(privateValue);
     }
@@ -76,8 +79,9 @@ describe('PipelineWorkbenchView',()=>{
   });
 
   it('requires profile version, readiness fingerprint, and an explicit prepare-ready item',async()=>{
-    const client={prepare:vi.fn(async()=>({request_id:'request-1',job_id:'private-job-a',state:'QUEUED',next_action:'REFRESH_WORKBENCH'}))};
-    await queuePipelinePreparation(client,'profile-a',workbench.profile_version,item(), 'request-1');
+    const client={prepare:vi.fn(async()=>({request_id:'request-1',job_id:'private-job-a',operation_id:'private-operation-1',state:'QUEUED',next_action:'REFRESH_WORKBENCH'}))};
+    const acknowledgement=await queuePipelinePreparation(client,'profile-a',workbench.profile_version,item(), 'request-1');
+    expect(acknowledgement.state).toBe('QUEUED');
     expect(client.prepare).toHaveBeenCalledExactlyOnceWith('profile-a','private-job-a',{
       request_id:'request-1',expected_profile_version:'private-profile-version',fingerprint:'private-readiness-fingerprint',
     });
@@ -90,9 +94,29 @@ describe('PipelineWorkbenchView',()=>{
       item(), 'request-3')).rejects.toThrow('PIPELINE_QUEUE_ACK_INVALID');
   });
 
+  it('keeps an ambiguous retry on its request id and accepts a durable terminal replay',async()=>{
+    const requestIds=new Map<string,string>();
+    const createId=vi.fn(()=> 'request-retry-1');
+    const first=requestIdForPipelinePreparation(requestIds,'profile-a','private-job-a',createId);
+    const ambiguousClient={prepare:vi.fn(async()=>{throw new Error('network disconnected after request dispatch');})};
+    await expect(queuePipelinePreparation(ambiguousClient,'profile-a',workbench.profile_version,item(),first)).rejects.toThrow();
+    const retry=requestIdForPipelinePreparation(requestIds,'profile-a','private-job-a',createId);
+    expect(retry).toBe(first);
+    expect(createId).toHaveBeenCalledTimes(1);
+    const client={prepare:vi.fn(async()=>({request_id:first,job_id:'private-job-a',operation_id:'private-operation-1',state:'COMPLETED',next_action:'REFRESH_WORKBENCH'}))};
+    const replay=await queuePipelinePreparation(client,'profile-a',workbench.profile_version,item(),first);
+    expect(replay.state).toBe('COMPLETED');
+    expect(replay.operation_id).toBe('private-operation-1');
+    expect(pipelinePreparationNotice(replay.state)).toBe('Preparation completed. No employer submission was made.');
+    expect(pipelinePreparationNotice('QUEUED')).toBe('Preparation queued. It has not been submitted.');
+    const malformed={prepare:vi.fn(async()=>({request_id:first,job_id:'private-job-a',state:'COMPLETED',next_action:'REFRESH_WORKBENCH'}))};
+    await expect(queuePipelinePreparation(malformed,'profile-a',workbench.profile_version,item(),first)).rejects.toThrow('PIPELINE_QUEUE_ACK_INVALID');
+  });
+
   it('validates the selected profile and only permits known stages and bounded fields',()=>{
     expect(parsePipelineWorkbench(workbench,'profile-a').items).toHaveLength(3);
     expect(()=>parsePipelineWorkbench({...workbench,profile_id:'profile-b'},'profile-a')).toThrow('PIPELINE_SCOPE_MISMATCH');
     expect(()=>parsePipelineWorkbench({...workbench,items:[item({stage:'SUBMITTED' as never})]},'profile-a')).toThrow('PIPELINE_RESPONSE_INVALID');
+    expect(()=>parsePipelineWorkbench({...workbench,items:[item({blockers:[{code:'UNKNOWN',message:'private raw error'}]})]},'profile-a')).toThrow('PIPELINE_RESPONSE_INVALID');
   });
 });
