@@ -48,10 +48,33 @@ def _application_route(store, profile_id: str, application_id: str):
     return dict(row), normalized
 
 
+def _frozen_review_input(store, profile_id: str, application_id: str, row, route):
+    profile = store.profile(profile_id)
+    return {
+        "profile_id": profile_id,
+        "application_id": application_id,
+        "route_id": row["route_id"],
+        "route_url": route["url"],
+        "provider": route["provider"],
+        "profile_version": str(profile["version"]),
+    }
+
+
+def _input_fingerprint(frozen):
+    return hashlib.sha256(json.dumps(
+        frozen, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+    ).encode("utf-8")).hexdigest()
+
+
 def create_application_form_review_router(store) -> APIRouter:
     router = APIRouter()
 
-    def review_response(profile_id: str, application_id: str, request_id: str | None):
+    def review_response(
+        profile_id: str,
+        application_id: str,
+        request_id: str | None,
+        current_input_fingerprint: str | None = None,
+    ):
         filters = [
             m.operations.c.kind == _KIND,
             m.operations.c.entity_id == application_id,
@@ -78,6 +101,14 @@ def create_application_form_review_router(store) -> APIRouter:
                            if isinstance(event["payload"], dict)
                            and event["payload"].get("operation_id") == row["id"]), None)
         params = row["params"] if isinstance(row["params"], dict) else {}
+        if (current_input_fingerprint is not None
+                and params.get("input_fingerprint") != current_input_fingerprint):
+            return {
+                "request_id": None,
+                "state": "UNKNOWN",
+                "error_code": None,
+                "analysis": None,
+            }
         error = row["error"] if isinstance(row["error"], str) and _SAFE_ERROR.fullmatch(row["error"]) else None
         return {
             "request_id": params.get("request_id"),
@@ -92,18 +123,8 @@ def create_application_form_review_router(store) -> APIRouter:
     )
     def queue_form_review(profile_id: str, application_id: str, value: FormReviewRequest):
         row, route = _application_route(store, profile_id, application_id)
-        profile = store.profile(profile_id)
-        frozen = {
-            "profile_id": profile_id,
-            "application_id": application_id,
-            "route_id": row["route_id"],
-            "route_url": route["url"],
-            "provider": route["provider"],
-            "profile_version": str(profile["version"]),
-        }
-        input_fingerprint = hashlib.sha256(json.dumps(
-            frozen, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
-        ).encode("utf-8")).hexdigest()
+        frozen = _frozen_review_input(store, profile_id, application_id, row, route)
+        input_fingerprint = _input_fingerprint(frozen)
         params = {**frozen, "request_id": value.request_id,
                   "input_fingerprint": input_fingerprint}
         operation_id = enqueue_operation(store, _KIND, application_id, params)
@@ -117,8 +138,14 @@ def create_application_form_review_router(store) -> APIRouter:
         "/profiles/{profile_id}/applications/{application_id}/form-reviews/latest",
     )
     def read_latest_form_review(profile_id: str, application_id: str):
-        row, _ = _application_route(store, profile_id, application_id)
-        return review_response(profile_id, application_id, None)
+        row, route = _application_route(store, profile_id, application_id)
+        frozen = _frozen_review_input(store, profile_id, application_id, row, route)
+        return review_response(
+            profile_id,
+            application_id,
+            None,
+            current_input_fingerprint=_input_fingerprint(frozen),
+        )
 
     @router.get(
         "/profiles/{profile_id}/applications/{application_id}/form-reviews/{request_id}",
