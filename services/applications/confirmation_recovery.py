@@ -38,18 +38,114 @@ def _route(connection, application):
         m.routes.c.id == application["route_id"])).mappings().one())
 
 
+def _recovered_attempt_is_fenced(connection, application, running_attempt):
+    """Prove that one incomplete browser attempt belongs to a recovered, terminal run."""
+    from services.applications.attempt_history import STARTED, _event_id, attempt_id_for_request
+    from services.applications.run_requests import current_input_snapshot, input_fingerprint
+
+    operations = list(connection.execute(select(m.operations).where(
+        m.operations.c.kind == "APPLY_MOCK",
+        m.operations.c.entity_id == application["id"],
+    )).mappings())
+    linked = [dict(operation) for operation in operations
+              if attempt_id_for_request(application["id"], operation["id"]) == running_attempt["id"]]
+    if len(linked) != 1:
+        return False
+    operation = linked[0]
+    params = operation.get("params")
+    if (not isinstance(params, dict)
+            or params.get("submit") is not True
+            or params.get("run_contract_version") != 1
+            or type(operation.get("attempt_count")) is not int
+            or operation["attempt_count"] != 2
+            or operation.get("state") not in {"BLOCKED", "COMPLETED"}
+            or operation.get("completed_at") is None
+            or operation.get("lease_expires_at") is not None
+            or operation.get("cancel_requested") is not False):
+        return False
+    terminal_state = operation["state"]
+    terminal_error = "SUBMISSION_UNCONFIRMED" if terminal_state == "BLOCKED" else None
+    expected_terminal_metadata = {"action": "MANUAL_REVIEW"} if terminal_state == "BLOCKED" else {"action": "NONE"}
+    if (operation.get("error") != terminal_error
+            or operation.get("recovery_metadata") != expected_terminal_metadata
+            or (terminal_state == "BLOCKED" and operation.get("current_step") != "FINALIZING")
+            or (terminal_state == "COMPLETED"
+                and (operation.get("current_step") != "COMPLETED" or operation.get("progress") != 100))):
+        return False
+
+    snapshot = params.get("input_snapshot")
+    fingerprint = params.get("input_fingerprint")
+    if (not isinstance(snapshot, dict)
+            or not isinstance(fingerprint, str)
+            or input_fingerprint(snapshot) != fingerprint):
+        return False
+    try:
+        if current_input_snapshot(connection, application, submit=True) != snapshot:
+            return False
+    except (KeyError, TypeError, ValueError):
+        return False
+
+    started_event = connection.execute(select(m.audit).where(
+        m.audit.c.id == _event_id(STARTED, running_attempt["id"]),
+        m.audit.c.entity_id == application["id"],
+        m.audit.c.action == STARTED,
+    )).mappings().one_or_none()
+    if started_event is None:
+        return False
+    started = started_event["payload"]
+    if (not isinstance(started, dict)
+            or started.get("schema_version") != 1
+            or started.get("attempt_id") != running_attempt["id"]
+            or started.get("adapter") != "mock-ats"
+            or started.get("input_fingerprint") != fingerprint
+            or started.get("snapshot") != snapshot):
+        return False
+
+    operation_events = list(connection.execute(select(
+        m.audit.c.action, m.audit.c.payload,
+    ).where(m.audit.c.entity_id == operation["id"])).mappings())
+    recovered_before_replay = any(
+        event["action"] == "LEASE_RECOVERY"
+        and isinstance(event["payload"], dict)
+        and event["payload"] == {
+            "state": "QUEUED", "error": "RECONCILIATION_REQUIRED", "attempt_count": 1,
+        }
+        for event in operation_events
+    )
+    replay_claimed = any(
+        event["action"] == "OPERATION_ATTEMPT_STARTED"
+        and isinstance(event["payload"], dict)
+        and event["payload"].get("attempt_count") == 2
+        for event in operation_events
+    )
+    replay_fenced = any(
+        event["action"] == "OPERATION_ATTEMPT_FINISHED"
+        and isinstance(event["payload"], dict)
+        and event["payload"] == {
+            "state": terminal_state, "error": terminal_error, "attempt_count": 2,
+        }
+        for event in operation_events
+    )
+    return recovered_before_replay and replay_claimed and replay_fenced
+
+
 def _guard(connection, application, route):
     if (application["target"] != "MOCK" or route["provider"] != "mock-ats"
             or route.get("tenant") != "example"):
         raise ConfirmationConflict("CONFIRMATION_TARGET_UNSUPPORTED")
     if application["state"] not in {"SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED"}:
         raise ConfirmationConflict("CONFIRMATION_STATE_NOT_ELIGIBLE")
-    active_attempt = connection.execute(select(m.attempts.c.id).where(
-        m.attempts.c.application_id == application["id"], m.attempts.c.state == "RUNNING").limit(1)).first()
     active_operation = connection.execute(select(m.operations.c.id).where(
         m.operations.c.kind == "APPLY_MOCK", m.operations.c.entity_id == application["id"],
-        m.operations.c.state == "RUNNING").limit(1)).first()
-    if active_attempt is not None or active_operation is not None:
+        m.operations.c.state.in_(("QUEUED", "RUNNING"))).limit(1)).first()
+    if active_operation is not None:
+        raise ConfirmationConflict("CONFIRMATION_EXECUTION_STILL_RESERVED")
+    active_attempts = list(connection.execute(select(m.attempts).where(
+        m.attempts.c.application_id == application["id"],
+        m.attempts.c.state == "RUNNING")).mappings())
+    if (active_attempts
+            and (len(active_attempts) != 1
+                 or not _recovered_attempt_is_fenced(connection, application, active_attempts[0]))):
         raise ConfirmationConflict("CONFIRMATION_EXECUTION_STILL_RESERVED")
 
 
