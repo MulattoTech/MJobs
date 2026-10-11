@@ -1,16 +1,18 @@
 """Deterministic profile-scoped CSV, JSON, and safe backup exports."""
 from __future__ import annotations
 
+import base64
 import csv
 from datetime import date, datetime
+import hashlib
 import io
 import json
 import math
 import re
+from pathlib import Path
 from urllib.parse import urlsplit, urlunsplit
 
 from sqlalchemy import case, func, select, union
-from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from packages.persistence import resume_workspace as _resume_workspace  # registers its table
@@ -243,13 +245,89 @@ def _profile_rows(connection, table, profile_id, columns):
     return _bounded_rows(connection, table, profile_id, columns)
 
 
-def export_profile_backup(store, profile_id: str) -> dict:
+def _document_file_records(store, connection, profile_id, output_dir):
+    """Read only checksum-verified, profile-owned user-facing document files."""
+    from services.documents.uploads import read_resume
+
+    root = Path(output_dir).resolve()
+    if root.is_symlink() or not root.is_dir():
+        raise DataExportError("EXPORT_FILE_UNAVAILABLE")
+    records = []
+    documents = connection.execute(
+        select(m.documents.c.id, m.documents.c.application_id, m.documents.c.files,
+               m.documents.c.sha256)
+        .join(m.applications, m.applications.c.id == m.documents.c.application_id)
+        .where(m.applications.c.profile_id == profile_id)
+        .order_by(m.documents.c.id)
+        .limit(MAX_EXPORT_ROWS + 1)
+    ).mappings()
+    for document in documents:
+        if len(records) >= MAX_EXPORT_ROWS:
+            raise DataExportError("EXPORT_TOO_LARGE")
+        app_root = root / document["application_id"]
+        if app_root.is_symlink() or not app_root.resolve().is_relative_to(root):
+            raise DataExportError("EXPORT_FILE_UNAVAILABLE")
+        files = document["files"] if isinstance(document["files"], dict) else {}
+        checksums = document["sha256"] if isinstance(document["sha256"], dict) else {}
+        for file_format in ("docx", "pdf", "txt"):
+            relative = files.get(file_format)
+            expected = checksums.get(file_format)
+            if relative is None:
+                continue
+            if (not isinstance(relative, str) or not relative or len(relative) > 512
+                    or not isinstance(expected, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", expected)):
+                raise DataExportError("EXPORT_FILE_UNAVAILABLE")
+            candidate = app_root / relative
+            try:
+                resolved = candidate.resolve(strict=True)
+                if (not resolved.is_relative_to(app_root.resolve()) or candidate.is_symlink()
+                        or not resolved.is_file()):
+                    raise DataExportError("EXPORT_FILE_UNAVAILABLE")
+                size = resolved.stat().st_size
+                if size > MAX_EXPORT_BYTES:
+                    raise DataExportError("EXPORT_TOO_LARGE")
+                content = resolved.read_bytes()
+            except (OSError, RuntimeError, ValueError):
+                raise DataExportError("EXPORT_FILE_UNAVAILABLE") from None
+            digest = hashlib.sha256(content).hexdigest()
+            if digest.casefold() != expected.casefold():
+                raise DataExportError("EXPORT_FILE_UNAVAILABLE")
+            records.append({"id": document["id"], "format": file_format,
+                            "size_bytes": len(content), "sha256": digest,
+                            "content_base64": base64.b64encode(content).decode("ascii")})
+
+    uploads = connection.execute(
+        select(m.uploaded_resumes.c.id, m.uploaded_resumes.c.format)
+        .where(m.uploaded_resumes.c.profile_id == profile_id)
+        .order_by(m.uploaded_resumes.c.id).limit(MAX_EXPORT_ROWS + 1)
+    ).mappings()
+    upload_count = 0
+    for upload in uploads:
+        if len(records) >= MAX_EXPORT_ROWS:
+            raise DataExportError("EXPORT_TOO_LARGE")
+        upload_count += 1
+        if upload_count > MAX_EXPORT_ROWS:
+            raise DataExportError("EXPORT_TOO_LARGE")
+        try:
+            metadata, content = read_resume(store, output_dir=output_dir,
+                                           profile_id=profile_id, identifier=upload["id"])
+        except Exception:
+            # Do not expose filesystem or persistence details in the API error.
+            raise DataExportError("EXPORT_FILE_UNAVAILABLE") from None
+        records.append({"id": metadata["id"], "format": metadata["format"],
+                        "size_bytes": len(content), "sha256": metadata["sha256"],
+                        "content_base64": base64.b64encode(content).decode("ascii")})
+    return records
+
+
+def export_profile_backup(store, profile_id: str, *, output_dir=None) -> dict:
     """Build a complete bounded JSON-compatible backup of safe profile records.
 
     Credential ciphertext, provider/session state, raw posting diagnostics,
     application traces/confirmations, attempt steps, and private document paths
-    are intentionally excluded. Uploaded document bytes live outside this
-    relational service and are represented only by safe metadata.
+    are intentionally excluded. When ``output_dir`` is provided, generated
+    and uploaded profile document bytes are included only after path and digest
+    verification. A caller omitting it gets a metadata-only relational snapshot.
     """
     with store.engine.connect() as connection:
         profile = _profile(connection, profile_id)
@@ -376,6 +454,8 @@ def export_profile_backup(store, profile_id: str) -> dict:
                 ("id", "filename", "format", "media_type", "size_bytes", "sha256", "status",
                  "created_at"),
             ),
+            "document_files": (_document_file_records(store, connection, profile_id, output_dir)
+                               if output_dir is not None else []),
             "resume_workspace_revisions": _profile_rows(
                 connection, _resume_workspace.resume_workspace_revisions, profile_id,
                 ("id", "job_id", "version", "profile_version", "job_fingerprint", "template_id",
@@ -392,8 +472,8 @@ def export_profile_backup(store, profile_id: str) -> dict:
         return _safe_json_value(snapshot)
 
 
-def export_profile_json(store, profile_id: str) -> str:
-    """Return a deterministic JSON export containing the full safe backup."""
-    snapshot = export_profile_backup(store, profile_id)
+def export_profile_json(store, profile_id: str, *, output_dir=None) -> str:
+    """Return deterministic profile JSON, optionally with verified document bytes."""
+    snapshot = export_profile_backup(store, profile_id, output_dir=output_dir)
     snapshot["export_type"] = "profile_json_export"
     return _json_text(snapshot)

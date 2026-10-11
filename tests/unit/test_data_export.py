@@ -1,4 +1,6 @@
 import csv
+import base64
+import hashlib
 import json
 from pathlib import Path
 import tempfile
@@ -20,6 +22,8 @@ class DataExportTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="mjobs-export-test-")
         database = Path(self.temporary.name) / "export.db"
+        self.output_dir = Path(self.temporary.name) / "output"
+        self.output_dir.mkdir()
         self.store = Store(f"sqlite:///{database.as_posix()}")
         self.store.migrate()
         self.store.save_profile({
@@ -79,7 +83,8 @@ class DataExportTests(unittest.TestCase):
             upsert(connection, m.documents, {
                 "id": "document-a", "application_id": "application-a", "kind": "resume",
                 "version": 1, "profile_version": "v1",
-                "files": {"path": "PRIVATE_DOCUMENT_PATH_MARKER"}, "fact_ids": [], "sha256": {},
+                "files": {"txt": "v1/1/resume.txt"}, "fact_ids": [],
+                "sha256": {"txt": hashlib.sha256(b"generated resume bytes").hexdigest()},
                 "template": "plain", "created_at": "2026-10-11T10:02:00Z",
                 "generation_model": None, "generation_context": {"raw": "PRIVATE_CONTEXT_MARKER"},
             })
@@ -90,6 +95,23 @@ class DataExportTests(unittest.TestCase):
                 "raw": {"diagnostic": "PRIVATE_RAW_DIAGNOSTIC_MARKER"},
                 "fetched_at": "2026-10-11T10:03:00Z",
             })
+            upsert(connection, m.uploaded_resumes, {
+                "id": "upload-a", "profile_id": "profile-a", "filename": "source.pdf",
+                "format": "pdf", "media_type": "application/pdf", "size_bytes": 18,
+                "sha256": hashlib.sha256(b"uploaded pdf bytes").hexdigest(),
+                "status": "READY", "created_at": "2026-10-11T10:04:00Z",
+            })
+            upsert(connection, m.resume_revisions, {
+                "id": "resume-revision-a", "profile_id": "profile-a", "upload_id": "upload-a",
+                "series_id": "series-a", "label": "Base", "version": 1,
+                "created_at": "2026-10-11T10:04:00Z", "document_kind": "BASE_RESUME",
+            })
+        generated = self.output_dir / "application-a" / "v1" / "1" / "resume.txt"
+        generated.parent.mkdir(parents=True)
+        generated.write_bytes(b"generated resume bytes")
+        uploads = self.output_dir / "uploads"
+        uploads.mkdir()
+        (uploads / "upload-a.pdf").write_bytes(b"uploaded pdf bytes")
 
     def tearDown(self):
         self.store.engine.dispose()
@@ -143,6 +165,34 @@ class DataExportTests(unittest.TestCase):
         self.assertIn("profile_versions", backup)
         self.assertEqual(backup["career_stories"], [])
         self.assertEqual(backup["uploaded_resumes"], [])
+
+    def test_backup_includes_verified_profile_document_bytes_without_local_paths(self):
+        backup = export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
+
+        files = {item["id"]: item for item in backup["document_files"]}
+        self.assertEqual(base64.b64decode(files["document-a"]["content_base64"]),
+                         b"generated resume bytes")
+        self.assertEqual(base64.b64decode(files["upload-a"]["content_base64"]),
+                         b"uploaded pdf bytes")
+        encoded = json.dumps(backup, sort_keys=True)
+        self.assertNotIn(str(self.output_dir), encoded)
+        self.assertNotIn("v1/1/resume.txt", encoded)
+
+    def test_backup_rejects_document_path_escape_and_checksum_mismatch(self):
+        with self.store.engine.begin() as connection:
+            connection.execute(m.documents.update().where(m.documents.c.id == "document-a").values(
+                files={"txt": "../../outside.txt"},
+            ))
+        with self.assertRaisesRegex(DataExportError, "EXPORT_FILE_UNAVAILABLE"):
+            export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
+
+        with self.store.engine.begin() as connection:
+            connection.execute(m.documents.update().where(m.documents.c.id == "document-a").values(
+                files={"txt": "v1/1/resume.txt"},
+            ))
+        (self.output_dir / "application-a" / "v1" / "1" / "resume.txt").write_bytes(b"tampered")
+        with self.assertRaisesRegex(DataExportError, "EXPORT_FILE_UNAVAILABLE"):
+            export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
 
     def test_unknown_profile_and_oversized_output_fail_with_fixed_codes(self):
         with self.assertRaisesRegex(DataExportError, "PROFILE_NOT_FOUND"):
