@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "scope_result": "PASS",
+  "requirement_result": "PARTIAL",
+  "verified_at_utc": "2026-10-11T00:02:17Z",
+  "branch": "codex/app-workflow-recovery-takeover-20261010",
+  "source_commit": "1c7f439bae47ad3f06653c4d129446364742a4d4",
+  "source_tree": "7ce4d8d6b2a091c469bf6fd491e79900c11b6530",
+  "base_commit": "7bbec704b54bcd412ead484af8b33584c2d0e2ec",
+  "tested_input_sha256": {
+    "apps/api/main.py": "0b8238e75705e4b858937e07ecccfcb8a1a289181a6a9d973391a13de510269f",
+    "apps/web/src/main.tsx": "503ee3a17f7b53cb046bb083bc3def8735a2bf249c5b6d9d317b2c97b0618aa7",
+    "apps/web/src/mock-run-client.ts": "78ad6dac3f22134db0c37bdba813a45c761bb22ff768e44bed4b682da80085b5",
+    "apps/web/src/mock-run-client.test.ts": "e73690f6697ecc287c3673a64429fbb570513a0971b749dddbb4b30a4311c202",
+    "apps/web/src/mock-run-controls.tsx": "a0c7c53859ceb992b6e1c80a1bce7d49e91c2b940ac13e828a2dc3b9ebde0278",
+    "apps/web/src/mock-run-controls.test.tsx": "24b79ac720645b35293189fb7649c3c8b7ebe9849813c98f729359f3198bab27",
+    "apps/web/src/credential-connection-feedback.tsx": "854cca2100019152666eb55d31bb87b5394c9e15b964ae22fb1cc42f0d23ec72",
+    "apps/web/src/credential-connection-feedback.test.tsx": "c80e22a30a48de4516d1fdeb39cb9848b7fef698f35b775b63d70896a562c238",
+    "services/applications/run_requests.py": "f3ddd3c192444c2e4b3e9dc9cf1a4c321ccb3d4b97dc8a81e2b58ae2610ae776",
+    "services/applications/attempt_history.py": "6ab60ce61878c62eeb8822d0eff6cf6bf41fd6215ba283ed5ca706642cb4918c",
+    "services/applications/mock_adapter.py": "d458a59f7ab94f1e9ec08643db83a73c81b31104fbae831e66b09b8c820e785f",
+    "workers/operations.py": "72ffda1a4ea8ba469586fd45488d265c90d1e278c1fcbcac7f3c5144813b4314",
+    "workers/tasks.py": "b2a8a48e3056332a3a19d289b78cee702849b86fe6367fa49c0dcd0801367635",
+    "tests/integration/test_application_run_requests.py": "9d9efe8ef9a8caec5e9c7eb6d0346550180633d12e6052bcb586298a20b82a72",
+    "tests/integration/test_worker_attempt_identity.py": "f5cdf50e898acc1179f2417a756b2f9f80b26b4f843fa65bcf410afb2ca59918",
+    "tests/browser/test_mock_run_controls.py": "d14c26f72a90a8408a61385e016fd557e7730a1af222f2978813dcc4212ae9a9",
+    "tests/browser/test_worker_attempt_recovery.py": "8f8944ef12363d5b9d5ee6bf99407b9032cfda688184f0f9b1eed2190f132702",
+    "tests/browser/test_manual_auth_worker_resume.py": "dc2a6a736d91f892918d4a5e2c52b4dbc1a0b4a4bd31f1d78075d05684d39026",
+    "tests/browser/test_manual_auth_session.py": "57d8a4a0c439957f6916e2bed64bbd88596c2ada65725b80e9a5c1b6d516fd05",
+    "tests/browser/test_manual_auth_session_connected.py": "6c3f7ba6ff84743e3b9416933363620a95fb070c173005965ce04bbbdca53cca",
+    "tests/browser/test_provider_credentials.py": "9ffb83f42aa1b04b4ebc36718d4eedc6fb5b5bac370b5cf6956a18025f23a79a"
+  },
+  "git_blob_ids": {
+    "apps/api/main.py": "cb2961a33ccd343eec43f86ba6703c042dde0483",
+    "apps/web/src/main.tsx": "e27aa7adfb9fc10dcfa4e691df96541fcf7f643b",
+    "apps/web/src/mock-run-client.ts": "ea091630088e29691c5b7d08b5c25cd1c54e995a",
+    "apps/web/src/mock-run-client.test.ts": "b9bc3fa828d1db43cf67b50aa1db0a376dd92075",
+    "apps/web/src/mock-run-controls.tsx": "4ab2a71a67d08f348206492ad4b4287d12b97843",
+    "apps/web/src/mock-run-controls.test.tsx": "7ad616395015b7687886f1524bcab07208c0e4aa",
+    "apps/web/src/credential-connection-feedback.tsx": "eb8aed9b06e81f69f186d129267e413676c86f4b",
+    "apps/web/src/credential-connection-feedback.test.tsx": "3703577ffd4a5f05623de1d773455dccf6844c28",
+    "services/applications/run_requests.py": "b6347ff0d70621f8e207a1bddebb432eb58df968",
+    "services/applications/attempt_history.py": "017f1031ad12fbdd859570cc6060a8313230eb21",
+    "services/applications/mock_adapter.py": "521be04adf492c8cece982240dd404d90e751763",
+    "workers/operations.py": "dbbdf27d244b986a204647c26f7868e040a5aa8e",
+    "workers/tasks.py": "f0575c99a7494e326c3253c69a1ae4f6ed98cc9d",
+    "tests/integration/test_application_run_requests.py": "ec7359e70209a4b23b7811f0bd377a76af1876dc",
+    "tests/integration/test_worker_attempt_identity.py": "1542aae1fc571b30c1d13eeb7db1ed277486fbb4",
+    "tests/browser/test_mock_run_controls.py": "2911c3fb88878be0ed5bf1f1317a2fefe228e85b",
+    "tests/browser/test_worker_attempt_recovery.py": "acf1b48ccefc3901a98cff7cb19a943e109101fe",
+    "tests/browser/test_manual_auth_worker_resume.py": "d9c309213b9d3a858e8b06724a36fe98d2e6c7e9",
+    "tests/browser/test_manual_auth_session.py": "26edf85c8170f58a1b6207c59d83757ae6e2301e",
+    "tests/browser/test_manual_auth_session_connected.py": "6de1b79e0dd923abcb8a93879a8586049548d74c",
+    "tests/browser/test_provider_credentials.py": "cbe5f20dc706cc041f43a8545b3a07478796eb22"
+  },
+  "hash_convention": "SHA-256 of committed Git blob bytes; source commit and tree identify the exact verified inputs.",
+  "checks": [
+    {
+      "result": "PASS",
+      "tests_run": 34,
+      "command": "npm test -- --run src/mock-run-client.test.ts src/mock-run-controls.test.tsx src/credential-connection-feedback.test.tsx",
+      "cwd": "apps/web"
+    },
+    {
+      "result": "PASS",
+      "command": "npm run build",
+      "cwd": "apps/web",
+      "note": "TypeScript and Vite build; existing large-chunk warning."
+    },
+    {
+      "result": "PASS",
+      "tests_run": 24,
+      "command": "python -m unittest tests.integration.test_application_run_requests tests.integration.test_worker_attempt_identity"
+    },
+    {
+      "result": "PASS",
+      "tests_run": 1,
+      "command": "python -m unittest tests.integration.test_provider_credential_timeout_api"
+    },
+    {
+      "result": "PASS",
+      "tests_run": 51,
+      "skipped": 1,
+      "command": "python -m unittest tests.integration.test_application_attempt_history tests.integration.test_worker_lifecycle tests.integration.test_dead_letter_queue tests.integration.test_api_queue",
+      "skip_reason": "Dedicated local PostgreSQL worker recovery URL was not configured."
+    },
+    {
+      "result": "PASS",
+      "tests_run": 3,
+      "command": "python -m unittest tests.browser.test_mock_run_controls"
+    },
+    {
+      "result": "PASS",
+      "tests_run": 3,
+      "command": "python -m unittest tests.browser.test_worker_attempt_recovery"
+    },
+    {
+      "result": "PASS",
+      "tests_run": 2,
+      "command": "python -m unittest tests.browser.test_manual_auth_worker_resume"
+    },
+    {
+      "result": "PASS",
+      "tests_run": 2,
+      "command": "python -m unittest tests.browser.test_manual_auth_session tests.browser.test_manual_auth_session_connected"
+    },
+    {
+      "result": "PASS",
+      "tests_run": 1,
+      "command": "python -m unittest tests.browser.test_provider_credentials"
+    },
+    {
+      "result": "PASS",
+      "tests_run": 5,
+      "command": "python -m unittest tests.unit.test_credential_store"
+    },
+    {
+      "result": "PASS",
+      "command": "python -m tools.verification.agent_skills"
+    },
+    {
+      "result": "PASS",
+      "command": "python -m py_compile <touched Python modules>"
+    },
+    {
+      "result": "PASS",
+      "command": "git diff --check"
+    }
+  ],
+  "environment": {
+    "python": "3.12",
+    "node": "v25.9.0",
+    "platform": "Windows; isolated SQLite, loopback mock API/ATS, headless local Chromium"
+  },
+  "implemented": [
+    "Committed and transferred frozen caller request identity, durable operation fencing, read-only recovery, immutable replay, cancellation, and worker/browser attempt identity onto current main.",
+    "Added a separate explicit non-submitting manual-auth rerun path after an AUTH_REQUIRED terminal operation; lost acknowledgement reuses the same request and never sends a second admission.",
+    "Mounted sanitized provider credential connection feedback in AI Settings; timeouts are distinguished from invalid credentials and network unavailability without revealing provider response data."
+  ],
+  "safety": {
+    "external_employer_submissions": 0,
+    "provider_network_calls": 0,
+    "hosted_ci": "NOT_RUN_BY_POLICY",
+    "hosted_review": "NOT_RUN_BY_POLICY",
+    "personal_runtime": "UNCHANGED",
+    "schema_migrations": "NONE"
+  },
+  "limitations": [
+    "MOCK/fixture workflows only; no live ATS or employer application submission was performed or enabled.",
+    "PostgreSQL crash-recovery acceptance was skipped because the isolated recovery database URL was not configured; these checks use SQLite.",
+    "Parent requirements MJ-REQ-004, MJ-REQ-138, MJ-REQ-142 and MJ-REQ-145 remain PARTIAL; full ATS acceptance and complete parent contracts are not claimed."
+  ],
+  "requirement_ids": [
+    "MJ-REQ-004",
+    "MJ-REQ-138",
+    "MJ-REQ-142",
+    "MJ-REQ-145"
+  ],
+  "issues": [
+    5,
+    139,
+    143,
+    146
+  ],
+  "aggregate_test_result": {
+    "tests_run": 126,
+    "passed": 125,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 1,
+    "skip_reason": "Dedicated loopback PostgreSQL worker recovery database was not configured."
+  }
+}
