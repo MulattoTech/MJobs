@@ -16,3 +16,4 @@
 
 /* Archive scope identifiers must wrap without hiding controls or history. */
 .document-archive{min-width:0;overflow-wrap:anywhere}
+.source-relationship-links small{overflow-wrap:anywhere}
