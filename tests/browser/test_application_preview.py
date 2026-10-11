@@ -99,11 +99,12 @@ class ApplicationPreviewBrowserTests(unittest.TestCase):
                 page.set_default_timeout(8000)
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 page.goto(origin, wait_until="domcontentloaded")
-                page.get_by_role("button", name="Applications", exact=False).click()
+                page.get_by_role("navigation", name="Main navigation").get_by_role(
+                    "button", name="Applications", exact=False).click()
                 page.get_by_role("region", name="Not tracked").get_by_role(
                     "button", name=self.job["title"], exact=False).click()
 
-                review = page.get_by_role("region", name="Application review")
+                review = page.get_by_role("region", name="Application review", exact=True)
                 expect(review).to_contain_text(self.job["title"])
                 expect(review).to_contain_text("Example Systems Inc.")
                 expect(review).to_contain_text("Route")
@@ -119,7 +120,7 @@ class ApplicationPreviewBrowserTests(unittest.TestCase):
                 expect(issues).not_to_contain_text("supported preflight evidence")
 
                 page.reload(wait_until="domcontentloaded")
-                review = page.get_by_role("region", name="Application review")
+                review = page.get_by_role("region", name="Application review", exact=True)
                 expect(review).to_contain_text(self.job["title"])
                 expect(review).to_contain_text("I built a small synthetic Python project.")
                 expect(review).to_contain_text("Automation confidence")
@@ -155,10 +156,11 @@ class ApplicationPreviewBrowserTests(unittest.TestCase):
                 page = context.new_page()
                 page.set_default_timeout(8000)
                 page.goto(origin, wait_until="domcontentloaded")
-                page.get_by_role("button", name="Applications", exact=False).click()
+                page.get_by_role("navigation", name="Main navigation").get_by_role(
+                    "button", name="Applications", exact=False).click()
                 page.get_by_role("region", name="Not tracked").get_by_role(
                     "button", name=self.job["title"], exact=False).click()
-                review = page.get_by_role("region", name="Application review")
+                review = page.get_by_role("region", name="Application review", exact=True)
                 expect(review).to_contain_text("UNKNOWN — no validated cover-letter preview is available.")
                 expect(review).to_contain_text("UNKNOWN — no saved route choice is available.")
                 expect(review).to_contain_text("Cover letter is missing")

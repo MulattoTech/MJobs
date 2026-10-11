@@ -130,7 +130,8 @@ class ConnectedApplicationAnswerMatchingBrowserTests(unittest.TestCase):
                     page.set_default_timeout(8000)
                     page.on("pageerror", lambda error: page_errors.append(str(error)))
                     page.goto(origin, wait_until="domcontentloaded")
-                    page.get_by_role("button", name="Applications", exact=False).click()
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name="Applications", exact=False).click()
 
                     first_card = page.locator(".job-card").filter(
                         has_text=first_job["title"])
@@ -184,7 +185,7 @@ class ConnectedApplicationAnswerMatchingBrowserTests(unittest.TestCase):
                         has_text=second_job["title"])
                     second_card.click()
                     expect(page.get_by_role(
-                        "region", name="Application review")).to_contain_text(
+                        "region", name="Application review", exact=True)).to_contain_text(
                             second_job["title"])
                     second_answers = page.get_by_role("region", name="Application answers")
                     second_answers.get_by_role(
