@@ -72,7 +72,8 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                     context.route('**/*',local_only)
                     page=context.new_page();page.goto(origin)
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
-                    page.reload();page.get_by_role('button',name='Applications',exact=False).first.click()
+                    page.reload();page.get_by_role('navigation',name='Main navigation',exact=True).get_by_role(
+                        'button',name='Applications',exact=False).click()
                     page.locator('.job-card').filter(has_text=first_job['title']).first.click()
                     earlier=page.get_by_label('Earlier cover-letter version',exact=True)
                     later=page.get_by_label('Later cover-letter version',exact=True)
@@ -81,6 +82,7 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                                      {first_letter['id'],second_letter['id']})
                     self.assertNotIn(other_letter['id'], {option.get_attribute('value') for option in earlier.locator('option').all()})
                     earlier.select_option(first_letter['id']);later.select_option(second_letter['id'])
+                    comparison=page.get_by_role('region',name='Compare cover-letter revisions',exact=True)
                     page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
                     result=page.get_by_role('region',name='Cover-letter comparison result',exact=True)
                     expect(result.get_by_text('Cover letter · v1',exact=True)).to_be_visible()
@@ -121,7 +123,7 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                     validated_history=context.request.get(f'{origin}/profiles/fixture/applications/{application_id}/documents').json()['documents']
                     self.assertTrue(next(row for row in validated_history if row['id']==second_letter['id'])['avoid_list_error'])
                     page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
-                    expect(page.get_by_role('alert')).to_contain_text('Cover-letter validation failed')
+                    expect(comparison.get_by_role('alert')).to_contain_text('Cover-letter validation failed')
                     expect(result).to_have_count(0)
                     current_profile=store.profile('fixture')
                     current_profile['preferences']={**current_profile.get('preferences',{}),'avoid_terms':[]}
@@ -132,15 +134,15 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                     endpoint=f'**/profiles/fixture/applications/{application_id}/documents'
                     page.route(endpoint,lambda route: route.fulfill(status=503,content_type='application/json',body='{"detail":"history read unavailable"}'))
                     page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
-                    expect(page.get_by_role('alert')).to_contain_text('history read unavailable')
+                    expect(comparison.get_by_role('alert')).to_contain_text('history read unavailable')
                     page.unroute(endpoint)
 
                     second_path.write_text(second_letter['preview_text']+'\nCorrupted text.\n',encoding='utf-8')
                     page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
-                    expect(page.get_by_role('alert')).to_contain_text('Cover-letter validation failed')
+                    expect(comparison.get_by_role('alert')).to_contain_text('Cover-letter validation failed')
                     second_path.unlink()
                     page.get_by_role('button',name='Compare selected cover letters',exact=True).click()
-                    expect(page.get_by_role('alert')).to_contain_text('Cover-letter validation failed')
+                    expect(comparison.get_by_role('alert')).to_contain_text('Cover-letter validation failed')
                     self.assertEqual(store.application(application_id)['document_version'],2)
                     self.assertFalse(external)
                     context.close();browser.close()
@@ -188,7 +190,8 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
                     for _ in range(2):
                         page.reload()
-                        page.get_by_role('button',name='Applications',exact=False).first.click()
+                        page.get_by_role('navigation',name='Main navigation',exact=True).get_by_role(
+                            'button',name='Applications',exact=False).click()
                         page.locator('.job-card').first.click()
                         document=page.get_by_role('region',name='resume version 1',exact=True)
                         document.get_by_text('Generation details and facts',exact=True).click()
@@ -204,7 +207,8 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                             self.assertEqual(hashlib.sha256(data).hexdigest(),row['sha256'][fmt])
                     self.assertFalse(external)
                     profile_before=store.profile('fixture')
-                    page.get_by_role('button',name='Profile',exact=True).click()
+                    page.get_by_role('navigation',name='Main navigation',exact=True).get_by_role(
+                        'button',name='Profile',exact=True).click()
                     library=page.get_by_role('region',name='Document library',exact=True)
                     expect(library.get_by_text('Generated application documents',exact=True)).to_be_visible()
                     expect(library.get_by_role('region',name='resume version 1',exact=True)).to_be_visible()
@@ -227,8 +231,13 @@ class DocumentHistoryBrowserTests(unittest.TestCase):
                     expect(group.get_by_role('link',name='Download original version 2',exact=True)).to_be_visible()
                     expect(library.get_by_role('button',name='Refresh library',exact=True)).to_be_enabled()
                     page.reload()
-                    page.get_by_role('button',name='Profile',exact=True).click()
+                    expect(page.get_by_role('heading',name='Application details',exact=True)).to_be_visible()
+                    page.get_by_role('navigation',name='Main navigation',exact=True).get_by_role(
+                        'button',name='Profile',exact=True).click()
                     group=page.get_by_role('region',name='CERTIFICATION example collection',exact=True)
+                    expect(page.get_by_role('region',name='Document library',exact=True)).to_be_visible()
+                    expect(group.get_by_role('link',name='Download original version 1',exact=True)).to_be_visible()
+                    expect(group.get_by_role('link',name='Download original version 2',exact=True)).to_be_visible()
                     for version,data in [(1,b'Original synthetic library file'),(2,b'Revised synthetic library file')]:
                         with page.expect_download() as event:
                             group.get_by_role('link',name=f'Download original version {version}',exact=True).click()
