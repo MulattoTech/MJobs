@@ -14,6 +14,7 @@ from collections.abc import Mapping
 from sqlalchemy import select
 
 from packages.persistence import models as m
+from services.applications.form_review_providers import normalize_application_route
 from services.documents.answers import match_answer_question
 
 
@@ -105,13 +106,14 @@ def _profile_and_application(store, profile_id, application_id):
     return dict(row), profile
 
 
-def _latest_analysis(store, application, profile_id):
+def _latest_analysis(store, application, profile_id, profile):
     with store.engine.connect() as connection:
-        rows = connection.execute(select(m.audit).where(
+        latest = connection.execute(select(m.audit).where(
             m.audit.c.entity_id == application["application_id"],
             m.audit.c.action == _AUDIT_ACTION,
-        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings().all()
-        latest = dict(rows[0]) if rows else None
+        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())
+            .limit(1)).mappings().one_or_none()
+        latest = dict(latest) if latest is not None else None
     if latest is None:
         raise RehearsalError("FORM_REVIEW_REQUIRED")
     payload = latest.get("payload")
@@ -120,6 +122,7 @@ def _latest_analysis(store, application, profile_id):
             or payload.get("route_id") != application["route_id"]
             or payload.get("provider") != application["provider"]):
         raise RehearsalError("FORM_REVIEW_STALE")
+    _validate_operation_snapshot(store, application, profile_id, profile, payload)
     analysis = payload.get("analysis")
     if (not isinstance(analysis, Mapping)
             or set(analysis) != {"status", "reason", "fields"}
@@ -156,25 +159,88 @@ def _latest_analysis(store, application, profile_id):
     return {"status": analysis["status"], "reason": reason, "fields": fields}, payload
 
 
+def _validate_operation_snapshot(store, application, profile_id, profile, payload):
+    """Bind real worker receipts to the route and profile version they inspected.
+
+    Synthetic consumers may persist only a sanitized audit receipt, so a
+    missing operation row is tolerated. When the durable worker row exists,
+    every frozen input and the worker's content fingerprint must agree.
+    """
+    operation_id = payload.get("operation_id")
+    if not isinstance(operation_id, str) or not operation_id:
+        raise RehearsalError("FORM_ANALYSIS_INVALID")
+    with store.engine.connect() as connection:
+        operation = connection.execute(select(
+            m.operations.c.kind, m.operations.c.entity_id, m.operations.c.params,
+        ).where(m.operations.c.id == operation_id).limit(1)).mappings().one_or_none()
+    if operation is None:
+        return
+    params = operation["params"]
+    normalized_route = normalize_application_route(
+        application["provider"], application["url"],
+    )
+    if normalized_route is None:
+        raise RehearsalError("FORM_REVIEW_STALE")
+    expected = {
+        "profile_id": profile_id,
+        "application_id": application["application_id"],
+        "route_id": application["route_id"],
+        "route_url": normalized_route["url"],
+        "provider": application["provider"],
+        "profile_version": str(profile["version"]),
+        "request_id": payload.get("request_id"),
+        "input_fingerprint": payload.get("input_fingerprint"),
+    }
+    if (operation["kind"] != _AUDIT_ACTION
+            or operation["entity_id"] != application["application_id"]
+            or not isinstance(params, Mapping)
+            or any(params.get(key) != value for key, value in expected.items())):
+        raise RehearsalError("FORM_REVIEW_STALE")
+    frozen = {key: params[key] for key in (
+        "profile_id", "application_id", "route_id", "route_url", "provider",
+        "profile_version",
+    )}
+    actual_fingerprint = hashlib.sha256(json.dumps(
+        frozen, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+    ).encode("utf-8")).hexdigest()
+    if params.get("input_fingerprint") != actual_fingerprint:
+        raise RehearsalError("FORM_REVIEW_STALE")
+
+
 def _contact_value(profile, key, field_type):
     if field_type not in {"text", "email", "tel", "url"}:
         return None
+    contact = profile.get("contact")
+    if not isinstance(contact, Mapping):
+        contact = {}
     contact_key = _CONTACT_FIELDS.get(key)
     if contact_key is None:
         if key in {"full_name", "fullname"}:
-            given = profile.get("first_name")
-            family = profile.get("last_name")
-            value = " ".join(part.strip() for part in (given, family)
-                             if isinstance(part, str) and part.strip())
+            if field_type != "text":
+                return None
+            given = contact.get("first_name")
+            family = contact.get("last_name")
+            composed = " ".join(part.strip() for part in (given, family)
+                                if isinstance(part, str) and part.strip())
+            value = composed or profile.get("name")
         else:
             value = None
     elif contact_key == ("email",):
+        if field_type not in {"email", "text"}:
+            return None
         value = profile.get("email")
     elif contact_key == ("phones",):
-        phones = profile.get("phones")
+        if field_type not in {"tel", "text"}:
+            return None
+        phones = contact.get("phones")
         value = phones[0] if isinstance(phones, list) and phones else None
     else:
-        value = profile.get(contact_key[0])
+        if contact_key[0] in {"linkedin", "github", "portfolio"}:
+            if field_type not in {"url", "text"}:
+                return None
+        elif field_type != "text":
+            return None
+        value = contact.get(contact_key[0])
     if (not isinstance(value, str) or not value.strip()
             or len(value) > _MAX_VALUE_LENGTH):
         return None
@@ -206,24 +272,25 @@ def _approved_answer(profile, key):
 def _documents(store, application, profile_version):
     """Return generated artifact metadata only; never expose stored paths."""
     with store.engine.connect() as connection:
-        rows = connection.execute(select(m.documents).where(
-            m.documents.c.application_id == application["application_id"],
-            m.documents.c.profile_version == profile_version,
-        ).order_by(m.documents.c.created_at.desc(), m.documents.c.version.desc())).mappings().all()
-        records = [dict(row) for row in rows]
+        latest_by_kind = {}
+        for kind in ("resume", "cover-letter"):
+            row = connection.execute(select(
+                m.documents.c.kind, m.documents.c.version,
+                m.documents.c.files, m.documents.c.sha256,
+            ).where(
+                m.documents.c.application_id == application["application_id"],
+                m.documents.c.profile_version == profile_version,
+                m.documents.c.kind == kind,
+            ).order_by(m.documents.c.created_at.desc(), m.documents.c.version.desc())
+                .limit(1)).mappings().one_or_none()
+            if (row is not None and isinstance(row["files"], Mapping) and row["files"]):
+                latest_by_kind[kind] = dict(row)
         selected_events = connection.execute(select(m.audit.c.payload).where(
             m.audit.c.entity_id == application["application_id"],
             m.audit.c.action == _DOC_SELECTION_ACTION,
-        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings().all()
-        selected_payload = selected_events[0]["payload"] if selected_events else None
-    latest_by_kind = {}
-    for record in records:
-        kind = record.get("kind")
-        files = record.get("files")
-        if (kind in {"resume", "cover-letter"}
-                and isinstance(files, Mapping) and files
-                and kind not in latest_by_kind):
-            latest_by_kind[kind] = record
+        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())
+            .limit(1)).mappings().one_or_none()
+        selected_payload = selected_events["payload"] if selected_events else None
     selected = []
     if (isinstance(selected_payload, Mapping)
             and selected_payload.get("profile_id") == application.get("profile_id")
@@ -289,7 +356,7 @@ def build_rehearsal(store, profile_id, application_id) -> dict:
     rehearsal values are saved in the database, audit trail, or remote provider.
     """
     application, profile = _profile_and_application(store, profile_id, application_id)
-    analysis, _receipt = _latest_analysis(store, application, profile_id)
+    analysis, _receipt = _latest_analysis(store, application, profile_id, profile)
     blockers: list[str] = []
     if analysis["status"] != "ANALYZED":
         blockers.append(analysis["reason"] or "FORM_ANALYSIS_UNKNOWN")
