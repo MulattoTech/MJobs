@@ -136,6 +136,28 @@ class DiscoveryRequestApiTests(unittest.TestCase):
         self.assertEqual(request["state"], "QUEUED")
         self.assertEqual(request["revision"], 2)
 
+    def test_explicit_identity_confirmation_is_strict_and_queues_request_company(self):
+        with self._client() as client:
+            invalid = client.post(
+                f"/company-discovery/requests/{self.request_id}/review",
+                json={"website": "https://employer.example", "revision": 1,
+                      "confirm_company_identity": "true"})
+            self.assertEqual(invalid.status_code, 422)
+            accepted = client.post(
+                f"/company-discovery/requests/{self.request_id}/review",
+                json={"website": "https://employer.example", "revision": 1,
+                      "confirm_company_identity": True})
+        self.assertEqual(accepted.status_code, 202, accepted.text)
+        with self.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.id == accepted.json()["operation_id"])).mappings().one()
+            request = connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == self.request_id)).mappings().one()
+        self.assertEqual(operation["entity_id"], "company")
+        self.assertEqual(request["authorization"], "USER_CONFIRMED_DOMAIN")
+        self.assertEqual(request["domain_evidence"][0]["method"], "USER_CONFIRMED_DOMAIN")
+        self.assertEqual(self.store.count("company_domains"), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -546,6 +546,7 @@ class DiscoveryRequestRevisionInput(BaseModel):
 
 class DiscoveryRequestReviewInput(DiscoveryRequestRevisionInput):
     website: str = Field(min_length=1, max_length=2000)
+    confirm_company_identity: bool = False
 
 
 class CompanyMonitoringInput(BaseModel):

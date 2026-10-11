@@ -136,6 +136,9 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     """Resolve one employer, prove its careers/ATS source, enroll, and enumerate immediately."""
     check = check or (lambda: None)
     fixture = bool(getattr(client, "fixture_only", False))
+    initial_authorization = check()
+    identity_confirmation = (initial_authorization if initial_authorization and
+        initial_authorization.get('authorization') == 'USER_CONFIRMED_DOMAIN' else None)
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
     resolved_without_website = None
     if not website:
@@ -147,9 +150,18 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             if known_domain["status"] == "VERIFIED":
                 website = f"https://{known_domain['domain']}"
                 candidate = {**candidate, "company_website": website}
-    resolved = (resolve_company(store, candidate) if fixture else
-                resolve_public_company(store, candidate) if website else
-                resolved_without_website)
+    if identity_confirmation:
+        with store.engine.connect() as connection:
+            company = connection.execute(select(m.companies).where(
+                m.companies.c.id == identity_confirmation['company_id'])).mappings().one_or_none()
+        if company is None:
+            raise PublicFetchError('COMPANY_IDENTITY_CHANGED')
+        resolved = dict(company_id=company['id'], name=company['name'], domain=company['domain'],
+                        evidence=['USER_CONFIRMED_DOMAIN'])
+    else:
+        resolved = (resolve_company(store, candidate) if fixture else
+                    resolve_public_company(store, candidate) if website else
+                    resolved_without_website)
     search_context = None
     rejected_search_candidates = []
     homepage = None
@@ -346,34 +358,61 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                     if connection.dialect.name == "sqlite":
                         connection.exec_driver_sql("BEGIN IMMEDIATE")
                     if enrollment_guard:
-                        enrollment_guard(connection)
-                    fresh = resolve_public_company(store, candidate, connection=connection, lock_verified=True)
-                    if fresh["company_id"] != resolved["company_id"]:
-                        raise PublicFetchError("COMPANY_IDENTITY_CHANGED")
+                        authorization = enrollment_guard(connection)
+                    else:
+                        authorization = None
+                    if authorization and authorization.get('authorization') == 'USER_CONFIRMED_DOMAIN':
+                        identity_confirmation = authorization
+                        company = connection.execute(select(m.companies).where(
+                            m.companies.c.id == authorization['company_id'])).mappings().one_or_none()
+                        if company is None:
+                            raise PublicFetchError("COMPANY_IDENTITY_CHANGED")
+                        fresh = dict(company_id=company['id'], name=company['name'], domain=company['domain'],
+                                     evidence=['USER_CONFIRMED_DOMAIN'])
+                    else:
+                        identity_confirmation = None
+                        fresh = resolve_public_company(store, candidate, connection=connection, lock_verified=True)
+                        if fresh["company_id"] != resolved["company_id"]:
+                            raise PublicFetchError("COMPANY_IDENTITY_CHANGED")
                     resolved = fresh
-                    upsert(connection, m.companies, {
-                        "id": resolved["company_id"], "name": resolved["name"], "domain": "",
-                    }, replace=True)
+                    source_tenant = resolved["company_id"]
+                    if not identity_confirmation:
+                        upsert(connection, m.companies, {
+                            "id": resolved["company_id"], "name": resolved["name"], "domain": "",
+                        }, replace=True)
                 verified_origin = "VERIFIED_DOMAIN_MATCH" in resolved["evidence"]
                 source_confidence = 0.88 if fixture or verified_origin else 0.45
-                source_record = upsert_company_job_source(
-                    connection, company_id=resolved["company_id"], provider=source_provider,
+                source_values = dict(company_id=resolved["company_id"], provider=source_provider,
                     tenant_identifier=source_tenant, career_url=str(careers.url),
                     feed_url=feed["url"] if feed["strategy"] == "RSS" else None,
                     public_api_url=feed["url"] if feed["strategy"] == "PUBLIC_JSON" else None,
-                    collection_strategy=feed["strategy"], confidence=source_confidence, enabled=fixture or verified_origin,
-                    priority="NORMAL", discovered_automatically=True,
+                    collection_strategy=feed["strategy"], confidence=source_confidence,
+                    enabled=fixture or verified_origin, priority="NORMAL", discovered_automatically=True,
                     ats_tenant_id=tenant_record["id"] if tenant_record else None, last_validation=timestamp,
-                    profile_id=profile_id,
-                )
+                    profile_id=profile_id)
+                if identity_confirmation:
+                    from services.company_discovery.sources import _url
+                    existing = connection.execute(select(m.company_sources).where(
+                        m.company_sources.c.company_id == resolved["company_id"],
+                        m.company_sources.c.provider == source_provider,
+                        m.company_sources.c.tenant == source_tenant,
+                        m.company_sources.c.career_url == _url(str(careers.url), 'CAREER_URL'),
+                    )).mappings().one_or_none()
+                    endpoint = feed["url"]
+                    if existing:
+                        if existing['endpoint'] != _url(endpoint, 'ENDPOINT'):
+                            raise PublicFetchError('COMPANY_SOURCE_MIGRATION_REVIEW_REQUIRED')
+                        # A reviewed one-time discovery must not change an existing
+                        # employer source's enablement or evidence while importing.
+                        source_record = dict(existing)
+                    else:
+                        source_values['enabled'] = False
+                        source_values['confidence'] = 0.45
+                        source_record = upsert_company_job_source(connection, **source_values)
+                else:
+                    source_record = upsert_company_job_source(connection, **source_values)
                 if preserve_source_id and source_record['id'] != preserve_source_id:
                     raise PublicFetchError('COMPANY_SOURCE_MIGRATION_REVIEW_REQUIRED')
-            if company_domain:
-                record_company_domain(
-                    store, resolved["company_id"], company_domain,
-                    "CANDIDATE_DOMAIN_UNVERIFIED",
-                    ["homepage supplied for bounded career discovery"],
-                )
             from services.discovery.company_feed import import_company_feed_jobs
             from services.company_discovery.application_links import sample_feed_links
             try:
@@ -396,6 +435,12 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 fetch_available=True, link_reports=link_reports,
                 import_guard=enrollment_guard,
             )
+            if company_domain and not identity_confirmation:
+                record_company_domain(
+                    store, resolved["company_id"], company_domain,
+                    "CANDIDATE_DOMAIN_UNVERIFIED",
+                    ["homepage supplied for bounded career discovery"],
+                )
             with store.engine.begin() as connection:
                 store._audit(connection, resolved["company_id"], "COMPANY_SOURCE_DISCOVERED", {
                     "company_source_id": source_record["id"],

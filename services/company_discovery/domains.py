@@ -15,6 +15,7 @@ from packages.persistence.store import identity, upsert
 AGGREGATOR_HOSTS = {
     "linkedin.com", "indeed.com", "crunchbase.com", "glassdoor.com",
     "ziprecruiter.com", "monster.com", "careerbuilder.com", "simplyhired.com",
+    "remotive.com", "remoteok.com", "weworkremotely.com",
 }
 VERIFIED_METHODS = {
     "FIRST_PARTY_JOB_LINK", "VERIFIED_EXISTING_DOMAIN", "ATS_COMPANY_METADATA",

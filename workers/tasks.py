@@ -254,7 +254,7 @@ def execute_operation(operation_id):
                             from services.company_discovery.monitoring import authorize_rediscovery
                             authorize_rediscovery(store, operation)
                         if params.get("discovery_request_id"):
-                            authorize_discovery_request(store, operation)
+                            return authorize_discovery_request(store, operation)
                     check()
                 if operation_mode == "PERSONAL":
                     client = PublicCompanyClient(params["candidate"].get("company_website"), check=check, total_timeout=min(90, timeout()-5))
@@ -268,6 +268,9 @@ def execute_operation(operation_id):
                     if params.get("monitoring_source_id"):
                         discovery_kwargs["preserve_source_id"] = params.get("monitoring_source_id")
                         discovery_kwargs["enrollment_guard"] = lambda connection: authorize_rediscovery(store, operation, connection=connection)
+                    if params.get("discovery_request_id"):
+                        discovery_kwargs["enrollment_guard"] = lambda connection: authorize_discovery_request(
+                            store, operation, connection=connection)
                     result = discover_company_source(store, params["candidate"], client, **discovery_kwargs)
                 finally:
                     client.close()
