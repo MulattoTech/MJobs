@@ -71,6 +71,11 @@ def build() -> Path:
     for name, relative in PAGES.items():
         source = ROOT / relative
         text = rewrite_links(source.read_text('utf-8'), source)
+        # GitHub parses Markdown inside common README wrappers; Python-Markdown
+        # needs an explicit md_in_html opt-in to render their headings/images.
+        text = re.sub(r'<(div|details)([^>]*)>',
+                      lambda match: '<' + match[1] + match[2] + ' markdown="1">'
+                      if 'markdown=' not in match[2] else match[0], text)
         body = markdown.markdown(text, extensions=['fenced_code', 'tables', 'toc', 'md_in_html'])
         title = 'MJobs / ' + name.title()
         page = ('<!doctype html><html lang="en"><head><meta charset="utf-8">'

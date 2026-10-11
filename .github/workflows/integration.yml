@@ -56,6 +56,13 @@ jobs:
             requirements.lock
             .github/test-requirements.txt
       - run: python -m pip install -r requirements.lock -r .github/test-requirements.txt
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Build the same SPA mounted by production API integration tests
+        run: npm ci --prefix apps/web --no-audit --no-fund && npm run build --prefix apps/web
       - name: Create a disposable recovery database
         run: psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_worker_recovery'
       - name: Install controlled browser dependency for worker tests

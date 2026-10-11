@@ -33,6 +33,16 @@ class PublicSiteTests(unittest.TestCase):
         self.assertNotIn('DO_NOT_EXPORT', index)
         self.assertIn('Content-Security-Policy', index)
 
+    def test_readme_html_wrappers_render_markdown_headings_and_images(self):
+        (self.root / 'README.md').write_text(
+            '<div align="center">\n\n# Wrapped heading\n\n</div>\n'
+            '<details><summary>More</summary>\n\n![demo](docs/assets/demo.png)\n\n</details>',
+            encoding='utf-8')
+        output = site.build()
+        page = (output / 'index.html').read_text('utf-8')
+        self.assertIn('<h1', page)
+        self.assertIn('src="assets/demo.png"', page)
+
     def test_existing_unapproved_export_file_blocks_publication(self):
         output = self.root / 'outputs/site'
         output.mkdir(parents=True)
