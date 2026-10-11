@@ -19,10 +19,14 @@ from services.discovery.sources.collect import collect_source
 from services.discovery.sources.greenhouse import SourceError
 from services.discovery.matching import recalculate
 from services.documents.generate import prepare, PreparationError
+from services.documents.comparison import ComparisonUnavailable
 from services.career_profile.durable_extraction import (
     DurableExtractionError, extract_for_operation, persist_result,
 )
 from services.audit_history import record_application_preparation_event
+from services.documents.durable_comparison import (
+    KIND as COMPARISON_KIND, DurableComparisonError, compare_for_operation, complete_result,
+)
 from services.discovery.search_history import record_search_history
 from services.discovery.search_history_events import build_search_history_record
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
@@ -171,6 +175,7 @@ def execute_operation(operation_id):
             history_results = None
         retry_failure = None
         durable_resume_result = None
+        durable_comparison_result = None
         try:
             deadline = time.monotonic() + timeout()
 
@@ -324,6 +329,9 @@ def execute_operation(operation_id):
                         resume_story_ids=operation['params'].get('resume_story_ids'),
                         resume_story_job_fingerprint=operation['params'].get(
                             'resume_story_job_fingerprint'))
+            elif operation["kind"] == COMPARISON_KIND:
+                durable_comparison_result = compare_for_operation(
+                    store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check)
             elif operation["kind"] == "RESUME_EXTRACT_QUEUED":
                 durable_resume_result = extract_for_operation(
                     store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check)
@@ -359,6 +367,10 @@ def execute_operation(operation_id):
             state, error = "CANCELLED", "CANCEL_REQUESTED"
         except DurableExtractionError as failure:
             state, error = "BLOCKED", failure.code
+        except DurableComparisonError as failure:
+            state, error = "BLOCKED", failure.code
+        except ComparisonUnavailable:
+            state, error = "BLOCKED", "COMPARISON_INPUT_UNAVAILABLE"
         except PublicFetchError as failure:
             state, error = "BLOCKED", failure.code
             retry_failure = failure
@@ -376,6 +388,9 @@ def execute_operation(operation_id):
             current = connection.execute(select(m.operations).where(
                 m.operations.c.id == operation_id).with_for_update()).mappings().one()
             if current["state"] != "RUNNING" or current["attempt_count"] != operation["attempt_count"]:
+                return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
+            if (operation["kind"] == COMPARISON_KIND
+                    and (not current["lease_expires_at"] or current["lease_expires_at"] <= now())):
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
             if current["cancel_requested"] and operation["kind"] != "APPLY_MOCK":
                 state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
@@ -407,6 +422,9 @@ def execute_operation(operation_id):
                 if durable_resume_result is None:
                     raise RuntimeError("Completed resume extraction has no result")
                 persist_result(connection, operation, durable_resume_result)
+            if operation["kind"] == COMPARISON_KIND and state == "COMPLETED":
+                if durable_comparison_result is None or not complete_result(connection, operation, durable_comparison_result):
+                    raise RuntimeError("Completed uploaded comparison has no fenced result")
             store._audit(connection, operation_id,
                          "OPERATION_RETRY_SCHEDULED" if retry else
                          "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",

@@ -2223,6 +2223,43 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except ComparisonUnavailable as error:
             raise HTTPException(409, str(error)) from error
 
+    def comparison_error(error):
+        from services.documents.durable_comparison import DurableComparisonError
+        if isinstance(error, DurableComparisonError):
+            raise HTTPException(404 if error.code == 'COMPARISON_NOT_FOUND' else 409,
+                                {'code': error.code, 'message': str(error)}) from None
+        raise error
+
+    @app.post('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison/operations', status_code=202)
+    def queue_uploaded_comparison(profile_id: str, application_id: str, base_revision_id: str,
+                                 tailored_document_id: str, request_id: str):
+        from services.documents.durable_comparison import queue_comparison, DurableComparisonError
+        try:
+            admitted = queue_comparison(store, output_dir, profile_id, application_id,
+                                       base_revision_id, tailored_document_id, request_id)
+        except DurableComparisonError as error:
+            comparison_error(error)
+        return admitted
+
+    @app.get('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison/operations')
+    def read_uploaded_comparison(profile_id: str, application_id: str, base_revision_id: str,
+                                tailored_document_id: str, operation_id: str | None = None):
+        from services.documents.durable_comparison import read_comparison, DurableComparisonError
+        try:
+            return read_comparison(store, output_dir, profile_id, application_id,
+                                   base_revision_id, tailored_document_id, operation_id)
+        except DurableComparisonError as error:
+            comparison_error(error)
+
+    @app.post('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison/operations/{operation_id}/cancel')
+    def cancel_queued_comparison(profile_id: str, application_id: str, operation_id: str):
+        from services.documents.durable_comparison import owned_operation, status, DurableComparisonError
+        try:
+            owned_operation(store, profile_id, application_id, operation_id)
+            return status(request_cancel(store, operation_id))
+        except DurableComparisonError as error:
+            comparison_error(error)
+
     @app.get('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison')
     async def uploaded_resume_comparison(profile_id: str, application_id: str, base_revision_id: str,
                                          tailored_document_id: str, request: Request):

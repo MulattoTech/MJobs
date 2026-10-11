@@ -43,6 +43,7 @@ jobs:
       MJOBS_WORKER_RECOVERY_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_worker_recovery
       MJOBS_REDIS_URL: redis://127.0.0.1:6379/0
       MJOBS_OPERATION_MODE: FIXTURE
+      MJOBS_DURABLE_COMPARISON_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test
       PGPASSWORD: synthetic-test-only
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
