@@ -81,7 +81,7 @@ def labels_for(issue: dict, seed: dict) -> tuple[list[str], bool]:
 
     current_category = [n for n in names if n.startswith("category:")]
     existing_type = next((n[5:] for n in names if n.startswith("type:")), None)
-    if re.search(r"\bMJ-REF-\d+", title) or "child-requirement" in names:
+    if re.search(r"\b(?:MJ-REF|REF-GAP)-\d+", title) or "child-requirement" in names:
         category = "subfeature"
     elif re.search(r"\bMJ-REQ-\d+", title):
         category = "bookkeeping" if existing_type in ("governance", "tracking", "docs") else "major-feature"
@@ -123,6 +123,7 @@ def labels_for(issue: dict, seed: dict) -> tuple[list[str], bool]:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--verify", action="store_true", help="Fail if any issue lacks exactly one priority, category, or area")
     parser.add_argument("--limit", type=int, default=0, help="For cautious trial runs; 0 means all")
     parser.add_argument("--report", type=Path)
     args = parser.parse_args()
@@ -130,6 +131,19 @@ def main() -> int:
     issues = sorted(issues, key=lambda x: x["number"])
     if args.limit:
         issues = issues[:args.limit]
+    if args.verify:
+        if args.apply:
+            parser.error("--verify cannot be combined with --apply")
+        invalid = []
+        for item in issues:
+            names = [v["name"] for v in item.get("labels", [])]
+            counts = {group: sum(n.startswith(group + ":") for n in names)
+                      for group in ("priority", "category", "area")}
+            if any(value != 1 for value in counts.values()):
+                invalid.append({"issue": item["number"], "counts": counts})
+        print(json.dumps({"mode": "verify", "issues": len(issues),
+                          "invalid": invalid[:25], "invalid_count": len(invalid)}, indent=2))
+        return 1 if invalid else 0
     seed = seeded()
     planned = [(i, *labels_for(i, seed)) for i in issues]
     changes = [(i, missing, inferred) for i, missing, inferred in planned if missing]

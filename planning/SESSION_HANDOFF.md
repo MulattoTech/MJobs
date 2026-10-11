@@ -1,21 +1,23 @@
-# MJobs — single-workspace Codex handoff (2026-10-10)
+# MJobs — Codex-only integration handoff (October 10, 2026)
 
-**Workspace:** `C:\Tools\Dev\MJobs` · **Remote:** `https://github.com/MulattoTech/MJobs` · **Branch:** `main`. The authoritative current SHA is `git rev-parse main`; verify `git ls-remote origin refs/heads/main` before publication or new edits.
+**One active checkout:** `C:\Tools\Dev\MJobs` · **GitHub:** `MulattoTech/MJobs` · **publication branch:** `main`. The GitHub branch is verified to be the sole remote head. Get the current exact commit from `git rev-parse main` and `git ls-remote origin refs/heads/main`; the mainline reconciliation commit is `6c7140c4`.
 
-## Completed reconciliation
-- Current single-writer guidance: `AGENTS.md` and `CODEX_START.md`; no new parallel lanes, claims, or independent worktree creation. Root `planning/CLAIMS.json` has zero claims; old claim #114 explicitly released.
-- All 447 existing GitHub issues have at least one priority, category, and area label. Inferred priorities were flagged for human triage. `python tools/mjobs_issue_labels.py` returns zero pending.
-- The derived `planning/REQUIREMENT_INDEX.json` covers 366 original and 59 reference-gap items in under 100 KB; `python tools/mjobs_reconcile_planning.py --apply` rebuilds it.
-- The 289-entry implementation journal was reduced to its latest milestone. The original 1.08 MB file and the original 312 KB handoff were copied to `C:\Tools\Dev\MJobs-Reconciliation-Backup-20261010`, along with a verified 2,183-ref Git bundle and worktree/ref manifests.
-- Existing preserved historical source/evidence can be recovered from Git; no acceptance result was artificially promoted.
+## Workflow and Git cleanup
+- `AGENTS.md`, `CODEX_START.md`, and `docs/GITHUB_WORKFLOW.md` define one serial development/integration path using Codex CLI, Codex VS Code/Desktop, or explicitly authorized ChatGPT Web. Former parallel-lane prompts, configs and startup scripts were removed from the current tree. The root `planning/CLAIMS.json` is empty; previous #114 hold was explicitly released.
+- All **447 GitHub issues** have exactly one `priority:*`, one `category:*`, and one `area:*`. 20 previously generic categories and 21 initially untriaged functional areas were manually refined; no generic `category:other` or `area:untriaged` remains. 20 priority labels have inference markers for future review. Use `tools/mjobs_issue_labels.py` to audit/add future missing labels.
+- **GitHub branch heads:** one, `main`. 121 retired remote branch names removed using exact-SHA leases; 11 remote unmerged tips first archived as verified GitHub tags.
+- **Local branch refs:** all 1,021 original heads archived under `refs/archive/mjobs/20261010/local/`. Of those, 997 obsolete refs were retired. The remaining 23 secondary heads are checked out in dirty or external worktrees; preserve them until in-progress files and running Codex sessions can be safely reconciled. 952 clean internal worktrees were safely detached without file changes; 25 unmodified worktrees were removed. Other historical directories remain physically present but are **not** active development paths.
+- Old root ZIP/bare mirror, zero-length diagnostic file, and untracked experimental AI source/tests were moved unchanged to the external recovery folder, not committed as if feature-complete. `events.jsonl` is ignored as generated local diagnostics.
 
-## Acceptance truth
-- Original MJ-REQ: **102 PASS / 109 PARTIAL / 155 NOT_RUN** (366 total). MJ-REF: **19/59 PASS**. Full release readiness **UNKNOWN**, not 100% done.
-- The previous local feature batch for #209/#169/#156/#171/#261 is only bounded acceptance; each parent remains PARTIAL. It has not been validated against live external services.
-- Local frontend test run: **765/765 PASS**; TypeScript/Vite build PASS with an existing large-bundle advisory. Launcher/model tests and catalogue/journal validation passed. Check the current run's full Python unit result before making any broader test claim.
-- Hosted GitHub Actions/reviews, full PostgreSQL/Redis Compose, and real ATS submission **NOT_RUN**. Real submission stays **OFF**.
+## Acceptance and validation
+- **Original MJ-REQ:** 102 PASS / 109 PARTIAL / 155 NOT_RUN (366). **MJ-REF:** 19 PASS / 59 total. Product/release completeness has **not** been established.
+- Clean tracked Python unit suite: **1,231 passed, 611 subtests passed**. Frontend Vitest: **765 passed**. TypeScript/Vite production build: **PASS** (existing oversized-chunk warning). Catalogue, milestone journal, agent skill and progress dashboard validators: **PASS**. AI commit-provenance validator available under `tools/verification/commit_provenance.py`.
+- Hosted CI, production PostgreSQL/Redis end-to-end checks, live third-party job submission and production deployment: **NOT_RUN**. External submission remains **OFF**.
+- Prior feature batch on #209/#169/#156/#171/#261 remains **PARTIAL** where full parent acceptance is unproven. Do not mark the project 100% on the basis of this clean stopping point.
 
-## Recovery and next work
-- Existing user-untracked files `MJobs-all-branches.zip`, `MJobs.git/`, `events.jsonl`, `services/ai/ai_failure_mode.py`, and `tests/unit/test_ai_failure_behavior.py` were not incorporated or deleted.
-- Historical branch tips and dirty worktrees must not be treated as integrated. The backup Git bundle preserves refs, but uncommitted worktree files require separate preservation; never force-remove them.
-- The next explicit Codex task should reverify main, select an unblocked P0/P1 **product** acceptance gap from GitHub, implement and locally test a coherent end-to-end slice. Keep this handoff short rather than reintroducing detailed per-agent planning.
+## Recovery
+- Local immutable recovery: `C:\Tools\Dev\MJobs-Reconciliation-Backup-20261010` (verified 2,183-ref Git bundle, original implementation journal, original handoff, exact branch SHA manifests, remote tag/branch report, archived experimental files).
+- Redundant GitHub backup: [Historical Git bundle release](https://github.com/MulattoTech/MJobs/releases/tag/mjobs-history-backup-20261010) — explicitly **NOT a product release**.
+- Journal reduced from 289 entries to the latest checkpoint; original saved and available via Git history. Derived `planning/REQUIREMENT_INDEX.json` is under 100 KB and rebuilds from authoritative acceptance sources.
+
+**Next authorized development:** read `AGENTS.md`; check clean main; select the highest-impact unblocked P0/P1 issue; implement a testable end-to-end feature, update evidence, commit with `AI-Agent` / `AI-Model` / `Requirement` / `Validation` / `UTC-Date` trailers and safely publish. Do not reactivate old lanes, infer PASS from merge, or erase occupied secondary worktrees.

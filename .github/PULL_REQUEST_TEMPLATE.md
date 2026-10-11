@@ -21,4 +21,8 @@
 
 ## Validation and evidence
 
+- [ ] Every new AI-authored source commit contains `AI-Agent`, `AI-Model`, `Requirement`, `Validation`, and `UTC-Date` trailers (actual values; use `unknown` if model identity is unavailable).
+- [ ] `python -m tools.verification.commit_provenance --commit HEAD` passed for the AI-authored source commit, or the commit is explicitly human-authored.
+- [ ] All affected unit/integration/browser checks list executed commands and honest PASS/FAIL/NOT_RUN outcomes; hosted checks remain disabled.
+
 <!-- List exact local commands/results, evidence path, limitations, and recovery notes. -->

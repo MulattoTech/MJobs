@@ -36,6 +36,6 @@ Requirement: <issue number / MJ-REQ ID / housekeeping>
 Validation: <executed checks; NOT_RUN where needed>
 UTC-Date: <ISO-8601 UTC>
 ```
-Use `AI-Agent: ChatGPT-Web` when changes are authored through an explicitly requested ChatGPT Web session. Do not guess model IDs. Commit attribution is historical provenance, not evidence of feature completeness.
+Use `AI-Agent: ChatGPT-Web` when changes are authored through an explicitly requested ChatGPT Web session. Do not guess model IDs. After committing, run `python -m tools.verification.commit_provenance --commit HEAD` and correct incomplete trailers before publishing. Commit attribution is historical provenance, not evidence of feature completeness.
 
 **At an authorized stop:** release any temporary coordination state, leave the working tree and published branch clearly described, and write a concise checkpoint in `planning/SESSION_HANDOFF.md`.

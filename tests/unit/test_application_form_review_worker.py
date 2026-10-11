@@ -4,7 +4,6 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
-import types
 import unittest
 from unittest.mock import Mock, patch
 
