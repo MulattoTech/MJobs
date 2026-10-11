@@ -70,7 +70,7 @@ class LeverApplicationAdapterTests(unittest.TestCase):
 
     def test_sensitive_ambiguous_and_unknown_fields_require_human_review(self):
         standard = {"status": "PASS", "fields": [
-            {"sensitivity": "STANDARD", "ambiguous": False},
+            {"sensitivity": "STANDARD", "ambiguous": False, "name": "first_name"},
         ]}
         sensitive = {"status": "PASS", "fields": [
             {"sensitivity": "SENSITIVE", "ambiguous": False},
@@ -83,6 +83,15 @@ class LeverApplicationAdapterTests(unittest.TestCase):
         self.assertTrue(self.adapter.requires_human_review(sensitive))
         self.assertTrue(self.adapter.requires_human_review(ambiguous))
         self.assertTrue(self.adapter.requires_human_review({"status": "UNKNOWN", "fields": []}))
+
+    def test_unknown_custom_question_requires_human_review(self):
+        analysis = {"status": "PASS", "fields": [{
+            "sensitivity": "STANDARD", "ambiguous": False, "tag": "textarea",
+            "id": "custom_q_982", "name": "custom_q_982",
+            "labels": ["What should we know about you?"],
+        }]}
+
+        self.assertTrue(self.adapter.requires_human_review(analysis))
 
     @patch("services.applications.adapters.greenhouse.analyze_form_page")
     def test_analyze_page_reuses_the_shared_value_free_analyzer(self, analyzer):

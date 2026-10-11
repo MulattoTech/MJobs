@@ -59,6 +59,103 @@ class ApplicationFormReviewProvidersTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_VALUE", json.dumps(report))
         self.assertNotIn("Full name", json.dumps(report))
 
+    def test_lever_requiredness_is_known_only_when_static_markup_states_it(self):
+        report = analyze_application_form(
+            "lever",
+            '<form><input id="email" name="email" type="email" required>'
+            '<input id="phone" name="phone" type="tel" aria-required="true">'
+            '<input id="first-name" name="first_name" aria-required="false">'
+            '<input id="website" name="website"></form>',
+            route_url=self.lever_route,
+        )
+
+        self.assertEqual(report["status"], "ANALYZED")
+        self.assertEqual([field["required"] for field in report["fields"]],
+                         [True, True, False, False])
+
+    def test_unknown_custom_lever_prompts_require_review_and_do_not_leak_copy_or_values(self):
+        markup = (
+            '<form><input id="email" name="email" type="email">'
+            '<label for="custom_q_982">What should we know about you?</label>'
+            '<textarea id="custom_q_982" name="custom_q_982">PRIVATE_ANSWER</textarea></form>'
+        )
+
+        report = analyze_application_form("lever", markup, route_url=self.lever_route)
+
+        self.assertEqual(report["status"], "REVIEW_REQUIRED")
+        self.assertIn("UNKNOWN_QUESTION", [field["review_reason"] for field in report["fields"]])
+        self.assertNotIn("What should we know about you?", json.dumps(report))
+        self.assertNotIn("PRIVATE_ANSWER", json.dumps(report))
+
+    def test_unrecognized_select_question_requires_review(self):
+        report = analyze_application_form(
+            "lever",
+            '<form><label for="q">Choose your preferred arrangement</label>'
+            '<select id="q" name="custom_arrangement"><option value="x">Private option</option></select></form>',
+            route_url=self.lever_route,
+        )
+
+        self.assertEqual(report["status"], "REVIEW_REQUIRED")
+        self.assertEqual(report["fields"][0]["review_reason"], "UNKNOWN_QUESTION")
+        self.assertNotIn("Private option", json.dumps(report))
+
+    def test_visible_custom_prompt_overrides_a_familiar_identifier(self):
+        report = analyze_application_form(
+            "lever",
+            '<form><label for="email">Describe your availability</label>'
+            '<input id="email" name="email" type="email"></form>',
+            route_url=self.lever_route,
+        )
+
+        self.assertEqual(report["status"], "REVIEW_REQUIRED")
+        self.assertEqual(report["fields"][0]["review_reason"], "UNKNOWN_QUESTION")
+        self.assertNotIn("Describe your availability", json.dumps(report))
+
+    def test_lever_challenge_and_non_native_interactive_widgets_fail_closed(self):
+        challenge = analyze_application_form(
+            "lever", '<form><div class="cf-turnstile">PRIVATE_CHALLENGE</div>'
+            '<input id="email" name="email" type="email"></form>',
+            route_url=self.lever_route,
+        )
+        widget = analyze_application_form(
+            "lever", '<form><input id="email" name="email" type="email">'
+            '<div role="combobox" aria-label="Work preference">Private options</div></form>',
+            route_url=self.lever_route,
+        )
+
+        self.assertEqual(challenge["status"], "REVIEW_REQUIRED")
+        self.assertEqual(challenge["reason"], "CHALLENGE_PROTECTED")
+        self.assertEqual(widget["status"], "REVIEW_REQUIRED")
+        self.assertEqual(widget["reason"], "UNSUPPORTED_INTERACTIVE_CONTROL")
+        self.assertNotIn("PRIVATE_CHALLENGE", json.dumps(challenge))
+        self.assertNotIn("Private options", json.dumps(widget))
+
+    def test_lever_requires_one_unambiguous_form_boundary(self):
+        no_form = analyze_application_form(
+            "lever", '<input id="email" name="email" type="email">',
+            route_url=self.lever_route,
+        )
+        multiple_forms = analyze_application_form(
+            "lever", '<form><input id="email" name="email" type="email"></form>'
+            '<form><input id="newsletter" name="email" type="email"></form>',
+            route_url=self.lever_route,
+        )
+        outside_control = analyze_application_form(
+            "lever", '<form><input id="email" name="email" type="email"></form>'
+            '<input id="outside" name="newsletter_email" type="email">',
+            route_url=self.lever_route,
+        )
+
+        self.assertEqual(no_form["status"], "REVIEW_REQUIRED")
+        self.assertEqual(no_form["reason"], "NO_FORM")
+        self.assertEqual(multiple_forms["status"], "REVIEW_REQUIRED")
+        self.assertEqual(multiple_forms["reason"], "AMBIGUOUS_FORM")
+        self.assertEqual(outside_control["status"], "REVIEW_REQUIRED")
+        self.assertEqual(outside_control["reason"], "AMBIGUOUS_FORM")
+        self.assertEqual(no_form["fields"], [])
+        self.assertEqual(multiple_forms["fields"], [])
+        self.assertEqual(outside_control["fields"], [])
+
     def test_sensitive_fields_require_human_review_for_both_providers(self):
         greenhouse = analyze_application_form(
             "greenhouse", '<form><input id="ssn" name="ssn"></form>',

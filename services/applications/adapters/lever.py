@@ -19,6 +19,46 @@ _REQUISITION = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\Z",
     re.I,
 )
+_KNOWN_CONTACT_FIELDS = {
+    "address", "city", "country", "cover letter", "cv", "email", "email address",
+    "family name", "first name", "full name", "github", "github profile", "given name",
+    "last name", "linkedin", "linkedin profile", "linkedin url", "location", "mobile",
+    "mobile phone", "name", "personal website", "phone", "phone number", "phone type",
+    "portfolio", "postal code", "preferred name", "resume", "state", "surname", "website",
+    "zip code",
+}
+
+
+def _known_contact_field(field) -> bool:
+    """Accept only recognizable contact/document prompts for unattended review."""
+    if not isinstance(field, Mapping):
+        return False
+    labels = field.get("labels")
+    visible_labels = []
+    if isinstance(labels, list):
+        visible_labels = [
+            re.sub(r"[^a-z0-9]+", " ", label.casefold()).strip()
+            for label in labels if isinstance(label, str) and label.strip()
+        ]
+    if visible_labels:
+        # A visible prompt is authoritative; familiar ids cannot override it.
+        return all(label in _KNOWN_CONTACT_FIELDS for label in visible_labels)
+    tag = field.get("tag")
+    if isinstance(tag, str) and tag.casefold() == "textarea":
+        # Free-form fields are custom questions even when their id looks familiar.
+        return False
+    for key in ("name", "id", "placeholder", "aria_label"):
+        values = field.get(key)
+        if isinstance(values, str):
+            values = [values]
+        if not isinstance(values, list):
+            continue
+        for value in values:
+            if isinstance(value, str):
+                normalized = re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+                if normalized in _KNOWN_CONTACT_FIELDS:
+                    return True
+    return False
 
 
 class LeverApplicationAdapter(GreenhouseApplicationAdapter):
@@ -85,3 +125,18 @@ class LeverApplicationAdapter(GreenhouseApplicationAdapter):
             "requisition": requisition,
             "url": f"https://jobs.lever.co/{tenant}/{requisition}",
         }
+
+    @staticmethod
+    def requires_human_review(analysis) -> bool:
+        """Require review for custom prompts as well as sensitive or ambiguous fields."""
+        if (not isinstance(analysis, Mapping) or analysis.get("status") != "PASS"
+                or not isinstance(analysis.get("fields"), list)
+                or not analysis["fields"]):
+            return True
+        for field in analysis["fields"]:
+            if (not isinstance(field, Mapping)
+                    or field.get("ambiguous") is not False
+                    or field.get("sensitivity") != "STANDARD"
+                    or not _known_contact_field(field)):
+                return True
+        return False

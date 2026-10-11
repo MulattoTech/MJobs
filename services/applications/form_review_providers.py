@@ -5,7 +5,9 @@ from collections.abc import Mapping
 import re
 
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
-from services.applications.adapters.lever import LeverApplicationAdapter
+from services.applications.adapters.lever import (
+    LeverApplicationAdapter, _known_contact_field,
+)
 from services.applications.adapters.lever_markup import analyze_lever_markup
 from services.applications.form_review import analyze_form_html
 
@@ -83,6 +85,8 @@ def _lever_report(analysis) -> dict:
             review_reason = "UNIDENTIFIABLE_FIELD"
         elif normalized_type == "other":
             review_reason = "UNSUPPORTED_FIELD_TYPE"
+        elif not _known_contact_field(field):
+            review_reason = "UNKNOWN_QUESTION"
         else:
             review_reason = None
 
@@ -90,8 +94,7 @@ def _lever_report(analysis) -> dict:
             "id": field_id,
             "name": field_name,
             "type": normalized_type,
-            # The static Lever parser does not infer requiredness.
-            "required": False,
+            "required": field.get("required") is True,
             "review_reason": review_reason,
         })
 

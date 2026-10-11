@@ -64,6 +64,50 @@ class LeverMarkupTests(unittest.TestCase):
         self.assertEqual(too_many_controls["status"], "UNKNOWN")
         self.assertEqual(too_many_controls["fields"], [])
 
+    def test_challenge_or_unrepresented_interactive_controls_fail_closed(self):
+        challenge = analyze_lever_markup(
+            '<form><div class="cf-turnstile">PRIVATE_CHALLENGE</div>'
+            '<input id="email" name="email"></form>'
+        )
+        widget = analyze_lever_markup(
+            '<form><input id="email" name="email">'
+            '<div role="combobox" aria-label="Private preference"></div></form>'
+        )
+        editable = analyze_lever_markup(
+            '<form><input id="email" name="email">'
+            '<div contenteditable aria-label="Private response"></div></form>'
+        )
+        duplicate_attribute = analyze_lever_markup(
+            '<form><input id="email" id="other" name="email"></form>'
+        )
+
+        self.assertEqual(challenge["status"], "UNKNOWN")
+        self.assertEqual(challenge["reason"], "CHALLENGE_PROTECTED")
+        self.assertEqual(widget["status"], "UNKNOWN")
+        self.assertEqual(widget["reason"], "UNSUPPORTED_INTERACTIVE_CONTROL")
+        self.assertEqual(editable["reason"], "UNSUPPORTED_INTERACTIVE_CONTROL")
+        self.assertEqual(duplicate_attribute["status"], "UNKNOWN")
+        self.assertNotIn("PRIVATE_CHALLENGE", json.dumps(challenge))
+        self.assertNotIn("Private preference", json.dumps(widget))
+
+    def test_markup_requires_exactly_one_form(self):
+        self.assertEqual(analyze_lever_markup(
+            '<input id="email" name="email">',
+        )["reason"], "NO_FORM")
+        multiple = analyze_lever_markup(
+            '<form><input id="email" name="email"></form>'
+            '<form><input id="newsletter" name="email"></form>',
+        )
+        self.assertEqual(multiple["status"], "UNKNOWN")
+        self.assertEqual(multiple["reason"], "AMBIGUOUS_FORM")
+        self.assertEqual(multiple["fields"], [])
+        outside = analyze_lever_markup(
+            '<form><input id="email" name="email"></form>'
+            '<input id="newsletter" name="newsletter_email">',
+        )
+        self.assertEqual(outside["status"], "UNKNOWN")
+        self.assertEqual(outside["reason"], "AMBIGUOUS_FORM")
+
 
 if __name__ == "__main__":
     unittest.main()
