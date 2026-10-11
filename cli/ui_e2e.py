@@ -184,8 +184,13 @@ def run(base_url, evidence_path, onboarding=False):
                 page.get_by_role("button", name="New profile", exact=True).click()
                 page.get_by_label("Full name", exact=True).fill("Synthetic Onboarding Applicant")
                 page.get_by_label("Email", exact=True).fill("onboarding@example.invalid")
-                save_profile()
-                profile_id = page.get_by_label("Active profile", exact=True).input_value()
+                with page.expect_response(lambda response:
+                        response.request.method == "PUT"
+                        and urlsplit(response.url).path == "/profiles") as profile_saved:
+                    save_profile()
+                assert profile_saved.value.status == 200, profile_saved.value.text()
+                profile_id = profile_saved.value.json()["id"]
+                expect(page.get_by_label("Active profile", exact=True)).to_have_value(profile_id)
                 assert profile_id and not profile_id.startswith("demo-")
                 profile = request("/profiles/" + profile_id)
                 assert profile["facts"] == []
@@ -274,6 +279,8 @@ def run(base_url, evidence_path, onboarding=False):
                 assert saved_search["source_ids"] == []
                 discovery_jobs = request("/jobs?profile_id=" + profile_id)["jobs"]
                 assert discovery_jobs, "fixture discovery produced no profile-scoped job results"
+                discovery_job_ids = {row["id"] for row in discovery_jobs}
+                assert any(row["title"] == "Data Engineer" for row in discovery_jobs)
                 history = request("/profiles/" + profile_id + "/search-history")
                 assert history["profile_id"] == profile_id
                 history_item = next(item for item in history["items"]
@@ -307,6 +314,8 @@ def run(base_url, evidence_path, onboarding=False):
             prepare()
             application = request("/applications?profile_id=" + profile_id)["applications"][0]
             identifier = application["id"]
+            if onboarding:
+                assert application["job_id"] in discovery_job_ids, "selected application job was not returned by this profile's fixture discovery"
             assert application["fact_ids"] == [python_fact_id]
             first_documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
             first_resume = next(row for row in first_documents if row["kind"] == "resume")
