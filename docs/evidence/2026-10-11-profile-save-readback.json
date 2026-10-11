@@ -1,0 +1,70 @@
+{
+  "status": "LOCAL_PASS_HOSTED_PENDING",
+  "iteration": 18,
+  "utc": "2026-10-11T22:52:36.886186+00:00",
+  "issue": 532,
+  "sourceParent": "02a326d0542b96f117089422d0b5d60018fa88fb",
+  "sourceSha256": {
+    "apps/web/src/main.tsx": "f2b7c1662d823441bae361f959f72965e13c7a926245ae247aff61a848db387e",
+    "tests/browser/test_profile_save_readback.py": "c481bf47e3ed803b362940bb2187e963e1fd0c119befbccee8d84ef2816e2861"
+  },
+  "behavior": "Save success has a selected durable profile and current label while aggregate lists are delayed; stale pre-save lists cannot overwrite newer saved data. Rename does not duplicate options; reload and other profile isolation preserved.",
+  "negativeControls": [
+    {
+      "result": "FAIL empty selector at save notice despite persisted profile",
+      "artifact": "outputs/ci/iteration18-profile-red.xml"
+    },
+    {
+      "result": "FAIL empty selector after pre-save list returned last",
+      "artifact": "outputs/ci/iteration18-stale-red.xml"
+    }
+  ],
+  "checks": [
+    {
+      "command": "pytest -q tests/browser/test_profile_save_readback.py tests/browser/test_profile_import.py tests/browser/test_fact_review.py",
+      "result": "9PASS/0SKIP",
+      "artifact": "outputs/ci/iteration18-profile-focused-final.xml"
+    },
+    {
+      "command": "pytest -q tests/browser/test_profile_save_readback.py",
+      "result": "2PASS/0SKIP after final response-order oracle refinement",
+      "artifact": "outputs/ci/iteration18-profile-final.xml"
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "768PASS/131files"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "review": "Read-only local Luna review found stale aggregate overwrite; reproduced and fixed with profile-list generation. Follow-up found no important issue.",
+  "predecessor": {
+    "pr": 544,
+    "head": "a6ca507884b91cc631034e6c175ab3c8a57411c9",
+    "merged": "02a326d0542b96f117089422d0b5d60018fa88fb",
+    "requiredCI": "PASS",
+    "integration": "PASS all3shards/aggregate",
+    "compose": "PASS",
+    "fullBrowser": {
+      "run": 38181480065,
+      "attempt": 1,
+      "reportedCases": 205,
+      "failures": 25,
+      "skips": 0
+    }
+  },
+  "limits": [
+    "Current-head hosted checks pending",
+    "Full browser still FAIL on predecessor; new full gate not yet run",
+    "No parent requirement promoted; goal0/7",
+    "Real external submissions OFF",
+    "No configuration, data migration or private workspace data changes"
+  ],
+  "rollback": "Source revert only"
+}

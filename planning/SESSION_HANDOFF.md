@@ -2,6 +2,13 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 18: profile-save selection and stale list repair
+
+- Same live installed runner10584 and sole mutation owner; immutable goal remains0/7. PR544 protected merged `02a326d0542b96f117089422d0b5d60018fa88fb`; exact a6ca5078 required CI, Compose and all integration shards/aggregate PASS. Full browser38181480065/attempt1:205reported cases,25failures,0skips. Exact job packets/JUnit preserved locally; no unchanged rerun.
+- #532: saved profile readback enters the selector before success; new profile and rename show current labels without duplicates. Profile-list generations reject older aggregate responses after save. Two connected RED controls reproduced empty selection; final focused9ChromiumPASS, final2response-order tests rechecked after oracle refinement;768frontend/build/validatorsPASS. Local Luna review identified stale overwrite; follow-up found no important issue.
+- Branch `fix/profile-save-readback-532-20261011` based on that merged main tree. Exact source hashes/commands: `docs/evidence/2026-10-11-profile-save-readback.json`; publication identity in AFK queue/events. Hosted checks pending; no parent acceptance promoted. Original dirty plan and content-equivalent search-history marker preserved; security3d7f54b3 preserved for serial publication after current PR. Submissions OFF. Rollback via revert; no data/config/migration changes.
+- Next: inspect current-head hosted checks without retrying unchanged failures; then publish preserved security repair through protection. Remaining full-browser failures include source assertion/seed/navigation workflows; use exact artifacts to choose the next connected defect.
+
 ## Iteration 17: job-detail panel identity repair
 
 - Single installed runner10584 owner; goal.json preserved, acceptance0/7. PR543 merged2036cc5b600c226afe281a9d3139972abbb31493 after exact af0e8e10 Compose38180921229/attempt1 and integration38180921202/attempt1 all3shards/aggregate PASS.
