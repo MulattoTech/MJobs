@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Lever application fixture</title></head>
+<body>
+  <form id="lever-application" method="post">
+    <input id="first-name" name="first_name" type="text" aria-label="First name"
+           autocomplete="given-name" value="PRIVATE-DECOY-APPLICANT">
+    <input id="email" name="email" type="email" aria-label="Email"
+           value="private-applicant@example.invalid">
+    <select id="gender" name="gender" aria-label="Gender">
+      <option value="">Choose an option</option>
+      <option value="PRIVATE-DECOY-GENDER" selected>Prefer not to say</option>
+    </select>
+    <input id="resume" name="resume" type="file" aria-label="Resume" accept=".pdf,.doc,.docx">
+    <button id="submit-application" type="submit">Submit application</button>
+  </form>
+  <script>
+    window.fixtureActions = {clicks: 0, changes: 0, submits: 0};
+    document.addEventListener('click', () => window.fixtureActions.clicks++);
+    document.addEventListener('change', () => window.fixtureActions.changes++);
+    document.querySelector('#lever-application').addEventListener('submit', event => {
+      event.preventDefault();
+      window.fixtureActions.submits++;
+    });
+  </script>
+</body>
+</html>
