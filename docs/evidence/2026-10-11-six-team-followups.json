@@ -1,0 +1,220 @@
+{
+  "timestamp": "2026-10-11T08:34:03.086403+00:00",
+  "source_revision": "1962de2125640d547978c652a9bc1b0db762f9b1",
+  "requirement_ids": [
+    "MJ-REQ-273",
+    "MJ-REQ-155",
+    "MJ-REQ-167",
+    "MJ-REQ-261",
+    "MJ-REQ-262",
+    "MJ-REQ-263",
+    "MJ-REQ-014",
+    "MJ-REQ-292"
+  ],
+  "input_sha256": {
+    "apps/api/application_form_review.py": "bd8bab645e4246af7ce486863f2c1738a9a2dd0fca0bed9b491b9c7113d7522f",
+    "apps/api/main.py": "760417212a24ea1bf35d2bd3b42132ee22030eeb5c096922b2cf859ee8d785c2",
+    "apps/web/src/company-discovery-requests.test.tsx": "ea94da81dca4d454d039097bff54b89dd1d149afdd301f3281a090961bc45d21",
+    "apps/web/src/company-discovery-requests.tsx": "6049a04d4e9bf7de874ce40b761d63eb0fe4a38e9601d2134bf8e95c5ba4bc82",
+    "apps/web/src/main.tsx": "5fa0dfc4180c3a562d636c2eb293b1e4ab38586915c35b993859ad2dff05e58a",
+    "cli/local_backup.py": "a7205cf37a7efcb56c2bdca9386ae7cc21ac61113ecca22c06095df88a905939",
+    "docs/runbooks/LOCAL_BACKUP.md": "283e10d4cc2e4cfe5fcda2bdd65e2c747673fa4437a2554b5a2ca7c0da8ba420",
+    "services/applications/confirmation_recovery.py": "992fb663f7eec58322b63165545e41ce1558a8f288f96aeb15bec4d15ca7c696",
+    "services/company_discovery/domains.py": "31f99c39e0d0d60acf31314898431b979e38be0c8143493cd2dd835a7c3790c8",
+    "services/company_discovery/flywheel.py": "0529af52622252138693ef9b49af55bc3f9e84b5b731bfa742f78e739b66737f",
+    "services/company_discovery/requests.py": "d08d122e2de1b0e150c39d8c5768fb0160f481ab6d3218b3ba90d6522aafe30b",
+    "services/company_discovery/source_host_locks.py": "db4d44cc22d8b6242cc5aca89b9ca01aa64d1727bc9bf1f4a85e7c4c2a9cca9e",
+    "services/company_discovery/sources.py": "cd241d83bf98d13d68bf9e5e7023494fe9bf548c36cb90e148a6c3aca6ac0229",
+    "tests/browser/test_company_discovery_requests.py": "d11951a67e5ef0b1460b2f7a2ae6add6dd4bbcc05e1ae317deb919f1d0998803",
+    "tests/browser/test_search_profile_seed.py": "9375a6a33fd5cad9f79eff99c6d8a619305f000fd6194b32b88c507fea86ca1f",
+    "tests/integration/test_application_confirmation_recovered_attempt.py": "ae57b77b77dc28625896cc1d04183468235ba9aeefbc2ec6b55d6687f615def7",
+    "tests/integration/test_application_form_review_flow.py": "638c90f90f3b1bcd0e3db15aec9f3b39a720fc823cacfd702310d61148836764",
+    "tests/integration/test_application_worker_crash_postgres.py": "7205b15208b8faf6b5b665b2d839d36e6874a4a193f71c80929828dbfe2c631d",
+    "tests/integration/test_discovery_request_api.py": "cde785722eb88292ec28839f67ead5f025cfe67acee0b17323266f7d2090f407",
+    "tests/integration/test_reviewed_employer_identity_continuity.py": "b265b063211aafb87918737e9f96872d26ec0fcc3944c72d69af3d478304be7c",
+    "tests/integration/test_reviewed_employer_identity_postgres.py": "46a219d541ae474c83bfe081eb22b34d874747d4e89ed33d9b6a1de562a7c6b7",
+    "tests/integration/test_reviewed_employer_standalone_authorization.py": "c3d996513386bceef1f7d416a97b3885cbc404dbe48fb3575a097cb5654a8ab1",
+    "tests/unit/test_backup_config_snapshot.py": "af98db19ae1388dd24aa234df1a48888ca4c1ebcea18efc472ea7ba247588b83",
+    "tests/unit/test_company_source_host_locks.py": "33e9515de00d49be83d816a08f03f91caed7c9bf65721f60c0066e49dfc11aac",
+    "workers/tasks.py": "8e84467ef961584afd60775fabd66f2b065e50a1354b20e95c7df017727af29e"
+  },
+  "changes": [
+    "Reviewed employer identity is an explicit request-scoped user assertion, never independent domain verification. Default remains isolated; related-host source writes and import authorization share PostgreSQL transaction locks.",
+    "Latest form review rejects stale profile, route or application fingerprints; historical request readback remains available.",
+    "Schema-2 backup archives include bounded allowlisted nonsecret runtime configuration and exact Compose bytes; original encryption key remains separately protected. Restore never automatically applies configuration.",
+    "A crashed mock application worker is reconciled by receipt GET only. Explicit receipt checks require a proven terminal lease-recovery chain; incomplete attempt history remains honest and no automatic resubmission is permitted.",
+    "First-run search setup no longer requires a source to exist; source_ids=[] and scheduling disabled remain persisted."
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/unit tests/integration --tb=short --durations=10",
+      "source_revision": "163a9a45",
+      "result": "2416 passed, 23 skipped, 1062 subtests, 1 warning; 1676.90s. This frozen earlier revision is baseline regression evidence; latest revision rerun separately IN_PROGRESS."
+    },
+    {
+      "command": "python outputs/rc-20261011/review_identity_pg.py (private loopback PostgreSQL wrapper)",
+      "result": "7 passed, 8.89s: actual PostgreSQL aggregator worker/canonical provenance, identity isolation, ownership/revocation, transaction collector/phantom-host locks, actual Chromium review. Initial corrected PG test reproduced 2 failures; fixed standalone authorization self-deadlock. Store override now spans setup through test so nested collectors cannot silently use SQLite."
+    },
+    {
+      "command": "python outputs/rc-20261011/application_crash_pg.py (private loopback PostgreSQL wrapper)",
+      "source_revision": "7f032711",
+      "result": "2 passed, 20.71s; actual Chromium/mock POST then os._exit(73) before local acknowledgment, restart/lease recovery, actual receipt HTTP503 then explicit GET. Provider submission count remains one."
+    },
+    {
+      "command": "Focused recovery, confirmation, reviewed identity/form browser suites",
+      "result": "45 passed, 9 subtests, 103.51s; negative fencing, live/queued attempt, stale input and unsafe receipt cases."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_backup_config_snapshot.py and credential-backup tests",
+      "result": "20 passed, 8 subtests, 7.07s"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_search_profile_seed.py tests/browser/test_first_run_wizard.py",
+      "result": "2 passed, 17.20s; source-free first-run search red then green"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run",
+      "source_revision": "1962de2125640d547978c652a9bc1b0db762f9b1",
+      "result": "768 tests passed"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "source_revision": "1962de2125640d547978c652a9bc1b0db762f9b1",
+      "result": "PASS; existing large-chunk warning"
+    }
+  ],
+  "controlled_runtime": {
+    "personal_onboarding": {
+      "result": "PASS",
+      "timestamp": "2026-10-11T08:31:57.635193+00:00",
+      "target": "Actual React/API/PostgreSQL: synthetic first-run profile, PDF import, extraction, correction, explicit fact approval, remote IT search, reload",
+      "profile_id": "ef1f89b9-b455-4dd0-ba87-daf23cad09cc",
+      "resume_count": 1,
+      "imported_fact_count": 5,
+      "approved_fact_count": 1,
+      "search_profile_id": "e9590359-27bd-4cd7-a676-35f516a87da4",
+      "automatic_discovery_enabled": false,
+      "external_submission_enabled": false,
+      "page_errors": 0,
+      "limits": "No source collection or application operation in this proof; separate deep/mock and live-read-only evidence covers those flows."
+    },
+    "mock_browser": {
+      "result": "PASS",
+      "timestamp": "2026-10-11T08:32:28.904157+00:00",
+      "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18810",
+      "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
+      "external_submission_enabled": false,
+      "actions": [
+        {
+          "action": "Explicit fictional demo, connected search, match explanation and raw provenance",
+          "result": "PASS"
+        },
+        {
+          "action": "ATS resume templates expose conventional headings in the browser-downloaded DOCX while preserving approved wording",
+          "result": "PASS"
+        },
+        {
+          "action": "Original approved facts, generation metadata and checksum-verified TXT download visible through the browser",
+          "result": "PASS"
+        },
+        {
+          "action": "Pending fact excluded from matching and downloaded factual DOCX",
+          "result": "PASS"
+        },
+        {
+          "action": "Approved profile revision generates new documents, preserves original bytes, and PDF downloads through UI",
+          "result": "PASS"
+        },
+        {
+          "action": "Job-matched technology emphasis reaches worker, DOCX download and visible provenance",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit skill-order opt-in reaches the document worker and preserves approved facts with target snapshot and separate revision",
+          "result": "PASS"
+        },
+        {
+          "action": "Immutable generated base and tailored resume comparison shows recorded versions and unchanged facts through the UI",
+          "result": "PASS"
+        },
+        {
+          "action": "Uploaded original comparison preserves revision/hash and profile facts, displays changed summary and omitted content, and downloads exact source bytes",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit approved resume selection reaches the real document worker, omits SQL only from the resume, preserves profile and cover letter, and shows immutable omissions",
+          "result": "PASS"
+        },
+        {
+          "action": "Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged",
+          "result": "PASS"
+        },
+        {
+          "action": "Browser dry-run stops before submission; explicit local mock receipt count remains one on repeat",
+          "result": "PASS"
+        },
+        {
+          "action": "Typed document library stores/downloads checksum-backed certification without adding resume-import entries or career facts",
+          "result": "PASS"
+        },
+        {
+          "action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions",
+          "result": "PASS"
+        }
+      ]
+    },
+    "live_public_source": {
+      "result": "PASS",
+      "timestamp": "2026-10-11T08:24:58.395990+00:00",
+      "command": "python -m cli.public_source_probe --base-url http://127.0.0.1:18815 --tenant tailscale --required-mode PERSONAL",
+      "target": "Actual public Greenhouse GET / deployed RQ source worker / PostgreSQL provenance",
+      "operation_state": "COMPLETED",
+      "canonical_jobs": 63,
+      "external_submission_enabled": false
+    },
+    "live_manual_preparation": {
+      "result": "PASS",
+      "timestamp": "2026-10-11T08:25:30.532036+00:00",
+      "command": "python -m cli.ui_source_readback",
+      "target": "Actual browser readback of persisted first-party public jobs",
+      "application_id": "340b1296de42d412c23a5ae3c2a339c99d71c2b0ed08d11410f3dc68627412a7",
+      "preparation_status": "PREPARED",
+      "external_submission_enabled": false,
+      "actions": [
+        {
+          "action": "Stored live public jobs render heuristic match limitation and provider URL; preparation outcome is explicit and remains manual-only",
+          "result": "PASS"
+        },
+        {
+          "action": "Public job prepared only as a manual-only real application; server rejects mock submission",
+          "result": "PASS"
+        },
+        {
+          "action": "Source cooldown is visible as a failed operation without repeating public requests",
+          "result": "PASS"
+        }
+      ],
+      "artifact": "outputs\\ui-e2e\\public-source-policy.png"
+    },
+    "backup_restore": {
+      "result": "PASS",
+      "timestamp": "2026-10-11T08:16:53.043406+00:00",
+      "archive_files_verified": 385,
+      "credential_original_key": "PASS",
+      "wrong_and_missing_keys": "FAIL_CLOSED",
+      "ciphertext_unchanged": true,
+      "confirmed_application_retained": true,
+      "external_submission_enabled": false,
+      "database_tables_compared": 8,
+      "all_database_inventories_identical": true,
+      "configuration_snapshot": "schema2 fixed Compose/runtime paths; secrets excluded"
+    }
+  },
+  "limits": [
+    "Full representative RC journey remains PARTIAL: onboarding, live-source/manual preparation, employer identity and mock confirmation are separate proof profiles, not one complete journey.",
+    "Existing root private configuration lacks its original encryption key; preserved and fail-closed. Fresh controlled Personal stack is user-testable.",
+    "Backup private custom configuration and Compose overrides require separate protected operator recovery; #168 remains PARTIAL.",
+    "Continuous pipeline is PARTIAL; full unattended AI/application workflow is not established or authorized.",
+    "No external application submission. Hosted checks NOT_RUN by policy. Live ATS preparation beyond read-only source/manual route is not established."
+  ]
+}

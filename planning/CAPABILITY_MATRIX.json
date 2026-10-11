@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-11T00:53:32Z",
+  "timestamp": "2026-10-11T08:34:03.129830+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -1870,9 +1870,11 @@
     },
     {
       "requirement_id": "MJ-REQ-155",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-11-six-team-followups.json"
+      ],
+      "note": "Connected persisted scheduler/source collection, normalization, reviewed employer enrollment, canonical deduplication, scoring, documents, manual review and controlled mock confirmation verified in separate proofs. Full continuous automated enrichment/application/analytics pipeline remains unverified.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -1999,9 +2001,10 @@
       "evidence": [
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
-        "docs/evidence/2026-10-11-six-team-integration.json"
+        "docs/evidence/2026-10-11-six-team-integration.json",
+        "docs/evidence/2026-10-11-six-team-followups.json"
       ],
-      "note": "Quiescent database/uploaded/generated-document archives verified, including every writer. Fresh restore preserves 312 files and encrypted credentials; original key is retained separately. Important configuration backup tooling and broader operational backup acceptance remain open.",
+      "note": "Quiescent database/document backup and fresh restore verified with 385 files/eight identical database inventories and encrypted credentials. Schema-2 archive now captures exact Compose plus strict nonsecret runtime allowlist. Secrets, private custom configuration and override recovery remain separately operator-protected; broader operational backup acceptance remains open.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -3142,9 +3145,11 @@
     },
     {
       "requirement_id": "MJ-REQ-273",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-11-six-team-followups.json"
+      ],
+      "note": "Actual PostgreSQL/Chromium controlled application crashes after provider success and before acknowledgment; restart reconciles without a second submission. Actual receipt HTTP503 blocks safely, explicit fenced receipt-only check recovers, and unsafe/stale/live attempts reject. Original incomplete audit history is preserved.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"

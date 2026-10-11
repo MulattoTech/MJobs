@@ -2242,7 +2242,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-156",
@@ -3226,7 +3226,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-274",
@@ -3446,9 +3446,9 @@
     }
   ],
   "summary": {
-    "PARTIAL": 114,
-    "PASS": 124,
-    "NOT_RUN": 187
+    "PARTIAL": 115,
+    "PASS": 125,
+    "NOT_RUN": 185
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }
