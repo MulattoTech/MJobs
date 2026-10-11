@@ -64,6 +64,12 @@ class DurableResumeExtractionPostgreSQLTests(unittest.TestCase):
     def test_stale_worker_fence_prevents_postgres_result_publication(self):
         self.case.test_stale_worker_cannot_commit_after_expired_lease_is_reclaimed()
 
+    def test_process_crash_after_extraction_replays_on_postgresql(self):
+        self.case.test_process_crash_after_extraction_replays_and_commits_one_result()
+
+    def test_http_disconnect_after_admission_leaves_postgres_operation_queued(self):
+        self.case.test_real_http_disconnect_after_durable_admission_leaves_operation_queued()
+
 
 if __name__ == "__main__":
     unittest.main()
