@@ -4,7 +4,7 @@ The authoritative development checkout is `C:\Tools\Dev\MJobs`, publishing to `M
 
 Before editing: verify local/remote SHAs, working-tree status, open issues, the requirement index, and any unmerged or dirty historical work. An issue has exactly one `priority:P0..P6` plus `category:*` and `area:*`. Prioritize accepted user scope; do not infer "completed" from merged code alone.
 
-Develop a coherent vertical slice and execute the affected local tests. No hosted GitHub Actions, cloud/paid reviewer, unattended execution, live third-party submission, or unsafe force push. Use fast-forward publication only if the remote is unchanged and no unrelated changes are lost. Otherwise reconcile safely.
+Develop a coherent vertical slice and execute the affected local tests. Run reviewed GitHub-hosted read-only CI and synthetic fixture tests; no paid cloud/AI reviewer, unattended product development, live third-party submission, or unsafe force push. Use fast-forward publication only if the remote is unchanged and no unrelated changes are lost. Otherwise reconcile safely.
 
 Every new AI code commit has trailers `AI-Agent`, `AI-Model`, `Requirement`, `Validation`, and `UTC-Date`. Use the actual model when known; use `unknown` rather than guess. Keep credentials/user data out of Git. Evidence for test status goes in sanitized `docs/evidence`; full private logs stay local.
 

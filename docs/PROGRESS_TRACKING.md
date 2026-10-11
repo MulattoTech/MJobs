@@ -2,7 +2,7 @@
 
 The **authoritative acceptance sources** are `planning/CAPABILITY_MATRIX.json` (366 original MJ-REQ) and `planning/REFERENCE_GAP_MATRIX.json` (59 additive MJ-REF). They are counted separately. `planning/ISSUE_SEED.jsonl` supplies original priority and functional area; `planning/REQUIREMENT_INDEX.json` is the lightweight derived view. GitHub issues have `priority:P0..P6`, `category:*`, and `area:*` labels.
 
-Only the currently authorized Codex integration session (or explicitly requested ChatGPT Web work) updates canonical acceptance. No claims, lane handoffs, concurrent planning writers, hosted checks, watcher tasks, or automated progress commits.
+Only the currently authorized Codex integration session (or explicitly requested ChatGPT Web work) updates canonical acceptance. No claims, lane handoffs, concurrent planning writers, watcher tasks, or automated acceptance/progress commits. GitHub Actions may verify code, but cannot autonomously promote requirements to PASS.
 
 **After a real accepted implementation batch:** record the exact revision, affected issue(s), executed local tests and failures/skips, remaining scope, and evidence; update only genuinely changed statuses. A limited slice remains PARTIAL even if its tests pass. Missing execution stays NOT_RUN. Then run:
 

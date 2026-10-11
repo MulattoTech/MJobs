@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import subprocess
+from unittest.mock import patch
 import tempfile
 import time
 import unittest
@@ -298,9 +299,19 @@ class AgentDashboardSupervisorTests(unittest.TestCase):
         self.assertIn("danger-full-access", command)
         self.assertNotIn("--approve-for-me", command)
 
+    def test_codex_runner_resolves_an_existing_path_deterministically(self):
+        executable = self.root / "codex"
+        executable.write_text("synthetic executable placeholder", encoding="utf-8")
+        with patch("tools.agent_dashboard.supervisor.shutil.which", return_value=str(executable)):
+            prefix = AgentSupervisor(self.root)._runner_prefix("codex")
+        self.assertEqual(prefix, [str(executable)])
+
     def test_installed_codex_runner_resolves_to_launchable_prefix(self):
         supervisor = AgentSupervisor(self.root)
-        prefix = supervisor._runner_prefix("codex")
+        try:
+            prefix = supervisor._runner_prefix("codex")
+        except FileNotFoundError:
+            self.skipTest("Optional host-installed Codex CLI is absent on this runner")
         self.assertTrue(prefix)
         self.assertTrue(any("codex" in part.casefold() for part in prefix))
 

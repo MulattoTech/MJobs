@@ -169,8 +169,9 @@ Browser readback can select that exact source/profile with
 - A normal generation failure/cancellation removes its uncommitted files. A
   process kill can leave unreferenced files in the local document volume; no
   automatic retention/garbage-collection policy is implemented yet.
-- GitHub Actions and paid hosted reviews are disabled. Hosted checks are NOT_RUN;
-  local validation does not establish full release or catalogue acceptance.
+- Public GitHub Actions run reviewed CI and synthetic checks independently. A missing,
+  failing, or incomplete hosted check is not a PASS; local validation alone does not
+  establish full release or catalogue acceptance. Paid AI reviewers remain disabled.
 
 The full requirement catalogue is preserved. These limits are delivery scope,
 not deleted requirements.
