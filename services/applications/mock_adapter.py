@@ -21,6 +21,12 @@ from services.applications.preflight import (
     questionnaire_fingerprint,
 )
 from services.applications.form_analysis import analyze_questionnaire
+from services.applications.mock_answer_bindings import (
+    MOCK_ANSWER_SLOTS,
+    bind_mock_answer_slots,
+    normalize_mock_question,
+    preflight_profile_answers,
+)
 from services.applications.debug_capture import (
     append_diagnostic_event,
     append_console_error,
@@ -239,15 +245,25 @@ def _read_questionnaire(client, route):
         return None
 
 
-def _preflight(store, application, route, profile, document_kinds, client):
+def _preflight(store, application, route, profile, document_kinds, client,
+               answer_bindings=None):
     questionnaire = _read_questionnaire(client, route)
     form_analysis = analyze_questionnaire(questionnaire)
     # Persist only the analyzer's allowlisted, value-free metadata projection.
     # Keep it separate from the legal preflight payload and implementation.
     with store.engine.begin() as connection:
         store._audit(connection, application["id"], "APPLICATION_FORM_ANALYSIS", form_analysis)
-    result = build_preflight_result(profile, route, questionnaire, document_kinds,
+    bindings = (answer_bindings if isinstance(answer_bindings, dict)
+                else bind_mock_answer_slots(profile.get("answers", [])))
+    preflight_questionnaire = _questionnaire_with_mock_answer_bindings(questionnaire, bindings)
+    preflight_profile = preflight_profile_answers(profile, bindings)
+    result = build_preflight_result(preflight_profile, route, preflight_questionnaire, document_kinds,
                                     application_id=application["id"])
+    if isinstance(questionnaire, dict):
+        try:
+            result["metadata_fingerprint"] = questionnaire_fingerprint(questionnaire)
+        except (TypeError, ValueError):
+            pass
     _include_question_shape(result, questionnaire, form_analysis)
     if result["result"] == "PASS" and (
             form_analysis["status"] != "PASS"
@@ -274,6 +290,34 @@ def _preflight(store, application, route, profile, document_kinds, client):
                          "QUESTION_PREFLIGHT_STALE")
         return stale
     return result
+
+
+def _questionnaire_with_mock_answer_bindings(questionnaire, bindings):
+    """Apply exact known slot IDs to preflight without changing the source fingerprint."""
+    if not isinstance(questionnaire, dict) or not isinstance(questionnaire.get("questions"), list):
+        return questionnaire
+    questions = []
+    for question in questionnaire["questions"]:
+        if not isinstance(question, dict):
+            questions.append(question)
+            continue
+        adapted = dict(question)
+        slot_id = question.get("id")
+        expected_label = MOCK_ANSWER_SLOTS.get(slot_id)
+        if expected_label is not None:
+            requirements = (dict(question["requirements"])
+                            if isinstance(question.get("requirements"), dict) else {})
+            label = question.get("label")
+            if (isinstance(label, str)
+                    and normalize_mock_question(label) == normalize_mock_question(expected_label)):
+                fact = bindings.get(slot_id)
+                requirements["answer_ids"] = [fact.id] if fact is not None else [slot_id]
+            else:
+                # A familiar identifier with a different question is unsupported.
+                requirements["answer_ids"] = []
+            adapted["requirements"] = requirements
+        questions.append(adapted)
+    return {**questionnaire, "questions": questions}
 
 
 def _include_question_shape(result, questionnaire, form_analysis=None):
@@ -526,16 +570,20 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
         with store.engine.begin() as connection:
             store._audit(connection, application_id, 'RESUME_VALIDATED_BEFORE_USE',
                          {'validator': VALIDATOR, 'document_id': resume['id'], 'sha256': resume['sha256']})
+        answer_bindings = bind_mock_answer_slots(profile.get("answers", []))
         preflight = _preflight(store, application, route, profile,
-                               {document["kind"] for document in documents}, client)
+                               {document["kind"] for document in documents}, client,
+                               answer_bindings)
         if preflight["result"] != "PASS":
             return store.application(application_id)
         # Question-aware reusable-answer metadata is outside the legacy mock
         # form's Fact contract; only its original safety fields reach policy.
-        answers = select_verified_facts([Fact(**{key: row[key] for key in
-            ("id", "text", "source", "verified", "user_approved", "confidence")})
-            for row in profile["answers"]], ["country", "remote", "fixture_question"])
-        answer = {fact.id: fact.text for fact in answers}
+        if any(slot_id not in answer_bindings for slot_id in MOCK_ANSWER_SLOTS):
+            store.transition(application_id, [store.application(application_id)["state"]],
+                             "REVIEW_REQUIRED", "QUESTION_PREFLIGHT_FAIL")
+            return store.application(application_id)
+        answers = [answer_bindings[slot_id] for slot_id in MOCK_ANSWER_SLOTS]
+        answer = {slot_id: answer_bindings[slot_id].text for slot_id in MOCK_ANSWER_SLOTS}
         facts = select_verified_facts([Fact(id=row["fact_id"], **{key: row[key] for key in ("text", "source", "verified", "user_approved", "confidence")})
                                       for row in profile["facts"]], application["fact_ids"])
         from services.applications.upload_integrity import (
