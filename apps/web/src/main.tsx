@@ -247,7 +247,7 @@ function ApplicationReview({application,documents,answerExportText,issues}:{appl
 }
 
 function App() {
-  const [tab,setTab] = useState<Tab>('Jobs');
+  const [tab,setTabState] = useState<Tab>('Jobs');
   const [profiles,setProfiles] = useState<Profile[]>([]);
   const [profileId,setProfileId] = useState(localStorage.getItem('mjobs-profile') || '');
   const recruiterClassificationClient = useMemo(() => ({
@@ -441,16 +441,38 @@ function App() {
   const profileBaselineRef = useRef<Profile|null>(null);
   const queryRef = useRef({q,title,company,locationText,salaryMin,salaryMax,minMatchScore,experienceLevel,employmentType,skillId,educationRequirement,clearanceLevel,applicationLinkStatus,applicationPipelineStatus,applicationCapability,postedWithinDays,atsProvider,jobSourceId,sort,remote,provider,showDismissed,showBlacklisted,searchProfileId:selectedSearchProfileId}); queryRef.current={q,title,company,locationText,salaryMin,salaryMax,minMatchScore,experienceLevel,employmentType,skillId,educationRequirement,clearanceLevel,applicationLinkStatus,applicationPipelineStatus,applicationCapability,postedWithinDays,atsProvider,jobSourceId,sort,remote,provider,showDismissed,showBlacklisted,searchProfileId:selectedSearchProfileId};
   const jobsSequence = useRef(0); const detailSequence = useRef(0); const appSequence = useRef(0); const editorSequence = useRef(0); const applicationRestoreProfile = useRef(''); const reviewQueueSequence = useRef(0); const documentArchiveSequence = useRef(0);
+  const navigationSequence = useRef(0);
+  const pendingApplicationRestore = useRef<{profileId:string;navigation:number}|null>(null);
+
+  function setTab(next:Tab) {
+    ++navigationSequence.current;
+    ++appSequence.current;
+    applicationRestoreProfile.current=profileRef.current;
+    setTabState(next);
+  }
 
   async function refresh(id=profileId) {
-    const restoreApplication = !!id&&applicationRestoreProfile.current!==id
+    const navigation=navigationSequence.current;
+    const restoreApplication = !!id&&id===profileRef.current&&applicationRestoreProfile.current!==id&&pendingApplicationRestore.current?.profileId!==id
       ?localStorage.getItem(`mjobs-selected-application:${id}`):null;
-    const companySequence = ++companySourcesSequence.current;
-    const suffix = id ? `?profile_id=${encodeURIComponent(id)}` : '';
-    const [p,a,s,o,sp,cs,dr,sc] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]}),api<{company_sources:CompanySourceView[]}>('/company-sources/view'+suffix),api<{requests:DiscoveryRequest[]}>('/company-discovery/requests'),id?api<{candidates:SourceCandidate[]}>('/source-candidates'+suffix):Promise.resolve({candidates:[]} as {candidates:SourceCandidate[]})]);
-    if(companySequence===companySourcesSequence.current&&id===profileRef.current){setCompanySources(cs.company_sources);setDiscoveryRequests(dr.requests);}
-    setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);setSearchProfiles(sp.search_profiles.map(search=>({...search,scheduler:search.criteria.scheduler??search.scheduler})));clearSearchScheduleDrafts();setSourceCandidates(sc.candidates);
-      if(restoreApplication!==null){applicationRestoreProfile.current=id;const summary=a.applications.find(row=>row.id===restoreApplication);if(summary){setTab('Applications');void showApp(restoreApplication,summary).catch(error=>setError(String(error)));}}
+    // Claim restoration before awaiting reads so concurrent refreshes cannot replay it.
+    const restoreClaim=restoreApplication!==null?{profileId:id,navigation}:null;
+    if(restoreClaim)pendingApplicationRestore.current=restoreClaim;
+    try {
+      const companySequence = ++companySourcesSequence.current;
+      const suffix = id ? `?profile_id=${encodeURIComponent(id)}` : '';
+      const [p,a,s,o,sp,cs,dr,sc] = await Promise.all([api<{profiles:Profile[]}>('/profiles'),api<{applications:Application[]}>('/applications'+suffix),api<{sources:Source[]}>('/sources'),api<{operations:Operation[]}>('/operations'+suffix),id?api<{search_profiles:SearchProfile[]}>('/search-profiles'+suffix):Promise.resolve({search_profiles:[]} as {search_profiles:SearchProfile[]}),api<{company_sources:CompanySourceView[]}>('/company-sources/view'+suffix),api<{requests:DiscoveryRequest[]}>('/company-discovery/requests'),id?api<{candidates:SourceCandidate[]}>('/source-candidates'+suffix):Promise.resolve({candidates:[]} as {candidates:SourceCandidate[]})]);
+      if(companySequence===companySourcesSequence.current&&id===profileRef.current){setCompanySources(cs.company_sources);setDiscoveryRequests(dr.requests);}
+      setProfiles(p.profiles);setSources(s.sources);if(id===profileRef.current){setApps(a.applications);setOps(o.operations);setSearchProfiles(sp.search_profiles.map(search=>({...search,scheduler:search.criteria.scheduler??search.scheduler})));clearSearchScheduleDrafts();setSourceCandidates(sc.candidates);
+        if(restoreClaim&&pendingApplicationRestore.current===restoreClaim&&navigation===navigationSequence.current&&applicationRestoreProfile.current!==id){
+          const summary=a.applications.find(row=>row.id===restoreApplication);
+          if(summary){setTabState('Applications');await showApp(restoreApplication!,summary,false);}
+          if(pendingApplicationRestore.current===restoreClaim&&id===profileRef.current&&navigation===navigationSequence.current)applicationRestoreProfile.current=id;
+        }
+      }
+    } finally {
+      // Failed reads release only this claim; explicit navigation remains authoritative.
+      if(restoreClaim&&pendingApplicationRestore.current===restoreClaim)pendingApplicationRestore.current=null;
     }
   }
   async function loadDeadLetters(id=profileId) {
@@ -615,7 +637,7 @@ function App() {
   async function readiness() {
     try { const response=await fetch('/readiness');setReady(await response.json()); } catch {setReady({status:'unavailable',checks:{api:false}});}
   }
-  useEffect(() => {void refresh().catch(e=>setError(String(e)));void api<{skills:SearchSkill[]}>('/search-skills').then(r=>setSkillOptions(r.skills)).catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>clearInterval(timer);},[]);
+  useEffect(() => {void api<{skills:SearchSkill[]}>('/search-skills').then(r=>setSkillOptions(r.skills)).catch(e=>setError(String(e)));void api<{operation_mode:OperationMode}>('/settings').then(s=>setOperationMode(s.operation_mode)).catch(e=>setError(String(e)));void readiness();const timer=setInterval(()=>void readiness(),15000);return()=>clearInterval(timer);},[]);
   useEffect(()=>{if(tab==='Activity'){void loadDeadLetters(profileId).catch(e=>setError(String(e)));void loadAuditHistory(profileId).catch(e=>setError(String(e)));void loadCompanyDiscoveryActivity(profileId);void loadCompanyDiscoveryQueue(profileId);}},[tab,profileId]);
   useEffect(()=>{
     let current=true;
@@ -1005,6 +1027,7 @@ function App() {
     ++companySourcesSequence.current;++jobsSequence.current;++detailSequence.current;
     ++appSequence.current;++editorSequence.current;
     profileBaselineRef.current=null;
+    pendingApplicationRestore.current=null;
     setDetail(null);setJobs([]);setJobNoteDraft('');setJobNoteRequestId(crypto.randomUUID());setAIDocumentPreparation(null);setAIDocumentReviewConsent({});setSourceCandidates([]);setSourceReportUrl('');setSourceReportOrigin('');
     jobDispositionRequestIds.current.clear();applicationStatusRequestIds.current.clear();setSelectedApp(null);setAnswerExportText(null);applicationRestoreProfile.current='';setApplicationTracking(null);setApplicationStatusDraft('');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());externalCaptureRequestId.current=crypto.randomUUID();setExternalCompany('');setExternalTitle('');setExternalUrl('');setExternalSourceUrl('');setExternalOrigin('');setExternalDescription('');setExternalAppliedAt(localDateTimeInput());setAnswerDrafts([]);
     setApps([]);setDocs([]);setResumes([]);setOps([]);setCompanySources([]);
