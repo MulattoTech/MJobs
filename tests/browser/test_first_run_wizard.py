@@ -222,7 +222,7 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         expect(wizard.get_by_role("listitem").nth(8).get_by_text("Complete", exact=True)).to_be_visible()
                         source = wizard.get_by_label("Enabled source for this search", exact=True)
                         source.select_option(source_id)
-                        search = wizard.get_by_label("Saved search profile", exact=True)
+                        search = wizard.get_by_label("First-run saved search profile", exact=True)
                         search.select_option(saved_search["id"])
 
                         wizard.get_by_role("button", name="Run saved search", exact=True).click()

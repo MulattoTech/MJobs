@@ -188,7 +188,7 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     # triggering external source collection.
                     navigate("Sources")
                     expect(page.get_by_text(
-                        "Source concurrency limits parallel reads of board details and the job inventory",
+                        "Source policies and provider cooldowns apply to every collection",
                         exact=False)).to_be_visible()
                     page.get_by_label("Board token", exact=True).fill("synthetic-board")
                     page.get_by_label("Source concurrency", exact=True).fill("2")
@@ -212,9 +212,9 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     search_form.get_by_role("combobox").nth(2).select_option("FULL_TIME")
                     search_form.get_by_label("Include titles", exact=True).fill(
                         "Systems Administrator")
-                    search_form.get_by_role("button", name="Save scheduled search",
+                    search_form.get_by_role("button", name="Save search",
                                             exact=True).click()
-                    expect(page.get_by_role("status").filter(has_text="Search profile saved")).to_be_visible()
+                    expect(page.get_by_role("status").filter(has_text="Search saved")).to_be_visible()
                     saved_search = context.request.get(
                         origin + "/search-profiles?profile_id=" + profile_id).json()["search_profiles"]
                     self.assertEqual(saved_search[0]["criteria"]["include_titles"],
@@ -222,8 +222,8 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     self.assertEqual(saved_search[0]["criteria"]["employment_types"], ["FULL_TIME"])
 
                     # Capture the job manually; its reference URL is inert and
-                    # never fetched. The unapproved Kubernetes requirement must
-                    # remain UNKNOWN in the explainable result.
+                    # never fetched. The unapproved Kubernetes skill must remain unsupported
+                    # even when the posting explicitly marks it preferred.
                     navigate("Jobs")
                     page.get_by_role("button", name="Capture a job", exact=True).first.click()
                     capture_form = page.get_by_role("form", name="Manual job capture")
@@ -313,7 +313,10 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     expect(explanation).to_contain_text("Supported by an approved career fact")
                     expect(explanation).to_contain_text("Kubernetes")
                     expect(explanation).to_contain_text("UNKNOWN")
-                    expect(explanation).to_contain_text("No approved career fact supports this skill")
+                    kubernetes = explanation.get_by_role("listitem").filter(has_text="Kubernetes")
+                    expect(kubernetes).to_contain_text("PREFERRED; no approved profile evidence")
+                    expect(kubernetes).to_contain_text("covered weight 0.00")
+                    expect(kubernetes).to_contain_text("No approved career fact positively supports this skill")
                     self.assertTrue(store.job(job_id, profile_id=profile_id)["match"])
                     self.assertFalse(any("/private/reference" in request
                                          for request in external))
@@ -388,8 +391,8 @@ class CoreWorkflowTrialBrowserTests(unittest.TestCase):
                     answer_bytes = Path(downloaded_answer.value.path()).read_bytes()
                     self.assertIn(b"Five years of user-confirmed experience.", answer_bytes)
                     answer_digest = hashlib.sha256(answer_bytes).hexdigest()
-                    expect(page.get_by_role("status")).to_contain_text(
-                        "Reviewed answer export saved as document")
+                    expect(page.get_by_role("status").filter(
+                        has_text="Reviewed answer export saved as document")).to_be_visible()
 
                     # Manual status is an audit event, not a submission receipt.
                     pipeline = page.get_by_role("region", name="Application pipeline")

@@ -1,0 +1,66 @@
+{
+  "timestamp": "2026-10-11T07:49:18.800422+00:00",
+  "base_revision": "7385f5db3657e344dc896b04c1bc940c41a2d8ce",
+  "requirement_ids": [
+    "MJ-REQ-292",
+    "MJ-REQ-014",
+    "MJ-REQ-288"
+  ],
+  "input_sha256": {
+    "apps/web/src/document-archive.tsx": "90de26975102566af58447fc8d4851336ff3c023d8f8bb6ccdea65b1c6578379",
+    "apps/web/src/style.css": "fc647b13fb7c5cae0ef90ebd7e0053c75af5532fee2fff5c2d10fce12141bffa",
+    "tests/browser/test_core_workflow_trial.py": "a9a0db27131d4cf6244dcf52af5fb6649aaa36bafcde55631a05b311bc5d6627",
+    "tests/browser/test_first_run_wizard.py": "0c46e69c1344f44c480d16400560c7f489fff61c991ba794d8466218d8c409a4",
+    "tests/browser/test_profile_import.py": "bc2e0a4b8629bc7af5a53c7005ba993ac1d925f7636d23f39660c6803e396a70",
+    "tests/integration/test_source_policy_scheduler.py": "5d1d7af6da3a766026cc74042c7a9791d1282ebe3aa748d280d6f76dc92f032d"
+  },
+  "changes": [
+    "Wrap document archive revision/application identifiers without hiding history or controls; actual 552px overflow on 390px viewport reproduced before repair.",
+    "Retain exact browser acceptance oracles while updating stale UI labels/status scopes and wait for actual responsive geometry.",
+    "Scheduler restart process test uses explicit local Redis transport recorder and verifies heartbeat after a completed durable tick; no ambient Redis dependency."
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/browser/test_first_run_wizard.py tests/browser/test_core_workflow_trial.py tests/browser/test_profile_import.py tests/browser/test_search_profile_seed.py --tb=short",
+      "result": "4 passed; remaining core trial text/status drift repaired and rerun separately below"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_core_workflow_trial.py --tb=short",
+      "result": "1 passed, 17.22s; imported PDF \u2192 factual preparation/answer export \u2192 tracking/reopen; no external egress"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_source_policy_scheduler.py tests/unit/test_runtime_health.py --tb=short",
+      "result": "13 passed, 9.93s"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run src/document-archive.test.tsx",
+      "result": "3 passed"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS, existing large-chunk warning"
+    },
+    {
+      "command": "python -m pytest -q tests/unit tests/integration --tb=short --durations=10",
+      "result": "Earlier integrated run: 2389 passed, 17 skipped, 1057 subtests, 2 failures (preloaded old cursor code and missing Redis config in process test); both independently repaired. Published-source rerun still IN_PROGRESS; no full green claim."
+    }
+  ],
+  "actual_postgres_onboarding": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T07:45:25.153260+00:00",
+    "target": "Actual React/API/PostgreSQL: synthetic first-run profile, PDF import, extraction, correction, explicit fact approval, remote IT search, reload",
+    "profile_id": "9a9885c5-b64e-4a81-8892-5590cfc24fef",
+    "resume_count": 1,
+    "imported_fact_count": 5,
+    "approved_fact_count": 1,
+    "search_profile_id": "29dc2e36-f826-4c1f-9d6a-c7e1558a0a0e",
+    "automatic_discovery_enabled": false,
+    "external_submission_enabled": false,
+    "page_errors": 0,
+    "limits": "No source collection or application operation in this proof; separate deep/mock and live-read-only evidence covers those flows."
+  },
+  "limits": [
+    "Parent RC journey remains PARTIAL; actual onboarding and separate mock/live proofs are distinct profiles, not one complete RC journey.",
+    "Hosted checks NOT_RUN by policy; external submissions OFF."
+  ]
+}

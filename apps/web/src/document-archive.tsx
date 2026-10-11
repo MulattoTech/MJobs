@@ -21,7 +21,7 @@ export function DocumentArchive({documents,busy=false,onArchive,onRestore}:{
   onArchive:(document:ArchivableDocument)=>void;
   onRestore:(document:ArchivableDocument)=>void;
 }) {
-  return <section className="panel" aria-label="Document archive">
+  return <section className="panel document-archive" aria-label="Document archive">
     <h2>Document archive</h2>
     <p>Archive keeps a document revision in your history while removing it from active documents. Review the document and its scope before choosing an action.</p>
     {!documents.length?<p>No resumes or cover letters are available to archive.</p>:<ul aria-label="Resumes and cover letters">

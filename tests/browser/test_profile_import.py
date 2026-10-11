@@ -233,6 +233,9 @@ class ProfileImportBrowserTests(unittest.TestCase):
                     expect(page.locator('[data-resume-version="2"]')).to_be_visible()
                     self.assertEqual(page.locator('[data-resume-series]').count(), 1)
                     page.set_viewport_size({'width':390,'height':844})
+                    # The viewport protocol returns before Chromium's responsive
+                    # layout has settled. Assert the actual eventual geometry.
+                    expect(page.locator('html')).to_have_js_property('scrollWidth', 390)
                     self.assertLessEqual(page.evaluate('document.documentElement.scrollWidth'), 390)
                     self.assertEqual(errors, [])
                     self.assertEqual(external, [])

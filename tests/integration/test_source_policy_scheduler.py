@@ -187,6 +187,16 @@ import json
 import os
 from pathlib import Path
 from services.discovery import scheduler
+from types import SimpleNamespace
+# This process test owns SQLite/outbox persistence; Redis transport is a
+# bounded recorder, not an ambient workstation service.
+class HeartbeatRecorder:
+    def set(self, key, value, ex):
+        Path(os.environ["MJOBS_SCHEDULER_TICK_REPORT"] + ".heartbeat").write_text(
+            json.dumps({"key": key, "value": json.loads(value), "ttl": ex}), encoding="utf-8")
+    def close(self):
+        pass
+scheduler.Redis = SimpleNamespace(from_url=lambda *args, **kwargs: HeartbeatRecorder())
 schedule_due_sources = scheduler.schedule_due_sources
 def capture_tick(*args, **kwargs):
     result = schedule_due_sources(*args, **kwargs)
@@ -208,6 +218,7 @@ scheduler.run_forever()
             "MJOBS_DATABASE_URL": self.store.url,
             "MJOBS_OPERATION_MODE": "PERSONAL",
             "MJOBS_SCHEDULER_TICK_SECONDS": "5",
+            "MJOBS_REDIS_URL": "redis://127.0.0.1:1/15",
         })
         project_root = Path(__file__).resolve().parents[2]
 
@@ -221,6 +232,11 @@ scheduler.run_forever()
             )
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertTrue(report_path.is_file(), "scheduler process did not execute a tick")
+            heartbeat = json.loads(Path(str(report_path) + ".heartbeat").read_text(encoding="utf-8"))
+            self.assertEqual(heartbeat["key"], "mjobs:runtime:scheduler:last_success")
+            self.assertEqual(heartbeat["value"]["interval_seconds"], 5)
+            self.assertTrue(heartbeat["value"]["timestamp"])
+            self.assertGreater(heartbeat["ttl"], 5)
             return json.loads(report_path.read_text(encoding="utf-8"))
 
         first_tick = run_scheduler_process("scheduler-first")
@@ -305,7 +321,7 @@ Path(os.environ["MJOBS_WORKER_REPORT"]).write_text(
             restart_recovery_services("mjobs-fixture-012345abcdef", 18877)
 
         self.assertIn("scheduler", RECOVERY_RESTART_SERVICES)
-        compose.assert_called_once_with("mjobs-fixture-012345abcdef", 18877, "restart", *RECOVERY_RESTART_SERVICES)
+        compose.assert_called_once_with("mjobs-fixture-012345abcdef", 18877, "restart", *RECOVERY_RESTART_SERVICES, config_files=None)
 
 
 if __name__ == "__main__":
