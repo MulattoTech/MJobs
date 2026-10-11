@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-10-11T09:19:36.854870+00:00",
-  "source_revision": "93f40b7a767aa437fd3ce7451db7ee6a376dcd0c",
+  "timestamp": "2026-10-11T09:47:08.227075+00:00",
+  "source_revision": "0635e5deccfc8d0bdda1f723bfac1a473a76480f",
   "requirement_ids": [
     "MJ-REQ-156",
     "MJ-REQ-292",
@@ -29,7 +29,11 @@
     "tests/unit/test_ui_e2e_onboarding.py": "f1042f49b224fc49e7f5342b91c968c5fe072df889faab735ac3ddd3b24c7581",
     "workers/operations.py": "60929ec9d6cd43aedebf07bb96cf0d67ecc1f14c58aaedced6606fb438ad4dc1",
     "workers/tasks.py": "fa3f868cdc5a1dc87708e53905bc8c81390c8eb43ab14f55b77ef5c68c7c5fcf",
-    "tests/browser/test_mock_application.py": "32a40b8049ea5785729d483d15a01da9020da91972b3126769acda2bbe6a172c"
+    "tests/browser/test_mock_application.py": "32a40b8049ea5785729d483d15a01da9020da91972b3126769acda2bbe6a172c",
+    "apps/web/src/style.css": "2dccb49f178100f3b27c13e09110f465620da5d83dc0c5d3c99310b2906ae900",
+    "tests/browser/test_company_source_view.py": "c45e5283bef1620f46ccf02830ad3c3caa862195acb3c3230dbe5e989615a3b0",
+    "tests/integration/test_application_form_analysis.py": "d22fdf236b7afed0637485dd2c358d173766f4b972fde1f304cd4e0e50da473e",
+    "tests/browser/test_document_history.py": "8b1d41fa6616ca2164f77c5cb5d39071348bb26a885f6048ab671f9e3e6c8186"
   },
   "implemented": [
     "Queued resume extraction persists immutable source identity, explicit intent and pending-only results. Completion and result publication share the worker fence transaction; cancellation, deadlines, bounded safe retry and lease recovery apply.",
@@ -108,6 +112,73 @@
   "final_regression": {
     "source_revision": "96abd4c9",
     "command": "python -m pytest -q tests/unit tests/integration --tb=short --durations=10",
-    "result": "IN_PROGRESS; final outcome appended at session checkpoint."
-  }
+    "result": "1 failed, 2467 passed, 29 skipped, 1 warning, 1083 subtests passed in 1739.57s (0:28:59)",
+    "correction": "Sensitive changed-slot question is now rejected as UNMAPPED_REQUIRED_QUESTION before form-analysis override. Test-only correction 8449b64f strengthens unmapped IDs, sensitive audit, no-value leak and zero egress. Root focused form-analysis/preflight/binding rerun: 23 passed, 15 subtests, 20.69s. Frozen original run is not retroactively PASS."
+  },
+  "full_browser_sweep": {
+    "source_revision": "6e55ba10c14634bb2f9ff4a4d6e69ebde0ed7922",
+    "command": "python -m pytest -q tests/browser --tb=short --durations=10",
+    "result": "FAILED / INTERRUPTED after multiple failures to diagnose before interactive cap; no full-suite PASS",
+    "collected": 201,
+    "reported_outcomes": 72,
+    "reported_passed": 50,
+    "reported_failed": 22,
+    "reported_failure_cases": [
+      "tests/browser/test_application_answer_export.py::ApplicationAnswerExportBrowserTests::test_avoid_terms_save_and_block_reviewed_answer_with_safe_reason",
+      "tests/browser/test_application_answer_export.py::ApplicationAnswerExportBrowserTests::test_fuzzy_suggestion_requires_review_and_export_survives_reload",
+      "tests/browser/test_application_answer_matching_connected.py::ConnectedApplicationAnswerMatchingBrowserTests::test_ranked_candidates_are_scoped_read_only_and_review_gated",
+      "tests/browser/test_application_answer_matching_review_flow.py::ApplicationAnswerMatchingReviewFlowBrowserTests::test_scoped_lookup_selection_and_application_review_flow",
+      "tests/browser/test_application_pipeline.py::ApplicationPipelineBrowserTests::test_lost_status_and_note_responses_can_be_retried_after_edits",
+      "tests/browser/test_application_preview.py::ApplicationPreviewBrowserTests::test_missing_cover_letter_stays_unknown_and_is_shown_as_a_blocker",
+      "tests/browser/test_application_preview.py::ApplicationPreviewBrowserTests::test_selected_application_preview_survives_reload_without_starting_automation",
+      "tests/browser/test_application_priority_mount.py::ApplicationPriorityMountedPanelBrowserTests::test_mounted_panel_hides_misscoped_data_and_retries_read_only",
+      "tests/browser/test_application_review_answers.py::ApplicationReviewAnswersBrowserTests::test_reviewed_answer_requires_persisted_save_and_isolated_readback",
+      "tests/browser/test_application_review_queue.py::ApplicationReviewQueueBrowserTests::test_unresolved_question_routes_to_review_and_saves_only_with_explicit_consent",
+      "tests/browser/test_application_supporting_documents.py::ApplicationSupportingDocumentsBrowserTests::test_select_reload_and_recover_job_scoped_supporting_document",
+      "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "tests/browser/test_browser_job_extraction_confirm_capture.py::BrowserJobExtractionConfirmCaptureTests::test_reviewed_correction_persists_capture_and_retry_is_idempotent",
+      "tests/browser/test_company_preferences_connected.py::CompanyPreferencesConnectedBrowserTests::test_blacklist_is_saved_across_reload_and_can_be_cleared_from_search",
+      "tests/browser/test_company_source_view.py::CompanySourceBrowserTests::test_personal_source_controls_persist_and_feedback_layout_remains_usable",
+      "tests/browser/test_cover_letter_preview.py::CoverLetterPreviewBrowserTests::test_preview_is_bound_explained_recoverable_and_read_only",
+      "tests/browser/test_document_history.py::DocumentHistoryBrowserTests::test_cover_letter_comparison_uses_only_validated_same_application_previews",
+      "tests/browser/test_document_history.py::DocumentHistoryBrowserTests::test_original_facts_and_three_downloads_survive_reload",
+      "tests/browser/test_fact_review.py::FactReviewBrowserTests::test_demo_profile_stays_read_only_until_saved_version_loads",
+      "tests/browser/test_fact_review.py::FactReviewBrowserTests::test_kind_edit_requires_fresh_review",
+      "tests/browser/test_fact_review.py::FactReviewBrowserTests::test_source_edit_requires_fresh_review",
+      "tests/browser/test_fact_review.py::FactReviewBrowserTests::test_text_edit_requires_fresh_review"
+    ],
+    "limits": "Only flushed progress outcomes are counted; remaining outcomes unproven. First reproduced failure: global Applications selector ambiguously matches navigation and Download applications CSV. Further failures must be triaged, not assumed absent implementation."
+  },
+  "database_restore_followup": {
+    "result": "PASS",
+    "timestamp": "2026-10-11T09:32:30.785478+00:00",
+    "schema_revision": "20261011rx01",
+    "tables": {
+      "career_profiles": {
+        "count": 41,
+        "sha256": "403ab0000c327863186f380fd76387735a01e33f12dbd9c6f88cf219d4b649ac"
+      },
+      "applications": {
+        "count": 21,
+        "sha256": "a02f7b52b162f080e39ea52580f016bfa87f1151a3b1f880b1fda7a47377b5ce"
+      },
+      "worker_operations": {
+        "count": 226,
+        "sha256": "3c79764dfe9b5f6df719d1aa85cf029a8a9602c41eb950ad0afe85815bcce097"
+      },
+      "resume_extraction_results": {
+        "count": 2,
+        "sha256": "b516b97cb195bd1713b17a14c4b19293946c4a1d783348c2767e6da2685d2e81"
+      }
+    },
+    "scope": "Separate PostgreSQL dump/restore of actual controlled fixture data, including new durable extraction results. Not a replacement for the separate full-stack/file/credential backup proof.",
+    "source_modified": false,
+    "dump_sha256": "f653a1e091a46abf0d5f11147e9e9d3079785f96e71119dc3f290591313722ce"
+  },
+  "followup_checks": [
+    "Actual readiness utility PASS for both deployed stacks after final image rollout: current schema, PostgreSQL, Redis, scheduler and all four worker queues.",
+    "Source relationship graph: real 390px page overflow fixed with one scoped wrapping rule; internal map scroll and node click preserved. Root focused browser pair 2 passed / 12.81s; child frontend 768 passed and root/child production builds PASS. Final image deployed to both controlled stacks and served CSS rule verified.",
+    "Unintegrated selector-only branch 5a980be9 preserves all answer-export assertions: module 3 passed / 1 failed later in avoid-term safe-reason flow with dynamic-field/rehearsal errors. Not merged as a passing feature.",
+    "Unintegrated fact-review worktree rc/fact-review-final-20261011 at 8449b64f preserves only tests/browser/test_fact_review.py dirty; 4 failures remain. Demo has stale save-button name; three edit cases return to Applications after reload/Profile click. Possible asynchronous restored-application navigation race needs a failing product regression before repair."
+  ]
 }
