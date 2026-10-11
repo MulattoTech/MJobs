@@ -1,3 +1,14 @@
+# Current Codex checkpoint — 2026-10-11T00:02:17Z
+
+- Root: `C:\Tools\Dev\MJobs`; local `main` is `e3115f1e826de9e6ea01cb663caeef2045854adc`; `origin/main` remains `7bbec704b54bcd412ead484af8b33584c2d0e2ec`. Local-only fast-forward; not pushed.
+- Ownership transfer: user directed manual clearing; prior #5/#139/#143/#146 claims released and mirrored with transfer comments. The old `MJobs-WebWorker-20261010` worktree (including dirty edits) and all source branches remain preserved. New root claims live on `codex/app-workflow-recovery-takeover-20261010`; integration lock held during this checkpoint.
+- Delivered: stable durable MOCK run/request identity and worker fencing; run-status recovery, cancellation, explicit new-run/replay controls; manual-auth path now starts a separate `submit:false` rerun after AUTH_REQUIRED; AI Settings explains provider timeout separately from rejection using sanitized fixed text.
+- Evidence: `docs/evidence/2026-10-10-application-recovery-transfer-validation.json`; exact source commit `1c7f439bae47ad3f06653c4d129446364742a4d4`, tree `7ce4d8d6b2a091c469bf6fd491e79900c11b6530`. Targeted aggregate: 126 tests, 125 PASS, one optional isolated-PostgreSQL recovery skip; frontend 34/34 and build PASS. Manual submission/provider calls stayed disabled; real ATS/hosted checks NOT_RUN.
+- Original requirements MJ-REQ-004, -138, -142, -145 remain PARTIAL; no denominator or full-parent status promoted.
+- Next: inspect active claims/dependencies and continue the highest-value independent P0 user workflow. Do not rerun physical host-restart tests against the retained personal runtime.
+
+---
+
 # Current checkpoint — 2026-10-10 Greenhouse fixture adapter
 
 Local `main` is integrated at `afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537` from exact base `f399e00da63c7bf14cd5281b71bba5daf8d62e10` by non-force fast-forward under the Codex integration lock. Issue #346 / MJ-REQ-122.A01 is PARTIAL: review-first Greenhouse form recognition, native required-field gating and hash-verified local fixture uploads are implemented. The exact focused unit/integration/Chromium command passed 31 tests. Evidence: `docs/evidence/2026-10-10-greenhouse-application-adapter.json`. Public ATS access/upload, connected API/UI/worker orchestration and durable confirmation/restart are NOT_RUN; external submission remains OFF. The parent MJ-REQ-122 stays PARTIAL.

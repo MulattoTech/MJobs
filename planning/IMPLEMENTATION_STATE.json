@@ -11,8 +11,8 @@
     "current_verified_github_state": "origin/main remains 0a8719d4db524c90b632d990cc7b205add0c2577; local main is ahead by 361 commits and was not pushed. Issue #268 remains OPEN/PARTIAL; receipt https://github.com/MulattoTech/MJobs/issues/268#issuecomment-6087812926. Hosted checks/review NOT_RUN_BY_USER_POLICY; PostgreSQL, live ATS, and full Python suite NOT_RUN; external application submission OFF. Verified 2026-10-09T19:29:04Z.",
     "current_verified_at": "2026-10-09T19:29:04Z"
   },
-  "current_milestone": "MATCHING-SPRINT-INTEGRATION-20261010",
-  "current_objective": "Integrate verified, profile-grounded preference weighting, no-write ranking preview, and positive career evidence while retaining broader matching requirements as PARTIAL.",
+  "current_milestone": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010",
+  "current_objective": "Integrate the transferred durable MOCK run identity, recovery, manual-auth rerun, and credential-timeout UI into local main with exact-source synthetic acceptance; continue to next dependency-ready user workflow.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -743,7 +743,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Reconcile issue #146 and current application-worker claims before choosing any connected Greenhouse API/UI/worker integration slice. Preserve the current Codex adapter branch/worktree history and do not overlap shared application worker ownership.",
+  "recommended_resume_step": "Continue with the highest-value unclaimed P0 user workflow after checking live lane claims and dependencies. Startup experience issue #15 is still PARTIAL but its remaining physical host-restart acceptance cannot be run against the retained personal runtime; find a code-backed gap that can be verified with isolated local fixtures. Preserve current claims and local-only publication state.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -777,24 +777,14 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
+  "last_implementation_commit": "e3115f1e826de9e6ea01cb663caeef2045854adc",
   "publication": {
-    "result": "PASS",
-    "scope": "Source publication only; not full product acceptance",
-    "integration_method": "Non-force feature branch push and fast-forward primary main under owned integration lock",
-    "integration_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
-    "source_commit": "25fea60889ad13cb5e837ab2263324f84fd20a04",
-    "source_tree": "d2fcf4387ff9dfca71fa779eb37001e4caae924c",
-    "prior_main": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
-    "pr_number": null,
-    "pr_state": "NOT_OPENED_TO_AVOID_HOSTED_AGENTS",
-    "github_reports_merged": false,
-    "evidence_paths": [
-      "docs/evidence/2026-10-10-durable-application-attempts.json",
-      "docs/evidence/2026-10-10-confirmation-reconciliation.json",
-      "docs/evidence/2026-10-10-verified-upload-bytes.json"
-    ],
-    "verified_at_utc": "2026-10-10T08:38:56.568551+00:00"
+    "result": "PARTIAL",
+    "scope": "Local fast-forward integration only; current local main is not published.",
+    "integration_method": "Non-force fast-forward from current origin/main under the local Codex integration lock.",
+    "local_main": "e3115f1e826de9e6ea01cb663caeef2045854adc",
+    "origin_main": "7bbec704b54bcd412ead484af8b33584c2d0e2ec",
+    "hosted_checks": "NOT_RUN_BY_USER_POLICY"
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -14897,12 +14887,75 @@
         "docs/PROGRESS_CARD.svg"
       ],
       "known_errors": []
+    },
+    {
+      "milestone_id": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010",
+      "timestamp": "2026-10-11T00:02:17Z",
+      "current_phase": "VERIFIED_PARTIAL_CHECKPOINT",
+      "requirements": [
+        "MJ-REQ-004",
+        "MJ-REQ-138",
+        "MJ-REQ-142",
+        "MJ-REQ-145"
+      ],
+      "acceptance": "PARTIAL; durable MOCK identity/recovery, manual-auth separate dry-run rerun, and sanitized credential timeout feedback integrated locally and verified. Parent requirements remain PARTIAL.",
+      "source_commit": "1c7f439bae47ad3f06653c4d129446364742a4d4",
+      "source_tree": "7ce4d8d6b2a091c469bf6fd491e79900c11b6530",
+      "integrated_main": "e3115f1e826de9e6ea01cb663caeef2045854adc",
+      "integration_method": "NON_FORCE_FAST_FORWARD_LOCAL_ONLY",
+      "evidence_paths": [
+        "docs/evidence/2026-10-10-application-recovery-transfer-validation.json"
+      ],
+      "completed_steps": [
+        "Transferred and revalidated frozen run-request, worker fencing and recovery on current origin/main.",
+        "Connected manual-auth to a separate explicit submit:false rerun; original AUTH_REQUIRED attempt stays immutable.",
+        "Mounted fixed safe timeout/rejection/unavailable feedback in AI Settings and verified timeout/recovery in connected Chromium."
+      ],
+      "files_added": [
+        "apps/web/src/mock-run-client.ts",
+        "apps/web/src/mock-run-controls.tsx",
+        "apps/web/src/credential-connection-feedback.tsx",
+        "services/applications/run_requests.py",
+        "tests/browser/test_manual_auth_worker_resume.py",
+        "docs/evidence/2026-10-10-application-recovery-transfer-validation.json"
+      ],
+      "files_modified": [
+        "apps/api/main.py",
+        "apps/web/src/main.tsx",
+        "services/applications/attempt_history.py",
+        "workers/operations.py",
+        "workers/tasks.py",
+        "tests/browser/test_provider_credentials.py"
+      ],
+      "tests_completed": [
+        "125 targeted local tests PASS across API, worker/history, credential store, frontend and connected MOCK browser suites; 1 optional isolated-PostgreSQL recovery test skipped.",
+        "34 frontend tests and TypeScript/Vite build PASS.",
+        "Agent skill, Python compilation, exact source hashes and diff checks PASS."
+      ],
+      "tests_remaining": [
+        "Dedicated loopback PostgreSQL worker recovery, live ATS/provider requests, full repository suite and hosted checks are NOT_RUN."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [
+        "LOCAL_LOOPBACK_SYNTHETIC_FIXTURE",
+        "LOCAL_MOCK_PROVIDER_RESPONSE"
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e3115f1e826de9e6ea01cb663caeef2045854adc",
+        "evidence_path": "docs/evidence/2026-10-10-application-recovery-transfer-validation.json"
+      },
+      "known_errors": [],
+      "known_limitations": [
+        "External employer submission remains OFF.",
+        "Real ATS and PostgreSQL crash-recovery evidence are not claimed.",
+        "Four parent requirements remain PARTIAL; complete ATS automation and all external-operation classes are unfinished."
+      ]
     }
   ],
   "current_phase": "VERIFIED_PARTIAL_CHECKPOINT",
   "last_safe_checkpoint": {
-    "git_commit": "afdacb8061388c9bb5e4ac1ae0d5f55fd8dc5537",
-    "evidence_path": "docs/evidence/2026-10-10-greenhouse-application-adapter.json"
+    "git_commit": "e3115f1e826de9e6ea01cb663caeef2045854adc",
+    "evidence_path": "docs/evidence/2026-10-10-application-recovery-transfer-validation.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",
@@ -15414,13 +15467,19 @@
   },
   "active_development_issue": {
     "numbers": [
-      346
+      5,
+      139,
+      143,
+      146
     ],
     "requirement_ids": [
-      "MJ-REQ-122.A01"
+      "MJ-REQ-004",
+      "MJ-REQ-138",
+      "MJ-REQ-142",
+      "MJ-REQ-145"
     ],
-    "status": "VERIFIED_PARTIAL_CHECKPOINT",
-    "outcome": "Bounded fixture-only Greenhouse adapter integrated locally. Parent MJ-REQ-122 remains OPEN/PARTIAL."
+    "status": "INTEGRATED_LOCAL_PARTIAL",
+    "outcome": "Transferred preserved worker/run implementation onto current main. Stable request recovery, manual-auth separate dry-run resumption, and safe credential timeout UI are connected and locally verified. Parent requirements remain PARTIAL."
   },
   "historical_control_snapshots": [
     {
@@ -16612,7 +16671,7 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "This ChatGPT Web session owns only its three explicit claims and the recorded codex integration lock. All other agent claims and worktrees are preserved; live coordination is authoritative.",
+  "ownership": "Current Codex root holds the local integration lock and owns only the transferred #5/#139/#143/#146 claims on codex/app-workflow-recovery-takeover-20261010. Previous branches/worktrees and dirty files remain preserved; no other lane claims were changed.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -16625,9 +16684,9 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-10T23:15:27Z",
-  "current_verified_local_state": "Local main integrated matching candidate e90ac3edb32b55d1e1b956109355642e5e7a6321 (tree ceb103970f9d1ccfc3c8def08a123ba97aa6ba28). Selected unit/integration/browser suite: 1056 passed, 553 subtests passed, 1 skipped; two browser cases passed after building the isolated worktree frontend. Web 583/583 and TypeScript/Vite build passed; agent skills, catalogue, progress, dashboard and lane validators passed. Evidence: docs/evidence/2026-10-10-matching-sprint-integration.json. MJ-REQ-114/117 remain PARTIAL; hosted/PostgreSQL NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "Non-force push published the accepted local Codex integration at a8bb25f1033a03b91a21b617d157ac51daabe586; origin/main and local main were fetched and verified equal at that SHA. No PR was opened and hosted checks/reviews remain NOT_RUN_BY_USER_POLICY. Issue #115/#118 remain OPEN/PARTIAL; PostgreSQL/live ATS NOT_RUN; external submission OFF. Verified 2026-10-10T23:12:00Z.",
+  "updated_at": "2026-10-11T00:02:17Z",
+  "current_verified_local_state": "Local main fast-forward integrated the transferred application workflow at e3115f1e826de9e6ea01cb663caeef2045854adc (source commit 1c7f439bae47ad3f06653c4d129446364742a4d4, tree 7ce4d8d6b2a091c469bf6fd491e79900c11b6530). Exact focused local checks: 125 passed, 0 failed, 1 dedicated PostgreSQL recovery skip; 34 frontend tests and TypeScript/Vite build pass. Evidence: docs/evidence/2026-10-10-application-recovery-transfer-validation.json. External submissions OFF; real ATS and hosted checks NOT_RUN.",
+  "current_verified_github_state": "origin/main remains 7bbec704b54bcd412ead484af8b33584c2d0e2ec; local main is four accepted commits ahead and has not been pushed. GitHub ownership-transfer and active-claim comments are recorded on issues #5, #139, #143 and #146.",
   "next_candidates": [
     {
       "issue": 246,
@@ -16635,7 +16694,7 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-10T23:15:27Z",
+  "current_verified_at": "2026-10-11T00:02:17Z",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
