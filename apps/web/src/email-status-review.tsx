@@ -267,7 +267,6 @@ export function EmailStatusReviewContent({ draft, format, fileSelected, preview,
     <button type="button" disabled={!canPreview} onClick={onPreview}>{busy ? 'Working…' : 'Preview message'}</button>
 
     {error && <p role="alert">{emailStatusErrorText(error, stale)}</p>}
-    {stale && <button type="button" disabled={loading || busy} onClick={onRefresh}>Refresh history</button>}
     {success && <p role="status">Reported status saved. Application submission and employer receipt are unchanged.</p>}
 
     {preview && <section aria-label="Email status preview">
@@ -449,7 +448,8 @@ export function EmailStatusReview({ profileId, applicationId, onStatusChanged }:
         body: JSON.stringify({ request_id: retry.requestId, status: reviewed.suggested_status,
           expected_tracking_sequence: reviewed.expected_tracking_sequence, reviewed: true }),
       });
-      if (!result?.applied || result.status !== reviewed.suggested_status || result.attribution !== 'USER_REPORTED_EMAIL') {
+      if (!result?.applied || result.preview_id !== reviewed.preview_id
+        || result.status !== reviewed.suggested_status || result.attribution !== 'USER_REPORTED_EMAIL') {
         throw new Error('Status response did not match the reviewed suggestion.');
       }
       retryRequest.current = null;
