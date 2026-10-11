@@ -6,7 +6,7 @@ import json
 import math
 import unicodedata
 
-from sqlalchemy import select
+from sqlalchemy import case, func, select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity
@@ -127,32 +127,65 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
         if fact.get("verified") is True and fact.get("user_approved") is True
     )
     with store.engine.connect() as connection:
-        job_ids = set(connection.execute(select(m.matches.c.job_id).where(
-            m.matches.c.profile_id == profile_id)).scalars())
-        job_ids.update(connection.execute(select(m.applications.c.job_id).where(
-            m.applications.c.profile_id == profile_id)).scalars())
-        job_rows = list(connection.execute(select(m.jobs, m.companies.c.name.label("company_name"))
-            .select_from(m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id))
-            .where(m.jobs.c.id.in_(job_ids) if job_ids else m.jobs.c.id == "__none__")
+        profile_job_ids = select(m.matches.c.job_id.label("job_id")).where(
+            m.matches.c.profile_id == profile_id
+        ).union(
+            select(m.applications.c.job_id.label("job_id")).where(
+                m.applications.c.profile_id == profile_id)
+        ).subquery()
+        total = connection.execute(select(func.count()).select_from(profile_job_ids)).scalar_one()
+        selected_jobs = list(connection.execute(
+            select(m.jobs, m.companies.c.name.label("company_name"))
+            .select_from(
+                profile_job_ids.join(m.jobs, m.jobs.c.id == profile_job_ids.c.job_id)
+                .join(m.companies, m.jobs.c.company_id == m.companies.c.id))
+            .order_by(func.lower(m.jobs.c.title), m.jobs.c.id)
+            .limit(limit)
         ).mappings())
-        job_rows.sort(key=lambda row: (_safe_text(row["title"]).casefold(), str(row["id"])))
-        total = len(job_rows)
-        selected_jobs = job_rows[:limit]
         selected_ids = [row["id"] for row in selected_jobs]
-        match_rows = list(connection.execute(select(m.matches).where(
+        ranked_matches = select(
+            *m.matches.c,
+            func.row_number().over(
+                partition_by=m.matches.c.job_id,
+                order_by=(
+                    case((m.matches.c.profile_version == profile_version, 0), else_=1),
+                    m.matches.c.profile_version.desc(), m.matches.c.id.desc(),
+                ),
+            ).label("_match_rank"),
+        ).where(
             m.matches.c.profile_id == profile_id,
             m.matches.c.job_id.in_(selected_ids) if selected_ids else m.matches.c.job_id == "__none__",
-        )).mappings())
-        apps = list(connection.execute(select(m.applications).where(
+        ).subquery()
+        match_rows = list(connection.execute(select(
+            *(ranked_matches.c[column.name] for column in m.matches.c)
+        ).where(ranked_matches.c._match_rank == 1)).mappings())
+        ranked_apps = select(
+            *m.applications.c,
+            func.row_number().over(
+                partition_by=m.applications.c.job_id,
+                order_by=(m.applications.c.created_at.desc(), m.applications.c.id.desc()),
+            ).label("_application_rank"),
+        ).where(
             m.applications.c.profile_id == profile_id,
             m.applications.c.job_id.in_(selected_ids) if selected_ids else m.applications.c.job_id == "__none__",
-        )).mappings())
-        app_by_job = {row["job_id"]: row for row in sorted(
-            apps, key=lambda row: (str(row["created_at"]), str(row["id"])) )}
+        ).subquery()
+        apps = list(connection.execute(select(
+            *(ranked_apps.c[column.name] for column in m.applications.c)
+        ).where(ranked_apps.c._application_rank == 1)).mappings())
+        app_by_job = {row["job_id"]: row for row in apps}
         app_ids = [row["id"] for row in apps]
-        docs = list(connection.execute(select(m.documents).where(
+        ranked_docs = select(
+            *m.documents.c,
+            func.row_number().over(
+                partition_by=(m.documents.c.application_id, m.documents.c.kind),
+                order_by=(m.documents.c.version.desc(), m.documents.c.id.desc()),
+            ).label("_document_rank"),
+        ).where(
             m.documents.c.application_id.in_(app_ids) if app_ids else m.documents.c.application_id == "__none__"
-        )).mappings())
+        ).subquery()
+        docs = list(connection.execute(select(
+            *(ranked_docs.c[column.name] for column in m.documents.c)
+        ).where(ranked_docs.c._document_rank == 1)).mappings())
         operations = list(connection.execute(select(m.operations).where(
             m.operations.c.entity_id == profile_id,
             m.operations.c.kind.in_(["PREPARE", "DISCOVER"]),
@@ -168,10 +201,7 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
         )).mappings()) if app_ids else []
 
     mode = str(workspace or "UNBOUND").upper()
-    match_by_job = {}
-    for row in sorted(match_rows, key=lambda item: (
-            item["profile_version"], str(item["id"]))):
-        match_by_job[row["job_id"]] = row
+    match_by_job = {row["job_id"]: row for row in match_rows}
     tracking_by_entity = {}
     for row in audit_rows:
         entity = row["entity_id"]
@@ -179,7 +209,8 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
         status = payload.get("status")
         attribution = payload.get("attribution")
         if (status in PIPELINE_STATUSES
-                and attribution in {"USER_REPORTED", "EXTERNAL_USER_REPORTED"}):
+                and attribution in {"USER_REPORTED", "EXTERNAL_USER_REPORTED",
+                                    "USER_REPORTED_EMAIL"}):
             previous = tracking_by_entity.get(entity)
             sequence = payload.get("sequence", 0)
             if previous is None or sequence >= previous[0]:

@@ -113,6 +113,18 @@ class PipelineWorkbenchTests(unittest.TestCase):
         self.assertTrue({"SCORE_STALE", "DOCUMENTS_STALE"}.issubset(
             {blocker["code"] for blocker in item["blockers"]}))
 
+    def test_current_match_wins_over_lexically_later_historical_profile_version(self):
+        self.add_job("version-order-job", score=87)
+        with self.store.engine.begin() as connection:
+            connection.execute(m.matches.insert().values(
+                id="historical-lexically-later", job_id="version-order-job",
+                profile_id="fixture", profile_version="z" * 64, score=11,
+                missing=[], components={"skills": 10}))
+        item = self.read()["items"][0]
+        self.assertEqual(item["score_state"], "CURRENT")
+        self.assertEqual(item["score"], 87)
+        self.assertEqual(item["stage"], "READY_TO_PREPARE")
+
     def test_current_documents_are_prepared_but_only_explicit_user_tracking_enters_tracking(self):
         job = self.add_job("prepared-job", application=True, application_state="CONFIRMED",
                            docs=(("resume", 1, self.profile_version),
@@ -134,6 +146,23 @@ class PipelineWorkbenchTests(unittest.TestCase):
         self.assertEqual(tracked["stage"], "TRACKING")
         self.assertEqual(tracked["tracking_status"], "INTERVIEW")
         self.assertEqual(tracked["tracking_attribution"], "USER_REPORTED")
+
+    def test_email_reported_status_is_preserved_as_user_tracking(self):
+        job = self.add_job("email-tracking-job", application=True,
+                           docs=(("resume", 1, self.profile_version),
+                                 ("cover-letter", 1, self.profile_version)))
+        entity = identity("application-tracking", "fixture", job["application_id"])
+        with self.store.engine.begin() as connection:
+            connection.execute(m.audit.insert().values(
+                id="email-reported-applied", entity_id=entity,
+                action="APPLICATION_PIPELINE_STATUS",
+                payload={"status": "APPLIED", "attribution": "USER_REPORTED_EMAIL",
+                         "sequence": 1},
+                timestamp="2026-10-11T14:00:00Z"))
+        item = self.read()["items"][0]
+        self.assertEqual(item["stage"], "TRACKING")
+        self.assertEqual(item["tracking_status"], "APPLIED")
+        self.assertEqual(item["tracking_attribution"], "USER_REPORTED_EMAIL")
 
     def test_active_prepare_operation_and_personal_mock_route_are_hard_blockers(self):
         self.add_job("active-job")
