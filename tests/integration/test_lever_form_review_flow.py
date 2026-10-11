@@ -65,6 +65,12 @@ class LeverFormReviewFlowTests(unittest.TestCase):
 
     def test_lever_route_persists_safe_review_metadata_by_request_id(self):
         request_id = "lever-review-request-001"
+        # Admission freezes the canonical URL; a supported persisted /apply
+        # alias must still pass worker staleness checks without a second route.
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+            ).values(url=LEVER_URL + "/apply"))
         path = self._path()
         queued = self.client.post(path, json={"request_id": request_id})
         self.assertEqual(queued.status_code, 202, queued.text)

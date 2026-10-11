@@ -30,6 +30,7 @@ _FIELD_TYPES = {
 _REVIEW_REASONS = {
     "CREDENTIAL_FIELD", "SENSITIVE_FIELD", "AMBIGUOUS_FIELD",
     "UNSAFE_IDENTIFIER", "UNIDENTIFIABLE_FIELD", "UNSUPPORTED_FIELD_TYPE",
+    "UNKNOWN_QUESTION",
 }
 
 
@@ -168,14 +169,15 @@ def _validate_application(connection, operation, params):
         raise FormReviewError("FORM_REVIEW_APPLICATION_NOT_FOUND")
     if (row["profile_id"] != params["profile_id"]
             or row["route_id"] != params["route_id"]
-            or row["provider"] != params["provider"]
-            or row["url"] != params["route_url"]):
+            or row["provider"] != params["provider"]):
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")
     if params["provider"] not in {"greenhouse", "lever"}:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     normalized = normalize_application_route(row["provider"], row["url"])
     if normalized is None:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
+    if normalized["url"] != params["route_url"]:
+        raise FormReviewError("FORM_REVIEW_INPUT_STALE")
     return normalized
 
 
