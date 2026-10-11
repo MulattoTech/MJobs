@@ -762,22 +762,42 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             connection.execute(text("SELECT 1"))
         return {"status": "ok", "check": "liveness", "mode": "LOCAL_FIRST", "operation_mode": operation_mode, "external_submission_enabled": False}
 
+    expected_schema_heads = None
+
     @app.get("/readiness")
     def readiness():
-        checks = {"database": False, "queue": False, "worker": False}
+        nonlocal expected_schema_heads
+        from services.runtime_health import read_runtime_health, REQUIRED_QUEUES
+        checks = {"configuration": False, "database": False, "queue": False,
+                  "worker": False, "scheduler": False,
+                  "workers": {queue: False for queue in REQUIRED_QUEUES}}
+        if store.engine.dialect.name == "postgresql":
+            checks["schema"] = False
         if operation_mode == "FIXTURE":
             checks["mock"] = False
         try:
+            store.assert_workspace_mode(operation_mode)
+            checks["configuration"] = True
             with store.engine.connect() as connection:
                 connection.execute(text("SELECT 1"))
-            checks["database"] = True
+                checks["database"] = True
+                if store.engine.dialect.name == "postgresql":
+                    from alembic.config import Config
+                    from alembic.script import ScriptDirectory
+                    from alembic.runtime.migration import MigrationContext
+                    if expected_schema_heads is None:
+                        config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
+                        expected_schema_heads = set(ScriptDirectory.from_config(config).get_heads())
+                    checks["schema"] = set(MigrationContext.configure(connection).get_current_heads()) == expected_schema_heads
         except Exception:
             pass
         redis = Redis.from_url(redis_url, socket_connect_timeout=2, socket_timeout=2)
         try:
             checks["queue"] = bool(redis.ping())
-            active_queues = {name for worker in Worker.all(connection=redis) if worker.get_state() in ("idle", "busy") for name in worker.queue_names()}
-            checks["worker"] = set(QUEUES.values()).issubset(active_queues)
+            runtime = read_runtime_health(redis)
+            checks["workers"] = runtime["workers"]
+            checks["worker"] = all(runtime["workers"].values())
+            checks["scheduler"] = runtime["scheduler"]
         except Exception:
             pass
         finally:
@@ -791,8 +811,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 pass
             finally:
                 client.close()
-        ready = all(checks.values())
-        return JSONResponse({"status": "ready" if ready else "degraded", "checks": checks}, status_code=200 if ready else 503)
+        ready = all(value for key, value in checks.items() if key != "workers")
+        return JSONResponse({"status": "ready" if ready else "degraded", "checks": checks,
+                             "db_backend": store.engine.dialect.name}, status_code=200 if ready else 503)
 
     def queued(kind, entity_id, params, *, connection=None):
         operation_id = enqueue_operation(store, kind, entity_id, params, connection=connection)
