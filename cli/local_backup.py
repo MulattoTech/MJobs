@@ -35,6 +35,25 @@ WRITERS = ("api", "worker", "source-worker", "document-worker", "migrate",
            "scheduler", "company-discovery-worker")
 MAX_CAPTURED_STDOUT_BYTES = 2 * 1024 * 1024
 _OUTPUT_CHUNK_BYTES = 64 * 1024
+MAX_COMPOSE_SNAPSHOT_BYTES = 2 * 1024 * 1024
+MAX_RUNTIME_SNAPSHOT_BYTES = 16 * 1024
+CONFIGURATION_FILES = frozenset((
+    "configuration/compose.yml",
+    "configuration/runtime.json",
+))
+RUNTIME_SETTING_BOUNDS = {
+    "MJOBS_SOURCE_COLLECTION_CONCURRENCY": (1, 4),
+    "MJOBS_COMPANY_DISCOVERY_CONCURRENCY": (1, 2),
+    "MJOBS_AI_CONCURRENCY": (1, 2),
+    "MJOBS_DOCUMENT_GENERATION_CONCURRENCY": (1, 2),
+    "MJOBS_APPLICATION_AUTOMATION_CONCURRENCY": (1, 2),
+    "MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS": (300, 2_592_000),
+}
+RUNTIME_SETTING_NAMES = frozenset((
+    "MJOBS_OPERATION_MODE",
+    "MJOBS_COMPOSE_MOCK",
+    *RUNTIME_SETTING_BOUNDS.keys(),
+))
 
 
 def require_stopped_writers(states: dict[str, str]) -> None:
@@ -61,6 +80,66 @@ def checksum(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _validate_runtime_configuration(snapshot: object, operation_mode: str) -> None:
+    if (operation_mode not in ("PERSONAL", "FIXTURE")
+            or not isinstance(snapshot, dict)
+            or set(snapshot) != {"schema_version", "operation_mode", "settings"}):
+        raise BackupError("Backup runtime configuration is invalid")
+    if (type(snapshot.get("schema_version")) is not int or snapshot.get("schema_version") != 1
+            or snapshot.get("operation_mode") != operation_mode):
+        raise BackupError("Backup runtime configuration does not match its workspace mode")
+    settings = snapshot.get("settings")
+    if not isinstance(settings, dict) or set(settings) != RUNTIME_SETTING_NAMES:
+        raise BackupError("Backup runtime configuration contains unsupported settings")
+    if settings["MJOBS_OPERATION_MODE"] != operation_mode:
+        raise BackupError("Backup runtime configuration does not match its workspace mode")
+    expected_mock = "1" if operation_mode == "FIXTURE" else "0"
+    if settings["MJOBS_COMPOSE_MOCK"] != expected_mock:
+        raise BackupError("Backup runtime configuration has an invalid mock mode")
+    for name, (minimum, maximum) in RUNTIME_SETTING_BOUNDS.items():
+        value = settings[name]
+        if (not isinstance(value, str) or not re.fullmatch(r"[1-9][0-9]{0,6}", value)
+                or not minimum <= int(value) <= maximum):
+            raise BackupError("Backup runtime configuration contains an invalid setting")
+
+
+def _runtime_configuration_snapshot(container: str, operation_mode: str) -> dict:
+    """Capture only fixed, bounded non-secret settings from the API container."""
+    raw = _run(["docker", "inspect", "--format", '{{json .Config.Env}}', container],
+               action="Inspect API runtime configuration")
+    try:
+        entries = json.loads(raw.decode("utf-8"))
+        if not isinstance(entries, list) or any(not isinstance(item, str) or "=" not in item for item in entries):
+            raise ValueError("invalid environment shape")
+        environment: dict[str, str] = {}
+        for item in entries:
+            name, value = item.split("=", 1)
+            if name in RUNTIME_SETTING_NAMES:
+                if name in environment:
+                    raise ValueError("duplicate allowlisted setting")
+                environment[name] = value
+    except (UnicodeError, json.JSONDecodeError, ValueError):
+        raise BackupError("API runtime configuration could not be safely captured") from None
+    snapshot = {
+        "schema_version": 1,
+        "operation_mode": operation_mode,
+        "settings": environment,
+    }
+    _validate_runtime_configuration(snapshot, operation_mode)
+    return snapshot
+
+
+def _read_runtime_configuration(path: Path, operation_mode: str) -> dict:
+    if path.stat().st_size > MAX_RUNTIME_SNAPSHOT_BYTES:
+        raise BackupError("Backup runtime configuration exceeds its size limit")
+    try:
+        snapshot = json.loads(path.read_text(encoding="utf-8"))
+    except (UnicodeError, json.JSONDecodeError):
+        raise BackupError("Backup runtime configuration is not valid JSON") from None
+    _validate_runtime_configuration(snapshot, operation_mode)
+    return snapshot
+
+
 def verify_backup(archive: Path) -> dict:
     if archive.is_symlink():
         raise BackupError("Backup directory is a symbolic link")
@@ -76,8 +155,10 @@ def verify_backup(archive: Path) -> dict:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise BackupError("Backup manifest is not valid JSON") from exc
-    if not isinstance(manifest, dict) or manifest.get("schema_version") != 1:
+    if (not isinstance(manifest, dict) or type(manifest.get("schema_version")) is not int
+            or manifest.get("schema_version") not in (1, 2)):
         raise BackupError("Unsupported backup manifest version")
+    schema_version = manifest["schema_version"]
     if not PROJECT.fullmatch(str(manifest.get("source_project", ""))):
         raise BackupError("Backup source project is invalid")
     if manifest.get("operation_mode") not in ("PERSONAL", "FIXTURE"):
@@ -90,7 +171,10 @@ def verify_backup(archive: Path) -> dict:
     if not isinstance(files, dict) or "database.dump" not in files:
         raise BackupError("Backup database dump is missing from manifest")
     for name, expected in files.items():
-        if not isinstance(name, str) or not (name == "database.dump" or name.startswith("documents/")):
+        allowed = (isinstance(name, str)
+                   and (name == "database.dump" or name.startswith("documents/")
+                        or (schema_version == 2 and name in CONFIGURATION_FILES)))
+        if not allowed:
             raise BackupError("Backup manifest contains an invalid path")
         parts = name.split("/")
         if any(part in ("", ".", "..") or "\\" in part or ":" in part for part in parts):
@@ -110,6 +194,18 @@ def verify_backup(archive: Path) -> dict:
         raise BackupError("Backup contains unlisted or missing files")
     if any(path.is_symlink() for path in archive.rglob("*")):
         raise BackupError("Backup contains a symbolic link")
+    if schema_version == 2:
+        if not CONFIGURATION_FILES.issubset(files):
+            raise BackupError("Backup configuration snapshot is incomplete")
+        configuration_dir = archive / "configuration"
+        if any(path.is_dir() for path in configuration_dir.rglob("*")):
+            raise BackupError("Backup configuration snapshot contains an unsupported path")
+        compose_path = configuration_dir / "compose.yml"
+        if compose_path.stat().st_size > MAX_COMPOSE_SNAPSHOT_BYTES:
+            raise BackupError("Backup Compose snapshot exceeds its size limit")
+        if checksum(compose_path) != manifest["compose_sha256"]:
+            raise BackupError("Archived Compose source does not match its recorded hash")
+        _read_runtime_configuration(configuration_dir / "runtime.json", manifest["operation_mode"])
     return manifest
 
 
@@ -293,13 +389,26 @@ def create_backup(project: str, archive: Path) -> dict:
                 raise BackupError("Document volume contains an unsupported file type")
             if path.is_file():
                 files[path.relative_to(stage).as_posix()] = checksum(path)
+        compose_source = ROOT / "compose.yml"
+        if not compose_source.is_file() or compose_source.is_symlink():
+            raise BackupError("Public Compose source is missing or unsafe")
+        if compose_source.stat().st_size > MAX_COMPOSE_SNAPSHOT_BYTES:
+            raise BackupError("Public Compose source exceeds the snapshot size limit")
+        configuration = stage / "configuration"
+        configuration.mkdir()
+        shutil.copyfile(compose_source, configuration / "compose.yml")
+        runtime_configuration = _runtime_configuration_snapshot(container, mode)
+        (configuration / "runtime.json").write_text(
+            json.dumps(runtime_configuration, indent=2) + "\n", encoding="utf-8")
+        for name in sorted(CONFIGURATION_FILES):
+            files[name] = checksum(stage.joinpath(*name.split("/")))
         manifest = {
-            "schema_version": 1,
+            "schema_version": 2,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "source_project": project,
             "operation_mode": mode,
             "alembic_revision": revision,
-            "compose_sha256": checksum(ROOT / "compose.yml"),
+            "compose_sha256": checksum(compose_source),
             "files": files,
         }
         (stage / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -464,12 +573,17 @@ def main() -> int:
         if args.command == "verify":
             manifest = verify_backup(args.archive)
             print(f"Backup verified: {len(manifest['files'])} files; mode {manifest['operation_mode']}")
+            if manifest["schema_version"] == 2:
+                print("Configuration snapshot: configuration/runtime.json (manual review only; settings are not applied)")
         elif args.command == "backup":
             manifest = create_backup(args.project, args.archive)
             print(f"Backup created: {len(manifest['files'])} files; mode {manifest['operation_mode']}")
+            print("Configuration snapshot: non-secret runtime settings saved for manual review")
         elif args.command == "restore":
             manifest = restore_backup(args.archive, args.target_project, args.port)
             print(f"Restored {manifest['operation_mode']} project {args.target_project} at 127.0.0.1:{args.port}")
+            if manifest["schema_version"] == 2:
+                print("Configuration snapshot: configuration/runtime.json (manual review only; settings are not applied)")
         elif args.command == "verify-credentials":
             count = verify_credential_recoverability(os.environ.get("MJOBS_DATABASE_URL"))
             print(f"Saved provider credentials verified: {count}")
