@@ -181,7 +181,8 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
 
                     context.route("**/profiles", concurrent_edit)
                     answer_review.get_by_role("button", name="Confirm and save to Answer Bank").click()
-                    expect(page.get_by_role("alert")).to_contain_text("Profile changed while this answer was being saved")
+                    expect(page.locator('main > .alert[role="alert"]')).to_contain_text(
+                        "Profile changed while this answer was being saved")
                     self.assertTrue(any(item["id"] == "concurrent-answer"
                                         for item in store.profile("fixture")["answers"]))
                     self.assertFalse(any(item["id"] == "azure-answer" and item["confidence"] == 88
