@@ -94,6 +94,51 @@ class EmailStatusTests(unittest.TestCase):
         self.assertEqual(result["category"], "UNKNOWN")
         self.assertIsNone(result["suggested_status"])
 
+    def test_attached_message_rfc822_content_is_never_classified(self):
+        eml = ("MIME-Version: 1.0\r\n"
+               "Content-Type: multipart/mixed; boundary=outer\r\n\r\n"
+               "--outer\r\n"
+               "Content-Type: text/plain; charset=utf-8\r\n\r\n"
+               "Application update.\r\n"
+               "--outer\r\n"
+               "Content-Type: message/rfc822\r\n"
+               "Content-Disposition: attachment; filename=forwarded.eml\r\n\r\n"
+               "From: synthetic@example.test\r\n"
+               "Content-Type: text/plain; charset=utf-8\r\n\r\n"
+               "We are pleased to offer you the position.\r\n"
+               "--outer--\r\n")
+
+        result = classify_email_status(eml, format="eml")
+
+        self.assertEqual(result["category"], "UNKNOWN")
+        self.assertIsNone(result["suggested_status"])
+
+    def test_mime_part_limit_fails_closed_instead_of_classifying_partial_content(self):
+        boundary = "bounded"
+        parts = [
+            "Content-Type: text/plain; charset=utf-8\r\n\r\n"
+            "We are pleased to offer you the position."
+        ]
+        parts.extend(
+            "Content-Type: text/plain; charset=utf-8\r\n\r\n"
+            "Neutral content."
+            for _ in range(38)
+        )
+        parts.append(
+            "Content-Type: text/plain; charset=utf-8\r\n\r\n"
+            "We regret to inform you that we will not move forward."
+        )
+        eml = ("MIME-Version: 1.0\r\n"
+               f"Content-Type: multipart/mixed; boundary={boundary}\r\n\r\n" +
+               "".join(f"--{boundary}\r\n{part}\r\n" for part in parts) +
+               f"--{boundary}--\r\n")
+
+        result = classify_email_status(eml, format="eml")
+
+        self.assertEqual(result["category"], "UNKNOWN")
+        self.assertIsNone(result["suggested_status"])
+        self.assertEqual(result["reason_codes"], ["MIME_LIMIT_EXCEEDED"])
+
     def test_input_format_and_size_are_bounded(self):
         with self.assertRaisesRegex(ValueError, "EMAIL_FORMAT_INVALID"):
             classify_email_status("test", format="html")

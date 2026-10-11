@@ -17,6 +17,10 @@ _MAX_CONTENT_BYTES = 256 * 1024
 _MAX_MIME_PARTS = 40
 _MAX_MIME_DEPTH = 8
 
+
+class _MimeLimitExceeded(Exception):
+    """Internal signal that bounded MIME traversal could not inspect all parts."""
+
 # Category order is part of the deterministic conflict/reason-code behavior.
 _SIGNAL_PATTERNS: tuple[tuple[str, str, tuple[re.Pattern[str], ...]], ...] = (
     (
@@ -111,6 +115,10 @@ def _walk_plain_text(message: Message) -> list[str]:
         nonlocal parts_seen
         parts_seen += 1
         if parts_seen > _MAX_MIME_PARTS or depth > _MAX_MIME_DEPTH:
+            raise _MimeLimitExceeded
+        # Skip attachments before inspecting multipart structure. Some attached
+        # message parts have nested MIME payloads that must remain untrusted data.
+        if part.get_content_disposition() == "attachment" or part.get_filename():
             return
         if part.is_multipart():
             payload = part.get_payload()
@@ -118,8 +126,6 @@ def _walk_plain_text(message: Message) -> list[str]:
                 for child in payload:
                     if isinstance(child, Message):
                         walk(child, depth + 1)
-            return
-        if part.get_content_disposition() == "attachment" or part.get_filename():
             return
         if part.get_content_type().lower() != "text/plain":
             return
@@ -168,7 +174,15 @@ def classify_email_status(content: str, format: str = "text") -> dict[str, Any]:
                 "reason_codes": ["INVALID_FORMAT"],
             }
         subject = message.get("Subject", "")
-        plain_parts = _walk_plain_text(message)
+        try:
+            plain_parts = _walk_plain_text(message)
+        except _MimeLimitExceeded:
+            return {
+                "content_sha256": hashlib.sha256(raw).hexdigest(),
+                "category": "UNKNOWN",
+                "suggested_status": None,
+                "reason_codes": ["MIME_LIMIT_EXCEEDED"],
+            }
         # Bound the decoded text too, including parser expansion from transfer
         # encodings. These values remain local and are discarded on return.
         classification_text = "\n".join([str(subject), *plain_parts])
