@@ -17,6 +17,10 @@ import time
 import urllib.error
 import urllib.request
 
+from packages.persistence import models
+from packages.persistence.store import Store
+from services.credentials.vault import CredentialCipher, CredentialConfigurationError
+
 
 PROJECT = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -335,6 +339,34 @@ def _wait_ready(port: int) -> None:
     raise BackupError("Restored project did not become ready within 120 seconds")
 
 
+def verify_credential_recoverability(database_url: str) -> int:
+    """Require the configured key to decrypt every saved credential without returning values."""
+    if not isinstance(database_url, str) or not database_url:
+        raise BackupError("Restored database configuration is unavailable")
+    store = Store(database_url)
+    try:
+        cipher = CredentialCipher.from_environment()
+        with store.engine.connect() as connection:
+            rows = connection.execute(
+                models.provider_credentials.select().with_only_columns(
+                    models.provider_credentials.c.profile_id,
+                    models.provider_credentials.c.provider,
+                    models.provider_credentials.c.encrypted_secret,
+                )
+            )
+            count = 0
+            for profile_id, provider, encrypted in rows:
+                cipher.decrypt(profile_id, provider, encrypted)
+                count += 1
+        return count
+    except CredentialConfigurationError:
+        raise BackupError(
+            "Saved provider credentials could not be verified; use the original credential-encryption key"
+        ) from None
+    finally:
+        store.engine.dispose()
+
+
 def restore_backup(archive: Path, project: str, port: int) -> dict:
     manifest = verify_backup(archive)
     archive = archive.resolve()
@@ -360,6 +392,9 @@ def restore_backup(archive: Path, project: str, port: int) -> dict:
         raise BackupError("Restored migration revision differs from the backup")
     if _sql(project, "SELECT operation_mode FROM workspace_identity WHERE id='workspace'", environment) != manifest["operation_mode"]:
         raise BackupError("Restored workspace mode differs from the backup")
+    _compose(project, "run", "--rm", "--no-deps", "-T", "api", "python", "-m",
+             "cli.local_backup", "verify-credentials", environment=environment,
+             timeout=120, action="Verify restored credential encryption key")
     _compose(project, "create", "api", environment=environment,
              action="Create fresh document volume")
     container = _container(project, "api", environment)
@@ -422,6 +457,7 @@ def main() -> int:
     restore.add_argument("--archive", type=Path, required=True)
     restore.add_argument("--target-project", required=True)
     restore.add_argument("--port", type=int, required=True)
+    commands.add_parser("verify-credentials", help=argparse.SUPPRESS)
     commands.add_parser("verify-documents", help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
@@ -434,11 +470,16 @@ def main() -> int:
         elif args.command == "restore":
             manifest = restore_backup(args.archive, args.target_project, args.port)
             print(f"Restored {manifest['operation_mode']} project {args.target_project} at 127.0.0.1:{args.port}")
+        elif args.command == "verify-credentials":
+            count = verify_credential_recoverability(os.environ.get("MJOBS_DATABASE_URL"))
+            print(f"Saved provider credentials verified: {count}")
         elif args.command == "verify-documents":
             verify_documents_from_stdin()
     except BackupError as exc:
         if args.command == "restore":
             parser.exit(2, f"Restore failed: {exc}. A new target may be partial; preserve it for diagnosis.\n")
+        if args.command == "verify-credentials":
+            parser.exit(2, f"Credential verification failed: {exc}\n")
         parser.exit(2, f"Backup refused: {exc}\n")
     return 0
 

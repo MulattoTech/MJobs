@@ -25,11 +25,17 @@ Remove-Variable credentialKey
 ```
 
 Keep this key private and retain it separately from database backups. A restored
-database requires the same key to decrypt saved credentials. Losing or changing
-the key makes existing credential ciphertext unusable; back up the key through
-the operator's protected secret-management process before any planned key
-replacement. The UI's **Rotate credential** action rotates the provider API key
-while preserving the encryption key.
+database requires the same key to decrypt saved credentials. Restore the
+original key into the private project `.env` before running
+`cli.local_backup restore`; restore verifies that every saved credential can be
+decrypted and fails closed before starting the restored application if the key
+is missing or wrong. The database may already have been restored into the new
+target when this check fails, so preserve that target and retry with a different
+new target name after correcting the key. Losing or changing the key makes
+existing credential ciphertext unusable; back up the key through the operator's
+protected secret-management process before any planned key replacement. The UI's
+**Rotate credential** action rotates the provider API key while preserving the
+encryption key.
 
 ## Connection checks
 
