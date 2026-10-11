@@ -87,6 +87,19 @@ class OperationProgressTests(unittest.TestCase):
 
         self.assertEqual(get_operation_progress(self.store, self.operation_id), before)
 
+    def test_omitted_step_does_not_clear_the_current_step(self):
+        record_operation_progress(
+            self.store, self.operation_id, current_step="FETCH_SOURCE", progress=25,
+            state="RUNNING",
+        )
+
+        updated = record_operation_progress(
+            self.store, self.operation_id, current_step=None, progress=30,
+        )
+
+        self.assertEqual(updated["current_step"], "FETCH_SOURCE")
+        self.assertEqual(updated["progress"], 30)
+
     def test_invalid_progress_state_transition_and_recovery_metadata_do_not_write(self):
         invalid_updates = (
             {"current_step": "FETCH", "progress": -1},
