@@ -764,6 +764,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     expected_schema_heads = None
 
+    @app.get("/ready")
     @app.get("/readiness")
     def readiness():
         nonlocal expected_schema_heads

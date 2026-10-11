@@ -33,12 +33,16 @@ class RuntimeReadinessApiTests(unittest.TestCase):
                         TestClient(create_app(store, "http://127.0.0.1:1", root, operation_mode="PERSONAL")) as client:
                     ready = client.get("/readiness")
                     self.assertEqual(ready.status_code, 200, ready.text)
+                    alias = client.get("/ready")
+                    self.assertEqual(alias.status_code, 200, alias.text)
+                    self.assertEqual(alias.json()["checks"], ready.json()["checks"])
                     self.assertTrue(ready.json()["checks"]["scheduler"])
                     self.assertTrue(ready.json()["checks"]["workers"]["mjobs-company-discovery"])
                     redis.get.return_value = None
                     stopped = client.get("/readiness")
                     self.assertEqual(stopped.status_code, 503)
                     self.assertFalse(stopped.json()["checks"]["scheduler"])
+                    self.assertEqual(client.get("/ready").status_code, 503)
                     redis.get.return_value = json.dumps({"timestamp": datetime.now(timezone.utc).isoformat(), "interval_seconds": 30}).encode()
                     worker.queue_names.return_value = [name for name in QUEUES.values() if name != "mjobs-company-discovery"]
                     missing = client.get("/readiness")
