@@ -139,7 +139,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                     pipeline.get_by_role("button", name=job["title"], exact=False).click()
 
                     application_review = page.get_by_role(
-                        "region", name="Application review")
+                        "region", name="Application review", exact=True)
                     expect(application_review).to_contain_text("lever · example")
                     review = page.get_by_role("region", name="Application form review")
                     inspect = review.get_by_role(
@@ -202,7 +202,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                     pipeline = page.get_by_role("region", name="Application pipeline")
                     pipeline.get_by_role("button", name=job["title"], exact=False).click()
                     application_review = page.get_by_role(
-                        "region", name="Application review")
+                        "region", name="Application review", exact=True)
                     expect(application_review).to_contain_text("lever · example")
                     review = page.get_by_role("region", name="Application form review")
                     fields_region = review.get_by_role(
