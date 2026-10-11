@@ -2,6 +2,13 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 24: dashboard error disclosure
+
+- Sole runner10584 and integration owner; immutable goal0/7. PR548 protected merged `46cb283c8a5c1cab45828f68069f3a3d0545ea4a` after exact84147f8 CI/CodeQL/secret/Compose/all integration shards+aggregatePASS. Local main fast-forwarded; original dirty plan and content-equivalent search-history marker preserved/excluded.
+- #524 branch `fix/dashboard-error-disclosure-524-20261011`: seven operation handlers and missing-key handler no longer return raw exceptions. Static recovery messages preserve status and token/origin/legacy denial. Filesystem failures become controlled responses. Negative controls reproduced29 failures after correcting request schema; final focused64PASS/54subtests/0SKIP, validators/diffPASS, local Luna review no critical/important findings. Source blobs and scopes in `docs/evidence/2026-10-11-dashboard-error-disclosure.json`.
+- Fresh-main CodeQL at46cb283c has27 open findings; targeted53/54/55 remain open before this repair. New-head hosted evidence pending; whole browser/release acceptance incomplete. Full local unit checkpoint1376PASS/780subtests/0SKIP; exact publication identity is recorded in AFK verification/events. No authority promoted; private runtime untouched, submissionsOFF. Rollback via scoped revert.
+- Next: finish bounded checkpoint and publish serial repair; inspect exact-head protection/security before integration. Then advance the next reachable security or connected saved-search defect. No competing mutation lane or new AFK loop started.
+
 ## Iteration 22: dashboard log confinement
 
 - Same installed runner10584 and single mutation owner; immutable goal0/7. Base/local/remote main `d5e94dd9066766cf8e245b3301a0412901c3984f`; branch `fix/dashboard-log-confinement-524-20261011`. Original dirty release-candidate plan and content-equivalent search-history marker remain preserved/excluded. Final publication identity belongs in AFK events/queue.

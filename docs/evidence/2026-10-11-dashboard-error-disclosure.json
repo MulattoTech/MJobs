@@ -1,0 +1,33 @@
+{
+  "issue": 524,
+  "result": "PARTIAL",
+  "base_revision": "46cb283c8a5c1cab45828f68069f3a3d0545ea4a",
+  "branch": "fix/dashboard-error-disclosure-524-20261011",
+  "behavior": "Dashboard history, preview, launch, terminal, stop, legacy start/restart and missing-key errors return fixed recovery guidance instead of raw backend diagnostics.",
+  "source_git_blobs": {
+    "tools/agent_dashboard/server.py": "809a950ff12302d13d24682c4d834d587a9919ec",
+    "tests/unit/test_agent_dashboard_api.py": "ee645200497d1c27e818c5b9c723396ec6f12c78"
+  },
+  "boundary": "Synthetic backend exceptions may contain private paths, command output or arbitrary input; client details must contain only fixed text. Existing token/origin/legacy controls remain in force.",
+  "regressions": {
+    "negative_control": "29 failures on predecessor after correcting LaunchRequest schema: 28 exception-type/operation combinations plus raw KeyError disclosure. Authorization control passed.",
+    "focused_command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_agent_dashboard.py tests/unit/test_agent_dashboard_api.py tests/unit/test_mission_control.py tests/unit/test_work_history.py --tb=short --junitxml=outputs/ci/iteration24-dashboard-final.xml",
+    "focused_result": "64 passed; 54 subtests passed; zero skips",
+    "environment": "Windows, Python 3.12, existing project venv, approved disposable synthetic temp Git repositories",
+    "initial_environment_failure": "Sandbox denied default TEMP Git initialization; approved execution resolved it without changing host permissions or test assertions.",
+    "oracle_correction": "Initial empty launcher JSON was rejected before handler. Valid synthetic profile/model now reaches actual route; no assertions weakened.",
+    "validators": "Catalogue, progress, dashboard currency, agent skills and diff checks PASS",
+    "review": "Read-only local Luna review found no Critical/Important issue; no external certification claimed.",
+    "full_unit_command": ".venv/Scripts/python.exe -m pytest -q tests/unit --tb=short --junitxml=outputs/ci/iteration24-units.xml",
+    "full_unit_result": "1376 passed;780 subtests passed;zero failures/skips;180.60 seconds"
+  },
+  "limitations": [
+    "Hosted verification and CodeQL alert53/54/55 resolution require current repair-head evidence.",
+    "Generic recovery messages intentionally omit backend diagnostics; no new diagnostic log is introduced.",
+    "Full browser regression retains existing failures; browser and Compose journeys are not locally rerun for this response-only change.",
+    "Unmodified successful operations retain existing data and return contracts; no migration/configuration changes.",
+    "No requirement or parent issue promoted; overall goal acceptance remains0/7."
+  ],
+  "rollback": "Revert the scoped source commit; no private runtime, personal configuration or populated volumes changed. Real external submissions remain OFF.",
+  "verified_utc": "2026-10-11T23:59:50.866239+00:00"
+}

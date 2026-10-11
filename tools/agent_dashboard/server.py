@@ -89,8 +89,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
         """Read-only local Git + separate Codex session activity. No API/model calls."""
         try:
             return history.snapshot(limit=limit, force=refresh)
-        except (RuntimeError, OSError, ValueError) as exc:
-            raise HTTPException(503, str(exc)) from exc
+        except (RuntimeError, OSError, ValueError):
+            raise HTTPException(503, "Work history is unavailable. Try refreshing again.") from None
 
     @app.get("/api/launcher/profiles/{slug}")
     def launcher_profile(slug: str):
@@ -109,16 +109,16 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
         mission.require_token(request, mission.token)
         try:
             return mission.preview(lane, options)
-        except (ValueError, RuntimeError, FileNotFoundError, OSError) as exc:
-            raise HTTPException(409, str(exc))
+        except (ValueError, RuntimeError, OSError):
+            raise HTTPException(409, "Prompt preview failed. Check the selected settings and try again.") from None
 
     @app.post("/api/launcher/{lane}/launch")
     def launcher_launch(lane: str, options: LaunchRequest, request: Request):
         mission.require_token(request, mission.token)
         try:
             return mission.launch(lane, options)
-        except (ValueError, RuntimeError, FileNotFoundError) as exc:
-            raise HTTPException(409, str(exc))
+        except (ValueError, RuntimeError, OSError):
+            raise HTTPException(409, "Launch failed. Refresh the models and review the prompt before trying again.") from None
 
     @app.post("/api/launcher/{lane}/terminal-window")
     def launcher_terminal_window(lane: str, request: Request):
@@ -128,16 +128,16 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
             raise HTTPException(404, "Unknown CLI lane")
         try:
             return supervisor.open_log_console(lane)
-        except (RuntimeError, OSError, FileNotFoundError) as exc:
-            raise HTTPException(409, str(exc))
+        except (ValueError, RuntimeError, OSError):
+            raise HTTPException(409, "Terminal output is unavailable. Check the lane state and try again.") from None
 
     @app.post("/api/launcher/{lane}/stop")
     def launcher_stop(lane: str, request: Request):
         mission.require_token(request, mission.token)
         try:
             return mission.stop(lane)
-        except (ValueError, RuntimeError, FileNotFoundError) as exc:
-            raise HTTPException(409, str(exc))
+        except (ValueError, RuntimeError, OSError):
+            raise HTTPException(409, "Stop failed. Check the lane state before trying again.") from None
 
     @app.get("/")
     def index():
@@ -161,8 +161,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
             return supervisor.start(lane)
         except KeyError:
             raise HTTPException(404, "unknown lane")
-        except Exception as exc:
-            raise HTTPException(409, str(exc))
+        except Exception:
+            raise HTTPException(409, "Start failed. Check the lane configuration before trying again.") from None
 
     @app.post("/api/lanes/{lane}/stop")
     def stop(lane: str):
@@ -179,8 +179,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
             return supervisor.restart(lane)
         except KeyError:
             raise HTTPException(404, "unknown lane")
-        except Exception as exc:
-            raise HTTPException(409, str(exc))
+        except Exception:
+            raise HTTPException(409, "Restart failed. Check the lane state and configuration before trying again.") from None
 
     @app.patch("/api/lanes/{lane}/config")
     def config(lane: str, patch: LanePatch):
@@ -267,7 +267,7 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.exception_handler(KeyError)
     async def key_error(_, exc: KeyError):
-        return JSONResponse({"detail": str(exc)}, status_code=404)
+        return JSONResponse({"detail": "Requested dashboard resource was not found."}, status_code=404)
 
     return app
 
