@@ -22,6 +22,8 @@ from services.discovery.sources.registry import source_adapter
 
 def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_interval=300, concurrency=1,
                      request_timeout=10, rate_limit=60, jitter_seconds=30):
+    if provider == "remote_ok":
+        provider = "remoteok"
     if provider == "greenhouse":
         tenant = tenant_identifier(tenant)
     else:
@@ -134,20 +136,36 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 companies[company_id] = company
             lock_company_ingestion(connection, companies)
             for company_id, company in sorted(companies.items()):
-                if connection.execute(select(m.companies.c.id).where(m.companies.c.id == company_id)).first() is None:
+                existing_company = connection.execute(select(m.companies).where(
+                    m.companies.c.id == company_id
+                )).mappings().one_or_none()
+                if existing_company is None:
                     new_companies.add(company_id)
-                upsert(connection, m.companies, {"id": company_id, "name": company.name, "domain": company.domain}, replace=True)
-                tenant_record = register_ats_tenant(
-                    connection, company_id, provider=source["provider"], tenant_identifier=source["tenant"],
-                    confidence=0.9, evidence=["configured public job source adapter"],
-                )
+                first_party_ats = source["provider"] == "greenhouse"
+                # Aggregator adapters identify the listing origin, not an employer
+                # website or employer-specific ATS tenant. Keep that distinction in
+                # company records even when the feed attributes a posting to a company.
+                upsert(connection, m.companies, {
+                    "id": company_id,
+                    "name": company.name if first_party_ats or existing_company is None else existing_company["name"],
+                    "domain": company.domain if first_party_ats else (
+                        existing_company["domain"] if existing_company else ""
+                    ),
+                }, replace=True)
+                tenant_record = None
+                if first_party_ats:
+                    tenant_record = register_ats_tenant(
+                        connection, company_id, provider=source["provider"], tenant_identifier=source["tenant"],
+                        confidence=0.9, evidence=["configured public job source adapter"],
+                    )
                 company_source = upsert_company_job_source(
                     connection, company_id=company_id, provider=source["provider"], tenant_identifier=source["tenant"],
                     public_api_url=batch.endpoint if strategy in {"API", "PUBLIC_JSON"} else None,
                     feed_url=batch.endpoint if strategy == "FEED" else None,
                     search_url=batch.endpoint if strategy in {"PUBLIC_HTML", "BROWSER"} else None,
-                    collection_strategy=strategy, confidence=0.9, enabled=True, priority="NORMAL",
-                    discovered_automatically=False, ats_tenant_id=tenant_record["id"],
+                    collection_strategy=strategy, confidence=0.9 if tenant_record else 0.45, enabled=True,
+                    priority="NORMAL", discovered_automatically=False,
+                    ats_tenant_id=tenant_record["id"] if tenant_record else None,
                     last_validation=timestamp, last_success=timestamp,
                 )
                 connection.execute(update(m.company_sources).where(m.company_sources.c.id == company_source['id'])

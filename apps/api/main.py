@@ -572,6 +572,7 @@ class CompanySourceWatchInput(BaseModel):
 
 class SourceInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
+    provider: Literal["greenhouse", "remotive", "remoteok", "wwr"] = "greenhouse"
     tenant: str = Field(min_length=1, max_length=80)
     enabled: bool = True
     poll_interval: int = Field(default=300, ge=300, le=604800)
@@ -579,6 +580,12 @@ class SourceInput(BaseModel):
     request_timeout: int = Field(default=10, ge=2, le=60)
     rate_limit: int = Field(default=60, ge=1, le=600)
     jitter_seconds: int = Field(default=30, ge=0, le=300)
+
+    @model_validator(mode="after")
+    def global_sources_use_canonical_tenant(self):
+        if self.provider != "greenhouse" and self.tenant != "default":
+            raise ValueError("Global sources use the canonical default tenant")
+        return self
 
 
 class SearchProfileInput(BaseModel):
