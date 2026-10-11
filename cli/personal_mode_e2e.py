@@ -60,7 +60,7 @@ def run(api_url: str, evidence_path: Path | None = None) -> dict:
             if page.get_by_role("button", name="Load fictional demo").count():
                 raise RuntimeError("Personal UI still offers the fictional demo")
             page.get_by_role("button", name="Sources", exact=True).click()
-            page.get_by_role("heading", name="Public Greenhouse board").wait_for(timeout=10000)
+            page.get_by_role("heading", name="Public job sources").wait_for(timeout=10000)
             if page.get_by_role("heading", name="Fictional local source").count():
                 raise RuntimeError("Personal UI still offers fictional source actions")
             page.locator("#active-profile").select_option(profile_id)

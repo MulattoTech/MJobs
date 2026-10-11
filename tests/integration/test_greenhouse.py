@@ -5,7 +5,8 @@ import tempfile
 import threading
 import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
+from types import SimpleNamespace
 
 import httpx
 from sqlalchemy import select
@@ -609,12 +610,12 @@ class GreenhouseTests(unittest.TestCase):
         adapter = Greenhouse("example", check=check, rate_limit=1)
         adapter._last_request = 0.0
         with patch("services.discovery.sources.collect.source_adapter", return_value=adapter), \
-                patch("services.discovery.sources.greenhouse.time.monotonic", return_value=0.0), \
-                patch("services.discovery.sources.greenhouse.time.sleep") as sleep, \
+                patch("services.discovery.sources.greenhouse.time",
+                      SimpleNamespace(monotonic=lambda: 0.0, sleep=Mock())) as clock, \
                 self.assertRaises(stop_type):
             collect_source(self.store, source_id, "fixture", check=check)
 
-        sleep.assert_not_called()
+        clock.sleep.assert_not_called()
         with self.store.engine.connect() as connection:
             source = dict(connection.execute(select(m.job_sources).where(m.job_sources.c.id == source_id)).mappings().one())
             observations = list(connection.execute(select(m.source_quality_observations).where(

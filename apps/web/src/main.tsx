@@ -382,7 +382,7 @@ function App() {
   const [documentArchiveBusy,setDocumentArchiveBusy]=useState(false);
   const [documentArchiveError,setDocumentArchiveError]=useState('');
   const [resumes,setResumes]=useState<Resume[]>([]);
-  const [tenant,setTenant]=useState(''); const [sourceIntervalMinutes,setSourceIntervalMinutes]=useState(30); const [sourceConcurrency,setSourceConcurrency]=useState(1); const [sourceTimeout,setSourceTimeout]=useState(10); const [sourceRate,setSourceRate]=useState(60); const [sourceJitter,setSourceJitter]=useState(30);
+  const [sourceProvider,setSourceProvider]=useState('greenhouse'); const [tenant,setTenant]=useState(''); const [sourceIntervalMinutes,setSourceIntervalMinutes]=useState(30); const [sourceConcurrency,setSourceConcurrency]=useState(1); const [sourceTimeout,setSourceTimeout]=useState(10); const [sourceRate,setSourceRate]=useState(60); const [sourceJitter,setSourceJitter]=useState(30);
   const [searchProfiles,setSearchProfiles]=useState<SearchProfile[]>([]); const [searchScheduleDrafts,setSearchScheduleDrafts]=useState<Record<string,{enabled:boolean;interval:number}>>({}); const [selectedSearchProfileId,setSelectedSearchProfileId]=useState(''); const [searchName,setSearchName]=useState(''); const [searchTitles,setSearchTitles]=useState(''); const [searchOptionalSkills,setSearchOptionalSkills]=useState<string[]>([]); const [searchRemote,setSearchRemote]=useState<'ANY'|'REQUIRED'|'EXCLUDED'>('ANY'); const [searchEmployment,setSearchEmployment]=useState('FULL_TIME'); const [searchSource,setSearchSource]=useState(''); const [savedJobSearchName,setSavedJobSearchName]=useState('');
   const [firstRunAcknowledgements,setFirstRunAcknowledgements]=useState<Record<string,string[]>>({});
   const [firstRunSearchComplete,setFirstRunSearchComplete]=useState(false);
@@ -1575,16 +1575,17 @@ function App() {
           })}/>}
         {operationMode==='PERSONAL'&&<CompanyDiscovery busy={!!busy} onDiscover={(companyName,companyWebsite)=>action('Discovering company jobs',()=>discoverCompany(companyName,companyWebsite))}/>}
         <section className="panel">
-          <h2>Public Greenhouse board</h2>
-          <p>Reads public job listings from the provider API. Source concurrency limits parallel reads of board details and the job inventory (two independent requests); request starts still follow the configured rate limit. Each board keeps its own bounded schedule and backoff. No login or application submission is performed.</p>
+          <h2>Public job sources</h2>
+          <p>Reads supported public job listings. Greenhouse uses an employer board token; Remotive, RemoteOK, and We Work Remotely use one global feed each. Source policies and provider cooldowns apply to every collection. Aggregator listings are discovery evidence; they do not verify an employer’s application provider. No login or application submission is performed.</p>
           <form onSubmit={e=>{e.preventDefault();void action('Saving source',async()=>{
-            await api('/sources',{method:'PUT',body:JSON.stringify({tenant,enabled:true,poll_interval:sourceIntervalMinutes*60,concurrency:sourceConcurrency,request_timeout:sourceTimeout,rate_limit:sourceRate,jitter_seconds:sourceJitter})});
+            await api('/sources',{method:'PUT',body:JSON.stringify({provider:sourceProvider,tenant:sourceProvider==='greenhouse'?tenant:'default',enabled:true,poll_interval:sourceIntervalMinutes*60,concurrency:sourceConcurrency,request_timeout:sourceTimeout,rate_limit:sourceRate,jitter_seconds:sourceJitter})});
             setTenant('');setNotice('Source saved. Create a search profile below to enable scheduled discovery.');
           });}}>
             <div className="source-add" data-first-run-anchor="enable-sources">
-              <label>Board token<input required pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,79}" value={tenant} onChange={e=>setTenant(e.target.value)} placeholder="e.g. greenhouse"/></label>
+              <label>Source provider<select aria-label="Source provider" value={sourceProvider} onChange={e=>setSourceProvider(e.target.value)}><option value="greenhouse">Greenhouse employer board</option><option value="remotive">Remotive</option><option value="remoteok">RemoteOK</option><option value="wwr">We Work Remotely</option></select></label>
+              {sourceProvider==='greenhouse'&&<label>Board token<input required pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,79}" value={tenant} onChange={e=>setTenant(e.target.value)} placeholder="e.g. greenhouse"/></label>}
               <label>Interval (minutes)<input type="number" min={5} max={10080} required value={sourceIntervalMinutes} onChange={e=>setSourceIntervalMinutes(Number(e.target.value))}/></label>
-              <button disabled={!!busy}>Add board</button>
+              <button disabled={!!busy}>{sourceProvider==='greenhouse'?'Add board':'Add source'}</button>
             </div>
             <div className="two-col">
               <label>Request timeout (seconds)<input type="number" min={2} max={60} value={sourceTimeout} onChange={e=>setSourceTimeout(Number(e.target.value))}/></label>
@@ -1601,7 +1602,7 @@ function App() {
           <p>Last success: {stamp(source.last_success)}</p>
           {source.backoff_until&&<p className="alert">Backoff until {stamp(source.backoff_until)}: {source.last_error}</p>}
           <button disabled={!!busy||!profileId||!source.enabled} onClick={()=>void action('Collecting public jobs',async()=>{await queue('/sources/'+source.id+'/collect',request());setTab('Jobs');})}>Collect now</button>{' '}
-          <button className="quiet" disabled={!!busy} onClick={()=>void action('Updating source',async()=>{await api('/sources',{method:'PUT',body:JSON.stringify({tenant:source.tenant,enabled:!source.enabled,poll_interval:source.poll_interval,concurrency:source.concurrency,request_timeout:source.request_timeout,rate_limit:source.rate_limit,jitter_seconds:source.jitter_seconds})});})}>{source.enabled?'Disable':'Enable'}</button>
+          <button className="quiet" disabled={!!busy} onClick={()=>void action('Updating source',async()=>{await api('/sources',{method:'PUT',body:JSON.stringify({provider:source.provider,tenant:source.tenant,enabled:!source.enabled,poll_interval:source.poll_interval,concurrency:source.concurrency,request_timeout:source.request_timeout,rate_limit:source.rate_limit,jitter_seconds:source.jitter_seconds})});})}>{source.enabled?'Disable':'Enable'}</button>
         </section>)}
         <section className="panel">
           <div className="toolbar"><div><h2 data-first-run-anchor="configure-desired-jobs">Scheduled search profiles</h2><p>Profiles are data-driven. The scheduler evaluates each enabled source independently and queues durable discovery work when it is due.</p></div><span className="tag">{searchProfiles.length} saved</span></div>
