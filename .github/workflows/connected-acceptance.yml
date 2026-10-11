@@ -43,7 +43,7 @@ jobs:
       - name: Browser-integrated UI acceptance
         run: python -m cli.ui_e2e --evidence outputs/ci-ui.json
       - name: Restart and persistence recovery
-        run: python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json --evidence outputs/ci-recovery.json
+        run: python -m cli.compose_recovery --baseline outputs/ci-mock-e2e.json --evidence outputs/ci-recovery.json --project-name mjobs --port 18700
       - name: Upload bounded fictional result summaries
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
