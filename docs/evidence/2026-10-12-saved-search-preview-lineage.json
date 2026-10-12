@@ -1,0 +1,20 @@
+{
+  "issue": 532,
+  "status": "PARTIAL parent; selected-source preview acceptance PASS locally",
+  "base": "fe048323b17faf07169ad844e8f45ff71aac8cfd",
+  "utc": "2026-10-12T03:07:43Z",
+  "environment": "Windows; Chromium; disposable synthetic FIXTURE SQLite; fresh production build",
+  "change": "Preview real collector output using the latest successful configured-source observation, immutable posting snapshot and persisted adapter normalization. Preserve explicit legacy source-ID rows; no endpoint or canonical-source guessing.",
+  "red": "Real worker collected five postings but preview reported captured0/prefiltered0 before and after reopen. Original raw Greenhouse content also required its persisted adapter projection. Failed-observation regression initially admitted five rows. Red and intermediate failures preserved locally.",
+  "verification": [
+    {"command": "npm --prefix apps/web run build", "result": "PASS"},
+    {"command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_first_run_wizard.py tests/browser/test_cheap_job_prefilter.py tests/browser/test_cheap_prefilter_recovery.py tests/browser/test_prefilter_discovery_flow.py --junitxml=outputs/ci/iteration47-connected-final.xml", "result": "4 PASS; 0 SKIP"},
+    {"command": ".venv/Scripts/python.exe -m pytest -q tests/integration/test_cheap_prefilter_collection_lineage.py tests/integration/test_cheap_prefilter_api.py tests/integration/test_cheap_prefilter_api_scope_security.py tests/integration/test_prefilter_discover_worker.py tests/integration/test_cheap_prefilter_pipeline.py tests/integration/test_cheap_prefilter_pipeline_recovery.py --junitxml=outputs/ci/iteration47-preview-api-reviewed.xml", "result": "26 PASS; 18 subtests PASS; 0 SKIP"},
+    {"command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_cheap_prefilter.py tests/unit/test_cheap_prefilter_boundary_contract.py", "result": "10 PASS; 9 subtests PASS"},
+    {"command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check", "result": "PASS"}
+  ],
+  "acceptance": "Real UI-created saved search and worker collection preview show three captured/two title candidates before and after explicit reselection on reload. API tests prove latest-value selection, repeat deduplication, immutable evidence despite mutable winner/raw attribution, endpoint-only exclusion, failed-observation exclusion, legacy compatibility, profile/scope denial and read-only persistence.",
+  "review": "Local Luna read-only review found missing successful-observation admission; reproduced, repaired and verified. Follow-up found no remaining material concern. Reviewer did not run tests.",
+  "limitations": "New-head hosted checks pending at publication; local PostgreSQL NOT_RUN. Full browser checkpoint run38197630109 at predecessor cce31655: 225 suite-reported cases, 17 failures, zero errors/skips. Whole-goal release gate NOT_RUN for this slice; goal remains0/7 and no parent requirement promoted. Real submissions OFF.",
+  "rollback": "Revert scoped API/test/evidence changes; no schema, configuration or private runtime changes."
+}

@@ -5,7 +5,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field, field_validator
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
@@ -58,12 +58,45 @@ def _selected_source_postings(store, source_ids: list[str]) -> list[dict]:
         )).scalars())
     if available != set(source_ids):
         raise HTTPException(422, {"code": "CHEAP_PREFILTER_SOURCES_UNAVAILABLE"})
-    statement = select(m.postings.c.raw).where(
+    # Collectors store their endpoint in postings.source. Configured-source
+    # identity belongs to immutable quality observations, not that endpoint or
+    # the canonical job's current winning source. Read the latest selected
+    # collection snapshot once per posting, even after repeated collection.
+    candidate_id = select(m.posting_value_candidates.c.id).join(
+        m.source_quality_observations,
+        m.source_quality_observations.c.id == m.posting_value_candidates.c.quality_observation_id,
+    ).where(
+        m.posting_value_candidates.c.posting_id == m.postings.c.id,
+        m.source_quality_observations.c.configured_source_id.in_(source_ids),
+        m.source_quality_observations.c.succeeded.is_(True),
+    ).order_by(
+        m.posting_value_candidates.c.observed_at.desc(),
+        m.posting_value_candidates.c.id.desc(),
+    ).limit(1).correlate(m.postings).scalar_subquery()
+    statement = select(
+        m.postings.c.raw, m.posting_snapshots.c.raw, m.posting_value_candidates.c.normalized,
+    ).select_from(m.postings).outerjoin(
+        m.posting_value_candidates, m.posting_value_candidates.c.id == candidate_id,
+    ).outerjoin(
+        m.posting_snapshots,
+        (m.posting_snapshots.c.id == m.posting_value_candidates.c.posting_snapshot_id)
+        & (m.posting_snapshots.c.posting_id == m.postings.c.id),
+    ).where(or_(
+        m.posting_snapshots.c.id.is_not(None),
+        # Retain legacy rows explicitly attributed to a configured source ID.
         m.postings.c.source.in_(source_ids),
-    ).order_by(m.postings.c.id).limit(_MAX_POSTINGS + 1)
+    )).order_by(m.postings.c.id).limit(_MAX_POSTINGS + 1)
     with store.engine.connect() as connection:
-        return [dict(row[0]) if isinstance(row[0], dict) else row[0]
-                for row in connection.execute(statement)]
+        postings = []
+        for legacy_raw, source_raw, normalized in connection.execute(statement):
+            raw = source_raw if source_raw is not None else legacy_raw
+            # Provider raw schemas differ (for example Greenhouse's content).
+            # Use the adapter projection persisted with this exact snapshot;
+            # never the canonical job's potentially different winning values.
+            if source_raw is not None and isinstance(raw, dict) and isinstance(normalized, dict):
+                raw = {**raw, **normalized}
+            postings.append(dict(raw) if isinstance(raw, dict) else raw)
+        return postings
 
 
 def create_cheap_prefilter_router(store) -> APIRouter:
