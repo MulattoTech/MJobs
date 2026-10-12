@@ -26,6 +26,7 @@ export type IdentityConfirmationDraft = {
 type Props = {
   rows: DiscoveryRequest[];
   busy: boolean;
+  loading?: boolean;
   onReview: (row: DiscoveryRequest, website: string, confirmCompanyIdentity: boolean) => Promise<void>;
   onDismiss: (row: DiscoveryRequest) => Promise<void>;
 };
@@ -62,12 +63,13 @@ function statusLabel(value: string): string { return statusLabels[value] || 'Sta
 function reviewable(status: string): boolean { return status === 'NEEDS_ORIGIN_REVIEW' || ['FAILED', 'BLOCKED', 'CANCELLED'].includes(status); }
 function terminal(status: string): boolean { return ['COMPLETED', 'DISMISSED'].includes(status); }
 
-export function CompanyDiscoveryRequests({rows, busy, onReview, onDismiss}: Props) {
+export function CompanyDiscoveryRequests({rows, busy, loading=false, onReview, onDismiss}: Props) {
   const [drafts, setDrafts] = useState<Record<string, IdentityConfirmationDraft>>({});
-  return <section className="panel" aria-labelledby="company-discovery-requests-heading">
+  return <section className="panel" aria-labelledby="company-discovery-requests-heading" aria-busy={loading}>
     <div className="toolbar"><div><h2 id="company-discovery-requests-heading">Company discovery requests</h2>
       <p>Review the latest 100 company requests raised while finding jobs. Failed or blocked attempts require an explicit review before retrying.</p></div>
       <span className="tag">{rows.length} request{rows.length === 1 ? '' : 's'}</span></div>
+    {loading && <p role="status" aria-label="Company requests loading">Refreshing company requests. Review controls become available when the latest requests are loaded.</p>}
     {rows.length === 0 && <p className="empty">No company discovery requests need attention.</p>}
     {rows.map(row => {
       const canReview = reviewable(row.status);

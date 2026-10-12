@@ -476,13 +476,13 @@ def run(base_url, evidence_path, onboarding=False):
             actions.append({'action':'Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged','result':'PASS'})
 
             page.get_by_role("button", name="Run dry-run", exact=True).click()
-            expect(page.locator(".job-detail > .tag")).to_have_text("DRY_RUN_COMPLETE", timeout=15000)
+            expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("DRY_RUN_COMPLETE", timeout=15000)
             dry = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
             page.get_by_role("button", name="Start a new reviewed run", exact=True).click()
             page.get_by_label("I approve one fictional mock submission").check()
             page.get_by_role("button", name="Submit to local mock", exact=True).click()
-            expect(page.locator(".job-detail > .tag")).to_have_text("CONFIRMED")
+            expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
             confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert confirmed["target"] == "MOCK" and confirmed["confirmation"]["submission_count"] == 1
             assert request("/health")["external_submission_enabled"] is False
@@ -503,7 +503,7 @@ def run(base_url, evidence_path, onboarding=False):
             expect(page.get_by_label("Active profile")).to_have_value(profile_id)
             navigation("Applications")
             page.get_by_role("button").filter(has=page.get_by_role("heading", name="Data Engineer", exact=True)).click()
-            expect(page.locator(".job-detail > .tag")).to_have_text("CONFIRMED")
+            expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
             navigation('Profile')
             base_resumes_before_library=request('/profiles/'+profile_id+'/resumes')['resumes']
             library=page.get_by_role('region', name='Document library', exact=True)

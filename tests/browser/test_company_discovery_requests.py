@@ -146,9 +146,21 @@ class CompanyDiscoveryRequestsBrowserTests(unittest.TestCase):
                                 m.company_discovery_requests.c.id == request["id"],
                             ).values(revision=request["revision"] + 1))
                         page.get_by_role("button", name="Activity", exact=True).click()
-                        with page.expect_response(lambda response: response.request.method == "GET" and response.url.endswith("/company-discovery/requests")):
-                            page.get_by_role("button", name="Refresh activity", exact=True).click()
+                        held_candidates = []
+                        candidate_pattern = "**/source-candidates?profile_id=fixture"
+                        page.route(candidate_pattern, lambda route: held_candidates.append(route))
+                        with page.expect_request(lambda request: "/source-candidates?profile_id=fixture" in request.url):
+                            with page.expect_response(lambda response: response.request.method == "GET" and response.url.endswith("/company-discovery/requests")):
+                                page.get_by_role("button", name="Refresh activity", exact=True).click()
                         page.get_by_role("button", name="Sources", exact=True).click()
+                        try:
+                            expect(card.get_by_label("Website to review (HTTPS)")).to_be_disabled(timeout=1500)
+                            expect(page.get_by_role("status", name="Company requests loading")).to_be_visible()
+                        finally:
+                            for route in held_candidates:
+                                route.continue_()
+                        page.unroute(candidate_pattern)
+                        expect(card.get_by_label("Website to review (HTTPS)")).to_be_enabled()
                         card = page.locator("article[aria-label$='discovery request']").filter(has_text="Example Public Employer").first
                         confirm_identity = card.get_by_label("I confirm this website belongs to Example Public Employer", exact=True)
                         expect(confirm_identity).not_to_be_checked()
