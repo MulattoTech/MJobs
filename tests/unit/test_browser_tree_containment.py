@@ -3,6 +3,7 @@ import importlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import time
@@ -114,6 +115,85 @@ class BrowserTreeContainmentTests(unittest.TestCase):
     @unittest.skipUnless(sys.platform == "win32", "Native Windows containment")
     def test_last_handle_loss_never_reports_orphan_exit(self):
         self._native_scenario("root", lose_query=True)
+
+    @unittest.skipUnless(sys.platform == "win32", "Native Windows containment")
+    def test_query_transfer_rejects_missing_target_and_closed_source(self):
+        job = self.module.BrowserTreeJob()
+        query = job.query_handle()
+        try:
+            for target in (None, True, 0, -1, "1"):
+                with self.subTest(target=target):
+                    with self.assertRaisesRegex(ValueError, "TREE_QUERY_TRANSFER_UNAVAILABLE"):
+                        query.duplicate_to(target)
+            with patch.object(query._kernel, "DuplicateHandle", return_value=False):
+                with self.assertRaisesRegex(ValueError, "TREE_QUERY_TRANSFER_UNAVAILABLE"):
+                    query.duplicate_to(123)
+            self.assertEqual(query.status(), "UNKNOWN")
+            query.close()
+            with self.assertRaisesRegex(ValueError, "TREE_QUERY_TRANSFER_UNAVAILABLE"):
+                query.duplicate_to(123)
+        finally:
+            query.close()
+            job.close()
+
+    @unittest.skipUnless(sys.platform == "win32", "Native Windows containment")
+    def test_external_observer_survives_creator_exit_with_live_orphan(self):
+        self._external_observer("root")
+
+    @unittest.skipUnless(sys.platform == "win32", "Native Windows containment")
+    def test_external_observer_survives_creator_exit_with_actual_chromium(self):
+        self._external_observer("browser")
+
+    def _external_observer(self, scenario):
+        with tempfile.TemporaryDirectory() as directory:
+            location = Path(directory)
+            creator = subprocess.Popen(
+                [sys.executable, str(Path("tests/fixtures/browser_tree_observer.py").resolve()),
+                 "creator", directory, scenario], stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL, creationflags=subprocess.CREATE_NO_WINDOW)
+            ready = observer = None
+            try:
+                eventually(lambda: (location / "creator.json").exists(), 15)
+                identity = json.loads((location / "creator.json").read_text())
+                eventually(lambda: owner_process_status(identity) == "EXITED")
+                eventually(lambda: (location / "ready.json").exists(), 20)
+                ready = json.loads((location / "ready.json").read_text())
+                observer = json.loads((location / "observer-ready.json").read_text())
+                self.assertEqual(owner_process_status(observer["identity"]), "LIVE")
+                self.assertIs(observer["contained"], False)
+                self.assertEqual(observer["limits"], 0)
+                self.assertIs(observer["setAllowed"], False)
+                self.assertEqual(observer["setError"], 5)  # ERROR_ACCESS_DENIED
+                eventually(lambda: json.loads((location / "observation.json").read_text())["status"] == "LIVE")
+                if scenario == "root":
+                    eventually(lambda: owner_process_status(ready["host"]) == "EXITED")
+                    self.assertEqual(owner_process_status(ready["descendant"]), "LIVE")
+                else:
+                    self.assertGreaterEqual(len(ready["members"]), 3)
+                (location / "release").touch()
+                eventually(lambda: json.loads((location / "observation.json").read_text())["status"] == "EXITED", 20)
+                value = json.loads((location / "observation.json").read_text())
+                self.assertEqual(value["accounting"]["active"], 0)
+                self.assertEqual(value["accounting"]["terminated"], 0)
+                eventually(lambda: owner_process_status(observer["identity"]) == "EXITED")
+                self.assertEqual(creator.wait(timeout=10), 0)
+            finally:
+                (location / "release").touch()
+                (location / "observer-release").touch()
+                creator.wait(timeout=15)
+                # Startup failure can precede capturing either identity. Read
+                # each independently after creator exit and cooperative release.
+                if not ready and (location / "ready.json").exists():
+                    ready = json.loads((location / "ready.json").read_text())
+                if not observer and (location / "observer-ready.json").exists():
+                    observer = json.loads((location / "observer-ready.json").read_text())
+                if ready:
+                    eventually(lambda: owner_process_status(ready.get("descendant", ready["host"])) == "EXITED", 30)
+                elif (location / "descendant.json").exists():
+                    descendant = json.loads((location / "descendant.json").read_text())
+                    eventually(lambda: owner_process_status(descendant) == "EXITED", 30)
+                if observer:
+                    eventually(lambda: owner_process_status(observer["identity"]) == "EXITED", 15)
 
     def _native_scenario(self, role, lose_query=False):
         with tempfile.TemporaryDirectory() as directory:

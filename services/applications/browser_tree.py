@@ -103,6 +103,29 @@ class BrowserTreeQuery:
                 return None
             return {"total": value.total, "active": value.active, "terminated": value.terminated}
 
+    def duplicate_to(self, process_handle):
+        """Transfer QUERY-only authority to a trusted, already-open process.
+
+        The caller owns and keeps the native target process handle open during
+        transfer. A PID is not accepted as an identity lookup. Deliver the
+        returned target-local handle through private authenticated IPC and
+        require recipient acknowledgement before relying on retained proof.
+        The recipient owns its close; this source handle is never consumed.
+        No observation here is an operation release or closure certificate.
+        """
+        with self._lock:
+            try:
+                if (self._handle is None or type(process_handle) is not int
+                        or not 0 < process_handle < (1 << (c.sizeof(w.HANDLE) * 8))):
+                    raise ValueError
+                handle = w.HANDLE()
+                _require(self._kernel.DuplicateHandle(
+                    self._kernel.GetCurrentProcess(), self._handle, process_handle,
+                    c.byref(handle), 4, False, 0))
+                return handle.value
+            except Exception:
+                raise ValueError("TREE_QUERY_TRANSFER_UNAVAILABLE") from None
+
     def status(self):
         value = self.accounting()
         if value is None or value["total"] == 0:
