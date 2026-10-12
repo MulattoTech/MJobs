@@ -1,0 +1,66 @@
+name: Feature Studio guided intake
+description: Propose a versioned feature specification for review (does not start an agent)
+title: "[Feature Studio] "
+labels: ["category:major-feature", "area:untriaged", "priority:P3", "triage:priority-inferred"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is a compatibility fallback for native GitHub issue forms.
+        For offline structured JSON drafting, use the Feature Studio GUI in Mission Control.
+        Never include secrets or private applicant information.
+  - type: input
+    id: spec-id
+    attributes:
+      label: Spec ID or draft reference
+      description: Optional until a draft exists (e.g. FS-MATCH-001)
+    validations:
+      required: false
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and user impact
+      description: What is missing or failing? Describe observable user consequences.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe what the user should be able to do after implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Verifiable acceptance criteria
+      description: One observable behavior per line, with expected evidence.
+    validations:
+      required: true
+  - type: dropdown
+    id: risk
+    attributes:
+      label: Risk level
+      options: [low, medium, high, critical]
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Affected scope (tentative)
+      options: [full, frontend, backend, ai, infrastructure, discover]
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies, integration boundaries and non-goals
+    validations:
+      required: false
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety acknowledgement
+      options:
+        - label: This intake grants no autonomous agent or merge authorization.
+          required: true

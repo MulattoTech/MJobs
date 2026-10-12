@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Feature Development Studio | MJobs</title>
+<style>
+:root{font:16px system-ui,sans-serif;color-scheme:dark;--bg:#0b1220;--panel:#152135;--line:#31435a;--ink:#e9f2ff;--muted:#a3bad4;--accent:#8fb8ff}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--ink);margin:0}header,main,footer{max-width:1160px;margin:auto;padding:20px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:1.55rem}h2{margin:0 0 10px;font-size:1.15rem}
+small,p,.muted{color:var(--muted)}main{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,1fr);gap:18px}
+article,aside{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;min-width:0}
+label{display:block;font-weight:650;font-size:.9rem;margin-top:14px}
+input,textarea,select{display:block;width:100%;margin-top:5px;padding:10px;border:1px solid #536780;border-radius:7px;background:#0c1728;color:var(--ink);font:inherit}
+textarea{min-height:80px;resize:vertical}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{border:1px solid var(--accent);border-radius:8px;padding:10px 15px;background:#183356;color:var(--ink);cursor:pointer;font:inherit;margin:8px 5px 8px 0}
+button.primary{background:#d1e4ff;color:#13253c;font-weight:700}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #89bcff;outline-offset:2px}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#090f1b;border-radius:8px;padding:13px;max-height:430px;overflow:auto;font-size:.78rem}
+.notice{border-left:3px solid var(--accent);padding:10px;background:#111e30;margin:12px 0}
+.badge{font-size:.75rem;background:#243c5c;border-radius:20px;padding:5px 9px}
+ul{padding-left:18px}li{margin-bottom:7px}a{color:#b9d6ff}
+@media(max-width:760px){main{grid-template-columns:1fr}.grid{grid-template-columns:1fr}header{display:block}}
+</style>
+</head>
+<body>
+<header><div><h1>Feature Development Studio</h1><small>MulattoTech / MJobs · local pilot · specification v1</small></div>
+<a href="/" aria-label="Return to Mission Control">Back to Mission Control</a></header>
+<main>
+<article>
+<h2>Guided feature intake</h2>
+<div class="notice">Offline prototype: edit and export specifications. No AI model, GitHub connection, agent execution, or branch changes run from this screen.</div>
+<div class="grid">
+<label>Feature ID<input id="id" value="FS-TEST-001" maxlength="64"></label>
+<label>Repository<input id="repository" value="MulattoTech/MJobs"></label>
+</div>
+<label>Feature name<input id="title" value="Test Feature"></label>
+<div class="grid">
+<label>Priority<select id="priority"><option>P0</option><option>P1</option><option>P2</option><option>P3</option><option>P4</option><option>P5</option><option>P6</option></select></label>
+<label>Scope<select id="scope"><option value="full">Full stack</option><option value="frontend">Frontend</option><option value="backend">Backend</option><option value="ai">AI / ML</option><option value="infrastructure">Infrastructure</option><option value="discover">Needs discovery</option></select></label>
+</div>
+<label>Problem<textarea id="problem">This is a test of the new feature development studio</textarea></label>
+<label>Desired outcome<textarea id="desired_outcome">Confirm that the intake record can be entered, exported, validated, and reviewed; no MJobs product functionality is requested.</textarea></label>
+<label>Acceptance criteria (one per line)<textarea id="acceptance">The smoke-test specification validates against the v1 field rules and is covered by an automated regression test.
+The browser form can export a specification compatible with the v1 validator.</textarea></label>
+<label>Affected components (one per line)<textarea id="affected">feature-studio spec format and validator</textarea></label>
+<label>Dependencies (one per line)<textarea id="dependencies" placeholder="Known prerequisite features, PRs, APIs"></textarea></label>
+<label>Constraints / non-goals (one per line)<textarea id="constraints">No production job application or applicant-data changes
+Do not alter existing acceptance catalogues
+No unattended agent execution or merge</textarea></label>
+<div class="grid">
+<label>Risk<select id="risk"><option selected>low</option><option>medium</option><option>high</option><option>critical</option></select></label>
+<label>Validation plan<select id="validation_strategy"><option value="unit-integration">Unit + integration</option><option value="e2e">End to end</option><option value="regression">Full regression</option><option value="risk-based">Risk-based</option></select></label>
+</div>
+<div class="notice"><strong>Agent-led discovery questions (preview)</strong><div id="probes" aria-live="polite"></div></div>
+<label>Notes / answers to discovery questions<textarea id="notes" placeholder="Record architectural unknowns, decisions, and reviewer feedback"></textarea></label>
+<div><button class="primary" id="download" type="button">Download JSON specification</button>
+<button id="import" type="button">Import JSON</button>
+<input id="file" type="file" accept=".json,application/json" hidden>
+<button id="copy" type="button">Copy JSON</button></div>
+<p id="status" role="status" aria-live="polite">Draft; no feature acceptance has been established.</p>
+</article>
+<aside>
+<h2>Review / export preview</h2>
+<p><span class="badge">DRAFT</span> All acceptance checks export as <strong>NOT_RUN</strong>. A draft never authorizes execution.</p>
+<h3>Required data check</h3><ul id="checklist"></ul>
+<h3>Generated JSON</h3><pre id="preview"></pre>
+<h3>Deployment boundaries</h3>
+<ul><li>Pilot: MJobs only; requested account-wide coverage is <strong>not</strong> enabled.</li>
+<li>Separate human approval required before agents execute, specs advance, or changes merge.</li>
+<li>GitHub App installation and project synchronization are future stages.</li>
+<li>A P0 test record is not a P0 product release claim.</li></ul>
+</aside>
+</main>
+<footer>Run <code>python -m tools.feature_studio.validate --spec path/to/export.json</code> from the repository root to check downloaded records.</footer>
+<script>
+(() => {
+"use strict";
+const ids = ["id","repository","title","priority","scope","problem","desired_outcome","acceptance","affected","dependencies","constraints","risk","validation_strategy","notes"];
+const $ = id => document.getElementById(id);
+const lines = text => text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+const spec = () => ({
+ schema_version:1,id:$("id").value.trim(),title:$("title").value.trim(),
+ repository:$("repository").value.trim(),priority:$("priority").value,
+ scope:$("scope").value,problem:$("problem").value.trim(),desired_outcome:$("desired_outcome").value.trim(),
+ affected_systems:lines($("affected").value),dependencies:lines($("dependencies").value),
+ constraints:lines($("constraints").value),risk:$("risk").value,validation_strategy:$("validation_strategy").value,
+ acceptance_criteria:lines($("acceptance").value).map((description,index)=>({id:"AC-"+String(index+1).padStart(3,"0"),description,status:"NOT_RUN",evidence:[]})),
+ lifecycle:"DRAFT",execution:{
+ agent_execution_requested:true,agent_execution_authorized:false,spec_review_approved:false,
+ human_merge_review_required:true,automated_main_push:false
+ },notes:$("notes").value.trim()
+});
+const safeText=(element,content)=>{element.textContent=content;};
+function render(){
+ const value=spec(), missing=[];
+ if(!/^FS-[A-Z0-9-]+$/.test(value.id))missing.push("ID must match FS-... using uppercase letters/numbers/hyphens");
+ if(!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(value.repository))missing.push("Repository needs owner/name");
+ for(const key of ["title","problem","desired_outcome"])if(value[key].length<3)missing.push(key+" requires at least 3 characters");
+ if(!value.acceptance_criteria.length)missing.push("At least one measurable acceptance criterion is required");
+ const list=$("checklist");list.replaceChildren();
+ if(!missing.length){const item=document.createElement("li");item.textContent="Basic intake fields present; architecture/approval still unverified.";list.appendChild(item)}
+ for(const msg of missing){const li=document.createElement("li");li.textContent=msg;list.appendChild(li)}
+ const prompts=[];
+ if(value.scope==="ai")prompts.push("Which model providers, evaluation data, privacy boundaries and cost limits apply?");
+ if(value.scope==="backend"||value.scope==="full")prompts.push("Which API contracts, database tables and migration compatibility rules are affected?");
+ if(value.scope==="frontend"||value.scope==="full")prompts.push("Which user states, accessibility behaviors and browser regressions matter?");
+ if(value.scope==="infrastructure")prompts.push("What rollback, network, secrets and provisioning rules apply?");
+ if(value.dependencies.length===0)prompts.push("Does this depend on another PR, shared component, environment or contract?");
+ if(value.risk==="high"||value.risk==="critical")prompts.push("What reviewer, security and rollback evidence is mandatory?");
+ safeText($("probes"),prompts.join("\n")||"Specify owners, dependencies, and exact acceptance evidence.");
+ $("probes").style.whiteSpace="pre-line";
+ safeText($("preview"),JSON.stringify(value,null,2));
+ return missing;
+}
+ids.forEach(id=>$(id).addEventListener("input",render));ids.forEach(id=>$(id).addEventListener("change",render));
+$("download").addEventListener("click",()=>{
+ if(render().length){$("status").textContent="Fix the required fields before exporting.";return}
+ const blob=new Blob([JSON.stringify(spec(),null,2)+"\n"],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=spec().id+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ $("status").textContent="Draft downloaded locally. No GitHub write or feature validation occurred.";
+});
+$("copy").addEventListener("click",async()=>{
+ if(render().length){$("status").textContent="Fix required fields before copying.";return}
+ try{await navigator.clipboard.writeText(JSON.stringify(spec(),null,2));$("status").textContent="JSON copied; no GitHub write occurred."}
+ catch{$("status").textContent="Clipboard unavailable. Copy the preview manually."}
+});
+$("import").addEventListener("click",()=>$("file").click());
+$("file").addEventListener("change",async event=>{
+ const file=event.target.files[0];if(!file)return;
+ try{
+ if(file.size>1000000)throw Error("JSON file too large");
+ const value=JSON.parse(await file.text());if(!value||value.schema_version!==1||typeof value!=="object")throw Error("Not a version 1 specification");
+ for(const key of ["id","title","repository","problem","desired_outcome","scope","priority","risk","validation_strategy"])
+ if(typeof value[key]!=="string")throw Error("Missing or invalid "+key);
+ for(const key of ["affected_systems","dependencies","constraints","acceptance_criteria"])if(!Array.isArray(value[key]))throw Error("Missing "+key);
+ for(const key of ["id","title","repository","problem","desired_outcome","scope","priority","risk","validation_strategy"])$(key).value=value[key];
+ for(const [key,target] of [["affected_systems","affected"],["dependencies","dependencies"],["constraints","constraints"]])$(target).value=value[key].join("\n");
+ $("acceptance").value=value.acceptance_criteria.map(item=>String(item.description||"")).join("\n");
+ $("notes").value=typeof value.notes==="string"?value.notes:"";
+ render();$("status").textContent="Imported editable fields; execution permissions and PASS claims were intentionally reset to DRAFT/NOT_RUN.";
+ }catch(e){$("status").textContent="Import failed: "+e.message}
+ event.target.value="";
+});
+render();
+})();
+</script>
+</body>
+</html>

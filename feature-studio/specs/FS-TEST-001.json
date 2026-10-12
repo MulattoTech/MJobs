@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "id": "FS-TEST-001",
+  "title": "Test Feature",
+  "repository": "MulattoTech/MJobs",
+  "priority": "P0",
+  "scope": "full",
+  "problem": "This is a test of the new feature development studio",
+  "desired_outcome": "Confirm that the intake record can be entered, exported, validated, and reviewed; no MJobs product functionality is requested.",
+  "affected_systems": [
+    "feature-studio spec format and validator"
+  ],
+  "dependencies": [],
+  "constraints": [
+    "No production job application or applicant-data changes",
+    "Do not modify the MJobs capability/requirement acceptance catalogues",
+    "Do not start autonomous agents or merge without human review"
+  ],
+  "risk": "low",
+  "validation_strategy": "unit-integration",
+  "acceptance_criteria": [
+    {
+      "id": "AC-001",
+      "description": "The smoke-test specification validates against the v1 field rules and is covered by an automated regression test.",
+      "status": "NOT_RUN",
+      "evidence": []
+    },
+    {
+      "id": "AC-002",
+      "description": "The browser form can export a specification compatible with the v1 validator.",
+      "status": "NOT_RUN",
+      "evidence": []
+    }
+  ],
+  "lifecycle": "DRAFT",
+  "execution": {
+    "agent_execution_requested": true,
+    "agent_execution_authorized": false,
+    "spec_review_approved": false,
+    "human_merge_review_required": true,
+    "automated_main_push": false
+  },
+  "notes": "Requested as a P0 test of the studio, not a real P0 MJobs product deficiency. A schema validation PASS does not make AC-001/AC-002 PASS without recorded evidence on a reviewed revision."
+}

@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "owner": "MulattoTech",
+  "pilot_repository": "MulattoTech/MJobs",
+  "requested_coverage": "all-authorized-repositories",
+  "active_coverage": [
+    "MulattoTech/MJobs"
+  ],
+  "interface": "custom",
+  "questionnaire": "agent-led",
+  "project_tracking_requested": true,
+  "agent_workstreams_requested": true,
+  "agent_execution_enabled": false,
+  "spec_approval_required": true,
+  "ci_required": true,
+  "human_merge_approval_required": true,
+  "readiness_gate_required": true,
+  "sensitive_change_security_review_required": true,
+  "git_write_integration_enabled": false,
+  "org_rollout_approved": false,
+  "notes": "Safe pilot defaults; this file does not grant GitHub App permissions or start agents."
+}

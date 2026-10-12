@@ -26,3 +26,13 @@
 - [ ] All affected unit/integration/browser checks list executed commands and honest PASS/FAIL/NOT_RUN outcomes; hosted checks remain disabled.
 
 <!-- List exact local commands/results, evidence path, limitations, and recovery notes. -->
+
+## Feature Studio specifications (when applicable)
+
+- Specification ID and reviewed revision (or N/A):
+- Specification lifecycle: DRAFT / REVIEW / APPROVED / IMPLEMENTING / VERIFIED / CLOSED
+- User-visible acceptance criteria and exact commit-bound evidence:
+- Affected API/contracts, dependencies, workstream conflicts, and rollback strategy:
+- Required human approval and applicable security review:
+- [ ] A schema/CI check is not misrepresented as completed feature acceptance.
+- [ ] No automatic main pushes or unauthorized agents were introduced.
