@@ -79,21 +79,18 @@ def _snapshot(store):
 
 
 def _insert_match(connection, *, job_id, profile_id, profile_version, score, ref):
-    raw_score = min(100.0, max(0.0, float(score) - 8.0))
+    raw_score = float(score)
     connection.execute(m.matches.insert().values(
         id=f"match-{profile_id}-{job_id}", job_id=job_id, profile_id=profile_id,
         profile_version=profile_version, score=score, missing=[],
         components={
             "matched": ["Linux"], "fit_factors": [], "missing": [],
             "scoring_profile": {
-                "selection": "ROLE_FAMILY", "profile_id": f"{profile_id}-role-profile",
-                "profile_version": "synthetic-score-v1",
-                "requested_role_family": "Systems Operations",
-                "selected_role_family": "Systems Operations",
+                "selection": "LEGACY_DEFAULT",
             },
             "scoring_contributions": [{
-                "dimension": "skills", "weight": 80.0, "raw_score": raw_score,
-                "weighted_contribution": round(raw_score * 0.8, 2),
+                "dimension": "skills", "weight": 100.0, "raw_score": raw_score,
+                "weighted_contribution": raw_score,
                 "explanation": "Synthetic approved skill evidence supports this saved score.",
                 "provenance": {"source": "SYNTHETIC_APPROVED_SKILLS", "evidence_ref": ref},
             }],
@@ -230,10 +227,10 @@ class JobComparisonScopeRecoveryBrowserTests(unittest.TestCase):
                     expect(page.locator(".job-card").filter(has_text="Cloud Systems Engineer")).to_be_visible()
                     expect(page.locator(".job-card").filter(has_text="Cloud Platform Engineer")).to_be_visible()
 
-                    page.get_by_role("checkbox", name="Compare Cloud Platform Engineer", exact=True).check()
-                    page.get_by_role("checkbox", name="Compare Cloud Systems Engineer", exact=True).check()
+                    page.get_by_role("checkbox", name="Compare Cloud Platform Engineer at Synthetic Comparison Co.", exact=True).check()
+                    page.get_by_role("checkbox", name="Compare Cloud Systems Engineer at Synthetic Comparison Co.", exact=True).check()
                     page.get_by_role("button", name="Compare selected jobs", exact=True).click()
-                    workspace = page.get_by_role("region", name="Job comparison", exact=True)
+                    workspace = page.get_by_role("region", name="Compare saved job evidence", exact=True)
                     expect(workspace).to_contain_text("Comparing selected jobs")
                     self.assertEqual(len(held_requests), 1)
 
@@ -253,8 +250,8 @@ class JobComparisonScopeRecoveryBrowserTests(unittest.TestCase):
                     expect(workspace).not_to_contain_text("cloud-first:skills")
 
                     # The first request in the new scope fails with private server detail.
-                    page.get_by_role("checkbox", name="Compare Foreign Platform Engineer", exact=True).check()
-                    page.get_by_role("checkbox", name="Compare Foreign Systems Engineer", exact=True).check()
+                    page.get_by_role("checkbox", name="Compare Foreign Platform Engineer at Synthetic Comparison Co.", exact=True).check()
+                    page.get_by_role("checkbox", name="Compare Foreign Systems Engineer at Synthetic Comparison Co.", exact=True).check()
                     compare = page.get_by_role("button", name="Compare selected jobs", exact=True)
                     expect(compare).to_be_enabled()
                     compare.click()
@@ -301,7 +298,11 @@ class JobComparisonScopeRecoveryBrowserTests(unittest.TestCase):
                 sock.close()
                 store.engine.dispose()
             self.assertFalse(thread.is_alive(), "Isolated comparison API did not stop")
-            self.assertEqual(database_before_browser, _snapshot(store))
+            try:
+                self.assertEqual(database_before_browser, _snapshot(store))
+            finally:
+                # Readback opens a fresh pool after the server teardown above.
+                store.engine.dispose()
 
 
 if __name__ == "__main__":

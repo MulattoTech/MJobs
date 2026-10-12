@@ -195,6 +195,66 @@ class JobComparisonApiTests(unittest.TestCase):
             "reason": "REQUIREMENTS_MISSING",
         }])
 
+    def test_current_scored_job_excluded_by_saved_search_fails_without_writes(self):
+        for criteria in (
+            {"include_titles": ["Systems Administrator"]},
+            {"exclude_titles": ["Infrastructure"]},
+            {"required_keywords": ["missing synthetic keyword"]},
+        ):
+            with self.subTest(criteria=criteria):
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.search_profiles.update().where(
+                        m.search_profiles.c.id == "selected-search",
+                    ).values(criteria=criteria))
+                before = self._snapshot()
+                response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+                self.assertEqual(response.status_code, 409, response.text)
+                self.assertEqual(response.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
+                self.assertEqual(self.service_calls, [])
+                self.assertEqual(self._snapshot(), before)
+
+    def test_saved_jobs_filters_bound_comparison_without_writes(self):
+        with self.store.engine.begin() as connection:
+            # Higher-ranked, unselected rows must not consume a comparison page.
+            for ordinal in range(3):
+                job_id = f"unselected-{ordinal}"
+                connection.execute(m.jobs.insert().values(
+                    id=job_id, company_id="company", requisition=job_id,
+                    title="Unselected Engineer", description="Synthetic fixture",
+                    skills=[], location="Unknown", remote_type="UNKNOWN", attributes={},
+                ))
+                connection.execute(m.routes.insert().values(
+                    id=f"route-{job_id}", job_id=job_id, company_id="company",
+                    provider="fixture", tenant="comparison-fixture", requisition=job_id,
+                    url=f"https://jobs.example.test/{job_id}",
+                ))
+                connection.execute(m.matches.insert().values(
+                    id=f"match-{job_id}", job_id=job_id, profile_id="fixture",
+                    profile_version=self.profile["version"], score=99.0, missing=[], components={},
+                ))
+            for job_id in ("job-one", "job-two"):
+                connection.execute(m.routes.insert().values(
+                    id=f"route-{job_id}", job_id=job_id, company_id="company",
+                    provider="fixture", tenant="comparison-fixture", requisition=job_id,
+                    url=f"https://jobs.example.test/{job_id}",
+                ))
+        for minimum, expected in (("72", 409), ("70", 200)):
+            with self.subTest(minimum=minimum):
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.search_profiles.update().where(
+                        m.search_profiles.c.id == "selected-search",
+                    ).values(criteria={"job_filters": {
+                        "q": "", "remote_type": "", "provider": "", "sort": "score",
+                        "min_match_score": minimum,
+                    }}))
+                before = self._snapshot()
+                response = self.client.post(self._url(), json={"job_ids": ["job-one", "job-two"]})
+                self.assertEqual(response.status_code, expected, response.text)
+                if expected == 409:
+                    self.assertEqual(response.json()["detail"]["code"], "JOB_COMPARISON_SCOPE_MISMATCH")
+                    self.assertEqual(self.service_calls, [])
+                self.assertEqual(self._snapshot(), before)
+
     def test_foreign_search_unmatched_foreign_and_stale_jobs_fail_without_writes(self):
         before = self._snapshot()
         foreign_search = self.client.post(

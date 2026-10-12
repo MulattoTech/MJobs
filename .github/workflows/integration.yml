@@ -44,6 +44,10 @@ jobs:
       MJOBS_REDIS_URL: redis://127.0.0.1:6379/0
       MJOBS_OPERATION_MODE: FIXTURE
       MJOBS_DURABLE_COMPARISON_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test
+      MJOBS_BACKUP_CREDENTIAL_TEST_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_backup_credentials
+      MJOBS_DURABLE_EXTRACTION_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_durable_extraction
+      MJOBS_AI_EVALUATION_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_durable_extraction
+      MJOBS_AI_REDIS_TEST_URL: redis://127.0.0.1:6379/15
       PGPASSWORD: synthetic-test-only
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -64,8 +68,11 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
       - name: Build the same SPA mounted by production API integration tests
         run: npm ci --prefix apps/web --no-audit --no-fund && npm run build --prefix apps/web
-      - name: Create a disposable recovery database
-        run: psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_worker_recovery'
+      - name: Create disposable recovery acceptance databases
+        run: |
+          psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_worker_recovery'
+          psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_test_backup_credentials'
+          psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_test_durable_extraction'
       - name: Install controlled browser dependency for worker tests
         run: python -m playwright install --with-deps chromium
       - name: Execute each integration test file in exactly one isolated shard

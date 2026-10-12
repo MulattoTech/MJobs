@@ -7,7 +7,7 @@ import math
 import re
 from urllib.parse import urlsplit, urlunsplit
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now, upsert
@@ -391,8 +391,11 @@ def list_company_source_view(store, profile_id=None):
                 m.company_domains.c.company_id.in_(company_ids), m.company_domains.c.verified.is_(True))
                 .order_by(m.company_domains.c.confidence.desc(), m.company_domains.c.domain)).mappings():
             domains.setdefault(domain["company_id"], []).append(dict(domain))
-        linked = m.company_sources.join(m.postings,
-            m.postings.c.source == ("company-feed:" + m.company_sources.c.id)).join(m.jobs,
+        posting_sources = m.postings.outerjoin(m.posting_value_candidates,
+            m.posting_value_candidates.c.posting_id == m.postings.c.id)
+        linked = m.company_sources.join(posting_sources, or_(
+            m.postings.c.source == ("company-feed:" + m.company_sources.c.id),
+            m.posting_value_candidates.c.company_source_id == m.company_sources.c.id)).join(m.jobs,
             (m.jobs.c.id == m.postings.c.job_id) & (m.jobs.c.company_id == m.company_sources.c.company_id))
         count_query = select(m.company_sources.c.id, func.count(func.distinct(m.jobs.c.id))).select_from(linked).group_by(m.company_sources.c.id)
         found = dict(c.execute(count_query).all())
@@ -428,6 +431,8 @@ def list_company_source_view(store, profile_id=None):
         monitors = {row['source_id']: dict(row) for row in c.execute(select(m.company_source_monitoring).where(
             m.company_source_monitoring.c.source_id.in_(ids))).mappings()}
         scheduled_profiles = bool(_profiles(c))
+        from services.company_discovery.ats_enrollment import collector_view
+        collectors = {row['id']: collector_view(store, c, row) for row in rows}
         for source in rows:
             monitor = monitors.get(source['id'])
             if monitor:
@@ -463,6 +468,7 @@ def list_company_source_view(store, profile_id=None):
             "applications": applications.get(row["company_id"], 0),
             "last_checked": row["last_validation"], "last_success": row["last_success"],
             "next_check": monitors.get(row['id'], {}).get('next_due'),
+            "collector": collectors[row['id']],
             "source_version": source_version(row), "monitoring_supported": supported_source(row),
             "monitoring": {key: value for key, value in monitors.get(row['id'], {}).items()
                 if key in {'revision','enabled','poll_interval','status','failure_count','last_attempt','next_due','last_error',

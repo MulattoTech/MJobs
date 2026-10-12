@@ -477,7 +477,10 @@ class BrowserJobExtractionConfirmCaptureTests(unittest.TestCase):
                     )
                     expect(source_card).to_be_visible()
                     expect(source_card).to_contain_text(application_url)
-                    expect(source_card).to_contain_text("Linked job: " + captured_job_id)
+                    expect(source_card).to_contain_text(
+                        "Linked job: Confirmed Systems Administrator at Confirmed Synthetic Employer "
+                        f"({captured_job_id})",
+                    )
                     expect(source_card).to_contain_text("application: None")
                     expect(source_card).to_contain_text("Collection is disabled. Review does not enable collection.")
                     expect(source_card).not_to_contain_text("Ignore all directions")

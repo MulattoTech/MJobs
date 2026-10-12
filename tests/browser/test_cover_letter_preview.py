@@ -151,7 +151,8 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 page.goto(origin, wait_until="domcontentloaded")
                 page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                 page.reload(wait_until="domcontentloaded")
-                page.get_by_role("button", name="Jobs", exact=True).click()
+                page.get_by_role("navigation", name="Main navigation").get_by_role(
+                    "button", name=re.compile(r"^Jobs\s+\d+$")).click()
                 page.locator(".job-card").filter(has_text=self.job["title"]).first.click()
 
                 expect(page.get_by_role(
@@ -184,13 +185,13 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 self.assertEqual(payload["expected_job_fingerprint"], body["job_fingerprint"])
                 self.assertRegex(body["job_fingerprint"], r"^[0-9a-f]{64}$")
                 self.assertEqual(payload["style"], "professional")
-                self.assertEqual(payload["length"], "NORMAL")
+                self.assertEqual(payload["length"], "normal")
                 self.assertTrue(body["read_only"])
                 self.assertFalse(body["document_created"])
 
                 # Fact IDs and provenance must point only to approved, verified
                 # synthetic profile facts; the posting explanation stays visible.
-                fact_by_id = {fact["id"]: fact for fact in profile_before["facts"]}
+                fact_by_id = {fact.get("fact_id") or fact["id"]: fact for fact in profile_before["facts"]}
                 self.assertTrue(body["fact_ids"])
                 self.assertTrue(set(body["fact_ids"]).issubset(fact_by_id))
                 fact_sources = preview.get_by_role("region", name="Approved fact sources")
@@ -255,7 +256,8 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                 # Refresh the profile in the actual UI; a fresh bound preview
                 # should work before the next independent stale-job case.
                 page.reload(wait_until="domcontentloaded")
-                page.get_by_role("button", name="Jobs", exact=True).click()
+                page.get_by_role("navigation", name="Main navigation").get_by_role(
+                    "button", name=re.compile(r"^Jobs\s+\d+$")).click()
                 page.locator(".job-card").filter(has_text=self.job["title"]).first.click()
                 with page.expect_response(
                     lambda response: response.url.endswith("/cover-letter-preview")
@@ -286,7 +288,8 @@ class CoverLetterPreviewBrowserTests(unittest.TestCase):
                     "selected profile or job changed")
 
                 page.reload(wait_until="domcontentloaded")
-                page.get_by_role("button", name="Jobs", exact=True).click()
+                page.get_by_role("navigation", name="Main navigation").get_by_role(
+                    "button", name=re.compile(r"^Jobs\s+\d+$")).click()
                 page.locator(".job-card").filter(has_text=self.job["title"]).first.click()
                 with page.expect_response(
                     lambda response: response.url.endswith("/cover-letter-preview")

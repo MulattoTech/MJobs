@@ -12,7 +12,7 @@ import {
 } from './cover-letter-review-preview';
 
 const selection={
-  profileId:'profile-exact',profileVersion:8,jobId:'job-exact',jobFingerprint:'c'.repeat(64),
+  profileId:'profile-exact',profileVersion:'a'.repeat(64),jobId:'job-exact',jobFingerprint:'c'.repeat(64),
   jobTitle:'Platform Administrator',company:'Northwind Systems',
 };
 const facts=[
@@ -22,7 +22,7 @@ const facts=[
 
 function preview(overrides:Partial<CoverLetterPreviewResult>={}):CoverLetterPreviewResult {
   return {
-    profile_id:'profile-exact',profile_version:8,job_id:'job-exact',job_fingerprint:'c'.repeat(64),
+    profile_id:'profile-exact',profile_version:'a'.repeat(64),job_id:'job-exact',job_fingerprint:'c'.repeat(64),
     preview_text:'Alex Example\nApplication for Platform Administrator at Northwind Systems\nMaintained Linux infrastructure.',
     fact_ids:['approved-linux'],matched_terms:{'approved-linux':['linux','infrastructure']},
     responsibilities:['Maintain and troubleshoot Linux systems'],
@@ -44,17 +44,26 @@ describe('user-reviewed cover letter preview',()=>{
     expect(api).toHaveBeenCalledTimes(1);
     expect(api).toHaveBeenCalledWith(
       '/profiles/profile-exact/jobs/job-exact/cover-letter-preview',
-      {method:'POST',headers:{'content-type':'application/json','accept':'application/json'},
-        body:JSON.stringify({expected_profile_version:8,expected_job_fingerprint:'c'.repeat(64),style:'technical',length:'DETAILED'})},
+      {method:'POST',headers:{'Content-Type':'application/json','accept':'application/json'},
+        body:JSON.stringify({expected_profile_version:'a'.repeat(64),expected_job_fingerprint:'c'.repeat(64),style:'technical',length:'detailed'})},
     );
     expect(result.profile_id).toBe('profile-exact');
     expect(result.job_id).toBe('job-exact');
   });
 
+  it('maps every user-visible length to the mounted API vocabulary',async()=>{
+    const api=vi.fn(async(_path:string,_init:RequestInit)=>preview());
+    const client=createCoverLetterPreviewClient({...selection,api});
+    for(const [length,expected] of [['VERY_SHORT','very short'],['CONCISE','concise'],['NORMAL','normal'],['DETAILED','detailed']] as const){
+      await client.generate({style:'professional',length});
+      expect(JSON.parse(api.mock.calls.at(-1)![1].body as string).length).toBe(expected);
+    }
+  });
+
   it('rejects stale profile/job scope and changed revision metadata',()=>{
     expect(()=>validateCoverLetterPreview(preview({profile_id:'another-profile'}),selection)).toThrow(CoverLetterPreviewError);
     expect(()=>validateCoverLetterPreview(preview({job_id:'another-job'}),selection)).toThrow(CoverLetterPreviewError);
-    expect(()=>validateCoverLetterPreview(preview({profile_version:7}),selection)).toThrow(CoverLetterPreviewError);
+    expect(()=>validateCoverLetterPreview(preview({profile_version:'b'.repeat(64)}),selection)).toThrow(CoverLetterPreviewError);
     expect(()=>validateCoverLetterPreview(preview({job_fingerprint:'d'.repeat(64)}),selection)).toThrow(CoverLetterPreviewError);
   });
 

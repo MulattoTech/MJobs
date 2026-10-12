@@ -50,4 +50,15 @@ describe('manual mock authentication',()=>{
     const actionBar=sections[3] as React.ReactElement<{children:React.ReactElement<{disabled?:boolean}>[]}>;
     expect(actionBar.props.children[1].props.disabled).toBe(true);
   });
+
+  it('offers explicit closed-browser recovery without rerunning or collecting credentials',()=>{
+    const recover=vi.fn();
+    const html=renderToStaticMarkup(<ManualMockAuthentication {...props}
+      heldOperations={['held-operation']} onRecover={recover}/>);
+    expect(html).toContain('Recover closed browser');
+    expect(html).toContain('does not sign in or rerun');
+    expect(html).toMatch(/disabled=""[^>]*>Open MOCK sign-in/);
+    expect(html).toMatch(/disabled=""[^>]*>Rerun MOCK application/);
+    expect(recover).not.toHaveBeenCalled();
+  });
 });

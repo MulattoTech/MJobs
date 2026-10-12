@@ -6,7 +6,7 @@ export type ApprovedCoverLetterFact={
   id:string;fact_id?:string;text:string;source:string;verified:boolean;user_approved:boolean;
 };
 export type CoverLetterPreviewSelection={
-  profileId:string;profileVersion:number;jobId:string;jobFingerprint:string;
+  profileId:string;profileVersion:string;jobId:string;jobFingerprint:string;
 };
 export type CoverLetterPreviewApi=(path:string,init:RequestInit)=>Promise<unknown>;
 export type CoverLetterPreviewCompanyContext={
@@ -14,7 +14,7 @@ export type CoverLetterPreviewCompanyContext={
   [key:string]:unknown;
 };
 export type CoverLetterPreviewResult={
-  profile_id:string;profile_version:number;job_id:string;job_fingerprint:string;
+  profile_id:string;profile_version:string;job_id:string;job_fingerprint:string;
   preview_text:string;fact_ids:string[];matched_terms:Record<string,string[]>;
   responsibilities:string[];skills:string[];skill_strengths:Record<string,'REQUIRED'|'PREFERRED'|'UNKNOWN'>;
   company_identity:string;company_context:CoverLetterPreviewCompanyContext|null;
@@ -37,7 +37,7 @@ function isStringList(value:unknown):value is string[]{
 }
 function validateSelection(selection:CoverLetterPreviewSelection){
   if(!isIdentifier(selection.profileId)||!isIdentifier(selection.jobId)||
-    !Number.isSafeInteger(selection.profileVersion)||selection.profileVersion<1||
+    !/^[0-9a-f]{64}$/.test(selection.profileVersion)||
     !/^[0-9a-f]{64}$/.test(selection.jobFingerprint)){
     throw new CoverLetterPreviewError('INVALID_REQUEST','Select a current profile and saved job before previewing.');
   }
@@ -102,9 +102,9 @@ export function createCoverLetterPreviewClient({api,...selection}:CoverLetterPre
     const path=`/profiles/${encodeURIComponent(selection.profileId)}/jobs/${encodeURIComponent(selection.jobId)}/cover-letter-preview`;
     let response:unknown;
     try{
-      response=await api(path,{method:'POST',headers:{accept:'application/json','content-type':'application/json'},
+      response=await api(path,{method:'POST',headers:{accept:'application/json','Content-Type':'application/json'},
         body:JSON.stringify({expected_profile_version:selection.profileVersion,
-          expected_job_fingerprint:selection.jobFingerprint,style,length})});
+          expected_job_fingerprint:selection.jobFingerprint,style,length:length.toLowerCase().replace('_',' ')})});
     }catch(error){
       if(isStaleError(error))throw new CoverLetterPreviewError('STALE_SELECTION',
         'The selected profile or job changed. Reload the selected profile and job before previewing again.');

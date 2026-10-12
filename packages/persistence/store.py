@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
+from contextlib import nullcontext
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -438,7 +439,7 @@ class Store:
         return values
 
     def save_ai_evaluation_run(self, profile_id, profile_version, policy,
-                               task_provider, task_model, evaluations):
+                               task_provider, task_model, evaluations, *, connection=None, run_id=None):
         """Atomically persist bounded advisory evaluations for the profile snapshot."""
         policy_fields = {"minimum_score", "max_input_candidates", "max_ai_candidates",
                          "max_document_candidates"}
@@ -472,9 +473,9 @@ class Store:
             seen_job_ids.add(item["job_id"])
             values.append(item)
 
-        run_id = identity(profile_id, "ai-evaluation-run", uuid4().hex)
+        run_id = run_id or identity(profile_id, "ai-evaluation-run", uuid4().hex)
         created_at = now()
-        with self.engine.begin() as connection:
+        with (self.engine.begin() if connection is None else nullcontext(connection)) as connection:
             current_version = connection.execute(
                 select(m.profiles.c.version).where(m.profiles.c.id == profile_id)
                 .with_for_update()
@@ -509,7 +510,7 @@ class Store:
                 "task_model": task_model,
                 "evaluated_candidate_count": len(values), "created_at": created_at}
 
-    def ai_evaluation_history(self, profile_id, limit=20):
+    def ai_evaluation_history(self, profile_id, limit=20, *, run_id=None):
         """Read the newest persisted advisory evaluations for one profile."""
         self.profile(profile_id)
         if type(limit) is not int or not 1 <= limit <= 100:
@@ -517,7 +518,8 @@ class Store:
         with self.engine.connect() as connection:
             runs = [dict(row) for row in connection.execute(
                 select(m.ai_evaluation_runs).where(
-                    m.ai_evaluation_runs.c.profile_id == profile_id
+                    m.ai_evaluation_runs.c.profile_id == profile_id,
+                    m.ai_evaluation_runs.c.id == run_id if run_id is not None else True,
                 ).order_by(m.ai_evaluation_runs.c.created_at.desc(),
                            m.ai_evaluation_runs.c.id.desc()).limit(limit)
             ).mappings()]
@@ -639,7 +641,7 @@ class Store:
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
              job_source_id=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
-             application_capability=None, exclude_company_ids=None):
+             application_capability=None, exclude_company_ids=None, job_ids=None):
         if application_capability == "":
             application_capability = None
         if application_capability is not None:
@@ -667,6 +669,8 @@ class Store:
                 .outerjoin(m.matches, (m.matches.c.job_id == m.jobs.c.id) & (m.matches.c.profile_id == profile_id) &
                            (m.matches.c.profile_version == (profile["version"] if profile else "")))
                 .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
+            if job_ids is not None:
+                statement = statement.where(m.jobs.c.id.in_(job_ids))
             excluded_companies = sorted({
                 value for value in (exclude_company_ids or [])
                 if isinstance(value, str) and value.strip()

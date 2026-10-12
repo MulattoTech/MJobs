@@ -47,6 +47,10 @@ git pull --ff-only
 
 Use the original startup mode instead of `-Personal` when updating the fictional workspace. Never switch modes against the same populated database. See [workspace identity and modes](runbooks/WORKSPACE_MODE.md).
 
+Database startup retains the existing `mjobs` administrator for migrations and backup/restore. The API, scheduler and workers use a separate restricted login, provisioned after migrations for both fresh and populated databases. Its credential file lives in the project's `runtime-database` volume and is mounted read-only by runtime services. Rebuild the image when taking this change; an older image does not contain the provisioning command.
+
+The runtime password is independently derived from the original protected administrator password and a versioned database/role context. Recovery can reconstruct a missing generated file without changing `.env`, rotating the administrator password or replacing the credential-encryption key. An existing runtime role with unexpected privileges or a mismatched credential stops provisioning; retain the original configuration and inspect private migration logs instead of resetting data. The backup restore command provisions the runtime login before verifying encrypted credentials and starting the application.
+
 ## Troubleshooting
 
 | Symptom | Safe response |

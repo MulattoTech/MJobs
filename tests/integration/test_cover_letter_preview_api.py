@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from fastapi import FastAPI
+from apps.api.main import create_app
 from fastapi.testclient import TestClient
 from sqlalchemy import event, func, select, update
 
@@ -31,9 +31,8 @@ class CoverLetterPreviewApiTests(unittest.TestCase):
             discover(self.store, origin, "fixture")
         self.job = next(row for row in self.store.jobs("fixture") if row["requisition"] == "B")
         self.profile = self.store.profile("fixture")
-        self.app = FastAPI()
-        from apps.api.cover_letter_preview import create_cover_letter_preview_router
-        self.app.include_router(create_cover_letter_preview_router(self.store))
+        self.app = create_app(self.store, "http://127.0.0.1:1", self.root / "documents",
+                              operation_mode="FIXTURE")
         self.client = TestClient(self.app)
 
     def tearDown(self):

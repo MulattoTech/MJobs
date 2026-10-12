@@ -50,6 +50,7 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                 unexpected_writes = []
                 preview_posts = []
                 confirm_posts = []
+                held_recovery_reads = []
                 page_errors = []
                 failed_requests = []
 
@@ -121,6 +122,9 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                                 else:
                                     unexpected_writes.append((request.method, request.url))
                                     route.abort()
+                                return
+                            if parsed.path == '/profiles' and len(confirm_posts) == 1:
+                                held_recovery_reads.append(route)
                                 return
                             route.continue_()
 
@@ -219,6 +223,29 @@ class ManualCaptureReviewReceiptSafetyTests(unittest.TestCase):
                             "Confirm removal of extracted Application URL", exact=True,
                         )).to_be_checked()
                         self.assertEqual(application_url.input_value(), "")
+                        # Keep failed-write recovery in flight: the review must not
+                        # invite another click that the global action guard drops.
+                        expect(page.get_by_role('status').filter(
+                            has_text='Saving reviewed browser capture',
+                        )).to_be_visible()
+                        recovery_deadline = time.monotonic() + 5
+                        while not held_recovery_reads and time.monotonic() < recovery_deadline:
+                            page.wait_for_timeout(10)
+                        self.assertEqual(len(held_recovery_reads), 1)
+                        try:
+                            expect(review_panel.get_by_role(
+                                'button', name='Confirming reviewed details…', exact=True,
+                            )).to_be_disabled()
+                            expect(application_url).to_be_disabled()
+                            expect(capture_panel.get_by_role(
+                                'button', name='Confirm reviewed details', exact=True,
+                            )).to_be_disabled()
+                            review_checks = capture_panel.get_by_role('checkbox')
+                            self.assertGreater(review_checks.count(), 0)
+                            for checkbox in review_checks.all():
+                                expect(checkbox).to_be_disabled()
+                        finally:
+                            held_recovery_reads.pop().continue_()
                         expect(confirm_button).to_be_enabled()
 
                         with page.expect_response(

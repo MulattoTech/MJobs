@@ -264,6 +264,26 @@ def _serve():
             _write(sys.stdout.buffer, {"nonce": nonce, "binding": binding, "identity": identity,
                                       "status": _status(accounting), "accounting": accounting})
 
+        def await_durable_closure():
+            # Both channel loss and explicit close surrender the creator's
+            # channel, not the observer's original native authority. A failed
+            # write must retain that query until commit or bounded expiry.
+            deadline = time.monotonic() + 900
+            retry_delay = .05
+            while time.monotonic() < deadline:
+                if query.status() == "EXITED":
+                    # Each attempt rechecks scope/owner and native accounting;
+                    # no failed write or expired deadline releases capacity.
+                    if store is None or persist():
+                        break
+                    remaining = deadline - time.monotonic()
+                    if remaining <= 0:
+                        break
+                    time.sleep(min(retry_delay, remaining))
+                    retry_delay = min(retry_delay * 2, 2)
+                else:
+                    time.sleep(min(.05, max(0, deadline - time.monotonic())))
+
         respond(initial["nonce"])
         while True:
             # Finite lifetime, including an abandoned creator. No certification
@@ -274,15 +294,14 @@ def _serve():
                 # Retain authority outside the departed creator until bounded
                 # cooperative tree exit. No transient reply/certificate can be
                 # recovered over a lost channel; capacity must stay held.
-                deadline = time.monotonic() + 900
-                while time.monotonic() < deadline:
-                    if query.status() == "EXITED":
-                        persist()
-                        break
-                    time.sleep(.05)
+                await_durable_closure()
                 return
             if request == {"action": "close"}:
-                persist()
+                # A never-launched Job has no browser tree to retain. Let the
+                # existing exact-owner/zero-accounting rollback run in finally;
+                # missing accounting remains UNKNOWN and must keep authority.
+                if query.accounting() != {"total": 0, "active": 0, "terminated": 0}:
+                    await_durable_closure()
                 return
             if (not isinstance(request, dict) or set(request) != {"action", "nonce", "binding"}
                     or request["action"] != "observe" or request["binding"] != binding

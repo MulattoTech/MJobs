@@ -10,11 +10,12 @@ x-runtime: &runtime
     context: .
     dockerfile: infra/docker/Dockerfile
   init: true
+  entrypoint: [python, -m, cli.runtime_database]
   cpus: 2
   mem_limit: 2g
   logging: *rotating-logging
   environment: &environment
-    MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
+    MJOBS_DATABASE_URL_FILE: /run/mjobs-database/runtime-url
     MJOBS_REDIS_URL: redis://redis:6379/0
     MJOBS_MOCK_ORIGIN: http://mock:8090
     MJOBS_COMPOSE_MOCK: ${MJOBS_COMPOSE_MOCK:-0}
@@ -29,6 +30,7 @@ x-runtime: &runtime
     MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS: ${MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS:-86400}
   volumes:
     - documents:/data/documents
+    - runtime-database:/run/mjobs-database:ro
   networks: [private]
 services:
   postgres:
@@ -62,7 +64,13 @@ services:
     mem_limit: 256m
   migrate:
     <<: *runtime
-    command: [python, -m, alembic, upgrade, head]
+    entrypoint: []
+    command: [python, -m, cli.provision_database]
+    environment:
+      MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
+      MJOBS_DATABASE_URL_FILE: /run/mjobs-database/runtime-url
+    volumes:
+      - runtime-database:/run/mjobs-database
     depends_on:
       postgres: {condition: service_healthy}
   api:
@@ -136,6 +144,26 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
+  ai-worker:
+    <<: *runtime
+    networks: [private, source-egress]
+    command: [python, -m, workers.main]
+    restart: unless-stopped
+    environment:
+      <<: *environment
+      MJOBS_WORKER_QUEUE: mjobs-ai
+      MJOBS_OLLAMA_BASE_URL: ${MJOBS_OLLAMA_BASE_URL:-http://127.0.0.1:11434}
+      MJOBS_OPENAI_BASE_URL: ${MJOBS_OPENAI_BASE_URL:-https://api.openai.com/v1}
+      MJOBS_OPENAI_API_KEY: ${MJOBS_OPENAI_API_KEY:-}
+      MJOBS_OPENAI_COMPATIBLE_BASE_URL: ${MJOBS_OPENAI_COMPATIBLE_BASE_URL:-https://api.openai.com/v1}
+      MJOBS_OPENAI_COMPATIBLE_API_KEY: ${MJOBS_OPENAI_COMPATIBLE_API_KEY:-}
+      MJOBS_LOCAL_AI_BASE_URL: ${MJOBS_LOCAL_AI_BASE_URL:-http://127.0.0.1:8080/v1}
+      MJOBS_LOCAL_AI_API_KEY: ${MJOBS_LOCAL_AI_API_KEY:-}
+      MJOBS_AZURE_OPENAI_BASE_URL: ${MJOBS_AZURE_OPENAI_BASE_URL:-https://example-resource.openai.azure.com}
+      MJOBS_AZURE_OPENAI_API_KEY: ${MJOBS_AZURE_OPENAI_API_KEY:-}
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
   document-worker:
     <<: *runtime
     command: [python, -m, workers.main]
@@ -161,3 +189,4 @@ volumes:
   queue:
   documents:
   mock-receipts:
+  runtime-database:

@@ -130,7 +130,7 @@ class ApplicationReviewQueueBrowserTests(unittest.TestCase):
                     expect(page.get_by_label("Employer question").first).to_have_value(QUESTION)
 
                     # Existing suggestion provenance remains visible and the review stays per-job.
-                    answer_review = page.locator("fieldset").filter(has=page.get_by_label("Employer question"))
+                    answer_review = page.get_by_role("region", name="Application answers", exact=True).get_by_role("group", name="Question 1", exact=True)
                     expect(answer_review).to_contain_text("Exact normalized match")
                     expect(answer_review).to_contain_text("match score 100%")
                     expect(answer_review).to_contain_text("Synthetic profile")

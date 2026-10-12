@@ -251,7 +251,7 @@ export function BrowserJobExtractionPanel(props: PanelProps) {
   const invalidCorrections = Object.keys(correctionErrors).length > 0;
   const hasCorrection = (name: BrowserJobExtractionFieldName) => Object.prototype.hasOwnProperty.call(corrections, name);
   const confirm = () => {
-    if (result) onConfirm(buildBrowserJobExtractionConfirmation(result, corrections, confirmedFields));
+    if (result && !pending && allReviewed && !invalidCorrections) onConfirm(buildBrowserJobExtractionConfirmation(result, corrections, confirmedFields));
   };
   return <section aria-labelledby="browser-extraction-heading" data-profile-id={profileId} data-job-id={jobId}>
     <h2 id="browser-extraction-heading">Review captured job details</h2>
@@ -287,18 +287,18 @@ export function BrowserJobExtractionPanel(props: PanelProps) {
           /></label>
           {hasCorrection(name) && <p>Corrected preview value: {corrections[name]?.trim() || 'Unknown'}</p>}
           {correctionErrors[name] && <p role="alert">{correctionErrors[name]}</p>}</>}
-          {field.review_required && <label><input type="checkbox" checked={confirmedFields.includes(name)} onChange={(event) => onReviewFieldChange?.(name, event.currentTarget.checked)} />Confirm low-confidence {reviewLabels[name] ?? fieldLabels[name]}</label>}
+          {field.review_required && <label><input type="checkbox" disabled={pending} checked={confirmedFields.includes(name)} onChange={(event) => onReviewFieldChange?.(name, event.currentTarget.checked)} />Confirm low-confidence {reviewLabels[name] ?? fieldLabels[name]}</label>}
         </dd></React.Fragment>;
       })}</dl>
       <h3>Unknown fields</h3><p>{result.unknown_fields.length ? result.unknown_fields.join(', ') : 'None'}</p>
       {needsReview.length > 0 && <p>Review each field marked for review before continuing.</p>}
       <p>Corrections are preview only. Confirming this review does not save or change a stored job or application.</p>
-      <button type="button" disabled={!allReviewed || invalidCorrections} onClick={confirm}>Confirm reviewed details</button>
+      <button type="button" disabled={pending || !allReviewed || invalidCorrections} onClick={confirm}>Confirm reviewed details</button>
     </div>}
   </section>;
 }
 
-export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileId: string; jobId: string; onConfirm: (confirmation: BrowserJobExtractionConfirmedPayload) => void }) {
+export function BrowserJobExtraction({ profileId, jobId, onConfirm, busy = false }: { profileId: string; jobId: string; onConfirm: (confirmation: BrowserJobExtractionConfirmedPayload) => void; busy?: boolean }) {
   const [draft, setDraft] = useState<BrowserCaptureDraft>(emptyDraft);
   const [result, setResult] = useState<BrowserJobExtractionResponse>();
   const [corrections, setCorrections] = useState<BrowserJobExtractionCorrections>({});
@@ -345,7 +345,7 @@ export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileI
     setConfirmationStep(true);
   };
   return <>
-    <BrowserJobExtractionPanel profileId={profileId} jobId={jobId} draft={draft} result={result} pending={pending}
+    <BrowserJobExtractionPanel profileId={profileId} jobId={jobId} draft={draft} result={result} pending={pending || busy}
       corrections={corrections} previewError={previewError} confirmedFields={confirmedFields} onDraftChange={setDraft} onPreview={preview}
       onCorrectionChange={correctField} onReviewFieldChange={reviewField} onConfirm={continueToConfirmation} />
     {confirmationStep && result && <BrowserJobExtractionConfirmationStep
@@ -353,7 +353,7 @@ export function BrowserJobExtraction({ profileId, jobId, onConfirm }: { profileI
       description={manualDescription}
       corrections={corrections}
       confirmedFields={confirmedFields as BrowserJobExtractionFieldName[]}
-      pending={pending}
+      pending={pending || busy}
       onDescriptionChange={setManualDescription}
       onCorrectionChange={correctField}
       onReviewFieldChange={reviewField}

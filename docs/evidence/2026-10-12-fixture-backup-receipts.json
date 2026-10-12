@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "observed_utc": "2026-10-12T13:03:49.311676+00:00",
+  "base_revision": "23c25ec472aa567616b48cbdf43555f54d9a22ff",
+  "issues": [
+    168,
+    169
+  ],
+  "requirements": [
+    "MJ-REQ-167",
+    "MJ-REQ-168"
+  ],
+  "result": "PARTIAL",
+  "source_sha256": {
+    "cli/local_backup.py": "72b429f8f6d6dc05b2108cf6ce4ab845bc76b7b88c14d89fc88f44e5e58ef81f",
+    "cli/backup_acceptance.py": "a327fd713d801d5b674667a434de31d4b3d546421b77a6c2e37b49ca5e8350be",
+    "tests/unit/test_backup_fixture_receipts.py": "77ede99f2107b0e09254a269b45e1792cc89924a2300c6ee32024fd4d25e5ff2",
+    "tests/unit/test_backup_acceptance.py": "24259630041ba6890b787c523863ce7dcec6beac5d47dc630947b262aaa17017",
+    ".github/workflows/connected-acceptance.yml": "5f3a93198cb4ed249d9e7f1da4f434bb9f526bad70fdca6d9acbca4afdb9e5c4",
+    "docs/runbooks/LOCAL_BACKUP.md": "1ecec1bee204982403f4be46288eb1fbdf37e24ee4f029013dc99c826b5ffb59"
+  },
+  "reproduction": "Actual create_backup omitted mock/receipts.json; nine regression failures recorded before correction. Image-seeded empty documents directory separately reproduced and corrected.",
+  "local": {
+    "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_backup_fixture_receipts.py tests/unit/test_backup_acceptance.py tests/unit/test_backup_config_snapshot.py tests/unit/test_backup_credential_restore.py tests/unit/test_local_backup.py tests/unit/test_compose_modes.py tests/integration/test_compose_recovery_target.py",
+    "result": "PASS",
+    "tests": 55,
+    "subtests": 56
+  },
+  "checks": [
+    "compileall PASS",
+    "catalogue PASS",
+    "progress validate PASS",
+    "dashboard CURRENT",
+    "git diff --check PASS"
+  ],
+  "local_review": "Read-only local Luna review: no concrete blocker; not hosted/human certification",
+  "hosted": {
+    "fresh_restore": "NOT_RUN for candidate; new step in existing disposable connected workflow"
+  },
+  "behavior": [
+    "FIXTURE schema3 checksummed exact independent receipt file",
+    "Confirmed MOCK receipt identity completeness; missing/corrupt receipts fail without publishing archive",
+    "Receipt restored into fresh mock volume before startup; explicit original request replay independently checked by existing recovery proof",
+    "PERSONAL schema2 unaffected; no fixture receipt capture or restore",
+    "Legacy fixture archive with confirmed history stops before app startup; partial target retained"
+  ],
+  "limitations": [
+    "Local Docker daemon unavailable; decisive hosted fresh restore required",
+    "Does not certify real providers or whole P0/P1 release; external submissions OFF",
+    "Original/reference acceptance matrices unchanged"
+  ],
+  "hash_basis": "Git staged blobs, including repository newline normalization"
+}

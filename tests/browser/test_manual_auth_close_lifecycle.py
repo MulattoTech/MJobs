@@ -1,4 +1,4 @@
-"""Real disposable Chromium window closure through the mounted manual-auth API."""
+"""Legacy in-process lifecycle through the API's supported adapter boundary."""
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -75,7 +75,16 @@ class ManualAuthCloseLifecycleTests(unittest.TestCase):
 
         before = self.store.application(self.application_id)
         attempts = self.store.count("application_attempts")
-        with patch("playwright.sync_api.sync_playwright", side_effect=Manager):
+        def legacy_window(**kwargs):
+            from services.applications.mock_adapter import open_mock_authentication
+            for key in ('operation_id', 'owner_token', 'budget_seconds'):
+                kwargs.pop(key, None)
+            return open_mock_authentication(**kwargs)
+
+        # The non-Windows adapter still needs this close-during-wait regression.
+        # Native isolated API admission has its own actual process/browser test.
+        with patch("playwright.sync_api.sync_playwright", side_effect=Manager), \
+                patch('apps.api.manual_auth.open_mock_authentication', side_effect=legacy_window):
             for _ in range(2):  # Second launch is an explicit retry with the same saved profile.
                 response = self.client.post(self.url)
                 self.assertEqual(response.status_code, 200, response.text)

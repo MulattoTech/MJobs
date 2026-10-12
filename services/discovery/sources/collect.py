@@ -1,8 +1,10 @@
 """Durable per-board policy and provider-independent persistence."""
 from datetime import datetime, timedelta, timezone
+from contextlib import nullcontext
 import hashlib
 import json
 import httpx
+from urllib.parse import urlsplit
 
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
@@ -21,7 +23,8 @@ from services.discovery.sources.registry import source_adapter
 
 
 def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_interval=300, concurrency=1,
-                     request_timeout=10, rate_limit=60, jitter_seconds=30):
+                     request_timeout=10, rate_limit=60, jitter_seconds=30, *, connection=None,
+                     preserve_existing=False):
     if provider == "remote_ok":
         provider = "remoteok"
     if provider == "greenhouse":
@@ -39,7 +42,16 @@ def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_in
     policy = {"provider": provider, "tenant": tenant, "request_timeout": request_timeout,
               "rate_limit": rate_limit, "concurrency": concurrency}
     capabilities = source_adapter(policy).capabilities()
-    with store.engine.begin() as connection:
+    with (nullcontext(connection) if connection is not None else store.engine.begin()) as connection:
+        if preserve_existing:
+            insert = {'postgresql': postgres_insert, 'sqlite': sqlite_insert}[connection.dialect.name]
+            connection.execute(insert(m.job_sources).values(
+                id=source_id, provider=provider, tenant=tenant, name=tenant, enabled=enabled,
+                strategy=capabilities.strategy.value, capabilities=capabilities.as_dict(),
+                poll_interval=poll_interval, concurrency=concurrency, request_timeout=request_timeout,
+                rate_limit=rate_limit, jitter_seconds=jitter_seconds, health_status='NOT_CHECKED'
+            ).on_conflict_do_nothing())
+            return source_id
         upsert(connection, m.job_sources, {"id": source_id, "provider": provider, "tenant": tenant,
             "name": tenant, "enabled": enabled, "strategy": capabilities.strategy.value,
             "capabilities": capabilities.as_dict(), "poll_interval": poll_interval, "concurrency": concurrency,
@@ -74,19 +86,22 @@ def persist_posting(connection, data):
 
 
 def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
-                   *, refresh_matches=True):
+                   *, refresh_matches=True, import_guard=None):
     """Capture source values, optionally deferring profile scoring to the caller.
 
     Saved-search workers defer scoring until persisted criteria admit candidates.
     The profile still supplies discovery-request ownership during capture.
     """
     check = check or (lambda: None)
-    profile = store.profile(profile_id, profile_version)
+    profile = store.profile(profile_id, profile_version) if profile_id is not None else None
     check()
     timestamp = now()
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
+        source = dict(connection.execute(select(m.job_sources).where(m.job_sources.c.id == source_id)).mappings().one())
+        from services.company_discovery.ats_enrollment import bound_company_source
+        bound = bound_company_source(store, connection, source, lock=True)
         source = dict(connection.execute(select(m.job_sources).where(m.job_sources.c.id == source_id).with_for_update()).mappings().one())
         if not source["enabled"]:
             raise SourceError("SOURCE_DISABLED")
@@ -99,6 +114,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
     available = None
     observed_endpoint = None
     enumerated = accepted = completeness_sum = salary_known = None
+    authority_rejected = False
     try:
         batch = adapter.search()
         observed_endpoint = batch.endpoint
@@ -112,6 +128,11 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 normalized.append((item, adapter.normalize(item.raw)))
             except SourceError:
                 rejected += 1
+        if bound:
+            for _, job in normalized:
+                url = job.get('application_url')
+                if url and urlsplit(url).path.split('/')[:2] != ['', source['tenant']]:
+                    raise SourceError('COMPANY_ATS_JOB_TENANT_MISMATCH')
         accepted = len(normalized)
         metrics = [posting_metrics(job, job.get('application_url')) for _, job in normalized]
         completeness_sum = sum(metric[0] for metric in metrics)
@@ -121,15 +142,28 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         capabilities = adapter.capabilities()
         strategy = capabilities.strategy.value
         direct_application = capabilities.supports(SourceCapability.DIRECT_APPLICATION)
-        usable = {fact["text"].strip().casefold() for fact in profile["facts"] if fact["kind"] == "skill"
-                  and fact["verified"] and fact["user_approved"] and fact["source"].strip() and fact["confidence"] >= 80}
         with store.engine.begin() as connection:
             if connection.dialect.name == 'sqlite':
                 connection.exec_driver_sql('BEGIN IMMEDIATE')
-            # Serialize present and absent job updates from overlapping refreshes
-            # of this inventory before acquiring any company/job locks.
-            connection.execute(select(m.job_sources.c.id).where(
-                m.job_sources.c.id == source_id).with_for_update()).one()
+            # Reauthorize in the shared ingestion/domain/source lock order.
+            try:
+                fresh_bound = bound_company_source(store, connection, source, lock=True)
+                if import_guard:
+                    import_guard(connection)
+                current_source = connection.execute(select(m.job_sources).where(
+                    m.job_sources.c.id == source_id).with_for_update()).mappings().one()
+                if not current_source['enabled']:
+                    raise SourceError('SOURCE_DISABLED')
+                if any(current_source[key] != source[key] for key in ('provider', 'tenant')):
+                    raise SourceError('SOURCE_CHANGED')
+                if (fresh_bound or {}).get('id') != (bound or {}).get('id'):
+                    raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
+            except Exception:
+                authority_rejected = True
+                raise
+            bound = fresh_bound
+            def company_identity(company):
+                return bound['company_id'] if bound else identity(*company.identity_parts)
             check()
             companies = {}
             new_companies = set()
@@ -138,7 +172,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
             batch_postings = {}
             batch_identities = {}
             for company in ([batch.source_company] if batch.source_company else []) + [item.company for item, _ in normalized]:
-                company_id = identity(*company.identity_parts)
+                company_id = company_identity(company)
                 companies[company_id] = company
             lock_company_ingestion(connection, companies)
             for company_id, company in sorted(companies.items()):
@@ -153,11 +187,16 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 # company records even when the feed attributes a posting to a company.
                 upsert(connection, m.companies, {
                     "id": company_id,
-                    "name": company.name if first_party_ats or existing_company is None else existing_company["name"],
-                    "domain": company.domain if first_party_ats else (
+                    "name": company.name if not bound and (first_party_ats or existing_company is None) else existing_company["name"],
+                    "domain": company.domain if first_party_ats and not bound else (
                         existing_company["domain"] if existing_company else ""
                     ),
                 }, replace=True)
+                if bound:
+                    connection.execute(update(m.company_sources).where(m.company_sources.c.id == bound['id'])
+                                       .values(last_validation=timestamp, last_success=timestamp))
+                    company_sources[company_id] = bound['id']
+                    continue
                 tenant_record = None
                 if first_party_ats:
                     tenant_record = register_ats_tenant(
@@ -177,8 +216,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 connection.execute(update(m.company_sources).where(m.company_sources.c.id == company_source['id'])
                                    .values(collector_source_id=source_id))
                 company_sources[company_id] = company_source['id']
-            for item, job in sorted(normalized, key=lambda pair: (identity(*pair[0].company.identity_parts), pair[1]['requisition'])):
-                company_id = identity(*item.company.identity_parts)
+            for item, job in sorted(normalized, key=lambda pair: (company_identity(pair[0].company), pair[1]['requisition'])):
+                company_id = company_identity(item.company)
                 native_job_id = identity(company_id, source["provider"], source["tenant"], job["requisition"])
                 url = job.pop("application_url")
                 source_job_id = (job["requisition"] if batch.source_company == item.company else identity(company_id, job["requisition"]))
@@ -232,14 +271,15 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 from services.discovery.lifecycle import reconcile_inventory
                 reconcile_inventory(connection, endpoint=batch.endpoint, posting_ids=set(batch_postings),
                                     observation_id=observation_id)
-            record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
-                                      new_company_ids=new_companies)
+            if profile is not None:
+                record_discovery_requests(connection, {entry[2] for entry in pending_candidates}, profile,
+                                          new_company_ids=new_companies)
         return {"source_id": source_id, "jobs_seen": len(normalized), "rejected": rejected,
                 "strategy": strategy, "direct_application": direct_application}
     except Exception as failure:
         from workers.operations import OperationCancelled, OperationTimedOut
-        if isinstance(failure, (OperationCancelled, OperationTimedOut)):
-            # A local budget stop is not evidence that the provider failed.
+        if authority_rejected or isinstance(failure, (OperationCancelled, OperationTimedOut)):
+            # A local authority revocation or budget stop is not a provider failure.
             # Restore the last observed health and failure metadata instead of
             # poisoning source availability or imposing provider backoff.
             with store.engine.begin() as connection:

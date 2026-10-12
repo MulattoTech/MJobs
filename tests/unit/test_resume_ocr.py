@@ -46,6 +46,33 @@ class ResumeOCRTests(unittest.TestCase):
         else:
             Path(args[1]+'.txt').write_text('Skills\nPython, SQL\nExperience\nEngineer 2020 - 2024', encoding='utf-8')
 
+    def test_worker_fence_exceptions_reap_owned_ocr_child(self):
+        import sys
+        from workers.operations import OperationCancelled, OperationTimedOut
+        real_popen = subprocess.Popen
+        for error_type in (OperationCancelled, OperationTimedOut):
+            with self.subTest(fence=error_type.__name__):
+                children = []
+                def launch(*args, **kwargs):
+                    child = real_popen([sys.executable, '-c', 'import time; time.sleep(30)'], **kwargs)
+                    children.append(child)
+                    return child
+                class Fence:
+                    def is_set(self):
+                        if children:
+                            raise error_type('synthetic worker fence')
+                        return False
+                try:
+                    with patch.object(ocr.subprocess, 'Popen', side_effect=launch):
+                        with self.assertRaises(error_type):
+                            ocr._run_tool('/synthetic/controlled-tool', [], 5, Fence())
+                    self.assertIsNotNone(children[0].poll(), 'OCR child survived the persisted worker fence')
+                finally:
+                    for child in children:
+                        if child.poll() is None:
+                            child.kill()
+                        child.wait()
+
     def test_scanned_page_and_mixed_page_preserve_native_first_review(self):
         with patch.object(ocr, 'RESOURCE_LIMITS_AVAILABLE', True), patch.object(ocr.shutil, 'which', side_effect=lambda name:'/fake/'+name), patch.object(ocr, '_run_tool', side_effect=self.tool) as run:
             result = extract_resume(scanned_resume(mixed=True), 'pdf', 'synthetic-scan')

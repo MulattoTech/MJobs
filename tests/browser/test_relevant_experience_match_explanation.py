@@ -91,7 +91,7 @@ class RelevantExperienceMatchExplanationBrowserTests(unittest.TestCase):
                     factors = detail.get_by_role("list", name="Additional fit signals")
                     expect(factors).to_contain_text("Relevant experience — ALIGNS")
                     expect(factors).to_contain_text(
-                        "Approved experience facts directly mention locally recognized job skills: Active Directory, Windows Server.")
+                        "Approved experience facts positively support locally recognized job skills: Active Directory, Windows Server.")
                     expect(factors).not_to_contain_text("Managed VMware clusters")
                     expect(detail.locator(".big-score")).to_contain_text("0%")
                     expect(factors).to_contain_text("This does not change the score")

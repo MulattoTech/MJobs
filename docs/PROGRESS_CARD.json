@@ -17,6 +17,6 @@
     "accepted_percent": 32.2,
     "as_of": "2026-10-09T15:07:39Z"
   },
-  "milestone": "DURABLE-UPLOADED-COMPARISON-20261011",
+  "milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
   "release_readiness": "UNKNOWN"
 }

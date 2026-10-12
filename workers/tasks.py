@@ -27,12 +27,18 @@ from services.audit_history import record_application_preparation_event
 from services.documents.durable_comparison import (
     KIND as COMPARISON_KIND, DurableComparisonError, compare_for_operation, complete_result,
 )
+from services.ai.durable_evaluation import (
+    KIND as AI_EVALUATION_KIND, DurableEvaluationError, evaluate_for_operation, complete_evaluation,
+)
+from services.ai.providers import AIProviderError, AIProviderDisabled
+from services.ai.structured_output import StructuredOutputError
 from services.discovery.search_history import record_search_history
 from services.discovery.search_history_events import build_search_history_record
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
 from workers.structured_logging import log_operation_finished
 from workers.retries import discovery_retry_plan
 from workers.application_form_review import FormReviewError, handle_form_review
+from services.applications.controlled_dry_run import ControlledDryRunError, execute as execute_controlled_dry_run
 
 
 class FixtureOperationDisabled(Exception):
@@ -196,6 +202,7 @@ def execute_operation(operation_id):
         retry_failure = None
         durable_resume_result = None
         durable_comparison_result = None
+        durable_ai_result = None
         try:
             deadline = time.monotonic() + timeout()
 
@@ -310,6 +317,9 @@ def execute_operation(operation_id):
             elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
                 from services.company_discovery.monitoring import refresh_company_source
                 result = refresh_company_source(store, operation, check=check)
+            elif operation["kind"] == "APPLICATION_DRY_RUN":
+                result = execute_controlled_dry_run(
+                    store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check=check)
             elif operation["kind"] == "APPLICATION_FORM_REVIEW":
                 route_url = operation["params"]["route_url"]
 
@@ -350,6 +360,8 @@ def execute_operation(operation_id):
                         resume_story_ids=operation['params'].get('resume_story_ids'),
                         resume_story_job_fingerprint=operation['params'].get(
                             'resume_story_job_fingerprint'))
+            elif operation['kind'] == AI_EVALUATION_KIND:
+                durable_ai_result = evaluate_for_operation(store, operation, check)
             elif operation["kind"] == COMPARISON_KIND:
                 durable_comparison_result = compare_for_operation(
                     store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check)
@@ -382,6 +394,8 @@ def execute_operation(operation_id):
                 check()
         except AttemptConflict as failure:
             state, error = "BLOCKED", failure.code
+        except ControlledDryRunError as failure:
+            state, error = "BLOCKED", failure.code
         except OperationTimedOut:
             state, error = "FAILED", "OPERATION_TIMEOUT"
         except OperationCancelled:
@@ -390,6 +404,8 @@ def execute_operation(operation_id):
             state, error = "BLOCKED", failure.code
         except DurableComparisonError as failure:
             state, error = "BLOCKED", failure.code
+        except (DurableEvaluationError, AIProviderError, AIProviderDisabled, StructuredOutputError) as failure:
+            state, error = 'BLOCKED', failure.code
         except ComparisonUnavailable:
             state, error = "BLOCKED", "COMPARISON_INPUT_UNAVAILABLE"
         except PublicFetchError as failure:
@@ -410,11 +426,16 @@ def execute_operation(operation_id):
                 m.operations.c.id == operation_id).with_for_update()).mappings().one()
             if current["state"] != "RUNNING" or current["attempt_count"] != operation["attempt_count"]:
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
-            if (operation["kind"] == COMPARISON_KIND
+            if (operation["kind"] in (COMPARISON_KIND, AI_EVALUATION_KIND)
                     and (not current["lease_expires_at"] or current["lease_expires_at"] <= now())):
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
             if current["cancel_requested"] and operation["kind"] != "APPLY_MOCK":
                 state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
+            if operation['kind'] == AI_EVALUATION_KIND and state == 'COMPLETED':
+                current_profile_version = connection.execute(select(m.profiles.c.version).where(
+                    m.profiles.c.id == operation['entity_id']).with_for_update()).scalar_one()
+                if durable_ai_result is None or current_profile_version != durable_ai_result[0]['profile_version']:
+                    state, error = 'BLOCKED', 'AI_EVALUATION_PROFILE_CHANGED'
             finished_at = now()
             retry = discovery_retry_plan(connection, operation, retry_failure, finished_at)
             if retry is not None:
@@ -446,6 +467,10 @@ def execute_operation(operation_id):
             if operation["kind"] == COMPARISON_KIND and state == "COMPLETED":
                 if durable_comparison_result is None or not complete_result(connection, operation, durable_comparison_result):
                     raise RuntimeError("Completed uploaded comparison has no fenced result")
+            if operation['kind'] == AI_EVALUATION_KIND and state == 'COMPLETED':
+                if durable_ai_result is None:
+                    raise RuntimeError('Completed AI evaluation has no result')
+                complete_evaluation(store, connection, operation, durable_ai_result)
             store._audit(connection, operation_id,
                          "OPERATION_RETRY_SCHEDULED" if retry else
                          "OPERATION_DEAD_LETTERED" if state == "DEAD_LETTERED" else "OPERATION_ATTEMPT_FINISHED",

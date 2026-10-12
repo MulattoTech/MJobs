@@ -1,5 +1,6 @@
 """Connected form-review API, durable worker, and safe audit readback."""
 from pathlib import Path
+import gc
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -21,9 +22,7 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-form-review-")
         self.root = Path(self.temp.name)
-        self.database_url = f"sqlite:///{(self.root / 'form-review.db').as_posix()}"
-        self.store = Store(self.database_url)
-        self.store.migrate()
+        self.store = self._new_store()
         self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(dict(PROFILE))
         with fixture_server() as origin:
@@ -43,6 +42,12 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
             self.store, "http://127.0.0.1:1", self.root,
             "redis://127.0.0.1:1/0", operation_mode="FIXTURE",
         ))
+
+    def _new_store(self):
+        self.database_url = f"sqlite:///{(self.root / 'form-review.db').as_posix()}"
+        store = Store(self.database_url)
+        store.migrate()
+        return store
 
     def tearDown(self):
         self.client.close()
@@ -122,6 +127,37 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
         self.assertEqual(current.status_code, 200, current.text)
         self.assertEqual(current.json()["state"], "COMPLETED")
         self.assertEqual(current.json()["analysis"]["fields"][0]["name"], "current_profile_field")
+
+    def test_request_id_reuse_cannot_replace_completed_profile_snapshot(self):
+        request_id = "immutable-profile-review"
+        path = self._complete_review(request_id, "original_review_field")
+        original = self.client.get(path + "/" + request_id).json()
+        with self.store.engine.connect() as connection:
+            before = [dict(row) for row in connection.execute(select(m.operations)).mappings()]
+        profile = self.store.profile("fixture")
+        profile["name"] = "Changed Synthetic Applicant"
+        self.store.save_profile(profile)
+
+        retry = self.client.post(path, json={"request_id": request_id})
+
+        self.assertEqual(retry.status_code, 409, retry.text)
+        self.assertEqual(retry.json()["detail"]["code"], "FORM_REVIEW_IDEMPOTENCY_CONFLICT")
+        self.assertEqual(self.client.get(path + "/" + request_id).json(), original)
+        with self.store.engine.connect() as connection:
+            self.assertEqual([dict(row) for row in connection.execute(select(m.operations)).mappings()], before)
+        self.client.close()
+        self.client = TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                           operation_mode="FIXTURE"))
+        self.assertEqual(self.client.get(path + "/" + request_id).json(), original)
+        self._complete_review("new-profile-review", "new_review_field")
+        self.assertEqual(self.client.get(path + "/latest").json()["analysis"]["fields"][0]["name"],
+                         "new_review_field")
+        self.assertEqual(self.client.get(path + "/" + request_id).json(), original)
+
+        # Reopened TestClients can retain closed sqlite cursor cycles on Windows.
+        # Dispose this test's pool and collect them before removing its temp DB.
+        self.store.engine.dispose()
+        gc.collect()
 
     def test_latest_hides_old_analysis_after_route_id_changes(self):
         path = self._complete_review("freshness-route-id", "old_route_field")

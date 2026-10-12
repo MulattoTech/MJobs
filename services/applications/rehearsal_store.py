@@ -80,6 +80,10 @@ def _latest_review(store, profile_id: str, application_id: str,
             m.audit.c.entity_id == application_id,
             m.audit.c.action == _ACTION,
         ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings()
+        # Consume the cursor before a matching receipt returns early. Otherwise
+        # SQLite can retain a read lock past connection return and block the
+        # caller's admission transaction from committing.
+        rows = list(rows)
         for row in rows:
             payload = row["payload"]
             if (not isinstance(payload, dict)
@@ -102,9 +106,10 @@ def _latest_review(store, profile_id: str, application_id: str,
     return None
 
 
-def get_application_rehearsal(store, profile_id: str, application_id: str) -> dict:
+def get_application_rehearsal(store, profile_id: str, application_id: str, *,
+                              preview_builder=None) -> dict:
     """Return a fresh value-bearing local preview plus only its latest receipt."""
-    preview = build_rehearsal(store, profile_id, application_id)
+    preview = (preview_builder or build_rehearsal)(store, profile_id, application_id)
     if not isinstance(preview, dict):
         raise RehearsalStoreError("APPLICATION_REHEARSAL_INVALID")
     return {
@@ -115,7 +120,8 @@ def get_application_rehearsal(store, profile_id: str, application_id: str) -> di
 
 def acknowledge_application_rehearsal(store, profile_id: str, application_id: str,
                                       request_id: str, fingerprint: str,
-                                      acknowledged: bool) -> dict:
+                                      acknowledged: bool, *,
+                                      preview_builder=None) -> dict:
     """Persist a sanitized review receipt without copying any rehearsal values."""
     if (not isinstance(request_id, str) or not _REQUEST_ID.fullmatch(request_id)
             or not isinstance(fingerprint, str) or not _FINGERPRINT.fullmatch(fingerprint)
@@ -149,7 +155,7 @@ def acknowledge_application_rehearsal(store, profile_id: str, application_id: st
         if locked_route is None:
             raise RehearsalStoreError("APPLICATION_NOT_FOUND")
 
-        preview = build_rehearsal(store, profile_id, application_id)
+        preview = (preview_builder or build_rehearsal)(store, profile_id, application_id)
         if (preview.get("profile_version") != locked_profile
                 or preview.get("route_id") != locked_route):
             raise RehearsalStoreError("APPLICATION_REHEARSAL_STALE")

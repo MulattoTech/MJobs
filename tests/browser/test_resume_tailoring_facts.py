@@ -1,10 +1,5 @@
-"""Loopback UI error handling for a rejected reviewed rewrite.
-
-The durable backend rejection is exercised in the paired integration test; this
-browser test injects that operation failure to verify user-visible recovery.
-"""
+"""Connected protected-credential review prevents unsafe resume preparation."""
 from pathlib import Path
-import json
 import tempfile
 import threading
 import time
@@ -12,7 +7,7 @@ import unittest
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
-from sqlalchemy import update
+from sqlalchemy import func, select, update
 import uvicorn
 
 from apps.api.main import create_app
@@ -43,6 +38,15 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                 connection.execute(update(m.jobs).where(m.jobs.c.id == job['id']).values(skills=['Routing']))
             application_id = prepare(store, job['id'], 'fixture', root)
 
+            def persisted_counts():
+                with store.engine.connect() as connection:
+                    return {table.name: connection.execute(
+                        select(func.count()).select_from(table),
+                    ).scalar_one() for table in m.metadata.sorted_tables}
+
+            before_review = persisted_counts()
+            before_documents = application_documents(store, application_id)
+
             sock = bound_browser_socket()
             origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
             api = create_app(store, 'http://127.0.0.1:1', root,
@@ -61,35 +65,21 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                     browser = playwright.chromium.launch(headless=True)
                     context = browser.new_context()
                     external = []
+                    prepare_requests = []
 
                     def local_only(route):
                         if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
                             external.append(route.request.url)
+                            route.abort()
+                        elif route.request.method == 'POST' and urlsplit(route.request.url).path == '/applications':
+                            prepare_requests.append(route.request.post_data_json)
                             route.abort()
                         else:
                             route.continue_()
 
                     context.route('**/*', local_only)
 
-                    def reject_prepare(route):
-                        if route.request.method != 'POST':
-                            route.continue_()
-                            return
-                        route.fulfill(status=202, content_type='application/json', body=json.dumps({
-                            'operation_id': 'synthetic-rejected-prepare',
-                        }))
-
-                    def rejected_operation(route):
-                        route.fulfill(status=200, content_type='application/json', body=json.dumps({
-                            'id': 'synthetic-rejected-prepare', 'kind': 'PREPARE', 'state': 'FAILED',
-                            'error': 'RESUME_REPHRASE_FACTS_CHANGED: preserve named source tokens',
-                            'attempt_count': 1, 'cancel_requested': False,
-                            'updated_at': '2026-10-08T00:00:00Z',
-                        }))
-
                     page = context.new_page()
-                    page.route(origin + '/applications', reject_prepare)
-                    page.route(origin + '/operations/synthetic-rejected-prepare', rejected_operation)
                     page.goto(origin)
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
                     page.reload()
@@ -101,11 +91,25 @@ class ResumeTailoringFactsBrowserTests(unittest.TestCase):
                     page.get_by_label('Choose resume facts', exact=True).check()
                     wording = 'Supported network routing for 10 sites since 2020.'
                     page.get_by_label('Rewrite this experience: ' + experience['text'], exact=True).fill(wording)
-                    page.get_by_label('I reviewed this rewrite: ' + experience['text'], exact=True).check()
-                    page.get_by_role('button', name='Prepare documents', exact=True).click()
-                    expect(page.get_by_role('alert')).to_contain_text('RESUME_REPHRASE_FACTS_CHANGED')
+                    review = page.get_by_role('region', name='Resume rewrite review preview', exact=True)
+                    with page.expect_response(lambda response:
+                            response.url.endswith('/resume-rewrite-review-preview')
+                            and response.request.method == 'POST') as preview:
+                        review.get_by_role('button', name='Preview exact resume rewrites', exact=True).click()
+                    self.assertEqual(preview.value.status, 200)
+                    audit = preview.value.json()['rewrites'][0]['protected_token_audit']
+                    self.assertTrue(any(token['type'] == 'NAMED_CREDENTIAL'
+                                        for token in audit['missing']), audit)
+                    expect(review).to_contain_text('Missing NAMED CREDENTIAL')
+                    expect(review.get_by_label(
+                        'I reviewed the proposed wording for fact experience', exact=True,
+                    )).to_be_disabled()
+                    expect(page.get_by_role('button', name='Prepare documents', exact=True)).to_be_disabled()
+                    self.assertEqual(prepare_requests, [])
 
                     rows = application_documents(store, application_id)
+                    self.assertEqual(rows, before_documents)
+                    self.assertEqual(persisted_counts(), before_review)
                     self.assertFalse(any(row['kind'] == 'resume' and row['version'] == 2 for row in rows))
                     self.assertEqual(store.profile('fixture')['facts'][0]['text'], experience['text'])
                     self.assertFalse(external)

@@ -406,7 +406,7 @@ export function JobComparisonWorkspaceView({
         :<fieldset>
           <legend>Select between 2 and 10 jobs from the active profile and saved search</legend>
           {availableJobs.map(job=><label key={job.job_id}>
-            <input type="checkbox" aria-label={`Select job ${job.job_id}`}
+            <input type="checkbox" aria-label={`Compare ${job.title} at ${job.company}`}
               checked={selectedJobIds.includes(job.job_id)} disabled={state==='loading'}
               onChange={event=>{
                 const next=event.currentTarget.checked

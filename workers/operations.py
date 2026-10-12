@@ -12,14 +12,17 @@ from packages.persistence.store import now
 from services.audit_history import record_application_preparation_event
 
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-company-discovery",
+          "AI_EVALUATE_QUEUED": "mjobs-ai",
           "COMPANY_SOURCE_REFRESH": "mjobs-company-discovery", "PREPARE": "mjobs-document",
           "RESUME_EXTRACT_QUEUED": "mjobs-document", "UPLOADED_RESUME_COMPARE_QUEUED": "mjobs-document",
-          "APPLY_MOCK": "mjobs-application", "APPLICATION_FORM_REVIEW": "mjobs-application"}
+          "APPLY_MOCK": "mjobs-application", "APPLICATION_FORM_REVIEW": "mjobs-application",
+          "APPLICATION_DRY_RUN": "mjobs-application"}
 OPERATION_CATEGORIES = {
     "DISCOVER": "source_collection",
     "COMPANY_DISCOVER": "company_discovery",
     "COMPANY_SOURCE_REFRESH": "company_discovery",
     "AI_EVALUATE": "ai",
+    "AI_EVALUATE_QUEUED": "ai",
     "RESUME_EXTRACT": "document_generation",
     "RESUME_EXTRACT_QUEUED": "document_generation",
     "UPLOADED_RESUME_COMPARE": "document_generation",
@@ -27,6 +30,7 @@ OPERATION_CATEGORIES = {
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
     "APPLICATION_FORM_REVIEW": "application_automation",
+    "APPLICATION_DRY_RUN": "application_automation",
     "MANUAL_AUTH": "application_automation",
 }
 CATEGORY_LIMITS = {
@@ -259,6 +263,7 @@ def finish_inline(store, operation_id, state, error=None, *, browser_closed=Fals
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         row = connection.execute(select(
+            m.operations.c.id, m.operations.c.entity_id,
             m.operations.c.state, m.operations.c.cancel_requested, m.operations.c.kind, m.operations.c.error,
             m.operations.c.recovery_metadata,
         ).where(m.operations.c.id == operation_id,
@@ -282,6 +287,14 @@ def finish_inline(store, operation_id, state, error=None, *, browser_closed=Fals
                            for key in ("profile_id", "attempt_id"))
                     or not compare_digest(sha256(owner_token.encode()).hexdigest(), digest)):
                 return False
+            if any(key in owner for key in ('tree_observer', 'tree_retention', 'tree_closure')):
+                from services.applications.manual_auth_recovery import confirmed_tree_closure
+
+                if not confirmed_tree_closure(row._mapping):
+                    connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                        state="BLOCKED", error="BROWSER_RELEASE_UNCONFIRMED", updated_at=now(),
+                        current_step="FINALIZING", completed_at=None, lease_expires_at=None))
+                    return False
             if "process" in owner or "process_identified" in owner:
                 from services.applications.browser_process import process_status
 
@@ -441,6 +454,11 @@ def recover_expired(store):
                 state, error = ("QUEUED", "LEASE_EXPIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("DEAD_LETTERED", "RETRY_LIMIT")
             if row["cancel_requested"]:
                 state, error = "CANCELLED", "CANCEL_REQUESTED"
+            elif row['kind'] == 'AI_EVALUATE_QUEUED':
+                states = connection.execute(select(m.ai_evaluation_batches.c.candidate_states).where(
+                    m.ai_evaluation_batches.c.id == row['id'])).scalar_one()
+                if any(value.get('state') == 'CALL_STARTED' for value in states.values()):
+                    state, error = 'BLOCKED', 'AI_PROVIDER_OUTCOME_UNKNOWN'
             if row["kind"] == "APPLY_MOCK":
                 application = connection.execute(select(m.applications).where(m.applications.c.id == row["entity_id"]).with_for_update()).mappings().one()
                 if application["state"] == "CONFIRMED":

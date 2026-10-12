@@ -1,5 +1,6 @@
 """Read document evidence from its original immutable profile snapshot."""
 import hashlib
+import re
 from pathlib import Path
 
 from docx import Document
@@ -113,6 +114,13 @@ def validated_letter_preview(store, document, output_dir):
 
 def application_documents(store, application_id, output_dir=None):
     application = store.application(application_id)
+    # Files belong to the loaded canonical record, never a request spelling.
+    # Reject corrupt/legacy traversal components before any filesystem operation;
+    # resolved containment below still guards stored relative paths and symlinks.
+    application_id = application['id']
+    if output_dir is not None and (not isinstance(application_id, str)
+            or re.fullmatch(r'[A-Za-z0-9_-]{1,128}', application_id) is None):
+        raise PreparationError('DOCUMENT_CONTENT_MISMATCH', 'Document storage path is invalid')
     current_preferences = store.profile(application['profile_id']).get('preferences', {})
     with store.engine.connect() as connection:
         rows = [dict(row) for row in connection.execute(select(m.documents).where(

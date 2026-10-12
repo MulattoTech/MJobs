@@ -1,13 +1,11 @@
 """Local-first product API; mock submission is explicit and external is off."""
 from contextlib import asynccontextmanager
-import asyncio
 from dataclasses import asdict
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
 from pathlib import Path
-import threading
 from time import monotonic
 from typing import Literal, Annotated
 from urllib.parse import unquote
@@ -29,7 +27,6 @@ from packages.persistence import models as m
 from packages.persistence.store import ProfileVersionConflict, Store, identity
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from packages.domain.profile import ContactDetails, JobPreferences
-from services.career_profile.extraction import ResumeExtractionCancelled, extract_resume
 from services.career_profile.durable_extraction import (
     DurableExtractionError, OPERATION_KIND as DURABLE_RESUME_EXTRACT_KIND,
     read_extraction as read_durable_extraction, queue_extraction as queue_durable_extraction,
@@ -53,12 +50,8 @@ from services.dedupe.routes import (load_job_routes, list_route_choices, plan_ap
 from services.dedupe.route_redirects import resolve_aggregator_redirect
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
-from services.ai.providers import AIProviderDisabled, AIProviderError, create_provider
+from services.ai.providers import AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter, fallback_capabilities
-from services.ai.consumer import (
-    AIConsumerCancelledError, AIConsumerTimeoutError, consume_ai_candidates, AIJobInput,
-)
-from services.ai.structured_output import StructuredOutputError
 from services.ai.cost_controls import AICostPolicy, CandidateScore
 from services.credentials.vault import CredentialCipher, CredentialConfigurationError
 from services.company_discovery.public_client import PublicFetchError
@@ -70,8 +63,7 @@ from services.documents.tailor import target_fingerprint
 from services.audit_history import list_audit_history
 from workers.dispatch import enqueue_operation
 from workers.operations import (
-    QUEUES, OperationActionError, OperationConcurrencyLimit, admit_inline, finish_inline,
-    inline_cancel_requested, request_cancel, retry_dead_letter, discard_dead_letter, limit,
+    QUEUES, OperationActionError, request_cancel, retry_dead_letter, discard_dead_letter, limit,
 )
 
 
@@ -674,6 +666,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_application_confirmation_recovery_router(store, mock_origin, operation_mode))
     from apps.api.application_form_review import create_application_form_review_router
     app.include_router(create_application_form_review_router(store))
+    from apps.api.controlled_application_dry_run import create_controlled_application_dry_run_router
+    app.include_router(create_controlled_application_dry_run_router(store))
     from apps.api.dynamic_application_fields import create_dynamic_application_fields_router
     app.include_router(create_dynamic_application_fields_router(store))
     from apps.api.document_archive import create_document_archive_router
@@ -698,6 +692,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_career_story_bank_router(store))
     from apps.api.career_story_selection import create_career_story_selection_router
     app.include_router(create_career_story_selection_router(store))
+    from apps.api.cover_letter_preview import create_cover_letter_preview_router
+    app.include_router(create_cover_letter_preview_router(store))
     from apps.api.interview_preparation import create_interview_preparation_router
     app.include_router(create_interview_preparation_router(store))
     from apps.api.role_lenses import create_role_lenses_router
@@ -724,12 +720,6 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_transient_retention_router(store=store))
     from apps.api.operation_progress import create_operation_progress_router
     app.include_router(create_operation_progress_router(store))
-    app.state.resume_extraction_events = {}
-    app.state.resume_extraction_lock = threading.Lock()
-    app.state.uploaded_comparison_events = {}
-    app.state.uploaded_comparison_lock = threading.Lock()
-    app.state.ai_evaluation_events = {}
-    app.state.ai_evaluation_lock = threading.Lock()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
     app.add_middleware(LocalOriginMiddleware)
 
@@ -1020,148 +1010,62 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 else 422)
             raise HTTPException(status, {"code": code}) from None
 
-    @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate")
-    async def evaluate_ai_cost_plan(profile_id: str, request: Request,
-                                   value: AIEvaluationRequest | None = None):
-        configured_policy = store.ai_cost_policy(profile_id)
-        policy = AICostPolicy(**configured_policy) if configured_policy else AICostPolicy()
-        configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
-        if configuration.for_task("job_scoring").provider == "disabled":
-            raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"})
-        task_selection = configuration.for_task("job_scoring")
-        rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1)
-        if len(rows) > policy.max_input_candidates:
-            raise HTTPException(422, {"code": "AI_FUNNEL_INPUT_LIMIT"})
-        profile_version = store.profile(profile_id)["version"]
-        router = AITaskRouter(configuration)
-        candidates = [AIJobInput(
-            job_id=row["id"], deterministic_score=int(float(row["match_score"])),
-            title=row["title"], company=row["company"], description=row["description"],
-        ) for row in rows if row.get("match_score") is not None]
-        candidate_by_id = {candidate.job_id: candidate for candidate in candidates}
-        request_id = value.request_id if value else uuid4().hex
-        cancel_key = (profile_id, request_id)
-        cancelled = threading.Event()
-        with app.state.ai_evaluation_lock:
-            if cancel_key in app.state.ai_evaluation_events:
-                raise HTTPException(409, {"code": "AI_EVALUATION_REQUEST_ACTIVE"})
-            try:
-                operation_id = admit_inline(store, "AI_EVALUATE", profile_id)
-            except OperationConcurrencyLimit:
-                raise HTTPException(429, {"code": "AI_CONCURRENCY_LIMIT"}) from None
-            app.state.ai_evaluation_events[cancel_key] = cancelled
-
-        def check_cancelled():
-            if cancelled.is_set() or inline_cancel_requested(store, operation_id):
-                cancelled.set()
-                raise AIConsumerCancelledError()
-
-        work = asyncio.create_task(asyncio.to_thread(
-            consume_ai_candidates, candidates, policy, router,
-            check=check_cancelled, cancellation_event=cancelled,
-        ))
-
-        def forget_finished_evaluation(_work):
-            if (_work.cancelled() or cancelled.is_set()
-                    or inline_cancel_requested(store, operation_id)):
-                state, error = "CANCELLED", "CANCEL_REQUESTED"
-            else:
-                try:
-                    work_error = _work.exception()
-                except BaseException:
-                    work_error = RuntimeError()
-                if isinstance(work_error, AIConsumerTimeoutError) or (
-                        isinstance(work_error, AIProviderError)
-                        and work_error.code == "AI_PROVIDER_TIMEOUT"):
-                    state, error = "FAILED", work_error.code
-                else:
-                    state, error = (("FAILED", "AI_EVALUATION_FAILED") if work_error
-                                    else ("COMPLETED", None))
-            finish_inline(store, operation_id, state, error)
-            with app.state.ai_evaluation_lock:
-                if app.state.ai_evaluation_events.get(cancel_key) is cancelled:
-                    app.state.ai_evaluation_events.pop(cancel_key, None)
-
-        work.add_done_callback(forget_finished_evaluation)
+    @app.post('/profiles/{profile_id}/ai-cost-plan/evaluate/queued', status_code=202)
+    def queue_ai_cost_evaluation(profile_id: str, value: AIEvaluationRequest):
+        from services.ai.durable_evaluation import queue_evaluation, DurableEvaluationError
         try:
-            next_cancel_poll = monotonic()
-            while not work.done():
-                if await request.is_disconnected():
-                    cancelled.set()
-                    try:
-                        await work
-                    except AIConsumerCancelledError:
-                        pass
-                    return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
-                if monotonic() >= next_cancel_poll:
-                    if inline_cancel_requested(store, operation_id):
-                        cancelled.set()
-                    next_cancel_poll = monotonic() + 0.25
-                await asyncio.sleep(0.05)
-            result = await work
-            if cancelled.is_set():
-                return {"cancelled": True, "request_id": request_id}
-            if await request.is_disconnected():
-                return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
-        except AIConsumerCancelledError:
-            if not await request.is_disconnected():
-                return {"cancelled": True, "request_id": request_id}
-            return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
-        except AIConsumerTimeoutError as error:
-            raise HTTPException(504, {"code": error.code}) from None
-        except StructuredOutputError as error:
-            raise HTTPException(502, {"code": error.code}) from None
-        except ValueError as error:
-            raise HTTPException(422, {"code": str(error)}) from None
-        except AIProviderDisabled:
-            raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"}) from None
-        except AIProviderError as error:
-            status = 504 if error.code == "AI_PROVIDER_TIMEOUT" else 502
-            raise HTTPException(status, {"code": error.code}) from None
-        except asyncio.CancelledError:
-            cancelled.set()
-            try:
-                await asyncio.shield(work)
-            except BaseException:
-                pass
-            raise
+            return queue_evaluation(store, profile_id, value.request_id)
+        except DurableEvaluationError as error:
+            status_code = 409 if error.code in ('AI_PROVIDER_DISABLED', 'AI_EVALUATION_IDENTITY_CONFLICT') else 422
+            raise HTTPException(status_code, {'code': error.code}) from None
+
+    @app.get('/profiles/{profile_id}/ai-cost-plan/operations/{operation_id}')
+    def ai_cost_evaluation_status(profile_id: str, operation_id: str):
+        from services.ai.durable_evaluation import read_evaluation, DurableEvaluationError
         try:
-            run = store.save_ai_evaluation_run(profile_id, profile_version, asdict(policy),
-                                               task_selection.provider, task_selection.model, [{
-                "job_id": job_id,
-                "title": candidate_by_id[job_id].title,
-                "company": candidate_by_id[job_id].company,
-                "deterministic_score": candidate_by_id[job_id].deterministic_score,
-                "category": evaluation.category,
-                "rationale": evaluation.rationale,
-            } for job_id, evaluation in result.evaluations])
-        except ValueError as error:
-            if str(error) == "AI_EVALUATION_PROFILE_CHANGED":
-                raise HTTPException(409, {"code": str(error)}) from None
-            raise HTTPException(422, {"code": str(error)}) from None
-        return {
-            "profile_id": profile_id,
-            **run,
-            "evaluated_candidate_count": len(result.evaluations),
-            "evaluations": [{
-                "job_id": job_id, "title": candidate_by_id[job_id].title,
-                "company": candidate_by_id[job_id].company,
-                "deterministic_score": candidate_by_id[job_id].deterministic_score,
-                "category": evaluation.category,
-                "rationale": evaluation.rationale,
-            } for job_id, evaluation in result.evaluations],
-            "document_candidate_ids": list(result.document_candidate_ids),
-            "documents_created": 0,
-            "deterministic_matches_unchanged": True,
-        }
+            return read_evaluation(store, profile_id, operation_id)
+        except DurableEvaluationError as error:
+            raise HTTPException(404, {'code': error.code}) from None
+
+    @app.get('/profiles/{profile_id}/ai-cost-plan/operations')
+    def ai_cost_evaluation_operations(profile_id: str):
+        from services.ai.durable_evaluation import KIND, status
+        store.profile(profile_id)
+        with store.engine.connect() as connection:
+            rows = connection.execute(select(m.operations).where(
+                m.operations.c.kind == KIND, m.operations.c.entity_id == profile_id,
+            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc()).limit(50)).mappings()
+            return {'profile_id': profile_id, 'operations': [status(row) for row in rows]}
+
+    @app.post('/profiles/{profile_id}/ai-cost-plan/operations/{operation_id}/cancel')
+    def cancel_queued_ai_cost_evaluation(profile_id: str, operation_id: str):
+        from services.ai.durable_evaluation import owned_operation, status, DurableEvaluationError
+        from workers.operations import request_cancel
+        try:
+            owned_operation(store, profile_id, operation_id)
+            return status(request_cancel(store, operation_id))
+        except DurableEvaluationError as error:
+            raise HTTPException(404, {'code': error.code}) from None
+
+    @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate", status_code=202)
+    def evaluate_ai_cost_plan(profile_id: str, value: AIEvaluationRequest | None = None):
+        # Preserve the original action URL while moving its contract to durable
+        # admission. Clients follow the returned operation ID instead of holding
+        # an inference request open. No provider executes in the API process.
+        return queue_ai_cost_evaluation(profile_id, value or AIEvaluationRequest(request_id=uuid4().hex))
 
     @app.post("/profiles/{profile_id}/ai-cost-plan/evaluations/{request_id}/cancel")
     def cancel_ai_cost_evaluation(profile_id: str, request_id: str):
-        with app.state.ai_evaluation_lock:
-            cancelled = app.state.ai_evaluation_events.get((profile_id, request_id))
-            if cancelled is not None:
-                cancelled.set()
-        return {"cancelled": cancelled is not None}
+        from services.ai.durable_evaluation import KIND, owned_operation, DurableEvaluationError
+        from workers.operations import request_cancel
+        operation_id = identity(KIND, profile_id, request_id)
+        try:
+            owned_operation(store, profile_id, operation_id)
+        except DurableEvaluationError:
+            return {'cancelled': False}
+        row = request_cancel(store, operation_id)
+        return {'cancelled': row['cancel_requested'], 'operation_id': operation_id, 'state': row['state']}
+
     @app.put("/profiles")
     def profile(value: ProfileInput):
         payload = value.model_dump()
@@ -1243,62 +1147,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return Response(data, media_type="application/octet-stream", headers={
             "Content-Disposition": f'attachment; filename="base-resume-{record["id"][:12]}.{record["format"]}"'})
 
-    @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract')
-    async def profile_resume_extract(profile_id: str, resume_id: str, request: Request):
-        try:
-            record, data = read_resume(store, output_dir, profile_id, resume_id)
-        except UploadIntegrityError as exc:
-            raise HTTPException(409, str(exc)) from exc
-        try:
-            operation_id = admit_inline(store, "RESUME_EXTRACT", resume_id)
-        except OperationConcurrencyLimit:
-            raise HTTPException(429, {"code": "DOCUMENT_CONCURRENCY_LIMIT"}) from None
-        cancelled = threading.Event()
-        key = (profile_id, resume_id)
-        with app.state.resume_extraction_lock:
-            app.state.resume_extraction_events.setdefault(key, set()).add(cancelled)
-        work = asyncio.create_task(asyncio.to_thread(
-            extract_resume, data, record['format'],
-            f"uploaded-resume:{record['id']}:sha256:{record['sha256']}", cancelled))
-        try:
-            client_disconnected = False
-            while not work.done():
-                if await request.is_disconnected():
-                    client_disconnected = True
-                    cancelled.set()
-                if inline_cancel_requested(store, operation_id):
-                    cancelled.set()
-                if cancelled.is_set():
-                    break
-                await asyncio.sleep(0.05)
-            result = await work
-            if (client_disconnected or cancelled.is_set()
-                    or inline_cancel_requested(store, operation_id)):
-                finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
-                return JSONResponse({"detail": "Resume extraction cancelled."}, status_code=499)
-            finish_inline(store, operation_id, "COMPLETED")
-            return result
-        except ResumeExtractionCancelled:
-            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
-            return JSONResponse({"detail": "Resume extraction cancelled."}, status_code=499)
-        except asyncio.CancelledError:
-            cancelled.set()
-            try:
-                await asyncio.shield(work)
-            except BaseException:
-                pass
-            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
-            raise
-        except Exception:
-            finish_inline(store, operation_id, "FAILED", "RESUME_EXTRACTION_FAILED")
-            raise
-        finally:
-            with app.state.resume_extraction_lock:
-                events = app.state.resume_extraction_events.get(key)
-                if events is not None:
-                    events.discard(cancelled)
-                    if not events:
-                        app.state.resume_extraction_events.pop(key, None)
+    @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract', status_code=202)
+    def profile_resume_extract(profile_id: str, resume_id: str, value: ResumeExtractionQueueInput | None = None):
+        # Original clients now receive durable admission, never parser work bound
+        # to the request lifetime. Explicit intent IDs make lost replies replayable.
+        return profile_resume_extract_queued(profile_id, resume_id,
+            value or ResumeExtractionQueueInput(request_id=uuid4().hex))
 
     @app.post('/profiles/{profile_id}/resumes/{resume_id}/extract/queued', status_code=202)
     def profile_resume_extract_queued(profile_id: str, resume_id: str, value: ResumeExtractionQueueInput):
@@ -1348,11 +1202,6 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 continue
             result = request_cancel(store, operation["id"])
             durable_cancelled = durable_cancelled or bool(result.get("cancel_requested"))
-        if durable_cancelled:
-            with app.state.resume_extraction_lock:
-                events = tuple(app.state.resume_extraction_events.get((profile_id, resume_id), ()))
-            for cancelled in events:
-                cancelled.set()
         return {"cancelled": durable_cancelled}
 
     @app.post("/discovery", status_code=202)
@@ -1907,6 +1756,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         result = store.job(job_id, profile_id)
         result["routes"] = load_job_routes(store, job_id, profile_id)
         result['alignment_fingerprint'] = target_fingerprint(result)
+        from services.documents.cover_letter_preview import cover_letter_preview_fingerprint
+        result["cover_letter_preview_fingerprint"] = cover_letter_preview_fingerprint(result)
         if profile_id:
             from services.tracking.jobs import read_job_tracking
             result["tracking"] = read_job_tracking(store, profile_id, job_id)
@@ -2261,70 +2112,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             comparison_error(error)
 
     @app.get('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison')
-    async def uploaded_resume_comparison(profile_id: str, application_id: str, base_revision_id: str,
-                                         tailored_document_id: str, request: Request):
-        from services.documents.uploaded_comparison import compare_uploaded_resume
-        from services.documents.comparison import ComparisonUnavailable
-        if store.application(application_id)["profile_id"] != profile_id:
-            raise NoResultFound("Application is not owned by this profile")
-        entity_id = _uploaded_comparison_entity_id(
-            profile_id, application_id, base_revision_id, tailored_document_id)
-        try:
-            operation_id = admit_inline(store, "UPLOADED_RESUME_COMPARE", entity_id)
-        except OperationConcurrencyLimit:
-            raise HTTPException(429, {"code": "DOCUMENT_CONCURRENCY_LIMIT"}) from None
-        cancelled = threading.Event()
-        key = (profile_id, application_id, base_revision_id, tailored_document_id)
-        with app.state.uploaded_comparison_lock:
-            app.state.uploaded_comparison_events.setdefault(key, set()).add(cancelled)
-        work = asyncio.create_task(asyncio.to_thread(
-            compare_uploaded_resume, store, output_dir, application_id, base_revision_id,
-            tailored_document_id, cancelled))
-        try:
-            while not work.done():
-                if not cancelled.is_set() and await request.is_disconnected():
-                    cancellation = request_cancel(store, operation_id)
-                    if cancellation.get("cancel_requested"):
-                        cancelled.set()
-                if inline_cancel_requested(store, operation_id):
-                    cancelled.set()
-                await asyncio.sleep(0.05)
-            result = await work
-            if cancelled.is_set():
-                finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
-                return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
-            finish_inline(store, operation_id, "COMPLETED")
-            with store.engine.connect() as connection:
-                state = connection.execute(select(m.operations.c.state).where(
-                    m.operations.c.id == operation_id)).scalar_one_or_none()
-            if state == "CANCELLED":
-                return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
-            return result
-        except ResumeExtractionCancelled:
-            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
-            return JSONResponse({"detail": "Uploaded resume comparison cancelled."}, status_code=499)
-        except ComparisonUnavailable as error:
-            finish_inline(store, operation_id, "FAILED", "COMPARISON_UNAVAILABLE")
-            raise HTTPException(409,str(error)) from error
-        except asyncio.CancelledError:
-            cancelled.set()
-            request_cancel(store, operation_id)
-            try:
-                await asyncio.shield(work)
-            except BaseException:
-                pass
-            finish_inline(store, operation_id, "CANCELLED", "CANCEL_REQUESTED")
-            raise
-        except Exception:
-            finish_inline(store, operation_id, "FAILED", "UPLOADED_COMPARISON_FAILED")
-            raise
-        finally:
-            with app.state.uploaded_comparison_lock:
-                events = app.state.uploaded_comparison_events.get(key)
-                if events is not None:
-                    events.discard(cancelled)
-                    if not events:
-                        app.state.uploaded_comparison_events.pop(key, None)
+    def uploaded_resume_comparison(profile_id: str, application_id: str, base_revision_id: str,
+                                   tailored_document_id: str, operation_id: str | None = None):
+        # GET is a read: admission is exclusively POST /operations. Reuse the
+        # same immutable-input and ownership validation as the durable UI path.
+        return read_uploaded_comparison(profile_id, application_id, base_revision_id,
+                                        tailored_document_id, operation_id)
 
     @app.post('/profiles/{profile_id}/applications/{application_id}/uploaded-resume-comparison/cancel')
     def cancel_uploaded_resume_comparison(profile_id: str, application_id: str,
@@ -2337,9 +2130,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             active_operations = list(connection.execute(select(
                 m.operations.c.id, m.operations.c.cancel_requested,
             ).where(
-                m.operations.c.kind == "UPLOADED_RESUME_COMPARE",
-                m.operations.c.entity_id == entity_id,
-                m.operations.c.state == "RUNNING",
+                m.operations.c.state.in_(("QUEUED", "RUNNING", "RETRY_WAIT")),
+                ((m.operations.c.kind == "UPLOADED_RESUME_COMPARE") &
+                 (m.operations.c.entity_id == entity_id)) |
+                ((m.operations.c.kind == "UPLOADED_RESUME_COMPARE_QUEUED") &
+                 (m.operations.c.entity_id == application_id) &
+                 (m.operations.c.params['profile_id'].as_string() == profile_id) &
+                 (m.operations.c.params['base_revision_id'].as_string() == base_revision_id) &
+                 (m.operations.c.params['tailored_document_id'].as_string() == tailored_document_id)),
             )).mappings())
         durable_cancelled = False
         for operation in active_operations:
@@ -2348,12 +2146,6 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             else:
                 result = request_cancel(store, operation["id"])
                 durable_cancelled = durable_cancelled or bool(result.get("cancel_requested"))
-        key = (profile_id, application_id, base_revision_id, tailored_document_id)
-        with app.state.uploaded_comparison_lock:
-            events = tuple(app.state.uploaded_comparison_events.get(key, ()))
-        if durable_cancelled:
-            for cancelled in events:
-                cancelled.set()
         return {"cancelled": durable_cancelled}
 
     def serve_document(document, format):
@@ -2457,7 +2249,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 statement = statement.where((m.operations.c.entity_id == profile_id)
                     | m.operations.c.entity_id.in_(app_ids)
                     | m.operations.c.entity_id.in_(resume_ids))
-            return {"operations": [operation_public_record(row) for row in connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings()]}
+            recent = list(connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings())
+            # Recovery must remain reachable even after unrelated history grows.
+            # Reuse the same profile fence and public serializer for held rows.
+            held = connection.execute(statement.where(m.operations.c.kind == 'MANUAL_AUTH',
+                (m.operations.c.state == 'RUNNING') | ((m.operations.c.state == 'BLOCKED')
+                & (m.operations.c.error == 'BROWSER_RELEASE_UNCONFIRMED'))).order_by(
+                    m.operations.c.updated_at.desc())).mappings()
+            seen = {row['id'] for row in recent}
+            recent.extend(row for row in held if row['id'] not in seen)
+            return {"operations": [operation_public_record(row) for row in recent]}
 
     @app.get("/operations/dead-letter-queue")
     def dead_letter_queue(profile_id: str | None = None):

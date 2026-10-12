@@ -95,8 +95,8 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     expect(page.get_by_text("External submission OFF", exact=True)).to_be_visible()
 
                     page.get_by_role("button", name="Capture a job", exact=True).first.click()
-                    page.get_by_label("Job title", exact=True).fill("Systems Administrator")
-                    page.get_by_label("Company", exact=True).fill("Example Infrastructure")
+                    page.get_by_role("textbox", name="Job title", exact=True).fill("Systems Administrator")
+                    page.get_by_role("textbox", name="Company", exact=True).fill("Example Infrastructure")
                     page.get_by_label("Job description", exact=True).fill(
                         "Responsibilities:\nMaintain Windows Server and Active Directory with Python automation.\nSupport Windows Server deployments.\nTroubleshoot Active Directory access.\nMonitor Windows Server tools.\nCCNA. Security+ required. AZ-104 preferred. ITIL is a bonus.\nUnknown field: preserve verbatim.")
                     page.get_by_label("Location", exact=True).fill("Tulsa, OK")
@@ -109,10 +109,20 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     with page.expect_response(
                         lambda response: response.url == origin + "/jobs/manual"
                         and response.request.method == "POST"
+                    ) as rejected_fields:
+                        page.get_by_role("button", name="Save captured job", exact=True).click()
+                    self.assertEqual(rejected_fields.value.status, 422)
+                    self.assertIn("bounded scalar", rejected_fields.value.text())
+                    self.assertEqual(store.jobs(), [])
+                    page.get_by_label("Other source fields (JSON)", exact=False).fill(
+                        '{"original_level":"unspecified","custom":true}')
+                    with page.expect_response(
+                        lambda response: response.url == origin + "/jobs/manual"
+                        and response.request.method == "POST"
                     ) as captured:
                         page.get_by_role("button", name="Save captured job", exact=True).click()
                     first_response = captured.value
-                    self.assertEqual(first_response.status, 201)
+                    self.assertEqual(first_response.status, 201, first_response.text())
                     first = first_response.json()
                     first_id = first["job"]["id"]
                     request_payload = first_response.request.post_data_json
@@ -152,7 +162,7 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                                      ["UNKNOWN", "UNKNOWN", "UNKNOWN"])
                     raw = store.job(first_id)["postings"][0]["raw"]
                     self.assertEqual(raw["submitted_fields"]["source_details"],
-                                     {"original_level": "unspecified", "custom": {"keep": True}})
+                                     {"original_level": "unspecified", "custom": True})
                     self.assertEqual(raw["submitted_fields"]["reference_url"], private_reference_url)
 
                     retry = context.request.post(origin + "/jobs/manual", data=request_payload)
@@ -274,8 +284,8 @@ class ManualJobCaptureBrowserTests(unittest.TestCase):
                     fail_next_rescore[0] = True
                     page.get_by_role("navigation", name="Main navigation").get_by_role("button").first.click()
                     page.get_by_role("button", name="Capture a job", exact=True).click()
-                    page.get_by_label("Job title", exact=True).fill("Second systems role")
-                    page.get_by_label("Company", exact=True).fill("Other Infrastructure")
+                    page.get_by_role("textbox", name="Job title", exact=True).fill("Second systems role")
+                    page.get_by_role("textbox", name="Company", exact=True).fill("Other Infrastructure")
                     page.get_by_label("Job description", exact=True).fill("Maintain Active Directory.")
                     page.get_by_label("Job reference URL", exact=True).fill("https://jobs.example.invalid/role/99")
                     page.get_by_label("Application URL", exact=True).fill("https://apply.example.invalid/role/99")

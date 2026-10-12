@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "issue": 532,
+  "base_revision": "2b76919862bfe72db550a44d8fe5bd90f10bcf29",
+  "utc": "2026-10-12T10:38:49.582506+00:00",
+  "browser_test_blob": "5b4b338886580eadd28bc79ccac9f74e791a66ed",
+  "classification": "Async browser oracle race; final Unwatch click did not await durable write before independent audit read. No product event loss demonstrated.",
+  "regression": "Exact final PUT is held before API; disabled pending control asserted, then released and refreshed enabled Watch control required. Exact four new events, reload persistence, profile isolation, private-value omission and no external traffic assertions preserved.",
+  "local": {
+    "red": "Ignored held-write diagnostic omitting release/readback wait reproduces AssertionError 3 != 4. Diagnostic requires precisely this failure.",
+    "green": "python -m pytest -q tests/browser/test_audit_history.py --junitxml=outputs/ci/root-audit-delayed-final.xml: 1 passed",
+    "other": [
+      "catalogue PASS",
+      "progress validate PASS",
+      "progress_dashboard --check CURRENT",
+      "git diff --check PASS"
+    ]
+  },
+  "hosted_baseline": {
+    "revision": "2b76919862bfe72db550a44d8fe5bd90f10bcf29",
+    "browser_run": 38236321228,
+    "result": "1 failed, 212 passed, 5 skipped, 15 passing subtests",
+    "failure_job": 114767785241,
+    "connected_run": 38236326869,
+    "connected_result": "PASS"
+  },
+  "secret_findings": {
+    "job": 114767226929,
+    "classification": "Three generic-api-key matches at existing evidence lines 9,10,13 independently matched to public Git blobs on exact merge revision. Only exact merge commit/path/rule/line fingerprints added; no rule or directory suppression."
+  },
+  "limits": [
+    "Current candidate hosted checks NOT_RUN at evidence creation",
+    "Full final-main browser gate remains required",
+    "Independent release gate on base FAIL:96 unmet and26 open high findings; no acceptance promotion",
+    "Real external submissions OFF"
+  ]
+}

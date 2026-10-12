@@ -65,6 +65,18 @@ def _has_saved_search_scheduler(search_profile):
     return isinstance(criteria, dict) and "scheduler" in criteria
 
 
+def _bound_source_error(store, source):
+    from services.company_discovery.ats_enrollment import bound_company_source
+    from services.company_discovery.public_client import PublicFetchError
+    from services.discovery.sources.errors import SourceError
+    try:
+        with store.engine.connect() as connection:
+            bound_company_source(store, connection, source)
+    except (SourceError, PublicFetchError) as failure:
+        return str(failure)
+    return None
+
+
 def schedule_due_search_profiles(store, at=None):
     """Enqueue due saved-search discovery without performing provider I/O."""
     at = at or datetime.now(timezone.utc)
@@ -112,6 +124,10 @@ def schedule_due_search_profiles(store, at=None):
                     skipped.append({"source_id": source_id,
                                     "search_profile_id": search_profile["id"],
                                     "reason": "SOURCE_DISABLED_OR_UNKNOWN"})
+                    continue
+                if reason := _bound_source_error(store, source):
+                    skipped.append({'source_id': source_id, 'search_profile_id': search_profile['id'],
+                                    'reason': reason})
                     continue
                 previous = last_enqueued.get((search_profile["id"], source_id))
                 due_at = previous + timedelta(seconds=interval) if previous else datetime.min.replace(tzinfo=timezone.utc)
@@ -180,6 +196,9 @@ def schedule_due_sources(store, at=None):
     scheduled = []
     skipped = []
     for source in sources:
+        if reason := _bound_source_error(store, source):
+            skipped.append({'source_id': source['id'], 'reason': reason})
+            continue
         eligible = [
             row for row in profiles
             if not row["source_ids"] or source["id"] in row["source_ids"]

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "issue": 532,
+  "base_revision": "c51f7d5e0bcc3e9fd6332e71ecf28f0e0d3f8934",
+  "utc": "2026-10-12T10:08:12.189730+00:00",
+  "source_git_blobs": {
+    "apps/api/main.py": "8ed1cb7d349d4a8f0a7ed55379e78a994ef4c0c7",
+    "apps/web/src/main.tsx": "78107fcce865d938a7687e3bcdd4e3ae21c8e8aa",
+    "apps/web/src/api.ts": "5e04110289434d70e459a8b09c37a8088684ee09",
+    "apps/web/src/api.test.ts": "2cabdc3f695449d291f86bf718d7548ffdd5b078",
+    "apps/web/src/cover-letter-review-preview.tsx": "fd3feb4539d6979b7f0986014f105fca474fd342",
+    "apps/web/src/cover-letter-review-preview.test.tsx": "9113ab0948e0aa06d026bef1ff7b761738b28dde",
+    "tests/integration/test_cover_letter_preview_api.py": "bf3d90912d492595307ac29d1d0faadd31216595",
+    "tests/browser/test_audit_history.py": "72b149b73b31757961a5a381fef1dc6d0609aaf9",
+    "tests/browser/test_company_preferences_connected.py": "f8f90421639f335e495f993ca9a7e9e3191126ed",
+    "tests/browser/test_company_tracking.py": "7f454c4f6194f574486d66d757d3c89474a92120",
+    "tests/browser/test_interview_preparation.py": "3357b1de72c9089b41b49a2b82cbb80cf19238ce",
+    "tests/browser/test_relevant_experience_match_explanation.py": "373d6bb4f7a0fb3740337f5834afb51422aa6f37",
+    "tests/browser/test_cover_letter_preview.py": "a544286280e37c06b674367139d72ff739bfa9ae",
+    "tests/browser/test_source_candidates.py": "f8574c2f1e62cab2da98609a0af851a7efb80b81",
+    "tests/browser/test_source_candidate_review_panel_connected.py": "f9cc3c6d8383b3bc8b9f595eba3a87d23b7d1551"
+  },
+  "behavior": "Saved-profile/job-scoped cover-letter preview mounted through the real API; canonical profile and company-context fingerprints, supported option mapping, approved fact provenance, stale conflict recovery, no persisted document/application/submission writes.",
+  "classification": {
+    "product_defects": [
+      "Preview component absent from job details",
+      "Preview router absent from create_app",
+      "Obsolete integer profile versions",
+      "Dedicated preview fingerprint absent from job response",
+      "UI length vocabulary mismatched to API",
+      "Case-variant JSON header duplication",
+      "HTTP conflict status lost by shared API helper"
+    ],
+    "stale_contracts": [
+      "Search pause/resume labels",
+      "Exact company preference region",
+      "Relevant experience copy",
+      "Jobs navigation includes count",
+      "Source integration task uses optional user-reported issue"
+    ],
+    "synchronization": [
+      "Wait for company-read route interception",
+      "Await interview article DOM commit",
+      "Recognize exact observed rehearsal GET409 unread-body abort on navigation"
+    ]
+  },
+  "verification": [
+    {
+      "command": "python -m pytest -q tests/integration/test_cover_letter_preview_api.py tests/browser/test_audit_history.py tests/browser/test_company_preferences_connected.py tests/browser/test_company_tracking.py tests/browser/test_interview_preparation.py tests/browser/test_relevant_experience_match_explanation.py tests/browser/test_cover_letter_preview.py tests/browser/test_source_candidates.py tests/browser/test_source_candidate_review_panel_connected.py tests/unit/test_cover_letter_preview.py -o faulthandler_timeout=60",
+      "result": "PASS",
+      "tests": 21,
+      "subtests": 2,
+      "environment": "Windows local synthetic SQLite, Chromium, built production web; localhost only"
+    },
+    {
+      "command": "npm --prefix apps/web run test -- --run src/cover-letter-review-preview.test.tsx src/api.test.ts",
+      "result": "PASS",
+      "tests": 15
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "regressions": [
+    "Before mounting, browser preview region missing; after UI mount, real POST405 established absent router",
+    "Opaque-version unit oracle failed3tests against old integer client, then passed",
+    "Connected request exposed header/body422 and subsequently passed through actual app",
+    "Profile/job stale409 and reload recovery, no write/external request assertions preserved"
+  ],
+  "diagnostic_boundary": "One combined local run was stopped after response.finished() waited unbounded on an unread HTTP409 body. Only the verified owned pytest process tree was stopped. Replaced with bounded visible-error observation and narrowly checked exact request cancellation; final full selected run passed.",
+  "review": "Local Luna source review found no material correctness/privacy regression or acceptance weakening; not human or hosted certification.",
+  "hosted_checks": "NOT_RUN for this uncommitted candidate; required exact-revision checks and all four final-main browser shards remain independent.",
+  "release_acceptance": "PARTIAL; no parent issue/matrix promotion; latest independent gate remains FAIL with unmet requirements and open high findings.",
+  "external_submission_enabled": false
+}

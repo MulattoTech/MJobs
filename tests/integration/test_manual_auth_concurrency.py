@@ -1,5 +1,6 @@
 """Manual windows share durable browser admission with API peers and workers."""
 from concurrent.futures import ThreadPoolExecutor
+from functools import wraps
 import os
 import threading
 from unittest.mock import patch
@@ -15,6 +16,24 @@ from tests.integration.test_manual_auth_session import ManualAuthSessionApiTests
 from workers.dispatch import enqueue_operation
 from workers.operations import OperationCancelled, admit_inline, claim, finish_inline, recover_expired, request_cancel
 from workers.operations import record_manual_auth_process
+
+
+def legacy_browser_adapter(test):
+    """Exercise legacy Playwright mocks without entering the native child host.
+
+    Mounted native admission/closure is covered by test_manual_auth_isolated.
+    These tests retain the supported non-Windows adapter's cleanup assertions.
+    """
+    @wraps(test)
+    def run(self):
+        from services.applications.mock_adapter import open_mock_authentication
+        def legacy(**kwargs):
+            for key in ('operation_id', 'owner_token', 'budget_seconds'):
+                kwargs.pop(key, None)
+            return open_mock_authentication(**kwargs)
+        with patch('apps.api.manual_auth.open_mock_authentication', side_effect=legacy):
+            return test(self)
+    return run
 
 
 class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
@@ -349,6 +368,7 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             launch.assert_not_called()
         self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
 
+    @legacy_browser_adapter
     def test_browser_and_transport_cleanup_failure_cannot_release_capacity(self):
         with patch("services.applications.browser_process.capture_browser_identity", return_value={
                 "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
@@ -369,6 +389,7 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             row = connection.execute(select(m.operations).where(m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
         self.assertEqual((row["state"], row["error"]), ("BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"))
 
+    @legacy_browser_adapter
     def test_live_page_wait_error_is_unavailable_after_cleanup_not_successful_close(self):
         from playwright.sync_api import Error
         events = []
@@ -397,6 +418,7 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
         self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
         self.assertEqual(self.store.count("application_attempts"), 1)
 
+    @legacy_browser_adapter
     def test_closed_page_with_failed_cleanup_stays_blocked_before_driver_exit(self):
         from playwright.sync_api import Error
         events = []
@@ -430,6 +452,7 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             self.assertEqual(self.client.post(self.url).status_code, 409)
             launch.assert_not_called()
 
+    @legacy_browser_adapter
     def test_real_helper_cancel_check_cleans_context_before_driver_exit_and_release(self):
         events = []
 
@@ -465,6 +488,7 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
         self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
         self.assertEqual(self.store.count("application_attempts"), 1)
 
+    @legacy_browser_adapter
     def test_launch_failure_without_context_retains_capacity_and_blocks_retry(self):
         with patch("services.applications.browser_process.capture_browser_identity", return_value={
                 "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
@@ -485,6 +509,7 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
         self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
         self.assertEqual(self.store.count("application_attempts"), 1)
 
+    @legacy_browser_adapter
     def test_failure_before_launch_releases_capacity_for_explicit_retry(self):
         with patch("services.applications.browser_process.capture_browser_identity", return_value={
                 "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \

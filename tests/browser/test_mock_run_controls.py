@@ -156,6 +156,7 @@ class MockRunControlsBrowserTests(MockRunBrowserHarness):
         self.assertEqual(len(self.posts),1, "Reload sent another POST")
         first=committed[0]["operation_id"]
         self.run_worker(first)
+        expect(self.page.get_by_role("status",name="Application state",exact=True)).to_have_text("DRY_RUN_COMPLETE")
         self.assertEqual(self.counts(),{"review":1,"submit":0})
         self.assertEqual(len(read_attempt_history(self.store,"fixture",self.app_id)["attempts"]),1)
         next_button=self.panel.get_by_role("button",name="Start a new reviewed run",exact=True)
@@ -202,6 +203,7 @@ class MockRunControlsBrowserTests(MockRunBrowserHarness):
         self.assertEqual(len(self.posts),1)
         self.run_worker(self.operations()[0]["id"])
         self.assertEqual(self.store.application(self.app_id)["state"],"CONFIRMED")
+        expect(self.page.get_by_role("status",name="Application state",exact=True)).to_have_text("CONFIRMED")
         self.open_application()
         expect(self.panel).to_contain_text("COMPLETED")
         expect(self.panel.get_by_role("button",name="Start a new reviewed run",exact=True)).to_be_disabled()

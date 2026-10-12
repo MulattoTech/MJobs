@@ -1,7 +1,7 @@
 """Connected browser acceptance for scoped multi-job comparison.
 
-The app does not mount a job-comparison workspace yet. Keep this test skipped
-until the selected-job controls and comparison view are present in the built UI.
+Exercises the mounted comparison with current saved scores and explicit structured
+posting evidence. Description prose alone must never become requirement evidence.
 """
 
 from copy import deepcopy
@@ -111,10 +111,7 @@ def _insert_match(connection, *, job_id, profile_id, profile_version, score,
             "matched": [row["skill"] for row in requirements],
             "fit_factors": [], "missing": [], "requirements": requirements,
             "scoring_profile": {
-                "selection": "ROLE_FAMILY", "profile_id": f"{profile_id}-role-profile",
-                "profile_version": scoring_version,
-                "requested_role_family": "Cloud Operations",
-                "selected_role_family": "Cloud Operations",
+                "selection": "LEGACY_DEFAULT",
             },
             "scoring_contributions": score_rows,
         },
@@ -155,7 +152,9 @@ class JobComparisonWorkspaceBrowserTests(unittest.TestCase):
                         id=job_id, company_id="synthetic-comparison-company",
                         requisition=requisition, title=title, description=description,
                         skills=skills, location="Remote", remote_type="REMOTE",
-                        attributes={"fictional": True},
+                        attributes={"fictional": True, "skill_evidence": "structured_requirements",
+                                    "required_skills": skills, "source_type": "SYNTHETIC_POSTING",
+                                    "requirement_source_ref": f"{job_id}:requirements"},
                     ))
                     connection.execute(m.routes.insert().values(
                         id=f"route-{job_id}", job_id=job_id,
@@ -195,6 +194,10 @@ class JobComparisonWorkspaceBrowserTests(unittest.TestCase):
                     ref_prefix="foreign-job", scoring_version="foreign-score-v1",
                 )
 
+            with store.engine.connect() as connection:
+                before = {table.name: [dict(row) for row in connection.execute(select(table)).mappings()]
+                          for table in m.metadata.sorted_tables}
+
             app = create_app(
                 store, "http://127.0.0.1:1", root,
                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE",
@@ -232,6 +235,9 @@ class JobComparisonWorkspaceBrowserTests(unittest.TestCase):
                         )):
                             submission_requests.append((request.method, request.url))
                             route.abort()
+                        elif (request.method == "POST" and
+                              parsed.path == "/profiles/candidate/search-profiles/candidate-search/jobs/compare"):
+                            route.continue_()
                         elif request.method not in {"GET", "HEAD", "OPTIONS"}:
                             blocked_writes.append((request.method, request.url))
                             route.abort()
@@ -254,10 +260,10 @@ class JobComparisonWorkspaceBrowserTests(unittest.TestCase):
                         has_text="Cloud Platform Engineer")).to_be_visible()
 
                     first = page.get_by_role(
-                        "checkbox", name="Compare Cloud Systems Engineer", exact=True,
+                        "checkbox", name="Compare Cloud Systems Engineer at Synthetic Comparison Co.", exact=True,
                     )
                     second = page.get_by_role(
-                        "checkbox", name="Compare Cloud Platform Engineer", exact=True,
+                        "checkbox", name="Compare Cloud Platform Engineer at Synthetic Comparison Co.", exact=True,
                     )
                     first.check()
                     compare = page.get_by_role(
@@ -266,9 +272,13 @@ class JobComparisonWorkspaceBrowserTests(unittest.TestCase):
                     expect(compare).to_be_disabled()
                     second.check()
                     expect(compare).to_be_enabled()
-                    compare.click()
+                    with page.expect_response(lambda response:
+                        response.url.endswith('/candidate-search/jobs/compare') and
+                        response.request.method == 'POST') as comparison_event:
+                        compare.click()
+                    self.assertEqual(comparison_event.value.status, 200, comparison_event.value.text())
 
-                    workspace = page.get_by_role("region", name="Job comparison", exact=True)
+                    workspace = page.get_by_role("region", name="Compare saved job evidence", exact=True)
                     expect(workspace).to_be_visible()
                     expect(workspace).to_contain_text("Cloud Systems Engineer")
                     expect(workspace).to_contain_text("82")
@@ -279,32 +289,34 @@ class JobComparisonWorkspaceBrowserTests(unittest.TestCase):
                     shared = workspace.get_by_role(
                         "region", name="Shared observed requirements", exact=True,
                     )
-                    expect(shared).to_contain_text("Linux")
-                    expect(shared).to_contain_text("shared-job:linux")
+                    expect(shared).to_contain_text("linux")
+                    expect(shared).to_contain_text("shared-job:requirements")
                     specific = workspace.get_by_role(
                         "region", name="Job-specific observed requirements", exact=True,
                     )
-                    expect(specific).to_contain_text("AWS")
-                    expect(specific).to_contain_text("shared-job:aws")
-                    expect(specific).to_contain_text("Kubernetes")
-                    expect(specific).to_contain_text("specific-job:kubernetes")
+                    expect(specific).to_contain_text("aws")
+                    expect(specific).to_contain_text("shared-job:requirements")
+                    expect(specific).to_contain_text("kubernetes")
+                    expect(specific).to_contain_text("specific-job:requirements")
                     expect(workspace).not_to_contain_text("Cloud Stale Engineer")
                     expect(workspace).not_to_contain_text("Cloud Foreign Engineer")
 
                     stale_selection = page.get_by_role(
-                        "checkbox", name="Compare Cloud Stale Engineer", exact=True,
+                        "checkbox", name="Compare Cloud Stale Engineer at Synthetic Comparison Co.", exact=True,
                     )
-                    if stale_selection.count():
-                        expect(stale_selection).to_be_disabled()
+                    expect(stale_selection).to_have_count(0)
                     foreign_selection = page.get_by_role(
-                        "checkbox", name="Compare Cloud Foreign Engineer", exact=True,
+                        "checkbox", name="Compare Cloud Foreign Engineer at Synthetic Comparison Co.", exact=True,
                     )
-                    if foreign_selection.count():
-                        expect(foreign_selection).to_be_disabled()
+                    expect(foreign_selection).to_have_count(0)
 
                     self.assertEqual(blocked_writes, [])
                     self.assertEqual(external_requests, [])
                     self.assertEqual(submission_requests, [])
+                    with store.engine.connect() as connection:
+                        after = {table.name: [dict(row) for row in connection.execute(select(table)).mappings()]
+                                 for table in m.metadata.sorted_tables}
+                    self.assertEqual(after, before)
                     browser.close()
             finally:
                 server.should_exit = True

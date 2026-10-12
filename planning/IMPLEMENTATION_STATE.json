@@ -11,8 +11,8 @@
     "current_verified_github_state": "Live remote main12466a8cc820712b4842af02c9f2d4482102827a and PR543 predecessor9e1f3231 verified; predecessor integration replay/Compose overflow FAIL. Repair publication and exact-head checks tracked in AFK state; original/reference acceptance unchanged.",
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
-  "current_milestone": "DURABLE-UPLOADED-COMPARISON-20261011",
-  "current_objective": "Verify retained native observer closure persistence after creator death (#6/MJ-REQ-005); production private admission bootstrap and explicit recovery remain PARTIAL, with capacity held and no automatic replay.",
+  "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
+  "current_objective": "Verified official Greenhouse discovery through canonical employer import and recurring saved-search collection",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2643,15 +2643,15 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "iteration": 38,
-    "requirement": "MJ-REQ-005",
+    "requirement": "MJ-REQ-155",
+    "issue": 156,
     "result": "PARTIAL",
-    "evidence": "docs/evidence/2026-10-12-manual-auth-admission.json",
-    "hosted": "NOT_RUN pending exact-head publication",
+    "local": "Final55focusedPASS/11subtests;1finalChromiumPASS plus adjacent monitoring ChromiumPASS;6VitestPASS;productionbuildPASS;actual6PGlocalSKIP",
+    "hosted": "NOT_RUN candidate; six actual PostgreSQL cases required including domain/host ordering and foreign-owner contention",
     "remaining": [
-      "True crashed owner needs separately proven browser cleanup before capacity is released",
-      "Busy/retry connected browser journey not yet verified",
-      "Real PostgreSQL admission NOT_RUN locally; guarded tests added for hosted execution"
-    ]
+      "Protected exact-revision hosted integration and selected PostgreSQL acceptance",
+      "Parent pipeline and independent release gate remain incomplete"
+    ],
+    "observed_utc": "2026-10-12T15:19:04.502859+00:00"
   }
 }
