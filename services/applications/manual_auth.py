@@ -95,6 +95,7 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
     client = None
     context = None
     launch_attempted = False
+    close_confirmed = False
     try:
         client = MockClient(mock_origin, check=check)
         if not client.allowed(route["url"]):
@@ -107,42 +108,50 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
 
         # Import lazily so unsupported local runtimes fail closed without
         # preventing the API from serving unrelated application workflows.
-        from playwright.sync_api import sync_playwright
+        from playwright.sync_api import Error as PlaywrightError, sync_playwright
 
         with sync_playwright() as playwright:
             launch_attempted = True
             context = playwright.chromium.launch_persistent_context(
                 str(profile), headless=False, args=["--disable-gpu"], timeout=15000)
-            context.route("**/*", lambda browser_route: (
-                browser_route.continue_()
-                if client.allowed(browser_route.request.url)
-                else browser_route.abort()))
-            page = context.pages[0] if context.pages else context.new_page()
-            page.goto(login_url, wait_until="domcontentloaded", timeout=15000)
-            while not page.is_closed():
-                if check is not None:
-                    check()
-                page.wait_for_timeout(250)
+            try:
+                context.route("**/*", lambda browser_route: (
+                    browser_route.continue_()
+                    if client.allowed(browser_route.request.url)
+                    else browser_route.abort()))
+                page = context.pages[0] if context.pages else context.new_page()
+                page.goto(login_url, wait_until="domcontentloaded", timeout=15000)
+                while not page.is_closed():
+                    if check is not None:
+                        check()
+                    try:
+                        page.wait_for_timeout(250)
+                    except PlaywrightError:
+                        # The user can close the window while the wait is in
+                        # flight. A transport failure with a live page remains
+                        # unavailable; it is not evidence of a user close.
+                        if not page.is_closed():
+                            raise
+                        break
+            finally:
+                # The context needs its live driver even after the page closes.
+                # Cleanup must precede sync_playwright's __exit__ on every path.
+                context.close()
+                close_confirmed = True
         return MANUAL_AUTH_WINDOW_CLOSED
     except Exception:
         # Browser/desktop availability errors can include local profile paths
         # or page URLs; return only a stable, value-free status.
         # A failed launch may have created a process without returning its
         # context. No context handle means we cannot confirm browser closure.
-        if launch_attempted and context is None:
+        if launch_attempted and not close_confirmed:
             return "CLOSE_UNCONFIRMED"
         return OPEN_UNAVAILABLE
     finally:
-        if context is not None:
-            try:
-                context.close()
-            except Exception:
-                # Never release admission when browser cleanup is uncertain.
-                if client is not None:
-                    try:
-                        client.close()
-                    except Exception:
-                        pass
-                return "CLOSE_UNCONFIRMED"
         if client is not None:
-            client.close()
+            try:
+                client.close()
+            except Exception:
+                if launch_attempted and not close_confirmed:
+                    return "CLOSE_UNCONFIRMED"
+                return OPEN_UNAVAILABLE
