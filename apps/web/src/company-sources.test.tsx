@@ -15,6 +15,13 @@ const source = {id:'source-1', company_id:'acme', profile_id:'fixture', profile_
   provenance:{events:[], tenant_evidence:[], source_linked_history_available:false}};
 
 describe('Companies/Sources view', () => {
+  it('distinguishes user-confirmed recurring identity from independent verification', async () => {
+    const html = await render([{...source, collector: {
+      status:'ACTIVE', poll_interval:300, identity_basis:'USER_CONFIRMED_DOMAIN',
+    }}]);
+    expect(html).toContain('User-confirmed employer identity');
+    expect(html).toContain('Not independently verified');
+  });
   it('shows the persisted automatic collector and its paused state', async () => {
     const html = await render([{...source, collector: {status:'PAUSED', poll_interval:900}}]);
     expect(html).toContain('Automatic collection');

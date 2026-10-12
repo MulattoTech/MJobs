@@ -24,6 +24,8 @@ class ReviewedEmployerStandaloneAuthorizationTests(unittest.TestCase):
         with case.store.engine.connect() as connection:
             operation = dict(connection.execute(select(m.operations).where(
                 m.operations.c.id == queued['operation_id'])).mappings().one())
+            authorized = connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == request['id'])).mappings().one()
 
         with patch('services.company_discovery.requests.lock_company_ingestion',
                    side_effect=AssertionError('standalone checks must not acquire ingestion locks')), \
@@ -36,6 +38,12 @@ class ReviewedEmployerStandaloneAuthorizationTests(unittest.TestCase):
         self.assertEqual(result, {
             'company_id': case.company_id,
             'authorization': 'USER_CONFIRMED_DOMAIN',
+            'source_authorization': {
+                'kind': 'USER_CONFIRMED_DOMAIN', 'request_id': request['id'],
+                'revision': request['revision'] + 1, 'operation_id': operation['id'],
+                'website': 'https://employer.example/',
+                'proof_sha256': authorized['domain_evidence'][0]['sha256'],
+            },
         })
 
 

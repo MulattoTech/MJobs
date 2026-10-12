@@ -233,6 +233,7 @@ company_sources = table(
     Column("priority", String(32), nullable=False, server_default="NORMAL"),
     Column("last_validation", String(64)), Column("last_success", String(64)),
     Column("collector_source_id", ForeignKey("job_sources.id")),
+    Column("identity_authorization", JSON),
     constraints=(UniqueConstraint("company_id", "provider", "tenant", "career_url"),),
 )
 company_contexts = table(

@@ -1,0 +1,45 @@
+{
+  "issue": 156,
+  "requirement": "MJ-REQ-155",
+  "status": "PARTIAL",
+  "utc": "2026-10-12T19:09:40.029845+00:00",
+  "base": "603d539f8be50bd9ba3313c00e266222b86e0beb",
+  "behavior": "Actual aggregator employer -> explicit website identity review -> supported Greenhouse enrollment -> immediate normalized/deduplicated jobs -> reload -> recurring collection -> pause/resume",
+  "reproduced": [
+    "Existing reviewed employer worker blocked COMPANY_DOMAIN_REVIEW_REQUIRED",
+    "Changed operation kind reached provider fetch in first recurring validator; corrected tuple validation",
+    "Malformed operation params/candidate raised AttributeError; corrected fail-closed type validation"
+  ],
+  "invariants": [
+    "No verified company_domains promotion; exact request/revision/operation/website/audit proof and source binding digest",
+    "Pre-egress, transactional import and scheduler authority checks; ingestion/domain/source-host/row lock ordering",
+    "Cancelled/revoked/conflicting/changed authority cannot collect; paused source remains paused and resumes explicitly",
+    "Existing source policy/history and original company identity preserved; external submissions OFF"
+  ],
+  "local": {
+    "focused": "44 PASS,13 subtests;14 PostgreSQL opt-in SKIP/NOT_RUN (six new)",
+    "focused_command": "python -m pytest -q tests/integration/test_reviewed_greenhouse_enrollment.py tests/integration/test_reviewed_greenhouse_postgres.py tests/integration/test_reviewed_source_authorization_migration.py tests/integration/test_reviewed_employer_identity_continuity.py tests/integration/test_reviewed_employer_standalone_authorization.py tests/integration/test_greenhouse_autodiscovery.py tests/integration/test_greenhouse_autodiscovery_postgres.py tests/integration/test_company_discovery_requests_migration.py tests/integration/test_migration_graph.py",
+    "adjacent": "57 PASS: company/source locks, workers, queue, public client, queue API, source view, monitoring and public discovery",
+    "chromium": "4 PASS: python -m pytest -q tests/browser/test_greenhouse_autodiscovery.py after production build",
+    "web": "12 Vitest PASS; npm --prefix apps/web run build PASS",
+    "migration": "20261012ai01 ->20261012ca01 upgrade, legacy preservation, empty downgrade/re-upgrade PASS; populated downgrade refuses data loss",
+    "policy": "catalogue/progress/dashboard/public repository policy/diff PASS"
+  },
+  "review": "Local Luna review; operation tuple and malformed-data findings reproduced/fixed; no remaining concrete blocker in bounded recheck; not independent certification",
+  "source_blobs": {
+    "apps/web/src/company-discovery-requests.tsx": "718b413c551847617321e2cc1042ef8ab71b1664",
+    "apps/web/src/company-sources.tsx": "dda3ce1fa71636a707b67cdec1e25ffde0414348",
+    "apps/web/src/company-sources.test.tsx": "8f67827264ba68d5c71a47fff9a3b305e52c3c7d",
+    "packages/persistence/models.py": "5e67b7aa8673ba8c37f8ec4b99044969f013951b",
+    "migrations/versions/20261012ca01_reviewed_source_authorization.py": "2d7726b73d950ba1b75486d8ea6fd6df4558ccee",
+    "services/company_discovery/ats_enrollment.py": "cc481ebce8a3eadd8392f07dc81d6af2c930d471",
+    "services/company_discovery/requests.py": "dfe6cf49998912a0cb91dfd5b979ab4f033cee57",
+    "services/company_discovery/flywheel.py": "7af81fd9d787eb48865437e57def6072a78b5494",
+    "tests/browser/test_greenhouse_autodiscovery.py": "4552e234bb81f2fb189285b068c826a744c377e1",
+    "tests/integration/test_reviewed_greenhouse_enrollment.py": "472ed96152e0ba8742e4578100a4243cb6ae2234",
+    "tests/integration/test_reviewed_greenhouse_postgres.py": "a86a128ab9a2856b97c6cef690699c6c7e3e4e1d",
+    "tests/integration/test_reviewed_source_authorization_migration.py": "bac6705b943e80f3a17e01112461aa7b174354d2",
+    "tests/integration/test_reviewed_employer_standalone_authorization.py": "e3e404e8bb8864a48eac786418c180ebbf52e5f4"
+  },
+  "acceptance_boundary": "Parent156 PARTIAL; exact candidate hosted/actual PostgreSQL NOT_RUN before publication; live provider NOT_RUN; Lever inventory remains unsupported"
+}

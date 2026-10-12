@@ -19,6 +19,7 @@ from services.company_discovery.public_client import PublicCompanyClient
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.sources.greenhouse import Greenhouse
 from tests.integration import test_greenhouse_autodiscovery as contract
+from tests.integration import test_reviewed_greenhouse_enrollment as reviewed_contract
 from workers.tasks import execute_operation
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -35,10 +36,19 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
     def test_official_board_iframe_discovery_reload_and_pause(self):
         self._journey('<iframe src="https://boards.greenhouse.io/embed/job_board?for=example"></iframe>')
 
-    def _journey(self, markup=None):
-        case = contract.GreenhouseAutodiscoveryTests()
+    def test_new_aggregator_employer_review_enrollment_reload_and_pause(self):
+        self._journey(reviewed=True)
+
+    def _journey(self, markup=None, reviewed=False):
+        case = (reviewed_contract.ReviewedGreenhouseEnrollmentTests() if reviewed
+                else contract.GreenhouseAutodiscoveryTests())
         case.setUp()
         self.addCleanup(case.tearDown)
+        if reviewed:
+            request = case.collect()
+            company_name = request['company_name']
+        else:
+            company_name = 'Example Systems'
         if markup is not None:
             case.markup = markup
         app = create_app(case.store, 'http://127.0.0.1:1', case.root / 'outputs',
@@ -73,36 +83,59 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
                     page.goto(origin, wait_until='domcontentloaded')
                     page.locator('#active-profile').select_option('fixture')
                     page.get_by_role('button', name='Sources', exact=True).click()
-                    page.get_by_label('Company name', exact=True).fill('Example Systems')
-                    page.get_by_label('Company website (HTTPS)', exact=True).fill('https://employer.example/')
+                    if reviewed:
+                        review = page.get_by_role('article', name=company_name + ' discovery request', exact=True)
+                        review.get_by_label('Website to review (HTTPS)', exact=True).fill('https://employer.example/')
+                        review.get_by_label('I confirm this website belongs to ' + company_name, exact=True).check()
+                        expect(review).to_contain_text('recurring collection')
+                    else:
+                        page.get_by_label('Company name', exact=True).fill(company_name)
+                        page.get_by_label('Company website (HTTPS)', exact=True).fill('https://employer.example/')
                     with page.expect_response(lambda response: response.request.method == 'POST'
-                                              and response.url.endswith('/companies/discovery')) as admission:
-                        page.get_by_role('button', name='Discover company jobs', exact=True).click()
+                                              and response.url.endswith('/review' if reviewed else '/companies/discovery')) as admission:
+                        if reviewed:
+                            review.get_by_role('button', name='Review website and discover', exact=True).click()
+                        else:
+                            page.get_by_role('button', name='Discover company jobs', exact=True).click()
                     operation_id = admission.value.json()['operation_id']
                     result = execute_operation(operation_id)
                     self.assertEqual(result['status'], 'COMPLETED', result)
                     page.reload(wait_until='domcontentloaded')
                     page.locator('#active-profile').select_option('fixture')
                     page.get_by_role('button', name='Sources', exact=True).click()
-                    card = page.get_by_role('article', name='Example Systems source', exact=True)
+                    card = page.get_by_role('article', name=company_name + ' source', exact=True)
+                    if reviewed:
+                        card = card.filter(has_text='Automatic collection')
                     expect(card).to_have_count(1)
                     expect(card).to_contain_text('Automatic collection')
                     expect(card).to_contain_text('Active')
                     expect(card).to_contain_text('Scheduled by saved searches')
+                    if reviewed:
+                        expect(card).to_contain_text('User-confirmed employer identity. Not independently verified.')
+                        expect(card).to_contain_text('Not verified')
+                        self.assertEqual(case.store.count('company_domains'), 0)
                     with page.expect_response(lambda response: response.request.method == 'PUT'
                                               and response.url.endswith('/enabled')):
-                        card.get_by_role('button', name='Disable Example Systems source', exact=True).click()
+                        card.get_by_role('button', name='Disable ' + company_name + ' source', exact=True).click()
                     expect(card).to_contain_text('Paused')
                     page.reload(wait_until='domcontentloaded')
                     page.get_by_role('button', name='Sources', exact=True).click()
                     expect(card).to_contain_text('Paused')
                     with case.store.engine.begin() as connection:
                         connection.execute(update(m.job_sources).values(last_attempt='2000-01-01T00:00:00+00:00'))
-                    self.assertEqual(schedule_due_sources(case.store)['scheduled'], [])
+                    scheduled = schedule_due_sources(case.store)['scheduled']
+                    if reviewed:
+                        with case.store.engine.connect() as connection:
+                            collector_id = connection.execute(select(m.company_sources.c.collector_source_id).where(
+                                m.company_sources.c.tenant == 'reviewed')).scalar_one()
+                        self.assertFalse(any(row['source_id'] == collector_id for row in scheduled))
+                    else:
+                        self.assertEqual(scheduled, [])
                     page.get_by_role('button', name=re.compile(r'^Jobs')).click()
-                    expect(page.locator('.job-card').filter(has_text='Python Engineer')).to_be_visible()
+                    expect(page.locator('.job-card').filter(has_text='Senior Python Engineer' if reviewed else 'Python Engineer')).to_be_visible()
                     with case.store.engine.connect() as connection:
-                        self.assertEqual(connection.execute(select(m.jobs.c.company_id)).scalar_one(), 'canonical-employer')
+                        self.assertEqual(connection.execute(select(m.jobs.c.company_id)).scalar_one(),
+                            case.company_id if reviewed else 'canonical-employer')
                     self.assertEqual(external, [])
                     self.assertEqual(errors, [])
                     context.close()

@@ -8,6 +8,9 @@ from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.public_resolution import resolve_public_company
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.company_discovery.source_host_locks import lock_company_source_hosts
+from services.company_discovery.requests import (
+    confirmed_source_domain, authorize_confirmed_source, source_binding_digest,
+)
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 
 
@@ -45,13 +48,24 @@ def bound_company_source(store, connection, source, *, lock=False):
         from services.dedupe.ingestion_identity import lock_company_ingestion
         lock_company_ingestion(connection, [initial['company_id'] if initial else identity('greenhouse', source['tenant'])])
         if initial:
-            company = connection.execute(select(m.companies).where(m.companies.c.id == initial['company_id'])).mappings().one()
-            resolved = resolve_public_company(store, {'company_name': company['name'],
-                'company_website': initial['career_url']}, connection=connection, lock_verified=True)
+            if initial['identity_authorization'] is not None:
+                try:
+                    confirmed_source_domain(connection, initial, lock=True)
+                except ValueError as error:
+                    raise SourceError(str(error)) from None
+            else:
+                company = connection.execute(select(m.companies).where(m.companies.c.id == initial['company_id'])).mappings().one()
+                resolved = resolve_public_company(store, {'company_name': company['name'],
+                    'company_website': initial['career_url']}, connection=connection, lock_verified=True)
         lock_company_source_hosts(connection, (_endpoint(source['tenant']), initial['career_url'] if initial else None))
+        if initial and initial['identity_authorization'] is not None:
+            try:
+                resolved = authorize_confirmed_source(connection, initial, lock=True)
+            except ValueError as error:
+                raise SourceError(str(error)) from None
         rows = list(connection.execute(query.with_for_update()).mappings())
         bound = bindings(rows)
-        keys = ('id', 'company_id', 'provider', 'tenant', 'endpoint', 'career_url', 'collector_source_id')
+        keys = ('id', 'company_id', 'provider', 'tenant', 'endpoint', 'career_url', 'collector_source_id', 'identity_authorization')
         if len(bound) != (1 if initial else 0) or (initial and any(bound[0][key] != initial[key] for key in keys)):
             raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
     if not bound:
@@ -66,10 +80,17 @@ def bound_company_source(store, connection, source, *, lock=False):
             or row['collection_strategy'] != 'API'):
         raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
     if resolved is None:
-        company = connection.execute(select(m.companies).where(m.companies.c.id == row['company_id'])).mappings().one()
-        resolved = resolve_public_company(store, {'company_name': company['name'],
-            'company_website': row['career_url']}, connection=connection)
-    if resolved['company_id'] != row['company_id'] or 'VERIFIED_DOMAIN_MATCH' not in resolved['evidence']:
+        if row['identity_authorization'] is not None:
+            try:
+                resolved = authorize_confirmed_source(connection, row)
+            except ValueError as error:
+                raise SourceError(str(error)) from None
+        else:
+            company = connection.execute(select(m.companies).where(m.companies.c.id == row['company_id'])).mappings().one()
+            resolved = resolve_public_company(store, {'company_name': company['name'],
+                'company_website': row['career_url']}, connection=connection)
+    if (resolved['company_id'] != row['company_id'] or not
+            {'VERIFIED_DOMAIN_MATCH', 'USER_CONFIRMED_DOMAIN'}.intersection(resolved['evidence'])):
         raise SourceError('COMPANY_DOMAIN_REVIEW_REQUIRED')
     return dict(row)
 
@@ -94,11 +115,13 @@ def collector_view(store, connection, source):
     if not source['enabled'] or not collector['enabled']:
         status = 'PAUSED'
     return {'id': collector['id'], 'status': status, 'poll_interval': collector['poll_interval'],
-            'health_status': collector['health_status']}
+            'health_status': collector['health_status'],
+            'identity_basis': 'USER_CONFIRMED_DOMAIN' if source['identity_authorization'] is not None else 'VERIFIED_DOMAIN'}
 
 
 def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_id,
-                      profile_version=None, check, enrollment_guard=None, preserve_source_id=None):
+                      profile_version=None, check, enrollment_guard=None, preserve_source_id=None,
+                      identity_confirmation=None):
     """Enroll once, then use the normal bounded collector, normalization and dedupe."""
     from services.discovery.sources.collect import configure_source, collect_source
 
@@ -110,12 +133,21 @@ def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_i
             connection.exec_driver_sql('BEGIN IMMEDIATE')
         from services.dedupe.ingestion_identity import lock_company_ingestion
         lock_company_ingestion(connection, [resolved['company_id']])
-        fresh = resolve_public_company(store, candidate, connection=connection, lock_verified=True)
-        if fresh['company_id'] != resolved['company_id'] or 'VERIFIED_DOMAIN_MATCH' not in fresh['evidence']:
-            raise PublicFetchError('COMPANY_DOMAIN_REVIEW_REQUIRED')
+        if identity_confirmation:
+            # Acquire domain before source-host locks, then require the live
+            # operation admission guard; caller-supplied flags grant no authority.
+            reference = identity_confirmation.get('source_authorization')
+            confirmed_source_domain(connection, {'identity_authorization': reference,
+                'career_url': career_url}, lock=True)
+            fresh = resolved
+        else:
+            fresh = resolve_public_company(store, candidate, connection=connection, lock_verified=True)
+            if fresh['company_id'] != resolved['company_id'] or 'VERIFIED_DOMAIN_MATCH' not in fresh['evidence']:
+                raise PublicFetchError('COMPANY_DOMAIN_REVIEW_REQUIRED')
         lock_company_source_hosts(connection, (endpoint, career_url))
-        if enrollment_guard:
-            enrollment_guard(connection)
+        authorization = enrollment_guard(connection) if enrollment_guard else None
+        if identity_confirmation and (not authorization or authorization != identity_confirmation):
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         # Existing collector policy is immutable during automatic enrollment.
         collector_id = configure_source(store, tenant, connection=connection, preserve_existing=True)
         collector = connection.execute(select(m.job_sources).where(
@@ -130,7 +162,8 @@ def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_i
             raise PublicFetchError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
         tenant_record = register_ats_tenant(connection, fresh['company_id'], provider='greenhouse',
             tenant_identifier=tenant, confidence=0.99,
-            evidence=['Verified official career page: ' + career_url, 'Public Greenhouse board: ' + tenant])
+            evidence=[('User-confirmed employer career page: ' if identity_confirmation else
+                'Verified official career page: ') + career_url, 'Public Greenhouse board: ' + tenant])
         source = upsert_company_job_source(connection, company_id=fresh['company_id'],
             provider='greenhouse', tenant_identifier=tenant, career_url=career_url,
             public_api_url=endpoint, collection_strategy='API', confidence=0.99,
@@ -140,13 +173,17 @@ def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_i
             raise PublicFetchError('COMPANY_SOURCE_MIGRATION_REVIEW_REQUIRED')
         if not source['enabled']:
             raise PublicFetchError('COMPANY_SOURCE_DISABLED')
-        connection.execute(update(m.company_sources).where(m.company_sources.c.id == source['id'])
-                           .values(collector_source_id=collector_id))
+        values = dict(collector_source_id=collector_id, identity_authorization=None)
+        if identity_confirmation:
+            values['identity_authorization'] = dict(reference,
+                binding_sha256=source_binding_digest(dict(source, collector_source_id=collector_id)))
+        connection.execute(update(m.company_sources).where(m.company_sources.c.id == source['id']).values(**values))
         bound_company_source(store, connection, collector, lock=True)
         store._audit(connection, fresh['company_id'], 'COMPANY_SOURCE_DISCOVERED', {
             'company_source_id': source['id'], 'provider': 'greenhouse', 'tenant': tenant,
             'careers_url': career_url, 'endpoint': endpoint,
-            'discovery_method': 'VERIFIED_OFFICIAL_ATS_BOARD', 'collection_strategy': 'API'})
+            'discovery_method': 'USER_CONFIRMED_ATS_BOARD' if identity_confirmation else 'VERIFIED_OFFICIAL_ATS_BOARD',
+            'independent_verification': not bool(identity_confirmation), 'collection_strategy': 'API'})
     check()
     # Recurrence uses this same persisted binding; no parallel importer or job schema.
     result = collect_source(store, collector_id, profile_id, profile_version, check=check,

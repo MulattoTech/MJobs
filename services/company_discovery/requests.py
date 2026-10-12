@@ -171,6 +171,67 @@ def _user_confirmation_proof(connection, request, *, lock=True):
     return [expected]
 
 
+def _source_authorization(request):
+    return dict(kind='USER_CONFIRMED_DOMAIN', request_id=request['id'],
+        revision=request['revision'], operation_id=request['operation_id'],
+        website=request['selected_website'], proof_sha256=request['domain_evidence'][0]['sha256'])
+
+
+def confirmed_source_domain(connection, source, *, lock=False):
+    """Acquire domain authority before any source-host or row lock."""
+    reference = source['identity_authorization']
+    if not isinstance(reference, dict) or reference.get('kind') != 'USER_CONFIRMED_DOMAIN':
+        raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    website = _website(reference.get('website'))
+    host = normalize_domain(website)
+    career_host = normalize_domain(source['career_url'])
+    if not career_host or not (career_host == host or career_host.endswith('.' + host)):
+        raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    _domain_evidence_rows(connection, host, lock=lock)
+    return host
+
+
+def source_binding_digest(source):
+    fields = ('id', 'company_id', 'provider', 'tenant', 'endpoint', 'career_url', 'collector_source_id')
+    return hashlib.sha256(json.dumps({key: source[key] for key in fields},
+        sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+
+
+def authorize_confirmed_source(connection, source, *, lock=False):
+    """Revalidate a completed review without promoting it to verified domain proof.
+
+    A locking caller owns ingestion, domain and source-host locks in that order.
+    The original request, audit and source provenance remain live revocation gates.
+    """
+    reference = source['identity_authorization']
+    host = confirmed_source_domain(connection, source, lock=False)
+    initial = connection.execute(select(m.company_discovery_requests).where(
+        m.company_discovery_requests.c.id == reference.get('request_id'))).mappings().one_or_none()
+    if initial is None or initial['company_id'] != source['company_id']:
+        raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    _lock_source_owners_for_domain(connection, host, source['company_id'],
+        request_source_id=initial['company_source_id'], lock=lock)
+    query = select(m.company_discovery_requests).where(m.company_discovery_requests.c.id == initial['id'])
+    request = connection.execute(query.with_for_update() if lock else query).mappings().one()
+    if (not _personal(connection) or request['state'] != 'QUEUED'
+            or request['company_id'] != source['company_id']
+            or _user_confirmation_proof(connection, request, lock=False) is None
+            or reference != dict(_source_authorization(request), binding_sha256=source_binding_digest(source))):
+        raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    operation = connection.execute(select(m.operations).where(
+        m.operations.c.id == request['operation_id'])).mappings().one_or_none()
+    if (operation is None or operation['state'] not in {'RUNNING', 'COMPLETED'}
+            or operation['kind'] != 'COMPANY_DISCOVER' or operation['entity_id'] != request['company_id']
+            or not isinstance(operation['params'], dict)
+            or not isinstance(operation['params'].get('candidate'), dict)
+            or operation['params'].get('discovery_request_id') != request['id']
+            or operation['params'].get('discovery_request_revision') != request['revision']
+            or operation['params'].get('candidate', {}).get('company_website') != request['selected_website']):
+        raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+    _source(connection, request)
+    return {'company_id': request['company_id'], 'evidence': ['USER_CONFIRMED_DOMAIN']}
+
+
 def _source(connection, request):
     source = connection.execute(select(m.company_sources).where(
         m.company_sources.c.id == request['company_source_id'])).mappings().one()
@@ -491,6 +552,9 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
             resolved = resolve_public_company(None, params['candidate'], connection=connection)
         if resolved['company_id'] != operation['entity_id']:
             raise ValueError('DISCOVERY_COMPANY_IDENTITY_CHANGED')
-        return {'company_id': row['company_id'], 'authorization': row['authorization']}
+        result = {'company_id': row['company_id'], 'authorization': row['authorization']}
+        if row['authorization'] == 'USER_CONFIRMED_DOMAIN':
+            result['source_authorization'] = _source_authorization(row)
+        return result
     except ValueError as error:
         raise PublicFetchError(str(error)) from None
