@@ -7,9 +7,22 @@ handles never kills processes; loss of the last proof handle is UNKNOWN.
 import ctypes as c
 from ctypes import wintypes as w
 from pathlib import Path
+import os
 import subprocess
 import sys
 from threading import RLock
+
+
+def _host_environment():
+    """Keep runtime paths, excluding API secrets, proxies and import overrides.
+
+    Executables are absolute; PATH is unnecessary. Windows variable names are
+    case insensitive. New host needs must be explicitly reviewed here rather
+    than inheriting an open-ended application environment.
+    """
+    allowed = {"SYSTEMROOT", "WINDIR", "TEMP", "TMP", "LOCALAPPDATA", "USERPROFILE"}
+    return {name.upper(): value for name, value in os.environ.items()
+            if name.upper() in allowed}
 
 
 class _Startup(c.Structure):
@@ -192,9 +205,13 @@ class BrowserTreeJob:
             startup.attributes = c.cast(buffer, c.c_void_p)
             info = _ProcessInfo()
             command = c.create_unicode_buffer(subprocess.list2cmdline(argv))
-            # EXTENDED_STARTUPINFO_PRESENT | CREATE_NO_WINDOW; no handle inheritance.
+            environment = _host_environment()
+            # Explicit UTF-16 block with two trailing NULs, including when empty.
+            block = c.create_unicode_buffer("\0".join(
+                f"{name}={environment[name]}" for name in sorted(environment)) + "\0\0")
+            # Extended startup, no window, Unicode environment; no inherited handles.
             _require(kernel.CreateProcessW(argv[0], command, None, None, False,
-                                            0x80000 | 0x08000000, None,
+                                            0x80000 | 0x08000000 | 0x400, block,
                                             str(cwd) if cwd is not None else None,
                                             c.byref(startup), c.byref(info)))
             try:
