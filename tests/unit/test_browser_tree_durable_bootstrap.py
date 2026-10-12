@@ -220,10 +220,14 @@ class PersistenceDescriptorTests(unittest.TestCase):
         query.accounting.return_value = {'total': 1, 'active': 1, 'terminated': 0}
         query.status.return_value = 'EXITED'
         elapsed = [0.0]
+        original_sleep, original_monotonic = time.sleep, time.monotonic
+        shared_clock_unchanged = []
         def sleep(seconds):
             self.assertFalse(query.close.called)
             elapsed[0] += seconds
         def persist(*args, **kwargs):
+            shared_clock_unchanged.append(
+                time.sleep is original_sleep and time.monotonic is original_monotonic)
             self.assertIs(args[2], query)
             self.assertEqual(args[3], binding)
             self.assertEqual(kwargs['owner_token'], token)
@@ -232,8 +236,10 @@ class PersistenceDescriptorTests(unittest.TestCase):
         with ExitStack() as stack:
             stack.enter_context(patch.object(ipc, '_read', side_effect=[initial, ipc._ChannelLost()]))
             stack.enter_context(patch.object(ipc, '_write'))
-            stack.enter_context(patch.object(ipc.time, 'monotonic', side_effect=lambda: elapsed[0]))
-            stack.enter_context(patch.object(ipc.time, 'sleep', side_effect=sleep))
+            # Replace this module's reference, never the shared time module:
+            # unrelated supervisor threads must keep their real clock/sleep.
+            clock = Mock(monotonic=lambda: elapsed[0], sleep=sleep)
+            stack.enter_context(patch.object(ipc, 'time', clock))
             stack.enter_context(patch('services.applications.browser_tree._kernel'))
             stack.enter_context(patch('services.applications.browser_tree.BrowserTreeQuery', return_value=query))
             stack.enter_context(patch('packages.persistence.store.Store'))
@@ -242,6 +248,8 @@ class PersistenceDescriptorTests(unittest.TestCase):
             writer = stack.enter_context(patch('services.applications.browser_tree_certificate.record_retained_closure', side_effect=persist))
             ipc._serve()
         query.close.assert_called_once()
+        self.assertTrue(shared_clock_unchanged)
+        self.assertTrue(all(shared_clock_unchanged), 'Observer clock patches leaked to other threads')
         if expected_writes is not None:
             self.assertEqual(writer.call_count, expected_writes)
             self.assertGreater(elapsed[0], 0)
