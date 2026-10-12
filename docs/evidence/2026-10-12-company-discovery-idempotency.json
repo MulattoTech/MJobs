@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "utc": "2026-10-12T23:59:43.858763+00:00",
+  "issue": 160,
+  "requirement": "MJ-REQ-159",
+  "status": "PARTIAL",
+  "base": "d0a7f0b7f46f94824840398133a1251e0c40935b",
+  "behavior": "Equivalent active PERSONAL Add Company requests share one operation; durable per-request receipts preserve replay and fresh terminal recovery; Activity/dead-letter readback is profile-scoped",
+  "source_hash_definition": "SHA256 of UTF-8 text with universal newline normalization; evidence file excluded",
+  "source_sha256": {
+    "apps/api/main.py": "aaba595b16d3fbaeee01de7da29d4a5bae17f184390be6b6f6f57232efdbfad3",
+    "services/company_discovery/triggers.py": "d6a191d208ff9fc1678d527198c98073dc2b5030bb34209d5d567fb844124b82",
+    "services/company_discovery/flywheel.py": "d5ed0c2c2d79ac2030d9a2c2ce059a17fad748212c17619197510ce4e5acc5fa",
+    "services/company_discovery/AREA.md": "a2b1cb9437d521d72faf4628937dde4f30b5621326b596334b421ef8340ff8f1",
+    "tests/integration/test_company_discovery_idempotency.py": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca",
+    "tests/integration/test_public_company_discovery.py": "0c207acf8c1e5636b2b1b467755fe6d683d507f402fa95f2066f1a27c79b8e79",
+    "tests/browser/test_company_discovery_idempotency.py": "82121ce1b0d42c09c8a9d751f2ec5787d3fc2d50bb4ea5cf6272d02c26e710b6",
+    "planning/IMPLEMENTATION_STATE.json": "1b3c1f9a0c0d5db392960cf30f9ba9bfd8936f78fa05765b12212c798b9eb751"
+  },
+  "verification": [
+    {
+      "command": "python -m pytest -q tests/integration/test_company_discovery_idempotency.py (before fix)",
+      "result": "RED:7 failed,1 passed,3 PostgreSQL skipped; duplicate active IDs and missing conflict demonstrated"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_company_discovery_idempotency.py -k \"new_verified or review_and_monitoring\" (before review correction)",
+      "result": "RED:2 failed; stale company identity and authority reuse"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_company_discovery_idempotency.py -k profile_activity (before API correction)",
+      "result": "RED:company operation absent after profile readback"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_public_company_discovery.py tests/integration/test_company_discovery_idempotency.py tests/browser/test_company_discovery_idempotency.py",
+      "result": "PASS:25 passed,3 PostgreSQL skipped,8 subtests; mounted two-tab/reload and real worker controlled public reads included"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_operation_progress.py tests/unit/test_operation_concurrency.py tests/integration/test_dead_letter_queue.py tests/integration/test_operation_retries.py tests/integration/test_persistent_operation_progress.py tests/integration/test_company_monitoring_api.py tests/browser/test_dead_letter_queue.py tests/browser/test_company_discovery_requests.py",
+      "result": "PASS:33 passed,7 environment-specific skipped,38 subtests"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS; existing large chunk warning"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "result": "PASS; dashboard CURRENT"
+    }
+  ],
+  "review": "Local Luna read-only review; two material concerns reproduced and corrected; final no remaining material blocker. Authority negative control uses deliberately changed params, not actual grants.",
+  "hosted": "NOT_RUN on this candidate; actual PostgreSQL concurrency/recovery and full hosted browser/integration/Compose required before integration",
+  "limitations": [
+    "Only direct PERSONAL USER_ADDED_COMPANY admission; other task kinds/parent requirement remain PARTIAL",
+    "Exact candidate URLs and provenance remain distinct; no broader canonicalization claim",
+    "Original handoff prefix recovery remains partial and private raw records retained; unrelated dirty files excluded"
+  ],
+  "external_submission_enabled": false,
+  "acceptance_authorities_changed": false
+}

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import re
+from contextlib import nullcontext
 from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup
@@ -521,8 +522,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     }
 
 
-def directly_monitored(store, company_id, *, public=False):
-    with store.engine.connect() as connection:
+def directly_monitored(store, company_id, *, public=False, connection=None):
+    with (nullcontext(connection) if connection is not None else store.engine.connect()) as connection:
         query = select(m.company_sources).where(m.company_sources.c.company_id == company_id)
         if public:
             query = query.where(m.company_sources.c.enabled.is_(True),
