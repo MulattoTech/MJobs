@@ -1,0 +1,41 @@
+{
+  "issue": 532,
+  "status": "PARTIAL",
+  "utc": "2026-10-12T09:42:33.047445+00:00",
+  "base_revision": "1ce6776d67fbde6848c997de5a754fb9fb0f2e36",
+  "classification": "Two historical browser failures target an obsolete rewrite acknowledgement. Product already enforces exact preview, protected tokens, explicit acknowledgement and alignment. This change repairs acceptance against that existing connected workflow; no new product implementation is claimed.",
+  "source_inputs": [
+    {
+      "path": "tests/browser/test_resume_tailoring_facts.py",
+      "sha256": "db38b4caf553bdc0ffe021dc4964a47832b1accb73b221e41c006dd7f471fc67"
+    },
+    {
+      "path": "tests/browser/test_skill_order.py",
+      "sha256": "de42064c603b90580f0762c21ae5ee035017565f1159920b0f8ec01c8597fd96"
+    }
+  ],
+  "behavior": [
+    "Valid summary/project/accomplishment/technology rewrites require exact side-by-side preview and explicit review, then alignment snapshot bound to submitted profile/job. Real worker output, download, reload comparison and original profile preservation remain asserted.",
+    "Omitting Cisco CCNA is detected by real protected-token audit before preparation. Acknowledgement and Prepare are disabled; any prepare request is intercepted and forbidden. All-table counts and existing immutable documents stay unchanged."
+  ],
+  "verification": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_resume_tailoring_facts.py tests/browser/test_skill_order.py tests/browser/test_resume_rewrite_review.py tests/browser/test_resume_experience_rewrite.py",
+      "result": "7 PASS, 3 subtests PASS",
+      "artifact": "outputs/ci/root-resume-review-complete.xml"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/integration/test_resume_tailoring_facts.py tests/integration/test_resume_rewrite_review_api.py",
+      "result": "6 PASS, 4 subtests PASS",
+      "artifact": "outputs/ci/root-resume-review-services.xml"
+    }
+  ],
+  "review": "Local Luna read-only review: no material weakening; original worker/durable readback assertions retained. This is not a human review or independent release certification.",
+  "limits": [
+    "Hosted candidate and full-browser acceptance pending publication.",
+    "No executable production source changed; existing build from main used.",
+    "Parent #532 and release acceptance remain incomplete.",
+    "Release gate on base main: FAIL96unmet/26high, preserved dirty work and pending exact-main checks.",
+    "Real external submissions OFF."
+  ]
+}
