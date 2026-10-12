@@ -31,6 +31,7 @@ export type CompanySourceView = {
   source_version?: string;
   monitoring_supported?: boolean;
   monitoring?: Monitoring | null;
+  collector?: {status: 'ACTIVE' | 'PAUSED' | 'REVIEW_REQUIRED' | 'NO_SCHEDULED_SEARCH'; poll_interval: number} | null;
   quality?: SourceQualityValue & {link_verification?: LinkVerification | null};
   provenance: {
     domain_method?: string | null;
@@ -241,12 +242,19 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
           <div><dt>Applications</dt><dd>{row.applications}</dd></div>
           <div><dt>User Preference</dt><dd>{preference}</dd></div>
           <div><dt>Last Checked</dt><dd>{timestamp(row.last_checked)}</dd></div>
-          <div><dt>Next Check</dt><dd>{row.next_check ? timestamp(row.next_check) : 'Not scheduled'}</dd></div>
+          <div><dt>Next Check</dt><dd>{row.next_check ? timestamp(row.next_check)
+            : row.collector?.status === 'ACTIVE' ? 'Scheduled by saved searches' : 'Not scheduled'}</dd></div>
         </dl>
         <SourceLinkEvidence evidence={row.quality?.link_verification} />
         <SourceQuality quality={row.quality} />
         <CompanyContextPanel key={`${row.id}:company-context`} row={row} />
-        {onMonitor && onRun && <CompanySourceMonitoring sourceId={row.id} sourceVersion={row.source_version || ''}
+        {row.collector && <section aria-label={`Automatic collection for ${row.company_name}`}>
+          <h4>Automatic collection</h4>
+          <p>{{ACTIVE:'Active', PAUSED:'Paused', REVIEW_REQUIRED:'Employer verification needs review',
+            NO_SCHEDULED_SEARCH:'No enabled saved search schedules this source'}[row.collector.status]}</p>
+          <p>Minimum collection interval: {row.collector.poll_interval} seconds. Saved searches control recurring discovery.</p>
+        </section>}
+        {!row.collector && onMonitor && onRun && <CompanySourceMonitoring sourceId={row.id} sourceVersion={row.source_version || ''}
           sourceEnabled={row.enabled} supported={!!row.monitoring_supported} monitoring={row.monitoring || null}
           busy={busy} profileSelected={profileSelected} onMonitor={interval=>onMonitor(row,interval)} onRun={()=>onRun(row)}/>}
         <div className="company-source-controls">

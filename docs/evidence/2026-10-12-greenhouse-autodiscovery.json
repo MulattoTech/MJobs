@@ -1,0 +1,97 @@
+{
+  "requirement": "MJ-REQ-155",
+  "issue": 156,
+  "status": "PARTIAL",
+  "utc": "2026-10-12T10:11:58.174056-05:00",
+  "base": "a1b820d7e59e48a70031b2cc47082c68534b292b",
+  "source_blobs": {
+    "apps/web/src/company-sources.tsx": "b8b417c109b87fe9c919dc8d1b49325eef399d84",
+    "apps/web/src/company-sources.test.tsx": "c89dc5417fb01a823ecd15b9420e8b16998c285f",
+    "services/company_discovery/ats_enrollment.py": "29e8a5dbad3e9f766b86435c1c1bfce95f8e7656",
+    "services/company_discovery/flywheel.py": "30fa9b52a32a44c3c33e2af425d9d5a71de9c6a6",
+    "services/company_discovery/sources.py": "3ea534f456d6aab7a4e58eab2af744133bbfa29f",
+    "services/company_discovery/AREA.md": "4bf4a341c99f2a2171656c1c9bcfdf15a1f7ae22",
+    "services/discovery/scheduler.py": "d00144610dd60ab9f3d2a82c122913d139cfc7d4",
+    "services/discovery/sources/collect.py": "448c167f47a741652209b7c32cebfcdec13b202b",
+    "tests/unit/test_greenhouse_enrollment.py": "789a404053d315de95017dbb4f12d96525e35cab",
+    "tests/integration/test_greenhouse_autodiscovery.py": "8a27c8eead058db287afbd3738e9703f8bfbbd12",
+    "tests/integration/test_greenhouse_autodiscovery_postgres.py": "86bab77ed3ed21d65865a2b0078cdab74d096c00",
+    "tests/browser/test_greenhouse_autodiscovery.py": "1250dcb366194acf84ffa5e2f7daf9402f8ee785"
+  },
+  "behavior": [
+    "Verified official Greenhouse board enrolls a persistent collector bound to the original employer",
+    "Initial import and recurring saved-search discovery use existing normalization/deduplication and preserve both postings",
+    "Reloadable source counts and automatic collector status; disablement blocks scheduling and import",
+    "Revocable official-domain authority checked before fetch and under import locks; conflicting owners fail closed",
+    "Existing collector policy and explicit saved-search source scopes preserved; provider-failure recovery retains enrolled identity"
+  ],
+  "reproduced": [
+    "Existing worker returned COMPANY_ATS_ENUMERATION_UNSUPPORTED",
+    "Aggregator collector incorrectly prevented employer discovery as ALREADY_MONITORED",
+    "Disabled employer source still scheduled",
+    "Different-tenant application link was imported",
+    "Companies/Sources showed zero linked collector jobs",
+    "Local authority revocation incorrectly increased provider failure count"
+  ],
+  "local_verification": [
+    {
+      "command": "python -m pytest -q tests/integration/test_greenhouse_autodiscovery.py tests/unit/test_greenhouse_enrollment.py",
+      "result": "12 PASS;11 subtests PASS"
+    },
+    {
+      "command": "focused existing company-discovery/public/Greenhouse/reviewed-identity contracts",
+      "result": "82 PASS;4 explicit local PostgreSQL SKIP;3 subtests PASS before final host-lock hardening"
+    },
+    {
+      "command": "adjacent source-view/preferences/scheduler/discovery-request/policy contracts and new tenant unit tests",
+      "result": "42 PASS;14 subtests PASS before final host-lock hardening"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_greenhouse_autodiscovery.py tests/browser/test_company_source_monitoring.py",
+      "result": "2 Chromium PASS after production build"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run src/company-sources.test.tsx",
+      "result": "6 PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "catalogue/progress/dashboard/public repository policy/git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "Final host-lock scope: new integration, source view, source scheduler, tenant unit tests",
+      "result": "26 PASS;11subtests PASS"
+    },
+    {
+      "command": "Final bound identity/lock scope: Greenhouse autodiscovery, existing Greenhouse, source view, source scheduler, tenant unit tests",
+      "result": "55 PASS;11subtests PASS"
+    },
+    {
+      "command": "Final browser plus actual PostgreSQL wrapper locally",
+      "result": "1 Chromium PASS;6 PostgreSQL NOT_RUN explicit SKIP (local database unavailable)"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_greenhouse_autodiscovery.py tests/integration/test_greenhouse_autodiscovery_postgres.py",
+      "result": "10 PASS;6 PostgreSQL local SKIP after setup fix; hosted NOT_RUN on revised candidate"
+    }
+  ],
+  "hosted": "NOT_RUN candidate; require all exact checks and six actual PostgreSQL cases without selected skips",
+  "review": "Local Luna review identified domain/source lock inversion before publication. Corrected to ingestion/domain/source-host/source-row/collector order and added actual PostgreSQL ordering/foreign-owner contention tests. Follow-up local Luna source review found no concrete remaining blocker; tests not rerun by reviewer, not certification.",
+  "test_harness_corrections": [
+    "Controlled method mocks corrected before actual RED reproduction",
+    "Browser response predicate corrected to existing /companies/discovery route",
+    "Browser source article scoped by accessible name; request cards share the CSS class"
+  ],
+  "limitations": [
+    "Parent continuous pipeline remains PARTIAL",
+    "No live provider read or inference claimed; synthetic public responses only",
+    "Other unsupported ATS providers and unverified domains require review",
+    "Original dirty unrelated files preserved; overall release gate not PASS"
+  ],
+  "external_submission_enabled": false,
+  "hosted_initial_failure": "d827986 PR591 integration38269980184/shard2: all six PostgreSQL cases FAIL during fixture setup: Store.migrate rejects PostgreSQL after Alembic initialization. Fixture now calls Store.migrate only for SQLite. No acceptance assertions removed; actual PostgreSQL validation pending revised candidate."
+}

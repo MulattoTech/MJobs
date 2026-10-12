@@ -5302,10 +5302,24 @@
       ],
       "target_area": "Original extraction/comparison API paths and owned native subprocess lifecycle",
       "depends_on": [],
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "branch": "fix/durable-document-api-157-20261012",
       "draft_until_verified": true,
-      "notes": "Original extraction202alias, pure comparisonGET persisted state envelope, cross-instance cancel; parser/OCR owned children reaped on worker fence exceptions. Parent unchanged."
+      "notes": "PR590 merged a1b820d7 after15exactcandidatechecksSUCCESS;1308integrationPASS19explicitSKIP;4selectedPGPASS;ComposePASS;18identicalmergeblobs;mainbrowser214PASS5WindowsSKIP. ParentPARTIAL."
+    },
+    {
+      "id": "MJ-PR-VERIFIED-GREENHOUSE-156",
+      "title": "Verified official Greenhouse enrollment, canonical import and recurrence",
+      "domain": "company_ats_discovery",
+      "requirements": [
+        "MJ-REQ-155"
+      ],
+      "target_area": "Official career discovery, existing collector identity and scheduler, source UI",
+      "depends_on": [],
+      "status": "IN_PROGRESS",
+      "branch": "fix/verified-greenhouse-enrollment-156-20261012",
+      "draft_until_verified": true,
+      "notes": "Controlled worker/API/browser slice verified locally; actual hosted PostgreSQL acceptance pending. Parent remains PARTIAL."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

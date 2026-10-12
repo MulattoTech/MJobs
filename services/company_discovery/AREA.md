@@ -17,6 +17,12 @@ MJ-PR-016 establishes the durable trigger/resolver/flywheel contract and proves 
 ## Companies/Sources read model and controls
 `list_company_source_view` projects persisted source-specific feed postings and current-profile match records without treating candidate domains as official or inferring missing scheduling. Explicit pin/enabled/watch choices remain independent. New discovery events carry `company_source_id`; unlinked historical events remain unavailable. `apps/web/src/company-sources.tsx` renders this contract with unsupported actions clearly disabled.
 
+## Verified Greenhouse enrollment
+
+Public discovery can enroll an unambiguous Greenhouse board linked or embedded on an independently verified official career page. It reuses the existing bounded read-only adapter, collector policy, posting snapshots, canonical deduplication, matching and saved-search scheduler. The persisted source binds collection to the original employer ID and is reauthorized before fetching and inside the import transaction. Source-host locks serialize competing owner claims; conflicting historical owners require review rather than re-parenting data.
+
+Automatic enrollment preserves existing collector policy, source disablement and explicit saved-search source scopes. Disabling either source, revoking official-domain evidence, or introducing conflicting ownership prevents import and recurrence. A provider failure leaves the enrolled source available for bounded recovery; local authority revocation does not falsify provider failure history. Companies/Sources shows linked posting counts and the actual collector state without inventing a next-check timestamp. Unverified domains, ambiguous tenants and other ATS providers retain explicit review/unsupported boundaries. External submissions remain OFF.
+
 
 ## Source-quality observations
 

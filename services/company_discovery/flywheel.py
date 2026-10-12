@@ -458,6 +458,11 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             }
         if detected.status != "MATCH" or not detected.provider:
             raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_REVIEW_REQUIRED")
+        if not fixture and detected.provider == 'greenhouse':
+            from services.company_discovery.ats_enrollment import enroll_greenhouse
+            return enroll_greenhouse(store, candidate, resolved, str(careers.url), careers.text,
+                profile_id=profile_id, profile_version=profile_version, check=check,
+                enrollment_guard=enrollment_guard, preserve_source_id=preserve_source_id)
         raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_ENUMERATION_UNSUPPORTED")
     check()
     payload = bounded_get(client, endpoint, str(careers.url)).json()
@@ -527,6 +532,14 @@ def directly_monitored(store, company_id, *, public=False):
             for source in connection.execute(query).mappings():
                 if source['collector_source_id']:
                     collector = connection.execute(select(m.job_sources).where(m.job_sources.c.id == source['collector_source_id'])).mappings().one()
+                    if collector['provider'] != 'greenhouse':
+                        continue  # An aggregator is not an employer's directly monitored inventory.
+                    from services.company_discovery.ats_enrollment import bound_company_source
+                    from services.discovery.sources.errors import SourceError
+                    try:
+                        bound_company_source(store, connection, collector)
+                    except (ValueError, PublicFetchError, SourceError):
+                        continue
                     if collector['enabled'] and any(not row['source_ids'] or collector['id'] in row['source_ids'] for row in profiles):
                         return True
                     continue
