@@ -1,10 +1,14 @@
 """API routes for explicit user-started MOCK authentication windows."""
 from pathlib import Path
+from time import monotonic
 
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
 from packages.persistence import models as m
+from workers.operations import (OperationConcurrencyLimit, OperationCancelled,
+                                OperationTimedOut, admit_inline, check_cancelled,
+                                finish_inline, timeout)
 
 
 def open_mock_authentication(*args, **kwargs):
@@ -41,13 +45,45 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
         if attempt is None or attempt["state"] != "AUTH_REQUIRED":
             raise HTTPException(409, "No current authentication-required attempt is available")
 
-        status = open_mock_authentication(
-            store=store,
-            application_id=application_id,
-            attempt_id=attempt["id"],
-            mock_origin=mock_origin,
-            output_dir=output_dir,
-        )
+        try:
+            operation_id = admit_inline(store, "MANUAL_AUTH", application_id)
+        except OperationConcurrencyLimit:
+            raise HTTPException(409, "Application browser is busy; close the active window and retry") from None
+        deadline = monotonic() + timeout()
+
+        def check():
+            if monotonic() >= deadline:
+                raise OperationTimedOut("Manual sign-in time budget expired")
+            check_cancelled(store, operation_id)
+
+        terminal, error = "FAILED", "MANUAL_AUTH_UNAVAILABLE"
+        browser_closed = True
+        try:
+            check()
+            browser_closed = False
+            status = open_mock_authentication(
+                store=store,
+                application_id=application_id,
+                attempt_id=attempt["id"],
+                mock_origin=mock_origin,
+                output_dir=output_dir,
+                check=check,
+            )
+            if status == "CLOSE_UNCONFIRMED":
+                terminal, error = "BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"
+                raise HTTPException(503, "Manual browser closure could not be confirmed; recovery is required")
+            browser_closed = status in ("MANUAL_AUTH_WINDOW_CLOSED", "OPEN_UNAVAILABLE", "STALE")
+            check()
+            if status == "MANUAL_AUTH_WINDOW_CLOSED":
+                terminal, error = "COMPLETED", None
+        except OperationCancelled:
+            terminal, error = "CANCELLED", "CANCEL_REQUESTED"
+            raise HTTPException(409, "Manual sign-in was cancelled; reload and retry explicitly") from None
+        except OperationTimedOut:
+            error = "TIMEOUT"
+            raise HTTPException(409, "Manual sign-in timed out; retry explicitly") from None
+        finally:
+            finish_inline(store, operation_id, terminal, error, browser_closed=browser_closed)
         if status == "OPEN_UNAVAILABLE":
             raise HTTPException(503, "Manual sign-in window is unavailable on this runtime")
         if status == "STALE":
