@@ -227,7 +227,33 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                     # response; an explicit lookup carries its own app id.
                     second_card = page.locator(".job-card").filter(
                         has_text=second_job["title"])
-                    second_card.click()
+                    held_tracking = []
+                    tracking_pattern = f"**/profiles/fixture/applications/{second_application}/tracking"
+                    page.route(tracking_pattern, lambda route: held_tracking.append(route))
+                    with page.expect_request(lambda request: request.url.endswith(
+                            f"/profiles/fixture/applications/{second_application}/tracking")):
+                        second_card.click()
+                    try:
+                        expect(answers_panel.get_by_role(
+                            "button", name="Add question", exact=True)).to_be_disabled(timeout=1500)
+                        expect(page.get_by_role("status", name="Application loading")).to_be_visible()
+                    finally:
+                        for route in held_tracking:
+                            route.fulfill(status=503, json={"detail": "Controlled readback failure"})
+                    expect(answers_panel.get_by_role(
+                        "button", name="Add question", exact=True)).to_be_enabled()
+                    expect(question_group.get_by_role("textbox", name="Employer question", exact=True)).to_have_value(changed_question)
+                    held_tracking.clear()
+                    with page.expect_request(lambda request: request.url.endswith(
+                            f"/profiles/fixture/applications/{second_application}/tracking")):
+                        second_card.click()
+                    try:
+                        expect(answers_panel.get_by_role(
+                            "button", name="Add question", exact=True)).to_be_disabled()
+                    finally:
+                        for route in held_tracking:
+                            route.continue_()
+                    page.unroute(tracking_pattern)
                     expect(page.get_by_role(
                         "region", name="Application review", exact=True)).to_contain_text(
                             second_job["title"])
