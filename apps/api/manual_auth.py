@@ -53,6 +53,8 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
                 manual_auth_identity={"profile_id": profile_id, "attempt_id": attempt["id"]})
         except OperationConcurrencyLimit:
             raise HTTPException(409, "Application browser is busy; close the active window and retry") from None
+        except ValueError:
+            raise HTTPException(503, "Manual browser ownership could not be verified on this runtime") from None
         deadline = monotonic() + timeout()
 
         def check():

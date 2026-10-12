@@ -90,6 +90,10 @@ def process_status(identity):
     """LIVE, EXITED or UNKNOWN; PID reuse and unreadable/foreign owners fail closed."""
     if not valid_identity(identity):
         return "UNKNOWN"
+    return _observed_status(identity)
+
+
+def _observed_status(identity):
     try:
         if identity["host"] != _host_identity():
             return "UNKNOWN"
@@ -100,6 +104,29 @@ def process_status(identity):
         return state if created == identity["created"] else "UNKNOWN"
     except (OSError, ValueError, IndexError):
         return "UNKNOWN"
+
+
+def owner_process_status(identity):
+    """Read-only API owner observation; expiry never stands in for OS exit."""
+    if (not isinstance(identity, dict) or set(identity) != {"pid", "created", "host"}
+            or not valid_identity({**identity, "profile_sha256": "0" * 64})):
+        return "UNKNOWN"
+    return _observed_status(identity)
+
+
+def capture_owner_identity():
+    """Capture this API process before admitting a manual browser operation."""
+    try:
+        pid = os.getpid()
+        current = _read_process(pid)
+        if current is None or current[1] != "LIVE":
+            raise ValueError
+        identity = {"pid": pid, "created": current[0], "host": _host_identity()}
+        if owner_process_status(identity) != "LIVE":
+            raise ValueError
+        return identity
+    except Exception:
+        raise ValueError("OWNER_IDENTITY_UNAVAILABLE") from None
 
 
 def capture_browser_identity(context, profile):
