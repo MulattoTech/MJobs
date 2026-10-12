@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Verified official Greenhouse discovery through canonical employer import and recurring saved-search collection",
+  "current_objective": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -1377,19 +1377,13 @@
   },
   "active_development_issue": {
     "numbers": [
-      5,
-      139,
-      143,
-      146
+      156
     ],
     "requirement_ids": [
-      "MJ-REQ-004",
-      "MJ-REQ-138",
-      "MJ-REQ-142",
-      "MJ-REQ-145"
+      "MJ-REQ-155"
     ],
-    "status": "INTEGRATED_LOCAL_PARTIAL",
-    "outcome": "Transferred preserved worker/run implementation onto current main. Stable request recovery, manual-auth separate dry-run resumption, and safe credential timeout UI are connected and locally verified. Parent requirements remain PARTIAL."
+    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+    "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
   },
   "historical_control_snapshots": [
     {
@@ -2594,7 +2588,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-11T01:47:52Z",
+  "updated_at": "2026-10-12T19:57:37.727596+00:00",
   "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
   "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
@@ -2645,13 +2639,41 @@
   "current_slice": {
     "requirement": "MJ-REQ-155",
     "issue": 156,
-    "result": "PARTIAL",
-    "local": "Final55focusedPASS/11subtests;1finalChromiumPASS plus adjacent monitoring ChromiumPASS;6VitestPASS;productionbuildPASS;actual6PGlocalSKIP",
-    "hosted": "NOT_RUN candidate; six actual PostgreSQL cases required including domain/host ordering and foreign-owner contention",
-    "remaining": [
-      "Protected exact-revision hosted integration and selected PostgreSQL acceptance",
-      "Parent pipeline and independent release gate remain incomplete"
+    "branch": "feat/lever-employer-discovery-20261012",
+    "base": "bf1b909876217c7798bc16a47f92fc9be08d9578",
+    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+    "parent_acceptance": "PARTIAL",
+    "external_submission_enabled": false,
+    "owned_paths": [
+      "apps/api/main.py",
+      "apps/web/src/main.tsx",
+      "planning/IMPLEMENTATION_STATE.json",
+      "services/applications/adapters/lever.py",
+      "services/ats_detection/board_links.py",
+      "services/ats_detection/detector.py",
+      "services/company_discovery/ats_enrollment.py",
+      "services/company_discovery/flywheel.py",
+      "services/company_discovery/requests.py",
+      "services/dedupe/route_redirects.py",
+      "services/dedupe/source_values.py",
+      "services/discovery/search_profiles.py",
+      "services/discovery/sources/collect.py",
+      "services/discovery/sources/greenhouse.py",
+      "services/discovery/sources/registry.py",
+      "tests/browser/test_greenhouse_autodiscovery.py",
+      "tests/browser/test_mock_application.py",
+      "tests/integration/test_application_pipeline.py",
+      "tests/integration/test_saved_search_filters.py",
+      "tests/unit/test_direct_employer_route_redirects.py",
+      "tests/unit/test_lever_application_adapter.py",
+      "services/discovery/sources/lever.py",
+      "tests/integration/test_lever_autodiscovery.py",
+      "tests/integration/test_lever_autodiscovery_postgres.py",
+      "tests/unit/test_lever_source.py"
     ],
-    "observed_utc": "2026-10-12T15:19:04.502859+00:00"
+    "next_action": "Commit/provenance, publish short-lived protected PR and inspect exact-revision hosted checks",
+    "result": "PARTIAL",
+    "local": "76 integrity/adjacent PASS13subtests;13 actualPG SKIP/NOT_RUN locally;7 finalChromiumPASS;21Vitest/build/validatorsPASS",
+    "hosted": "NOT_RUN; require all13 actual Lever discovery PostgreSQL cases PASS zeroSKIP"
   }
 }

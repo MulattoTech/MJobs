@@ -19,6 +19,34 @@ from tests.integration.test_spine import PROFILE
 
 
 class SavedSearchFiltersApiTests(unittest.TestCase):
+    def test_lever_source_configuration_and_saved_ats_filters_survive_reopen(self):
+        for region in ('global','eu'):
+            configured = self.client.put('/sources',json={'provider':'lever','tenant':region+':example'})
+            self.assertEqual(configured.status_code,200,configured.text)
+        self.assertEqual(self.client.put('/sources',json={'provider':'lever','tenant':'example'}).status_code,422)
+        self._add_ats_route('Python Developer',route_provider='lever',route_tenant='eu:example',
+                            identity_provider='lever')
+        # A route label alone cannot establish a verified ATS identity.
+        self._add_ats_route('Data Engineer',route_provider='lever',route_tenant='global:other')
+        filters = {'q':'','remote_type':'','provider':'lever','ats_provider':'lever','sort':'title'}
+        saved = self.client.put('/search-profiles',json=self._profile(job_filters=filters))
+        self.assertEqual(saved.status_code,200,saved.text)
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened,'http://127.0.0.1:1',self.root,operation_mode='FIXTURE')) as client:
+                rows = client.get('/search-profiles',params={'profile_id':'fixture'}).json()['search_profiles']
+                stored = next(row for row in rows if row['id']=='saved-filter')['criteria']['job_filters']
+                self.assertEqual(stored['provider'],'lever')
+                self.assertEqual(stored['ats_provider'],'lever')
+                response = client.get('/jobs',params={'provider':stored['provider'],'ats_provider':stored['ats_provider']})
+                self.assertEqual(response.status_code,200,response.text)
+                self.assertEqual([row['title'] for row in response.json()['jobs']],['Python Developer'])
+                sources = client.get('/sources').json()['sources']
+                self.assertEqual({row['tenant'] for row in sources if row['provider']=='lever'},
+                                 {'global:example','eu:example'})
+        finally:
+            reopened.engine.dispose()
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="mjobs-saved-search-filters-")
         self.root = Path(self.directory.name)

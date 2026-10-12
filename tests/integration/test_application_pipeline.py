@@ -131,7 +131,8 @@ class ApplicationPipelineTests(unittest.TestCase):
 
             def check():
                 return None
-            check.remaining_seconds = lambda: 0.5
+            # This oracle verifies durable review, not subsecond browser startup.
+            check.remaining_seconds = lambda: 10
             result = apply_mock(self.store, self.application_id, origin, self.root,
                                 submit=True, check=check)
             self.assertEqual(result["state"], "REVIEW_REQUIRED")

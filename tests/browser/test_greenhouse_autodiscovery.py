@@ -18,8 +18,11 @@ from packages.persistence import models as m
 from services.company_discovery.public_client import PublicCompanyClient
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.sources.greenhouse import Greenhouse
+from services.discovery.sources.lever import Lever
 from tests.integration import test_greenhouse_autodiscovery as contract
 from tests.integration import test_reviewed_greenhouse_enrollment as reviewed_contract
+from tests.integration import test_lever_autodiscovery as lever_contract
+from tests.unit.test_lever_source import posting
 from workers.tasks import execute_operation
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -39,11 +42,24 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
     def test_new_aggregator_employer_review_enrollment_reload_and_pause(self):
         self._journey(reviewed=True)
 
-    def _journey(self, markup=None, reviewed=False):
-        case = (reviewed_contract.ReviewedGreenhouseEnrollmentTests() if reviewed
+    def test_reviewed_lever_global_discovery_reload_and_pause(self):
+        self._journey(reviewed=True,lever_region='global')
+
+    def test_reviewed_lever_eu_discovery_reload_and_pause(self):
+        self._journey(reviewed=True,lever_region='eu')
+
+    def _journey(self, markup=None, reviewed=False, lever_region=None):
+        case = (lever_contract.LeverAutodiscoveryTests() if lever_region else
+                reviewed_contract.ReviewedGreenhouseEnrollmentTests() if reviewed
                 else contract.GreenhouseAutodiscoveryTests())
         case.setUp()
         self.addCleanup(case.tearDown)
+        adapter_type = Lever if lever_region else Greenhouse
+        source_tenant = 'reviewed'
+        if lever_region:
+            case.region=lever_region
+            case.jobs=[posting(host='jobs.eu.lever.co' if lever_region=='eu' else 'jobs.lever.co')]
+            source_tenant=case.tenant
         if reviewed:
             request = case.collect()
             company_name = request['company_name']
@@ -60,7 +76,7 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
         try:
             with patch.dict(os.environ, case.env), \
                     patch.object(PublicCompanyClient, '_request_once', lambda client, url, deadline: case.page(client, url, deadline)), \
-                    patch.object(Greenhouse, '_get', lambda adapter, suffix, params=None: case.board(adapter, suffix, params)):
+                    patch.object(adapter_type, '_get', lambda adapter, suffix, params=None: case.board(adapter, suffix, params)):
                 thread.start()
                 deadline = time.monotonic() + 10
                 while not server.started:
@@ -127,12 +143,27 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
                     if reviewed:
                         with case.store.engine.connect() as connection:
                             collector_id = connection.execute(select(m.company_sources.c.collector_source_id).where(
-                                m.company_sources.c.tenant == 'reviewed')).scalar_one()
+                                m.company_sources.c.tenant == source_tenant)).scalar_one()
                         self.assertFalse(any(row['source_id'] == collector_id for row in scheduled))
                     else:
                         self.assertEqual(scheduled, [])
                     page.get_by_role('button', name=re.compile(r'^Jobs')).click()
                     expect(page.locator('.job-card').filter(has_text='Senior Python Engineer' if reviewed else 'Python Engineer')).to_be_visible()
+                    if lever_region:
+                        expect(page.get_by_label('Application provider',exact=True).locator('option[value="lever"]')).to_have_count(1,timeout=1000)
+                        page.get_by_label('Application provider',exact=True).select_option('lever')
+                        page.get_by_label('ATS',exact=True).select_option('lever')
+                        expect(page.locator('.job-card').filter(has_text='Senior Python Engineer')).to_be_visible()
+                        page.get_by_role('button',name='Sources',exact=True).click()
+                        page.get_by_label('Source provider',exact=True).select_option('lever')
+                        page.get_by_label('Lever region',exact=True).select_option(lever_region)
+                        page.get_by_label('Lever site',exact=True).fill('second-example')
+                        with page.expect_response(lambda response: response.request.method=='PUT' and response.url.endswith('/sources')) as saved:
+                            page.get_by_role('button',name='Add board',exact=True).click()
+                        self.assertEqual(saved.value.status,200)
+                        page.reload(wait_until='domcontentloaded')
+                        page.get_by_role('button',name='Sources',exact=True).click()
+                        expect(page.locator('section.panel').filter(has_text=f'lever / {lever_region}:second-example')).to_have_count(1)
                     with case.store.engine.connect() as connection:
                         self.assertEqual(connection.execute(select(m.jobs.c.company_id)).scalar_one(),
                             case.company_id if reviewed else 'canonical-employer')

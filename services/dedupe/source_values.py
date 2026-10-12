@@ -157,8 +157,18 @@ def resolve_job_values(connection, job_id, *, at, seen_at=None, profile=None):
     if len({_json({k:v for k,v in row['normalized']['attributes'].items() if k.startswith('salary_')}) for row in candidates}) > 1:
         conflicts.append('salary')
     # Only the canonical route created by these collectors may be updated here.
-    route = connection.execute(select(m.routes).where(m.routes.c.id == job_id).with_for_update()).mappings().one()
-    in_use = connection.execute(select(m.applications.c.id).where(m.applications.c.route_id == route['id']).limit(1)).first()
+    route = connection.execute(select(m.routes).where(m.routes.c.id == job_id,
+        m.routes.c.job_id == job_id).with_for_update()).mappings().one_or_none()
+    collector_owned_route = route is not None
+    if route is None:
+        # Imported/manual route IDs need not equal the canonical job ID. Preserve
+        # an unambiguous existing route without granting the collector write ownership.
+        routes = connection.execute(select(m.routes).where(m.routes.c.job_id == job_id)
+            .with_for_update()).mappings().all()
+        if len(routes) != 1:
+            raise ValueError('SOURCE_VALUE_ROUTE_REVIEW_REQUIRED')
+        route = routes[0]
+    in_use = not collector_owned_route or connection.execute(select(m.applications.c.id).where(m.applications.c.route_id == route['id']).limit(1)).first()
     if not in_use:
         in_use = connection.execute(select(m.application_route_choices.c.id).where(
             m.application_route_choices.c.route_id == route['id']).limit(1)).first()

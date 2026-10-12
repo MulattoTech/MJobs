@@ -5,6 +5,17 @@ from services.applications.adapters.lever import LeverApplicationAdapter
 
 
 class LeverApplicationAdapterTests(unittest.TestCase):
+    def test_regional_collector_tenant_matches_only_its_own_instance(self):
+        adapter=LeverApplicationAdapter()
+        for region,host in [('global','jobs.lever.co'),('eu','jobs.eu.lever.co')]:
+            url=f'https://{host}/example/123e4567-e89b-12d3-a456-426614174000'
+            route={'provider':'lever','url':url,'tenant':region+':example'}
+            normalized=adapter.normalize_route(route)
+            self.assertIsNotNone(normalized)
+            self.assertEqual(normalized['tenant'],region+':example')
+            other='eu' if region=='global' else 'global'
+            self.assertIsNone(adapter.normalize_route(dict(route,tenant=other+':example')))
+
     def setUp(self):
         self.adapter = LeverApplicationAdapter()
 

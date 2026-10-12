@@ -681,7 +681,8 @@ class MockApplicationTests(unittest.TestCase):
 
             def check():
                 return None
-            check.remaining_seconds = lambda: 0.5
+            # This oracle verifies review before submission, not navigation latency.
+            check.remaining_seconds = lambda: 10
             result = apply_mock(self.store, app_id, origin, self.root, submit=True, check=check)
 
             self.assertEqual(result["state"], "REVIEW_REQUIRED")

@@ -29,6 +29,9 @@ def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_in
         provider = "remoteok"
     if provider == "greenhouse":
         tenant = tenant_identifier(tenant)
+    elif provider == "lever":
+        from services.discovery.sources.lever import tenant_identity
+        tenant = tenant_identity(tenant)
     else:
         tenant = str(tenant or "default").strip().casefold()
     values = (poll_interval, concurrency, request_timeout, rate_limit, jitter_seconds)
@@ -131,7 +134,12 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         if bound:
             for _, job in normalized:
                 url = job.get('application_url')
-                if url and urlsplit(url).path.split('/')[:2] != ['', source['tenant']]:
+                if source['provider']=='lever':
+                    from services.discovery.sources.lever import listing_url
+                    valid = listing_url(source['tenant'],url,identifier=job['requisition']) is not None
+                else:
+                    valid = not url or urlsplit(url).path.split('/')[:2] == ['',source['tenant']]
+                if not valid:
                     raise SourceError('COMPANY_ATS_JOB_TENANT_MISMATCH')
         accepted = len(normalized)
         metrics = [posting_metrics(job, job.get('application_url')) for _, job in normalized]
@@ -181,7 +189,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 )).mappings().one_or_none()
                 if existing_company is None:
                     new_companies.add(company_id)
-                first_party_ats = source["provider"] == "greenhouse"
+                first_party_ats = source["provider"] in {"greenhouse","lever"}
                 # Aggregator adapters identify the listing origin, not an employer
                 # website or employer-specific ATS tenant. Keep that distinction in
                 # company records even when the feed attributes a posting to a company.
@@ -240,8 +248,19 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 )
                 lock_candidate_job(connection, {"id": job_id, "company_id": company_id, **job,
                     'requisition': canonical['requisition'] if canonical else job['requisition']})
-                if job_id == native_job_id:
-                    upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": source["provider"],
+                # Attaching an authorized first-party posting to an existing job
+                # retains its exact tenant route as an alias. Preserve the old
+                # route and job identity; verified ATS filters need this binding.
+                existing_route = None
+                if job_id == native_job_id or bound:
+                    existing_route = connection.execute(select(m.routes).where(
+                        m.routes.c.company_id == company_id, m.routes.c.provider == source['provider'],
+                        m.routes.c.tenant == source['tenant'], m.routes.c.requisition == job['requisition']
+                    )).mappings().one_or_none()
+                    if existing_route and existing_route['job_id'] != job_id:
+                        raise SourceError('SOURCE_ROUTE_IDENTITY_CONFLICT')
+                if (job_id == native_job_id or bound) and existing_route is None:
+                    upsert(connection, m.routes, {"id": native_job_id, "job_id": job_id, "company_id": company_id, "provider": source["provider"],
                         "tenant": source["tenant"], "requisition": job["requisition"], "url": url})
                 raw_key = json.dumps(item.raw, sort_keys=True, ensure_ascii=False)
                 if posting_id in batch_postings and batch_postings[posting_id] != raw_key:
