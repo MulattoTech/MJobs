@@ -48,6 +48,19 @@ def _verify_login(url: str) -> None:
         engine.dispose()
 
 
+def _has_unexpected_authority(connection, role: str) -> bool:
+    """Check effective ACLs, including PUBLIC grants and non-public namespaces."""
+    return connection.execute(text(
+        "SELECT has_database_privilege(:role, current_database(), 'CREATE') "
+        "OR EXISTS (SELECT 1 FROM pg_namespace "
+        "WHERE has_schema_privilege(:role, oid, 'CREATE')) "
+        "OR EXISTS (SELECT 1 FROM pg_class WHERE relkind IN ('r', 'p', 'v', 'm', 'f') "
+        "AND (has_table_privilege(:role, oid, 'TRUNCATE') "
+        "OR has_table_privilege(:role, oid, 'TRIGGER'))) "
+        "OR EXISTS (SELECT 1 FROM pg_class WHERE relkind='S' "
+        "AND has_sequence_privilege(:role, oid, 'UPDATE'))"), {"role": role}).scalar_one()
+
+
 def provision(admin_url: str, destination: Path, *, role: str = RUNTIME_ROLE) -> None:
     """Idempotently grant application DML, excluding migration bookkeeping and all DDL."""
     login_url = runtime_url(admin_url, role)
@@ -67,7 +80,8 @@ def provision(admin_url: str, destination: Path, *, role: str = RUNTIME_ROLE) ->
                                                    "OR EXISTS (SELECT 1 FROM pg_class WHERE relowner=:oid) "
                                                    "OR EXISTS (SELECT 1 FROM pg_namespace WHERE nspowner=:oid) "
                                                    "OR EXISTS (SELECT 1 FROM pg_database WHERE datdba=:oid)"),
-                                              {"oid": existing["oid"]}).scalar_one()):
+                                              {"oid": existing["oid"]}).scalar_one()
+                        or _has_unexpected_authority(connection, role)):
                     raise ProvisionError("Existing runtime role has unexpected authority; refusing to reuse it")
                 _verify_login(login_url)
             driver = connection.connection.driver_connection
@@ -92,6 +106,10 @@ def provision(admin_url: str, destination: Path, *, role: str = RUNTIME_ROLE) ->
                 sql.SQL("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {}").format(sql.Identifier(role)),
             ):
                 driver.execute(statement)
+            # Fresh roles can inherit unsafe PUBLIC ACLs too. Refuse to publish a
+            # credential rather than silently alter unrelated schemas/privileges.
+            if _has_unexpected_authority(connection, role):
+                raise ProvisionError("Runtime role has unexpected authority; refusing to publish it")
         _verify_login(login_url)
         destination.parent.mkdir(parents=True, exist_ok=True)
         if destination.is_symlink():

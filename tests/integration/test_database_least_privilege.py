@@ -73,6 +73,7 @@ class DatabaseLeastPrivilegePostgresTests(unittest.TestCase):
                     connection.execute(text("DELETE FROM preservation_probe WHERE id=2"))
                     connection.execute(text("SELECT pg_advisory_xact_lock(175)"))
                 for forbidden in ("CREATE TABLE forbidden_ddl (id integer)", "CREATE TEMP TABLE forbidden_temp (id integer)",
+                                  "CREATE SCHEMA forbidden_schema",
                                   "CREATE ROLE mjobs_forbidden_" + suffix,
                                   "CREATE DATABASE mjobs_forbidden_" + suffix, "UPDATE alembic_version SET version_num='invalid'",
                                   "TRUNCATE preservation_probe"):
@@ -91,6 +92,71 @@ class DatabaseLeastPrivilegePostgresTests(unittest.TestCase):
                 destination.unlink()
                 provision(admin_url, destination, role=role)
                 self.assertEqual(first, destination.read_bytes())
+                # Role flags alone miss effective object ACLs, including PUBLIC.
+                # Grant on an isolated synthetic database, prove the authority,
+                # then ensure reuse fails before credentials or ACLs are changed.
+                with admin.begin() as connection:
+                    connection.execute(text("CREATE SCHEMA acl_probe"))
+                    connection.execute(text(
+                        "CREATE FUNCTION public.acl_probe_trigger() RETURNS trigger LANGUAGE plpgsql "
+                        "AS $$ BEGIN RETURN NEW; END $$"))
+                targets = [
+                    ("DATABASE", database, "CREATE", "has_database_privilege"),
+                    ("SCHEMA", "acl_probe", "CREATE", "has_schema_privilege"),
+                    ("SEQUENCE", "preservation_probe_id_seq", "UPDATE", "has_sequence_privilege"),
+                    ("TABLE", "preservation_probe", "TRUNCATE", "has_table_privilege"),
+                    ("TABLE", "preservation_probe", "TRIGGER", "has_table_privilege"),
+                ]
+                for kind, target, privilege, function in targets:
+                    for grantee in (sql.Identifier(role), sql.SQL("PUBLIC")):
+                        with self.subTest(kind=kind, privilege=privilege, grantee=str(grantee)):
+                            grant = sql.SQL("GRANT {} ON {} {} TO {}").format(
+                                sql.SQL(privilege), sql.SQL(kind), sql.Identifier(target), grantee)
+                            revoke = sql.SQL("REVOKE {} ON {} {} FROM {}").format(
+                                sql.SQL(privilege), sql.SQL(kind), sql.Identifier(target), grantee)
+                            try:
+                                with admin.begin() as connection:
+                                    connection.connection.driver_connection.execute(grant)
+                                with runtime.engine.connect() as connection:
+                                    # Function names come only from the fixed list above;
+                                    # all database/role/object values remain bound.
+                                    self.assertTrue(connection.execute(text(
+                                        f"SELECT {function}(current_user, :target, :privilege)"),
+                                        {"target": target, "privilege": privilege}).scalar_one())
+                                    if kind == "DATABASE":
+                                        connection.execute(text("CREATE SCHEMA rollback_acl_proof"))
+                                    elif kind == "SCHEMA":
+                                        connection.execute(text("CREATE TABLE acl_probe.rollback_acl_proof (id integer)"))
+                                    elif kind == "SEQUENCE":
+                                        # Sequences are not transactional; retain their exact current
+                                        # value/is_called while proving setval authorization.
+                                        connection.execute(text(
+                                            "SELECT setval('preservation_probe_id_seq', last_value, is_called) "
+                                            "FROM preservation_probe_id_seq"))
+                                    elif privilege == "TRUNCATE":
+                                        connection.execute(text("TRUNCATE preservation_probe"))
+                                    elif privilege == "TRIGGER":
+                                        connection.execute(text(
+                                            "CREATE TRIGGER rollback_acl_proof BEFORE INSERT ON preservation_probe "
+                                            "FOR EACH ROW EXECUTE FUNCTION public.acl_probe_trigger()"))
+                                    # Closing without commit rolls back synthetic DDL/truncation.
+                                with self.assertRaisesRegex(ProvisionError, "unexpected authority"):
+                                    provision(admin_url, destination, role=role)
+                                self.assertEqual(first, destination.read_bytes())
+                                if grantee == sql.SQL("PUBLIC"):
+                                    fresh_role = "mjobs_fresh_" + suffix
+                                    with self.assertRaisesRegex(ProvisionError, "unexpected authority"):
+                                        provision(admin_url, destination, role=fresh_role)
+                                    self.assertEqual(first, destination.read_bytes())
+                                    with admin.connect() as connection:
+                                        self.assertFalse(connection.execute(text(
+                                            "SELECT EXISTS (SELECT 1 FROM pg_roles WHERE rolname=:role)"),
+                                            {"role": fresh_role}).scalar_one(), "Fresh unsafe role creation must roll back")
+                            finally:
+                                with admin.begin() as connection:
+                                    connection.connection.driver_connection.execute(revoke)
+                            provision(admin_url, destination, role=role)
+                            self.assertEqual(first, destination.read_bytes())
                 with admin.begin() as connection:
                     connection.connection.driver_connection.execute(sql.SQL("ALTER ROLE {} CREATEDB").format(sql.Identifier(role)))
                 with self.assertRaises(ProvisionError):
