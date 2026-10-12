@@ -216,9 +216,33 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     source_card.get_by_role(
                         "button", name="Watch Browser Merge Employer source", exact=True
                     ).click()
-                    source_card.get_by_role(
-                        "button", name="Unwatch Browser Merge Employer source", exact=True
-                    ).click()
+                    # Hold the last write before it reaches the API so this ordering
+                    # regression is exercised even on a fast local machine.
+                    pending_unwatch = []
+                    watch_url = f'{origin}/company-sources/{first_source["id"]}/watch'
+
+                    def hold_unwatch(route):
+                        self.assertEqual(route.request.method, "PUT")
+                        self.assertEqual(route.request.post_data_json, {"watched": False})
+                        pending_unwatch.append(route)
+
+                    page.route(watch_url, hold_unwatch)
+                    unwatch = source_card.get_by_role(
+                        "button", name="Unwatch Browser Merge Employer source", exact=True)
+                    unwatch.click()
+                    deadline = time.monotonic() + 5
+                    while not pending_unwatch and time.monotonic() < deadline:
+                        page.wait_for_timeout(20)
+                    self.assertEqual(len(pending_unwatch), 1)
+                    expect(unwatch).to_be_disabled()
+                    pending_unwatch[0].continue_()
+                    page.unroute(watch_url, hold_unwatch)
+                    # A click dispatches the write; it does not await its transaction.
+                    # The refreshed, enabled control proves the saved state was read back
+                    # before the independent audit-history request below.
+                    expect(source_card.get_by_role(
+                        "button", name="Watch Browser Merge Employer source", exact=True
+                    )).to_be_enabled()
                     after_source_settings = page.evaluate("""async () => {
                         const response = await fetch('/profiles/fixture/audit-history');
                         const history = await response.json();
