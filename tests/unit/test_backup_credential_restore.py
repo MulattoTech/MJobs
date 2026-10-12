@@ -105,6 +105,10 @@ class BackupCredentialRestoreTests(unittest.TestCase):
 
             credential_check = next(index for index, call in enumerate(compose_calls)
                                     if "verify-credentials" in call)
+            runtime_provision = next(index for index, call in enumerate(compose_calls)
+                                     if "cli.provision_database" in call)
+            self.assertLess(runtime_provision, credential_check)
+            self.assertIn("--provision-only", compose_calls[runtime_provision])
             application_start = next(index for index, call in enumerate(compose_calls)
                                      if "up" in call and "--no-build" in call)
             self.assertLess(credential_check, application_start)

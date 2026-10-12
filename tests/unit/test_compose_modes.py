@@ -43,6 +43,20 @@ class ComposeModeTests(unittest.TestCase):
             self.assertEqual(service["environment"]["MJOBS_COMPOSE_MOCK"], "0")
             self.assertNotIn("mock", service.get("depends_on", {}))
 
+    def test_runtime_services_never_receive_bootstrap_database_credentials(self):
+        services = json.loads(self.render("--format", "json"))["services"]
+        for name in ("api", "scheduler", "worker", "source-worker",
+                     "document-worker", "company-discovery-worker"):
+            with self.subTest(service=name):
+                environment = services[name]["environment"]
+                self.assertNotIn("MJOBS_DATABASE_URL", environment)
+                self.assertNotIn("POSTGRES_PASSWORD", environment)
+                self.assertEqual(environment["MJOBS_DATABASE_URL_FILE"], "/run/mjobs-database/runtime-url")
+                credential_mount = next(mount for mount in services[name]["volumes"]
+                                        if mount["target"] == "/run/mjobs-database")
+                self.assertTrue(credential_mount["read_only"])
+        self.assertIn("synthetic-compose-test-value", services["migrate"]["environment"]["MJOBS_DATABASE_URL"])
+
     def test_explicit_fixture_project_includes_mock_service(self):
         services = self.render("--services", fixture=True).splitlines()
         configuration = json.loads(self.render("--format", "json", fixture=True))
