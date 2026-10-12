@@ -154,8 +154,26 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     page.get_by_label('Employer question').fill('What coding languages have you worked with?')
                     expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_be_visible()
 
+                    def save_thresholds():
+                        # HTTP completion alone does not prove React applied the policy.
+                        save = page.get_by_role('button', name='Save answer thresholds', exact=True)
+                        with page.expect_response(lambda response:
+                            response.url.endswith('/application-answer-confidence-thresholds')
+                            and response.request.method == 'PUT'
+                        ) as saved:
+                            save.click()
+                        self.assertEqual(saved.value.status, 200)
+                        policy = saved.value.json()['policy']
+                        expect(save).to_be_disabled()
+                        expect(page.get_by_text(
+                            f"Current thresholds: answer {policy['minimum_saved_answer_confidence']}%; "
+                            f"question match {round(policy['minimum_question_match_confidence'] * 100)}%. "
+                            "Changes apply after saving. The supported range preserves the existing "
+                            "80% answer and 75% question-match floors.", exact=True,
+                        )).to_be_visible()
+
                     page.get_by_label('Minimum saved answer confidence').fill('86')
-                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
+                    save_thresholds()
                     expect(page.get_by_role('status').filter(
                         has_text='Application answer thresholds saved for this profile')).to_be_visible()
                     page.reload(wait_until='domcontentloaded')
@@ -168,12 +186,17 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
 
                     page.get_by_label('Minimum saved answer confidence').fill('80')
                     page.get_by_label('Minimum question match confidence').fill('96')
-                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
-                    page.get_by_label('Employer question').last.fill('Which programming languages have you used?')
+                    save_thresholds()
+                    # The paraphrase scores 95%; an exact question scores 100%.
+                    expect(page.get_by_label('Employer question')).to_have_value('What coding languages have you worked with?')
+                    expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_have_count(0)
+                    page.get_by_label('Employer question').fill('Which programming languages have you used?')
+                    expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_be_visible()
+                    page.get_by_label('Employer question').fill('What coding languages have you worked with?')
                     expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_have_count(0)
 
                     page.get_by_label('Minimum question match confidence').fill('75')
-                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
+                    save_thresholds()
                     expect(page.get_by_role('button', name='Use saved answer (review required)', exact=True)).to_be_visible()
                     page.get_by_label('Active profile', exact=True).select_option('other')
                     page.locator('.job-card').first.click()
@@ -184,7 +207,7 @@ class ApplicationAnswerExportBrowserTests(unittest.TestCase):
                     page.locator('.job-card').first.click()
                     page.get_by_label('Minimum saved answer confidence').fill('100')
                     page.get_by_label('Minimum question match confidence').fill('100')
-                    page.get_by_role('button', name='Save answer thresholds', exact=True).click()
+                    save_thresholds()
                     page.get_by_role('button', name='Add question', exact=True).click()
                     page.get_by_label('Employer question').fill('What did you learn from a synthetic project?')
                     page.get_by_label('Answer', exact=True).fill('I learned to test carefully.')
