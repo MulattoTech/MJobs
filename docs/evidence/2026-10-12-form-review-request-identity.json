@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "issues": [
+    160,
+    156
+  ],
+  "requirement": "MJ-REQ-159",
+  "base_revision": "d39e8e8b1d64cac89e5bde3457a45bf63fb297be",
+  "utc": "2026-10-12T10:56:21.673665+00:00",
+  "source_paths": [
+    "apps/api/application_form_review.py",
+    "tests/integration/test_application_form_review_flow.py",
+    "tests/integration/test_lever_form_review_flow.py"
+  ],
+  "source_diff_sha256": "9aad78fefdbe17a0d39717c7638619b511e95e46aaf604171568de1b38acb1df",
+  "behavior": "An application form inspection request ID identifies one immutable profile/route snapshot. Exact retries preserve the original operation and its lease/recovery/terminal state; changed inputs return fixed409; new request IDs recover explicitly. Historical request readback survives profile edits and client reopen; legacy ambiguous IDs fail closed.",
+  "root_cause": "Changed frozen params produced a different deterministic operation ID for the same request_id; request-specific GET selected the newest row and obscured an earlier completed receipt. Shared insertion resetting RUNNING was investigated and disproven.",
+  "regression": {
+    "red": "Real create_app -> execute_operation -> completed audit; edit profile, retry sameID returned202/newQUEUED and hid completed metadata. Executed failing test expected409 (outputs/ci/root-review-request-red.log).",
+    "green_command": "python -m pytest -q tests/integration/test_application_form_review_flow.py tests/integration/test_lever_form_review_flow.py tests/integration/test_lever_form_review_security.py tests/unit/test_application_form_review_worker.py tests/browser/test_lever_form_review.py --junitxml=outputs/ci/root-form-review-identity-final.xml",
+    "green_result": "23 passed,15 subtests passed,6 explicitly skipped PostgreSQL variants; connected Chromium included.",
+    "cases": [
+      "completed receipt/edit/retry409/no row mutation/reopen/new request completion",
+      "all8 operation states preserve entire persisted row including attempt/progress/cancellation/recovery",
+      "Lever route edit conflict/newID",
+      "four concurrent exact retries oneoperation; concurrent stale/newIDs409/202 withonefreshoperation",
+      "legacy duplicateidentity409 without arbitrary readback",
+      "private-value omission/malformed route/profile isolation preserved",
+      "loopback disposable PostgreSQL guard negativecontrols; own UUID-schema cleanup only"
+    ]
+  },
+  "postgresql": "Same6 Lever connected/replay/concurrency tests target an isolated UUID schema on explicitly validated loopback mjobs_test database; local NOT_RUN, required hosted integration pending. No populated/private database reset.",
+  "review": "Local Luna review identified disposable-target guard gap; fixed with negative controls. Not human or independent release certification.",
+  "known_diagnostic": "Windows reopened TestClient left closed SQLite cursor cycles; poolzero and zero openSQLiteconnections instrumented; explicit test-owned pool disposal and collection before normal temporary cleanup. No production resource or data deletion.",
+  "baseline_checkpoint": {
+    "revision": "d39e8e8b1d64cac89e5bde3457a45bf63fb297be",
+    "browser_run": 38238511480,
+    "historical_issue532": "44/44 exact historical failures PASS; issue532closed; allfourJUnitartifacts parsed;213PASS15subtests5nativeWindowsskips",
+    "connected_run": 38238970475,
+    "connected_result": "PASS",
+    "release_gate": "FAIL96unmet/26openhigh/preservedsourcecheckoutdirt; browser/secrets/connected exactmain checks nowPASS"
+  },
+  "limits": [
+    "No full parent requirement promotion",
+    "Current candidate hosted checks NOT_RUN at evidence creation",
+    "No live ATS form fill/upload/submission support claimed",
+    "External submissions OFF"
+  ]
+}
