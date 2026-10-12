@@ -1044,8 +1044,12 @@ def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
                         tools[name] = tools.get(name, 0) + 1
                 elif typ == "GENERIC":
                     generic_steps += 1
-    except OSError as exc:
-        return {"available": False, "error": str(exc), "conversation_id": conversation_id}
+    except OSError:
+        return {
+            "available": False,
+            "error": "Antigravity usage is unavailable. Try refreshing again.",
+            "conversation_id": conversation_id,
+        }
 
     elapsed = max(0.0, (last_time or 0) - (first_time or 0)) if first_time and last_time else None
     prompt_material = input_tokens + cache_read_tokens

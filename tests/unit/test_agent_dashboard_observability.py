@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from tools.agent_dashboard.observability import codex_usage_snapshot, opencode_usage_snapshot, read_codex_rate_limits
+from tools.agent_dashboard.observability import antigravity_usage_snapshot, codex_usage_snapshot, opencode_usage_snapshot, read_codex_rate_limits
 from tools.agent_dashboard.server import create_app
 from tools.agent_dashboard.supervisor import AgentSupervisor
 
@@ -20,6 +20,67 @@ from tools.agent_dashboard.supervisor import AgentSupervisor
 DIAGNOSTIC = "SYNTHETIC_PRIVATE_TELEMETRY C:/private/config Traceback"
 CODEX_ERROR = "Codex usage is unavailable. Try refreshing again."
 OPENCODE_ERROR = "OpenCode usage is unavailable. Try refreshing again."
+
+
+@pytest.mark.parametrize("error", [PermissionError, FileNotFoundError])
+@pytest.mark.parametrize("tokens", [0, 12])
+def test_antigravity_transcript_diagnostics_are_safe_through_http_and_recover(tmp_path, error, tokens):
+    subprocess.run(["git", "init"], cwd=tmp_path, check=True, capture_output=True)
+    home = tmp_path / "synthetic-home"
+    transcript = home / ".gemini/antigravity-cli/brain/synthetic-conversation/.system_generated/logs/transcript_full.jsonl"
+    transcript.parent.mkdir(parents=True)
+    records = [
+        {"type": "USER_INPUT", "content": "worktree=" + tmp_path.as_posix()},
+        {"type": "PLANNER_RESPONSE", "input_tokens": tokens, "output_tokens": 3},
+    ]
+    transcript.write_text("".join(json.dumps(record) + "\n" for record in records), encoding="utf-8")
+    real_open = Path.open
+    reads = []
+
+    def fail_summary(path, *args, **kwargs):
+        if path == transcript:
+            reads.append(path)
+            if len(reads) >= 2:
+                raise error(DIAGNOSTIC)
+        return real_open(path, *args, **kwargs)
+
+    with patch.object(Path, "home", return_value=home), patch.object(Path, "open", fail_summary):
+        unavailable = antigravity_usage_snapshot(tmp_path, configured_model="synthetic-model")
+    assert len(reads) == 2
+    current = unavailable["current_conversation"]
+    assert current["available"] is False
+    assert current["conversation_id"] == "synthetic-conversation"
+    with patch.object(AgentSupervisor, "_monitor_loop", return_value=None):
+        app = create_app(tmp_path)
+    supervisor = app.state.supervisor
+    supervisor.runtime["lanes"]["antigravity"]["workspace"] = str(tmp_path)
+    model = supervisor.config["lanes"]["antigravity"]["model"]
+    key = f"antigravity_stats:{tmp_path}:None:{model}"
+    supervisor._telemetry_cache.update({
+        "codex_usage": (time.monotonic(), {"available": False}),
+        "processes": (time.monotonic(), []),
+        "gpu": (time.monotonic(), {"available": False}),
+        "ollama_ps": (time.monotonic(), {"available": False}),
+        key: (time.monotonic(), unavailable),
+    })
+    with TestClient(app) as client, patch.object(supervisor, "start") as start:
+        response = client.get("/api/state")
+        assert response.status_code == 200
+        assert DIAGNOSTIC not in response.text
+        current = response.json()["lanes"]["antigravity"]["usage"]["telemetry"]["current_conversation"]
+        assert current["available"] is False
+        assert "refresh" in current["error"].lower()
+        with patch.object(Path, "home", return_value=home):
+            supervisor._refresh_telemetry_async(
+                key, lambda: antigravity_usage_snapshot(tmp_path, configured_model="synthetic-model"))
+        response = client.get("/api/state")
+        current = response.json()["lanes"]["antigravity"]["usage"]["telemetry"]["current_conversation"]
+        assert current["available"] is True
+        assert current["conversation_id"] == "synthetic-conversation"
+        assert "error" not in current
+        assert current["input_tokens"] == tokens
+        assert current["output_tokens"] == 3
+        start.assert_not_called()
 
 
 @pytest.mark.parametrize("error", [PermissionError, FileNotFoundError])
