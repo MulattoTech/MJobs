@@ -54,11 +54,14 @@ def _has_unexpected_authority(connection, role: str) -> bool:
         "SELECT has_database_privilege(:role, current_database(), 'CREATE') "
         "OR EXISTS (SELECT 1 FROM pg_namespace "
         "WHERE has_schema_privilege(:role, oid, 'CREATE')) "
-        "OR EXISTS (SELECT 1 FROM pg_class WHERE relkind IN ('r', 'p', 'v', 'm', 'f') "
-        "AND (has_table_privilege(:role, oid, 'TRUNCATE') "
-        "OR has_table_privilege(:role, oid, 'TRIGGER'))) "
-        "OR EXISTS (SELECT 1 FROM pg_class WHERE relkind='S' "
-        "AND has_sequence_privilege(:role, oid, 'UPDATE'))"), {"role": role}).scalar_one()
+        # Boolean WHERE terms can be reordered. CASE is required here because
+        # sequence privilege inquiry raises for non-sequence catalog objects.
+        "OR EXISTS (SELECT 1 FROM pg_class WHERE CASE "
+        "WHEN relkind IN ('r', 'p', 'v', 'm', 'f') THEN "
+        "(has_table_privilege(:role, oid, 'TRUNCATE') "
+        "OR has_table_privilege(:role, oid, 'TRIGGER')) ELSE FALSE END) "
+        "OR EXISTS (SELECT 1 FROM pg_class WHERE CASE WHEN relkind='S' THEN "
+        "has_sequence_privilege(:role, oid, 'UPDATE') ELSE FALSE END)"), {"role": role}).scalar_one()
 
 
 def provision(admin_url: str, destination: Path, *, role: str = RUNTIME_ROLE) -> None:
