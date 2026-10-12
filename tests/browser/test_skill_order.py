@@ -24,6 +24,29 @@ from workers.tasks import execute_operation
 
 
 class SkillOrderBrowserTests(unittest.TestCase):
+    def preview_alignment(self, page, origin, *, explicit=False):
+        prepare_button = page.get_by_role('button', name='Prepare documents', exact=True)
+        expect(prepare_button).to_be_disabled()
+        with page.expect_response(lambda response:
+                                  response.url.endswith('/resume-alignment-preview') and
+                                  response.url.startswith(origin + '/') and
+                                  response.request.method == 'POST') as event:
+            page.get_by_role('button', name='Preview keyword alignment', exact=True).click()
+        self.assertEqual(event.value.status, 200)
+        snapshot = event.value.json()
+        self.assertTrue(snapshot['read_only'])
+        self.assertEqual(snapshot['selection_mode'],
+                         'EXPLICIT_SELECTION' if explicit else 'ALL_ELIGIBLE')
+        expect(page.get_by_role('region', name='Resume keyword alignment preview', exact=True)).to_contain_text(
+            'Selected resume facts only.' if explicit else
+            'All eligible approved facts are in the default resume selection.')
+        expect(prepare_button).to_be_enabled()
+        return snapshot
+
+    def assert_prepared_snapshot(self, request, snapshot):
+        self.assertEqual(request['expected_profile_version'], snapshot['profile_version'])
+        self.assertEqual(request['expected_job_fingerprint'], snapshot['job_fingerprint'])
+
     def test_target_bullet_fallback_explicit_precedence_and_reload(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -82,10 +105,12 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.get_by_label('Active profile', exact=True).select_option('fixture')
                     page.get_by_role('button').filter(has=page.get_by_role('heading', name=job['title'], exact=True)).click()
                     page.get_by_label('Order approved skills for this job', exact=True).check()
+                    snapshot = self.preview_alignment(page, origin)
                     with page.expect_response(lambda response: response.url == origin + '/applications' and
                                               response.request.method == 'POST') as event:
                         page.get_by_role('button', name='Prepare documents', exact=True).click()
                     operation = event.value.json()
+                    self.assert_prepared_snapshot(event.value.request.post_data_json, snapshot)
                     with patch.dict('os.environ', MJOBS_DATABASE_URL=store.url,
                                     MJOBS_MOCK_ORIGIN='http://127.0.0.1:1', MJOBS_OUTPUT_DIR=str(root),
                                     MJOBS_OPERATION_MODE='FIXTURE'):
@@ -115,11 +140,13 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.get_by_label('Include Systems administrator.', exact=True).uncheck()
                     page.get_by_label('Include Administered VMware hosts.', exact=True).uncheck()
                     page.get_by_label('Include Built a Hyper-V lab.', exact=True).check()
+                    snapshot = self.preview_alignment(page, origin, explicit=True)
                     with page.expect_response(lambda response: response.url == origin + '/applications' and
                                               response.request.method == 'POST') as event:
                         page.get_by_role('button', name='Prepare documents', exact=True).click()
                     operation = event.value.json()
                     queued = event.value.request.post_data_json
+                    self.assert_prepared_snapshot(queued, snapshot)
                     self.assertEqual(queued['tailor_fact_ids'], ['project-unmatched'])
                     with patch.dict('os.environ', MJOBS_DATABASE_URL=store.url,
                                     MJOBS_MOCK_ORIGIN='http://127.0.0.1:1', MJOBS_OUTPUT_DIR=str(root),
@@ -482,10 +509,12 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.evaluate("localStorage.setItem('mjobs-profile','fixture')");page.reload()
                     page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
                     page.get_by_label('Order approved skills for this job',exact=True).check()
+                    snapshot = self.preview_alignment(page, origin)
                     with page.expect_response(lambda response:response.url==origin+'/applications' and
                                               response.request.method=='POST') as event:
                         page.get_by_role('button',name='Prepare documents',exact=True).click()
                     operation=event.value.json()
+                    self.assert_prepared_snapshot(event.value.request.post_data_json, snapshot)
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
                                     MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')

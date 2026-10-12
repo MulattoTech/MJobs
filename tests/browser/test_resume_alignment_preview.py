@@ -118,6 +118,12 @@ class ResumeAlignmentPreviewBrowserTests(unittest.TestCase):
                     page.route('**/resume-alignment-preview', hold_preview)
                     preview_button.click()
                     expect(page.get_by_role('button', name='Checking alignment…', exact=True)).to_be_visible()
+                    # The loading state precedes interception and route.fetch.
+                    # Pump browser events until the actual saved response is held
+                    # before changing the selection and releasing that response.
+                    deadline = time.monotonic() + 5
+                    while not held and time.monotonic() < deadline:
+                        page.wait_for_timeout(20)
                     self.assertEqual(len(held), 1)
                     page.get_by_label('Include Python', exact=True).uncheck()
                     held[0][0].fulfill(response=held[0][1])
