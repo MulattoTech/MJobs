@@ -98,13 +98,19 @@ class LeverFormReviewFlowTests(unittest.TestCase):
             )).scalar_one()
 
     def test_lever_route_persists_safe_review_metadata_by_request_id(self):
+        self._assert_region_review(LEVER_URL)
+
+    def test_eu_lever_route_persists_safe_review_metadata_by_request_id(self):
+        self._assert_region_review(LEVER_URL.replace("jobs.lever.co", "jobs.eu.lever.co"))
+
+    def _assert_region_review(self, route_url):
         request_id = "lever-review-request-001"
         # Admission freezes the canonical URL; a supported persisted /apply
         # alias must still pass worker staleness checks without a second route.
         with self.store.engine.begin() as connection:
             connection.execute(update(m.routes).where(
                 m.routes.c.id == self.store.application(self.application_id)["route_id"],
-            ).values(url=LEVER_URL + "/apply"))
+            ).values(url=route_url + "/apply"))
         path = self._path()
         queued = self.client.post(path, json={"request_id": request_id})
         self.assertEqual(queued.status_code, 202, queued.text)
@@ -112,7 +118,7 @@ class LeverFormReviewFlowTests(unittest.TestCase):
         fetches = []
 
         class FakeResponse:
-            url = LEVER_URL
+            url = route_url
             headers = {"content-type": "text/html; charset=utf-8"}
             content = (
                 b"<form>"
@@ -153,7 +159,7 @@ class LeverFormReviewFlowTests(unittest.TestCase):
         }), patch("workers.tasks.PublicCompanyClient", FakePublicClient):
             result = execute_operation(operation_id)
 
-        self.assertEqual(fetches, [LEVER_URL])
+        self.assertEqual(fetches, [route_url])
         self.assertEqual(result["status"], "COMPLETED")
         read = self.client.get(path + "/" + request_id)
         self.assertEqual(read.status_code, 200, read.text)
@@ -186,6 +192,77 @@ class LeverFormReviewFlowTests(unittest.TestCase):
             f"/profiles/other-profile/applications/{self.application_id}/form-reviews/{request_id}"
         )
         self.assertEqual(cross_profile.status_code, 404)
+
+        # Reopen the API against durable storage, preserving the exact instance.
+        self.client.close()
+        self.client = TestClient(create_app(
+            self.store, "http://127.0.0.1:1", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="FIXTURE",
+        ))
+        self.assertEqual(self.client.get(path + "/" + request_id).json(), payload)
+        with self.store.engine.connect() as connection:
+            persisted_url = connection.execute(select(m.routes.c.url).where(
+                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+            )).scalar_one()
+        self.assertEqual(persisted_url, route_url + "/apply")
+        rehearsal_path = self._path().removesuffix("/form-reviews") + "/rehearsal"
+        current = self.client.get(rehearsal_path)
+        self.assertEqual(current.status_code, 200, current.text)
+        other_region = (route_url.replace("jobs.eu.lever.co", "jobs.lever.co")
+                        if "jobs.eu.lever.co" in route_url else
+                        route_url.replace("jobs.lever.co", "jobs.eu.lever.co"))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+            ).values(url=other_region))
+        stale = self.client.get(rehearsal_path)
+        self.assertEqual(stale.status_code, 409, stale.text)
+        self.assertEqual(stale.json()["detail"]["code"], "APPLICATION_REHEARSAL_STALE")
+        fresh = self.client.post(path, json={"request_id": "review-new-region"})
+        self.assertEqual(fresh.status_code, 202, fresh.text)
+        with self.store.engine.connect() as connection:
+            params = connection.execute(select(m.operations.c.params).where(
+                m.operations.c.id == fresh.json()["operation_id"],
+            )).scalar_one()
+        self.assertEqual(params["route_url"], other_region)
+
+    def test_region_change_invalidates_queued_review_before_fetch(self):
+        self._assert_queued_region_change(LEVER_URL)
+
+    def test_eu_region_change_invalidates_queued_review_before_fetch(self):
+        self._assert_queued_region_change(
+            LEVER_URL.replace("jobs.lever.co", "jobs.eu.lever.co"))
+
+    def _assert_queued_region_change(self, route_url):
+        other_region = (route_url.replace("jobs.eu.lever.co", "jobs.lever.co")
+                        if "jobs.eu.lever.co" in route_url else
+                        route_url.replace("jobs.lever.co", "jobs.eu.lever.co"))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+            ).values(url=route_url))
+        body = {"request_id": "region-bound-review"}
+        first = self.client.post(self._path(), json=body)
+        self.assertEqual(first.status_code, 202, first.text)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+            ).values(url=other_region))
+        retry = self.client.post(self._path(), json=body)
+        self.assertEqual(retry.status_code, 409, retry.text)
+        self.assertEqual(retry.json()["detail"]["code"], "FORM_REVIEW_IDEMPOTENCY_CONFLICT")
+        with patch.dict("os.environ", {
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+            "MJOBS_DATABASE_URL": self.database_url,
+            "MJOBS_REDIS_URL": "redis://127.0.0.1:1/0",
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
+            "MJOBS_OUTPUT_DIR": str(self.root / "documents"),
+        }), patch("workers.tasks.PublicCompanyClient") as client:
+            result = execute_operation(first.json()["operation_id"])
+        client.assert_not_called()
+        self.assertNotEqual(result["status"], "COMPLETED")
+        read = self.client.get(self._path() + "/" + body["request_id"])
+        self.assertIsNone(read.json().get("analysis"))
 
     def test_malformed_or_unsupported_routes_do_not_enqueue_or_fetch(self):
         path = self._path()

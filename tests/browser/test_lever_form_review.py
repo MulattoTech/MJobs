@@ -38,6 +38,13 @@ PRIVATE_MARKERS = (
                      "Build apps/web before browser acceptance")
 class LeverFormReviewBrowserTests(unittest.TestCase):
     def test_persisted_lever_route_inspects_safely_and_reads_back_after_reload(self):
+        self._assert_persisted_region_review(LEVER_ROUTE)
+
+    def test_persisted_eu_lever_route_inspects_safely_and_reads_back_after_reload(self):
+        self._assert_persisted_region_review(
+            LEVER_ROUTE.replace("jobs.lever.co", "jobs.eu.lever.co"))
+
+    def _assert_persisted_region_review(self, route_url):
         with tempfile.TemporaryDirectory(prefix="mjobs-lever-review-browser-") as directory:
             root = Path(directory)
             store = Store(f"sqlite:///{(root / 'lever-review.db').as_posix()}")
@@ -55,7 +62,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                 ).values(
                     provider="lever", tenant="example",
                     requisition="12345678-abcd-1234-abcd-1234567890ab",
-                    url=LEVER_ROUTE,
+                    url=route_url,
                 ))
                 connection.execute(update(m.applications).where(
                     m.applications.c.id == application_id,
@@ -83,7 +90,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                     time.sleep(0.02)
 
                 class FixtureResponse:
-                    url = LEVER_ROUTE
+                    url = route_url
                     headers = {"content-type": "text/html; charset=utf-8"}
                     content = FORM_FIXTURE
 
@@ -93,10 +100,10 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                         self.check = check
 
                     def allowed(self, url):
-                        return url == LEVER_ROUTE
+                        return url == route_url
 
                     def get(self, url):
-                        if url != LEVER_ROUTE:
+                        if url != route_url:
                             raise AssertionError("Review worker requested an unexpected route")
                         fetched_urls.append(url)
                         if self.check:
@@ -172,7 +179,7 @@ class LeverFormReviewBrowserTests(unittest.TestCase):
                     }), patch("workers.tasks.PublicCompanyClient", FixturePublicClient):
                         result = execute_operation(operation_id)
                     self.assertEqual(result["status"], "COMPLETED", result)
-                    self.assertEqual(fetched_urls, [LEVER_ROUTE])
+                    self.assertEqual(fetched_urls, [route_url])
 
                     fields_region = review.locator('[aria-label="Inspected form fields"]')
                     expect(fields_region).to_contain_text("first_name")

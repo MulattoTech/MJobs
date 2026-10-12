@@ -1,0 +1,36 @@
+{
+  "issue": 123,
+  "requirement": "MJ-REQ-122",
+  "status": "PARTIAL",
+  "utc": "2026-10-12T19:28:10.289729+00:00",
+  "base": "b26906b6620f3ff34327fe40c617bf3ca44802e0",
+  "behavior": "Lever global/EU application review preserves the stored instance through admission, worker fetching, durable safe readback and rehearsal recovery",
+  "provider_contract": "https://github.com/lever/postings-api",
+  "reproduced": [
+    "EU route fetched global instance",
+    "Region-only route edit accepted the same queued review request",
+    "Unit test asserted the incorrect global rewrite"
+  ],
+  "local": {
+    "focused": "27 PASS,24 subtests;9 PostgreSQL opt-in SKIP/NOT_RUN",
+    "focused_command": "python -m pytest -q tests/unit/test_lever_application_adapter.py tests/integration/test_lever_form_review_flow.py tests/integration/test_lever_form_review_security.py tests/integration/test_application_rehearsal.py",
+    "browser": "4 Chromium PASS,6 subtests after production build",
+    "browser_command": "python -m pytest -q tests/browser/test_lever_form_review.py tests/browser/test_lever_application_adapter.py",
+    "build_and_policy": "production build, catalogue, progress validation, dashboard check, public repository policy, diff check PASS"
+  },
+  "invariants": [
+    "Exact HTTPS allowlisted host; credentials, explicit ports, fragments and malformed routes remain rejected",
+    "Global/EU queued changes conflict and block before client creation",
+    "Completed reviews become stale in either region direction; new review freezes the correct instance",
+    "Private form values excluded; real submission and live form interaction remain OFF",
+    "Existing route records and recovery history preserved; legacy wrong-region snapshots fail closed and need a fresh review"
+  ],
+  "review": "Local Luna review: no concrete blocker; not independent certification",
+  "source_blobs": {
+    "services/applications/adapters/lever.py": "505ac2b9cdc66edcdc15249c078d5812772d472d",
+    "tests/unit/test_lever_application_adapter.py": "ace564ff36ffde898ccac23ad6fb5904f04de6ff",
+    "tests/integration/test_lever_form_review_flow.py": "22372af7b00b65d259a1aebd51df15756959c38c",
+    "tests/browser/test_lever_form_review.py": "3aebdb02a824ffb3e08c5c9bbb33ee440d2c97fd"
+  },
+  "acceptance_boundary": "Parent123 remains PARTIAL; hosted candidate PostgreSQL and checks NOT_RUN before publication; live provider and new Lever discovery inventory NOT_RUN"
+}
