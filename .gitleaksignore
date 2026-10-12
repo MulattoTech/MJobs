@@ -159,3 +159,8 @@ d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.
 
 # Verified public Git blob ID for the comparison API test source; not a credential.
 4e270786eea53da0a1f9f907665775c0d71b4057:docs/evidence/2026-10-12-comparison-scope-browser-recovery.json:generic-api-key:18
+
+# Verified public Git blob IDs for committed API/web test sources; not credentials.
+8b4fde3cc147c79509687ec625bdee5c175b51ba:docs/evidence/2026-10-12-cover-letter-browser-contracts.json:generic-api-key:9
+8b4fde3cc147c79509687ec625bdee5c175b51ba:docs/evidence/2026-10-12-cover-letter-browser-contracts.json:generic-api-key:10
+8b4fde3cc147c79509687ec625bdee5c175b51ba:docs/evidence/2026-10-12-cover-letter-browser-contracts.json:generic-api-key:13
