@@ -74,6 +74,40 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             finish_inline(self.store, identifier, "BLOCKED", "BROWSER_RELEASE_UNCONFIRMED",
                           browser_closed=True, owner_token="a" * 64)
 
+    def test_public_cancellation_hides_owner_and_preserves_owned_capacity(self):
+        identifier = self.admit_owned_window()
+        before_application = self.store.application(self.application_id)
+        attempts = self.store.count("application_attempts")
+        with self.store.engine.connect() as connection:
+            before = connection.execute(select(m.operations).where(
+                m.operations.c.id == identifier)).mappings().one()
+            owner = before["recovery_metadata"]["manual_auth_owner"]
+        for blocked in (False, True):
+            if blocked:
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(
+                        m.operations.c.id == identifier).values(
+                            lease_expires_at="2000-01-01T00:00:00+00:00"))
+                recover_expired(self.store)
+            with self.subTest(blocked=blocked):
+                response = self.client.post(f"/operations/{identifier}/cancel")
+                self.assertEqual(response.status_code, 202, response.text)
+                self.assertNotIn("manual_auth_owner", response.text)
+                self.assertNotIn("token_sha256", response.text)
+                with self.store.engine.connect() as connection:
+                    row = connection.execute(select(m.operations).where(
+                        m.operations.c.id == identifier)).mappings().one()
+                self.assertEqual(row["state"], "BLOCKED" if blocked else "RUNNING")
+                self.assertTrue(row["cancel_requested"])
+                self.assertEqual(row["recovery_metadata"]["manual_auth_owner"], owner)
+                with patch("apps.api.manual_auth.open_mock_authentication") as launch:
+                    self.assertEqual(self.client.post(self.url).status_code, 409)
+                    launch.assert_not_called()
+        self.assertEqual(self.store.application(self.application_id), before_application)
+        self.assertEqual(self.store.count("application_attempts"), attempts)
+        self.assertTrue(finish_inline(self.store, identifier, "COMPLETED",
+                                     browser_closed=True, owner_token="a" * 64))
+
     def test_api_reports_failed_owner_release_without_claiming_success(self):
         with patch("apps.api.manual_auth.open_mock_authentication", return_value="MANUAL_AUTH_WINDOW_CLOSED"), \
                 patch("apps.api.manual_auth.finish_inline", return_value=False):

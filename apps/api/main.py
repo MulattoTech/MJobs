@@ -2514,7 +2514,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.post("/operations/{operation_id}/cancel", status_code=202)
     def cancel(operation_id: str):
-        result = request_cancel(store, operation_id)
+        from services.operations.progress import operation_public_record
+        result = operation_public_record(request_cancel(store, operation_id))
         if result.get("reason") == "RECONCILIATION_REQUIRED":
             return JSONResponse(result, status_code=409)
         return result
