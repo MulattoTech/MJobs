@@ -6,6 +6,7 @@ handles never kills processes; loss of the last proof handle is UNKNOWN.
 """
 import ctypes as c
 from ctypes import wintypes as w
+from contextlib import contextmanager
 from pathlib import Path
 import os
 from secrets import token_hex
@@ -86,6 +87,46 @@ def _require(result):
     if not result:
         raise OSError("Native containment observation unavailable")
     return result
+
+
+@contextmanager
+def _private_input_handles(data):
+    """Preload one small input and EOF; inherit only its read end and NUL.
+
+    No reader-dependent write occurs after launch. The bound is below the
+    native anonymous pipe buffer, preventing a stalled child from blocking
+    the creator. Parent descriptors close on both successful and failed launch.
+    This is transport only; the dedicated host must validate its input schema.
+    Concurrent process launchers in this process must use close_fds=True or
+    their own explicit handle list: Windows requires these two handles to be
+    briefly inheritable. A child-wide list cannot constrain another launcher.
+    """
+    if data is None:
+        yield None
+        return
+    import msvcrt
+
+    descriptors = []
+    try:
+        read_fd, write_fd = os.pipe()
+        descriptors.extend((read_fd, write_fd))
+        offset = 0
+        while offset < len(data):
+            written = os.write(write_fd, data[offset:])
+            if not written:
+                raise OSError
+            offset += written
+        os.close(write_fd)
+        descriptors.remove(write_fd)
+        null_fd = os.open(os.devnull, os.O_WRONLY | os.O_BINARY)
+        descriptors.append(null_fd)
+        handles = (msvcrt.get_osfhandle(read_fd), msvcrt.get_osfhandle(null_fd))
+        for handle in handles:
+            os.set_handle_inheritable(handle, True)
+        yield handles
+    finally:
+        for descriptor in descriptors:
+            os.close(descriptor)
 
 
 class BrowserTreeQuery:
@@ -199,7 +240,7 @@ class BrowserTreeJob:
             except Exception:
                 raise ValueError("TREE_QUERY_UNAVAILABLE") from None
 
-    def launch(self, argv, *, cwd=None):
+    def launch(self, argv, *, cwd=None, private_input=None):
         with self._lock:
             try:
                 if self._handle is None or self._attempted:
@@ -209,19 +250,24 @@ class BrowserTreeJob:
                         or any(not isinstance(arg, str) or "\0" in arg for arg in argv)
                         or not Path(argv[0]).is_absolute()):
                     raise ValueError
-                return self._launch(argv, cwd)
+                if private_input is not None and (type(private_input) is not bytes
+                                                  or not 0 < len(private_input) <= 2048):
+                    raise ValueError
+                with _private_input_handles(private_input) as handles:
+                    return self._launch(argv, cwd, handles)
             except Exception:
                 # Do not expose executable, private profile or native errors.
                 raise ValueError("TREE_LAUNCH_UNAVAILABLE") from None
 
-    def _launch(self, argv, cwd):
+    def _launch(self, argv, cwd, input_handles=None):
         kernel = self._kernel
         size = c.c_size_t()
-        kernel.InitializeProcThreadAttributeList(None, 1, 0, c.byref(size))
+        count = 2 if input_handles is not None else 1
+        kernel.InitializeProcThreadAttributeList(None, count, 0, c.byref(size))
         if c.get_last_error() != 122 or not size.value:
             raise OSError
         buffer = c.create_string_buffer(size.value)
-        _require(kernel.InitializeProcThreadAttributeList(buffer, 1, 0, c.byref(size)))
+        _require(kernel.InitializeProcThreadAttributeList(buffer, count, 0, c.byref(size)))
         try:
             jobs = (w.HANDLE * 1)(self._handle)
             # PROC_THREAD_ATTRIBUTE_JOB_LIST: admission in CreateProcess itself.
@@ -230,14 +276,24 @@ class BrowserTreeJob:
             startup = _StartupEx()
             startup.base.cb = c.sizeof(startup)
             startup.attributes = c.cast(buffer, c.c_void_p)
+            if input_handles is not None:
+                # HANDLE_LIST restricts bInheritHandles to these two handles;
+                # other inheritable API handles must never enter the host.
+                inherited = (w.HANDLE * 2)(*input_handles)
+                _require(kernel.UpdateProcThreadAttribute(buffer, 0, 0x20002, inherited,
+                                                          c.sizeof(inherited), None, None))
+                startup.base.flags = 0x100  # STARTF_USESTDHANDLES
+                startup.base.stdin = input_handles[0]
+                startup.base.stdout = startup.base.stderr = input_handles[1]
             info = _ProcessInfo()
             command = c.create_unicode_buffer(subprocess.list2cmdline(argv))
             environment = _host_environment()
             # Explicit UTF-16 block with two trailing NULs, including when empty.
             block = c.create_unicode_buffer("\0".join(
                 f"{name}={environment[name]}" for name in sorted(environment)) + "\0\0")
-            # Extended startup, no window, Unicode environment; no inherited handles.
-            _require(kernel.CreateProcessW(argv[0], command, None, None, False,
+            # Extended startup, no window, Unicode environment; explicitly
+            # listed private handles only, or no inherited handles by default.
+            _require(kernel.CreateProcessW(argv[0], command, None, None, input_handles is not None,
                                             0x80000 | 0x08000000 | 0x400, block,
                                             str(cwd) if cwd is not None else None,
                                             c.byref(startup), c.byref(info)))
