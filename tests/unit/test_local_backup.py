@@ -83,10 +83,10 @@ class LocalBackupTests(unittest.TestCase):
 
     def test_backup_requires_scheduler_and_company_discovery_to_be_quiescent(self):
         states = {service: "exited" for service in (
-            "api", "worker", "source-worker", "document-worker", "migrate",
+            "api", "worker", "source-worker", "document-worker", "ai-worker", "migrate",
             "scheduler", "company-discovery-worker")}
         states["postgres"] = "running"
-        for service in ("scheduler", "company-discovery-worker"):
+        for service in ("scheduler", "company-discovery-worker", "ai-worker"):
             for state in ("running", "restarting", None):
                 with self.subTest(service=service, state=state):
                     unsafe = dict(states)

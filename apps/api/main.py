@@ -53,12 +53,8 @@ from services.dedupe.routes import (load_job_routes, list_route_choices, plan_ap
 from services.dedupe.route_redirects import resolve_aggregator_redirect
 from services.company_discovery.triggers import queue_company_discovery
 from services.applications.knowledge import application_adapter_knowledge
-from services.ai.providers import AIProviderDisabled, AIProviderError, create_provider
+from services.ai.providers import AIProviderError, create_provider
 from services.ai.tasks import AI_TASKS, AITaskConfiguration, AITaskRouter, fallback_capabilities
-from services.ai.consumer import (
-    AIConsumerCancelledError, AIConsumerTimeoutError, consume_ai_candidates, AIJobInput,
-)
-from services.ai.structured_output import StructuredOutputError
 from services.ai.cost_controls import AICostPolicy, CandidateScore
 from services.credentials.vault import CredentialCipher, CredentialConfigurationError
 from services.company_discovery.public_client import PublicFetchError
@@ -732,8 +728,6 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.state.resume_extraction_lock = threading.Lock()
     app.state.uploaded_comparison_events = {}
     app.state.uploaded_comparison_lock = threading.Lock()
-    app.state.ai_evaluation_events = {}
-    app.state.ai_evaluation_lock = threading.Lock()
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
     app.add_middleware(LocalOriginMiddleware)
 
@@ -1024,148 +1018,62 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 else 422)
             raise HTTPException(status, {"code": code}) from None
 
-    @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate")
-    async def evaluate_ai_cost_plan(profile_id: str, request: Request,
-                                   value: AIEvaluationRequest | None = None):
-        configured_policy = store.ai_cost_policy(profile_id)
-        policy = AICostPolicy(**configured_policy) if configured_policy else AICostPolicy()
-        configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
-        if configuration.for_task("job_scoring").provider == "disabled":
-            raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"})
-        task_selection = configuration.for_task("job_scoring")
-        rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1)
-        if len(rows) > policy.max_input_candidates:
-            raise HTTPException(422, {"code": "AI_FUNNEL_INPUT_LIMIT"})
-        profile_version = store.profile(profile_id)["version"]
-        router = AITaskRouter(configuration)
-        candidates = [AIJobInput(
-            job_id=row["id"], deterministic_score=int(float(row["match_score"])),
-            title=row["title"], company=row["company"], description=row["description"],
-        ) for row in rows if row.get("match_score") is not None]
-        candidate_by_id = {candidate.job_id: candidate for candidate in candidates}
-        request_id = value.request_id if value else uuid4().hex
-        cancel_key = (profile_id, request_id)
-        cancelled = threading.Event()
-        with app.state.ai_evaluation_lock:
-            if cancel_key in app.state.ai_evaluation_events:
-                raise HTTPException(409, {"code": "AI_EVALUATION_REQUEST_ACTIVE"})
-            try:
-                operation_id = admit_inline(store, "AI_EVALUATE", profile_id)
-            except OperationConcurrencyLimit:
-                raise HTTPException(429, {"code": "AI_CONCURRENCY_LIMIT"}) from None
-            app.state.ai_evaluation_events[cancel_key] = cancelled
-
-        def check_cancelled():
-            if cancelled.is_set() or inline_cancel_requested(store, operation_id):
-                cancelled.set()
-                raise AIConsumerCancelledError()
-
-        work = asyncio.create_task(asyncio.to_thread(
-            consume_ai_candidates, candidates, policy, router,
-            check=check_cancelled, cancellation_event=cancelled,
-        ))
-
-        def forget_finished_evaluation(_work):
-            if (_work.cancelled() or cancelled.is_set()
-                    or inline_cancel_requested(store, operation_id)):
-                state, error = "CANCELLED", "CANCEL_REQUESTED"
-            else:
-                try:
-                    work_error = _work.exception()
-                except BaseException:
-                    work_error = RuntimeError()
-                if isinstance(work_error, AIConsumerTimeoutError) or (
-                        isinstance(work_error, AIProviderError)
-                        and work_error.code == "AI_PROVIDER_TIMEOUT"):
-                    state, error = "FAILED", work_error.code
-                else:
-                    state, error = (("FAILED", "AI_EVALUATION_FAILED") if work_error
-                                    else ("COMPLETED", None))
-            finish_inline(store, operation_id, state, error)
-            with app.state.ai_evaluation_lock:
-                if app.state.ai_evaluation_events.get(cancel_key) is cancelled:
-                    app.state.ai_evaluation_events.pop(cancel_key, None)
-
-        work.add_done_callback(forget_finished_evaluation)
+    @app.post('/profiles/{profile_id}/ai-cost-plan/evaluate/queued', status_code=202)
+    def queue_ai_cost_evaluation(profile_id: str, value: AIEvaluationRequest):
+        from services.ai.durable_evaluation import queue_evaluation, DurableEvaluationError
         try:
-            next_cancel_poll = monotonic()
-            while not work.done():
-                if await request.is_disconnected():
-                    cancelled.set()
-                    try:
-                        await work
-                    except AIConsumerCancelledError:
-                        pass
-                    return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
-                if monotonic() >= next_cancel_poll:
-                    if inline_cancel_requested(store, operation_id):
-                        cancelled.set()
-                    next_cancel_poll = monotonic() + 0.25
-                await asyncio.sleep(0.05)
-            result = await work
-            if cancelled.is_set():
-                return {"cancelled": True, "request_id": request_id}
-            if await request.is_disconnected():
-                return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
-        except AIConsumerCancelledError:
-            if not await request.is_disconnected():
-                return {"cancelled": True, "request_id": request_id}
-            return JSONResponse({"detail": {"code": "AI_TASK_CANCELLED"}}, status_code=499)
-        except AIConsumerTimeoutError as error:
-            raise HTTPException(504, {"code": error.code}) from None
-        except StructuredOutputError as error:
-            raise HTTPException(502, {"code": error.code}) from None
-        except ValueError as error:
-            raise HTTPException(422, {"code": str(error)}) from None
-        except AIProviderDisabled:
-            raise HTTPException(409, {"code": "AI_PROVIDER_DISABLED"}) from None
-        except AIProviderError as error:
-            status = 504 if error.code == "AI_PROVIDER_TIMEOUT" else 502
-            raise HTTPException(status, {"code": error.code}) from None
-        except asyncio.CancelledError:
-            cancelled.set()
-            try:
-                await asyncio.shield(work)
-            except BaseException:
-                pass
-            raise
+            return queue_evaluation(store, profile_id, value.request_id)
+        except DurableEvaluationError as error:
+            status_code = 409 if error.code in ('AI_PROVIDER_DISABLED', 'AI_EVALUATION_IDENTITY_CONFLICT') else 422
+            raise HTTPException(status_code, {'code': error.code}) from None
+
+    @app.get('/profiles/{profile_id}/ai-cost-plan/operations/{operation_id}')
+    def ai_cost_evaluation_status(profile_id: str, operation_id: str):
+        from services.ai.durable_evaluation import read_evaluation, DurableEvaluationError
         try:
-            run = store.save_ai_evaluation_run(profile_id, profile_version, asdict(policy),
-                                               task_selection.provider, task_selection.model, [{
-                "job_id": job_id,
-                "title": candidate_by_id[job_id].title,
-                "company": candidate_by_id[job_id].company,
-                "deterministic_score": candidate_by_id[job_id].deterministic_score,
-                "category": evaluation.category,
-                "rationale": evaluation.rationale,
-            } for job_id, evaluation in result.evaluations])
-        except ValueError as error:
-            if str(error) == "AI_EVALUATION_PROFILE_CHANGED":
-                raise HTTPException(409, {"code": str(error)}) from None
-            raise HTTPException(422, {"code": str(error)}) from None
-        return {
-            "profile_id": profile_id,
-            **run,
-            "evaluated_candidate_count": len(result.evaluations),
-            "evaluations": [{
-                "job_id": job_id, "title": candidate_by_id[job_id].title,
-                "company": candidate_by_id[job_id].company,
-                "deterministic_score": candidate_by_id[job_id].deterministic_score,
-                "category": evaluation.category,
-                "rationale": evaluation.rationale,
-            } for job_id, evaluation in result.evaluations],
-            "document_candidate_ids": list(result.document_candidate_ids),
-            "documents_created": 0,
-            "deterministic_matches_unchanged": True,
-        }
+            return read_evaluation(store, profile_id, operation_id)
+        except DurableEvaluationError as error:
+            raise HTTPException(404, {'code': error.code}) from None
+
+    @app.get('/profiles/{profile_id}/ai-cost-plan/operations')
+    def ai_cost_evaluation_operations(profile_id: str):
+        from services.ai.durable_evaluation import KIND, status
+        store.profile(profile_id)
+        with store.engine.connect() as connection:
+            rows = connection.execute(select(m.operations).where(
+                m.operations.c.kind == KIND, m.operations.c.entity_id == profile_id,
+            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc()).limit(50)).mappings()
+            return {'profile_id': profile_id, 'operations': [status(row) for row in rows]}
+
+    @app.post('/profiles/{profile_id}/ai-cost-plan/operations/{operation_id}/cancel')
+    def cancel_queued_ai_cost_evaluation(profile_id: str, operation_id: str):
+        from services.ai.durable_evaluation import owned_operation, status, DurableEvaluationError
+        from workers.operations import request_cancel
+        try:
+            owned_operation(store, profile_id, operation_id)
+            return status(request_cancel(store, operation_id))
+        except DurableEvaluationError as error:
+            raise HTTPException(404, {'code': error.code}) from None
+
+    @app.post("/profiles/{profile_id}/ai-cost-plan/evaluate", status_code=202)
+    def evaluate_ai_cost_plan(profile_id: str, value: AIEvaluationRequest | None = None):
+        # Preserve the original action URL while moving its contract to durable
+        # admission. Clients follow the returned operation ID instead of holding
+        # an inference request open. No provider executes in the API process.
+        return queue_ai_cost_evaluation(profile_id, value or AIEvaluationRequest(request_id=uuid4().hex))
 
     @app.post("/profiles/{profile_id}/ai-cost-plan/evaluations/{request_id}/cancel")
     def cancel_ai_cost_evaluation(profile_id: str, request_id: str):
-        with app.state.ai_evaluation_lock:
-            cancelled = app.state.ai_evaluation_events.get((profile_id, request_id))
-            if cancelled is not None:
-                cancelled.set()
-        return {"cancelled": cancelled is not None}
+        from services.ai.durable_evaluation import KIND, owned_operation, DurableEvaluationError
+        from workers.operations import request_cancel
+        operation_id = identity(KIND, profile_id, request_id)
+        try:
+            owned_operation(store, profile_id, operation_id)
+        except DurableEvaluationError:
+            return {'cancelled': False}
+        row = request_cancel(store, operation_id)
+        return {'cancelled': row['cancel_requested'], 'operation_id': operation_id, 'state': row['state']}
+
     @app.put("/profiles")
     def profile(value: ProfileInput):
         payload = value.model_dump()

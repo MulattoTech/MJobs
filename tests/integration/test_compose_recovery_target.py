@@ -145,6 +145,8 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
                             for command, _ in compose_calls))
         self.assertTrue(any("start" in command and "company-discovery-worker" in command
                             for command, _ in compose_calls))
+        self.assertTrue(any('stop' in command and 'ai-worker' in command for command, _ in compose_calls))
+        self.assertTrue(any('start' in command and 'ai-worker' in command for command, _ in compose_calls))
         self.assertEqual(evidence["result"], "PASS")
 
         urls = [call[1] for call in http_calls]

@@ -12,6 +12,7 @@ from packages.persistence.store import now
 from services.audit_history import record_application_preparation_event
 
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-company-discovery",
+          "AI_EVALUATE_QUEUED": "mjobs-ai",
           "COMPANY_SOURCE_REFRESH": "mjobs-company-discovery", "PREPARE": "mjobs-document",
           "RESUME_EXTRACT_QUEUED": "mjobs-document", "UPLOADED_RESUME_COMPARE_QUEUED": "mjobs-document",
           "APPLY_MOCK": "mjobs-application", "APPLICATION_FORM_REVIEW": "mjobs-application",
@@ -21,6 +22,7 @@ OPERATION_CATEGORIES = {
     "COMPANY_DISCOVER": "company_discovery",
     "COMPANY_SOURCE_REFRESH": "company_discovery",
     "AI_EVALUATE": "ai",
+    "AI_EVALUATE_QUEUED": "ai",
     "RESUME_EXTRACT": "document_generation",
     "RESUME_EXTRACT_QUEUED": "document_generation",
     "UPLOADED_RESUME_COMPARE": "document_generation",
@@ -452,6 +454,11 @@ def recover_expired(store):
                 state, error = ("QUEUED", "LEASE_EXPIRED") if row["attempt_count"] < MAX_ATTEMPTS else ("DEAD_LETTERED", "RETRY_LIMIT")
             if row["cancel_requested"]:
                 state, error = "CANCELLED", "CANCEL_REQUESTED"
+            elif row['kind'] == 'AI_EVALUATE_QUEUED':
+                states = connection.execute(select(m.ai_evaluation_batches.c.candidate_states).where(
+                    m.ai_evaluation_batches.c.id == row['id'])).scalar_one()
+                if any(value.get('state') == 'CALL_STARTED' for value in states.values()):
+                    state, error = 'BLOCKED', 'AI_PROVIDER_OUTCOME_UNKNOWN'
             if row["kind"] == "APPLY_MOCK":
                 application = connection.execute(select(m.applications).where(m.applications.c.id == row["entity_id"]).with_for_update()).mappings().one()
                 if application["state"] == "CONFIRMED":

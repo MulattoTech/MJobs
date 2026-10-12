@@ -568,6 +568,14 @@ uploaded_comparison_results = Table(
     Column("result", JSON, nullable=False),
     Column("created_at", String(64), nullable=False),
 )
+ai_evaluation_batches = Table(
+    "ai_evaluation_batches", metadata,
+    Column("id", String(128), ForeignKey("worker_operations.id", ondelete="CASCADE"), primary_key=True),
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("snapshot", JSON, nullable=False),
+    Column("candidate_states", JSON, nullable=False),
+    Column("created_at", String(64), nullable=False),
+)
 resume_extraction_results = Table(
     "resume_extraction_results", metadata,
     Column("id", String(128), ForeignKey("worker_operations.id", ondelete="CASCADE"), primary_key=True),

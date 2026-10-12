@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "observed_utc": "2026-10-12T13:59:11.742044+00:00",
+  "base_revision": "c28a337917e25befb2feb1ba07b458cf960ba6ea",
+  "requirement": "MJ-REQ-156",
+  "issue": 157,
+  "result": "PARTIAL",
+  "source_inputs": {
+    ".github/workflows/integration.yml": {
+      "git_blob": "d6ca9f70b159d7cec4cf7b6850457d09bd5f64ab"
+    },
+    "apps/api/main.py": {
+      "git_blob": "58b4beda6ac139a1f5216ad5d3891c0de2ced677"
+    },
+    "apps/web/src/main.tsx": {
+      "git_blob": "8bedd14b75f57592bee882443dd2e1f8b8fb61fd"
+    },
+    "apps/web/src/durable-ai-evaluation.tsx": {
+      "git_blob": "a55862230b5526ef354d83b661e52aa54508120d"
+    },
+    "cli/compose_recovery.py": {
+      "git_blob": "e8af11ada37975a15bd731c5aef749af317cbdc9"
+    },
+    "cli/local_backup.py": {
+      "git_blob": "8eeaae7b62ec7737f40b09e4864ec3f4f695f09a"
+    },
+    "compose.yml": {
+      "git_blob": "9cdc42a895e37ea98f02f8fdd62a73ed897273f7"
+    },
+    "packages/persistence/models.py": {
+      "git_blob": "1a7d87fabc1978d1ba8b6ff3880aba61126d9438"
+    },
+    "packages/persistence/store.py": {
+      "git_blob": "ee076590389e70366b66937913b87fe54459f887"
+    },
+    "migrations/versions/20261012ai01_durable_ai_evaluation.py": {
+      "git_blob": "2cba42e9a5103444639a73ad4b7aab18950a067e"
+    },
+    "services/ai/durable_evaluation.py": {
+      "git_blob": "0bb96a8b15027f03bca9705e989a6ecd6918a125"
+    },
+    "services/ai/AREA.md": {
+      "git_blob": "423583fb9f4522a9a0745e9effa1b7f12b065d94"
+    },
+    "tests/browser/test_ai_task_settings.py": {
+      "git_blob": "3f9bbde63b6ebce55dbcadd0d85c05fde73616e6"
+    },
+    "tests/integration/test_ai_cost_policy_api.py": {
+      "git_blob": "000067b68f04169bcfdca7303262b9d4de9de556"
+    },
+    "tests/integration/test_durable_ai_evaluation.py": {
+      "git_blob": "3cba8dc1cd563d7baf507cf90c972aa06633df4f"
+    },
+    "tests/integration/test_durable_ai_evaluation_postgres.py": {
+      "git_blob": "c716b7a6648ea800df09d214c653798e5a7a2ad9"
+    },
+    "tests/integration/test_durable_ai_dispatch.py": {
+      "git_blob": "e34ddb7ff97d6411f7b577d05085ecb6b3b39ea5"
+    },
+    "tests/integration/test_compose_recovery_target.py": {
+      "git_blob": "80e4f6e220d4ee6912714ce6ee2dbfe3d66c9ee5"
+    },
+    "tests/unit/test_compose_modes.py": {
+      "git_blob": "9c9616b3d492fc8dc46f0ae3c71121be12242f80"
+    },
+    "tests/unit/test_local_backup.py": {
+      "git_blob": "a2e82f2153f6c559406acd09188e7ea69030d3e6"
+    },
+    "tests/unit/test_runtime_health.py": {
+      "git_blob": "4c73929d87b2faa3bd7ad1db35a759259c349949"
+    },
+    "workers/operations.py": {
+      "git_blob": "4786987519574e47d04464988775f22a0353998e"
+    },
+    "workers/tasks.py": {
+      "git_blob": "8804597d9aee592f7ba0737bac25756d8b635568"
+    }
+  },
+  "behavior": [
+    "HTTP202 durable advisory admission and owner-scoped list/read/cancel",
+    "Immutable private input snapshot and digest-only generic metadata",
+    "Dedicated existing-outbox mjobs-ai worker",
+    "Saved responses reused; uncertain started calls block replay",
+    "Atomic fenced run/results/operation completion",
+    "Browser reload/cancel/history and per-profile isolation",
+    "Backup and recovery include AI worker"
+  ],
+  "executed": [
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_evaluation.py tests/integration/test_ai_cost_policy_api.py tests/integration/test_durable_ai_evaluation_postgres.py tests/integration/test_migration_graph.py tests/integration/test_worker_lifecycle.py tests/integration/test_operation_progress_lifecycle.py tests/integration/test_worker_attempt_identity.py",
+      "result": "60 PASS,8 SKIP,2subtests PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_evaluation.py tests/integration/test_durable_ai_evaluation_postgres.py tests/integration/test_durable_ai_dispatch.py tests/integration/test_compose_recovery_target.py tests/unit/test_compose_modes.py tests/unit/test_local_backup.py",
+      "result": "46 PASS,7 explicit opt-in SKIP,61subtests PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_ai_task_settings.py",
+      "result": "2 PASS after production build; real Chromium, controlled local fixtures"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS; existing chunk-size warning"
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "1521 PASS,1 FAIL,949subtests PASS; readiness expected queue list omitted new mjobs-ai; repaired after this run"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_runtime_health.py tests/unit/test_operation_concurrency.py tests/unit/test_worker_queue_binding.py tests/unit/test_backup_acceptance.py tests/unit/test_backup_fixture_receipts.py tests/unit/test_backup_config_snapshot.py tests/unit/test_backup_credential_restore.py",
+      "result": "40 PASS,29subtests PASS after readiness test repair; full postrepair rerun NOT_RUN"
+    },
+    {
+      "command": "python -m tools.ci.check_repository; catalogue; progress validate; progress_dashboard --check; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "known_limitations": [
+    "Hosted exact-candidate checks NOT_RUN at record creation",
+    "Six PostgreSQL and one actual Redis dispatch acceptance cases locally SKIP; fixture services unavailable",
+    "Configured live provider inference and saved encrypted credential routing NOT_RUN; no inference service installed or endpoint restrictions broadened",
+    "Whole #157 and #110 acceptance not promoted; other legacy inline actions remain",
+    "Independent release gate on main c28a3379 FAIL:96 unmet,26 open high findings, preserved dirty files and exact-main workflow gaps"
+  ],
+  "safety": {
+    "external_application_submissions": false,
+    "external_ai_calls": false,
+    "original_keys_and_private_data_preserved": true,
+    "original_requirement_total": 366,
+    "reference_requirement_total": 59
+  }
+}
