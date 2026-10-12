@@ -738,8 +738,8 @@ def _codex_rollout_summary(path: Path) -> dict[str, Any]:
                         tool_breakdown[name] = tool_breakdown.get(name, 0) + 1
                     elif subtype == "reasoning":
                         reasoning_events += 1
-    except OSError as exc:
-        return {"available": False, "error": str(exc), **identity}
+    except OSError:
+        return {"available": False, "error": "Codex usage is unavailable. Try refreshing again.", **identity}
 
     def usage_values(raw: dict[str, Any]) -> dict[str, int]:
         input_tokens = int(raw.get("input_tokens") or 0)
