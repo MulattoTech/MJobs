@@ -247,6 +247,93 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             row = connection.execute(select(m.operations).where(m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
         self.assertEqual((row["state"], row["error"]), ("BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"))
 
+    def test_live_page_wait_error_is_unavailable_after_cleanup_not_successful_close(self):
+        from playwright.sync_api import Error
+        events = []
+        with patch("services.applications.manual_auth.MockClient") as client, \
+                patch("playwright.sync_api.sync_playwright") as playwright:
+            client.return_value.allowed.return_value = True
+            manager = playwright.return_value
+            context = manager.__enter__.return_value.chromium.launch_persistent_context.return_value
+            page = context.new_page.return_value
+            context.pages = [page]
+            page.is_closed.return_value = False
+            page.wait_for_timeout.side_effect = Error("synthetic private transport diagnostic")
+            context.close.side_effect = lambda: events.append("cleanup")
+            manager.__exit__.side_effect = lambda *args: events.append("driver_exit")
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertEqual(response.json()["detail"], "Manual sign-in window is unavailable on this runtime")
+        self.assertEqual(events, ["cleanup", "driver_exit"])
+        with self.store.engine.connect() as connection:
+            state = connection.execute(select(m.operations.c.state).where(
+                m.operations.c.kind == "MANUAL_AUTH")).scalar_one()
+        self.assertEqual(state, "FAILED")
+        self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
+        self.assertEqual(self.store.count("application_attempts"), 1)
+
+    def test_closed_page_with_failed_cleanup_stays_blocked_before_driver_exit(self):
+        from playwright.sync_api import Error
+        events = []
+        with patch("services.applications.manual_auth.MockClient") as client, \
+                patch("playwright.sync_api.sync_playwright") as playwright:
+            client.return_value.allowed.return_value = True
+            manager = playwright.return_value
+            context = manager.__enter__.return_value.chromium.launch_persistent_context.return_value
+            page = context.new_page.return_value
+            context.pages = [page]
+            page.is_closed.side_effect = [False, True]
+            page.wait_for_timeout.side_effect = Error("synthetic closed page")
+
+            def fail_cleanup():
+                events.append("cleanup")
+                raise Error("synthetic uncertain context closure")
+
+            context.close.side_effect = fail_cleanup
+            manager.__exit__.side_effect = lambda *args: events.append("driver_exit")
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertEqual(events, ["cleanup", "driver_exit"])
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+        self.assertEqual((row["state"], row["error"]), ("BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"))
+        with patch("apps.api.manual_auth.open_mock_authentication") as launch:
+            self.assertEqual(self.client.post(self.url).status_code, 409)
+            launch.assert_not_called()
+
+    def test_real_helper_cancel_check_cleans_context_before_driver_exit_and_release(self):
+        events = []
+
+        def cancel_during_wait(_milliseconds):
+            with self.store.engine.connect() as connection:
+                identifier = connection.execute(select(m.operations.c.id).where(
+                    m.operations.c.kind == "MANUAL_AUTH",
+                    m.operations.c.state == "RUNNING")).scalar_one()
+            request_cancel(self.store, identifier)
+
+        with patch("services.applications.manual_auth.MockClient") as client, \
+                patch("playwright.sync_api.sync_playwright") as playwright:
+            client.return_value.allowed.return_value = True
+            manager = playwright.return_value
+            context = manager.__enter__.return_value.chromium.launch_persistent_context.return_value
+            page = context.new_page.return_value
+            context.pages = [page]
+            page.is_closed.return_value = False
+            page.wait_for_timeout.side_effect = cancel_during_wait
+            context.close.side_effect = lambda: events.append("cleanup")
+            manager.__exit__.side_effect = lambda *args: events.append("driver_exit")
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(events, ["cleanup", "driver_exit"])
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+        self.assertEqual(row["state"], "CANCELLED")
+        self.assertIsNone(row["lease_expires_at"])
+        self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
+        self.assertEqual(self.store.count("application_attempts"), 1)
+
     def test_launch_failure_without_context_retains_capacity_and_blocks_retry(self):
         with patch("services.applications.manual_auth.MockClient") as client, \
                 patch("playwright.sync_api.sync_playwright") as playwright:
