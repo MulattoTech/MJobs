@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, expect
 
 from tools.feature_studio.validate import STUDIO, ROOT, validate_spec
 
@@ -55,6 +55,6 @@ def test_feature_studio_import_strips_approval_claims(tmp_path):
             assert preview["lifecycle"] == "DRAFT"
             assert not preview["execution"]["agent_execution_authorized"]
             assert all(item["status"] == "NOT_RUN" for item in preview["acceptance_criteria"])
-            assert "reset" in page.locator("#status").inner_text()
+            expect(page.locator("#status")).to_contain_text("reset")
         finally:
             browser.close()
