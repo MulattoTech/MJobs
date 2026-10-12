@@ -109,6 +109,9 @@ class LeverApplicationAdapter(GreenhouseApplicationAdapter):
             return None
         tenant = tenant.casefold()
         requisition = requisition.casefold()
+        # Lever's global and EU hosts identify separate instances. Preserve
+        # the allowlisted origin in review fingerprints and worker fetches.
+        host = parsed.hostname.casefold()
         supplied_tenant = route.get("tenant")
         supplied_requisition = route.get("requisition")
         if supplied_tenant is not None and (
@@ -123,7 +126,7 @@ class LeverApplicationAdapter(GreenhouseApplicationAdapter):
             "provider": self.provider,
             "tenant": tenant,
             "requisition": requisition,
-            "url": f"https://jobs.lever.co/{tenant}/{requisition}",
+            "url": f"https://{host}/{tenant}/{requisition}",
         }
 
     @staticmethod

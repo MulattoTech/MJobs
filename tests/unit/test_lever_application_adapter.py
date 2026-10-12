@@ -21,7 +21,7 @@ class LeverApplicationAdapterTests(unittest.TestCase):
             "url": "https://jobs.lever.co/example/123e4567-e89b-12d3-a456-426614174000",
         })
 
-    def test_normalizes_eu_lever_routes_to_the_canonical_host(self):
+    def test_normalizes_eu_lever_routes_without_changing_the_instance(self):
         normalized = self.adapter.normalize_route({
             "provider": "lever",
             "url": "https://jobs.eu.lever.co/Example/123E4567-E89B-12D3-A456-426614174000",
@@ -29,7 +29,7 @@ class LeverApplicationAdapterTests(unittest.TestCase):
 
         self.assertEqual(normalized["tenant"], "example")
         self.assertEqual(normalized["url"],
-                         "https://jobs.lever.co/example/123e4567-e89b-12d3-a456-426614174000")
+                         "https://jobs.eu.lever.co/example/123e4567-e89b-12d3-a456-426614174000")
 
     def test_rejects_untrusted_or_malformed_routes(self):
         invalid_routes = (
