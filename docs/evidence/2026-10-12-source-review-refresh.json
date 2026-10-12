@@ -1,0 +1,64 @@
+{
+  "issue": 517,
+  "requirement": "MJ-FEATURE-517",
+  "status": "PARTIAL",
+  "utc": "2026-10-12T20:46:35.637379+00:00",
+  "base": "e4d49901ba27eb5915d4f5143a2f42e6cc00393c",
+  "behavior": "Current-profile source reviews retain mounted inputs, focus and unsaved notes during background list readback; typing continues while saves wait for the refresh. Profile changes still clear private draft state and never expose previous-profile candidates.",
+  "observed_main_failure": {
+    "head": "63ec3fa391e6134d460271195af95f3c6d39e176",
+    "run": 38303533288,
+    "job": 114991960265,
+    "test": "SourceCandidateReviewPanelConnectedTests::test_filters_review_retry_profile_isolation_and_durable_readback",
+    "result": "FAIL disabled alpha review button;220PASS5WindowsSKIP1FAIL",
+    "classification": "Exact timeout cause unproven; unchanged testcase locallyPASS once. Controlled regression separately proves refresh removes focused editing fields."
+  },
+  "reproduction": [
+    "Vitest RED: loading with retained current-profile candidates returned status-only HTML, dropping review fields",
+    "Chromium RED: release delayed main applications read while editing, hold consequent panel readback; focused reason field disappears",
+    "Fixed Chromium: same controlled interaction preserves focus/value, accepts continued typing, disables review saving until readback finishes; full original retry/reload/profile isolation assertions retained",
+    "Synthetic503 readback failure followed by explicit retry retains the continued draft; retry read remains save-gated until successful response"
+  ],
+  "local": {
+    "frontend": "28 Vitest PASS across4source-candidate files",
+    "build": "npm --prefix apps/web run build PASS",
+    "browser": "1 connected Chromium PASS; controlled in-flight typing/focus, disabled saves,503readback outage, explicitretry retaining notes, review idempotency, profile switch and reload",
+    "browser_command": "python -m pytest -q tests/browser/test_source_candidate_review_panel_connected.py --junitxml=outputs/ci/root-source-refresh-final.xml",
+    "api": "10 integration PASS: tests/integration/test_source_candidates.py"
+  },
+  "hosted": "Prior candidate source-review browserPASS; prior full browser FAIL only multipage acknowledgement race. New exact-head checks NOT_RUN.",
+  "invariants": [
+    "No source collection, source egress or external application submission",
+    "Same-profile retained rows only; initial load and cross-profile loading hide stale candidates",
+    "Review write actions disabled during refresh; input drafts remain editable",
+    "No timeout increase or assertion removal"
+  ],
+  "source_blobs": {
+    "apps/web/src/source-candidate-review.tsx": "a3cfc2916092714910ae0312f0516661d1c13d0c",
+    "apps/web/src/source-candidate-review.test.tsx": "a6ea87a3d20bc7ed876efb3036645ba55624b5be",
+    "tests/browser/test_source_candidate_review_panel_connected.py": "ac47c8d71677b9a044d2a3f4d3311bc408f4d826",
+    "tests/browser/test_multipage_application_page_recovery.py": "126637e1b8048e1694ebbe274aa9ee9f4c334ced"
+  },
+  "limits": [
+    "Parent517 remainsPARTIAL; exact hosted timeout cause not equated with controlled defect",
+    "Real external submissions OFF; original unrelated dirt/private data preserved"
+  ],
+  "multipage_verification_repair": {
+    "classification": "Missing verification wait; product save implementation already returns durable acknowledgement",
+    "published_main": {
+      "head": "e4d49901ba27eb5915d4f5143a2f42e6cc00393c",
+      "run": 38305372666,
+      "test": "MultipageApplicationRecoveryBrowserTests::test_pages_save_reload_retry_manual_review_and_never_submit",
+      "failure": "KeyError: contact at saved progress read before retry POST acknowledgement"
+    },
+    "candidate_failure": {
+      "head": "0ef3441a24b190a77976d678cd683f64bbe7c86e",
+      "run": 38305782671,
+      "result": "220PASS5WindowsSKIP1FAIL; source-review selected casePASS; same multipage KeyError"
+    },
+    "reproduction": "Hold retry SAVE_PROGRESS request: old test clears alert and immediately reads unsaved database, reproducing exact contact KeyError",
+    "correction": "Await exact successful SAVE_PROGRESS response and enabled save control before persistence read. While request held, assert save control disabled and whole durable state unchanged. Preserve all original persistence, reload, next-page recovery, scope isolation and no-submission assertions.",
+    "local": "5 PASS: physical held-request Chromium plus multipage API/router integration",
+    "command": "python -m pytest -q tests/browser/test_multipage_application_page_recovery.py tests/integration/test_application_multipage_state_api.py tests/integration/test_application_multipage_router_mount.py --junitxml=outputs/ci/root-multipage-ack-final.xml"
+  }
+}

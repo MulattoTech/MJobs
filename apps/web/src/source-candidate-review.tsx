@@ -259,7 +259,7 @@ export function SourceCandidateReviewQueue({
     <p>Select a profile to review its source candidates.</p>
   </section>;
 
-  if (loading) return <section className="panel" aria-labelledby="source-candidate-review-heading" aria-busy="true">
+  if (loading && !candidates.some(candidate => candidate.profile_id === profileId)) return <section className="panel" aria-labelledby="source-candidate-review-heading" aria-busy="true">
     <h2 id="source-candidate-review-heading">Source candidate review queue</h2>
     <p role="status">Loading source candidates…</p>
   </section>;
@@ -306,10 +306,11 @@ export function SourceCandidateReviewQueue({
     }
   };
 
-  return <section className="panel source-candidate-review-queue" aria-labelledby="source-candidate-review-heading">
+  return <section className="panel source-candidate-review-queue" aria-labelledby="source-candidate-review-heading" aria-busy={loading}>
     <div className="toolbar"><div><h2 id="source-candidate-review-heading">Source candidate review queue</h2>
       <p>Review recorded evidence and source suitability. Reviewing a candidate does not inspect the site or enable collection.</p></div>
       <span className="tag">{rows.length} candidate{rows.length === 1 ? '' : 's'}</span></div>
+    {loading && <p role="status">Refreshing source candidates… Your review notes remain available.</p>}
     {rows.length === 0 ? <p className="empty">No source candidates need review for this profile.</p> :
       <ul aria-label="Source candidates to review" className="source-candidate-review-list">
         {rows.map(candidate => {
@@ -407,8 +408,8 @@ export function SourceCandidateReviewQueue({
                 {pending && <p role="status">Saving source candidate review…</p>}
                 {errorText && <p role="alert">{errorText}</p>}
                 <div className="toolbar">
-                  {failedState ? <button type="button" disabled={pending || !completeDraft(draft, failedState)} onClick={() => void submitReview(candidate, failedState)}>Retry review</button> :
-                    reviewStates.map(option => <button key={option.state} type="button" disabled={pending || !completeDraft(draft, option.state)}
+                  {failedState ? <button type="button" disabled={pending || loading || !completeDraft(draft, failedState)} onClick={() => void submitReview(candidate, failedState)}>Retry review</button> :
+                    reviewStates.map(option => <button key={option.state} type="button" disabled={pending || loading || !completeDraft(draft, option.state)}
                       onClick={() => void submitReview(candidate, option.state)}>{option.label}</button>)}
                 </div>
               </div>

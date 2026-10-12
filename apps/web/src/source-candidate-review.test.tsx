@@ -45,6 +45,17 @@ function render(overrides: Partial<React.ComponentProps<typeof SourceCandidateRe
 }
 
 describe('source candidate review queue', () => {
+  it('keeps current-profile review inputs mounted during retained-row refresh', () => {
+    const html = render({ loading: true });
+    expect(html).toContain('aria-label="Review reason for talenthop.com"');
+    expect(html).toContain('aria-label="API or feed evidence note for talenthop.com"');
+    expect(html).toContain('Refreshing source candidates');
+    expect(html).toContain('aria-busy="true"');
+    const switched = render({ loading: true, profileId: 'another-profile' });
+    expect(switched).toContain('Loading source candidates');
+    expect(switched).not.toContain('talenthop.com');
+  });
+
   it('shows domain, user-reported origin, destination, evidence, unknowns and review status', () => {
     const html = render();
     expect(html).toContain('TalentHop');
