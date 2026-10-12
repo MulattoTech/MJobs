@@ -38,6 +38,10 @@ class ManualAuthCloseLifecycleTests(unittest.TestCase):
                 self.context = context
 
             @property
+            def browser(self):
+                return self.context.browser
+
+            @property
             def pages(self):
                 return [Page(page) for page in self.context.pages]
 
@@ -83,6 +87,12 @@ class ManualAuthCloseLifecycleTests(unittest.TestCase):
             states = connection.execute(select(m.operations.c.state).where(
                 m.operations.c.kind == "MANUAL_AUTH")).scalars().all()
         self.assertEqual(states, ["COMPLETED", "COMPLETED"])
+        from services.applications.browser_process import process_status
+        with self.store.engine.connect() as connection:
+            owners = connection.execute(select(m.operations.c.recovery_metadata).where(
+                m.operations.c.kind == "MANUAL_AUTH")).scalars().all()
+        for owner in owners:
+            self.assertEqual(process_status(owner["manual_auth_owner"]["process"]), "EXITED")
         import httpx
         self.assertEqual(httpx.get(self.origin + "/_test/request-counts").json(),
                          {"review": 0, "submit": 0})

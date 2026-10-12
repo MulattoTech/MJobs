@@ -210,6 +210,42 @@ def admit_inline(store, kind, entity_id, *, owner_token=None, manual_auth_identi
     return operation_id
 
 
+def record_manual_auth_process(store, operation_id, identity, *, owner_token):
+    """Persist one immutable root identity from the admitted browser owner's call."""
+    from services.applications.browser_process import valid_identity
+
+    if not valid_identity(identity) or not isinstance(owner_token, str) or len(owner_token) != 64:
+        return False
+    with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        row = connection.execute(select(m.operations).where(
+            m.operations.c.id == operation_id, m.operations.c.kind == "MANUAL_AUTH",
+            m.operations.c.state == "RUNNING").with_for_update()).mappings().one_or_none()
+        if row is None:
+            return False
+        metadata = row["recovery_metadata"] if isinstance(row["recovery_metadata"], dict) else {}
+        owner = metadata.get("manual_auth_owner")
+        digest = owner.get("token_sha256") if isinstance(owner, dict) else None
+        if (not isinstance(digest, str) or len(digest) != 64
+                or any(character not in "0123456789abcdef" for character in digest)
+                or any(not isinstance(owner.get(key), str) or not owner[key].strip()
+                       for key in ("profile_id", "attempt_id"))
+                or not compare_digest(sha256(owner_token.encode()).hexdigest(), digest)):
+            return False
+        if "process" in owner:
+            return owner["process"] == identity and owner.get("process_identified") is True
+        if "process_identified" in owner:
+            return False
+        connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+            recovery_metadata={**metadata, "manual_auth_owner": {
+                **owner, "process": dict(identity), "process_identified": True}},
+            updated_at=now()))
+        store._audit(connection, operation_id, "MANUAL_AUTH_PROCESS_IDENTIFIED",
+                     {"profile_id": owner["profile_id"], "attempt_id": owner["attempt_id"]})
+        return True
+
+
 def finish_inline(store, operation_id, state, error=None, *, browser_closed=False, owner_token=None):
     if state not in ("COMPLETED", "CANCELLED", "FAILED", "BLOCKED"):
         raise ValueError("Invalid inline operation terminal state")
@@ -242,6 +278,14 @@ def finish_inline(store, operation_id, state, error=None, *, browser_closed=Fals
                            for key in ("profile_id", "attempt_id"))
                     or not compare_digest(sha256(owner_token.encode()).hexdigest(), digest)):
                 return False
+            if "process" in owner or "process_identified" in owner:
+                from services.applications.browser_process import process_status
+
+                if owner.get("process_identified") is not True or process_status(owner.get("process")) != "EXITED":
+                    connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                        state="BLOCKED", error="BROWSER_RELEASE_UNCONFIRMED", updated_at=now(),
+                        current_step="FINALIZING", completed_at=None, lease_expires_at=None))
+                    return False
         if row.kind == "MANUAL_AUTH" and not browser_closed:
             state, error = "BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"
         if row.cancel_requested and state == "COMPLETED":

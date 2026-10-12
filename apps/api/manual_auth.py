@@ -9,7 +9,7 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from workers.operations import (OperationConcurrencyLimit, OperationCancelled,
                                 OperationTimedOut, admit_inline, check_cancelled,
-                                finish_inline, timeout)
+                                finish_inline, record_manual_auth_process, timeout)
 
 
 def open_mock_authentication(*args, **kwargs):
@@ -60,6 +60,11 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
                 raise OperationTimedOut("Manual sign-in time budget expired")
             check_cancelled(store, operation_id)
 
+        def on_process(identity):
+            check()
+            if not record_manual_auth_process(store, operation_id, identity, owner_token=owner_token):
+                raise ValueError("BROWSER_IDENTITY_UNAVAILABLE")
+
         terminal, error = "FAILED", "MANUAL_AUTH_UNAVAILABLE"
         browser_closed = True
         try:
@@ -72,6 +77,7 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
                 mock_origin=mock_origin,
                 output_dir=output_dir,
                 check=check,
+                on_process=on_process,
             )
             if status == "CLOSE_UNCONFIRMED":
                 terminal, error = "BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"
@@ -90,7 +96,7 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
             released = finish_inline(store, operation_id, terminal, error,
                                      browser_closed=browser_closed, owner_token=owner_token)
             if browser_closed and not released:
-                raise HTTPException(503, "Manual browser ownership changed; recovery is required")
+                raise HTTPException(503, "Manual browser release could not be verified; recovery is required")
         if status == "OPEN_UNAVAILABLE":
             raise HTTPException(503, "Manual sign-in window is unavailable on this runtime")
         if status == "STALE":

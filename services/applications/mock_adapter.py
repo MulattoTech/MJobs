@@ -470,7 +470,7 @@ def _record_dynamic_review(store, application_id, preflight, problem):
 
 
 def open_mock_authentication(store, application_id, attempt_id, mock_origin,
-                             output_dir, check=None):
+                             output_dir, check=None, on_process=None):
     """Open the exact saved MOCK attempt for a deliberate manual sign-in.
 
     The user initiated this synchronous action from an AUTH_REQUIRED
@@ -481,7 +481,7 @@ def open_mock_authentication(store, application_id, attempt_id, mock_origin,
     from services.applications.manual_auth import open_manual_auth_window as open_window
 
     return open_window(store, application_id, attempt_id, mock_origin,
-                       output_dir, check=check)
+                       output_dir, check=check, on_process=on_process)
 
 
 def apply_mock(store, application_id, mock_origin, output_dir, submit=False, check=None,
