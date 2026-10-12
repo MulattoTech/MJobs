@@ -198,13 +198,27 @@ class DurableBootstrapTests(unittest.TestCase):
 
 
 class PersistenceDescriptorTests(unittest.TestCase):
+    def test_explicit_close_retries_failed_write_without_dropping_query(self):
+        self.run_departed_creator([False, True], expected_writes=2, explicit_close=True)
+
+    def test_explicit_close_failed_writes_expire_without_success(self):
+        self.run_departed_creator(False, expected_writes=None, explicit_close=True)
+
+    def test_explicit_close_waits_through_live_and_unknown_tree_before_write(self):
+        self.run_departed_creator([True], expected_writes=1, explicit_close=True,
+                                  statuses=['LIVE', 'UNKNOWN', 'EXITED'])
+
+    def test_explicit_close_unlaunched_tree_rolls_back_without_wait_or_certificate(self):
+        self.run_departed_creator(False, expected_writes=0, explicit_close=True, unlaunched=True)
+
     def test_creator_loss_retries_failed_write_without_dropping_query(self):
         self.run_departed_creator([False, True], expected_writes=2)
 
     def test_creator_loss_failed_writes_expire_without_success(self):
         self.run_departed_creator(False, expected_writes=None)
 
-    def run_departed_creator(self, writes, expected_writes):
+    def run_departed_creator(self, writes, expected_writes, explicit_close=False, statuses=None,
+                            unlaunched=False):
         from hashlib import sha256
         from contextlib import ExitStack
         from services.applications import browser_tree_ipc as ipc
@@ -218,7 +232,11 @@ class PersistenceDescriptorTests(unittest.TestCase):
         query.contains.return_value = False
         query.limit_flags.return_value = 0
         query.accounting.return_value = {'total': 1, 'active': 1, 'terminated': 0}
+        if unlaunched:
+            query.accounting.return_value = {'total': 0, 'active': 0, 'terminated': 0}
         query.status.return_value = 'EXITED'
+        if statuses is not None:
+            query.status.side_effect = statuses
         elapsed = [0.0]
         original_sleep, original_monotonic = time.sleep, time.monotonic
         shared_clock_unchanged = []
@@ -234,7 +252,8 @@ class PersistenceDescriptorTests(unittest.TestCase):
             self.assertFalse(query.close.called)
             return writes.pop(0) if isinstance(writes, list) else writes
         with ExitStack() as stack:
-            stack.enter_context(patch.object(ipc, '_read', side_effect=[initial, ipc._ChannelLost()]))
+            closing = {'action': 'close'} if explicit_close else ipc._ChannelLost()
+            stack.enter_context(patch.object(ipc, '_read', side_effect=[initial, closing]))
             stack.enter_context(patch.object(ipc, '_write'))
             # Replace this module's reference, never the shared time module:
             # unrelated supervisor threads must keep their real clock/sleep.
@@ -244,15 +263,20 @@ class PersistenceDescriptorTests(unittest.TestCase):
             stack.enter_context(patch('services.applications.browser_tree.BrowserTreeQuery', return_value=query))
             stack.enter_context(patch('packages.persistence.store.Store'))
             stack.enter_context(patch('services.applications.browser_tree_certificate.enroll_retained_observer', return_value=True))
-            stack.enter_context(patch('services.applications.browser_tree_certificate.rollback_unlaunched_enrollment'))
+            rollback = stack.enter_context(patch('services.applications.browser_tree_certificate.rollback_unlaunched_enrollment'))
             writer = stack.enter_context(patch('services.applications.browser_tree_certificate.record_retained_closure', side_effect=persist))
             ipc._serve()
         query.close.assert_called_once()
-        self.assertTrue(shared_clock_unchanged)
+        if expected_writes != 0:
+            self.assertTrue(shared_clock_unchanged)
         self.assertTrue(all(shared_clock_unchanged), 'Observer clock patches leaked to other threads')
         if expected_writes is not None:
             self.assertEqual(writer.call_count, expected_writes)
-            self.assertGreater(elapsed[0], 0)
+            if unlaunched:
+                self.assertEqual(elapsed[0], 0)
+                rollback.assert_called_once()
+            else:
+                self.assertGreater(elapsed[0], 0)
         else:
             self.assertGreater(writer.call_count, 1)
             self.assertGreaterEqual(elapsed[0], 900)
