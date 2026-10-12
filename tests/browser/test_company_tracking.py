@@ -80,6 +80,11 @@ class CompanyTrackingBrowserTests(unittest.TestCase):
                             lambda request: urlsplit(request.url).path == tracking_path and request.method == 'GET'
                         ):
                             action()
+                        # Request emission precedes the route callback. Wait for
+                        # the interception itself before releasing this read.
+                        deadline = time.monotonic() + 5
+                        while not held_company_reads and time.monotonic() < deadline:
+                            page.wait_for_timeout(10)
                         self.assertEqual(len(held_company_reads), 1)
                         return held_company_reads.pop()
 

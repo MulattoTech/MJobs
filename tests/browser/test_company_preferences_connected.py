@@ -79,7 +79,7 @@ class CompanyPreferencesConnectedBrowserTests(unittest.TestCase):
                         has_text="Synthetic Company Preference Role")
                     expect(card).to_have_count(1)
                     card.click()
-                    preference = page.get_by_role("region", name="Company preference")
+                    preference = page.get_by_role("region", name="Company preference", exact=True)
                     expect(preference).to_contain_text(
                         "No explicit choice has been saved; the current default is neutral.")
 
@@ -102,7 +102,7 @@ class CompanyPreferencesConnectedBrowserTests(unittest.TestCase):
                         has_text="Synthetic Company Preference Role")
                     expect(restored_card).to_have_count(1)
                     restored_card.click()
-                    preference = page.get_by_role("region", name="Company preference")
+                    preference = page.get_by_role("region", name="Company preference", exact=True)
                     expect(preference).to_contain_text("Saved preference: BLACKLISTED")
 
                     preference.get_by_role("radio", name=re.compile("No preference")).check()

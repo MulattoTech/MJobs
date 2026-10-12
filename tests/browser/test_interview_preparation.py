@@ -151,8 +151,8 @@ class InterviewPreparationBrowserTests(unittest.TestCase):
 
                     self.assertTrue(detail_response.value.url.endswith(f"/interview-prep-packs/{pack['pack_id']}"))
                     self.assertEqual(detail_response.value.status, 200)
-                    article = page.locator('article[aria-label="Interview prep pack version 1"]').first
-                    self.assertEqual(article.count(), 1)
+                    article = page.locator('article[aria-label="Interview prep pack version 1"]')
+                    expect(article).to_have_count(1)
                     expect(article).to_be_visible()
                     expect(article.get_by_role("region", name="Missing evidence", exact=True)).to_be_visible()
                     expect(article).to_contain_text("Synthetic service recovery story")
@@ -171,7 +171,7 @@ class InterviewPreparationBrowserTests(unittest.TestCase):
                         jobs_tab.click()
                     page.locator(".job-card").filter(has_text="Synthetic Python Support Engineer").first.click()
                     prep = page.get_by_role("region", name="Interview preparation", exact=True)
-                    saved_article = page.locator('article[aria-label="Interview prep pack version 1"]').first
+                    saved_article = page.locator('article[aria-label="Interview prep pack version 1"]')
                     expect(saved_article).to_be_visible()
                     expect(saved_article).to_contain_text("Synthetic service recovery story")
                     expect(prep).to_contain_text("Synthetic service recovery story")

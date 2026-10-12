@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { eligible, terminal, resumeMediaType, uploadResume } from './api';
+import { api, eligible, terminal, resumeMediaType, uploadResume } from './api';
 describe('user safety presentation', () => {
+  it('preserves HTTP conflict status for safe stale-review recovery', async () => {
+    const original = globalThis.fetch;
+    globalThis.fetch = async () => new Response(JSON.stringify({detail:{code:'PROFILE_STALE'}}), {status:409});
+    try {
+      await expect(api('/synthetic-preview')).rejects.toMatchObject({status:409});
+      await expect(api('/synthetic-preview')).rejects.toThrow('Request rejected (409)');
+    } finally { globalThis.fetch = original; }
+  });
   it('keeps pending, low confidence and unsourced facts out of document eligibility', () => {
     const fact = { verified: true, user_approved: true, confidence: 100, source: 'My records' };
     expect(eligible(fact)).toBe(true);

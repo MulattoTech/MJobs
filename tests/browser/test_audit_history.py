@@ -192,8 +192,8 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                             .map(event => event.id);
                     }""")
                     page.get_by_role("button", name="Sources", exact=True).click()
-                    page.get_by_role("button", name="Pause", exact=True).click()
-                    expect(page.get_by_role("button", name="Resume", exact=True)).to_be_visible()
+                    page.get_by_role("button", name="Pause search", exact=True).click()
+                    expect(page.get_by_role("button", name="Resume search", exact=True)).to_be_visible()
                     after_search_settings = page.evaluate("""async () => {
                         const response = await fetch('/profiles/fixture/audit-history');
                         const history = await response.json();
