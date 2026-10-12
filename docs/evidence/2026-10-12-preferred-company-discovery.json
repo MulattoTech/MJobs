@@ -1,0 +1,45 @@
+{
+  "requirement": "MJ-REQ-056",
+  "issue": 57,
+  "status": "PARTIAL",
+  "base_revision": "e86064ec4918e9b5be6700ea808b8e6bbc44591a",
+  "utc": "2026-10-12T23:27:10.441777+00:00",
+  "source_sha256": {
+    "apps/api/company_preferences.py": "b315502dd61be4ed5a08709b6d715f7bfa0d14831f44eb0ae70ead992c46e670",
+    "apps/web/src/company-preferences-client.ts": "5e457b9445fa79da5d290d077bf5bf0324d5981342579401615d61ce792ced8b",
+    "apps/web/src/company-preferences.test.tsx": "f0e49e8979d33b73ef640e9596a2720ae900c502016bf2b57c4ca568a460e76a",
+    "apps/web/src/company-preferences.tsx": "0770fb803aa4f136c4337f491fbd0f9939a65bfc6083b11dc4610bcf96f02820",
+    "apps/web/src/main.tsx": "d4fc7595abf92adf3cad9ce5852f3897193a1e76a5842e62234bdf12a4c33909",
+    "services/company_discovery/requests.py": "97a6cfefd65592450906d180c69bf18140b7f8ce13a9068fb4b5e7ea9b9d6d2c",
+    "services/matching/company_preferences.py": "0beaecc0b15ea78956d8464092a8f5498e64e0142a6cec124d1495e1b1fefe44",
+    "tests/integration/test_preferred_company_discovery.py": "e85b83a4abaa93c28ef54cce73140c4e278e14928c7dd37df79b292330049895",
+    "tests/browser/test_preferred_company_discovery.py": "eaf1c24a1f309f3c3572f7a2a680120cea64a835ca79e9b1b1bab77a072efc3c"
+  },
+  "behavior": "Explicit preference creates existing durable employer discovery request; verified origin queues real worker enrollment/import, unverified origin requires website review. Preference, provenance and request commit atomically. Reload exposes live operation status.",
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/integration/test_preferred_company_discovery.py tests/integration/test_discovery_requests.py tests/integration/test_discovery_request_api.py tests/integration/test_company_preferences_api.py tests/unit/test_company_preferences.py tests/browser/test_preferred_company_discovery.py tests/browser/test_company_preferences_connected.py tests/browser/test_company_discovery_requests.py",
+      "result": "PASS",
+      "passed": 37,
+      "seconds": 34.99
+    },
+    {
+      "command": "npm --prefix apps/web run test -- src/company-preferences.test.tsx src/company-preferences-client.test.ts",
+      "result": "PASS",
+      "passed": 10
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "regressions": "Known employer with score below automatic threshold; wrong employer/job rejected; retry/conflict; transaction rollback/retry; disabled policy/hourly cap; other-profile isolation; dismissal/dead-letter/discard readback; real worker enrollment/import/reopen; browser preference/reload/Sources review; legacy manual-job blacklist preserved.",
+  "observed_failures": "Initial invalid fixture threshold101 corrected to valid100 and no skill facts before meaningful RED. API and UI RED proved missing behavior. Local review exposed DEAD_LETTERED/DISCARDED and stale replay defects repaired. Existing manual-job browser exposed match-gating regression repaired without weakening original assertions. Initial Vitest invocation from root also discovered unrelated preserved worktrees; rerun through package test script passed.",
+  "hosted": "NOT_RUN on candidate until publication; base exact-main221browser PASS5Windows SKIP, Compose5PASS inspected separately.",
+  "remaining": "Parent requirement remains PARTIAL; saved-company and repeated-aggregator triggers not proven; no live provider acceptance inferred from synthetic workers.",
+  "external_submission_enabled": false
+}

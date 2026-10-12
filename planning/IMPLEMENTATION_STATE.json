@@ -2637,21 +2637,11 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 524,
-    "requirement": "CodeQL56 targeted verification",
-    "status": "LOCAL_VERIFIED_HOSTED_LINUX_PENDING",
-    "behavior": "Real public-client TLS handshakes reject obsolete protocols, wrong hostname and untrusted certificate before HTTP. Working degraded controls prove legacy endpoints support the attempted protocol; TLS1.2 positive control succeeds.",
-    "validation": "26 local tests2subtestsPASS; mutation probe kills both legacy-protocol assertions; Linux hosted pending. Server-side protocol-error reason now required.",
-    "previous_security_correction": {
-      "issue": 175,
-      "pr": 605,
-      "merge": "f832dc298992338951cc9866f9a117c67283246b",
-      "candidate": "1a55de2a31e808c854e605b9c99632a53a921cb9",
-      "checks": "19/19SUCCESS",
-      "integration": "1388PASS17SKIP including actual PostgreSQL direct/PUBLIC grant/refusal/recovery",
-      "browser": "221PASS5WindowsSKIP",
-      "compose": "5PASS/externalfalse"
-    },
-    "scope_boundary": "No production TLS fix or alert dismissal; whole release remains unaccepted; private data and keys retained."
+    "issue": 57,
+    "requirement": "MJ-REQ-056",
+    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+    "base": "e86064ec4918e9b5be6700ea808b8e6bbc44591a",
+    "behavior": "Preferred company from job detail atomically records existing durable discovery intent; verified origin queues worker, other origins require review; replay and terminal readback retained",
+    "remaining": "Parent PARTIAL: saved company and repeated aggregator triggers remain open"
   }
 }

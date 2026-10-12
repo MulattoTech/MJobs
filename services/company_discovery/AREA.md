@@ -40,7 +40,7 @@ Without independent employer-domain evidence, the request waits for website revi
 
 No failed operation is automatically reopened. Explicit review can retry terminal failures with a new revision. Fresh intake after a changed source can renew a non-running request while auditing previous authorization and preserving the old operation. Dismissals remain dismissed. Migration fabricates no historical requests and refuses a populated downgrade.
 
-MJ-REQ-054/056/060 remain PARTIAL: configured intake, rescoring and supported broken-feed triggers are wired; saved/preferred companies and repeated aggregator appearances remain open. Automatic official-domain acquisition is not implemented, so typical shared-board jobs require review. Supported company-feed scheduling revalidates authorization before egress and import. Source monitoring indicators do not certify current employer identity.
+MJ-REQ-054/056/060 remain PARTIAL: configured intake, rescoring, explicit preferred-company decisions and supported broken-feed triggers are wired; saved companies and repeated aggregator appearances remain open. A preferred decision from job detail binds the selected posting to the employer, commits preference and discovery intent together, and reuses coalesced requests, policy caps, verified-origin admission and website review. Replays never create another operation; manual/source-less jobs preserve the preference with an explicit nonqueued outcome. Automatic official-domain acquisition is not implemented, so typical shared-board jobs require review. Supported company-feed scheduling revalidates authorization before egress and import. Source monitoring indicators do not certify current employer identity.
 
 ## Reviewed recurring public-feed monitoring
 

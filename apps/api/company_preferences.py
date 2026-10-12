@@ -35,6 +35,15 @@ def _preference(value, profile_id: str, company_id: str, *, write=False) -> dict
     expected = {"profile_id", "company_id", "status", "updated_at"}
     if write:
         expected.add("replayed")
+    if isinstance(value, Mapping) and 'discovery' in value:
+        expected.add('discovery')
+        discovery = value['discovery']
+        if (not isinstance(discovery, Mapping) or set(discovery) != {'request_id', 'status', 'reason'}
+                or not _text(discovery.get('request_id'), optional=True)
+                or not _text(discovery.get('reason'), optional=True)
+                or discovery.get('status') not in {'NOT_QUEUED', 'NEEDS_ORIGIN_REVIEW', 'QUEUED',
+                    'RUNNING', 'COMPLETED', 'FAILED', 'DEAD_LETTERED', 'DISCARDED', 'BLOCKED', 'CANCELLED', 'DISMISSED'}):
+            _error(503, "COMPANY_PREFERENCE_SERVICE_UNAVAILABLE")
     if (not isinstance(value, Mapping) or set(value) != expected
             or value.get("profile_id") != profile_id
             or value.get("company_id") != company_id
@@ -45,6 +54,8 @@ def _preference(value, profile_id: str, company_id: str, *, write=False) -> dict
     normalized = {key: value[key] for key in ("profile_id", "company_id", "status", "updated_at")}
     if write:
         normalized["replayed"] = value["replayed"]
+    if 'discovery' in value:
+        normalized['discovery'] = dict(value['discovery'])
     return normalized
 
 
@@ -85,7 +96,9 @@ def create_company_preferences_router(store) -> APIRouter:
     def write_preference(profile_id: str, company_id: str, payload: object = Body(...)):
         if (not _text(profile_id) or not _text(company_id)
                 or not isinstance(payload, dict)
-                or set(payload) != {"status", "request_id"}
+                or set(payload) not in ({"status", "request_id"}, {"status", "request_id", "job_id"})
+                or ('job_id' in payload and (not _text(payload['job_id'])
+                    or payload['job_id'] != payload['job_id'].strip()))
                 or payload.get("status") not in _STATUSES
                 or not _text(payload.get("request_id"))
                 or payload["request_id"] != payload["request_id"].strip()):
@@ -95,7 +108,8 @@ def create_company_preferences_router(store) -> APIRouter:
         )
         try:
             value = set_company_preference(
-                store, profile_id, company_id, payload["status"], payload["request_id"])
+                store, profile_id, company_id, payload["status"], payload["request_id"],
+                **({'job_id': payload['job_id']} if 'job_id' in payload else {}))
         except CompanyPreferenceConflict:
             _error(409, "COMPANY_PREFERENCE_REQUEST_CONFLICT")
         except LookupError:
