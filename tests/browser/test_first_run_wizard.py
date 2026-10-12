@@ -1,6 +1,7 @@
 """Connected, local-fixture acceptance for the first-run search workflow."""
 import os
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 import re
 import tempfile
 import threading
@@ -18,6 +19,7 @@ from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from services.discovery.sources.collect import collect_source
+from services.discovery.matching import recalculate
 from tests.browser.test_profile_import import dispatch_queued_resume_extractions, resume_pdf
 from workers.tasks import execute_operation
 
@@ -45,6 +47,7 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                 application_requests = []
                 collect_bodies = []
                 worker_results = []
+                scored_candidates = []
                 source_requests = []
                 page_errors = []
 
@@ -113,8 +116,11 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                                     "MJOBS_OPERATION_MODE": "FIXTURE",
                                 }):
                                     with patch("workers.tasks.collect_source",
-                                               side_effect=collect_with_synthetic_provider):
+                                               side_effect=collect_with_synthetic_provider), patch(
+                                                   "workers.tasks.recalculate", wraps=recalculate) as scoring:
                                         worker_results.append(execute_operation(operation_id))
+                                        scored_candidates.extend(call.kwargs.get("candidate_job_ids")
+                                                                 for call in scoring.call_args_list)
                             route.fulfill(response=response)
 
                         context.route("**/*", local_only)
@@ -284,6 +290,97 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                             page.get_by_label("Saved search profile", exact=True).select_option(saved_search["id"])
                         expect(page.locator(".job-card").filter(has_text="Accountant")).to_have_count(0)
                         expect(page.locator(".job-card").filter(has_text="Python Engineer")).to_have_count(1)
+                        employers = page.get_by_role("region", name="Saved employer rules", exact=True)
+                        employers.get_by_label("Included employers", exact=True).fill("Synthetic Greenhouse Employer")
+                        employers.get_by_label("Included employers", exact=True).press("End")
+                        employers.get_by_label("Included employers", exact=True).press("Enter")
+                        employers.get_by_label("Included employers", exact=True).press_sequentially("Secondary employer")
+                        included_names = "Synthetic Greenhouse Employer\nSecondary employer"
+                        employers.get_by_label("Excluded employers", exact=True).fill("Staffing")
+                        fail_employer_save = {"once": True}
+
+                        def employer_save_outage(route):
+                            if (fail_employer_save["once"] and route.request.method == "PUT"
+                                    and "company_include" in route.request.post_data_json):
+                                fail_employer_save["once"] = False
+                                route.fulfill(status=503, content_type="application/json",
+                                              body='{"detail":"fixture-employer-save-outage"}')
+                            else:
+                                route.fallback()
+
+                        context.route(origin + "/search-profiles", employer_save_outage)
+                        employers.get_by_role("button", name="Save employer rules", exact=True).click()
+                        expect(page.get_by_role("alert").filter(has_text="fixture-employer-save-outage")).to_be_visible()
+                        expect(employers.get_by_label("Included employers", exact=True)).to_have_value(included_names)
+                        unchanged = page.request.get(origin + f"/search-profiles?profile_id={profile_id}").json()
+                        self.assertEqual(next(item for item in unchanged["search_profiles"]
+                                              if item["id"] == saved_search["id"])["criteria"]["company_include"], [])
+                        employers.get_by_role("button", name="Save employer rules", exact=True).click()
+                        expect(page.get_by_role("status").filter(has_text="Employer rules saved")).to_be_visible()
+                        page.reload(wait_until="domcontentloaded")
+                        page.get_by_role("button", name=re.compile(r"^Jobs")).click()
+                        page.get_by_label("Saved search profile", exact=True).select_option(saved_search["id"])
+                        employers = page.get_by_role("region", name="Saved employer rules", exact=True)
+                        expect(employers.get_by_label("Included employers", exact=True)).to_have_value(included_names)
+                        expect(employers.get_by_label("Excluded employers", exact=True)).to_have_value("Staffing")
+                        expect(page.locator(".job-card").filter(has_text="Python Engineer")).to_have_count(1)
+
+                        def run_next_fixture_search():
+                            current_wizard = page.get_by_role("region", name="First-run setup")
+                            current_wizard.get_by_label("Enabled source for this search", exact=True).select_option(source_id)
+                            current_wizard.get_by_label("First-run saved search profile", exact=True).select_option(saved_search["id"])
+                            # Advance only the disposable fixture past its actual
+                            # poll interval; production cooldown stays intact.
+                            from sqlalchemy import update
+                            with store.engine.begin() as connection:
+                                interval = connection.execute(select(m.job_sources.c.poll_interval).where(
+                                    m.job_sources.c.id == source_id)).scalar_one()
+                                connection.execute(update(m.job_sources).where(m.job_sources.c.id == source_id)
+                                                   .values(last_attempt=(datetime.now(timezone.utc) - timedelta(seconds=interval + 1)).isoformat()))
+                            with page.expect_response(lambda response: "/collect" in response.url and response.request.method == "POST"):
+                                current_wizard.get_by_role("button", name="Run saved search", exact=True).click()
+                            self.assertEqual(worker_results[-1]["status"], "COMPLETED", worker_results)
+
+                        run_next_fixture_search()
+                        self.assertEqual(len(worker_results), 2)
+                        self.assertEqual(len(scored_candidates[-1]), 1)
+                        admitted = page.request.get(origin + f"/profiles/{profile_id}/search-history?limit=1").json()["items"][0]
+                        self.assertEqual(admitted["filters"]["company_include"], ["Synthetic Greenhouse Employer", "Secondary employer"])
+                        self.assertEqual(admitted["filters"]["company_exclude"], ["Staffing"])
+                        employers.get_by_label("Excluded employers", exact=True).fill("Synthetic Greenhouse Employer")
+                        employers.get_by_role("button", name="Save employer rules", exact=True).click()
+                        expect(page.get_by_role("status").filter(has_text="Employer rules saved")).to_be_visible()
+                        expect(page.locator(".job-card")).to_have_count(0)
+                        run_next_fixture_search()
+                        self.assertEqual(len(worker_results), 3)
+                        self.assertEqual(scored_candidates[-1], ())
+                        latest = page.request.get(origin + f"/profiles/{profile_id}/search-history?limit=1").json()["items"][0]
+                        self.assertEqual(latest["filters"]["company_include"], ["Synthetic Greenhouse Employer", "Secondary employer"])
+                        self.assertEqual(latest["filters"]["company_exclude"], ["Synthetic Greenhouse Employer"])
+                        self.assertEqual(latest["results"], 3)  # Captured rows remain durable.
+                        # Clearing rules restores the existing title/remote search;
+                        # another profile's employer rules remain private and separate.
+                        employers.get_by_label("Included employers", exact=True).fill("")
+                        employers.get_by_label("Excluded employers", exact=True).fill("")
+                        employers.get_by_role("button", name="Save employer rules", exact=True).click()
+                        expect(page.get_by_role("status").filter(has_text="Employer rules saved")).to_be_visible()
+                        expect(page.locator(".job-card").filter(has_text="Python Engineer")).to_have_count(1)
+                        from tests.integration.test_spine import PROFILE
+                        store.save_profile({**PROFILE, "id": "employer-other", "name": "Other employer fixture"})
+                        created_other = page.request.put(origin + "/search-profiles", data={
+                            "id": "other-employer-search", "profile_id": "employer-other",
+                            "name": "Other employers", "company_exclude": ["Other private employer"],
+                        })
+                        self.assertEqual(created_other.status, 200, created_other.text())
+                        page.reload(wait_until="domcontentloaded")
+                        page.get_by_label("Active profile", exact=True).select_option("employer-other")
+                        page.get_by_role("button", name=re.compile(r"^Jobs")).click()
+                        page.get_by_label("Saved search profile", exact=True).select_option("other-employer-search")
+                        expect(page.get_by_label("Excluded employers", exact=True)).to_have_value("Other private employer")
+                        page.get_by_label("Active profile", exact=True).select_option(profile_id)
+                        page.get_by_label("Saved search profile", exact=True).select_option(saved_search["id"])
+                        expect(page.get_by_label("Included employers", exact=True)).to_have_value("")
+                        expect(page.get_by_label("Excluded employers", exact=True)).to_have_value("")
                         expect(page.locator(".job-card").filter(has_text="Onsite - Austin, TX")).to_have_count(0)
                         # Preview real worker/adapter output through the actual
                         # selected search. Cheap title filtering precedes the
