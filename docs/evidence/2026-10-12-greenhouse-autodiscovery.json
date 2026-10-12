@@ -2,7 +2,7 @@
   "requirement": "MJ-REQ-155",
   "issue": 156,
   "status": "PARTIAL",
-  "utc": "2026-10-12T15:11:58.174056+00:00",
+  "utc": "2026-10-12T10:11:58.174056-05:00",
   "base": "a1b820d7e59e48a70031b2cc47082c68534b292b",
   "source_blobs": {
     "apps/web/src/company-sources.tsx": "b8b417c109b87fe9c919dc8d1b49325eef399d84",
@@ -14,7 +14,7 @@
     "services/discovery/scheduler.py": "d00144610dd60ab9f3d2a82c122913d139cfc7d4",
     "services/discovery/sources/collect.py": "448c167f47a741652209b7c32cebfcdec13b202b",
     "tests/unit/test_greenhouse_enrollment.py": "789a404053d315de95017dbb4f12d96525e35cab",
-    "tests/integration/test_greenhouse_autodiscovery.py": "3b2ebbaa7729ca25f67771a49feef91527cff0b2",
+    "tests/integration/test_greenhouse_autodiscovery.py": "8a27c8eead058db287afbd3738e9703f8bfbbd12",
     "tests/integration/test_greenhouse_autodiscovery_postgres.py": "86bab77ed3ed21d65865a2b0078cdab74d096c00",
     "tests/browser/test_greenhouse_autodiscovery.py": "1250dcb366194acf84ffa5e2f7daf9402f8ee785"
   },
@@ -73,6 +73,10 @@
     {
       "command": "Final browser plus actual PostgreSQL wrapper locally",
       "result": "1 Chromium PASS;6 PostgreSQL NOT_RUN explicit SKIP (local database unavailable)"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_greenhouse_autodiscovery.py tests/integration/test_greenhouse_autodiscovery_postgres.py",
+      "result": "10 PASS;6 PostgreSQL local SKIP after setup fix; hosted NOT_RUN on revised candidate"
     }
   ],
   "hosted": "NOT_RUN candidate; require all exact checks and six actual PostgreSQL cases without selected skips",
@@ -88,5 +92,6 @@
     "Other unsupported ATS providers and unverified domains require review",
     "Original dirty unrelated files preserved; overall release gate not PASS"
   ],
-  "external_submission_enabled": false
+  "external_submission_enabled": false,
+  "hosted_initial_failure": "d827986 PR591 integration38269980184/shard2: all six PostgreSQL cases FAIL during fixture setup: Store.migrate rejects PostgreSQL after Alembic initialization. Fixture now calls Store.migrate only for SQLite. No acceptance assertions removed; actual PostgreSQL validation pending revised candidate."
 }

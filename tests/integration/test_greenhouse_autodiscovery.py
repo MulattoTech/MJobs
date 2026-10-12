@@ -28,7 +28,8 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.url = getattr(self, 'database_url', f"sqlite:///{(self.root / 'ats.db').as_posix()}")
         self.store = Store(self.url)
-        self.store.migrate()
+        if self.store.engine.dialect.name == 'sqlite':
+            self.store.migrate()
         self.store.bind_workspace_mode('PERSONAL')
         self.store.save_profile(PROFILE)
         with self.store.engine.begin() as connection:
