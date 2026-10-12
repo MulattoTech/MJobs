@@ -639,7 +639,7 @@ class Store:
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
              job_source_id=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
-             application_capability=None, exclude_company_ids=None):
+             application_capability=None, exclude_company_ids=None, job_ids=None):
         if application_capability == "":
             application_capability = None
         if application_capability is not None:
@@ -667,6 +667,8 @@ class Store:
                 .outerjoin(m.matches, (m.matches.c.job_id == m.jobs.c.id) & (m.matches.c.profile_id == profile_id) &
                            (m.matches.c.profile_version == (profile["version"] if profile else "")))
                 .outerjoin(m.applications, (m.applications.c.job_id == m.jobs.c.id) & (m.applications.c.profile_id == profile_id)))
+            if job_ids is not None:
+                statement = statement.where(m.jobs.c.id.in_(job_ids))
             excluded_companies = sorted({
                 value for value in (exclude_company_ids or [])
                 if isinstance(value, str) and value.strip()

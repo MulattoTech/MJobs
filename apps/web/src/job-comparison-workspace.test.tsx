@@ -263,7 +263,7 @@ describe('job comparison workspace', () => {
     }));
     const compareButton = findElement(tree, element => element.props['aria-label'] === 'Compare selected jobs');
     expect(compareButton?.props.disabled).toBe(true);
-    findElement(tree, element => element.props['aria-label'] === 'Select job job-b')
+    findElement(tree, element => element.props['aria-label'] === 'Compare Platform Engineer at Example Two')
       ?.props.onChange({ currentTarget: { checked: true } });
     expect(onSelectionChange).toHaveBeenCalledWith(['job-a', 'job-b']);
     expect(onCompare).not.toHaveBeenCalled();
