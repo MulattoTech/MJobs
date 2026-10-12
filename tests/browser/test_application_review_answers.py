@@ -333,8 +333,12 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         has_text=SENSITIVE_QUESTION)
                     sensitive_row.get_by_role(
                         "button", name="Review this question", exact=True).click()
+                    # Reselecting this same application preserves the previous
+                    # local question; the sensitive prompt is a separate draft.
+                    expect(other_editor.get_by_role(
+                        "textbox", name="Employer question", exact=True)).to_have_value(QUESTION)
                     sensitive_editor = page.get_by_role(
-                        "region", name="Application answers", exact=True).get_by_role("group", name="Question 1")
+                        "region", name="Application answers", exact=True).get_by_role("group", name="Question 2", exact=True)
                     expect(sensitive_editor.get_by_role(
                         "textbox", name="Employer question", exact=True)).to_have_value(SENSITIVE_QUESTION)
                     expect(sensitive_editor).to_contain_text(

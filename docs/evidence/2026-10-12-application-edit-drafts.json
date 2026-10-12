@@ -1,0 +1,53 @@
+{
+  "issue": 532,
+  "status": "PARTIAL parent; scoped repair PASS locally",
+  "timestampUtc": "2026-10-12T02:45:00.733699+00:00",
+  "base": "de27000d202972a3f9d544dfe8d6b90a15592b6a",
+  "branch": "fix/application-edit-drafts-532-20261012",
+  "behavior": "Delayed same-application/profile read preserves question, answer, exact-review flag, note and dirty status drafts; pristine status follows saved tracking. Application/profile switches clear private draft scope; stale detail never renders. No automatic draft save or submission.",
+  "sourceHashes": {
+    "apps/web/src/main.tsx": "aa40707db92824fb44f49d6471a1c39a92b9436e770c301e348927868b1859b3",
+    "tests/browser/test_application_edit_drafts.py": "487ae5a2e7fd5fd08170ae26f639c410c16138d0867f7bf3f079ba9765125114",
+    "tests/browser/test_application_review_answers.py": "6b32a769002a1570c1eb45dc7ba80af22f51e0bf6c48257b89a5c5bb55083ad7"
+  },
+  "commands": [
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "768 PASS / 131 files"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_application_edit_drafts.py tests/browser/test_application_review_answers.py --junitxml=outputs/ci/iteration45-final.xml",
+      "result": "3 PASS / 0 SKIP"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_application_navigation_restore.py tests/browser/test_application_preview.py tests/browser/test_application_review_answers.py tests/browser/test_core_workflow_trial.py --junitxml=outputs/ci/iteration45-connected.xml",
+      "result": "5 PASS / 1 FAIL / 2 passing subtests; review test assumed same-scope clearing, updated to assert retained question and sensitive Question2; final rerun above PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "redEvidence": [
+    "outputs/ci/iteration45-red.xml: same-application committed-read loses question",
+    "outputs/ci/iteration45-stale-red.xml: new application refresh loses question"
+  ],
+  "review": "Read-only local Luna review and follow-up: no material issue; original transient-render gap fixed with DOM observer",
+  "environment": "Windows; local isolated SQLite FIXTURE API; headless Chromium; fresh production assets; synthetic profiles; external requests/writes zero in retention regressions",
+  "notRun": [
+    "Full browser regression for this candidate",
+    "Hosted exact-head checks pending publication",
+    "Whole-goal release gate this iteration; existing goal remains 0/7 and prior gate fails closed"
+  ],
+  "invariants": [
+    "No migration or private configuration changes",
+    "Original dirty plan/search-history marker/handoff preserved",
+    "Real external submission OFF",
+    "No parent acceptance promotion"
+  ],
+  "rollback": "Revert scoped source/test commit; no persisted-data migration"
+}
