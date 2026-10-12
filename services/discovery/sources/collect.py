@@ -73,7 +73,13 @@ def persist_posting(connection, data):
         "raw": data["raw"], "sha256": checksum, "retrieved_at": data["fetched_at"]})
 
 
-def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None):
+def collect_source(store, source_id, profile_id, profile_version=None, check=None, transport=None,
+                   *, refresh_matches=True):
+    """Capture source values, optionally deferring profile scoring to the caller.
+
+    Saved-search workers defer scoring until persisted criteria admit candidates.
+    The profile still supplies discovery-request ownership during capture.
+    """
     check = check or (lambda: None)
     profile = store.profile(profile_id, profile_version)
     check()
@@ -220,7 +226,8 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 record_candidate(connection, posting_id=posting_id, company_source_id=company_source_id,
                                  observation_id=observation_id, normalized=values)
             for job_id in sorted({entry[2] for entry in pending_candidates}):
-                resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp, profile=profile)
+                resolve_job_values(connection, job_id, at=observation_at, seen_at=timestamp,
+                                   profile=profile if refresh_matches else None)
             if batch.complete_inventory and not rejected:
                 from services.discovery.lifecycle import reconcile_inventory
                 reconcile_inventory(connection, endpoint=batch.endpoint, posting_ids=set(batch_postings),

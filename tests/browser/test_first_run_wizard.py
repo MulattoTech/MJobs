@@ -52,7 +52,7 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                     "id": 82021,
                     "title": "Python Engineer",
                     "location": {"name": "Remote - United States"},
-                    "content": "<p>Build and support Python services.</p>",
+                    "content": "<p>Full-time role. Build and support Python services.</p>",
                     "updated_at": "2026-10-01T12:00:00Z",
                     "absolute_url": "https://job-boards.greenhouse.io/fixture/jobs/82021",
                 }
@@ -60,7 +60,15 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                 def synthetic_greenhouse_transport(request):
                     source_requests.append(request.url.path)
                     if request.url.path.endswith("/jobs"):
-                        return Response(200, json={"jobs": [synthetic_job], "meta": {"total": 1}})
+                        return Response(200, json={"jobs": [synthetic_job, {
+                            **synthetic_job, "id": 82022, "title": "Accountant",
+                            "content": "<p>Prepare synthetic finance statements.</p>",
+                            "absolute_url": "https://job-boards.greenhouse.io/fixture/jobs/82022",
+                        }, {
+                            **synthetic_job, "id": 82023,
+                            "location": {"name": "Onsite - Austin, TX"},
+                            "absolute_url": "https://job-boards.greenhouse.io/fixture/jobs/82023",
+                        }], "meta": {"total": 3}})
                     return Response(200, json={"name": "Synthetic Greenhouse Employer"})
 
                 def collect_with_synthetic_provider(current_store, current_source_id,
@@ -209,6 +217,7 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         page.get_by_label("Search name", exact=True).fill("Remote Python engineer roles")
                         page.get_by_label("Include titles", exact=True).fill("Python Engineer")
                         search_form = page.locator("form").filter(has=page.get_by_label("Search name", exact=True))
+                        search_form.locator("label").filter(has_text="Remote preference").locator("select").select_option("REQUIRED")
                         search_form.locator("label").filter(has_text="Source").locator("select").select_option(source_id)
                         page.get_by_role("button", name="Save search", exact=True).click()
                         expect(page.get_by_role("status").filter(has_text="Search saved")).to_be_visible()
@@ -248,7 +257,19 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         self.assertEqual(history["profile_id"], profile_id)
                         self.assertEqual(history["items"][0]["status"], "COMPLETED")
                         self.assertEqual(history["items"][0]["filters"]["include_titles"], ["Python Engineer"])
-                        self.assertEqual(history["items"][0]["results"], 1)
+                        self.assertEqual(history["items"][0]["filters"]["remote"], "REQUIRED")
+                        self.assertEqual(history["items"][0]["filters"]["employment_types"], ["FULL_TIME"])
+                        self.assertEqual(history["items"][0]["results"], 3)
+                        # Capture retains excluded postings; scoring and reload must
+                        # honor the search created through the UI above.
+                        from sqlalchemy import select
+                        from packages.persistence import models as m
+                        with store.engine.connect() as connection:
+                            self.assertEqual(len(connection.execute(select(m.postings)).all()), 3)
+                            matched_titles = connection.execute(select(m.jobs.c.title).join(
+                                m.matches, m.matches.c.job_id == m.jobs.c.id).where(
+                                    m.matches.c.profile_id == profile_id)).scalars().all()
+                        self.assertEqual(matched_titles, ["Python Engineer"])
                         self.assertEqual(set(source_requests), {
                             "/v1/boards/fixture", "/v1/boards/fixture/jobs",
                         })
@@ -256,7 +277,14 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         wizard = page.get_by_role("region", name="First-run setup")
                         page.get_by_role("button", name=re.compile(r"^Jobs")).click()
                         expect(page.locator(".job-card").filter(
-                            has_text="Python Engineer")).to_be_visible()
+                            has_text="Python Engineer").filter(has_text="Remote - United States")).to_be_visible()
+                        with page.expect_response(lambda response:
+                                "/jobs?" in response.url
+                                and f"search_profile_id={saved_search['id']}" in response.url):
+                            page.get_by_label("Saved search profile", exact=True).select_option(saved_search["id"])
+                        expect(page.locator(".job-card").filter(has_text="Accountant")).to_have_count(0)
+                        expect(page.locator(".job-card").filter(has_text="Python Engineer")).to_have_count(1)
+                        expect(page.locator(".job-card").filter(has_text="Onsite - Austin, TX")).to_have_count(0)
                         wizard.get_by_role("button", name="Set up later", exact=True).click()
                         resume = page.get_by_role("button", name=re.compile(r"^Resume first-run setup"))
                         expect(resume).to_be_visible()
