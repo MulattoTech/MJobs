@@ -116,6 +116,38 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             row = connection.execute(select(m.operations).where(m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
         self.assertEqual((row["state"], row["error"]), ("BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"))
 
+    def test_launch_failure_without_context_retains_capacity_and_blocks_retry(self):
+        with patch("services.applications.manual_auth.MockClient") as client, \
+                patch("playwright.sync_api.sync_playwright") as playwright:
+            client.return_value.allowed.return_value = True
+            launch = playwright.return_value.__enter__.return_value.chromium.launch_persistent_context
+            launch.side_effect = RuntimeError("synthetic partial launch with private profile path")
+            response = self.client.post(self.url)
+            self.assertEqual(response.status_code, 503, response.text)
+            self.assertNotIn("synthetic", response.text)
+            self.assertEqual(self.client.post(self.url).status_code, 409)
+            launch.assert_called_once()
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+        self.assertEqual((row["state"], row["error"]), ("BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"))
+        self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
+        self.assertEqual(self.store.count("application_attempts"), 1)
+
+    def test_failure_before_launch_releases_capacity_for_explicit_retry(self):
+        with patch("services.applications.manual_auth.MockClient") as client, \
+                patch("playwright.sync_api.sync_playwright") as playwright:
+            client.return_value.allowed.return_value = True
+            playwright.return_value.__enter__.side_effect = RuntimeError("synthetic unavailable runtime")
+            self.assertEqual(self.client.post(self.url).status_code, 503)
+            playwright.return_value.__enter__.return_value.chromium.launch_persistent_context.assert_not_called()
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+        self.assertEqual(row["state"], "FAILED")
+        with patch("apps.api.manual_auth.open_mock_authentication", return_value="MANUAL_AUTH_WINDOW_CLOSED"):
+            self.assertEqual(self.client.post(self.url).status_code, 200)
+        self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
+        self.assertEqual(self.store.count("application_attempts"), 1)
+
     def test_finish_without_closure_confirmation_cannot_release_crashed_owner(self):
         identifier = admit_inline(self.store, "MANUAL_AUTH", self.application_id)
         self.assertTrue(finish_inline(self.store, identifier, "FAILED"))

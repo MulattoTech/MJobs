@@ -94,6 +94,7 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
 
     client = None
     context = None
+    launch_attempted = False
     try:
         client = MockClient(mock_origin, check=check)
         if not client.allowed(route["url"]):
@@ -109,6 +110,7 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
         from playwright.sync_api import sync_playwright
 
         with sync_playwright() as playwright:
+            launch_attempted = True
             context = playwright.chromium.launch_persistent_context(
                 str(profile), headless=False, args=["--disable-gpu"], timeout=15000)
             context.route("**/*", lambda browser_route: (
@@ -125,6 +127,10 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
     except Exception:
         # Browser/desktop availability errors can include local profile paths
         # or page URLs; return only a stable, value-free status.
+        # A failed launch may have created a process without returning its
+        # context. No context handle means we cannot confirm browser closure.
+        if launch_attempted and context is None:
+            return "CLOSE_UNCONFIRMED"
         return OPEN_UNAVAILABLE
     finally:
         if context is not None:
