@@ -73,14 +73,17 @@ def read_codex_rate_limits(timeout: float = 12.0) -> dict[str, Any]:
     exe = _native_codex_exe()
     if not exe or not exe.exists():
         return {"available": False, "error": "native Codex executable not found"}
-    process = subprocess.Popen(
-        [str(exe), "app-server", "--stdio"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,
-    )
+    try:
+        process = subprocess.Popen(
+            [str(exe), "app-server", "--stdio"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+    except OSError:
+        return {"available": False, "error": "Codex usage is unavailable. Try refreshing again."}
     lines: queue.Queue[str] = queue.Queue()
 
     def reader() -> None:
@@ -135,10 +138,10 @@ def read_codex_rate_limits(timeout: float = 12.0) -> dict[str, Any]:
             if message.get("id") == 2:
                 if "result" in message:
                     return normalize_codex_rate_limits(message["result"])
-                return {"available": False, "error": str(message.get("error") or "unknown Codex RPC error")}
+                return {"available": False, "error": "Codex usage is unavailable. Try refreshing again."}
         return {"available": False, "error": "Codex rate-limit read timed out"}
-    except Exception as exc:
-        return {"available": False, "error": str(exc)}
+    except Exception:
+        return {"available": False, "error": "Codex usage is unavailable. Try refreshing again."}
     finally:
         try:
             process.terminate()
@@ -564,8 +567,8 @@ def opencode_usage_snapshot(workspace: str | Path) -> dict[str, Any]:
             "model_all_time": model_all_final,
             "model_24h": model_24h_final,
         }
-    except Exception as exc:
-        return {"available": False, "error": str(exc)}
+    except Exception:
+        return {"available": False, "error": "OpenCode usage is unavailable. Try refreshing again."}
     finally:
         try:
             con.close()
