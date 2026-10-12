@@ -144,6 +144,26 @@ services:
     depends_on:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
+  ai-worker:
+    <<: *runtime
+    networks: [private, source-egress]
+    command: [python, -m, workers.main]
+    restart: unless-stopped
+    environment:
+      <<: *environment
+      MJOBS_WORKER_QUEUE: mjobs-ai
+      MJOBS_OLLAMA_BASE_URL: ${MJOBS_OLLAMA_BASE_URL:-http://127.0.0.1:11434}
+      MJOBS_OPENAI_BASE_URL: ${MJOBS_OPENAI_BASE_URL:-https://api.openai.com/v1}
+      MJOBS_OPENAI_API_KEY: ${MJOBS_OPENAI_API_KEY:-}
+      MJOBS_OPENAI_COMPATIBLE_BASE_URL: ${MJOBS_OPENAI_COMPATIBLE_BASE_URL:-https://api.openai.com/v1}
+      MJOBS_OPENAI_COMPATIBLE_API_KEY: ${MJOBS_OPENAI_COMPATIBLE_API_KEY:-}
+      MJOBS_LOCAL_AI_BASE_URL: ${MJOBS_LOCAL_AI_BASE_URL:-http://127.0.0.1:8080/v1}
+      MJOBS_LOCAL_AI_API_KEY: ${MJOBS_LOCAL_AI_API_KEY:-}
+      MJOBS_AZURE_OPENAI_BASE_URL: ${MJOBS_AZURE_OPENAI_BASE_URL:-https://example-resource.openai.azure.com}
+      MJOBS_AZURE_OPENAI_API_KEY: ${MJOBS_AZURE_OPENAI_API_KEY:-}
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
   document-worker:
     <<: *runtime
     command: [python, -m, workers.main]

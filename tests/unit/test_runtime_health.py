@@ -73,6 +73,7 @@ class RuntimeHealthTests(unittest.TestCase):
         self.assertEqual(result, {
             "scheduler": True,
             "workers": {
+                "mjobs-ai": True,
                 "mjobs-application": True,
                 "mjobs-company-discovery": True,
                 "mjobs-discovery": True,
@@ -94,6 +95,7 @@ class RuntimeHealthTests(unittest.TestCase):
 
         self.assertFalse(result["scheduler"])
         self.assertFalse(result["workers"]["mjobs-company-discovery"])
+        self.assertFalse(result['workers']['mjobs-ai'])
         self.assertTrue(result["workers"]["mjobs-application"])
 
     def test_malformed_expired_and_future_scheduler_heartbeats_are_not_ready(self):

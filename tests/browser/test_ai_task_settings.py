@@ -1,6 +1,7 @@
 """Connected browser acceptance for durable, profile-isolated AI task settings."""
 import copy
 import json
+import os
 from pathlib import Path
 import tempfile
 import threading
@@ -158,6 +159,21 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                         "Evaluation runs only after you request it", exact=False)).to_be_visible()
 
                     cost_panel.get_by_role("button", name="Evaluate planned AI candidates", exact=True).click()
+                    durable_panel = page.get_by_role('region', name='Durable AI evaluations')
+                    expect(durable_panel).to_contain_text('QUEUED')
+                    self.assertEqual(mock_generate_structured.call_count, 0)
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('button', name='AI Settings', exact=True).click()
+                    expect(durable_panel).to_contain_text('QUEUED')
+                    from sqlalchemy import select
+                    from packages.persistence import models as m
+                    from workers.tasks import execute_operation
+                    with store.engine.connect() as connection:
+                        operation_id = connection.execute(select(m.operations.c.id).where(
+                            m.operations.c.kind == 'AI_EVALUATE_QUEUED')).scalar_one()
+                    with patch.dict(os.environ, {'MJOBS_DATABASE_URL': str(store.engine.url),
+                                                 'MJOBS_OPERATION_MODE': 'PERSONAL'}):
+                        self.assertEqual(execute_operation(operation_id)['status'], 'COMPLETED')
                     evaluations = page.get_by_role("region", name="AI evaluation results")
                     expect(evaluations).to_be_visible()
                     expect(evaluations.get_by_role("status")).to_have_text(
@@ -276,11 +292,10 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     provider_returned.set()
                     return AIJobEvaluation(category="REVIEW", rationale="Synthetic interrupted result.")
 
-            from apps.api.main import consume_ai_candidates as original_consume
-
-            def consume_and_signal(*args, **kwargs):
+            def execute_and_signal(operation_id):
+                from workers.tasks import execute_operation
                 try:
-                    return original_consume(*args, **kwargs)
+                    execute_operation(operation_id)
                 finally:
                     batch_finished.set()
 
@@ -300,8 +315,9 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     time.sleep(0.02)
 
                 external, errors = [], []
-                with patch("apps.api.main.AITaskRouter", WaitingRouter), \
-                        patch("apps.api.main.consume_ai_candidates", consume_and_signal), \
+                with patch('services.ai.durable_evaluation.AITaskRouter', WaitingRouter), \
+                        patch.dict(os.environ, {'MJOBS_DATABASE_URL': str(store.engine.url),
+                                               'MJOBS_OPERATION_MODE': 'PERSONAL'}), \
                         sync_playwright() as pw:
                     browser = pw.chromium.launch(headless=True)
                     context = browser.new_context(viewport={"width": 1280, "height": 900})
@@ -323,16 +339,25 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     panel = page.get_by_role("region", name="AI cost controls")
                     panel.get_by_role("button", name="Preview AI work plan", exact=True).click()
                     panel.get_by_role("button", name="Evaluate planned AI candidates", exact=True).click()
+                    expect(page.get_by_role('region', name='Durable AI evaluations')).to_contain_text('QUEUED')
+                    from sqlalchemy import select
+                    with store.engine.connect() as connection:
+                        operation_id = connection.execute(select(m.operations.c.id).where(
+                            m.operations.c.kind == 'AI_EVALUATE_QUEUED')).scalar_one()
+                    worker = threading.Thread(target=execute_and_signal, args=(operation_id,), daemon=True)
+                    worker.start()
                     self.assertTrue(provider_started.wait(5), "second synthetic provider call did not start")
                     page.get_by_role("button", name="Cancel AI evaluation", exact=True).click()
                     expect(page.get_by_role("status").filter(
-                        has_text="Cancellation accepted. Waiting for the bounded provider call; partial results will not be saved.")).to_be_visible()
+                        has_text="Cancellation requested. Waiting for the bounded provider call; partial results will not be published.")).to_be_visible()
                     self.assertFalse(batch_finished.is_set(), "cancel acknowledgement must wait for the provider call")
                     release_provider.set()
                     self.assertTrue(provider_returned.wait(5), "bounded provider call was not released")
                     self.assertTrue(batch_finished.wait(5), "AI batch did not finish cancellation handling")
+                    worker.join(timeout=5)
+                    self.assertFalse(worker.is_alive(), 'Isolated durable AI worker must stop')
                     expect(page.get_by_role("status").filter(
-                        has_text="AI evaluation canceled. The interrupted batch was discarded.")).to_be_visible()
+                        has_text='CANCELLED')).to_be_visible()
                     self.assertEqual(provider_calls, [1, 2])
 
                     page.reload(wait_until="domcontentloaded")

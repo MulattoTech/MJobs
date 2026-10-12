@@ -23,7 +23,7 @@ COMPOSE_FILE = REPOSITORY_ROOT / "compose.yml"
 PROJECT_NAME_PATTERN = re.compile(r"mjobs-fixture-[a-f0-9]{12}\Z")
 RECOVERY_RESTART_SERVICES = (
     "postgres", "redis", "mock", "api", "scheduler", "worker", "source-worker",
-    "company-discovery-worker", "document-worker",
+    "company-discovery-worker", "document-worker", "ai-worker",
 )
 RECOVERY_MUTATION_SERVICES = RECOVERY_RESTART_SERVICES
 REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
@@ -354,7 +354,7 @@ def run(baseline_path, evidence_path, project_name, port):
         )
         try:
             compose(project_name, port, "stop", "worker", "source-worker", "company-discovery-worker",
-                    "document-worker", "redis", config_files=config_files)
+                    "document-worker", "ai-worker", "redis", config_files=config_files)
             profile = dict(PROFILE, id="recovery-fictional-" + uuid4().hex[:12])
             request("PUT", "/profiles", json=profile)
             queued = request("POST", "/discovery", json={"profile_id": profile["id"]})
@@ -370,7 +370,7 @@ def run(baseline_path, evidence_path, project_name, port):
                   > initial_worker_restart_count)
             compose(project_name, port, "start", "redis", config_files=config_files)
             compose(project_name, port, "start", "worker", "source-worker", "company-discovery-worker",
-                    "document-worker", config_files=config_files)
+                    "document-worker", "ai-worker", config_files=config_files)
             until(lambda: request("GET", "/operations/" + queued["operation_id"])["state"] == "COMPLETED")
             until(lambda: client.get("/readiness").status_code == 200)
             actions.append({"action": "Worker supervision and durable outbox recovered after Redis returned", "result": "PASS"})

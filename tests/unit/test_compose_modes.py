@@ -46,7 +46,7 @@ class ComposeModeTests(unittest.TestCase):
     def test_runtime_services_never_receive_bootstrap_database_credentials(self):
         services = json.loads(self.render("--format", "json"))["services"]
         for name in ("api", "scheduler", "worker", "source-worker",
-                     "document-worker", "company-discovery-worker"):
+                     "document-worker", "company-discovery-worker", "ai-worker"):
             with self.subTest(service=name):
                 environment = services[name]["environment"]
                 self.assertNotIn("MJOBS_DATABASE_URL", environment)
@@ -56,6 +56,17 @@ class ComposeModeTests(unittest.TestCase):
                                         if mount["target"] == "/run/mjobs-database")
                 self.assertTrue(credential_mount["read_only"])
         self.assertIn("synthetic-compose-test-value", services["migrate"]["environment"]["MJOBS_DATABASE_URL"])
+
+    def test_ai_worker_has_separate_queue_and_is_quiesced_for_backup_and_recovery(self):
+        from cli.local_backup import WRITERS
+        from cli.compose_recovery import RECOVERY_RESTART_SERVICES
+        services = json.loads(self.render('--format', 'json'))['services']
+        worker = services['ai-worker']
+        self.assertEqual(worker['environment']['MJOBS_WORKER_QUEUE'], 'mjobs-ai')
+        self.assertIn('source-egress', worker['networks'])
+        self.assertIn('ai-worker', WRITERS)
+        self.assertIn('ai-worker', RECOVERY_RESTART_SERVICES)
+        self.assertNotIn('source-egress', services['worker']['networks'])
 
     def test_explicit_fixture_project_includes_mock_service(self):
         services = self.render("--services", fixture=True).splitlines()
@@ -131,6 +142,7 @@ class ComposeModeTests(unittest.TestCase):
             "postgres", "redis", "migrate", "api", "mock", "worker",
             "scheduler", "source-worker", "document-worker",
             "company-discovery-worker",
+            "ai-worker",
         })
         for name, service in services.items():
             with self.subTest(service=name):

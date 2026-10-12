@@ -46,6 +46,8 @@ jobs:
       MJOBS_DURABLE_COMPARISON_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test
       MJOBS_BACKUP_CREDENTIAL_TEST_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_backup_credentials
       MJOBS_DURABLE_EXTRACTION_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_durable_extraction
+      MJOBS_AI_EVALUATION_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_durable_extraction
+      MJOBS_AI_REDIS_TEST_URL: redis://127.0.0.1:6379/15
       PGPASSWORD: synthetic-test-only
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
