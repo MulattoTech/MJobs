@@ -5,14 +5,6 @@
   "base": "fc7273aeb33364932c9d9b85cd4880fd77f2e64d",
   "branch": "fix/manual-auth-browser-admission-6-20261012",
   "result": "PARTIAL",
-  "sourceHashes": {
-    "apps/api/manual_auth.py": "0b4e7cb51fa1da7a899ad24b3b55474d95148f682b22c55a6f1c668e8cc6488e",
-    "services/applications/manual_auth.py": "eec92a9a672e214b9b9898b41a53323c5c28acbc5a12ac48bc39d91a7a42381c",
-    "workers/operations.py": "2b4187299f659a566b857593944351739c1cf37401b217441226707e81bf16bb",
-    "tests/integration/test_manual_auth_concurrency.py": "0e1b698c43c4660803ae85eabbe622b44a4a05c03770863bdb3656e4d5a3b99b",
-    "tests/integration/test_manual_auth_router_mount.py": "f2464ecdcdfeeeae90f853af8addecc5f850b0902e4a53cf580124cb0d10140d",
-    "tests/integration/test_operation_concurrency_postgres.py": "a9a0d42b353e03d8732db83d95ee42ff56df9cbe4e120969ea1366faeb19ec6e"
-  },
   "finalVerification": {
     "command": ".venv/Scripts/python.exe -m pytest -q tests/integration/test_manual_auth_concurrency.py tests/integration/test_manual_auth_router_mount.py tests/integration/test_manual_auth_session.py tests/unit/test_operation_concurrency.py tests/integration/test_operation_retries.py tests/integration/test_worker_lifecycle.py tests/integration/test_worker_attempt_identity.py tests/browser/test_manual_auth_session.py tests/browser/test_manual_auth_session_connected.py --junitxml outputs/ci/iteration38-final.xml",
     "counts": {
@@ -39,5 +31,31 @@
     "Whole goal0/7; full browser/release acceptance incomplete"
   ],
   "privateData": "Synthetic fixture only; original private runtime preserved; external submission OFF",
-  "rollback": "Scoped source revert; no schema/config migration"
+  "rollback": "Scoped source revert; no schema/config migration",
+  "source_sha256": [
+    {
+      "path": "apps/api/manual_auth.py",
+      "sha256": "0b4e7cb51fa1da7a899ad24b3b55474d95148f682b22c55a6f1c668e8cc6488e"
+    },
+    {
+      "path": "services/applications/manual_auth.py",
+      "sha256": "eec92a9a672e214b9b9898b41a53323c5c28acbc5a12ac48bc39d91a7a42381c"
+    },
+    {
+      "path": "workers/operations.py",
+      "sha256": "2b4187299f659a566b857593944351739c1cf37401b217441226707e81bf16bb"
+    },
+    {
+      "path": "tests/integration/test_manual_auth_concurrency.py",
+      "sha256": "0e1b698c43c4660803ae85eabbe622b44a4a05c03770863bdb3656e4d5a3b99b"
+    },
+    {
+      "path": "tests/integration/test_manual_auth_router_mount.py",
+      "sha256": "f2464ecdcdfeeeae90f853af8addecc5f850b0902e4a53cf580124cb0d10140d"
+    },
+    {
+      "path": "tests/integration/test_operation_concurrency_postgres.py",
+      "sha256": "a9a0d42b353e03d8732db83d95ee42ff56df9cbe4e120969ea1366faeb19ec6e"
+    }
+  ]
 }

@@ -141,3 +141,9 @@ bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline
 
 # Verified committed API test source hash; not a credential
 46cb283c8a5c1cab45828f68069f3a3d0545ea4a:docs/evidence/2026-10-11-dashboard-log-confinement.json:generic-api-key:10
+
+# Verified committed source SHA-256 evidence; not credentials (PR553 exact head).
+6378634743d74b08d7cd37958d9e03520d5745f6:docs/evidence/2026-10-12-manual-auth-admission.json:generic-api-key:9
+6378634743d74b08d7cd37958d9e03520d5745f6:docs/evidence/2026-10-12-manual-auth-admission.json:generic-api-key:10
+6378634743d74b08d7cd37958d9e03520d5745f6:docs/evidence/2026-10-12-manual-auth-admission.json:generic-api-key:12
+6378634743d74b08d7cd37958d9e03520d5745f6:docs/evidence/2026-10-12-manual-auth-admission.json:generic-api-key:13
