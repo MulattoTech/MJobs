@@ -2,6 +2,8 @@
 from copy import deepcopy
 from hashlib import sha256
 import json
+import os
+import subprocess
 from pathlib import Path
 import tempfile
 import sys
@@ -178,3 +180,184 @@ class BrowserTreeCertificateTests(unittest.TestCase):
         self.assertFalse(self.enroll())
         self.assertFalse(self.persist())
         self.assertNotIn("tree_observer", str(self.row()))
+
+    @unittest.skipUnless(sys.platform == "win32", "Native retained query writer")
+    def test_retained_native_writer_requires_self_enrollment_and_closed_tree(self):
+        from services.applications.browser_process import capture_owner_identity
+        from services.applications.browser_tree import BrowserTreeJob
+        from tests.unit.test_browser_tree_containment import eventually
+        module = self.module()
+        self.observer.identity = capture_owner_identity()
+        job = BrowserTreeJob()
+        query = job.query_handle()
+        location = Path(self.directory.name)
+        try:
+            self.assertTrue(module.enroll_retained_observer(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            job.launch([sys.executable, str(Path("tests/fixtures/browser_tree_child.py").resolve()),
+                        "root", str(location)], cwd=Path.cwd())
+            eventually(lambda: (location / "ready.json").exists())
+            self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            (location / "release").touch()
+            eventually(lambda: query.status() == "EXITED")
+            self.assertTrue(module.record_retained_closure(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            self.assertEqual(self.row()["state"], "RUNNING")
+            query.close()
+            self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+        finally:
+            (location / "release").touch()
+            query.close()
+            job.close()
+
+    def test_retained_writer_rejects_wire_proof_without_native_authority(self):
+        module = self.module()
+        self.assertTrue(self.enroll())
+        baseline = self.row()
+        for query in (None, self.reply, self.observer):
+            with self.subTest(query=type(query).__name__):
+                self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                    self.binding, owner_token=self.token))
+                self.assertEqual(self.row(), baseline)
+
+    def test_retained_writer_fences_identity_scope_native_failure_and_changed_owner(self):
+        from services.applications.browser_process import capture_owner_identity
+        from services.applications.browser_tree import BrowserTreeQuery
+        module = self.module()
+        self.observer.identity = capture_owner_identity()
+        query = object.__new__(BrowserTreeQuery)
+        query._retention_id = "d" * 64
+        with patch.object(query, "contains", return_value=False), \
+                patch.object(query, "limit_flags", return_value=0), \
+                patch.object(query, "accounting", return_value=self.reply["accounting"]):
+            self.assertTrue(module.enroll_retained_observer(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            baseline = self.row()
+            for scope in ({}, {**self.binding, "attempt_id": "wrong"}):
+                with self.subTest(scope=scope):
+                    self.assertFalse(module.record_retained_closure(self.store, self.operation,
+                        query, scope, owner_token=self.token))
+            self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                self.binding, owner_token="c" * 64))
+            for membership in (None, True):
+                with self.subTest(membership=membership), patch.object(query, "contains", return_value=membership):
+                    self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                        self.binding, owner_token=self.token))
+            with patch.object(query, "limit_flags", return_value=0x2000):
+                self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                    self.binding, owner_token=self.token))
+            for accounting in (None, {"total": 3, "active": 0, "terminated": 1}):
+                with self.subTest(accounting=accounting), patch.object(query, "accounting", return_value=accounting):
+                    self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                        self.binding, owner_token=self.token))
+            with patch.object(query, "accounting", side_effect=OSError("synthetic-private")):
+                self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                    self.binding, owner_token=self.token))
+            from services.applications import browser_process
+            with patch.object(browser_process, "capture_owner_identity", return_value={
+                    **self.observer.identity, "created": "different"}):
+                self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                    self.binding, owner_token=self.token))
+            self.assertEqual(self.row(), baseline)
+
+            def changed_owner():
+                metadata = self.row()["recovery_metadata"]
+                metadata["manual_auth_owner"]["attempt_id"] = "successor-attempt"
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(m.operations.c.id == self.operation)
+                        .values(recovery_metadata=metadata))
+                return self.reply["accounting"]
+            with patch.object(query, "accounting", side_effect=changed_owner):
+                self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                    self.binding, owner_token=self.token))
+            self.assertNotIn("tree_closure", str(self.row()))
+            self.assertIn("successor-attempt", str(self.row()))
+
+    @unittest.skipUnless(sys.platform == "win32", "Native creator death and Chromium")
+    def test_retained_writer_persists_after_actual_creator_death_and_peer_reload(self):
+        from services.applications.browser_process import capture_owner_identity, owner_process_status
+        from services.applications.browser_tree import BrowserTreeQuery, _kernel
+        from tests.unit.test_browser_tree_containment import eventually
+        module = self.module()
+        location = Path(self.directory.name)
+        identity = capture_owner_identity()
+        creator = subprocess.Popen([sys.executable,
+            str(Path("tests/fixtures/browser_tree_retained_creator.py").resolve()),
+            str(location), sys.executable, json.dumps(identity)],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            creationflags=subprocess.CREATE_NO_WINDOW)
+        query = None
+        try:
+            eventually(lambda: (location / "retained.json").exists())
+            transferred = json.loads((location / "retained.json").read_text())
+            query = BrowserTreeQuery(_kernel(), transferred["handle"])
+            self.observer.identity = identity
+            metadata = self.row()["recovery_metadata"]
+            metadata["manual_auth_owner"]["api_process"] = transferred["creator"]
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(m.operations.c.id == self.operation)
+                    .values(recovery_metadata=metadata))
+            self.assertTrue(module.enroll_retained_observer(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            (location / "enrolled").touch()
+            self.assertEqual(creator.wait(timeout=25), 0)
+            self.assertEqual(owner_process_status(transferred["creator"]), "EXITED")
+            self.assertEqual(query.status(), "LIVE")
+            self.assertFalse(module.record_retained_closure(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            ready = json.loads((location / "ready.json").read_text())
+            for pid in ready["members"]:
+                self.assertTrue(query.contains(pid))
+            (location / "release").touch()
+            eventually(lambda: query.status() == "EXITED", 20)
+            peer = Store(self.url)
+            try:
+                self.assertTrue(module.record_retained_closure(peer, self.operation, query,
+                    self.binding, owner_token=self.token))
+                certificate = self.row()["recovery_metadata"]["manual_auth_owner"]["tree_closure"]
+                self.assertEqual(certificate["observer"], identity)
+                self.assertEqual(certificate["accounting"]["active"], 0)
+                self.assertEqual(certificate["accounting"]["terminated"], 0)
+                self.assertNotIn("tree_closure", str(operation_public_record(self.row())))
+                with self.assertRaises(OperationConcurrencyLimit):
+                    admit_inline(peer, "MANUAL_AUTH", "another-app")
+            finally:
+                peer.engine.dispose()
+        finally:
+            (location / "enrolled").touch()
+            (location / "release").touch()
+            creator.wait(timeout=25)
+            if query is not None:
+                query.close()
+
+    @unittest.skipUnless(sys.platform == "win32", "Native retained query provenance")
+    def test_unrelated_query_and_ipc_enrollment_cannot_substitute_for_retained_query(self):
+        from services.applications.browser_tree import BrowserTreeJob
+        module = self.module()
+        job, other_job = BrowserTreeJob(), BrowserTreeJob()
+        query, other = job.query_handle(), other_job.query_handle()
+        try:
+            self.assertTrue(module.enroll_retained_observer(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            self.assertTrue(module.enroll_retained_observer(self.store, self.operation, query,
+                self.binding, owner_token=self.token))
+            baseline = self.row()
+            self.assertFalse(module.enroll_retained_observer(self.store, self.operation, other,
+                self.binding, owner_token=self.token))
+            with patch.object(other, "accounting", return_value={"total": 1, "active": 0, "terminated": 0}):
+                self.assertFalse(module.record_retained_closure(self.store, self.operation, other,
+                    self.binding, owner_token=self.token))
+            self.assertEqual(self.row(), baseline)
+            # The IPC channel cannot overwrite the retained authority either.
+            from services.applications.browser_process import capture_owner_identity
+            self.observer.identity = capture_owner_identity()
+            self.assertFalse(self.persist())
+        finally:
+            query.close()
+            other.close()
+            job.close()
+            other_job.close()

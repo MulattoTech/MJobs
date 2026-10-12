@@ -8,6 +8,7 @@ import ctypes as c
 from ctypes import wintypes as w
 from pathlib import Path
 import os
+from secrets import token_hex
 import subprocess
 import sys
 from threading import RLock
@@ -92,6 +93,9 @@ class BrowserTreeQuery:
     def __init__(self, kernel, handle):
         self._kernel, self._handle = kernel, handle
         self._lock = RLock()
+        # Private object-lifetime authority, not a native handle/PID that can
+        # be reused. Enrollment binds this retained query before observation.
+        self._retention_id = token_hex(32)
 
     def accounting(self):
         with self._lock:

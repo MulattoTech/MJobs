@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DURABLE-UPLOADED-COMPARISON-20261011",
-  "current_objective": "Verify and integrate manual MOCK browser admission (#6/MJ-REQ-005); finish proven crashed-owner recovery and busy/retry browser acceptance without automatic replay.",
+  "current_objective": "Verify retained native observer closure persistence after creator death (#6/MJ-REQ-005); production private admission bootstrap and explicit recovery remain PARTIAL, with capacity held and no automatic replay.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",

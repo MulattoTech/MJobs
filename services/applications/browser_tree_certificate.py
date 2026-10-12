@@ -2,7 +2,8 @@
 
 Only the enrolled private observer may contribute a fresh native observation.
 This API is internal: it accepts an observer, never caller-supplied wire proof.
-Creator-independent persistence and explicit recovery remain separate steps.
+Retained native observers may persist after creator death. Explicit recovery
+and production observer bootstrap remain separate steps.
 """
 from copy import deepcopy
 from hashlib import sha256
@@ -74,6 +75,8 @@ def enroll_observer(store, operation_id, observer, *, owner_token):
         owner = metadata["manual_auth_owner"]
         if not _same_host(owner, identity):
             return False
+        if "tree_retention" in owner:
+            return False
         if "tree_observer" in owner:
             return owner["tree_observer"] == identity
         owner["tree_observer"] = identity
@@ -92,22 +95,99 @@ def record_closure(store, operation_id, observer, *, owner_token):
     if type(observer) is not BrowserTreeObserver or not _identity(observer.identity):
         return False
     identity = deepcopy(observer.identity)
+    return _record_closure(store, operation_id, identity, observer._binding,
+        observer.observe, lambda: observer.identity == identity, owner_token)
+
+
+def record_retained_closure(store, operation_id, query, binding, *, owner_token):
+    """Persist from the enrolled observer's own retained native authority.
+
+    Only an exact native query object is accepted, never a wire observation.
+    The observer must be outside the tree, on the admitted host, and enrolled
+    under its actual current PID/creation identity. No API liveness is needed.
+    Acquisition/transfer of this handle remains a private bootstrap concern.
+    """
+    from services.applications.browser_process import capture_owner_identity
+    from services.applications.browser_tree import BrowserTreeQuery
+    if type(query) is not BrowserTreeQuery:
+        return False
+    try:
+        binding = validate_binding(binding)
+        identity = capture_owner_identity()
+        key = query._retention_id
+        if not _identity(identity):
+            return False
+
+        def observe(scope):
+            if query.contains(identity["pid"]) is not False or query.limit_flags() != 0:
+                return None
+            accounting = query.accounting()
+            return {"binding": scope, "status": _status(accounting), "accounting": accounting}
+
+        return _record_closure(store, operation_id, identity, binding, observe,
+            lambda: capture_owner_identity() == identity and query._retention_id == key,
+            owner_token, retention_id=key)
+    except Exception:
+        # Never expose credentials, connection strings or native diagnostics.
+        return False
+
+
+def enroll_retained_observer(store, operation_id, query, binding, *, owner_token):
+    """Enroll the original retained query in the observer process itself.
+
+    An existing IPC enrollment cannot be converted to a different query.
+    Bootstrap must call this before relying on this authority for tree proof.
+    """
+    from services.applications.browser_process import capture_owner_identity
+    from services.applications.browser_tree import BrowserTreeQuery
+    if type(query) is not BrowserTreeQuery:
+        return False
+    try:
+        binding = validate_binding(binding)
+        identity = capture_owner_identity()
+        key = query._retention_id
+        if (not _identity(identity) or not isinstance(key, str) or len(key) != 64
+                or query.contains(identity["pid"]) is not False or query.limit_flags() != 0):
+            return False
+        with store.engine.begin() as connection:
+            _lock(connection)
+            row = _row(connection, operation_id)
+            if _scope(row, owner_token) != binding:
+                return False
+            metadata = deepcopy(row["recovery_metadata"])
+            owner = metadata["manual_auth_owner"]
+            if not _same_host(owner, identity):
+                return False
+            if "tree_observer" in owner or "tree_retention" in owner:
+                return owner.get("tree_observer") == identity and owner.get("tree_retention") == key
+            owner["tree_observer"] = identity
+            owner["tree_retention"] = key
+            connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                recovery_metadata=metadata, updated_at=now()))
+            store._audit(connection, operation_id, "MANUAL_AUTH_TREE_OBSERVER_ENROLLED", {})
+            return True
+    except Exception:
+        return False
+
+
+def _record_closure(store, operation_id, identity, binding, observe, unchanged, owner_token, *, retention_id=None):
     with store.engine.connect() as connection:
         row = connection.execute(select(m.operations).where(
             m.operations.c.id == operation_id)).mappings().one_or_none()
         scope = _scope(row, owner_token)
-        if scope is None:
+        if scope is None or scope != binding:
             return False
         baseline = deepcopy(row["recovery_metadata"])
     if (baseline["manual_auth_owner"].get("tree_observer") != identity
-            or not _same_host(baseline["manual_auth_owner"], identity)):
+            or not _same_host(baseline["manual_auth_owner"], identity)
+            or baseline["manual_auth_owner"].get("tree_retention") != retention_id):
         return False
     try:
-        reply = observer.observe(scope)
+        reply = observe(scope)
         if (not isinstance(reply, dict) or set(reply) != {"binding", "status", "accounting"}
                 or reply["binding"] != scope or reply["status"] != "EXITED"
                 or _status(reply["accounting"]) != "EXITED"
-                or reply["accounting"]["terminated"] != 0 or observer.identity != identity):
+                or reply["accounting"]["terminated"] != 0 or not unchanged()):
             return False
         certificate = {"version": 1, "binding": scope, "observer": identity,
                        "accounting": deepcopy(reply["accounting"]), "observed_at": now()}
