@@ -1,0 +1,42 @@
+{
+  "iteration": 49,
+  "requirement": "MJ-REQ-005 / #6",
+  "scope": "Manual-auth original-call release fencing prerequisite; genuine crashed-owner browser exit/recovery remains PARTIAL",
+  "base": "2646cccdfad979a2ca13e27e472b220807f86c2b",
+  "branch": "fix/manual-auth-owner-fence-6-20261012",
+  "utc": "2026-10-12T03:33:49.723490+00:00",
+  "goalSha256": "08f5c58d99d33df699cbdd67d022145ab43cbf2fade6f76530e75df255315637",
+  "sourceHashes": {
+    "apps/api/manual_auth.py": "ff744ab2b4d2dba4810203d2b4f682875d3055bd7771f9381cf0dbab120439db",
+    "apps/api/main.py": "891e32fe3b81d68a7d5eef7a1ae55a0c434c4ed8a6e515b17142a365eab584b1",
+    "workers/operations.py": "63c661059b3bbc40c4c0f4d0f7931cdf72a65152b3b0b7de7b919e6b21b8b7a2",
+    "services/operations/progress.py": "8f9896300413bb11fa03f3e15412ee4a4c27cda479f43fa45121ed563134c02e",
+    "tests/integration/test_manual_auth_concurrency.py": "8a8b32dac50c88068df2252ec55a59eab61a8d5deaa2cd1f5a6de6c45da9fe1e"
+  },
+  "behavior": [
+    "Atomically persist admitted profile/attempt identity and owner-token digest; token retained only by API call",
+    "Missing/wrong/stale/legacy owner cannot release browser capacity; original live owner can close and explicitly retry",
+    "Public operation reads omit private owner metadata; progress updates preserve it and cannot bypass terminal fencing",
+    "Durable audit records original owner release without token material"
+  ],
+  "negativeEvidence": [
+    "iteration49-owner-red.xml:2 reproduced failures",
+    "iteration49-review-red.xml:5 reproduced assertions",
+    "iteration49-progress-red.xml:owner metadata erased",
+    "iteration49-progress-bypass-red.xml:terminal progress bypass"
+  ],
+  "verification": [
+    "Fresh production build PASS",
+    "iteration49-final-focused.xml:49 PASS +39 subtests (before final terminal-progress guard); affected owner/progress suites rechecked separately",
+    "iteration49-connected-current.xml:1 Chromium PASS,0 SKIP on final sources",
+    "catalogue/progress/dashboard/agent_skills/diff PASS",
+    "iteration49-final-owner-progress.xml:40 PASS +22 subtests on final executable sources;0 SKIP"
+  ],
+  "review": "Read-only local Luna review; findings reproduced and repaired; final review no important gaps. Reviewer tests NOT_RUN.",
+  "limitations": [
+    "Independent owned browser PID/creation-time identity and exit proof not implemented; no crashed-owner recovery action yet",
+    "PostgreSQL/full browser/release completion gate NOT_RUN locally this iteration",
+    "Current recovery revision hosted checks NOT_RUN before publication",
+    "Goal acceptance0/7 unchanged; real submissionsOFF; private runtime untouched"
+  ]
+}

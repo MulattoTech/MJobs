@@ -59,8 +59,18 @@ def _recovery_summary(value):
     return action or reason or ""
 
 
+def operation_public_record(row):
+    """Preserve the legacy record shape while withholding internal owner data."""
+    result = dict(row)
+    metadata = result.get("recovery_metadata")
+    if isinstance(metadata, dict):
+        result["recovery_metadata"] = {
+            key: value for key, value in metadata.items() if key != "manual_auth_owner"}
+    return result
+
+
 def _read_model(row):
-    metadata = _sanitize_recovery_metadata(row["recovery_metadata"] or {})
+    metadata = _sanitize_recovery_metadata(operation_public_record(row)["recovery_metadata"] or {})
     current_step = row["current_step"]
     if current_step is not None and (
         not isinstance(current_step, str) or not _STEP_CODE.fullmatch(current_step)
@@ -126,6 +136,8 @@ def record_operation_progress(store, operation_id, *, current_step, progress, st
         if row["state"] in _TERMINAL_STATES:
             raise ValueError("OPERATION_TERMINAL")
         next_state = row["state"] if state is None else state
+        if row["kind"] == "MANUAL_AUTH" and next_state in _TERMINAL_STATES:
+            raise ValueError("MANUAL_AUTH_REQUIRES_OWNER_RELEASE")
         if next_state not in _TRANSITIONS.get(row["state"], set()):
             raise ValueError("OPERATION_TRANSITION_INVALID")
         if progress < row["progress"]:
@@ -149,7 +161,11 @@ def record_operation_progress(store, operation_id, *, current_step, progress, st
         elif next_state == "COMPLETED":
             values["error"] = None
         if clean_metadata is not None:
-            values["recovery_metadata"] = clean_metadata
+            metadata = dict(clean_metadata)
+            existing = row["recovery_metadata"]
+            if isinstance(existing, dict) and "manual_auth_owner" in existing:
+                metadata["manual_auth_owner"] = existing["manual_auth_owner"]
+            values["recovery_metadata"] = metadata
         if next_state == "RUNNING" and row["started_at"] is None:
             values["started_at"] = timestamp
         if next_state in _TERMINAL_STATES:
