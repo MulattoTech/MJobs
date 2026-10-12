@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from alembic import command
 from alembic.config import Config
+from alembic.runtime.migration import MigrationContext
 from psycopg import sql
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
@@ -59,6 +60,8 @@ class DatabaseLeastPrivilegePostgresTests(unittest.TestCase):
                 runtime.save_profile(dict(PROFILE, name="Reviewed synthetic profile"))
                 self.assertEqual(runtime.profile("fixture")["name"], "Reviewed synthetic profile")
                 with runtime.engine.begin() as connection:
+                    self.assertTrue(MigrationContext.configure(connection).get_current_heads(),
+                                    "Runtime readiness must read the migration version without being able to update it")
                     authority = connection.execute(text("SELECT rolsuper, rolcreatedb, rolcreaterole, rolreplication, rolbypassrls FROM pg_roles WHERE rolname=current_user")).one()
                     self.assertEqual(tuple(authority), (False,) * 5)
                     self.assertEqual(connection.execute(text("SELECT * FROM preservation_probe")).mappings().all(), before)

@@ -86,6 +86,7 @@ def provision(admin_url: str, destination: Path, *, role: str = RUNTIME_ROLE) ->
                 sql.SQL("REVOKE ALL ON ALL TABLES IN SCHEMA public FROM {}").format(sql.Identifier(role)),
                 sql.SQL("GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO {}").format(sql.Identifier(role)),
                 sql.SQL("REVOKE ALL ON TABLE public.alembic_version FROM {}").format(sql.Identifier(role)),
+                sql.SQL("GRANT SELECT ON TABLE public.alembic_version TO {}").format(sql.Identifier(role)),
                 sql.SQL("GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO {}").format(sql.Identifier(role)),
                 sql.SQL("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO {}").format(sql.Identifier(role)),
                 sql.SQL("ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO {}").format(sql.Identifier(role)),
