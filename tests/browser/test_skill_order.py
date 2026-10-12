@@ -220,9 +220,11 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.get_by_role('button').filter(has=page.get_by_role('heading',name=job['title'],exact=True)).click()
                     opt=page.get_by_label('Order approved skills for this job',exact=True)
                     expect(opt).not_to_be_checked();opt.check()
+                    snapshot = self.preview_alignment(page, origin)
                     with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
                         page.get_by_role('button',name='Prepare documents',exact=True).click()
                     operation=event.value.json()
+                    self.assert_prepared_snapshot(event.value.request.post_data_json, snapshot)
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
                                     MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
@@ -250,7 +252,24 @@ class SkillOrderBrowserTests(unittest.TestCase):
                         page.locator('.job-card').first.click()
                     comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
                     comparison.get_by_label('Base resume',exact=True).select_option('u:'+uploaded['revision_id'])
-                    comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+
+                    def queue_uploaded_comparison():
+                        with page.expect_response(lambda response:
+                                '/uploaded-resume-comparison/operations?' in response.url and
+                                response.request.method == 'POST') as event:
+                            comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
+                        self.assertEqual(event.value.status,202)
+                        admitted=event.value.json()
+                        self.assertEqual(admitted['state'],'QUEUED')
+                        return admitted['operation_id']
+
+                    def run_comparison(operation_id):
+                        with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,
+                                        MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
+                            return execute_operation(operation_id)
+
+                    comparison_operation=queue_uploaded_comparison()
+                    self.assertEqual(run_comparison(comparison_operation)['status'],'COMPLETED')
                     result=comparison.get_by_role('region',name='Resume comparison result',exact=True)
                     expect(result.get_by_role('heading',name='Uploaded base · v1',exact=True)).to_be_visible()
                     expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('Maintained servers')
@@ -262,42 +281,72 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     self.assertEqual(Path(original_download.value.path()).read_bytes(),original)
                     application_id=store.applications('fixture')[0]['id']
                     profile_before_cancel=store.profile('fixture');history_before_cancel=application_documents(store,application_id)
-                    comparison_started=threading.Event();comparison_cancelled=threading.Event()
+                    comparison_count=store.count(m.uploaded_comparison_results.name)
+                    page.reload();page.get_by_role('navigation').get_by_role('button',name='Applications',exact=False).first.click()
+                    page.locator('.job-card').first.click()
+                    comparison=page.get_by_role('region',name='Compare base and tailored resumes',exact=True)
+                    comparison.get_by_label('Base resume',exact=True).select_option('u:'+uploaded['revision_id'])
+                    expect(comparison.get_by_role('heading',name='Uploaded base · v1',exact=True)).to_be_visible()
+                    self.assertEqual(store.count(m.uploaded_comparison_results.name),comparison_count)
 
-                    def unconfirmed_cancel(route):
-                        route.fulfill(status=200,content_type='application/json',body='{"cancelled":false}')
-
+                    comparison_started=threading.Event();release_comparison=threading.Event()
+                    worker_results=[]
                     def finish_comparison(data,format,cancellation_event):
-                        comparison_started.set();time.sleep(.5)
+                        comparison_started.set()
+                        if not release_comparison.wait(10):
+                            raise AssertionError('comparison worker was not released')
                         from services.career_profile.extraction import extract_resume_text
                         return extract_resume_text(data,format,cancellation_event)
 
-                    page.route('**/uploaded-resume-comparison/cancel**',unconfirmed_cancel)
+                    def rejected_cancel(route):
+                        route.fulfill(status=503,content_type='application/json',body='{"detail":"Synthetic cancellation unavailable"}')
+
+                    cancel_pattern='**/uploaded-resume-comparison/operations/*/cancel'
+                    page.route(cancel_pattern,rejected_cancel)
                     with patch('services.documents.uploaded_comparison.extract_resume_text',side_effect=finish_comparison):
-                        comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
-                        self.assertTrue(comparison_started.wait(5),'uploaded comparison did not start extraction')
-                        comparison.get_by_role('button',name='Cancel comparison',exact=True).click()
-                        expect(comparison.get_by_role('status')).to_contain_text('Cancellation was not confirmed.')
+                        comparison_operation=queue_uploaded_comparison()
+                        worker=threading.Thread(target=lambda:worker_results.append(run_comparison(comparison_operation)))
+                        worker.start()
+                        try:
+                            self.assertTrue(comparison_started.wait(5),'uploaded comparison did not start extraction')
+                            comparison.get_by_role('button',name='Cancel comparison',exact=True).click()
+                            expect(comparison.get_by_role('alert')).to_contain_text('Cancellation request failed:')
+                            self.assertFalse(page.request.get(origin+'/operations/'+comparison_operation).json()['cancel_requested'])
+                        finally:
+                            release_comparison.set();worker.join(timeout=10)
+                        self.assertFalse(worker.is_alive())
+                        self.assertEqual(worker_results[-1]['status'],'COMPLETED')
                         expect(comparison.get_by_role('region',name='Resume comparison result',exact=True)).to_be_visible()
-                    page.unroute('**/uploaded-resume-comparison/cancel**',unconfirmed_cancel)
+                    page.unroute(cancel_pattern,rejected_cancel)
                     self.assertEqual(store.profile('fixture'),profile_before_cancel)
                     self.assertEqual(application_documents(store,application_id),history_before_cancel)
 
+                    comparison_started.clear();extraction_finished=threading.Event()
                     def wait_for_comparison_cancel(data,format,cancellation_event):
-                        comparison_started.set();deadline=time.monotonic()+5
-                        while not cancellation_event.is_set() and time.monotonic()<deadline:time.sleep(.005)
-                        if cancellation_event.is_set():
-                            comparison_cancelled.set()
-                            from services.career_profile.extraction import ResumeExtractionCancelled
-                            raise ResumeExtractionCancelled()
-                        raise AssertionError('comparison abort was not propagated into resume extraction')
+                        comparison_started.set();deadline=time.monotonic()+10
+                        try:
+                            while time.monotonic()<deadline:
+                                cancellation_event.is_set()  # Durable fence raises on cancellation.
+                                time.sleep(.005)
+                            raise AssertionError('comparison abort was not propagated into resume extraction')
+                        finally:
+                            extraction_finished.set()
 
+                    comparison_count=store.count(m.uploaded_comparison_results.name)
                     with patch('services.documents.uploaded_comparison.extract_resume_text',side_effect=wait_for_comparison_cancel):
-                        comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
-                        self.assertTrue(comparison_started.wait(5),'uploaded comparison did not start extraction')
-                        comparison.get_by_role('button',name='Cancel comparison',exact=True).click()
-                        expect(comparison.get_by_role('status')).to_contain_text('Comparison cancelled.')
-                    self.assertTrue(comparison_cancelled.wait(5),'browser cancellation did not stop extraction work')
+                        comparison_operation=queue_uploaded_comparison()
+                        worker=threading.Thread(target=lambda:worker_results.append(run_comparison(comparison_operation)))
+                        worker.start()
+                        try:
+                            self.assertTrue(comparison_started.wait(5),'uploaded comparison did not start extraction')
+                            comparison.get_by_role('button',name='Cancel comparison',exact=True).click()
+                            expect(comparison.get_by_role('status')).to_contain_text('Comparison cancelled.')
+                        finally:
+                            worker.join(timeout=12)
+                        self.assertFalse(worker.is_alive())
+                    self.assertTrue(extraction_finished.is_set(),'browser cancellation did not stop extraction work')
+                    self.assertEqual(worker_results[-1]['status'],'CANCELLED')
+                    self.assertEqual(store.count(m.uploaded_comparison_results.name),comparison_count)
                     self.assertEqual(store.profile('fixture'),profile_before_cancel)
                     self.assertEqual(application_documents(store,application_id),history_before_cancel)
                     before=store.profile('fixture')
@@ -310,13 +359,15 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.get_by_label('Include Python',exact=True).uncheck()
                     page.get_by_label('Include Built Python APIs for internal teams.',exact=True).uncheck()
                     operation_count=store.count(m.operations.name)
-                    page.get_by_role('button',name='Prepare documents',exact=True).click()
-                    expect(page.get_by_text('Reload approved facts and select at least one fact for this resume.',exact=True)).to_be_visible()
+                    expect(page.get_by_role('button',name='Prepare documents',exact=True)).to_be_disabled()
+                    expect(page.get_by_text('0 of 3 approved facts selected. Choose at least one.',exact=True)).to_be_visible()
                     self.assertEqual(store.count(m.operations.name),operation_count)
                     page.get_by_label('Include Python',exact=True).check()
+                    snapshot = self.preview_alignment(page, origin, explicit=True)
                     with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
                         page.get_by_role('button',name='Prepare documents',exact=True).click()
                     operation=event.value.json()
+                    self.assert_prepared_snapshot(event.value.request.post_data_json, snapshot)
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
                         self.assertEqual(execute_operation(operation['operation_id'])['status'],'COMPLETED')
                     selected=page.get_by_role('region',name='resume version 3',exact=True)
@@ -353,11 +404,22 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     page.get_by_label('Include '+duty,exact=True).set_checked(True)
                     rewrite='Delivered Python API services for internal teams.'
                     page.get_by_label('Rewrite this bullet: '+duty,exact=True).fill(rewrite)
-                    page.get_by_label('I reviewed this rewrite: '+duty,exact=True).check()
+                    wording_review=page.get_by_role('region',name='Resume rewrite review preview',exact=True)
+                    with page.expect_response(lambda response:
+                            response.url.endswith('/resume-rewrite-review-preview') and
+                            response.request.method=='POST') as rewrite_event:
+                        wording_review.get_by_role('button',name='Preview exact resume rewrites',exact=True).click()
+                    self.assertEqual(rewrite_event.value.status,200)
+                    expect(wording_review.get_by_role('region',name='Approved source text for fact python-duty',exact=True)).to_contain_text(duty)
+                    expect(wording_review.get_by_role('region',name='User-authored proposed wording for fact python-duty',exact=True)).to_contain_text(rewrite)
+                    wording_review.get_by_label('I reviewed the proposed wording for fact python-duty',exact=True).check()
+                    expect(wording_review.get_by_role('status')).to_contain_text('Every rewrite was explicitly reviewed.')
+                    snapshot = self.preview_alignment(page, origin, explicit=True)
                     with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
                         page.get_by_role('button',name='Prepare documents',exact=True).click()
                     operation=event.value.json()
                     queued=event.value.request.post_data_json
+                    self.assert_prepared_snapshot(queued, snapshot)
                     self.assertEqual(queued['tailor_fact_rewrites'],[{'fact_id':'python-duty','text':rewrite,'reviewed':True}])
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
                                     MJOBS_OUTPUT_DIR=str(root),MJOBS_OPERATION_MODE='FIXTURE'):
