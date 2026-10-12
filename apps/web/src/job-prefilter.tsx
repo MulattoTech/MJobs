@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 /** Search-profile fields supported by the inexpensive title/keyword pass. */
 export type JobPrefilterCriteria = {
@@ -52,12 +52,35 @@ function count(value: number) {
 }
 
 export function JobPrefilter({ criteria, disabled = false, onChange, onPreview, result }: JobPrefilterProps) {
+  const [drafts, setDrafts] = useState(() => ({
+    include_titles: criteria.include_titles.join('\n'),
+    exclude_titles: criteria.exclude_titles.join('\n'),
+    required_keywords: criteria.required_keywords.join('\n'),
+    excluded_keywords: criteria.excluded_keywords.join('\n'),
+    exact_phrases: criteria.exact_phrases.join('\n'),
+  }));
+  useEffect(() => {
+    setDrafts(previous => {
+      const next = {...previous};
+      let changed = false;
+      for (const [field] of criteriaFields) {
+        // Our own parsed onChange echoes must not erase a trailing newline
+        // or comma. A different saved search still replaces its field values.
+        if (JSON.stringify(parseJobPrefilterList(previous[field])) !== JSON.stringify(criteria[field])) {
+          next[field] = criteria[field].join('\n');
+          changed = true;
+        }
+      }
+      return changed ? next : previous;
+    });
+  }, [criteria]);
   const [previewing, setPreviewing] = useState(false);
   const [previewError, setPreviewError] = useState('');
   const [latestResult, setLatestResult] = useState<JobPrefilterResponse | null>(null);
   const displayedResult = result === undefined ? latestResult : result;
 
   function update(field: keyof JobPrefilterCriteria, value: string) {
+    setDrafts(previous => ({...previous, [field]: value}));
     onChange({ ...criteria, [field]: parseJobPrefilterList(value) });
   }
 
@@ -84,7 +107,7 @@ export function JobPrefilter({ criteria, disabled = false, onChange, onPreview, 
     <p>Captured postings are retained. These filters only narrow current candidate work.</p>
     <p className="muted">Enter one value per line or separate values with commas. Blank lists do not restrict results.</p>
     {criteriaFields.map(([field, label]) => <label key={field}>{label}
-      <textarea aria-label={label} value={criteria[field].join('\n')} disabled={disabled || previewing}
+      <textarea aria-label={label} value={drafts[field]} disabled={disabled || previewing}
         onChange={event => update(field, event.target.value)} />
     </label>)}
     <button type="button" disabled={disabled || previewing} onClick={() => void preview()}>

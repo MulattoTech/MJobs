@@ -93,6 +93,15 @@ class CheapJobPrefilterBrowserTests(unittest.TestCase):
                 "employment_types": [],
                 "source_ids": [selected_source_id],
             })
+            save_search_profile(store, {
+                "id": "cheap-prefilter-second",
+                "profile_id": "fixture",
+                "name": "Network administrator",
+                "enabled": True,
+                "include_titles": ["Network Administrator"],
+                "required_keywords": ["Linux"],
+                "source_ids": [selected_source_id],
+            })
 
             with store.engine.connect() as connection:
                 original_postings = [dict(row) for row in connection.execute(
@@ -147,6 +156,32 @@ class CheapJobPrefilterBrowserTests(unittest.TestCase):
                         "Captured postings are retained. These filters only narrow current candidate work.",
                         exact=True)).to_be_visible()
 
+                    entered = {
+                        "Included job titles": ["Systems Administrator", "Network Administrator"],
+                        "Excluded job titles": ["Network Administrator", "Trainee"],
+                        "Required keywords": ["Linux", "server"],
+                        "Excluded keywords": ["commission", "unpaid"],
+                        "Exact phrases": ["server administration", "Required"],
+                    }
+                    for label, terms in entered.items():
+                        field = page.get_by_label(label, exact=True)
+                        field.fill(terms[0])
+                        field.press("End")
+                        field.press("Enter")
+                        expect(field).to_have_value(terms[0] + "\n")
+                        field.press_sequentially(terms[1])
+                        expect(field).to_have_value("\n".join(terms))
+                    comma_field = page.get_by_label("Excluded keywords", exact=True)
+                    comma_field.fill("commission")
+                    comma_field.press("End")
+                    comma_field.press_sequentially(", unpaid")
+                    expect(comma_field).to_have_value("commission, unpaid")
+                    with page.expect_response(lambda response: response.url == origin + "/search-profiles"
+                                              and response.request.method == "PUT") as saved:
+                        page.get_by_role("button", name="Save title and keyword filters", exact=True).click()
+                    self.assertEqual(saved.value.status, 200)
+                    expect(page.get_by_role("status").filter(has_text="Saved title and keyword filters")).to_be_visible()
+
                     with page.expect_response(
                             lambda response: response.url == (
                                 origin + "/profiles/fixture/search-profiles/"
@@ -156,11 +191,11 @@ class CheapJobPrefilterBrowserTests(unittest.TestCase):
                     self.assertEqual(preview_response.value.status, 200)
                     self.assertEqual(preview_response.value.request.post_data_json, {
                         "criteria": {
-                            "include_titles": ["Systems Administrator"],
-                            "exclude_titles": [],
-                            "required_keywords": ["Linux"],
-                            "excluded_keywords": [],
-                            "exact_phrases": [],
+                            "include_titles": entered["Included job titles"],
+                            "exclude_titles": entered["Excluded job titles"],
+                            "required_keywords": entered["Required keywords"],
+                            "excluded_keywords": entered["Excluded keywords"],
+                            "exact_phrases": entered["Exact phrases"],
                         },
                     })
                     preview = preview_response.value.json()
@@ -180,9 +215,18 @@ class CheapJobPrefilterBrowserTests(unittest.TestCase):
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_label("Saved search profile", exact=True).select_option(
                         "cheap-prefilter-search")
+                    for label, terms in entered.items():
+                        expect(page.get_by_label(label, exact=True)).to_have_value("\n".join(terms))
+
+                    search.select_option("cheap-prefilter-second")
                     expect(page.get_by_label("Included job titles", exact=True)).to_have_value(
-                        "Systems Administrator")
+                        "Network Administrator")
                     expect(page.get_by_label("Required keywords", exact=True)).to_have_value("Linux")
+                    for label in ("Excluded job titles", "Excluded keywords", "Exact phrases"):
+                        expect(page.get_by_label(label, exact=True)).to_have_value("")
+                    search.select_option("cheap-prefilter-search")
+                    for label, terms in entered.items():
+                        expect(page.get_by_label(label, exact=True)).to_have_value("\n".join(terms))
 
                     self.assertEqual(external, [])
                     browser.close()
