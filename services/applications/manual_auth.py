@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import math
 import re
 from urllib.parse import quote, urlsplit, urlunsplit
 
@@ -15,6 +16,20 @@ _SAFE_REQUISITION = re.compile(r"^[A-Za-z0-9_-]{1,128}$")
 MANUAL_AUTH_WINDOW_CLOSED = "MANUAL_AUTH_WINDOW_CLOSED"
 OPEN_UNAVAILABLE = "OPEN_UNAVAILABLE"
 STALE = "STALE"
+
+
+def _browser_wait_ms(check, maximum_ms):
+    """Never pass Playwright zero (unbounded) or exceed the owning budget."""
+    if check is not None:
+        check()
+    remaining_seconds = getattr(check, "remaining_seconds", None)
+    if not callable(remaining_seconds):
+        return maximum_ms
+    remaining = remaining_seconds()
+    if (type(remaining) not in (int, float) or not math.isfinite(remaining)
+            or remaining < .001):
+        raise TimeoutError("Manual auth budget expired or invalid")
+    return min(maximum_ms, int(remaining * 1000))
 
 
 def _manual_login_url(mock_origin: str, requisition: str, client: MockClient) -> str | None:
@@ -93,16 +108,32 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
     route, profile = resolved
 
     client = None
+    try:
+        client = MockClient(mock_origin, check=check)
+        if not client.allowed(route["url"]):
+            client.close()
+            return STALE
+        login_url = _manual_login_url(mock_origin, route["requisition"], client)
+        if login_url is None:
+            client.close()
+            return STALE
+    except Exception:
+        if client is not None:
+            try:
+                client.close()
+            except Exception:
+                pass
+        return OPEN_UNAVAILABLE
+    return run_browser(profile, login_url, client, check=check, on_process=on_process)
+
+
+def run_browser(profile: Path, login_url: str, client: MockClient,
+                *, check=None, on_process=None) -> str:
+    """Run the validated fixture window in the caller's containment boundary."""
     context = None
     launch_attempted = False
     close_confirmed = False
     try:
-        client = MockClient(mock_origin, check=check)
-        if not client.allowed(route["url"]):
-            return STALE
-        login_url = _manual_login_url(mock_origin, route["requisition"], client)
-        if login_url is None:
-            return STALE
         if check is not None:
             check()
 
@@ -111,9 +142,10 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
         from playwright.sync_api import Error as PlaywrightError, sync_playwright
 
         with sync_playwright() as playwright:
+            launch_timeout = _browser_wait_ms(check, 15000)
             launch_attempted = True
             context = playwright.chromium.launch_persistent_context(
-                str(profile), headless=False, args=["--disable-gpu", "--enable-automation"], timeout=15000)
+                str(profile), headless=False, args=["--disable-gpu", "--enable-automation"], timeout=launch_timeout)
             try:
                 if on_process is not None:
                     from services.applications.browser_process import capture_browser_identity
@@ -126,12 +158,11 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
                     if client.allowed(browser_route.request.url)
                     else browser_route.abort()))
                 page = context.pages[0] if context.pages else context.new_page()
-                page.goto(login_url, wait_until="domcontentloaded", timeout=15000)
+                page.goto(login_url, wait_until="domcontentloaded",
+                          timeout=_browser_wait_ms(check, 15000))
                 while not page.is_closed():
-                    if check is not None:
-                        check()
                     try:
-                        page.wait_for_timeout(250)
+                        page.wait_for_timeout(_browser_wait_ms(check, 250))
                     except PlaywrightError:
                         # The user can close the window while the wait is in
                         # flight. A transport failure with a live page remains

@@ -57,10 +57,20 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
             raise HTTPException(503, "Manual browser ownership could not be verified on this runtime") from None
         deadline = monotonic() + timeout()
 
-        def check():
-            if monotonic() >= deadline:
+        def remaining_seconds():
+            remaining = deadline - monotonic()
+            if remaining <= 0:
                 raise OperationTimedOut("Manual sign-in time budget expired")
             check_cancelled(store, operation_id)
+            remaining = deadline - monotonic()
+            if remaining <= 0:
+                raise OperationTimedOut("Manual sign-in time budget expired")
+            return remaining
+
+        def check():
+            remaining_seconds()
+
+        check.remaining_seconds = remaining_seconds
 
         def on_process(identity):
             check()
