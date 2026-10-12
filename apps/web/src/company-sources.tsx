@@ -31,7 +31,8 @@ export type CompanySourceView = {
   source_version?: string;
   monitoring_supported?: boolean;
   monitoring?: Monitoring | null;
-  collector?: {status: 'ACTIVE' | 'PAUSED' | 'REVIEW_REQUIRED' | 'NO_SCHEDULED_SEARCH'; poll_interval: number} | null;
+  collector?: {status: 'ACTIVE' | 'PAUSED' | 'REVIEW_REQUIRED' | 'NO_SCHEDULED_SEARCH'; poll_interval: number;
+    identity_basis?: 'USER_CONFIRMED_DOMAIN' | 'VERIFIED_DOMAIN'} | null;
   quality?: SourceQualityValue & {link_verification?: LinkVerification | null};
   provenance: {
     domain_method?: string | null;
@@ -250,6 +251,8 @@ export function CompanySources({rows, busy, profileSelected, onSet, onMonitor, o
         <CompanyContextPanel key={`${row.id}:company-context`} row={row} />
         {row.collector && <section aria-label={`Automatic collection for ${row.company_name}`}>
           <h4>Automatic collection</h4>
+          {row.collector.identity_basis === 'USER_CONFIRMED_DOMAIN' &&
+            <p>User-confirmed employer identity. Not independently verified.</p>}
           <p>{{ACTIVE:'Active', PAUSED:'Paused', REVIEW_REQUIRED:'Employer verification needs review',
             NO_SCHEDULED_SEARCH:'No enabled saved search schedules this source'}[row.collector.status]}</p>
           <p>Minimum collection interval: {row.collector.poll_interval} seconds. Saved searches control recurring discovery.</p>

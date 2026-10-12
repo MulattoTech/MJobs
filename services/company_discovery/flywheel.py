@@ -462,7 +462,8 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             from services.company_discovery.ats_enrollment import enroll_greenhouse
             return enroll_greenhouse(store, candidate, resolved, str(careers.url), careers.text,
                 profile_id=profile_id, profile_version=profile_version, check=check,
-                enrollment_guard=enrollment_guard, preserve_source_id=preserve_source_id)
+                enrollment_guard=enrollment_guard, preserve_source_id=preserve_source_id,
+                identity_confirmation=identity_confirmation)
         raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_ENUMERATION_UNSUPPORTED")
     check()
     payload = bounded_get(client, endpoint, str(careers.url)).json()

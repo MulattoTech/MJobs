@@ -94,7 +94,7 @@ export function CompanyDiscoveryRequests({rows, busy, loading=false, onReview, o
               requestId: row.id, revision: row.revision, sourceWebsite: row.selected_website || '',
               website, confirmed: event.target.checked,
             }}))} />I confirm this website belongs to {row.company_name}</label>
-            <p className="muted">This confirms the exact website above as a user-confirmed identity. It is not independent verification. No application will be submitted.</p>
+            <p className="muted">This confirms the exact website above as a user-confirmed identity. Discovery can enroll a supported public job board for recurring collection; pause it in Sources. It is not independent verification. No application will be submitted.</p>
           </div>
           <div className="company-source-controls"><button type="submit" disabled={busy}>Review website and discover</button>
             {canDismiss && <button type="button" className="quiet" disabled={busy} onClick={() => void onDismiss(row)}>Dismiss request</button>}</div></div></form>}
