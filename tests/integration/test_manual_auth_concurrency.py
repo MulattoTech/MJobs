@@ -14,9 +14,54 @@ from services.operations.progress import record_operation_progress
 from tests.integration.test_manual_auth_session import ManualAuthSessionApiTests
 from workers.dispatch import enqueue_operation
 from workers.operations import OperationCancelled, admit_inline, claim, finish_inline, recover_expired, request_cancel
+from workers.operations import record_manual_auth_process
 
 
 class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
+    def test_process_identity_is_durable_immutable_private_and_owner_fenced(self):
+        identifier = self.admit_owned_window()
+        identity = {"pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}
+        self.assertFalse(record_manual_auth_process(self.store, identifier, identity, owner_token="b" * 64))
+        self.assertTrue(record_manual_auth_process(self.store, identifier, identity, owner_token="a" * 64))
+        self.assertTrue(record_manual_auth_process(self.store, identifier, identity, owner_token="a" * 64))
+        self.assertFalse(record_manual_auth_process(self.store, identifier, {**identity, "pid": 456},
+                                                   owner_token="a" * 64))
+        peer = Store(f"sqlite:///{self.database.as_posix()}")
+        try:
+            with peer.engine.connect() as connection:
+                row = connection.execute(select(m.operations).where(m.operations.c.id == identifier)).mappings().one()
+                audits = connection.execute(select(m.audit).where(m.audit.c.entity_id == identifier,
+                    m.audit.c.action == "MANUAL_AUTH_PROCESS_IDENTIFIED")).mappings().all()
+            self.assertEqual(row["recovery_metadata"]["manual_auth_owner"]["process"], identity)
+            self.assertEqual(len(audits), 1)
+            self.assertNotIn("host", self.client.get(f"/operations/{identifier}").text)
+            for state in ("LIVE", "UNKNOWN"):
+                with patch("services.applications.browser_process.process_status", return_value=state):
+                    self.assertFalse(finish_inline(peer, identifier, "COMPLETED", browser_closed=True,
+                                                  owner_token="a" * 64))
+                with peer.engine.connect() as connection:
+                    held = connection.execute(select(m.operations).where(
+                        m.operations.c.id == identifier)).mappings().one()
+                self.assertEqual((held["state"], held["error"]), ("BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"))
+                self.assertEqual(held["recovery_metadata"]["manual_auth_owner"]["process"], identity)
+            damaged = dict(held["recovery_metadata"])
+            damaged_owner = dict(damaged["manual_auth_owner"])
+            damaged_owner.pop("process")
+            damaged["manual_auth_owner"] = damaged_owner
+            with peer.engine.begin() as connection:
+                connection.execute(update(m.operations).where(m.operations.c.id == identifier).values(
+                    recovery_metadata=damaged))
+            self.assertFalse(finish_inline(peer, identifier, "COMPLETED", browser_closed=True,
+                                          owner_token="a" * 64))
+            with peer.engine.begin() as connection:
+                connection.execute(update(m.operations).where(m.operations.c.id == identifier).values(
+                    recovery_metadata=held["recovery_metadata"]))
+            with patch("services.applications.browser_process.process_status", return_value="EXITED"):
+                self.assertTrue(finish_inline(peer, identifier, "COMPLETED", browser_closed=True,
+                                             owner_token="a" * 64))
+        finally:
+            peer.engine.dispose()
+
     def admit_owned_window(self, token="a" * 64):
         with self.store.engine.connect() as connection:
             attempt_id = connection.execute(select(m.attempts.c.id).where(
@@ -265,7 +310,10 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
         self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
 
     def test_browser_and_transport_cleanup_failure_cannot_release_capacity(self):
-        with patch("services.applications.manual_auth.MockClient") as client, \
+        with patch("services.applications.browser_process.capture_browser_identity", return_value={
+                "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
+                patch("services.applications.browser_process.process_status", return_value="EXITED"), \
+                patch("services.applications.manual_auth.MockClient") as client, \
                 patch("playwright.sync_api.sync_playwright") as playwright:
             client.return_value.allowed.return_value = True
             client.return_value.close.side_effect = RuntimeError("synthetic transport cleanup failure")
@@ -284,7 +332,10 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
     def test_live_page_wait_error_is_unavailable_after_cleanup_not_successful_close(self):
         from playwright.sync_api import Error
         events = []
-        with patch("services.applications.manual_auth.MockClient") as client, \
+        with patch("services.applications.browser_process.capture_browser_identity", return_value={
+                "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
+                patch("services.applications.browser_process.process_status", return_value="EXITED"), \
+                patch("services.applications.manual_auth.MockClient") as client, \
                 patch("playwright.sync_api.sync_playwright") as playwright:
             client.return_value.allowed.return_value = True
             manager = playwright.return_value
@@ -309,7 +360,10 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
     def test_closed_page_with_failed_cleanup_stays_blocked_before_driver_exit(self):
         from playwright.sync_api import Error
         events = []
-        with patch("services.applications.manual_auth.MockClient") as client, \
+        with patch("services.applications.browser_process.capture_browser_identity", return_value={
+                "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
+                patch("services.applications.browser_process.process_status", return_value="EXITED"), \
+                patch("services.applications.manual_auth.MockClient") as client, \
                 patch("playwright.sync_api.sync_playwright") as playwright:
             client.return_value.allowed.return_value = True
             manager = playwright.return_value
@@ -346,7 +400,10 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
                     m.operations.c.state == "RUNNING")).scalar_one()
             request_cancel(self.store, identifier)
 
-        with patch("services.applications.manual_auth.MockClient") as client, \
+        with patch("services.applications.browser_process.capture_browser_identity", return_value={
+                "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
+                patch("services.applications.browser_process.process_status", return_value="EXITED"), \
+                patch("services.applications.manual_auth.MockClient") as client, \
                 patch("playwright.sync_api.sync_playwright") as playwright:
             client.return_value.allowed.return_value = True
             manager = playwright.return_value
@@ -369,7 +426,10 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
         self.assertEqual(self.store.count("application_attempts"), 1)
 
     def test_launch_failure_without_context_retains_capacity_and_blocks_retry(self):
-        with patch("services.applications.manual_auth.MockClient") as client, \
+        with patch("services.applications.browser_process.capture_browser_identity", return_value={
+                "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
+                patch("services.applications.browser_process.process_status", return_value="EXITED"), \
+                patch("services.applications.manual_auth.MockClient") as client, \
                 patch("playwright.sync_api.sync_playwright") as playwright:
             client.return_value.allowed.return_value = True
             launch = playwright.return_value.__enter__.return_value.chromium.launch_persistent_context
@@ -386,7 +446,10 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
         self.assertEqual(self.store.count("application_attempts"), 1)
 
     def test_failure_before_launch_releases_capacity_for_explicit_retry(self):
-        with patch("services.applications.manual_auth.MockClient") as client, \
+        with patch("services.applications.browser_process.capture_browser_identity", return_value={
+                "pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}), \
+                patch("services.applications.browser_process.process_status", return_value="EXITED"), \
+                patch("services.applications.manual_auth.MockClient") as client, \
                 patch("playwright.sync_api.sync_playwright") as playwright:
             client.return_value.allowed.return_value = True
             playwright.return_value.__enter__.side_effect = RuntimeError("synthetic unavailable runtime")

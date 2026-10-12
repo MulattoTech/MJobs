@@ -79,7 +79,7 @@ def _resolve_auth_attempt(store, application_id: str, attempt_id: str,
 
 def open_manual_auth_window(store, application_id: str, attempt_id: str,
                             mock_origin: str, output_dir: str | Path,
-                            check=None) -> str:
+                            check=None, on_process=None) -> str:
     """Open the attempt's existing mock profile and wait for the user to close it.
 
     This function never queues or reruns an application. It does not inspect,
@@ -113,8 +113,14 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
         with sync_playwright() as playwright:
             launch_attempted = True
             context = playwright.chromium.launch_persistent_context(
-                str(profile), headless=False, args=["--disable-gpu"], timeout=15000)
+                str(profile), headless=False, args=["--disable-gpu", "--enable-automation"], timeout=15000)
             try:
+                if on_process is not None:
+                    from services.applications.browser_process import capture_browser_identity
+
+                    # Persist before navigation or any wait for user input. A
+                    # crash before this observation remains unknown and held.
+                    on_process(capture_browser_identity(context, profile))
                 context.route("**/*", lambda browser_route: (
                     browser_route.continue_()
                     if client.allowed(browser_route.request.url)
