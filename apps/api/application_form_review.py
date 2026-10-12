@@ -4,6 +4,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from contextlib import nullcontext
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
@@ -24,8 +25,9 @@ class FormReviewRequest(BaseModel):
     request_id: str = Field(min_length=1, max_length=128, pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]*$")
 
 
-def _application_route(store, profile_id: str, application_id: str):
-    with store.engine.connect() as connection:
+def _application_route(store, profile_id: str, application_id: str, *, connection=None):
+    context = store.engine.connect() if connection is None else nullcontext(connection)
+    with context as connection:
         row = connection.execute(select(
             m.applications.c.id.label("application_id"),
             m.applications.c.profile_id,
@@ -48,15 +50,17 @@ def _application_route(store, profile_id: str, application_id: str):
     return dict(row), normalized
 
 
-def _frozen_review_input(store, profile_id: str, application_id: str, row, route):
-    profile = store.profile(profile_id)
+def _frozen_review_input(store, profile_id: str, application_id: str, row, route,
+                         *, profile_version=None):
+    if profile_version is None:
+        profile_version = store.profile(profile_id)["version"]
     return {
         "profile_id": profile_id,
         "application_id": application_id,
         "route_id": row["route_id"],
         "route_url": route["url"],
         "provider": route["provider"],
-        "profile_version": str(profile["version"]),
+        "profile_version": str(profile_version),
     }
 
 
@@ -83,9 +87,13 @@ def create_application_form_review_router(store) -> APIRouter:
         if request_id is not None:
             filters.append(m.operations.c.params["request_id"].as_string() == request_id)
         with store.engine.connect() as connection:
-            row = connection.execute(select(m.operations).where(
+            rows = list(connection.execute(select(m.operations).where(
                 *filters,
-            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc()).limit(1)).mappings().one_or_none()
+            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc())
+                .limit(2 if request_id is not None else 1)).mappings())
+            if request_id is not None and len(rows) > 1:
+                raise HTTPException(409, {"code": "FORM_REVIEW_IDEMPOTENCY_CONFLICT"})
+            row = rows[0] if rows else None
             if row is None:
                 return {
                     "request_id": None,
@@ -122,16 +130,43 @@ def create_application_form_review_router(store) -> APIRouter:
         status_code=202,
     )
     def queue_form_review(profile_id: str, application_id: str, value: FormReviewRequest):
-        row, route = _application_route(store, profile_id, application_id)
-        frozen = _frozen_review_input(store, profile_id, application_id, row, route)
-        input_fingerprint = _input_fingerprint(frozen)
-        params = {**frozen, "request_id": value.request_id,
-                  "input_fingerprint": input_fingerprint}
-        operation_id = enqueue_operation(store, _KIND, application_id, params)
-        with store.engine.connect() as connection:
-            state = connection.execute(select(m.operations.c.state).where(
-                m.operations.c.id == operation_id,
-            )).scalar_one()
+        with store.engine.begin() as connection:
+            if connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+            # Match rehearsal review's application -> profile -> route lock order.
+            # Capture identity and reserve the request in this same transaction.
+            application = connection.execute(select(m.applications.c.route_id).where(
+                m.applications.c.id == application_id,
+                m.applications.c.profile_id == profile_id,
+            ).with_for_update()).first()
+            if application is None:
+                raise HTTPException(404, "Application not found for this profile")
+            version = connection.execute(select(m.profiles.c.version).where(
+                m.profiles.c.id == profile_id,
+            ).with_for_update()).scalar_one()
+            connection.execute(select(m.routes.c.id).where(
+                m.routes.c.id == application.route_id,
+            ).with_for_update()).first()
+            row, route = _application_route(store, profile_id, application_id,
+                                            connection=connection)
+            frozen = _frozen_review_input(store, profile_id, application_id, row, route,
+                                         profile_version=version)
+            params = {**frozen, "request_id": value.request_id,
+                      "input_fingerprint": _input_fingerprint(frozen)}
+            existing = list(connection.execute(select(m.operations).where(
+                m.operations.c.kind == _KIND,
+                m.operations.c.entity_id == application_id,
+                m.operations.c.params["profile_id"].as_string() == profile_id,
+                m.operations.c.params["request_id"].as_string() == value.request_id,
+            )).mappings())
+            if existing:
+                if len(existing) != 1 or existing[0]["params"] != params:
+                    raise HTTPException(409, {"code": "FORM_REVIEW_IDEMPOTENCY_CONFLICT"})
+                operation_id, state = existing[0]["id"], existing[0]["state"]
+            else:
+                operation_id = enqueue_operation(store, _KIND, application_id, params,
+                                                 connection=connection)
+                state = "QUEUED"
         return {"request_id": value.request_id, "operation_id": operation_id, "state": state}
 
     @router.get(
