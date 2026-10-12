@@ -1,5 +1,6 @@
 """API routes for explicit user-started MOCK authentication windows."""
 from pathlib import Path
+from secrets import token_hex
 from time import monotonic
 
 from fastapi import APIRouter, HTTPException
@@ -45,8 +46,11 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
         if attempt is None or attempt["state"] != "AUTH_REQUIRED":
             raise HTTPException(409, "No current authentication-required attempt is available")
 
+        owner_token = token_hex(32)
         try:
-            operation_id = admit_inline(store, "MANUAL_AUTH", application_id)
+            operation_id = admit_inline(
+                store, "MANUAL_AUTH", application_id, owner_token=owner_token,
+                manual_auth_identity={"profile_id": profile_id, "attempt_id": attempt["id"]})
         except OperationConcurrencyLimit:
             raise HTTPException(409, "Application browser is busy; close the active window and retry") from None
         deadline = monotonic() + timeout()
@@ -83,7 +87,10 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
             error = "TIMEOUT"
             raise HTTPException(409, "Manual sign-in timed out; retry explicitly") from None
         finally:
-            finish_inline(store, operation_id, terminal, error, browser_closed=browser_closed)
+            released = finish_inline(store, operation_id, terminal, error,
+                                     browser_closed=browser_closed, owner_token=owner_token)
+            if browser_closed and not released:
+                raise HTTPException(503, "Manual browser ownership changed; recovery is required")
         if status == "OPEN_UNAVAILABLE":
             raise HTTPException(503, "Manual sign-in window is unavailable on this runtime")
         if status == "STALE":

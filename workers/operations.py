@@ -1,5 +1,7 @@
 """Bounded claims and safe recovery; application state owns submission truth."""
 from datetime import datetime, timedelta, timezone
+from hashlib import sha256
+from hmac import compare_digest
 import os
 from uuid import uuid4
 
@@ -168,10 +170,21 @@ def claim(store, operation_id):
         return {**dict(row), **values}
 
 
-def admit_inline(store, kind, entity_id):
+def admit_inline(store, kind, entity_id, *, owner_token=None, manual_auth_identity=None):
     """Reserve a bounded operation that executes in the API process, not RQ."""
     if kind not in INLINE_KINDS or kind in QUEUES:
         raise ValueError("Unsupported inline operation kind")
+    recovery_metadata = {}
+    if owner_token is not None or manual_auth_identity is not None:
+        if (kind != "MANUAL_AUTH" or not isinstance(owner_token, str)
+                or len(owner_token) != 64 or not isinstance(manual_auth_identity, dict)
+                or set(manual_auth_identity) != {"profile_id", "attempt_id"}
+                or any(not isinstance(value, str) or not value.strip()
+                       for value in manual_auth_identity.values())):
+            raise ValueError("Invalid manual browser ownership")
+        recovery_metadata["manual_auth_owner"] = {
+            **manual_auth_identity, "token_sha256": sha256(owner_token.encode()).hexdigest(),
+        }
     category = OPERATION_CATEGORIES[kind]
     timestamp = now()
     operation_id = uuid4().hex
@@ -189,7 +202,7 @@ def admit_inline(store, kind, entity_id):
             id=operation_id, kind=kind, entity_id=entity_id, params={},
             state="RUNNING", error=None, updated_at=timestamp, attempt_count=1,
             current_step="PREPARING", progress=1, started_at=timestamp,
-            completed_at=None, retry_count=0, recovery_metadata={},
+            completed_at=None, retry_count=0, recovery_metadata=recovery_metadata,
             cancel_requested=False,
             lease_expires_at=(datetime.now(timezone.utc)
                               + timedelta(seconds=timeout() + 30)).isoformat(),
@@ -197,14 +210,17 @@ def admit_inline(store, kind, entity_id):
     return operation_id
 
 
-def finish_inline(store, operation_id, state, error=None, *, browser_closed=False):
+def finish_inline(store, operation_id, state, error=None, *, browser_closed=False, owner_token=None):
     if state not in ("COMPLETED", "CANCELLED", "FAILED", "BLOCKED"):
         raise ValueError("Invalid inline operation terminal state")
+    if state == "BLOCKED" and browser_closed:
+        raise ValueError("Confirmed browser closure cannot retain blocked capacity")
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         row = connection.execute(select(
             m.operations.c.state, m.operations.c.cancel_requested, m.operations.c.kind, m.operations.c.error,
+            m.operations.c.recovery_metadata,
         ).where(m.operations.c.id == operation_id,
                 m.operations.c.kind.in_(INLINE_KINDS)).with_for_update()).one_or_none()
         if row is None or (row.state != "RUNNING" and not (
@@ -213,6 +229,19 @@ def finish_inline(store, operation_id, state, error=None, *, browser_closed=Fals
             return False
         if state == "BLOCKED" and (row.kind != "MANUAL_AUTH" or error != "BROWSER_RELEASE_UNCONFIRMED"):
             raise ValueError("Only uncertain manual browser release can retain inline capacity")
+        if row.kind == "MANUAL_AUTH" and browser_closed:
+            # A closure flag is meaningful only from the admitted call. Unknown
+            # legacy owners remain held; this is not crashed-browser exit proof.
+            metadata = row.recovery_metadata if isinstance(row.recovery_metadata, dict) else {}
+            owner = metadata.get("manual_auth_owner")
+            digest = owner.get("token_sha256") if isinstance(owner, dict) else None
+            if (not isinstance(owner_token, str) or len(owner_token) != 64
+                    or not isinstance(digest, str) or len(digest) != 64
+                    or any(character not in "0123456789abcdef" for character in digest)
+                    or any(not isinstance(owner.get(key), str) or not owner[key].strip()
+                           for key in ("profile_id", "attempt_id"))
+                    or not compare_digest(sha256(owner_token.encode()).hexdigest(), digest)):
+                return False
         if row.kind == "MANUAL_AUTH" and not browser_closed:
             state, error = "BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"
         if row.cancel_requested and state == "COMPLETED":
@@ -227,6 +256,10 @@ def finish_inline(store, operation_id, state, error=None, *, browser_closed=Fals
         ).values(state=state, error=error, updated_at=finished_at,
                  current_step="COMPLETED" if completed else "FINALIZING",
                  completed_at=finished_at, lease_expires_at=None, **progress_values))
+        if row.kind == "MANUAL_AUTH" and browser_closed:
+            store._audit(connection, operation_id, "MANUAL_AUTH_OWNER_RELEASED",
+                         {"profile_id": owner["profile_id"], "attempt_id": owner["attempt_id"],
+                          "state": state})
         return True
 
 

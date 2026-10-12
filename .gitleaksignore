@@ -147,3 +147,7 @@ bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline
 6378634743d74b08d7cd37958d9e03520d5745f6:docs/evidence/2026-10-12-manual-auth-admission.json:generic-api-key:10
 6378634743d74b08d7cd37958d9e03520d5745f6:docs/evidence/2026-10-12-manual-auth-admission.json:generic-api-key:12
 6378634743d74b08d7cd37958d9e03520d5745f6:docs/evidence/2026-10-12-manual-auth-admission.json:generic-api-key:13
+
+# Verified source SHA-256 evidence, not credentials (manual-auth owner-fence slice).
+c1bc0d09bca3f8de92816ae221a590111aa7225b:docs/evidence/2026-10-12-manual-auth-owner-fence.json:generic-api-key:10
+c1bc0d09bca3f8de92816ae221a590111aa7225b:docs/evidence/2026-10-12-manual-auth-owner-fence.json:generic-api-key:14

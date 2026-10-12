@@ -2448,6 +2448,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/operations")
     def operations(profile_id: str | None = None):
+        from services.operations.progress import operation_public_record
         with store.engine.connect() as connection:
             statement = select(m.operations)
             if profile_id:
@@ -2456,10 +2457,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 statement = statement.where((m.operations.c.entity_id == profile_id)
                     | m.operations.c.entity_id.in_(app_ids)
                     | m.operations.c.entity_id.in_(resume_ids))
-            return {"operations": [dict(row) for row in connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings()]}
+            return {"operations": [operation_public_record(row) for row in connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings()]}
 
     @app.get("/operations/dead-letter-queue")
     def dead_letter_queue(profile_id: str | None = None):
+        from services.operations.progress import operation_public_record
         statement = select(m.operations).where(m.operations.c.state == "DEAD_LETTERED")
         if profile_id:
             app_ids = select(m.applications.c.id).where(m.applications.c.profile_id == profile_id)
@@ -2473,7 +2475,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             count = int(rows[0]["queue_count"]) if rows else 0
             operations = []
             for row in rows:
-                item = dict(row)
+                item = operation_public_record(row)
                 item.pop("queue_count", None)
                 if item["kind"] == "APPLY_MOCK":
                     from services.applications.run_requests import application_retry_blocker
@@ -2490,8 +2492,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.get("/operations/{operation_id}")
     def operation(operation_id: str):
+        from services.operations.progress import operation_public_record
         with store.engine.connect() as connection:
-            return dict(connection.execute(select(m.operations).where(m.operations.c.id == operation_id)).mappings().one())
+            return operation_public_record(connection.execute(select(m.operations).where(m.operations.c.id == operation_id)).mappings().one())
 
     @app.post("/operations/{operation_id}/retry", status_code=202)
     def retry_operation(operation_id: str):

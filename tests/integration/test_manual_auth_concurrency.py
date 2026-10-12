@@ -10,12 +10,141 @@ from sqlalchemy import select, update
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.operations.progress import record_operation_progress
 from tests.integration.test_manual_auth_session import ManualAuthSessionApiTests
 from workers.dispatch import enqueue_operation
 from workers.operations import OperationCancelled, admit_inline, claim, finish_inline, recover_expired, request_cancel
 
 
 class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
+    def admit_owned_window(self, token="a" * 64):
+        with self.store.engine.connect() as connection:
+            attempt_id = connection.execute(select(m.attempts.c.id).where(
+                m.attempts.c.application_id == self.application_id)).scalar_one()
+        return admit_inline(self.store, "MANUAL_AUTH", self.application_id, owner_token=token,
+                            manual_auth_identity={
+                                "profile_id": self.store.application(self.application_id)["profile_id"],
+                                "attempt_id": attempt_id})
+
+    def test_owner_token_fences_reopened_store_expired_release_and_duplicate(self):
+        token = "b" * 64
+        identifier = self.admit_owned_window(token)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == identifier).values(
+                lease_expires_at="2000-01-01T00:00:00+00:00"))
+        recover_expired(self.store)
+        peer = Store(f"sqlite:///{self.database.as_posix()}")
+        try:
+            self.assertFalse(finish_inline(peer, identifier, "COMPLETED", browser_closed=True,
+                                          owner_token="c" * 64))
+            with peer.engine.connect() as connection:
+                row = connection.execute(select(m.operations).where(m.operations.c.id == identifier)).mappings().one()
+            self.assertEqual(row["state"], "BLOCKED")
+            self.assertNotIn(token, str(row["recovery_metadata"]))
+            self.assertTrue(finish_inline(peer, identifier, "COMPLETED", browser_closed=True,
+                                         owner_token=token))
+            self.assertFalse(finish_inline(peer, identifier, "COMPLETED", browser_closed=True,
+                                          owner_token=token))
+            successor = self.admit_owned_window("d" * 64)
+            self.assertFalse(finish_inline(peer, successor, "COMPLETED", browser_closed=True,
+                                          owner_token=token))
+            with peer.engine.connect() as connection:
+                events = connection.execute(select(m.audit).where(
+                    m.audit.c.entity_id == identifier,
+                    m.audit.c.action == "MANUAL_AUTH_OWNER_RELEASED")).mappings().all()
+            self.assertEqual(len(events), 1)
+            self.assertNotIn(token, str(events))
+        finally:
+            peer.engine.dispose()
+
+    def test_owned_window_progress_and_public_reads_hide_internal_ownership(self):
+        identifier = self.admit_owned_window()
+        profile_id = self.store.application(self.application_id)["profile_id"]
+        for url in (f"/profiles/{profile_id}/operations/progress", "/operations",
+                    f"/operations?profile_id={profile_id}", f"/operations/{identifier}"):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertNotIn("manual_auth_owner", response.text)
+                self.assertNotIn("token_sha256", response.text)
+
+    def test_confirmed_closure_cannot_record_a_blocked_release(self):
+        identifier = self.admit_owned_window()
+        with self.assertRaises(ValueError):
+            finish_inline(self.store, identifier, "BLOCKED", "BROWSER_RELEASE_UNCONFIRMED",
+                          browser_closed=True, owner_token="a" * 64)
+
+    def test_api_reports_failed_owner_release_without_claiming_success(self):
+        with patch("apps.api.manual_auth.open_mock_authentication", return_value="MANUAL_AUTH_WINDOW_CLOSED"), \
+                patch("apps.api.manual_auth.finish_inline", return_value=False):
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertIn("recovery", response.json()["detail"])
+
+    def test_progress_update_preserves_private_owner_fence(self):
+        identifier = self.admit_owned_window()
+        record_operation_progress(self.store, identifier, current_step="PREPARING", progress=2,
+                                  recovery_metadata={"action": "MANUAL_REVIEW"})
+        self.assertTrue(finish_inline(self.store, identifier, "COMPLETED", browser_closed=True,
+                                     owner_token="a" * 64))
+
+    def test_progress_cannot_bypass_manual_auth_owner_release(self):
+        identifier = self.admit_owned_window()
+        with self.assertRaisesRegex(ValueError, "MANUAL_AUTH_REQUIRES_OWNER_RELEASE"):
+            record_operation_progress(self.store, identifier, current_step="COMPLETED", progress=100,
+                                      state="COMPLETED")
+
+    def test_corrupt_owner_metadata_fails_closed_without_mutation(self):
+        identifier = self.admit_owned_window()
+        for metadata in ({}, {"manual_auth_owner": {"token_sha256": "a" * 64}},
+                         {"manual_auth_owner": {"token_sha256": "\u2603" * 64,
+                                                "profile_id": "fixture", "attempt_id": "attempt"}}):
+            with self.subTest(metadata=metadata):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(m.operations.c.id == identifier).values(
+                        recovery_metadata=metadata))
+                self.assertFalse(finish_inline(self.store, identifier, "COMPLETED", browser_closed=True,
+                                              owner_token="a" * 64))
+                with self.store.engine.connect() as connection:
+                    row = connection.execute(select(m.operations).where(m.operations.c.id == identifier)).mappings().one()
+                self.assertEqual(row["state"], "RUNNING")
+
+    def test_bare_closure_flag_cannot_release_another_api_calls_browser(self):
+        def window(**kwargs):
+            with self.store.engine.connect() as connection:
+                row = connection.execute(select(m.operations).where(
+                    m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+            peer = Store(f"sqlite:///{self.database.as_posix()}")
+            try:
+                self.assertFalse(finish_inline(peer, row["id"], "COMPLETED", browser_closed=True))
+                with peer.engine.connect() as connection:
+                    current = connection.execute(select(m.operations).where(
+                        m.operations.c.id == row["id"])).mappings().one()
+                self.assertEqual(current["state"], "RUNNING")
+                identity = current["recovery_metadata"]["manual_auth_owner"]
+                self.assertEqual(identity["profile_id"], self.store.application(self.application_id)["profile_id"])
+                self.assertEqual(identity["attempt_id"], kwargs["attempt_id"])
+            finally:
+                peer.engine.dispose()
+            return "MANUAL_AUTH_WINDOW_CLOSED"
+        with patch("apps.api.manual_auth.open_mock_authentication", side_effect=window):
+            self.assertEqual(self.client.post(self.url).status_code, 200)
+        with self.store.engine.connect() as connection:
+            row = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+        self.assertEqual(row["state"], "COMPLETED")
+
+    def test_legacy_unknown_owner_cannot_release_blocked_capacity(self):
+        identifier = admit_inline(self.store, "MANUAL_AUTH", self.application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == identifier).values(
+                lease_expires_at="2000-01-01T00:00:00+00:00"))
+        recover_expired(self.store)
+        self.assertFalse(finish_inline(self.store, identifier, "COMPLETED", browser_closed=True))
+        with patch("apps.api.manual_auth.open_mock_authentication") as launch:
+            self.assertEqual(self.client.post(self.url).status_code, 409)
+            launch.assert_not_called()
+
     def test_two_api_instances_reject_duplicate_before_launch_and_allow_explicit_retry(self):
         peer = Store(f"sqlite:///{self.database.as_posix()}")
         client = TestClient(create_app(peer, self.origin, self.root, operation_mode="FIXTURE"))
@@ -60,10 +189,11 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             launch.assert_not_called()
             with self.store.engine.begin() as connection:
                 connection.execute(update(m.operations).where(m.operations.c.id == worker).values(state="COMPLETED"))
-            manual = admit_inline(self.store, "MANUAL_AUTH", self.application_id)
+            manual = self.admit_owned_window()
             other = enqueue_operation(self.store, "APPLICATION_FORM_REVIEW", "different-application", {})
             self.assertIsNone(claim(self.store, other))
-            self.assertTrue(finish_inline(self.store, manual, "COMPLETED", browser_closed=True))
+            self.assertTrue(finish_inline(self.store, manual, "COMPLETED", browser_closed=True,
+                                         owner_token="a" * 64))
             self.assertIsNotNone(claim(self.store, other))
 
     def test_window_failure_releases_slot_and_crash_recovery_retains_uncertain_capacity(self):
@@ -72,7 +202,7 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
         with self.store.engine.connect() as connection:
             operation = connection.execute(select(m.operations).where(m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
         self.assertEqual(operation["state"], "FAILED")
-        manual = admit_inline(self.store, "MANUAL_AUTH", self.application_id)
+        manual = self.admit_owned_window()
         with self.store.engine.begin() as connection:
             connection.execute(update(m.operations).where(m.operations.c.id == manual).values(lease_expires_at="2000-01-01T00:00:00+00:00"))
         recover_expired(self.store)
@@ -84,7 +214,8 @@ class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
             self.assertEqual(self.client.post(self.url).status_code, 409)
             launch.assert_not_called()
         # Only the original owning call, after confirmed closure, can release.
-        self.assertTrue(finish_inline(self.store, manual, "CANCELLED", "CANCEL_REQUESTED", browser_closed=True))
+        self.assertTrue(finish_inline(self.store, manual, "CANCELLED", "CANCEL_REQUESTED", browser_closed=True,
+                                     owner_token="a" * 64))
         with patch("apps.api.manual_auth.open_mock_authentication", return_value="MANUAL_AUTH_WINDOW_CLOSED"):
             self.assertEqual(self.client.post(self.url).status_code, 200)
         self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
