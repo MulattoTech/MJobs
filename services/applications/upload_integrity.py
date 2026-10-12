@@ -91,6 +91,9 @@ def verify_file_selection(locator, snapshots, *, check=lambda: None):
     """Read selected bytes back in Chromium and compare exact count/name/hash."""
     _bounded(snapshots)
     check()
+    remaining = getattr(check, "remaining_seconds", None)
+    readback_ms = max(1, min(5000, int(remaining() * 1000))) if callable(remaining) else 5000
+    evaluate_options = {"timeout": readback_ms} if callable(remaining) else {}
     actual = locator.evaluate("""async input => {
       if (input.tagName !== 'INPUT' || input.type !== 'file') return null;
       const files = Array.from(input.files || []);
@@ -112,7 +115,7 @@ def verify_file_selection(locator, snapshots, *, check=lambda: None):
           new Promise(resolve => {timer = setTimeout(() => resolve(null), 5000);})
         ]);
       } finally {clearTimeout(timer);}
-    }""")
+    }""".replace("5000", str(readback_ms)), **evaluate_options)
     check()
     # Container HTTP names are not secure browser contexts, so Web Crypto is
     # unavailable there. Hash the bounded File readback locally instead. Raw
@@ -144,8 +147,10 @@ def verify_file_selection(locator, snapshots, *, check=lambda: None):
 def attach_verified_files(locator, snapshots, *, check=lambda: None):
     _bounded(snapshots)
     check()
+    remaining = getattr(check, "remaining_seconds", None)
+    kwargs = {"timeout": max(1, min(5000, int(remaining() * 1000)))} if callable(remaining) else {}
     locator.set_input_files([{"name": item.filename, "mimeType": item.media_type,
-                              "buffer": item.content} for item in snapshots])
+                              "buffer": item.content} for item in snapshots], **kwargs)
     return verify_file_selection(locator, snapshots, check=check)
 
 

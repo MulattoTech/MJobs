@@ -674,6 +674,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_application_confirmation_recovery_router(store, mock_origin, operation_mode))
     from apps.api.application_form_review import create_application_form_review_router
     app.include_router(create_application_form_review_router(store))
+    from apps.api.controlled_application_dry_run import create_controlled_application_dry_run_router
+    app.include_router(create_controlled_application_dry_run_router(store))
     from apps.api.dynamic_application_fields import create_dynamic_application_fields_router
     app.include_router(create_dynamic_application_fields_router(store))
     from apps.api.document_archive import create_document_archive_router

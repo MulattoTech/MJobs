@@ -1,0 +1,85 @@
+{
+  "recorded_utc": "2026-10-12T11:34:33.863129+00:00",
+  "requirement": "#156 / MJ-REQ-155",
+  "parent_acceptance": "PARTIAL",
+  "base_revision": "6213c1c6c33a34318f240ec3121ad7722d6e47ea",
+  "source_sha256": {
+    "apps/api/controlled_application_dry_run.py": "00888b3cdbccb296e3fe31aa9a968ae6aad439c18fe24bcb198afd48c6781293",
+    "apps/api/main.py": "c04b9b1458382f111524284e01cb89275e997406b2d8e4909ddf209d556a2c97",
+    "apps/web/src/controlled-application-dry-run.tsx": "11849c2dfd1b1a9d5450b569823891c4b2dd071e08857033507c39a403948aa6",
+    "apps/web/src/main.tsx": "1bb945e36b181f525f1b99f472a87d8dd6e03a3bccd51d564be15d5999b58044",
+    "services/applications/controlled_dry_run.py": "ff9ee95d5cbc5d3444d09ba1011f40dc8060ccbc2a5e185b2fa4646d1319e199",
+    "services/applications/rehearsal.py": "ca59f9a906a8339e2db3bf633dd07e2bda18f49006873934a51556c7553d9bce",
+    "services/applications/rehearsal_store.py": "2512c07e5f167ebfd4c683b3ed066b96b594365267d5a4626ab16239f8148b0c",
+    "services/applications/supporting_documents.py": "04789ae7961ec9e37cc84b7ca37bb3b9aaee6804481463498aa2fc4a387a39e1",
+    "services/applications/upload_integrity.py": "7335757d39d0aff03a69efdbb761e05ede2cf19c5f4e48a5d42d20ee76188e06",
+    "tests/browser/test_controlled_application_dry_run.py": "3cf6a22634055b39f205ac98ae91a27480b1487658d4ba457c6399d777827bd4",
+    "tests/integration/test_application_form_review_flow.py": "c8b93e170b70329fbc3cd78ff6e1ec06f985ec2e83b22fbcb7f3ae3e5f763f98",
+    "tests/integration/test_controlled_application_dry_run.py": "bda00474f120e7f1186dccd5b15022170c8264223140c7423f9ca94aff3cd522",
+    "workers/operations.py": "accd66d34249ff22a6f994b2849e983323606a855fa106cab2ad7720dca52131",
+    "workers/tasks.py": "824f856fcb0c212ddc4885e9be61c697b9b7075fe0766f7a09649993200fa376"
+  },
+  "behavior": "Explicit CONTROLLED_FIXTURE review, selected supporting documents, durable APPLICATION_DRY_RUN operation, approved contact/answers, native validation, exact selected File byte hashes, value-free durable receipt, reload and no browser replay after receipt commit. No employer navigation, submission, provider acceptance or application-state mutation.",
+  "validation": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/integration/test_controlled_application_dry_run.py tests/integration/test_application_rehearsal.py tests/integration/test_application_supporting_documents.py tests/integration/test_application_form_review_flow.py tests/unit/test_application_form_review_worker.py tests/unit/test_application_upload_integrity.py tests/browser/test_controlled_application_dry_run.py tests/browser/test_application_upload_integrity.py --junitxml=outputs/ci/root-controlled-final.xml",
+      "result": "50 passed, 19 subtests passed, 13 PostgreSQL skips; 1 browser fixture setup failure after extraction of _new_store. Corrected by assigning the same hook to browser fixture; affected rerun below.",
+      "status": "FAIL_CORRECTED_BY_AFFECTED_RERUN"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_controlled_application_dry_run.py --junitxml=outputs/ci/root-controlled-browser-final.xml",
+      "result": "1 passed, 2 subtests passed",
+      "status": "PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_application_rehearsal.py tests/unit/test_operation_concurrency.py tests/unit/test_operation_progress.py",
+      "result": "20 passed, 32 subtests passed",
+      "status": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run test -- --run src/application-rehearsal.test.tsx",
+      "result": "11 passed",
+      "status": "PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS; existing large-chunk advisory",
+      "status": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check",
+      "result": "PASS / CURRENT",
+      "status": "PASS"
+    }
+  ],
+  "negative_controls": [
+    "unreviewed/stale/profile/route/template mismatch",
+    "unapproved answers",
+    "changed document bytes and prepared path escape",
+    "ambiguous fixture controls before upload",
+    "profile change during browser execution",
+    "stale worker attempt and cancellation",
+    "separate fixture/public selection state",
+    "lost review reply retries same request identity",
+    "receipt replay avoids browser",
+    "responsive FileReader deadline and fresh locator-resolution deadline"
+  ],
+  "failures_repaired": [
+    "Missing controlled workflow: real API returned404 before implementation.",
+    "SQLite saved-review cursor was retained after early return and blocked the admission commit; consume cursor before returning.",
+    "UI browser test nested worker Playwright in its own driver loop; run worker in separate owned thread matching product separation.",
+    "Saved fixture verification div lacked region semantics; made it a labeled section.",
+    "Local review required separate fixture selection namespace and fresh browser/readback budgets; corrected and regression tested."
+  ],
+  "local_review": "Read-only local Luna source review; no remaining material blocker for PARTIAL #156 publication. Not human or independent release certification.",
+  "limitations": {
+    "external_submission": "OFF",
+    "live_provider_form_interaction": "NOT_IMPLEMENTED_OR_CLAIMED",
+    "provider_templates": "trusted local v1 common contact/approved-weekend-answer/resume/letter/supporting controls, not a mirror of employer forms",
+    "postgresql": "13 selected tests NOT_RUN locally; same generated private-schema acceptance class enabled by MJOBS_TEST_POSTGRES_URL in hosted integration",
+    "hard_renderer_hang_termination": "NOT_PROVEN. Fresh Playwright timeout bounds locator resolution; bounded JS timer covers responsive FileReader. No claim of hard termination after renderer becomes unresponsive.",
+    "hosted_exact_candidate": "NOT_RUN at source commit preparation; inspect required current checks before integration",
+    "current_main_browser": "6213c1c6 run38240363517 has2 observed failures in company discovery request review and answer matching; #532 reopened; connected38240367970 PASS",
+    "release_gate": "FAIL:96 selected requirements not PASS; dirty checkout; current main browser run failed;26 open high/critical source findings"
+  }
+}

@@ -33,6 +33,7 @@ from workers.operations import claim, check_cancelled, OperationCancelled, Opera
 from workers.structured_logging import log_operation_finished
 from workers.retries import discovery_retry_plan
 from workers.application_form_review import FormReviewError, handle_form_review
+from services.applications.controlled_dry_run import ControlledDryRunError, execute as execute_controlled_dry_run
 
 
 class FixtureOperationDisabled(Exception):
@@ -310,6 +311,9 @@ def execute_operation(operation_id):
             elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
                 from services.company_discovery.monitoring import refresh_company_source
                 result = refresh_company_source(store, operation, check=check)
+            elif operation["kind"] == "APPLICATION_DRY_RUN":
+                result = execute_controlled_dry_run(
+                    store, Path(os.environ["MJOBS_OUTPUT_DIR"]), operation, check=check)
             elif operation["kind"] == "APPLICATION_FORM_REVIEW":
                 route_url = operation["params"]["route_url"]
 
@@ -381,6 +385,8 @@ def execute_operation(operation_id):
                     or application["state"] not in ("CONFIRMED", "SUBMISSION_UNCONFIRMED")):
                 check()
         except AttemptConflict as failure:
+            state, error = "BLOCKED", failure.code
+        except ControlledDryRunError as failure:
             state, error = "BLOCKED", failure.code
         except OperationTimedOut:
             state, error = "FAILED", "OPERATION_TIMEOUT"

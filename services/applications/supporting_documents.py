@@ -11,6 +11,7 @@ from services.documents.uploads import read_resume
 
 
 _ACTION = "APPLICATION_SUPPORTING_DOCUMENTS_SELECTED"
+_FIXTURE_ACTION = "APPLICATION_FIXTURE_SUPPORTING_DOCUMENTS_SELECTED"
 _KINDS = frozenset({"SUPPORTING_DOCUMENT", "CERTIFICATION"})
 _MAX_DOCUMENTS = 5
 _MAX_TOTAL_BYTES = 20 * 1024 * 1024
@@ -32,15 +33,15 @@ class SupportingDocumentConflict(SupportingDocumentError):
     pass
 
 
-def list_selection(store, profile_id: str, application_id: str) -> dict:
+def list_selection(store, profile_id: str, application_id: str, *, _controlled_fixture=False) -> dict:
     with store.engine.connect() as connection:
-        return _selection_view(connection, profile_id, application_id)
+        return _selection_view(connection, profile_id, application_id, _controlled_fixture=_controlled_fixture)
 
 
-def _selection_view(connection, profile_id: str, application_id: str) -> dict:
+def _selection_view(connection, profile_id: str, application_id: str, *, _controlled_fixture=False) -> dict:
     application = _application(connection, profile_id, application_id)
     revisions, archived = _revisions(connection, profile_id)
-    events = _selection_events(connection, application_id)
+    events = _selection_events(connection, application_id, _controlled_fixture=_controlled_fixture)
     latest = _latest(events)
     selected = list(((latest or {}).get("payload") or {}).get("items", []))
     available = [
@@ -62,13 +63,22 @@ def _selection_view(connection, profile_id: str, application_id: str) -> dict:
 
 
 def select_documents(store, profile_id: str, application_id: str,
-                     revision_ids: list[str], request_id: str) -> dict:
+                     revision_ids: list[str], request_id: str, *,
+                     _controlled_fixture: bool = False) -> dict:
     requested = _validate_request(revision_ids, request_id)
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         application = _application(connection, profile_id, application_id, lock=True)
-        _ensure_editable(application)
+        if _controlled_fixture:
+            from services.applications.form_review_providers import normalize_application_route
+            route = connection.execute(select(m.routes).where(
+                m.routes.c.id == application["route_id"]).with_for_update()).mappings().one()
+            if (normalize_application_route(route["provider"], route["url"]) is None
+                    or application["state"] not in _EDITABLE_STATES):
+                raise SupportingDocumentError("CONTROLLED_FIXTURE_SELECTION_UNSUPPORTED")
+        else:
+            _ensure_editable(application)
         revisions, archived = _revisions(connection, profile_id)
         by_id = {row["revision_id"]: row for row in revisions}
         selected = []
@@ -89,7 +99,7 @@ def select_documents(store, profile_id: str, application_id: str,
         if total_bytes > _MAX_TOTAL_BYTES:
             raise SupportingDocumentError("SUPPORTING_DOCUMENT_SET_TOO_LARGE")
 
-        events = _selection_events(connection, application_id)
+        events = _selection_events(connection, application_id, _controlled_fixture=_controlled_fixture)
         previous_request = next((
             event for event in events
             if event["payload"].get("request_id") == request_id
@@ -100,11 +110,13 @@ def select_documents(store, profile_id: str, application_id: str,
             "job_id": application["job_id"],
             "items": selected,
         }
+        if _controlled_fixture:
+            expected["context"] = "CONTROLLED_FIXTURE"
         if previous_request is not None:
             saved = previous_request["payload"]
             if any(saved.get(key) != value for key, value in expected.items()):
                 raise SupportingDocumentConflict("SUPPORTING_DOCUMENT_REQUEST_ID_REUSED")
-            return {**_selection_view(connection, profile_id, application_id),
+            return {**_selection_view(connection, profile_id, application_id, _controlled_fixture=_controlled_fixture),
                     "replayed": True}
 
         sequence = max((event["payload"].get("sequence", 0) for event in events), default=0) + 1
@@ -113,27 +125,28 @@ def select_documents(store, profile_id: str, application_id: str,
             "request_id": request_id,
             "sequence": sequence,
         }
-        event_id = identity("application-supporting-documents", application_id, request_id)
+        event_id = identity("application-fixture-supporting-documents" if _controlled_fixture
+                            else "application-supporting-documents", application_id, request_id)
         connection.execute(m.audit.insert().values(
             id=event_id,
             entity_id=application_id,
-            action=_ACTION,
+            action=_FIXTURE_ACTION if _controlled_fixture else _ACTION,
             payload=payload,
             timestamp=now(),
         ))
 
-    return {**list_selection(store, profile_id, application_id), "replayed": False}
+    return {**list_selection(store, profile_id, application_id, _controlled_fixture=_controlled_fixture), "replayed": False}
 
 
-def read_selected_files(store, output_dir, profile_id: str, application_id: str) -> list[dict]:
-    state = list_selection(store, profile_id, application_id)
+def read_selected_files(store, output_dir, profile_id: str, application_id: str, *, _controlled_fixture=False) -> list[dict]:
+    state = list_selection(store, profile_id, application_id, _controlled_fixture=_controlled_fixture)
     if state["unavailable_revision_ids"]:
         raise SupportingDocumentError("SUPPORTING_DOCUMENT_UNAVAILABLE")
     with store.engine.connect() as connection:
         application = _application(connection, profile_id, application_id)
         revisions, archived = _revisions(connection, profile_id)
         by_id = {row["revision_id"]: row for row in revisions}
-        event = _latest(_selection_events(connection, application_id))
+        event = _latest(_selection_events(connection, application_id, _controlled_fixture=_controlled_fixture))
     payload = (event or {}).get("payload") or {}
     if (payload.get("profile_id") != profile_id
             or payload.get("application_id") != application_id
@@ -215,10 +228,10 @@ def _revisions(connection, profile_id: str) -> tuple[list[dict], set[str]]:
     return rows, {revision_id for revision_id, value in archived.items() if value}
 
 
-def _selection_events(connection, application_id: str) -> list[dict]:
+def _selection_events(connection, application_id: str, *, _controlled_fixture=False) -> list[dict]:
     rows = connection.execute(select(m.audit).where(
         m.audit.c.entity_id == application_id,
-        m.audit.c.action == _ACTION,
+        m.audit.c.action == (_FIXTURE_ACTION if _controlled_fixture else _ACTION),
     )).mappings()
     return [dict(row) for row in rows]
 
