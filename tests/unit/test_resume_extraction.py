@@ -25,6 +25,33 @@ class ResumeExtractionTests(unittest.TestCase):
             timer.cancel()
         self.assertLess(time.monotonic() - started, 2)
 
+    def test_worker_cancellation_exception_reaps_native_child_promptly(self):
+        from workers.operations import OperationCancelled
+        children = []
+        original_popen = subprocess.Popen
+        def launch(*args, **kwargs):
+            child = original_popen(*args, **kwargs)
+            children.append(child)
+            return child
+        class WorkerCancellation:
+            def is_set(self):
+                if children:
+                    raise OperationCancelled('synthetic persisted cancellation')
+                return False
+        started = time.monotonic()
+        try:
+            with patch.object(extraction.subprocess, 'Popen', side_effect=launch):
+                with self.assertRaises(OperationCancelled):
+                    extraction._run_parser_process(
+                        [sys.executable, '-c', 'import time; time.sleep(2)'], b'', WorkerCancellation())
+            self.assertLess(time.monotonic() - started, 1)
+            self.assertIsNotNone(children[0].poll(), 'cancelled native child remained alive')
+        finally:
+            for child in children:
+                if child.poll() is None:
+                    child.kill()
+                child.wait()
+
     def test_parser_child_output_limit_terminates_writer(self):
         self.assertTrue(hasattr(extraction, '_run_parser_process'), 'parser process runner must expose output bounds')
         with self.assertRaisesRegex(ValueError, 'output limit'):

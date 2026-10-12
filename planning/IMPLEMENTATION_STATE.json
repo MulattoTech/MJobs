@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Complete HTTP-independent advisory evaluation with safe provider recovery and atomic publication.",
+  "current_objective": "Finish request-independent document APIs and reap native tools on persisted worker fences.",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2646,13 +2646,12 @@
     "requirement": "MJ-REQ-156",
     "issue": 157,
     "result": "PARTIAL",
-    "local": "17 durable AI cases PASS/2subtests; final affected46PASS7explicitoptinSKIP/61subtests;2 connected Chromium PASS; production build PASS;40 adjacent unit PASS29subtests. Broadunit1521PASS1FAIL949subtests: stale readiness queue expectation repaired and focused module PASS, full postrepair rerun NOT_RUN.",
-    "hosted": "NOT_RUN for candidate until publication; six actual PostgreSQL and one Redis dispatch contracts required",
+    "local": "45 affected integration PASS,14 actual PostgreSQL opt-in SKIP,3 subtests PASS;45 native parser/OCR unit PASS,7 subtests PASS;4 connected Chromium PASS. New3 API regressions and parser/OCR worker-fence RED established then PASS.",
+    "hosted": "NOT_RUN for this candidate; existing real PostgreSQL wrappers include four new selected contracts",
     "remaining": [
-      "Final local regressions and source review",
-      "Exact candidate hosted PostgreSQL/Redis acceptance",
-      "Protected PR integration and exact-main checkpoint"
+      "Exact candidate required checks and four new PostgreSQL cases",
+      "Protected integration and independent release gate; parent remains PARTIAL"
     ],
-    "observed_utc": "2026-10-12T13:59:11.742044+00:00"
+    "observed_utc": "2026-10-12T14:24:59.694842+00:00"
   }
 }

@@ -138,3 +138,17 @@ comparison and emphasis indexing share the same versioned header helper; no cont
 line is classified as a career fact. History lists the included snapshot values.
 Tests: integration.test_resume_contact_header, unit.test_pdf_url_fidelity and the
 connected browser/hosted cli.ui_e2e contact opt-in and prior-revision checks.
+
+
+Original document-action API URLs now use the existing durable worker path
+(MJ-REQ-156). POST `/profiles/{profile}/resumes/{resume}/extract` returns 202
+admission; optional `request_id` JSON preserves an explicit replayable intent.
+Follow `/extract/queued/{operation_id}` for persisted pending-only suggestions.
+GET `/profiles/{profile}/applications/{application}/uploaded-resume-comparison`
+only reads an admitted comparison: it returns the durable state envelope and a
+`result` only after atomic completion. Missing work returns 404; admit via POST
+`/uploaded-resume-comparison/operations` with immutable revision IDs and request ID.
+Both original cancel URLs reach persisted work across API instances. Historical
+inline records remain readable in operation history; no new inline extraction
+or uploaded-comparison work is admitted. Native parser and OCR children are
+reaped on all exits, including raised worker cancellation/deadline fences.

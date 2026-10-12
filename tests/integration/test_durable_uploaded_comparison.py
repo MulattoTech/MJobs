@@ -257,6 +257,60 @@ class DurableUploadedComparisonTests(unittest.TestCase):
             self.assertEqual(self.execute(admitted['operation_id'])['status'], 'COMPLETED')
 
 
+    def test_original_comparison_get_is_read_only_and_reads_saved_worker_result(self):
+        app, target = self.target(); upload = self.upload()
+        url = f'/profiles/fixture/applications/{app}/uploaded-resume-comparison'
+        params = {'base_revision_id': upload['revision_id'], 'tailored_document_id': target['id']}
+        with TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root,
+                                  operation_mode='FIXTURE')) as client:
+            before = self.store.count('worker_operations')
+            with patch('services.documents.uploaded_comparison.compare_uploaded_resume',
+                       side_effect=AssertionError('GET must never execute comparison')):
+                missing = client.get(url, params=params)
+                self.assertEqual(missing.status_code, 404, missing.text)
+            self.assertEqual(self.store.count('worker_operations'), before)
+            _, admitted = self.admission(client, app, target, upload)
+            queued = client.get(url, params=params)
+            self.assertEqual(queued.json()['state'], 'QUEUED')
+        self.assertEqual(self.execute(admitted['operation_id'])['status'], 'COMPLETED')
+        with TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root,
+                                  operation_mode='FIXTURE')) as restarted:
+            saved = restarted.get(url, params=params)
+            self.assertEqual(saved.json()['state'], 'COMPLETED')
+            self.assertEqual(saved.json()['result']['base']['sha256'], upload['sha256'])
+            self.assertEqual(self.store.count('worker_operations'), before + 1)
+
+    def test_original_comparison_cancel_reaches_queued_worker_from_another_api(self):
+        app, target = self.target(); upload = self.upload()
+        with TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root,
+                                  operation_mode='FIXTURE')) as client:
+            url, admitted = self.admission(client, app, target, upload)
+            other_upload = self.upload('docx')
+            _, unrelated = self.admission(client, app, target, other_upload, 'other-comparison-intent-0001')
+        other = Store(self.store.url)
+        try:
+            with TestClient(create_app(other, 'http://127.0.0.1:1', self.root,
+                                      operation_mode='FIXTURE')) as restarted:
+                from tests.integration.test_spine import PROFILE
+                self.store.save_profile(dict(PROFILE, id='other'))
+                denied = restarted.post(url.removesuffix('/operations').replace('/fixture/', '/other/') + '/cancel', params={
+                    'base_revision_id': upload['revision_id'], 'tailored_document_id': target['id']})
+                self.assertEqual(denied.status_code, 404)
+                cancel = restarted.post(url.removesuffix('/operations') + '/cancel', params={
+                    'base_revision_id': upload['revision_id'], 'tailored_document_id': target['id']})
+                self.assertTrue(cancel.json()['cancelled'], cancel.text)
+                saved = restarted.get(url, params={'base_revision_id': upload['revision_id'],
+                    'tailored_document_id': target['id']})
+                self.assertEqual(saved.json()['state'], 'CANCELLED')
+                unaffected = restarted.get(url, params={'base_revision_id': other_upload['revision_id'],
+                    'tailored_document_id': target['id'], 'operation_id': unrelated['operation_id']})
+                self.assertEqual(unaffected.json()['state'], 'QUEUED')
+            self.execute(admitted['operation_id'])
+            self.assertEqual(self.store.count('uploaded_comparison_results'), 0)
+        finally:
+            other.engine.dispose()
+
+
 class ComparisonMigrationTests(unittest.TestCase):
     def test_empty_downgrade_upgrade_and_populated_refusal(self):
         case = DurableUploadedComparisonTests()

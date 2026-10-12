@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-156",
+  "issue": 157,
+  "observed_utc": "2026-10-12T14:24:59.694842+00:00",
+  "base": "a7722adc8e195e105c8dac3d9193811a2de066dd",
+  "status": "PARTIAL",
+  "behavior": [
+    "Original extraction POST returns202 durable admission with optional replayable request_id",
+    "Comparison GET only reads persisted immutable results; missing operation404, explicit POST/operations admits work",
+    "Original cancel URLs reach persisted owner-scoped queued/running work across API instances without cancelling other revision pairs",
+    "Native parser and OCR children always reaped before pipe/diagnostic cleanup, including worker cancel/deadline exceptions"
+  ],
+  "source_git_blobs": {
+    "apps/api/main.py": "e9f756b605057b173803b4d1b21a328d5e3f29b3",
+    "services/career_profile/extraction.py": "a22bf03110b1e5868a215d89b62e9df4824a9f33",
+    "services/career_profile/ocr.py": "0d1f550aea0a090105a3b7ecaf42fbf0df2c3d7c",
+    "services/documents/AREA.md": "f7cb8429e286508490ccf12f921b5c53192a2ae1",
+    "tests/integration/test_profile_import.py": "f8c0ce5175b3c5adcf1be9a3cbd7ed9a119afa3f",
+    "tests/integration/test_uploaded_resume_comparison.py": "4fd9567c17050d36a2dc4c8aa9004897fa9c085d",
+    "tests/integration/test_durable_resume_extraction.py": "8cc7c717f722a949b292d58e3a35881c59d7fdca",
+    "tests/integration/test_durable_uploaded_comparison.py": "85a1ef8cba392af88fecda43d86fc57e77fc9d03",
+    "tests/integration/test_durable_resume_extraction_postgres.py": "4ef6e82faa9e22e1d5675309bdabead6cf8179b5",
+    "tests/integration/test_durable_uploaded_comparison_postgres.py": "fe9c1e18fca87444fec9d3a7e28c67b37582c003",
+    "tests/unit/test_resume_extraction.py": "6a531d9bb5f940065d75ab91c71fd2426968ec6e",
+    "tests/unit/test_resume_ocr.py": "ae288eb5e7ba7b2cabc59d957a9ab098fbf4945f"
+  },
+  "executed": [
+    {
+      "command": "pytest new original-URL regressions",
+      "result": "RED3 actual API failures, then PASS3"
+    },
+    {
+      "command": "pytest test_resume_extraction -k worker_cancellation",
+      "result": "RED2.078s blocked cleanup; afterfixPASS"
+    },
+    {
+      "command": "pytest test_resume_ocr -k worker_fence",
+      "result": "REDboth OperationCancelled/OperationTimedOut child remained alive; afterfixPASS"
+    },
+    {
+      "command": "pytest tests/unit/test_resume_ocr.py tests/unit/test_resume_extraction.py",
+      "result": "45PASS7subtestsPASS"
+    },
+    {
+      "command": "pytest affected6 integration modules",
+      "result": "45PASS14PostgreSQLoptinSKIP3subtestsPASS"
+    },
+    {
+      "command": "pytest tests/browser/test_profile_import.py tests/browser/test_uploaded_resume_comparison.py",
+      "result": "4PASS"
+    },
+    {
+      "command": "pytest operation_concurrency, operation_progress, document_library, worker_lifecycle, operation_progress_lifecycle",
+      "result": "41PASS2explicitSKIP88subtestsPASS"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; tools.ci.check_repository; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "local Luna source review of API/worker parser/OCR cleanup",
+      "result": "No concrete blocker; not independent certification"
+    }
+  ],
+  "not_run": [
+    "Full candidate hosted checks",
+    "Four new actual PostgreSQL acceptance cases locally unavailable",
+    "New full local unit rerun; exact candidate hosted unit required"
+  ],
+  "limitations": [
+    "Original API clients must follow202 operation admission and persisted result envelopes; documented in services/documents/AREA.md",
+    "No schema migration, private data rewrite, key changes, provider calls or external applications",
+    "Six obsolete request-bound disconnect/process-local cancellation tests replaced by durable HTTP-disconnect and actual worker/native-child cancellation coverage; existing format/OCR/truth assertions preserved",
+    "Parent157 remainsPARTIAL; original/reference acceptance denominators unchanged"
+  ]
+}

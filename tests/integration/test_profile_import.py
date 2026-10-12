@@ -1,14 +1,10 @@
 """Resume-led profiles retain review boundaries and immutable source versions."""
 from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
-import asyncio
-import inspect
 from pathlib import Path
 import tempfile
-import threading
-import time
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from reportlab.pdfgen import canvas
@@ -17,12 +13,10 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.career_profile.extraction import ResumeExtractionCancelled
 from services.documents.generate import prepare, PreparationError
 from services.documents.uploads import save_resume
 from fixtures.mock_server import fixture_server
 from services.discovery.pipeline import discover
-from workers.operations import admit_inline
 from tests.integration.test_spine import PROFILE
 
 
@@ -43,6 +37,17 @@ class ProfileImportTests(unittest.TestCase):
     def upload(self, profile='fixture', content=b'Example Applicant\nSkills\nPython, SQL', **headers):
         return self.client.post(f'/profiles/{profile}/resumes', content=content,
                                 headers={'X-Filename': 'base.txt', 'Content-Type': 'text/plain', **headers})
+
+    def extract(self, endpoint):
+        from workers.tasks import execute_operation
+        admitted = self.client.post(endpoint)
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        with patch.dict('os.environ', MJOBS_DATABASE_URL=self.store.url,
+                        MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE='PERSONAL'):
+            self.assertEqual(execute_operation(admitted.json()['operation_id'])['status'], 'COMPLETED')
+        readback = self.client.get(endpoint + '/queued/' + admitted.json()['operation_id'])
+        self.assertEqual(readback.json()['state'], 'COMPLETED')
+        return readback.json()['result']
 
     def put_profile(self, profile):
         payload = dict(profile)
@@ -128,7 +133,7 @@ class ProfileImportTests(unittest.TestCase):
         with self.assertRaisesRegex(PreparationError, 'Approve and verify'):
             prepare(self.store, job['id'], 'fixture', self.root)
         uploaded = self.upload().json()
-        facts = self.client.post(f"/profiles/fixture/resumes/{uploaded['id']}/extract").json()['facts']
+        facts = self.extract(f"/profiles/fixture/resumes/{uploaded['id']}/extract")['facts']
         self.assertTrue(facts)
         self.assertEqual(self.put_profile(dict(PROFILE, facts=facts)).status_code, 200)
         with self.assertRaisesRegex(PreparationError, 'Approve and verify'):
@@ -162,9 +167,7 @@ class ProfileImportTests(unittest.TestCase):
         uploaded = self.client.post('/profiles/fixture/resumes', content=stream.getvalue(),
                                     headers={'X-Filename':'base.pdf','Content-Type':'application/pdf'}).json()
         endpoint = f"/profiles/fixture/resumes/{uploaded['id']}/extract"
-        response = self.client.post(endpoint)
-        self.assertEqual(response.status_code, 200, response.text)
-        extracted = response.json()
+        extracted = self.extract(endpoint)
         self.assertEqual(extracted['status'], 'READY_FOR_REVIEW')
         self.assertEqual(extracted['contact']['email'], 'example@example.invalid')
         self.assertIn('Python', [fact['text'] for fact in extracted['facts']])
@@ -174,204 +177,26 @@ class ProfileImportTests(unittest.TestCase):
         self.assertTrue(all(not f['verified'] and not f['user_approved'] for f in extracted['facts']))
         self.assertTrue(all(uploaded['id'] in f['source'] for f in extracted['facts']))
         self.assertEqual(self.store.profile('fixture'), before)
-        self.assertEqual(self.client.post(endpoint).json(), extracted)
+        self.assertEqual(self.extract(endpoint), extracted)
         self.store.save_profile(dict(PROFILE, id='other'))
         self.assertEqual(self.client.post(endpoint.replace('/fixture/', '/other/')).status_code, 404)
         path = self.root / 'uploads' / (uploaded['id'] + '.pdf')
         path.write_bytes(b'corrupt')
         self.assertEqual(self.client.post(endpoint).status_code, 409)
 
-    def test_disconnected_resume_extract_cancels_child_work_before_returning(self):
+    def test_explicit_extract_cancel_is_profile_scoped_and_persistent(self):
         self.store.save_profile(PROFILE)
         uploaded = self.upload().json()
-        route = next(route for route in self.client.app.routes
-                     if getattr(route, 'path', None) == '/profiles/{profile_id}/resumes/{resume_id}/extract')
-        self.assertTrue(inspect.iscoroutinefunction(route.endpoint))
-        request = type('RequestProbe', (), {})()
-        request.is_disconnected = AsyncMock(side_effect=[False, True])
-        observed = threading.Event()
-
-        def wait_for_cancel(data, format, source, cancellation_event):
-            deadline = time.monotonic() + 2
-            while not cancellation_event.is_set() and time.monotonic() < deadline:
-                time.sleep(0.005)
-            if cancellation_event.is_set():
-                observed.set()
-                raise ResumeExtractionCancelled()
-            raise AssertionError('client disconnect was not propagated to extraction')
-
-        with patch('apps.api.main.extract_resume', side_effect=wait_for_cancel):
-            response = asyncio.run(route.endpoint('fixture', uploaded['id'], request))
-        self.assertEqual(response.status_code, 499)
-        self.assertTrue(observed.is_set())
-
-    def test_live_http_disconnect_kills_native_resume_parser_child_without_profile_mutation(self):
-        import socket
-        import subprocess
-        import sys
-        import uvicorn
-        from starlette.requests import Request as StarletteRequest
-        from fixtures.browser_ports import bound_browser_socket
-
-        self.store.save_profile(PROFILE)
-        pdf_stream = BytesIO()
-        pdf = canvas.Canvas(pdf_stream)
-        pdf.drawString(72, 720, 'Synthetic profile extraction disconnect test')
-        pdf.save()
-        resume_bytes = pdf_stream.getvalue()
-        uploaded = self.upload(content=resume_bytes, **{
-            'X-Filename': 'disconnect-test.pdf', 'Content-Type': 'application/pdf',
-        }).json()
-        profile_before = self.store.profile('fixture')
-        child_started = threading.Event()
-        disconnect_observed = threading.Event()
-        children = []
-        original_popen = subprocess.Popen
-        original_is_disconnected = StarletteRequest.is_disconnected
-
-        def slow_parser_child(command, **kwargs):
-            if 'services.career_profile.parser_worker' not in command:
-                return original_popen(command, **kwargs)
-            child = original_popen([sys.executable, '-c', 'import time; time.sleep(30)'], **kwargs)
-            children.append(child)
-            child_started.set()
-            return child
-
-        async def observe_disconnect(request):
-            disconnected = await original_is_disconnected(request)
-            if disconnected:
-                disconnect_observed.set()
-            return disconnected
-
-        app = create_app(self.store, 'http://127.0.0.1:1', self.root, operation_mode='PERSONAL')
-        sock = bound_browser_socket()
-        origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
-        server = uvicorn.Server(uvicorn.Config(app, log_level='error'))
-        server_thread = threading.Thread(target=server.run, kwargs={'sockets': [sock]}, daemon=True)
-        server_thread.start()
-        peer = None
-        try:
-            deadline = time.monotonic() + 10
-            while not server.started:
-                if not server_thread.is_alive() or time.monotonic() > deadline:
-                    self.fail('Resume extraction disconnect API did not start')
-                time.sleep(0.02)
-
-            peer = socket.create_connection(('127.0.0.1', sock.getsockname()[1]), timeout=5)
-            peer.settimeout(5)
-            request_path = f"/profiles/fixture/resumes/{uploaded['id']}/extract"
-            peer.sendall((f'POST {request_path} HTTP/1.1\r\n'
-                          f'Host: 127.0.0.1:{sock.getsockname()[1]}\r\n'
-                          f'Origin: {origin}\r\nContent-Length: 0\r\n'
-                          'Connection: keep-alive\r\n\r\n').encode('ascii'))
-            with patch.object(subprocess, 'Popen', slow_parser_child), patch.object(
-                    StarletteRequest, 'is_disconnected', observe_disconnect):
-                self.assertTrue(child_started.wait(5), 'native parser child did not start')
-                peer.shutdown(socket.SHUT_WR)
-                self.assertTrue(disconnect_observed.wait(3),
-                                'API did not observe the actual closed client request transport')
-                child_deadline = time.monotonic() + 3
-                while children and children[0].poll() is None and time.monotonic() < child_deadline:
-                    time.sleep(0.01)
-                self.assertTrue(children and children[0].poll() is not None,
-                                'cancelled parser child was not reaped')
-
-            self.assertEqual(self.store.profile('fixture'), profile_before)
-            readback = self.client.get(f"/profiles/fixture/resumes/{uploaded['id']}")
-            self.assertEqual(readback.status_code, 200, readback.text)
-            self.assertEqual(readback.content, resume_bytes)
-            with self.store.engine.connect() as connection:
-                operation = connection.execute(select(m.operations).where(
-                    m.operations.c.kind == 'RESUME_EXTRACT',
-                    m.operations.c.entity_id == uploaded['id'],
-                )).mappings().one()
-            operation_deadline = time.monotonic() + 3
-            while operation['state'] != 'CANCELLED' and time.monotonic() < operation_deadline:
-                time.sleep(0.01)
-                with self.store.engine.connect() as connection:
-                    operation = connection.execute(select(m.operations).where(
-                        m.operations.c.kind == 'RESUME_EXTRACT',
-                        m.operations.c.entity_id == uploaded['id'],
-                    )).mappings().one()
-            self.assertEqual(operation['state'], 'CANCELLED')
-            self.assertEqual(self.store.count('resume_revisions'), 1)
-        finally:
-            if peer is not None:
-                peer.close()
-            server.should_exit = True
-            server_thread.join(timeout=10)
-            sock.close()
-            self.assertFalse(server_thread.is_alive(), 'Resume extraction disconnect API did not stop')
-
-    def test_explicit_extract_cancel_is_profile_scoped(self):
-        self.store.save_profile(PROFILE)
-        uploaded = self.upload().json()
-        admit_inline(self.store, 'RESUME_EXTRACT', uploaded['id'])
-        active = threading.Event()
-        self.client.app.state.resume_extraction_events[('fixture', uploaded['id'])] = {active}
-
-        denied = self.client.post(f"/profiles/another/resumes/{uploaded['id']}/extract/cancel")
-        self.assertEqual(denied.status_code, 404)
-        self.assertFalse(active.is_set())
-
-        response = self.client.post(f"/profiles/fixture/resumes/{uploaded['id']}/extract/cancel")
-        self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.json()['cancelled'])
-        self.assertTrue(active.is_set())
-
-    def test_extract_cancel_from_another_api_instance_stops_work_without_profile_changes(self):
-        self.store.save_profile(PROFILE)
-        uploaded = self.upload().json()
-        other_store = Store(self.store.url)
-        other_client = TestClient(create_app(other_store, 'http://127.0.0.1:1', self.root))
-        started = threading.Event()
-        cleanup = threading.Event()
-        observed = threading.Event()
         endpoint = f"/profiles/fixture/resumes/{uploaded['id']}/extract"
-        cancel_endpoint = endpoint + "/cancel"
-        before = self.store.profile('fixture')
-
-        def wait_for_durable_cancel(_data, _format, _source, cancellation_event):
-            started.set()
-            deadline = time.monotonic() + 3
-            while (not cancellation_event.is_set() and not cleanup.is_set()
-                   and time.monotonic() < deadline):
-                time.sleep(0.005)
-            if cancellation_event.is_set():
-                observed.set()
-                raise ResumeExtractionCancelled()
-            if cleanup.is_set():
-                raise ResumeExtractionCancelled()
-            raise AssertionError('cross-instance cancellation was not propagated')
-
-        with ThreadPoolExecutor(max_workers=1) as pool:
-            with patch('apps.api.main.extract_resume', side_effect=wait_for_durable_cancel):
-                work = pool.submit(self.client.post, endpoint)
-                try:
-                    self.assertTrue(started.wait(2), 'resume extraction did not start')
-                    denied = other_client.post('/profiles/another' + cancel_endpoint[len('/profiles/fixture'):])
-                    self.assertEqual(denied.status_code, 404)
-                    cancelled = other_client.post(cancel_endpoint)
-                    self.assertEqual(cancelled.status_code, 200, cancelled.text)
-                    self.assertTrue(cancelled.json()['cancelled'])
-                    response = work.result(timeout=3)
-                    self.assertEqual(response.status_code, 499, response.text)
-                finally:
-                    cleanup.set()
-                    if not work.done():
-                        work.result(timeout=4)
-                    other_client.close()
-                    other_store.engine.dispose()
-
-        self.assertTrue(observed.is_set())
-        self.assertEqual(self.store.profile('fixture'), before)
-        self.assertEqual(self.client.get('/profiles/fixture/resumes').json()['resumes'][0]['id'], uploaded['id'])
-        with self.store.engine.connect() as connection:
-            row = connection.execute(select(m.operations).where(
-                m.operations.c.kind == 'RESUME_EXTRACT',
-                m.operations.c.entity_id == uploaded['id'],
-            )).mappings().one()
-        self.assertEqual(row['state'], 'CANCELLED')
+        admitted = self.client.post(endpoint)
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        denied = self.client.post(endpoint.replace('/fixture/', '/another/') + '/cancel')
+        self.assertEqual(denied.status_code, 404)
+        response = self.client.post(endpoint + '/cancel')
+        self.assertTrue(response.json()['cancelled'])
+        readback = self.client.get(endpoint + '/queued/' + admitted.json()['operation_id'])
+        self.assertEqual(readback.json()['state'], 'CANCELLED')
+        self.assertNotIn('result', readback.json())
 
     def test_named_resume_versions_are_idempotent_scoped_and_downloadable(self):
         self.store.save_profile(PROFILE)
