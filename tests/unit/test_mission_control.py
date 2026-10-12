@@ -100,6 +100,53 @@ class MissionControlTests(unittest.TestCase):
         self.assertFalse(progress["checkpoint_current"])
         self.assertFalse((self.root / "docs" / "PROGRESS_CARD.json").exists())
 
+    def test_progress_unavailable_hides_backend_diagnostics_and_recovers(self):
+        diagnostic = "PRIVATE_SENTINEL C:/private/profile.env token=synthetic-secret\nTraceback"
+        for error in (RuntimeError, ValueError, KeyError, OSError,
+                      subprocess.TimeoutExpired("PRIVATE_SENTINEL", 1)):
+            failure = error(diagnostic) if isinstance(error, type) else error
+            with self.subTest(error=type(failure).__name__):
+                with patch("tools.agent_dashboard.mission_control.snapshot", side_effect=failure):
+                    response = self.client.get("/api/progress")
+                self.assertEqual(response.status_code, 200)
+                body = response.json()
+                self.assertFalse(body["available"])
+                self.assertTrue(body["observed_at"])
+                self.assertNotIn("PRIVATE_SENTINEL", response.text)
+                self.assertNotIn("synthetic-secret", response.text)
+                self.assertIn("refresh", body["error"].casefold())
+        recovered = self.client.get("/api/progress").json()
+        self.assertTrue(recovered["available"], recovered)
+        self.assertEqual(recovered["original"]["pass"], 1)
+
+    def test_preview_unavailable_python_hides_diagnostics_in_all_copies_and_recovers(self):
+        (self.root / "requirements.lock").write_text("synthetic fixture", encoding="utf-8")
+        hashes = []
+        for diagnostic in ("PRIVATE_SENTINEL C:/private/profile.env token=synthetic-secret",
+                           "PRIVATE_SENTINEL <script>private command stderr</script>\nTraceback"):
+            with patch("tools.agent_dashboard.mission_control.resolve_python_environment",
+                       side_effect=RuntimeError(diagnostic)):
+                response = self._preview_request(self._codex_request())
+            self.assertEqual(response.status_code, 200, response.text)
+            body = response.json()
+            self.assertFalse(body["python_environment"]["available"])
+            self.assertNotIn("PRIVATE_SENTINEL", response.text)
+            self.assertNotIn("synthetic-secret", response.text)
+            self.assertIn(body["python_environment"]["message"], body["warnings"])
+            self.assertIn("requirements.lock", body["python_environment"]["message"])
+            hashes.append(body["preview_hash"])
+        self.assertEqual(hashes[0], hashes[1])
+        selected = {"interpreter": str(self.root / ".venv" / "python"),
+                    "venv": str(self.root / ".venv"), "source": "worktree",
+                    "verified_modules": ["playwright", "sqlalchemy"]}
+        with patch("tools.agent_dashboard.mission_control.resolve_python_environment",
+                   return_value=selected):
+            recovered = self._preview_request(self._codex_request()).json()
+        self.assertTrue(recovered["python_environment"]["available"])
+        self.assertEqual(recovered["python_environment"]["interpreter"], selected["interpreter"])
+        self.assertNotEqual(recovered["preview_hash"], hashes[0])
+        self.assertNotIn(body["python_environment"]["message"], recovered["warnings"])
+
     def test_dirty_root_main_does_not_block_isolated_creation(self):
         (self.root / "unsaved-main.txt").write_text("Do not lose this", encoding="utf-8")
         data = self.manager.prepare("codex")

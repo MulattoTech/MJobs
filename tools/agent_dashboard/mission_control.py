@@ -191,8 +191,9 @@ class MissionControl:
                 },
                 "caveat": "Only fully accepted requirements count. Partial work is not a fractional PASS; release readiness is separate.",
             }
-        except (ValueError, KeyError, OSError, RuntimeError, subprocess.TimeoutExpired) as exc:
-            return {"available": False, "observed_at": utc_now(), "error": str(exc)[:500]}
+        except (ValueError, KeyError, OSError, RuntimeError, subprocess.TimeoutExpired):
+            return {"available": False, "observed_at": utc_now(),
+                    "error": "Acceptance progress is unavailable. Check the canonical matrices and refresh again."}
 
     def prepare(self, lane: str) -> dict[str, Any]:
         """Reuse lane files without altering them; bootstrap only missing isolated worktrees."""
@@ -331,8 +332,11 @@ class MissionControl:
             try:
                 selected_python = resolve_python_environment(self.root, workspace)
                 python_environment = {"available": True, **selected_python}
-            except RuntimeError as exc:
-                python_environment = {"available": False, "message": str(exc)}
+            except RuntimeError:
+                python_environment = {
+                    "available": False,
+                    "message": "Python test environment is unavailable. Verify the local venv against requirements.lock and refresh the preview.",
+                }
         command = list(argv)
         if lane == "codex":
             if not command or command[-1] != "-":
