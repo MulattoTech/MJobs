@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-155",
+  "issue": 156,
+  "parent_acceptance": "PARTIAL",
+  "observed_utc": "2026-10-12T20:08:05.940256+00:00",
+  "base_revision": "bf1b909876217c7798bc16a47f92fc9be08d9578",
+  "branch": "feat/lever-employer-discovery-20261012",
+  "behavior": [
+    "Reviewed or verified official employer career link enrolls exact Lever global/EU public source",
+    "Existing worker and source policy immediately enumerate and atomically dedupe into original company",
+    "Reopened saved-search scheduler repeats collection; revoked authorization, changed region, foreign owner and paused legacy source fail closed",
+    "Inventory pagination proves exhaustion; later page error preserves existing jobs and snapshots; recovery imports once",
+    "API and browser source configuration plus saved ATS/provider filters survive reload",
+    "Application review accepts region-qualified collector routes while preserving legacy bare-site routes"
+  ],
+  "tests": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_lever_application_adapter.py tests/integration/test_lever_autodiscovery.py tests/integration/test_lever_autodiscovery_postgres.py tests/integration/test_greenhouse_autodiscovery.py tests/integration/test_reviewed_greenhouse_enrollment.py tests/unit/test_lever_source.py tests/unit/test_direct_employer_route_redirects.py tests/integration/test_saved_search_filters.py",
+      "result": "77 PASS,38 passing subtests;12 actual PostgreSQL SKIP/NOT_RUN locally",
+      "artifact": "outputs/ci/root-lever-discovery-final.xml"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/integration/test_lever_autodiscovery.py tests/integration/test_lever_autodiscovery_postgres.py tests/integration/test_saved_search_filters.py tests/integration/test_application_pipeline.py tests/unit/test_lever_source.py tests/unit/test_direct_employer_route_redirects.py",
+      "result": "55 PASS,16 passing subtests,9 PostgreSQL SKIP before three added recovery tests",
+      "artifact": "outputs/ci/root-lever-discovery-focused-final.xml"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_greenhouse_autodiscovery.py tests/browser/test_mock_application.py -k \"Autodiscovery or unknown_conditional_required\"",
+      "result": "7 PASS; 24 deselected",
+      "artifact": "outputs/ci/root-lever-discovery-browser-final.xml"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run src/job-source-filter.test.tsx src/company-source-monitoring.test.tsx src/company-sources.test.tsx src/saved-search-schedule.test.tsx",
+      "result": "21 PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/integration/test_lever_autodiscovery.py tests/integration/test_lever_autodiscovery_postgres.py tests/integration/test_greenhouse_autodiscovery.py tests/integration/test_reviewed_greenhouse_enrollment.py tests/integration/test_source_value_resolution.py tests/integration/test_source_value_integrity.py tests/integration/test_greenhouse.py tests/integration/test_source_policy_scheduler.py",
+      "result": "76 PASS,13 passing subtests;13 actual PostgreSQL SKIP/NOT_RUN locally",
+      "artifact": "outputs/ci/root-lever-integrity-publish-final.xml"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_greenhouse_autodiscovery.py tests/browser/test_source_value_resolution.py",
+      "result": "7 PASS",
+      "artifact": "outputs/ci/root-lever-browser-publish-final.xml"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_lever_application_adapter.py tests/integration/test_lever_autodiscovery.py tests/integration/test_lever_autodiscovery_postgres.py tests/integration/test_greenhouse_autodiscovery.py tests/integration/test_reviewed_greenhouse_enrollment.py tests/unit/test_lever_source.py tests/unit/test_direct_employer_route_redirects.py tests/integration/test_saved_search_filters.py tests/unit/test_manual_auth_deadline.py",
+      "result": "82 PASS47subtests/12PGNOTRUN before custom-route correction; unchanged unit/API inputs, final collector/source-resolution retested separately",
+      "artifact": "outputs/ci/root-lever-publish-focused.xml"
+    }
+  ],
+  "red_regressions": [
+    "SOURCE_UNSUPPORTED and COMPANY_ATS_ENUMERATION_UNSUPPORTED",
+    "In-flight stream overran inventory cap; new deadline test took 2 seconds against 0.15-second cap",
+    "Malformed Greenhouse iframe suppressed valid Lever anchor",
+    "EU redirect rejected; global route accepted raw site in wrong path segment",
+    "Source API rejected Lever with422; browser had no Lever filter option",
+    "Application adapter rejected region-qualified tenant"
+  ],
+  "inherited_hosted_failure": {
+    "revision": "bf1b909876217c7798bc16a47f92fc9be08d9578",
+    "run": 38298922120,
+    "job": 114976754004,
+    "test": "tests.integration.test_application_pipeline.ApplicationPipelineTests::test_unknown_dynamic_required_field_review_survives_reopen_and_detail_read",
+    "fingerprint": "Page.goto Timeout500ms; fake check.remaining_seconds constant0.5 before review oracle",
+    "correction": "Set test-only budget10seconds in matching integration/browser oracles; preserve all review/persistence/no-submit assertions and production deadline code"
+  },
+  "local_review": "Local Luna review: no remaining concrete blocker; not independent certification",
+  "security": "21 open high CodeQL findings remain; no dismissal or clean-scan claim",
+  "hosted": "NOT_RUN candidate; require all13 selected actual PostgreSQL tests PASS and zero skips plus exact-revision required checks",
+  "release_gate": "Incomplete; prior exact-main gate96unmet21openhigh/dirty/main integration failure; no umbrella PASS",
+  "external_submission_enabled": false,
+  "source_git_blobs": {
+    "apps/api/main.py": "71a42439c164ec7b8f4ed03b7ea646483db11506",
+    "apps/web/src/main.tsx": "0ab26284ec4d8045bc146ebd8dcdee67c970f718",
+    "planning/IMPLEMENTATION_STATE.json": "1e433eea084ecb7960845a5ddb4ba578a7f2df94",
+    "services/applications/adapters/lever.py": "47610e9fd1fbaacf582614264a10cabd7f02bc94",
+    "services/ats_detection/board_links.py": "6ac877e52f01f8c56a992c7110cd5adecaf73e06",
+    "services/ats_detection/detector.py": "552eb600ca8563adfad173ff2376d6cea28bc44f",
+    "services/company_discovery/ats_enrollment.py": "e43fba158840d6c59e9442d25f9be2b67102aef7",
+    "services/company_discovery/flywheel.py": "cdc60eb12511fd08bf64164db7311752c263d93a",
+    "services/company_discovery/requests.py": "08cb83377c5b817b49ed46eead9a3465bb415e95",
+    "services/dedupe/route_redirects.py": "72083eb56322708e697cb06d8649291ff39ec38c",
+    "services/dedupe/source_values.py": "013df843b63f18a7c3c7fd19192c4f890bff0fdb",
+    "services/discovery/search_profiles.py": "e1ffed655ebec8c6a3e7d0d5e00130d916bb0d43",
+    "services/discovery/sources/collect.py": "c6019ba9bf0b25e117414999494559809174915d",
+    "services/discovery/sources/greenhouse.py": "3b002eaa44ffa2fe35549cbcf7e9ca1fa2c576c5",
+    "services/discovery/sources/registry.py": "c572ea512308306b1f6d6e65d4771b3a8ebfb7f6",
+    "tests/browser/test_greenhouse_autodiscovery.py": "68ced89ec924bb4160c76067c1021aa8c30cd31a",
+    "tests/browser/test_mock_application.py": "05cf50f505606c08b1b939a9e1c2fe81eec466bc",
+    "tests/integration/test_application_pipeline.py": "85373ba6ddb67481ad9522310e969fc251b45fae",
+    "tests/integration/test_saved_search_filters.py": "1c14952032a4e5c33e702e836ee99bc3df3f2b80",
+    "tests/unit/test_direct_employer_route_redirects.py": "9da26e3698d25cf4ac16ffbff86a78e149c45b21",
+    "tests/unit/test_lever_application_adapter.py": "9f69b127b8408860fe9c6fa4144c858cafa62e90",
+    "services/discovery/sources/lever.py": "1e2a85d860bad1141e15038742908a9e9d1022d1",
+    "tests/integration/test_lever_autodiscovery.py": "f0f38dd9ceb751aa2b1c4f85590e45c193116336",
+    "tests/integration/test_lever_autodiscovery_postgres.py": "2493718074e2d20c44e818c55b8b527de91bba1d",
+    "tests/unit/test_lever_source.py": "1c5a46b4804611058b60be491a326baefd3b21ec"
+  },
+  "official_provider_contract": "https://github.com/lever/postings-api#api-methods",
+  "development_failures": [
+    "Browser ATS filter excluded deduped posting with legacy bare-site route:2FAIL6PASS; native regional alias missing (RED).",
+    "First alias insertion attempt collided with existing unique native route tuple:7 connectedFAIL70PASS/12PGSKIP;1ChromiumFAIL7PASS. Fixed by reusing exact existing tuple and preserving route ownership.",
+    "Custom-ID native route recollection reproduced UNIQUE constraint failure, then existing source resolution NoResultFound; fixed conservative single-route fallback, preserving custom URL and ID.",
+    "Final collector/source-resolution tests76PASS/13PGNOTRUN and Chromium7PASS; prior failures retained as development evidence."
+  ]
+}

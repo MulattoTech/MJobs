@@ -7,7 +7,7 @@ import re
 from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup
-from services.ats_detection.board_links import greenhouse_board_tenants
+from services.ats_detection.board_links import greenhouse_board_tenants, lever_board_tenants
 
 
 @dataclass(frozen=True)
@@ -218,12 +218,13 @@ def detect_ats(visible_careers_url: str, html: str = "", *,
             add(signature.provider, "URL_STRUCTURE")
 
     soup = BeautifulSoup(str(html or "")[:2_000_000], "html.parser")
-    try:
-        if len(greenhouse_board_tenants(current_url, html, tags=('a', 'iframe'))) == 1:
-            add('greenhouse', 'BOARD_LINK')
-    except ValueError:
-        # Malformed or ambiguous structural input cannot establish a provider.
-        pass
+    for provider, parser in (('greenhouse', greenhouse_board_tenants), ('lever', lever_board_tenants)):
+        try:
+            if len(parser(current_url, html, tags=('a', 'iframe'))) == 1:
+                add(provider, 'BOARD_LINK')
+        except ValueError:
+            # Invalid evidence for one provider cannot suppress another's link.
+            pass
     for tag in soup.find_all("script", src=True):
         src = str(tag.get("src") or "")
         for provider in _vendor_for_host(_host(src)):

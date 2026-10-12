@@ -22,7 +22,7 @@ ROUTE_CHECK_TIMEOUT_SECONDS = 8
 # authorize a destination; an exact verified tenant must also appear in its URL.
 ATS_HOSTS = {
     "greenhouse": {"boards.greenhouse.io", "job-boards.greenhouse.io"},
-    "lever": {"jobs.lever.co"},
+    "lever": {"jobs.lever.co", "jobs.eu.lever.co"},
     "ashby": {"jobs.ashbyhq.com"},
     "workable": {"apply.workable.com", "jobs.workable.com"},
     "smartrecruiters": {"jobs.smartrecruiters.com"},
@@ -88,6 +88,16 @@ def _ats_tenant_for_url(host, path, tenants):
             "*.myworkdayjobs.com" in hosts and host.endswith(".myworkdayjobs.com")
         )
         identifiers = _tenant_identifiers(row)
+        if provider == 'lever':
+            from services.discovery.sources.lever import listing_url
+            tenant = str(row.get('tenant_identifier') or '')
+            try:
+                matches = host_matches and identifiers and listing_url(tenant, f'https://{host}{path}')
+            except ValueError:
+                matches = False
+            if matches:
+                return {'provider': provider, 'tenant': tenant}
+            continue
         if host_matches and identifiers.intersection(observed):
             return {"provider": provider, "tenant": str(row.get("tenant_identifier") or "")}
     return None

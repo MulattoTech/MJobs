@@ -458,12 +458,12 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             }
         if detected.status != "MATCH" or not detected.provider:
             raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_REVIEW_REQUIRED")
-        if not fixture and detected.provider == 'greenhouse':
-            from services.company_discovery.ats_enrollment import enroll_greenhouse
-            return enroll_greenhouse(store, candidate, resolved, str(careers.url), careers.text,
+        if not fixture and detected.provider in {'greenhouse','lever'}:
+            from services.company_discovery.ats_enrollment import enroll_public_ats
+            return enroll_public_ats(store, candidate, resolved, str(careers.url), careers.text,
                 profile_id=profile_id, profile_version=profile_version, check=check,
                 enrollment_guard=enrollment_guard, preserve_source_id=preserve_source_id,
-                identity_confirmation=identity_confirmation)
+                identity_confirmation=identity_confirmation, provider=detected.provider)
         raise (ValueError if fixture else PublicFetchError)("COMPANY_ATS_ENUMERATION_UNSUPPORTED")
     check()
     payload = bounded_get(client, endpoint, str(careers.url)).json()

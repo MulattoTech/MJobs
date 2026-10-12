@@ -22,8 +22,8 @@ EDUCATION_REQUIREMENTS = {
     "DEGREE_PREFERRED", "NONE_SPECIFIED",
 }
 JOB_FILTERS = {"remote_type": {"", "REMOTE", "HYBRID", "ONSITE", "UNKNOWN"},
-               "provider": {"", "mock-ats", "greenhouse"},
-               "ats_provider": {"", "mock-ats", "greenhouse"},
+               "provider": {"", "mock-ats", "greenhouse", "lever"},
+               "ats_provider": {"", "mock-ats", "greenhouse", "lever"},
                "application_link_status": {"", "AVAILABLE", "UNAVAILABLE"},
                "application_pipeline_status": {"", *PIPELINE_STATUSES, "NOT_TRACKED"},
                "application_capability": {"", "FIXTURE_ONLY", "UNSUPPORTED", "REVIEW_REQUIRED", "UNKNOWN"},

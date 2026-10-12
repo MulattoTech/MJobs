@@ -97,6 +97,9 @@ class Greenhouse:
             self.status = "NOT_CHECKED"
             self._request_failed = False
 
+    def _request_url(self, suffix):
+        return HOST + "/v1/boards/" + self.tenant + suffix
+
     def _request(self, suffix, params=None):
         self.check()
         if self.transport is None:
@@ -105,7 +108,6 @@ class Greenhouse:
         request_timeout = self.request_timeout
         if callable(remaining_budget):
             request_timeout = min(request_timeout, remaining_budget())
-        path = "/v1/boards/" + self.tenant + suffix
         with httpx.Client(timeout=request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
                           headers={"User-Agent": "MJobs/0.1 public-read-only", "Accept": "application/json"}) as client:
             stop_watcher = threading.Event()
@@ -136,7 +138,7 @@ class Greenhouse:
                                        name="mjobs-greenhouse-cancellation", daemon=True)
             watcher.start()
             try:
-                with client.stream("GET", HOST + path, params=params) as response:
+                with client.stream("GET", self._request_url(suffix), params=params) as response:
                     active_response.append(response)
                     if response.is_redirect:
                         raise SourceError("SOURCE_REDIRECT_BLOCKED")

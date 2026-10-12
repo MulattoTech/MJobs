@@ -21,7 +21,8 @@ from workers.dispatch import enqueue_operation
 
 
 SHARED_ATS_HOSTS = {'boards.greenhouse.io', 'boards-api.greenhouse.io', 'job-boards.greenhouse.io',
-                    'jobs.lever.co', 'api.lever.co', 'jobs.ashbyhq.com', 'api.ashbyhq.com'}
+                    'jobs.lever.co', 'api.lever.co', 'jobs.eu.lever.co', 'api.eu.lever.co',
+                    'jobs.ashbyhq.com', 'api.ashbyhq.com'}
 SHARED_ATS_SUFFIXES = {'myworkdayjobs.com', 'icims.com', 'smartrecruiters.com', 'applytojob.com'}
 SOURCE_FIELDS = ('company_id', 'provider', 'tenant', 'endpoint', 'collector_source_id')
 REVIEWABLE = {'NEEDS_ORIGIN_REVIEW', 'FAILED', 'BLOCKED', 'CANCELLED'}

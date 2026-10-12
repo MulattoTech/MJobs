@@ -18,6 +18,22 @@ VERIFIED_TENANTS = [{
 
 
 class DirectEmployerRouteRedirectTests(unittest.TestCase):
+    def test_lever_route_requires_exact_regional_site_even_with_generic_metadata(self):
+        for region, host, other in [('global','jobs.lever.co','jobs.eu.lever.co'),
+                                     ('eu','jobs.eu.lever.co','jobs.lever.co')]:
+            with self.subTest(region=region):
+                client = RouteRedirectProbeClient('https://jobs.example/redirect/42',
+                    verified_domains=[], ats_tenants=[dict(VERIFIED_TENANTS[0],
+                        provider='lever',tenant_identifier=region+':acme',
+                        organization_identifier=region,board_identifier='acme')])
+                try:
+                    self.assertTrue(client.allowed(f'https://{host}/acme/00000000-0000-0000-0000-000000000001'))
+                    for bad in [f'https://{other}/acme/42',f'https://{host}/other/acme',
+                                f'https://{host}/other/{region}',f'https://{host}.evil.invalid/acme/42']:
+                        self.assertFalse(client.allowed(bad),bad)
+                finally:
+                    client.close()
+
     def test_probe_only_allows_the_source_and_verified_employer_or_ats_destinations(self):
         client = RouteRedirectProbeClient(
             "https://jobs.example/redirect/42",

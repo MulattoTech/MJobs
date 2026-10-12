@@ -574,8 +574,8 @@ class CompanySourceWatchInput(BaseModel):
 
 class SourceInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
-    provider: Literal["greenhouse", "remotive", "remoteok", "wwr"] = "greenhouse"
-    tenant: str = Field(min_length=1, max_length=80)
+    provider: Literal["greenhouse", "lever", "remotive", "remoteok", "wwr"] = "greenhouse"
+    tenant: str = Field(min_length=1, max_length=87)
     enabled: bool = True
     poll_interval: int = Field(default=300, ge=300, le=604800)
     concurrency: int = Field(default=1, ge=1, le=8)
@@ -585,7 +585,10 @@ class SourceInput(BaseModel):
 
     @model_validator(mode="after")
     def global_sources_use_canonical_tenant(self):
-        if self.provider != "greenhouse" and self.tenant != "default":
+        if self.provider == 'lever':
+            from services.discovery.sources.lever import tenant_identity
+            self.tenant = tenant_identity(self.tenant)
+        elif self.provider != "greenhouse" and self.tenant != "default":
             raise ValueError("Global sources use the canonical default tenant")
         return self
 
@@ -1478,8 +1481,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
              company: str = Query(default="", max_length=200),
              location: str = Query(default="", max_length=200),
              remote_type: str | None = Query(default=None, max_length=32),
-             provider: Literal["mock-ats", "greenhouse"] | None = None,
-             ats_provider: Literal["mock-ats", "greenhouse"] | None = None,
+             provider: Literal["mock-ats", "greenhouse", "lever"] | None = None,
+             ats_provider: Literal["mock-ats", "greenhouse", "lever"] | None = None,
              sort: Literal["score", "newest", "company", "title", "salary_high", "salary_low",
                            "application_priority"] = "score",
              salary_min: float | None = Query(default=None, ge=0, le=100000000),

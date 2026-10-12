@@ -3,7 +3,7 @@ from sqlalchemy import or_, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now
-from services.ats_detection.board_links import greenhouse_board_tenants
+from services.ats_detection.board_links import greenhouse_board_tenants, lever_board_tenants
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.public_resolution import resolve_public_company
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
@@ -25,15 +25,28 @@ def greenhouse_tenant(career_url, html):
     return tenants.pop()
 
 
-def _endpoint(tenant):
+def _endpoint(tenant, provider='greenhouse'):
+    if provider == 'lever':
+        from services.discovery.sources.lever import endpoint
+        return endpoint(tenant)
     return 'https://boards-api.greenhouse.io/v1/boards/' + tenant_identifier(tenant) + '/jobs'
+
+
+def _owner_clause(provider, tenant):
+    clause = m.company_sources.c.tenant == tenant
+    if provider == 'lever':
+        # Legacy/manual bare-site records have ambiguous region semantics. Do
+        # not silently migrate or bypass their ownership and disabled policy.
+        clause = or_(clause, m.company_sources.c.tenant == tenant.split(':',1)[1],
+                     m.company_sources.c.endpoint == _endpoint(tenant,provider))
+    return (m.company_sources.c.provider == provider) & clause
 
 
 def bound_company_source(store, connection, source, *, lock=False):
     """Use ingestion -> domain -> source-host -> source-row -> collector ordering."""
     query = select(m.company_sources).where(or_(m.company_sources.c.collector_source_id == source['id'],
-        (m.company_sources.c.provider == 'greenhouse') & (m.company_sources.c.tenant == source['tenant'])
-        if source['provider'] == 'greenhouse' else False)).order_by(m.company_sources.c.id)
+        _owner_clause(source['provider'],source['tenant'])
+        if source['provider'] in {'greenhouse','lever'} else False)).order_by(m.company_sources.c.id)
     rows = list(connection.execute(query).mappings())
     def bindings(records):
         return [row for row in records if row['collector_source_id'] == source['id']
@@ -43,10 +56,10 @@ def bound_company_source(store, connection, source, *, lock=False):
         raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
     initial = dict(bound[0]) if bound else None
     resolved = None
-    if lock and source['provider'] == 'greenhouse':
+    if lock and source['provider'] in {'greenhouse','lever'}:
         from packages.persistence.store import identity
         from services.dedupe.ingestion_identity import lock_company_ingestion
-        lock_company_ingestion(connection, [initial['company_id'] if initial else identity('greenhouse', source['tenant'])])
+        lock_company_ingestion(connection, [initial['company_id'] if initial else identity(source['provider'], source['tenant'])])
         if initial:
             if initial['identity_authorization'] is not None:
                 try:
@@ -57,7 +70,7 @@ def bound_company_source(store, connection, source, *, lock=False):
                 company = connection.execute(select(m.companies).where(m.companies.c.id == initial['company_id'])).mappings().one()
                 resolved = resolve_public_company(store, {'company_name': company['name'],
                     'company_website': initial['career_url']}, connection=connection, lock_verified=True)
-        lock_company_source_hosts(connection, (_endpoint(source['tenant']), initial['career_url'] if initial else None))
+        lock_company_source_hosts(connection, (_endpoint(source['tenant'],source['provider']), initial['career_url'] if initial else None))
         if initial and initial['identity_authorization'] is not None:
             try:
                 resolved = authorize_confirmed_source(connection, initial, lock=True)
@@ -75,9 +88,11 @@ def bound_company_source(store, connection, source, *, lock=False):
     row = bound[0]
     if not row['enabled']:
         raise SourceError('COMPANY_SOURCE_DISABLED')
-    if (row['provider'] != 'greenhouse' or source['provider'] != 'greenhouse'
-            or row['tenant'] != source['tenant'] or row['endpoint'] != _endpoint(source['tenant'])
+    if (source['provider'] not in {'greenhouse','lever'} or row['provider'] != source['provider']
+            or row['tenant'] != source['tenant'] or row['endpoint'] != _endpoint(source['tenant'],source['provider'])
             or row['collection_strategy'] != 'API'):
+        raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
+    if source['provider']=='lever' and any(record['tenant']!=source['tenant'] for record in rows):
         raise SourceError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
     if resolved is None:
         if row['identity_authorization'] is not None:
@@ -119,14 +134,25 @@ def collector_view(store, connection, source):
             'identity_basis': 'USER_CONFIRMED_DOMAIN' if source['identity_authorization'] is not None else 'VERIFIED_DOMAIN'}
 
 
-def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_id,
+def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_id,
                       profile_version=None, check, enrollment_guard=None, preserve_source_id=None,
-                      identity_confirmation=None):
+                      identity_confirmation=None, provider='greenhouse'):
     """Enroll once, then use the normal bounded collector, normalization and dedupe."""
     from services.discovery.sources.collect import configure_source, collect_source
 
-    tenant = greenhouse_tenant(career_url, html)
-    endpoint = _endpoint(tenant)
+    if provider=='greenhouse':
+        tenant = greenhouse_tenant(career_url,html)
+    elif provider=='lever':
+        try:
+            tenants=lever_board_tenants(career_url,html)
+        except ValueError:
+            raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED') from None
+        if len(tenants)!=1:
+            raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED')
+        tenant=tenants.pop()
+    else:
+        raise PublicFetchError('COMPANY_ATS_ENUMERATION_UNSUPPORTED')
+    endpoint = _endpoint(tenant,provider)
     check()
     with store.engine.begin() as connection:
         if connection.dialect.name == 'sqlite':
@@ -149,23 +175,28 @@ def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_i
         if identity_confirmation and (not authorization or authorization != identity_confirmation):
             raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         # Existing collector policy is immutable during automatic enrollment.
-        collector_id = configure_source(store, tenant, connection=connection, preserve_existing=True)
+        collector_id = configure_source(store, tenant, provider=provider, connection=connection, preserve_existing=True)
         collector = connection.execute(select(m.job_sources).where(
             m.job_sources.c.id == collector_id).with_for_update()).mappings().one()
         if not collector['enabled']:
             raise PublicFetchError('COMPANY_SOURCE_DISABLED')
         # Never re-parent an already configured board's historical employer/jobs.
         owners = list(connection.execute(select(m.company_sources).where(
-            m.company_sources.c.provider == 'greenhouse', m.company_sources.c.tenant == tenant)
+            _owner_clause(provider,tenant))
             .with_for_update()).mappings())
         if any(row['company_id'] != fresh['company_id'] for row in owners):
             raise PublicFetchError('COMPANY_ATS_BINDING_REVIEW_REQUIRED')
-        tenant_record = register_ats_tenant(connection, fresh['company_id'], provider='greenhouse',
+        if provider=='lever' and any(row['tenant']!=tenant for row in owners):
+            raise PublicFetchError('COMPANY_SOURCE_DISABLED' if any(not row['enabled'] for row in owners)
+                                   else 'COMPANY_SOURCE_MIGRATION_REVIEW_REQUIRED')
+        tenant_record = register_ats_tenant(connection, fresh['company_id'], provider=provider,
             tenant_identifier=tenant, confidence=0.99,
+            **({'organization_identifier': tenant.split(':')[0],
+                'board_identifier': tenant.split(':')[1]} if provider == 'lever' else {}),
             evidence=[('User-confirmed employer career page: ' if identity_confirmation else
-                'Verified official career page: ') + career_url, 'Public Greenhouse board: ' + tenant])
+                'Verified official career page: ') + career_url, 'Public '+provider+' board: ' + tenant])
         source = upsert_company_job_source(connection, company_id=fresh['company_id'],
-            provider='greenhouse', tenant_identifier=tenant, career_url=career_url,
+            provider=provider, tenant_identifier=tenant, career_url=career_url,
             public_api_url=endpoint, collection_strategy='API', confidence=0.99,
             enabled=True, discovered_automatically=True, ats_tenant_id=tenant_record['id'],
             last_validation=now(), profile_id=profile_id)
@@ -180,7 +211,7 @@ def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_i
         connection.execute(update(m.company_sources).where(m.company_sources.c.id == source['id']).values(**values))
         bound_company_source(store, connection, collector, lock=True)
         store._audit(connection, fresh['company_id'], 'COMPANY_SOURCE_DISCOVERED', {
-            'company_source_id': source['id'], 'provider': 'greenhouse', 'tenant': tenant,
+            'company_source_id': source['id'], 'provider': provider, 'tenant': tenant,
             'careers_url': career_url, 'endpoint': endpoint,
             'discovery_method': 'USER_CONFIRMED_ATS_BOARD' if identity_confirmation else 'VERIFIED_OFFICIAL_ATS_BOARD',
             'independent_verification': not bool(identity_confirmation), 'collection_strategy': 'API'})
@@ -188,6 +219,10 @@ def enroll_greenhouse(store, candidate, resolved, career_url, html, *, profile_i
     # Recurrence uses this same persisted binding; no parallel importer or job schema.
     result = collect_source(store, collector_id, profile_id, profile_version, check=check,
                             import_guard=enrollment_guard)
-    return {'company': fresh, 'company_source_id': source['id'], 'provider': 'greenhouse',
+    return {'company': fresh, 'company_source_id': source['id'], 'provider': provider,
             'tenant': tenant, 'careers_url': career_url, 'endpoint': endpoint,
             'jobs_enumerated': result['jobs_seen'], 'jobs_imported': result['jobs_seen']}
+
+
+# Existing internal callers retain the default Greenhouse provider contract.
+enroll_greenhouse = enroll_public_ats

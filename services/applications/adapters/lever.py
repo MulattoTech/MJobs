@@ -114,9 +114,10 @@ class LeverApplicationAdapter(GreenhouseApplicationAdapter):
         host = parsed.hostname.casefold()
         supplied_tenant = route.get("tenant")
         supplied_requisition = route.get("requisition")
+        regional_tenant = ('eu' if host == 'jobs.eu.lever.co' else 'global') + ':' + tenant
         if supplied_tenant is not None and (
                 not isinstance(supplied_tenant, str)
-                or supplied_tenant.casefold() != tenant):
+                or supplied_tenant.casefold() not in {tenant, regional_tenant}):
             return None
         if supplied_requisition is not None and (
                 not isinstance(supplied_requisition, str)
@@ -124,7 +125,7 @@ class LeverApplicationAdapter(GreenhouseApplicationAdapter):
             return None
         return {
             "provider": self.provider,
-            "tenant": tenant,
+            "tenant": regional_tenant if supplied_tenant and ':' in supplied_tenant else tenant,
             "requisition": requisition,
             "url": f"https://{host}/{tenant}/{requisition}",
         }
