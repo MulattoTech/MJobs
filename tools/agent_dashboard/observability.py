@@ -73,14 +73,17 @@ def read_codex_rate_limits(timeout: float = 12.0) -> dict[str, Any]:
     exe = _native_codex_exe()
     if not exe or not exe.exists():
         return {"available": False, "error": "native Codex executable not found"}
-    process = subprocess.Popen(
-        [str(exe), "app-server", "--stdio"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        bufsize=1,
-    )
+    try:
+        process = subprocess.Popen(
+            [str(exe), "app-server", "--stdio"],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            bufsize=1,
+        )
+    except OSError:
+        return {"available": False, "error": "Codex usage is unavailable. Try refreshing again."}
     lines: queue.Queue[str] = queue.Queue()
 
     def reader() -> None:
@@ -135,10 +138,10 @@ def read_codex_rate_limits(timeout: float = 12.0) -> dict[str, Any]:
             if message.get("id") == 2:
                 if "result" in message:
                     return normalize_codex_rate_limits(message["result"])
-                return {"available": False, "error": str(message.get("error") or "unknown Codex RPC error")}
+                return {"available": False, "error": "Codex usage is unavailable. Try refreshing again."}
         return {"available": False, "error": "Codex rate-limit read timed out"}
-    except Exception as exc:
-        return {"available": False, "error": str(exc)}
+    except Exception:
+        return {"available": False, "error": "Codex usage is unavailable. Try refreshing again."}
     finally:
         try:
             process.terminate()
@@ -564,8 +567,8 @@ def opencode_usage_snapshot(workspace: str | Path) -> dict[str, Any]:
             "model_all_time": model_all_final,
             "model_24h": model_24h_final,
         }
-    except Exception as exc:
-        return {"available": False, "error": str(exc)}
+    except Exception:
+        return {"available": False, "error": "OpenCode usage is unavailable. Try refreshing again."}
     finally:
         try:
             con.close()
@@ -735,8 +738,8 @@ def _codex_rollout_summary(path: Path) -> dict[str, Any]:
                         tool_breakdown[name] = tool_breakdown.get(name, 0) + 1
                     elif subtype == "reasoning":
                         reasoning_events += 1
-    except OSError as exc:
-        return {"available": False, "error": str(exc), **identity}
+    except OSError:
+        return {"available": False, "error": "Codex usage is unavailable. Try refreshing again.", **identity}
 
     def usage_values(raw: dict[str, Any]) -> dict[str, int]:
         input_tokens = int(raw.get("input_tokens") or 0)
@@ -1041,8 +1044,12 @@ def _antigravity_transcript_summary(path: Path) -> dict[str, Any]:
                         tools[name] = tools.get(name, 0) + 1
                 elif typ == "GENERIC":
                     generic_steps += 1
-    except OSError as exc:
-        return {"available": False, "error": str(exc), "conversation_id": conversation_id}
+    except OSError:
+        return {
+            "available": False,
+            "error": "Antigravity usage is unavailable. Try refreshing again.",
+            "conversation_id": conversation_id,
+        }
 
     elapsed = max(0.0, (last_time or 0) - (first_time or 0)) if first_time and last_time else None
     prompt_material = input_tokens + cache_read_tokens
