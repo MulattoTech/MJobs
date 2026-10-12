@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Restore normal multiline title and keyword filter editing with durable saved-search switching",
+  "current_objective": "Keep saved-search execution and durable history on one validated criteria snapshot",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2637,13 +2637,13 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "requirement": "MJ-REQ-023",
-    "issue": 24,
-    "branch": "fix/prefilter-multiline-24-20261012",
-    "base": "d9d09f0aae3567abb4d88b32b35d5cfdeac47034",
+    "issue": 237,
+    "requirement": "MJ-REQ-236",
+    "branch": "fix/search-history-snapshot-237-20261012",
+    "base": "c098774f1460d07492f7db06da9fef0ede371aeb",
     "local": {
       "focused": {
-        "cases": 16,
+        "cases": 33,
         "failures": 0,
         "skips": 0
       },
@@ -2658,8 +2658,8 @@
     "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
     "result": "PARTIAL",
     "owned_paths": [
-      "apps/web/src/job-prefilter.tsx",
-      "tests/browser/test_cheap_job_prefilter.py"
+      "workers/tasks.py",
+      "tests/integration/test_prefilter_discover_worker.py"
     ],
     "next_action": "Protected serial PR and exact-head integration/browser/Compose checks"
   }

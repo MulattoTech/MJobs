@@ -173,18 +173,17 @@ def execute_operation(operation_id):
             history_source = _history_source(store, params, operation_mode)
             history_query = params.get("query") if isinstance(params.get("query"), str) else ""
             history_filters = params.get("filters") if isinstance(params.get("filters"), dict) else {}
+            # Legacy fixture discovery records request descriptors; source-backed
+            # discovery records its validated execution snapshot below instead.
             search_profile_id = params.get("search_profile_id")
-            if isinstance(search_profile_id, str) and search_profile_id:
+            if not params.get("source_id") and isinstance(search_profile_id, str) and search_profile_id:
                 try:
                     from services.discovery.search_profiles import get_search_profile
-                    search_profile = get_search_profile(store, search_profile_id)
-                    if search_profile.get("profile_id") in history_profiles:
-                        history_filters = {
-                            **search_profile.get("criteria", {}), **history_filters,
-                        }
+                    history_search = get_search_profile(store, search_profile_id)
+                    if history_search.get("profile_id") in history_profiles:
+                        history_filters = {**history_search.get("criteria", {}), **history_filters}
                 except Exception:
-                    # A stale saved-search reference must not prevent discovery;
-                    # the actual query/filter descriptors remain explicit below.
+                    # A missing descriptor does not block legacy fixture discovery.
                     pass
             before_job_ids = {
                 profile_id: _profile_job_ids(store, profile_id)
@@ -251,6 +250,11 @@ def execute_operation(operation_id):
                         )
                         if "search_profile_id" in params else None
                     )
+                    if search_profile is not None and search_profile["profile_id"] in history_profiles:
+                        # History describes the same validated worker-start snapshot
+                        # used for filtering and scoring, even if the user edits the
+                        # saved search while source collection is running.
+                        history_filters = dict(search_profile["criteria"])
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),

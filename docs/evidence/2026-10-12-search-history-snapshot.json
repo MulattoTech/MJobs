@@ -1,0 +1,42 @@
+{
+  "issue": 237,
+  "requirement": "MJ-REQ-236",
+  "related_requirement": "MJ-REQ-023",
+  "utc": "2026-10-12T22:13:00.737369+00:00",
+  "base": "c098774f1460d07492f7db06da9fef0ede371aeb",
+  "branch": "fix/search-history-snapshot-237-20261012",
+  "source_sha256": {
+    "workers/tasks.py": "9c5e8c1d0e49783b4555e7bff0bc232355d47e9e62e221689a878a91ff6d0735",
+    "tests/integration/test_prefilter_discover_worker.py": "976b89e82930eaa6cdcdda74deee3bf9495712e141598785971950e1b3030e7d"
+  },
+  "red": "Concurrent edit before validated worker load scored synthetic Accountant job2 but persisted Systems Administrator filters; regression1FAIL/negative-control1PASS",
+  "behavior": "Source-backed discovery uses one validated worker-start saved-search snapshot for candidate filtering, scoring and persisted history; no query/schema/provider change",
+  "proof": [
+    "Before-snapshot edit selects Accountant and history records exact edited criteria after Store reopen",
+    "After-snapshot edit stores Astronaut for future runs while current run scores Systems Administrator and history retains original snapshot",
+    "Five raw postings retained; other profile receives no inherited history"
+  ],
+  "observed_failure_and_recovery": "Initial broader browser check1FAIL/2PASS: legacy no-source fixture history expected request descriptor include_titles. Preserve its existing best-effort descriptor read only for no-source operations; source-backed runs retain single validated snapshot. Assertions unchanged; focused and browser scopes rerun",
+  "commands": [
+    ".venv/Scripts/python.exe -m pytest -q tests/integration/test_prefilter_discover_worker.py tests/integration/test_search_history_api.py tests/unit/test_search_history_events.py tests/unit/test_search_history_service.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/browser/test_first_run_wizard.py tests/browser/test_search_history_connected.py tests/browser/test_prefilter_discovery_flow.py",
+    "npm --prefix apps/web run build"
+  ],
+  "local": {
+    "focused": {
+      "cases": 33,
+      "failures": 0,
+      "skips": 0
+    },
+    "browser": {
+      "cases": 3,
+      "failures": 0,
+      "skips": 0
+    }
+  },
+  "build": "PASS",
+  "hosted": "NOT_RUN for this candidate",
+  "boundary": "Legacy no-source fixture discovery records request descriptors; this correction does not claim those descriptors filter its scoring. No real external submissions or provider traffic",
+  "external_submission_enabled": false,
+  "acceptance": "No requirement status promotion; whole P0/P1 release incomplete"
+}

@@ -270,6 +270,48 @@ class SavedSearchCaptureScoringTests(unittest.TestCase):
         finally:
             reopened.engine.dispose()
 
+    def test_edit_before_worker_snapshot_records_the_rules_actually_scored(self):
+        from workers.tasks import _load_saved_search_for_discovery
+
+        def edit_then_load(*args):
+            save_search_profile(self.store, {
+                **self.search, "include_titles": ["Accountant"],
+                "required_keywords": [], "exclude_titles": [], "excluded_keywords": [],
+            })
+            return _load_saved_search_for_discovery(*args)
+
+        with patch("workers.tasks._load_saved_search_for_discovery", side_effect=edit_then_load):
+            self.assertEqual(self._run(), [("2", "fixture")])
+        reopened = Store(self.store.url)
+        try:
+            history = list_search_history(reopened, "fixture")["runs"][0]
+            self.assertEqual(history["filters"], get_search_profile(reopened, "selected-search")["criteria"])
+            self.assertEqual(history["results"], 5)
+            self.assertEqual(list_search_history(reopened, "other")["runs"], [])
+        finally:
+            reopened.engine.dispose()
+
+    def test_edit_after_worker_snapshot_does_not_change_execution_or_history(self):
+        from workers.tasks import _load_saved_search_for_discovery
+        original = get_search_profile(self.store, "selected-search")["criteria"]
+
+        def load_then_edit(*args):
+            snapshot = _load_saved_search_for_discovery(*args)
+            save_search_profile(self.store, {**self.search, "include_titles": ["Astronaut"]})
+            return snapshot
+
+        with patch("workers.tasks._load_saved_search_for_discovery", side_effect=load_then_edit):
+            self.assertEqual(self._run(), [("1", "fixture")])
+        reopened = Store(self.store.url)
+        try:
+            history = list_search_history(reopened, "fixture")["runs"][0]
+            self.assertEqual(history["filters"], original)
+            self.assertEqual(get_search_profile(reopened, "selected-search")["criteria"]["include_titles"],
+                             ["Astronaut"])
+            self.assertEqual(history["results"], 5)
+        finally:
+            reopened.engine.dispose()
+
     def test_unselected_collection_preserves_eager_scoring(self):
         scored = self._run(selected=False)
         self.assertEqual(set(scored), {(str(index), "fixture") for index in range(1, 6)})
