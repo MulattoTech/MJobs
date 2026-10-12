@@ -2,6 +2,14 @@
 
 **Canonical checkout:** `C:\Tools\Dev\MJobs`. **Publication:** GitHub `MulattoTech/MJobs`, `main`. Reconcile live local/remote SHA before writing. Modernization is reviewed in [PR #528](https://github.com/MulattoTech/MJobs/pull/528); its current checks and merge state are authoritative.
 
+## Iteration 27: returned dashboard diagnostics
+
+- Sole installed AFK runner10584 and integration owner; goal.json hash unchanged, acceptance0/7. Branch `fix/dashboard-returned-diagnostics-524-20261011` starts from live main `8db5bf17f30edb9b4e430ad8ddfed9bc41412f53`. Prior saved-search repair `a9934a44` remains preserved on its separate branch, locally verified/unpublished. Original dirty release-candidate plan and content-equivalent search-history marker remain excluded from staging.
+- #524: actual HTTP200 progress and preview responses reproduced backend diagnostic disclosure. Expected unavailable states now return fixed recovery guidance before messages are copied into preview warnings/hash inputs. Successful progress, not-inspected/successful Python preflight, token checks and launch revalidation remain intact. No finding closure or severity change claimed.
+- Local dashboard80PASS/65subtests; full units1378PASS/785subtests/0SKIP; controlled Chromium PASS for safe unavailable text, disabled approval, preview/progress recovery and zero CLI launches. Initial browser smoke selected a different Refresh control; source inspection identified Mission Control's button and corrected verification passed. Catalogue/progress/dashboard/agent-skills/diff PASS. Fresh read-only local Luna review found no concrete scoped disclosure/regression.
+- Exact commit, source revision and verification scopes are recorded in `.git/afk-dev/iteration27-verification.json` and AFK queue/events. GitHub metadata HTTP401 prevents current issue/check/finding refresh and protected publication; no unchanged publication retry. Hosted checks, full browser gate and release eligibility remain NOT_RUN/incomplete. No acceptance authority changed, private configuration/data untouched, submissions OFF. Rollback: scoped source revert.
+- Next: publish preserved verified branches serially when authentication is restored. Meanwhile reproduce the saved-search worker's remaining full-criteria admission gap: current candidate selection calls only cheap title/keyword filtering and omits canonical attributes/remote type needed by existing search semantics.
+
 ## Iteration 24: dashboard error disclosure
 
 - Sole runner10584 and integration owner; immutable goal0/7. PR548 protected merged `46cb283c8a5c1cab45828f68069f3a3d0545ea4a` after exact84147f8 CI/CodeQL/secret/Compose/all integration shards+aggregatePASS. Local main fast-forwarded; original dirty plan and content-equivalent search-history marker preserved/excluded.
