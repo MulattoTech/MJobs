@@ -10,11 +10,12 @@ x-runtime: &runtime
     context: .
     dockerfile: infra/docker/Dockerfile
   init: true
+  entrypoint: [python, -m, cli.runtime_database]
   cpus: 2
   mem_limit: 2g
   logging: *rotating-logging
   environment: &environment
-    MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
+    MJOBS_DATABASE_URL_FILE: /run/mjobs-database/runtime-url
     MJOBS_REDIS_URL: redis://redis:6379/0
     MJOBS_MOCK_ORIGIN: http://mock:8090
     MJOBS_COMPOSE_MOCK: ${MJOBS_COMPOSE_MOCK:-0}
@@ -29,6 +30,7 @@ x-runtime: &runtime
     MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS: ${MJOBS_TRANSIENT_RETENTION_INTERVAL_SECONDS:-86400}
   volumes:
     - documents:/data/documents
+    - runtime-database:/run/mjobs-database:ro
   networks: [private]
 services:
   postgres:
@@ -62,7 +64,13 @@ services:
     mem_limit: 256m
   migrate:
     <<: *runtime
-    command: [python, -m, alembic, upgrade, head]
+    entrypoint: []
+    command: [python, -m, cli.provision_database]
+    environment:
+      MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?Run python cli/init_env.py}@postgres/mjobs
+      MJOBS_DATABASE_URL_FILE: /run/mjobs-database/runtime-url
+    volumes:
+      - runtime-database:/run/mjobs-database
     depends_on:
       postgres: {condition: service_healthy}
   api:
@@ -161,3 +169,4 @@ volumes:
   queue:
   documents:
   mock-receipts:
+  runtime-database:

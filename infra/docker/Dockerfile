@@ -13,6 +13,6 @@ COPY requirements.txt requirements.lock ./
 RUN pip install --no-cache-dir -r requirements.lock && python -m playwright install --with-deps chromium
 COPY . .
 COPY --from=web /web/dist /app/apps/web/dist
-RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright
+RUN useradd --create-home --uid 10001 mjobs && mkdir -p /data/documents /run/mjobs-database && mv /root/.cache/ms-playwright /opt/playwright && chown -R mjobs:mjobs /data /app /opt/playwright /run/mjobs-database && chmod 700 /run/mjobs-database
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright
 USER mjobs

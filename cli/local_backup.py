@@ -501,6 +501,9 @@ def restore_backup(archive: Path, project: str, port: int) -> dict:
         raise BackupError("Restored migration revision differs from the backup")
     if _sql(project, "SELECT operation_mode FROM workspace_identity WHERE id='workspace'", environment) != manifest["operation_mode"]:
         raise BackupError("Restored workspace mode differs from the backup")
+    _compose(project, "run", "--rm", "--no-deps", "-T", "migrate", "python", "-m",
+             "cli.provision_database", "--provision-only", environment=environment,
+             timeout=120, action="Provision restored runtime database login")
     _compose(project, "run", "--rm", "--no-deps", "-T", "api", "python", "-m",
              "cli.local_backup", "verify-credentials", environment=environment,
              timeout=120, action="Verify restored credential encryption key")

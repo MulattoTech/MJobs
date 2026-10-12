@@ -5233,6 +5233,20 @@
       "notes": "Actual subprocess scheduler restart, durable SQLite operation deduplication and synthetic worker completion are locally verified (focused module 6 PASS; root reran exact evidence-final candidate). Mocked command test confirms scheduler is in the Compose recovery service list; Compose itself was not run. PostgreSQL restart is NOT_RUN. Default Compose project/fixed port 127.0.0.1:18700 isolation is unverified; retained personal runtime was not touched. Issue #275/MJ-REQ-274 remains PARTIAL; aggregate MJ-PR-074 dependencies unchanged; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
       "metadata_checkpoint": "1545a4f0e9bc08422e1f68adb28a6d0be70adb05",
       "claim_release_comment": "https://github.com/MulattoTech/MJobs/issues/275#issuecomment-6053395464"
+    },
+    {
+      "id": "MJ-PR-DATABASE-RUNTIME-175",
+      "title": "Restricted runtime PostgreSQL credentials with preserved migration and recovery",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-174"
+      ],
+      "target_area": "Compose runtime / database provisioning / backup recovery",
+      "depends_on": [],
+      "status": "IN_PROGRESS",
+      "branch": "fix/database-runtime-least-privilege-175-20261012",
+      "draft_until_verified": true,
+      "notes": "Configuration defect reproduced. Local62tests+77subtestsPASS. Actual PostgreSQL/Compose acceptance pending; no matrix promotion. Original admin/encryption key/data retained; runtime services receive only restricted file-backed login."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"
