@@ -131,6 +131,12 @@ def open_manual_auth_window(store, application_id: str, attempt_id: str,
             try:
                 context.close()
             except Exception:
-                pass
+                # Never release admission when browser cleanup is uncertain.
+                if client is not None:
+                    try:
+                        client.close()
+                    except Exception:
+                        pass
+                return "CLOSE_UNCONFIRMED"
         if client is not None:
             client.close()

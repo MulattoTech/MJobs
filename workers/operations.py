@@ -25,6 +25,7 @@ OPERATION_CATEGORIES = {
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
     "APPLICATION_FORM_REVIEW": "application_automation",
+    "MANUAL_AUTH": "application_automation",
 }
 CATEGORY_LIMITS = {
     "source_collection": (2, 4),
@@ -40,7 +41,7 @@ CATEGORY_KINDS = {
 }
 CATEGORIES = tuple(CATEGORY_LIMITS)
 MAX_ATTEMPTS = 3
-INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT", "UPLOADED_RESUME_COMPARE")
+INLINE_KINDS = ("AI_EVALUATE", "RESUME_EXTRACT", "UPLOADED_RESUME_COMPARE", "MANUAL_AUTH")
 
 
 class OperationCancelled(Exception):
@@ -99,18 +100,56 @@ def _lock(connection, category):
                            {"key": 649106700 + CATEGORIES.index(category)})
 
 
+def _expire_inline(connection, timestamp):
+    # Inline work is never replayed after the owning API process exits.
+    connection.execute(update(m.operations).where(
+        m.operations.c.kind.in_(tuple(kind for kind in INLINE_KINDS if kind != "MANUAL_AUTH")),
+        m.operations.c.state == "RUNNING",
+        m.operations.c.lease_expires_at <= timestamp,
+    ).values(state="FAILED", error="LEASE_EXPIRED", lease_expires_at=None,
+             updated_at=timestamp, completed_at=timestamp, current_step="FINALIZING"))
+    # A missed lease is not proof that a headed browser has exited. Retain
+    # its capacity until the owning call confirms closure; never replay it.
+    connection.execute(update(m.operations).where(
+        m.operations.c.kind == "MANUAL_AUTH", m.operations.c.state == "RUNNING",
+        m.operations.c.lease_expires_at <= timestamp,
+    ).values(state="BLOCKED", error="BROWSER_RELEASE_UNCONFIRMED",
+             updated_at=timestamp, current_step="FINALIZING"))
+
+
+def _browser_capacity_held():
+    return ((m.operations.c.state == "RUNNING") |
+            ((m.operations.c.kind == "MANUAL_AUTH") &
+             (m.operations.c.state == "BLOCKED") &
+             (m.operations.c.error == "BROWSER_RELEASE_UNCONFIRMED")))
+
+
+def _application_browser_busy(connection, category, kind, entity_id):
+    if category != "application_automation":
+        return False
+    # A saved browser profile cannot be opened by a worker and a manual
+    # window simultaneously, even when the global ceiling is greater than one.
+    return bool(connection.execute(select(func.count()).select_from(m.operations).where(
+        m.operations.c.kind.in_(CATEGORY_KINDS[category]),
+        _browser_capacity_held(),
+        m.operations.c.entity_id == entity_id,
+        (m.operations.c.kind == "MANUAL_AUTH") if kind != "MANUAL_AUTH" else True,
+    )).scalar_one())
+
+
 def claim(store, operation_id):
     with store.engine.begin() as connection:
         kind = connection.execute(select(m.operations.c.kind).where(m.operations.c.id == operation_id)).scalar_one()
         category = OPERATION_CATEGORIES[kind]
         _lock(connection, category)
+        _expire_inline(connection, now())
         row = connection.execute(select(m.operations).where(m.operations.c.id == operation_id).with_for_update()).mappings().one()
         if (row["state"] != "QUEUED" or row["cancel_requested"]
                 or (row["next_attempt_at"] and row["next_attempt_at"] > now())):
             return None
         active = connection.execute(select(func.count()).select_from(m.operations).where(
-            m.operations.c.kind.in_(CATEGORY_KINDS[category]), m.operations.c.state == "RUNNING")).scalar_one()
-        if active >= limit(kind):
+            m.operations.c.kind.in_(CATEGORY_KINDS[category]), _browser_capacity_held())).scalar_one()
+        if active >= limit(kind) or _application_browser_busy(connection, category, kind, row["entity_id"]):
             return None
         timestamp = now()
         values = {"state": "RUNNING", "attempt_count": row["attempt_count"] + 1,
@@ -138,19 +177,13 @@ def admit_inline(store, kind, entity_id):
     operation_id = uuid4().hex
     with store.engine.begin() as connection:
         _lock(connection, category)
-        # An API process may exit without a completion callback. Inline
-        # operations are never retried: an expired lease only frees capacity.
-        connection.execute(update(m.operations).where(
-            m.operations.c.kind.in_(INLINE_KINDS),
-            m.operations.c.state == "RUNNING",
-            m.operations.c.lease_expires_at <= timestamp,
-        ).values(state="FAILED", error="LEASE_EXPIRED", lease_expires_at=None,
-                 updated_at=timestamp, completed_at=timestamp,
-                 current_step="FINALIZING"))
+        # Inline operations are never retried. Manual browser capacity requires
+        # confirmed closure; other expired inline operations free capacity.
+        _expire_inline(connection, timestamp)
         active = connection.execute(select(func.count()).select_from(m.operations).where(
             m.operations.c.kind.in_(CATEGORY_KINDS[category]),
-            m.operations.c.state == "RUNNING")).scalar_one()
-        if active >= category_limit(category):
+            _browser_capacity_held())).scalar_one()
+        if active >= category_limit(category) or _application_browser_busy(connection, category, kind, entity_id):
             raise OperationConcurrencyLimit(category)
         connection.execute(m.operations.insert().values(
             id=operation_id, kind=kind, entity_id=entity_id, params={},
@@ -164,18 +197,24 @@ def admit_inline(store, kind, entity_id):
     return operation_id
 
 
-def finish_inline(store, operation_id, state, error=None):
-    if state not in ("COMPLETED", "CANCELLED", "FAILED"):
+def finish_inline(store, operation_id, state, error=None, *, browser_closed=False):
+    if state not in ("COMPLETED", "CANCELLED", "FAILED", "BLOCKED"):
         raise ValueError("Invalid inline operation terminal state")
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         row = connection.execute(select(
-            m.operations.c.state, m.operations.c.cancel_requested,
+            m.operations.c.state, m.operations.c.cancel_requested, m.operations.c.kind, m.operations.c.error,
         ).where(m.operations.c.id == operation_id,
                 m.operations.c.kind.in_(INLINE_KINDS)).with_for_update()).one_or_none()
-        if row is None or row.state != "RUNNING":
+        if row is None or (row.state != "RUNNING" and not (
+                row.kind == "MANUAL_AUTH" and row.state == "BLOCKED"
+                and row.error == "BROWSER_RELEASE_UNCONFIRMED")):
             return False
+        if state == "BLOCKED" and (row.kind != "MANUAL_AUTH" or error != "BROWSER_RELEASE_UNCONFIRMED"):
+            raise ValueError("Only uncertain manual browser release can retain inline capacity")
+        if row.kind == "MANUAL_AUTH" and not browser_closed:
+            state, error = "BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"
         if row.cancel_requested and state == "COMPLETED":
             state, error = "CANCELLED", "CANCEL_REQUESTED"
         finished_at = now()
@@ -184,7 +223,7 @@ def finish_inline(store, operation_id, state, error=None):
         connection.execute(update(m.operations).where(
             m.operations.c.id == operation_id,
             m.operations.c.kind.in_(INLINE_KINDS),
-            m.operations.c.state == "RUNNING",
+            m.operations.c.state == row.state,
         ).values(state=state, error=error, updated_at=finished_at,
                  current_step="COMPLETED" if completed else "FINALIZING",
                  completed_at=finished_at, lease_expires_at=None, **progress_values))
@@ -308,6 +347,13 @@ def recover_expired(store):
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         rows = list(connection.execute(select(m.operations).where(m.operations.c.state == "RUNNING", m.operations.c.lease_expires_at <= timestamp).with_for_update(skip_locked=True)).mappings())
         for row in rows:
+            if row["kind"] == "MANUAL_AUTH":
+                # Cleanup by the original owning call is the only automatic
+                # release. A crashed owner requires separately proven cleanup.
+                connection.execute(update(m.operations).where(m.operations.c.id == row["id"]).values(
+                    state="BLOCKED", error="BROWSER_RELEASE_UNCONFIRMED",
+                    updated_at=timestamp, current_step="FINALIZING"))
+                continue
             if row["kind"] in INLINE_KINDS:
                 state, error = "FAILED", "LEASE_EXPIRED"
             else:

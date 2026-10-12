@@ -78,7 +78,12 @@ class ManualAuthRouterMountTests(unittest.TestCase):
         self.assertEqual(self.store.application(self.application_id)["state"], "AUTH_REQUIRED")
         self.assertEqual(self.store.application(self.application_id)["trace"], before["trace"])
         self.assertEqual(self.store.count("application_attempts"), attempts_before)
-        self.assertEqual(self.store.count("worker_operations"), operations_before)
+        self.assertEqual(self.store.count("worker_operations"), operations_before + 1)
+        with self.store.engine.connect() as connection:
+            admission = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+        self.assertEqual(admission["state"], "COMPLETED")
+        self.assertIsNone(admission["lease_expires_at"])
         self.assertIsNone(self.store.application(self.application_id)["confirmation"])
         self.assertEqual(__import__("httpx").get(
             self.origin + "/_test/request-counts").json(), {"review": 0, "submit": 0})

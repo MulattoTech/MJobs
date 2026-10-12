@@ -170,6 +170,59 @@ class PostgreSQLConcurrencyTests(unittest.TestCase):
                 m.operations.c.id.in_(operation_ids)).values(
                     state="CANCELLED", cancel_requested=True, lease_expires_at=None))
 
+    def test_manual_auth_and_worker_share_application_capacity(self):
+        suffix = uuid4().hex
+        worker_id = enqueue_operation(self.store, "APPLICATION_FORM_REVIEW", "synthetic-worker-" + suffix, {})
+        inline_id = None
+
+        def reserve_manual():
+            store = Store(POSTGRES_URL)
+            try:
+                try:
+                    return admit_inline(store, "MANUAL_AUTH", "synthetic-manual-" + suffix)
+                except OperationConcurrencyLimit:
+                    return None
+            finally:
+                store.engine.dispose()
+
+        def reserve_worker():
+            store = Store(POSTGRES_URL)
+            try:
+                return claim(store, worker_id)
+            finally:
+                store.engine.dispose()
+
+        try:
+            with patch.dict(os.environ, {"MJOBS_APPLICATION_AUTOMATION_CONCURRENCY": "1"}):
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    manual, worker = pool.submit(reserve_manual), pool.submit(reserve_worker)
+                    inline_id, claimed = manual.result(), worker.result()
+            self.assertEqual(int(inline_id is not None) + int(claimed is not None), 1)
+        finally:
+            self._release_test_operations([worker_id] + ([inline_id] if inline_id else []))
+
+    def test_manual_auth_duplicate_entity_rejected_across_stores_at_limit_two(self):
+        entity = "synthetic-auth-" + uuid4().hex
+        admitted = []
+
+        def reserve(_):
+            store = Store(POSTGRES_URL)
+            try:
+                try:
+                    return admit_inline(store, "MANUAL_AUTH", entity)
+                except OperationConcurrencyLimit:
+                    return None
+            finally:
+                store.engine.dispose()
+
+        try:
+            with patch.dict(os.environ, {"MJOBS_APPLICATION_AUTOMATION_CONCURRENCY": "2"}):
+                with ThreadPoolExecutor(max_workers=2) as pool:
+                    admitted = [identifier for identifier in pool.map(reserve, range(2)) if identifier]
+            self.assertEqual(len(admitted), 1)
+        finally:
+            self._release_test_operations(admitted)
+
 
 if __name__ == "__main__":
     unittest.main()
