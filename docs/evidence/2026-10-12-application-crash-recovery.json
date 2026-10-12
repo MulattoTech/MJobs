@@ -1,0 +1,41 @@
+{
+  "issue": 159,
+  "requirement": "MJ-REQ-158",
+  "related_issues": [
+    144,
+    145,
+    146
+  ],
+  "status": "PARTIAL",
+  "utc": "2026-10-12T20:23:18.484635+00:00",
+  "base": "63ec3fa391e6134d460271195af95f3c6d39e176",
+  "classification": "Missing decisive PostgreSQL verification; existing recovery behavior is not presumed defective or accepted",
+  "behavior": "Worker dies after provider accepts submit, or after durable confirmation but before queue acknowledgement; restart reconciles receipt/completed attempt without another browser or submission. Receipt outage remains unconfirmed across API restart; explicit read-only lookup recovers.",
+  "changes": [
+    "Run existing physical worker-crash cases against actual Alembic head in isolated disposable schema",
+    "Wire dedicated synthetic loopback PostgreSQL database into existing hosted integration",
+    "Add durable-confirmation/pre-ack physical crash and replay regression; strengthen ambiguous recovery with second reopen"
+  ],
+  "acceptance_oracles": [
+    "One independent fixture receipt and one actual submit request",
+    "No second browser; immutable attempt history unchanged",
+    "Expired lease recovered with attempt_count2 and correct terminal state",
+    "Idempotency replay retains operation; new uncertain submission rejected",
+    "Explicit receipt check performs GET only and recovers after outage/restart"
+  ],
+  "local": {
+    "command": "python -m pytest -q tests/integration/test_application_confirmation_recovery.py tests/browser/test_worker_attempt_recovery.py tests/browser/test_application_confirmation_recovery.py tests/integration/test_application_worker_crash_postgres.py",
+    "result": "16PASS9subtests; original2 PostgreSQL SKIP, new third case PostgreSQL NOT_RUN",
+    "postgresql": "NOT_RUN; local Docker daemon unavailable"
+  },
+  "hosted": "NOT_RUN; require all3 selected PostgreSQL cases PASS zeroSKIP",
+  "source_blobs": {
+    ".github/workflows/integration.yml": "13e0698c38f40331140e759303808922f68ba59c",
+    "tests/integration/test_application_worker_crash_postgres.py": "58814dd711ea7f01375c93c2781d010157fa6378"
+  },
+  "limits": [
+    "Synthetic fixture submissions only; real external submissions OFF",
+    "Parent operation recovery acceptance remains PARTIAL until complete scope proven",
+    "No personal environment, keys, data or volumes touched"
+  ]
+}

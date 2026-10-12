@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence",
+  "current_objective": "Verify durable no-duplicate submission recovery against production PostgreSQL migrations",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2637,43 +2637,20 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "requirement": "MJ-REQ-155",
-    "issue": 156,
-    "branch": "feat/lever-employer-discovery-20261012",
-    "base": "bf1b909876217c7798bc16a47f92fc9be08d9578",
-    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+    "requirement": "MJ-REQ-158",
+    "issue": 159,
+    "branch": "test/application-crash-recovery-159-20261012",
+    "base": "63ec3fa391e6134d460271195af95f3c6d39e176",
+    "status": "LOCAL_ADJACENT_VERIFIED_POSTGRES_NOT_RUN",
     "parent_acceptance": "PARTIAL",
     "external_submission_enabled": false,
     "owned_paths": [
-      "apps/api/main.py",
-      "apps/web/src/main.tsx",
-      "planning/IMPLEMENTATION_STATE.json",
-      "services/applications/adapters/lever.py",
-      "services/ats_detection/board_links.py",
-      "services/ats_detection/detector.py",
-      "services/company_discovery/ats_enrollment.py",
-      "services/company_discovery/flywheel.py",
-      "services/company_discovery/requests.py",
-      "services/dedupe/route_redirects.py",
-      "services/dedupe/source_values.py",
-      "services/discovery/search_profiles.py",
-      "services/discovery/sources/collect.py",
-      "services/discovery/sources/greenhouse.py",
-      "services/discovery/sources/registry.py",
-      "tests/browser/test_greenhouse_autodiscovery.py",
-      "tests/browser/test_mock_application.py",
-      "tests/integration/test_application_pipeline.py",
-      "tests/integration/test_saved_search_filters.py",
-      "tests/unit/test_direct_employer_route_redirects.py",
-      "tests/unit/test_lever_application_adapter.py",
-      "services/discovery/sources/lever.py",
-      "tests/integration/test_lever_autodiscovery.py",
-      "tests/integration/test_lever_autodiscovery_postgres.py",
-      "tests/unit/test_lever_source.py"
+      ".github/workflows/integration.yml",
+      "tests/integration/test_application_worker_crash_postgres.py"
     ],
-    "next_action": "Commit/provenance, publish short-lived protected PR and inspect exact-revision hosted checks",
+    "next_action": "Publish reviewable verification PR; require all3 actual PostgreSQL crash tests PASS without skips and current protected checks",
     "result": "PARTIAL",
-    "local": "76 integrity/adjacent PASS13subtests;13 actualPG SKIP/NOT_RUN locally;7 finalChromiumPASS;21Vitest/build/validatorsPASS",
-    "hosted": "NOT_RUN; require all13 actual Lever discovery PostgreSQL cases PASS zeroSKIP"
+    "local": "16 adjacent integration/browser PASS9subtests; actual PostgreSQL NOT_RUN locally (Docker daemon unavailable)",
+    "hosted": "NOT_RUN on candidate"
   }
 }

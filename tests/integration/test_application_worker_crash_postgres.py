@@ -13,6 +13,8 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from contextlib import contextmanager
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI, Request
 from fastapi.responses import Response
 from fastapi.testclient import TestClient
@@ -122,10 +124,10 @@ class PostgreSQLApplicationWorkerCrashTests(unittest.TestCase):
         self.addCleanup(self.close_proxy)
         self.store = Store(self.database_url)
         self.addCleanup(self.dispose_store)
-        # Store.migrate is intentionally SQLite-only. These tests create only
-        # the registered test metadata in their unique, disposable schema.
-        from packages.persistence import resume_workspace  # noqa: F401
-        m.metadata.create_all(self.store.engine)
+        # Exercise the released schema, not a metadata-only approximation.
+        # The scoped URL cannot migrate public or any populated user schema.
+        with patch.dict(os.environ, {"MJOBS_DATABASE_URL": self.database_url}):
+            command.upgrade(Config(str(ROOT / "alembic.ini")), "head")
         self.store.bind_workspace_mode("FIXTURE")
         self.profile_id = "pg-crash-" + uuid4().hex[:16]
         profile = dict(PROFILE, id=self.profile_id, email=f"{self.profile_id}@example.test")
@@ -308,6 +310,10 @@ os._exit(74)
         self.assertEqual(read_attempt_history(
             self.store, self.profile_id, self.application_id), attempts_before_recovery)
 
+        # A second API process/restart must retain both the uncertainty and its
+        # fenced physical attempt before the user requests a read-only check.
+        self.reopen()
+        self.assertEqual(self.store.application(self.application_id)["state"], "SUBMISSION_UNCONFIRMED")
         retry = queue_mock_run(
             self.store, self.profile_id, self.application_id, submit=True, request_id=request_id)
         self.assertEqual(retry["operation_id"], operation_id)
@@ -330,6 +336,55 @@ os._exit(74)
             self.store, self.profile_id, self.application_id), attempts_before_recovery)
         self.assertEqual(self.receipt()["submission_count"], 1)
         self.assertEqual(self.counts(), before_counts)
+
+    def test_confirmed_submit_crash_before_worker_ack_replays_completed_attempt(self):
+        request_id = "pg-confirmed-crash-" + uuid4().hex[:12]
+        operation_id = self.queue_submit(request_id)
+        script = r'''
+import os, sys
+from workers import tasks
+original = tasks.apply_mock
+def exit_after_durable_confirmation(*args, **kwargs):
+    result = original(*args, **kwargs)
+    assert result["state"] == "CONFIRMED"
+    os._exit(73)
+tasks.apply_mock = exit_after_durable_confirmation
+tasks.execute_operation(sys.argv[1])
+os._exit(74)
+'''
+        child = subprocess.run(
+            [sys.executable, "-c", script, operation_id], cwd=ROOT,
+            env=self.worker_env, capture_output=True, text=True, timeout=150)
+        self.assertEqual(child.returncode, 73,
+                         "owned worker did not exit after durable confirmation/pre-ack")
+        self.assertEqual(self.operation(operation_id)["state"], "RUNNING")
+        self.assertEqual(self.store.application(self.application_id)["state"], "CONFIRMED")
+        before = read_attempt_history(self.store, self.profile_id, self.application_id)
+        self.assertEqual(len(before["attempts"]), 1)
+        self.assertEqual(before["attempts"][0]["state"], "CONFIRMED")
+        self.assertTrue(before["attempts"][0]["finished_at"])
+        receipt = self.receipt()
+        self.assertEqual(receipt["submission_count"], 1)
+        self.assertEqual(self.counts(), {"review": 1, "submit": 1})
+        self.reopen()
+        self.expire(operation_id)
+        self.assertEqual(recover_expired(self.store), 1)
+        with patch.dict(os.environ, self.worker_env), patch(
+                "services.applications.mock_adapter.sync_playwright",
+                side_effect=AssertionError("Completed submit must not relaunch Chromium")), patch(
+                "services.applications.mock_adapter._receipt",
+                side_effect=AssertionError("Durable confirmed attempt must not depend on provider availability")):
+            self.assertEqual(execute_operation(operation_id)["status"], "COMPLETED")
+            self.assertEqual(execute_operation(operation_id)["status"], "ALREADY_CLAIMED_OR_CAPACITY")
+        self.assertEqual(self.operation(operation_id)["attempt_count"], 2)
+        self.assertEqual(read_attempt_history(self.store, self.profile_id, self.application_id), before)
+        self.assertEqual(self.store.application(self.application_id)["confirmation"]["receipt"], receipt["receipt"])
+        replay = queue_mock_run(self.store, self.profile_id, self.application_id,
+                                submit=True, request_id=request_id)
+        self.assertTrue(replay["replayed"])
+        self.assertEqual(replay["operation_id"], operation_id)
+        self.assertEqual(self.receipt()["submission_count"], 1)
+        self.assertEqual(self.counts(), {"review": 1, "submit": 1})
 
 
 if __name__ == "__main__":
