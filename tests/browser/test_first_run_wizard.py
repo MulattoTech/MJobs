@@ -285,6 +285,31 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         expect(page.locator(".job-card").filter(has_text="Accountant")).to_have_count(0)
                         expect(page.locator(".job-card").filter(has_text="Python Engineer")).to_have_count(1)
                         expect(page.locator(".job-card").filter(has_text="Onsite - Austin, TX")).to_have_count(0)
+                        # Preview real worker/adapter output through the actual
+                        # selected search. Cheap title filtering precedes the
+                        # separate remote eligibility filter: two Python rows.
+                        prefilter = page.get_by_role(
+                            "region", name="Cheap job title and keyword prefilter", exact=True)
+                        for reopened in (False, True):
+                            if reopened:
+                                page.reload(wait_until="domcontentloaded")
+                                page.get_by_role("button", name=re.compile(r"^Jobs")).click()
+                                with page.expect_response(lambda response:
+                                        "/jobs?" in response.url
+                                        and f"search_profile_id={saved_search['id']}" in response.url):
+                                    page.get_by_label("Saved search profile", exact=True).select_option(saved_search["id"])
+                            with page.expect_response(lambda response:
+                                    response.url.endswith("/cheap-prefilter-preview")
+                                    and response.request.method == "POST") as previewed:
+                                prefilter.get_by_role("button", name="Preview title and keyword filter",
+                                                      exact=True).click()
+                            self.assertEqual(previewed.value.status, 200, previewed.value.text())
+                            self.assertEqual(previewed.value.json()["stage_counts"],
+                                             {"captured": 3, "prefiltered": 2})
+                            counts = prefilter.get_by_role("region", name="Prefilter stage counts", exact=True)
+                            expect(counts.get_by_text("Captured: 3", exact=True)).to_be_visible()
+                            expect(counts.get_by_text("Prefiltered candidates: 2", exact=True)).to_be_visible()
+                        wizard = page.get_by_role("region", name="First-run setup")
                         wizard.get_by_role("button", name="Set up later", exact=True).click()
                         resume = page.get_by_role("button", name=re.compile(r"^Resume first-run setup"))
                         expect(resume).to_be_visible()

@@ -396,6 +396,7 @@ function App() {
   const [activeOp,setActiveOp]=useState('');
   const profileRef = useRef(profileId); profileRef.current = profileId;
   const selectedAppRef = useRef(selectedApp); selectedAppRef.current = selectedApp;
+  const applicationTrackingRef = useRef(applicationTracking); applicationTrackingRef.current = applicationTracking;
   const answerDraftsRef = useRef(answerDrafts); answerDraftsRef.current = answerDrafts;
   const browserCaptureClients = useRef(new Map<string, ReturnType<typeof createBrowserJobExtractionCaptureClient>>());
   const searchScheduleDraftsRef = useRef<Record<string,{enabled:boolean;interval:number}>>({});
@@ -930,7 +931,15 @@ function App() {
     if(answerExport?.files.txt){try{const response=await fetch(`/profiles/${encodeURIComponent(selected)}/documents/${encodeURIComponent(answerExport.id)}/txt`);if(response.ok)answerText=await response.text();}catch{answerText=null;}}
     if(sequence!==appSequence.current||selected!==profileRef.current)return;
     localStorage.setItem(`mjobs-selected-application:${selected}`,id);applicationRestoreProfile.current=selected;
-    setSelectedApp({...listSummary,...application,title:application.title||listSummary?.title||'',company:application.company||listSummary?.company||'',answer_bank:answerBank.answers});setApplicationTracking(tracking);setApplicationStatusDraft(tracking.status||'');setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());setDocs(documents.documents);setAnswerExportText(answerExport?{documentId:answerExport.id,text:answerText}:null);setAnswerDrafts([]);if(navigate)setTab('Applications');
+    const sameEditScope=selectedAppRef.current?.id===id&&selectedAppRef.current?.profile_id===selected;
+    const previousStatus=applicationTrackingRef.current?.status||'';
+    setSelectedApp({...listSummary,...application,title:application.title||listSummary?.title||'',company:application.company||listSummary?.company||'',answer_bank:answerBank.answers});
+    setApplicationTracking(tracking);
+    // Readback refreshes saved data, but must not erase newer local edits.
+    // A pristine status follows the server; a user-selected stage stays local.
+    setApplicationStatusDraft(current=>!sameEditScope||current===previousStatus?tracking.status||'':current);
+    if(!sameEditScope){setApplicationNoteDraft('');setApplicationNoteRequestId(crypto.randomUUID());setAnswerDrafts([]);}
+    setDocs(documents.documents);setAnswerExportText(answerExport?{documentId:answerExport.id,text:answerText}:null);if(navigate)setTab('Applications');
   }
   async function openManualMockSignIn(applicationId:string) {
     if(operationMode!=='FIXTURE'||!profileId)throw new Error('MOCK sign-in is available only in the active fixture workspace.');
