@@ -259,6 +259,7 @@ def finish_inline(store, operation_id, state, error=None, *, browser_closed=Fals
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         row = connection.execute(select(
+            m.operations.c.id, m.operations.c.entity_id,
             m.operations.c.state, m.operations.c.cancel_requested, m.operations.c.kind, m.operations.c.error,
             m.operations.c.recovery_metadata,
         ).where(m.operations.c.id == operation_id,
@@ -282,6 +283,14 @@ def finish_inline(store, operation_id, state, error=None, *, browser_closed=Fals
                            for key in ("profile_id", "attempt_id"))
                     or not compare_digest(sha256(owner_token.encode()).hexdigest(), digest)):
                 return False
+            if any(key in owner for key in ('tree_observer', 'tree_retention', 'tree_closure')):
+                from services.applications.manual_auth_recovery import confirmed_tree_closure
+
+                if not confirmed_tree_closure(row._mapping):
+                    connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                        state="BLOCKED", error="BROWSER_RELEASE_UNCONFIRMED", updated_at=now(),
+                        current_step="FINALIZING", completed_at=None, lease_expires_at=None))
+                    return False
             if "process" in owner or "process_identified" in owner:
                 from services.applications.browser_process import process_status
 

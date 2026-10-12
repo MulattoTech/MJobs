@@ -2457,7 +2457,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 statement = statement.where((m.operations.c.entity_id == profile_id)
                     | m.operations.c.entity_id.in_(app_ids)
                     | m.operations.c.entity_id.in_(resume_ids))
-            return {"operations": [operation_public_record(row) for row in connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings()]}
+            recent = list(connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings())
+            # Recovery must remain reachable even after unrelated history grows.
+            # Reuse the same profile fence and public serializer for held rows.
+            held = connection.execute(statement.where(m.operations.c.kind == 'MANUAL_AUTH',
+                (m.operations.c.state == 'RUNNING') | ((m.operations.c.state == 'BLOCKED')
+                & (m.operations.c.error == 'BROWSER_RELEASE_UNCONFIRMED'))).order_by(
+                    m.operations.c.updated_at.desc())).mappings()
+            seen = {row['id'] for row in recent}
+            recent.extend(row for row in held if row['id'] not in seen)
+            return {"operations": [operation_public_record(row) for row in recent]}
 
     @app.get("/operations/dead-letter-queue")
     def dead_letter_queue(profile_id: str | None = None):

@@ -157,7 +157,7 @@ function archiveableDocuments(library:DocumentArchiveLibrary,profileId:string):A
   }
   return rows;
 }
-type Operation = {id:string; kind:string; state:string; error:string|null;attempt_count:number;cancel_requested:boolean;updated_at:string;last_attempt_at?:string|null;dead_lettered_at?:string|null;discarded_at?:string|null;retryable?:boolean;retry_blocked_reason?:string};
+type Operation = {id:string; entity_id:string; kind:string; state:string; error:string|null;attempt_count:number;cancel_requested:boolean;updated_at:string;last_attempt_at?:string|null;dead_lettered_at?:string|null;discarded_at?:string|null;retryable?:boolean;retry_blocked_reason?:string};
 type AuditEvent = {id:string;type:string;summary:string;subject:string;company:string;timestamp:string};
 type CompanyDiscoveryActivityEvent = {timestamp:string|null;event_type:string;summary:string;details?:unknown};
 type Source = {id:string;provider:string;tenant:string;name:string;enabled:boolean;health_status:string;jobs_seen:number;last_error:string|null;last_success:string|null;backoff_until:string|null;poll_interval:number;concurrency:number;request_timeout:number;rate_limit:number;jitter_seconds:number;strategy:string;capabilities:{capabilities:string[]}};
@@ -953,6 +953,18 @@ function App() {
       if(profileRef.current===selectedProfile&&sequence===appSequence.current) {
         await showApp(applicationId);
         setNotice('The MOCK sign-in window closed. The application remains AUTH_REQUIRED; rerun it separately after signing in.');
+      }
+    });
+  }
+  async function recoverManualMockBrowser(applicationId:string,operationId:string) {
+    if(operationMode!=='FIXTURE'||!profileId)throw new Error('Browser recovery is available only in the active fixture workspace.');
+    const selectedProfile=profileId;
+    const sequence=appSequence.current;
+    await action('Recovering closed browser',async()=>{
+      await api(`/profiles/${encodeURIComponent(selectedProfile)}/applications/${encodeURIComponent(applicationId)}/manual-auth/${encodeURIComponent(operationId)}/recover`,{method:'POST'});
+      if(profileRef.current===selectedProfile&&sequence===appSequence.current){
+        await showApp(applicationId,undefined,false);
+        setNotice('Closed browser capacity recovered. Sign-in and application rerun remain separate actions.');
       }
     });
   }
@@ -1793,7 +1805,7 @@ function App() {
           {answerDrafts.length>0&&<button className="primary" disabled={!!busy||answerConfidencePolicyProfileId!==profileId||!answerDrafts.every(row=>row.question.trim()&&row.text.trim()&&row.reviewed&&(!row.answer_id||suggestAnswers(row.question,selectedApp.answer_bank||[]).some(({answer,match})=>answer.id===row.answer_id&&answer.confidence>=answerConfidencePolicy.minimum_saved_answer_confidence&&match.score>=answerConfidencePolicy.minimum_question_match_confidence)))} onClick={()=>void action('Saving reviewed answer export',exportAnswers)}>Save reviewed answers and export TXT</button>}
           <p className="muted">Unreviewed answers, missing text, and saved answers below the supported match threshold are blocked. Earlier exports remain available in document history.</p>
         </section>
-        {selectedApp.target==='MOCK'?(operationMode==='FIXTURE'?(selectedApp.state==='AUTH_REQUIRED'?<ManualMockAuthentication applicationId={selectedApp.id} company={selectedApp.company} title={selectedApp.title} signInPending={busy==='Opening MOCK sign-in'} rerunPending={busy==='Rerunning MOCK application'} onStartSignIn={applicationId=>void openManualMockSignIn(applicationId)} onRerun={applicationId=>void rerunAfterManualMockSignIn(applicationId)}/>:<MockRunControls profileId={profileId||''} applicationId={selectedApp.id} applicationState={selectedApp.state} disabled={!!busy} onRefresh={async()=>{await showApp(selectedApp.id,undefined,false);await refresh(profileRef.current);}}/>):<p className="safety">Fictional application actions are disabled in personal mode.</p>):<p className="safety">Manual preparation only. Review the documents and use the employer’s own application page.</p>}
+        {selectedApp.target==='MOCK'?(operationMode==='FIXTURE'?(selectedApp.state==='AUTH_REQUIRED'?<ManualMockAuthentication applicationId={selectedApp.id} company={selectedApp.company} title={selectedApp.title} signInPending={busy==='Opening MOCK sign-in'} rerunPending={busy==='Rerunning MOCK application'} heldOperations={ops.filter(op=>op.kind==='MANUAL_AUTH'&&op.entity_id===selectedApp.id&&(op.state==='RUNNING'||(op.state==='BLOCKED'&&op.error==='BROWSER_RELEASE_UNCONFIRMED'))).map(op=>op.id)} recoveryPending={busy==='Recovering closed browser'} onRecover={(applicationId,operationId)=>void recoverManualMockBrowser(applicationId,operationId)} onStartSignIn={applicationId=>void openManualMockSignIn(applicationId)} onRerun={applicationId=>void rerunAfterManualMockSignIn(applicationId)}/>:<MockRunControls profileId={profileId||''} applicationId={selectedApp.id} applicationState={selectedApp.state} disabled={!!busy} onRefresh={async()=>{await showApp(selectedApp.id,undefined,false);await refresh(profileRef.current);}}/>):<p className="safety">Fictional application actions are disabled in personal mode.</p>):<p className="safety">Manual preparation only. Review the documents and use the employer’s own application page.</p>}
         <section className="panel" aria-label="ATS question preflight"><h3>ATS question preflight</h3>{selectedApp.question_preflight?<><p>{selectedApp.question_preflight.result} · checked {stamp(selectedApp.question_preflight.observed_at)}{selectedApp.question_preflight.reason?` · ${selectedApp.question_preflight.reason}`:''}</p>{selectedApp.question_preflight.missing.length>0&&<ul aria-label="Unresolved required questions">{selectedApp.question_preflight.missing.map(item=>{const missing=Object.entries({facts:item.fact_ids,answers:item.answer_ids,profile:item.profile_paths,documents:item.document_kinds,application:item.application_context}).filter(([,values])=>values?.length).map(([kind,values])=>`${kind}: ${values!.join(', ')}`).join('; ');return <li key={item.question_id}><strong>{item.question}</strong> ({item.question_id})<p><strong>Unresolved reason:</strong> {missing?`Persisted preflight is missing ${missing}.`:selectedApp.question_preflight?.reason||'The persisted preflight did not identify a resolvable mapping.'}</p><button type="button" disabled={!!busy} onClick={()=>reviewPreflightQuestion(item.question)}>Review this question</button></li>;})}</ul>}</>:<p>No structured question preflight has been run yet.</p>}<p className="muted">Only supported structured metadata is checked. UNKNOWN or missing required answers stop the browser flow for review.</p></section>
         <h3>Tracking evidence</h3><p className="description">{selectedApp.trace.join(' → ')}</p>{selectedApp.confirmation&&<pre>{JSON.stringify(selectedApp.confirmation,null,2)}</pre>}<h3>Attempts</h3>{selectedApp.attempts?.map((attempt,i)=><p key={i}>{stamp(attempt.started_at)} · {attempt.state} · {attempt.steps.join(' → ')}</p>)}</>:<div className="empty"><h2>Your paper trail.</h2><p>Select an application to download documents and inspect its status and attempts.</p></div>}</section></div></>}
       {tab==='Applications'&&selectedApp&&profileId&&<>

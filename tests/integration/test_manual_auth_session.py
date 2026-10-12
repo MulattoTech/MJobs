@@ -120,3 +120,43 @@ class ManualAuthSessionApiTests(unittest.TestCase):
         self.assertNotIn("mock_session", response.text)
         counts = __import__("httpx").get(self.origin + "/_test/request-counts").json()
         self.assertEqual(counts, {"review": 0, "submit": 0})
+
+    def test_browser_callback_exposes_original_api_deadline(self):
+        from workers.operations import OperationTimedOut
+        now = [10.0]
+        observed = []
+        def open_window(**kwargs):
+            check = kwargs['check']
+            self.assertTrue(callable(getattr(check, 'remaining_seconds', None)),
+                            'Browser callback must expose its original remaining budget')
+            observed.append(check.remaining_seconds())
+            now[0] = 10.75
+            observed.append(check.remaining_seconds())
+            now[0] = 11.0
+            with self.assertRaises(OperationTimedOut):
+                check.remaining_seconds()
+            return 'MANUAL_AUTH_WINDOW_CLOSED'
+        with patch('apps.api.manual_auth.monotonic', side_effect=lambda: now[0]), \
+                patch('apps.api.manual_auth.timeout', return_value=1), \
+                patch('apps.api.manual_auth.open_mock_authentication', side_effect=open_window):
+            response = self.client.post(self.url, json={})
+        self.assertEqual(observed, [1.0, .25])
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(self.store.application(self.application_id)['state'], 'AUTH_REQUIRED')
+
+    def test_cancellation_query_time_is_subtracted_from_browser_budget(self):
+        now = [10.0]
+        observed = []
+        def cancellation_check(*args, **kwargs):
+            now[0] += .4
+        def open_window(**kwargs):
+            observed.append(kwargs['check'].remaining_seconds())
+            return 'MANUAL_AUTH_WINDOW_CLOSED'
+        with patch('apps.api.manual_auth.monotonic', side_effect=lambda: now[0]), \
+                patch('apps.api.manual_auth.timeout', return_value=1), \
+                patch('apps.api.manual_auth.check_cancelled', side_effect=cancellation_check), \
+                patch('apps.api.manual_auth.open_mock_authentication', side_effect=open_window):
+            response = self.client.post(self.url, json={})
+        self.assertEqual(len(observed), 1)
+        self.assertAlmostEqual(observed[0], .2)
+        self.assertEqual(response.status_code, 409, response.text)

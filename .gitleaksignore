@@ -151,3 +151,8 @@ bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline
 # Verified source SHA-256 evidence, not credentials (manual-auth owner-fence slice).
 c1bc0d09bca3f8de92816ae221a590111aa7225b:docs/evidence/2026-10-12-manual-auth-owner-fence.json:generic-api-key:10
 c1bc0d09bca3f8de92816ae221a590111aa7225b:docs/evidence/2026-10-12-manual-auth-owner-fence.json:generic-api-key:14
+
+# Reviewed synthetic request replay identifiers; authentication uses a separate token.
+d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.py:generic-api-key:35
+d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.py:generic-api-key:39
+d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.py:generic-api-key:80
