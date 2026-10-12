@@ -4,10 +4,16 @@
   "base_revision": "46cb283c8a5c1cab45828f68069f3a3d0545ea4a",
   "branch": "fix/dashboard-error-disclosure-524-20261011",
   "behavior": "Dashboard history, preview, launch, terminal, stop, legacy start/restart and missing-key errors return fixed recovery guidance instead of raw backend diagnostics.",
-  "source_git_blobs": {
-    "tools/agent_dashboard/server.py": "809a950ff12302d13d24682c4d834d587a9919ec",
-    "tests/unit/test_agent_dashboard_api.py": "ee645200497d1c27e818c5b9c723396ec6f12c78"
-  },
+  "source_git_blobs": [
+    {
+      "path": "tools/agent_dashboard/server.py",
+      "git_blob": "809a950ff12302d13d24682c4d834d587a9919ec"
+    },
+    {
+      "path": "tests/unit/test_agent_dashboard_api.py",
+      "git_blob": "ee645200497d1c27e818c5b9c723396ec6f12c78"
+    }
+  ],
   "boundary": "Synthetic backend exceptions may contain private paths, command output or arbitrary input; client details must contain only fixed text. Existing token/origin/legacy controls remain in force.",
   "regressions": {
     "negative_control": "29 failures on predecessor after correcting LaunchRequest schema: 28 exception-type/operation combinations plus raw KeyError disclosure. Authorization control passed.",
@@ -29,5 +35,26 @@
     "No requirement or parent issue promoted; overall goal acceptance remains0/7."
   ],
   "rollback": "Revert the scoped source commit; no private runtime, personal configuration or populated volumes changed. Real external submissions remain OFF.",
-  "verified_utc": "2026-10-11T23:59:50.866239+00:00"
+  "verified_utc": "2026-10-11T23:59:50.866239+00:00",
+  "scanner_followup": {
+    "run": 38186341315,
+    "attempt": 1,
+    "job": 114609368110,
+    "classification": [
+      {
+        "commit": "5c92f37ac5d7b0c6e18488f65dbbde4a03747492",
+        "file": "docs/evidence/2026-10-11-dashboard-error-disclosure.json",
+        "line": 9,
+        "verified": true
+      },
+      {
+        "commit": "46cb283c8a5c1cab45828f68069f3a3d0545ea4a",
+        "file": "docs/evidence/2026-10-11-dashboard-log-confinement.json",
+        "line": 10,
+        "verified": true
+      }
+    ],
+    "repair": "Exact historical fingerprints only; separate path and digest fields to avoid future squash reclassification; runtime and test source unchanged",
+    "successor": "PENDING"
+  }
 }
