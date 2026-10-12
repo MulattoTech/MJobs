@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Verify durable no-duplicate submission recovery against production PostgreSQL migrations",
+  "current_objective": "Preserve source review editing through background refresh and verify current browser acceptance",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2637,20 +2637,21 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "requirement": "MJ-REQ-158",
-    "issue": 159,
-    "branch": "test/application-crash-recovery-159-20261012",
-    "base": "63ec3fa391e6134d460271195af95f3c6d39e176",
-    "status": "LOCAL_ADJACENT_VERIFIED_POSTGRES_NOT_RUN",
+    "requirement": "MJ-FEATURE-517",
+    "issue": 517,
+    "branch": "fix/source-review-refresh-517-20261012",
+    "base": "e4d49901ba27eb5915d4f5143a2f42e6cc00393c",
+    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
     "parent_acceptance": "PARTIAL",
     "external_submission_enabled": false,
     "owned_paths": [
-      ".github/workflows/integration.yml",
-      "tests/integration/test_application_worker_crash_postgres.py"
+      "apps/web/src/source-candidate-review.tsx",
+      "apps/web/src/source-candidate-review.test.tsx",
+      "tests/browser/test_source_candidate_review_panel_connected.py"
     ],
-    "next_action": "Publish reviewable verification PR; require all3 actual PostgreSQL crash tests PASS without skips and current protected checks",
-    "result": "PARTIAL",
-    "local": "16 adjacent integration/browser PASS9subtests;3 shared physical-crash Chromium/subprocess cases PASS;3 actual PostgreSQL SKIP/NOT_RUN locally",
-    "hosted": "NOT_RUN on candidate"
+    "next_action": "Publish short-lived PR; verify protected checks and affected/full browser evidence",
+    "local": "28VitestPASS/10APIintegrationPASS/1connectedChromiumPASS/buildPASS;RED reproduced",
+    "hosted": "NOT_RUN on candidate",
+    "result": "PARTIAL"
   }
 }

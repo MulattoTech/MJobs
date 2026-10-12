@@ -135,6 +135,9 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
             failed_requests = []
             page_errors = []
             review_attempts = []
+            bootstrap_reads = []
+            refresh_reads = []
+            hold_refresh = {"enabled": False}
 
             def counts():
                 with store.engine.connect() as connection:
@@ -174,6 +177,14 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                             return
                         if request.method == "GET" and parsed.path == "/source-candidates":
                             list_reads.append(parse_qs(parsed.query).get("profile_id", [None])[0])
+                            if hold_refresh["enabled"]:
+                                refresh_reads.append(route)
+                                return
+                        if (request.method == "GET" and parsed.path == "/applications"
+                                and parse_qs(parsed.query).get("profile_id") == ["fixture"]
+                                and not bootstrap_reads):
+                            bootstrap_reads.append(route)
+                            return
                         if request.method == "POST" and (
                             parsed.path.startswith("/applications")
                             or parsed.path.endswith("/collect")
@@ -220,6 +231,54 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     ])
                     self.assertNotIn("other-only.example", " ".join(labels))
                     self.assertIn("fixture", list_reads)
+
+                    # The panel can load before the main app's independent
+                    # refresh. Release that read while editing, and hold its
+                    # ensuing panel readback to make the interaction deterministic.
+                    self.assertEqual(len(bootstrap_reads), 1)
+                    editing = queue.get_by_role("article", name="Source candidate alpha.example")
+                    reason = editing.get_by_label("Review reason for alpha.example", exact=True)
+                    reason.fill("Unsaved review before background refresh.")
+                    reason.focus()
+                    hold_refresh["enabled"] = True
+                    with page.expect_request(lambda request: request.method == "GET"
+                                             and urlsplit(request.url).path == "/source-candidates"):
+                        bootstrap_reads[0].continue_()
+                    expect(queue).to_have_attribute("aria-busy", "true")
+                    expect(reason).to_be_visible()
+                    expect(reason).to_be_focused()
+                    expect(reason).to_have_value("Unsaved review before background refresh.")
+                    reason.fill("Review continued during background refresh.")
+                    for label in ("API or feed evidence note", "Access and terms note",
+                                  "Capabilities and limits note", "Expected value and maintenance note"):
+                        editing.get_by_label(f"{label} for alpha.example", exact=True).fill(
+                            "Synthetic review remains unverified; collection stays disabled.")
+                    refresh_queue_button = editing.get_by_role(
+                        "button", name="Queue local integration task", exact=True)
+                    expect(refresh_queue_button).to_be_disabled()
+                    reason.focus()
+                    self.assertEqual(len(refresh_reads), 1)
+                    with page.expect_response(lambda response: response.status == 503
+                                              and urlsplit(response.url).path == "/source-candidates"):
+                        refresh_reads[0].fulfill(status=503, json={"detail": "Synthetic readback outage"})
+                    expect(queue.get_by_role("alert")).to_be_visible()
+                    with page.expect_request(lambda request: request.method == "GET"
+                                             and urlsplit(request.url).path == "/source-candidates"):
+                        queue.get_by_role("button", name="Retry loading candidates", exact=True).click()
+                    expect(reason).to_be_visible()
+                    expect(reason).to_have_value("Review continued during background refresh.")
+                    expect(refresh_queue_button).to_be_disabled()
+                    reason.focus()
+                    self.assertEqual(len(refresh_reads), 2)
+                    hold_refresh["enabled"] = False
+                    with page.expect_response(lambda response: response.request.method == "GET"
+                                              and urlsplit(response.url).path == "/source-candidates"):
+                        refresh_reads[1].continue_()
+                    expect(queue).to_have_attribute("aria-busy", "false")
+                    expect(reason).to_be_focused()
+                    expect(reason).to_have_value("Review continued during background refresh.")
+                    expect(refresh_queue_button).to_be_enabled()
+                    reason.fill("")
 
                     state_filter = page.get_by_label("Filter by review state", exact=True)
                     state_filter.select_option("BLOCKED")
@@ -390,7 +449,16 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                         "No collection capability is currently enabled.")
                     queued.get_by_label("Expected value and maintenance note for alpha.example").fill(
                         "Source value and maintenance need bounded evaluation.")
+                    for label, value in (
+                        ("Review reason", "Existing provider issue tracks review of this public job board."),
+                        ("API or feed evidence note", "Public API or feed support is not verified."),
+                        ("Access and terms note", "Access terms need review before collection."),
+                        ("Capabilities and limits note", "No collection capability is currently enabled."),
+                        ("Expected value and maintenance note", "Source value and maintenance need bounded evaluation."),
+                    ):
+                        expect(queued.get_by_label(f"{label} for alpha.example", exact=True)).to_have_value(value)
                     expect(queued.get_by_label("Integration task issue number for alpha.example")).to_have_value("")
+                    expect(queued.get_by_role("button", name="Queue local integration task", exact=True)).to_be_enabled()
                     with page.expect_response(
                         lambda item: item.request.method == "PUT"
                         and item.url.endswith("/review") and item.status == 200,
