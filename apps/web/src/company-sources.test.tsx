@@ -15,6 +15,12 @@ const source = {id:'source-1', company_id:'acme', profile_id:'fixture', profile_
   provenance:{events:[], tenant_evidence:[], source_linked_history_available:false}};
 
 describe('Companies/Sources view', () => {
+  it('shows the persisted automatic collector and its paused state', async () => {
+    const html = await render([{...source, collector: {status:'PAUSED', poll_interval:900}}]);
+    expect(html).toContain('Automatic collection');
+    expect(html).toContain('Paused');
+    expect(html).toContain('900 seconds');
+  });
   it('renders evidence-based fields, real controls and explicit unavailable actions', async () => {
     const html=await render([source]);
     for (const label of ['Company','Domain','Career Site','ATS','Source Priority','Relevant Jobs','Applications','User Preference',

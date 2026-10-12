@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Finish request-independent document APIs and reap native tools on persisted worker fences.",
+  "current_objective": "Verified official Greenhouse discovery through canonical employer import and recurring saved-search collection",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2643,15 +2643,15 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "requirement": "MJ-REQ-156",
-    "issue": 157,
+    "requirement": "MJ-REQ-155",
+    "issue": 156,
     "result": "PARTIAL",
-    "local": "Follow-up49integration/pathchecksPASS12subtests;4document-history/comparisonChromiumPASS;prior45parser/OCRunitPASS7subtests/41adjacentPASS2SKIP88subtests.",
-    "hosted": "Initialcandidate4bee:actual3newPGPASS1replaymetadataFAIL;CodeQL5existingalertflowsFAIL. Rootcorrectionsimplemented/newcandidatechecksNOT_RUN.",
+    "local": "Final55focusedPASS/11subtests;1finalChromiumPASS plus adjacent monitoring ChromiumPASS;6VitestPASS;productionbuildPASS;actual6PGlocalSKIP",
+    "hosted": "NOT_RUN candidate; six actual PostgreSQL cases required including domain/host ordering and foreign-owner contention",
     "remaining": [
-      "Exact candidate required checks and four new PostgreSQL cases",
-      "Protected integration and independent release gate; parent remains PARTIAL"
+      "Protected exact-revision hosted integration and selected PostgreSQL acceptance",
+      "Parent pipeline and independent release gate remain incomplete"
     ],
-    "observed_utc": "2026-10-12T14:37:21.333245+00:00"
+    "observed_utc": "2026-10-12T15:19:04.502859+00:00"
   }
 }
