@@ -275,11 +275,21 @@ def _serve():
                 # cooperative tree exit. No transient reply/certificate can be
                 # recovered over a lost channel; capacity must stay held.
                 deadline = time.monotonic() + 900
+                retry_delay = .05
                 while time.monotonic() < deadline:
                     if query.status() == "EXITED":
-                        persist()
-                        break
-                    time.sleep(.05)
+                        # A failed write is not closure evidence. Keep the
+                        # original native query through temporary store outages;
+                        # each retry rechecks scope/owner and native accounting.
+                        if store is None or persist():
+                            break
+                        remaining = deadline - time.monotonic()
+                        if remaining <= 0:
+                            break
+                        time.sleep(min(retry_delay, remaining))
+                        retry_delay = min(retry_delay * 2, 2)
+                    else:
+                        time.sleep(min(.05, max(0, deadline - time.monotonic())))
                 return
             if request == {"action": "close"}:
                 persist()

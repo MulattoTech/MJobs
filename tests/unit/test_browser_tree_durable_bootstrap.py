@@ -3,8 +3,9 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import time
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from packages.persistence.store import Store
 from services.applications.browser_tree import BrowserTreeJob
@@ -131,6 +132,12 @@ class DurableBootstrapTests(unittest.TestCase):
             other_job.close()
 
     def test_creator_death_retains_live_chromium_then_persists_on_peer_reload(self):
+        self.check_creator_death()
+
+    def test_creator_death_recovers_after_sqlite_write_timeout(self):
+        self.check_creator_death(write_outage=True)
+
+    def check_creator_death(self, write_outage=False):
         location = Path(self.directory.name)
         creator = subprocess.Popen([sys.executable, str(Path('tests/fixtures/browser_tree_durable_creator.py').resolve())],
             stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
@@ -144,7 +151,25 @@ class DurableBootstrapTests(unittest.TestCase):
             self.assertEqual(creator.wait(timeout=10), 0)
             self.assertEqual(owner_process_status(identity), 'LIVE')
             self.assertNotIn('tree_closure', self.row()['recovery_metadata']['manual_auth_owner'])
-            (location / 'release').touch()
+            if write_outage:
+                # A real lock exceeds the observer's 15-second SQLite write
+                # timeout. Reads remain available; no private configuration.
+                import sqlite3
+                lock = sqlite3.connect(location / 'fixture.db')
+                try:
+                    lock.execute('BEGIN IMMEDIATE')
+                    (location / 'release').touch()
+                    host = json.loads((location / 'ready.json').read_text())['host']
+                    eventually(lambda: owner_process_status(host) == 'EXITED', 15)
+                    time.sleep(17)
+                    self.assertEqual(owner_process_status(identity), 'LIVE')
+                    self.assertNotIn('tree_closure', self.row()['recovery_metadata']['manual_auth_owner'])
+                    self.assertEqual(self.row()['state'], 'RUNNING')
+                finally:
+                    lock.rollback()
+                    lock.close()
+            else:
+                (location / 'release').touch()
             eventually(lambda: 'tree_closure' in self.row()['recovery_metadata']['manual_auth_owner'], 15)
             peer = Store(self.url)
             try:
@@ -173,6 +198,66 @@ class DurableBootstrapTests(unittest.TestCase):
 
 
 class PersistenceDescriptorTests(unittest.TestCase):
+    def test_creator_loss_retries_failed_write_without_dropping_query(self):
+        self.run_departed_creator([False, True], expected_writes=2)
+
+    def test_creator_loss_failed_writes_expire_without_success(self):
+        self.run_departed_creator(False, expected_writes=None)
+
+    def run_departed_creator(self, writes, expected_writes):
+        from hashlib import sha256
+        from contextlib import ExitStack
+        from services.applications import browser_tree_ipc as ipc
+        token = 'a' * 64
+        binding = {'operation_id': 'op', 'application_id': 'app',
+            'attempt_id': 'attempt', 'profile_id': 'profile',
+            'owner_digest': sha256(token.encode()).hexdigest()}
+        initial = {'handle': 1, 'nonce': 'a' * 64, 'binding': binding,
+            'persistence': {'url': 'sqlite:///synthetic.db', 'owner_token': token}}
+        query = Mock()
+        query.contains.return_value = False
+        query.limit_flags.return_value = 0
+        query.accounting.return_value = {'total': 1, 'active': 1, 'terminated': 0}
+        query.status.return_value = 'EXITED'
+        elapsed = [0.0]
+        original_sleep, original_monotonic = time.sleep, time.monotonic
+        shared_clock_unchanged = []
+        def sleep(seconds):
+            self.assertFalse(query.close.called)
+            elapsed[0] += seconds
+        def persist(*args, **kwargs):
+            shared_clock_unchanged.append(
+                time.sleep is original_sleep and time.monotonic is original_monotonic)
+            self.assertIs(args[2], query)
+            self.assertEqual(args[3], binding)
+            self.assertEqual(kwargs['owner_token'], token)
+            self.assertFalse(query.close.called)
+            return writes.pop(0) if isinstance(writes, list) else writes
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(ipc, '_read', side_effect=[initial, ipc._ChannelLost()]))
+            stack.enter_context(patch.object(ipc, '_write'))
+            # Replace this module's reference, never the shared time module:
+            # unrelated supervisor threads must keep their real clock/sleep.
+            clock = Mock(monotonic=lambda: elapsed[0], sleep=sleep)
+            stack.enter_context(patch.object(ipc, 'time', clock))
+            stack.enter_context(patch('services.applications.browser_tree._kernel'))
+            stack.enter_context(patch('services.applications.browser_tree.BrowserTreeQuery', return_value=query))
+            stack.enter_context(patch('packages.persistence.store.Store'))
+            stack.enter_context(patch('services.applications.browser_tree_certificate.enroll_retained_observer', return_value=True))
+            stack.enter_context(patch('services.applications.browser_tree_certificate.rollback_unlaunched_enrollment'))
+            writer = stack.enter_context(patch('services.applications.browser_tree_certificate.record_retained_closure', side_effect=persist))
+            ipc._serve()
+        query.close.assert_called_once()
+        self.assertTrue(shared_clock_unchanged)
+        self.assertTrue(all(shared_clock_unchanged), 'Observer clock patches leaked to other threads')
+        if expected_writes is not None:
+            self.assertEqual(writer.call_count, expected_writes)
+            self.assertGreater(elapsed[0], 0)
+        else:
+            self.assertGreater(writer.call_count, 1)
+            self.assertGreaterEqual(elapsed[0], 900)
+            self.assertLess(elapsed[0], 902)
+
     def test_private_descriptor_rejects_malformed_foreign_and_ephemeral_stores(self):
         from hashlib import sha256
         from services.applications.browser_tree_ipc import _validate_persistence
