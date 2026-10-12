@@ -69,12 +69,14 @@ class DatabaseLeastPrivilegePostgresTests(unittest.TestCase):
                     connection.execute(text("UPDATE preservation_probe SET document_hash=:hash WHERE id=2"), {"hash": document_hash})
                     connection.execute(text("DELETE FROM preservation_probe WHERE id=2"))
                     connection.execute(text("SELECT pg_advisory_xact_lock(175)"))
-                for forbidden in ("CREATE TABLE forbidden_ddl (id integer)", "CREATE TEMP TABLE forbidden_temp (id integer)", "CREATE ROLE forbidden_role",
-                                  "CREATE DATABASE forbidden_database", "UPDATE alembic_version SET version_num='invalid'",
+                for forbidden in ("CREATE TABLE forbidden_ddl (id integer)", "CREATE TEMP TABLE forbidden_temp (id integer)",
+                                  "CREATE ROLE mjobs_forbidden_" + suffix,
+                                  "CREATE DATABASE mjobs_forbidden_" + suffix, "UPDATE alembic_version SET version_num='invalid'",
                                   "TRUNCATE preservation_probe"):
-                    with self.subTest(forbidden=forbidden), self.assertRaises(DBAPIError):
-                        with runtime.engine.begin() as connection:
+                    with self.subTest(forbidden=forbidden):
+                        with self.assertRaises(DBAPIError) as denied, runtime.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
                             connection.execute(text(forbidden))
+                        self.assertEqual(denied.exception.orig.sqlstate, "42501", "Must fail for insufficient privilege, not transaction syntax or missing objects")
                 # Future administrator migrations still work and grant DML to new application tables.
                 with patch.dict(os.environ, {"MJOBS_DATABASE_URL": admin_url}):
                     command.upgrade(Config("alembic.ini"), "head")
@@ -110,4 +112,6 @@ class DatabaseLeastPrivilegePostgresTests(unittest.TestCase):
                 driver = connection.connection.driver_connection
                 driver.execute(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier(database)))
                 driver.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier(role)))
+                driver.execute(sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier("mjobs_forbidden_" + suffix)))
+                driver.execute(sql.SQL("DROP ROLE IF EXISTS {}").format(sql.Identifier("mjobs_forbidden_" + suffix)))
             cluster.dispose()
