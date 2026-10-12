@@ -2650,7 +2650,7 @@
     ],
     "next_action": "Publish reviewable verification PR; require all3 actual PostgreSQL crash tests PASS without skips and current protected checks",
     "result": "PARTIAL",
-    "local": "16 adjacent integration/browser PASS9subtests; actual PostgreSQL NOT_RUN locally (Docker daemon unavailable)",
+    "local": "16 adjacent integration/browser PASS9subtests;3 shared physical-crash Chromium/subprocess cases PASS;3 actual PostgreSQL SKIP/NOT_RUN locally",
     "hosted": "NOT_RUN on candidate"
   }
 }

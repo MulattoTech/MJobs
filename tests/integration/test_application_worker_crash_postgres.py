@@ -88,31 +88,14 @@ def receipt_outage_proxy(upstream, outage_file, outage_state):
             raise RuntimeError("Receipt outage proxy failed to stop")
 
 
-@unittest.skipUnless(POSTGRES_URL, f"Set {POSTGRES_URL_ENV} to a disposable loopback mjobs_test_* database")
-class PostgreSQLApplicationWorkerCrashTests(unittest.TestCase):
+class ApplicationWorkerCrashTests(unittest.TestCase):
     """Crash only the owned worker child after the local ATS accepts one submit."""
 
     def setUp(self):
-        self.base_url = make_url(POSTGRES_URL)
-        if (not self.base_url.drivername.startswith("postgresql")
-                or self.base_url.host not in LOOPBACK_HOSTS
-                or not self.base_url.database
-                or not self.base_url.database.startswith("mjobs_test_")):
-            raise RuntimeError(
-                f"{POSTGRES_URL_ENV} requires a loopback PostgreSQL database named mjobs_test_*")
-
-        self.schema = "worker_crash_" + uuid4().hex
-        self.admin_engine = create_engine(self.base_url, connect_args={"connect_timeout": 10})
-        with self.admin_engine.begin() as connection:
-            connection.execute(text(f'CREATE SCHEMA "{self.schema}"'))
-        self.addCleanup(self.drop_schema)
-
-        scoped_query = dict(self.base_url.query)
-        scoped_query["options"] = f"-csearch_path={self.schema}"
-        self.database_url = self.base_url.set(query=scoped_query).render_as_string(hide_password=False)
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-pg-app-crash-")
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        self.database_url = self.create_database()
         self.fixture_context = fixture_server(receipt_file=self.root / "mock-receipts.json")
         self.upstream_origin = self.fixture_context.__enter__()
         self.addCleanup(self.close_fixture)
@@ -124,10 +107,7 @@ class PostgreSQLApplicationWorkerCrashTests(unittest.TestCase):
         self.addCleanup(self.close_proxy)
         self.store = Store(self.database_url)
         self.addCleanup(self.dispose_store)
-        # Exercise the released schema, not a metadata-only approximation.
-        # The scoped URL cannot migrate public or any populated user schema.
-        with patch.dict(os.environ, {"MJOBS_DATABASE_URL": self.database_url}):
-            command.upgrade(Config(str(ROOT / "alembic.ini")), "head")
+        self.migrate_database()
         self.store.bind_workspace_mode("FIXTURE")
         self.profile_id = "pg-crash-" + uuid4().hex[:16]
         profile = dict(PROFILE, id=self.profile_id, email=f"{self.profile_id}@example.test")
@@ -147,6 +127,12 @@ class PostgreSQLApplicationWorkerCrashTests(unittest.TestCase):
             "MJOBS_OPERATION_MODE": "FIXTURE",
             "PYTHONUTF8": "1",
         })
+
+    def create_database(self):
+        return f"sqlite:///{(self.root / 'crash.db').as_posix()}"
+
+    def migrate_database(self):
+        self.store.migrate()
 
     def close_fixture(self):
         if getattr(self, "fixture_context", None) is not None:
@@ -369,14 +355,16 @@ os._exit(74)
         self.reopen()
         self.expire(operation_id)
         self.assertEqual(recover_expired(self.store), 1)
+        # Already-confirmed persisted applications are finalized by lease
+        # recovery itself; they do not need another worker claim or provider GET.
+        self.assertEqual(self.operation(operation_id)["state"], "COMPLETED")
         with patch.dict(os.environ, self.worker_env), patch(
                 "services.applications.mock_adapter.sync_playwright",
                 side_effect=AssertionError("Completed submit must not relaunch Chromium")), patch(
                 "services.applications.mock_adapter._receipt",
                 side_effect=AssertionError("Durable confirmed attempt must not depend on provider availability")):
-            self.assertEqual(execute_operation(operation_id)["status"], "COMPLETED")
             self.assertEqual(execute_operation(operation_id)["status"], "ALREADY_CLAIMED_OR_CAPACITY")
-        self.assertEqual(self.operation(operation_id)["attempt_count"], 2)
+        self.assertEqual(self.operation(operation_id)["attempt_count"], 1)
         self.assertEqual(read_attempt_history(self.store, self.profile_id, self.application_id), before)
         self.assertEqual(self.store.application(self.application_id)["confirmation"]["receipt"], receipt["receipt"])
         replay = queue_mock_run(self.store, self.profile_id, self.application_id,
@@ -385,6 +373,33 @@ os._exit(74)
         self.assertEqual(replay["operation_id"], operation_id)
         self.assertEqual(self.receipt()["submission_count"], 1)
         self.assertEqual(self.counts(), {"review": 1, "submit": 1})
+
+@unittest.skipUnless(POSTGRES_URL, f"Set {POSTGRES_URL_ENV} to a disposable loopback mjobs_test_* database")
+class PostgreSQLApplicationWorkerCrashTests(ApplicationWorkerCrashTests):
+    """The same physical crash/restart contract against production PostgreSQL."""
+
+    def create_database(self):
+        self.base_url = make_url(POSTGRES_URL)
+        if (not self.base_url.drivername.startswith("postgresql")
+                or self.base_url.host not in LOOPBACK_HOSTS
+                or not self.base_url.database
+                or not self.base_url.database.startswith("mjobs_test_")):
+            raise RuntimeError(
+                f"{POSTGRES_URL_ENV} requires a loopback PostgreSQL database named mjobs_test_*")
+        self.schema = "worker_crash_" + uuid4().hex
+        self.admin_engine = create_engine(self.base_url, connect_args={"connect_timeout": 10})
+        with self.admin_engine.begin() as connection:
+            connection.execute(text(f'CREATE SCHEMA "{self.schema}"'))
+        self.addCleanup(self.drop_schema)
+        scoped_query = dict(self.base_url.query)
+        scoped_query["options"] = f"-csearch_path={self.schema}"
+        return self.base_url.set(query=scoped_query).render_as_string(hide_password=False)
+
+    def migrate_database(self):
+        # Exercise the released schema, not a metadata-only approximation.
+        # The scoped URL cannot migrate public or any populated user schema.
+        with patch.dict(os.environ, {"MJOBS_DATABASE_URL": self.database_url}):
+            command.upgrade(Config(str(ROOT / "alembic.ini")), "head")
 
 
 if __name__ == "__main__":
