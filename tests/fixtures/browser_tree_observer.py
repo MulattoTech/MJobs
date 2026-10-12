@@ -11,12 +11,23 @@ import time
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from services.applications.browser_process import capture_owner_identity
 from services.applications.browser_tree import BrowserTreeJob, BrowserTreeQuery, _Limits, _kernel
+from services.applications.browser_tree_ipc import _status
 
 
 def write(path, value):
     temporary = path.with_suffix(".tmp")
     temporary.write_text(json.dumps(value))
-    temporary.replace(path)
+    deadline = time.monotonic() + 1
+    while True:
+        try:
+            temporary.replace(path)
+            return
+        except PermissionError:
+            # A Windows test reader briefly denies delete sharing. Preserve
+            # the complete old snapshot and retry only this atomic replace.
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(.01)
 
 
 def main():
@@ -41,9 +52,11 @@ def main():
                 "setAllowed": set_allowed, "setError": set_error})
             deadline = time.monotonic() + 35
             while time.monotonic() < deadline:
+                accounting = query.accounting()
+                status = _status(accounting)
                 write(directory / "observation.json", {
-                    "status": query.status(), "accounting": query.accounting()})
-                if query.status() == "EXITED" or (directory / "observer-release").exists():
+                    "status": status, "accounting": accounting})
+                if status == "EXITED" or (directory / "observer-release").exists():
                     return
                 time.sleep(.05)
         finally:
