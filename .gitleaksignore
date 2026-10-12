@@ -156,3 +156,6 @@ c1bc0d09bca3f8de92816ae221a590111aa7225b:docs/evidence/2026-10-12-manual-auth-ow
 d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.py:generic-api-key:35
 d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.py:generic-api-key:39
 d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.py:generic-api-key:80
+
+# Verified public Git blob ID for the comparison API test source; not a credential.
+4e270786eea53da0a1f9f907665775c0d71b4057:docs/evidence/2026-10-12-comparison-scope-browser-recovery.json:generic-api-key:18

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "created_at_utc": "2026-10-12T08:59:09.201386+00:00",
+  "issue": 532,
+  "result": "PARTIAL",
+  "base_commit": "b03176c4f80b0fadc118865dbd8b535f19514b0a",
+  "scope": "Current saved-search comparison membership, accessible selection, and existing reviewed experience/manual-capture acceptance",
+  "source_git_blobs": [
+    {
+      "path": "apps/api/job_comparison.py",
+      "git_blob": "2589849362775aca267a34bedbceef54d90b9c5b"
+    },
+    {
+      "path": "apps/web/src/job-comparison-workspace.tsx",
+      "git_blob": "5864c89a1f46a7c58332ec1d90b9e5beaf0d584f"
+    },
+    {
+      "path": "apps/web/src/job-comparison-workspace.test.tsx",
+      "git_blob": "b9a6f4c28b7b3631f4459f33f17e632b21abfa74"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "git_blob": "b16a529d91043eac7f1a193655e569450b86c121"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "git_blob": "9a575352f04815261263c2666cb1f2075246a07a"
+    },
+    {
+      "path": "tests/browser/test_job_comparison_workspace.py",
+      "git_blob": "f0e42962e5ea02f8eb7ff178a984348aa9f9b235"
+    },
+    {
+      "path": "tests/browser/test_job_comparison_scope_recovery.py",
+      "git_blob": "a0a273f42f99dd5ba8a6b4fc56bb1a102bdf462a"
+    },
+    {
+      "path": "tests/browser/test_resume_experience_rewrite.py",
+      "git_blob": "b206beea20866331bb116d3d5a4bbbea600e1737"
+    },
+    {
+      "path": "tests/browser/test_manual_job_capture.py",
+      "git_blob": "0f6748e695d8829ea5cf41ecc2b99b189de53712"
+    },
+    {
+      "path": "tests/integration/test_job_comparison_api.py",
+      "git_blob": "4be4fa0bbbbec335bdbd4ba543ef82f27ae5d133"
+    }
+  ],
+  "behavior": [
+    "Only current-profile current-version scored jobs appear as comparison choices; zero scores remain eligible.",
+    "Comparison names expose title and company instead of opaque IDs.",
+    "Server rechecks normalized saved-search criteria and every saved Jobs filter on bounded selected IDs before calling the pure comparison service. Sorting cannot truncate selected membership.",
+    "Read-only comparison retains exact scores/provenance, rejects excluded jobs without writes, discards late old-scope responses and retries explicitly without exposing transport detail.",
+    "Existing experience rewrite acceptance traverses exact preview, explicit acknowledgement, alignment preview, worker, download and durable comparison.",
+    "Manual capture follows exact textbox controls and tests nested metadata rejection, flat metadata persistence, idempotency and no external fetching."
+  ],
+  "failure_classification": [
+    "Historical comparison POST was blocked by its own test route; stale fixture role profiles and unstructured requirements were not valid current score/provenance evidence.",
+    "Experience test skipped the current rewrite and alignment review gates.",
+    "Manual capture selectors matched both textbox and searchbox; nested arbitrary metadata is rejected by the existing bounded scalar contract.",
+    "Comparison browser readback reopened SQLite after disposal; test now disposes the readback pool.",
+    "Genuine product defects: stale/foreign-only score choices, opaque accessible labels, direct API bypass of saved-search criteria and saved list filters."
+  ],
+  "checks": [
+    {
+      "command": "python -m pytest -q tests/integration/test_job_comparison_api.py tests/integration/test_job_comparison_api_recovery.py tests/integration/test_job_comparison_app_mount.py tests/unit/test_job_comparison.py tests/integration/test_saved_search_filters.py tests/integration/test_match_score_search_filter.py tests/unit/test_application_link_filter_store.py",
+      "result": "52 passed, 32 subtests passed; 41.81s"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_job_comparison_workspace.py tests/browser/test_job_comparison_scope_recovery.py tests/browser/test_resume_experience_rewrite.py tests/browser/test_resume_rewrite_review.py tests/browser/test_manual_job_capture.py",
+      "result": "5 passed, 3 subtests passed; 35.85s; after final API pool adjustment affected comparison browsers rerun 2 passed 12.97s"
+    },
+    {
+      "command": "npm --prefix apps/web test -- src/job-comparison-workspace.test.tsx",
+      "result": "9 passed"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS; existing >500kB chunk warning"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "review": "Local Luna read-only review; not hosted or human approval. Nested pool checkout concern repaired before final verification.",
+  "hosted": "Initial candidate4e270786: hosted unit/web/policy/dependency/CodeQL PASS; integration/Compose pending when checked; secret scan found one independently verified public Git blob ID at evidence line18. One exact historical fingerprint exception; no rule/path suppression. Final candidate checks required anew.",
+  "release_readiness": "NOT_ACCEPTED. #532 remains PARTIAL. Refreshed 26 open high CodeQL findings; no acceptance matrix changes.",
+  "privacy": "All tests isolated synthetic SQLite/Chromium. No private environment/data/keys altered. Real external submissions OFF.",
+  "secret_candidate_triage": {
+    "verdict": "not_actionable",
+    "source": "git hash-object / git rev-parse, not authentication input",
+    "path": "tests/integration/test_job_comparison_api.py",
+    "git_blob": "4be4fa0bbbbec335bdbd4ba543ef82f27ae5d133",
+    "scope": "Only the already-published4e270786 evidence line18 fingerprint. Same content at a new fingerprint remains detectable.",
+    "verification": "Windows checksum-verified Gitleaks8.30.1 all-ref history2878commits: no leaks; original evidence via stdin still detects1 outside its historical fingerprint; separated current evidence detects0."
+  }
+}

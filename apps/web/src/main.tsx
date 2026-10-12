@@ -1490,7 +1490,7 @@ function App() {
           key={`${profileId}:${selectedSearchProfileId}:${jobs.map(job=>job.id).join('|')}`}
           profileId={profileId}
           searchProfileId={selectedSearchProfileId}
-          availableJobs={jobs.map(job=>({job_id:job.id,title:job.title,company:job.company}))}
+          availableJobs={jobs.filter(job=>job.match_score!==null).map(job=>({job_id:job.id,title:job.title,company:job.company}))}
           onCompare={request=>jobComparisonClient.compare(
             request.profile_id,request.search_profile_id,request.job_ids,
           )}

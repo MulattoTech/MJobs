@@ -68,11 +68,31 @@ class ResumeExperienceRewriteBrowserTests(unittest.TestCase):
                     page.get_by_label('Include '+experience['text'],exact=True).check()
                     wording='Maintained Linux systems for 12 clinics from 2020-2024.'
                     page.get_by_label('Rewrite this experience: '+experience['text'],exact=True).fill(wording)
-                    page.get_by_label('I reviewed this rewrite: '+experience['text'],exact=True).check()
+                    with page.expect_response(lambda response:
+                        response.url.endswith('/resume-rewrite-review-preview') and
+                        response.request.method=='POST') as preview_event:
+                        page.get_by_role('button',name='Preview exact resume rewrites',exact=True).click()
+                    preview=preview_event.value
+                    self.assertEqual(preview.status,200,preview.text())
+                    [rewrite]=preview.json()['rewrites']
+                    self.assertEqual(rewrite['source_text'],experience['text'])
+                    self.assertEqual(rewrite['proposed_text'],wording)
+                    self.assertEqual(rewrite['protected_token_audit']['missing'],[])
+                    self.assertEqual(store.profile('fixture'),before)
+                    page.get_by_label('I reviewed the proposed wording for fact experience',exact=True).check()
+                    with page.expect_response(lambda response:
+                        response.url.endswith('/resume-alignment-preview') and
+                        response.request.method=='POST') as alignment_event:
+                        page.get_by_role('button',name='Preview keyword alignment',exact=True).click()
+                    alignment=alignment_event.value
+                    self.assertEqual(alignment.status,200,alignment.text())
+                    self.assertTrue(alignment.json()['read_only'])
                     with page.expect_response(lambda response:response.url==origin+'/applications' and
                                               response.request.method=='POST') as event:
                         page.get_by_role('button',name='Prepare documents',exact=True).click()
                     operation=event.value.json();payload=event.value.request.post_data_json
+                    self.assertEqual(payload['expected_profile_version'],alignment.json()['profile_version'])
+                    self.assertEqual(payload['expected_job_fingerprint'],alignment.json()['job_fingerprint'])
                     self.assertEqual(payload['tailor_fact_ids'],['experience'])
                     self.assertEqual(payload['tailor_fact_rewrites'],[
                         {'fact_id':'experience','text':wording,'reviewed':True}])
