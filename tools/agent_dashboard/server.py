@@ -16,6 +16,9 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .supervisor import AgentSupervisor, LANES
 from .mission_control import MissionControl, LaunchRequest
 from .work_history import WorkHistory
+from tools.feature_studio.control import StudioStore, inventory as studio_inventory, probe as studio_probe, probe_remote as studio_probe_remote, plan as studio_plan
+from tools.feature_studio.validate import validate_spec
+
 
 
 class LanePatch(BaseModel):
@@ -26,6 +29,13 @@ class LanePatch(BaseModel):
     prompt_file: str | None = None
     prompt_override: str | None = None
     gpu_offload_percent: int | None = Field(default=None, ge=0, le=100)
+
+
+class StudioDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    spec: dict[str, Any]
+    expected_revision: int | None = None
+    idempotency_key: str = Field(min_length=8, max_length=128)
 
 
 def create_app(root: Path | None = None, *, mission_instance: bool = False) -> FastAPI:
@@ -49,6 +59,58 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     app.state.mission_control = mission
     history = WorkHistory(repo)
     app.state.work_history = history
+
+    studio = StudioStore()
+    app.state.feature_studio = studio
+
+    @app.get("/api/feature-studio/health")
+    def feature_studio_health():
+        return {"status": "ready", "storage": "local-sqlite",
+                "remote_git_writes": False, "agent_execution": False}
+
+    @app.get("/api/feature-studio/specs")
+    def feature_studio_specs(repo: str | None = None):
+        return {"specs": studio.list(repo)}
+
+    @app.get("/api/feature-studio/spec/{owner}/{repo}/{spec_id}")
+    def feature_studio_spec(owner: str, repo: str, spec_id: str):
+        value = studio.get(f"{owner}/{repo}", spec_id)
+        if value is None:
+            raise HTTPException(404, "Specification not found")
+        return value
+
+    @app.post("/api/feature-studio/specs")
+    def feature_studio_save(body: StudioDraftRequest, request: Request):
+        mission.require_token(request, mission.token)
+        try:
+            return studio.save(body.spec, expected_revision=body.expected_revision,
+                               key=body.idempotency_key)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from None
+
+    @app.get("/api/feature-studio/events")
+    def feature_studio_events():
+        return {"events": studio.events()}
+
+    @app.get("/api/feature-studio/repos")
+    def feature_studio_repos():
+        try:
+            return {"repositories": studio_inventory(), "scope": "read-only",
+                    "all_repo_rollout_active": False}
+        except (RuntimeError, OSError, ValueError) as exc:
+            raise HTTPException(503, f"Repository inventory unavailable: {str(exc)[:150]}") from None
+
+    @app.get("/api/feature-studio/probe/{owner}/{repo}/{spec_id}")
+    def feature_studio_probe(owner: str, repo: str, spec_id: str):
+        # Remote repositories are inspected via isolated read-only shallow clones.
+        value = studio.get(f"{owner}/{repo}", spec_id)
+        if not value:
+            raise HTTPException(404, "Specification not found")
+        try:
+            findings = (studio_probe(supervisor.root, value["spec"]) if f"{owner}/{repo}" == "MulattoTech/MJobs" else studio_probe_remote(f"{owner}/{repo}", value["spec"]))
+        except (RuntimeError, OSError, ValueError) as exc:
+            raise HTTPException(503, f"Repository discovery unavailable: {str(exc)[:150]}") from None
+        return {"discovery": findings, "plan": studio_plan(value["spec"], findings)}
 
     @app.get("/api/launcher/health")
     def launcher_health():
