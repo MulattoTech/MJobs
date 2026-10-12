@@ -698,6 +698,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_career_story_bank_router(store))
     from apps.api.career_story_selection import create_career_story_selection_router
     app.include_router(create_career_story_selection_router(store))
+    from apps.api.cover_letter_preview import create_cover_letter_preview_router
+    app.include_router(create_cover_letter_preview_router(store))
     from apps.api.interview_preparation import create_interview_preparation_router
     app.include_router(create_interview_preparation_router(store))
     from apps.api.role_lenses import create_role_lenses_router
@@ -1907,6 +1909,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         result = store.job(job_id, profile_id)
         result["routes"] = load_job_routes(store, job_id, profile_id)
         result['alignment_fingerprint'] = target_fingerprint(result)
+        from services.documents.cover_letter_preview import cover_letter_preview_fingerprint
+        result["cover_letter_preview_fingerprint"] = cover_letter_preview_fingerprint(result)
         if profile_id:
             from services.tracking.jobs import read_job_tracking
             result["tracking"] = read_job_tracking(store, profile_id, job_id)

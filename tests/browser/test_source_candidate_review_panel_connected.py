@@ -200,7 +200,7 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     page.set_default_timeout(8000)
                     page.on("pageerror", lambda error: page_errors.append(str(error)))
                     page.on("requestfailed", lambda request: failed_requests.append(
-                        {"url": request.url, "failure": request.failure}
+                        {"url": request.url, "method": request.method, "failure": request.failure, "request": request}
                     ))
                     response = page.goto(origin_url, wait_until="domcontentloaded")
                     self.assertIsNotNone(response)
@@ -260,13 +260,22 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
 
                     page.get_by_role("button", name="Sources", exact=True).click()
                     target = page.get_by_role("article", name="Source candidate talenthop.com")
-                    target.get_by_role(
-                        "button", name="Open application: EXTERNALLY APPLIED",
-                    ).click()
+                    with page.expect_response(
+                        lambda response: response.url.endswith("/rehearsal")
+                        and response.request.method == "GET",
+                    ) as rehearsal_read:
+                        target.get_by_role(
+                            "button", name="Open application: EXTERNALLY APPLIED",
+                        ).click()
+                    self.assertEqual(rehearsal_read.value.status, 409)
                     application_review = page.get_by_role("region", name="Application review")
                     expect(application_review).to_be_visible()
                     expect(application_review).to_contain_text("Systems Administrator")
                     expect(application_review).to_contain_text("Example Employer")
+                    # This fixture has no form review. Await its displayed error
+                    # before navigating away and aborting the pending read.
+                    expect(page.get_by_role("region", name="Local application rehearsal").get_by_role(
+                        "alert")).to_be_visible()
                     page.get_by_role("button", name="Sources", exact=True).click()
                     target = page.get_by_role("article", name="Source candidate talenthop.com")
                     expect(target).to_be_visible()
@@ -291,15 +300,17 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     target.get_by_label("Expected value and maintenance note for talenthop.com").fill(review["expected_value_maintenance_note"])
 
                     queue_button = target.get_by_role(
-                        "button", name="Queue integration review", exact=True)
+                        "button", name="Queue local integration task", exact=True)
                     issue_number = target.get_by_label(
                         "Integration task issue number for talenthop.com", exact=True)
-                    self.assertIn("required to queue integration", target.inner_text())
+                    self.assertIn("Leave blank to create a local task", target.inner_text())
+                    expect(queue_button).to_be_enabled()
+                    issue_number.fill("0")
                     expect(queue_button).to_be_disabled()
                     issue_number.fill("302")
                     expect(queue_button).to_be_enabled()
                     issue_number.fill("")
-                    expect(queue_button).to_be_disabled()
+                    expect(queue_button).to_be_enabled()
 
                     before_review = counts()
                     with page.expect_event(
@@ -379,17 +390,28 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                         "No collection capability is currently enabled.")
                     queued.get_by_label("Expected value and maintenance note for alpha.example").fill(
                         "Source value and maintenance need bounded evaluation.")
-                    queued.get_by_label("Integration task issue number for alpha.example").fill("318")
+                    expect(queued.get_by_label("Integration task issue number for alpha.example")).to_have_value("")
                     with page.expect_response(
                         lambda item: item.request.method == "PUT"
                         and item.url.endswith("/review") and item.status == 200,
                     ) as queue_response:
                         queued.get_by_role(
-                            "button", name="Queue integration review", exact=True).click()
+                            "button", name="Queue local integration task", exact=True).click()
                     self.assertEqual(queue_response.value.json()["state"], "INTEGRATION_QUEUED")
-                    self.assertEqual(queue_response.value.json()["integration_issue"], 318)
+                    self.assertIsNone(queue_response.value.json()["integration_issue"])
+                    self.assertEqual(queue_response.value.json()["integration_issue_status"], "NOT_LINKED")
+                    self.assertEqual(queue_response.value.json()["id"], alpha["id"])
                     expect(queued).to_contain_text("Review state: INTEGRATION QUEUED")
-                    expect(queued).to_contain_text("Integration issue #318 is user supplied and unverified.")
+                    expect(queued).to_contain_text("Local integration task keyed by source candidate")
+                    expect(queued).to_contain_text(alpha["id"])
+                    # Reopen Sources without restoring the unrelated application.
+                    page.evaluate("localStorage.removeItem('mjobs-selected-application:fixture')")
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("button", name="Sources", exact=True).click()
+                    queued = page.get_by_role("article", name="Source candidate alpha.example")
+                    expect(queued).to_contain_text("Local integration task keyed by source candidate")
+                    expect(queued).to_contain_text(alpha["id"])
+                    expect(queued).to_contain_text("Review state: INTEGRATION QUEUED")
                     expect(queued).to_contain_text("Collection is disabled. Review does not enable collection.")
 
                     final_counts = counts()
@@ -402,8 +424,17 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     self.assertEqual(forbidden_posts, [])
                     self.assertEqual(SourceProbe.requests, [])
                     self.assertEqual(page_errors, [])
+                    # The rehearsal client rejects HTTP 409 at headers without
+                    # consuming the body. Leaving Applications aborts that body,
+                    # even after the error is displayed; this is expected cleanup.
+                    expected_rehearsal_cancellations = [item for item in failed_requests
+                        if item["request"] == rehearsal_read.value.request
+                        and item["method"] == "GET"
+                        and item["failure"] == "net::ERR_ABORTED"]
+                    self.assertLessEqual(len(expected_rehearsal_cancellations), 1)
                     unexpected_failures = [item for item in failed_requests
-                                           if not (item["url"].endswith("/review")
+                                           if item not in expected_rehearsal_cancellations
+                                           and not (item["url"].endswith("/review")
                                                    and item["failure"])]
                     self.assertEqual(unexpected_failures, [])
                     browser.close()

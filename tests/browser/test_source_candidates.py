@@ -210,7 +210,7 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     page.get_by_role("button", name="Sources", exact=True).click()
                     reported = page.get_by_role("article", name="Source candidate jobs.unknown.invalid")
                     expect(reported).to_be_visible()
-                    expect(reported).to_contain_text("No integration task linked.")
+                    expect(reported).to_contain_text("No integration task queued.")
                     reported.get_by_label("Site type assessment for jobs.unknown.invalid").select_option("ATS")
                     reported.get_by_label("Review reason for jobs.unknown.invalid").fill(
                         "Existing provider issue tracks a manual adapter evaluation.")
@@ -224,7 +224,7 @@ class SourceCandidateBrowserTests(unittest.TestCase):
                     reported.get_by_label("Expected value and maintenance note for jobs.unknown.invalid").fill(
                         "Expected value and maintenance remain unknown.")
                     reported.get_by_label("Integration task issue number for jobs.unknown.invalid").fill("302")
-                    reported.get_by_role("button", name="Queue integration review", exact=True).click()
+                    reported.get_by_role("button", name="Queue local integration task", exact=True).click()
                     expect(reported).to_contain_text("INTEGRATION QUEUED")
                     expect(reported).to_contain_text("Integration issue #302 · user supplied; not externally verified (USER_SUPPLIED_UNVERIFIED)")
                     expect(reported).to_contain_text("Collection is disabled")
