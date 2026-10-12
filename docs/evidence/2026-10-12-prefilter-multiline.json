@@ -1,0 +1,44 @@
+{
+  "requirement": "MJ-REQ-023",
+  "issue": 24,
+  "utc": "2026-10-12T22:03:34.561378+00:00",
+  "base": "d9d09f0aae3567abb4d88b32b35d5cfdeac47034",
+  "branch": "fix/prefilter-multiline-24-20261012",
+  "source_sha256": {
+    "apps/web/src/job-prefilter.tsx": "73e363add45a13420909618241d59dac5b7a5f049b54d35d59446c16456e1996",
+    "tests/browser/test_cheap_job_prefilter.py": "c4674ce5e4b84c7e89b4837b13ac8d76e8252806a4f95b682b076f1a2a15b9d9"
+  },
+  "red": "On published production build, pressing Enter after Systems Administrator left the original value without a newline; connected regression failed before correction",
+  "behavior": "Preserve raw newline/comma text in all five title and keyword fields while emitting normalized criteria to the existing parent; different saved-search criteria replace the draft",
+  "acceptance_proof": [
+    "Actual Enter then sequential typing in all five controls",
+    "Actual comma typing remains editable",
+    "Save via real API, preview exact parsed arrays, reload durable values",
+    "Switch to a different saved search and back, clearing unrelated fields",
+    "Strict captured3/candidate1/rejected2/deferred0; original postings unchanged; no applications or AI runs; no external requests"
+  ],
+  "commands": [
+    "npm --prefix apps/web run build",
+    "npm --prefix apps/web test -- src/job-prefilter.test.tsx",
+    ".venv/Scripts/python.exe -m pytest -q tests/integration/test_prefilter_search_profile_contract.py tests/unit/test_search_semantics.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/browser/test_cheap_job_prefilter.py tests/browser/test_prefilter_discovery_flow.py tests/browser/test_cheap_prefilter_recovery.py"
+  ],
+  "local": {
+    "focused": {
+      "cases": 16,
+      "failures": 0,
+      "skips": 0
+    },
+    "browser": {
+      "cases": 3,
+      "failures": 0,
+      "skips": 0
+    }
+  },
+  "vitest": "3 PASS",
+  "build": "PASS",
+  "review": "Read-only local Luna review found no concrete lifecycle, parent-echo, race or profile-scope regression; additional saved-search switching coverage added afterward",
+  "hosted": "NOT_RUN for this candidate",
+  "external_submission_enabled": false,
+  "acceptance": "No parent acceptance promotion; whole P0/P1 release remains incomplete"
+}

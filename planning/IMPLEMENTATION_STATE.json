@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Expose durable employer include/exclude rules through saved-search discovery, filtering and history",
+  "current_objective": "Restore normal multiline title and keyword filter editing with durable saved-search switching",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2639,18 +2639,11 @@
   "current_slice": {
     "requirement": "MJ-REQ-023",
     "issue": 24,
-    "branch": "feat/saved-search-employer-rules-24-20261012",
-    "base": "dfbe582f250f489ca32f5df53bfccd104d09a7eb",
-    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
-    "result": "PARTIAL",
-    "owned_paths": [
-      "apps/web/src/employer-search-rules.tsx",
-      "apps/web/src/main.tsx",
-      "tests/browser/test_first_run_wizard.py"
-    ],
+    "branch": "fix/prefilter-multiline-24-20261012",
+    "base": "d9d09f0aae3567abb4d88b32b35d5cfdeac47034",
     "local": {
       "focused": {
-        "cases": 46,
+        "cases": 16,
         "failures": 0,
         "skips": 0
       },
@@ -2660,8 +2653,14 @@
         "skips": 0
       }
     },
-    "hosted": "NOT_RUN",
+    "hosted": "NOT_RUN for this candidate",
     "external_submission_enabled": false,
-    "next_action": "Review exact diff/provenance; protected serial PR and exact-head integration/browser/Compose checks"
+    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+    "result": "PARTIAL",
+    "owned_paths": [
+      "apps/web/src/job-prefilter.tsx",
+      "tests/browser/test_cheap_job_prefilter.py"
+    ],
+    "next_action": "Protected serial PR and exact-head integration/browser/Compose checks"
   }
 }
