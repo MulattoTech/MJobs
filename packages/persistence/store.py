@@ -641,7 +641,8 @@ class Store:
              education_requirement=None, clearance_level=None, posted_after=None, posted_before=None,
              job_source_id=None,
              ats_provider=None, application_link_status=None, application_pipeline_status=None,
-             application_capability=None, exclude_company_ids=None, job_ids=None):
+             application_capability=None, exclude_company_ids=None, job_ids=None, search_criteria=None,
+             row_filter=None):
         if application_capability == "":
             application_capability = None
         if application_capability is not None:
@@ -998,9 +999,9 @@ class Store:
                 dated_rows.sort(key=lambda item: item[1]["id"])
                 dated_rows.sort(key=lambda item: item[0], reverse=True)
                 ordered_rows = [row for _, row in dated_rows] + unknown_rows
-                if application_capability is not None:
-                    ordered_rows = self._filter_job_application_capability(
-                        connection, ordered_rows, application_capability, limit,
+                if application_capability is not None or search_criteria is not None or row_filter is not None:
+                    ordered_rows = self._select_job_rows(
+                        connection, ordered_rows, application_capability, limit, search_criteria, row_filter,
                     )
                 else:
                     ordered_rows = ordered_rows[:limit]
@@ -1040,35 +1041,45 @@ class Store:
                     sortable_salary.desc().nulls_last() if sort == "salary_high" else sortable_salary.asc().nulls_last(),
                     m.jobs.c.id,
                 )
-            if application_capability is not None:
+            if application_capability is not None or search_criteria is not None or row_filter is not None:
                 # The filter can stop before exhausting the SQL iterator. Close
                 # its cursor deterministically rather than retaining a read
                 # transaction/file handle until generator garbage collection.
                 with connection.execute(statement) as result:
                     rows = (canonical_job_view(dict(row)) for row in result.mappings())
-                    return self._filter_job_application_capability(
-                        connection, rows, application_capability, limit,
+                    return self._select_job_rows(
+                        connection, rows, application_capability, limit, search_criteria, row_filter,
                     )
             return [canonical_job_view(dict(row)) for row in connection.execute(statement.limit(limit)).mappings()]
 
     @staticmethod
-    def _filter_job_application_capability(connection, rows, expected, limit):
-        """Apply route-derived capability before the result limit is consumed."""
+    def _select_job_rows(connection, rows, expected, limit, search_criteria=None, row_filter=None):
+        """Apply semantic, capability and caller visibility filters before LIMIT."""
         if limit <= 0:
             return []
         from services.applications.capability_filter import effective_application_capability
+        from services.discovery.search_semantics import evaluate_search
 
+        def candidates():
+            for row in rows:
+                route_id = row.get("application_route_id")
+                if expected is not None and route_id is None:
+                    # Fail closed if the exact route identity is missing.
+                    continue
+                if expected is not None and effective_application_capability(connection, route_id) != expected:
+                    continue
+                result = dict(row)
+                result.pop("application_route_id", None)
+                if search_criteria is not None:
+                    evidence = evaluate_search(search_criteria, result)
+                    if not evidence["matched"]:
+                        continue
+                    result["search_evidence"] = evidence
+                yield result
+
+        eligible = row_filter(candidates()) if row_filter is not None else candidates()
         selected = []
-        for row in rows:
-            route_id = row.get("application_route_id")
-            if route_id is None:
-                # Only capability-filtered queries select this key. Fail closed if
-                # a malformed row somehow lacks the exact route identity.
-                continue
-            if effective_application_capability(connection, route_id) != expected:
-                continue
-            result = dict(row)
-            result.pop("application_route_id", None)
+        for result in eligible:
             selected.append(result)
             if len(selected) >= limit:
                 break

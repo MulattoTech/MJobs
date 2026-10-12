@@ -19,6 +19,62 @@ from tests.integration.test_spine import PROFILE
 
 
 class SavedSearchFiltersApiTests(unittest.TestCase):
+    def test_selected_search_filters_before_result_limit(self):
+        criteria = {**self._profile(job_filters={"q": "", "remote_type": "", "provider": "", "sort": "title"}),
+                    "include_titles": ["Python Developer"], "remote": "ANY"}
+        saved = self.client.put('/search-profiles', json=criteria)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        response = self.client.get('/jobs', params={
+            'profile_id': 'fixture', 'search_profile_id': 'saved-filter',
+            'sort': 'title', 'limit': 1,
+        })
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual([row['title'] for row in response.json()['jobs']], ['Python Developer'])
+        self.assertTrue(response.json()['jobs'][0]['search_evidence']['matched'])
+        # The in-memory newest path and SQL sort paths share the same predicate.
+        for sort in ('score', 'newest', 'company', 'salary_high', 'salary_low'):
+            with self.subTest(sort=sort):
+                response = self.client.get('/jobs', params={
+                    'profile_id': 'fixture', 'search_profile_id': 'saved-filter',
+                    'sort': sort, 'limit': 1, 'application_capability': 'FIXTURE_ONLY',
+                })
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual([row['title'] for row in response.json()['jobs']], ['Python Developer'])
+                self.assertNotIn('application_route_id', response.json()['jobs'][0])
+
+        reopened = Store(self.store.url)
+        try:
+            with TestClient(create_app(reopened, 'http://127.0.0.1:1', self.root,
+                                       operation_mode='FIXTURE')) as client:
+                params = {'profile_id': 'fixture', 'search_profile_id': 'saved-filter',
+                          'sort': 'title', 'limit': 1}
+                self.assertEqual(client.get('/jobs', params=params).json()['jobs'][0]['title'],
+                                 'Python Developer')
+                self.assertEqual(client.get('/jobs', params={**params, 'profile_id': 'other'}).status_code, 409)
+                edited = client.put('/search-profiles', json={**criteria, 'include_titles': ['Data Engineer']})
+                self.assertEqual(edited.status_code, 200, edited.text)
+                self.assertEqual(client.get('/jobs', params=params).json()['jobs'][0]['title'], 'Data Engineer')
+                self.assertEqual(client.get('/jobs', params={**params, 'title': 'Python'}).json()['jobs'], [])
+                self.assertEqual(len(client.get('/jobs').json()['jobs']), 2)
+        finally:
+            reopened.engine.dispose()
+
+    def test_dismissed_search_match_does_not_consume_limit(self):
+        criteria = {**self._profile(job_filters={"q": "", "remote_type": "", "provider": "", "sort": "title"}),
+                    "include_titles": [], "remote": "ANY"}
+        self.assertEqual(self.client.put('/search-profiles', json=criteria).status_code, 200)
+        first = self.client.get('/jobs', params={'sort': 'title'}).json()['jobs'][0]
+        from services.tracking.jobs import set_job_disposition
+        set_job_disposition(self.store, 'fixture', first['id'], 'HIDDEN', 'hide-first')
+        params = {'profile_id': 'fixture', 'search_profile_id': 'saved-filter', 'sort': 'title', 'limit': 1}
+        response = self.client.get('/jobs', params=params)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual([job['title'] for job in response.json()['jobs']], ['Python Developer'])
+        self.assertEqual(self.client.get('/jobs', params={**params, 'include_dismissed': True})
+                         .json()['jobs'][0]['id'], first['id'])
+        self.assertEqual(self.client.get('/jobs', params={'profile_id': 'other', 'sort': 'title', 'limit': 1})
+                         .json()['jobs'][0]['id'], first['id'])
+
     def test_lever_source_configuration_and_saved_ats_filters_survive_reopen(self):
         for region in ('global','eu'):
             configured = self.client.put('/sources',json={'provider':'lever','tenant':region+':example'})
