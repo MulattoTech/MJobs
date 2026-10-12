@@ -2,8 +2,9 @@
 
 Anonymous pipes authenticate the already-created child by possession; no public
 endpoint, pickle, command-line secret, inherited API environment or PID lookup
-is used to transfer authority. This is not durable closure evidence or capacity
-release. Channel loss is UNKNOWN, including after creator death.
+is used to transfer authority. Optional private persistence enrollment happens
+before ACK; the retained query can then record closure after creator death.
+Channel loss is UNKNOWN. Recording evidence never releases capacity.
 """
 import ctypes as c
 from ctypes import wintypes as w
@@ -112,13 +113,17 @@ class BrowserTreeObserver:
     operation's stored owner fence remains the caller's responsibility. Never
     use this transient channel reply as a durable recovery certificate.
     """
-    def __init__(self, query, binding):
+    def __init__(self, query, binding, *, store=None, owner_token=None):
         self._lock = RLock()
         self._process = None
         self._closed = False
         self._binding = validate_binding(binding)
         self.identity = None
         try:
+            persistence = None
+            if store is not None or owner_token is not None:
+                persistence = _validate_persistence({"url": store.url if store is not None else None,
+                    "owner_token": owner_token}, self._binding)
             if sys.platform != "win32":
                 raise ValueError
             from services.applications.browser_process import _read_process, _host_identity
@@ -138,7 +143,10 @@ class BrowserTreeObserver:
             self.identity = {"pid": self._process.pid, "created": current[0], "host": _host_identity()}
             nonce = token_hex(32)
             handle = query.duplicate_to(int(self._process._handle))
-            _write(self._process.stdin, {"handle": handle, "binding": self._binding, "nonce": nonce})
+            bootstrap = {"handle": handle, "binding": self._binding, "nonce": nonce}
+            if persistence is not None:
+                bootstrap["persistence"] = persistence
+            _write(self._process.stdin, bootstrap)
             reply = _read(self._process.stdout, 5)
             validate_reply(reply, nonce, self._binding, self.identity)
             # Native membership is checked by the recipient before ACK. A
@@ -189,6 +197,28 @@ class BrowserTreeObserver:
                 pass
 
 
+def _validate_persistence(value, binding):
+    """Trusted private descriptor, never a public API or environment setting."""
+    from hashlib import sha256
+    from hmac import compare_digest
+    from sqlalchemy.engine import make_url
+
+    if (not isinstance(value, dict) or set(value) != {"url", "owner_token"}
+            or not isinstance(value["url"], str) or not 0 < len(value["url"]) <= 512
+            or not isinstance(value["owner_token"], str) or len(value["owner_token"]) != 64
+            or any(v not in "0123456789abcdef" for v in value["owner_token"])
+            or not compare_digest(sha256(value["owner_token"].encode()).hexdigest(), binding["owner_digest"])):
+        raise ValueError(_ERROR)
+    try:
+        url = make_url(value["url"])
+        if (url.get_backend_name() not in {"sqlite", "postgresql"}
+                or not url.database or url.database == ":memory:"):
+            raise ValueError
+    except Exception:
+        raise ValueError(_ERROR) from None
+    return dict(value)
+
+
 def _serve():
     # Bootstrap import is an absolute repository-owned script, not PYTHONPATH
     # received from the API environment or any wire-provided module name.
@@ -197,9 +227,11 @@ def _serve():
     from services.applications.browser_tree import BrowserTreeQuery, _kernel
 
     query = None
+    store = None
     try:
         initial = _read(sys.stdin.buffer, 5)
-        if (not isinstance(initial, dict) or set(initial) != {"handle", "nonce", "binding"}
+        if (not isinstance(initial, dict) or set(initial) not in (
+                {"handle", "nonce", "binding"}, {"handle", "nonce", "binding", "persistence"})
                 or type(initial["handle"]) is not int or not 0 < initial["handle"] < 2 ** (c.sizeof(w.HANDLE) * 8)
                 or not isinstance(initial["nonce"], str) or len(initial["nonce"]) != 64
                 or any(v not in "0123456789abcdef" for v in initial["nonce"])):
@@ -209,9 +241,26 @@ def _serve():
         if query.contains(os.getpid()) is not False or query.limit_flags() != 0:
             raise ValueError
         identity = capture_owner_identity()
+        if "persistence" in initial:
+            from packages.persistence.store import Store
+            from services.applications.browser_tree_certificate import (
+                enroll_retained_observer, record_retained_closure, rollback_unlaunched_enrollment)
+            persistence = _validate_persistence(initial["persistence"], binding)
+            store = Store(persistence["url"])
+            if not enroll_retained_observer(store, binding["operation_id"], query, binding,
+                    owner_token=persistence["owner_token"]):
+                raise ValueError
+
+        def persist():
+            if store is not None:
+                return record_retained_closure(store, binding["operation_id"], query, binding,
+                    owner_token=persistence["owner_token"])
+            return False
 
         def respond(nonce):
             accounting = query.accounting()
+            if _status(accounting) == "EXITED":
+                persist()
             _write(sys.stdout.buffer, {"nonce": nonce, "binding": binding, "identity": identity,
                                       "status": _status(accounting), "accounting": accounting})
 
@@ -228,10 +277,12 @@ def _serve():
                 deadline = time.monotonic() + 900
                 while time.monotonic() < deadline:
                     if query.status() == "EXITED":
+                        persist()
                         break
                     time.sleep(.05)
                 return
             if request == {"action": "close"}:
+                persist()
                 return
             if (not isinstance(request, dict) or set(request) != {"action", "nonce", "binding"}
                     or request["action"] != "observe" or request["binding"] != binding
@@ -244,7 +295,12 @@ def _serve():
         return
     finally:
         if query is not None:
+            if store is not None:
+                rollback_unlaunched_enrollment(store, binding["operation_id"], query, binding,
+                    owner_token=persistence["owner_token"])
             query.close()
+        if store is not None:
+            store.engine.dispose()
 
 
 if __name__ == "__main__":

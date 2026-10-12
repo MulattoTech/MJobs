@@ -170,6 +170,44 @@ def enroll_retained_observer(store, operation_id, query, binding, *, owner_token
         return False
 
 
+def rollback_unlaunched_enrollment(store, operation_id, query, binding, *, owner_token):
+    """Compensate failed private bootstrap only before any process admission.
+
+    Never remove an admitted tree's authority, evidence, state or capacity.
+    Only the enrolled observer's own exact retained query can compensate.
+    """
+    from services.applications.browser_process import capture_owner_identity
+    from services.applications.browser_tree import BrowserTreeQuery
+    if type(query) is not BrowserTreeQuery:
+        return False
+    try:
+        binding = validate_binding(binding)
+        identity = capture_owner_identity()
+        if not _identity(identity):
+            return False
+        with store.engine.begin() as connection:
+            _lock(connection)
+            row = _row(connection, operation_id)
+            if _scope(row, owner_token) != binding:
+                return False
+            metadata = deepcopy(row["recovery_metadata"])
+            owner = metadata["manual_auth_owner"]
+            if (not _same_host(owner, identity) or owner.get("tree_observer") != identity
+                    or owner.get("tree_retention") != query._retention_id
+                    or "tree_closure" in owner or query.contains(identity["pid"]) is not False
+                    or query.limit_flags() != 0
+                    or query.accounting() != {"total": 0, "active": 0, "terminated": 0}):
+                return False
+            del owner["tree_observer"]
+            del owner["tree_retention"]
+            connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                recovery_metadata=metadata, updated_at=now()))
+            store._audit(connection, operation_id, "MANUAL_AUTH_TREE_BOOTSTRAP_ROLLED_BACK", {})
+            return True
+    except Exception:
+        return False
+
+
 def _record_closure(store, operation_id, identity, binding, observe, unchanged, owner_token, *, retention_id=None):
     with store.engine.connect() as connection:
         row = connection.execute(select(m.operations).where(
