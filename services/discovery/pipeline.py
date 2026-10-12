@@ -151,7 +151,7 @@ def mock_skill_evidence(row, title, description):
     }
 
 
-def discover(store, mock_origin, profile_id, check=None, profile_version=None):
+def discover(store, mock_origin, profile_id, check=None, profile_version=None, *, capture_only=False):
     profile = store.profile(profile_id, profile_version)
     client = MockClient(mock_origin, check=check)
     try:
@@ -177,6 +177,7 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
             }
             if not any(source == endpoint for source, _ in all_rows):
                 all_rows.extend((endpoint, employer) for employer in client.get(endpoint).json()["jobs"])
+        captured_job_ids = set()
         with store.engine.begin() as connection:
             client.check()
             for company_id, source in sources.items():
@@ -198,6 +199,7 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                 if not client.allowed(row["application_url"]):
                     raise ValueError("External mock application URL blocked")
                 job_id = identity(company_id, "mock-ats", row["tenant"], row["requisition"])
+                captured_job_ids.add(job_id)
                 description = BeautifulSoup(row["description"], "html.parser").get_text(" ", strip=True)
                 location_facts = classify_location(row["location"], description)
                 if str(row.get("remote_type") or "").upper() == "REMOTE" and not location_facts["remote_indicated"]:
@@ -252,17 +254,20 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None):
                     "application_url": row["application_url"], "raw": row, "fetched_at": now()})
                 observe_fixture_posting(connection, identity(source, row['source_job_id']))
                 resolve_lifecycle(connection, job_id)
-                explanation = build_explanation(job, profile)
-                had_profile_match = connection.execute(select(m.matches.c.id).where(
-                    m.matches.c.job_id == job_id,
-                    m.matches.c.profile_id == profile_id,
-                ).limit(1)).first() is not None
-                if not had_profile_match:
-                    record_job_discovered(connection, profile_id, job_id)
-                record_match_scored(connection, profile_id, job_id, profile["version"])
-                upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
-                    "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
+                if not capture_only:
+                    explanation = build_explanation(job, profile)
+                    had_profile_match = connection.execute(select(m.matches.c.id).where(
+                        m.matches.c.job_id == job_id,
+                        m.matches.c.profile_id == profile_id,
+                    ).limit(1)).first() is not None
+                    if not had_profile_match:
+                        record_job_discovered(connection, profile_id, job_id)
+                    record_match_scored(connection, profile_id, job_id, profile["version"])
+                    upsert(connection, m.matches, {"id": identity(job_id, profile_id, profile["version"]), "job_id": job_id,
+                        "profile_id": profile_id, "profile_version": profile["version"], **explanation}, replace=True)
             store._audit(connection, profile_id, "MOCK_DISCOVERY_COMPLETE", {"sources": len(sources), "raw_postings": len(all_rows)})
+        if capture_only:
+            return {"job_ids": sorted(captured_job_ids), "postings_captured": len(all_rows)}
         return store.jobs(profile_id)
     finally:
         client.close()

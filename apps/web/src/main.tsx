@@ -1135,7 +1135,7 @@ function App() {
   async function collectLocalFixtureJobs() {
     if(operationMode!=='FIXTURE'||!profileId)throw new Error('Select a saved profile in fixture mode first.');
     const activeProfile=profileId;
-    await queue('/discovery',{profile_id:activeProfile,request_id:crypto.randomUUID()});
+    await queue('/discovery',{profile_id:activeProfile,request_id:crypto.randomUUID(),...(selectedSearchProfileId?{search_profile_id:selectedSearchProfileId}:{})});
     await refresh(activeProfile);await loadJobs(activeProfile);setTab('Jobs');
     setNotice('Local fixture jobs collected for your saved profile. No employer was contacted.');
   }

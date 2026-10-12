@@ -361,3 +361,26 @@ def get_search_profile(store, search_profile_id):
     with store.engine.connect() as connection:
         return dict(connection.execute(select(m.search_profiles).where(
             m.search_profiles.c.id == search_profile_id)).mappings().one())
+
+
+class FixtureSearchUnavailable(ValueError):
+    def __init__(self, code, message, status_code=409):
+        self.code = code
+        self.status_code = status_code
+        super().__init__(message)
+
+
+def get_fixture_search_profile(store, search_profile_id, profile_id):
+    """Resolve one executable snapshot for the source-less fixture collector."""
+    from sqlalchemy.exc import NoResultFound
+    try:
+        search = get_search_profile(store, search_profile_id)
+    except NoResultFound:
+        raise FixtureSearchUnavailable("FIXTURE_SEARCH_NOT_FOUND", "Search profile not found", 404) from None
+    if search["profile_id"] != profile_id:
+        raise FixtureSearchUnavailable("FIXTURE_SEARCH_NOT_FOUND", "Search profile not found", 404)
+    if not search["enabled"]:
+        raise FixtureSearchUnavailable("FIXTURE_SEARCH_DISABLED", "Select an enabled saved search for fixture discovery")
+    if search["source_ids"]:
+        raise FixtureSearchUnavailable("FIXTURE_SEARCH_SOURCE_SCOPE", "Fixture discovery requires a saved search without an explicit source selection")
+    return search

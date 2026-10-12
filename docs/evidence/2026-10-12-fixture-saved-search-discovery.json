@@ -1,0 +1,59 @@
+{
+  "issue": 293,
+  "requirement": "MJ-REQ-292",
+  "related": [
+    "#24/MJ-REQ-023",
+    "#237/MJ-REQ-236"
+  ],
+  "utc": "2026-10-12T22:30:22.979785+00:00",
+  "base": "e398efbbd92a91c41a70b669937c3e42f6a61b09",
+  "branch": "fix/fixture-saved-search-293-20261012",
+  "source_sha256": {
+    "apps/api/main.py": "b66d189765dfb0b009d6f9a8b122d48072ddd3897e62d8158ceaba37cf794e4a",
+    "apps/web/src/main.tsx": "3270936310616eb23bd2ae9dff1eb9e882826fad622e0d8b0f461ade9fc62ba4",
+    "services/discovery/pipeline.py": "8cc5927e0c03fa55b4e517ab1f02b16eaee1372a39df2d81e6f678fa50ad304c",
+    "services/discovery/search_profiles.py": "246744156ba400935c9a5aff469a485c051a6db23059ddceef849bd68a40f137",
+    "workers/tasks.py": "c2cd014cfcbf41871421c71baf86af2f6692eff1d6e77c631164a5cccd36a3f6",
+    "tests/integration/test_fixture_saved_search_discovery.py": "8a95b3081a565e46d85f752ece2829dbf6f3346e55278d25822d6ae0267a9033",
+    "tests/browser/test_search_history_connected.py": "919a40ef03f8ab199999835ccf145c78a65f6da376ebcbbafdf458cafe4b1344"
+  },
+  "red": "Selected enabled Astronaut search still scored both synthetic canonical jobs through POST /discovery; meaningful API/worker regression failed before correction",
+  "behavior": "Sources fixture action submits the selected saved search; API and worker validate owner/enabled/unscoped status; capture all fixture postings, then prefilter canonical candidates and score only those IDs using one validated worker-start criteria snapshot",
+  "acceptance_proof": [
+    "Edit, run, Store reopen: selected Python Developer then Data Engineer each returns one filtered job while all4postings/2canonical jobs and prior matches remain",
+    "Other profile receives no match/history",
+    "Queue-time edit is used; edit during capture changes future saved criteria but current scoring and durable history retain worker-start snapshot",
+    "Disabled/deleted/source-scoped searches after queue BLOCKED before collection, with safe explicit codes",
+    "API rejects missing/cross-profile/disabled/source-scoped searches and selected search with ambiguous legacy query/filter descriptors before queue",
+    "Actual browser edit/save/reload, Sources button, selectedID request, worker completion, onePythoncard/noDataEngineer, history results4/newjobs1 and reload/profile isolation; existing mobile history and comparison cancellation checks retained"
+  ],
+  "commands": [
+    ".venv/Scripts/python.exe -m pytest -q tests/integration/test_fixture_saved_search_discovery.py tests/integration/test_prefilter_discover_worker.py tests/integration/test_spine.py tests/integration/test_search_history_api.py tests/integration/test_first_run_search.py tests/unit/test_search_history_events.py tests/unit/test_search_history_service.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/browser/test_search_history_connected.py tests/browser/test_first_run_wizard.py tests/browser/test_prefilter_discovery_flow.py",
+    "npm --prefix apps/web run build",
+    "python -m tools.verification.catalogue",
+    "python -m tools.verification.progress validate",
+    "python -m tools.verification.agent_skills",
+    "python -m tools.verification.progress_dashboard --check",
+    "git diff --check"
+  ],
+  "local": {
+    "focused": {
+      "cases": 46,
+      "failures": 0,
+      "skips": 0
+    },
+    "browser": {
+      "cases": 3,
+      "failures": 0,
+      "skips": 0
+    }
+  },
+  "build_and_validators": "PASS",
+  "review": "Read-only local Luna review found no concrete blocker; direct ambiguous-descriptor regression and typed BLOCKED outcome added afterward",
+  "observed_test_recovery": "Browser first reached all new behavior and failed on obsolete request_id local variable after adopting actual UI-generated UUID; capture actual request ID and retain isolation assertion. Negative-test fixture corrected to create a real configured source and query operations through model metadata",
+  "compatibility": "Without selected search, default fixture discovery remains unchanged (5spine tests PASS). Selected fixture search must be enabled with empty source_ids; explicit query/filter descriptors rejected instead of silently ignored",
+  "hosted": "NOT_RUN for this candidate",
+  "external_submission_enabled": false,
+  "acceptance": "Only selected saved-search fixture journey is demonstrated. Full60-step P0 journey/live employer flywheel/real ATS provider acceptance remains PARTIAL; no matrix status promotion,366original and59reference denominators unchanged"
+}

@@ -44,10 +44,13 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                 "id": "fixture-search",
                 "profile_id": "fixture",
                 "name": "Synthetic systems administrator search",
-                "enabled": False,
+                "enabled": True,
                 "include_titles": ["Systems Administrator"],
                 "remote": "REQUIRED",
                 "employment_types": [],
+                "required_keywords": ["Python"],
+                "salary_min": 65000,
+                "salary_period": "YEAR",
                 "source_ids": [],
             })
 
@@ -102,6 +105,17 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         expect(page.get_by_label("Saved search profile", exact=True).locator(
                             "option[value='fixture-search']")).to_have_count(1)
                         page.get_by_label("Saved search profile", exact=True).select_option("fixture-search")
+                        page.get_by_label("Included job titles", exact=True).fill("Python Developer")
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == "/search-profiles"
+                                and response.request.method == "PUT") as saved:
+                            page.get_by_role("button", name="Save title and keyword filters", exact=True).click()
+                        self.assertEqual(saved.value.status, 200)
+                        expect(page.get_by_role("status").filter(
+                            has_text="Saved title and keyword filters")).to_be_visible()
+                        page.reload(wait_until="domcontentloaded")
+                        page.get_by_label("Saved search profile", exact=True).select_option("fixture-search")
+                        expect(page.get_by_label("Included job titles", exact=True)).to_have_value("Python Developer")
                         before = page.request.get(
                             origin + "/profiles/fixture/search-history?limit=50")
                         self.assertEqual(before.status, 200, before.text())
@@ -109,15 +123,15 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         self.assertEqual(before_body["profile_id"], "fixture")
                         before_ids = {item["id"] for item in before_body["items"]}
 
-                        request_id = "browser-search-history-fixture-run"
-                        queued = page.request.post(origin + "/discovery", data={
-                            "profile_id": "fixture",
-                            "search_profile_id": "fixture-search",
-                            "query": "Systems Administrator",
-                            "filters": {"remote": "REQUIRED", "min_salary": 65000},
-                            "request_id": request_id,
-                        })
+                        page.get_by_role("button", name="Sources", exact=True).click()
+                        with page.expect_response(lambda response:
+                                urlsplit(response.url).path == "/discovery"
+                                and response.request.method == "POST") as queued_response:
+                            page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
+                        queued = queued_response.value
                         self.assertEqual(queued.status, 202, queued.text())
+                        self.assertEqual(queued.request.post_data_json["search_profile_id"], "fixture-search")
+                        request_id = queued.request.post_data_json["request_id"]
                         operation_id = queued.json()["operation_id"]
                         self.assertTrue(operation_id)
 
@@ -129,6 +143,11 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         }):
                             worker_result = execute_operation(operation_id)
                         self.assertEqual(worker_result["status"], "COMPLETED", worker_result)
+                        expect(page.get_by_text(
+                            "Local fixture jobs collected for your saved profile. No employer was contacted.",
+                            exact=True)).to_be_visible()
+                        expect(page.locator(".job-card").filter(has_text="Python Developer")).to_have_count(1)
+                        expect(page.locator(".job-card").filter(has_text="Data Engineer")).to_have_count(0)
                         with store.engine.connect() as connection:
                             operation = connection.execute(select(m.operations).where(
                                 m.operations.c.id == operation_id)).mappings().one()
@@ -183,11 +202,14 @@ class SearchHistoryConnectedBrowserTests(unittest.TestCase):
                         for item in new_runs:
                             self.assertTrue(required_fields.issubset(item), item)
                             self.assertEqual(item["source"], "mock-fixture", item)
-                            self.assertEqual(item["query"], "Systems Administrator")
+                            self.assertEqual(item["query"], "")
                             self.assertIsInstance(item["filters"], dict)
                             self.assertEqual(item["filters"]["remote"], "REQUIRED")
-                            self.assertEqual(item["filters"]["min_salary"], 65000)
-                            self.assertEqual(item["filters"]["include_titles"], ["Systems Administrator"])
+                            self.assertEqual(item["filters"]["salary_min"], 65000)
+                            self.assertEqual(item["filters"]["salary_period"], "YEAR")
+                            self.assertEqual(item["filters"]["include_titles"], ["Python Developer"])
+                            self.assertEqual(item["results"], 4)
+                            self.assertEqual(item["new_jobs"], 1)
                             started = datetime.fromisoformat(item["started_at"].replace("Z", "+00:00"))
                             finished = datetime.fromisoformat(item["finished_at"].replace("Z", "+00:00"))
                             self.assertIsNotNone(started.utcoffset())
