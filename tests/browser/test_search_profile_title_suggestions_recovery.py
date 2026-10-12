@@ -51,6 +51,7 @@ class SearchProfileSuggestionRecoveryBrowserTests(unittest.TestCase):
                     "requisition": "suggestion-recovery-" + job_id[:16],
                 }))
                 connection.execute(m.matches.insert().values(
+                    id=identity("browser-title-suggestion-recovery-match", job_id),
                     job_id=job_id, profile_id="fixture", profile_version=profile_version,
                     score=92, missing=[], components={"fixture": "synthetic strong-match evidence"},
                 ))
@@ -111,9 +112,12 @@ class SearchProfileSuggestionRecoveryBrowserTests(unittest.TestCase):
                     page.get_by_label("Search profile for suggested titles", exact=True).select_option(
                         "fixture-search")
 
-                    expect(page.get_by_role("alert")).to_contain_text(
+                    suggestions_section = page.locator("section").filter(
+                        has=page.get_by_role("heading", name="Suggested job titles", exact=True))
+                    expect(suggestions_section.get_by_role("alert")).to_contain_text(
                         re.compile("suggest", re.IGNORECASE))
-                    retry = page.get_by_role("button", name=re.compile("retry", re.IGNORECASE))
+                    retry = suggestions_section.get_by_role(
+                        "button", name=re.compile("retry", re.IGNORECASE))
                     expect(retry).to_be_visible()
                     self.assertEqual(len(suggestion_attempts), 1)
 
@@ -123,7 +127,8 @@ class SearchProfileSuggestionRecoveryBrowserTests(unittest.TestCase):
                     self.assertEqual(blocked_writes, [])
                     retry.click()
 
-                    suggestions = page.get_by_role("list", name="Related title suggestions", exact=True)
+                    suggestions = suggestions_section.get_by_role(
+                        "list", name="Related title suggestions", exact=True)
                     expect(suggestions.get_by_text("Infrastructure Support Engineer", exact=True)).to_be_visible()
                     self.assertEqual(len(suggestion_attempts), 2)
                     after_retry = page.request.get(
