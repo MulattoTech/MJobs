@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 import time
 
-from sqlalchemy import select, update
+from sqlalchemy import and_, or_, select, update
 
 from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
@@ -103,6 +103,18 @@ def _load_saved_search_for_discovery(store, source_id, profile_id, search_profil
 def _saved_search_candidate_job_ids(store, source_id, search_profile):
     """Return source-scoped jobs admitted by the persisted saved-search criteria."""
     from services.discovery.cheap_prefilter_pipeline import prefilter_search_profile_postings
+    from services.discovery.search_semantics import filter_jobs
+
+    # Canonical attributes belong to the winning source, which can differ from
+    # this posting's collector. Use immutable collection lineage when present.
+    lineage = select(m.posting_value_candidates.c.id).join(
+        m.source_quality_observations,
+        m.source_quality_observations.c.id == m.posting_value_candidates.c.quality_observation_id,
+    ).where(m.posting_value_candidates.c.posting_id == m.postings.c.id)
+    selected_lineage = lineage.where(
+        m.source_quality_observations.c.configured_source_id == source_id,
+        m.source_quality_observations.c.source_endpoint == m.postings.c.source_url,
+    ).exists()
 
     statement = select(
         m.postings.c.id,
@@ -112,18 +124,26 @@ def _saved_search_candidate_job_ids(store, source_id, search_profile):
         m.jobs.c.description,
         m.jobs.c.location,
         m.jobs.c.skills,
+        m.jobs.c.remote_type,
+        m.jobs.c.attributes,
     ).select_from(
         m.postings.join(m.jobs, m.jobs.c.id == m.postings.c.job_id).join(
             m.companies, m.companies.c.id == m.jobs.c.company_id,
         )
     ).where(
-        m.jobs.c.attributes["source_id"].as_string() == source_id,
-        m.jobs.c.attributes["source_endpoint"].as_string() == m.postings.c.source_url,
+        or_(selected_lineage, and_(
+            # Older captured rows have no candidate provenance; retain their
+            # existing source/endpoint check without overriding known lineage.
+            ~lineage.exists(),
+            m.jobs.c.attributes["source_id"].as_string() == source_id,
+            m.jobs.c.attributes["source_endpoint"].as_string() == m.postings.c.source_url,
+        )),
     ).order_by(m.postings.c.id)
     with store.engine.connect() as connection:
         postings = [dict(row) for row in connection.execute(statement).mappings()]
     result = prefilter_search_profile_postings(postings, search_profile)
-    return tuple(sorted({posting["job_id"] for posting in result["candidates"]}))
+    candidates = filter_jobs(result["candidates"], search_profile["criteria"])
+    return tuple(sorted({posting["job_id"] for posting in candidates}))
 
 
 def execute_operation(operation_id):
@@ -227,6 +247,7 @@ def execute_operation(operation_id):
                     collection_result = collect_source(
                         store, params["source_id"], primary, check=check,
                         profile_version=params.get("profile_version"),
+                        refresh_matches=search_profile is None,
                     )
                     history_results = collection_result.get("jobs_seen")
                     _record_supported_collection_candidates(

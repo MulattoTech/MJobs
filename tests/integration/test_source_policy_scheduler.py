@@ -250,6 +250,7 @@ scheduler.run_forever()
             operation_id = operations[0]["id"]
             self.assertEqual(operations[0]["state"], "QUEUED")
             self.assertEqual(operations[0]["params"]["source_id"], source_id)
+            self.assertNotIn("search_profile_id", operations[0]["params"])
 
             restarted.engine.dispose()
             second_tick = run_scheduler_process("scheduler-restarted")
@@ -266,7 +267,9 @@ from sqlalchemy import update
 from packages.persistence import models as m
 from packages.persistence.store import now
 from workers import tasks
-def synthetic_collect(store, source_id, profile_id, profile_version=None, check=None, transport=None):
+def synthetic_collect(store, source_id, profile_id, profile_version=None, check=None, transport=None,
+                      *, refresh_matches=True):
+    assert refresh_matches is True, "Generic source polling must retain ingestion scoring"
     if check:
         check()
     with store.engine.begin() as connection:
