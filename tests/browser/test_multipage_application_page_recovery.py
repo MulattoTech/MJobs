@@ -93,6 +93,7 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
         injected_save_failures = 0
         injected_next_failures = 0
         durable_state_before_failed_next = []
+        pending_retry_saves = []
 
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
@@ -113,6 +114,11 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
                     injected_save_failures += 1
                     route.fulfill(status=503, content_type="application/json",
                                   body='{"detail":"temporary local fixture interruption"}')
+                    return
+                if (request.method == "POST" and parsed.path == self.application_url
+                        and request.post_data_json.get("action") == "SAVE_PROGRESS"
+                        and injected_save_failures == 1 and not pending_retry_saves):
+                    pending_retry_saves.append(route)
                     return
                 if (request.method == "POST" and parsed.path == self.application_url
                         and request.post_data_json.get("action") == "NEXT"
@@ -172,7 +178,27 @@ class MultipageApplicationRecoveryBrowserTests(unittest.TestCase):
             expect(review.get_by_role("alert")).to_be_visible()
 
             # A failed write leaves the draft available; retry persists it.
-            review.get_by_role("button", name="Save progress", exact=True).click()
+            save_button = review.get_by_role("button", name="Save progress", exact=True)
+            before_retry = self.client.get(self.application_url).json()
+            with page.expect_response(
+                lambda response: response.request.method == "POST"
+                and urlsplit(response.url).path == self.application_url
+                and response.request.post_data_json.get("action") == "SAVE_PROGRESS"
+                and response.status == 200,
+            ) as retry_response:
+                with page.expect_request(
+                    lambda request: request.method == "POST"
+                    and urlsplit(request.url).path == self.application_url
+                    and request.post_data_json.get("action") == "SAVE_PROGRESS",
+                ):
+                    save_button.click()
+                expect(save_button).to_be_disabled()
+                self.assertEqual(len(pending_retry_saves), 1)
+                # Clearing an old error is not acknowledgement of a new save.
+                self.assertEqual(self.client.get(self.application_url).json(), before_retry)
+                pending_retry_saves[0].continue_()
+            self.assertEqual(retry_response.value.status, 200)
+            expect(save_button).to_be_enabled()
             expect(review.get_by_role("alert")).to_have_count(0)
             saved = self.client.get(self.application_url).json()
             self.assertEqual(saved["current_page_id"], "contact")

@@ -2647,11 +2647,12 @@
     "owned_paths": [
       "apps/web/src/source-candidate-review.tsx",
       "apps/web/src/source-candidate-review.test.tsx",
-      "tests/browser/test_source_candidate_review_panel_connected.py"
+      "tests/browser/test_source_candidate_review_panel_connected.py",
+      "tests/browser/test_multipage_application_page_recovery.py"
     ],
-    "next_action": "Publish short-lived PR; verify protected checks and affected/full browser evidence",
+    "next_action": "Publish reproduced multipage verification repair on PR597; require full exactcandidate browser and protected checks",
     "local": "28VitestPASS/10APIintegrationPASS/1connectedChromiumPASS/buildPASS;RED reproduced",
-    "hosted": "NOT_RUN on candidate",
+    "hosted": "Prior candidate source-review browserPASS; fullbrowserFAIL same multipage read-before-ack race; corrected headNOT_RUN",
     "result": "PARTIAL"
   }
 }
