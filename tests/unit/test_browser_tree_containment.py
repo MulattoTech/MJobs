@@ -34,6 +34,42 @@ class BrowserTreeContainmentTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "TREE_CONTAINMENT_UNAVAILABLE"):
                 self.module.BrowserTreeJob()
 
+    def test_host_environment_is_minimal_case_insensitive_and_unicode(self):
+        values = {"SystemRoot": r"C:\Windows", "TEMP": r"C:\synthetic\é",
+                  "localappdata": r"C:\synthetic\cache", "PATH": "untrusted-path",
+                  "PYTHONPATH": "untrusted-import", "HTTP_PROXY": "synthetic-proxy",
+                  "DATABASE_URL": "synthetic-db", "MJobs_Unknown_Secret": "synthetic-secret"}
+        with patch.dict(os.environ, values, clear=True):
+            environment = self.module._host_environment()
+        self.assertEqual(environment, {"SYSTEMROOT": values["SystemRoot"],
+                                     "TEMP": values["TEMP"],
+                                     "LOCALAPPDATA": values["localappdata"]})
+
+    @unittest.skipUnless(sys.platform == "win32", "Native Windows containment")
+    def test_native_host_does_not_inherit_synthetic_api_secrets(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "environment.json"
+            secrets = ["MJOBS_SYNTHETIC_SECRET", "DATABASE_URL", "PYTHONPATH", "HTTP_PROXY"]
+            keys = [*secrets, "TEMP"]
+            temporary_path = str(Path(directory) / "synthetic-é")
+            script = ("import json,os,sys; from pathlib import Path; "
+                      "Path(sys.argv[1]).write_text(json.dumps({k:os.environ.get(k) "
+                      "for k in sys.argv[2:]}))")
+            job = self.module.BrowserTreeJob()
+            query = job.query_handle()
+            try:
+                with patch.dict(os.environ, {**dict.fromkeys(secrets, "synthetic-only"),
+                                             "TEMP": temporary_path}):
+                    job.launch([sys.executable, "-c", script, str(output), *keys])
+                eventually(output.exists)
+                eventually(lambda: query.status() == "EXITED")
+                self.assertEqual(json.loads(output.read_text()),
+                                 {**dict.fromkeys(secrets), "TEMP": temporary_path})
+                self.assertEqual(query.accounting()["terminated"], 0)
+            finally:
+                query.close()
+                job.close()
+
     @unittest.skipUnless(sys.platform == "win32", "Native Windows containment")
     def test_unlaunched_job_and_lost_query_never_prove_exit(self):
         job = self.module.BrowserTreeJob()
