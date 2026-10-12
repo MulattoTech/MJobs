@@ -2643,16 +2643,16 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "requirement": "MJ-REQ-174",
-    "issue": 175,
+    "requirement": "MJ-REQ-167 / MJ-REQ-168",
+    "issue": 168,
     "result": "PARTIAL",
-    "local": "62 focused/adjacent tests PASS plus77 subtests; syntax/catalogue/progress/dashboard/diff PASS",
-    "hosted": "NOT_RUN for database candidate; required exact-head integration and disposable Compose acceptance pending",
+    "local": "55 focused/adjacent tests and56subtests PASS; syntax/catalogue/progress/dashboard/diff PASS",
+    "hosted": "NOT_RUN for fixture receipt candidate; exact-head fresh-project restore and independent replay required",
     "remaining": [
-      "Inspect actual PostgreSQL privilege/preservation/recovery acceptance",
-      "Require exact-head protected checks before native integration",
-      "Audit remaining ORM/parameterized-query acceptance before whole-requirement PASS"
+      "Inspect exact candidate connected fresh-restore evidence",
+      "Integrate only after required checks",
+      "Audit complete backup configuration and document acceptance before parent promotion"
     ],
-    "observed_utc": "2026-10-12T12:29:36.361968+00:00"
+    "observed_utc": "2026-10-12T13:03:49.311676+00:00"
   }
 }

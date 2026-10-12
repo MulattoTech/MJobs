@@ -41,7 +41,8 @@ and publishes the archive only after verification. Keep exclusive operator
 control of this Compose project until the command finishes; do not restart a
 writer or modify its document volume from another process during capture.
 
-New archives use manifest schema 2 and include the public `compose.yml` source
+New PERSONAL archives use manifest schema 2; FIXTURE archives use schema 3.
+Both include the public `compose.yml` source
 plus `configuration/runtime.json`. The runtime snapshot records the API
 container's operation and mock modes, bounded concurrency values, and transient
 retention interval. It excludes `.env`, database/Redis URLs, encryption keys,
@@ -50,6 +51,14 @@ operation and mock modes are archival context only; the archive never supplies
 settings to Compose during restore. Review the snapshot manually after restore
 if those non-secret settings matter to the operator. Schema 1 archives remain
 verifiable and restorable without a configuration snapshot.
+
+For FIXTURE projects, also stop `mock` before backup. Schema 3 captures and
+checksums only `mock/receipts.json`, the fictional provider's independent
+confirmation history. It verifies every confirmed MOCK application's receipt
+is present. A new fixture with no confirmed applications may have an empty
+receipt file. A missing, corrupt or incomplete receipt history fails without
+publishing an archive; preserve the source project for diagnosis. PERSONAL
+archives never inspect, include or restore fixture receipts.
 
 After the backup, restart the original project with its established launcher
 and port. For the default personal project:
@@ -91,6 +100,16 @@ With the original key installed, restore copies and checks the exact restored
 document inventory and hashes, starts the correct mode, and requires readiness
 with external submission disabled. Redis starts with a fresh volume; durable
 pending operations are recovered from PostgreSQL.
+
+FIXTURE schema-3 restore copies the independent receipts into the fresh mock
+volume before starting services. Legacy schema-1/2 FIXTURE archives remain
+verifiable, but a restore with confirmed mock applications stops after database
+restore because those archives omitted the independent receipts. Keep that
+partial target and the source volumes for diagnosis; do not reconstruct a
+provider receipt from a database confirmation or replay an uncertain submission.
+Capture a new schema-3 backup from the intact source when available. Legacy
+fixtures without confirmed applications and all PERSONAL archives retain their
+existing restore path.
 
 Restore verifies and retains `configuration/runtime.json` for manual review;
 it never applies archived operation/mock flags or replaces the current Compose

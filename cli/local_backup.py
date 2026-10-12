@@ -37,6 +37,8 @@ MAX_CAPTURED_STDOUT_BYTES = 2 * 1024 * 1024
 _OUTPUT_CHUNK_BYTES = 64 * 1024
 MAX_COMPOSE_SNAPSHOT_BYTES = 2 * 1024 * 1024
 MAX_RUNTIME_SNAPSHOT_BYTES = 16 * 1024
+MAX_RECEIPT_SNAPSHOT_BYTES = 2 * 1024 * 1024
+RECEIPT_PATH = "mock/receipts.json"
 CONFIGURATION_FILES = frozenset((
     "configuration/compose.yml",
     "configuration/runtime.json",
@@ -63,6 +65,47 @@ def require_stopped_writers(states: dict[str, str]) -> None:
     for service in WRITERS:
         if states.get(service) not in ("exited", "created"):
             raise BackupError(f"Stop {service} before backing up the database and documents")
+
+
+def _require_quiescent(states: dict[str, str], mode: str) -> None:
+    require_stopped_writers(states)
+    if mode == "FIXTURE" and states.get("mock") not in ("exited", "created"):
+        raise BackupError("Stop mock before backing up fixture receipts")
+
+
+def _required_receipt_ids(project: str, environment: dict[str, str]) -> set[str]:
+    raw = _sql(project, "SELECT COALESCE(json_agg(id)::text, '[]') FROM applications "
+               "WHERE target='MOCK' AND state='CONFIRMED'",
+               environment)
+    try:
+        values = json.loads(raw)
+        if not isinstance(values, list) or any(not isinstance(value, str) for value in values):
+            raise ValueError()
+        return set(values)
+    except (ValueError, TypeError):
+        raise BackupError("Fixture receipt history could not be validated") from None
+
+
+def _read_receipts(path: Path) -> dict:
+    if not path.is_file() or path.is_symlink() or path.stat().st_size > MAX_RECEIPT_SNAPSHOT_BYTES:
+        raise BackupError("Fixture receipt snapshot is missing, unsafe or exceeds its size limit")
+    try:
+        receipts = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(receipts, dict):
+            raise ValueError()
+        fields = {"application_id", "requisition", "receipt", "timestamp", "confirmation_url",
+                  "confirmation_text", "reference_number", "submission_count"}
+        for identity, row in receipts.items():
+            if (not isinstance(identity, str) or not identity or len(identity) > 128
+                    or not isinstance(row, dict) or set(row) != fields
+                    or row["application_id"] != identity
+                    or type(row["submission_count"]) is not int or row["submission_count"] != 1
+                    or any(not isinstance(row[key], str) or not row[key] or len(row[key]) > 8192
+                           for key in fields - {"submission_count"})):
+                raise ValueError()
+        return receipts
+    except (UnicodeError, ValueError, TypeError):
+        raise BackupError("Fixture receipt snapshot is invalid") from None
 
 
 def require_empty_target(project: str, source_project: str, containers: list[str], volumes: list[str]) -> None:
@@ -156,7 +199,7 @@ def verify_backup(archive: Path) -> dict:
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise BackupError("Backup manifest is not valid JSON") from exc
     if (not isinstance(manifest, dict) or type(manifest.get("schema_version")) is not int
-            or manifest.get("schema_version") not in (1, 2)):
+            or manifest.get("schema_version") not in (1, 2, 3)):
         raise BackupError("Unsupported backup manifest version")
     schema_version = manifest["schema_version"]
     if not PROJECT.fullmatch(str(manifest.get("source_project", ""))):
@@ -173,7 +216,8 @@ def verify_backup(archive: Path) -> dict:
     for name, expected in files.items():
         allowed = (isinstance(name, str)
                    and (name == "database.dump" or name.startswith("documents/")
-                        or (schema_version == 2 and name in CONFIGURATION_FILES)))
+                        or (schema_version >= 2 and name in CONFIGURATION_FILES)
+                        or (schema_version == 3 and name == RECEIPT_PATH)))
         if not allowed:
             raise BackupError("Backup manifest contains an invalid path")
         parts = name.split("/")
@@ -194,7 +238,13 @@ def verify_backup(archive: Path) -> dict:
         raise BackupError("Backup contains unlisted or missing files")
     if any(path.is_symlink() for path in archive.rglob("*")):
         raise BackupError("Backup contains a symbolic link")
-    if schema_version == 2:
+    if schema_version == 3:
+        if manifest["operation_mode"] != "FIXTURE" or RECEIPT_PATH not in files:
+            raise BackupError("Fixture receipt snapshot is required only for FIXTURE schema 3")
+        _read_receipts(archive / RECEIPT_PATH)
+        if any(path.is_dir() for path in (archive / "mock").rglob("*")):
+            raise BackupError("Fixture receipt snapshot contains an unsupported path")
+    if schema_version >= 2:
         if not CONFIGURATION_FILES.issubset(files):
             raise BackupError("Backup configuration snapshot is incomplete")
         configuration_dir = archive / "configuration"
@@ -360,18 +410,19 @@ def create_backup(project: str, archive: Path) -> dict:
     if mode not in ("PERSONAL", "FIXTURE"):
         raise BackupError("Database operation mode is not bound")
     revision = _sql(project, "SELECT version_num FROM alembic_version", environment)
+    _require_quiescent(states, mode)
     stage = Path(tempfile.mkdtemp(prefix=".mjobs-backup-", dir=parent))
     try:
         with (stage / "database.dump").open("wb") as stream:
             _compose(project, "exec", "-T", "postgres", "pg_dump", "-U", "mjobs", "-d", "mjobs",
                      "-Fc", "--no-owner", "--no-acl", environment=environment,
                      stdout=stream, timeout=600, action="Dump PostgreSQL")
-        require_stopped_writers(_service_states(project, environment))
+        _require_quiescent(_service_states(project, environment), mode)
         documents = stage / "documents"
         documents.mkdir()
         _run(["docker", "cp", container + ":/data/documents/.", str(documents)],
              action="Copy project documents", timeout=600)
-        require_stopped_writers(_service_states(project, environment))
+        _require_quiescent(_service_states(project, environment), mode)
         # Playwright browser profiles may contain live cookies. They are not
         # documents and must not be carried into a portable backup.
         for directory, children, _ in os.walk(documents, topdown=True, followlinks=False):
@@ -402,8 +453,30 @@ def create_backup(project: str, archive: Path) -> dict:
             json.dumps(runtime_configuration, indent=2) + "\n", encoding="utf-8")
         for name in sorted(CONFIGURATION_FILES):
             files[name] = checksum(stage.joinpath(*name.split("/")))
+        if mode == "FIXTURE":
+            required = _required_receipt_ids(project, environment)
+            receipt_directory = stage / "mock"
+            receipt_directory.mkdir()
+            mock = _container(project, "mock", environment)
+            _run(["docker", "cp", mock + ":/data/.", str(receipt_directory)],
+                 action="Copy fixture provider receipts", timeout=120)
+            # Docker seeds /data from the image, including its empty document
+            # directory. It is not provider state and must not enter the archive.
+            image_documents = receipt_directory / "documents"
+            if image_documents.is_dir() and not image_documents.is_symlink() and not any(image_documents.iterdir()):
+                image_documents.rmdir()
+            if any(path.name != "receipts.json" or not path.is_file() or path.is_symlink()
+                   for path in receipt_directory.iterdir()):
+                raise BackupError("Fixture receipt volume contains an unsupported file")
+            receipt_path = stage / RECEIPT_PATH
+            if not receipt_path.exists() and not required:
+                receipt_path.write_text("{}\n", encoding="utf-8")
+            receipts = _read_receipts(receipt_path)
+            if not required.issubset(receipts):
+                raise BackupError("Fixture receipt snapshot is missing application history; preserve source for recovery")
+            files[RECEIPT_PATH] = checksum(receipt_path)
         manifest = {
-            "schema_version": 2,
+            "schema_version": 3 if mode == "FIXTURE" else 2,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "source_project": project,
             "operation_mode": mode,
@@ -413,7 +486,7 @@ def create_backup(project: str, archive: Path) -> dict:
         }
         (stage / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         verify_backup(stage)
-        require_stopped_writers(_service_states(project, environment))
+        _require_quiescent(_service_states(project, environment), mode)
         if archive.exists() or archive.is_symlink():
             raise BackupError("Backup destination appeared during capture; refusing overwrite")
         os.rename(stage, archive)
@@ -501,6 +574,11 @@ def restore_backup(archive: Path, project: str, port: int) -> dict:
         raise BackupError("Restored migration revision differs from the backup")
     if _sql(project, "SELECT operation_mode FROM workspace_identity WHERE id='workspace'", environment) != manifest["operation_mode"]:
         raise BackupError("Restored workspace mode differs from the backup")
+    if manifest["operation_mode"] == "FIXTURE":
+        required = _required_receipt_ids(project, environment)
+        receipts = _read_receipts(archive / RECEIPT_PATH) if manifest["schema_version"] == 3 else {}
+        if not required.issubset(receipts):
+            raise BackupError("Backup lacks fixture receipt history; application remains stopped for recovery")
     _compose(project, "run", "--rm", "--no-deps", "-T", "migrate", "python", "-m",
              "cli.provision_database", "--provision-only", environment=environment,
              timeout=120, action="Provision restored runtime database login")
@@ -519,6 +597,15 @@ def restore_backup(archive: Path, project: str, port: int) -> dict:
         _compose(project, "run", "--rm", "--no-deps", "-T", "api", "python", "-m",
                  "cli.local_backup", "verify-documents", environment=environment,
                  stdin=stream, timeout=600, action="Verify restored documents")
+    if manifest["operation_mode"] == "FIXTURE" and manifest["schema_version"] == 3:
+        _compose(project, "create", "mock", environment=environment,
+                 action="Create fresh fixture receipt volume")
+        mock = _container(project, "mock", environment)
+        _run(["docker", "cp", str(archive / RECEIPT_PATH), mock + ":/data/receipts.json"],
+             timeout=120, action="Restore fixture provider receipts")
+        _compose(project, "run", "--rm", "--no-deps", "--user", "root", "mock", "chown",
+                 "10001:10001", "/data/receipts.json", environment=environment,
+                 action="Restore fixture receipt ownership")
     _compose(project, "up", "-d", "--no-build", "--wait", "--wait-timeout", "180",
              environment=environment, timeout=240, action="Start restored application")
     _wait_ready(port)
