@@ -138,6 +138,7 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
             bootstrap_reads = []
             refresh_reads = []
             hold_refresh = {"enabled": False}
+            history_reads = []
 
             def counts():
                 with store.engine.connect() as connection:
@@ -174,6 +175,9 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                         if parsed.netloc != urlsplit(origin_url).netloc:
                             outside_requests.append(request.url)
                             route.abort()
+                            return
+                        if request.method == "GET" and parsed.path.endswith("/attempt-history"):
+                            history_reads.append((route, route.fetch()))
                             return
                         if request.method == "GET" and parsed.path == "/source-candidates":
                             list_reads.append(parse_qs(parsed.query).get("profile_id", [None])[0])
@@ -335,6 +339,18 @@ class SourceCandidateReviewPanelConnectedTests(unittest.TestCase):
                     # before navigating away and aborting the pending read.
                     expect(page.get_by_role("region", name="Local application rehearsal").get_by_role(
                         "alert")).to_be_visible()
+                    # Hold the successful history read to reproduce the hosted
+                    # navigation race, then prove its durable readback before
+                    # unmounting Applications. Keep request-failure checks strict.
+                    history = page.get_by_role("region", name="Durable attempt history", exact=True)
+                    expect(history.get_by_role("status")).to_be_visible()
+                    self.assertEqual(len(history_reads), 1)
+                    history_route, history_response = history_reads[0]
+                    self.assertEqual(history_response.status, 200)
+                    self.assertEqual(history_response.json()["profile_id"], "fixture")
+                    self.assertEqual(history_response.json()["attempts"], [])
+                    history_route.fulfill(response=history_response)
+                    expect(history).to_contain_text("No browser attempts have been recorded for this application.")
                     page.get_by_role("button", name="Sources", exact=True).click()
                     target = page.get_by_role("article", name="Source candidate talenthop.com")
                     expect(target).to_be_visible()

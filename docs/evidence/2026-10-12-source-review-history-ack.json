@@ -1,0 +1,20 @@
+{
+  "issue": 532,
+  "requirement": "MJ-FEATURE-517 connected browser verification",
+  "utc": "2026-10-12T21:36:38.932894+00:00",
+  "base": "88413c8d2cbfb6ffeeea9dfe72230c87bb71166d",
+  "source_sha256": {
+    "tests/browser/test_source_candidate_review_panel_connected.py": "6cfb5302b9a739b43c8af9b11ea83eb73564754fa6025a258025d2f0eb686d06"
+  },
+  "historical_run": 38309132664,
+  "classification": "Verification timing race: component unmount correctly aborts pending attempt-history GET",
+  "red": "Held real history response reproduced exact net::ERR_ABORTED unexpected_failures assertion",
+  "correction": "Assert real HTTP200/profilefixture/emptyattempts, fulfill held response and wait visible durable history before navigating away",
+  "assertions": "Strict unexpected_failures, forbidden posts, outside requests, page errors and durable counts retained",
+  "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_source_candidate_review_panel_connected.py",
+  "local": "1 connected Chromium PASS in 8.57s",
+  "production_changes": false,
+  "hosted": "NOT_RUN for new candidate",
+  "external_submission_enabled": false,
+  "parent_acceptance": "PARTIAL; no matrix promotion"
+}
