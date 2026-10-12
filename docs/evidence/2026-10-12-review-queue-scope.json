@@ -1,0 +1,24 @@
+{
+  "issue": 532,
+  "base_revision": "1e404554357305689dea6f013e0a2b70a1d855ab",
+  "classification": "Ambiguous test locator after the native review-loading safety fieldset; no product behavior change",
+  "hosted_red": {
+    "run": 38246956542,
+    "attempt": 1,
+    "job": 114803125387,
+    "test": "ApplicationReviewQueueBrowserTests::test_unresolved_question_routes_to_review_and_saves_only_with_explicit_consent",
+    "failure": "Strict-mode violation: the broad fieldset locator matched both the loading guard and Question 1"
+  },
+  "correction": "Scope to the exact Application answers region and Question 1 group. Preserve all provenance, explicit-consent, saving, reload and per-job isolation assertions.",
+  "local_validation": {
+    "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_application_review_queue.py --junitxml=outputs/ci/root-532-queue-scope.xml",
+    "result": "PASS: 1 test in 9.39 seconds",
+    "environment": "Windows, local Chromium, synthetic isolated browser fixture"
+  },
+  "other_checkpoint_evidence": {
+    "connected_run": 38246962436,
+    "connected_job": 114803144276,
+    "result": "SUCCESS on base revision; not evidence for the follow-up commit"
+  },
+  "limits": "Final exact-revision hosted checks and all four browser shards remain required. Issue #532 remains OPEN; no requirement acceptance is promoted. Real external submissions remain OFF."
+}
