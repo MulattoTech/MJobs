@@ -34,6 +34,7 @@ from services.ai.providers import AIProviderError, AIProviderDisabled
 from services.ai.structured_output import StructuredOutputError
 from services.discovery.search_history import record_search_history
 from services.discovery.search_history_events import build_search_history_record
+from services.discovery.search_profiles import FixtureSearchUnavailable
 from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
 from workers.structured_logging import log_operation_finished
 from workers.retries import discovery_retry_plan
@@ -106,8 +107,8 @@ def _load_saved_search_for_discovery(store, source_id, profile_id, search_profil
     return search_profile
 
 
-def _saved_search_candidate_job_ids(store, source_id, search_profile):
-    """Return source-scoped jobs admitted by the persisted saved-search criteria."""
+def _saved_search_candidate_job_ids(store, source_id, search_profile, *, captured_job_ids=None):
+    """Filter only the current source or explicitly captured fixture jobs."""
     from services.discovery.cheap_prefilter_pipeline import prefilter_search_profile_postings
     from services.discovery.search_semantics import filter_jobs
 
@@ -137,6 +138,7 @@ def _saved_search_candidate_job_ids(store, source_id, search_profile):
             m.companies, m.companies.c.id == m.jobs.c.company_id,
         )
     ).where(
+        m.jobs.c.id.in_(captured_job_ids) if captured_job_ids is not None else
         or_(selected_lineage, and_(
             # Older captured rows have no candidate provenance; retain their
             # existing source/endpoint check without overriding known lineage.
@@ -173,18 +175,6 @@ def execute_operation(operation_id):
             history_source = _history_source(store, params, operation_mode)
             history_query = params.get("query") if isinstance(params.get("query"), str) else ""
             history_filters = params.get("filters") if isinstance(params.get("filters"), dict) else {}
-            # Legacy fixture discovery records request descriptors; source-backed
-            # discovery records its validated execution snapshot below instead.
-            search_profile_id = params.get("search_profile_id")
-            if not params.get("source_id") and isinstance(search_profile_id, str) and search_profile_id:
-                try:
-                    from services.discovery.search_profiles import get_search_profile
-                    history_search = get_search_profile(store, search_profile_id)
-                    if history_search.get("profile_id") in history_profiles:
-                        history_filters = {**history_search.get("criteria", {}), **history_filters}
-                except Exception:
-                    # A missing descriptor does not block legacy fixture discovery.
-                    pass
             before_job_ids = {
                 profile_id: _profile_job_ids(store, profile_id)
                 for profile_id in history_profiles
@@ -280,11 +270,33 @@ def execute_operation(operation_id):
                     # so an intervening edit/revocation cannot publish a stale match.
                     recalculate(store, operation["entity_id"], check=check)
                 else:
-                    discovery_jobs = discover(
-                        store, origin, operation["entity_id"], check=check,
-                        profile_version=params.get("profile_version"),
-                    )
-                    history_results = len(discovery_jobs)
+                    if params.get("search_profile_id"):
+                        from services.discovery.search_profiles import get_fixture_search_profile
+                        search_profile = get_fixture_search_profile(
+                            store, params["search_profile_id"], operation["entity_id"])
+                        if params.get("query") is not None or params.get("filters") is not None:
+                            raise FixtureSearchUnavailable(
+                                "FIXTURE_SEARCH_DESCRIPTORS_UNSUPPORTED",
+                                "Use the selected saved search criteria instead of separate descriptors")
+                        history_filters = dict(search_profile["criteria"])
+                        captured = discover(
+                            store, origin, operation["entity_id"], check=check,
+                            profile_version=params.get("profile_version"), capture_only=True,
+                        )
+                        history_results = captured["postings_captured"]
+                        candidates = _saved_search_candidate_job_ids(
+                            store, None, search_profile, captured_job_ids=captured["job_ids"])
+                        recalculate(
+                            store, operation["entity_id"], profile_version=params.get("profile_version"),
+                            check=check, candidate_job_ids=candidates,
+                            scoring_criteria=search_profile["criteria"],
+                        )
+                    else:
+                        discovery_jobs = discover(
+                            store, origin, operation["entity_id"], check=check,
+                            profile_version=params.get("profile_version"),
+                        )
+                        history_results = len(discovery_jobs)
             elif operation["kind"] == "COMPANY_DISCOVER":
                 params = operation["params"]
                 if params.get("monitoring_source_id") or params.get("discovery_request_id"):
@@ -417,6 +429,8 @@ def execute_operation(operation_id):
             retry_failure = failure
         except FixtureOperationDisabled:
             state, error = "BLOCKED", "FIXTURE_OPERATION_DISABLED"
+        except FixtureSearchUnavailable as failure:
+            state, error = "BLOCKED", failure.code
         except Exception as failure:
             retry_failure = failure
             state, error = "FAILED", failure.code if isinstance(

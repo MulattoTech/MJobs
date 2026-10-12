@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Keep saved-search execution and durable history on one validated criteria snapshot",
+  "current_objective": "Connect selected saved searches to actual fixture discovery scoring and durable history",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2637,13 +2637,13 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 237,
-    "requirement": "MJ-REQ-236",
-    "branch": "fix/search-history-snapshot-237-20261012",
-    "base": "c098774f1460d07492f7db06da9fef0ede371aeb",
+    "issue": 293,
+    "requirement": "MJ-REQ-292",
+    "branch": "fix/fixture-saved-search-293-20261012",
+    "base": "e398efbbd92a91c41a70b669937c3e42f6a61b09",
     "local": {
       "focused": {
-        "cases": 33,
+        "cases": 46,
         "failures": 0,
         "skips": 0
       },
@@ -2658,9 +2658,14 @@
     "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
     "result": "PARTIAL",
     "owned_paths": [
+      "apps/api/main.py",
+      "apps/web/src/main.tsx",
+      "services/discovery/pipeline.py",
+      "services/discovery/search_profiles.py",
       "workers/tasks.py",
-      "tests/integration/test_prefilter_discover_worker.py"
+      "tests/integration/test_fixture_saved_search_discovery.py",
+      "tests/browser/test_search_history_connected.py"
     ],
-    "next_action": "Protected serial PR and exact-head integration/browser/Compose checks"
+    "next_action": "Protected serial PR and exact-head hosted integration/browser/Compose checks"
   }
 }

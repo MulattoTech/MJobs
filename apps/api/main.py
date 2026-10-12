@@ -34,7 +34,7 @@ from services.career_profile.durable_extraction import (
 from services.discovery.pipeline import MockClient
 from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import (
-    CLEARANCE_LEVELS, EDUCATION_REQUIREMENTS, get_search_profile, list_search_profiles, save_search_profile,
+    CLEARANCE_LEVELS, EDUCATION_REQUIREMENTS, FixtureSearchUnavailable, get_fixture_search_profile, get_search_profile, list_search_profiles, save_search_profile,
 )
 from services.discovery.skill_taxonomy import SKILL_TAXONOMY, canonical_skill_id
 from services.tracking.applications import PIPELINE_STATUSES
@@ -1214,11 +1214,11 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         params = {"profile_version": profile["version"], "request_id": value.request_id}
         if value.search_profile_id:
             try:
-                search = get_search_profile(store, value.search_profile_id)
-            except NoResultFound as exc:
-                raise HTTPException(404, "Search profile not found") from exc
-            if search["profile_id"] != value.profile_id:
-                raise HTTPException(404, "Search profile not found")
+                get_fixture_search_profile(store, value.search_profile_id, value.profile_id)
+            except FixtureSearchUnavailable as exc:
+                raise HTTPException(exc.status_code, str(exc)) from exc
+            if value.query is not None or value.filters is not None:
+                raise HTTPException(409, "Edit the selected saved search instead of supplying separate query or filter descriptors")
             params["search_profile_id"] = value.search_profile_id
         if value.query is not None:
             params["query"] = value.query
