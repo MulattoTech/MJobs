@@ -87,6 +87,24 @@ class DurableResumeExtractionTests(unittest.TestCase):
         progress = self.client.get(f"/profiles/{self.profile_id}/operations/progress").json()["operations"]
         self.assertIn(first_payload["operation_id"], {row["operation_id"] for row in progress})
 
+    def test_unknown_insert_rowcount_preserves_actual_replay_identity(self):
+        from sqlalchemy import event
+        def unknown_count(connection, clause, multiparams, params, options, result):
+            if getattr(clause, 'is_insert', False) and clause.table is m.operations:
+                result.__dict__['rowcount'] = -1
+        event.listen(self.store.engine, 'after_execute', unknown_count)
+        try:
+            first = self.queue()
+            second = self.queue()
+            self.assertEqual(first.status_code, 202, first.text)
+            self.assertEqual(second.status_code, 202, second.text)
+            self.assertFalse(first.json()['replayed'])
+            self.assertTrue(second.json()['replayed'])
+            self.assertEqual(first.json()['operation_id'], second.json()['operation_id'])
+            self.assertEqual(self.store.count('worker_operations'), 1)
+        finally:
+            event.remove(self.store.engine, 'after_execute', unknown_count)
+
     def test_lost_http_ack_after_commit_replays_the_existing_operation(self):
         from apps.api import main as api_main
         real_queue = api_main.queue_durable_extraction

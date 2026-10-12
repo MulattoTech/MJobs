@@ -18,12 +18,15 @@
     "services/documents/AREA.md": "f7cb8429e286508490ccf12f921b5c53192a2ae1",
     "tests/integration/test_profile_import.py": "f8c0ce5175b3c5adcf1be9a3cbd7ed9a119afa3f",
     "tests/integration/test_uploaded_resume_comparison.py": "4fd9567c17050d36a2dc4c8aa9004897fa9c085d",
-    "tests/integration/test_durable_resume_extraction.py": "8cc7c717f722a949b292d58e3a35881c59d7fdca",
+    "tests/integration/test_durable_resume_extraction.py": "0dbb6cb27f1083b1d68ec208ca60f266685d2cb7",
     "tests/integration/test_durable_uploaded_comparison.py": "85a1ef8cba392af88fecda43d86fc57e77fc9d03",
     "tests/integration/test_durable_resume_extraction_postgres.py": "4ef6e82faa9e22e1d5675309bdabead6cf8179b5",
     "tests/integration/test_durable_uploaded_comparison_postgres.py": "fe9c1e18fca87444fec9d3a7e28c67b37582c003",
     "tests/unit/test_resume_extraction.py": "6a531d9bb5f940065d75ab91c71fd2426968ec6e",
-    "tests/unit/test_resume_ocr.py": "ae288eb5e7ba7b2cabc59d957a9ab098fbf4945f"
+    "tests/unit/test_resume_ocr.py": "ae288eb5e7ba7b2cabc59d957a9ab098fbf4945f",
+    "services/career_profile/durable_extraction.py": "70625557956cef1990c041db7c038e5f01266e7e",
+    "services/documents/history.py": "058271c6625fcb1f6c41890f95bbb130edfce6df",
+    "tests/unit/test_document_history_paths.py": "94f5c484d82e69d7faf71f5ebd75129b8aa20f0d"
   },
   "executed": [
     {
@@ -73,5 +76,52 @@
     "No schema migration, private data rewrite, key changes, provider calls or external applications",
     "Six obsolete request-bound disconnect/process-local cancellation tests replaced by durable HTTP-disconnect and actual worker/native-child cancellation coverage; existing format/OCR/truth assertions preserved",
     "Parent157 remainsPARTIAL; original/reference acceptance denominators unchanged"
-  ]
+  ],
+  "followup": {
+    "observed_utc": "2026-10-12T14:37:21.333245+00:00",
+    "failed_candidate": "4bee576b95c6283ab17f0704adee896121d28151",
+    "actual_hosted_failures": [
+      {
+        "run": 38262906523,
+        "job": 114857698573,
+        "case": "test_original_api_admission_and_worker_readback_on_postgresql",
+        "fingerprint": "assertTrue(replay.replayed) False is not true",
+        "cause": "driver INSERT rowcount unknown; return metadata inferred from rowcount",
+        "correction": "INSERT ON CONFLICT DO NOTHING RETURNING identity; existing locked intent validation preserved"
+      },
+      {
+        "analysis": 1936907229,
+        "check": "CodeQL failure:5new high path flows",
+        "existing_alert_ids": [
+          34,
+          35,
+          36,
+          37,
+          38
+        ],
+        "scope": "document history request-ID propagation to paths; existing resolved containment present; no proved remote escape",
+        "correction": "Use loaded canonical application ID and reject unsafe persisted path components before filesystem access; retain resolved containment; no suppression/dismissal"
+      }
+    ],
+    "regressions": [
+      {
+        "command": "pytest durable_resume_extraction -k unknown_insert_rowcount",
+        "result": "REDforcedrowcount=-1 returnedfalse replay; thenPASS"
+      },
+      {
+        "command": "pytest test_document_history_paths",
+        "result": "RED9unsafe persistedID controls; thenPASS9subtests"
+      },
+      {
+        "command": "pytest six affected integration/unit modules afterfollowup",
+        "result": "49PASS12subtestsPASS"
+      },
+      {
+        "command": "pytest browser document_history + uploaded_resume_comparison",
+        "result": "4PASS"
+      }
+    ],
+    "review": "Local Luna no concrete blocker in canonical path and returning identity changes; not independent certification",
+    "hosted": "Updated candidate NOT_RUN until publication"
+  }
 }
