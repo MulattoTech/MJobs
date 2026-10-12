@@ -496,10 +496,22 @@ class SkillOrderBrowserTests(unittest.TestCase):
                     for fact,wording,label in rewrites:
                         page.get_by_label('Include '+fact['text'],exact=True).check()
                         page.get_by_label(f'Rewrite this {label}: '+fact['text'],exact=True).fill(wording)
-                        page.get_by_label('I reviewed this rewrite: '+fact['text'],exact=True).check()
+                    wording_review=page.get_by_role('region',name='Resume rewrite review preview',exact=True)
+                    with page.expect_response(lambda response:
+                            response.url.endswith('/resume-rewrite-review-preview') and
+                            response.request.method=='POST') as rewrite_event:
+                        wording_review.get_by_role('button',name='Preview exact resume rewrites',exact=True).click()
+                    self.assertEqual(rewrite_event.value.status,200)
+                    for fact,wording,_ in rewrites:
+                        expect(wording_review.get_by_role('region',name='Approved source text for fact '+fact['id'],exact=True)).to_contain_text(fact['text'])
+                        expect(wording_review.get_by_role('region',name='User-authored proposed wording for fact '+fact['id'],exact=True)).to_contain_text(wording)
+                        wording_review.get_by_label('I reviewed the proposed wording for fact '+fact['id'],exact=True).check()
+                    expect(wording_review.get_by_role('status')).to_contain_text('Every rewrite was explicitly reviewed.')
+                    snapshot=self.preview_alignment(page,origin,explicit=True)
                     with page.expect_response(lambda response:response.url==origin+'/applications' and response.request.method=='POST') as event:
                         page.get_by_role('button',name='Prepare documents',exact=True).click()
                     operation=event.value.json();queued=event.value.request.post_data_json
+                    self.assert_prepared_snapshot(queued,snapshot)
                     self.assertEqual(queued['tailor_fact_rewrites'],[
                         {'fact_id':fact['id'],'text':wording,'reviewed':True} for fact,wording,_ in rewrites])
                     with patch.dict('os.environ',MJOBS_DATABASE_URL=store.url,MJOBS_MOCK_ORIGIN='http://127.0.0.1:1',
