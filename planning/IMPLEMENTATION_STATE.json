@@ -750,7 +750,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Continue with the highest-value unclaimed P0 user workflow after checking live lane claims and dependencies. Startup experience issue #15 is still PARTIAL but its remaining physical host-restart acceptance cannot be run against the retained personal runtime; find a code-backed gap that can be verified with isolated local fixtures. Preserve current claims and local-only publication state.",
+  "recommended_resume_step": "Verify actual PostgreSQL direct/PUBLIC ACL rejection and normal recovery on the exact #175 candidate; protected integration only after required checks.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -2637,35 +2637,11 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 293,
-    "requirement": "MJ-REQ-292",
-    "branch": "fix/fixture-saved-search-293-20261012",
-    "base": "e398efbbd92a91c41a70b669937c3e42f6a61b09",
-    "local": {
-      "focused": {
-        "cases": 46,
-        "failures": 0,
-        "skips": 0
-      },
-      "browser": {
-        "cases": 3,
-        "failures": 0,
-        "skips": 0
-      }
-    },
-    "hosted": "NOT_RUN for this candidate",
-    "external_submission_enabled": false,
-    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
-    "result": "PARTIAL",
-    "owned_paths": [
-      "apps/api/main.py",
-      "apps/web/src/main.tsx",
-      "services/discovery/pipeline.py",
-      "services/discovery/search_profiles.py",
-      "workers/tasks.py",
-      "tests/integration/test_fixture_saved_search_discovery.py",
-      "tests/browser/test_search_history_connected.py"
-    ],
-    "next_action": "Protected serial PR and exact-head hosted integration/browser/Compose checks"
+    "issue": 175,
+    "requirement": "MJ-REQ-174",
+    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+    "behavior": "Runtime provisioning rejects effective database/schema CREATE, table TRUNCATE/TRIGGER and sequence UPDATE authority, including PUBLIC ACLs, before reusing or publishing credentials. Startup/restore use the same boundary.",
+    "validation": "Admission RED reproduced; local GREEN11 tests/9subtests. Initial hosted161b4a failed actualPG+Compose: Boolean WHERE reordered sequence privilege function onto alembic_version_pkc index. Corrected with CASE type guards; actualPG/Compose on corrected revision pending. Browser221PASS5WindowsSKIP on initial revision only.",
+    "scope_boundary": "No whole requirement PASS; original credentials, data, keys and unrelated work retained; real external submissions OFF."
   }
 }
