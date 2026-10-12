@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "observed_utc": "2026-10-12T13:17:44.289114+00:00",
+  "base_revision": "63b91bf4415b15affdf8a0505c9bf4eaefe85e61",
+  "result": "PARTIAL",
+  "related_requirements": [
+    "MJ-REQ-167",
+    "MJ-REQ-168"
+  ],
+  "failure": "Exact PR587 integration38253308213 reported one credential-recovery and five durable-extraction PostgreSQL cases as SKIP; expected opt-in database environment variables absent",
+  "local_reproduction": {
+    "command": "python -m pytest -q -rs tests/integration/test_backup_credential_recoverability_postgres.py tests/integration/test_durable_resume_extraction_postgres.py",
+    "result": "6 SKIP, zero acceptance passes"
+  },
+  "change": "Create two isolated disposable loopback databases in existing hosted PostgreSQL service and pass exact existing opt-in URLs. No tests, resource guards or assertions weakened.",
+  "decisive_acceptance": [
+    "Original credential key decrypts and wrong/missing keys fail without ciphertext change",
+    "Same intent replay and terminal retry on PostgreSQL",
+    "Extraction result and completed operation atomic rollback",
+    "Expired lease rejects stale worker publication",
+    "Process crash replays to one result",
+    "HTTP disconnect leaves admitted operation durably queued"
+  ],
+  "local_checks": "10 public CI helper tests PASS; public repository policy PASS; diff PASS",
+  "hosted": "NOT_RUN for this candidate; require all six cases PASS, not SKIP",
+  "prior_fixture_restore": {
+    "pr": 587,
+    "merge": "63b91bf4415b15affdf8a0505c9bf4eaefe85e61",
+    "candidate": "8f27ff4cd4a854cedb06f118031539e0fdd9c7d5",
+    "checks": "15/15SUCCESS",
+    "connected_run": 38253308161,
+    "job": 114824835793,
+    "artifact": 11748199380,
+    "result": "PASS"
+  },
+  "safety": "Dedicated synthetic runner databases only; no personal .env/key/volume changes; real external submissions OFF; original/reference matrices unchanged"
+}

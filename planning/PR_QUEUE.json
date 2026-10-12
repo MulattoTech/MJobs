@@ -5258,10 +5258,25 @@
       ],
       "target_area": "Backup/restore and controlled Compose acceptance",
       "depends_on": [],
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "branch": "fix/fixture-receipt-backup-168-169-20261012",
       "draft_until_verified": true,
-      "notes": "Actual backup omission reproduced. Local55tests+56subtestsPASS; hostedfreshrestoreNOT_RUN. PERSONAL unchanged; legacyconfirmedfixturefailsclosed. No matrixpromotion."
+      "notes": "PR587merged63b91bf4;15/15exactchecksSUCCESS; actualfreshrestoreindependentreceiptreplayPASS run38253308161/artifact11748199380;9/9sourceblobsidentical; parent168PARTIAL."
+    },
+    {
+      "id": "MJ-PR-POSTGRES-RECOVERY-ACCEPTANCE-168",
+      "title": "Execute skipped original-key and durable extraction PostgreSQL recovery contracts",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-167",
+        "MJ-REQ-168"
+      ],
+      "target_area": "Existing disposable PostgreSQL integration acceptance",
+      "depends_on": [],
+      "status": "IN_PROGRESS",
+      "branch": "fix/postgres-durable-recovery-acceptance-168-20261012",
+      "draft_until_verified": true,
+      "notes": "ActualpreviousJUnit6SKIP; wirestrictdedicatedloopbackDBs; local10helperPASS; actualPGcandidateNOT_RUN. No matrixpromotion."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"
