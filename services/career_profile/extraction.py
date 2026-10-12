@@ -86,7 +86,11 @@ def _run_parser_process(command, data, cancelled=None, timeout=NATIVE_PARSER_TIM
         if cancelled is not None and cancelled.is_set():
             raise ResumeExtractionCancelled()
         return subprocess.CompletedProcess(command, process.returncode, bytes(output))
-    except (ResumeExtractionCancelled, subprocess.TimeoutExpired, ValueError):
+    finally:
+        # Persisted worker cancellation/deadline fences can raise their own
+        # exceptions from is_set(). Every exit must reap this owned child before
+        # closing pipes; closing a pipe with a reader blocked can otherwise wait
+        # for the full parser lifetime and leak work after cancellation.
         if process.poll() is None:
             try:
                 process.kill()
@@ -95,10 +99,9 @@ def _run_parser_process(command, data, cancelled=None, timeout=NATIVE_PARSER_TIM
         process.wait()
         output_reader.join(timeout=1)
         input_writer.join(timeout=1)
-        raise
-    finally:
         process.stdout.close()
         process.stdin.close()
+
 
 _EMAIL = re.compile(r"(?i)(?<![\w.+-])[\w.+-]+@[\w-]+(?:\.[\w-]+)+(?![\w.-])")
 _PHONE = re.compile(r"(?<!\w)\+?[\d(). -]{10,24}(?!\w)")

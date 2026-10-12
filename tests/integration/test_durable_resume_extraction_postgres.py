@@ -70,6 +70,12 @@ class DurableResumeExtractionPostgreSQLTests(unittest.TestCase):
     def test_http_disconnect_after_admission_leaves_postgres_operation_queued(self):
         self.case.test_real_http_disconnect_after_durable_admission_leaves_operation_queued()
 
+    def test_original_api_admission_and_worker_readback_on_postgresql(self):
+        self.case.test_original_extract_url_admits_replayable_work_without_api_parsing()
+
+    def test_cross_instance_cancellation_reaps_native_parser_on_postgresql(self):
+        self.case.test_cross_instance_cancel_reaps_running_native_parser_without_losing_upload()
+
 
 if __name__ == "__main__":
     unittest.main()

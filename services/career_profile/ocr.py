@@ -68,14 +68,15 @@ def _run_tool(executable, args, timeout, cancellation_event=None):
                     raise subprocess.TimeoutExpired(argv, timeout)
                 time.sleep(min(0.05, remaining))
             returncode = process.wait()
-        except (OCRCancelled, subprocess.TimeoutExpired):
+        finally:
+            # Worker cancellation and deadlines may raise from is_set(); reap
+            # this owned tool on every exit before removing diagnostics/files.
             if process.poll() is None:
                 try:
                     process.kill()
                 except ProcessLookupError:
                     pass
             process.wait()
-            raise
         diagnostics.flush()
         diagnostics.seek(0, os.SEEK_END)
         diagnostic_size = diagnostics.tell()

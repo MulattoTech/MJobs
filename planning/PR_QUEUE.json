@@ -5288,10 +5288,24 @@
       ],
       "target_area": "AI evaluation API, private checkpoints, existing worker outbox, reloadable browser and Compose runtime",
       "depends_on": [],
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "branch": "feat/durable-ai-evaluation-157-20261012",
       "draft_until_verified": true,
-      "notes": "Request-bound evaluator replaced by durable admission; unknown provider outcomes never replay automatically. Actual provider inference NOT_RUN; parent acceptance remains PARTIAL/unpromoted."
+      "notes": "PR589 merged a7722adc after15exactchecksSUCCESS; actual6PG+1RedisPASS0selectedSKIP;26/26blobsidentical; exactmainfullbrowser214PASS5WindowsSKIP0FAIL. Parent157PARTIAL."
+    },
+    {
+      "id": "MJ-PR-DURABLE-DOCUMENT-API-157",
+      "title": "Request-independent document APIs and native-tool cancellation cleanup",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-156"
+      ],
+      "target_area": "Original extraction/comparison API paths and owned native subprocess lifecycle",
+      "depends_on": [],
+      "status": "IN_PROGRESS",
+      "branch": "fix/durable-document-api-157-20261012",
+      "draft_until_verified": true,
+      "notes": "Original extraction202alias, pure comparisonGET persisted state envelope, cross-instance cancel; parser/OCR owned children reaped on worker fence exceptions. Parent unchanged."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

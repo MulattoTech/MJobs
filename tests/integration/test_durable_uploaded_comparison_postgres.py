@@ -53,3 +53,9 @@ class DurableComparisonPostgreSQLTests(unittest.TestCase):
 
     def test_expired_lease_fencing(self):
         self.case.test_expired_unreclaimed_lease_cannot_complete()
+
+    def test_original_get_reads_persisted_result_without_work_on_postgresql(self):
+        self.case.test_original_comparison_get_is_read_only_and_reads_saved_worker_result()
+
+    def test_original_cancel_reaches_queued_comparison_on_postgresql(self):
+        self.case.test_original_comparison_cancel_reaches_queued_worker_from_another_api()

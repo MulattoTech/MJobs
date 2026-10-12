@@ -59,8 +59,8 @@ def queue_extraction(store, profile_id: str, record: dict, request_id: str) -> d
             from sqlalchemy.dialects.postgresql import insert as dialect_insert
         else:
             raise DurableExtractionError("RESUME_EXTRACTION_DATABASE_UNSUPPORTED")
-        inserted = connection.execute(dialect_insert(m.operations).values(**values).on_conflict_do_nothing(
-            index_elements=[m.operations.c.id]))
+        inserted_id = connection.execute(dialect_insert(m.operations).values(**values).on_conflict_do_nothing(
+            index_elements=[m.operations.c.id]).returning(m.operations.c.id)).scalar_one_or_none()
         current = connection.execute(select(m.operations).where(
             m.operations.c.id == operation_id).with_for_update()).mappings().one()
         if (current["kind"] != OPERATION_KIND or current["entity_id"] != params["resume_id"]
@@ -72,7 +72,7 @@ def queue_extraction(store, profile_id: str, record: dict, request_id: str) -> d
             "state": current["state"],
             "current_step": current["current_step"],
             "progress": current["progress"],
-            "replayed": inserted.rowcount == 0,
+            "replayed": inserted_id is None,
         }
 
 

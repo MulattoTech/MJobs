@@ -87,6 +87,24 @@ class DurableResumeExtractionTests(unittest.TestCase):
         progress = self.client.get(f"/profiles/{self.profile_id}/operations/progress").json()["operations"]
         self.assertIn(first_payload["operation_id"], {row["operation_id"] for row in progress})
 
+    def test_unknown_insert_rowcount_preserves_actual_replay_identity(self):
+        from sqlalchemy import event
+        def unknown_count(connection, clause, multiparams, params, options, result):
+            if getattr(clause, 'is_insert', False) and clause.table is m.operations:
+                result.__dict__['rowcount'] = -1
+        event.listen(self.store.engine, 'after_execute', unknown_count)
+        try:
+            first = self.queue()
+            second = self.queue()
+            self.assertEqual(first.status_code, 202, first.text)
+            self.assertEqual(second.status_code, 202, second.text)
+            self.assertFalse(first.json()['replayed'])
+            self.assertTrue(second.json()['replayed'])
+            self.assertEqual(first.json()['operation_id'], second.json()['operation_id'])
+            self.assertEqual(self.store.count('worker_operations'), 1)
+        finally:
+            event.remove(self.store.engine, 'after_execute', unknown_count)
+
     def test_lost_http_ack_after_commit_replays_the_existing_operation(self):
         from apps.api import main as api_main
         real_queue = api_main.queue_durable_extraction
@@ -140,7 +158,7 @@ class DurableResumeExtractionTests(unittest.TestCase):
                 client_socket = socket.create_connection(("127.0.0.1", port), timeout=5)
                 body = ('{"request_id":"' + self.request_id + '"}').encode("ascii")
                 request = (
-                    f"POST /profiles/{self.profile_id}/resumes/{self.resume['id']}/extract/queued HTTP/1.1\r\n"
+                    f"POST /profiles/{self.profile_id}/resumes/{self.resume['id']}/extract HTTP/1.1\r\n"
                     f"Host: 127.0.0.1:{port}\r\nContent-Type: application/json\r\n"
                     f"Content-Length: {len(body)}\r\nConnection: close\r\n\r\n"
                 ).encode("ascii") + body
@@ -397,6 +415,82 @@ os._exit(74)
         self.assertEqual(first.status_code, 202, first.text)
         self.assertEqual(second.status_code, 202, second.text)
         self.assertNotEqual(first.json()["operation_id"], second.json()["operation_id"])
+
+    def test_original_extract_url_admits_replayable_work_without_api_parsing(self):
+        endpoint = f"/profiles/{self.profile_id}/resumes/{self.resume['id']}/extract"
+        before = self.store.profile(self.profile_id)
+        with patch('apps.api.main.extract_resume', create=True, side_effect=AssertionError('API must not parse')):
+            admitted = self.client.post(endpoint, json={'request_id': self.request_id})
+            self.assertEqual(admitted.status_code, 202, admitted.text)
+            replay = self.client.post(endpoint, json={'request_id': self.request_id})
+        operation_id = admitted.json()['operation_id']
+        self.assertEqual(replay.json()['operation_id'], operation_id)
+        self.assertTrue(replay.json()['replayed'])
+        self.assertEqual(self.operation(operation_id)['kind'], 'RESUME_EXTRACT_QUEUED')
+        self.client.close()
+        with patch.dict(os.environ, MJOBS_DATABASE_URL=self.database_url,
+                        MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE='PERSONAL'):
+            self.assertEqual(execute_operation(operation_id)['status'], 'COMPLETED')
+        with TestClient(create_app(self.store, 'http://127.0.0.1:1', self.root,
+                                  operation_mode='PERSONAL')) as restarted:
+            readback = restarted.get(endpoint + '/queued/' + operation_id)
+        self.assertEqual(readback.json()['state'], 'COMPLETED')
+        self.assertTrue(readback.json()['result']['facts'])
+        self.assertEqual(self.store.profile(self.profile_id), before)
+
+    def test_cross_instance_cancel_reaps_running_native_parser_without_losing_upload(self):
+        from fixtures.resume_scans import scanned_resume
+        data = scanned_resume()
+        resume = save_resume(self.store, self.root, self.profile_id, 'synthetic.pdf', 'application/pdf', data)
+        endpoint = f"/profiles/{self.profile_id}/resumes/{resume['id']}/extract"
+        admitted = self.client.post(endpoint, json={'request_id': self.request_id})
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        before = self.store.profile(self.profile_id)
+        started = threading.Event()
+        children, outcomes, errors = [], [], []
+        real_popen = subprocess.Popen
+        def launch(command, **kwargs):
+            if 'services.career_profile.parser_worker' in command:
+                child = real_popen([sys.executable, '-c', 'import time; time.sleep(30)'], **kwargs)
+                children.append(child)
+                started.set()
+                return child
+            return real_popen(command, **kwargs)
+        def work():
+            try:
+                outcomes.append(execute_operation(admitted.json()['operation_id']))
+            except BaseException as error:
+                errors.append(error)
+        with patch.dict(os.environ, MJOBS_DATABASE_URL=self.database_url,
+                        MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE='PERSONAL'), \
+             patch.object(subprocess, 'Popen', side_effect=launch):
+            worker = threading.Thread(target=work, daemon=True)
+            worker.start()
+            other = Store(self.database_url)
+            try:
+                self.assertTrue(started.wait(5), 'worker native parser did not start')
+                with TestClient(create_app(other, 'http://127.0.0.1:1', self.root,
+                                          operation_mode='PERSONAL')) as client:
+                    denied = client.post(endpoint.replace(self.profile_id, self.other_profile_id) + '/cancel')
+                    self.assertEqual(denied.status_code, 404)
+                    self.assertIsNone(children[0].poll())
+                    cancel = client.post(endpoint + '/cancel')
+                    self.assertTrue(cancel.json()['cancelled'], cancel.text)
+                worker.join(timeout=3)
+                self.assertFalse(worker.is_alive(), 'native parser cancellation exceeded recovery bound')
+                self.assertEqual(errors, [])
+                self.assertEqual(outcomes[0]['status'], 'CANCELLED')
+                self.assertIsNotNone(children[0].poll(), 'owned parser child was not reaped')
+                self.assertEqual(self.store.count('resume_extraction_results'), 0)
+                self.assertEqual(self.store.profile(self.profile_id), before)
+                self.assertEqual(self.client.get(endpoint.removesuffix('/extract')).content, data)
+            finally:
+                for child in children:
+                    if child.poll() is None:
+                        child.kill()
+                    child.wait()
+                worker.join(timeout=5)
+                other.engine.dispose()
 
 
 if __name__ == "__main__":
