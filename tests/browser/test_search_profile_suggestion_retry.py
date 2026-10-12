@@ -158,7 +158,8 @@ class SearchProfileSuggestionRetryBrowserTests(unittest.TestCase):
                     suggestions = suggestions_section.get_by_role(
                         "list", name="Related title suggestions", exact=True)
                     expect(suggestions.get_by_text(title, exact=True)).to_be_visible()
-                    expect(suggestions.locator("li").filter(has_text=title).locator("p")).to_contain_text(
+                    expect(suggestions.locator("li").filter(has_text=title).get_by_label(
+                        "Strong-match evidence", exact=True)).to_contain_text(
                         re.compile(r"1\s+current\s+strong\s+match", re.IGNORECASE))
                     self.assertEqual(len(suggestion_requests), 2)
                     after_retry = read_profile()

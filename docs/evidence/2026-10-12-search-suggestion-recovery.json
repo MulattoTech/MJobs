@@ -1,0 +1,19 @@
+{
+  "issue": 532,
+  "status": "PARTIAL parent; scoped browser acceptance PASS locally",
+  "base": "b28048e5808db641b0c81a980ed7a2a0567c6a0b",
+  "environment": "Windows; Chromium; isolated synthetic FIXTURE SQLite; fresh production build",
+  "change": "Supply the required synthetic job-match identity and target suggestion evidence, errors and retry controls by semantic section/label. Original assertions retained.",
+  "red": "Two original tests failed: duplicate paragraph locator and missing job_matches.id (cleanup masked the latter with Windows file-lock error). JUnit: outputs/ci/iteration46-red.xml.",
+  "verification": [
+    {"command": "npm --prefix apps/web run build", "result": "PASS after approved local process execution; initial sandbox EPERM"},
+    {"command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_search_profile_suggestion_retry.py tests/browser/test_search_profile_title_suggestions_recovery.py", "result": "2 PASS; 0 SKIP"},
+    {"command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_search_profile_suggestion_retry.py tests/browser/test_search_profile_title_suggestions_recovery.py tests/browser/test_search_profile_suggestions_profile_scope.py tests/browser/test_search_profile_suggestions_connected.py tests/browser/test_search_profile_suggestions.py --junitxml=outputs/ci/iteration46-connected.xml", "result": "5 PASS; 0 SKIP"},
+    {"command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_search_profile_suggestions.py tests/unit/test_search_profile_suggestions_scope.py tests/unit/test_search_profile_suggestions_currentness.py", "result": "10 PASS"},
+    {"command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check", "result": "PASS"}
+  ],
+  "acceptance": "Outage then retry is read-only; explicit title addition makes one scoped save, survives reload and preserves other criteria; profile isolation and no external requests remain asserted.",
+  "review": "Read-only local Luna review: no findings; review did not run tests.",
+  "limitations": "Full browser regression and new-head hosted checks pending. Whole-goal release gate NOT_RUN for this slice. No original/reference requirement promoted; goal remains 0/7. Real submissions OFF.",
+  "rollback": "Revert scoped tests/evidence; no production source, migration, configuration or private data changes."
+}
