@@ -11,7 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from services.applications.browser_tree import BrowserTreeJob
 
 
-def controlled_job(directory):
+def controlled_job(directory, *, sign_in=False):
     directory = Path(directory)
     adapter = '''
 from pathlib import Path
@@ -25,6 +25,12 @@ class Page:
     def __getattr__(self, key): return getattr(self.page, key)
     def goto(self, *args, **kwargs):
         result = self.page.goto(*args, **kwargs)
+        if SIGN_IN:
+            self.page.get_by_label('Fixture username', exact=True).fill('synthetic-fixture-user')
+            self.page.get_by_label('Fixture password', exact=True).fill('synthetic-fixture-only-password')
+            self.page.get_by_role('button', name='Sign in', exact=True).click()
+            self.page.wait_for_url('**/ats/apply/*?auth_expired=true')
+            assert self.page.locator('[data-auth-required]').count() == 0
         ready_file.touch()
         return result
     def wait_for_timeout(self, milliseconds):
@@ -47,7 +53,7 @@ class Manager:
         return SimpleNamespace(chromium=SimpleNamespace(launch_persistent_context=launch))
     def __exit__(self, *args): return self.manager.__exit__(*args)
 api.sync_playwright = Manager
-'''.replace('CLOSE_PATH', repr(str(directory / 'close-browser'))).replace(
+'''.replace('SIGN_IN', repr(sign_in)).replace('CLOSE_PATH', repr(str(directory / 'close-browser'))).replace(
         'READY_PATH', repr(str(directory / 'host-ready')))
 
     class ControlledJob(BrowserTreeJob):

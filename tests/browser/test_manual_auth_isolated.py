@@ -31,6 +31,50 @@ class ManualAuthIsolatedBrowserTests(unittest.TestCase):
         self.exercise(mounted=True)
         self.exercise(mounted=True)
 
+    def test_native_sign_in_persists_for_separate_worker_dry_run_without_replay(self):
+        import json
+        import os
+        from pathlib import Path
+        import subprocess
+        from services.applications.attempt_history import read_attempt_history
+        from tests.fixtures.manual_auth_isolated_owner import controlled_job
+        original = read_attempt_history(self.store, 'fixture', self.application_id)['attempts']
+        (self.root / 'close-browser').touch()
+        with patch('services.applications.manual_auth_isolated.BrowserTreeJob',
+                   controlled_job(self.root, sign_in=True)):
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(self.store.application(self.application_id)['state'], 'AUTH_REQUIRED')
+        self.assertEqual(read_attempt_history(self.store, 'fixture', self.application_id)['attempts'], original)
+        self.assertEqual(httpx.get(self.origin + '/_test/request-counts').json(), {'review': 0, 'submit': 0})
+        body = {'submit': False, 'request_id': 'native-sign-in-dry-run'}
+        endpoint = f'/profiles/fixture/applications/{self.application_id}/mock-run'
+        queued = self.client.post(endpoint, json=body)
+        self.assertEqual(queued.status_code, 202, queued.text)
+        operation = queued.json()['operation_id']
+        env = {**os.environ, 'MJOBS_DATABASE_URL': self.store.url,
+            'MJOBS_OUTPUT_DIR': str(self.root), 'MJOBS_MOCK_ORIGIN': self.origin,
+            'MJOBS_OPERATION_MODE': 'FIXTURE', 'PYTHONUTF8': '1'}
+        code = 'import json,sys;from workers.tasks import execute_operation;print(json.dumps(execute_operation(sys.argv[1])))'
+        child = subprocess.run([sys.executable, '-c', code, operation],
+            cwd=Path(__file__).resolve().parents[2], env=env, capture_output=True, text=True, timeout=90)
+        self.assertEqual(child.returncode, 0, child.stderr[-1500:])
+        self.assertEqual(json.loads(child.stdout.strip().splitlines()[-1])['status'], 'COMPLETED')
+        self.assertEqual(self.store.application(self.application_id)['state'], 'DRY_RUN_COMPLETE')
+        after = read_attempt_history(self.store, 'fixture', self.application_id)['attempts']
+        self.assertEqual(len(after), len(original) + 1)
+        self.assertTrue(all(attempt in after for attempt in original))
+        replay = self.client.post(endpoint, json=body)
+        self.assertEqual(replay.status_code, 202, replay.text)
+        self.assertEqual(replay.json()['operation_id'], operation)
+        repeated_worker = subprocess.run([sys.executable, '-c', code, operation],
+            cwd=Path(__file__).resolve().parents[2], env=env, capture_output=True, text=True, timeout=30)
+        self.assertEqual(repeated_worker.returncode, 0, repeated_worker.stderr[-1500:])
+        self.assertEqual(json.loads(repeated_worker.stdout.strip().splitlines()[-1])['status'],
+                         'ALREADY_CLAIMED_OR_CAPACITY')
+        self.assertEqual(read_attempt_history(self.store, 'fixture', self.application_id)['attempts'], after)
+        self.assertEqual(httpx.get(self.origin + '/_test/request-counts').json(), {'review': 1, 'submit': 0})
+
     def test_mounted_prelaunch_cancellation_confirms_native_rollback_and_releases_capacity(self):
         from services.applications.browser_tree_ipc import BrowserTreeObserver
         from workers.operations import OperationCancelled
