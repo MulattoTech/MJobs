@@ -75,6 +75,7 @@ def _kernel():
         ("CreateProcessW", [w.LPCWSTR, w.LPWSTR, c.c_void_p, c.c_void_p, w.BOOL,
                            w.DWORD, c.c_void_p, w.LPCWSTR, c.POINTER(_StartupEx), c.POINTER(_ProcessInfo)], w.BOOL),
         ("OpenProcess", [w.DWORD, w.BOOL, w.DWORD], w.HANDLE),
+        ("GetExitCodeProcess", [w.HANDLE, c.POINTER(w.DWORD)], w.BOOL),
         ("IsProcessInJob", [w.HANDLE, w.HANDLE, c.POINTER(w.BOOL)], w.BOOL),
     ]
     for name, arguments, result in definitions:
@@ -218,6 +219,7 @@ class BrowserTreeJob:
     """
     def __init__(self):
         self._handle = None
+        self._host_handle = None
         self._attempted = False
         self._lock = RLock()
         try:
@@ -298,6 +300,15 @@ class BrowserTreeJob:
                                             str(cwd) if cwd is not None else None,
                                             c.byref(startup), c.byref(info)))
             try:
+                # Duplicate from CreateProcess's original object identity before
+                # releasing its handle. A PID lookup after a fast exit can
+                # identify a different process. Retain only diagnostic QUERY
+                # access; this handle never certifies the complete browser tree.
+                host = w.HANDLE()
+                process = kernel.GetCurrentProcess()
+                _require(kernel.DuplicateHandle(process, info.process, process,
+                                                c.byref(host), 0x1000, False, 0))
+                self._host_handle = host.value
                 return info.pid
             finally:
                 kernel.CloseHandle(info.thread)
@@ -305,8 +316,21 @@ class BrowserTreeJob:
         finally:
             kernel.DeleteProcThreadAttributeList(buffer)
 
+    def host_exit_code(self):
+        """Query the original host object; None is unknown, 259 still active."""
+        with self._lock:
+            if self._host_handle is None:
+                return None
+            value = w.DWORD()
+            if not self._kernel.GetExitCodeProcess(self._host_handle, c.byref(value)):
+                return None
+            return value.value
+
     def close(self):
         with self._lock:
+            if self._host_handle is not None:
+                host, self._host_handle = self._host_handle, None
+                self._kernel.CloseHandle(host)
             if self._handle is not None:
                 handle, self._handle = self._handle, None
                 self._kernel.CloseHandle(handle)
