@@ -2,6 +2,7 @@
 from pathlib import Path
 from secrets import token_hex
 from time import monotonic
+import sys
 
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
@@ -14,8 +15,13 @@ from workers.operations import (OperationConcurrencyLimit, OperationCancelled,
 
 def open_mock_authentication(*args, **kwargs):
     """Load the MOCK adapter lazily so unsupported runtimes keep API startup safe."""
+    if sys.platform == 'win32':
+        from services.applications.manual_auth_isolated import open_isolated_manual_auth_window
+        kwargs.pop('on_process', None)
+        return open_isolated_manual_auth_window(*args, **kwargs)
     from services.applications.mock_adapter import open_mock_authentication as open_window
-
+    for key in ('operation_id', 'owner_token', 'budget_seconds'):
+        kwargs.pop(key, None)
     return open_window(*args, **kwargs)
 
 
@@ -23,6 +29,20 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
                               operation_mode: str) -> APIRouter:
     """Create the narrowly scoped MOCK manual-auth route for ``create_app``."""
     router = APIRouter()
+
+    @router.post('/profiles/{profile_id}/applications/{application_id}/manual-auth/{operation_id}/recover')
+    def recover_manual_browser(profile_id: str, application_id: str, operation_id: str):
+        if operation_mode != 'FIXTURE':
+            raise HTTPException(409, 'Browser recovery is available only in verification mode')
+        from services.applications.manual_auth_recovery import recover_browser_capacity
+        from workers.operations import OperationActionError
+        try:
+            return recover_browser_capacity(store, profile_id, application_id, operation_id)
+        except OperationActionError as error:
+            status = 404 if error.code == 'BROWSER_RECOVERY_NOT_FOUND' else 409
+            message = ('Saved browser ownership was not found for this application.' if status == 404
+                else 'Recovery is not ready. Close the previous browser and stop its server; saved full-browser closure proof is required. Reload before retrying.')
+            raise HTTPException(status, {'code': error.code, 'message': message}) from None
 
     @router.post("/profiles/{profile_id}/applications/{application_id}/manual-auth")
     def open_manual_auth(profile_id: str, application_id: str):
@@ -84,6 +104,9 @@ def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
             browser_closed = False
             status = open_mock_authentication(
                 store=store,
+                operation_id=operation_id,
+                owner_token=owner_token,
+                budget_seconds=timeout(),
                 application_id=application_id,
                 attempt_id=attempt["id"],
                 mock_origin=mock_origin,

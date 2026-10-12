@@ -84,6 +84,28 @@ class ManualAuthIsolatedTests(unittest.TestCase):
             self.assertEqual(self.invoke(), 'CLOSE_UNCONFIRMED')
             self.job.launch.assert_not_called()
 
+    def test_ambiguous_launch_failure_never_uses_unlaunched_compensation(self):
+        from contextlib import ExitStack
+        from services.applications import manual_auth_isolated as module
+        with ExitStack() as stack:
+            self.setup_transport(stack)
+            self.query.accounting.return_value = {'total': 0, 'active': 0, 'terminated': 0}
+            self.job.launch.side_effect = RuntimeError('ambiguous launch')
+            rollback = stack.enter_context(patch.object(module, '_confirm_unlaunched_rollback', return_value=True))
+            self.assertEqual(self.invoke(), 'CLOSE_UNCONFIRMED')
+            rollback.assert_not_called()
+
+    def test_successful_host_exit_waits_for_remaining_native_descendants(self):
+        from contextlib import ExitStack
+        with ExitStack() as stack:
+            self.setup_transport(stack)
+            self.observer.observe.side_effect = [
+                {'binding': self.binding, 'status': 'LIVE',
+                 'accounting': {'total': 4, 'active': 1, 'terminated': 0}},
+                self.observer.observe.return_value]
+            self.assertEqual(self.invoke(), 'MANUAL_AUTH_WINDOW_CLOSED')
+            self.assertEqual(self.observer.observe.call_count, 2)
+
     def test_zero_tree_does_not_turn_host_failure_or_unknown_into_success(self):
         from contextlib import ExitStack
         with ExitStack() as stack:
@@ -117,3 +139,31 @@ class ManualAuthIsolatedTests(unittest.TestCase):
             self.assertEqual(self.invoke(check=check), 'CLOSE_UNCONFIRMED')
             self.observer.close.assert_called_once()
             self.assertEqual(self.row()['state'], 'RUNNING')
+
+    def test_cancel_before_launch_releases_only_confirmed_zero_tree_rollback(self):
+        from contextlib import ExitStack
+        from copy import deepcopy
+        from sqlalchemy import update
+        from packages.persistence import models as m
+        with ExitStack() as stack:
+            self.setup_transport(stack)
+            self.query.accounting.return_value = {'total': 0, 'active': 0, 'terminated': 0}
+            self.observer.identity = {'pid': 1234, 'created': '1234',
+                'host': self.row()['recovery_metadata']['manual_auth_owner']['api_process']['host']}
+            baseline = deepcopy(self.row()['recovery_metadata'])
+            enrolled = deepcopy(baseline)
+            enrolled['manual_auth_owner'].update(tree_observer=self.observer.identity, tree_retention='d' * 64)
+            def write(metadata):
+                with self.store.engine.begin() as c:
+                    c.execute(update(m.operations).where(m.operations.c.id == self.operation).values(recovery_metadata=metadata))
+            def check():
+                if self.events == ['enroll']:
+                    write(enrolled)
+                    raise RuntimeError('cancelled before launch')
+            # A timed-out/failed rollback is not release authority.
+            self.assertEqual(self.invoke(check=check), 'CLOSE_UNCONFIRMED')
+            self.job.launch.assert_not_called()
+            self.observer.close.side_effect = lambda: write(baseline)
+            self.events.clear()
+            self.assertEqual(self.invoke(check=check), 'OPEN_UNAVAILABLE')
+            self.job.launch.assert_not_called()

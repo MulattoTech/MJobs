@@ -4,6 +4,7 @@ This internal service never releases capacity or changes application history.
 Its caller must finish the owning operation or leave uncertain capacity held.
 """
 import json
+from copy import deepcopy
 from pathlib import Path
 import sys
 from time import monotonic, sleep
@@ -19,6 +20,36 @@ from services.applications.manual_auth import (
     OPEN_UNAVAILABLE, STALE,
 )
 from services.discovery.pipeline import MockClient
+
+
+def _confirm_unlaunched_rollback(store, operation_id, owner_token, binding, observer, query):
+    """Confirm the acknowledged observer's durable compensation, never a launch."""
+    try:
+        def current():
+            with store.engine.connect() as connection:
+                return connection.execute(select(m.operations).where(
+                    m.operations.c.id == operation_id)).mappings().one()
+        before = current()
+        if _scope(before, owner_token) != binding or before['state'] != 'RUNNING':
+            return False
+        expected = deepcopy(before['recovery_metadata'])
+        owner = expected['manual_auth_owner']
+        if (owner.get('tree_observer') != observer.identity
+                or not isinstance(owner.get('tree_retention'), str)
+                or len(owner['tree_retention']) != 64
+                or any(value not in '0123456789abcdef' for value in owner['tree_retention'])
+                or 'tree_closure' in owner
+                or query.accounting() != {'total': 0, 'active': 0, 'terminated': 0}):
+            return False
+        del owner['tree_observer']
+        del owner['tree_retention']
+        observer.close()
+        after = current()
+        return (_scope(after, owner_token) == binding and after['state'] == 'RUNNING'
+                and after['recovery_metadata'] == expected
+                and query.accounting() == {'total': 0, 'active': 0, 'terminated': 0})
+    except Exception:
+        return False
 
 
 def open_isolated_manual_auth_window(*, store, operation_id, application_id,
@@ -42,6 +73,7 @@ def open_isolated_manual_auth_window(*, store, operation_id, application_id,
         return OPEN_UNAVAILABLE
     route, _ = resolved
     job = query = observer = client = None
+    launch_attempted = False
     try:
         client = MockClient(mock_origin, check=check)
         if not client.allowed(route['url']) or _manual_login_url(mock_origin, route['requisition'], client) is None:
@@ -63,6 +95,7 @@ def open_isolated_manual_auth_window(*, store, operation_id, application_id,
         bootstrap = ('import site,runpy;site.addsitedir(' +
             repr(str(Path(sys.prefix) / 'Lib/site-packages')) +
             ");import sys;sys.argv=['host'];runpy.run_module('services.applications.manual_auth_host',run_name='__main__')")
+        launch_attempted = True
         job.launch([sys._base_executable, '-c', bootstrap],
                          cwd=str(Path(__file__).resolve().parents[2]), private_input=payload)
         deadline = monotonic() + budget_seconds + 20
@@ -77,12 +110,26 @@ def open_isolated_manual_auth_window(*, store, operation_id, application_id,
                         and _status(reply.get('accounting')) == 'EXITED'
                         and reply['accounting']['terminated'] == 0):
                     return MANUAL_AUTH_WINDOW_CLOSED
+                # The host may exit before its final browser descendant. Keep
+                # the original admission until fresh full-tree proof arrives,
+                # within the same cancellation/deadline checks and time bound.
+                if (code == 0 and reply.get('binding') == binding
+                        and reply.get('status') == 'LIVE'
+                        and _status(reply.get('accounting')) == 'LIVE'
+                        and reply['accounting']['terminated'] == 0):
+                    sleep(.05)
+                    continue
                 return 'CLOSE_UNCONFIRMED'
             sleep(.05)
         return 'CLOSE_UNCONFIRMED'
     except Exception:
-        # Enrollment/launch may be ambiguous. Even failed ACK retains capacity
-        # until its exact unlaunched rollback is durably reconciled by caller.
+        if job is None:
+            return OPEN_UNAVAILABLE
+        if (not launch_attempted and observer is not None
+                and _confirm_unlaunched_rollback(store, operation_id, owner_token,
+                    binding, observer, query)):
+            return OPEN_UNAVAILABLE
+        # Failed ACK/launch or unconfirmed rollback retains capacity.
         return 'CLOSE_UNCONFIRMED'
     finally:
         for resource in (observer, query, job, client):
