@@ -5,18 +5,48 @@
   "result": "PARTIAL",
   "base_commit": "b03176c4f80b0fadc118865dbd8b535f19514b0a",
   "scope": "Current saved-search comparison membership, accessible selection, and existing reviewed experience/manual-capture acceptance",
-  "source_git_blobs": {
-    "apps/api/job_comparison.py": "2589849362775aca267a34bedbceef54d90b9c5b",
-    "apps/web/src/job-comparison-workspace.tsx": "5864c89a1f46a7c58332ec1d90b9e5beaf0d584f",
-    "apps/web/src/job-comparison-workspace.test.tsx": "b9a6f4c28b7b3631f4459f33f17e632b21abfa74",
-    "apps/web/src/main.tsx": "b16a529d91043eac7f1a193655e569450b86c121",
-    "packages/persistence/store.py": "9a575352f04815261263c2666cb1f2075246a07a",
-    "tests/browser/test_job_comparison_workspace.py": "f0e42962e5ea02f8eb7ff178a984348aa9f9b235",
-    "tests/browser/test_job_comparison_scope_recovery.py": "a0a273f42f99dd5ba8a6b4fc56bb1a102bdf462a",
-    "tests/browser/test_resume_experience_rewrite.py": "b206beea20866331bb116d3d5a4bbbea600e1737",
-    "tests/browser/test_manual_job_capture.py": "0f6748e695d8829ea5cf41ecc2b99b189de53712",
-    "tests/integration/test_job_comparison_api.py": "4be4fa0bbbbec335bdbd4ba543ef82f27ae5d133"
-  },
+  "source_git_blobs": [
+    {
+      "path": "apps/api/job_comparison.py",
+      "git_blob": "2589849362775aca267a34bedbceef54d90b9c5b"
+    },
+    {
+      "path": "apps/web/src/job-comparison-workspace.tsx",
+      "git_blob": "5864c89a1f46a7c58332ec1d90b9e5beaf0d584f"
+    },
+    {
+      "path": "apps/web/src/job-comparison-workspace.test.tsx",
+      "git_blob": "b9a6f4c28b7b3631f4459f33f17e632b21abfa74"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "git_blob": "b16a529d91043eac7f1a193655e569450b86c121"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "git_blob": "9a575352f04815261263c2666cb1f2075246a07a"
+    },
+    {
+      "path": "tests/browser/test_job_comparison_workspace.py",
+      "git_blob": "f0e42962e5ea02f8eb7ff178a984348aa9f9b235"
+    },
+    {
+      "path": "tests/browser/test_job_comparison_scope_recovery.py",
+      "git_blob": "a0a273f42f99dd5ba8a6b4fc56bb1a102bdf462a"
+    },
+    {
+      "path": "tests/browser/test_resume_experience_rewrite.py",
+      "git_blob": "b206beea20866331bb116d3d5a4bbbea600e1737"
+    },
+    {
+      "path": "tests/browser/test_manual_job_capture.py",
+      "git_blob": "0f6748e695d8829ea5cf41ecc2b99b189de53712"
+    },
+    {
+      "path": "tests/integration/test_job_comparison_api.py",
+      "git_blob": "4be4fa0bbbbec335bdbd4ba543ef82f27ae5d133"
+    }
+  ],
   "behavior": [
     "Only current-profile current-version scored jobs appear as comparison choices; zero scores remain eligible.",
     "Comparison names expose title and company instead of opaque IDs.",
@@ -55,7 +85,15 @@
     }
   ],
   "review": "Local Luna read-only review; not hosted or human approval. Nested pool checkout concern repaired before final verification.",
-  "hosted": "NOT_RUN for this candidate at evidence creation. Current main browser run38224215001: shard1 success, shards0/2/3 failure; 17 failed tests total.",
+  "hosted": "Initial candidate4e270786: hosted unit/web/policy/dependency/CodeQL PASS; integration/Compose pending when checked; secret scan found one independently verified public Git blob ID at evidence line18. One exact historical fingerprint exception; no rule/path suppression. Final candidate checks required anew.",
   "release_readiness": "NOT_ACCEPTED. #532 remains PARTIAL. Refreshed 26 open high CodeQL findings; no acceptance matrix changes.",
-  "privacy": "All tests isolated synthetic SQLite/Chromium. No private environment/data/keys altered. Real external submissions OFF."
+  "privacy": "All tests isolated synthetic SQLite/Chromium. No private environment/data/keys altered. Real external submissions OFF.",
+  "secret_candidate_triage": {
+    "verdict": "not_actionable",
+    "source": "git hash-object / git rev-parse, not authentication input",
+    "path": "tests/integration/test_job_comparison_api.py",
+    "git_blob": "4be4fa0bbbbec335bdbd4ba543ef82f27ae5d133",
+    "scope": "Only the already-published4e270786 evidence line18 fingerprint. Same content at a new fingerprint remains detectable.",
+    "verification": "Windows checksum-verified Gitleaks8.30.1 all-ref history2878commits: no leaks; original evidence via stdin still detects1 outside its historical fingerprint; separated current evidence detects0."
+  }
 }
