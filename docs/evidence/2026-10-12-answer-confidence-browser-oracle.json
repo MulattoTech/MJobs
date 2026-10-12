@@ -1,0 +1,34 @@
+{
+  "acceptance": "0/7 unchanged; no parent requirement promotion",
+  "base": "1652bbc06ce50ab89ef0a86631930dbd0296d49e",
+  "issue": 532,
+  "iteration": 48,
+  "limitations": "Full browser NOT_RUN this iteration; predecessor17FAIL. Release gate/localPostgreSQL NOT_RUN. Current repair hosted checks pending publication. GraphQL rate-limited; REST reads succeeded.",
+  "red": "Original test PASS masks race; response+React barrier probe reproduces same hosted count0/actual1. No unchanged retry.",
+  "review": "Read-only local Luna review: no important findings; reviewer tests NOT_RUN",
+  "scope": "Test-only confidence policy browser oracle repair; production behavior unchanged",
+  "sourceHashes": {
+    "apps/web/src/answer-matching.ts": "341e76f5182c62f7494b1baf034c537eefd09edb87fcc8d06b80232c78462e88",
+    "apps/web/src/main.tsx": "aa40707db92824fb44f49d6471a1c39a92b9436e770c301e348927868b1859b3",
+    "tests/browser/test_application_answer_export.py": "b0997ac3516c27eed0ebeb8d0c289ae480d03b6369ec258ce8b3bd55b75ca49b"
+  },
+  "timestampUtc": "2026-10-12T03:19:57.705532+00:00",
+  "verification": [
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_application_answer_export.py",
+      "result": "4 PASS / 0 SKIP"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/unit/test_answer_matching.py tests/integration/test_application_answer_export.py",
+      "result": "39 PASS / 12 subtests / 0 SKIP"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ]
+}
