@@ -135,3 +135,9 @@ bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline
 bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline.json:generic-api-key:497
 # Evidence file/container SHA-256 digest; not a credential
 bf1e0d64f3c2869179dec0e9758195f1602b9b5d:docs/evidence/2026-10-04-clean-baseline.json:generic-api-key:504
+
+# Verified committed API test source hash; not a credential
+5c92f37ac5d7b0c6e18488f65dbbde4a03747492:docs/evidence/2026-10-11-dashboard-error-disclosure.json:generic-api-key:9
+
+# Verified committed API test source hash; not a credential
+46cb283c8a5c1cab45828f68069f3a3d0545ea4a:docs/evidence/2026-10-11-dashboard-log-confinement.json:generic-api-key:10

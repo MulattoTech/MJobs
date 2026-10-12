@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -30,6 +31,60 @@ class AgentDashboardApiTests(unittest.TestCase):
         self.assertEqual(set(body["lanes"]), {"codex", "antigravity", "ollama", "claude"})
         self.assertIn("git", body)
         self.assertIn("coordination", body)
+
+    def test_operation_errors_do_not_disclose_exception_details(self):
+        app = self.client.app
+        headers = {"X-MJobs-Launch-Token": app.state.mission_control.token}
+        cases = (
+            ("get", "/api/history", app.state.work_history, "snapshot", 503,
+             "Work history is unavailable. Try refreshing again."),
+            ("post", "/api/launcher/codex/preview", app.state.mission_control, "preview", 409,
+             "Prompt preview failed. Check the selected settings and try again."),
+            ("post", "/api/launcher/codex/launch", app.state.mission_control, "launch", 409,
+             "Launch failed. Refresh the models and review the prompt before trying again."),
+            ("post", "/api/launcher/codex/terminal-window", app.state.supervisor, "open_log_console", 409,
+             "Terminal output is unavailable. Check the lane state and try again."),
+            ("post", "/api/launcher/codex/stop", app.state.mission_control, "stop", 409,
+             "Stop failed. Check the lane state before trying again."),
+            ("post", "/api/lanes/codex/start", app.state.supervisor, "start", 409,
+             "Start failed. Check the lane configuration before trying again."),
+            ("post", "/api/lanes/codex/restart", app.state.supervisor, "restart", 409,
+             "Restart failed. Check the lane state and configuration before trying again."),
+        )
+        # Synthetic diagnostics stand in for filesystem paths, command stderr,
+        # credentials or attacker-controlled text embedded in backend errors.
+        diagnostic = "PRIVATE_SENTINEL C:/private/profile.env token=synthetic-secret\nTraceback"
+        for method, url, target, operation, status, detail in cases:
+            for error in (RuntimeError, ValueError, FileNotFoundError, OSError):
+                with self.subTest(url=url, error=error.__name__):
+                    with patch.object(target, operation, side_effect=error(diagnostic)) as call:
+                        response = getattr(self.client, method)(url, headers=headers,
+                            **({"json": {"profile": "codex-luna-high", "model": "gpt-6-luna"}}
+                               if method == "post" else {}))
+                    call.assert_called_once()
+                    self.assertEqual(response.status_code, status)
+                    self.assertEqual(response.json(), {"detail": detail})
+
+    def test_key_error_handler_does_not_disclose_missing_key(self):
+        with patch.object(self.client.app.state.supervisor, "snapshot",
+                          side_effect=KeyError("PRIVATE_SENTINEL")):
+            response = self.client.get("/api/state")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {"detail": "Requested dashboard resource was not found."})
+
+    def test_error_repair_preserves_authorization_and_unknown_lane_responses(self):
+        mission = self.client.app.state.mission_control
+        with patch.object(mission, "launch") as launch:
+            options = {"profile": "codex-luna-high", "model": "gpt-6-luna"}
+            response = self.client.post("/api/launcher/codex/launch", json=options)
+            self.assertEqual(response.status_code, 403)
+            response = self.client.post("/api/launcher/codex/launch", json=options,
+                headers={"X-MJobs-Launch-Token": mission.token, "Origin": "https://evil.example"})
+            self.assertEqual(response.status_code, 403)
+            launch.assert_not_called()
+        response = self.client.get("/api/lanes/unknown/log")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(), {"detail": "unknown lane"})
 
     def test_lane_configuration_can_be_changed_without_starting_process(self):
         response = self.client.patch(
