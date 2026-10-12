@@ -234,10 +234,13 @@ def worker_restart_count(project_name, port, *, config_files=None):
     containers = compose(project_name, port, "ps", "--all", "-q", "worker", config_files=config_files).split()
     if len(containers) != 1:
         raise RuntimeError("Project recovery worker target was missing or ambiguous")
-    return inspect_container(project_name, "worker", containers[0], config_files=config_files)["restart_count"]
+    # Redis is deliberately unavailable here: the supervised worker can be
+    # between exits and restarts. Observe its count without relaxing preflight.
+    return inspect_container(project_name, "worker", containers[0], config_files=config_files,
+                             require_running=False)["restart_count"]
 
 
-def inspect_container(project_name, service, container_id, *, config_files=None):
+def inspect_container(project_name, service, container_id, *, config_files=None, require_running=True):
     inspected = _run_bounded(
         ["docker", "inspect", "--format",
          "{{json .Config.Labels}}|{{.RestartCount}}|{{.State.Status}}", container_id],
@@ -259,7 +262,8 @@ def inspect_container(project_name, service, container_id, *, config_files=None)
     }
     if not isinstance(labels, dict) or any(labels.get(key) != value for key, value in expected_labels.items()):
         raise RuntimeError(f"Project recovery {service} inspection returned an unexpected target")
-    if pieces[2] != "running":
+    allowed_statuses = ("running",) if require_running else ("running", "restarting", "exited")
+    if pieces[2] not in allowed_statuses:
         raise RuntimeError(f"Project recovery {service} target is not running")
     return {"restart_count": count, "status": pieces[2]}
 
