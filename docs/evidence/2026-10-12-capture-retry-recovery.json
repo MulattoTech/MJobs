@@ -1,0 +1,67 @@
+{
+  "issue": 532,
+  "status": "PARTIAL",
+  "utc": "2026-10-12T09:29:14.337035+00:00",
+  "base_revision": "4b8fffc9723eae86d6b97b1d37ca171e574128c1",
+  "behavior": "Reviewed capture controls remain disabled throughout failed-write recovery. Explicit retry preserves the same request and rejection receipt; durable reload creates no application or submission.",
+  "reproduction": {
+    "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_manual_capture_review_receipt_safety.py",
+    "result": "FAIL before correction: confirmation enabled while held recovery GET /profiles keeps global action busy.",
+    "artifact": "outputs/ci/root-capture-pending-red.xml"
+  },
+  "source_inputs": [
+    {
+      "path": "apps/web/src/browser-job-extraction.tsx",
+      "sha256": "8cabd6aae27c6746ded5c37b366fec2c6d595af1a1d3b9d858e90909817eb06d"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "sha256": "dd47ef8205701e2a113a18b049a6b0c71a37f296a41f721ff54bd50b41995c6b"
+    },
+    {
+      "path": "tests/browser/test_manual_capture_review_receipt_safety.py",
+      "sha256": "c29bc5ca33ddb98381eec95739f4b56db95d7f0e8435d75178ba1745f600c8e2"
+    },
+    {
+      "path": "tests/browser/test_browser_job_extraction_confirm_capture.py",
+      "sha256": "e28f42fc45c7e56eecd9b4728e58850782a5f358e572fa49acd74e28cdaa249a"
+    }
+  ],
+  "verification": [
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_manual_capture_review_receipt_safety.py tests/browser/test_browser_job_extraction_confirm_capture.py tests/browser/test_manual_job_capture.py tests/integration/test_browser_job_extraction_confirm_capture_api.py tests/integration/test_manual_capture_extraction_provenance.py",
+      "result": "9 PASS, 8 subtests PASS",
+      "artifact": "outputs/ci/root-capture-pending-complete.xml"
+    },
+    {
+      "command": "npm --prefix apps/web test -- src/browser-job-extraction.test.tsx src/browser-job-extraction-confirmation.test.tsx src/browser-job-extraction-capture.test.ts",
+      "result": "30 PASS"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS; existing chunk size warning"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "classification": {
+    "capture_retry": "Genuine enabled-control/global-action race, deterministically reproduced with delayed recovery read.",
+    "linked_job_display": "Stale assertion corrected to current title/company display while retaining exact durable job ID."
+  },
+  "prior_exact_main_checkpoint": {
+    "revision": "4b8fffc9723eae86d6b97b1d37ca171e574128c1",
+    "browser_run": 38228875525,
+    "browser_result": "12 failed, 201 passed, 5 native Windows platform skips, 15 passing subtests. Shards 0/2/3 fail; shard1 pass.",
+    "connected_run": 38228881871,
+    "connected_result": "PASS"
+  },
+  "limits": [
+    "Required hosted candidate checks pending publication.",
+    "Full browser acceptance remains incomplete; no parent or matrix promotion.",
+    "Release gate previously failed with 96 unmet requirements and 26 open high findings.",
+    "Synthetic local capture only; real external submissions OFF."
+  ],
+  "local_review": "Local Luna review found enabled first-stage review controls; additional held-recovery regression failed before fix (root-capture-pending-panel-red.xml). Both stage controls and first-stage handler now honor pending state."
+}
