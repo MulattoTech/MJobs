@@ -18,6 +18,46 @@ from workers.operations import record_manual_auth_process
 
 
 class ManualAuthConcurrencyTests(ManualAuthSessionApiTests):
+    def test_api_process_identity_persisted_before_launch_and_private_after_restart(self):
+        from services.applications.browser_process import owner_process_status
+
+        def window(**kwargs):
+            peer = Store(f"sqlite:///{self.database.as_posix()}")
+            try:
+                with peer.engine.connect() as connection:
+                    row = connection.execute(select(m.operations).where(
+                        m.operations.c.kind == "MANUAL_AUTH")).mappings().one()
+                owner = row["recovery_metadata"]["manual_auth_owner"]
+                self.assertTrue(owner["api_process_identified"])
+                self.assertEqual(owner["api_process"]["pid"], os.getpid())
+                self.assertEqual(owner_process_status(owner["api_process"]), "LIVE")
+                self.assertNotIn("api_process", self.client.get(f"/operations/{row['id']}").text)
+                with peer.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(m.operations.c.id == row["id"]).values(
+                        lease_expires_at="2000-01-01T00:00:00+00:00"))
+                recover_expired(peer)
+                with peer.engine.connect() as connection:
+                    blocked = connection.execute(select(m.operations).where(
+                        m.operations.c.id == row["id"])).mappings().one()
+                self.assertEqual(blocked["state"], "BLOCKED")
+                self.assertEqual(blocked["recovery_metadata"]["manual_auth_owner"], owner)
+                self.assertEqual(owner_process_status(owner["api_process"]), "LIVE")
+            finally:
+                peer.engine.dispose()
+            return "MANUAL_AUTH_WINDOW_CLOSED"
+
+        with patch("apps.api.manual_auth.open_mock_authentication", side_effect=window):
+            self.assertEqual(self.client.post(self.url).status_code, 409)
+
+    def test_unavailable_api_process_identity_never_admits_or_launches(self):
+        with patch("services.applications.browser_process.capture_owner_identity",
+                   side_effect=ValueError("OWNER_IDENTITY_UNAVAILABLE")), \
+                patch("apps.api.manual_auth.open_mock_authentication") as launch:
+            response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertEqual(self.store.count(m.operations.name), 0)
+        launch.assert_not_called()
+
     def test_process_identity_is_durable_immutable_private_and_owner_fenced(self):
         identifier = self.admit_owned_window()
         identity = {"pid": 123, "created": "111", "host": "a" * 64, "profile_sha256": "c" * 64}

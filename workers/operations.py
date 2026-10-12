@@ -185,6 +185,10 @@ def admit_inline(store, kind, entity_id, *, owner_token=None, manual_auth_identi
         recovery_metadata["manual_auth_owner"] = {
             **manual_auth_identity, "token_sha256": sha256(owner_token.encode()).hexdigest(),
         }
+        from services.applications.browser_process import capture_owner_identity
+
+        recovery_metadata["manual_auth_owner"].update(
+            api_process=capture_owner_identity(), api_process_identified=True)
     category = OPERATION_CATEGORIES[kind]
     timestamp = now()
     operation_id = uuid4().hex
