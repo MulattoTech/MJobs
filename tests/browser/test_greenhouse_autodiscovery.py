@@ -27,9 +27,20 @@ ROOT = Path(__file__).resolve().parents[2]
 @unittest.skipUnless((ROOT / 'apps/web/dist/index.html').is_file(), 'Build apps/web before browser acceptance')
 class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
     def test_discover_reload_jobs_and_pause_recurring_employer_collection(self):
+        self._journey()
+
+    def test_official_board_link_discovery_reload_and_pause(self):
+        self._journey('<a href="https://job-boards.greenhouse.io/example">Open jobs</a>')
+
+    def test_official_board_iframe_discovery_reload_and_pause(self):
+        self._journey('<iframe src="https://boards.greenhouse.io/embed/job_board?for=example"></iframe>')
+
+    def _journey(self, markup=None):
         case = contract.GreenhouseAutodiscoveryTests()
         case.setUp()
         self.addCleanup(case.tearDown)
+        if markup is not None:
+            case.markup = markup
         app = create_app(case.store, 'http://127.0.0.1:1', case.root / 'outputs',
                          redis_url='redis://127.0.0.1:1/0', operation_mode='PERSONAL')
         sock = bound_browser_socket()

@@ -53,6 +53,12 @@ class GreenhouseAutodiscoveryPostgreSQLTests(unittest.TestCase):
     def test_verified_ats_enrollment_reload_and_recurrence_on_postgresql(self):
         self.case.test_verified_ats_enrollment_import_reload_and_recurring_collection()
 
+    def test_official_board_link_enrollment_and_recurrence_on_postgresql(self):
+        self.case.test_official_board_hyperlink_completes_enrollment_and_recurrence()
+
+    def test_official_board_iframe_enrollment_and_recurrence_on_postgresql(self):
+        self.case.test_official_board_iframe_completes_enrollment_and_recurrence()
+
     def test_aggregator_and_first_party_dedupe_on_postgresql(self):
         self.case.test_aggregator_posting_and_first_party_inventory_share_canonical_job()
 

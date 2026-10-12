@@ -1,11 +1,9 @@
 """Bind supported public ATS inventories to verified official employer evidence."""
-from urllib.parse import parse_qs, urljoin, urlsplit
-
-from bs4 import BeautifulSoup
 from sqlalchemy import or_, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now
+from services.ats_detection.board_links import greenhouse_board_tenants
 from services.company_discovery.public_client import PublicFetchError
 from services.company_discovery.public_resolution import resolve_public_company
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
@@ -15,30 +13,10 @@ from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 
 def greenhouse_tenant(career_url, html):
     """Use exact public board URLs in fetched markup, never names or script text."""
-    tenants = set()
-    soup = BeautifulSoup(html, 'html.parser')
-    for tag in soup.find_all(('a', 'iframe', 'script')):
-        raw = tag.get('href') if tag.name == 'a' else tag.get('src')
-        if not isinstance(raw, str):
-            continue
-        try:
-            url = urlsplit(urljoin(career_url, raw))
-            if (url.scheme != 'https' or url.username is not None or url.password is not None
-                    or url.port not in (None, 443)):
-                continue
-            if url.hostname not in {'boards.greenhouse.io', 'job-boards.greenhouse.io'}:
-                continue
-            parts = url.path.strip('/').split('/')
-            if url.path == '/embed/job_board/js':
-                candidates = parse_qs(url.query).get('for', [])
-            elif len(parts) == 1 or (len(parts) == 3 and parts[1] == 'jobs' and parts[2].isdigit()):
-                candidates = [parts[0]]
-            else:
-                continue
-            for candidate in candidates:
-                tenants.add(tenant_identifier(candidate))
-        except ValueError:
-            raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED') from None
+    try:
+        tenants = greenhouse_board_tenants(career_url, html)
+    except ValueError:
+        raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED') from None
     if len(tenants) != 1:
         raise PublicFetchError('COMPANY_ATS_TENANT_REVIEW_REQUIRED')
     return tenants.pop()

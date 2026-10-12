@@ -4,6 +4,38 @@ from services.ats_detection.detector import detect_ats
 
 
 class ATSDetectionTests(unittest.TestCase):
+    def test_official_greenhouse_links_and_iframes_are_structural_evidence(self):
+        for markup in (
+            '<a href="https://job-boards.greenhouse.io/acme">Open jobs</a>',
+            '<iframe src="https://boards.greenhouse.io/embed/job_board?for=acme"></iframe>',
+        ):
+            with self.subTest(markup=markup):
+                result = detect_ats('https://acme.example/careers', markup)
+                self.assertEqual(result.status, 'MATCH')
+                self.assertEqual(result.provider, 'greenhouse')
+                self.assertIn('BOARD_LINK', result.evidence)
+                self.assertFalse(result.application_supported)
+
+    def test_untrusted_or_non_board_hyperlinks_do_not_identify_greenhouse(self):
+        for url in (
+            'https://greenhouse.io/about',
+            'https://boards.greenhouse.io.attacker.example/acme',
+            'http://boards.greenhouse.io/acme',
+            'https://user@boards.greenhouse.io/acme',
+            'https://boards.greenhouse.io:444/acme',
+            'https://boards.greenhouse.io/acme%2fother',
+            'https://boards.greenhouse.io/embed/job_board?for=acme&for=other',
+        ):
+            with self.subTest(url=url):
+                self.assertEqual(detect_ats('https://acme.example/careers',
+                    '<a href="' + url + '">Jobs</a>').status, 'NO_MATCH')
+
+    def test_different_linked_boards_do_not_establish_unambiguous_evidence(self):
+        result = detect_ats('https://acme.example/careers',
+            '<a href="https://boards.greenhouse.io/acme">Jobs</a>'
+            '<a href="https://boards.greenhouse.io/other">Other jobs</a>')
+        self.assertEqual(result.status, 'NO_MATCH')
+
     def test_recognizes_custom_careers_domain_from_embedded_greenhouse_board(self):
         result = detect_ats(
             "https://careers.acme.example/jobs",

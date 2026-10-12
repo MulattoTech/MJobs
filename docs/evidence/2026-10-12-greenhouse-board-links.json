@@ -1,0 +1,31 @@
+{
+  "issue": 156,
+  "requirement": "MJ-REQ-155",
+  "status": "PARTIAL",
+  "utc": "2026-10-12T10:51:49.320955-05:00",
+  "base": "cc4d4e65a5f60422011cfe61aa78cde731797a0b",
+  "behavior": "Verified official board hyperlinks and iframe embeds enter the existing durable enrollment/import/recurrence chain",
+  "failure": "Unit detector NO_MATCH; controlled real worker COMPANY_ATS_REVIEW_REQUIRED; zero sources/jobs",
+  "invariants": [
+    "Exact HTTPS Greenhouse board origin and tenant token; unsafe/ambiguous input rejected",
+    "Verified employer domain and unique tenant still required; detector grants no enrollment authority",
+    "Application support and real external submissions remain OFF"
+  ],
+  "local": {
+    "focused": "30 PASS,46subtests; includes3Chromium journeys",
+    "postgresql": "8 local SKIP; actual hosted NOT_RUN on candidate",
+    "policy": "catalogue/progress/dashboard/public repository policy/diff PASS",
+    "adjacent": "44 PASS plus3subtests: public discovery, company discovery, sitemap discovery and sitemap safety"
+  },
+  "review": "Local Luna source review: no concrete remaining security/compatibility blocker; not independent certification",
+  "source_blobs": {
+    "services/ats_detection/board_links.py": "0c935cd633d3f8b76b9ced09b33dd1bd3f76909d",
+    "services/ats_detection/detector.py": "d8defad617608aee0bb2c34cbc3dfeb5fb1508a0",
+    "services/company_discovery/ats_enrollment.py": "1134aa773adc4ecfbbabfcc9a7b1261d06e850c2",
+    "tests/unit/test_ats_detection.py": "5b15a6548f45af89535fede8e304dff30cb9ab36",
+    "tests/integration/test_greenhouse_autodiscovery.py": "41df164c42ad0cec121aadb6170bb16aa1d3d579",
+    "tests/integration/test_greenhouse_autodiscovery_postgres.py": "679ea35ef04b15cbae6e5726083306e99045415b",
+    "tests/browser/test_greenhouse_autodiscovery.py": "9ea5191613245a59734447b9e1005eb4c86a1459"
+  },
+  "acceptance_boundary": "Parent156 PARTIAL; Lever inventory unsupported; no live-provider read claimed"
+}

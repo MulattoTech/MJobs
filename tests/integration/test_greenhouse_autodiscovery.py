@@ -55,6 +55,8 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
         pages = {'/robots.txt': 'User-agent: *\nAllow: /',
                  '/': '<a rel="careers" href="/careers">Careers</a>', '/careers': self.markup}
         request = httpx.Request('GET', url)
+        if request.url.path not in pages:
+            return httpx.Response(404, request=request)
         return httpx.Response(200, text=pages[request.url.path], request=request)
 
     def board(self, adapter, suffix, params=None):
@@ -109,6 +111,14 @@ class GreenhouseAutodiscoveryTests(unittest.TestCase):
             self.assertEqual(reopened.count('company_job_sources'), 1)
         finally:
             reopened.engine.dispose()
+
+    def test_official_board_hyperlink_completes_enrollment_and_recurrence(self):
+        self.markup = '<a href="https://job-boards.greenhouse.io/example">Open jobs</a>'
+        self.test_verified_ats_enrollment_import_reload_and_recurring_collection()
+
+    def test_official_board_iframe_completes_enrollment_and_recurrence(self):
+        self.markup = '<iframe src="https://boards.greenhouse.io/embed/job_board?for=example"></iframe>'
+        self.test_verified_ats_enrollment_import_reload_and_recurring_collection()
 
     def test_disabled_bound_source_is_not_scheduled_or_imported(self):
         from services.company_discovery.sources import set_company_source_enabled
