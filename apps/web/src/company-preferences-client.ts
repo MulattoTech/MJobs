@@ -10,12 +10,12 @@ export function createCompanyPreferenceClient(): CompanyPreferenceClient {
   const pendingRequestIds = new Map<string, string>();
   return {
     get: (profileId, companyId) => api<CompanyPreferenceReadback>(route(profileId, companyId)),
-    set: async (profileId, companyId, status: CompanyPreferenceStatus) => {
-      const key = `${profileId}\u0000${companyId}\u0000${status}`;
+    set: async (profileId, companyId, status: CompanyPreferenceStatus, jobId?: string) => {
+      const key = `${profileId}\u0000${companyId}\u0000${status}\u0000${jobId || ''}`;
       const requestId = pendingRequestIds.get(key) || crypto.randomUUID();
       try {
         const result = await api<CompanyPreferenceReadback>(route(profileId, companyId), {
-          method: 'PUT', body: JSON.stringify({ status, request_id: requestId }),
+          method: 'PUT', body: JSON.stringify({ status, request_id: requestId, ...(jobId ? { job_id: jobId } : {}) }),
         });
         pendingRequestIds.delete(key);
         return result;

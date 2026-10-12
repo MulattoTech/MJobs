@@ -279,7 +279,8 @@ def _queue(connection, request, website, authorization, evidence, *, audit_detai
             and resolved['company_id'] != request['company_id']):
         raise ValueError('DISCOVERY_COMPANY_IDENTITY_CONFLICT')
     revision = request['revision'] + 1
-    trigger_reason = ('HIGH_MATCH_JOB' if 'HIGH_MATCH_JOB' in request['reasons'] else
+    trigger_reason = ('USER_PREFERRED_COMPANY' if 'USER_PREFERRED_COMPANY' in request['reasons'] else
+                      'HIGH_MATCH_JOB' if 'HIGH_MATCH_JOB' in request['reasons'] else
                       'MATCH_ELIGIBLE_JOB' if 'MATCH_ELIGIBLE_JOB' in request['reasons'] else
                       'PREVIOUSLY_UNSEEN_COMPANY')
     params = dict(candidate=candidate, fetch_mode='PUBLIC_HTTPS',
@@ -311,8 +312,11 @@ def record_discovery_requests(connection, job_ids, profile=None, *, new_company_
                                  expected_candidate_id=selected)
 
 
-def record_discovery_request(connection, job_id, profile=None, *, is_new_company=False, expected_candidate_id=None):
+def record_discovery_request(connection, job_id, profile=None, *, is_new_company=False,
+                             expected_candidate_id=None, explicit_reason=None):
     """No network or separate transaction: callers commit jobs, matches and intent together."""
+    if explicit_reason not in {None, 'USER_PREFERRED_COMPANY'}:
+        raise ValueError('DISCOVERY_TRIGGER_INVALID')
     if not _personal(connection):
         return None
     job = connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one()
@@ -348,6 +352,8 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
     priority_match = policy.get('priority_match_for_discovery', 80)
     hourly_cap = policy.get('max_new_company_discoveries_per_hour', 12)
     reasons = ['PREVIOUSLY_UNSEEN_COMPANY'] if is_new_company else []
+    if explicit_reason:
+        reasons.append(explicit_reason)
     if score is not None and score >= minimum_match:
         reasons.append('MATCH_ELIGIBLE_JOB')
     if score is not None and score >= priority_match:

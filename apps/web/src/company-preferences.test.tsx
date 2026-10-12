@@ -25,6 +25,15 @@ const render = (props: Partial<CompanyPreferenceViewProps> = {}) => renderToStat
 );
 
 describe('CompanyPreferences', () => {
+  it('shows durable discovery review separately from a saved preference', () => {
+    const html = render({ saved: { ...saved, status: 'PREFERRED', discovery: {
+      request_id: 'request-1', status: 'NEEDS_ORIGIN_REVIEW', reason: 'EMPLOYER_ORIGIN_UNVERIFIED',
+    } } });
+    expect(html).toContain('Employer discovery:');
+    expect(html).toContain('NEEDS_ORIGIN_REVIEW');
+    expect(html).toContain('Sources');
+    expect(html).not.toContain('sorting only');
+  });
   it('shows the persisted enum and accessible explicit choice for each preference state', () => {
     const labels: Record<CompanyPreferenceStatus, string> = {
       BLACKLISTED: 'Avoid this company', PREFERRED: 'Prefer this company', NEUTRAL: 'No preference',

@@ -8,11 +8,12 @@ export type CompanyPreferenceReadback = {
   company_id: string;
   status: CompanyPreferenceStatus;
   updated_at: string | null;
+  discovery?: { request_id: string | null; status: string; reason: string | null };
 };
 
 export type CompanyPreferenceClient = {
   get(profileId: string, companyId: string): Promise<CompanyPreferenceReadback>;
-  set(profileId: string, companyId: string, status: CompanyPreferenceStatus): Promise<CompanyPreferenceReadback>;
+  set(profileId: string, companyId: string, status: CompanyPreferenceStatus, jobId?: string): Promise<CompanyPreferenceReadback>;
 };
 
 export type CompanyPreferenceOperation = 'get' | 'set' | null;
@@ -63,8 +64,10 @@ export async function confirmCompanyPreference(
   profileId: string,
   companyId: string,
   status: CompanyPreferenceStatus,
+  jobId?: string,
 ): Promise<CompanyPreferenceReadback> {
-  return validateReadback(await client.set(profileId, companyId, status), profileId, companyId, status);
+  return validateReadback(await (jobId ? client.set(profileId, companyId, status, jobId)
+    : client.set(profileId, companyId, status)), profileId, companyId, status);
 }
 
 export function CompanyPreferenceView({
@@ -108,7 +111,11 @@ export function CompanyPreferenceView({
       </div>
     </form>
     {saveConfirmed && <p role="status">Preference saved and read back from the selected company.</p>}
-    <p className="safety">Blacklisted companies are omitted from job search unless “Show blacklisted companies” is enabled. Preferred companies affect application-priority sorting only. This never submits or rejects an application.</p>
+    {saved?.discovery && <p role="status">Employer discovery: <strong>{saved.discovery.status}</strong>.
+      {saved.discovery.status === 'NEEDS_ORIGIN_REVIEW' ? ' Review the employer website in Sources before discovery can run.'
+        : saved.discovery.status === 'NOT_QUEUED' ? ' Discovery was not queued because workspace policy or source provenance is not eligible.'
+          : ' Open Sources to inspect the durable discovery request and its current outcome.'}</p>}
+    <p className="safety">Blacklisted companies are omitted from job search unless “Show blacklisted companies” is enabled. Preferred companies affect application-priority sorting and request employer discovery when policy and posting provenance permit. Unverified employer websites require review in Sources. This never submits or rejects an application.</p>
     <p className="muted">Profile ID: <code>{profileId}</code></p>
   </section>;
 }
@@ -127,12 +134,13 @@ export type CompanyPreferencesProps = {
   profileId: string;
   companyId: string;
   companyName: string;
+  jobId?: string;
   client: CompanyPreferenceClient;
   onPreferenceSaved?: () => void;
 };
 
-export function CompanyPreferences({ profileId, companyId, companyName, client, onPreferenceSaved }: CompanyPreferencesProps) {
-  const scope = scopeKey(profileId, companyId);
+export function CompanyPreferences({ profileId, companyId, companyName, jobId, client, onPreferenceSaved }: CompanyPreferencesProps) {
+  const scope = `${scopeKey(profileId, companyId)}\u0000${jobId || ''}`;
   const requestSequence = useRef(0);
   const [state, setState] = useState<CompanyPreferenceState>(() => ({
     scope, saved: null, loading: Boolean(profileId && companyId), saving: false,
@@ -171,7 +179,7 @@ export function CompanyPreferences({ profileId, companyId, companyName, client, 
   useEffect(() => {
     void loadPreference();
     return () => { requestSequence.current += 1; };
-  }, [client, profileId, companyId]);
+  }, [client, profileId, companyId, jobId]);
 
   async function savePreference() {
     if (!saved || !selectedStatus || selectedStatus === saved.status || !profileId || !companyId) return;
@@ -183,7 +191,7 @@ export function CompanyPreferences({ profileId, companyId, companyName, client, 
       loading: false, saving: true, error: null, errorOperation: null, saveConfirmed: false,
     }));
     try {
-      const readback = await confirmCompanyPreference(client, profileId, companyId, requestedStatus);
+      const readback = await confirmCompanyPreference(client, profileId, companyId, requestedStatus, jobId);
       if (requestId === requestSequence.current) {
         setState({ scope, saved: readback, loading: false, saving: false, error: null, errorOperation: null, saveConfirmed: true });
         setDraft({ scope, status: readback.status });

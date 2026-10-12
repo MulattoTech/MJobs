@@ -47,7 +47,22 @@ def _profile_company(connection, profile_id: str, company_id: str) -> None:
         raise LookupError("Company preference company not found")
 
 
-def _latest_by_company(rows) -> dict[str, dict]:
+def _discovery_readback(connection, payload):
+    discovery = payload.get('discovery')
+    if not isinstance(discovery, Mapping):
+        return None
+    request_id = discovery.get('request_id')
+    if request_id:
+        request = connection.execute(select(m.company_discovery_requests).where(
+            m.company_discovery_requests.c.id == request_id)).mappings().one_or_none()
+        if request is not None:
+            from services.company_discovery.requests import _status
+            return {'request_id': request_id, 'status': _status(connection, request),
+                    'reason': 'EMPLOYER_ORIGIN_UNVERIFIED' if request['state'] == 'NEEDS_ORIGIN_REVIEW' else None}
+    return dict(discovery)
+
+
+def _latest_by_company(rows, connection=None) -> dict[str, dict]:
     latest: dict[str, tuple[tuple[str, str], dict]] = {}
     for row in rows:
         payload = row["payload"]
@@ -66,6 +81,10 @@ def _latest_by_company(rows) -> dict[str, dict]:
             "status": status,
             "updated_at": row["timestamp"],
         }
+        if connection is not None:
+            discovery = _discovery_readback(connection, payload)
+            if discovery is not None:
+                value['discovery'] = discovery
         order = (str(row["timestamp"] or ""), str(row["id"]))
         previous = latest.get(company_id)
         if previous is None or order > previous[0]:
@@ -84,12 +103,12 @@ def get_company_preference(store, profile_id: str, company_id: str) -> dict:
             m.audit.c.entity_id == profile_id,
             m.audit.c.action == _ACTION,
         ).order_by(m.audit.c.timestamp, m.audit.c.id)).mappings().all()
-    return _latest_by_company(rows).get(company_id, {
-        "profile_id": profile_id,
-        "company_id": company_id,
-        "status": "NEUTRAL",
-        "updated_at": None,
-    })
+        return _latest_by_company(rows, connection).get(company_id, {
+            "profile_id": profile_id,
+            "company_id": company_id,
+            "status": "NEUTRAL",
+            "updated_at": None,
+        })
 
 
 def list_company_preferences(store, profile_id: str) -> list[dict]:
@@ -118,7 +137,7 @@ def list_company_preferences(store, profile_id: str) -> list[dict]:
 
 
 def set_company_preference(store, profile_id: str, company_id: str,
-                           status: str, request_id: str) -> dict:
+                           status: str, request_id: str, job_id: str | None = None) -> dict:
     profile_id = _required(profile_id, "profile_id")
     company_id = _required(company_id, "company_id")
     request_id = _required(request_id, "request_id")
@@ -131,8 +150,11 @@ def set_company_preference(store, profile_id: str, company_id: str,
         "status": status,
         "request_id": request_id,
     }
+    if job_id is not None:
+        payload['job_id'] = _required(job_id, 'job_id')
     with store.engine.begin() as connection:
         _profile_company(connection, profile_id, company_id)
+        profile = store.profile(profile_id, connection=connection)
         inserted = _append_once(connection, {
             "id": event_id,
             "entity_id": profile_id,
@@ -147,15 +169,31 @@ def set_company_preference(store, profile_id: str, company_id: str,
             m.audit.c.entity_id == profile_id,
             m.audit.c.action == _ACTION,
         )).mappings().one_or_none()
-    if event is None or not isinstance(event["payload"], Mapping):
-        raise CompanyPreferenceConflict("Company preference event could not be confirmed")
-    stored = event["payload"]
-    if any(stored.get(key) != value for key, value in payload.items()):
-        raise CompanyPreferenceConflict("Request ID was already used for another company preference")
+        if event is None or not isinstance(event["payload"], Mapping):
+            raise CompanyPreferenceConflict("Company preference event could not be confirmed")
+        stored = dict(event['payload'])
+        if {key: value for key, value in stored.items() if key != 'discovery'} != payload:
+            raise CompanyPreferenceConflict("Request ID was already used for another company preference")
+        if inserted and job_id is not None:
+            job_company = connection.execute(select(m.jobs.c.company_id).where(
+                m.jobs.c.id == job_id)).scalar_one_or_none()
+            # Public captured jobs may legitimately be unscored. Explicit user
+            # intent needs employer provenance, not automatic match eligibility.
+            if job_company != company_id:
+                raise ValueError('Company preference job context is invalid')
+        if inserted and job_id is not None and status == 'PREFERRED':
+            from services.company_discovery.requests import record_discovery_request
+            discovery_id = record_discovery_request(connection, job_id, profile,
+                explicit_reason='USER_PREFERRED_COMPANY')
+            stored['discovery'] = {'request_id': discovery_id, 'status': 'NOT_QUEUED',
+                'reason': 'POLICY_OR_SOURCE_NOT_ELIGIBLE' if discovery_id is None else None}
+            connection.execute(m.audit.update().where(m.audit.c.id == event_id).values(payload=stored))
+        discovery = _discovery_readback(connection, stored)
     return {
         "profile_id": profile_id,
         "company_id": company_id,
         "status": status,
         "updated_at": event["timestamp"],
         "replayed": not inserted,
+        **({'discovery': discovery} if discovery is not None else {}),
     }
