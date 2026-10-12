@@ -7,6 +7,7 @@ import re
 from urllib.parse import urljoin, urlsplit
 
 from bs4 import BeautifulSoup
+from services.ats_detection.board_links import greenhouse_board_tenants
 
 
 @dataclass(frozen=True)
@@ -111,7 +112,7 @@ _WEIGHTS = {
     "HOSTNAME": 0.94, "REDIRECT_HOSTNAME": 0.94, "SCRIPT_URL": 0.88,
     "FORM_ACTION": 0.88, "PUBLIC_API": 0.88, "URL_STRUCTURE": 0.60,
     "EMBEDDED_CONFIGURATION": 0.82, "HTML_SIGNATURE": 0.78,
-    "STRUCTURED_METADATA": 0.75,
+    "STRUCTURED_METADATA": 0.75, "BOARD_LINK": 0.88,
 }
 # URL paths are supporting evidence only. Common `/jobs/<id>` and
 # `/recruiting/` routes must not identify an ATS without another signal.
@@ -217,6 +218,12 @@ def detect_ats(visible_careers_url: str, html: str = "", *,
             add(signature.provider, "URL_STRUCTURE")
 
     soup = BeautifulSoup(str(html or "")[:2_000_000], "html.parser")
+    try:
+        if len(greenhouse_board_tenants(current_url, html, tags=('a', 'iframe'))) == 1:
+            add('greenhouse', 'BOARD_LINK')
+    except ValueError:
+        # Malformed or ambiguous structural input cannot establish a provider.
+        pass
     for tag in soup.find_all("script", src=True):
         src = str(tag.get("src") or "")
         for provider in _vendor_for_host(_host(src)):
