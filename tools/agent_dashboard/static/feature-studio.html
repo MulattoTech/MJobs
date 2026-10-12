@@ -53,6 +53,7 @@ No unattended agent execution or merge</textarea></label>
 </div>
 <div class="notice"><strong>Agent-led discovery questions (preview)</strong><div id="probes" aria-live="polite"></div></div>
 <label>Notes / answers to discovery questions<textarea id="notes" placeholder="Record architectural unknowns, decisions, and reviewer feedback"></textarea></label>
+<div><button class="primary" id="save-draft" type="button">Save local draft</button><button id="probe-draft" type="button">Analyze saved draft</button><button id="list-repos" type="button">View accessible repositories</button></div><pre id="studio-result" aria-live="polite">No local draft saved yet.</pre>
 <div><button class="primary" id="download" type="button">Download JSON specification</button>
 <button id="import" type="button">Import JSON</button>
 <input id="file" type="file" accept=".json,application/json" hidden>
@@ -142,6 +143,48 @@ $("file").addEventListener("change",async event=>{
  event.target.value="";
 });
 render();
+})();
+</script>
+<script>
+(() => {
+  "use strict";
+  const output = document.getElementById("studio-result");
+  let revision = null;
+  const origin = "/api/feature-studio";
+  const headers = async () => {
+    const reply = await fetch("/api/launcher/options");
+    if (!reply.ok) throw Error("Mission Control authorization unavailable");
+    const data = await reply.json();
+    return {"Content-Type":"application/json","X-MJobs-Launch-Token":data.token};
+  };
+  async function response(url, options) {
+    const result=await fetch(url,options);
+    const value=await result.json();
+    if (!result.ok) throw Error(value.detail || "Request failed");
+    return value;
+  }
+  const display = value => output.textContent=JSON.stringify(value,null,2);
+  document.getElementById("save-draft").addEventListener("click",async()=>{
+    try{
+      const spec=JSON.parse(document.getElementById("preview").innerText);
+      const payload={spec,expected_revision:revision ?? 0,idempotency_key:crypto.randomUUID()};
+      const value=await response(origin+"/specs",{method:"POST",headers:await headers(),body:JSON.stringify(payload)});
+      revision=value.revision;
+      display({saved:true,...value,notice:"Saved to local SQLite only; GitHub and agents not changed."});
+    }catch(err){output.textContent="Save failed: "+err.message}
+  });
+  document.getElementById("probe-draft").addEventListener("click",async()=>{
+    try{
+      const spec=JSON.parse(document.getElementById("preview").innerText);
+      const [owner,repo]=spec.repository.split("/");
+      const value=await response(origin+"/probe/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo)+"/"+encodeURIComponent(spec.id));
+      display(value);
+    }catch(err){output.textContent="Analysis failed: "+err.message}
+  });
+  document.getElementById("list-repos").addEventListener("click",async()=>{
+    try{display(await response(origin+"/repos"))}
+    catch(err){output.textContent="Repository inventory failed: "+err.message}
+  });
 })();
 </script>
 </body>

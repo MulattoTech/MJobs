@@ -125,3 +125,36 @@ none of those credentials or broad authorizations.
   required-check enforcement still depends on GitHub repository branch rules.
 - Retain human merge approval. Maintain signed approvals and revision-bound
   evidence when adding API-backed lifecycle transitions in future phases.
+
+## Phase 1–5 integration update (October 12, 2026)
+
+A separate private account-wide controller now lives in
+[`MulattoTech/FeatureStudio`](https://github.com/MulattoTech/FeatureStudio).
+MJobs retains the existing Mission Control entry point and adds:
+- local SQLite-backed draft records with optimistic revision checks,
+  idempotency keys and audit events;
+- read-only multi-repository inventory through an authenticated GitHub CLI;
+- tracked-file probing of MJobs and isolated disposable shallow-clone probing
+  for other authorized repositories, producing explicit non-executing work plans;
+- optional CLI for *draft-PR-only* GitHub issue form rollout.
+
+### Truth in status
+
+The MJobs service does not register an installation-scoped GitHub App or
+autonomously launch multiple coding models from the Feature Studio GUI.
+There is no unattended agent execution; existing Mission Control
+review-gated launch remains the only supported code-execution integration.
+The account-wide service maintains its own local persistence and GUI.
+
+Run `python -m pytest -q tests/unit/test_feature_studio*.py` and
+`python -m tools.feature_studio rollout-preview`. The rollout preview
+never edits repositories. CLI `install-form --repo ... --apply` can create
+a draft PR in a selected repository; it refuses to overwrite an existing
+form and never merges. Existing MRaiders Feature Control has a custom
+workflow and must be integrated via its own contract, not overwritten.
+
+Security requirements for future production rollout include GitHub App
+registration/consent, signed authorization records, webhook replay handling,
+independent agent execution budgets, Projects reconciliation, and accepted
+repository-specific CI gates. Those must be verified before marking phases
+2–5 production-complete.
