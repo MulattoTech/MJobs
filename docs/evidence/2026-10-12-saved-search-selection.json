@@ -1,0 +1,54 @@
+{
+  "requirement": "MJ-REQ-023",
+  "issue": 24,
+  "utc": "2026-10-12T21:26:21.126190+00:00",
+  "base": "b4ae02c1457c86fa5e7614a4bc414ea6d77c3fac",
+  "branch": "fix/saved-search-limit-24-20261012",
+  "source_sha256": {
+    "apps/api/main.py": "c700ec27ea816505b62598794ca7ca28f76c103ed6f7fa37a5b3e9571c97bece",
+    "packages/persistence/store.py": "f383d33dca7881211e61f88e8ad9a5a789ac69a694199c22f6ff308b585d9a7b",
+    "tests/integration/test_saved_search_filters.py": "ad3cdbb2c7e0ba328a5ac3201af60c13afd75ae0fdb8fd42f1176658e1fad50d",
+    "tests/browser/test_saved_search_filters.py": "d67aa9a34ba067e9b79901e5ca5c73887daf3fe523ca9a808d2590fed100f743"
+  },
+  "reproduction": [
+    "Selected Python Developer, title ordering, limit1 returned [] before semantic correction",
+    "Hidden first matching Data Engineer consumed limit1 before visibility correction"
+  ],
+  "behavior": "Semantic search, exact-route capability and profile visibility select accepted rows before result limit; search evidence retained; restart/edit/isolation verified",
+  "commands": [
+    ".venv/Scripts/python.exe -m pytest -q tests/integration/test_saved_search_filters.py tests/integration/test_application_capability_filter.py tests/unit/test_search_semantics.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/integration/test_job_tracking.py tests/integration/test_job_sorting.py tests/integration/test_application_priority_api.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/browser/test_saved_search_filters.py tests/browser/test_application_capability_filter.py",
+    "npm --prefix apps/web run build",
+    "python -m tools.verification.catalogue",
+    "python -m tools.verification.progress validate",
+    "python -m tools.verification.progress_dashboard --check",
+    "python -m tools.verification.agent_skills"
+  ],
+  "local": {
+    "focused": {
+      "cases": 43,
+      "failures": 0,
+      "skips": 0
+    },
+    "browser": {
+      "cases": 2,
+      "failures": 0,
+      "skips": 0
+    },
+    "adjacent": {
+      "cases": 18,
+      "failures": 0,
+      "skips": 0
+    }
+  },
+  "build_and_validators": "PASS",
+  "review": "Local Luna read-only review: adjacent dismissed-row gap reproduced and corrected; second review no concrete blockers",
+  "hosted": "NOT_RUN for this candidate",
+  "limitations": [
+    "No parent acceptance promotion; complete P0/P1 release remains unproven",
+    "Application-priority retains its existing 500-candidate ranking pool",
+    "Published-main browser38309132664 has separate attempt-history unmount/read verification race; not suppressed"
+  ],
+  "external_submission_enabled": false
+}

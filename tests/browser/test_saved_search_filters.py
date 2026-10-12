@@ -4,7 +4,7 @@ import tempfile
 import threading
 import time
 import unittest
-from urllib.parse import urlsplit
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import select, update
@@ -125,16 +125,37 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                             external.append(route.request.url)
                             route.abort()
                         else:
-                            route.continue_()
+                            parts = urlsplit(route.request.url)
+                            query = dict(parse_qsl(parts.query))
+                            if parts.path == "/jobs" and query.get("search_profile_id") == "limited-semantic":
+                                # Exercise the real selected-search UI against a one-row API page.
+                                query["limit"] = "1"
+                                route.continue_(url=urlunsplit(parts._replace(query=urlencode(query))))
+                            else:
+                                route.continue_()
 
                     context.route("**/*", local_only)
                     page = context.new_page()
                     page.set_default_timeout(8000)
                     filters = page.locator(".filters")
+                    created = context.request.put(origin + "/search-profiles", data={
+                        "id": "limited-semantic", "profile_id": "fixture", "name": "Semantic Python only",
+                        "enabled": False, "include_titles": ["Python Developer"], "remote": "ANY",
+                        "employment_types": [], "source_ids": [],
+                        "job_filters": {"q": "", "remote_type": "", "provider": "", "sort": "title"},
+                    })
+                    self.assertEqual(created.status, 200, created.text())
                     page.goto(origin, wait_until="domcontentloaded")
                     page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
                     page.reload(wait_until="domcontentloaded")
                     expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+                    selected_search = filters.get_by_label("Saved search profile", exact=True)
+                    with page.expect_response(lambda response:
+                            "/jobs?" in response.url and "search_profile_id=limited-semantic" in response.url) as limited:
+                        selected_search.select_option("limited-semantic")
+                    self.assertEqual([job["title"] for job in limited.value.json()["jobs"]], ["Python Developer"])
+                    expect(page.get_by_role("heading", name="Python Developer", exact=True)).to_be_visible()
+                    selected_search.select_option("")
                     expect(page.get_by_label("Education requirement", exact=True)).to_have_value("")
                     expect(page.get_by_label("Education requirement", exact=True).locator("option")).to_have_count(6)
                     expect(page.get_by_label("Skill", exact=True)).to_have_value("")

@@ -36,7 +36,6 @@ from services.discovery.sources.collect import configure_source
 from services.discovery.search_profiles import (
     CLEARANCE_LEVELS, EDUCATION_REQUIREMENTS, get_search_profile, list_search_profiles, save_search_profile,
 )
-from services.discovery.search_semantics import filter_jobs
 from services.discovery.skill_taxonomy import SKILL_TAXONOMY, canonical_skill_id
 from services.tracking.applications import PIPELINE_STATUSES
 from services.documents.answers import (
@@ -1593,6 +1592,21 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 ]
             except LookupError:
                 raise HTTPException(404, "Career profile not found") from None
+        visibility_filter = None
+        if profile_id and not include_dismissed:
+            from itertools import islice
+            from services.tracking.jobs import list_job_tracking
+
+            def visibility_filter(candidates):
+                # Read append-only tracking in bounded batches without consuming
+                # the result limit on dismissed jobs or scanning the full catalogue.
+                while batch := list(islice(candidates, 100)):
+                    tracking = list_job_tracking(store, profile_id, [row["id"] for row in batch])
+                    for row in batch:
+                        row["tracking"] = tracking[row["id"]]
+                        if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED"):
+                            yield row
+
         rows = store.jobs(profile_id, q, remote_type, provider, database_sort, result_limit,
                           title=title, company=company, location=location, ats_provider=ats_provider,
                           salary_min=salary_min, salary_max=salary_max,
@@ -1606,16 +1620,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                           application_pipeline_status=effective_application_pipeline_status,
                           application_capability=effective_application_capability,
                           posted_after=posted_after, posted_before=posted_before,
-                          exclude_company_ids=excluded_company_ids)
-        if search_profile_id:
-            rows = filter_jobs(rows, search_profile["criteria"])
-        if profile_id:
+                          exclude_company_ids=excluded_company_ids,
+                          search_criteria=search_profile["criteria"] if search_profile else None,
+                          row_filter=visibility_filter)
+        if profile_id and include_dismissed:
             from services.tracking.jobs import list_job_tracking
             tracking = list_job_tracking(store, profile_id, [row["id"] for row in rows])
             for row in rows:
                 row["tracking"] = tracking[row["id"]]
-            if not include_dismissed:
-                rows = [row for row in rows if row["tracking"]["disposition"] not in ("HIDDEN", "NOT_INTERESTED")]
         if sort == "application_priority":
             from apps.api.application_priority import rank_jobs_by_application_priority
             try:
