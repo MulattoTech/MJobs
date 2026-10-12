@@ -22,9 +22,7 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-form-review-")
         self.root = Path(self.temp.name)
-        self.database_url = f"sqlite:///{(self.root / 'form-review.db').as_posix()}"
-        self.store = Store(self.database_url)
-        self.store.migrate()
+        self.store = self._new_store()
         self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(dict(PROFILE))
         with fixture_server() as origin:
@@ -44,6 +42,12 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
             self.store, "http://127.0.0.1:1", self.root,
             "redis://127.0.0.1:1/0", operation_mode="FIXTURE",
         ))
+
+    def _new_store(self):
+        self.database_url = f"sqlite:///{(self.root / 'form-review.db').as_posix()}"
+        store = Store(self.database_url)
+        store.migrate()
+        return store
 
     def tearDown(self):
         self.client.close()

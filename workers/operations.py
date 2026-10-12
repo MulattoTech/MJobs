@@ -14,7 +14,8 @@ from services.audit_history import record_application_preparation_event
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-company-discovery",
           "COMPANY_SOURCE_REFRESH": "mjobs-company-discovery", "PREPARE": "mjobs-document",
           "RESUME_EXTRACT_QUEUED": "mjobs-document", "UPLOADED_RESUME_COMPARE_QUEUED": "mjobs-document",
-          "APPLY_MOCK": "mjobs-application", "APPLICATION_FORM_REVIEW": "mjobs-application"}
+          "APPLY_MOCK": "mjobs-application", "APPLICATION_FORM_REVIEW": "mjobs-application",
+          "APPLICATION_DRY_RUN": "mjobs-application"}
 OPERATION_CATEGORIES = {
     "DISCOVER": "source_collection",
     "COMPANY_DISCOVER": "company_discovery",
@@ -27,6 +28,7 @@ OPERATION_CATEGORIES = {
     "PREPARE": "document_generation",
     "APPLY_MOCK": "application_automation",
     "APPLICATION_FORM_REVIEW": "application_automation",
+    "APPLICATION_DRY_RUN": "application_automation",
     "MANUAL_AUTH": "application_automation",
 }
 CATEGORY_LIMITS = {

@@ -269,13 +269,13 @@ def _approved_answer(profile, key):
     return value, None
 
 
-def _documents(store, application, profile_version):
+def _documents(store, application, profile_version, *, _controlled_fixture=False):
     """Return generated artifact metadata only; never expose stored paths."""
     with store.engine.connect() as connection:
         latest_by_kind = {}
         for kind in ("resume", "cover-letter"):
             row = connection.execute(select(
-                m.documents.c.kind, m.documents.c.version,
+                m.documents.c.id, m.documents.c.kind, m.documents.c.version,
                 m.documents.c.files, m.documents.c.sha256,
             ).where(
                 m.documents.c.application_id == application["application_id"],
@@ -287,7 +287,8 @@ def _documents(store, application, profile_version):
                 latest_by_kind[kind] = dict(row)
         selected_events = connection.execute(select(m.audit.c.payload).where(
             m.audit.c.entity_id == application["application_id"],
-            m.audit.c.action == _DOC_SELECTION_ACTION,
+            m.audit.c.action == ("APPLICATION_FIXTURE_SUPPORTING_DOCUMENTS_SELECTED"
+                                 if _controlled_fixture else _DOC_SELECTION_ACTION),
         ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())
             .limit(1)).mappings().one_or_none()
         selected_payload = selected_events["payload"] if selected_events else None
@@ -349,20 +350,23 @@ def _fingerprint(profile_version, application, analysis, docs, selected):
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 
-def build_rehearsal(store, profile_id, application_id) -> dict:
+def build_rehearsal(store, profile_id, application_id, *, _controlled=None) -> dict:
     """Build a bounded profile-only preview from latest durable form metadata.
 
     Values appear only in this return value for the selected local profile; no
     rehearsal values are saved in the database, audit trail, or remote provider.
     """
     application, profile = _profile_and_application(store, profile_id, application_id)
-    analysis, _receipt = _latest_analysis(store, application, profile_id, profile)
+    if _controlled is None:
+        analysis, _receipt = _latest_analysis(store, application, profile_id, profile)
+    else:
+        analysis = _controlled["analysis"]
     blockers: list[str] = []
     if analysis["status"] != "ANALYZED":
         blockers.append(analysis["reason"] or "FORM_ANALYSIS_UNKNOWN")
     elif not analysis["fields"]:
         blockers.append("FORM_HAS_NO_REVIEWABLE_FIELDS")
-    docs, selected = _documents(store, application, profile["version"])
+    docs, selected = _documents(store, application, profile["version"], _controlled_fixture=_controlled is not None)
     preview_fields = []
     for field in analysis["fields"]:
         key = field["name"] or field["id"] or "unidentified_field"
@@ -378,7 +382,10 @@ def build_rehearsal(store, profile_id, application_id) -> dict:
               or (field["id"] and _SENSITIVE.search(field["id"]))):
             reason_code = "SENSITIVE_FIELD"
         elif field["type"] == "file":
-            value = _document_value(key, docs)
+            if _controlled is not None and key == "supporting_documents":
+                value = f"{len(selected)} selected supporting documents"
+            else:
+                value = _document_value(key, docs)
             if value is None:
                 reason_code = "DOCUMENT_NOT_SELECTED"
             else:
@@ -404,11 +411,17 @@ def build_rehearsal(store, profile_id, application_id) -> dict:
 
     blockers = list(dict.fromkeys(blockers))
     fingerprint = _fingerprint(profile["version"], application, analysis, docs, selected)
+    if _controlled is not None:
+        fingerprint = hashlib.sha256(json.dumps({
+            "base": fingerprint, "template_sha256": _controlled["template_sha256"],
+            "context": "CONTROLLED_FIXTURE",
+            "document_ids": sorted(row["id"] for row in docs.values()),
+        }, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
     ready = not blockers and all(
         not field["required"] or field["source"] != "UNRESOLVED"
         for field in preview_fields
     )
-    return {
+    result = {
         "profile_id": profile_id,
         "application_id": application_id,
         "profile_version": profile["version"],
@@ -419,3 +432,9 @@ def build_rehearsal(store, profile_id, application_id) -> dict:
         "ready": ready,
         "submission_enabled": False,
     }
+    if _controlled is not None:
+        result["documents"] = [{"id": row["id"], "kind": kind, "version": row["version"],
+                                "sha256": (row.get("sha256") or {}).get("pdf")}
+                               for kind, row in sorted(docs.items())]
+        result["supporting_documents"] = selected
+    return result
