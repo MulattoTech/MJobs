@@ -1,0 +1,49 @@
+{
+  "requirement": "MJ-REQ-023",
+  "issue": 24,
+  "utc": "2026-10-12T21:51:06.890336+00:00",
+  "base": "dfbe582f250f489ca32f5df53bfccd104d09a7eb",
+  "branch": "feat/saved-search-employer-rules-24-20261012",
+  "source_sha256": {
+    "apps/web/src/employer-search-rules.tsx": "fb66a43c26a13d1b434a4328dc6bf5f99720a3cab979b471c7f8d85d060ee0b6",
+    "apps/web/src/main.tsx": "ecbe423839724d6abc6ea48203b8c8299d569104f2f36546465d35281b1ba98b",
+    "tests/browser/test_first_run_wizard.py": "56e6b1a32ae2100e758312bfc6bb4d97e76df748bb19b37edce0b0ea80ea7ac4"
+  },
+  "red": "Connected first-run UI had no Included employers control although API and worker supported company criteria",
+  "behavior": "Edit employer include/exclude rules on a selected saved search; save and verify scoped durable readback; reload, filter Jobs and admit/exclude discovery scoring candidates with persisted history",
+  "failure_recovery": [
+    "503 keeps draft and stored rules unchanged; explicit retry succeeds",
+    "Blank rules clear restrictions; another profile has separate private rules",
+    "Multiline Enter and typing retain two terms; preview explicitly remains title/keyword only"
+  ],
+  "commands": [
+    ".venv/Scripts/python.exe -m pytest -q tests/integration/test_first_run_search.py tests/integration/test_prefilter_search_profile_contract.py tests/integration/test_saved_search_filters.py tests/unit/test_search_semantics.py",
+    ".venv/Scripts/python.exe -m pytest -q tests/browser/test_first_run_wizard.py tests/browser/test_saved_search_filters.py tests/browser/test_prefilter_discovery_flow.py",
+    "npm --prefix apps/web test -- src/job-prefilter.test.tsx",
+    "npm --prefix apps/web run build",
+    "python -m tools.verification.catalogue",
+    "python -m tools.verification.progress validate",
+    "python -m tools.verification.agent_skills",
+    "python -m tools.verification.progress_dashboard --check"
+  ],
+  "local": {
+    "focused": {
+      "cases": 46,
+      "failures": 0,
+      "skips": 0
+    },
+    "browser": {
+      "cases": 3,
+      "failures": 0,
+      "skips": 0
+    }
+  },
+  "vitest": "3 PASS",
+  "build_and_validators": "PASS",
+  "worker_proof": "Real fixture source collection and real recalculate: positive company inclusion admits one candidate; subsequent same-employer exclusion admits none; original 3 captured postings retained; history snapshots contain actual rules",
+  "fixture_boundary": "Repeated run first hit SOURCE_COOLDOWN; assumed10min was insufficient. Advance only disposable source last_attempt past its actual configured poll interval; no production cooldown change or external traffic",
+  "review": "Local Luna read-only review found no blocking correctness/privacy/data-loss issue; positive worker oracle gap addressed",
+  "hosted": "NOT_RUN for new candidate",
+  "external_submission_enabled": false,
+  "acceptance": "No parent acceptance promotion; 366 original and59reference denominators unchanged; whole P0/P1 release remains incomplete"
+}

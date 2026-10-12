@@ -56,6 +56,7 @@ import { SearchProfileSeed, type SearchProfileSeedDraft } from './search-profile
 import { TechnologySkillSeed, displayTechnologySkillPreferences } from './technology-skill-seed';
 import { SkillGapHeatmap, type SkillGapHeatmapData } from './skill-gap-heatmap';
 import { JobPrefilter, type JobPrefilterCriteria, type JobPrefilterResponse } from './job-prefilter';
+import {EmployerSearchRules, type EmployerSearchCriteria} from './employer-search-rules';
 import { ResumePageFit, type ResumePageFitGenerated, type ResumePageFitPreview } from './resume-page-fit';
 import { CareerStoryBankConnected } from './career-story-bank-connected';
 import { InterviewPreparationConnected } from './interview-preparation-connected';
@@ -395,6 +396,7 @@ function App() {
   const [titleSuggestions,setTitleSuggestions]=useState<SearchProfileTitleSuggestion[]>([]); const [titleSuggestionsLoading,setTitleSuggestionsLoading]=useState(false); const [titleSuggestionsError,setTitleSuggestionsError]=useState(''); const [titleSuggestionsRefresh,setTitleSuggestionsRefresh]=useState(0);
   const [skillGapData,setSkillGapData]=useState<SkillGapHeatmapData|undefined>(); const [skillGapStatus,setSkillGapStatus]=useState<'loading'|'error'|'ready'>('loading'); const [skillGapError,setSkillGapError]=useState('');
   const [prefilterCriteria,setPrefilterCriteria]=useState<JobPrefilterCriteria>({include_titles:[],exclude_titles:[],required_keywords:[],excluded_keywords:[],exact_phrases:[]});
+  const [employerCriteria,setEmployerCriteria]=useState<EmployerSearchCriteria>({company_include:[],company_exclude:[]});
   const [busy,setBusy]=useState(''); const [error,setError]=useState(''); const [notice,setNotice]=useState('');
   const [activeOp,setActiveOp]=useState('');
   const profileRef = useRef(profileId); profileRef.current = profileId;
@@ -557,6 +559,10 @@ function App() {
     setSelectedSearchProfileId(id);
     const selected=searchProfiles.find(search=>search.id===id&&search.profile_id===profileId);
     const criteria:SearchProfile['criteria']=selected?.criteria||{include_titles:[],remote:'',employment_types:[]};
+    setEmployerCriteria({
+      company_include:Array.isArray(criteria.company_include)?criteria.company_include as string[]:[],
+      company_exclude:Array.isArray(criteria.company_exclude)?criteria.company_exclude as string[]:[],
+    });
     setPrefilterCriteria({
       include_titles:Array.isArray(criteria.include_titles)?criteria.include_titles as string[]:[],
       exclude_titles:Array.isArray(criteria.exclude_titles)?criteria.exclude_titles as string[]:[],
@@ -618,6 +624,22 @@ function App() {
       const response=await api<{search_profiles:SearchProfile[]}>(`/search-profiles?profile_id=${encodeURIComponent(profileId)}`);
       setSearchProfiles(response.search_profiles||[]);
       setNotice(`Saved title and keyword filters for ${selected.name}.`);
+    });
+  }
+  async function saveEmployerCriteria(expected:EmployerSearchCriteria) {
+    const selected=searchProfiles.find(search=>search.id===selectedSearchProfileId&&search.profile_id===profileId);
+    if(!selected||!profileId)return;
+    const owner=profileId;
+    await action('Saving employer rules',async()=>{
+      await api('/search-profiles',{method:'PUT',body:JSON.stringify({
+        id:selected.id,profile_id:owner,name:selected.name,source_ids:selected.source_ids,...expected,
+      })});
+      const response=await api<{search_profiles:SearchProfile[]}>(`/search-profiles?profile_id=${encodeURIComponent(owner)}`);
+      const saved=response.search_profiles.find(search=>search.id===selected.id&&search.profile_id===owner);
+      if(!saved||JSON.stringify(saved.criteria.company_include)!==JSON.stringify(expected.company_include)
+        ||JSON.stringify(saved.criteria.company_exclude)!==JSON.stringify(expected.company_exclude))
+        throw new Error('Could not confirm saved employer rules. Reload the search before retrying.');
+      if(profileRef.current===owner){setEmployerCriteria(expected);setSearchProfiles(response.search_profiles);setNotice(`Employer rules saved for ${selected.name}.`);}
     });
   }
   async function loadSkillGapHeatmap(id=profileId) {
@@ -1461,6 +1483,8 @@ function App() {
         {profileId&&selectedSearchProfileId&&<><JobPrefilter criteria={prefilterCriteria} disabled={!!busy} onChange={setPrefilterCriteria} onPreview={criteria=>api<JobPrefilterResponse>(`/profiles/${encodeURIComponent(profileId)}/search-profiles/${encodeURIComponent(selectedSearchProfileId)}/cheap-prefilter-preview`,{method:'POST',body:JSON.stringify({criteria})})}/><div className="toolbar"><p className="muted">Save changes to make these inexpensive filters part of this search profile.</p><button type="button" disabled={!!busy} onClick={()=>void savePrefilterCriteria()}>Save title and keyword filters</button></div><RoleScoringProfileEditor profileId={profileId} searchProfileId={selectedSearchProfileId} load={roleScoringProfileClient.load} save={roleScoringProfileClient.save} readback={roleScoringProfileClient.readback}/></>}
         <label className="consent"><input type="checkbox" checked={showDismissed} onChange={e=>setShowDismissed(e.target.checked)}/> Show hidden and not interested</label>
         <label className="consent"><input type="checkbox" aria-label="Show blacklisted companies" checked={showBlacklisted} disabled={!profileId} onChange={e=>setShowBlacklisted(e.target.checked)}/> Show blacklisted companies</label>
+        {profileId&&selectedSearchProfileId&&<EmployerSearchRules key={`${profileId}:${selectedSearchProfileId}`}
+          criteria={employerCriteria} disabled={!!busy} onSave={criteria=>void saveEmployerCriteria(criteria)}/>}
         {profileId&&selectedSearchProfileId&&<JobComparisonWorkspace
           key={`${profileId}:${selectedSearchProfileId}:${jobs.map(job=>job.id).join('|')}`}
           profileId={profileId}

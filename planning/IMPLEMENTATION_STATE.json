@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Verify source-review navigation after durable attempt-history read completes",
+  "current_objective": "Expose durable employer include/exclude rules through saved-search discovery, filtering and history",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2637,19 +2637,31 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 532,
-    "requirement": "MJ-FEATURE-517 browser verification",
-    "base": "88413c8d2cbfb6ffeeea9dfe72230c87bb71166d",
-    "branch": "test/source-review-history-ack-532-20261012",
+    "requirement": "MJ-REQ-023",
+    "issue": 24,
+    "branch": "feat/saved-search-employer-rules-24-20261012",
+    "base": "dfbe582f250f489ca32f5df53bfccd104d09a7eb",
     "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+    "result": "PARTIAL",
     "owned_paths": [
-      "tests/browser/test_source_candidate_review_panel_connected.py"
+      "apps/web/src/employer-search-rules.tsx",
+      "apps/web/src/main.tsx",
+      "tests/browser/test_first_run_wizard.py"
     ],
-    "local": "1 connected Chromium PASS in 8.57s",
+    "local": {
+      "focused": {
+        "cases": 46,
+        "failures": 0,
+        "skips": 0
+      },
+      "browser": {
+        "cases": 3,
+        "failures": 0,
+        "skips": 0
+      }
+    },
     "hosted": "NOT_RUN",
-    "parent_acceptance": "PARTIAL",
-    "next_action": "Protected PR exact-head checks/fullbrowser then saved-search employer criteria UI",
     "external_submission_enabled": false,
-    "result": "PARTIAL"
+    "next_action": "Review exact diff/provenance; protected serial PR and exact-head integration/browser/Compose checks"
   }
 }
