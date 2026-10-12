@@ -5,18 +5,21 @@
     "company-discovery review bound to current request revision"
   ],
   "base_revision": "be8e8b3161bf272497a8f9cacc3d38d41ebc8b89",
-  "observed_utc": "2026-10-12T11:51:44.446173+00:00",
+  "observed_utc": "2026-10-12T11:58:35.874685+00:00",
   "source_sha256": {
-    "apps/web/src/main.tsx": "5138eeaf00ad27bf5d79d3e670252fd175ad31f7caa3caa576657eccbbe76c44",
+    "apps/web/src/main.tsx": "04db8c99a0e5ecf3362bd9daa070a8bcbb5c44d3bb2af6677f569d14f81b8b3c",
     "apps/web/src/company-discovery-requests.tsx": "b1e71c34cd7397dc4ef7cf7a149725e9b5c6ee3da317210f660c52782c287129",
     "tests/browser/test_application_answer_matching_review_flow.py": "0d1b0a779f425ec6eb18aab4826bddef81f58629450d1d486230b775ac3f0e4c",
-    "tests/browser/test_company_discovery_requests.py": "ec92c574616b07839d433297435a82b6fdab64dd82a81a47c8a3f485eb563464"
+    "tests/browser/test_company_discovery_requests.py": "ec92c574616b07839d433297435a82b6fdab64dd82a81a47c8a3f485eb563464",
+    "cli/ui_e2e.py": "a7e4ccc84e0350638c48fc3a93810d2c695bdc07a90004910f7cce2cc6118255",
+    "tests/browser/test_mock_run_controls.py": "9a55069374e8ccbb82b8f824500fcf83d1647de62c49840fe3718a4f1c1135ca"
   },
   "behavior": [
     "Disable old application review editors while another application readback is pending; show loading status.",
     "Failed application readback restores existing editor and unchanged draft; retry commits new scope. Same-scope refresh keeps edits available.",
     "Explicit application selection prevents a delayed refresh from restoring a previous selection.",
-    "Disable company request review/dismiss during batch refresh; release with current revision and invalidated previous identity consent."
+    "Disable company request review/dismiss during batch refresh; release with current revision and invalidated previous identity consent.",
+    "Expose exact saved application state as a named live status; Compose uses accessible state lookup with unchanged dry-run/confirmed/receipt/reload assertions."
   ],
   "reproduction": {
     "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_application_answer_matching_review_flow.py tests/browser/test_company_discovery_requests.py --junitxml=outputs/ci/root-532-readback-red.xml",
@@ -42,6 +45,10 @@
     {
       "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; git diff --check",
       "result": "PASS"
+    },
+    {
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/browser/test_mock_run_controls.py tests/unit/test_ui_e2e_onboarding.py --junitxml=outputs/ci/root-532-state-label-final.xml",
+      "result": "9 PASS,10 passing subtests after final status-label/CLI correction"
     }
   ],
   "observed_intermediate_failure": "Initial focused run6PASS/1FAIL: new recovery assertion used an exact label lookup that included textarea content after readback. DOM inspection confirmed unchanged saved draft. Only that new assertion changed to textbox accessible role/name; final full affected scope passed.",
@@ -59,5 +66,12 @@
     "Exact candidate hosted checks pending at commit. Full browser gate pending after integration.",
     "No parent requirement promotion; release gate still unfulfilled.",
     "Real external application submissions OFF; synthetic isolated test data only."
-  ]
+  ],
+  "hosted_candidate_failure": {
+    "revision": "9018b8f5f3a87df80d11d2666919e67990545447",
+    "job": 114797937549,
+    "check": "Disposable Compose / mock end-to-end",
+    "failure": "CLI direct-child selector .job-detail > .tag no longer matched safety fieldset wrapper. Product state was not contradicted.",
+    "correction": "Use stable named Application state status; exact DRY_RUN_COMPLETE/CONFIRMED assertions and all safety/receipt/reload checks retained. New missing-status regression reproduced RED, corrected local worker/browser/CLI scope PASS. New-head hosted verification pending."
+  }
 }
