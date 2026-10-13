@@ -111,7 +111,12 @@ def _current(store, profile_id, application_id, fingerprint):
     return result
 
 
-def queue(store, profile_id, application_id, request_id, fingerprint):
+def _run_filters(profile_id, application_id):
+    return (m.operations.c.kind == KIND, m.operations.c.entity_id == application_id,
+            m.operations.c.params['profile_id'].as_string() == profile_id)
+
+
+def queue(store, profile_id, application_id, request_id, fingerprint, *, retry_of=None):
     with store.engine.begin() as connection:
         lock_scope(connection, profile_id, application_id)
         current = _current(store, profile_id, application_id, fingerprint)
@@ -121,6 +126,8 @@ def queue(store, profile_id, application_id, request_id, fingerprint):
             "documents", "supporting_documents",
         )}
         params["request_id"] = request_id
+        if retry_of is not None:
+            params['retry_of'] = retry_of
         rows = list(connection.execute(select(m.operations).where(
             m.operations.c.kind == KIND, m.operations.c.entity_id == application_id,
             m.operations.c.params["profile_id"].as_string() == profile_id,
@@ -131,9 +138,32 @@ def queue(store, profile_id, application_id, request_id, fingerprint):
                 raise ControlledDryRunError("CONTROLLED_DRY_RUN_REQUEST_ID_REUSED")
             operation_id, state = rows[0]["id"], rows[0]["state"]
         else:
+            prior_runs = list(connection.execute(select(m.operations).where(
+                *_run_filters(profile_id, application_id))).mappings())
+            if any(row['state'] in {'QUEUED', 'RUNNING'} for row in prior_runs):
+                raise ControlledDryRunError('CONTROLLED_DRY_RUN_ACTIVE')
+            if retry_of is not None:
+                previous = [row for row in prior_runs if row['params'].get('request_id') == retry_of]
+                if len(previous) != 1 or request_id == retry_of:
+                    raise ControlledDryRunError('CONTROLLED_DRY_RUN_RETRY_INVALID')
+                if previous[0]['state'] not in {'COMPLETED', 'CANCELLED', 'FAILED', 'BLOCKED', 'DEAD_LETTERED'}:
+                    raise ControlledDryRunError('CONTROLLED_DRY_RUN_RETRY_INVALID')
+            elif any(row['params'].get('fingerprint') == fingerprint for row in prior_runs):
+                raise ControlledDryRunError('CONTROLLED_DRY_RUN_RETRY_REVIEW_REQUIRED')
             operation_id = enqueue_operation(store, KIND, application_id, params, connection=connection)
             state = "QUEUED"
     return {"operation_id": operation_id, "request_id": request_id, "state": state}
+
+
+def cancel(store, profile_id, application_id, request_id):
+    """Resolve an immutable owner-scoped intent before invoking the shared fence."""
+    require_scope(store, profile_id, application_id)
+    current = read_run(store, profile_id, application_id, request_id)
+    if current['request_id'] is None:
+        raise ControlledDryRunError('CONTROLLED_DRY_RUN_NOT_FOUND')
+    from workers.operations import request_cancel
+    request_cancel(store, current['operation_id'])
+    return read_run(store, profile_id, application_id, request_id)
 
 
 def read_run(store, profile_id, application_id, request_id=None):
@@ -148,12 +178,15 @@ def read_run(store, profile_id, application_id, request_id=None):
         if request_id is not None and len(rows) > 1:
             raise ControlledDryRunError("CONTROLLED_DRY_RUN_REQUEST_ID_REUSED")
         if not rows:
-            return {"request_id": None, "state": "IDLE", "receipt": None, "error_code": None}
+            return {"operation_id": None, "request_id": None, "state": "IDLE", "receipt": None,
+                    "cancel_requested": False, "retry_of": None, "error_code": None}
         row = rows[0]
         receipt = connection.execute(select(m.audit.c.payload).where(
             m.audit.c.id == identity(KIND, row["id"]), m.audit.c.action == KIND,
         )).scalar_one_or_none()
-    return {"request_id": row["params"]["request_id"], "state": row["state"],
+    return {"operation_id": row['id'], "request_id": row["params"]["request_id"], "state": row["state"],
+            "fingerprint": row['params']['fingerprint'],
+            "cancel_requested": row['cancel_requested'], "retry_of": row['params'].get('retry_of'),
             "receipt": receipt, "error_code": row["error"] if row["error"] in {
                 "CONTROLLED_DRY_RUN_STALE", "CONTROLLED_DRY_RUN_REVIEW_REQUIRED",
                 "CONTROLLED_DRY_RUN_DOCUMENT_CHANGED", "CONTROLLED_DRY_RUN_BROWSER_FAILED",

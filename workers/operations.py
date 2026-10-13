@@ -8,7 +8,7 @@ from uuid import uuid4
 from sqlalchemy import func, or_, select, text, update
 
 from packages.persistence import models as m
-from packages.persistence.store import now
+from packages.persistence.store import now, identity
 from services.audit_history import record_application_preparation_event
 
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-company-discovery",
@@ -360,6 +360,13 @@ def request_cancel(store, operation_id):
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         row = dict(connection.execute(select(m.operations).where(m.operations.c.id == operation_id).with_for_update()).mappings().one())
+        if row['kind'] == 'APPLICATION_DRY_RUN' and row['state'] in {'QUEUED', 'RUNNING'}:
+            receipt = connection.execute(select(m.audit.c.id).where(
+                m.audit.c.id == identity('APPLICATION_DRY_RUN', operation_id),
+                m.audit.c.action == 'APPLICATION_DRY_RUN',
+                m.audit.c.entity_id == row['entity_id'])).first()
+            if receipt is not None:
+                return {**row, 'reason': 'VERIFICATION_ALREADY_SAVED'}
         if row["kind"] == "APPLY_MOCK":
             application = connection.execute(select(m.applications).where(m.applications.c.id == row["entity_id"]).with_for_update()).mappings().one()
             if application["state"] in ("SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED"):

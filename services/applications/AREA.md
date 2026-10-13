@@ -11,6 +11,19 @@ receipt lookup yields SUBMISSION_UNCONFIRMED and never a blind retry. Persistent
 browser sessions reside only in private output storage. Test:
 python -m unittest tests.browser.test_mock_application.
 
+Controlled local DRY_RUN preparation exposes owner-scoped cancellation and an
+explicit acknowledged retry action. Admission serializes on the application and
+admits at most one active controlled run, while replaying an existing request
+keeps its identity. Retrying a saved input set requires the retry action, current
+reviewed inputs and a fresh request ID; its immutable `retry_of` link preserves
+the earlier attempt. Cancellation uses the shared durable worker fence and never
+claims a receipt after cancellation. A completed receipt stays unchanged.
+If a process exits after saving verification but before final operation completion,
+cancellation preserves that receipt; lease recovery reuses it without reopening
+the browser. The mounted UI can recover/cancel an active run even when the current route no
+longer supports preview. All browser work remains on the local product fixture;
+no employer interaction or submission is enabled by these controls.
+
 The mock Playwright flow rechecks the durable operation's monotonic deadline and
 cancellation after navigation and upload stages, and checks the deadline again
 after the SUBMITTING reservation but before the irreversible submit click. The

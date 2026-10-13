@@ -2701,7 +2701,18 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-057-test-harness",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "slice_history": [],
+      "active_slice": {
+        "issue": 209,
+        "requirement_id": "MJ-REQ-208",
+        "related_requirements": [
+          "MJ-REQ-158"
+        ],
+        "status": "IN_PROGRESS",
+        "branch": "feat/astra-controlled-dry-run-recovery-20261013",
+        "acceptance": "Scoped cancellation, single active admission, acknowledged retry with immutable predecessor, stale/profile fences, real browser/restart proof; external submission OFF."
+      }
     },
     {
       "id": "MJ-PR-058",
