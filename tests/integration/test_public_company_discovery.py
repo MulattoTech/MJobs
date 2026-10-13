@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import httpx
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -104,8 +104,16 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
                 response=client.post('/companies/discovery',json={**self.candidate,'reason':'USER_ADDED_COMPANY','profile_id':'fixture'})
                 self.assertEqual(response.status_code,202,response.text)
                 operation_id=response.json()['operation_id']
+                another_tab=client.post('/companies/discovery',json={**self.candidate,
+                    'reason':'USER_ADDED_COMPANY','profile_id':'fixture','request_id':'another-tab'})
+                self.assertEqual(another_tab.status_code,202,another_tab.text)
+                self.assertEqual(another_tab.json()['operation_id'],operation_id)
                 result=execute_operation(operation_id)
                 self.assertEqual(result['status'],'COMPLETED',result)
+                fetch_count = len(seen)
+                self.assertEqual(execute_operation(another_tab.json()['operation_id'])['status'],
+                                 'ALREADY_CLAIMED_OR_CAPACITY')
+                self.assertEqual(len(seen), fetch_count)
                 history=client.get('/profiles/fixture/audit-history').json()['events']
                 company_events=[event for event in history if event['type'] in {
                     'COMPANY_DISCOVERED','COMPANY_SOURCE_ENROLLED'}]
@@ -250,6 +258,9 @@ class PublicCompanyDiscoveryTests(unittest.TestCase):
     def test_explicit_retry_is_fresh_but_replayed_request_stays_idempotent(self):
         first=queue_company_discovery(self.store,self.candidate,'USER_ADDED_COMPANY',public=True,request_id='first')
         replay=queue_company_discovery(self.store,self.candidate,'USER_ADDED_COMPANY',public=True,request_id='first')
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id==first['operation_id'])
+                .values(state='DEAD_LETTERED'))
         retry=queue_company_discovery(self.store,self.candidate,'USER_ADDED_COMPANY',public=True,request_id='second')
         self.assertEqual(first['operation_id'],replay['operation_id'])
         self.assertNotEqual(first['operation_id'],retry['operation_id'])

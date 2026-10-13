@@ -1239,7 +1239,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         try:
             return queue_company_discovery(store, candidate, value.reason, value.profile_id, public=operation_mode == "PERSONAL", request_id=value.request_id)
         except (ValueError, PublicFetchError) as exc:
-            raise HTTPException(422, str(exc)) from exc
+            code = str(exc)
+            raise HTTPException(409 if code == 'COMPANY_DISCOVERY_REQUEST_CONFLICT' else 422, code) from exc
 
     @app.get("/company-sources/view")
     def company_source_view(profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
@@ -2263,7 +2264,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 resume_ids = select(m.uploaded_resumes.c.id).where(m.uploaded_resumes.c.profile_id == profile_id)
                 statement = statement.where((m.operations.c.entity_id == profile_id)
                     | m.operations.c.entity_id.in_(app_ids)
-                    | m.operations.c.entity_id.in_(resume_ids))
+                    | m.operations.c.entity_id.in_(resume_ids)
+                    | ((m.operations.c.kind == 'COMPANY_DISCOVER')
+                       & (m.operations.c.params['profile_id'].as_string() == profile_id)))
             recent = list(connection.execute(statement.order_by(m.operations.c.updated_at.desc()).limit(100)).mappings())
             # Recovery must remain reachable even after unrelated history grows.
             # Reuse the same profile fence and public serializer for held rows.
@@ -2284,7 +2287,9 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             resume_ids = select(m.uploaded_resumes.c.id).where(m.uploaded_resumes.c.profile_id == profile_id)
             statement = statement.where((m.operations.c.entity_id == profile_id)
                 | m.operations.c.entity_id.in_(app_ids)
-                | m.operations.c.entity_id.in_(resume_ids))
+                | m.operations.c.entity_id.in_(resume_ids)
+                | ((m.operations.c.kind == 'COMPANY_DISCOVER')
+                   & (m.operations.c.params['profile_id'].as_string() == profile_id)))
         with store.engine.connect() as connection:
             rows = list(connection.execute(statement.add_columns(func.count().over().label("queue_count")).order_by(
                 m.operations.c.dead_lettered_at.desc().nullslast(), m.operations.c.updated_at.desc()).limit(100)).mappings())
