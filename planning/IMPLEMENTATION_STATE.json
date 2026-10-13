@@ -2588,7 +2588,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-13T19:14:01.386544+00:00",
+  "updated_at": "2026-10-13T19:39:24.740504+00:00",
   "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
   "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
@@ -2643,7 +2643,7 @@
       "MJ-REQ-158"
     ],
     "branch": "feat/astra-controlled-dry-run-recovery-20261013",
-    "status": "IN_PROGRESS",
+    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
     "depends_on_pr": 621,
     "behavior": "Owner-scoped cancellation, serialized active admission and explicit reviewed retry preserving prior DRY_RUN history",
     "previous_checkpoint": {
@@ -2653,7 +2653,7 @@
         "MJ-REQ-114"
       ],
       "branch": "feat/astra-ai-source-quotes-20261013",
-      "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+      "status": "MERGED_VERIFIED",
       "depends_on_pr": 620,
       "behavior": "Checked posting quotes and explicit unknown/advisory AI explanation readback",
       "previous_checkpoint": {
@@ -2767,7 +2767,11 @@
       },
       "verified_source": "0b3b218f685d9e863e2c05b722dfc81bd77482e4",
       "evidence": "docs/evidence/2026-10-13-ai-source-quotes.json",
-      "pr": 621
-    }
+      "pr": 621,
+      "verified_head": "ce1669708f452a0d39d2a7ac14317e5245d862f3",
+      "merge_commit": "e1d0053206264088709b8e4228394ebddadd0132"
+    },
+    "verified_source": "4c58d31ea8a2b196a71019e51ad6b55e0c13237f",
+    "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json"
   }
 }

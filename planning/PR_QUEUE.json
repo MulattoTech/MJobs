@@ -1102,12 +1102,14 @@
         "related_requirements": [
           "MJ-REQ-114"
         ],
-        "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+        "status": "MERGED_VERIFIED",
         "branch": "feat/astra-ai-source-quotes-20261013",
         "depends_on_pr": 620,
         "acceptance": "Exact posting quote validation, durable checkpoint/restart without duplicate call, owner history and explicit unknown/advisory UI; no live model inference.",
         "verified_source": "0b3b218f685d9e863e2c05b722dfc81bd77482e4",
-        "evidence": "docs/evidence/2026-10-13-ai-source-quotes.json"
+        "evidence": "docs/evidence/2026-10-13-ai-source-quotes.json",
+        "pr": 621,
+        "merge_commit": "e1d0053206264088709b8e4228394ebddadd0132"
       },
       "slice_history": [
         {
@@ -2709,9 +2711,11 @@
         "related_requirements": [
           "MJ-REQ-158"
         ],
-        "status": "IN_PROGRESS",
+        "status": "LOCAL_VERIFIED_HOSTED_PENDING",
         "branch": "feat/astra-controlled-dry-run-recovery-20261013",
-        "acceptance": "Scoped cancellation, single active admission, acknowledged retry with immutable predecessor, stale/profile fences, real browser/restart proof; external submission OFF."
+        "acceptance": "Scoped cancellation, single active admission, acknowledged retry with immutable predecessor, stale/profile fences, real browser/restart proof; external submission OFF.",
+        "verified_source": "4c58d31ea8a2b196a71019e51ad6b55e0c13237f",
+        "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json"
       }
     },
     {
