@@ -1,8 +1,7 @@
 """Acceptance for ordered, two-page controlled application dry runs."""
-import hashlib
 import json
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import update
@@ -88,17 +87,21 @@ class ControlledMultipageDryRunTests(unittest.TestCase):
                 <input name="supporting_documents" type="file" multiple>
                 </form>""")
             fixture["document_html"] = mutate(fixture["document_html"])
-            fixture["template_sha256"] = hashlib.sha256(
-                fixture["document_html"].encode("utf-8")
-            ).hexdigest()
+            # The patched template is stable across preview and execution; the
+            # digest is only a fixture identity here, not the behavior under test.
+            fixture["template_sha256"] = "d" * 64
             return fixture
 
         with patch.object(service, "template", tampered):
             _, body, queued = self.review_and_queue("tampered-" + case)
-            result = self.execute(queued["operation_id"])
+            browser = Mock(wraps=service.run_browser)
+            with patch.object(service, "run_browser", browser):
+                result = self.execute(queued["operation_id"])
             self.assertEqual(result["status"], "BLOCKED", result)
+            browser.assert_called_once()
             saved = self.client.get(self.path() + "/runs/" + body["request_id"])
             self.assertIsNone(saved.json()["receipt"])
+            self.assertEqual(saved.json()["error_code"], "CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
 
     def test_duplicate_control_on_second_page_fails_without_receipt(self):
         self._assert_tampered_second_page_fails("duplicate-control", lambda html: html.replace(
@@ -120,13 +123,14 @@ class ControlledMultipageDryRunTests(unittest.TestCase):
             fixture["template_sha256"] = "f" * 64
             return fixture
 
-        with patch.object(service, "template", changed), patch.object(
-            service, "run_browser", side_effect=AssertionError("stale second page must not launch browser"),
-        ):
+        browser = Mock(wraps=service.run_browser)
+        with patch.object(service, "template", changed), patch.object(service, "run_browser", browser):
             result = self.execute(queued["operation_id"])
         self.assertEqual(result["status"], "BLOCKED", result)
+        browser.assert_not_called()
         saved = self.client.get(self.path() + "/runs/" + body["request_id"])
         self.assertIsNone(saved.json()["receipt"])
+        self.assertEqual(saved.json()["error_code"], "CONTROLLED_DRY_RUN_STALE")
 
     def test_page_plan_change_after_review_blocks_before_browser(self):
         _, body, queued = self.review_and_queue("page-plan-changed")
@@ -139,13 +143,14 @@ class ControlledMultipageDryRunTests(unittest.TestCase):
             fixture["template_sha256"] = "e" * 64
             return fixture
 
-        with patch.object(service, "template", reordered), patch.object(
-            service, "run_browser", side_effect=AssertionError("stale page plan must not launch browser"),
-        ):
+        browser = Mock(wraps=service.run_browser)
+        with patch.object(service, "template", reordered), patch.object(service, "run_browser", browser):
             result = self.execute(queued["operation_id"])
         self.assertEqual(result["status"], "BLOCKED", result)
+        browser.assert_not_called()
         saved = self.client.get(self.path() + "/runs/" + body["request_id"])
         self.assertIsNone(saved.json()["receipt"])
+        self.assertEqual(saved.json()["error_code"], "CONTROLLED_DRY_RUN_STALE")
 
     def test_legacy_receipt_without_pages_remains_readable_unchanged(self):
         _, body, queued = self.review_and_queue("legacy-receipt")
