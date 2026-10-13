@@ -171,6 +171,7 @@ class AIHeaderDeadlineTests(unittest.TestCase):
             key_path.write_bytes(key.private_bytes(serialization.Encoding.PEM,
                 serialization.PrivateFormat.PKCS8, serialization.NoEncryption()))
             tls_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            tls_context.minimum_version = ssl.TLSVersion.TLSv1_2
             tls_context.load_cert_chain(str(cert_path), str(key_path))
             client_context = ssl.create_default_context(cafile=str(cert_path))
             # Ollama and Local Endpoint intentionally accept loopback HTTP only.
