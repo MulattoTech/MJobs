@@ -79,9 +79,10 @@
         "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
         "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
         "docs/evidence/2026-10-10-application-recovery-transfer-validation.json",
-        "docs/evidence/2026-10-13-provider-response-cancellation.json"
+        "docs/evidence/2026-10-13-provider-response-cancellation.json",
+        "docs/evidence/2026-10-13-provider-response-deadline.json"
       ],
-      "note": "The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL.",
+      "note": "The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL. HTTP AI response bodies now obey the remaining request deadline even while bytes trickle continuously. Five-provider real loopback transport and durable timeout/no-partial-result readback PASS locally. Pre-response-header bounds and broader external-operation acceptance remain PARTIAL.",
       "latest_evidence_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045946420",
       "latest_release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045955420",
       "priority": "P0",
