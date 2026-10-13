@@ -110,6 +110,45 @@ class MockRunBrowserHarness(unittest.TestCase):
 
 
 class MockRunControlsBrowserTests(MockRunBrowserHarness):
+    def test_acceptance_waits_for_owned_delayed_worker_and_real_receipt(self):
+        from cli.ui_e2e import wait_for_mock_run
+
+        path = f"/profiles/fixture/applications/{self.app_id}/mock-run"
+        self.panel.get_by_label("I approve one fictional mock submission").check()
+        with self.page.expect_response(lambda response: response.request.method == "POST"
+                                       and response.url == self.origin + path) as admission:
+            self.panel.get_by_role("button", name="Submit to local mock", exact=True).click()
+        self.assertEqual(admission.value.status, 202)
+        operation_id = admission.value.json()["operation_id"]
+        request_id = self.posts[0]["request_id"]
+        errors = []
+
+        def delayed_worker():
+            try:
+                time.sleep(6)  # Exceeds the old assertion's five-second budget.
+                self.run_worker(operation_id, refresh_panel=False)
+            except BaseException as error:
+                errors.append(error)
+
+        worker = threading.Thread(target=delayed_worker)
+        worker.start()
+        try:
+            def request(url):
+                response = self.context.request.get(self.origin + url)
+                self.assertEqual(response.status, 200)
+                return response.json()
+
+            wait_for_mock_run(request, path + "s/" + request_id, operation_id, timeout_seconds=90)
+        finally:
+            worker.join(timeout=100)
+        self.assertFalse(worker.is_alive())
+        self.assertFalse(errors, errors)
+        expect(self.page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
+        self.assertEqual(self.store.application(self.app_id)["confirmation"]["submission_count"], 1)
+        self.assertEqual(self.counts(), {"review": 1, "submit": 1})
+        self.assertEqual(len(self.posts), 1)
+        self.assertFalse(self.external)
+
     def test_late_terminal_refresh_does_not_navigate_away_from_profile(self):
         button = self.panel.get_by_role("button", name="Run dry-run", exact=True)
         expect(button).to_be_enabled(); button.click()

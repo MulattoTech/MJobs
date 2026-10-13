@@ -17,6 +17,27 @@ from reportlab.pdfgen import canvas
 from cli.live_feedback import capture_redacted_screenshot
 
 
+def wait_for_mock_run(request, path, operation_id, *, timeout_seconds=210,
+                      clock=time.monotonic, sleep=time.sleep):
+    """Wait for this reviewed intent, without resubmitting or hiding worker failure."""
+    deadline = clock() + timeout_seconds
+    while True:
+        result = request(path)
+        if result.get("operation_id") != operation_id:
+            raise RuntimeError("mock run identity changed")
+        state = result.get("state")
+        if state == "COMPLETED":
+            return result
+        if state not in {"QUEUED", "RUNNING"}:
+            # Do not publish arbitrary worker diagnostics or untrusted state text.
+            safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
+            raise RuntimeError(f"mock run did not complete: {safe_state}")
+        remaining = deadline - clock()
+        if remaining <= 0:
+            raise TimeoutError(f"mock run completion timed out: {state}")
+        sleep(min(1, remaining))
+
+
 def validate_onboarding_preflight(settings, health, readiness):
     if (settings.get("operation_mode") != "FIXTURE"
             or settings.get("external_submission_enabled") is not False
@@ -481,7 +502,16 @@ def run(base_url, evidence_path, onboarding=False):
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
             page.get_by_role("button", name="Start a new reviewed run", exact=True).click()
             page.get_by_label("I approve one fictional mock submission").check()
-            page.get_by_role("button", name="Submit to local mock", exact=True).click()
+            mock_run_path = f"/profiles/{profile_id}/applications/{identifier}/mock-run"
+            with page.expect_response(lambda response: response.request.method == "POST"
+                                      and response.url == base_url + mock_run_path) as admission:
+                page.get_by_role("button", name="Submit to local mock", exact=True).click()
+            assert admission.value.status == 202
+            admitted = admission.value.json()
+            admitted_intent = page.evaluate("([profile, application]) => JSON.parse(localStorage.getItem('mjobs-mock-run-v1:' + encodeURIComponent(profile) + ':' + encodeURIComponent(application)))", [profile_id, identifier])
+            assert admitted_intent["submit"] is True
+            wait_for_mock_run(request, mock_run_path + "s/" + admitted_intent["requestId"],
+                              admitted["operation_id"])
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
             confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert confirmed["target"] == "MOCK" and confirmed["confirmation"]["submission_count"] == 1
