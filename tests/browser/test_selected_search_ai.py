@@ -96,6 +96,7 @@ class SelectedSearchAIBrowserTests(fixture.SelectedSearchAIHarness):
                     expect(consent).to_be_enabled()
                     consent.check()
                     history.get_by_role('button', name='Confirm review and open job', exact=True).click()
+                    expect(page.get_by_role('status').filter(has_text='Review saved. Confirm document preparation on the job page')).to_be_visible()
                     page.get_by_role('button', name='AI Settings', exact=True).click()
                     expect(history.get_by_role('button', name='Prepare reviewed documents', exact=True)).to_be_enabled()
                     with self.store.engine.begin() as connection:

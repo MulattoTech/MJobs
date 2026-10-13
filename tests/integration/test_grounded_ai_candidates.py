@@ -31,11 +31,21 @@ class GroundedAICandidateTests(SelectedSearchAIHarness):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.jobs).where(m.jobs.c.id == self.systems).values(
                 skills=[], description='Synthetic role with no supported skill information.', attributes={}))
-        self.store.save_ai_cost_policy('fixture', {**self.store.ai_cost_policy('fixture'), 'minimum_score': 75})
+        self.store.save_ai_cost_policy('fixture', {**self.store.ai_cost_policy('fixture'), 'minimum_score': 0})
         preview = self.profile_preview()
         self.assertEqual(preview['plan']['unscored_job_count'], 1)
         self.assertEqual(preview['plan']['scored_candidate_count'], 1)
-        self.assertEqual(preview['candidates'], [])
+        self.assertEqual([row['job_id'] for row in preview['candidates']], [self.cloud])
+        self.assertEqual(preview['candidates'][0]['deterministic_score'], 0)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == self.cloud).values(skills=[], attributes={}))
+        unknown = self.profile_preview()
+        self.assertEqual(unknown['plan']['unscored_job_count'], 2)
+        self.assertEqual(unknown['candidates'], [])
+        response = self.client.post('/profiles/fixture/ai-cost-plan/evaluate/queued', json={
+            'request_id': 'grounded-all-unknown', 'preview_fingerprint': unknown['fingerprint']})
+        self.assertEqual(response.status_code, 202, response.text)
+        self.assertEqual(self.run_worker(response.json()['operation_id'])['status'], 'COMPLETED')
         self.assertEqual(self.calls, [])
 
     def test_missing_cached_match_does_not_hide_current_evidence_and_disabled_mode_is_local(self):

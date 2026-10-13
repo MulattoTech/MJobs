@@ -256,7 +256,7 @@ class AITaskSettingsBrowserTests(unittest.TestCase):
                     "request_id": f"browser-ai-cancel-{index}",
                     "title": title,
                     "company": "Synthetic Company",
-                    "description": "Windows and Linux infrastructure administration.",
+                    "description": "Python and SQL infrastructure administration.",
                     "reference_url": f"https://jobs.example.test/cancel-{index}",
                     "application_url": f"https://apply.example.test/cancel-{index}",
                     "source_details": {},
