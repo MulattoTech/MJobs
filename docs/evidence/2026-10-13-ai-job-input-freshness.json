@@ -10,7 +10,7 @@
   "reasoning_effort": "medium",
   "local_behavior": "PASS",
   "requirement_result": "PARTIAL",
-  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "hosted_checks": "PARTIAL: PR617 head848692aa passed all gates except Compose UI default5s assertion; repair265e82d4 revalidation pending.",
   "external_submission_enabled": false,
   "live_provider_inference": "NOT_RUN",
   "behavior": [
@@ -223,5 +223,60 @@
     "result": "PASS",
     "tests_passed": 13,
     "note": "Current evidence/planning changes do not alter executable inputs; all code blobs equal source_commit."
+  },
+  "acceptance_harness_repair": {
+    "source_commit": "265e82d4752c38908eed1d73a9a82823827e380e",
+    "recorded_at_utc": "2026-10-13T18:03:06.774120+00:00",
+    "failure_run": "https://github.com/MulattoTech/MJobs/actions/runs/38441334656",
+    "observed_failure": "UI still DRY_RUN_COMPLETE after default5s wait for real queued browser work; earlier mock spine passed. No terminal worker diagnostics were captured by that run.",
+    "repair": "Capture202 admission; wait at most210s for the same owner-scoped durable request; fail immediately on terminal failure or identity change. Then require UI CONFIRMED, receipt count1 and immutable replay. No submission retries.",
+    "validation": [
+      {
+        "command": "python -m pytest -q tests/unit/test_ui_e2e_mock_completion.py tests/unit/test_ui_e2e_onboarding.py",
+        "result": "PASS",
+        "passed": 9,
+        "subtests_passed": 15
+      },
+      {
+        "command": "python -m pytest -q tests/browser/test_mock_run_controls.py",
+        "result": "PASS",
+        "passed": 5,
+        "seconds": 39.57,
+        "includes": "Real Chromium worker delayed6seconds; one receipt and one POST."
+      }
+    ],
+    "artifacts": [
+      {
+        "path": "outputs/mjobs-priority-20261013/ai-compose-mock.json",
+        "sha256": "cdc87046b71f8a85f2118754d2974768784002a5d99cbba0310e2017d54c00e7",
+        "result": "PASS"
+      },
+      {
+        "path": "outputs/mjobs-priority-20261013/ai-compose-ui.json",
+        "sha256": "34a64aeb2899db9b2c08045b66ad5ec74e94b60b685e626c483a5b8970ac4142",
+        "result": "PASS"
+      },
+      {
+        "path": "outputs/mjobs-priority-20261013/ai-compose-recovery.json",
+        "sha256": "215b4446fa01edbe58530b67d3a58434613ce07712363d9ae18012c9e776285a",
+        "result": "PASS"
+      },
+      {
+        "path": "outputs/mjobs-priority-20261013/ai-compose-backup.json",
+        "sha256": "9957e12c7cd7dc80aaeb0f389558efd42c3f889d51b8fa053572ffa11ea50684",
+        "result": "PASS"
+      },
+      {
+        "path": "outputs/mjobs-priority-20261013/ai-compose-backup-recovery.json",
+        "sha256": "552f635222e8734e09481199154ce001767a37fb974087a571f2f75b76df7956",
+        "result": "PASS"
+      }
+    ],
+    "source_blobs": {
+      "cli/ui_e2e.py": "f2661904331254f81a0e5d0d137d41e27296c458",
+      "tests/unit/test_ui_e2e_mock_completion.py": "23d56198cb124a82e20a487991825577b5094a0a",
+      "tests/browser/test_mock_run_controls.py": "42be0cbd2877fb6701108399a3782d2143d308f9"
+    },
+    "compose": "PASS: mock spine, connected built UI, Redis outage/restart and fresh-target backup/restore with independent receipt replay. Current product source equals57798a83; repaired CLI source265e82d4. Synthetic volumes retained; owned stacks stopped; shared image tag restored."
   }
 }
