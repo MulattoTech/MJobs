@@ -70,13 +70,31 @@
       "subtests": 1078,
       "seconds": 275.63,
       "source_commit": "04757a4c1e05710feccd17023e16c9d2302cbd87"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_ai_header_deadline.py",
+      "result": "PASS",
+      "tests": 5,
+      "subtests": 26,
+      "seconds": 8.11,
+      "source_commit": "b62650e9e15c7350b7f2c45b03cc750efd5be501",
+      "scope": "Affected test fixture after explicit TLS1.2 minimum; earlier full-suite evidence applies to otherwise unchanged source."
+    },
+    {
+      "command": "docker run --rm --network none (read-only source) python -m unittest tests.unit.test_ai_header_deadline -q",
+      "result": "PASS",
+      "tests": 5,
+      "seconds": 3.317,
+      "source_commit": "b62650e9e15c7350b7f2c45b03cc750efd5be501",
+      "source_hashes": "unchanged before/after"
     }
   ],
   "diagnostic_history": [
     "Initial revised cleanup tests exposed deadline checks raising before explicit shutdown; guard now interrupts before raising and closes streams independently of pool ownership.",
     "Tiny body-read tests could expire during HTTPX client/SSL-context construction without opening a socket. Read-boundary oracles now precreate clients and assert response headers were reached; a separate test proves expired client initialization sends no request.",
     "Windows peer disconnect can be ConnectionAbortedError as well as EOF/reset. Tests now recognize that specific terminal socket outcome.",
-    "TLS cases initially included HTTP-only Ollama/Local Endpoint and were rejected by configuration policy; TLS proof is correctly limited to the three HTTPS-capable providers. No production TLS policy was weakened."
+    "TLS cases initially included HTTP-only Ollama/Local Endpoint and were rejected by configuration policy; TLS proof is correctly limited to the three HTTPS-capable providers. No production TLS policy was weakened.",
+    "Initial PR CodeQL flagged implicit TLS protocol defaults in the synthetic TLS server. The fixture now explicitly requires TLS1.2 minimum; production code is unchanged. Windows header suite passed again (5 tests,26 subtests)."
   ],
   "reviews": {
     "kind": "local Luna read-only review, not human approval",
@@ -101,5 +119,6 @@
       "NOT_RUN": 54
     },
     "promoted_original_requirements": 0
-  }
+  },
+  "final_source_commit": "b62650e9e15c7350b7f2c45b03cc750efd5be501"
 }
