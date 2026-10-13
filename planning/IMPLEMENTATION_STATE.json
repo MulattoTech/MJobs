@@ -2637,26 +2637,42 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 111,
-    "requirement": "MJ-REQ-110",
+    "issue": 222,
+    "requirement": "MJ-REQ-221",
     "related_requirements": [
-      "MJ-REQ-108",
-      "MJ-REQ-112",
-      "MJ-REQ-114",
-      "MJ-REQ-156",
-      "MJ-REQ-271"
+      "MJ-REQ-121",
+      "MJ-REQ-156"
     ],
     "status": "LOCAL_ACCEPTANCE_PASS_HOSTED_PENDING",
-    "base": "fa6706d20281b01728d38efd0d9b654f772ec7b1",
-    "behavior": "Saved-search-scoped preview, durable AI admission and immutable score provenance through history reload",
-    "evidence": "docs/evidence/2026-10-12-search-scoped-ai-evaluation.json",
+    "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
+    "branch": "fix/route-attempt-concurrency-222",
+    "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
+    "owned_paths": [
+      "services/applications/attempt_history.py",
+      "apps/web/src/mock-run-controls.tsx",
+      "apps/web/src/mock-run-controls.test.tsx",
+      "tests/integration/test_route_attempt_concurrency.py",
+      "tests/integration/test_route_attempt_concurrency_postgres.py",
+      "tests/browser/test_route_attempt_ownership.py"
+    ],
     "previous_integrated_slice": {
-      "pr": 612,
-      "source": "086ab835ac1204f3aa15cfc0781471adea63023b",
-      "merge": "fa6706d20281b01728d38efd0d9b654f772ec7b1",
+      "pr": 614,
+      "source": "fe83f9b289de5293328b081543ac1eec23cdc701",
+      "merge": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
       "required_hosted_gates": "PASS",
       "parent_acceptance": "PARTIAL"
     },
-    "remaining": "Synthetic providers only. Exact candidate PostgreSQL, browser and required CI pending. Matching umbrella acceptance remains PARTIAL."
+    "acceptance": "NOT_RUN until PostgreSQL two-worker and connected browser evidence passes on exact published head; no real submission",
+    "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
+    "local_validation": {
+      "unit_pass": 1560,
+      "unit_subtests_pass": 1018,
+      "frontend_pass": 784,
+      "integration_browser_pass": 42,
+      "integration_subtests_pass": 6,
+      "postgres_skipped": 5,
+      "build": "PASS",
+      "policy": "PASS"
+    }
   }
 }

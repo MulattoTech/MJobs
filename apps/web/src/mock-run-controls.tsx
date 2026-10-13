@@ -20,6 +20,8 @@ export function MockRunControlsView(props:ViewProps) {
     {props.intent&&<><p>Saved request: <code>{props.intent.requestId}</code> · {props.intent.submit?'One fictional submission':'Dry-run only'}</p>
       <p role="status">{props.receipt?<>Operation <code>{props.receipt.operation_id}</code>: <strong>{props.receipt.state}</strong></>:'No acknowledgement yet. Request identity is saved.'}</p>
       {props.receipt?.error_code&&<p className="safety">{props.receipt.error_code}</p>}
+      {props.receipt?.error_code==='APPLICATION_ROUTE_IN_PROGRESS'&&<p role="alert">Another application run owns this route. This request did not start a browser. Wait for that run to finish, then start a new reviewed run. Restarting does not clear unfinished ownership.</p>}
+      {props.receipt?.error_code==='APPLICATION_ROUTE_REVIEW_REQUIRED'&&<p role="alert">An unfinished application attempt has unknown route ownership and needs review. This request did not start a browser. Do not retry until the unfinished attempt is reconciled.</p>}
       <p>Reloading only checks this request. It does not start another browser or submit another application.</p>
       <button disabled={locked} onClick={props.onLookup}>Refresh run status</button>
       {!props.receipt&&<button disabled={locked||!props.canStart||(props.intent.submit&&!props.consent)} onClick={props.onResend}>Resend same request</button>}

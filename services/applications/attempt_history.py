@@ -1,6 +1,6 @@
 """Immutable, privacy-bounded execution receipts over the existing attempt schema.
 
-The application row serializes admission. A running attempt is never stolen, even
+Application and route rows serialize admission. A running attempt is never stolen, even
 when its worker disappears. Legacy attempts remain explicitly incomplete; history
 is not backfilled from today's route, profile, or application state.
 """
@@ -86,6 +86,56 @@ def attempt_id_for_request(application_id, request_id):
         "application-attempt-v1", application_id, request_id)).hex
 
 
+def _assert_route_available(connection, route_id):
+    # Route ownership belongs to the immutable start receipt, not today's mutable
+    # application pointer. Unknown legacy ownership must fail closed, not be guessed.
+    active = list(connection.execute(select(m.attempts.c.id, m.attempts.c.application_id).where(
+        m.attempts.c.state == "RUNNING")).mappings())
+    if not active:
+        return
+    events = {row["id"]: row for row in connection.execute(select(m.audit).where(
+        m.audit.c.id.in_([_event_id(STARTED, row["id"]) for row in active]))).mappings()}
+    for attempt in active:
+        event = events.get(_event_id(STARTED, attempt["id"]))
+        payload = event["payload"] if event else None
+        snapshot = payload.get("snapshot") if isinstance(payload, dict) else None
+        if (not event or event["entity_id"] != attempt["application_id"]
+                or event["action"] != STARTED or not isinstance(snapshot, dict)
+                or payload.get("schema_version") != 1
+                or payload.get("attempt_id") != attempt["id"]
+                or not isinstance(snapshot.get("route_id"), str) or not snapshot["route_id"]
+                or payload.get("input_fingerprint") != input_fingerprint(snapshot)):
+            raise AttemptConflict("APPLICATION_ROUTE_REVIEW_REQUIRED")
+        if snapshot["route_id"] == route_id:
+            if _confirmed_recovery_released(connection, attempt, snapshot):
+                continue
+            raise AttemptConflict("APPLICATION_ROUTE_IN_PROGRESS")
+
+
+def _confirmed_recovery_released(connection, attempt, snapshot):
+    # Receipt-only recovery preserves immutable RUNNING history. Reuse the same
+    # proof of a terminal, fenced worker that permits explicit reconciliation;
+    # a CONFIRMED label alone must never release a potentially live browser.
+    from services.applications.confirmation_recovery import _guard, ConfirmationConflict
+    application = connection.execute(select(m.applications).where(
+        m.applications.c.id == attempt["application_id"])).mappings().one()
+    receipt = application.get("confirmation")
+    if (application["state"] != "CONFIRMED" or application["route_id"] != snapshot["route_id"]
+            or not isinstance(receipt, dict) or receipt.get("application_id") != application["id"]
+            or receipt.get("requisition") != snapshot.get("requisition")
+            or not isinstance(receipt.get("reference_number"), str)
+            or not receipt["reference_number"].startswith("MOCK-")
+            or receipt.get("receipt") != receipt["reference_number"]):
+        return False
+    route = connection.execute(select(m.routes).where(
+        m.routes.c.id == snapshot["route_id"])).mappings().one()
+    try:
+        _guard(connection, application, route)
+    except ConfirmationConflict:
+        return False
+    return True
+
+
 def start_attempt(store, application, route, documents, *, submit=False, request_id=None,
                   supporting_documents=(), expected_fingerprint=None):
     """Atomically reserve one physical browser execution; replay never opens it.
@@ -118,7 +168,7 @@ def start_attempt(store, application, route, documents, *, submit=False, request
             if current[key] != application[key]:
                 raise AttemptConflict("APPLICATION_ATTEMPT_INPUT_CHANGED")
         live_route = connection.execute(select(m.routes).where(
-            m.routes.c.id == current["route_id"])).mappings().one()
+            m.routes.c.id == current["route_id"]).with_for_update()).mappings().one()
         if any(live_route.get(key) != route.get(key)
                for key in ("provider", "tenant", "requisition", "url")):
             raise AttemptConflict("APPLICATION_ATTEMPT_INPUT_CHANGED")
@@ -155,6 +205,9 @@ def start_attempt(store, application, route, documents, *, submit=False, request
             m.attempts.c.state == "RUNNING").limit(1)).first()
         if active is not None:
             raise AttemptConflict("APPLICATION_ATTEMPT_IN_PROGRESS")
+        # Commit the durable owner before opening Chromium; do not hold a database
+        # transaction during browser work. Expired worker leases never steal it.
+        _assert_route_available(connection, current["route_id"])
         timestamp = now()
         connection.execute(m.attempts.insert().values(
             id=attempt_id, application_id=application["id"], state="RUNNING",

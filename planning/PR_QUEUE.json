@@ -2695,7 +2695,14 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-060-test-harness",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "active_slice": {
+        "requirement": "MJ-REQ-221",
+        "issue": 222,
+        "branch": "fix/route-attempt-concurrency-222",
+        "status": "LOCAL_ACCEPTANCE_PASS_HOSTED_PENDING",
+        "note": "Only route idempotency slice; remaining queue requirements retain their existing acceptance."
+      }
     },
     {
       "id": "MJ-PR-061",
