@@ -28,6 +28,12 @@ def main():
     timeout()
     for category in CATEGORIES:
         category_limit(category)
+    # RQ forks its work horse while the outbox thread can import scoring code.
+    # Load the task graph on this thread first: a forked child cannot release a
+    # module lock inherited from the now-absent dispatcher thread (for example
+    # httpx during a cold restart). Importing here performs no task/provider work.
+    from workers.tasks import execute_operation  # noqa: F401
+
     stopped = threading.Event()
 
     def dispatch():

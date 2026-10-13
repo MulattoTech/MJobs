@@ -279,6 +279,76 @@ class PostgreSQLPreparationPriorityTests(PreparationPriorityTests):
         return os.environ["MJOBS_PRIORITY_POSTGRES_URL"]
 
     @unittest.skipUnless(os.environ.get("MJOBS_PRIORITY_REDIS_URL"), "Requires isolated priority Redis")
+    @unittest.skipIf(os.name == "nt", "Production forking worker runs in Linux")
+    def test_cold_worker_start_does_not_inherit_dispatcher_import_lock(self):
+        import signal
+        import subprocess
+        import sys
+        import time
+        from redis import Redis
+        from workers.dispatch import dispatch_pending
+        from urllib.parse import urlsplit
+
+        redis_url = os.environ["MJOBS_PRIORITY_REDIS_URL"]
+        target = urlsplit(redis_url)
+        if target.hostname not in {"127.0.0.1", "localhost", "host.docker.internal"} or target.path != "/15":
+            raise ValueError("Requires disposable local Redis database 15")
+        operation = self.admit(self.job("cold-start"), "cold-start")
+        self.assertEqual(dispatch_pending(self.store, redis_url)["count"], 1)
+        # A slow first import on the dispatcher thread deterministically exposes
+        # the fork race seen after Redis/Compose restart. Use the production
+        # entry point, a fresh interpreter, and a real RQ work horse.
+        program = '''
+import importlib.machinery, sys, threading, time
+class SlowHTTPImport:
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname != "httpx":
+            return None
+        spec = importlib.machinery.PathFinder.find_spec(fullname, path)
+        original = spec.loader.exec_module
+        def execute(module):
+            if threading.current_thread() is not threading.main_thread():
+                time.sleep(3)
+            original(module)
+        spec.loader.exec_module = execute
+        return spec
+sys.meta_path.insert(0, SlowHTTPImport())
+from workers.main import main
+main()
+'''
+        environment = {**os.environ, "MJOBS_REDIS_URL": redis_url,
+                       "MJOBS_WORKER_QUEUE": "mjobs-document"}
+        with (self.root / "cold-worker.log").open("w") as log:
+            process = subprocess.Popen([sys.executable, "-c", program], env=environment,
+                                       stdout=log, stderr=log, start_new_session=True)
+            try:
+                deadline = time.monotonic() + 20
+                while time.monotonic() < deadline and self.row(operation)["state"] == "QUEUED":
+                    time.sleep(.1)
+                while time.monotonic() < deadline and self.row(operation)["state"] == "RUNNING":
+                    time.sleep(.1)
+                self.assertEqual(self.row(operation)["state"], "COMPLETED")
+                self.assertEqual(self.row(operation)["attempt_count"], 1)
+                self.assertEqual(self.store.count("documents"), 2)
+            finally:
+                # Reap only this test's process group, including its RQ child.
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    os.killpg(process.pid, signal.SIGKILL)
+                    process.wait(timeout=5)
+                redis = Redis.from_url(redis_url)
+                try:
+                    from rq.job import Job
+                    Job.fetch(operation, connection=redis).delete()
+                finally:
+                    redis.close()
+
+    @unittest.skipUnless(os.environ.get("MJOBS_PRIORITY_REDIS_URL"), "Requires isolated priority Redis")
     @unittest.skipIf(os.name == "nt", "Production RQ Worker acceptance runs in the isolated Linux runtime")
     def test_real_redis_fifo_worker_processes_choose_priority_and_rebuild_lost_queue(self):
         from redis import Redis
