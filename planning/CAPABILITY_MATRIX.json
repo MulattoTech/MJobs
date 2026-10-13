@@ -1363,9 +1363,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-disabled-ai-provider.json",
-        "docs/evidence/2026-10-06-ai-local-ollama-provider.json"
+        "docs/evidence/2026-10-06-ai-local-ollama-provider.json",
+        "docs/evidence/2026-10-13-profile-ai-credentials.json"
       ],
-      "note": "Loopback-only Ollama provider, schema forwarding, bounded/sanitized HTTP behavior and disabled defaults pass synthetic local tests; actual inference, remote providers and production consumer remain unverified.",
+      "note": "Loopback-only Ollama provider, schema forwarding, bounded/sanitized HTTP behavior and disabled defaults pass synthetic local tests; actual inference, remote providers and production consumer remain unverified. Profile-bound durable OpenAI scoring now connects saved encrypted credentials, fixed destination, credential-rotation fences and truthful UI history; synthetic SQLite/PostgreSQL/process/browser and restored Compose evidence PASS. Live inference and complete umbrella acceptance remain PARTIAL.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"
@@ -1375,9 +1376,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-06-ai-task-configuration.json",
-        "docs/evidence/2026-10-06-ai-task-settings-persistence.json"
+        "docs/evidence/2026-10-06-ai-task-settings-persistence.json",
+        "docs/evidence/2026-10-13-profile-ai-credentials.json"
       ],
-      "note": "All seven per-profile provider/model choices now have a durable API and browser UI with disabled defaults; consumer wiring and model inference remain unverified.",
+      "note": "All seven per-profile provider/model choices now have a durable API and browser UI with disabled defaults; consumer wiring and model inference remain unverified. Profile-bound durable OpenAI scoring now connects saved encrypted credentials, fixed destination, credential-rotation fences and truthful UI history; synthetic SQLite/PostgreSQL/process/browser and restored Compose evidence PASS. Live inference and complete umbrella acceptance remain PARTIAL.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"
@@ -1390,9 +1392,10 @@
         "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
         "docs/evidence/2026-10-07-ai-cost-consumer-resume.json",
         "docs/evidence/2026-10-13-ai-job-input-freshness.json",
-        "docs/evidence/2026-10-13-grounded-ai-candidates.json"
+        "docs/evidence/2026-10-13-grounded-ai-candidates.json",
+        "docs/evidence/2026-10-13-profile-ai-credentials.json"
       ],
-      "note": "Deterministic bounded funnel, persisted profile-scoped cost controls, structured production consumer, durable evaluation history, and explicit review-gated factual preparation are locally verified. Live configured-provider inference and complete acceptance remain NOT_RUN; MJ-REQ-110 remains PARTIAL. Job-input freshness now fences durable evaluation, publication, review and actual document generation at 57798a83650d35d98bfa8f4f360d3c46f30b57fd; legacy provenance stays UNKNOWN. Local SQLite/PostgreSQL, migration/recovery and connected browser proof passes. Hosted checks pending; parent remains PARTIAL. Current grounded profile-wide AI candidate selection and frozen per-skill explanations verified at 3fc521236daf622f3c6b776f4abc8e5de513633f; unknown coverage excluded even at zero threshold, no private evidence added to provider prompts. SQLite/PostgreSQL/Redis/browser and full units/frontend/build pass. Whole requirement remains PARTIAL; new hosted gates pending.",
+      "note": "Deterministic bounded funnel, persisted profile-scoped cost controls, structured production consumer, durable evaluation history, and explicit review-gated factual preparation are locally verified. Live configured-provider inference and complete acceptance remain NOT_RUN; MJ-REQ-110 remains PARTIAL. Job-input freshness now fences durable evaluation, publication, review and actual document generation at 57798a83650d35d98bfa8f4f360d3c46f30b57fd; legacy provenance stays UNKNOWN. Local SQLite/PostgreSQL, migration/recovery and connected browser proof passes. Hosted checks pending; parent remains PARTIAL. Current grounded profile-wide AI candidate selection and frozen per-skill explanations verified at 3fc521236daf622f3c6b776f4abc8e5de513633f; unknown coverage excluded even at zero threshold, no private evidence added to provider prompts. SQLite/PostgreSQL/Redis/browser and full units/frontend/build pass. Whole requirement remains PARTIAL; new hosted gates pending. Profile-bound durable OpenAI scoring now connects saved encrypted credentials, fixed destination, credential-rotation fences and truthful UI history; synthetic SQLite/PostgreSQL/process/browser and restored Compose evidence PASS. Live inference and complete umbrella acceptance remain PARTIAL.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"
