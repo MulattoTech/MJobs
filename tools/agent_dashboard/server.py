@@ -16,6 +16,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .supervisor import AgentSupervisor, LANES
 from .mission_control import MissionControl, LaunchRequest
 from .work_history import WorkHistory
+from .acceptance_history import AcceptanceHistory, comparison
 from tools.feature_studio.control import StudioStore, inventory as studio_inventory, probe as studio_probe, probe_remote as studio_probe_remote, plan as studio_plan
 from tools.feature_studio.validate import validate_spec
 
@@ -59,6 +60,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     app.state.mission_control = mission
     history = WorkHistory(repo)
     app.state.work_history = history
+    acceptance_history = AcceptanceHistory(repo)
+    app.state.acceptance_history = acceptance_history
 
     studio = StudioStore()
     app.state.feature_studio = studio
@@ -143,7 +146,75 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.get("/api/progress")
     def release_progress():
-        return mission.progress()
+        progress = mission.progress()
+        if progress.get("available"):
+            try:
+                capture_id = acceptance_history.observe(progress)
+                progress["acceptance_capture_id"] = capture_id
+                saved = acceptance_history.get(capture_id)
+                if saved:
+                    progress["reference_statuses"] = saved.get("reference_statuses", {})
+                    progress["reference_titles"] = saved.get("reference_titles", {})
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                progress["acceptance_history_warning"] = "History capture temporarily unavailable"
+            except Exception:
+                # The live canonical view must remain available if local SQLite is busy.
+                progress["acceptance_history_warning"] = "History database temporarily unavailable"
+        return progress
+
+    @app.post("/api/progress/checkpoint")
+    def release_progress_manual_checkpoint(request: Request):
+        """Explicit local snapshot of canonical acceptance, even when unchanged."""
+        mission.require_token(request, mission.token)
+        live = mission.progress()
+        if not live.get("available"):
+            raise HTTPException(503, "Current canonical acceptance unavailable")
+        try:
+            capture_id = acceptance_history.observe(live, force=True)
+            captured = acceptance_history.get(capture_id)
+            return {"id": capture_id, "capture_kind": "manual", "provenance": "canonical_local",
+                    "observed_at": captured["observed_at"] if captured else None,
+                    "recorded": True}
+        except (OSError, ValueError, RuntimeError):
+            raise HTTPException(503, "Manual acceptance checkpoint unavailable") from None
+
+    @app.get("/api/progress/timeline")
+    def release_progress_timeline(limit: int = Query(default=200, ge=1, le=500)):
+        try:
+            return acceptance_history.list(limit=limit)
+        except (OSError, ValueError, RuntimeError):
+            raise HTTPException(503, "Acceptance history temporarily unavailable") from None
+
+    @app.get("/api/progress/timeline/{capture_id}")
+    def release_progress_capture(capture_id: int):
+        if capture_id < 1:
+            raise HTTPException(422, "Invalid capture ID")
+        try:
+            value = acceptance_history.get(capture_id)
+        except (OSError, ValueError, RuntimeError):
+            raise HTTPException(503, "Acceptance history temporarily unavailable") from None
+        if not value:
+            raise HTTPException(404, "Historical checkpoint not found")
+        return value
+
+    @app.get("/api/progress/compare")
+    def release_progress_compare(baseline_id: int = Query(ge=1)):
+        try:
+            previous = acceptance_history.get(baseline_id)
+            if not previous:
+                raise HTTPException(404, "Baseline not found")
+            current_state = mission.progress()
+            if not current_state.get("available"):
+                raise HTTPException(503, "Live canonical acceptance unavailable")
+            current_id = acceptance_history.observe(current_state)
+            current = acceptance_history.get(current_id)
+            if not current:
+                raise HTTPException(503, "Current acceptance checkpoint missing")
+            return comparison(previous, current)
+        except HTTPException:
+            raise
+        except (OSError, ValueError, RuntimeError):
+            raise HTTPException(503, "Acceptance comparison temporarily unavailable") from None
 
     @app.get("/api/history")
     def recent_work_history(limit: int = Query(default=50, ge=1, le=100),

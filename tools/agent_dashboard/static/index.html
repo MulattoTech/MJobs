@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>MJobs Mission Control — Launch & Release Tracker</title>
-  <link rel="stylesheet" href="/static/mission.css?v=6">
+  <link rel="stylesheet" href="/static/mission.css?v=7">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -32,6 +32,15 @@
       <span id="releaseRefreshTime" class="sync-pill">Loading…</span>
     </div>
     <div id="releaseContent" aria-live="polite">Reading canonical matrices…</div>
+    <section id="acceptanceTimeline" class="acceptance-timeline" aria-label="Historical acceptance comparison">
+      <div class="acceptance-timeline-header"><div><h3>Acceptance over time</h3><p>Compare any saved capture against today. Red means a decline; green means more verified PASS.</p></div><div class="acceptance-timeline-actions"><button type="button" id="acceptanceCaptureNow" title="Save a real canonical checkpoint, even if accepted totals have not changed">Save checkpoint now</button><button type="button" id="acceptanceExpandAll">Expand all</button><button type="button" id="acceptanceCollapseAll">Collapse all</button></div></div>
+      <div class="acceptance-timeline-controls"><label for="acceptanceMetric">Trend <select id="acceptanceMetric"><option value="original">Original requirements</option></select></label><label for="acceptanceBaseline">Compare today against <select id="acceptanceBaseline"><option value="">Loading snapshots…</option></select></label></div>
+      <div class="acceptance-trend"><svg id="acceptanceSparkline" viewBox="0 0 880 150" role="img" aria-label="Interactive acceptance history. Hover a point for a capture; click to select it."></svg><input type="range" id="acceptanceRange" min="0" max="0" step="1" value="0" aria-label="Historical capture selection"><div id="acceptanceTimelineLabel" class="acceptance-timeline-label">Collecting the first checkpoint…</div></div>
+      <div id="acceptanceComparison" class="acceptance-comparison" aria-live="polite">Waiting for historical checkpoints.</div>
+      <details id="acceptanceTransitions" class="acceptance-transitions" data-disclosure-key="history:transitions"><summary>Requirement-level changes between captures <span id="acceptanceTransitionsCount"></span></summary><div id="acceptanceTransitionsList">Select two canonical captures to inspect exact status transitions.</div></details>
+      <div id="acceptanceHoverTooltip" class="acceptance-hover-tooltip" role="tooltip" hidden></div>
+      <p class="progress-history-caveat">Snapshots come from canonical acceptance files. Screenshot imports are clearly labeled; they contain aggregate counts, not requirement-level proof. Commits alone do not increase acceptance.</p>
+    </section>
   </section>
 
   <section class="panel history-panel" id="historyTracker" aria-label="MJobs development history">
@@ -290,7 +299,8 @@
 </dialog>
 
 <script src="/static/app.js"></script>
-<script src="/static/mission.js?v=6"></script>
+<script src="/static/mission.js?v=7"></script>
+<script src="/static/acceptance_timeline.js?v=1"></script>
 <script src="/static/history.js?v=1"></script>
 </body>
 </html>

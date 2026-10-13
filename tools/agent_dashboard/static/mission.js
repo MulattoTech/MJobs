@@ -581,13 +581,21 @@
   function meter(item) {
     return `<div class="release-meter"><span style="width:${Number(item.accepted_percent)||0}%"></span></div>`;
   }
-  function areaRow(row) {
+  function areaRow(row, kind) {
     const label = row.name.replaceAll("_", " ");
-    return `<div class="area-progress">
-      <span class="name" title="${safe(label)}">${safe(label)}</span>
-      <span class="bar"><span class="fill" style="width:${Number(row.accepted_percent)||0}%"></span></span>
-      <span class="count">${row.pass}/${row.total} · ${row.accepted_percent}%</span>
-    </div>`;
+    return `<details class="area-progress acceptance-row" data-disclosure-key="${kind}:${safe(row.name)}" data-history-kind="${kind}" data-history-name="${safe(row.name)}">
+      <summary>
+        <span class="name" title="${safe(label)}">${safe(label)}</span>
+        <span class="bar" tabindex="0" role="img" aria-label="${safe(label)}: ${row.pass} of ${row.total} accepted"><span class="fill" style="width:${Number(row.accepted_percent)||0}%"></span></span>
+        <span class="count">${row.pass}/${row.total} · ${row.accepted_percent}%</span>
+      </summary>
+      <div class="acceptance-row-detail">
+        <span>PASS <strong>${row.pass}</strong></span>
+        <span>PARTIAL <strong>${row.partial}</strong></span>
+        <span>NOT RUN <strong>${row.not_run}</strong></span>
+        <span class="acceptance-row-delta">Select a historical capture to compare.</span>
+      </div>
+    </details>`;
   }
   function renderProgress(data) {
     const parent = $("#releaseContent");
@@ -603,27 +611,31 @@
     const synced = data.git?.published_matches_local_main;
     const syncText = synced === true ? "GitHub main synced" : synced === false
       ? "GitHub differs from local main" : "GitHub verification unavailable";
-    const priorityHtml = (data.priorities||[]).map(areaRow).join("");
-    const areaHtml = (data.areas||[]).map(areaRow).join("");
+    const priorityHtml = (data.priorities||[]).map(row=>areaRow(row,"priority")).join("");
+    const areaHtml = (data.areas||[]).map(row=>areaRow(row,"area")).join("");
+    const priorDisclosures = new Map([...parent.querySelectorAll("details[data-disclosure-key]")].map(node=>[node.dataset.disclosureKey,node.open]));
     parent.innerHTML = `
       <div class="release-summary">
-        <div class="release-main-metric">
+        <details class="release-main-metric acceptance-disclosure" data-disclosure-key="summary:original" data-history-kind="original" open><summary>
           <div class="kicker">Original requirements accepted</div>
           <div class="release-big">${a.pass} / ${a.total} <strong>${a.accepted_percent}% accepted</strong></div>
           ${meter(a)}
           <div class="release-explain">${a.partial} partial · ${a.not_run} not yet validated</div>
-        </div>
-        <div class="release-side-metric">
+          </summary><div class="acceptance-expanded">PASS <strong>${a.pass}</strong> · PARTIAL <strong>${a.partial}</strong> · NOT RUN <strong>${a.not_run}</strong><p class="history-insight" data-history-summary="original">Choose a historical capture to compare.</p></div>
+        </details>
+        <details class="release-side-metric acceptance-disclosure" data-disclosure-key="summary:reference" data-history-kind="reference" open><summary>
           <div class="kicker">Additional reference gaps</div>
           <div class="release-big">${b.pass} / ${b.total}</div>
           ${meter(b)}
           <div class="release-explain">${b.accepted_percent}% accepted · ${b.partial} partial · ${b.not_run} not run</div>
-        </div>
-        <div class="release-side-metric">
+          </summary><div class="acceptance-expanded"><p class="history-insight" data-history-summary="reference">Expand reference IDs to inspect current statuses and history.</p><div id="acceptanceReferenceList" class="acceptance-reference-list">Reading reference statuses…</div></div>
+        </details>
+        <details class="release-side-metric acceptance-disclosure" data-disclosure-key="summary:readiness" open><summary>
           <div class="kicker">Release readiness</div>
           <div class="release-big">${safe(data.release_readiness)}</div>
           <div class="release-explain">Latest milestone: ${safe(data.milestone)}</div>
-        </div>
+          </summary><div class="acceptance-expanded">Release readiness is a separate gate, not the acceptance percentage.<p>Original evidence: ${safe(fmtTime(data.original_as_of))}</p><p>Reference evidence: ${safe(fmtTime(data.reference_as_of))}</p><p>Checkpoint: ${data.checkpoint_current ? "Current" : "Stale / integrator refresh required"}</p></div>
+        </details>
       </div>
       <div class="release-meta">Original evidence as of ${safe(fmtTime(data.original_as_of))};
          supplemental evidence as of ${safe(fmtTime(data.reference_as_of))}.
@@ -637,11 +649,15 @@
         ${safe(data.git?.note || "")}
       </div>
       <div class="release-details">
-        <div><h3>Feature areas · lowest acceptance first</h3>${areaHtml}</div>
-        <div><h3>Acceptance by priority</h3>${priorityHtml}</div>
+        <details class="release-group acceptance-disclosure" data-disclosure-key="group:areas" open><summary>Feature areas · lowest acceptance first <span>Expand/collapse</span></summary><div>${areaHtml}</div></details>
+        <details class="release-group acceptance-disclosure" data-disclosure-key="group:priorities" open><summary>Acceptance by priority <span>Expand/collapse</span></summary><div>${priorityHtml}</div></details>
       </div>
       <div class="progress-disclaimer">${safe(data.caveat)} The page reads original canonical requirements and
       reference gaps on every refresh. It never marks an unfinished requirement PASS or overwrites acceptance records.</div>`;
+    for (const details of parent.querySelectorAll("details[data-disclosure-key]")) {
+      if (priorDisclosures.has(details.dataset.disclosureKey)) details.open = priorDisclosures.get(details.dataset.disclosureKey);
+    }
+    window.MJobsAcceptanceTimeline?.onProgress(data,priorDisclosures);
     $("#releaseRefreshTime").textContent = "Verified " + new Date(data.observed_at).toLocaleTimeString();
   }
 

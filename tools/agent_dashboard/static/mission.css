@@ -207,3 +207,71 @@
 @media(max-width:630px) {
   .launch-codex-capacity .launch-split{grid-template-columns:1fr;}
 }
+
+/* Mission Control acceptance timeline: evidence-scoped history, independent disclosures. */
+#releaseTracker details > summary { cursor:pointer; list-style:none; }
+#releaseTracker details > summary::-webkit-details-marker { display:none; }
+#releaseTracker details > summary:focus-visible { outline:2px solid #80d6ff;outline-offset:4px;border-radius:7px; }
+#releaseTracker details > summary:hover .name { color:#b0ecf1; }
+#releaseTracker .acceptance-disclosure summary { position:relative; }
+#releaseTracker .acceptance-disclosure summary::after { content:"▸";position:absolute;right:0;top:0;color:#8ab7c4;font-weight:700; }
+#releaseTracker .acceptance-disclosure[open] > summary::after { content:"▾"; }
+.release-main-metric.acceptance-disclosure > summary,.release-side-metric.acceptance-disclosure > summary { padding-right:12px; }
+.release-main-metric.acceptance-disclosure > summary::after,.release-side-metric.acceptance-disclosure > summary::after { top:-3px;right:-4px; }
+.release-meter[tabindex],.area-progress .bar[tabindex] { cursor:help; }
+.release-meter[tabindex]:focus-visible,.area-progress .bar[tabindex]:focus-visible { outline:2px solid #81d8ef;outline-offset:3px; }
+.acceptance-expanded { color:#a5bbcf;font-size:.73rem;line-height:1.65;margin-top:.85rem;padding-top:.75rem;border-top:1px solid #34475a; }
+.acceptance-expanded strong { color:#d7f0fe; }
+.acceptance-expanded p { margin:.35rem 0; }
+.acceptance-expanded .history-insight { color:#addfc9;font-size:.74rem; }
+.release-details>.release-group { min-width:0;position:relative;background:#0f1b2b;border:1px solid #304356;border-radius:12px;padding:.8rem .95rem; }
+.release-group>summary { font-size:.84rem;font-weight:740;color:#d4e2f1;margin:0 0 .65rem;padding:0 1rem 0 0;display:flex;justify-content:space-between;gap:10px; }
+.release-group>summary span { color:#91adbc;font-size:.65rem;font-weight:400;margin-right:1.1rem; }
+.area-progress.acceptance-row { display:block;min-width:0; }
+.area-progress.acceptance-row > summary { display:grid;grid-template-columns:minmax(105px,1.45fr) 1.4fr auto;gap:.6rem;align-items:center;padding:.31rem 0;list-style:none; }
+.area-progress.acceptance-row > summary:after { display:none; }
+.area-progress.acceptance-row .bar { display:block;min-width:30px;height:7px;border-radius:10px;background:#344151;overflow:hidden; }
+.area-progress.acceptance-row .bar:focus-visible { overflow:visible; }
+.area-progress.acceptance-row .fill { display:block;height:100%;background:#42bf8a;border-radius:10px; }
+.acceptance-row-detail { display:flex;flex-wrap:wrap;gap:.4rem .85rem;background:#0a1824;border:1px solid #263b4c;border-radius:7px;padding:.55rem .65rem;margin:.3rem 0 .55rem;font-size:.72rem;color:#91a8bd; }
+.acceptance-row-detail strong { color:#d6eafa; }
+.acceptance-row-delta { flex-basis:100%;color:#bee8d5; }
+.acceptance-timeline { background:#0b1725;border:1px solid #355166;border-radius:14px;margin-top:1.25rem;padding:1rem;position:relative; }
+.acceptance-timeline-header { display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap; }
+.acceptance-timeline-header h3 { font-size:.94rem;color:#e4f1fb; }
+.acceptance-timeline-header p,.progress-history-caveat { font-size:.73rem;color:#97adc2;line-height:1.5;margin:.35rem 0; }
+.acceptance-timeline-actions { display:flex;flex-wrap:wrap;gap:.45rem; }
+.acceptance-timeline-actions button { background:#182a3b;border:1px solid #45637a;color:#d9eefa;border-radius:8px;padding:.4rem .65rem;font-size:.72rem; }
+.acceptance-timeline-actions button:hover { background:#234153; }
+.acceptance-timeline-controls { margin-top:1rem;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem; }
+.acceptance-timeline-controls label { color:#a5bed1;font-size:.71rem;min-width:0; }
+.acceptance-timeline-controls select { display:block;margin-top:.3rem;width:100%;min-width:0;max-width:100%;padding:.5rem;border:1px solid #42576b;border-radius:8px;background:#0e2032;color:#eef7ff; }
+.acceptance-trend { margin-top:.85rem;padding:.35rem .75rem .65rem;border:1px solid #2a4156;border-radius:10px;background:#0d1c2c; }
+#acceptanceSparkline { display:block;width:100%;height:auto;max-height:160px;overflow:visible; }
+#acceptanceSparkline circle { cursor:pointer;stroke:#e8f7ff;stroke-width:1.25;outline:none; }
+#acceptanceSparkline circle:focus-visible { stroke:#fff;stroke-width:3px; }
+#acceptanceRange { display:block;width:100%;accent-color:#5bc8c6;margin:0;cursor:pointer; }
+.acceptance-timeline-label { display:flex;justify-content:space-between;gap:10px;color:#b6cde0;font-size:.72rem;line-height:1.45;flex-wrap:wrap; }
+.acceptance-comparison { display:flex;flex-wrap:wrap;align-items:center;gap:.6rem;margin-top:.8rem;font-size:.78rem;color:#c2d6e7; }
+.acceptance-delta { color:#bec9d6;background:#233447;border-radius:20px;padding:.15rem .45rem;font-size:.72rem;white-space:nowrap; }
+.acceptance-delta.positive { color:#79f3b2;background:#15372b; }
+.acceptance-delta.negative { color:#ffafa7;background:#482c32; }
+.acceptance-comparison .acceptance-capture-badge { background:#284356;border:1px solid #3b667a;border-radius:20px;padding:.22rem .48rem;color:#c3ebf3;font-size:.7rem; }
+.acceptance-transitions { margin-top:.7rem;background:#0c1b2a;border:1px solid #2c4458;border-radius:9px;padding:.55rem .7rem; }
+.acceptance-transitions>summary { font-size:.74rem;color:#c9e4f2;padding-right:1rem; }
+.acceptance-transitions #acceptanceTransitionsList { max-height:260px;overflow:auto;margin-top:.6rem;color:#9dc4d4;font-size:.72rem; }
+.acceptance-transition-line { padding:.32rem 0;border-bottom:1px solid #253847; }
+.acceptance-reference-list {max-height:310px;overflow-y:auto;margin-top:.45rem;display:flex;flex-direction:column;gap:.27rem;}
+.acceptance-reference-list details {background:#091726;border:1px solid #294154;border-radius:7px;padding:.37rem .48rem;}
+.acceptance-reference-list summary {display:flex;gap:.4rem;justify-content:space-between;font-size:.72rem;color:#d1e7f6;}
+.acceptance-reference-list summary strong {font-size:.64rem;}
+.acceptance-reference-list .ref-status {border-radius:12px;background:#304153;padding:.1rem .4rem;}
+.acceptance-reference-list .ref-status.PASS {color:#91ffb8;}
+.acceptance-reference-list .ref-status.PARTIAL {color:#f5d28f;}
+.acceptance-reference-list .ref-status.NOT_RUN {color:#c5ccda;}
+.acceptance-hover-tooltip {position:fixed;z-index:1200;max-width:min(330px,85vw);background:#101f30;border:1px solid #6f9cac;box-shadow:0 7px 35px #000a;border-radius:10px;padding:.65rem .8rem;color:#e8f5fc;font-size:.74rem;line-height:1.5;pointer-events:none;white-space:normal;}
+.acceptance-hover-tooltip[hidden] {display:none!important;}
+.acceptance-hover-tooltip strong {color:#90eccf;}
+.progress-history-caveat {border-top:1px solid #294359;padding-top:.6rem;margin-top:.7rem;}
+@media(max-width:900px){.acceptance-timeline-controls{grid-template-columns:1fr}.release-details{gap:.7rem}}
+@media(max-width:710px){.area-progress.acceptance-row > summary{grid-template-columns:minmax(85px,1fr) minmax(60px,1fr) auto}.release-summary{gap:.6rem}.acceptance-timeline{padding:.75rem}.acceptance-hover-tooltip{font-size:.7rem}}
