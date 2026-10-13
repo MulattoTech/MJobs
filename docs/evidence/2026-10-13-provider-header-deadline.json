@@ -1,0 +1,124 @@
+{
+  "requirement": "MJ-REQ-004",
+  "issue": 5,
+  "slice_issue": 630,
+  "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkACo",
+  "source_commit": "04757a4c1e05710feccd17023e16c9d2302cbd87",
+  "recorded_at_utc": "2026-10-13T23:23:04.535480+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "behavior": [
+    "A shared request-owned guard captures connected TCP and completed TLS streams through the documented HTTPX trace extension before response headers exist.",
+    "Slow/incomplete headers cannot refresh the total request budget. Cancellation interrupts that connection; separate concurrent requests stay intact.",
+    "One guard covers headers and body; shutdown precedes close, including streams not yet owned by the connection pool. Cleanup ignores its own response-close trace and releases watchdogs.",
+    "Five HTTP providers preserve cancellation precedence, sanitized errors, no hidden retry and response-size limits. Three HTTPS-capable providers also pass real post-handshake TLS header interruption.",
+    "Durable evaluation saves CANCELLED or BLOCKED/AI_PROVIDER_TIMEOUT, makes one request, persists no partial evaluation, and reads the same state through fresh Store/API."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_ai_header_deadline.py (baseline)",
+      "result": "FAIL_EXPECTED",
+      "detail": "All five providers exceeded0.3s budget; elapsed about1.61-1.63s. Earlier loopback probe elapsed1.079s for0.15s budget."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_ai_header_deadline.py tests/unit/test_ai_response_deadline.py tests/unit/test_remote_provider_cancellation.py tests/unit/test_provider_socket_cancellation.py tests/unit/test_ai_provider_transport.py tests/unit/test_ai_providers.py tests/unit/test_azure_openai_provider.py tests/unit/test_ollama_provider.py",
+      "result": "PASS",
+      "tests": 44,
+      "subtests": 137,
+      "seconds": 17.18
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_evaluation.py",
+      "result": "PASS",
+      "tests": 34,
+      "subtests": 17,
+      "seconds": 42.38
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_ai_task_settings.py -k user_can_cancel_ai_evaluation_without_persisting_partial_batch",
+      "result": "PASS",
+      "tests": 1,
+      "deselected": 1,
+      "seconds": 6.54
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "note": "Existing bundle-size warning"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; tools.site.build; commit_provenance; git diff --check origin/main",
+      "result": "PASS"
+    },
+    {
+      "command": "docker run --rm --network none (read-only source mount) python -m unittest: eight focused provider unit modules plus tests.integration.test_durable_ai_evaluation",
+      "result": "PASS",
+      "tests": 78,
+      "skips": 0,
+      "seconds": 61.468,
+      "environment": "Linux Python 3.12; cached image sha256:af02cdeaa62f8fd3a8ba079ea4616a0e7912887d283ae58908cf69298157de98",
+      "source_commit": "04757a4c1e05710feccd17023e16c9d2302cbd87",
+      "source_hashes": "unchanged before/after"
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS",
+      "tests": 1581,
+      "subtests": 1078,
+      "seconds": 275.63,
+      "source_commit": "04757a4c1e05710feccd17023e16c9d2302cbd87"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_ai_header_deadline.py",
+      "result": "PASS",
+      "tests": 5,
+      "subtests": 26,
+      "seconds": 8.11,
+      "source_commit": "b62650e9e15c7350b7f2c45b03cc750efd5be501",
+      "scope": "Affected test fixture after explicit TLS1.2 minimum; earlier full-suite evidence applies to otherwise unchanged source."
+    },
+    {
+      "command": "docker run --rm --network none (read-only source) python -m unittest tests.unit.test_ai_header_deadline -q",
+      "result": "PASS",
+      "tests": 5,
+      "seconds": 3.317,
+      "source_commit": "b62650e9e15c7350b7f2c45b03cc750efd5be501",
+      "source_hashes": "unchanged before/after"
+    }
+  ],
+  "diagnostic_history": [
+    "Initial revised cleanup tests exposed deadline checks raising before explicit shutdown; guard now interrupts before raising and closes streams independently of pool ownership.",
+    "Tiny body-read tests could expire during HTTPX client/SSL-context construction without opening a socket. Read-boundary oracles now precreate clients and assert response headers were reached; a separate test proves expired client initialization sends no request.",
+    "Windows peer disconnect can be ConnectionAbortedError as well as EOF/reset. Tests now recognize that specific terminal socket outcome.",
+    "TLS cases initially included HTTP-only Ollama/Local Endpoint and were rejected by configuration policy; TLS proof is correctly limited to the three HTTPS-capable providers. No production TLS policy was weakened.",
+    "Initial PR CodeQL flagged implicit TLS protocol defaults in the synthetic TLS server. The fixture now explicitly requires TLS1.2 minimum; production code is unchanged. Windows header suite passed again (5 tests,26 subtests)."
+  ],
+  "reviews": {
+    "kind": "local Luna read-only review, not human approval",
+    "findings": "No blocking issue after cleanup fixes; TLS establishment limitation retained."
+  },
+  "references": [
+    {
+      "url": "https://www.python-httpx.org/advanced/extensions/",
+      "use": "Documented trace and network_stream contracts; httpx0.28.1/httpcore1.0.9 pinned in requirements.txt."
+    }
+  ],
+  "limitations": [
+    "DNS/TCP connection and stalled TLS establishment before stream exposure retain HTTPX phase timeouts; prompt cancellation and a combined total establishment deadline are NOT_VERIFIED.",
+    "Custom transports can omit trace/socket metadata; arbitrary custom I/O interruption is not certified.",
+    "Synthetic loopback fixtures only; no paid inference or external job submission.",
+    "Parent spans many other external operation classes and remains PARTIAL."
+  ],
+  "acceptance_before_after": {
+    "original_P0_P1": {
+      "PASS": 47,
+      "PARTIAL": 41,
+      "NOT_RUN": 54
+    },
+    "promoted_original_requirements": 0
+  },
+  "final_source_commit": "b62650e9e15c7350b7f2c45b03cc750efd5be501"
+}
