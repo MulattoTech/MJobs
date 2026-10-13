@@ -1,6 +1,7 @@
 """A provider's request budget must also bound a continuously arriving body."""
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import select
 import threading
 import time
 import unittest
@@ -29,6 +30,12 @@ class AIResponseDeadlineTests(unittest.TestCase):
                 self.end_headers()
                 try:
                     for value in body:
+                        # Observe the peer's FIN directly. A successful write
+                        # after FIN is permitted and is not proof of a live peer.
+                        if select.select([self.connection], [], [], 0)[0]:
+                            if self.connection.recv(1) == b'':
+                                closed.set()
+                                return
                         self.wfile.write(bytes([value]))
                         self.wfile.flush()
                         if finish.wait(delay):
