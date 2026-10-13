@@ -12,6 +12,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.public_client import PublicCompanyClient
 from services.company_discovery.requests import approve_discovery_request, list_discovery_requests
+from services.company_discovery.flywheel import directly_monitored
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.search_profiles import save_search_profile
 from services.discovery.sources.greenhouse import Greenhouse
@@ -112,6 +113,14 @@ class ReviewedGreenhouseEnrollmentTests(unittest.TestCase):
             self.assertEqual(reopened.count('company_domains'), 0)
         finally:
             reopened.engine.dispose()
+
+    def test_paused_saved_search_is_not_claimed_as_recurring_company_monitoring(self):
+        self.enroll()
+        self.assertTrue(directly_monitored(self.store, self.company_id, public=True))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.search_profiles).values(criteria={
+                'scheduler': {'enabled': False, 'interval_seconds': 300}}))
+        self.assertFalse(directly_monitored(self.store, self.company_id, public=True))
 
     def test_revoked_review_blocks_scheduling_and_egress(self):
         from services.discovery.sources.collect import collect_source

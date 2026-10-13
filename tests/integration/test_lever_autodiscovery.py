@@ -12,6 +12,8 @@ from services.company_discovery.domains import record_company_domain
 from services.company_discovery.public_client import PublicCompanyClient
 from services.company_discovery.requests import approve_discovery_request
 from services.company_discovery.sources import upsert_company_job_source
+from services.company_discovery.flywheel import directly_monitored
+from services.company_discovery.triggers import queue_company_discovery
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.sources.collect import collect_source
 from services.discovery.sources.lever import Lever, endpoint
@@ -138,6 +140,51 @@ class LeverAutodiscoveryTests(unittest.TestCase):
 
     def test_verified_employer_import_reload_and_recurrence(self):
         self._assert_durable_chain(verified=True)
+
+    def test_verified_recurring_lever_employer_add_does_not_queue_another_crawl(self):
+        self._assert_verified_recurring_add()
+
+    def test_verified_eu_lever_employer_add_does_not_queue_another_crawl(self):
+        self.region = 'eu'
+        self.jobs = [posting(host='jobs.eu.lever.co')]
+        self._assert_verified_recurring_add()
+
+    def _assert_verified_recurring_add(self):
+        _, source = self.enroll(verified=True)
+        self.assertTrue(directly_monitored(self.store, self.company_id, public=True))
+        before = self.store.count('worker_operations')
+        result = queue_company_discovery(self.store, {'company_name': 'Verified Employer',
+            'company_website': 'https://employer.example/'}, 'USER_ADDED_COMPANY',
+            'fixture', public=True, request_id='add-already-monitored')
+        self.assertEqual(result['status'], 'ALREADY_MONITORED')
+        self.assertIsNone(result['operation_id'])
+        self.assertEqual(self.store.count('worker_operations'), before)
+        self.assertEqual(result['company_id'], source['company_id'])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.search_profiles).values(criteria={
+                'scheduler': {'enabled': False, 'interval_seconds': 300}}))
+        manual = queue_company_discovery(self.store, {'company_name': 'Verified Employer',
+            'company_website': 'https://employer.example/'}, 'USER_ADDED_COMPANY',
+            'fixture', public=True, request_id='explicit-once-while-search-paused')
+        self.assertEqual(manual['status'], 'QUEUED')
+        self.assertIsNotNone(manual['operation_id'])
+        self.assertEqual(self.store.count('worker_operations'), before + 1)
+
+    def test_reviewed_lever_monitoring_tracks_actual_saved_search_and_authority(self):
+        request, source = self.enroll()
+        self.assertTrue(directly_monitored(self.store, self.company_id, public=True))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.search_profiles).values(criteria={
+                'scheduler': {'enabled': False, 'interval_seconds': 300}}))
+        self.assertFalse(directly_monitored(self.store, self.company_id, public=True))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.search_profiles).values(criteria={
+                'scheduler': {'enabled': True, 'interval_seconds': 300}}))
+        self.assertTrue(directly_monitored(self.store, self.company_id, public=True))
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == request['id']).values(domain_evidence=[]))
+        self.assertFalse(directly_monitored(self.store, self.company_id, public=True))
 
     def test_review_revocation_blocks_scheduler_and_fetch(self):
         request,source = self.enroll()

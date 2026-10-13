@@ -2640,8 +2640,8 @@
     "issue": 160,
     "requirement": "MJ-REQ-159",
     "status": "LOCAL_VERIFIED_HOSTED_PENDING",
-    "base": "d0a7f0b7f46f94824840398133a1251e0c40935b",
-    "behavior": "Direct Add Company active coalescing with transactional intent receipts, immutable profile snapshots, profile-scoped Activity/dead-letter persistence and safe fresh terminal recovery",
+    "base": "cfa598ee6f1249ed22892d440bca0a3fa3532de9",
+    "behavior": "Recognize qualified recurring Greenhouse/Lever inventory before Add Company; paused saved-search schedules permit explicit one-time discovery; authorization remains fail closed",
     "remaining": "Parent PARTIAL: other task kinds and full idempotency acceptance remain separate obligations"
   }
 }
