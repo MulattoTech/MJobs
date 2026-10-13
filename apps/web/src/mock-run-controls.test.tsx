@@ -10,6 +10,15 @@ const base={intent:null,receipt:null,busy:false,disabled:false,canStart:true,can
 const render=(change:Partial<Parameters<typeof MockRunControlsView>[0]>={})=>renderToStaticMarkup(<MockRunControlsView {...base} {...change}/>);
 
 describe('reviewed run recovery controls',()=>{
+  it('explains route contention without treating restart or replay as new approval',()=>{
+    const html=render({intent,receipt:{...receipt,state:'BLOCKED',error_code:'APPLICATION_ROUTE_IN_PROGRESS'}});
+    expect(html).toContain('Another application run owns this route');
+    expect(html).toContain('Restarting does not clear unfinished ownership');
+    expect(html).toContain('Start a new reviewed run');
+    expect(html).not.toContain('Resend same request');
+    expect(render({intent,receipt:{...receipt,state:'BLOCKED',error_code:'APPLICATION_ROUTE_REVIEW_REQUIRED'}}))
+      .toContain('unknown route ownership and needs review');
+  });
   it('offers dry-run while fictional submission is gated by explicit consent',()=>{
     const html=render();expect(html).toContain('Run dry-run');
     expect(html).toContain('<button disabled="">Submit to local mock</button>');

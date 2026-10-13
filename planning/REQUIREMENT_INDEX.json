@@ -2810,7 +2810,7 @@
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-222",
@@ -3447,8 +3447,8 @@
   ],
   "summary": {
     "PARTIAL": 115,
-    "PASS": 125,
-    "NOT_RUN": 185
+    "PASS": 126,
+    "NOT_RUN": 184
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }
