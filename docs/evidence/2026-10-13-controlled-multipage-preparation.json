@@ -1,0 +1,109 @@
+{
+  "requirement": "MJ-REQ-208",
+  "issue": 209,
+  "slice_issue": 628,
+  "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAjtcY",
+  "source_commit": "53dcbb766cc3ff4eef66022a107388236f469f27",
+  "recorded_at_utc": "2026-10-13T22:52:36.613184+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "team": {
+    "children": 20,
+    "model": "gpt-6-luna",
+    "reasoning_effort": "medium",
+    "integration_owner": "primary",
+    "review_kind": "local Luna review; not human or hosted AI certification"
+  },
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "behavior": [
+    "Review binds both fixed local page templates and ordered field plan; missing or malformed preview plan blocks UI acknowledgement/run/retry.",
+    "Chromium fills contact and approved answer, follows only the exact reviewed local document link, then verifies selected document bytes. Unknown controls, page identity and navigation fail closed.",
+    "Final value-free receipt stores both page proofs; UI reads them after reload. Legacy receipts remain unchanged without invented proof.",
+    "Crash before page two leaves no receipt; lease recovery reruns from page one. Cancellation, timeout, stale review and explicit fresh retry preserve receipt fencing."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS",
+      "tests": 1576,
+      "subtests": 1052,
+      "seconds": 290.11,
+      "note": "Unit/product inputs unchanged throughout run; later commits only strengthened integration/browser tests."
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "PASS",
+      "tests": 798,
+      "files": 136
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "note": "Existing bundle-size warning"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_controlled_application_dry_run.py tests/integration/test_controlled_dry_run_recovery.py tests/integration/test_controlled_multipage_dry_run.py tests/integration/test_controlled_multipage_recovery.py tests/integration/test_controlled_multipage_safety.py",
+      "result": "PASS",
+      "tests": 31,
+      "optional_postgresql_skips": 21,
+      "subtests": 6,
+      "note": "Integration portion passed in combined invocation; outdated browser acknowledgement selectors failed separately and were corrected."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_controlled_multipage_safety.py",
+      "result": "PASS",
+      "tests": 3,
+      "subtests": 4,
+      "note": "Rerun after stronger browser-reached and exact-error assertions."
+    },
+    {
+      "command": "MJOBS_TEST_POSTGRES_URL=<disposable loopback PostgreSQL17>; pytest affected controlled/application recovery/multipage recovery PostgreSQL classes",
+      "result": "PASS",
+      "tests": 21,
+      "subtests": 2,
+      "seconds": 62.76
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_controlled_application_dry_run.py tests/browser/test_controlled_dry_run_recovery.py tests/browser/test_controlled_multipage_dry_run.py",
+      "result": "PASS",
+      "tests": 3,
+      "subtests": 2,
+      "seconds": 30.25
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; tools.site.build; git diff --check origin/main; commit_provenance",
+      "result": "PASS"
+    },
+    {
+      "command": "docker run --rm --network none --mount type=bind,source=<selected-worktree>,target=/app,readonly --workdir /app --entrypoint python mjobs-priority-validation:20261013 -m unittest tests.integration.test_controlled_multipage_dry_run tests.integration.test_controlled_multipage_recovery tests.integration.test_controlled_multipage_safety -q",
+      "result": "PASS",
+      "tests": 13,
+      "skipped": 3,
+      "seconds": 36.07,
+      "tested_commit": "53dcbb766cc3ff4eef66022a107388236f469f27",
+      "image_id": "sha256:af02cdeaa62f8fd3a8ba079ea4616a0e7912887d283ae58908cf69298157de98",
+      "note": "Final stable-source run; PostgreSQL-specific cases separately passed on Windows disposable PostgreSQL. Earlier wrong-root import attempt and live-mounted preliminary run are not acceptance evidence."
+    }
+  ],
+  "initial_failures": [
+    "Before backend: new integration tests failed for absent page plan and ignored second-page tampering.",
+    "Frontend static HTML assertion needed visible-text normalization; nested page-list selector needed direct children.",
+    "Combined affected run: 5 browser failures including subtests from old acknowledgement labels; corrected selectors and all three browser tests then passed."
+  ],
+  "limitations": [
+    "Controlled local fixture only; no employer interaction, general ATS acceptance or external submission.",
+    "No durable per-page checkpoint: partial run safely restarts both local pages.",
+    "Queued legacy v1 inputs fail stale and require current review/retry; completed legacy receipts remain readable.",
+    "Original full dry-run discovery, company discovery, scoring and document-generation pipeline acceptance remains PARTIAL."
+  ],
+  "acceptance_before_after": {
+    "P0_P1_original": {
+      "PASS": 47,
+      "PARTIAL": 41,
+      "NOT_RUN": 54
+    },
+    "changed_original_requirements": 0
+  }
+}
