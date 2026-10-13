@@ -7,13 +7,14 @@ import json
 import os
 import re
 import threading
+import time
 from typing import Callable, Mapping
 from urllib.parse import urlsplit
 
 import httpx
 
 from services.ai.providers import AIProviderError, ProviderCapabilities
-from services.ai.providers.transport import _shutdown_response_socket
+from services.ai.providers.transport import _shutdown_response_socket, response_deadline
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:11434"
@@ -119,6 +120,7 @@ class OllamaProvider:
         if cancellation_event is not None and cancellation_event.is_set():
             raise AIProviderError("AI_PROVIDER_CANCELLED")
 
+        start_time = time.monotonic()
         client = None
         active_response = None
         stop_cancellation_watch = threading.Event()
@@ -146,7 +148,8 @@ class OllamaProvider:
                 )
                 watcher.start()
             with client:
-                with client.stream("POST", self.endpoint, json=payload) as response:
+                with client.stream("POST", self.endpoint, json=payload) as response, response_deadline(
+                        response, deadline=start_time + float(timeout_seconds)):
                     active_response = response
                     if cancellation_event is not None and cancellation_event.is_set():
                         _shutdown_response_socket(response)

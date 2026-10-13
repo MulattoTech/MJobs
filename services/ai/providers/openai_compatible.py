@@ -14,7 +14,7 @@ import httpx
 from services.ai.providers import AIProviderError, ProviderCapabilities
 from services.ai.telemetry import get_default_telemetry_engine
 from services.ai.providers.endpoint_security import secure_base_url
-from services.ai.providers.transport import _shutdown_response_socket
+from services.ai.providers.transport import _shutdown_response_socket, response_deadline
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8000/v1"
@@ -164,7 +164,8 @@ class OpenAICompatibleProvider:
                 watcher.start()
 
             with client:
-                with client.stream("POST", self.endpoint, json=payload, headers=headers, follow_redirects=False) as response:
+                with client.stream("POST", self.endpoint, json=payload, headers=headers, follow_redirects=False) as response, response_deadline(
+                        response, deadline=start_time + float(timeout_seconds)):
                     active_response = response
                     if cancellation_event is not None and cancellation_event.is_set():
                         _shutdown_response_socket(response)

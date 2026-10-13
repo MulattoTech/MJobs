@@ -1,0 +1,107 @@
+{
+  "requirement": "MJ-REQ-004",
+  "issue": 5,
+  "slice_issue": 626,
+  "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAjboY",
+  "source_commit": "a59fd5504354496fe74bce4f39b8d6dd992f5b49",
+  "recorded_at_utc": "2026-10-13T22:15:13.167370+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "behavior": [
+    "Once response headers are received, every HTTP AI provider uses the remaining absolute request budget for response-body consumption. Repeated bytes cannot extend it.",
+    "On expiry, only the request-owned socket is shut down and the response closed; callers receive sanitized AI_PROVIDER_TIMEOUT. Explicit user cancellation retains precedence.",
+    "Successful responses within budget remain valid; timeout and success leave no deadline watchdog running.",
+    "Durable AI worker makes one request, records BLOCKED / AI_PROVIDER_TIMEOUT, saves no partial evaluation and exposes the same outcome through fresh database/API readback."
+  ],
+  "validation": [
+    {
+      "command": "Linux existing local image, network none, unittest tests.unit.test_ai_response_deadline",
+      "phase": "RED",
+      "result": "FAIL",
+      "detail": "10 slow-body cases (five providers twice) returned ok beyond their configured 0.15-second budget before the fix."
+    },
+    {
+      "command": "docker run --rm --network none --mount <source-readonly:/app> --workdir /app --entrypoint python mjobs-priority-validation:20261013 -m unittest tests.integration.test_durable_ai_evaluation tests.unit.test_ai_response_deadline tests.unit.test_remote_provider_cancellation tests.unit.test_provider_socket_cancellation tests.unit.test_ai_provider_transport tests.unit.test_ai_providers tests.unit.test_azure_openai_provider tests.unit.test_ollama_provider -q",
+      "result": "PASS",
+      "tests": 72,
+      "seconds": 44.497
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_ai_task_settings.py -k user_can_cancel_ai_evaluation_without_persisting_partial_batch",
+      "result": "PASS",
+      "tests": 1,
+      "deselected": 1
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "note": "Existing bundle-size warning"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; python -m tools.ci.check_repository; git diff --check origin/main; python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS",
+      "phase": "full rerun after EOF test correction",
+      "tests": 1576,
+      "subtests": 1052,
+      "seconds": 255.51,
+      "revision": "68ee4e3c8d54b1d86628afd751ef57cf28e5d67e"
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "phase": "initial full run",
+      "result": "FAIL",
+      "passed_tests": 1576,
+      "passed_subtests": 1047,
+      "failed_subtests": 5,
+      "detail": "Windows peer-write error was an invalid immediate closure oracle; all five failures were disconnected assertions. Replaced this observation with direct peer EOF; production code unchanged."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_ai_response_deadline.py tests/unit/test_remote_provider_cancellation.py tests/unit/test_provider_socket_cancellation.py",
+      "result": "PASS",
+      "tests": 5,
+      "subtests": 19,
+      "environment": "Windows, direct EOF oracle"
+    },
+    {
+      "command": "Linux unittest tests.unit.test_ai_response_deadline tests.unit.test_remote_provider_cancellation tests.unit.test_provider_socket_cancellation",
+      "result": "PASS",
+      "tests": 5
+    }
+  ],
+  "limitations": [
+    "Synthetic loopback transports only; paid/live inference NOT_RUN.",
+    "Before-response-header behavior still uses the existing HTTPX phase timeouts and is not certified as a total request deadline.",
+    "Other external operations and broader MJ-REQ-004 acceptance remain PARTIAL. No whole-product release claim."
+  ],
+  "review": "Primary self-review; no independent approval claimed",
+  "p0_p1_original_acceptance": {
+    "before": {
+      "PASS": 47,
+      "PARTIAL": 41,
+      "NOT_RUN": 54,
+      "total": 142
+    },
+    "after": {
+      "PASS": 47,
+      "PARTIAL": 41,
+      "NOT_RUN": 54,
+      "total": 142
+    }
+  },
+  "source_sha256_git_blob": {
+    "services/ai/providers/azure_openai.py": "e81116dbf7bf47831260cf9ba4faecdc9d640afce43ff433acdeadbde52d6d80",
+    "services/ai/providers/ollama.py": "7a2a27d076887a5e8b5bdd2debca304f75988b1a054407987862a545f951ab26",
+    "services/ai/providers/openai_compatible.py": "302d7b5a8a79ba210f03e6c35193dffb4e90fe9d69e77f388dbca2c2ed5e0a92",
+    "services/ai/providers/transport.py": "7e8c81b280a2339225299e929548503f467efa73e4bc51bfeb22c5928d901435",
+    "tests/integration/test_durable_ai_evaluation.py": "c9a72b9ee13653a9f2bfd1b65b8f31edc64f40363bd7d30fc41d9308e1061b25",
+    "tests/unit/test_ai_response_deadline.py": "7131081f53cbb010df67af9844adaae970374f38546799753f9f8541ab253bf1"
+  },
+  "final_source_commit": "68ee4e3c8d54b1d86628afd751ef57cf28e5d67e"
+}
