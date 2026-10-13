@@ -48,11 +48,12 @@ class ApplicationRouteTests(unittest.TestCase):
                 {"id": "ats-a", "job_id": "job", "company_id": "company", "provider": "greenhouse",
                  "tenant": "example", "requisition": "REQ-A", "url": "https://job-boards.greenhouse.io/example/jobs/1"},
                 {"id": "ats-b", "job_id": "job", "company_id": "company", "provider": "lever",
-                 "tenant": "example", "requisition": "REQ-B", "url": "https://jobs.lever.co/example/2"},
+                 "tenant": "global:example", "requisition": "REQ-B",
+                 "url": "https://jobs.lever.co/example/00000000-0000-0000-0000-000000000002"},
             ]
             for route in routes:
                 upsert(connection, m.routes, route)
-            for provider, tenant in (("greenhouse", "example"), ("lever", "example")):
+            for provider, tenant in (("greenhouse", "example"), ("lever", "global:example")):
                 upsert(connection, m.company_ats_tenants, {
                     "id": f"verified-{provider}", "company_id": "company", "provider": provider,
                     "tenant_identifier": tenant, "organization_identifier": "", "board_identifier": "",
@@ -62,7 +63,8 @@ class ApplicationRouteTests(unittest.TestCase):
             for identifier, source, source_job_id, application_url in (
                 ("p1", "board-a", "1", "https://redirect.example/apply/a"),
                 ("p2", "greenhouse:example", "1", "https://job-boards.greenhouse.io/example/jobs/1"),
-                ("p3", "lever:example", "2", "https://jobs.lever.co/example/2"),
+                ("p3", "lever:global:example", "00000000-0000-0000-0000-000000000002",
+                 "https://jobs.lever.co/example/00000000-0000-0000-0000-000000000002"),
             ):
                 upsert(connection, m.postings, {
                     "id": identifier, "job_id": "job", "source": source,
@@ -142,12 +144,12 @@ class ApplicationRouteTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             upsert(connection, m.routes, {
                 "id":"ats-alt", "job_id":"job", "company_id":"company",
-                "provider":"lever", "tenant":"employer", "requisition":"req-a",
-                "url":"https://jobs.lever.co/employer/req-a",
+                "provider":"lever", "tenant":"global:employer", "requisition":"req-a",
+                "url":"https://jobs.lever.co/employer/00000000-0000-0000-0000-000000000001",
             })
             upsert(connection, m.company_ats_tenants, {
                 "id":"tenant-alt", "company_id":"company", "provider":"lever",
-                "tenant_identifier":"employer", "organization_identifier":"",
+                "tenant_identifier":"global:employer", "organization_identifier":"",
                 "board_identifier":"", "confidence":0.91, "evidence":["PUBLIC_API_BOARD"],
                 "first_seen_at":"2026-10-09T00:00:00Z", "last_seen_at":"2026-10-09T00:00:00Z",
             })

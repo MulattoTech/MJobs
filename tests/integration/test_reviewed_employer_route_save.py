@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -196,6 +196,43 @@ class ReviewedEmployerRouteSaveTests(unittest.TestCase):
         route = next(row for row in load_job_routes(self.store, 'route-save-job')
                      if row['id'] == 'wrong-employer-route')
         self.assertEqual(route['authority'], 'UNKNOWN')
+
+    def test_lever_save_and_readback_bind_the_current_regional_site(self):
+        from services.dedupe.routes import load_job_routes
+        posting = '00000000-0000-0000-0000-000000000001'
+        with self.client() as client:
+            for region, host, foreign in [('global', 'jobs.lever.co', 'jobs.eu.lever.co'),
+                                          ('eu', 'jobs.eu.lever.co', 'jobs.lever.co')]:
+                tenant = region + ':routesave'
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.company_ats_tenants).values(
+                        provider='lever', tenant_identifier=tenant))
+                result = {'status': 'RESOLVED_ATS_ROUTE', 'provider': 'lever', 'tenant': tenant,
+                          'candidate_url': f'https://{host}/routesave/{posting}'}
+                for url in (f'https://{foreign}/routesave/{posting}',
+                            f'https://{host}/other/{posting}',
+                            f'https://foreign.example/routesave/{posting}',
+                            f'https://{host}:443/routesave/{posting}'):
+                    with self.subTest(region=region, url=url), patch(
+                            'apps.api.main.resolve_aggregator_redirect',
+                            return_value={**result, 'candidate_url': url}):
+                        response = client.post('/jobs/route-save-job/routes/route-save-aggregator/'
+                                               'save-verified-destination')
+                        self.assertEqual(response.status_code, 409, response.text)
+                        with self.store.engine.begin() as connection:
+                            upsert(connection, m.routes, {'id': 'invalid-stored-lever',
+                                'job_id': 'route-save-job', 'company_id': 'route-save-company',
+                                'provider': 'lever', 'tenant': tenant, 'requisition': 'invalid-lever',
+                                'url': url}, replace=True)
+                        self.assertEqual(next(row for row in load_job_routes(self.store, 'route-save-job')
+                                              if row['id'] == 'invalid-stored-lever')['authority'], 'UNKNOWN')
+                with patch('apps.api.main.resolve_aggregator_redirect', return_value=result):
+                    response = client.post('/jobs/route-save-job/routes/route-save-aggregator/'
+                                           'save-verified-destination')
+                    self.assertEqual(response.status_code, 201, response.text)
+                    saved_id = response.json()['route']['id']
+                self.assertEqual(next(row for row in load_job_routes(self.store, 'route-save-job')
+                                      if row['id'] == saved_id)['authority'], 'VERIFIED_ATS')
 
     def test_identity_evidence_revoked_during_recheck_blocks_route_creation(self):
         def revoke_tenant(_url, **_kwargs):

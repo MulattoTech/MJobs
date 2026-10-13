@@ -61,7 +61,8 @@ class DirectEmployerRouteRedirectTests(unittest.TestCase):
                 try:
                     self.assertTrue(client.allowed(f'https://{host}/acme/00000000-0000-0000-0000-000000000001'))
                     for bad in [f'https://{other}/acme/42',f'https://{host}/other/acme',
-                                f'https://{host}/other/{region}',f'https://{host}.evil.invalid/acme/42']:
+                                f'https://{host}/other/{region}',f'https://{host}.evil.invalid/acme/42',
+                                f'https://{host}:443/acme/00000000-0000-0000-0000-000000000001']:
                         self.assertFalse(client.allowed(bad),bad)
                 finally:
                     client.close()

@@ -2641,7 +2641,7 @@
     "requirement": "MJ-REQ-172",
     "status": "LOCAL_VERIFIED_HOSTED_PENDING",
     "base": "4dc56df154e8f4eae3de445f0678fb038e5d6d3a",
-    "behavior": "Greenhouse redirect and durable route authority require structural URL-to-tenant identity; mismatched destinations are blocked before fetch/save and stay unverified on reload",
-    "remaining": "Parent PARTIAL: broader web-security acceptance and other provider URL contracts remain separate; hosted checks pending"
+    "behavior": "Greenhouse/Lever redirect and durable route authority require complete URL-to-tenant identity; mismatched origins/regions/sites are blocked before fetch/save and remain unverified on reload",
+    "remaining": "Parent PARTIAL: broader web-security acceptance and other provider URL contracts remain separate; updated exact-head hosted checks pending"
   }
 }
