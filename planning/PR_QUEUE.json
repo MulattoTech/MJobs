@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -398,7 +398,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company’s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company\u2019s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
       "head": "d93508f4da500e139c62eedc5171ff975ef70462",
@@ -1097,15 +1097,32 @@
       "draft_until_verified": true,
       "notes": "Ollama slice integrated by non-force fast-forward at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence docs/evidence/2026-10-06-ai-local-ollama-provider.json. No live inference or remote/paid provider call was made. MJ-REQ-108.A06 disabled provider PASS; issue #109 / MJ-REQ-108 now has a locally tested loopback Ollama adapter, but remains PARTIAL pending actual inference and remaining provider/consumer paths. MJ-REQ-109 router, MJ-REQ-110 funnel and MJ-REQ-111 structured output are integrated PARTIAL. Persisted settings and end-to-end task consumers remain open. MJ-REQ-109 persisted profile settings locally verified on candidate a6d64f82598df9eebab6601dafd386b07409706f; evidence docs/evidence/2026-10-06-ai-task-settings-persistence.json. Issue #110 remains OPEN/PARTIAL because production task consumers are not wired. Profile-scoped AI task settings source a6d64f8 and checkpoint/evidence integrated at synchronized main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366. Next slice #111 / MJ-REQ-110 exposes the deterministic cost funnel thresholds in profile settings; consumer/inference gaps remain. Candidate 93e152dbff89c74b5075ce4df703c82cb4da8883 adds profile-scoped bounded cost policy, connected settings and read-only funnel preview; local suites and SQLite/PostgreSQL migration checks PASS. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Issue #111 remains OPEN/PARTIAL pending a production task consumer; integration pending live reconciliation. Cost controls integrated at synchronized main a6e6625651aebd8ee3d07cbb31a496195f29de65; issue #111 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Current gap: real review-gated consumer and reviewed-document workflow; no inference claimed. Takeover candidate aa05f692ce20d8b0c81fff2da6b93251fe5df6e5 wires a bounded structured production task consumer, durable evaluation history and an explicit review gate into factual document preparation; focused 15 Python tests, 62 frontend tests/build and validators pass. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Issue #111 remains OPEN/PARTIAL because live configured-provider inference and full Python discovery were NOT_RUN; external submission OFF. Source/evidence/planning safely integrated by non-force fast-forward at synchronized main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6; GitHub issue #111 remains OPEN/PARTIAL after evidence readback: https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838. Full Python discovery interrupted, live provider inference and hosted checks NOT_RUN.",
       "active_slice": {
-        "name": "Durable AI job-input freshness",
+        "name": "Grounded profile-wide AI candidates",
         "issue": 111,
         "requirement_id": "MJ-REQ-110",
         "status": "PARTIAL",
+        "branch": "feat/astra-grounded-ai-candidates-20261013",
+        "depends_on_pr": 617,
+        "acceptance": "Current approved evidence determines candidate ordering; unknown coverage is disclosed; worker/restart preserves explanation without private evidence in prompts.",
         "publication_state": "LOCAL_VERIFIED_HOSTED_PENDING",
-        "source_commit": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
-        "branch": "feat/astra-ai-job-freshness-20261013",
-        "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json"
-      }
+        "source_commit": "3fc521236daf622f3c6b776f4abc8e5de513633f",
+        "evidence": "docs/evidence/2026-10-13-grounded-ai-candidates.json"
+      },
+      "slice_history": [
+        {
+          "name": "Durable AI job-input freshness",
+          "issue": 111,
+          "requirement_id": "MJ-REQ-110",
+          "status": "PARTIAL",
+          "publication_state": "MERGED_VERIFIED",
+          "source_commit": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
+          "branch": "feat/astra-ai-job-freshness-20261013",
+          "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json",
+          "pr": 617,
+          "verified_head": "f0d8ad2ce56828fe5ef454c9483cbfc6ecab339f",
+          "merge_commit": "263cfd68490c890a40e30a0ba29473a1c246e914"
+        }
+      ]
     },
     {
       "id": "MJ-PR-031",
@@ -1826,7 +1843,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1846,7 +1863,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -2681,7 +2698,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -2701,7 +2718,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3022,7 +3039,7 @@
           "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
           "Six-month source history with no strong matches schedules less often.",
           "Insufficient evidence keeps the configured baseline.",
-          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
+          "Every interval is clamped to 300\u2013604800 seconds; failures retain existing bounded retry behavior.",
           "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
         ],
         "status": "ACTIVE_IMPLEMENTATION",

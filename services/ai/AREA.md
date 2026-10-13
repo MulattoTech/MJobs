@@ -51,3 +51,11 @@ Legacy results have unknown provenance and cannot authorize new document work;
 old queued evaluator snapshots require a fresh explicit evaluation. Reviews and
 the document worker both recheck the saved profile and job context. Polling-only
 timestamps do not invalidate a result. No applicant facts are added to prompts.
+
+Profile-wide AI plans now recompute approved skill coverage from current job and
+profile inputs instead of trusting cached match rows. Unsupported job coverage
+is disclosed and excluded, including when the score threshold is zero. The
+bounded candidate snapshot stores per-skill explanations for owner-scoped
+preview and historical readback; this evidence is not added to provider prompts.
+Saved-search weighting remains separate. Older plans retain their original
+scores and provenance label; retries never silently rescore an admitted plan.

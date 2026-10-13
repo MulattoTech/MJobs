@@ -44,6 +44,17 @@ class SelectedSearchAIBrowserTests(fixture.SelectedSearchAIHarness):
                     page.locator('#active-profile').select_option('fixture')
                     page.get_by_role('button',name='AI Settings',exact=True).click()
                     panel = page.get_by_role('region',name='AI cost controls',exact=True)
+                    with self.store.engine.begin() as connection:
+                        connection.execute(update(m.jobs).where(m.jobs.c.id == self.cloud).values(skills=[]))
+                    panel.get_by_role('button',name='Preview AI work plan',exact=True).click()
+                    grounded = panel.get_by_role('region',name='Planned AI candidates',exact=True)
+                    expect(grounded).to_contain_text('current approved skill evidence')
+                    expect(grounded).to_contain_text('Infrastructure engineer')
+                    expect(grounded).to_contain_text('1 job has unknown skill coverage')
+                    grounded.get_by_text('Why this candidate was selected',exact=True).click()
+                    expect(grounded).to_contain_text('Approved skill evidence coverage: 100%')
+                    expect(grounded).to_contain_text('not qualification')
+                    self.assertEqual(self.calls, [])
                     selector = panel.get_by_label('AI candidate search',exact=True)
                     selector.select_option('systems')
                     evaluate = panel.get_by_role('button',name='Evaluate planned AI candidates',exact=True)
@@ -85,6 +96,7 @@ class SelectedSearchAIBrowserTests(fixture.SelectedSearchAIHarness):
                     expect(consent).to_be_enabled()
                     consent.check()
                     history.get_by_role('button', name='Confirm review and open job', exact=True).click()
+                    expect(page.get_by_role('status').filter(has_text='Review saved. Confirm document preparation on the job page')).to_be_visible()
                     page.get_by_role('button', name='AI Settings', exact=True).click()
                     expect(history.get_by_role('button', name='Prepare reviewed documents', exact=True)).to_be_enabled()
                     with self.store.engine.begin() as connection:
@@ -109,6 +121,27 @@ class SelectedSearchAIBrowserTests(fixture.SelectedSearchAIHarness):
                     page.locator('#active-profile').select_option('other')
                     expect(history).to_contain_text('No saved AI evaluations for this profile')
                     self.assertEqual(len(self.calls), 1)
+                    page.locator('#active-profile').select_option('fixture')
+                    panel.get_by_label('AI candidate search',exact=True).select_option('')
+                    panel.get_by_role('button',name='Preview AI work plan',exact=True).click()
+                    expect(panel.get_by_role('region',name='Planned AI candidates')).to_contain_text('current approved skill evidence')
+                    evaluate.click()
+                    expect(panel.get_by_role('region',name='Durable AI evaluations')).to_contain_text('QUEUED')
+                    with self.store.engine.connect() as connection:
+                        grounded_operation = connection.execute(select(m.operations.c.id).where(
+                            m.operations.c.kind == 'AI_EVALUATE_QUEUED',
+                            m.operations.c.id != operation)).scalar_one()
+                    self.assertEqual(self.run_worker(grounded_operation)['status'], 'COMPLETED')
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('button',name='AI Settings',exact=True).click()
+                    grounded_history = history.get_by_role('region',name='AI evaluation results',exact=True).filter(
+                        has=page.get_by_role('heading',name='Infrastructure engineer · Synthetic Company',exact=True))
+                    expect(grounded_history).to_contain_text('current approved skill evidence')
+                    grounded_history.get_by_text('Why this candidate was selected',exact=True).click()
+                    expect(grounded_history).to_contain_text('Approved skill evidence coverage: 100%')
+                    expect(grounded_history).to_contain_text('Python: 100')
+                    expect(grounded_history).to_contain_text('not qualification')
+                    self.assertEqual(len(self.calls), 2)
                     self.assertEqual(external,[])
                 finally:
                     browser.close()

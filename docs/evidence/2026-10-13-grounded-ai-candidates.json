@@ -1,0 +1,146 @@
+{
+  "requirement": "MJ-REQ-110",
+  "issue": 111,
+  "related_requirements": [
+    "MJ-REQ-112",
+    "MJ-REQ-114"
+  ],
+  "source_commit": "3fc521236daf622f3c6b776f4abc8e5de513633f",
+  "product_source_commit": "79f3152abff4b21b79541d18c1b8a6cd68db47cc",
+  "base_commit": "263cfd68490c890a40e30a0ba29473a1c246e914",
+  "branch": "feat/astra-grounded-ai-candidates-20261013",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "recorded_at_utc": "2026-10-13T18:22:08.641178+00:00",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "external_submission_enabled": false,
+  "live_provider_inference": "NOT_RUN",
+  "behavior": [
+    "Profile-wide AI plans recompute current approved skill evidence rather than trusting cached match scores. Missing cache rows no longer hide supported candidates.",
+    "Unrecognized job skill coverage remains unknown, is disclosed, and is excluded even with a zero score threshold. An all-unknown admitted batch makes zero provider calls.",
+    "Private immutable batch snapshots retain per-skill coverage, limitations and scoring basis. The actual durable worker and owner-scoped historical UI preserve that evidence across API restart/reload and later job edits.",
+    "Private profile facts and the detailed score evidence are not added to provider prompts. Current profile approvals are respected; another profile retains its own independent score.",
+    "Saved-search weighting, cost caps, disabled-provider behavior, stale preview and document review gates remain intact. Older admitted plans keep their original scores and provenance labels."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit --tb=short",
+      "result": "PASS",
+      "passed": 1564,
+      "subtests_passed": 1023,
+      "seconds": 263.73,
+      "started_revision": "79f3152abff4b21b79541d18c1b8a6cd68db47cc"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run",
+      "result": "PASS",
+      "passed": 788,
+      "files": 134
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "limitation": "Existing chunk-size warning."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_grounded_ai_candidates.py tests/integration/test_grounded_ai_candidates_postgres.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_durable_ai_evaluation_postgres.py tests/integration/test_selected_search_ai.py tests/integration/test_selected_search_ai_postgres.py tests/integration/test_ai_cost_policy_api.py tests/integration/test_durable_ai_dispatch.py --tb=short",
+      "result": "PASS",
+      "passed": 77,
+      "subtests_passed": 2,
+      "skipped": 0,
+      "seconds": 84.78,
+      "environment": "Owned PostgreSQL17 loopback mjobs_test_ai_freshness with unique schemas; owned Redis7 loopback database15"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_grounded_ai_candidates.py tests/integration/test_grounded_ai_candidates_postgres.py --tb=short",
+      "result": "PASS",
+      "passed": 12,
+      "seconds": 13.32,
+      "note": "Final stronger zero-threshold unknown-input and profile-isolation controls."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_selected_search_ai.py tests/browser/test_ai_task_settings.py tests/browser/test_preparation_priority.py --tb=short",
+      "result": "PASS",
+      "passed": 4,
+      "seconds": 24.32
+    },
+    {
+      "command": "catalogue; agent_skills; progress validate; git diff --check; commit_provenance",
+      "result": "PASS"
+    }
+  ],
+  "revision_equivalence": "All production and unit/frontend inputs equal product_source_commit. Later3fc52123 only strengthens integration/browser tests; final affected tests passed on those exact bytes. Source blobs below identify the final checkpoint.",
+  "red_green_evidence": [
+    "Five initial integration failures demonstrated stale-cache priority, hidden cacheless candidates, absent frozen provenance and missing unknown counts; all pass after implementation.",
+    "Two new frontend assertions initially failed for truthful scoring basis and unknown coverage; both pass.",
+    "Broader cancellation fixture used Windows/Linux against approved Python/SQL with injected95score. Corrected the fictional posting to genuinely supported skills; cancellation assertions retained.",
+    "Browser review test raced its own navigation before async review/open-job finished. It now waits for the product review-saved notice before navigating; all review/stale/reload checks retained."
+  ],
+  "limitations": [
+    "No real model inference, paid provider calls, employer interaction or external submission.",
+    "Primary-agent self-review only; no independent human review claim.",
+    "Full local Compose was not repeated for this scoring-only revision; PR617 local Compose/restart/freshrestore passed and current hosted Compose remains required.",
+    "This is skill evidence coverage, not qualification or the complete additive matching requirement. Provider rationale grounding and saved-credential worker routing remain separate gaps."
+  ],
+  "source_blobs": [
+    {
+      "path": "apps/web/src/ai-search-provenance.test.tsx",
+      "git_blob": "14be767859f2880e6bc5f7aa53a10b653bed1d83"
+    },
+    {
+      "path": "apps/web/src/ai-search-provenance.tsx",
+      "git_blob": "654813c068338a3afbcf803ec7b268577a9f3b38"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "git_blob": "df408a7c9ee8c75d709793f48f99e5eb84fec767"
+    },
+    {
+      "path": "services/ai/AREA.md",
+      "git_blob": "275edeefd630cb3be45c6fe5b426fd753317b5d8"
+    },
+    {
+      "path": "services/ai/selected_search_candidates.py",
+      "git_blob": "c5eba6a31817a09a265c11d64743283e6173dce5"
+    },
+    {
+      "path": "tests/browser/test_ai_task_settings.py",
+      "git_blob": "ed523f2f4984037f0a76073b08f6cea0bd986e18"
+    },
+    {
+      "path": "tests/browser/test_selected_search_ai.py",
+      "git_blob": "2f8752609ad250ae9d52fe53447bbff4fd37667b"
+    },
+    {
+      "path": "tests/integration/test_ai_cost_policy_api.py",
+      "git_blob": "64541023c14de1d8f8790e274d8ea71a69f3049d"
+    },
+    {
+      "path": "tests/integration/test_durable_ai_evaluation.py",
+      "git_blob": "2df512201e565d87311ab5ccf941591c377c90d0"
+    },
+    {
+      "path": "tests/integration/test_grounded_ai_candidates.py",
+      "git_blob": "f1ecb5a60dbc6c5d4c37e1453acbd2511b80b9a5"
+    },
+    {
+      "path": "tests/integration/test_grounded_ai_candidates_postgres.py",
+      "git_blob": "aa74b366e48328d2413f0368346c4a6497245e1e"
+    }
+  ],
+  "acceptance_counts": {
+    "original_PASS": 108,
+    "original_total": 366,
+    "reference_PASS": 19,
+    "reference_total": 59,
+    "original_P0P1_PASS": 47,
+    "original_P0P1_total": 142,
+    "matching_ai_PASS": 3,
+    "matching_ai_total": 20,
+    "application_automation_PASS": 0,
+    "application_automation_total": 51,
+    "change": "No requirement promoted in this slice."
+  }
+}

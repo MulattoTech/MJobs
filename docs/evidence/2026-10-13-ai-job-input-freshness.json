@@ -10,7 +10,7 @@
   "reasoning_effort": "medium",
   "local_behavior": "PASS",
   "requirement_result": "PARTIAL",
-  "hosted_checks": "PARTIAL: PR617 head848692aa passed all gates except Compose UI default5s assertion; repair265e82d4 revalidation pending.",
+  "hosted_checks": "PASS: every PR617 check succeeded on f0d8ad2ce56828fe5ef454c9483cbfc6ecab339f; normal merge263cfd68490c890a40e30a0ba29473a1c246e914 has identical treeae2f11ce0a0ddd04459d56680f110c0eb792c14f.",
   "external_submission_enabled": false,
   "live_provider_inference": "NOT_RUN",
   "behavior": [
@@ -278,5 +278,13 @@
       "tests/browser/test_mock_run_controls.py": "42be0cbd2877fb6701108399a3782d2143d308f9"
     },
     "compose": "PASS: mock spine, connected built UI, Redis outage/restart and fresh-target backup/restore with independent receipt replay. Current product source equals57798a83; repaired CLI source265e82d4. Synthetic volumes retained; owned stacks stopped; shared image tag restored."
+  },
+  "integration": {
+    "pr": "https://github.com/MulattoTech/MJobs/pull/617",
+    "verified_head": "f0d8ad2ce56828fe5ef454c9483cbfc6ecab339f",
+    "merge_commit": "263cfd68490c890a40e30a0ba29473a1c246e914",
+    "merged_at": "2026-10-13T18:11:08Z",
+    "tree": "ae2f11ce0a0ddd04459d56680f110c0eb792c14f",
+    "review": "Primary-agent self-review; no independent human review claimed."
   }
 }
