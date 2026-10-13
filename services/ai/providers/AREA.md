@@ -24,3 +24,15 @@ settings/audit on failure and restart readback.
 `OllamaProvider` sends requests only to a numeric loopback IP over HTTP, with proxies disabled and a fixed `/api/generate` path. The optional `MJOBS_OLLAMA_BASE_URL` setting is validated before use. Request, schema, timeout, and response sizes are bounded; transport and response errors use stable codes without echoing prompts or provider bodies. An evaluation cancellation event closes an in-flight client connection and is classified separately from timeout and transport failure. Structured requests pass the caller's JSON Schema through Ollama's `format` field, then the task router validates the returned string again.
 
 The provider is selected only when task configuration explicitly names `ollama`; all default tasks remain `disabled`. Tests use synthetic `httpx.MockTransport` responses and never require an installed model or make network requests.
+
+## Saved profile OpenAI credentials
+
+The durable scoring consumer can supply an explicitly selected profile's saved
+key to `OpenAIProvider`. That path pins `https://api.openai.com/v1` and ignores
+environment endpoint overrides. Credential source and ciphertext identity are
+frozen at admission; rotation/deletion and unavailable decryption fail closed.
+No fallback to another profile or runtime key occurs for a saved-key plan.
+Legacy and runtime-configured plans preserve their existing transport settings.
+Preview/history expose only the source and fixed destination. Synthetic tests
+exercise the actual router/adapter and a separate worker process; live inference
+and paid calls remain unverified and are never part of automated tests.

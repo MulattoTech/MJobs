@@ -1097,16 +1097,13 @@
       "draft_until_verified": true,
       "notes": "Ollama slice integrated by non-force fast-forward at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence docs/evidence/2026-10-06-ai-local-ollama-provider.json. No live inference or remote/paid provider call was made. MJ-REQ-108.A06 disabled provider PASS; issue #109 / MJ-REQ-108 now has a locally tested loopback Ollama adapter, but remains PARTIAL pending actual inference and remaining provider/consumer paths. MJ-REQ-109 router, MJ-REQ-110 funnel and MJ-REQ-111 structured output are integrated PARTIAL. Persisted settings and end-to-end task consumers remain open. MJ-REQ-109 persisted profile settings locally verified on candidate a6d64f82598df9eebab6601dafd386b07409706f; evidence docs/evidence/2026-10-06-ai-task-settings-persistence.json. Issue #110 remains OPEN/PARTIAL because production task consumers are not wired. Profile-scoped AI task settings source a6d64f8 and checkpoint/evidence integrated at synchronized main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366. Next slice #111 / MJ-REQ-110 exposes the deterministic cost funnel thresholds in profile settings; consumer/inference gaps remain. Candidate 93e152dbff89c74b5075ce4df703c82cb4da8883 adds profile-scoped bounded cost policy, connected settings and read-only funnel preview; local suites and SQLite/PostgreSQL migration checks PASS. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Issue #111 remains OPEN/PARTIAL pending a production task consumer; integration pending live reconciliation. Cost controls integrated at synchronized main a6e6625651aebd8ee3d07cbb31a496195f29de65; issue #111 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Current gap: real review-gated consumer and reviewed-document workflow; no inference claimed. Takeover candidate aa05f692ce20d8b0c81fff2da6b93251fe5df6e5 wires a bounded structured production task consumer, durable evaluation history and an explicit review gate into factual document preparation; focused 15 Python tests, 62 frontend tests/build and validators pass. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Issue #111 remains OPEN/PARTIAL because live configured-provider inference and full Python discovery were NOT_RUN; external submission OFF. Source/evidence/planning safely integrated by non-force fast-forward at synchronized main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6; GitHub issue #111 remains OPEN/PARTIAL after evidence readback: https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838. Full Python discovery interrupted, live provider inference and hosted checks NOT_RUN.",
       "active_slice": {
-        "name": "Grounded profile-wide AI candidates",
-        "issue": 111,
-        "requirement_id": "MJ-REQ-110",
-        "status": "PARTIAL",
-        "branch": "feat/astra-grounded-ai-candidates-20261013",
-        "depends_on_pr": 617,
-        "acceptance": "Current approved evidence determines candidate ordering; unknown coverage is disclosed; worker/restart preserves explanation without private evidence in prompts.",
-        "publication_state": "LOCAL_VERIFIED_HOSTED_PENDING",
-        "source_commit": "3fc521236daf622f3c6b776f4abc8e5de513633f",
-        "evidence": "docs/evidence/2026-10-13-grounded-ai-candidates.json"
+        "name": "Profile-bound AI provider credentials",
+        "issue": 109,
+        "requirement_id": "MJ-REQ-108",
+        "status": "IN_PROGRESS",
+        "branch": "feat/astra-profile-ai-credentials-20261013",
+        "depends_on_pr": 618,
+        "acceptance": "Explicit saved-key scoring uses only owner credential and fixed OpenAI endpoint; rotation/deletion and unavailable decryption fail closed; UI source readback, restart and privacy proven with synthetic transport."
       },
       "slice_history": [
         {
@@ -1121,6 +1118,21 @@
           "pr": 617,
           "verified_head": "f0d8ad2ce56828fe5ef454c9483cbfc6ecab339f",
           "merge_commit": "263cfd68490c890a40e30a0ba29473a1c246e914"
+        },
+        {
+          "name": "Grounded profile-wide AI candidates",
+          "issue": 111,
+          "requirement_id": "MJ-REQ-110",
+          "status": "PARTIAL",
+          "branch": "feat/astra-grounded-ai-candidates-20261013",
+          "depends_on_pr": 617,
+          "acceptance": "Current approved evidence determines candidate ordering; unknown coverage is disclosed; worker/restart preserves explanation without private evidence in prompts.",
+          "publication_state": "MERGED_VERIFIED",
+          "source_commit": "3fc521236daf622f3c6b776f4abc8e5de513633f",
+          "evidence": "docs/evidence/2026-10-13-grounded-ai-candidates.json",
+          "pr": 618,
+          "verified_head": "747b6a23fd564bfa5e62907bc06324f9a3971d12",
+          "merge_commit": "365711aa5639461921bb8ed65cf198902c4255b0"
         }
       ]
     },

@@ -1,5 +1,12 @@
 import {expect,it} from 'vitest';
-import {aiAdmissionFailure} from './durable-ai-evaluation';
+import {aiAdmissionFailure,aiEvaluationFailure} from './durable-ai-evaluation';
+
+it('requires a fresh plan after credential changes without claiming an in-flight call was recalled',()=>{
+  expect(aiAdmissionFailure({code:'AI_PROVIDER_CREDENTIAL_CHANGED'}).stale).toBe(true);
+  expect(aiEvaluationFailure('AI_PROVIDER_CREDENTIAL_CHANGED')).toContain('Review provider history');
+  expect(aiEvaluationFailure('AI_PROVIDER_CREDENTIAL_UNAVAILABLE')).toContain('existing credential store');
+  expect(aiEvaluationFailure('AI_PROVIDER_BINDING_INVALID')).toContain('could not be verified');
+});
 
 it('distinguishes disabled providers and reused intents from stale candidate plans',()=>{
   expect(aiAdmissionFailure({status:409,code:'AI_EVALUATION_PREVIEW_CHANGED'}).stale).toBe(true);

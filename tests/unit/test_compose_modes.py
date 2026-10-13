@@ -63,6 +63,9 @@ class ComposeModeTests(unittest.TestCase):
         services = json.loads(self.render('--format', 'json'))['services']
         worker = services['ai-worker']
         self.assertEqual(worker['environment']['MJOBS_WORKER_QUEUE'], 'mjobs-ai')
+        self.assertEqual(worker['environment']['MJOBS_CREDENTIAL_ENCRYPTION_KEY'], 'synthetic-base64-test-key')
+        for name in ('scheduler', 'worker', 'source-worker', 'document-worker', 'company-discovery-worker'):
+            self.assertNotIn('MJOBS_CREDENTIAL_ENCRYPTION_KEY', services[name]['environment'])
         self.assertIn('source-egress', worker['networks'])
         self.assertIn('ai-worker', WRITERS)
         self.assertIn('ai-worker', RECOVERY_RESTART_SERVICES)

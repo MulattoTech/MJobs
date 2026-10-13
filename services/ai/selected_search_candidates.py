@@ -99,8 +99,10 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
                                           row['company'], row['description'][:8000])
         fingerprints[row['id']] = job_fingerprint(row)
     plan = policy.plan(CandidateScore(item.job_id, item.deterministic_score) for item in candidates.values())
+    from services.ai.provider_credentials import snapshot_binding
     snapshot = {'evaluator_version': EVALUATOR_VERSION, 'profile_version': profile['version'],
                 'policy': asdict(policy), 'configuration': configuration.to_dict(),
+                'provider_binding': snapshot_binding(store, profile_id, configuration.for_task('job_scoring').provider),
                 'scoring_basis': ('CURRENT_APPROVED_SKILL_COVERAGE_V1' if criteria is None
                                   else 'SELECTED_SEARCH_V1'),
                 'unscored_job_count': unscored,
@@ -114,7 +116,9 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
 
 def public_preview(snapshot, plan, scanned):
     from services.ai.durable_evaluation import _digest
+    from services.ai.provider_credentials import public_access
     return {'policy': snapshot['policy'], 'fingerprint': _digest(snapshot),
+            'provider_access': public_access(snapshot.get('provider_binding')),
             'search_scope': snapshot.get('search_scope'),
             'scoring_basis': snapshot.get('scoring_basis'),
             'plan': {'scanned_job_count': scanned, 'scored_candidate_count': plan.received_count,
@@ -134,6 +138,7 @@ def evaluation_history(store, profile_id, limit=20, *, run_id=None):
     Legacy runs without a batch/scope remain readable as profile-wide results.
     No criteria or candidate text leaks through generic operation metadata.
     """
+    from services.ai.provider_credentials import public_access
     runs = store.ai_evaluation_history(profile_id, limit, run_id=run_id)
     if not runs:
         return runs
@@ -144,6 +149,7 @@ def evaluation_history(store, profile_id, limit=20, *, run_id=None):
                 m.ai_evaluation_batches.c.id.in_([run['run_id'] for run in runs]))).mappings()}
     for run in runs:
         snapshot = snapshots.get(run['run_id'], {})
+        run['provider_access'] = public_access(snapshot.get('provider_binding'))
         run['search_scope'] = snapshot.get('search_scope')
         run['scoring_basis'] = snapshot.get('scoring_basis')
         for item in run['evaluations']:
