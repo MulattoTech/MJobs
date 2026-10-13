@@ -2637,19 +2637,26 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 134,
-    "requirement": "MJ-REQ-133",
+    "issue": 111,
+    "requirement": "MJ-REQ-110",
     "related_requirements": [
-      "MJ-REQ-121",
-      "MJ-REQ-135",
-      "MJ-REQ-208",
+      "MJ-REQ-108",
+      "MJ-REQ-112",
+      "MJ-REQ-114",
       "MJ-REQ-156",
-      "MJ-REQ-158"
+      "MJ-REQ-271"
     ],
     "status": "LOCAL_ACCEPTANCE_PASS_HOSTED_PENDING",
-    "base": "e76d3898972ac754db74a30b34bf95cc92e69948",
-    "behavior": "Explicitly reviewed conditional MOCK dry-run continuation",
-    "evidence": "docs/evidence/2026-10-12-reviewed-conditional-dry-run.json",
-    "remaining": "Only reviewed synthetic conditional single-select dry-run; generic dynamic forms and all parent acceptance remain PARTIAL. Exact candidate CI required before integration."
+    "base": "fa6706d20281b01728d38efd0d9b654f772ec7b1",
+    "behavior": "Saved-search-scoped preview, durable AI admission and immutable score provenance through history reload",
+    "evidence": "docs/evidence/2026-10-12-search-scoped-ai-evaluation.json",
+    "previous_integrated_slice": {
+      "pr": 612,
+      "source": "086ab835ac1204f3aa15cfc0781471adea63023b",
+      "merge": "fa6706d20281b01728d38efd0d9b654f772ec7b1",
+      "required_hosted_gates": "PASS",
+      "parent_acceptance": "PARTIAL"
+    },
+    "remaining": "Synthetic providers only. Exact candidate PostgreSQL, browser and required CI pending. Matching umbrella acceptance remains PARTIAL."
   }
 }

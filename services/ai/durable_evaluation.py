@@ -1,5 +1,4 @@
 """Durable advisory scoring on the existing outbox, with no uncertain call replay."""
-from dataclasses import asdict
 import hashlib
 import json
 import re
@@ -10,7 +9,7 @@ from sqlalchemy import insert, select, update
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.ai.consumer import AIJobInput, AIJobEvaluation, _prompt
-from services.ai.cost_controls import AICostPolicy, CandidateScore
+from services.ai.cost_controls import AICostPolicy
 from services.ai.tasks import AITask, AITaskConfiguration, AITaskRouter
 
 KIND = 'AI_EVALUATE_QUEUED'
@@ -34,26 +33,20 @@ def status(row):
         'operation_id': row['id'], 'request_id': row['params']['request_id']}
 
 
-def queue_evaluation(store, profile_id, request_id):
+def queue_evaluation(store, profile_id, request_id, search_profile_id=None, preview_fingerprint=None):
     if not isinstance(request_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,128}', request_id):
         raise DurableEvaluationError('AI_EVALUATION_REQUEST_INVALID')
-    profile_version = store.profile(profile_id)['version']
     policy = AICostPolicy(**(store.ai_cost_policy(profile_id) or {}))
     configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
     selection = configuration.for_task(AITask.JOB_SCORING)
+    from services.ai.selected_search_candidates import build_inputs
+    snapshot, plan, _ = build_inputs(store, profile_id, policy, configuration, search_profile_id)
+    if search_profile_id is not None and preview_fingerprint is None:
+        raise DurableEvaluationError('AI_EVALUATION_PREVIEW_REQUIRED')
     if selection.provider == 'disabled':
         raise DurableEvaluationError('AI_PROVIDER_DISABLED')
-    rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1)
-    if len(rows) > policy.max_input_candidates:
-        raise DurableEvaluationError('AI_FUNNEL_INPUT_LIMIT')
-    candidates = {row['id']: AIJobInput(row['id'], int(float(row['match_score'])),
-        row['title'], row['company'], row['description'][:8000])
-        for row in rows if row.get('match_score') is not None}
-    plan = policy.plan(CandidateScore(item.job_id, item.deterministic_score) for item in candidates.values())
-    snapshot = {'evaluator_version': EVALUATOR_VERSION,
-                'profile_version': profile_version, 'policy': asdict(policy),
-                'configuration': configuration.to_dict(),
-                'candidates': [asdict(candidates[job_id]) for job_id in plan.ai_candidate_ids]}
+    if preview_fingerprint is not None and preview_fingerprint != _digest(snapshot):
+        raise DurableEvaluationError('AI_EVALUATION_PREVIEW_CHANGED')
     operation_id = identity(KIND, profile_id, request_id)
     # Only identifiers and a digest are public operation metadata. Job text and
     # checkpoints live in an owner-scoped table, never generic operation views.
@@ -93,7 +86,8 @@ def read_evaluation(store, profile_id, operation_id):
     row = owned_operation(store, profile_id, operation_id)
     response = status(row)
     if row['state'] == 'COMPLETED':
-        runs = store.ai_evaluation_history(profile_id, run_id=operation_id)
+        from services.ai.selected_search_candidates import evaluation_history
+        runs = evaluation_history(store, profile_id, run_id=operation_id)
         result = next((run for run in runs if run['run_id'] == operation_id), None)
         if result is None:
             raise DurableEvaluationError('AI_EVALUATION_RESULT_UNAVAILABLE')

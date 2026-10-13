@@ -4,6 +4,7 @@ from __future__ import annotations
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 import json
+import errno
 from pathlib import Path
 import threading
 
@@ -24,6 +25,18 @@ class StaticHandler(SimpleHTTPRequestHandler):
             if requested.is_relative_to(STATIC.resolve()):
                 return str(requested)
         return str(STATIC / "missing")
+
+
+def static_server():
+    # Some Windows hosts allocate port 0 below the browser-safe dynamic range
+    # (observed: 3659, blocked by Chromium). Bind atomically in the high range.
+    for port in range(49152, 49252):
+        try:
+            return ThreadingHTTPServer(("127.0.0.1", port), StaticHandler)
+        except OSError as exc:
+            if exc.errno not in {errno.EADDRINUSE, errno.EACCES}:
+                raise
+    raise RuntimeError("No available high loopback port for history browser fixture")
 
 
 def fixture(source: str):
@@ -70,7 +83,7 @@ def fixture(source: str):
 
 
 def test_source_selector_distinguishes_all_local_refs_and_github():
-    server=ThreadingHTTPServer(("127.0.0.1",0),StaticHandler)
+    server=static_server()
     worker=threading.Thread(target=server.serve_forever,daemon=True)
     worker.start()
     try:
@@ -115,7 +128,7 @@ def test_source_selector_distinguishes_all_local_refs_and_github():
 
 @pytest.mark.parametrize('scenario', ['source_switch_failure', 'mismatched_source', 'return_to_original'])
 def test_old_or_mismatched_response_cannot_impersonate_selected_source(scenario):
-    server=ThreadingHTTPServer(('127.0.0.1',0),StaticHandler)
+    server=static_server()
     worker=threading.Thread(target=server.serve_forever,daemon=True)
     worker.start()
     try:
