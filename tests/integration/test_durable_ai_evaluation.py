@@ -563,6 +563,85 @@ class DurableAIEvaluationTests(unittest.TestCase):
         from services.ai.providers import OllamaProvider
         self._assert_cancel_closes_transport(OllamaProvider)
 
+    def test_slow_provider_deadline_is_durable_without_partial_evaluation(self):
+        import json
+        import threading
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        from services.ai.providers import (OllamaProvider, OpenAICompatibleProvider,
+            OpenAIProvider, AzureOpenAIProvider, LocalEndpointProvider)
+        from services.ai.tasks import AITaskRouter
+
+        for provider_type in (OllamaProvider, OpenAICompatibleProvider, OpenAIProvider,
+                              AzureOpenAIProvider, LocalEndpointProvider):
+            with self.subTest(provider=provider_type.name):
+                finish = threading.Event()
+                calls = []
+                answer = AIJobEvaluation(category='REVIEW', rationale='Synthetic').model_dump_json()
+                body = json.dumps({'response': answer, 'done': True} if provider_type is OllamaProvider
+                    else {'choices': [{'message': {'content': answer}}]}).encode()
+
+                class Handler(BaseHTTPRequestHandler):
+                    def do_POST(self):
+                        self.rfile.read(int(self.headers['Content-Length']))
+                        calls.append('synthetic request')
+                        self.send_response(200)
+                        self.send_header('Content-Length', str(len(body)))
+                        self.end_headers()
+                        try:
+                            for value in body:
+                                self.wfile.write(bytes([value]))
+                                self.wfile.flush()
+                                if finish.wait(.02):
+                                    return
+                        except (BrokenPipeError, ConnectionResetError):
+                            pass
+
+                    def log_message(self, *_args):
+                        pass
+
+                server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+                server.daemon_threads = True
+                thread = threading.Thread(target=server.serve_forever,
+                    kwargs={'poll_interval': .01}, daemon=True)
+                thread.start()
+                provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}')
+
+                class ShortBudgetProvider:
+                    capabilities = provider.capabilities
+
+                    def generate(self, **kwargs):
+                        kwargs['timeout_seconds'] = .15
+                        return provider.generate(**kwargs)
+
+                self.router = lambda configuration: AITaskRouter(configuration,
+                    provider_factory=lambda _name: ShortBudgetProvider())
+                try:
+                    admitted = self.client.post('/profiles/fixture/ai-cost-plan/evaluate/queued',
+                        json={'request_id': 'slow-provider-' + provider_type.name})
+                    self.assertEqual(admitted.status_code, 202, admitted.text)
+                    operation_id = admitted.json()['operation_id']
+                    result = self.run_worker(operation_id)
+                    self.assertEqual(result['status'], 'BLOCKED')
+                    self.assertEqual(result['error_category'], 'AI_PROVIDER_TIMEOUT')
+                    self.assertEqual(calls, ['synthetic request'])
+                    self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+                    reopened = Store(self.url)
+                    self.addCleanup(reopened.engine.dispose)
+                    with reopened.engine.connect() as connection:
+                        state = connection.execute(select(m.operations.c.state).where(
+                            m.operations.c.id == operation_id)).scalar_one()
+                        self.assertEqual(state, 'BLOCKED')
+                    readback = self.new_client().get(
+                        '/profiles/fixture/ai-cost-plan/operations/' + operation_id)
+                    self.assertEqual(readback.status_code, 200, readback.text)
+                    self.assertEqual(readback.json()['state'], 'BLOCKED')
+                    self.assertEqual(readback.json()['error'], 'AI_PROVIDER_TIMEOUT')
+                finally:
+                    finish.set()
+                    server.shutdown()
+                    server.server_close()
+                    thread.join(timeout=2)
+
     def test_cancel_closes_actual_controlled_openai_transport(self):
         from services.ai.providers import OpenAIProvider
         self._assert_cancel_closes_transport(OpenAIProvider)
