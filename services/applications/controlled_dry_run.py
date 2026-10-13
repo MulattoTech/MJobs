@@ -6,6 +6,7 @@ exist transiently; durable receipts contain identities, sizes and hashes only.
 from __future__ import annotations
 
 import hashlib
+import json
 from pathlib import Path
 
 from sqlalchemy import select
@@ -38,22 +39,31 @@ def template(provider):
         raise ControlledDryRunError("CONTROLLED_DRY_RUN_ROUTE_UNSUPPORTED")
     # No scripts, external resources, form action, or submit control. This is a
     # versioned product fixture, not a reconstruction of a public ATS form.
-    markup = f'''<!doctype html><meta charset="utf-8"><title>{provider} local fixture v1</title>
-    <form><input name="full_name" required><input name="email" type="email" required>
-    <textarea name="weekend_availability" required></textarea>
+    markup = f'''<!doctype html><meta charset="utf-8"><title>{provider} local fixture v2</title>
+    <form data-controlled-page="contact"><input name="full_name" required><input name="email" type="email" required>
+    <textarea name="weekend_availability" required></textarea></form>
+    <a data-controlled-next href="{ORIGIN}/documents">Continue to documents</a>'''
+    document_markup = f'''<!doctype html><meta charset="utf-8"><title>{provider} local documents v2</title>
+    <form data-controlled-page="documents">
     <input name="resume" type="file" accept="application/pdf" required>
     <input name="cover_letter" type="file" accept="application/pdf" required>
     <input name="supporting_documents" type="file" multiple></form>'''
     fields = [("full_name", "text", True), ("email", "email", True),
               ("weekend_availability", "textarea", True), ("resume", "file", True),
               ("cover_letter", "file", True), ("supporting_documents", "file", False)]
-    return {
-        "html": markup, "template_id": f"{provider}-local-v1",
-        "template_sha256": hashlib.sha256(markup.encode()).hexdigest(),
+    fixture = {
+        "html": markup, "document_html": document_markup, "template_id": f"{provider}-local-v2",
+        "pages": [
+            {"id": "contact", "title": "Contact and answer", "field_keys": [field[0] for field in fields[:3]]},
+            {"id": "documents", "title": "Documents", "field_keys": [field[0] for field in fields[3:]]},
+        ],
         "analysis": {"status": "ANALYZED", "reason": None, "fields": [
             {"id": None, "name": name, "type": kind, "required": required,
              "review_reason": None} for name, kind, required in fields]},
     }
+    fixture["template_sha256"] = hashlib.sha256(json.dumps(
+        fixture, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    return fixture
 
 
 def preview(store, profile_id, application_id):
@@ -73,7 +83,8 @@ def preview(store, profile_id, application_id):
         result["ready"] = False
         result["blockers"].append("SUPPORTING_DOCUMENT_UNAVAILABLE")
     return {**result, "context": CONTEXT, "provider": route["provider"],
-            "template_id": fixture["template_id"], "template_sha256": fixture["template_sha256"]}
+            "template_id": fixture["template_id"], "template_sha256": fixture["template_sha256"],
+            "pages": fixture["pages"]}
 
 
 def reviewed_preview(store, profile_id, application_id):
@@ -123,7 +134,7 @@ def queue(store, profile_id, application_id, request_id, fingerprint, *, retry_o
         params = {key: current[key] for key in (
             "profile_id", "application_id", "profile_version", "route_id", "fingerprint",
             "context", "provider", "template_id", "template_sha256",
-            "documents", "supporting_documents",
+            "documents", "supporting_documents", "pages",
         )}
         params["request_id"] = request_id
         if retry_of is not None:
@@ -244,49 +255,81 @@ def run_browser(current, prepared, supporting, *, check):
         browser = playwright.chromium.launch(headless=True, timeout=_budget_ms(check, 15000))
         try:
             context = browser.new_context(service_workers="block")
+            page = context.new_page()
+            expected_url = ORIGIN
+            visited = []
             def local_only(route):
                 request = route.request
-                if request.url == ORIGIN and request.method == "GET" and request.is_navigation_request():
-                    route.fulfill(status=200, content_type="text/html", body=fixture["html"],
-                        headers={"Content-Security-Policy": "default-src 'none'; form-action 'none'; connect-src 'none'"})
+                if (request.url == expected_url and request.method == "GET"
+                        and request.is_navigation_request() and request.frame == page.main_frame
+                        and request.redirected_from is None and request.url not in visited):
+                    visited.append(request.url)
+                    body = fixture["html"] if request.url == ORIGIN else fixture["document_html"]
+                    route.fulfill(status=200, content_type="text/html", body=body,
+                        headers={"Content-Security-Policy": "default-src 'none'; form-action 'none'; connect-src 'none'; base-uri 'none'; frame-src 'none'"})
                 else:
                     blocked.append(True)
                     route.abort()
             context.route("**/*", local_only)
-            page = context.new_page()
             page.set_default_timeout(_budget_ms(check))
             page.set_default_navigation_timeout(_budget_ms(check))
-            check()
             page.goto(ORIGIN, wait_until="domcontentloaded", timeout=_budget_ms(check))
-            if page.locator("form").count() != 1 or page.locator("form input, form textarea, form select").count() != len(current["fields"]):
-                raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
-            for field in current["fields"]:
+            manifest, proofs = [], []
+            for index, plan in enumerate(fixture["pages"]):
+                check()
                 page.set_default_timeout(_budget_ms(check))
-                if field["source"] not in {"CONTACT", "VERIFIED_ANSWER", "DOCUMENT"}:
+                fields = [field for field in current["fields"] if field["key"] in plan["field_keys"]]
+                if (blocked or context.pages != [page] or len(page.frames) != 1
+                        or page.url != expected_url or visited != [ORIGIN, ORIGIN + "/documents"][:index + 1]
+                        or page.locator("form").count() != 1
+                        or page.locator("form").get_attribute("data-controlled-page") != plan["id"]
+                        or page.locator("form").get_attribute("action") is not None
+                        or page.locator("input, textarea, select").count() != len(fields)
+                        or len(fields) != len(plan["field_keys"])
+                        or page.locator("button, iframe, frame, object, embed, script, base").count()):
                     raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
-                control = page.locator('[name="'+field["key"]+'"]')
-                if control.count() != 1:
-                    raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
-                metadata = control.evaluate("node => ({name:node.name, type:node.type, required:node.required})")
-                if metadata != {"name": field["key"], "type": field["type"], "required": field["required"]}:
-                    raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
-                if field["source"] != "DOCUMENT":
-                    control.fill(field["value"])
-                    if control.input_value() != field["value"]:
+                for field in fields:
+                    page.set_default_timeout(_budget_ms(check))
+                    if field["source"] not in {"CONTACT", "VERIFIED_ANSWER", "DOCUMENT"}:
                         raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
-            if not page.locator("form").evaluate("form => Array.from(form.elements).filter(e => e.type !== 'file').every(e => e.checkValidity())"):
-                raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
-            manifest = []
-            for snapshot, field in zip(prepared, ("resume", "cover_letter")):
+                    control = page.locator('form [name="'+field["key"]+'"]')
+                    if control.count() != 1:
+                        raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
+                    metadata = control.evaluate("node => ({name:node.name, type:node.type, required:node.required})")
+                    if metadata != {"name": field["key"], "type": field["type"], "required": field["required"]}:
+                        raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
+                    if field["source"] != "DOCUMENT":
+                        control.fill(field["value"])
+                        if control.input_value() != field["value"]:
+                            raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
+                if plan["id"] == "documents":
+                    for snapshot, field in zip(prepared, ("resume", "cover_letter")):
+                        page.set_default_timeout(_budget_ms(check))
+                        manifest.extend(attach_verified_files(page.locator('[name="'+field+'"]'), [snapshot], check=check))
+                    if supporting:
+                        page.set_default_timeout(_budget_ms(check))
+                        manifest.extend(attach_verified_files(page.locator('[name="supporting_documents"]'), supporting, check=check))
                 page.set_default_timeout(_budget_ms(check))
-                manifest.extend(attach_verified_files(page.locator('[name="'+field+'"]'), [snapshot], check=check))
-            if supporting:
-                page.set_default_timeout(_budget_ms(check))
-                manifest.extend(attach_verified_files(page.locator('[name="supporting_documents"]'), supporting, check=check))
+                if blocked or not page.locator("form").evaluate("form => form.checkValidity()"):
+                    raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
+                proofs.append({"id": plan["id"], "control_count": len(fields), "validation": "PASS"})
+                if index == 0:
+                    next_link = page.locator("a[data-controlled-next]")
+                    if (page.locator("a").count() != 1 or next_link.count() != 1
+                            or next_link.get_attribute("href") != ORIGIN + "/documents"
+                            or next_link.get_attribute("target") is not None
+                            or next_link.get_attribute("download") is not None):
+                        raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
+                    expected_url = ORIGIN + "/documents"
+                    with page.expect_navigation(wait_until="domcontentloaded", timeout=_budget_ms(check)):
+                        next_link.click(timeout=_budget_ms(check))
+                elif page.locator("a").count():
+                    raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
             check()
-            if blocked or not page.locator("form").evaluate("form => form.checkValidity()"):
+            if (blocked or len(proofs) != 2 or [proof["id"] for proof in proofs] != ["contact", "documents"]
+                    or context.pages != [page] or len(page.frames) != 1):
                 raise ControlledDryRunError("CONTROLLED_DRY_RUN_REVIEW_REQUIRED")
-            return manifest
+            return {"documents": manifest, "pages": proofs}
         finally:
             browser.close()
 
@@ -305,10 +348,10 @@ def execute(store, output_dir, operation, *, check):
         current = _current(store, params["profile_id"], params["application_id"], params["fingerprint"])
         if any(params.get(key) != current.get(key) for key in (
                 "profile_version", "route_id", "provider", "template_id", "template_sha256",
-                "documents", "supporting_documents")):
+                "documents", "supporting_documents", "pages")):
             raise ControlledDryRunError("CONTROLLED_DRY_RUN_STALE")
         prepared, supporting = _snapshots(store, output_dir, current)
-        manifest = run_browser(current, prepared, supporting, check=check)
+        browser_result = run_browser(current, prepared, supporting, check=check)
     except (ControlledDryRunError, OperationCancelled, OperationTimedOut):
         raise
     except RehearsalError:
@@ -323,7 +366,8 @@ def execute(store, output_dir, operation, *, check):
                "application_id": params["application_id"], "fingerprint": params["fingerprint"],
                "context": CONTEXT, "template_id": current["template_id"],
                "template_sha256": current["template_sha256"],
-               "verification": "BROWSER_SELECTED_BYTES", "documents": manifest,
+               "verification": "BROWSER_SELECTED_BYTES", "documents": browser_result["documents"],
+               "pages": browser_result["pages"],
                "provider_acceptance_claimed": False, "submission_enabled": False}
     with store.engine.begin() as connection:
         lock_scope(connection, params["profile_id"], params["application_id"])
