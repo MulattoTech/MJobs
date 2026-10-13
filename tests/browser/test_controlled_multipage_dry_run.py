@@ -102,7 +102,7 @@ class ControlledMultipageDryRunBrowserTests(unittest.TestCase):
 
                     panel = open_panel()
                     plan = panel.get_by_role("region", name="Ordered fixture page plan", exact=True)
-                    entries = plan.get_by_role("listitem")
+                    entries = plan.locator(":scope > ol > li")
                     expect(entries).to_have_count(2)
                     expect(entries.nth(0)).to_contain_text("Contact and answer")
                     expect(entries.nth(1)).to_contain_text("Documents")
@@ -132,7 +132,7 @@ class ControlledMultipageDryRunBrowserTests(unittest.TestCase):
 
                     acknowledgement = panel.get_by_role(
                         "checkbox",
-                        name="I reviewed these fixture values, selected documents, and the ordered page plan",
+                        name="I reviewed these fixture values, selected documents, and any provided ordered page plan",
                         exact=True,
                     )
                     acknowledgement.check()
@@ -168,16 +168,18 @@ class ControlledMultipageDryRunBrowserTests(unittest.TestCase):
                     self.assertEqual(len(receipt["documents"]), 3)
                     expect(panel.get_by_text("Fixture run: COMPLETED", exact=True)).to_be_visible()
                     proof = panel.get_by_role("region", name="Saved fixture page proof", exact=True)
-                    expect(proof.get_by_text("Contact and answer", exact=True)).to_be_visible()
-                    expect(proof.get_by_text("Documents", exact=True)).to_be_visible()
-                    expect(proof).to_contain_text("3 controls · PASS")
+                    proof_items = proof.locator(":scope > ol > li")
+                    expect(proof_items).to_have_count(2)
+                    expect(proof_items.nth(0)).to_contain_text("Contact and answer · 3 controls · PASS")
+                    expect(proof_items.nth(1)).to_contain_text("Documents · 3 controls · PASS")
 
                     page.reload(wait_until="domcontentloaded")
                     panel = open_panel()
                     proof = panel.get_by_role("region", name="Saved fixture page proof", exact=True)
-                    expect(proof.get_by_text("Contact and answer", exact=True)).to_be_visible()
-                    expect(proof.get_by_text("Documents", exact=True)).to_be_visible()
-                    expect(proof).to_contain_text("3 controls · PASS")
+                    proof_items = proof.locator(":scope > ol > li")
+                    expect(proof_items).to_have_count(2)
+                    expect(proof_items.nth(0)).to_contain_text("Contact and answer · 3 controls · PASS")
+                    expect(proof_items.nth(1)).to_contain_text("Documents · 3 controls · PASS")
                     expect(
                         panel.get_by_text(
                             "Selected document bytes verified locally. No employer acceptance or submission is claimed.",
