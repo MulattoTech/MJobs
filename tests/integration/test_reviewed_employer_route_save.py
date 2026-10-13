@@ -168,6 +168,35 @@ class ReviewedEmployerRouteSaveTests(unittest.TestCase):
                     self.assertEqual(response.json()["detail"], "ROUTE_DESTINATION_NOT_VERIFIED")
         self.assertEqual(self.route_count(), 1)
 
+    def test_matching_tenant_metadata_cannot_verify_a_different_url_identity(self):
+        cases = [
+            'https://boards.greenhouse.io/other/jobs/77',
+            'https://boards.greenhouse.io/other/jobs/routesave',
+            'https://other.example/routesave/jobs/77',
+            'https://boards.greenhouse.io/routesave/../other/jobs/77',
+            'https://boards.greenhouse.io/routesave/%2e%2e/other/jobs/77',
+        ]
+        with self.client() as client:
+            for url in cases:
+                with self.subTest(url=url), patch('apps.api.main.resolve_aggregator_redirect',
+                        return_value={**self.verified_ats_result(), 'candidate_url': url}):
+                    response = client.post('/jobs/route-save-job/routes/route-save-aggregator/'
+                                           'save-verified-destination')
+                    self.assertEqual(response.status_code, 409, response.text)
+                    self.assertEqual(response.json()['detail'], 'ROUTE_DESTINATION_NOT_VERIFIED')
+        self.assertEqual(self.route_count(), 1)
+
+    def test_persisted_wrong_greenhouse_url_is_not_presented_as_verified(self):
+        from services.dedupe.routes import load_job_routes
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.routes, {'id': 'wrong-employer-route',
+                'job_id': 'route-save-job', 'company_id': 'route-save-company',
+                'provider': 'greenhouse', 'tenant': 'routesave', 'requisition': 'wrong-77',
+                'url': 'https://boards.greenhouse.io/other/jobs/77'})
+        route = next(row for row in load_job_routes(self.store, 'route-save-job')
+                     if row['id'] == 'wrong-employer-route')
+        self.assertEqual(route['authority'], 'UNKNOWN')
+
     def test_identity_evidence_revoked_during_recheck_blocks_route_creation(self):
         def revoke_tenant(_url, **_kwargs):
             with self.store.engine.begin() as connection:

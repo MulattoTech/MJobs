@@ -88,6 +88,16 @@ def _ats_tenant_for_url(host, path, tenants):
             "*.myworkdayjobs.com" in hosts and host.endswith(".myworkdayjobs.com")
         )
         identifiers = _tenant_identifiers(row)
+        if provider == 'greenhouse':
+            # Tenant/org/board metadata elsewhere in a URL is not its board
+            # identity. Accept only the provider's structural public URL forms;
+            # encoded separators and dot segments must not change that slot.
+            match = re.fullmatch(r'/([A-Za-z0-9][A-Za-z0-9_-]{0,79})(?:/jobs/[0-9]+)?/?', path)
+            tenant = str(row.get('tenant_identifier') or '')
+            if (host_matches and identifiers and match
+                    and match[1].casefold() == tenant.casefold()):
+                return {'provider': provider, 'tenant': tenant}
+            continue
         if provider == 'lever':
             from services.discovery.sources.lever import listing_url
             tenant = str(row.get('tenant_identifier') or '')

@@ -18,6 +18,38 @@ VERIFIED_TENANTS = [{
 
 
 class DirectEmployerRouteRedirectTests(unittest.TestCase):
+    def test_greenhouse_tenant_must_be_the_structural_board_identity(self):
+        client = RouteRedirectProbeClient('https://board.example/redirect/1',
+            verified_domains=[], ats_tenants=[{**VERIFIED_TENANTS[0], 'board_identifier': '42'}])
+        try:
+            for host in ('boards.greenhouse.io', 'job-boards.greenhouse.io'):
+                self.assertTrue(client.allowed(f'https://{host}/acme'))
+                self.assertTrue(client.allowed(f'https://{host}/acme/jobs/42'))
+                for path in ('/other/jobs/42', '/other/jobs/acme', '/other/acme/jobs/42',
+                             '/other/jobs/acme-board', '/acme/../other/jobs/42',
+                             '/acme/%2e%2e/other/jobs/42', '/acme%2fother/jobs/42'):
+                    with self.subTest(host=host, path=path):
+                        self.assertFalse(client.allowed(f'https://{host}{path}'))
+        finally:
+            client.close()
+
+    def test_redirect_cannot_fetch_or_report_another_greenhouse_board(self):
+        source = 'https://board.example/redirect/1'
+        target = 'https://boards.greenhouse.io/other/jobs/acme'
+        fetched = []
+        def request_once(client, url, deadline):
+            fetched.append(url)
+            return httpx.Response(302, headers={'location': target},
+                                  request=httpx.Request('GET', url))
+        with patch.object(RouteRedirectProbeClient, '_load_robots'), \
+                patch.object(RouteRedirectProbeClient, '_request_once', request_once), \
+                patch('services.company_discovery.public_client.MIN_REQUEST_INTERVAL', 0):
+            result = resolve_aggregator_redirect(source, verified_domains=[],
+                                                 ats_tenants=VERIFIED_TENANTS)
+        self.assertEqual(result['status'], 'BLOCKED')
+        self.assertNotIn('candidate_url', result)
+        self.assertEqual(fetched, [source])
+
     def test_lever_route_requires_exact_regional_site_even_with_generic_metadata(self):
         for region, host, other in [('global','jobs.lever.co','jobs.eu.lever.co'),
                                      ('eu','jobs.eu.lever.co','jobs.lever.co')]:

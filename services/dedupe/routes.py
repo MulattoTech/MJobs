@@ -201,6 +201,16 @@ def qualify_route_authority(connection, routes):
             m.company_ats_tenants.c.provider == route["provider"],
             m.company_ats_tenants.c.tenant_identifier == route["tenant"],
         ).order_by(m.company_ats_tenants.c.id)).mappings().all()
+        if route['provider'] == 'greenhouse':
+            from services.dedupe.route_redirects import _ats_tenant_for_url
+            try:
+                valid_origin = (parsed.scheme == 'https' and parsed.port in (None, 443)
+                                and parsed.username is None and parsed.password is None)
+            except ValueError:
+                valid_origin = False
+            if (not valid_origin or _ats_tenant_for_url(
+                    host, parsed.path, [dict(row) for row in tenants]) is None):
+                continue
         if (route["provider"] in FIRST_PARTY_PROVIDERS and len(tenants) == 1
                 and 0.75 <= float(tenants[0]["confidence"]) <= 1.0
                 and isinstance(tenants[0]["evidence"], list)
