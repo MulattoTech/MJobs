@@ -19,4 +19,3 @@ def _shutdown_response_socket(response) -> None:
     except (AttributeError, OSError, TypeError, ValueError, NotImplementedError):
         # A concurrent close or a transport without socket metadata is harmless.
         return
-
