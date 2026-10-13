@@ -2,11 +2,11 @@
   "schema_version": 1,
   "source": "MJobs canonical acceptance matrices; verified checkpoints, not real-time coding activity",
   "original": {
-    "pass": 107,
-    "partial": 112,
+    "pass": 108,
+    "partial": 111,
     "not_run": 147,
     "total": 366,
-    "accepted_percent": 29.2,
+    "accepted_percent": 29.5,
     "as_of": "2026-10-11T08:34:03.129830+00:00"
   },
   "reference": {
@@ -17,6 +17,6 @@
     "accepted_percent": 32.2,
     "as_of": "2026-10-09T15:07:39Z"
   },
-  "milestone": "FRESH-PREPARATION-PRIORITY-20261013",
+  "milestone": "AI-JOB-INPUT-FRESHNESS-20261013",
   "release_readiness": "UNKNOWN"
 }

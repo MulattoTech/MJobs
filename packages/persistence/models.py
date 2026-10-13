@@ -97,6 +97,7 @@ ai_job_evaluations = table(
     Column("deterministic_score", Integer, nullable=False),
     Column("category", String(16), nullable=False),
     Column("rationale", String(1000), nullable=False),
+    Column("job_fingerprint", String(64)),
     Column("created_at", String(64), nullable=False),
     constraints=(
         UniqueConstraint("run_id", "job_id", name="uq_ai_job_evaluation_run_job"),

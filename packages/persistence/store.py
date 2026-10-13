@@ -439,7 +439,8 @@ class Store:
         return values
 
     def save_ai_evaluation_run(self, profile_id, profile_version, policy,
-                               task_provider, task_model, evaluations, *, connection=None, run_id=None):
+                               task_provider, task_model, evaluations, *, connection=None, run_id=None,
+                               job_fingerprints=None):
         """Atomically persist bounded advisory evaluations for the profile snapshot."""
         policy_fields = {"minimum_score", "max_input_candidates", "max_ai_candidates",
                          "max_document_candidates"}
@@ -472,6 +473,9 @@ class Store:
                 raise ValueError("AI_EVALUATION_INPUT_INVALID")
             seen_job_ids.add(item["job_id"])
             values.append(item)
+        if job_fingerprints is not None and (
+                not isinstance(job_fingerprints, dict) or set(job_fingerprints) != seen_job_ids):
+            raise ValueError("AI_EVALUATION_INPUT_INVALID")
 
         run_id = run_id or identity(profile_id, "ai-evaluation-run", uuid4().hex)
         created_at = now()
@@ -482,6 +486,9 @@ class Store:
             ).scalar_one()
             if current_version != profile_version:
                 raise ValueError("AI_EVALUATION_PROFILE_CHANGED")
+            if job_fingerprints is not None:
+                from services.ai.input_freshness import require_current
+                require_current(connection, job_fingerprints)
             upsert(connection, m.ai_evaluation_runs, {
                 "id": run_id,
                 "profile_id": profile_id,
@@ -503,6 +510,7 @@ class Store:
                     "deterministic_score": item["deterministic_score"],
                     "category": item["category"],
                     "rationale": item["rationale"],
+                    "job_fingerprint": (job_fingerprints or {}).get(item["job_id"]),
                     "created_at": created_at,
                 })
         return {"run_id": run_id, "profile_version": profile_version,
@@ -512,7 +520,7 @@ class Store:
 
     def ai_evaluation_history(self, profile_id, limit=20, *, run_id=None):
         """Read the newest persisted advisory evaluations for one profile."""
-        self.profile(profile_id)
+        profile = self.profile(profile_id)
         if type(limit) is not int or not 1 <= limit <= 100:
             raise ValueError("AI_EVALUATION_HISTORY_LIMIT_INVALID")
         with self.engine.connect() as connection:
@@ -533,6 +541,8 @@ class Store:
                 ).order_by(m.ai_job_evaluations.c.deterministic_score.desc(),
                            m.ai_job_evaluations.c.id)
             ).mappings()]
+            from services.ai.input_freshness import current_fingerprints
+            fingerprints = current_fingerprints(connection, list({row['job_id'] for row in evaluations}))
             reviewed = {(row["run_id"], row["job_id"]) for row in connection.execute(
                 select(m.ai_document_reviews.c.run_id, m.ai_document_reviews.c.job_id).where(
                     m.ai_document_reviews.c.profile_id == profile_id,
@@ -540,10 +550,16 @@ class Store:
                 )
             ).mappings()}
         by_run = {run_id: [] for run_id in run_ids}
+        versions = {row['id']: row['profile_version'] for row in runs}
         for row in evaluations:
+            input_status = ('UNKNOWN' if not row['job_fingerprint'] else
+                            'CURRENT' if fingerprints.get(row['job_id']) == row['job_fingerprint'] else 'STALE')
+            if versions[row['run_id']] != profile['version']:
+                input_status = 'STALE'
             by_run[row["run_id"]].append({key: row[key] for key in (
                 "job_id", "title", "company", "deterministic_score", "category", "rationale")}
-                | {"document_reviewed": (row["run_id"], row["job_id"]) in reviewed})
+                | {"document_reviewed": (row["run_id"], row["job_id"]) in reviewed,
+                   "input_status": input_status})
         return [{
             "run_id": row["id"],
             "profile_version": row["profile_version"],
@@ -565,6 +581,11 @@ class Store:
             raise ValueError("AI_DOCUMENT_REVIEW_INPUT_INVALID")
         reviewed_at = now()
         with self.engine.begin() as connection:
+            if connection.dialect.name == 'sqlite':
+                connection.exec_driver_sql('BEGIN IMMEDIATE')
+            current_version = connection.execute(
+                select(m.profiles.c.version).where(m.profiles.c.id == profile_id).with_for_update()
+            ).scalar_one()
             run = connection.execute(
                 select(m.ai_evaluation_runs).where(
                     m.ai_evaluation_runs.c.id == run_id,
@@ -573,9 +594,6 @@ class Store:
             ).mappings().first()
             if run is None:
                 raise ValueError("AI_EVALUATION_RUN_NOT_FOUND")
-            current_version = connection.execute(
-                select(m.profiles.c.version).where(m.profiles.c.id == profile_id)
-            ).scalar_one()
             if current_version != run["profile_version"]:
                 raise ValueError("AI_EVALUATION_PROFILE_CHANGED")
             allowed = set(connection.execute(
@@ -586,6 +604,7 @@ class Store:
             ).scalars())
             if not set(job_ids).issubset(allowed):
                 raise ValueError("AI_DOCUMENT_CANDIDATE_NOT_EVALUATED")
+            self._require_ai_job_inputs(connection, profile_id, run_id, job_ids)
             existing = set(connection.execute(
                 select(m.ai_document_reviews.c.job_id).where(
                     m.ai_document_reviews.c.profile_id == profile_id,
@@ -609,9 +628,25 @@ class Store:
                 "reviewed_candidate_count": len(existing | set(job_ids)),
                 "max_document_candidates": cap}
 
-    def require_reviewed_ai_document_candidate(self, profile_id, run_id, job_id):
+    def _require_ai_job_inputs(self, connection, profile_id, run_id, job_ids):
+        from services.ai.input_freshness import require_current
+        fingerprints = {row['job_id']: row['job_fingerprint'] for row in connection.execute(
+            select(m.ai_job_evaluations.c.job_id, m.ai_job_evaluations.c.job_fingerprint).where(
+                m.ai_job_evaluations.c.profile_id == profile_id,
+                m.ai_job_evaluations.c.run_id == run_id,
+                m.ai_job_evaluations.c.job_id.in_(job_ids))).mappings()}
+        if set(fingerprints) != set(job_ids):
+            raise ValueError('AI_DOCUMENT_CANDIDATE_NOT_EVALUATED')
+        require_current(connection, fingerprints)
+
+    def require_reviewed_ai_document_candidate(self, profile_id, run_id, job_id, *, connection=None):
         """Guard document preparation against stale, cross-profile, or unreviewed AI runs."""
-        with self.engine.connect() as connection:
+        with (self.engine.begin() if connection is None else nullcontext(connection)) as connection:
+            if connection.dialect.name == 'sqlite' and not connection.connection.driver_connection.in_transaction:
+                connection.exec_driver_sql('BEGIN IMMEDIATE')
+            current_version = connection.execute(
+                select(m.profiles.c.version).where(m.profiles.c.id == profile_id).with_for_update()
+            ).scalar_one()
             run = connection.execute(
                 select(m.ai_evaluation_runs.c.profile_version).where(
                     m.ai_evaluation_runs.c.id == run_id,
@@ -620,9 +655,6 @@ class Store:
             ).first()
             if run is None:
                 raise ValueError("AI_EVALUATION_RUN_NOT_FOUND")
-            current_version = connection.execute(
-                select(m.profiles.c.version).where(m.profiles.c.id == profile_id)
-            ).scalar_one()
             if current_version != run.profile_version:
                 raise ValueError("AI_EVALUATION_PROFILE_CHANGED")
             reviewed = connection.execute(
@@ -634,6 +666,7 @@ class Store:
             ).first()
             if reviewed is None:
                 raise ValueError("AI_DOCUMENT_CANDIDATE_NOT_REVIEWED")
+            self._require_ai_job_inputs(connection, profile_id, run_id, [job_id])
 
     def jobs(self, profile_id=None, q="", remote_type=None, provider=None, sort="score", limit=200,
              title="", company="", location="", salary_min=None, salary_max=None,

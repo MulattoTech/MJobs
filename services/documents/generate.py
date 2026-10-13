@@ -333,7 +333,7 @@ def _resolved_role_lens(store, profile, job, profile_id, role_lens_id,
     }
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
@@ -375,6 +375,12 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             m.companies, m.companies.c.id == m.jobs.c.company_id).where(m.jobs.c.id == job_id)
             .with_for_update(of=m.jobs)).mappings().one())
         selected_resume_stories = []
+        if ai_evaluation_run_id is not None:
+            try:
+                store.require_reviewed_ai_document_candidate(
+                    profile_id, ai_evaluation_run_id, job_id, connection=connection)
+            except ValueError as error:
+                raise PreparationError(str(error), 'AI evaluation inputs changed; evaluate and review again') from None
         if expected_job_fingerprint is not None and tailor.target_fingerprint(job) != expected_job_fingerprint:
             raise PreparationError("DOCUMENT_JOB_CHANGED", "Job changed; review it before preparing again")
         if resume_story_ids is not None:

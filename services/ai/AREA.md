@@ -42,3 +42,12 @@ Document preparation from an evaluation is a separate two-step human-reviewed wo
 Advisory evaluation now uses durable admission: both the original evaluate action and `/evaluate/queued` return HTTP 202 with an operation ID. The existing outbox dispatches `AI_EVALUATE_QUEUED` to the dedicated `mjobs-ai` worker. Private batch rows retain bounded immutable job inputs, the profile version, selected configuration and policy; generic operation metadata contains only identifiers and a snapshot digest. Owner-scoped operation list/read/cancel interfaces support reload continuity. Validated candidate responses are checkpointed, and the complete advisory history and completed operation publish in one fenced transaction. Cancellation or a changed profile prevents partial publication. If a worker dies after starting a provider call without saving its response, recovery pauses with `AI_PROVIDER_OUTCOME_UNKNOWN`; it never automatically repeats that potentially billable call.
 
 The AI Settings browser follows these saved operations instead of holding an inference request open. Compose runs a separate restricted-database AI worker and includes it in backup quiescence and restart recovery. Optional inference endpoints must be reachable from that worker under the existing provider transport restrictions; loopback refers to the worker's own runtime, not the host. No inference service is installed or started automatically. Saved encrypted credential routing and real configured-provider inference remain separate, unverified work; the durable evaluation slice does not promote either parent requirement or live provider support.
+
+Evaluator version 2 binds each candidate to a fingerprint of its full public job
+inputs, including text beyond the provider prompt cap. Admission, provider work,
+checkpoint reuse and final publication recheck those inputs under database locks.
+History reports CURRENT, STALE or UNKNOWN without rewriting the original advice.
+Legacy results have unknown provenance and cannot authorize new document work;
+old queued evaluator snapshots require a fresh explicit evaluation. Reviews and
+the document worker both recheck the saved profile and job context. Polling-only
+timestamps do not invalidate a result. No applicant facts are added to prompts.

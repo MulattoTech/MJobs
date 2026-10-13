@@ -1388,9 +1388,10 @@
       "evidence": [
         "docs/evidence/2026-10-06-ai-cost-controls.json",
         "docs/evidence/2026-10-06-ai-cost-controls-ui.json",
-        "docs/evidence/2026-10-07-ai-cost-consumer-resume.json"
+        "docs/evidence/2026-10-07-ai-cost-consumer-resume.json",
+        "docs/evidence/2026-10-13-ai-job-input-freshness.json"
       ],
-      "note": "Deterministic bounded funnel, persisted profile-scoped cost controls, structured production consumer, durable evaluation history, and explicit review-gated factual preparation are locally verified. Live configured-provider inference and complete acceptance remain NOT_RUN; MJ-REQ-110 remains PARTIAL.",
+      "note": "Deterministic bounded funnel, persisted profile-scoped cost controls, structured production consumer, durable evaluation history, and explicit review-gated factual preparation are locally verified. Live configured-provider inference and complete acceptance remain NOT_RUN; MJ-REQ-110 remains PARTIAL. Job-input freshness now fences durable evaluation, publication, review and actual document generation at 57798a83650d35d98bfa8f4f360d3c46f30b57fd; legacy provenance stays UNKNOWN. Local SQLite/PostgreSQL, migration/recovery and connected browser proof passes. Hosted checks pending; parent remains PARTIAL.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"
@@ -1502,11 +1503,11 @@
     },
     {
       "requirement_id": "MJ-REQ-119",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-13-durable-preparation-priority.json"
       ],
-      "note": "API admission to actual Linux RQ execution, PostgreSQL concurrency, hourly aging, stable ties, restart, idempotent replay, cancellation/stale-input fences and profile-scoped Chromium readback pass locally at 5a1a30c75204e681ef70243b53a610ae413f5202. Exact-head hosted gates and review remain pending; no full requirement PASS or release eligibility claimed.",
+      "note": "MJ-REQ-119 accepted after actual worker-order, fairness, restart, stale-input, duplicate, cancellation and profile-isolation proof. Source f0c00408, exact tested PR head 5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35, merged 6546837aaa553f5a6f65bfbcf8c1a5363c873f2e with identical tree. All required hosted gates and available post-merge checks passed. No broader matching or release acceptance claimed.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"

@@ -10,6 +10,7 @@ from sqlalchemy import delete, select, update
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.ai.input_freshness import job_fingerprint
 from services.discovery.matching import recalculate
 from tests.integration.test_spine import PROFILE
 
@@ -251,7 +252,7 @@ class AICostPolicyApiTests(unittest.TestCase):
                  "deterministic_score": 90 - index, "category": "STRONG",
                  "rationale": "Review the original posting before preparation."}
                 for index, (job_id, job) in enumerate(zip(job_ids, jobs))
-            ])
+            ], job_fingerprints={job['id']: job_fingerprint(job) for job in jobs})
 
         cross_profile = self.client.post(
             f"/profiles/other-profile/ai-cost-plan/evaluations/{run['run_id']}/review-documents",

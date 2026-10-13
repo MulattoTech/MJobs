@@ -1,7 +1,14 @@
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {expect,it} from 'vitest';
-import {AICandidatePreview,AISearchProvenance,AIScoreDetails} from './ai-search-provenance';
+import {AICandidatePreview,AISearchProvenance,AIScoreDetails,AIEvaluationFreshness} from './ai-search-provenance';
+
+it('labels stale and unverifiable evaluations without granting new review',()=>{
+  expect(renderToStaticMarkup(<AIEvaluationFreshness status="STALE"/>)).toContain('Job or profile changed');
+  expect(renderToStaticMarkup(<AIEvaluationFreshness status="UNKNOWN"/>)).toContain('cannot be verified');
+  expect(renderToStaticMarkup(<AIEvaluationFreshness/>)).toContain('cannot be verified');
+  expect(renderToStaticMarkup(<AIEvaluationFreshness status="CURRENT"/>)).toBe('');
+});
 
 it('labels legacy evaluations without inventing search provenance',()=>{
   expect(renderToStaticMarkup(<AISearchProvenance/>)).toContain('Profile-wide evaluation');

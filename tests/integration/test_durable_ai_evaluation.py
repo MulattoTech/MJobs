@@ -68,6 +68,177 @@ class DurableAIEvaluationTests(unittest.TestCase):
                 patch('services.ai.durable_evaluation.AITaskRouter', self.router):
             return execute_operation(operation_id)
 
+    def change_job(self):
+        job_id = self.store.jobs(profile_id='fixture')[0]['id']
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(
+                description='Changed posting: this is a different synthetic role.'))
+        return job_id
+
+    def test_changed_job_before_worker_blocks_without_provider_call(self):
+        operation = self.queue().json()['operation_id']
+        self.change_job()
+        result = self.run_worker(operation)
+        self.assertEqual(result['status'], 'BLOCKED')
+        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(self.calls, [])
+        self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+
+    def test_job_change_during_admission_rolls_back_operation(self):
+        from services.ai.selected_search_candidates import build_inputs
+        def changed_inputs(*args, **kwargs):
+            result = build_inputs(*args, **kwargs)
+            self.change_job()
+            return result
+        with patch('services.ai.selected_search_candidates.build_inputs', side_effect=changed_inputs):
+            response = self.queue()
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()['detail']['code'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(self.client.get('/profiles/fixture/ai-cost-plan/operations').json()['operations'], [])
+        self.assertEqual(self.calls, [])
+
+    def test_job_change_after_staging_is_fenced_at_publication(self):
+        from services.ai.durable_evaluation import evaluate_for_operation
+        operation = self.queue().json()['operation_id']
+        def changed_result(*args, **kwargs):
+            result = evaluate_for_operation(*args, **kwargs)
+            self.change_job()
+            return result
+        with patch('workers.tasks.evaluate_for_operation', side_effect=changed_result):
+            result = self.run_worker(operation)
+        self.assertEqual(result['status'], 'BLOCKED')
+        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+
+    def test_recovered_staged_response_is_not_reused_for_changed_job(self):
+        operation = self.queue().json()['operation_id']
+        with patch('workers.tasks.complete_evaluation', side_effect=RuntimeError('synthetic crash')):
+            with self.assertRaisesRegex(RuntimeError, 'synthetic crash'):
+                self.run_worker(operation)
+        self.change_job()
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == operation).values(
+                lease_expires_at='2000-01-01T00:00:00+00:00'))
+        self.store.engine.dispose()
+        recover_expired(self.store)
+        result = self.run_worker(operation)
+        self.assertEqual(result['status'], 'BLOCKED')
+        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+
+    def test_legacy_evaluation_is_readable_but_cannot_authorize_documents(self):
+        operation = self.queue().json()['operation_id']
+        self.assertEqual(self.run_worker(operation)['status'], 'COMPLETED')
+        job_id = self.store.jobs(profile_id='fixture')[0]['id']
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.ai_job_evaluations).where(
+                m.ai_job_evaluations.c.run_id == operation).values(job_fingerprint=None))
+        result = self.client.get('/profiles/fixture/ai-cost-plan/operations/' + operation).json()['result']
+        self.assertEqual(result['evaluations'][0]['input_status'], 'UNKNOWN')
+        response = self.client.post('/profiles/fixture/ai-cost-plan/evaluations/' + operation + '/review-documents',
+                                    json={'job_ids': [job_id]})
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()['detail']['code'], 'AI_EVALUATION_INPUT_UNKNOWN')
+        self.assertEqual(self.store.count('ai_document_reviews'), 0)
+
+    def test_polling_timestamp_does_not_invalidate_evaluation(self):
+        operation = self.queue().json()['operation_id']
+        self.assertEqual(self.run_worker(operation)['status'], 'COMPLETED')
+        job = self.store.jobs(profile_id='fixture')[0]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job['id']).values(
+                attributes={**job['attributes'], 'last_seen_at': '2030-01-01T00:00:00Z'}))
+        response = self.client.post('/profiles/fixture/ai-cost-plan/evaluations/' + operation + '/review-documents',
+                                    json={'job_ids': [job['id']]})
+        self.assertEqual(response.status_code, 200, response.text)
+
+    def test_current_review_generates_documents_once_through_worker(self):
+        job_id = self.store.jobs(profile_id='fixture')[0]['id']
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(
+                description='Responsibilities:\n- Build Python SQL services for this synthetic employer.',
+                skills=['Python', 'SQL']))
+        operation = self.queue().json()['operation_id']
+        self.assertEqual(self.run_worker(operation)['status'], 'COMPLETED')
+        reviewed = self.client.post('/profiles/fixture/ai-cost-plan/evaluations/' + operation + '/review-documents',
+                                    json={'job_ids': [job_id]})
+        self.assertEqual(reviewed.status_code, 200, reviewed.text)
+        response = self.client.post('/applications', json={
+            'profile_id': 'fixture', 'job_id': job_id, 'ai_evaluation_run_id': operation,
+            'request_id': 'reviewed-current-preparation'})
+        self.assertEqual(response.status_code, 202, response.text)
+        with patch.dict(os.environ, MJOBS_OUTPUT_DIR=str(self.root)):
+            result = self.run_worker(response.json()['operation_id'])
+            self.assertEqual(result['status'], 'COMPLETED', result)
+            self.run_worker(response.json()['operation_id'])
+        self.assertEqual(self.store.count('documents'), 2)
+        self.assertEqual(self.store.applications('fixture')[0]['state'], 'PREPARED')
+        self.assertEqual(len(self.calls), 1)
+
+    def test_change_after_provider_text_cap_still_invalidates_input(self):
+        job_id = self.store.jobs(profile_id='fixture')[0]['id']
+        prefix = 'Windows Server. ' * 600
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(description=prefix + 'original'))
+        operation = self.queue().json()['operation_id']
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(description=prefix + 'changed'))
+        result = self.run_worker(operation)
+        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(self.calls, [])
+
+    def test_changed_job_during_provider_call_never_publishes_result(self):
+        operation = self.queue().json()['operation_id']
+        change_job = self.change_job
+        class EditingRouter(self.router):
+            def generate_structured(self, **kwargs):
+                change_job()
+                return super().generate_structured(**kwargs)
+        self.router = EditingRouter
+        result = self.run_worker(operation)
+        self.assertEqual(result['status'], 'BLOCKED')
+        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(len(self.calls), 1)
+        self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+
+    def test_changed_job_history_is_stale_and_review_is_rejected(self):
+        operation = self.queue().json()['operation_id']
+        self.assertEqual(self.run_worker(operation)['status'], 'COMPLETED')
+        history_url = '/profiles/fixture/ai-cost-plan/evaluations'
+        before = self.client.get(history_url).json()['runs'][0]
+        self.assertEqual(before['evaluations'][0]['input_status'], 'CURRENT')
+        job_id = self.change_job()
+        self.store.engine.dispose()
+        self.client = self.new_client()
+        after = self.client.get(history_url).json()['runs'][0]
+        self.assertEqual(after['evaluations'][0]['input_status'], 'STALE')
+        self.assertEqual(after['evaluations'][0]['rationale'], before['evaluations'][0]['rationale'])
+        response = self.client.post(history_url + '/' + operation + '/review-documents',
+                                    json={'job_ids': [job_id]})
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()['detail']['code'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(self.store.count('ai_document_reviews'), 0)
+        self.assertEqual(self.client.get(history_url.replace('/fixture/', '/other/')).json()['runs'], [])
+
+    def test_reviewed_ai_preparation_rechecks_job_in_worker(self):
+        operation = self.queue().json()['operation_id']
+        self.assertEqual(self.run_worker(operation)['status'], 'COMPLETED')
+        job_id = self.store.jobs(profile_id='fixture')[0]['id']
+        reviewed = self.client.post('/profiles/fixture/ai-cost-plan/evaluations/' + operation + '/review-documents',
+                                    json={'job_ids': [job_id]})
+        self.assertEqual(reviewed.status_code, 200, reviewed.text)
+        prepared = self.client.post('/applications', json={
+            'profile_id': 'fixture', 'job_id': job_id, 'ai_evaluation_run_id': operation})
+        self.assertEqual(prepared.status_code, 202, prepared.text)
+        self.change_job()
+        with patch.dict(os.environ, MJOBS_OUTPUT_DIR=str(self.root)):
+            result = self.run_worker(prepared.json()['operation_id'])
+        self.assertNotEqual(result['status'], 'COMPLETED')
+        self.assertEqual(result['error_category'], 'AI_EVALUATION_JOB_CHANGED')
+        self.assertEqual(self.store.count('documents'), 0)
+
     def test_admission_reload_replay_worker_and_history(self):
         response = self.queue()
         self.assertEqual(response.status_code, 202, response.text)

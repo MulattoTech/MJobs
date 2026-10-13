@@ -15,6 +15,8 @@ from tests.integration import test_selected_search_ai as fixture
 
 class SelectedSearchAIBrowserTests(fixture.SelectedSearchAIHarness):
     def test_selection_stale_preview_worker_and_history_reload(self):
+        self.store.save_ai_cost_policy('fixture', {
+            **self.store.ai_cost_policy('fixture'), 'max_document_candidates': 1})
         sock = bound_browser_socket()
         origin = f'http://127.0.0.1:{sock.getsockname()[1]}'
         server = uvicorn.Server(uvicorn.Config(create_app(self.store, 'http://127.0.0.1:1',
@@ -79,6 +81,34 @@ class SelectedSearchAIBrowserTests(fixture.SelectedSearchAIHarness):
                     expect(history).to_contain_text('ai_intensity: 95')
                     self.run_worker(operation)
                     self.assertEqual(len(self.calls),1)
+                    consent = history.get_by_role('checkbox', name='I reviewed this AI result and approve document preparation')
+                    expect(consent).to_be_enabled()
+                    consent.check()
+                    history.get_by_role('button', name='Confirm review and open job', exact=True).click()
+                    page.get_by_role('button', name='AI Settings', exact=True).click()
+                    expect(history.get_by_role('button', name='Prepare reviewed documents', exact=True)).to_be_enabled()
+                    with self.store.engine.begin() as connection:
+                        connection.execute(update(m.jobs).where(m.jobs.c.id == self.cloud).values(
+                            description='Changed synthetic posting after evaluation and review.'))
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('button', name='AI Settings', exact=True).click()
+                    expect(history).to_contain_text('Job or profile changed')
+                    expect(history.get_by_role('button', name='Prepare reviewed documents', exact=True)).to_have_count(0)
+                    expect(history.get_by_role('checkbox')).to_have_count(0)
+                    rejected = self.client.post('/applications', json={
+                        'profile_id': 'fixture', 'job_id': self.cloud, 'ai_evaluation_run_id': operation})
+                    self.assertEqual(rejected.status_code, 409, rejected.text)
+                    self.assertEqual(rejected.json()['detail'], 'AI_EVALUATION_JOB_CHANGED')
+                    with self.store.engine.begin() as connection:
+                        connection.execute(update(m.ai_job_evaluations).where(
+                            m.ai_job_evaluations.c.run_id == operation).values(job_fingerprint=None))
+                    page.reload(wait_until='domcontentloaded')
+                    page.get_by_role('button', name='AI Settings', exact=True).click()
+                    expect(history).to_contain_text('Input freshness cannot be verified')
+                    expect(history.get_by_role('button', name='Prepare reviewed documents', exact=True)).to_have_count(0)
+                    page.locator('#active-profile').select_option('other')
+                    expect(history).to_contain_text('No saved AI evaluations for this profile')
+                    self.assertEqual(len(self.calls), 1)
                     self.assertEqual(external,[])
                 finally:
                     browser.close()

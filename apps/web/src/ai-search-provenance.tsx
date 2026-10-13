@@ -1,3 +1,10 @@
+export function AIEvaluationFreshness({status}:{status?:'CURRENT'|'STALE'|'UNKNOWN'}) {
+  if(status==='CURRENT')return null;
+  return <p role="status">{status==='STALE'
+    ? 'Job or profile changed. This saved result is historical; evaluate and review again before preparing documents.'
+    : 'Input freshness cannot be verified for this saved result. Evaluate and review again before preparing documents.'}</p>;
+}
+
 export type AISearchScope = {search_profile_id:string;name:string;criteria_digest:string;updated_at:string};
 export type AIScoreEvidence = {base_score:number;score:number;scoring_profile:{selection:string;profile_version:string|null};
   scoring_contributions:{dimension:string;raw_score:number|null;weighted_contribution:number|null;explanation:string}[]};
