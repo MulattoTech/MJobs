@@ -1,0 +1,144 @@
+{
+  "requirement": "MJ-REQ-111",
+  "issue": 112,
+  "related_requirements": [
+    "MJ-REQ-114"
+  ],
+  "source_commit": "0b3b218f685d9e863e2c05b722dfc81bd77482e4",
+  "branch": "feat/astra-ai-source-quotes-20261013",
+  "depends_on_pr": 620,
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "recorded_at_utc": "2026-10-13T19:14:01.386544+00:00",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "external_submission_enabled": false,
+  "live_provider_inference": "NOT_RUN",
+  "behavior": [
+    "Optional bounded typed posting quotes are checked against exactly the supplied title/description, excluding omitted text. Invented, wrong-field, duplicate, blank and malformed quotes fail closed with sanitized errors.",
+    "Real durable adapter responses preserve validated quotes in existing candidate checkpoints; publication failure/recovery does not repeat the provider call. An invalid second candidate prevents all batch publication.",
+    "Owner-scoped history revalidates frozen quotes and matches the published category/rationale. Legacy/missing/malformed evidence remains UNKNOWN. Later posting edits retain historical quotes with stale-input labeling.",
+    "Mounted UI renders escaped quotes with source field and explicitly says only quotations are verified; generated reasoning and applicant qualifications remain unverified. No extra model calls, schema migration or submission."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit --tb=short",
+      "result": "PASS",
+      "passed": 1567,
+      "subtests_passed": 1033,
+      "seconds": 254.63
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run",
+      "result": "PASS",
+      "passed": 793,
+      "files": 135
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "limitation": "Existing chunk-size warning."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_ai_source_quotes.py tests/integration/test_ai_source_quotes.py tests/integration/test_ai_source_quotes_postgres.py --tb=short",
+      "result": "PASS",
+      "passed": 15,
+      "subtests_passed": 10
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_ai_source_quotes.py tests/integration/test_ai_source_quotes_postgres.py tests/integration/test_profile_ai_credentials.py tests/integration/test_profile_ai_credentials_postgres.py tests/integration/test_grounded_ai_candidates.py tests/integration/test_grounded_ai_candidates_postgres.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_durable_ai_evaluation_postgres.py tests/integration/test_selected_search_ai.py tests/integration/test_selected_search_ai_postgres.py tests/integration/test_ai_cost_policy_api.py tests/integration/test_durable_ai_dispatch.py tests/integration/test_provider_credentials_api.py tests/integration/test_ai_task_settings_api.py --tb=short",
+      "result": "PASS",
+      "passed": 132,
+      "subtests_passed": 5,
+      "skipped": 0
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_profile_ai_credentials.py tests/browser/test_provider_credentials.py tests/browser/test_ai_task_settings.py tests/browser/test_selected_search_ai.py --tb=short",
+      "result": "PASS",
+      "passed": 5,
+      "seconds": 26.13
+    },
+    {
+      "command": "catalogue; agent_skills; progress validate; commit_provenance; git diff main HEAD --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": "Windows Python/Chromium with production SPA; owned PostgreSQL17 unique schemas and Redis7 database15; real OpenAI adapter with intercepted synthetic HTTP transport.",
+  "revision_equivalence": "Full units/frontend/browser ran on the same executable inputs except a defensive malformed-history type guard, covered by final quote and integration reruns. Final source differs from initial b9d147c1 only by the new two-candidate test reading the correct preview contract. Source blobs bind final inputs.",
+  "red_green_evidence": [
+    "Three initial worker/history tests failed because quote-bearing output was rejected and legacy evidence status absent; fixed after typed validation and durable readback.",
+    "One implementation import was initially placed in preview scope, producing NameError in history; moved to the owning history function.",
+    "Additional two-candidate test initially read a nonexistent top-level preview count; corrected to the actual candidates list. All publication and call-count assertions retained."
+  ],
+  "limitations": [
+    "Exact quotations do not prove generated reasoning, applicant qualifications or complete additive matching. Parent requirements remain PARTIAL.",
+    "Real/live inference and a separate local full Compose rerun NOT_RUN for this quote-only slice; prerequisite credential slice has local Compose/restart/fresh restore PASS and current hosted Compose PASS.",
+    "Primary-agent self-review only; no independent human review claim."
+  ],
+  "source_blobs": [
+    {
+      "path": "apps/web/src/ai-job-evidence.test.tsx",
+      "git_blob": "e8d2d5bbefdf3f868e2e842ef948096bf1e70dd2"
+    },
+    {
+      "path": "apps/web/src/ai-search-provenance.tsx",
+      "git_blob": "8f8bf3241fe45382eaf829a923b81b4d2aa26716"
+    },
+    {
+      "path": "apps/web/src/durable-ai-evaluation.tsx",
+      "git_blob": "bb14f4a691018f11b5fd0a8c0a7d0236a88bbdc6"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "git_blob": "6a5b3f43e7e048702aaea9a812112526a7c6c4f1"
+    },
+    {
+      "path": "services/ai/AREA.md",
+      "git_blob": "58af3da71759666068fc16bbe52a72da6203908a"
+    },
+    {
+      "path": "services/ai/consumer.py",
+      "git_blob": "07f01f54edb40481ed8d1a72914fbf5238a6cb59"
+    },
+    {
+      "path": "services/ai/durable_evaluation.py",
+      "git_blob": "86d4cda70fc4cbfe77535e5f0791cb68624ce4f1"
+    },
+    {
+      "path": "services/ai/selected_search_candidates.py",
+      "git_blob": "c8fabd83df736d61efc46c3020b316c6cc737687"
+    },
+    {
+      "path": "tests/browser/test_profile_ai_credentials.py",
+      "git_blob": "cd6f355d28ddece7debdad626110cb8f0a8f117a"
+    },
+    {
+      "path": "tests/integration/test_ai_source_quotes.py",
+      "git_blob": "22d24c0a08ee7688e06f1c61e6d37eef34879cff"
+    },
+    {
+      "path": "tests/integration/test_ai_source_quotes_postgres.py",
+      "git_blob": "7e6385b390aa9d392f281b24a9c6008ee902756a"
+    },
+    {
+      "path": "tests/integration/test_profile_ai_credentials.py",
+      "git_blob": "c00b843f86ddd9e6a53fd4cea1688a5f328bf6fa"
+    },
+    {
+      "path": "tests/unit/test_ai_source_quotes.py",
+      "git_blob": "3d1f26d6acc0ac248b7699e21b41fdb606ae3d1c"
+    }
+  ],
+  "acceptance_counts": {
+    "original_pass_before": 108,
+    "original_pass_after": 108,
+    "original_total": 366,
+    "reference_pass": 19,
+    "reference_total": 59,
+    "matching_ai_pass": 3,
+    "matching_ai_total": 20,
+    "original_p0_p1_pass": 47,
+    "original_p0_p1_total": 142
+  }
+}

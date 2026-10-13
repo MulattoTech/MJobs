@@ -152,6 +152,7 @@ services:
     environment:
       <<: *environment
       MJOBS_WORKER_QUEUE: mjobs-ai
+      MJOBS_CREDENTIAL_ENCRYPTION_KEY: ${MJOBS_CREDENTIAL_ENCRYPTION_KEY:?Run python -m cli/init_env}
       MJOBS_OLLAMA_BASE_URL: ${MJOBS_OLLAMA_BASE_URL:-http://127.0.0.1:11434}
       MJOBS_OPENAI_BASE_URL: ${MJOBS_OPENAI_BASE_URL:-https://api.openai.com/v1}
       MJOBS_OPENAI_API_KEY: ${MJOBS_OPENAI_API_KEY:-}

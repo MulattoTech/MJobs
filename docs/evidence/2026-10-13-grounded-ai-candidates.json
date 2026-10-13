@@ -14,7 +14,7 @@
   "recorded_at_utc": "2026-10-13T18:22:08.641178+00:00",
   "local_behavior": "PASS",
   "requirement_result": "PARTIAL",
-  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "hosted_checks": "PASS",
   "external_submission_enabled": false,
   "live_provider_inference": "NOT_RUN",
   "behavior": [
@@ -142,5 +142,9 @@
     "application_automation_PASS": 0,
     "application_automation_total": 51,
     "change": "No requirement promoted in this slice."
-  }
+  },
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/618",
+  "verified_head": "747b6a23fd564bfa5e62907bc06324f9a3971d12",
+  "merge_commit": "365711aa5639461921bb8ed65cf198902c4255b0",
+  "merge_tree": "ff1240a449564b7dd28d26350ad14af7eeead712"
 }

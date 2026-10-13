@@ -457,9 +457,10 @@ def execute_operation(operation_id):
                 if durable_ai_result is None or current_profile_version != durable_ai_result[0]['profile_version']:
                     state, error = 'BLOCKED', 'AI_EVALUATION_PROFILE_CHANGED'
                 else:
-                    from services.ai.durable_evaluation import require_snapshot_jobs
+                    from services.ai.durable_evaluation import require_snapshot_jobs, require_snapshot_credentials
                     try:
                         require_snapshot_jobs(connection, durable_ai_result[0])
+                        require_snapshot_credentials(connection, operation['entity_id'], durable_ai_result[0])
                     except DurableEvaluationError as failure:
                         state, error = 'BLOCKED', failure.code
             finished_at = now()

@@ -11,11 +11,22 @@ export function aiAdmissionFailure(failure:unknown) {
   const code=(failure as {code?:string})?.code;
   if(code==='AI_EVALUATION_PREVIEW_CHANGED')return {stale:true,
     message:'The saved plan changed. Preview AI work again before requesting evaluation.'};
+  if(code==='AI_PROVIDER_CREDENTIAL_CHANGED')return {stale:true,
+    message:'The saved credential changed. Preview AI work again before requesting evaluation.'};
   if(code==='AI_PROVIDER_DISABLED')return {stale:false,
     message:'Job scoring is disabled. Configure and save its provider, then preview AI work again.'};
   if(code==='AI_EVALUATION_IDENTITY_CONFLICT')return {stale:false,
     message:'This request belongs to different inputs. Check saved operations before starting another evaluation.'};
   return {stale:false,message:'Admission was not confirmed. Check status before retrying; retry uses the same request identity.'};
+}
+
+export function aiEvaluationFailure(code:string) {
+  if(code==='AI_STRUCTURED_OUTPUT_INVALID')return 'The provider response failed validation, including any supplied posting quotes. No partial advisory batch was published. Review the provider result before requesting a new evaluation.';
+  if(code==='AI_PROVIDER_OUTCOME_UNKNOWN')return 'Provider outcome is unknown. Automatic replay is paused to avoid a duplicate paid call. Review provider history before starting another evaluation.';
+  if(code==='AI_PROVIDER_CREDENTIAL_CHANGED')return 'The saved credential changed, so this batch stopped. Review provider history before requesting a new evaluation plan.';
+  if(code==='AI_PROVIDER_CREDENTIAL_UNAVAILABLE')return 'The saved credential could not be unlocked. Restore access to the existing credential store before previewing and requesting evaluation again.';
+  if(code==='AI_PROVIDER_BINDING_INVALID')return 'The saved credential source could not be verified. Preview a new evaluation plan.';
+  return `Evaluation stopped: ${code}. No partial advisory batch was published.`;
 }
 
 export function DurableAIEvaluation({profileId,canEvaluate,onCompleted,searchProfileId,previewFingerprint}:{
@@ -93,9 +104,7 @@ export function DurableAIEvaluation({profileId,canEvaluate,onCompleted,searchPro
     {operations.slice(0,10).map(row=><article key={row.operation_id} aria-label="AI evaluation operation">
       <p role="status">{row.state} · {row.current_step||'Waiting for worker'} · {row.progress||0}%</p>
       {row.cancel_requested&&active(row)&&<p role="status">Cancellation requested. Waiting for the bounded provider call; partial results will not be published.</p>}
-      {row.error&&<p>{row.error==='AI_PROVIDER_OUTCOME_UNKNOWN'
-        ? 'Provider outcome is unknown. Automatic replay is paused to avoid a duplicate paid call. Review provider history before starting another evaluation.'
-        : `Evaluation stopped: ${row.error}. No partial advisory batch was published.`}</p>}
+      {row.error&&<p>{aiEvaluationFailure(row.error)}</p>}
       {active(row)&&<button type="button" disabled={cancelling===row.operation_id||row.cancel_requested}
         onClick={()=>void cancel(row.operation_id)}>{cancelling===row.operation_id?'Cancellation requested':'Cancel AI evaluation'}</button>}
     </article>)}

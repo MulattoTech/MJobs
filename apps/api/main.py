@@ -1018,7 +1018,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             status_code = 404 if error.code == 'AI_SEARCH_NOT_FOUND' else (
                 409 if error.code in ('AI_PROVIDER_DISABLED', 'AI_EVALUATION_IDENTITY_CONFLICT',
                                       'AI_EVALUATION_PREVIEW_CHANGED', 'AI_EVALUATION_PROFILE_CHANGED',
-                                      'AI_EVALUATION_JOB_CHANGED', 'AI_EVALUATION_INPUT_UNKNOWN') else 422)
+                                      'AI_EVALUATION_JOB_CHANGED', 'AI_EVALUATION_INPUT_UNKNOWN',
+                                      'AI_PROVIDER_CREDENTIAL_CHANGED') else 422)
             raise HTTPException(status_code, {'code': error.code}) from None
         except ValueError:
             raise HTTPException(422, {'code': 'AI_SEARCH_INPUT_INVALID'}) from None

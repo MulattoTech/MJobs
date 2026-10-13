@@ -6,6 +6,21 @@ export function AIEvaluationFreshness({status}:{status?:'CURRENT'|'STALE'|'UNKNO
 }
 
 export type AISearchScope = {search_profile_id:string;name:string;criteria_digest:string;updated_at:string};
+export type AIJobEvidence = {status:'VERIFIED_QUOTES'|'UNKNOWN';quotes:{field:'title'|'description';quote:string}[]};
+export function AIJobSourceEvidence({value}:{value?:AIJobEvidence|null}) {
+  if(value?.status!=='VERIFIED_QUOTES'||!value.quotes.length)return <p className="muted">No verified posting quotes were recorded. The AI rationale is unverified advisory text.</p>;
+  return <section aria-label="Checked posting quotes"><p>These quotes match the posting text supplied for this evaluation. Only the quotations are verified; the AI rationale and applicant qualifications are not.</p>
+    {value.quotes.map((item,index)=><blockquote key={index}><p>{item.quote}</p><footer>Source: captured job {item.field}</footer></blockquote>)}</section>;
+}
+export type AIProviderAccessInfo = {provider:string;credential_source:'SAVED_PROFILE'|'RUNTIME_CONFIGURATION'|'DISABLED';destination:string|null};
+
+export function AIProviderAccess({value}:{value?:AIProviderAccessInfo|null}) {
+  if(!value)return <p className="muted">Credential source was not recorded for this saved plan.</p>;
+  if(value.credential_source==='DISABLED')return <p className="muted">AI provider disabled. This local preview makes no model calls.</p>;
+  if(value.credential_source==='SAVED_PROFILE')return <p className="muted">Uses this profile's saved OpenAI credential. Requests go only to {value.destination}. A key change requires a new plan.</p>;
+  return <p className="muted">Provider access: runtime configuration ({value.provider}). Review the configured service before requesting evaluation.</p>;
+}
+
 export type AIScoreEvidence = {basis?:string;limitation?:string;base_score:number;score:number;scoring_profile:{selection:string;profile_version:string|null};
   scoring_contributions:{dimension:string;raw_score:number|null;weighted_contribution:number|null;explanation:string}[]};
 export type AICandidate = {job_id:string;title:string;company:string;deterministic_score:number;score_evidence:AIScoreEvidence|null};
@@ -30,8 +45,9 @@ export function AIScoreDetails({value}:{value?:AIScoreEvidence|null}) {
   </details>;
 }
 
-export function AICandidatePreview({scope,basis,unscoredCount=0,candidates}:{scope?:AISearchScope|null;basis?:string|null;unscoredCount?:number;candidates:AICandidate[]}) {
+export function AICandidatePreview({scope,basis,providerAccess,unscoredCount=0,candidates}:{scope?:AISearchScope|null;basis?:string|null;providerAccess?:AIProviderAccessInfo|null;unscoredCount?:number;candidates:AICandidate[]}) {
   return <section aria-label="Planned AI candidates"><AISearchProvenance scope={scope} basis={basis}/>
+    <AIProviderAccess value={providerAccess}/>
     <p>Review these candidates before requesting evaluation. Changed inputs require a new preview.</p>
     {unscoredCount>0&&<p role="status">{unscoredCount} {unscoredCount===1?'job has':'jobs have'} unknown skill coverage and {unscoredCount===1?'is':'are'} excluded from AI work. Missing evidence is not a zero match or a qualification decision.</p>}
     {candidates.map(row=><div key={row.job_id}><strong>{row.title} · {row.company}</strong>

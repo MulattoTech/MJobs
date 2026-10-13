@@ -8,7 +8,7 @@ from sqlalchemy import insert, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
-from services.ai.consumer import AIJobInput, AIJobEvaluation, _prompt
+from services.ai.consumer import AIJobInput, AIJobEvaluation, _prompt, validate_job_evidence
 from services.ai.cost_controls import AICostPolicy
 from services.ai.tasks import AITask, AITaskConfiguration, AITaskRouter
 
@@ -74,6 +74,7 @@ def queue_evaluation(store, profile_id, request_id, search_profile_id=None, prev
             if current_version != snapshot['profile_version']:
                 raise DurableEvaluationError('AI_EVALUATION_PROFILE_CHANGED')
             require_snapshot_jobs(connection, snapshot)
+            require_snapshot_credentials(connection, profile_id, snapshot)
             connection.execute(insert(m.ai_evaluation_batches).values(
                 id=operation_id, profile_id=profile_id, snapshot=snapshot,
                 candidate_states={job_id: {'state': 'PENDING'} for job_id in plan.ai_candidate_ids}, created_at=now()))
@@ -125,6 +126,14 @@ def require_snapshot_jobs(connection, snapshot, job_id=None):
         raise DurableEvaluationError(str(error)) from None
 
 
+def require_snapshot_credentials(connection, profile_id, snapshot):
+    from services.ai.provider_credentials import require_binding, CredentialBindingError
+    try:
+        require_binding(connection, profile_id, snapshot)
+    except CredentialBindingError as error:
+        raise DurableEvaluationError(error.code) from None
+
+
 def evaluate_for_operation(store, operation, check):
     with store.engine.connect() as connection:
         batch = connection.execute(select(m.ai_evaluation_batches).where(
@@ -134,7 +143,13 @@ def evaluate_for_operation(store, operation, check):
     if (snapshot.get('evaluator_version') != EVALUATOR_VERSION
             or _digest(snapshot) != operation['params']['snapshot_digest']):
         raise DurableEvaluationError('AI_EVALUATION_INPUT_CHANGED')
-    router = AITaskRouter(AITaskConfiguration.from_mapping(snapshot['configuration']))
+    from services.ai.provider_credentials import bound_provider_factory, CredentialBindingError
+    try:
+        factory = bound_provider_factory(store, operation['entity_id'], snapshot) if snapshot['candidates'] else None
+    except CredentialBindingError as error:
+        raise DurableEvaluationError(error.code) from None
+    configuration = AITaskConfiguration.from_mapping(snapshot['configuration'])
+    router = AITaskRouter(configuration, provider_factory=factory) if factory else AITaskRouter(configuration)
     deadline = time.monotonic() + 120
     def remaining():
         seconds = min(check.remaining_seconds(), deadline - time.monotonic())
@@ -162,6 +177,7 @@ def evaluate_for_operation(store, operation, check):
             if current_version != snapshot['profile_version']:
                 raise DurableEvaluationError('AI_EVALUATION_PROFILE_CHANGED')
             require_snapshot_jobs(connection, snapshot, None if index == 0 else candidate.job_id)
+            require_snapshot_credentials(connection, operation['entity_id'], snapshot)
             states = dict(connection.execute(select(m.ai_evaluation_batches.c.candidate_states).where(
                 m.ai_evaluation_batches.c.id == operation['id'])).scalar_one())
             checkpoint = states[candidate.job_id]
@@ -177,6 +193,7 @@ def evaluate_for_operation(store, operation, check):
                     current_step='EVALUATING_CANDIDATES', progress=5 + int(85 * index / max(1, len(states))), updated_at=now()))
         if checkpoint['state'] == 'COMPLETED':
             evaluation = AIJobEvaluation.model_validate(checkpoint['result'])
+            validate_job_evidence(candidate, evaluation)
         else:
             # Once CALL_STARTED is durable, a lost response is uncertain. A
             # later attempt never guesses whether the provider charged for it.
@@ -193,11 +210,13 @@ def evaluate_for_operation(store, operation, check):
                 raise
             if not isinstance(evaluation, AIJobEvaluation):
                 raise DurableEvaluationError('AI_STRUCTURED_OUTPUT_INVALID')
+            validate_job_evidence(candidate, evaluation)
             with store.engine.begin() as connection:
                 if connection.dialect.name == 'sqlite':
                     connection.exec_driver_sql('BEGIN IMMEDIATE')
                 _fence(connection, operation)
                 require_snapshot_jobs(connection, snapshot, candidate.job_id)
+                require_snapshot_credentials(connection, operation['entity_id'], snapshot)
                 states = dict(connection.execute(select(m.ai_evaluation_batches.c.candidate_states).where(
                     m.ai_evaluation_batches.c.id == operation['id'])).scalar_one())
                 states[candidate.job_id] = {'state': 'COMPLETED', 'result': evaluation.model_dump()}
@@ -205,7 +224,8 @@ def evaluate_for_operation(store, operation, check):
                     m.ai_evaluation_batches.c.id == operation['id']).values(candidate_states=states))
         remaining()
         evaluations.append({'job_id': candidate.job_id, 'title': candidate.title, 'company': candidate.company,
-            'deterministic_score': candidate.deterministic_score, **evaluation.model_dump()})
+            'deterministic_score': candidate.deterministic_score,
+            'category': evaluation.category, 'rationale': evaluation.rationale})
     return snapshot, evaluations
 
 
