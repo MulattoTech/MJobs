@@ -1100,10 +1100,13 @@
         "name": "Grounded profile-wide AI candidates",
         "issue": 111,
         "requirement_id": "MJ-REQ-110",
-        "status": "IN_PROGRESS",
+        "status": "PARTIAL",
         "branch": "feat/astra-grounded-ai-candidates-20261013",
         "depends_on_pr": 617,
-        "acceptance": "Current approved evidence determines candidate ordering; unknown coverage is disclosed; worker/restart preserves explanation without private evidence in prompts."
+        "acceptance": "Current approved evidence determines candidate ordering; unknown coverage is disclosed; worker/restart preserves explanation without private evidence in prompts.",
+        "publication_state": "LOCAL_VERIFIED_HOSTED_PENDING",
+        "source_commit": "3fc521236daf622f3c6b776f4abc8e5de513633f",
+        "evidence": "docs/evidence/2026-10-13-grounded-ai-candidates.json"
       },
       "slice_history": [
         {

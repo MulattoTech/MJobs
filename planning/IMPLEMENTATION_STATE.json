@@ -193,9 +193,7 @@
   "active_requirements": [
     "MJ-REQ-005"
   ],
-  "active_prs": [
-    617
-  ],
+  "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -2645,14 +2643,14 @@
       "MJ-REQ-112",
       "MJ-REQ-114"
     ],
-    "status": "IN_PROGRESS",
+    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
     "branch": "feat/astra-grounded-ai-candidates-20261013",
     "depends_on_pr": 617,
     "behavior": "Current grounded profile-wide selection, disclosed unknown coverage and durable explanation readback",
     "previous_checkpoint": {
       "issue": 111,
       "requirement": "MJ-REQ-110",
-      "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+      "status": "MERGED_VERIFIED",
       "branch": "feat/astra-ai-job-freshness-20261013",
       "verified_source": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
       "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json",
@@ -2720,7 +2718,12 @@
         },
         "pr_url": "https://github.com/MulattoTech/MJobs/pull/616",
         "merge_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e"
-      }
-    }
+      },
+      "pr": 617,
+      "verified_head": "f0d8ad2ce56828fe5ef454c9483cbfc6ecab339f",
+      "merge_commit": "263cfd68490c890a40e30a0ba29473a1c246e914"
+    },
+    "verified_source": "3fc521236daf622f3c6b776f4abc8e5de513633f",
+    "evidence": "docs/evidence/2026-10-13-grounded-ai-candidates.json"
   }
 }
