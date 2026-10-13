@@ -1,0 +1,96 @@
+{
+  "requirement": "MJ-REQ-004",
+  "issue": 5,
+  "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhABPVo",
+  "source_commit": "ae781c26cf8d50447bae4175b1ac3a9f7e303968",
+  "recorded_at_utc": "2026-10-13T21:51:58.668696+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "behavior": [
+    "Cancelling a received but stalled response interrupts the request-owned socket before HTTP client close for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint providers.",
+    "Existing Ollama behavior uses the same helper. No provider retry or endpoint change occurs.",
+    "API cancellation reaches persisted CANCELLED state, survives a fresh Store read and API readback, and publishes no partial evaluation."
+  ],
+  "validation": [
+    {
+      "command": "docker run --rm --network none --mount <source-readonly:/app> --workdir /app --entrypoint python mjobs-priority-validation:20261013 -m unittest tests.unit.test_remote_provider_cancellation -v",
+      "phase": "RED",
+      "result": "FAIL",
+      "detail": "All four real loopback transports remained blocked after cancellation; future.result(timeout=1) timed out."
+    },
+    {
+      "command": "docker run --rm --network none --mount <source-readonly:/app> --workdir /app --entrypoint python mjobs-priority-validation:20261013 -m unittest tests.unit.test_remote_provider_cancellation tests.unit.test_provider_socket_cancellation tests.unit.test_ai_provider_transport tests.unit.test_ai_providers tests.unit.test_azure_openai_provider tests.unit.test_ollama_provider -q",
+      "result": "PASS",
+      "tests": 37,
+      "environment": "Linux Python 3.12; existing local image; no external network"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_evaluation.py",
+      "result": "PASS",
+      "tests": 32,
+      "subtests": 2,
+      "environment": "Windows; synthetic SQLite and loopback providers"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_ai_task_settings.py -k user_can_cancel_ai_evaluation_without_persisting_partial_batch",
+      "result": "PASS",
+      "tests": 1,
+      "deselected": 1
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "note": "Existing chunk-size warning"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS",
+      "tests": 1574,
+      "subtests": 1037,
+      "seconds": 247.07
+    },
+    {
+      "command": "docker run --rm --network none --mount <source-readonly:/app> --workdir /app --entrypoint python mjobs-priority-validation:20261013 -m unittest tests.unit.test_remote_provider_cancellation tests.unit.test_provider_socket_cancellation -q",
+      "result": "PASS",
+      "tests": 3,
+      "revision": "ae781c26cf8d50447bae4175b1ac3a9f7e303968"
+    }
+  ],
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "review": "Primary self-review only; no independent reviewer",
+  "limitations": [
+    "Live paid providers NOT_RUN. All inference transport tests use synthetic loopback HTTP.",
+    "Cancellation before response headers and all other external operations are outside this scoped proof.",
+    "No whole-product release acceptance; parent remains PARTIAL."
+  ],
+  "p0_p1_original_acceptance": {
+    "before": {
+      "PASS": 47,
+      "PARTIAL": 41,
+      "NOT_RUN": 54,
+      "total": 142
+    },
+    "after": {
+      "PASS": 47,
+      "PARTIAL": 41,
+      "NOT_RUN": 54,
+      "total": 142
+    }
+  },
+  "source_sha256": {
+    "services/ai/providers/azure_openai.py": "3d3a039f302a26eefbf0a63878cb8467421d3f10516e03fb6fd58a764e05cfd3",
+    "services/ai/providers/ollama.py": "f04c037ffc9524edd43077db18560ab37d0a7a9e0a2c4cd1719b7d5560ceaf8f",
+    "services/ai/providers/openai_compatible.py": "64ba9278767e54ed68cfb2b51ea510e9eeca362582ea66b75333f10e063d5fb1",
+    "services/ai/providers/transport.py": "c57bf7e512a1b3a9b1bec923fe3d810a1492819d15b0f03fa92d17b547f24ebc",
+    "tests/integration/test_durable_ai_evaluation.py": "f07ccc137e241b9430d2b3c7e3eead754b6e9cd33573fb9eda99dd384eb1524b",
+    "tests/unit/test_remote_provider_cancellation.py": "c855f3340ac5ee27c82159348ffa3fb972c4cdd624fe877c0aff2c8c1345fec9"
+  },
+  "slice_issue": 624,
+  "slice_project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAjQEg"
+}
