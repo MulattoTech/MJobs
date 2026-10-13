@@ -80,7 +80,7 @@ class AISourceQuoteTests(unittest.TestCase):
             'application_url': 'https://apply.example.test/quote-second', 'source_details': {},
         })
         self.assertEqual(response.status_code, 201, response.text)
-        self.assertEqual(self.fixture.preview()['ai_candidate_count'], 2)
+        self.assertEqual(len(self.fixture.preview()['candidates']), 2)
         def respond():
             if len(self.fixture.requests) == 2:
                 self.fixture.response_body['job_evidence'] = [{'field': 'title', 'quote': 'Unsupported invented title'}]
