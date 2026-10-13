@@ -82,6 +82,9 @@ class ControlledDryRunRecoveryBrowserTests(unittest.TestCase):
                     panel=open_panel()
                     expect(panel.get_by_role('region',name='Saved fixture verification')).to_be_visible()
                     expect(panel).to_contain_text('earlier attempt remains in durable history')
+                    panel.get_by_text('Earlier fixture attempt',exact=True).click()
+                    expect(panel).to_contain_text('Earlier attempt: CANCELLED')
+                    expect(panel).to_contain_text('No fixture verification receipt was saved for that attempt.')
                     with self.store.engine.connect() as connection:
                         states=connection.execute(select(m.operations.c.state).where(m.operations.c.kind=='APPLICATION_DRY_RUN',m.operations.c.entity_id==self.application_id)).scalars().all()
                     self.assertCountEqual(states,['CANCELLED','COMPLETED'])

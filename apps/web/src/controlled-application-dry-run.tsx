@@ -16,6 +16,8 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
   const path = base+'/controlled-dry-run';
   const [preview,setPreview] = useState<Preview|null>(null);
   const [run,setRun] = useState<Run|null>(null);
+  const [previousRun,setPreviousRun] = useState<Run|null>(null);
+  const [previousUnavailable,setPreviousUnavailable] = useState(false);
   const [selection,setSelection] = useState<Selection|null>(null);
   const [ids,setIds] = useState<string[]>([]);
   const [checked,setChecked] = useState(false);
@@ -50,6 +52,13 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
     return () => {epoch.current++;if(timer)clearTimeout(timer);};
   },[path,base]);
   useEffect(()=>setRetryChecked(false),[run?.request_id,run?.state]);
+  useEffect(()=>{
+    let live=true;setPreviousRun(null);setPreviousUnavailable(false);
+    if(run?.retry_of)void api<Run>(path+'/runs/'+encodeURIComponent(run.retry_of))
+      .then(result=>{if(live)setPreviousRun(result);})
+      .catch(()=>{if(live)setPreviousUnavailable(true);});
+    return ()=>{live=false;};
+  },[path,run?.retry_of]);
   useEffect(()=>{
     if(!run?.request_id || (run.state!=='QUEUED'&&run.state!=='RUNNING'))return;
     let live=true;
@@ -146,6 +155,12 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
     {run&&run.state!=='IDLE'&&<p role="status">Fixture run: {run.state}{run.error_code?' · Review required before retrying.':''}</p>}
     {active&&<button type="button" disabled={busy||run?.cancel_requested||!!run?.receipt} onClick={()=>void cancel()}>{run?.cancel_requested?'Cancellation requested':'Cancel fixture run'}</button>}
     {run?.retry_of&&<p className="muted">This is a new reviewed attempt. The earlier attempt remains in durable history.</p>}
+    {run?.retry_of&&<details><summary>Earlier fixture attempt</summary>
+      {previousUnavailable?<p>Could not read the earlier attempt. Its outcome is not assumed.</p>:previousRun?<>
+        <p>Earlier attempt: {previousRun.state} · Request {previousRun.request_id}</p>
+        {previousRun.receipt?<ul>{previousRun.receipt.documents.map(item=><li key={item.document_id}>{item.kind} · {item.size_bytes} bytes · SHA-256 {item.sha256}</li>)}</ul>:<p>No fixture verification receipt was saved for that attempt.</p>}
+      </>:<p>Loading the earlier saved attempt…</p>}
+    </details>}
     {run?.receipt&&<section aria-label="Saved fixture verification"><p>Selected document bytes verified locally. No employer acceptance or submission is claimed.</p>
       {preview&&run.receipt.fingerprint!==preview.fingerprint&&<p>This receipt belongs to earlier inputs. Review and run the current fixture to verify the changed inputs.</p>}
       <ul>{run.receipt.documents.map(item=><li key={item.document_id}>{item.kind} · {item.size_bytes} bytes · SHA-256 {item.sha256}</li>)}</ul>
