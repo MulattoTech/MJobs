@@ -1102,10 +1102,12 @@
         "related_requirements": [
           "MJ-REQ-114"
         ],
-        "status": "IN_PROGRESS",
+        "status": "LOCAL_VERIFIED_HOSTED_PENDING",
         "branch": "feat/astra-ai-source-quotes-20261013",
         "depends_on_pr": 620,
-        "acceptance": "Exact posting quote validation, durable checkpoint/restart without duplicate call, owner history and explicit unknown/advisory UI; no live model inference."
+        "acceptance": "Exact posting quote validation, durable checkpoint/restart without duplicate call, owner history and explicit unknown/advisory UI; no live model inference.",
+        "verified_source": "0b3b218f685d9e863e2c05b722dfc81bd77482e4",
+        "evidence": "docs/evidence/2026-10-13-ai-source-quotes.json"
       },
       "slice_history": [
         {
