@@ -21,6 +21,7 @@ export function aiAdmissionFailure(failure:unknown) {
 }
 
 export function aiEvaluationFailure(code:string) {
+  if(code==='AI_STRUCTURED_OUTPUT_INVALID')return 'The provider response failed validation, including any supplied posting quotes. No partial advisory batch was published. Review the provider result before requesting a new evaluation.';
   if(code==='AI_PROVIDER_OUTCOME_UNKNOWN')return 'Provider outcome is unknown. Automatic replay is paused to avoid a duplicate paid call. Review provider history before starting another evaluation.';
   if(code==='AI_PROVIDER_CREDENTIAL_CHANGED')return 'The saved credential changed, so this batch stopped. Review provider history before requesting a new evaluation plan.';
   if(code==='AI_PROVIDER_CREDENTIAL_UNAVAILABLE')return 'The saved credential could not be unlocked. Restore access to the existing credential store before previewing and requesting evaluation again.';

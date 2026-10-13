@@ -6,6 +6,12 @@ export function AIEvaluationFreshness({status}:{status?:'CURRENT'|'STALE'|'UNKNO
 }
 
 export type AISearchScope = {search_profile_id:string;name:string;criteria_digest:string;updated_at:string};
+export type AIJobEvidence = {status:'VERIFIED_QUOTES'|'UNKNOWN';quotes:{field:'title'|'description';quote:string}[]};
+export function AIJobSourceEvidence({value}:{value?:AIJobEvidence|null}) {
+  if(value?.status!=='VERIFIED_QUOTES'||!value.quotes.length)return <p className="muted">No verified posting quotes were recorded. The AI rationale is unverified advisory text.</p>;
+  return <section aria-label="Checked posting quotes"><p>These quotes match the posting text supplied for this evaluation. Only the quotations are verified; the AI rationale and applicant qualifications are not.</p>
+    {value.quotes.map((item,index)=><blockquote key={index}><p>{item.quote}</p><footer>Source: captured job {item.field}</footer></blockquote>)}</section>;
+}
 export type AIProviderAccessInfo = {provider:string;credential_source:'SAVED_PROFILE'|'RUNTIME_CONFIGURATION'|'DISABLED';destination:string|null};
 
 export function AIProviderAccess({value}:{value?:AIProviderAccessInfo|null}) {

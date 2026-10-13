@@ -38,13 +38,14 @@ class ProfileAICredentialTests(unittest.TestCase):
         self.on_request = lambda: None
         self.response_status = 200
         self.response_headers = {}
+        self.response_body = {'category': 'REVIEW', 'rationale': 'Synthetic controlled transport response.'}
         original_init = OpenAIProvider.__init__
 
         def handle(request):
             self.requests.append(request)
             self.on_request()
             return httpx.Response(self.response_status, headers=self.response_headers, json={'choices': [{'message': {'content': json.dumps({
-                'category': 'REVIEW', 'rationale': 'Synthetic controlled transport response.'})}}]})
+                **self.response_body})}}]})
 
         def initialize(provider, *args, **kwargs):
             kwargs['client_factory'] = lambda **options: httpx.Client(

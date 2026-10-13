@@ -139,19 +139,25 @@ def evaluation_history(store, profile_id, limit=20, *, run_id=None):
     No criteria or candidate text leaks through generic operation metadata.
     """
     from services.ai.provider_credentials import public_access
+    from services.ai.consumer import public_job_evidence
     runs = store.ai_evaluation_history(profile_id, limit, run_id=run_id)
     if not runs:
         return runs
     with store.engine.connect() as connection:
-        snapshots = {row['id']: row['snapshot'] for row in connection.execute(
-            select(m.ai_evaluation_batches.c.id, m.ai_evaluation_batches.c.snapshot).where(
+        batches = {row['id']: row for row in connection.execute(
+            select(m.ai_evaluation_batches.c.id, m.ai_evaluation_batches.c.snapshot,
+                   m.ai_evaluation_batches.c.candidate_states).where(
                 m.ai_evaluation_batches.c.profile_id == profile_id,
                 m.ai_evaluation_batches.c.id.in_([run['run_id'] for run in runs]))).mappings()}
     for run in runs:
-        snapshot = snapshots.get(run['run_id'], {})
+        batch = batches.get(run['run_id'], {})
+        snapshot = batch.get('snapshot', {})
+        candidates = {row['job_id']: row for row in snapshot.get('candidates', [])}
         run['provider_access'] = public_access(snapshot.get('provider_binding'))
         run['search_scope'] = snapshot.get('search_scope')
         run['scoring_basis'] = snapshot.get('scoring_basis')
         for item in run['evaluations']:
             item['score_evidence'] = snapshot.get('candidate_evidence', {}).get(item['job_id'])
+            item['job_evidence'] = public_job_evidence(candidates.get(item['job_id']),
+                batch.get('candidate_states', {}).get(item['job_id']), item)
     return runs

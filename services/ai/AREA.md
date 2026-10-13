@@ -2,6 +2,16 @@
 
 Owns provider-neutral AI contracts and explicitly configured model integrations for MJobs.
 
+Advisory job evaluations can include up to three bounded, typed posting quotes.
+The consumer checks exact text against the title or description actually supplied
+to the provider, including the description truncation boundary. Unsupported or
+duplicate quotes block the entire batch with a sanitized validation error.
+Validated quotes persist in the existing durable candidate checkpoint and are
+rechecked before reuse and owner-scoped history readback. Older or absent evidence
+remains UNKNOWN. The UI verifies only quotations, not the generated rationale,
+candidate qualifications, or a complete explanation of fit. No migration or
+additional provider call is needed for historical readback.
+
 ## Boundaries
 
 - Provider integrations live under `services/ai/providers` and implement the shared provider contract.
