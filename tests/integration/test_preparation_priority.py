@@ -21,6 +21,28 @@ from workers.tasks import execute_operation
 
 
 class PreparationPriorityTests(unittest.TestCase):
+    def test_concurrent_profile_scoring_and_preparation_admit_only_one_kind(self):
+        from threading import Barrier
+        job_id = self.job("scoring-race")
+        for attempt in range(3):
+            gate = Barrier(2)
+            def post(path, body):
+                gate.wait(timeout=5)
+                return self.client.post(path, json=body)
+            with ThreadPoolExecutor(max_workers=2) as pool:
+                scoring = pool.submit(post, "/matches", {"profile_id": "fixture", "request_id": f"score-{attempt}"})
+                preparation = pool.submit(post, "/applications", {"profile_id": "fixture", "job_id": job_id,
+                                                                  "request_id": f"prepare-{attempt}"})
+                responses = [scoring.result(timeout=15), preparation.result(timeout=15)]
+            self.assertEqual(sorted(response.status_code for response in responses), [202, 409],
+                             [response.text for response in responses])
+            accepted = next(response.json()["operation_id"] for response in responses if response.status_code == 202)
+            with self.store.engine.begin() as connection:
+                active = connection.execute(select(m.operations.c.id).where(
+                    m.operations.c.entity_id == "fixture", m.operations.c.state.in_(["QUEUED", "RUNNING"]))).scalars().all()
+                self.assertEqual(active, [accepted])
+                connection.execute(update(m.operations).where(m.operations.c.id == accepted).values(state="CANCELLED"))
+
     def database_url(self):
         return f"sqlite:///{(self.root / 'test.db').as_posix()}"
 

@@ -21,6 +21,47 @@ from workers.dispatch import enqueue_operation
 class PipelineWorkbenchActionTests(unittest.TestCase):
     JOB_ID = "f" * 64
 
+    def test_scoring_admission_replays_terminal_state_and_excludes_preparation(self):
+        from apps.api.main import create_app
+        self._seed_ready_job()
+        self.snapshot_patch.stop()
+        try:
+            with TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                      "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
+                before = client.get("/profiles/fixture/pipeline-workbench").json()
+                request = {"profile_id": "fixture", "request_id": "profile-score-retry"}
+                first = client.post("/matches", json=request)
+                self.assertEqual(first.status_code, 202, first.text)
+                operation_id = first.json()["operation_id"]
+                stale = client.post(f"/profiles/fixture/pipeline-workbench/{self.JOB_ID}/prepare", json={
+                    "request_id": "prepare-during-score", "expected_profile_version": before["profile_version"],
+                    "fingerprint": before["items"][0]["fingerprint"],
+                })
+                self.assertEqual(stale.status_code, 409, stale.text)
+                direct = client.post("/applications", json={"profile_id": "fixture", "job_id": self.JOB_ID,
+                    "request_id": "direct-during-score"})
+                self.assertEqual(direct.status_code, 409, direct.text)
+                self.assertEqual(direct.json()["detail"]["code"], "PROFILE_SCORING_IN_PROGRESS")
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(state="COMPLETED"))
+                changed = deepcopy(PROFILE)
+                changed["name"] = "Changed Synthetic Profile"
+                self.store.save_profile(changed, expected_version=before["profile_version"])
+                replay = client.post("/matches", json=request)
+                self.assertEqual(replay.status_code, 202, replay.text)
+                self.assertEqual(replay.json(), {"operation_id": operation_id, "state": "COMPLETED"})
+                prepare_id = enqueue_operation(self.store, "PREPARE", "fixture", {"job_id": self.JOB_ID})
+                refused = client.post("/matches", json={**request, "request_id": "new-during-prepare"})
+                self.assertEqual(refused.status_code, 409, refused.text)
+                self.assertEqual(refused.json()["detail"]["code"], "PROFILE_PREPARATION_IN_PROGRESS")
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(m.operations.c.id == prepare_id).values(state="COMPLETED"))
+                fresh = client.post("/matches", json={**request, "request_id": "new-during-prepare"})
+                self.assertEqual(fresh.status_code, 202, fresh.text)
+                self.assertNotEqual(fresh.json()["operation_id"], operation_id)
+        finally:
+            self.snapshot_patch.start()
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-pipeline-workbench-")
         self.root = Path(self.temp.name)
@@ -117,7 +158,7 @@ class PipelineWorkbenchActionTests(unittest.TestCase):
             "detail": {"code": "PIPELINE_PROFILE_NOT_FOUND"},
         })
 
-    def test_persisted_ready_job_queues_through_real_workbench_projection(self):
+    def _seed_ready_job(self):
         profile_version = self.store.profile("fixture")["version"]
         with self.store.engine.begin() as connection:
             connection.execute(m.companies.insert().values(
@@ -142,6 +183,8 @@ class PipelineWorkbenchActionTests(unittest.TestCase):
                 url="https://jobs.example.test/PIPELINE-001?private=synthetic",
             ))
 
+    def test_persisted_ready_job_queues_through_real_workbench_projection(self):
+        self._seed_ready_job()
         self.snapshot_patch.stop()
         try:
             snapshot = read_pipeline_workbench(self.store, "fixture")

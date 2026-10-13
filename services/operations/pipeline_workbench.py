@@ -216,6 +216,11 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
             if previous is None or sequence >= previous[0]:
                 tracking_by_entity[entity] = (sequence, status, attribution)
 
+    profile_rescores = [dict(op) for op in operations if op["kind"] == "DISCOVER"
+                        and (op["params"] or {}).get("rescore_only")
+                        and not (op["params"] or {}).get("job_id")]
+    active_rescore = _latest([op for op in profile_rescores if op["state"] in _ACTIVE_STATES])
+    scoring_operation = active_rescore or _latest(profile_rescores)
     items = []
     for job in selected_jobs:
         job_id = str(job["id"])
@@ -235,8 +240,9 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
                           if (op["params"] or {}).get("job_id") == job_id]
         active = _latest([op for op in job_operations if op["state"] in _ACTIVE_STATES])
         prepare_op = _latest([op for op in job_operations if op["kind"] == "PREPARE"])
-        discovery_active = any(op["kind"] == "DISCOVER" and op["state"] in _ACTIVE_STATES
-                               and (op["params"] or {}).get("rescore_only") for op in job_operations)
+        discovery_active = bool(active_rescore) or any(
+            op["kind"] == "DISCOVER" and op["state"] in _ACTIVE_STATES
+            and (op["params"] or {}).get("rescore_only") for op in job_operations)
         route, route_for_hash, route_blocker = _route_plan(store, job_id, profile, app, mode)
         blockers = []
         if score_state != "CURRENT":
@@ -291,6 +297,7 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
                           for doc in docs if app and doc["application_id"] == app["id"]],
             "route": dict(route_for_hash) if route_for_hash else None,
             "operation": dict(operation) if operation else None,
+            "active_rescore": active_rescore["id"] if active_rescore else None,
             "tracking": tracking,
         }
         items.append({
@@ -310,5 +317,7 @@ def read_pipeline_workbench(store, profile_id: str, limit: int = 100) -> dict:
         })
     by_stage = {stage: sum(item["stage"] == stage for item in items) for stage in STAGES}
     return {"profile_id": profile_id, "profile_version": profile_version, "items": items,
+            "scoring_operation": {"operation_id": scoring_operation["id"], "state": scoring_operation["state"]}
+            if scoring_operation else None,
             "counts": {"total": len(items), "by_stage": by_stage},
             "truncated": total > len(items)}

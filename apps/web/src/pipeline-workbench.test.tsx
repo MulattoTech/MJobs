@@ -7,6 +7,8 @@ import {
   queuePipelinePreparation,
   requestIdForPipelinePreparation,
   pipelinePreparationNotice,
+  queuePipelineScoring,
+  pipelineScoringNotice,
   type PipelineWorkbenchResponse,
   type PipelineWorkbenchItem,
 } from './pipeline-workbench';
@@ -41,6 +43,36 @@ function findElement(node:React.ReactNode,predicate:(element:TestElement)=>boole
 }
 
 describe('PipelineWorkbenchView',()=>{
+  it('labels scoring as profile-wide and blocks preparation while scoring is active',()=>{
+    const response={...workbench,scoring_operation:{operation_id:'private-score-op',state:'RUNNING' as const}};
+    const tree=PipelineWorkbenchView({profileId:'profile-a',workbench:response,loading:false,error:false,
+      onRetry:vi.fn(),onPrepare:vi.fn(),onRefreshScores:vi.fn()});
+    const refresh=findElement(tree,element=>element.type==='button'&&element.props.children==='Refresh all scores for this profile');
+    const prepare=findElement(tree,element=>element.type==='button'&&element.props.children==='Prepare application documents');
+    expect(refresh?.props.disabled).toBe(true);
+    expect(prepare?.props.disabled).toBe(true);
+    const html=renderToStaticMarkup(tree);
+    expect(html).toContain('No new source collection or employer submission');
+    expect(html).not.toContain('private-score-op');
+  });
+
+  it('queues only the requested profile and stable request identity, rejecting malformed acknowledgements',async()=>{
+    const send=vi.fn(async()=>({operation_id:'operation-1',state:'QUEUED'}));
+    await expect(queuePipelineScoring('profile-a','request-1',send)).resolves.toEqual({operation_id:'operation-1',state:'QUEUED'});
+    expect(send).toHaveBeenCalledExactlyOnceWith({profile_id:'profile-a',request_id:'request-1'});
+    for(const response of [{operation_id:'',state:'QUEUED'},{operation_id:'x',state:'SUBMITTED'},null]) {
+      await expect(queuePipelineScoring('profile-a','request-1',async()=>response)).rejects.toThrow('PIPELINE_SCORING_ACK_INVALID');
+    }
+  });
+
+  it('validates persisted score states and uses fixed terminal copy',()=>{
+    for(const state of ['QUEUED','RUNNING','COMPLETED','FAILED','CANCELLED','BLOCKED'] as const){
+      expect(parsePipelineWorkbench({...workbench,scoring_operation:{operation_id:'op',state}},'profile-a').scoring_operation?.state).toBe(state);
+      expect(pipelineScoringNotice(state)).not.toContain('submitted');
+    }
+    expect(()=>parsePipelineWorkbench({...workbench,scoring_operation:{operation_id:'op',state:'UNKNOWN'}},'profile-a')).toThrow();
+    expect(()=>parsePipelineWorkbench({...workbench,scoring_operation:{operation_id:5,state:'RUNNING'}},'profile-a')).toThrow();
+  });
   it('groups readiness stages and shows safe blockers and unknown scores distinctly',()=>{
     const html=renderToStaticMarkup(<PipelineWorkbenchView profileId="profile-a" workbench={workbench}
       loading={false} error={false} onRetry={vi.fn()} onPrepare={vi.fn()} onOpenApplication={vi.fn()}/>);

@@ -827,6 +827,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             operation_id = enqueue_operation(store, kind, entity_id, params, connection=connection,
                                              preparation_priority=preparation_priority)
         except ValueError as error:
+            if str(error) == "PROFILE_SCORING_IN_PROGRESS":
+                raise HTTPException(409, {"code": str(error)}) from None
             if str(error) in {"PREPARATION_REQUEST_CONFLICT", "PREPARATION_INPUT_CHANGED"}:
                 raise HTTPException(409, str(error)) from None
             raise
@@ -1231,8 +1233,35 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
 
     @app.post("/matches", status_code=202)
     def matches(value: DiscoveryInput):
-        profile = store.profile(value.profile_id)
-        return queued("DISCOVER", value.profile_id, {"profile_version": profile["version"], "rescore_only": True, "request_id": value.request_id})
+        # Share the profile lock with Pipeline PREPARE admission. Replay an
+        # acknowledged or lost request without resetting its durable state,
+        # even when the profile has subsequently changed.
+        with store.engine.begin() as connection:
+            if connection.dialect.name == "sqlite":
+                connection.exec_driver_sql("BEGIN IMMEDIATE")
+            statement = select(m.profiles.c.version).where(m.profiles.c.id == value.profile_id)
+            if connection.dialect.name == "postgresql":
+                statement = statement.with_for_update()
+            version = connection.execute(statement).scalar_one_or_none()
+            if version is None:
+                raise HTTPException(404, {"code": "PIPELINE_PROFILE_NOT_FOUND"})
+            if value.request_id:
+                previous = connection.execute(select(m.operations).where(
+                    m.operations.c.entity_id == value.profile_id,
+                    m.operations.c.kind == "DISCOVER",
+                    m.operations.c.params["rescore_only"].as_boolean() == True,
+                    m.operations.c.params["request_id"].as_string() == value.request_id,
+                )).mappings().first()
+                if previous:
+                    return {"operation_id": previous["id"], "state": previous["state"]}
+            if connection.execute(select(m.operations.c.id).where(
+                m.operations.c.kind == "PREPARE", m.operations.c.entity_id == value.profile_id,
+                m.operations.c.state.in_(["QUEUED", "RUNNING"]),
+            ).limit(1)).scalar_one_or_none():
+                raise HTTPException(409, {"code": "PROFILE_PREPARATION_IN_PROGRESS"})
+            return queued("DISCOVER", value.profile_id, {
+                "profile_version": version, "rescore_only": True, "request_id": value.request_id,
+            }, connection=connection)
 
     @app.post("/companies/discovery", status_code=202)
     def company_discovery(value: CompanyDiscoveryInput):

@@ -27,6 +27,7 @@ export type PipelineWorkbenchResponse = {
   profile_version:string;
   items:PipelineWorkbenchItem[];
   counts:{total:number;by_stage:Partial<Record<PipelineStage,number>>};
+  scoring_operation?:{operation_id:string;state:PipelineOperationState}|null;
 };
 export type PipelinePrepareRequest = {request_id:string;expected_profile_version:string;fingerprint:string};
 export type PipelinePrepareAcknowledgement = {request_id:string;job_id:string;operation_id:string;state:PipelineOperationState;next_action:'REFRESH_WORKBENCH'};
@@ -140,7 +141,26 @@ export function parsePipelineWorkbench(value:unknown,profileId:string):PipelineW
       ...(row.operation_id!==undefined?{operation_id:row.operation_id}:{}),
     });
   }
-  return {profile_id:profileId,profile_version:value.profile_version,items,counts:{total:value.counts.total,by_stage:byStage}};
+  const scoring=value.scoring_operation;
+  if(scoring!=null&&(!isRecord(scoring)||typeof scoring.operation_id!=='string'||!scoring.operation_id||
+    scoring.operation_id.length>200||!isPipelineOperationState(scoring.state)))throw new Error('PIPELINE_RESPONSE_INVALID');
+  return {profile_id:profileId,profile_version:value.profile_version,items,counts:{total:value.counts.total,by_stage:byStage},
+    scoring_operation:scoring?{operation_id:scoring.operation_id as string,state:scoring.state as PipelineOperationState}:null};
+}
+
+export async function queuePipelineScoring(profileId:string,requestId:string,
+  send:(body:{profile_id:string;request_id:string})=>Promise<unknown>):Promise<{operation_id:string;state:PipelineOperationState}> {
+  if(!profileId||!requestId)throw new Error('PIPELINE_SCORING_INVALID');
+  const response=await send({profile_id:profileId,request_id:requestId});
+  if(!isRecord(response)||typeof response.operation_id!=='string'||!response.operation_id||response.operation_id.length>200||
+    !isPipelineOperationState(response.state))throw new Error('PIPELINE_SCORING_ACK_INVALID');
+  return {operation_id:response.operation_id,state:response.state};
+}
+
+export function pipelineScoringNotice(state:PipelineOperationState):string {
+  if(state==='QUEUED'||state==='RUNNING')return 'Scores are refreshing for this profile. Preparation waits until scoring finishes.';
+  if(state==='COMPLETED')return 'Score refresh completed. Readiness reflects the saved scores for this profile.';
+  return 'Score refresh did not complete. Review readiness, then refresh scores again when ready.';
 }
 
 export async function queuePipelinePreparation(
@@ -209,6 +229,8 @@ type ViewProps={
   onPrepare:(item:PipelineWorkbenchItem)=>void;
   onOpenApplication?:(applicationId:string)=>void;
   busyJobId?:string|null;
+  onRefreshScores?:()=>void;
+  scoringBusy?:boolean;
 };
 
 function selectedItems(items:PipelineWorkbenchItem[],filter:StageFilter):PipelineWorkbenchItem[] {
@@ -216,7 +238,7 @@ function selectedItems(items:PipelineWorkbenchItem[],filter:StageFilter):Pipelin
 }
 
 export function PipelineWorkbenchView({profileId,workbench,loading,error,notice,actionError,stageFilter='ALL',onStageFilter,
-  onRetry,onPrepare,onOpenApplication,busyJobId}:ViewProps) {
+  onRetry,onPrepare,onOpenApplication,busyJobId,onRefreshScores,scoringBusy}:ViewProps) {
   if(!profileId)return <section className="panel" aria-label="Pipeline workbench"><h2>Pipeline workbench</h2>
     <p>Select a profile to view its pipeline readiness.</p></section>;
   if(loading)return <section className="panel" aria-label="Pipeline workbench" aria-busy="true"><h2>Pipeline workbench</h2>
@@ -230,11 +252,16 @@ export function PipelineWorkbenchView({profileId,workbench,loading,error,notice,
     <button type="button" onClick={onRetry}>Reload pipeline</button></section>;
 
   const visible=selectedItems(workbench.items,stageFilter);
+  const scoringActive=scoringBusy||['QUEUED','RUNNING'].includes(workbench.scoring_operation?.state||'');
   const groups=stageFilter==='ALL'?PIPELINE_STAGES:[stageFilter];
   return <section className="panel pipeline-workbench" aria-label="Pipeline workbench">
     <div className="toolbar"><div><h2>Pipeline workbench</h2>
       <p>{workbench.counts.total} jobs in this profile. Readiness is profile-specific and may change when facts, routes, or documents change.</p></div>
       <button type="button" onClick={onRetry}>Refresh readiness</button></div>
+    {onRefreshScores&&<div><button type="button" onClick={onRefreshScores}
+      disabled={scoringActive||!!busyJobId||workbench.items.some(item=>item.stage==='PREPARING')}>
+      Refresh all scores for this profile</button><p className="muted">Re-score known jobs using this profile. No new source collection or employer submission.</p></div>}
+    {workbench.scoring_operation&&<p role="status">{pipelineScoringNotice(workbench.scoring_operation.state)}</p>}
     {notice&&<p className="notice" role="status">{notice}</p>}
     {actionError&&<p className="alert" role="alert">{actionError}</p>}
     <label>Group by readiness
@@ -267,7 +294,7 @@ export function PipelineWorkbenchView({profileId,workbench,loading,error,notice,
                   : <p className="muted">No additional readiness reason was recorded.</p>}
               <div className="pipeline-workbench-actions" style={{display:'flex',flexWrap:'wrap',gap:8,marginTop:12}}>
                 {item.can_prepare&&item.stage==='READY_TO_PREPARE'&&<button type="button" className="primary"
-                  disabled={busy||!!busyJobId} onClick={()=>onPrepare(item)}>{busy?'Queueing preparation…':'Prepare application documents'}</button>}
+                  disabled={busy||!!busyJobId||scoringActive} onClick={()=>onPrepare(item)}>{busy?'Queueing preparation…':'Prepare application documents'}</button>}
                 {item.application_id&&onOpenApplication&&<button type="button" onClick={()=>onOpenApplication(item.application_id!)}>
                   Open existing application</button>}
               </div>
@@ -290,13 +317,15 @@ export function PipelineWorkbench({profileId,onOpenApplication}:{profileId:strin
   const [busyJobId,setBusyJobId]=useState<string|null>(null);
   const [stageFilter,setStageFilter]=useState<StageFilter>('ALL');
   const requestIds=React.useRef(new Map<string,string>());
-  const scope=React.useRef(profileId);
-  scope.current=profileId;
+  const [scoringBusy,setScoringBusy]=useState(false);
+  const scoringRequests=React.useRef(new Map<string,string>());
+  const scope=React.useRef({profileId});
+  if(scope.current.profileId!==profileId)scope.current={profileId};
 
   useEffect(()=>{
     let current=true;
     setErrorProfileId(null);
-    setActionError(null);
+    setScoringBusy(false);
     if(!profileId){setLoaded(null);setLoadedProfileId(null);setLoading(false);setBusyJobId(null);setStageFilter('ALL');return ()=>{current=false;};}
     setLoading(true);
     setLoaded(null);
@@ -311,21 +340,64 @@ export function PipelineWorkbench({profileId,onOpenApplication}:{profileId:strin
     return ()=>{current=false;};
   },[profileId,attempt]);
 
+  const polling=loadedProfileId===profileId&&!!loaded&&(
+    ['QUEUED','RUNNING'].includes(loaded.scoring_operation?.state||'')||loaded.items.some(item=>item.stage==='PREPARING'));
+  useEffect(()=>{
+    if(!profileId||!polling)return;
+    let active=true;
+    let timer:ReturnType<typeof setTimeout>;
+    const poll=async()=>{
+      try {
+        const result=parsePipelineWorkbench(await apiClient.load(profileId),profileId);
+        if(active){setLoaded(result);setLoadedProfileId(profileId);setNotice(null);timer=setTimeout(poll,1000);}
+      } catch {if(active){setLoaded(null);setErrorProfileId(profileId);}}
+    };
+    timer=setTimeout(poll,1000);
+    return()=>{active=false;clearTimeout(timer);};
+  },[profileId,attempt,polling]);
+
+  async function refreshScores() {
+    if(!profileId||scoringBusy||busyJobId)return;
+    const activeScope=scope.current;
+    const key=`mjobs-pipeline-score-request:${profileId}`;
+    let requestId=scoringRequests.current.get(profileId);
+    if(!requestId){
+      try {requestId=sessionStorage.getItem(key)||undefined;}catch{/* In-memory retry remains available. */}
+      requestId=requestId||crypto.randomUUID();
+      scoringRequests.current.set(profileId,requestId);
+      try {sessionStorage.setItem(key,requestId);}catch{/* No private values are stored. */}
+    }
+    setScoringBusy(true);setActionError(null);
+    try {
+      await queuePipelineScoring(profileId,requestId,body=>api<unknown>('/matches',{method:'POST',body:JSON.stringify(body)}));
+      scoringRequests.current.delete(profileId);
+      try {sessionStorage.removeItem(key);}catch{/* Safe to replay the same request. */}
+      if(scope.current===activeScope)setAttempt(value=>value+1);
+    } catch {
+      if(scope.current===activeScope){
+        setActionError({profileId,text:'Score refresh could not be confirmed. Saved progress is shown below; retry uses the same request.'});
+        setAttempt(value=>value+1);
+      }
+    } finally {if(scope.current===activeScope)setScoringBusy(false);}
+  }
+
   async function prepare(item:PipelineWorkbenchItem) {
-    if(!profileId||!loaded||loadedProfileId!==profileId||busyJobId)return;
+    if(!profileId||!loaded||loadedProfileId!==profileId||busyJobId||scoringBusy||
+      ['QUEUED','RUNNING'].includes(loaded.scoring_operation?.state||''))return;
     const activeProfile=profileId;
+    const activeScope=scope.current;
     const requestId=requestIdForPipelinePreparation(requestIds.current,activeProfile,item.job_id);
     setBusyJobId(item.job_id);setActionError(null);
     try {
       const acknowledgement=await queuePipelinePreparation(apiClient,activeProfile,loaded.profile_version,item,requestId);
-      if(scope.current!==activeProfile)return;
+      if(scope.current!==activeScope)return;
       requestIds.current.delete(`${activeProfile}\u0000${item.job_id}`);
       setNotice({profileId:activeProfile,text:pipelinePreparationNotice(acknowledgement.state)});
       setAttempt(value=>value+1);
     } catch {
-      if(scope.current===activeProfile)setActionError({profileId:activeProfile,text:'Readiness may have changed or preparation could not be queued. Refresh to review the latest reasons.'});
+      if(scope.current===activeScope)setActionError({profileId:activeProfile,text:'Readiness may have changed or preparation could not be queued. Refresh to review the latest reasons.'});
     } finally {
-      if(scope.current===activeProfile)setBusyJobId(null);
+      if(scope.current===activeScope)setBusyJobId(null);
     }
   }
 
@@ -335,5 +407,6 @@ export function PipelineWorkbench({profileId,onOpenApplication}:{profileId:strin
   const visibleWorkbench=loadedProfileId===profileId?loaded:null;
   return <PipelineWorkbenchView profileId={profileId} workbench={visibleWorkbench} loading={loading||!!profileId&&!visibleWorkbench&&!activeError}
     error={activeError} notice={activeNotice} actionError={activeActionError} stageFilter={stageFilter} onStageFilter={setStageFilter}
-    onRetry={()=>setAttempt(value=>value+1)} onPrepare={item=>void prepare(item)} onOpenApplication={onOpenApplication} busyJobId={busyJobId}/>;
+    onRetry={()=>{setActionError(null);setAttempt(value=>value+1);}} onPrepare={item=>void prepare(item)} onOpenApplication={onOpenApplication}
+    busyJobId={busyJobId} onRefreshScores={()=>void refreshScores()} scoringBusy={scoringBusy}/>;
 }

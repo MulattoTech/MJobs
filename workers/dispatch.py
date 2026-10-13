@@ -37,6 +37,12 @@ def enqueue_operation(store, kind, entity_id, params, *, connection=None, prepar
                     if original != params:
                         raise ValueError("PREPARATION_REQUEST_CONFLICT")
                     return prior["id"]
+            if conn.execute(select(m.operations.c.id).where(
+                m.operations.c.kind == "DISCOVER", m.operations.c.entity_id == entity_id,
+                m.operations.c.state.in_(["QUEUED", "RUNNING"]),
+                m.operations.c.params["rescore_only"].as_boolean() == True,
+            ).limit(1)).scalar_one_or_none():
+                raise ValueError("PROFILE_SCORING_IN_PROGRESS")
             if profile_version != preparation_priority["profile_version"]:
                 raise ValueError("PREPARATION_INPUT_CHANGED")
             from services.documents.tailor import target_fingerprint
