@@ -18,6 +18,16 @@ const operation: OperationProgressRecord = {
 };
 
 describe('persistent operation progress', () => {
+  it('explains saved preparation priority and bounded aging without exposing internal snapshots', () => {
+    const waiting = { ...operation, operation_type: 'PREPARE', state: 'QUEUED', preparation_priority: {
+      tier: 4, effective_tier: 0, queue_priority: 'STALE', enqueued_at: '2026-10-11T00:00:00Z',
+      aging_interval_seconds: 3600, basis: 'APPROVED_SKILL_EVIDENCE_AND_POSTING_AGE',
+    }};
+    const html = renderToStaticMarkup(<OperationProgress operations={[waiting]} />);
+    expect(html).toContain('Preparation priority:');
+    expect(html).toContain('Promoted while waiting');
+    expect(html).toContain('Approved skill evidence and posting age');
+  });
   it('shows the persisted retry deadline while safely queued', () => {
     const waiting = { ...operation, state: 'QUEUED', current_step: 'RETRY_WAIT',
       next_attempt_at: '2026-10-11T10:04:00Z', completed_at: null };

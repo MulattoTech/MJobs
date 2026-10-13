@@ -361,6 +361,7 @@ def execute_operation(operation_id):
             elif operation["kind"] == "PREPARE":
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
                         ai_evaluation_run_id=operation['params'].get('ai_evaluation_run_id'),
+                        expected_job_fingerprint=(operation["params"].get("preparation_priority") or {}).get("job_fingerprint"),
                         check=check, profile_version=operation["params"].get("profile_version"),
                         route_mode=operation["params"].get("route_mode", "DEFAULT"), route_id=operation["params"].get("route_id"),
                         tailor_resume=operation["params"].get("tailor_resume", False),

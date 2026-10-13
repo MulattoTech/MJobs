@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
+      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -398,7 +398,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company\u2019s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company’s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
       "head": "d93508f4da500e139c62eedc5171ff975ef70462",
@@ -1236,37 +1236,15 @@
       "draft_until_verified": true,
       "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Issue #117 / MJ-REQ-116 match-category display integrated locally at f1afad5541ebcad1cd07e35b5366b78df4e1f637 and accepted PASS with docs/evidence/2026-10-08-match-categories.json. Issue closeout/readback pending. Parent MJ-PR-032 remains QUEUED with MJ-PR-031 and MJ-PR-025 dependencies unchanged; no other grouped requirement promoted. Issue #118 / MJ-REQ-117 verified-experience weighting is integrated locally at a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06 (source c9ed0540469593a1f8fcb8a99b60b4f03373999a; evidence docs/evidence/2026-10-09-experience-weighted-matching.json) and remains OPEN/PARTIAL. Local focused Python/Chromium 31 plus 2 subtests, frontend 540, build, compilation, lane and diff checks PASS. Full Python, PostgreSQL and hosted checks NOT_RUN_BY_USER_POLICY; no push; external submission OFF. MJ-PR-032 dependencies MJ-PR-031 and MJ-PR-025 remain unchanged. Root integrated local candidate e90ac3edb32b55d1e1b956109355642e5e7a6321 (tree ceb103970f9d1ccfc3c8def08a123ba97aa6ba28): deterministic profile-grounded preference weights and read-only draft ranking preview are connected through existing APIs and UI. Selected unit/integration/browser checks: 1056 passed, 553 subtests passed, 1 skipped; two browser cases passed after building the fresh worktree frontend. Web 583/583, build and validators passed. Evidence docs/evidence/2026-10-10-matching-sprint-integration.json. MJ-REQ-117 remains PARTIAL; hosted/PostgreSQL NOT_RUN.",
       "active_slice": {
-        "name": "Weight matching with verified, user-approved candidate experience",
-        "issue": 118,
-        "requirement_id": "MJ-REQ-117",
-        "status": "INTEGRATED_PARTIAL",
-        "publication_state": "LOCAL_MAIN_FAST_FORWARD",
-        "source_commit": "c9ed0540469593a1f8fcb8a99b60b4f03373999a",
-        "integrated_main": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
-        "integrated_tree": "5642fe155f7e01fb0d3ee67f8c00adca4130cebd",
-        "base_commit": "b4a00ba3a043ab67c2cdad0bba31d2eb1cd8148b",
-        "depends_on": [],
-        "parent_dependencies_preserved": [
-          "MJ-PR-031",
-          "MJ-PR-025"
-        ],
-        "owned_paths": [
-          "apps/web/src/role-scoring-profile-editor.tsx",
-          "apps/web/src/role-scoring-custom-dimensions.test.tsx",
-          "services/discovery/matching.py",
-          "services/matching/profile_scoring.py",
-          "services/matching/selected_search_scoring.py",
-          "tests/unit/test_profile_scoring.py",
-          "tests/integration/test_matching_explanation_contributions.py",
-          "tests/browser/test_role_scoring_profile_reload_match.py",
-          "docs/evidence/2026-10-09-experience-weighted-matching.json"
-        ],
-        "acceptance": "The selected saved-search profile exposes a Verified experience weight. Recalculation derives the dimension only from verified, user-approved, source-backed profile experience facts with confidence >=80 and normalized recognized job-skill overlap; missing evidence and posting-provided experience signals stay UNKNOWN/neutral. The score and provenance persist and read back without changing eligibility or another search.",
-        "rationale": "This verifies the previously missing candidate-fact input for the experience weighting dimension. Broader configurable weighting remains partial; parent requirements and dependencies are not promoted.",
-        "evidence_path": "docs/evidence/2026-10-09-experience-weighted-matching.json",
-        "verification": "31 focused Python/unit/integration/connected Chromium tests plus 2 subtests; 95 frontend files/540 tests; TypeScript/Vite build; py_compile, lane validation and git diff check all PASS. PostgreSQL, full Python suite and hosted checks NOT_RUN_BY_USER_POLICY.",
-        "issue_state": "OPEN/PARTIAL",
-        "issue_comment": "https://github.com/MulattoTech/MJobs/issues/118#issuecomment-6085121375"
+        "name": "Durable fresh-match preparation priority",
+        "issue": 120,
+        "requirement_id": "MJ-REQ-119",
+        "status": "PARTIAL",
+        "publication_state": "PR_OPEN_REPAIRED_HOSTED_PENDING",
+        "source_commit": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
+        "branch": "feat/astra-medium-redzone-root-20261013",
+        "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
+        "pr_number": 616
       },
       "completed_slices": [
         {
@@ -1299,6 +1277,39 @@
             "claim_release_receipt": "https://github.com/MulattoTech/MJobs/issues/117#issuecomment-6053209106",
             "read_back_at_utc": "2026-10-08T05:43:46Z"
           }
+        },
+        {
+          "name": "Weight matching with verified, user-approved candidate experience",
+          "issue": 118,
+          "requirement_id": "MJ-REQ-117",
+          "status": "INTEGRATED_PARTIAL",
+          "publication_state": "LOCAL_MAIN_FAST_FORWARD",
+          "source_commit": "c9ed0540469593a1f8fcb8a99b60b4f03373999a",
+          "integrated_main": "a34cc0ce1b3453700d3eb02a5d21ab6539c1dc06",
+          "integrated_tree": "5642fe155f7e01fb0d3ee67f8c00adca4130cebd",
+          "base_commit": "b4a00ba3a043ab67c2cdad0bba31d2eb1cd8148b",
+          "depends_on": [],
+          "parent_dependencies_preserved": [
+            "MJ-PR-031",
+            "MJ-PR-025"
+          ],
+          "owned_paths": [
+            "apps/web/src/role-scoring-profile-editor.tsx",
+            "apps/web/src/role-scoring-custom-dimensions.test.tsx",
+            "services/discovery/matching.py",
+            "services/matching/profile_scoring.py",
+            "services/matching/selected_search_scoring.py",
+            "tests/unit/test_profile_scoring.py",
+            "tests/integration/test_matching_explanation_contributions.py",
+            "tests/browser/test_role_scoring_profile_reload_match.py",
+            "docs/evidence/2026-10-09-experience-weighted-matching.json"
+          ],
+          "acceptance": "The selected saved-search profile exposes a Verified experience weight. Recalculation derives the dimension only from verified, user-approved, source-backed profile experience facts with confidence >=80 and normalized recognized job-skill overlap; missing evidence and posting-provided experience signals stay UNKNOWN/neutral. The score and provenance persist and read back without changing eligibility or another search.",
+          "rationale": "This verifies the previously missing candidate-fact input for the experience weighting dimension. Broader configurable weighting remains partial; parent requirements and dependencies are not promoted.",
+          "evidence_path": "docs/evidence/2026-10-09-experience-weighted-matching.json",
+          "verification": "31 focused Python/unit/integration/connected Chromium tests plus 2 subtests; 95 frontend files/540 tests; TypeScript/Vite build; py_compile, lane validation and git diff check all PASS. PostgreSQL, full Python suite and hosted checks NOT_RUN_BY_USER_POLICY.",
+          "issue_state": "OPEN/PARTIAL",
+          "issue_comment": "https://github.com/MulattoTech/MJobs/issues/118#issuecomment-6085121375"
         }
       ]
     },
@@ -1804,7 +1815,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
+      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1824,7 +1835,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -2659,7 +2670,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
+      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -2679,7 +2690,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3000,7 +3011,7 @@
           "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
           "Six-month source history with no strong matches schedules less often.",
           "Insufficient evidence keeps the configured baseline.",
-          "Every interval is clamped to 300\u2013604800 seconds; failures retain existing bounded retry behavior.",
+          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
           "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
         ],
         "status": "ACTIVE_IMPLEMENTATION",

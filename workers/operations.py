@@ -5,7 +5,7 @@ from hmac import compare_digest
 import os
 from uuid import uuid4
 
-from sqlalchemy import func, select, text, update
+from sqlalchemy import func, or_, select, text, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now
@@ -158,6 +158,17 @@ def claim(store, operation_id):
         if active >= limit(kind) or _application_browser_busy(connection, category, kind, row["entity_id"]):
             return None
         timestamp = now()
+        if kind == "PREPARE":
+            from services.matching.preparation_priority import scheduling_key
+            candidates = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "PREPARE", m.operations.c.state == "QUEUED",
+                m.operations.c.cancel_requested.is_(False),
+                or_(m.operations.c.next_attempt_at.is_(None), m.operations.c.next_attempt_at <= timestamp),
+            )).mappings().all()
+            # A stale FIFO delivery does not consume an attempt. The outbox
+            # redispatches it after the RQ delivery finishes, preserving its ID.
+            if min(candidates, key=lambda candidate: scheduling_key(candidate, timestamp))["id"] != operation_id:
+                return None
         values = {"state": "RUNNING", "attempt_count": row["attempt_count"] + 1,
                   "last_attempt_at": timestamp, "updated_at": timestamp,
                   "current_step": "PREPARING", "progress": max(1, row["progress"] or 0),

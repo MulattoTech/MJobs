@@ -11,7 +11,7 @@ from services.operations.progress import get_operation_progress
 _PUBLIC_FIELDS = (
     "operation_id", "operation_type", "entity_id", "state", "current_step",
     "progress", "started_at", "updated_at", "completed_at", "retry_count",
-    "recovery_summary", "next_attempt_at",
+    "recovery_summary", "next_attempt_at", "preparation_priority",
 )
 
 
@@ -48,7 +48,7 @@ def create_operation_progress_router(store) -> APIRouter:
             # The service read model excludes raw params, error details and metadata.
             # Keep this API allowlist fixed if the internal model gains new fields.
             public = get_operation_progress(store, operation_id)
-            operations.append({field: public.get(field) for field in _PUBLIC_FIELDS})
+            operations.append({field: public[field] for field in _PUBLIC_FIELDS if field in public})
         return {"operations": operations}
 
     return router

@@ -24,7 +24,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.datastructures import MutableHeaders
 
 from packages.persistence import models as m
-from packages.persistence.store import ProfileVersionConflict, Store, identity
+from packages.persistence.store import ProfileVersionConflict, Store, identity, now
 from packages.domain.operation_mode import parse_operation_mode, operation_mode_from_env
 from packages.domain.profile import ContactDetails, JobPreferences
 from services.career_profile.durable_extraction import (
@@ -822,8 +822,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return JSONResponse({"status": "ready" if ready else "degraded", "checks": checks,
                              "db_backend": store.engine.dialect.name}, status_code=200 if ready else 503)
 
-    def queued(kind, entity_id, params, *, connection=None):
-        operation_id = enqueue_operation(store, kind, entity_id, params, connection=connection)
+    def queued(kind, entity_id, params, *, connection=None, preparation_priority=None):
+        try:
+            operation_id = enqueue_operation(store, kind, entity_id, params, connection=connection,
+                                             preparation_priority=preparation_priority)
+        except ValueError as error:
+            if str(error) in {"PREPARATION_REQUEST_CONFLICT", "PREPARATION_INPUT_CHANGED"}:
+                raise HTTPException(409, str(error)) from None
+            raise
         if connection is None:
             with store.engine.connect() as owned_connection:
                 state = owned_connection.execute(select(m.operations.c.state).where(
@@ -1967,6 +1973,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         selected_routes = [option["preferred_route"] for option in route_plan["selected"]]
         if operation_mode == "PERSONAL" and any(route["provider"] == "mock-ats" for route in selected_routes):
             raise HTTPException(409, "Fictional applications are unavailable in personal mode")
+        from services.matching.preparation_priority import admission_snapshot
+        priority = admission_snapshot(job, profile, now())
         operation = queued("PREPARE", value.profile_id, {
             "job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id,
             **({'ai_evaluation_run_id': value.ai_evaluation_run_id} if value.ai_evaluation_run_id else {}),
@@ -1986,7 +1994,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             **({'role_lens_id': value.role_lens_id,
                 'expected_role_lens_version': value.expected_role_lens_version}
                if value.role_lens_id is not None else {}),
-        }, connection=operation_connection)
+        }, connection=operation_connection, preparation_priority=priority)
         return {**operation, "application_id": identity(value.job_id, value.profile_id),
                 "route_mode": route_plan["mode"], "route_ids": [route["id"] for route in selected_routes]}
 
