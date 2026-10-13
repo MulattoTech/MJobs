@@ -63,10 +63,30 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
         raise DurableEvaluationError('AI_FUNNEL_INPUT_LIMIT')
     candidates = {}
     fingerprints = {}
+    unscored = 0
     from services.ai.input_freshness import job_fingerprint
     for row in rows:
         if criteria is None:
-            score = row.get('match_score')
+            baseline = build_explanation(row, profile)
+            components = baseline['components']
+            coverage = components['skill_evidence_coverage']
+            if coverage['possible_weight'] <= 0:
+                unscored += 1
+                continue
+            score = baseline['score']
+            evidence[row['id']] = {
+                'basis': 'APPROVED_SKILL_COVERAGE', 'base_score': score, 'score': score,
+                'scoring_profile': {'selection': 'APPROVED_SKILL_COVERAGE',
+                                    'profile_version': profile['version']},
+                'skill_evidence': components['requirements'],
+                'coverage': coverage, 'limitation': components['limitation'],
+                'scoring_contributions': [{
+                    'dimension': item['skill'],
+                    'raw_score': 100 if item['profile_evidence'] == 'APPROVED' else 0,
+                    'weighted_contribution': round(100 * item['covered_weight'] / coverage['possible_weight'], 2),
+                    'explanation': item['explanation'],
+                } for item in components['requirements']],
+            }
         else:
             baseline = build_explanation(row, profile)
             composed = compose_selected_search_match(row, {'score': baseline['score']}, criteria,
@@ -81,11 +101,14 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
     plan = policy.plan(CandidateScore(item.job_id, item.deterministic_score) for item in candidates.values())
     snapshot = {'evaluator_version': EVALUATOR_VERSION, 'profile_version': profile['version'],
                 'policy': asdict(policy), 'configuration': configuration.to_dict(),
+                'scoring_basis': ('CURRENT_APPROVED_SKILL_COVERAGE_V1' if criteria is None
+                                  else 'SELECTED_SEARCH_V1'),
+                'unscored_job_count': unscored,
+                'candidate_evidence': {key: evidence[key] for key in plan.ai_candidate_ids},
                 'job_fingerprints': {job_id: fingerprints[job_id] for job_id in plan.ai_candidate_ids},
                 'candidates': [asdict(candidates[job_id]) for job_id in plan.ai_candidate_ids]}
     if scope is not None:
-        snapshot.update(search_scope=scope,
-                        candidate_evidence={key: evidence[key] for key in plan.ai_candidate_ids})
+        snapshot.update(search_scope=scope)
     return snapshot, plan, len(rows)
 
 
@@ -93,7 +116,9 @@ def public_preview(snapshot, plan, scanned):
     from services.ai.durable_evaluation import _digest
     return {'policy': snapshot['policy'], 'fingerprint': _digest(snapshot),
             'search_scope': snapshot.get('search_scope'),
+            'scoring_basis': snapshot.get('scoring_basis'),
             'plan': {'scanned_job_count': scanned, 'scored_candidate_count': plan.received_count,
+                     'unscored_job_count': snapshot.get('unscored_job_count', 0),
                      'unique_count': plan.unique_count, 'eligible_count': plan.eligible_count,
                      'ai_candidate_count': len(plan.ai_candidate_ids),
                      'document_candidate_count': len(plan.document_candidate_ids)},
@@ -120,6 +145,7 @@ def evaluation_history(store, profile_id, limit=20, *, run_id=None):
     for run in runs:
         snapshot = snapshots.get(run['run_id'], {})
         run['search_scope'] = snapshot.get('search_scope')
+        run['scoring_basis'] = snapshot.get('scoring_basis')
         for item in run['evaluations']:
             item['score_evidence'] = snapshot.get('candidate_evidence', {}).get(item['job_id'])
     return runs

@@ -180,6 +180,7 @@ class AICostPolicyApiTests(unittest.TestCase):
         self.assertEqual(preview.json()["plan"], {
             "scanned_job_count": 3,
             "scored_candidate_count": 3,
+            "unscored_job_count": 0,
             "unique_count": 3,
             "eligible_count": 2,
             "ai_candidate_count": 1,
@@ -207,16 +208,16 @@ class AICostPolicyApiTests(unittest.TestCase):
         with_unknown = self.client.get("/profiles/fixture/ai-cost-plan")
         self.assertEqual(with_unknown.status_code, 200, with_unknown.text)
         self.assertEqual(with_unknown.json()["plan"]["scanned_job_count"], 3)
-        self.assertEqual(with_unknown.json()["plan"]["scored_candidate_count"], 2)
-        self.assertEqual(with_unknown.json()["plan"]["eligible_count"], 2)
+        # A missing cached row does not erase evidence in the current posting.
+        self.assertEqual(with_unknown.json()["plan"]["scored_candidate_count"], 3)
+        self.assertEqual(with_unknown.json()["plan"]["eligible_count"], 3)
 
         first_job = self.store.jobs(profile_id="fixture")[0]
         with self.store.engine.begin() as connection:
-            connection.execute(update(m.matches).where(
-                m.matches.c.profile_id == "fixture",
-                m.matches.c.job_id == first_job["id"],
-            ).values(score=74.99))
-        boundary_policy = {"minimum_score": 75, "max_input_candidates": 20,
+            connection.execute(update(m.jobs).where(m.jobs.c.id == first_job["id"]).values(
+                skills=["Python", "SQL", "Kubernetes"], attributes={"skill_evidence": "structured_required_skills"}))
+        # Two of three required skills yield66.67%; the bounded integer score is66.
+        boundary_policy = {"minimum_score": 67, "max_input_candidates": 20,
                            "max_ai_candidates": 75, "max_document_candidates": 20}
         self.assertEqual(self.client.put("/profiles/fixture/ai-cost-policy",
                                          json=boundary_policy).status_code, 200)

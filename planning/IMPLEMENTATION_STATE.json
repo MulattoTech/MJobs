@@ -11,8 +11,8 @@
     "current_verified_github_state": "Live remote main12466a8cc820712b4842af02c9f2d4482102827a and PR543 predecessor9e1f3231 verified; predecessor integration replay/Compose overflow FAIL. Repair publication and exact-head checks tracked in AFK state; original/reference acceptance unchanged.",
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
-  "current_milestone": "AI-JOB-INPUT-FRESHNESS-20261013",
-  "current_objective": "Keep durable AI advice and document approvals grounded in unchanged job inputs",
+  "current_milestone": "GROUNDED-AI-CANDIDATES-20261013",
+  "current_objective": "Admit profile-wide AI work from current approved evidence with frozen explanations",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2641,74 +2641,86 @@
   "current_slice": {
     "issue": 111,
     "requirement": "MJ-REQ-110",
-    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
-    "branch": "feat/astra-ai-job-freshness-20261013",
-    "verified_source": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
-    "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json",
-    "behavior": "Durable job-input fences, truthful stale/unknown history and reviewed document worker validation",
-    "previous_integrated_slice": {
-      "issue": 120,
-      "requirement": "MJ-REQ-119",
-      "status": "ACCEPTED_MERGED",
-      "branch": "feat/astra-medium-redzone-root-20261013",
-      "verified_source": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
-      "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
-      "behavior": "Grounded fresh-match preparation priority at durable worker claim, hourly aging, restart persistence and scoped Activity readback",
+    "related_requirements": [
+      "MJ-REQ-112",
+      "MJ-REQ-114"
+    ],
+    "status": "IN_PROGRESS",
+    "branch": "feat/astra-grounded-ai-candidates-20261013",
+    "depends_on_pr": 617,
+    "behavior": "Current grounded profile-wide selection, disclosed unknown coverage and durable explanation readback",
+    "previous_checkpoint": {
+      "issue": 111,
+      "requirement": "MJ-REQ-110",
+      "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+      "branch": "feat/astra-ai-job-freshness-20261013",
+      "verified_source": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
+      "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json",
+      "behavior": "Durable job-input fences, truthful stale/unknown history and reviewed document worker validation",
       "previous_integrated_slice": {
-        "issue": 222,
-        "requirement": "MJ-REQ-221",
-        "related_requirements": [
-          "MJ-REQ-121",
-          "MJ-REQ-156"
-        ],
-        "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
-        "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
-        "branch": "fix/route-attempt-concurrency-222",
-        "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
-        "owned_paths": [
-          "services/applications/attempt_history.py",
-          "apps/web/src/mock-run-controls.tsx",
-          "apps/web/src/mock-run-controls.test.tsx",
-          "tests/integration/test_route_attempt_concurrency.py",
-          "tests/integration/test_route_attempt_concurrency_postgres.py",
-          "tests/browser/test_route_attempt_ownership.py"
-        ],
+        "issue": 120,
+        "requirement": "MJ-REQ-119",
+        "status": "ACCEPTED_MERGED",
+        "branch": "feat/astra-medium-redzone-root-20261013",
+        "verified_source": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
+        "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
+        "behavior": "Grounded fresh-match preparation priority at durable worker claim, hourly aging, restart persistence and scoped Activity readback",
         "previous_integrated_slice": {
-          "pr": 614,
-          "source": "fe83f9b289de5293328b081543ac1eec23cdc701",
-          "merge": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
-          "required_hosted_gates": "PASS",
-          "parent_acceptance": "PARTIAL"
+          "issue": 222,
+          "requirement": "MJ-REQ-221",
+          "related_requirements": [
+            "MJ-REQ-121",
+            "MJ-REQ-156"
+          ],
+          "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
+          "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
+          "branch": "fix/route-attempt-concurrency-222",
+          "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
+          "owned_paths": [
+            "services/applications/attempt_history.py",
+            "apps/web/src/mock-run-controls.tsx",
+            "apps/web/src/mock-run-controls.test.tsx",
+            "tests/integration/test_route_attempt_concurrency.py",
+            "tests/integration/test_route_attempt_concurrency_postgres.py",
+            "tests/browser/test_route_attempt_ownership.py"
+          ],
+          "previous_integrated_slice": {
+            "pr": 614,
+            "source": "fe83f9b289de5293328b081543ac1eec23cdc701",
+            "merge": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
+            "required_hosted_gates": "PASS",
+            "parent_acceptance": "PARTIAL"
+          },
+          "acceptance": "MJ-REQ-221 PASS from exact-source behavioral proof; related umbrella requirements remain PARTIAL",
+          "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
+          "local_validation": {
+            "unit_pass": 1560,
+            "unit_subtests_pass": 1018,
+            "frontend_pass": 784,
+            "integration_browser_pass": 42,
+            "integration_subtests_pass": 6,
+            "postgres_skipped": 5,
+            "build": "PASS",
+            "policy": "PASS"
+          },
+          "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791",
+          "pr": 615,
+          "hosted_validation": {
+            "integration_run": 38341073391,
+            "integration_pass": 2002,
+            "integration_skip": 10,
+            "new_postgres_cases_pass": 5,
+            "browser_run": 38341071800,
+            "browser_pass": 256,
+            "browser_skip": 5,
+            "compose_run": 38341073316,
+            "compose_artifacts_pass": 5,
+            "required_gates": "PASS"
+          }
         },
-        "acceptance": "MJ-REQ-221 PASS from exact-source behavioral proof; related umbrella requirements remain PARTIAL",
-        "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
-        "local_validation": {
-          "unit_pass": 1560,
-          "unit_subtests_pass": 1018,
-          "frontend_pass": 784,
-          "integration_browser_pass": 42,
-          "integration_subtests_pass": 6,
-          "postgres_skipped": 5,
-          "build": "PASS",
-          "policy": "PASS"
-        },
-        "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791",
-        "pr": 615,
-        "hosted_validation": {
-          "integration_run": 38341073391,
-          "integration_pass": 2002,
-          "integration_skip": 10,
-          "new_postgres_cases_pass": 5,
-          "browser_run": 38341071800,
-          "browser_pass": 256,
-          "browser_skip": 5,
-          "compose_run": 38341073316,
-          "compose_artifacts_pass": 5,
-          "required_gates": "PASS"
-        }
-      },
-      "pr_url": "https://github.com/MulattoTech/MJobs/pull/616",
-      "merge_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e"
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/616",
+        "merge_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e"
+      }
     }
   }
 }

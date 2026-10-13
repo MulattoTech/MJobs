@@ -34,7 +34,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self.client = self.new_client()
         response = self.client.post('/jobs/manual', json={
             'request_id': 'durable-ai-synthetic-job', 'title': 'Infrastructure engineer',
-            'company': 'Synthetic Company', 'description': 'Windows Server synthetic private sentinel.',
+            'company': 'Synthetic Company', 'description': 'Python SQL synthetic private sentinel.',
             'reference_url': 'https://jobs.example.test/durable-ai',
             'application_url': 'https://apply.example.test/durable-ai', 'source_details': {},
         })
@@ -295,6 +295,10 @@ class DurableAIEvaluationTests(unittest.TestCase):
             for job_id, score in zip(ids, (99, 90)):
                 connection.execute(update(m.matches).where(m.matches.c.profile_id == 'fixture',
                     m.matches.c.job_id == job_id).values(score=score))
+                connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(
+                    skills=['Python'] if score == 99 else ['Python', 'SQL', 'Kubernetes'],
+                    attributes={'required_skills': ['Python', 'SQL'],
+                                'nice_to_have_skills': ['Kubernetes']}))
         self.store.save_ai_cost_policy('fixture', {'minimum_score': 75, 'max_input_candidates': 20,
                                                   'max_ai_candidates': 1, 'max_document_candidates': 1})
         response = self.queue()

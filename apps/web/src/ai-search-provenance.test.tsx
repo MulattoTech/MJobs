@@ -13,6 +13,22 @@ it('labels stale and unverifiable evaluations without granting new review',()=>{
 it('labels legacy evaluations without inventing search provenance',()=>{
   expect(renderToStaticMarkup(<AISearchProvenance/>)).toContain('Profile-wide evaluation');
 });
+it('distinguishes freshly grounded profile plans from historical stored scores',()=>{
+  const html=renderToStaticMarkup(<AISearchProvenance basis="CURRENT_APPROVED_SKILL_COVERAGE_V1"/>);
+  expect(html).toContain('current approved skill evidence');
+  expect(html).not.toContain('stored deterministic scores');
+});
+it('discloses unknown coverage and preserves honest per-skill evidence',()=>{
+  const html=renderToStaticMarkup(<AICandidatePreview basis="CURRENT_APPROVED_SKILL_COVERAGE_V1" unscoredCount={2}
+    candidates={[{job_id:'j',title:'Engineer',company:'Example',deterministic_score:50,score_evidence:{
+      basis:'APPROVED_SKILL_COVERAGE',base_score:50,score:50,limitation:'Evidence coverage is not qualification.',
+      scoring_profile:{selection:'APPROVED_SKILL_COVERAGE',profile_version:'v'},scoring_contributions:[{
+        dimension:'Python',raw_score:100,weighted_contribution:50,explanation:'Approved positive evidence.'}]}}]}/>);
+  expect(html).toContain('2 jobs have unknown skill coverage');
+  expect(html).toContain('Evidence coverage is not qualification');
+  expect(html).toContain('Python');
+  expect(html).not.toContain('Search-weighted score');
+});
 it('shows captured search and escapes untrusted labels',()=>{
   const html=renderToStaticMarkup(<AICandidatePreview scope={{search_profile_id:'s',name:'<script>bad</script>',criteria_digest:'a'.repeat(64),updated_at:'now'}}
     candidates={[{job_id:'j',title:'Engineer',company:'Example',deterministic_score:95,score_evidence:null}]}/>);
