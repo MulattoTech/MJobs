@@ -12,6 +12,30 @@ type Run = {request_id:string|null; state:string; fingerprint?:string;cancel_req
 type Selection = {available:{revision_id:string; label:string; filename:string}[];
   selected_revision_ids:string[]; unavailable_revision_ids:string[]};
 
+const CONTROLLED_PAGE_FIELDS = [
+  {id:'contact',title:'Contact and answer',field_keys:['full_name','email','weekend_availability']},
+  {id:'documents',title:'Documents',field_keys:['resume','cover_letter','supporting_documents']},
+] as const;
+const CONTROLLED_FIELD_LABELS:Record<string,string> = {
+  full_name:'Full name',email:'Email',weekend_availability:'Approved availability answer',
+  resume:'Resume',cover_letter:'Cover letter',supporting_documents:'Supporting documents',
+};
+
+function hasTrustedPagePlan(pages:unknown):boolean {
+  if(!Array.isArray(pages)||pages.length!==CONTROLLED_PAGE_FIELDS.length)return false;
+  return CONTROLLED_PAGE_FIELDS.every((expected,index)=>{
+    const page=pages[index];
+    if(!page||typeof page!=='object'||Array.isArray(page))return false;
+    const candidate=page as {id?:unknown;title?:unknown;field_keys?:unknown};
+    if(candidate.id!==expected.id||candidate.title!==expected.title||!Array.isArray(candidate.field_keys))return false;
+    const keys=candidate.field_keys;
+    return keys.length===expected.field_keys.length
+      &&keys.every((key):key is string=>typeof key==='string')
+      &&new Set(keys).size===keys.length
+      &&expected.field_keys.every(key=>keys.includes(key));
+  });
+}
+
 export function ControlledApplicationDryRun({profileId, applicationId}:{profileId:string; applicationId:string}) {
   const base = `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}`;
   const path = base+'/controlled-dry-run';
@@ -86,7 +110,7 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
     finally {if(current===epoch.current)setBusy(false);}
   }
   async function action(kind:'review'|'run'|'select'|'retry') {
-    if (!preview || busy) return;
+    if (!preview || busy || (kind!=='select'&&!hasTrustedPagePlan(preview.pages))) return;
     const current=epoch.current;
     setBusy(true);setNotice('');
     try {
@@ -129,6 +153,7 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
   const active=run?.state==='QUEUED'||run?.state==='RUNNING';
   const terminal=!!run&&['COMPLETED','CANCELLED','FAILED','BLOCKED','DEAD_LETTERED'].includes(run.state);
   const selectionDirty=selection!==null&&JSON.stringify([...ids].sort())!==JSON.stringify([...selection.selected_revision_ids].sort());
+  const validPagePlan=hasTrustedPagePlan(preview?.pages);
   return <section className="panel" aria-label="Controlled ATS preparation">
     <h2>Controlled ATS preparation</h2>
     <p>Practice on a local Greenhouse or Lever fixture with your current reviewed values and documents. This never opens an employer form or submits an application. External submission is OFF.</p>
@@ -138,14 +163,14 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
         {field.label}: <output aria-label={`${field.key} fixture value`}>{field.value===null?'Needs a verified value':String(field.value)}</output>
         {' · '}{field.source==='VERIFIED_ANSWER'?'Approved saved answer':field.source==='CONTACT'?'Profile contact':field.source==='DOCUMENT'?'Owned document':'Unresolved'}
       </li>)}</ul>
-      {preview.pages&&<section aria-label="Ordered fixture page plan">
+      {validPagePlan&&<section aria-label="Ordered fixture page plan">
         <h3>Fixture page plan</h3>
-        <ol>{preview.pages.map((page,index)=><li key={`${page.id}-${index}`}>
-          <strong>{page.title|| (page.id==='contact'?'Contact and answer':'Documents')}</strong>
-          {page.field_keys.length>0&&<ul>{page.field_keys.map(key=><li key={key}>{key}</li>)}</ul>}
+        <ol>{preview.pages!.map((page,index)=><li key={`${page.id}-${index}`}>
+          <strong>{page.title}</strong>
+          {page.field_keys.length>0&&<ul>{page.field_keys.map(key=><li key={key}>{CONTROLLED_FIELD_LABELS[key]}</li>)}</ul>}
         </li>)}</ol>
       </section>}
-      {!preview.pages&&<p>Ordered fixture page plan is not available for this preview.</p>}
+      {!validPagePlan&&<p role="status">Page plan is missing or invalid. Review and run are blocked until the fixture provides the Contact and answer page followed by Documents with all expected fields.</p>}
       {preview.blockers.length>0&&<p role="status">Review the unresolved fields or unavailable documents before running this fixture.</p>}
       {selection&&<fieldset disabled={busy||active}><legend>Supporting documents for this fixture</legend>
         {selection.available.length===0?<p>No supporting documents are saved in this profile. Add them in the document library when needed.</p>:selection.available.map(item=><label key={item.revision_id}>
@@ -155,11 +180,11 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
         <button type="button" onClick={()=>void action('select')}>Save fixture document selection</button>
       </fieldset>}
       {selectionDirty&&<p role="status">Save the supporting document selection before reviewing or running.</p>}
-      <label><input type="checkbox" checked={checked} disabled={busy||active||selectionDirty||!preview.ready} onChange={event=>setChecked(event.currentTarget.checked)}/>I reviewed these fixture values, selected documents, and any provided ordered page plan</label>
-      <button type="button" disabled={busy||active||selectionDirty||!checked||!preview.ready} onClick={()=>void action('review')}>Record fixture review</button>{' '}
-      <button type="button" disabled={busy||active||selectionDirty||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint||(terminal&&run?.fingerprint===preview.fingerprint)} onClick={()=>void action('run')}>Run controlled fixture</button>
-      {terminal&&<div><label><input type="checkbox" checked={retryChecked} disabled={busy||selectionDirty||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint} onChange={event=>setRetryChecked(event.currentTarget.checked)}/>I reviewed current inputs and want a new fixture attempt</label>
-        <button type="button" disabled={busy||selectionDirty||!retryChecked||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint} onClick={()=>void action('retry')}>Run reviewed retry</button></div>}
+      <label><input type="checkbox" checked={checked} disabled={busy||active||selectionDirty||!preview.ready||!validPagePlan} onChange={event=>setChecked(event.currentTarget.checked)}/>I reviewed these fixture values, selected documents, and the ordered page plan</label>
+      <button type="button" disabled={busy||active||selectionDirty||!checked||!preview.ready||!validPagePlan} onClick={()=>void action('review')}>Record fixture review</button>{' '}
+      <button type="button" disabled={busy||active||selectionDirty||!preview.ready||!validPagePlan||preview.latest_review?.fingerprint!==preview.fingerprint||(terminal&&run?.fingerprint===preview.fingerprint)} onClick={()=>void action('run')}>Run controlled fixture</button>
+      {terminal&&<div><label><input type="checkbox" checked={retryChecked} disabled={busy||selectionDirty||!preview.ready||!validPagePlan||preview.latest_review?.fingerprint!==preview.fingerprint} onChange={event=>setRetryChecked(event.currentTarget.checked)}/>I reviewed current inputs and want a new fixture attempt</label>
+        <button type="button" disabled={busy||selectionDirty||!retryChecked||!preview.ready||!validPagePlan||preview.latest_review?.fingerprint!==preview.fingerprint} onClick={()=>void action('retry')}>Run reviewed retry</button></div>}
     </>}
     {run&&run.state!=='IDLE'&&<p role="status">Fixture run: {run.state}{run.error_code?' · Review required before retrying.':''}</p>}
     {active&&<button type="button" disabled={busy||run?.cancel_requested||!!run?.receipt} onClick={()=>void cancel()}>{run?.cancel_requested?'Cancellation requested':'Cancel fixture run'}</button>}
