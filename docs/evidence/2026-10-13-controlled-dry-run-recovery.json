@@ -191,5 +191,11 @@
         27
       ]
     }
+  },
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/623",
+  "cleanup": {
+    "owned_compose_stacks": "STOPPED",
+    "synthetic_volumes": "RETAINED",
+    "original_shared_image_tag": "RESTORED"
   }
 }

@@ -2643,7 +2643,7 @@
       "MJ-REQ-158"
     ],
     "branch": "feat/astra-controlled-dry-run-recovery-20261013",
-    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+    "status": "PUBLISHED_HOSTED_PENDING",
     "depends_on_pr": 621,
     "behavior": "Owner-scoped cancellation, serialized active admission and explicit reviewed retry preserving prior DRY_RUN history",
     "previous_checkpoint": {
@@ -2772,6 +2772,8 @@
       "merge_commit": "e1d0053206264088709b8e4228394ebddadd0132"
     },
     "verified_source": "4c58d31ea8a2b196a71019e51ad6b55e0c13237f",
-    "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json"
+    "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json",
+    "pr": 623,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/623"
   }
 }

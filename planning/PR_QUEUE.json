@@ -2711,11 +2711,12 @@
         "related_requirements": [
           "MJ-REQ-158"
         ],
-        "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+        "status": "PUBLISHED_HOSTED_PENDING",
         "branch": "feat/astra-controlled-dry-run-recovery-20261013",
         "acceptance": "Scoped cancellation, single active admission, acknowledged retry with immutable predecessor, stale/profile fences, real browser/restart proof; external submission OFF.",
         "verified_source": "4c58d31ea8a2b196a71019e51ad6b55e0c13237f",
-        "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json"
+        "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json",
+        "pr": 623
       }
     },
     {
