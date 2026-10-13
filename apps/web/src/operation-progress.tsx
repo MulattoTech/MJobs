@@ -14,6 +14,8 @@ export type OperationProgressRecord = {
   next_attempt_at?: string | null;
   retry_count?: number | null;
   recovery_summary?: string | null;
+  preparation_priority?: { tier: number; effective_tier: number; queue_priority: string;
+    enqueued_at: string; aging_interval_seconds: number; basis: string } | null;
 };
 
 export type OperationProgressProps = {
@@ -30,6 +32,7 @@ const OPERATION_TYPES: Record<string, string> = {
   DISCOVER: 'Discovery',
   DOCUMENT_GENERATE: 'Document generation',
   DOCUMENT_GENERATION: 'Document generation',
+  PREPARE: 'Document preparation',
   RESTORE: 'Restore',
   RESUME_EXTRACT: 'Resume extraction',
 };
@@ -114,6 +117,10 @@ function retryCount(value: unknown): number | null {
 }
 
 function OperationCard({ operation }: { operation: OperationProgressRecord }) {
+  const priority = operation.operation_type === 'PREPARE' ? operation.preparation_priority : null;
+  const priorityLabels = ['Fresh excellent match', 'High', 'Normal', 'Deferred', 'Low', 'Unknown evidence'];
+  const priorityValid = priority && Number.isInteger(priority.tier) && priority.tier >= 0 && priority.tier <= 5
+    && Number.isInteger(priority.effective_tier) && priority.effective_tier >= 0 && priority.effective_tier <= 5;
   const stateCode = code(operation.state);
   const state = (stateCode && STATES[stateCode]) || { label: 'Status unavailable', tone: 'normal' as const };
   const percent = progressValue(operation.progress);
@@ -149,6 +156,12 @@ function OperationCard({ operation }: { operation: OperationProgressRecord }) {
       {stateCode === 'QUEUED' && timestamp('Next retry', operation.next_attempt_at)}
       <div><dt>Retry attempts</dt><dd>{retries === null ? 'Not reported' : retries}</dd></div>
     </dl>
+    {priorityValid && <div>
+      <p><strong>Preparation priority:</strong> {priorityLabels[priority.tier]}</p>
+      <p>Approved skill evidence and posting age determine the initial order; this is not a qualification assessment.</p>
+      {operation.state === 'QUEUED' && <p>{priority.effective_tier < priority.tier ? 'Promoted while waiting. ' : ''}
+        Waiting work moves up one tier each hour. Running work is not interrupted.</p>}
+    </div>}
     {summary && <p><strong>Recovery:</strong> {summary}</p>}
   </article>;
 }

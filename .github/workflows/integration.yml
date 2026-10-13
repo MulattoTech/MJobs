@@ -50,6 +50,8 @@ jobs:
       MJOBS_AI_EVALUATION_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_durable_extraction
       MJOBS_REVIEWED_IDENTITY_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_durable_extraction
       MJOBS_AI_REDIS_TEST_URL: redis://127.0.0.1:6379/15
+      MJOBS_PRIORITY_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_priority_validation
+      MJOBS_PRIORITY_REDIS_URL: redis://127.0.0.1:6379/15
       PGPASSWORD: synthetic-test-only
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -76,6 +78,7 @@ jobs:
           psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_test_application_crash'
           psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_test_backup_credentials'
           psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_test_durable_extraction'
+          psql -h 127.0.0.1 -U mjobs -d mjobs_test -v ON_ERROR_STOP=1 -c 'CREATE DATABASE mjobs_priority_validation'
       - name: Install controlled browser dependency for worker tests
         run: python -m playwright install --with-deps chromium
       - name: Execute each integration test file in exactly one isolated shard

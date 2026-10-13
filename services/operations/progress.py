@@ -70,6 +70,8 @@ def operation_public_record(row):
 
 
 def _read_model(row):
+    from services.matching.preparation_priority import public_priority
+    priority = public_priority(row, now() if row["state"] == "QUEUED" else row["started_at"] or now())
     metadata = _sanitize_recovery_metadata(operation_public_record(row)["recovery_metadata"] or {})
     current_step = row["current_step"]
     if current_step is not None and (
@@ -89,6 +91,7 @@ def _read_model(row):
         "next_attempt_at": row["next_attempt_at"],
         "retry_count": row["retry_count"],
         "recovery_summary": _recovery_summary(metadata),
+        **({"preparation_priority": priority} if priority is not None else {}),
     }
 
 
