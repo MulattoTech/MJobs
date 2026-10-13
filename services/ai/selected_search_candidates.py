@@ -62,6 +62,8 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
     if len(rows) > policy.max_input_candidates:
         raise DurableEvaluationError('AI_FUNNEL_INPUT_LIMIT')
     candidates = {}
+    fingerprints = {}
+    from services.ai.input_freshness import job_fingerprint
     for row in rows:
         if criteria is None:
             score = row.get('match_score')
@@ -75,9 +77,11 @@ def build_inputs(store, profile_id, policy, configuration, search_profile_id=Non
             continue
         candidates[row['id']] = AIJobInput(row['id'], int(float(score)), row['title'],
                                           row['company'], row['description'][:8000])
+        fingerprints[row['id']] = job_fingerprint(row)
     plan = policy.plan(CandidateScore(item.job_id, item.deterministic_score) for item in candidates.values())
     snapshot = {'evaluator_version': EVALUATOR_VERSION, 'profile_version': profile['version'],
                 'policy': asdict(policy), 'configuration': configuration.to_dict(),
+                'job_fingerprints': {job_id: fingerprints[job_id] for job_id in plan.ai_candidate_ids},
                 'candidates': [asdict(candidates[job_id]) for job_id in plan.ai_candidate_ids]}
     if scope is not None:
         snapshot.update(search_scope=scope,

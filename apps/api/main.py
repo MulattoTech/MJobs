@@ -997,7 +997,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except ValueError as error:
             code = str(error)
             status = 404 if code == "AI_EVALUATION_RUN_NOT_FOUND" else (
-                409 if code in ("AI_EVALUATION_PROFILE_CHANGED", "AI_DOCUMENT_CANDIDATE_LIMIT")
+                409 if code in ("AI_EVALUATION_PROFILE_CHANGED", "AI_DOCUMENT_CANDIDATE_LIMIT",
+                               "AI_EVALUATION_JOB_CHANGED", "AI_EVALUATION_INPUT_UNKNOWN")
                 else 422)
             raise HTTPException(status, {"code": code}) from None
 
@@ -1010,7 +1011,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         except DurableEvaluationError as error:
             status_code = 404 if error.code == 'AI_SEARCH_NOT_FOUND' else (
                 409 if error.code in ('AI_PROVIDER_DISABLED', 'AI_EVALUATION_IDENTITY_CONFLICT',
-                                      'AI_EVALUATION_PREVIEW_CHANGED') else 422)
+                                      'AI_EVALUATION_PREVIEW_CHANGED', 'AI_EVALUATION_PROFILE_CHANGED',
+                                      'AI_EVALUATION_JOB_CHANGED', 'AI_EVALUATION_INPUT_UNKNOWN') else 422)
             raise HTTPException(status_code, {'code': error.code}) from None
         except ValueError:
             raise HTTPException(422, {'code': 'AI_SEARCH_INPUT_INVALID'}) from None
@@ -1967,6 +1969,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             raise HTTPException(409, "Fictional applications are unavailable in personal mode")
         operation = queued("PREPARE", value.profile_id, {
             "job_id": value.job_id, "profile_version": profile["version"], "request_id": value.request_id,
+            **({'ai_evaluation_run_id': value.ai_evaluation_run_id} if value.ai_evaluation_run_id else {}),
             "route_mode": value.route_mode, "route_id": value.route_id,
             "tailor_resume": value.tailor_resume,
             "include_resume_contact": value.include_resume_contact,

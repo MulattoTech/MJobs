@@ -13,7 +13,7 @@ from services.ai.cost_controls import AICostPolicy
 from services.ai.tasks import AITask, AITaskConfiguration, AITaskRouter
 
 KIND = 'AI_EVALUATE_QUEUED'
-EVALUATOR_VERSION = 1
+EVALUATOR_VERSION = 2
 
 
 def _digest(snapshot):
@@ -53,6 +53,8 @@ def queue_evaluation(store, profile_id, request_id, search_profile_id=None, prev
     params = {'profile_id': profile_id, 'request_id': request_id, 'snapshot_digest': _digest(snapshot)}
     with store.engine.begin() as connection:
         if connection.dialect.name == 'sqlite':
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
+        if connection.dialect.name == 'sqlite':
             from sqlalchemy.dialects.sqlite import insert as dialect_insert
         elif connection.dialect.name == 'postgresql':
             from sqlalchemy.dialects.postgresql import insert as dialect_insert
@@ -67,6 +69,11 @@ def queue_evaluation(store, profile_id, request_id, search_profile_id=None, prev
         if row['kind'] != KIND or row['entity_id'] != profile_id or row['params'] != params:
             raise DurableEvaluationError('AI_EVALUATION_IDENTITY_CONFLICT')
         if inserted:
+            current_version = connection.execute(select(m.profiles.c.version).where(
+                m.profiles.c.id == profile_id).with_for_update()).scalar_one()
+            if current_version != snapshot['profile_version']:
+                raise DurableEvaluationError('AI_EVALUATION_PROFILE_CHANGED')
+            require_snapshot_jobs(connection, snapshot)
             connection.execute(insert(m.ai_evaluation_batches).values(
                 id=operation_id, profile_id=profile_id, snapshot=snapshot,
                 candidate_states={job_id: {'state': 'PENDING'} for job_id in plan.ai_candidate_ids}, created_at=now()))
@@ -107,6 +114,17 @@ def _fence(connection, operation):
     return row
 
 
+def require_snapshot_jobs(connection, snapshot, job_id=None):
+    from services.ai.input_freshness import require_current
+    fingerprints = snapshot.get('job_fingerprints')
+    if job_id is not None and isinstance(fingerprints, dict):
+        fingerprints = {job_id: fingerprints.get(job_id)}
+    try:
+        require_current(connection, fingerprints)
+    except ValueError as error:
+        raise DurableEvaluationError(str(error)) from None
+
+
 def evaluate_for_operation(store, operation, check):
     with store.engine.connect() as connection:
         batch = connection.execute(select(m.ai_evaluation_batches).where(
@@ -143,6 +161,7 @@ def evaluate_for_operation(store, operation, check):
                 m.profiles.c.id == operation['entity_id']).with_for_update()).scalar_one()
             if current_version != snapshot['profile_version']:
                 raise DurableEvaluationError('AI_EVALUATION_PROFILE_CHANGED')
+            require_snapshot_jobs(connection, snapshot, None if index == 0 else candidate.job_id)
             states = dict(connection.execute(select(m.ai_evaluation_batches.c.candidate_states).where(
                 m.ai_evaluation_batches.c.id == operation['id'])).scalar_one())
             checkpoint = states[candidate.job_id]
@@ -178,6 +197,7 @@ def evaluate_for_operation(store, operation, check):
                 if connection.dialect.name == 'sqlite':
                     connection.exec_driver_sql('BEGIN IMMEDIATE')
                 _fence(connection, operation)
+                require_snapshot_jobs(connection, snapshot, candidate.job_id)
                 states = dict(connection.execute(select(m.ai_evaluation_batches.c.candidate_states).where(
                     m.ai_evaluation_batches.c.id == operation['id'])).scalar_one())
                 states[candidate.job_id] = {'state': 'COMPLETED', 'result': evaluation.model_dump()}
@@ -194,4 +214,4 @@ def complete_evaluation(store, connection, operation, result):
     selection = snapshot['configuration']['job_scoring']
     return store.save_ai_evaluation_run(operation['entity_id'], snapshot['profile_version'],
         snapshot['policy'], selection['provider'], selection['model'], evaluations,
-        connection=connection, run_id=operation['id'])
+        connection=connection, run_id=operation['id'], job_fingerprints=snapshot['job_fingerprints'])

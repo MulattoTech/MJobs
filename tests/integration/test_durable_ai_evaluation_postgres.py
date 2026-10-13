@@ -64,3 +64,30 @@ class DurableAIEvaluationPostgreSQLTests(unittest.TestCase):
 
     def test_profile_edit_fence_on_postgresql(self):
         self.case.test_profile_edit_during_provider_call_fences_whole_batch()
+
+    def test_changed_job_admission_fence_on_postgresql(self):
+        self.case.test_job_change_during_admission_rolls_back_operation()
+
+    def test_changed_job_before_call_on_postgresql(self):
+        self.case.test_changed_job_before_worker_blocks_without_provider_call()
+
+    def test_changed_job_during_call_on_postgresql(self):
+        self.case.test_changed_job_during_provider_call_never_publishes_result()
+
+    def test_changed_job_publication_fence_on_postgresql(self):
+        self.case.test_job_change_after_staging_is_fenced_at_publication()
+
+    def test_staged_job_restart_fence_on_postgresql(self):
+        self.case.test_recovered_staged_response_is_not_reused_for_changed_job()
+
+    def test_stale_history_and_review_on_postgresql(self):
+        self.case.test_changed_job_history_is_stale_and_review_is_rejected()
+
+    def test_reviewed_preparation_worker_fence_on_postgresql(self):
+        self.case.test_reviewed_ai_preparation_rechecks_job_in_worker()
+
+    def test_legacy_input_unknown_on_postgresql(self):
+        self.case.test_legacy_evaluation_is_readable_but_cannot_authorize_documents()
+
+    def test_current_review_document_worker_on_postgresql(self):
+        self.case.test_current_review_generates_documents_once_through_worker()

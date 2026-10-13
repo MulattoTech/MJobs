@@ -360,6 +360,7 @@ def execute_operation(operation_id):
                 )
             elif operation["kind"] == "PREPARE":
                 prepare(store, operation["params"]["job_id"], operation["entity_id"], Path(os.environ["MJOBS_OUTPUT_DIR"]),
+                        ai_evaluation_run_id=operation['params'].get('ai_evaluation_run_id'),
                         check=check, profile_version=operation["params"].get("profile_version"),
                         route_mode=operation["params"].get("route_mode", "DEFAULT"), route_id=operation["params"].get("route_id"),
                         tailor_resume=operation["params"].get("tailor_resume", False),
@@ -454,6 +455,12 @@ def execute_operation(operation_id):
                     m.profiles.c.id == operation['entity_id']).with_for_update()).scalar_one()
                 if durable_ai_result is None or current_profile_version != durable_ai_result[0]['profile_version']:
                     state, error = 'BLOCKED', 'AI_EVALUATION_PROFILE_CHANGED'
+                else:
+                    from services.ai.durable_evaluation import require_snapshot_jobs
+                    try:
+                        require_snapshot_jobs(connection, durable_ai_result[0])
+                    except DurableEvaluationError as failure:
+                        state, error = 'BLOCKED', failure.code
             finished_at = now()
             retry = discovery_retry_plan(connection, operation, retry_failure, finished_at)
             if retry is not None:
