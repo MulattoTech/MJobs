@@ -1,7 +1,19 @@
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {expect,it} from 'vitest';
-import {AICandidatePreview,AISearchProvenance,AIScoreDetails,AIEvaluationFreshness} from './ai-search-provenance';
+import {AICandidatePreview,AISearchProvenance,AIScoreDetails,AIEvaluationFreshness,AIProviderAccess} from './ai-search-provenance';
+
+it('discloses the saved profile credential and fixed destination without key material',()=>{
+  const html=renderToStaticMarkup(<AIProviderAccess value={{provider:'openai',credential_source:'SAVED_PROFILE',destination:'https://api.openai.com'}}/>);
+  expect(html).toContain("this profile&#x27;s saved OpenAI credential");
+  expect(html).toContain('https://api.openai.com');
+  expect(html).toContain('key change requires a new plan');
+});
+it('distinguishes runtime, disabled and legacy credential provenance',()=>{
+  expect(renderToStaticMarkup(<AIProviderAccess value={{provider:'ollama',credential_source:'RUNTIME_CONFIGURATION',destination:null}}/>)).toContain('runtime configuration');
+  expect(renderToStaticMarkup(<AIProviderAccess value={{provider:'disabled',credential_source:'DISABLED',destination:null}}/>)).toContain('no model calls');
+  expect(renderToStaticMarkup(<AIProviderAccess/>)).toContain('not recorded');
+});
 
 it('labels stale and unverifiable evaluations without granting new review',()=>{
   expect(renderToStaticMarkup(<AIEvaluationFreshness status="STALE"/>)).toContain('Job or profile changed');

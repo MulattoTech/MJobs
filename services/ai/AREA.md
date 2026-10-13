@@ -41,7 +41,7 @@ Document preparation from an evaluation is a separate two-step human-reviewed wo
 
 Advisory evaluation now uses durable admission: both the original evaluate action and `/evaluate/queued` return HTTP 202 with an operation ID. The existing outbox dispatches `AI_EVALUATE_QUEUED` to the dedicated `mjobs-ai` worker. Private batch rows retain bounded immutable job inputs, the profile version, selected configuration and policy; generic operation metadata contains only identifiers and a snapshot digest. Owner-scoped operation list/read/cancel interfaces support reload continuity. Validated candidate responses are checkpointed, and the complete advisory history and completed operation publish in one fenced transaction. Cancellation or a changed profile prevents partial publication. If a worker dies after starting a provider call without saving its response, recovery pauses with `AI_PROVIDER_OUTCOME_UNKNOWN`; it never automatically repeats that potentially billable call.
 
-The AI Settings browser follows these saved operations instead of holding an inference request open. Compose runs a separate restricted-database AI worker and includes it in backup quiescence and restart recovery. Optional inference endpoints must be reachable from that worker under the existing provider transport restrictions; loopback refers to the worker's own runtime, not the host. No inference service is installed or started automatically. Saved encrypted credential routing and real configured-provider inference remain separate, unverified work; the durable evaluation slice does not promote either parent requirement or live provider support.
+The AI Settings browser follows these saved operations instead of holding an inference request open. Compose runs a separate restricted-database AI worker and includes it in backup quiescence and restart recovery. Optional inference endpoints must be reachable from that worker under the existing provider transport restrictions; loopback refers to the worker's own runtime, not the host. No inference service is installed or started automatically. Real configured-provider inference remains unverified; synthetic transport proof does not promote either parent requirement or live provider support.
 
 Evaluator version 2 binds each candidate to a fingerprint of its full public job
 inputs, including text beyond the provider prompt cap. Admission, provider work,
@@ -59,3 +59,14 @@ bounded candidate snapshot stores per-skill explanations for owner-scoped
 preview and historical readback; this evidence is not added to provider prompts.
 Saved-search weighting remains separate. Older plans retain their original
 scores and provenance label; retries never silently rescore an admitted plan.
+
+Explicit OpenAI job-scoring plans bind to the owning profile's saved encrypted
+credential when one exists. A private ciphertext fingerprint pins that choice;
+plaintext and ciphertext are never copied into batch snapshots or operation
+metadata. The API and dedicated AI worker receive the existing encryption key.
+The worker decrypts before marking a call started, uses the fixed OpenAI origin,
+and rechecks rotation/deletion at admission, each candidate and publication.
+Changed or unavailable credentials block without falling back to environment
+keys. Runtime-configured and legacy plans retain their original source. A call
+already in flight cannot be recalled; a concurrent rotation prevents publication
+and later calls. Preview/history disclose the source without returning secrets.
