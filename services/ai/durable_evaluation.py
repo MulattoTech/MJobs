@@ -8,7 +8,7 @@ from sqlalchemy import insert, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
-from services.ai.consumer import AIJobInput, AIJobEvaluation, _prompt
+from services.ai.consumer import AIJobInput, AIJobEvaluation, _prompt, validate_job_evidence
 from services.ai.cost_controls import AICostPolicy
 from services.ai.tasks import AITask, AITaskConfiguration, AITaskRouter
 
@@ -193,6 +193,7 @@ def evaluate_for_operation(store, operation, check):
                     current_step='EVALUATING_CANDIDATES', progress=5 + int(85 * index / max(1, len(states))), updated_at=now()))
         if checkpoint['state'] == 'COMPLETED':
             evaluation = AIJobEvaluation.model_validate(checkpoint['result'])
+            validate_job_evidence(candidate, evaluation)
         else:
             # Once CALL_STARTED is durable, a lost response is uncertain. A
             # later attempt never guesses whether the provider charged for it.
@@ -209,6 +210,7 @@ def evaluate_for_operation(store, operation, check):
                 raise
             if not isinstance(evaluation, AIJobEvaluation):
                 raise DurableEvaluationError('AI_STRUCTURED_OUTPUT_INVALID')
+            validate_job_evidence(candidate, evaluation)
             with store.engine.begin() as connection:
                 if connection.dialect.name == 'sqlite':
                     connection.exec_driver_sql('BEGIN IMMEDIATE')
@@ -222,7 +224,8 @@ def evaluate_for_operation(store, operation, check):
                     m.ai_evaluation_batches.c.id == operation['id']).values(candidate_states=states))
         remaining()
         evaluations.append({'job_id': candidate.job_id, 'title': candidate.title, 'company': candidate.company,
-            'deterministic_score': candidate.deterministic_score, **evaluation.model_dump()})
+            'deterministic_score': candidate.deterministic_score,
+            'category': evaluation.category, 'rationale': evaluation.rationale})
     return snapshot, evaluations
 
 

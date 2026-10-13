@@ -19,6 +19,7 @@ class ProfileAICredentialBrowserTests(unittest.TestCase):
     def test_explicit_saved_key_selection_rotation_worker_and_history_reload(self):
         fixture = contract.ProfileAICredentialTests()
         fixture.setUp()
+        fixture.response_body['job_evidence'] = [{'field': 'description', 'quote': 'Python SQL synthetic private sentinel.'}]
         self.addCleanup(fixture.doCleanups)
         fixture.store.save_ai_task_settings('fixture', {'job_scoring': {'provider': 'disabled', 'model': None}})
         fixture.client.delete('/profiles/fixture/provider-credentials/openai')
@@ -88,6 +89,10 @@ class ProfileAICredentialBrowserTests(unittest.TestCase):
                     history = page.get_by_role('region', name='AI evaluation history', exact=True)
                     expect(history).to_contain_text("this profile's saved OpenAI credential")
                     expect(history).to_contain_text('Synthetic controlled transport response')
+                    quotes = history.get_by_role('region', name='Checked posting quotes')
+                    expect(quotes).to_contain_text('Python SQL synthetic private sentinel.')
+                    expect(quotes).to_contain_text('Only the quotations are verified')
+                    expect(quotes).to_contain_text('Source: captured job description')
                     expect(field).to_have_value('')
                     self.assertNotIn('synthetic-browser-rotated-key', page.locator('body').inner_text())
                     panel.get_by_role('button', name='Preview AI work plan', exact=True).click()
