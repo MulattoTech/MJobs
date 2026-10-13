@@ -76,10 +76,10 @@ class ControlledApplicationDryRunBrowserTests(unittest.TestCase):
                         expect(panel.get_by_role("button",name="Run controlled fixture",exact=True)).to_be_disabled()
                         if provider=="greenhouse":
                             panel.get_by_role("checkbox",name="Fixture evidence",exact=True).check()
-                            expect(panel.get_by_role("checkbox",name="I reviewed these fixture values and selected documents",exact=True)).to_be_disabled()
+                            expect(panel.get_by_role("checkbox",name="I reviewed these fixture values, selected documents, and the ordered page plan",exact=True)).to_be_disabled()
                             panel.get_by_role("button",name="Save fixture document selection",exact=True).click()
                             expect(panel.get_by_text("Fixture document selection saved. Review the updated values before running.",exact=True)).to_be_visible()
-                        panel.get_by_role("checkbox",name="I reviewed these fixture values and selected documents",exact=True).check()
+                        panel.get_by_role("checkbox",name="I reviewed these fixture values, selected documents, and the ordered page plan",exact=True).check()
                         if provider=="greenhouse":
                             def lose_review_reply(route):
                                 response=route.fetch()
