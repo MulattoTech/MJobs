@@ -2588,7 +2588,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-13T16:47:26.086091+00:00",
+  "updated_at": "2026-10-13T17:13:53.423340+00:00",
   "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
   "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
@@ -2639,9 +2639,9 @@
   "current_slice": {
     "issue": 120,
     "requirement": "MJ-REQ-119",
-    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+    "status": "LOCAL_VERIFIED_REPAIRED_HOSTED_PENDING",
     "branch": "feat/astra-medium-redzone-root-20261013",
-    "verified_source": "5a1a30c75204e681ef70243b53a610ae413f5202",
+    "verified_source": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
     "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
     "behavior": "Grounded fresh-match preparation priority at durable worker claim, hourly aging, restart persistence and scoped Activity readback",
     "previous_integrated_slice": {
@@ -2696,6 +2696,7 @@
         "compose_artifacts_pass": 5,
         "required_gates": "PASS"
       }
-    }
+    },
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/616"
   }
 }

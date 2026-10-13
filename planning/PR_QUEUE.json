@@ -1240,10 +1240,11 @@
         "issue": 120,
         "requirement_id": "MJ-REQ-119",
         "status": "PARTIAL",
-        "publication_state": "LOCAL_REVIEW_PENDING",
-        "source_commit": "5a1a30c75204e681ef70243b53a610ae413f5202",
+        "publication_state": "PR_OPEN_REPAIRED_HOSTED_PENDING",
+        "source_commit": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
         "branch": "feat/astra-medium-redzone-root-20261013",
-        "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json"
+        "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
+        "pr_number": 616
       },
       "completed_slices": [
         {
