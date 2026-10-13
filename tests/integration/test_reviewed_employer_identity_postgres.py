@@ -8,24 +8,34 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from sqlalchemy import create_engine, select, text
-from sqlalchemy.engine import make_url
 from sqlalchemy.exc import OperationalError
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration import test_reviewed_employer_identity_continuity as continuity
+from tests.integration.test_lever_form_review_flow import _disposable_postgres_url
 from services.company_discovery.requests import approve_discovery_request, authorize_discovery_request
 
 POSTGRES_URL = os.environ.get('MJOBS_REVIEWED_IDENTITY_POSTGRES_URL')
 
 
+class ReviewedIdentityFixtureSafetyTests(unittest.TestCase):
+    def test_connection_overrides_are_rejected_before_opening_any_database(self):
+        for query in ('host=foreign.example', 'hostaddr=203.0.113.5',
+                      'service=production', 'dbname=personal', 'options=-csearch_path=private'):
+            with self.subTest(query=query), \
+                    patch(__name__ + '.POSTGRES_URL', 'postgresql://localhost/mjobs_test_identity?' + query), \
+                    patch(__name__ + '.create_engine', side_effect=RuntimeError('Must not connect')) as connect:
+                case = ReviewedIdentityPostgreSQLTests()
+                with self.assertRaises(ValueError):
+                    case.setUp()
+                connect.assert_not_called()
+
+
 @unittest.skipUnless(POSTGRES_URL, 'Set MJOBS_REVIEWED_IDENTITY_POSTGRES_URL to a disposable loopback mjobs_test_* database')
 class ReviewedIdentityPostgreSQLTests(unittest.TestCase):
     def setUp(self):
-        url = make_url(POSTGRES_URL)
-        if (not url.drivername.startswith('postgresql') or url.host not in ('localhost', '127.0.0.1', '::1')
-                or not url.database or not url.database.startswith('mjobs_test_')):
-            raise RuntimeError('A disposable loopback mjobs_test_* PostgreSQL database is required')
+        url = _disposable_postgres_url(POSTGRES_URL)
         self.schema = 'mjobs_identity_' + uuid4().hex
         self.admin = create_engine(url)
         with self.admin.begin() as connection:

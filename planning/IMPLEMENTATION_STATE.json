@@ -2637,11 +2637,11 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 173,
-    "requirement": "MJ-REQ-172",
-    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
-    "base": "4dc56df154e8f4eae3de445f0678fb038e5d6d3a",
-    "behavior": "Greenhouse/Lever redirect and durable route authority require complete URL-to-tenant identity; mismatched origins/regions/sites are blocked before fetch/save and remain unverified on reload",
-    "remaining": "Parent PARTIAL: broader web-security acceptance and other provider URL contracts remain separate; updated exact-head hosted checks pending"
+    "issue": 56,
+    "requirement": "MJ-REQ-055",
+    "status": "LOCAL_FIXTURE_CHECKS_PASS_HOSTED_POSTGRES_PENDING",
+    "base": "5cd6ab873b102f9643095301cf83f2c0d861ce1b",
+    "behavior": "Execute existing seven PostgreSQL employer identity, revocation, ownership locking and browser cases using existing hosted disposable database; reject unsafe fixture URL overrides before connecting",
+    "remaining": "Missing verification is not a proven product defect; actual PostgreSQL outcomes pending; parent flywheel remains PARTIAL"
   }
 }
