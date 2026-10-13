@@ -37,13 +37,13 @@
   <section class="panel history-panel" id="historyTracker" aria-label="MJobs development history">
     <div class="mission-heading">
       <div>
-        <div class="history-eyebrow">LIVE LOCAL GIT · READ-ONLY DEVELOPMENT RECORD</div>
+        <div class="history-eyebrow">LOCAL GIT + PUBLISHED GITHUB · READ-ONLY DEVELOPMENT RECORD</div>
         <h2>Development history</h2>
         <p>See what actually changed: major product features, bug fixes, tests, documentation, and bookkeeping.</p>
       </div>
       <div class="history-header-actions">
         <span class="sync-pill" id="historyStatus" role="status">Loading history…</span>
-        <button type="button" id="historyRefresh" title="Immediately read the latest local commits">↻ Refresh history</button>
+        <button type="button" id="historyRefresh" title="Immediately refresh the selected history source">↻ Refresh history</button>
       </div>
     </div>
     <div class="history-metrics">
@@ -54,6 +54,13 @@
     </div>
     <div class="history-meter" id="historyMeter" aria-label="Distribution of recent commit categories"></div>
     <div class="history-controls">
+      <label for="historySource">History source
+        <select id="historySource">
+          <option value="all" selected>All known branches (local + cached remotes)</option>
+          <option value="checkout">Current checkout only</option>
+          <option value="github">GitHub main (published commits)</option>
+        </select>
+      </label>
       <label for="historyCategory">Show work
         <select id="historyCategory">
           <option value="ALL">All categories</option>
@@ -73,12 +80,15 @@
       </label>
       <div class="history-legend" id="historyCategoryLegend" aria-label="Recent work category totals"></div>
     </div>
+    <p id="historySourceNote" class="history-disclaimer" role="status">Source: loading…</p>
     <div id="historyNewCommitNotice" class="history-new-notice" role="status" aria-live="polite"></div>
     <div class="history-timeline" id="historyTimeline" aria-live="polite">Loading commits from the local MJobs checkout…</div>
     <p class="history-disclaimer">
       Each row represents a <strong>Git commit</strong>, not necessarily one Codex turn.
-      Labels use changed file paths and commit conventions. Counts are not verified acceptance or proof of AI authorship.
-      Auto-refreshes every five seconds while this page is visible, without any model calls or tracker commits.
+      Local categories use changed paths; GitHub-main metadata has no changed-file classification.
+      Counts are not verified acceptance or proof of AI authorship.
+      The page polls every five seconds; the GitHub-main source is cached for 45 seconds.
+      No model calls or tracker commits are generated.
     </p>
   </section>
 
