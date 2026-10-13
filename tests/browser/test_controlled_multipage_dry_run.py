@@ -132,7 +132,7 @@ class ControlledMultipageDryRunBrowserTests(unittest.TestCase):
 
                     acknowledgement = panel.get_by_role(
                         "checkbox",
-                        name="I reviewed these fixture values, selected documents, and any provided ordered page plan",
+                        name="I reviewed these fixture values, selected documents, and the ordered page plan",
                         exact=True,
                     )
                     acknowledgement.check()

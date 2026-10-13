@@ -46,7 +46,7 @@ class ControlledDryRunRecoveryBrowserTests(unittest.TestCase):
                         page.get_by_role('region',name='Application pipeline').get_by_role('button',name=job['title'],exact=False).click()
                         return page.get_by_role('region',name='Controlled ATS preparation',exact=True)
                     panel=open_panel()
-                    panel.get_by_role('checkbox',name='I reviewed these fixture values and selected documents',exact=True).check()
+                    panel.get_by_role('checkbox',name='I reviewed these fixture values, selected documents, and the ordered page plan',exact=True).check()
                     panel.get_by_role('button',name='Record fixture review',exact=True).click()
                     expect(panel.get_by_text('Fixture review saved.',exact=True)).to_be_visible()
                     panel.get_by_role('button',name='Run controlled fixture',exact=True).click()
