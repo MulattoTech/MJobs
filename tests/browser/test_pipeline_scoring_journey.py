@@ -65,6 +65,23 @@ class PipelineScoringJourneyTests(MockRunBrowserHarness):
         expect(button).to_be_enabled()
         self.assertEqual(self.counts(), {"review": 0, "submit": 0})
 
+    def test_storage_failure_prevents_an_unrecoverable_scoring_request(self):
+        requests = []
+        self.page.on("request", lambda request: requests.append(request.url)
+                     if request.method == "POST" and request.url.endswith("/matches") else None)
+        self.page.evaluate("""() => {
+            const original = Storage.prototype.setItem;
+            Storage.prototype.setItem = function(key, value) {
+                if (key.startsWith('mjobs-pipeline-score-request:')) throw new Error('synthetic storage failure');
+                return original.call(this, key, value);
+            };
+        }""")
+        self.workbench.get_by_role("button", name="Refresh all scores for this profile", exact=True).click()
+        expect(self.workbench).to_contain_text("Browser storage is unavailable")
+        self.assertEqual(requests, [])
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.operations.c.id)).all(), [])
+
     def test_delayed_score_acknowledgement_cannot_cross_profile_boundary(self):
         held = []
         def delay_ack(route):

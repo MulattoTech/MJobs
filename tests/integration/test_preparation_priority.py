@@ -21,6 +21,19 @@ from workers.tasks import execute_operation
 
 
 class PreparationPriorityTests(unittest.TestCase):
+    def test_distinct_score_requests_cannot_overlap_for_one_profile(self):
+        from threading import Barrier
+        gate = Barrier(2)
+        def refresh(request_id):
+            gate.wait(timeout=5)
+            return self.client.post("/matches", json={"profile_id": "fixture", "request_id": request_id})
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            first = pool.submit(refresh, "first-tab")
+            second = pool.submit(refresh, "second-tab")
+            responses = [first.result(timeout=15), second.result(timeout=15)]
+        self.assertEqual(sorted(response.status_code for response in responses), [202, 409])
+        self.assertEqual(self.store.count("worker_operations"), 1)
+
     def test_concurrent_profile_scoring_and_preparation_admit_only_one_kind(self):
         from threading import Barrier
         job_id = self.job("scoring-race")

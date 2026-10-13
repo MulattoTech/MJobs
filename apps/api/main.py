@@ -1255,6 +1255,12 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 if previous:
                     return {"operation_id": previous["id"], "state": previous["state"]}
             if connection.execute(select(m.operations.c.id).where(
+                m.operations.c.kind == "DISCOVER", m.operations.c.entity_id == value.profile_id,
+                m.operations.c.state.in_(["QUEUED", "RUNNING"]),
+                m.operations.c.params["rescore_only"].as_boolean() == True,
+            ).limit(1)).scalar_one_or_none():
+                raise HTTPException(409, {"code": "PROFILE_SCORING_IN_PROGRESS"})
+            if connection.execute(select(m.operations.c.id).where(
                 m.operations.c.kind == "PREPARE", m.operations.c.entity_id == value.profile_id,
                 m.operations.c.state.in_(["QUEUED", "RUNNING"]),
             ).limit(1)).scalar_one_or_none():

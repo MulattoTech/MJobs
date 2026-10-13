@@ -20,6 +20,7 @@ const item = (overrides:Partial<PipelineWorkbenchItem> = {}):PipelineWorkbenchIt
   next_action:'PREPARE',operation_id:null,...overrides,
 });
 const workbench:PipelineWorkbenchResponse = {
+  scoring_operation:null,
   profile_id:'profile-a',profile_version:'private-profile-version',
   counts:{total:3,by_stage:{DISCOVERED:1,NEEDS_SCORING:0,NEEDS_REVIEW:1,READY_TO_PREPARE:1,PREPARING:0,PREPARED:0,TRACKING:0}},
   items:[
@@ -72,6 +73,7 @@ describe('PipelineWorkbenchView',()=>{
     }
     expect(()=>parsePipelineWorkbench({...workbench,scoring_operation:{operation_id:'op',state:'UNKNOWN'}},'profile-a')).toThrow();
     expect(()=>parsePipelineWorkbench({...workbench,scoring_operation:{operation_id:5,state:'RUNNING'}},'profile-a')).toThrow();
+    expect(()=>parsePipelineWorkbench({...workbench,scoring_operation:undefined},'profile-a')).toThrow();
   });
   it('groups readiness stages and shows safe blockers and unknown scores distinctly',()=>{
     const html=renderToStaticMarkup(<PipelineWorkbenchView profileId="profile-a" workbench={workbench}

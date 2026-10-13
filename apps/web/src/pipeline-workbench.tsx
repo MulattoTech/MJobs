@@ -27,7 +27,7 @@ export type PipelineWorkbenchResponse = {
   profile_version:string;
   items:PipelineWorkbenchItem[];
   counts:{total:number;by_stage:Partial<Record<PipelineStage,number>>};
-  scoring_operation?:{operation_id:string;state:PipelineOperationState}|null;
+  scoring_operation:{operation_id:string;state:PipelineOperationState}|null;
 };
 export type PipelinePrepareRequest = {request_id:string;expected_profile_version:string;fingerprint:string};
 export type PipelinePrepareAcknowledgement = {request_id:string;job_id:string;operation_id:string;state:PipelineOperationState;next_action:'REFRESH_WORKBENCH'};
@@ -142,8 +142,8 @@ export function parsePipelineWorkbench(value:unknown,profileId:string):PipelineW
     });
   }
   const scoring=value.scoring_operation;
-  if(scoring!=null&&(!isRecord(scoring)||typeof scoring.operation_id!=='string'||!scoring.operation_id||
-    scoring.operation_id.length>200||!isPipelineOperationState(scoring.state)))throw new Error('PIPELINE_RESPONSE_INVALID');
+  if(scoring===undefined||(scoring!==null&&(!isRecord(scoring)||typeof scoring.operation_id!=='string'||!scoring.operation_id||
+    scoring.operation_id.length>200||!isPipelineOperationState(scoring.state))))throw new Error('PIPELINE_RESPONSE_INVALID');
   return {profile_id:profileId,profile_version:value.profile_version,items,counts:{total:value.counts.total,by_stage:byStage},
     scoring_operation:scoring?{operation_id:scoring.operation_id as string,state:scoring.state as PipelineOperationState}:null};
 }
@@ -361,17 +361,23 @@ export function PipelineWorkbench({profileId,onOpenApplication}:{profileId:strin
     const activeScope=scope.current;
     const key=`mjobs-pipeline-score-request:${profileId}`;
     let requestId=scoringRequests.current.get(profileId);
-    if(!requestId){
-      try {requestId=sessionStorage.getItem(key)||undefined;}catch{/* In-memory retry remains available. */}
-      requestId=requestId||crypto.randomUUID();
+    try {
+      requestId=requestId||sessionStorage.getItem(key)||crypto.randomUUID();
+      sessionStorage.setItem(key,requestId);
       scoringRequests.current.set(profileId,requestId);
-      try {sessionStorage.setItem(key,requestId);}catch{/* No private values are stored. */}
+    } catch {
+      setActionError({profileId,text:'Browser storage is unavailable. Enable session storage before refreshing scores so interrupted requests can be recovered.'});
+      return;
     }
     setScoringBusy(true);setActionError(null);
     try {
       await queuePipelineScoring(profileId,requestId,body=>api<unknown>('/matches',{method:'POST',body:JSON.stringify(body)}));
-      scoringRequests.current.delete(profileId);
-      try {sessionStorage.removeItem(key);}catch{/* Safe to replay the same request. */}
+      try {
+        sessionStorage.removeItem(key);
+        scoringRequests.current.delete(profileId);
+      } catch {
+        if(scope.current===activeScope)setActionError({profileId,text:'The saved refresh request could not be cleared. A retry will recover that same request.'});
+      }
       if(scope.current===activeScope)setAttempt(value=>value+1);
     } catch {
       if(scope.current===activeScope){
