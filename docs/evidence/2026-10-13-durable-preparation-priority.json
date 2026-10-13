@@ -1,0 +1,167 @@
+{
+  "requirement": "MJ-REQ-119",
+  "issue": 120,
+  "recorded_at_utc": "2026-10-13T16:47:26.086091+00:00",
+  "source_commit": "5a1a30c75204e681ef70243b53a610ae413f5202",
+  "base_commit": "1f8f868601d7d5bd71eb134e09d20b2612c9ef27",
+  "branch": "feat/astra-medium-redzone-root-20261013",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN",
+  "human_review": "NOT_RUN",
+  "external_submission_enabled": false,
+  "behavior": [
+    "Grounded deterministic current-profile skill evidence and posting age are snapshotted at approved preparation admission; unknown coverage stays unknown.",
+    "Scheduling metadata is excluded from deterministic operation identity. Per-profile request replay cannot reset terminal state or queue age; changed intent conflicts.",
+    "Profile/job snapshots are rechecked under admission locks; job/profile changes before generation fail closed.",
+    "Durable worker claim, under the existing category lock, chooses eligible preparation by aging tier, immutable enqueue time, then operation ID, even when Redis delivers an older lower-priority message first.",
+    "Deferred deliveries consume no attempt; outbox redispatch preserves IDs. One hourly promotion per tier bounds starvation under continuing service. Running work is never preempted.",
+    "Cancellation, retry deadlines, capacity and lease fencing remain authoritative. SQLite and PostgreSQL concurrent admission/claim and stale-input controls pass.",
+    "Profile-scoped Activity readback shows priority basis and waiting promotion; no applicant facts or internal approval snapshots are exposed."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit --tb=short",
+      "result": "PASS",
+      "passed": 1560,
+      "subtests_passed": 1018,
+      "seconds": 253.65
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run",
+      "result": "PASS",
+      "passed": 785
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "limitation": "Existing bundle size warning remains."
+    },
+    {
+      "command": "python -m unittest tests.integration.test_preparation_priority -q",
+      "environment": "Cached Linux mjobs-rc-local:20261011; Python 3.12.15, RQ 2.12.0, SQLAlchemy 2.1.1; dedicated PostgreSQL 17 and Redis 7",
+      "result": "PASS",
+      "passed": 25,
+      "skipped": 0,
+      "includes": "12 SQLite, 12 PostgreSQL, 1 real Redis/Linux RQ worker process acceptance"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_preparation_priority.py tests/browser/test_operation_progress.py tests/browser/test_pipeline_workbench.py tests/integration/test_worker_lifecycle.py tests/integration/test_worker_attempt_identity.py tests/integration/test_transactional_outbox.py tests/integration/test_operation_retries.py tests/integration/test_persistent_operation_progress.py tests/integration/test_operation_progress_lifecycle.py --tb=short",
+      "result": "PASS",
+      "passed": 55,
+      "subtests_passed": 6,
+      "skipped": 9,
+      "limitations": "Nine unrelated optional PostgreSQL lifecycle/retry cases gated; priority PostgreSQL cases executed separately."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_preparation_priority.py tests/integration/test_api_queue.py tests/integration/test_pipeline_workbench.py --tb=short",
+      "result": "PASS",
+      "passed": 36,
+      "skipped": 13,
+      "subtests_passed": 2,
+      "limitations": "Priority PostgreSQL/RQ cases executed separately in Linux."
+    },
+    {
+      "command": "Owned PostgreSQL/Redis container restart between synthetic API admission and replacement RQ worker execution",
+      "result": "PASS",
+      "observations": [
+        "Redis AOF preserved [stale,fresh] delivery order",
+        "PostgreSQL preserved exact priority snapshots and zero attempts",
+        "Replacement workers completed fresh before stale, each once",
+        "Four document records, two PREPARED applications, no submission"
+      ],
+      "local_probe": ".git/afk-dev/priority-restart-probe.py"
+    },
+    {
+      "command": "catalogue; progress validate; agent_skills; progress_dashboard --check; git diff --check; commit_provenance --commit HEAD",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_progress_card.py tests/unit/test_progress_dashboard.py tests/integration/test_preparation_priority.py tests/browser/test_preparation_priority.py --tb=short",
+      "result": "PASS",
+      "passed": 21,
+      "skipped": 13,
+      "revision": "5a1a30c75204e681ef70243b53a610ae413f5202",
+      "note": "Priority PostgreSQL/RQ cases executed separately with 25 Linux tests; source blobs equal committed revision."
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_public_ci_tools.py tests/unit/test_catalogue.py --tb=short",
+      "result": "PASS",
+      "passed": 24
+    }
+  ],
+  "limitations": [
+    "Whole-product release acceptance remains incomplete.",
+    "Hosted exact-head gates and human review pending publication.",
+    "The Windows RQ SpawnWorker emitted invalid Python; production Linux Worker execution passed. Windows local worker-function tests passed, but native Windows RQ process acceptance is not claimed.",
+    "Aging bounds priority promotion, not wall-clock completion under overload or unavailable workers.",
+    "No real provider inference or employer submission executed."
+  ],
+  "review": "Primary-agent self-review; no subagents, paid AI review, or independent-review claim.",
+  "source_files": [
+    {
+      "path": ".github/workflows/integration.yml",
+      "sha256": "c93daa066dc04354c5a1d3f8e95addccc2e939b08650366f064274d3ebc482d4"
+    },
+    {
+      "path": "apps/api/main.py",
+      "sha256": "dcff107382e2a969929b9994be0304f9d078e94000dfc3bd8b84389bb6439810"
+    },
+    {
+      "path": "apps/api/operation_progress.py",
+      "sha256": "e578e2a27f43275b246c44526137c332b862a213d897901108f9cd62dc0cd726"
+    },
+    {
+      "path": "apps/web/src/operation-progress.test.tsx",
+      "sha256": "e764a5b055bcec69f89f98dee8c1f410a09950e15da87c8c2c0b6becb82ce842"
+    },
+    {
+      "path": "apps/web/src/operation-progress.tsx",
+      "sha256": "33c1f830119ad967d82886e4a526cb855953c3e5194153d438795e72d560a255"
+    },
+    {
+      "path": "services/documents/generate.py",
+      "sha256": "951a0a6e51b568258bf01f70e3fef743cce379304f99171284d71fabe2586d60"
+    },
+    {
+      "path": "services/matching/preparation_priority.py",
+      "sha256": "0b3c9b25f49cf17a84d791e560184f7d344089ba84097ea985b630d3366a74a2"
+    },
+    {
+      "path": "services/operations/progress.py",
+      "sha256": "ae83130461b4811fc3103e6fbf3397eec4a7408d35bf5e170fdb307d75e570d4"
+    },
+    {
+      "path": "tests/browser/test_preparation_priority.py",
+      "sha256": "055b8c8957fb0e82089bfdf4bac09f6ff535de95e0cb1db021f4c23bc07adfb2"
+    },
+    {
+      "path": "tests/integration/test_preparation_priority.py",
+      "sha256": "35e1c5f34da3594ad55a53371d858cc64be52a9ddce968b3d1655b836ea987c7"
+    },
+    {
+      "path": "workers/dispatch.py",
+      "sha256": "091e9cab00ad70cb5f714d8a039acef9b1ea085b2b7787033ab63a4a07d5b128"
+    },
+    {
+      "path": "workers/operations.py",
+      "sha256": "7bc5a33e28ac2043317ab5df4f1f8749c5ca6857fa2c6c5e13ac0173a8b7f5b1"
+    },
+    {
+      "path": "workers/tasks.py",
+      "sha256": "dc2f4cb37c2a323cf1f5df671e5312cb174ecfaa3ee8d8775aedcb4c10a2411c"
+    }
+  ],
+  "acceptance_counts_before_and_after": {
+    "original_PASS": 107,
+    "original_total": 366,
+    "reference_PASS": 19,
+    "reference_total": 59,
+    "original_P0P1_PASS": 47,
+    "original_P0P1_total": 142,
+    "matching_ai_PASS": 2,
+    "matching_ai_total": 20
+  }
+}

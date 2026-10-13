@@ -11,8 +11,8 @@
     "current_verified_github_state": "Live remote main12466a8cc820712b4842af02c9f2d4482102827a and PR543 predecessor9e1f3231 verified; predecessor integration replay/Compose overflow FAIL. Repair publication and exact-head checks tracked in AFK state; original/reference acceptance unchanged.",
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
-  "current_milestone": "DATABASE-RUNTIME-LEAST-PRIVILEGE-20261012",
-  "current_objective": "Connect selected saved searches to actual fixture discovery scoring and durable history",
+  "current_milestone": "FRESH-PREPARATION-PRIORITY-20261013",
+  "current_objective": "Complete grounded fresh-match priority through durable preparation worker execution",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2588,7 +2588,7 @@
     "full_pass_requires_all_acceptance": true,
     "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
   },
-  "updated_at": "2026-10-12T19:57:37.727596+00:00",
+  "updated_at": "2026-10-13T16:47:26.086091+00:00",
   "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
   "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
@@ -2637,56 +2637,65 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "issue": 222,
-    "requirement": "MJ-REQ-221",
-    "related_requirements": [
-      "MJ-REQ-121",
-      "MJ-REQ-156"
-    ],
-    "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
-    "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
-    "branch": "fix/route-attempt-concurrency-222",
-    "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
-    "owned_paths": [
-      "services/applications/attempt_history.py",
-      "apps/web/src/mock-run-controls.tsx",
-      "apps/web/src/mock-run-controls.test.tsx",
-      "tests/integration/test_route_attempt_concurrency.py",
-      "tests/integration/test_route_attempt_concurrency_postgres.py",
-      "tests/browser/test_route_attempt_ownership.py"
-    ],
+    "issue": 120,
+    "requirement": "MJ-REQ-119",
+    "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+    "branch": "feat/astra-medium-redzone-root-20261013",
+    "verified_source": "5a1a30c75204e681ef70243b53a610ae413f5202",
+    "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
+    "behavior": "Grounded fresh-match preparation priority at durable worker claim, hourly aging, restart persistence and scoped Activity readback",
     "previous_integrated_slice": {
-      "pr": 614,
-      "source": "fe83f9b289de5293328b081543ac1eec23cdc701",
-      "merge": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
-      "required_hosted_gates": "PASS",
-      "parent_acceptance": "PARTIAL"
-    },
-    "acceptance": "MJ-REQ-221 PASS from exact-source behavioral proof; related umbrella requirements remain PARTIAL",
-    "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
-    "local_validation": {
-      "unit_pass": 1560,
-      "unit_subtests_pass": 1018,
-      "frontend_pass": 784,
-      "integration_browser_pass": 42,
-      "integration_subtests_pass": 6,
-      "postgres_skipped": 5,
-      "build": "PASS",
-      "policy": "PASS"
-    },
-    "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791",
-    "pr": 615,
-    "hosted_validation": {
-      "integration_run": 38341073391,
-      "integration_pass": 2002,
-      "integration_skip": 10,
-      "new_postgres_cases_pass": 5,
-      "browser_run": 38341071800,
-      "browser_pass": 256,
-      "browser_skip": 5,
-      "compose_run": 38341073316,
-      "compose_artifacts_pass": 5,
-      "required_gates": "PASS"
+      "issue": 222,
+      "requirement": "MJ-REQ-221",
+      "related_requirements": [
+        "MJ-REQ-121",
+        "MJ-REQ-156"
+      ],
+      "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
+      "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
+      "branch": "fix/route-attempt-concurrency-222",
+      "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
+      "owned_paths": [
+        "services/applications/attempt_history.py",
+        "apps/web/src/mock-run-controls.tsx",
+        "apps/web/src/mock-run-controls.test.tsx",
+        "tests/integration/test_route_attempt_concurrency.py",
+        "tests/integration/test_route_attempt_concurrency_postgres.py",
+        "tests/browser/test_route_attempt_ownership.py"
+      ],
+      "previous_integrated_slice": {
+        "pr": 614,
+        "source": "fe83f9b289de5293328b081543ac1eec23cdc701",
+        "merge": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
+        "required_hosted_gates": "PASS",
+        "parent_acceptance": "PARTIAL"
+      },
+      "acceptance": "MJ-REQ-221 PASS from exact-source behavioral proof; related umbrella requirements remain PARTIAL",
+      "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
+      "local_validation": {
+        "unit_pass": 1560,
+        "unit_subtests_pass": 1018,
+        "frontend_pass": 784,
+        "integration_browser_pass": 42,
+        "integration_subtests_pass": 6,
+        "postgres_skipped": 5,
+        "build": "PASS",
+        "policy": "PASS"
+      },
+      "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791",
+      "pr": 615,
+      "hosted_validation": {
+        "integration_run": 38341073391,
+        "integration_pass": 2002,
+        "integration_skip": 10,
+        "new_postgres_cases_pass": 5,
+        "browser_run": 38341071800,
+        "browser_pass": 256,
+        "browser_skip": 5,
+        "compose_run": 38341073316,
+        "compose_artifacts_pass": 5,
+        "required_gates": "PASS"
+      }
     }
   }
 }

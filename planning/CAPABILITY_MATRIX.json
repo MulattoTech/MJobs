@@ -1502,9 +1502,11 @@
     },
     {
       "requirement_id": "MJ-REQ-119",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-13-durable-preparation-priority.json"
+      ],
+      "note": "API admission to actual Linux RQ execution, PostgreSQL concurrency, hourly aging, stable ties, restart, idempotent replay, cancellation/stale-input fences and profile-scoped Chromium readback pass locally at 5a1a30c75204e681ef70243b53a610ae413f5202. Exact-head hosted gates and review remain pending; no full requirement PASS or release eligibility claimed.",
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature"
