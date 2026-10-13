@@ -597,6 +597,8 @@
     }
     const a = data.original, b = data.reference;
     const sha = data.git?.local_main_sha?.slice(0,10) || "?";
+    const checkout = data.git?.checkout_head_sha?.slice(0,10) || "?";
+    const checkoutBranch = data.git?.checkout_branch || "(detached HEAD)";
     const remote = data.git?.github_main_sha?.slice(0,10) || "?";
     const synced = data.git?.published_matches_local_main;
     const syncText = synced === true ? "GitHub main synced" : synced === false
@@ -630,6 +632,7 @@
       <div class="release-meta">
         <span class="sync-pill ${synced ? "" : "warn"}">${syncText}</span>
         Local main <code>${safe(sha)}</code> · GitHub main <code>${safe(remote)}</code> ·
+        Checkout <code>${safe(checkoutBranch)}</code> at <code>${safe(checkout)}</code>.
         Card checkpoint ${data.checkpoint_current ? "CURRENT" : "STALE / INTEGRATOR REFRESH REQUIRED"}.
         ${safe(data.git?.note || "")}
       </div>

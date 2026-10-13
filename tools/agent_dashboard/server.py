@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Query, Request, WebSocket, WebSocketDisconnect
@@ -147,10 +147,11 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.get("/api/history")
     def recent_work_history(limit: int = Query(default=50, ge=1, le=100),
-                            refresh: bool = False):
-        """Read-only local Git + separate Codex session activity. No API/model calls."""
+                            refresh: bool = False,
+                            source: Literal["checkout", "all", "github"] = "checkout"):
+        """Read-only source-selected Git history; Github source uses gh API."""
         try:
-            return history.snapshot(limit=limit, force=refresh)
+            return history.snapshot(limit=limit, force=refresh, source=source)
         except (RuntimeError, OSError, ValueError):
             raise HTTPException(503, "Work history is unavailable. Try refreshing again.") from None
 

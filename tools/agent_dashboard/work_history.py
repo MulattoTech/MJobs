@@ -2,8 +2,8 @@
 
 Git commits are independently verifiable work checkpoints. Codex turns are
 separate observations: timestamps never establish which agent authored a
-commit. This reader does not mutate Git, contact a model, write records,
-spawn agents, change coordination, or invoke GitHub network operations.
+commit. This reader does not mutate Git, contact a model, write records, spawn
+agents or change coordination. GitHub-main mode reads commit metadata via gh CLI.
 """
 from __future__ import annotations
 
@@ -17,6 +17,8 @@ import subprocess
 import threading
 import time
 from typing import Any
+
+from .github_history import fetch_github_main
 
 MAX_COMMITS = 100
 REFRESH_SECONDS = 5
@@ -290,51 +292,88 @@ class WorkHistory:
         self.root = Path(root).resolve()
         self.codex_home = codex_home
         self._lock = threading.RLock()
-        self._cached_snapshot: dict[str, Any] | None = None
-        self._cached_at: float = 0.0
+        # Each history source has its own TTL; switching tabs does not reuse stale rows.
+        self._cached_snapshots: dict[str, tuple[float, dict[str, Any]]] = {}
         self._session_cached_at: float = 0.0
         self._session_cached: dict[str, Any] | None = None
 
-    def snapshot(self, *, limit: int = 50, force: bool = False) -> dict[str, Any]:
+    def snapshot(self, *, limit: int = 50, force: bool = False,
+                 source: str = "checkout") -> dict[str, Any]:
+        """Switch between checkout history, all known refs, and published main.
+
+        All-refs is a local/cache view and may include unpushed work. GitHub main
+        uses its API and does not classify changed paths it has not inspected.
+        """
         if not 1 <= limit <= MAX_COMMITS:
             raise ValueError("Limit must be 1 to 100")
+        if source not in {"checkout", "all", "github"}:
+            raise ValueError("Unknown history source")
         current = time.monotonic()
+        refresh_seconds = 45 if source == "github" else REFRESH_SECONDS
         with self._lock:
-            if (force or self._cached_snapshot is None or
-                    current - self._cached_at >= REFRESH_SECONDS):
-                raw = run_git(
-                    self.root, "log", f"-{MAX_COMMITS}",
-                    "--no-renames", "--numstat",
-                    "--format=__MJH__%H%x1f%cI%x1f%an%x1f%s",
+            cached = self._cached_snapshots.get(source)
+            if force or cached is None or current - cached[0] >= refresh_seconds:
+                if source == "github":
+                    commits = fetch_github_main(limit=MAX_COMMITS)
+                    branch = "main"
+                    source_name = "GITHUB_MAIN_PUBLISHED"
+                    explanation = (
+                        "Commits published on GitHub main. Feature-branch pushes only "
+                        "appear after merging. Changed paths were not inspected."
+                    )
+                else:
+                    extra = ("--all", "--date-order") if source == "all" else ()
+                    raw = run_git(
+                        self.root, "log", *extra, f"-{MAX_COMMITS}",
+                        "--no-renames", "--numstat",
+                        "--format=__MJH__%H%x1f%cI%x1f%an%x1f%s",
+                    )
+                    commits = parse_git_log(raw)
+                    branch = ("All local + cached remote refs" if source == "all"
+                              else run_git(self.root, "branch", "--show-current").strip())
+                    source_name = ("LOCAL_ALL_KNOWN_REFS" if source == "all"
+                                   else "LOCAL_GIT_COMMIT_HISTORY")
+                    explanation = (
+                        "All commits reachable from local branches and cached origin/* refs, "
+                        "including unpushed local work. Cached remote refs can be stale."
+                        if source == "all" else
+                        "Commits reachable from the currently checked-out branch only."
+                    )
+                head = commits[0]["sha"] if commits else (
+                    None if source == "github" else
+                    run_git(self.root, "rev-parse", "HEAD").strip()
                 )
-                commits = parse_git_log(raw)
-                branch = run_git(self.root, "branch", "--show-current").strip()
-                head = commits[0]["sha"] if commits else run_git(self.root, "rev-parse", "HEAD").strip()
                 counts = Counter(row["category"] for row in commits)
-                self._cached_snapshot = {
+                classified = source != "github"
+                snapshot = {
                     "available": True,
-                    "source": "LOCAL_GIT_COMMIT_HISTORY",
+                    "source": source_name, "history_source": source,
+                    "source_description": explanation,
                     "observed_at": datetime.now(timezone.utc).isoformat(),
-                    "branch": branch,
-                    "head": head,
-                    "sample_size": len(commits),
-                    "categories": dict(counts),
-                    "code_commits": sum(v for k, v in counts.items() if
-                                        k in {"CORE_FEATURE", "PRODUCT_FEATURE", "BUGFIX", "PRODUCT_CHANGE"}),
-                    "change_total": sum(c["added"] + c["deleted"] for c in commits),
-                    "commits": commits,
-                    "refresh_seconds": REFRESH_SECONDS,
+                    "branch": branch, "head": head,
+                    "sample_size": len(commits), "categories": dict(counts),
+                    "classification_available": classified,
+                    "code_commits": (
+                        sum(v for k, v in counts.items() if
+                            k in {"CORE_FEATURE", "PRODUCT_FEATURE", "BUGFIX", "PRODUCT_CHANGE"})
+                        if classified else None
+                    ),
+                    "change_total": (
+                        sum(c["added"] + c["deleted"] for c in commits)
+                        if classified else None
+                    ),
+                    "commits": commits, "refresh_seconds": refresh_seconds,
                     "classification_caveat": (
-                        "Categories reflect committed files and subject conventions; they "
-                        "are not a review outcome, acceptance proof, or evidence of AI authorship."
+                        "File-based labels and author identity do not prove acceptance "
+                        "or model attribution." if classified else
+                        "GitHub metadata only: no changed-file categories or line counts were inspected."
                     ),
                 }
-                self._cached_at = time.monotonic()
-            if (force or self._session_cached is None or
-                    current - self._session_cached_at >= 25):
+                self._cached_snapshots[source] = (time.monotonic(), snapshot)
+            if force or self._session_cached is None or current - self._session_cached_at >= 25:
                 self._session_cached = session_activity(self.root, codex_home=self.codex_home)
                 self._session_cached_at = time.monotonic()
-            result = dict(self._cached_snapshot)
+            result = dict(self._cached_snapshots[source][1])
             result["codex"] = dict(self._session_cached or {})
             result["commits"] = result["commits"][:limit]
             return result
