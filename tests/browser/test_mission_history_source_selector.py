@@ -7,7 +7,8 @@ import json
 from pathlib import Path
 import threading
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import expect, sync_playwright
+import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 STATIC = ROOT / "tools" / "agent_dashboard" / "static"
@@ -110,3 +111,62 @@ def test_source_selector_distinguishes_all_local_refs_and_github():
     finally:
         server.shutdown()
         server.server_close()
+
+
+@pytest.mark.parametrize('scenario', ['source_switch_failure', 'mismatched_source', 'return_to_original'])
+def test_old_or_mismatched_response_cannot_impersonate_selected_source(scenario):
+    server=ThreadingHTTPServer(('127.0.0.1',0),StaticHandler)
+    worker=threading.Thread(target=server.serve_forever,daemon=True)
+    worker.start()
+    try:
+        with sync_playwright() as pw:
+            browser=pw.chromium.launch(headless=True)
+            try:
+                page=browser.new_page()
+                held=[]
+                requests=[]
+                def intercept(route):
+                    from urllib.parse import parse_qs
+                    source=parse_qs(urlsplit(route.request.url).query)['source'][0]
+                    requests.append(source)
+                    if len(requests)==2 and scenario!='mismatched_source':
+                        held.append(route)
+                        return
+                    if source=='github':
+                        if scenario=='mismatched_source':
+                            route.fulfill(status=200,json=fixture('checkout'))
+                        else:
+                            route.fulfill(status=503,json={'detail':'Synthetic GitHub outage'})
+                        return
+                    data=fixture(source)
+                    if len(requests)>2:
+                        data['commits'][0]['subject']='Fresh selected-source generation'
+                    route.fulfill(status=200,json=data)
+                page.route('**/api/history?*',intercept)
+                page.goto(f'http://127.0.0.1:{server.server_port}/')
+                feed=page.locator('#historyTimeline')
+                expect(feed).to_contain_text('other-branch progress')
+                if scenario!='mismatched_source':
+                    with page.expect_request('**/api/history?*'):
+                        page.locator('#historyRefresh').click()
+                    assert len(held)==1
+                page.locator('#historySource').select_option('github')
+                if scenario=='return_to_original':
+                    page.locator('#historySource').select_option('all')
+                if held:
+                    held[0].fulfill(status=200,json=fixture('all'))
+                if scenario=='return_to_original':
+                    expect(feed).to_contain_text('Fresh selected-source generation')
+                    assert requests==['all','all','all']
+                else:
+                    expect(page.locator('#historyStatus')).to_have_text('History unavailable')
+                    expect(feed.locator('.history-entry')).to_have_count(0)
+                    expect(page.locator('#historyProduct')).to_have_text('—')
+                    expect(page.locator('#historyBookkeeping')).to_have_text('—')
+                    expect(page.locator('#historySourceNote')).not_to_contain_text('Current checkout only')
+                    expect(page.locator('#historySourceNote')).not_to_contain_text('unpushed work may appear')
+            finally:
+                browser.close()
+    finally:
+        server.shutdown();server.server_close();worker.join(timeout=5)
+        assert not worker.is_alive()

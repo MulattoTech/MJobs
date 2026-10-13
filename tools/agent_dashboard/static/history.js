@@ -29,6 +29,7 @@
   };
   let latest = null;
   let inProgress = false;
+  let sourceGeneration = 0;
   let lastHead = null;
   let lastSource = null;
   let displayedFingerprint = "";
@@ -157,6 +158,8 @@
     if(document.hidden && !force)return;
     inProgress=true;
     const requestedSource=sourceSelect.value;
+    const requestedGeneration=sourceGeneration;
+    const stillSelected=()=>requestedGeneration===sourceGeneration && sourceSelect.value===requestedSource;
     try{
       const depth=Number(limitSelect.value)||50;
       const source=sourceSelect.value;
@@ -168,8 +171,9 @@
         throw new Error(e.detail||"HTTP "+response.status);
       }
       const data=await response.json();
-      if(!data.available || !Array.isArray(data.commits)){
-        throw new Error("Invalid local Git history response");
+      if(!stillSelected())return;
+      if(!data.available || !Array.isArray(data.commits) || data.history_source!==requestedSource){
+        throw new Error("Invalid selected-source history response");
       }
       const oldHead=lastSource===data.history_source ? lastHead : null;
       latest=data;
@@ -184,23 +188,34 @@
       lastHead=data.head;
       lastSource=data.history_source;
     }catch(error){
+      if(!stillSelected())return;
       $("#historyStatus").textContent="History unavailable";
       $("#historyStatus").className="sync-pill warn";
-      if(!latest)feed.innerHTML='<div class="history-empty">Could not read Git history: '+
-        escapes(error.message)+'</div>';
+      if(!latest){
+        $("#historySourceNote").textContent="The selected history source could not be verified.";
+        feed.innerHTML='<div class="history-empty">Could not read Git history: '+
+          escapes(error.message)+'</div>';
+      }
     }finally{
       inProgress=false;
       // If the source was changed while a request was pending, refresh the new selection.
-      if(sourceSelect.value!==requestedSource)void refreshHistory(true);
+      if(!stillSelected())void refreshHistory(true);
     }
   }
   $("#historyRefresh").addEventListener("click",()=>{void refreshHistory(true);});
   sourceSelect.addEventListener("change",()=>{
+    sourceGeneration++;
     lastHead=null;lastSource=null;displayedFingerprint="";
     $("#historyNewCommitNotice").textContent="";
     categorySelect.disabled=sourceSelect.value==="github";
     if(categorySelect.disabled)categorySelect.value="ALL";
     $("#historySourceNote").textContent="Switching history source...";
+    $("#historyStatus").textContent="Loading selected source";
+    for(const id of ["historySample","historyProduct","historyBookkeeping"]){
+      $("#"+id).textContent="—";
+    }
+    $("#historyMeter").replaceChildren();
+    $("#historyCategoryLegend").textContent="Waiting for selected source.";
     latest=null;
     feed.textContent="Loading the selected history source...";
     void refreshHistory(true);
