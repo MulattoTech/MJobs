@@ -1095,7 +1095,17 @@
       "status": "ACTIVE",
       "branch": "codex/mj-req110-review-consumer-20261006",
       "draft_until_verified": true,
-      "notes": "Ollama slice integrated by non-force fast-forward at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence docs/evidence/2026-10-06-ai-local-ollama-provider.json. No live inference or remote/paid provider call was made. MJ-REQ-108.A06 disabled provider PASS; issue #109 / MJ-REQ-108 now has a locally tested loopback Ollama adapter, but remains PARTIAL pending actual inference and remaining provider/consumer paths. MJ-REQ-109 router, MJ-REQ-110 funnel and MJ-REQ-111 structured output are integrated PARTIAL. Persisted settings and end-to-end task consumers remain open. MJ-REQ-109 persisted profile settings locally verified on candidate a6d64f82598df9eebab6601dafd386b07409706f; evidence docs/evidence/2026-10-06-ai-task-settings-persistence.json. Issue #110 remains OPEN/PARTIAL because production task consumers are not wired. Profile-scoped AI task settings source a6d64f8 and checkpoint/evidence integrated at synchronized main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366. Next slice #111 / MJ-REQ-110 exposes the deterministic cost funnel thresholds in profile settings; consumer/inference gaps remain. Candidate 93e152dbff89c74b5075ce4df703c82cb4da8883 adds profile-scoped bounded cost policy, connected settings and read-only funnel preview; local suites and SQLite/PostgreSQL migration checks PASS. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Issue #111 remains OPEN/PARTIAL pending a production task consumer; integration pending live reconciliation. Cost controls integrated at synchronized main a6e6625651aebd8ee3d07cbb31a496195f29de65; issue #111 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Current gap: real review-gated consumer and reviewed-document workflow; no inference claimed. Takeover candidate aa05f692ce20d8b0c81fff2da6b93251fe5df6e5 wires a bounded structured production task consumer, durable evaluation history and an explicit review gate into factual document preparation; focused 15 Python tests, 62 frontend tests/build and validators pass. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Issue #111 remains OPEN/PARTIAL because live configured-provider inference and full Python discovery were NOT_RUN; external submission OFF. Source/evidence/planning safely integrated by non-force fast-forward at synchronized main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6; GitHub issue #111 remains OPEN/PARTIAL after evidence readback: https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838. Full Python discovery interrupted, live provider inference and hosted checks NOT_RUN."
+      "notes": "Ollama slice integrated by non-force fast-forward at synchronized main 6569765749e319e72aebfaa90181eeb351f9a513; issue #109 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/109#issuecomment-6024000242. Evidence docs/evidence/2026-10-06-ai-local-ollama-provider.json. No live inference or remote/paid provider call was made. MJ-REQ-108.A06 disabled provider PASS; issue #109 / MJ-REQ-108 now has a locally tested loopback Ollama adapter, but remains PARTIAL pending actual inference and remaining provider/consumer paths. MJ-REQ-109 router, MJ-REQ-110 funnel and MJ-REQ-111 structured output are integrated PARTIAL. Persisted settings and end-to-end task consumers remain open. MJ-REQ-109 persisted profile settings locally verified on candidate a6d64f82598df9eebab6601dafd386b07409706f; evidence docs/evidence/2026-10-06-ai-task-settings-persistence.json. Issue #110 remains OPEN/PARTIAL because production task consumers are not wired. Profile-scoped AI task settings source a6d64f8 and checkpoint/evidence integrated at synchronized main f6549b8dd2cb7bced64223f30b3870511cd1ba3a; #110 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/110#issuecomment-6024402366. Next slice #111 / MJ-REQ-110 exposes the deterministic cost funnel thresholds in profile settings; consumer/inference gaps remain. Candidate 93e152dbff89c74b5075ce4df703c82cb4da8883 adds profile-scoped bounded cost policy, connected settings and read-only funnel preview; local suites and SQLite/PostgreSQL migration checks PASS. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Issue #111 remains OPEN/PARTIAL pending a production task consumer; integration pending live reconciliation. Cost controls integrated at synchronized main a6e6625651aebd8ee3d07cbb31a496195f29de65; issue #111 remains OPEN/PARTIAL after https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6025101467. Evidence docs/evidence/2026-10-06-ai-cost-controls-ui.json. Current gap: real review-gated consumer and reviewed-document workflow; no inference claimed. Takeover candidate aa05f692ce20d8b0c81fff2da6b93251fe5df6e5 wires a bounded structured production task consumer, durable evaluation history and an explicit review gate into factual document preparation; focused 15 Python tests, 62 frontend tests/build and validators pass. Evidence docs/evidence/2026-10-07-ai-cost-consumer-resume.json. Issue #111 remains OPEN/PARTIAL because live configured-provider inference and full Python discovery were NOT_RUN; external submission OFF. Source/evidence/planning safely integrated by non-force fast-forward at synchronized main 17b9888657c49e0e10ef1fb937a59ef6b6714eb6; GitHub issue #111 remains OPEN/PARTIAL after evidence readback: https://github.com/MulattoTech/MJobs/issues/111#issuecomment-6030035838. Full Python discovery interrupted, live provider inference and hosted checks NOT_RUN.",
+      "active_slice": {
+        "name": "Durable AI job-input freshness",
+        "issue": 111,
+        "requirement_id": "MJ-REQ-110",
+        "status": "PARTIAL",
+        "publication_state": "LOCAL_VERIFIED_HOSTED_PENDING",
+        "source_commit": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
+        "branch": "feat/astra-ai-job-freshness-20261013",
+        "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json"
+      }
     },
     {
       "id": "MJ-PR-031",
@@ -1239,12 +1249,13 @@
         "name": "Durable fresh-match preparation priority",
         "issue": 120,
         "requirement_id": "MJ-REQ-119",
-        "status": "PARTIAL",
-        "publication_state": "PR_OPEN_REPAIRED_HOSTED_PENDING",
+        "status": "PASS",
+        "publication_state": "MERGED",
         "source_commit": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
         "branch": "feat/astra-medium-redzone-root-20261013",
         "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
-        "pr_number": 616
+        "pr_number": 616,
+        "merge_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e"
       },
       "completed_slices": [
         {

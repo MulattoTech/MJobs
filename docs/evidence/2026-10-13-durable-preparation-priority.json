@@ -8,9 +8,9 @@
   "model": "gpt-6-astra",
   "reasoning_effort": "medium",
   "local_behavior": "PASS",
-  "requirement_result": "PARTIAL",
-  "hosted_checks": "PREVIOUS_HEAD_PARTIAL; repaired head pending",
-  "human_review": "NOT_RUN",
+  "requirement_result": "PASS",
+  "hosted_checks": "PASS_ON_EXACT_PR_HEAD",
+  "human_review": "NOT_RUN; live ruleset required zero approving reviews",
   "external_submission_enabled": false,
   "behavior": [
     "Grounded deterministic current-profile skill evidence and posting age are snapshotted at approved preparation admission; unknown coverage stays unknown.",
@@ -140,7 +140,7 @@
   ],
   "limitations": [
     "Whole-product release acceptance remains incomplete.",
-    "Repaired exact-head hosted gates and human review pending; prior Compose failure preserved above.",
+    "Acceptance is scoped to MJ-REQ-119. No independent or human review was performed or required by the live ruleset.",
     "The Windows RQ SpawnWorker emitted invalid Python; production Linux Worker execution passed. Windows local worker-function tests passed, but native Windows RQ process acceptance is not claimed.",
     "Aging bounds priority promotion, not wall-clock completion under overload or unavailable workers.",
     "No real provider inference or employer submission executed."
@@ -205,14 +205,24 @@
     }
   ],
   "acceptance_counts_before_and_after": {
-    "original_PASS": 107,
-    "original_total": 366,
-    "reference_PASS": 19,
-    "reference_total": 59,
-    "original_P0P1_PASS": 47,
-    "original_P0P1_total": 142,
-    "matching_ai_PASS": 2,
-    "matching_ai_total": 20
+    "before": {
+      "original_PASS": 107,
+      "reference_PASS": 19,
+      "matching_ai_PASS": 2,
+      "original_P0P1_PASS": 47
+    },
+    "after": {
+      "original_PASS": 108,
+      "reference_PASS": 19,
+      "matching_ai_PASS": 3,
+      "original_P0P1_PASS": 47
+    },
+    "totals": {
+      "original": 366,
+      "reference": 59,
+      "matching_ai": 20,
+      "original_P0P1": 142
+    }
   },
   "pr_url": "https://github.com/MulattoTech/MJobs/pull/616",
   "previous_source_commit": "5a1a30c75204e681ef70243b53a610ae413f5202",
@@ -233,6 +243,87 @@
       ],
       "failed": "Disposable Compose / mock end-to-end: fresh restore discovery recovery timeout",
       "failure_url": "https://github.com/MulattoTech/MJobs/actions/runs/38433689276"
+    },
+    {
+      "revision": "5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35",
+      "result": "PASS",
+      "checks": [
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856/job/115437530990",
+          "name": "Integration / PostgreSQL and Redis",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021820/job/115434559818",
+          "name": "CI / required",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/runs/115433740540",
+          "name": "CodeQL",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856/job/115433566711",
+          "name": "Integration / shard 2",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856/job/115433566460",
+          "name": "Integration / shard 0",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021872/job/115433568359",
+          "name": "Security / secret scan",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856/job/115433566747",
+          "name": "Integration / shard 1",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021820/job/115433566562",
+          "name": "Python / unit and integrity",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021820/job/115433566198",
+          "name": "Web / Vitest and production build",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021627/job/115433565011",
+          "name": "Dependencies / introduced vulnerabilities",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021820/job/115433566615",
+          "name": "Repository / policy and docs",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437021717/job/115433566810",
+          "name": "Disposable Compose / mock end-to-end",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437016297/job/115433553392",
+          "name": "Analyze (javascript-typescript)",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437016297/job/115433552471",
+          "name": "Analyze (python)",
+          "state": "SUCCESS"
+        },
+        {
+          "link": "https://github.com/MulattoTech/MJobs/actions/runs/38437016297/job/115433553012",
+          "name": "Analyze (actions)",
+          "state": "SUCCESS"
+        }
+      ]
     }
   ],
   "restart_regression": {
@@ -241,5 +332,183 @@
     "red_test": "Fresh production workers.main subprocess with deliberately slow dispatcher-thread httpx import: QUEUED != COMPLETED after bounded 20 second wait.",
     "fix": "Import the complete task graph on the main thread before starting the dispatcher; no task or provider is executed by preload.",
     "green_test": "Same fresh process, PostgreSQL and real Redis/RQ work horse completed once and produced two documents."
+  },
+  "merge_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e",
+  "accepted_at_utc": "2026-10-13T17:43:17.057581+00:00",
+  "merge_verification": {
+    "revision": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e",
+    "same_tree_as_tested_pr_head": "5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35",
+    "tree": "dceb0da2ca4e90560ccee0ee8a0444a1a9e4b2ba",
+    "checks": [
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38439835585/job/115443231106",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38439744955/job/115442920569",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38439427750/job/115442246348",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38439424306/job/115441813476",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475975/job/115441746407",
+        "name": "Integration / PostgreSQL and Redis",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38439391433/job/115441697979",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38439349962/job/115441554948",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38439083929/job/115440660592",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438936589/job/115440152235",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438842970/job/115439836079",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438824325/job/115439760754",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438748768/job/115439500110",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475901/job/115439431103",
+        "name": "CI / required",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438673166/job/115439244098",
+        "name": "Dependabot",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438673597/job/115439243675",
+        "name": "Dependabot",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475959/job/115438720411",
+        "name": "Publish trusted main documentation",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438508617/job/115438674065",
+        "name": "review",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438476069/job/115438573949",
+        "name": "Analyze (actions)",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438476069/job/115438573709",
+        "name": "Analyze (javascript-typescript)",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438476069/job/115438573551",
+        "name": "Analyze (python)",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475975/job/115438566991",
+        "name": "Integration / shard 0",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475975/job/115438566374",
+        "name": "Integration / shard 1",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475959/job/115438566357",
+        "name": "Build allowlisted static documentation",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475975/job/115438566232",
+        "name": "Integration / shard 2",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475901/job/115438566157",
+        "name": "Repository / policy and docs",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475901/job/115438565708",
+        "name": "Web / Vitest and production build",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475942/job/115438565420",
+        "name": "Security / secret scan",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38438475901/job/115438565333",
+        "name": "Python / unit and integrity",
+        "status": "completed"
+      }
+    ],
+    "note": "Compose ran successfully on the exact PR head. Merge has the identical tree; available post-merge checks also passed."
   }
 }

@@ -1826,7 +1826,7 @@
       "priority": "P3",
       "area": "matching_ai",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-120",
@@ -3446,8 +3446,8 @@
     }
   ],
   "summary": {
-    "PARTIAL": 116,
-    "PASS": 126,
+    "PARTIAL": 115,
+    "PASS": 127,
     "NOT_RUN": 183
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."

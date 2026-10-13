@@ -26,3 +26,9 @@ They are rejected when the profile version changes and are required by the
 application-preparation API when it is called from the AI-evaluation workflow.
 The migration refuses to discard populated review history. The persistence layer
 remains the durable authority for settings, evaluation history, and review state.
+
+Migration `20261013ai01` adds nullable `ai_job_evaluations.job_fingerprint`.
+Existing rows stay NULL/UNKNOWN; current job facts are never backfilled as old
+provider inputs. Populated fingerprints block lossy downgrade. Review and
+preparation use profile-first locking and revalidate these fingerprints; history
+preserves original advice and exposes current input status, scoped to its owner.

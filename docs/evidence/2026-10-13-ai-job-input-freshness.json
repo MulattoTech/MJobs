@@ -1,0 +1,227 @@
+{
+  "requirement": "MJ-REQ-110",
+  "issue": 111,
+  "related_requirement": "MJ-REQ-114",
+  "source_commit": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
+  "base_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e",
+  "branch": "feat/astra-ai-job-freshness-20261013",
+  "recorded_at_utc": "2026-10-13T17:43:17.057581+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "external_submission_enabled": false,
+  "live_provider_inference": "NOT_RUN",
+  "behavior": [
+    "Durable AI admission snapshots full public job-input fingerprints without adding applicant facts to prompts.",
+    "Database fences reject changed job inputs before any known-stale batch call, after a response, before publication and when reusing saved checkpoints.",
+    "A complete advisory result stores its job fingerprint in the same transaction as operation completion. No partial history is published.",
+    "Owner-scoped history preserves original advice and reports CURRENT, STALE or UNKNOWN. The mounted UI withholds review/preparation controls for stale or unverifiable results.",
+    "Review and actual document preparation revalidate the saved profile/job inputs; a queued preparation carries its AI run identity. Current reviewed input produces factual documents exactly once.",
+    "Provider-disabled, deadline, cancellation, uncertain-call no-replay, cost ceilings and per-profile isolation remain covered by existing integration tests.",
+    "Polling-only timestamps remain non-material; full text beyond the provider prompt cap is still part of job identity."
+  ],
+  "migration": {
+    "revision": "20261013ai01",
+    "parent": "20261012ca01",
+    "change": "Nullable ai_job_evaluations.job_fingerprint String(64)",
+    "legacy": "Existing rows retain NULL/UNKNOWN; no fabricated backfill.",
+    "SQLite": "PASS: populated legacy upgrade, empty-fingerprint downgrade, re-upgrade and populated-fingerprint downgrade refusal",
+    "PostgreSQL": "PASS: same runtime migration proof in a disposable guarded loopback schema"
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit --tb=short",
+      "result": "PASS",
+      "passed": 1560,
+      "subtests_passed": 1018,
+      "seconds": 241.65,
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run",
+      "result": "PASS",
+      "passed": 786,
+      "files": 134,
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "limitation": "Existing bundle size warning remains.",
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_preparation_priority.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_ai_cost_policy_api.py tests/integration/test_selected_search_ai.py --tb=short",
+      "result": "PASS",
+      "passed": 57,
+      "skipped": 14,
+      "subtests_passed": 2,
+      "note": "Skipped priority PostgreSQL/process cases executed separately in Linux.",
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_evaluation_postgres.py tests/integration/test_selected_search_ai_postgres.py tests/integration/test_ai_evaluation_job_migration.py --tb=short",
+      "result": "PASS",
+      "passed": 21,
+      "skipped": 0,
+      "environment": "MJOBS_AI_EVALUATION_POSTGRES_URL: owned PostgreSQL 17 loopback mjobs_test_ai_freshness, unique schemas",
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_ai_evaluation_job_migration.py tests/integration/test_migration_graph.py tests/integration/test_ai_document_review_migration.py --tb=short",
+      "result": "PASS",
+      "passed": 5,
+      "skipped": 0,
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_selected_search_ai.py tests/browser/test_preparation_priority.py tests/browser/test_ai_task_settings.py --tb=short",
+      "result": "PASS",
+      "passed": 4,
+      "environment": "Built production SPA, real local API and headless Chromium; synthetic data only",
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_dispatch.py --tb=short",
+      "result": "PASS",
+      "passed": 1,
+      "environment": "Owned local Redis database 15; actual outbox and saved RQ job",
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_preparation_priority -q",
+      "result": "PASS",
+      "passed": 26,
+      "skipped": 0,
+      "seconds": 28.772,
+      "environment": "Linux production RQ worker, PostgreSQL 17 and Redis 7",
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    },
+    {
+      "command": "catalogue; agent_skills; git diff --check; commit_provenance --commit HEAD",
+      "result": "PASS",
+      "revision": "57798a83650d35d98bfa8f4f360d3c46f30b57fd"
+    }
+  ],
+  "development_failures_preserved": [
+    "Before implementation, changed jobs still completed evaluation, history had no input_status, and preparation did not check the AI job snapshot.",
+    "The positive document fixture first failed COVER_LETTER_RELEVANT_FACTS_MISSING because its Windows Server posting did not match approved Python/SQL facts. The synthetic fixture was corrected; the factual guard was preserved."
+  ],
+  "limitations": [
+    "The full AI cost/matching/explanation requirements remain PARTIAL; this slice establishes input freshness, not complete provider/evidence coverage.",
+    "Live configured-provider inference and paid/cloud calls were not performed; controlled synthetic provider fixtures exercised real service/worker interfaces.",
+    "Historical evaluator-v1 queued snapshots fail closed and need a fresh explicit evaluation.",
+    "Hosted exact-head checks pending publication; primary self-review only, not an independent review.",
+    "Whole-product release acceptance remains incomplete."
+  ],
+  "source_files": [
+    {
+      "path": "apps/api/main.py",
+      "sha256": "61151b728e4141021f12a3a3379a0fe3d3480828cb0fa2710ba59ab14663c97f",
+      "git_blob": "376477fb2634daeefdaff713e6abdce925b6a90c"
+    },
+    {
+      "path": "apps/web/src/ai-search-provenance.test.tsx",
+      "sha256": "404613461bf644d84400cce5570d481391feddc4813df99bf655f2a2a41cf4bf",
+      "git_blob": "aeda36e9ff99f61feb86c2bd4025642b2d59fce3"
+    },
+    {
+      "path": "apps/web/src/ai-search-provenance.tsx",
+      "sha256": "9be0dcff00d9d1e51854b01230be20cbca114ba9a3446a1f2eea9cb19946b749",
+      "git_blob": "0069f8451649957f969123cb602e962342ad2415"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "sha256": "63341b015b11b6d9aa1c8851e2c2670df5ef47f7c4d966ecee5db0af673a045a",
+      "git_blob": "6357fe2bb65a9fdabda6c2055502d6ad0f6abbde"
+    },
+    {
+      "path": "migrations/versions/20261013ai01_ai_evaluation_job_fingerprint.py",
+      "sha256": "a0c581c682755c811f73773ec81600f5004e1b4c8b337a498fc9a0258b0a5ec4",
+      "git_blob": "b87fa07ba387cbf4c0aaf1e3c237b2d0808da2b6"
+    },
+    {
+      "path": "packages/persistence/models.py",
+      "sha256": "180a66bc645bc3fab43d3c67508095ad9a6d9ec4c41503efbdad4825b8b0b519",
+      "git_blob": "f57b37c711a5761ac3a6693677b008749111481a"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "sha256": "ee4bff0adc5a77ac0e51b47b50e7bba548ae83d9be5da41c66c3bea1285116cf",
+      "git_blob": "178385997d525f9783cf299eb1ccbe790f1e5628"
+    },
+    {
+      "path": "services/ai/durable_evaluation.py",
+      "sha256": "2a39b1c06749a08d00c5199d25a7c57148d7ed208438a1b908fff229aadc5ad7",
+      "git_blob": "260473781252d31ef25e156a907c6af94a4d88e4"
+    },
+    {
+      "path": "services/ai/input_freshness.py",
+      "sha256": "91cb669631078f77f8a52e28599158cc50ee980e8d446e117e247437da8f0f3c",
+      "git_blob": "de472c7ebe07ad4db83f01b848f73a75817807c4"
+    },
+    {
+      "path": "services/ai/selected_search_candidates.py",
+      "sha256": "5f910bb32ca0b4e68e1c53b94d4a416927201d5d4d468175e1036e3708af48bd",
+      "git_blob": "b4c97622301be9070bc1800f39cbabd8294f30f7"
+    },
+    {
+      "path": "services/documents/generate.py",
+      "sha256": "0bda2dca68a5be5a6a28f3f0e37cfed88d03481339a9d0d376f637973119b68a",
+      "git_blob": "d3cc9fc84220313676e7dc5581245ce850176a22"
+    },
+    {
+      "path": "tests/browser/test_selected_search_ai.py",
+      "sha256": "de76a55fffabef1981e7afd13235dce164bf46212755943320eb7af71a2a030b",
+      "git_blob": "f3fbb70879fa4536aab65aac6de2ccac56efa307"
+    },
+    {
+      "path": "tests/integration/test_ai_cost_policy_api.py",
+      "sha256": "b19684d17cb083cab28ad5dbc952c473bfe6229477923f66e508070d3b0528cf",
+      "git_blob": "5388fe8b67e93ef3b8d1fe5d3e06039526826526"
+    },
+    {
+      "path": "tests/integration/test_ai_evaluation_job_migration.py",
+      "sha256": "4b53451dac251f35431f27b9d22d18a7a3926b8a6e49b2cea236c1c1ca5d367e",
+      "git_blob": "65cc202ea076b6dcd7f05fabe359524224ae8c24"
+    },
+    {
+      "path": "tests/integration/test_durable_ai_evaluation.py",
+      "sha256": "24116989c48ace0b8d930f413ad849d5384e39929bcae6ce74f54408a8a63a7e",
+      "git_blob": "7a75de81ac7c0382ac081b8aeccfae60cbae855c"
+    },
+    {
+      "path": "tests/integration/test_durable_ai_evaluation_postgres.py",
+      "sha256": "5d7122c7e3578199a506d5ad996d69ce2d9d2a97895e86d113e2cb9697858fb1",
+      "git_blob": "094f25a9da449cbc8ce711ed193530e93f97e41b"
+    },
+    {
+      "path": "workers/tasks.py",
+      "sha256": "da2583724c39f7f816f458780e39399c1101784bdb23f40fa35e28b8f56bb698",
+      "git_blob": "72c0bd79259ef31b5f0d14ed52fa9a93221e16d0"
+    }
+  ],
+  "acceptance_counts": {
+    "original_PASS_before": 107,
+    "original_PASS_after": 108,
+    "original_total": 366,
+    "reference_PASS": 19,
+    "reference_total": 59,
+    "original_P0P1_PASS": 47,
+    "original_P0P1_total": 142,
+    "matching_ai_PASS_before": 2,
+    "matching_ai_PASS_after": 3,
+    "matching_ai_total": 20,
+    "application_automation_PASS": 0,
+    "application_automation_total": 51,
+    "reason": "Only the separately merged and fully verified MJ-REQ-119 is promoted. MJ-REQ-110 and MJ-REQ-114 stay PARTIAL."
+  },
+  "documentation_validation": {
+    "command": "progress validate; progress_dashboard --check; migration/progress tests; git diff --check",
+    "result": "PASS",
+    "tests_passed": 13,
+    "note": "Current evidence/planning changes do not alter executable inputs; all code blobs equal source_commit."
+  }
+}
