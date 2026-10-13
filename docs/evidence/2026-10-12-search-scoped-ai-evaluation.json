@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-13T02:19:35.397944+00:00",
+  "feature": "Saved-search-scoped durable advisory AI evaluation",
+  "base_commit": "fa6706d20281b01728d38efd0d9b654f772ec7b1",
+  "branch": "feat/search-scoped-ai-evaluation-111",
+  "requirements": [
+    "MJ-REQ-110",
+    "MJ-REQ-108",
+    "MJ-REQ-112",
+    "MJ-REQ-114",
+    "MJ-REQ-156",
+    "MJ-REQ-271"
+  ],
+  "issues": [
+    111,
+    109,
+    113,
+    115,
+    157,
+    272
+  ],
+  "source_identity": "SHA256 of final LF source and test bytes; the containing commit is the candidate. PostgreSQL test source is included but its execution is NOT_RUN locally.",
+  "source_sha256": {
+    "services/ai/selected_search_candidates.py": "ebadea197c43bc409ea4ff95b106cdd08a899d271a806b5ab9bacd5faa65b249",
+    "services/ai/durable_evaluation.py": "c0b8777a1319f669ae2879e42ef648cba57385594ceb6ad9ebc9fa24e8a73dac",
+    "apps/api/main.py": "7074821d02ea848d3b9d6f71d38b711003605b855da2f88a854fc7fc4a01be21",
+    "apps/web/src/api.ts": "26cb94907623e3916f66e15e900ead49a2b0c7298e6f074a557d08158fdfe491",
+    "apps/web/src/api.test.ts": "4bb8369d3bd5be2e394e828724e599e9238d445a2af8688ed13e322bdfd36c85",
+    "apps/web/src/main.tsx": "7b5d5f6997247af4daac8d6b477a9276144f27d191129b74aade72e54c1d399c",
+    "apps/web/src/durable-ai-evaluation.tsx": "e2ac7667f8ce391e925f2b474be2f898c1f83a951d71953acaac99d973396543",
+    "apps/web/src/durable-ai-evaluation.test.tsx": "436b6e9515a31d1b27a0826c03dcfb1b466f4b29d71ad122251bdd850b6f404e",
+    "apps/web/src/ai-search-provenance.tsx": "68d5ea86dfb988a8eab0831f58419402d6a7918e3f104a70054502f58c2c5ad2",
+    "apps/web/src/ai-search-provenance.test.tsx": "f2f722a47b41bfc630b8d64dade05bc4e9caf915f42618473f346cac7f4f1562",
+    "tests/integration/test_selected_search_ai.py": "b06d616a31713f2ac10db02c296ca6f3386ca563caf9f0fcdb5abfe3e56ac2cd",
+    "tests/integration/test_selected_search_ai_postgres.py": "d1c3f2985aece9904d20af124221933d90d195a1fea8ac869b32a05468e544e7",
+    "tests/browser/test_selected_search_ai.py": "97f38299791da594584dfff68ab6dd19d8bd2480c721c9254e74df93f795b1e7"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "providers": "Synthetic router only; no paid or live inference",
+    "browser": "Installed Playwright Chromium, disposable loopback API and SQLite"
+  },
+  "local_acceptance": "PASS except opt-in PostgreSQL NOT_RUN locally",
+  "hosted_acceptance": "NOT_RUN at candidate creation; inspect exact PR head before integration",
+  "parent_acceptance": "PARTIAL; catalogue priorities and acceptance unchanged",
+  "checks": [
+    {
+      "command": "python -m pytest -q tests/unit",
+      "passed": 1556,
+      "subtests": 1018
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_selected_search_ai.py tests/integration/test_selected_search_ai_postgres.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_ai_cost_policy_api.py tests/browser/test_selected_search_ai.py tests/browser/test_ai_task_settings.py --junitxml=outputs/verification/red-zone-scoped-ai.xml",
+      "passed": 37,
+      "skipped": 4,
+      "subtests": 2,
+      "skips": "Four disposable PostgreSQL cases; environment not configured"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_selected_search_ai.py tests/unit/test_selected_search_scoring.py tests/unit/test_ai_cost_controls.py",
+      "passed": 23,
+      "subtests": 7,
+      "note": "Before adding one provider-outage integration case; all unchanged applicable cases covered in subsequent connected run"
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "passed": 783,
+      "files": 134
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_selected_search_ai.py tests/browser/test_ai_task_settings.py",
+      "passed": 3,
+      "note": "Final browser rerun after error-code-specific UI handling"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.ci.check_repository; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "verified_behavior": [
+    "Opposing saved searches select different top candidates despite shared match scores; no provider calls in preview/admission",
+    "Recomputed search scores and individual known/UNKNOWN contributions remain frozen in private batch snapshots and scoped history",
+    "Missing/stale preview, foreign/missing search and reused intent fail closed; legacy unscoped requests remain supported",
+    "Saved text/skill/minimum-score filters, hidden jobs and blacklisted employers respected; bounded candidate cap retained",
+    "Actual mounted selection, stale-preview rejection, durable worker and reload show historical search name even after later edits",
+    "Duplicate worker replay invokes no additional provider; outage publishes no partial batch and deterministic preview remains usable"
+  ],
+  "limitations": [
+    "Live configured-provider quality and inference NOT_RUN",
+    "Generic matching/provider and AI cost-control requirements remain PARTIAL",
+    "No new migration; provenance is read from existing owner-scoped durable batch snapshots; older runs stay profile-wide",
+    "No real external application submissions"
+  ],
+  "initial_failures": [
+    "RED: preview omitted selected-search candidate provenance",
+    "Ranking fixture initially had no approved matching skill; corrected synthetic job to reference existing approved Python fact",
+    "Saved skill fixture initially used noncanonical python instead of required PYTHON; corrected fixture, retained exact filter oracle"
+  ],
+  "acceptance_delta": 0
+}

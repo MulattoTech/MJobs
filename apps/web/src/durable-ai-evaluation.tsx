@@ -7,13 +7,26 @@ type EvaluationOperation = {
 };
 const active = (row:EvaluationOperation) => ['QUEUED','RUNNING'].includes(row.state);
 
-export function DurableAIEvaluation({profileId,canEvaluate,onCompleted}:{
-  profileId:string;canEvaluate:boolean;onCompleted:()=>void;
+export function aiAdmissionFailure(failure:unknown) {
+  const code=(failure as {code?:string})?.code;
+  if(code==='AI_EVALUATION_PREVIEW_CHANGED')return {stale:true,
+    message:'The saved plan changed. Preview AI work again before requesting evaluation.'};
+  if(code==='AI_PROVIDER_DISABLED')return {stale:false,
+    message:'Job scoring is disabled. Configure and save its provider, then preview AI work again.'};
+  if(code==='AI_EVALUATION_IDENTITY_CONFLICT')return {stale:false,
+    message:'This request belongs to different inputs. Check saved operations before starting another evaluation.'};
+  return {stale:false,message:'Admission was not confirmed. Check status before retrying; retry uses the same request identity.'};
+}
+
+export function DurableAIEvaluation({profileId,canEvaluate,onCompleted,searchProfileId,previewFingerprint}:{
+  profileId:string;canEvaluate:boolean;onCompleted:()=>void;searchProfileId?:string;previewFingerprint?:string;
 }) {
   const [operations,setOperations]=useState<EvaluationOperation[]>([]);
   const [loading,setLoading]=useState(true);
   const [error,setError]=useState('');
   const [submitting,setSubmitting]=useState(false);
+  const [stalePlan,setStalePlan]=useState(false);
+  const [admissionNotice,setAdmissionNotice]=useState('');
   const [cancelling,setCancelling]=useState<string|null>(null);
   const [refresh,setRefresh]=useState(0);
   const requestId=useRef<string|null>(null);
@@ -45,16 +58,18 @@ export function DurableAIEvaluation({profileId,canEvaluate,onCompleted}:{
     return ()=>{stopped=true;if(timer)clearTimeout(timer);};
   },[base,profileId,refresh]);
   async function queue() {
-    setSubmitting(true);setError('');
+    setSubmitting(true);setError('');setAdmissionNotice('');
     requestId.current ||= crypto.randomUUID();
     try {
       const row=await api<EvaluationOperation>(`${base}/evaluate/queued`,{
-        method:'POST',body:JSON.stringify({request_id:requestId.current}),
+        method:'POST',body:JSON.stringify({request_id:requestId.current,search_profile_id:searchProfileId,preview_fingerprint:previewFingerprint}),
       });
       setOperations(current=>[row,...current.filter(item=>item.operation_id!==row.operation_id)]);
       requestId.current=null;setRefresh(value=>value+1);
-    } catch {
-      setError('Admission was not confirmed. Check status before retrying; retry uses the same request identity.');
+    } catch(failure) {
+      const result=aiAdmissionFailure(failure);
+      setStalePlan(result.stale);setAdmissionNotice(result.message);
+      setError(result.message);
     } finally {setSubmitting(false);}
   }
   async function cancel(operationId:string) {
@@ -69,8 +84,10 @@ export function DurableAIEvaluation({profileId,canEvaluate,onCompleted}:{
   return <section aria-label="Durable AI evaluations">
     <p>Admitted evaluations continue after you close this page. Reload to check progress. Partial results stay private until the complete batch is saved.</p>
     {loading&&<p role="status">Loading saved AI operations…</p>}
+    {stalePlan&&<p role="status">Preview AI work again; the previous plan is stale.</p>}
+    {admissionNotice&&!error&&<p role="alert">{admissionNotice}</p>}
     {error&&<p role="alert">{error}</p>}
-    <button type="button" disabled={!canEvaluate||loading||submitting||!!error||operations.some(active)}
+    <button type="button" disabled={!canEvaluate||stalePlan||loading||submitting||!!error||operations.some(active)}
       onClick={()=>void queue()}>Evaluate planned AI candidates</button>
     {error&&<button type="button" onClick={()=>setRefresh(value=>value+1)}>Check AI evaluation status</button>}
     {operations.slice(0,10).map(row=><article key={row.operation_id} aria-label="AI evaluation operation">

@@ -174,6 +174,8 @@ class ProviderCredentialInput(BaseModel):
 class AIEvaluationRequest(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     request_id: str = Field(min_length=1, max_length=128)
+    search_profile_id: str | None = Field(default=None, min_length=1, max_length=128)
+    preview_fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
 
 
 class DiscoveryInput(BaseModel):
@@ -967,40 +969,25 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         return {"profile_id": profile_id, "policy": saved}
 
     @app.get("/profiles/{profile_id}/ai-cost-plan")
-    def ai_cost_plan(profile_id: str):
-        configured = store.ai_cost_policy(profile_id)
-        policy = AICostPolicy(**configured) if configured else AICostPolicy()
-        rows = store.jobs(profile_id=profile_id, limit=policy.max_input_candidates + 1)
-        if len(rows) > policy.max_input_candidates:
-            raise HTTPException(422, {"code": "AI_FUNNEL_INPUT_LIMIT"})
-        scored_rows = [row for row in rows if row.get("match_score") is not None]
-        candidates = [CandidateScore(
-            job_id=row["id"],
-            deterministic_score=int(float(row["match_score"])),
-        ) for row in scored_rows]
+    def ai_cost_plan(profile_id: str, search_profile_id: str | None = Query(default=None, min_length=1, max_length=128)):
+        from services.ai.selected_search_candidates import build_inputs, public_preview
+        from services.ai.durable_evaluation import DurableEvaluationError
+        policy = AICostPolicy(**(store.ai_cost_policy(profile_id) or {}))
+        configuration = AITaskConfiguration.from_mapping(store.ai_task_settings(profile_id))
         try:
-            plan = policy.plan(candidates)
-        except ValueError as error:
-            raise HTTPException(422, {"code": str(error)}) from None
-        return {
-            "profile_id": profile_id,
-            "policy": asdict(policy),
-            "plan": {
-                "scanned_job_count": len(rows),
-                "scored_candidate_count": plan.received_count,
-                "unique_count": plan.unique_count,
-                "eligible_count": plan.eligible_count,
-                "ai_candidate_count": len(plan.ai_candidate_ids),
-                "document_candidate_count": len(plan.document_candidate_ids),
-            },
-            "no_model_calls": True,
-        }
+            snapshot, plan, scanned = build_inputs(store, profile_id, policy, configuration, search_profile_id)
+            return {'profile_id': profile_id, **public_preview(snapshot, plan, scanned)}
+        except DurableEvaluationError as error:
+            raise HTTPException(404 if error.code == 'AI_SEARCH_NOT_FOUND' else 422,
+                                {'code': error.code}) from None
+        except ValueError:
+            raise HTTPException(422, {'code': 'AI_SEARCH_INPUT_INVALID'}) from None
 
     @app.get("/profiles/{profile_id}/ai-cost-plan/evaluations")
     def ai_cost_evaluation_history(profile_id: str,
                                    limit: int = Query(default=20, ge=1, le=100)):
-        return {"profile_id": profile_id,
-                "runs": store.ai_evaluation_history(profile_id, limit)}
+        from services.ai.selected_search_candidates import evaluation_history
+        return {"profile_id": profile_id, "runs": evaluation_history(store, profile_id, limit)}
 
     @app.post("/profiles/{profile_id}/ai-cost-plan/evaluations/{run_id}/review-documents")
     def review_ai_document_candidates(profile_id: str, run_id: str,
@@ -1018,10 +1005,15 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def queue_ai_cost_evaluation(profile_id: str, value: AIEvaluationRequest):
         from services.ai.durable_evaluation import queue_evaluation, DurableEvaluationError
         try:
-            return queue_evaluation(store, profile_id, value.request_id)
+            return queue_evaluation(store, profile_id, value.request_id,
+                                    value.search_profile_id, value.preview_fingerprint)
         except DurableEvaluationError as error:
-            status_code = 409 if error.code in ('AI_PROVIDER_DISABLED', 'AI_EVALUATION_IDENTITY_CONFLICT') else 422
+            status_code = 404 if error.code == 'AI_SEARCH_NOT_FOUND' else (
+                409 if error.code in ('AI_PROVIDER_DISABLED', 'AI_EVALUATION_IDENTITY_CONFLICT',
+                                      'AI_EVALUATION_PREVIEW_CHANGED') else 422)
             raise HTTPException(status_code, {'code': error.code}) from None
+        except ValueError:
+            raise HTTPException(422, {'code': 'AI_SEARCH_INPUT_INVALID'}) from None
 
     @app.get('/profiles/{profile_id}/ai-cost-plan/operations/{operation_id}')
     def ai_cost_evaluation_status(profile_id: str, operation_id: str):

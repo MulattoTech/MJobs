@@ -88,7 +88,17 @@ Allowed-area P0: 0/11 accepted (1 PARTIAL, 10 NOT_RUN). Allowed-area P1: 17/91 a
 - [x] Reuse durable rehearsal acknowledgement for explicit owner-scoped review; expose transient values only in the scoped response.
 - [x] Revalidate current DOM, profile, route, document and review identity in the worker; only dry-run may fill supported reviewed conditional dropdowns. All other states preserve existing fail-closed review.
 - [x] Mount the review UI beside existing mock-run controls, preserving explicit new run intent and lost-reply recovery.
-- [ ] Prove connected reload/restart, stale inputs, unknown fields, duplicate requests and zero submission; run adjacent regression and exact-revision CI.
-- [ ] Publish one reviewable PR, inspect artifacts, integrate only through repository rules, then reconcile acceptance.
+- [x] Prove connected reload/restart, stale inputs, unknown fields, duplicate requests and zero submission; run adjacent regression and exact-revision CI.
+- [x] Publish one reviewable PR, inspect artifacts, integrate only through repository rules, then reconcile acceptance.
 
 No priority edits, historical-claim deletion, autonomous loop restart, paid model invocation or external job submission. One integration owner. Source rollback is a normal revert; existing append-only audit receipts remain harmless without this consumer. New acceptance never follows solely from a commit or green CI.
+
+## Integrated first slice and next execution contract
+
+PR #612 source `086ab835ac1204f3aa15cfc0781471adea63023b` merged through protected main at `fa6706d20281b01728d38efd0d9b654f772ec7b1`. Exact-head hosted integration: 1,978 passed / 10 skipped; full browser: 250 passed / 5 Windows-native skips. All six new integration cases and both new browser cases executed PASS. Required CI, Compose, dependency and secret gates PASS. Parent acceptance and area counts remain unchanged.
+
+Second slice: MJ-REQ-110 / #111, saved-search-scoped durable AI evaluation. Root remains the sole mutation/integration owner on `feat/search-scoped-ai-evaluation-111` in the same isolated worktree. Legacy claimed paths and open PRs checked with no overlap. Original root dirt remains untouched.
+
+Contract: select an owned saved search, preview bounded candidates using its saved filters and per-search deterministic scores, require that exact preview for explicit admission, then retain immutable search/score provenance across worker execution and history reload. Shared deterministic matches never change. No selected search preserves legacy profile-wide API behavior. Search `enabled` controls discovery scheduling, so disabled saved Jobs filters remain usable for explicit evaluation. Later search edits do not rewrite admitted historical inputs.
+
+Implementation reuses the existing private `ai_evaluation_batches.snapshot` for criteria digest/name and score evidence, avoiding a schema change. Matching/search modules are read-only dependencies; scope does not expand general search or profile functionality. Owned source: new `services/ai/selected_search_candidates.py`, existing `services/ai/durable_evaluation.py`, API main, durable AI UI/main and new provenance component. Tests cover opposing searches, stale/absent preview, owner isolation, duplicate intent, saved filters/hidden/blacklisted rows, unchanged match records, unknown evidence, changed search after admission, actual browser selection/reload, and disposable PostgreSQL. Provider calls use synthetic routers only. Broad matching and live-provider acceptance remain PARTIAL/NOT_RUN.

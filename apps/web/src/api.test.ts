@@ -5,7 +5,7 @@ describe('user safety presentation', () => {
     const original = globalThis.fetch;
     globalThis.fetch = async () => new Response(JSON.stringify({detail:{code:'PROFILE_STALE'}}), {status:409});
     try {
-      await expect(api('/synthetic-preview')).rejects.toMatchObject({status:409});
+      await expect(api('/synthetic-preview')).rejects.toMatchObject({status:409,code:'PROFILE_STALE'});
       await expect(api('/synthetic-preview')).rejects.toThrow('Request rejected (409)');
     } finally { globalThis.fetch = original; }
   });
