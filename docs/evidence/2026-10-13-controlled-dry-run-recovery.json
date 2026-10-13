@@ -1,0 +1,201 @@
+{
+  "requirement": "MJ-REQ-208",
+  "issue": 209,
+  "related_requirements": [
+    "MJ-REQ-158"
+  ],
+  "source_commit": "4c58d31ea8a2b196a71019e51ad6b55e0c13237f",
+  "backend_source_commit": "4bcea581889800eb56c0f9d1dfa4e0157d84b19d",
+  "branch": "feat/astra-controlled-dry-run-recovery-20261013",
+  "base_commit": "e1d0053206264088709b8e4228394ebddadd0132",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "recorded_at_utc": "2026-10-13T19:39:24.740504+00:00",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "external_submission_enabled": false,
+  "behavior": [
+    "Mounted controlled preparation exposes durable owner-scoped cancellation, including when a changed route prevents current preview. Queued cancellation starts no browser; running cancellation fences saved verification.",
+    "Admission serializes on the application and admits only one active controlled run. Same-intent replay retains identity. A new attempt for saved inputs requires explicit true acknowledgement, current reviewed fingerprint and fresh request ID.",
+    "Retries preserve an immutable predecessor reference and earlier receipt/state. Lost retry responses recover the same operation. The UI displays the earlier saved outcome through the existing owner-scoped API.",
+    "A separate worker process exits after saving the real browser receipt but before operation completion. Cancellation preserves that committed verification; lease recovery in another process completes without reopening Chromium.",
+    "Cross-profile actions, stale approvals and malformed acknowledgement fail closed. Existing lease/cancel protections, document-byte checks and external submission OFF remain intact."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit --tb=short",
+      "result": "PASS",
+      "passed": 1567,
+      "subtests_passed": 1033,
+      "seconds": 251.33
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run",
+      "result": "PASS",
+      "passed": 793,
+      "files": 135
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS",
+      "limitation": "Existing chunk-size warning."
+    },
+    {
+      "command": "MJOBS_TEST_POSTGRES_URL=<owned-loopback-test-db> python -m pytest -q tests/integration/test_controlled_dry_run_recovery.py tests/integration/test_controlled_application_dry_run.py --tb=short",
+      "result": "PASS",
+      "passed": 36,
+      "subtests_passed": 4,
+      "skipped": 0,
+      "seconds": 87.24
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_controlled_dry_run_recovery.py tests/browser/test_controlled_application_dry_run.py --tb=short",
+      "result": "PASS",
+      "passed": 2,
+      "subtests_passed": 2,
+      "seconds": 19.57
+    },
+    {
+      "command": "MJOBS_WORKER_RECOVERY_POSTGRES_URL=<owned-loopback-mjobs_worker_recovery> MJOBS_RETRY_POSTGRES_URL=<owned-loopback-mjobs_retry_validation> MJOBS_TEST_POSTGRES_URL=<owned-loopback-test-db> python -m pytest -q tests/integration/test_worker_lifecycle.py tests/integration/test_operation_retries.py tests/integration/test_route_attempt_concurrency.py tests/integration/test_route_attempt_concurrency_postgres.py --tb=short",
+      "result": "PASS",
+      "passed": 49,
+      "subtests_passed": 12,
+      "skipped": 0,
+      "seconds": 67.15
+    },
+    {
+      "command": "Owned Linux RQ/PostgreSQL/Redis fixture: python -m unittest tests.integration.test_preparation_priority -q",
+      "result": "PASS",
+      "passed": 26,
+      "seconds": 33.589
+    },
+    {
+      "command": "docker build -f infra/docker/Dockerfile -t mjobs-priority-validation:20261013 .; canonical fixture Compose up --no-build --wait",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m cli.mock_e2e --api http://127.0.0.1:18749 --evidence outputs/mjobs-priority-20261013/dry-run-compose-mock.json",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m cli.ui_e2e --base-url http://127.0.0.1:18749 --evidence outputs/mjobs-priority-20261013/dry-run-compose-ui.json",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m cli.compose_recovery --baseline outputs/mjobs-priority-20261013/dry-run-compose-ui.json --evidence outputs/mjobs-priority-20261013/dry-run-compose-recovery.json --project-name mjobs-fixture-a571a1191013 --port 18749",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m cli.backup_acceptance --baseline outputs/mjobs-priority-20261013/dry-run-compose-ui.json --evidence outputs/mjobs-priority-20261013/dry-run-compose-backup.json --archive outputs/mjobs-priority-20261013/dry-run-fixture-backup --source-project mjobs-fixture-a571a1191013 --target-project mjobs-fixture-a571e2081013 --port 18749",
+      "result": "PASS"
+    },
+    {
+      "command": "catalogue; agent_skills; progress validate; commit_provenance; git diff origin/main HEAD --check",
+      "result": "PASS"
+    }
+  ],
+  "revision_equivalence": "All backend/unit inputs equal backend_source_commit. Final4c58d31e adds only read-only prior-attempt UI and its browser assertion; final frontend/build/browser and full Compose run use those bytes. Source blobs bind the final revision.",
+  "red_green_evidence": [
+    "Four initial tests failed for missing cancellation/retry routes and duplicate admission; all pass after implementation.",
+    "A real subprocess crash exposed cancellation after a durable receipt but before completion. The shared cancellation fence now preserves the receipt; separate-process restart tests pass on SQLite and PostgreSQL without browser replay.",
+    "First receipt-fence run exposed a missing identity import; corrected and full final unit/worker suites rerun.",
+    "Initial local Docker build invocations used incorrect Dockerfile paths; the final build uses the canonical infra/docker/Dockerfile and passes."
+  ],
+  "limitations": [
+    "Controlled local Greenhouse/Lever product fixtures only; no employer navigation or submission, no claim of general dynamic/multi-page ATS support.",
+    "Primary-agent self-review only; hosted exact-head checks remain required.",
+    "No real/live model inference. Parent DRY_RUN and recovery acceptance remain PARTIAL."
+  ],
+  "source_blobs": [
+    {
+      "path": "apps/api/controlled_application_dry_run.py",
+      "git_blob": "8fdb7b3debe51953c2fe76b59a4cedfb7c80f2b8"
+    },
+    {
+      "path": "apps/web/src/controlled-application-dry-run.tsx",
+      "git_blob": "bf47fa3ba12f20325f38d433fe3c349656c6370d"
+    },
+    {
+      "path": "services/applications/AREA.md",
+      "git_blob": "b2590b00eace3bf48105395c3955cb8413cb1e7c"
+    },
+    {
+      "path": "services/applications/controlled_dry_run.py",
+      "git_blob": "b815e5a588856da80b0480d00286a124b77f0c1f"
+    },
+    {
+      "path": "tests/browser/test_controlled_dry_run_recovery.py",
+      "git_blob": "01dc9f1d017d75baf5109d35a99dac9e81732dfd"
+    },
+    {
+      "path": "tests/integration/test_controlled_dry_run_recovery.py",
+      "git_blob": "3c10c3fcbcbf343806b39a703649ba8da8a2aedf"
+    },
+    {
+      "path": "workers/operations.py",
+      "git_blob": "2d100849aac60f7c77c6b6ae4c54bbb3093676f0"
+    }
+  ],
+  "local_artifacts": [
+    {
+      "path": "outputs/mjobs-priority-20261013/dry-run-compose-backup-recovery.json",
+      "sha256": "19216da51c96a2913756ff24bb2187711760000d7055d038107a930462b28978",
+      "result": "PASS"
+    },
+    {
+      "path": "outputs/mjobs-priority-20261013/dry-run-compose-backup.json",
+      "sha256": "42a6ad448f53fbbc5e4e0932e8f4efcd0b86c885ccc714107c610ec0313b92ab",
+      "result": "PASS"
+    },
+    {
+      "path": "outputs/mjobs-priority-20261013/dry-run-compose-mock.json",
+      "sha256": "3883c4d0812b2c8f411c2df5593ce8bbbdb786cb01af7b48525031f8df7084b1",
+      "result": "PASS"
+    },
+    {
+      "path": "outputs/mjobs-priority-20261013/dry-run-compose-recovery.json",
+      "sha256": "875617417eff5f49ac2559fa28ddaa975994f98248d98c10e76472cb101c7a55",
+      "result": "PASS"
+    },
+    {
+      "path": "outputs/mjobs-priority-20261013/dry-run-compose-ui.json",
+      "sha256": "5d78ff770645c76ae3bdc07e1af66cfaaea435e0a738c8dfe9d222b97a575136",
+      "result": "PASS"
+    }
+  ],
+  "acceptance_counts": {
+    "original_pass_before": 108,
+    "original_pass_after": 108,
+    "original_total": 366,
+    "reference_pass": 19,
+    "reference_total": 59,
+    "p0_p1_pass_before": 47,
+    "p0_p1_pass_after": 47,
+    "p0_p1_total": 142,
+    "combined_areas": {
+      "matching_ai": [
+        3,
+        20
+      ],
+      "application_automation": [
+        0,
+        51
+      ],
+      "test_harness": [
+        2,
+        23
+      ],
+      "orchestration_data_security": [
+        5,
+        27
+      ]
+    }
+  },
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/623",
+  "cleanup": {
+    "owned_compose_stacks": "STOPPED",
+    "synthetic_volumes": "RETAINED",
+    "original_shared_image_tag": "RESTORED"
+  }
+}

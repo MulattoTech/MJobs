@@ -3,7 +3,7 @@ import {api} from './api';
 import type {ApplicationRehearsalSnapshot} from './application-rehearsal';
 
 type Preview = ApplicationRehearsalSnapshot & {provider:string; context:'CONTROLLED_FIXTURE'};
-type Run = {request_id:string|null; state:string; error_code:string|null; receipt:null|{
+type Run = {request_id:string|null; state:string; fingerprint?:string;cancel_requested?:boolean;retry_of?:string|null; error_code:string|null; receipt:null|{
   fingerprint:string;
   documents:{kind:string; document_id:string; size_bytes:number; sha256:string}[];
   verification:string; provider_acceptance_claimed:false;
@@ -16,32 +16,49 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
   const path = base+'/controlled-dry-run';
   const [preview,setPreview] = useState<Preview|null>(null);
   const [run,setRun] = useState<Run|null>(null);
+  const [previousRun,setPreviousRun] = useState<Run|null>(null);
+  const [previousUnavailable,setPreviousUnavailable] = useState(false);
   const [selection,setSelection] = useState<Selection|null>(null);
   const [ids,setIds] = useState<string[]>([]);
   const [checked,setChecked] = useState(false);
+  const [retryChecked,setRetryChecked] = useState(false);
   const [busy,setBusy] = useState(false);
   const [notice,setNotice] = useState('');
   const epoch = useRef(0);
   const pendingRun = useRef<{fingerprint:string; request_id:string}|null>(null);
   const pendingReview = useRef<{fingerprint:string; request_id:string}|null>(null);
   const pendingSelection = useRef<{key:string; request_id:string}|null>(null);
+  const pendingRetry = useRef<{previous:string;fingerprint:string;request_id:string}|null>(null);
   useEffect(() => {
     const current = ++epoch.current;
+    setPreview(null);setRun(null);setSelection(null);setIds([]);setChecked(false);setRetryChecked(false);setBusy(false);setNotice('');
+    pendingRun.current=null;pendingReview.current=null;pendingSelection.current=null;pendingRetry.current=null;
     let timer:ReturnType<typeof setTimeout>|undefined;
     async function load() {
       try {
-        const [p,r,s] = await Promise.all([
+        const [p,r,s] = await Promise.allSettled([
           api<Preview>(path), api<Run>(path+'/runs/latest'),
           api<Selection>(path+'/supporting-documents'),
         ]);
         if (current !== epoch.current) return;
-        setPreview(p);setRun(r);setSelection(s);setIds(s.selected_revision_ids);
-        if (r.state === 'QUEUED' || r.state === 'RUNNING') timer = setTimeout(load,1000);
+        if(p.status==='fulfilled')setPreview(p.value);
+        else {setPreview(null);setNotice('Current inputs cannot be previewed. You can still cancel a saved active run.');}
+        if(r.status==='fulfilled')setRun(r.value);
+        if(s.status==='fulfilled'){setSelection(s.value);setIds(s.value.selected_revision_ids);}
+        if (r.status==='fulfilled'&&(r.value.state === 'QUEUED' || r.value.state === 'RUNNING')) timer = setTimeout(load,1000);
       } catch {if (current === epoch.current) setNotice('Controlled preparation is available for supported Greenhouse and Lever routes. Refresh after checking the route.');}
     }
     void load();
     return () => {epoch.current++;if(timer)clearTimeout(timer);};
   },[path,base]);
+  useEffect(()=>setRetryChecked(false),[run?.request_id,run?.state]);
+  useEffect(()=>{
+    let live=true;setPreviousRun(null);setPreviousUnavailable(false);
+    if(run?.retry_of)void api<Run>(path+'/runs/'+encodeURIComponent(run.retry_of))
+      .then(result=>{if(live)setPreviousRun(result);})
+      .catch(()=>{if(live)setPreviousUnavailable(true);});
+    return ()=>{live=false;};
+  },[path,run?.retry_of]);
   useEffect(()=>{
     if(!run?.request_id || (run.state!=='QUEUED'&&run.state!=='RUNNING'))return;
     let live=true;
@@ -51,36 +68,65 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
     return ()=>{live=false;clearTimeout(timer);};
   },[path,run]);
   async function refresh() {
+    const current=epoch.current;
     const [p,r,s] = await Promise.all([api<Preview>(path),api<Run>(path+'/runs/latest'),api<Selection>(path+'/supporting-documents')]);
+    if(current!==epoch.current)return;
     setPreview(p);setRun(r);setSelection(s);setIds(s.selected_revision_ids);setChecked(false);
   }
-  async function action(kind:'review'|'run'|'select') {
+  async function cancel() {
+    if(!run?.request_id||busy)return;
+    const current=epoch.current;
+    setBusy(true);setNotice('');
+    try {
+      const result=await api<Run>(path+'/runs/'+encodeURIComponent(run.request_id)+'/cancel',{method:'POST'});
+      if(current!==epoch.current)return;
+      setRun(result);setNotice(result.state==='CANCELLED'?'Fixture run cancelled.':result.cancel_requested?'Cancellation requested. Waiting for the worker to stop.':result.state==='RUNNING'&&result.receipt?'Verification is already saved. Refresh to read operation completion.':'The run already finished; its saved result is unchanged.');
+    } catch {if(current===epoch.current)setNotice('Cancellation could not be confirmed. Check the saved run before retrying.');}
+    finally {if(current===epoch.current)setBusy(false);}
+  }
+  async function action(kind:'review'|'run'|'select'|'retry') {
     if (!preview || busy) return;
+    const current=epoch.current;
     setBusy(true);setNotice('');
     try {
       if (kind === 'select') {
         const key=JSON.stringify([...ids].sort());
         if(pendingSelection.current?.key!==key)pendingSelection.current={key,request_id:crypto.randomUUID()};
         await api(path+'/supporting-documents',{method:'PUT',body:JSON.stringify({revision_ids:ids,request_id:pendingSelection.current.request_id})});
+        if(current!==epoch.current)return;
         pendingSelection.current=null;await refresh();
         setNotice('Fixture document selection saved. Review the updated values before running.');
       } else if (kind === 'review') {
         if(pendingReview.current?.fingerprint!==preview.fingerprint)pendingReview.current={fingerprint:preview.fingerprint,request_id:crypto.randomUUID()};
         await api(path+'/reviews',{method:'POST',body:JSON.stringify({...pendingReview.current,acknowledged:true})});
+        if(current!==epoch.current)return;
         pendingReview.current=null;await refresh();setNotice('Fixture review saved.');
+      } else if(kind==='retry') {
+        if(!run?.request_id||!retryChecked)return;
+        if(pendingRetry.current?.previous!==run.request_id||pendingRetry.current?.fingerprint!==preview.fingerprint)
+          pendingRetry.current={previous:run.request_id,fingerprint:preview.fingerprint,request_id:crypto.randomUUID()};
+        const intent=pendingRetry.current;
+        const queued=await api<Run>(path+'/runs/'+encodeURIComponent(intent.previous)+'/retry',{method:'POST',body:JSON.stringify({request_id:intent.request_id,fingerprint:intent.fingerprint,acknowledged:true})});
+        if(current!==epoch.current)return;
+        setRun(queued);setRetryChecked(false);setNotice('Reviewed fixture retry queued. The earlier attempt remains saved.');
       } else {
         if(pendingRun.current?.fingerprint!==preview.fingerprint)pendingRun.current={fingerprint:preview.fingerprint,request_id:crypto.randomUUID()};
         const queued=await api<Run>(path+'/runs',{method:'POST',body:JSON.stringify(pendingRun.current)});
+        if(current!==epoch.current)return;
         setRun(queued);setNotice('Fixture run queued. Refresh to read its durable result.');
       }
     } catch(error) {
+      if(current!==epoch.current)return;
       if((error as {status?:number})?.status===409) {
         try {await refresh();} catch { /* retain last visible snapshot with stale warning */ }
-        setNotice('The inputs changed or need review. Check the current profile, answers, documents and route, then review again.');
+        if(current!==epoch.current)return;
+        const code=(error as {code?:string})?.code;
+        setNotice(code==='CONTROLLED_DRY_RUN_ACTIVE'?'Another fixture run is active. Check its saved status before starting another attempt.':code==='CONTROLLED_DRY_RUN_RETRY_REVIEW_REQUIRED'?'These inputs already have a saved attempt. Use the reviewed retry control to create a new one.':'The inputs changed or need review. Check the current profile, answers, documents and route, then review again.');
       } else setNotice('The request could not be confirmed. Retry to recover the same request, or refresh its saved result.');
-    } finally {setBusy(false);}
+    } finally {if(current===epoch.current)setBusy(false);}
   }
   const active=run?.state==='QUEUED'||run?.state==='RUNNING';
+  const terminal=!!run&&['COMPLETED','CANCELLED','FAILED','BLOCKED','DEAD_LETTERED'].includes(run.state);
   const selectionDirty=selection!==null&&JSON.stringify([...ids].sort())!==JSON.stringify([...selection.selected_revision_ids].sort());
   return <section className="panel" aria-label="Controlled ATS preparation">
     <h2>Controlled ATS preparation</h2>
@@ -102,9 +148,19 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
       {selectionDirty&&<p role="status">Save the supporting document selection before reviewing or running.</p>}
       <label><input type="checkbox" checked={checked} disabled={busy||active||selectionDirty||!preview.ready} onChange={event=>setChecked(event.currentTarget.checked)}/>I reviewed these fixture values and selected documents</label>
       <button type="button" disabled={busy||active||selectionDirty||!checked||!preview.ready} onClick={()=>void action('review')}>Record fixture review</button>{' '}
-      <button type="button" disabled={busy||active||selectionDirty||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint} onClick={()=>void action('run')}>Run controlled fixture</button>
+      <button type="button" disabled={busy||active||selectionDirty||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint||(terminal&&run?.fingerprint===preview.fingerprint)} onClick={()=>void action('run')}>Run controlled fixture</button>
+      {terminal&&<div><label><input type="checkbox" checked={retryChecked} disabled={busy||selectionDirty||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint} onChange={event=>setRetryChecked(event.currentTarget.checked)}/>I reviewed current inputs and want a new fixture attempt</label>
+        <button type="button" disabled={busy||selectionDirty||!retryChecked||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint} onClick={()=>void action('retry')}>Run reviewed retry</button></div>}
     </>}
     {run&&run.state!=='IDLE'&&<p role="status">Fixture run: {run.state}{run.error_code?' · Review required before retrying.':''}</p>}
+    {active&&<button type="button" disabled={busy||run?.cancel_requested||!!run?.receipt} onClick={()=>void cancel()}>{run?.cancel_requested?'Cancellation requested':'Cancel fixture run'}</button>}
+    {run?.retry_of&&<p className="muted">This is a new reviewed attempt. The earlier attempt remains in durable history.</p>}
+    {run?.retry_of&&<details><summary>Earlier fixture attempt</summary>
+      {previousUnavailable?<p>Could not read the earlier attempt. Its outcome is not assumed.</p>:previousRun?<>
+        <p>Earlier attempt: {previousRun.state} · Request {previousRun.request_id}</p>
+        {previousRun.receipt?<ul>{previousRun.receipt.documents.map(item=><li key={item.document_id}>{item.kind} · {item.size_bytes} bytes · SHA-256 {item.sha256}</li>)}</ul>:<p>No fixture verification receipt was saved for that attempt.</p>}
+      </>:<p>Loading the earlier saved attempt…</p>}
+    </details>}
     {run?.receipt&&<section aria-label="Saved fixture verification"><p>Selected document bytes verified locally. No employer acceptance or submission is claimed.</p>
       {preview&&run.receipt.fingerprint!==preview.fingerprint&&<p>This receipt belongs to earlier inputs. Review and run the current fixture to verify the changed inputs.</p>}
       <ul>{run.receipt.documents.map(item=><li key={item.document_id}>{item.kind} · {item.size_bytes} bytes · SHA-256 {item.sha256}</li>)}</ul>

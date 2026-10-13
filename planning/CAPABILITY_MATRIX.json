@@ -1917,9 +1917,10 @@
       "requirement_id": "MJ-REQ-158",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-29-mock-spine.md"
+        "docs/evidence/2026-09-29-mock-spine.md",
+        "docs/evidence/2026-10-13-controlled-dry-run-recovery.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "Initial scoped behavior only; full requirement remains open Controlled DRY_RUN now has scoped cancellation, serialized active admission and acknowledged fresh retry with prior-attempt UI readback. Separate-process receipt/crash recovery avoids browser replay. SQLite/PostgreSQL/browser/Linux queue/full Compose restart/fresh restore PASS; full umbrella remains PARTIAL.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2497,9 +2498,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-09-30-ci-370.json"
+        "docs/evidence/2026-09-30-ci-370.json",
+        "docs/evidence/2026-10-13-controlled-dry-run-recovery.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open",
+      "note": "Initial scoped behavior only; full requirement remains open Controlled DRY_RUN now has scoped cancellation, serialized active admission and acknowledged fresh retry with prior-attempt UI readback. Separate-process receipt/crash recovery avoids browser replay. SQLite/PostgreSQL/browser/Linux queue/full Compose restart/fresh restore PASS; full umbrella remains PARTIAL.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"
