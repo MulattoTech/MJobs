@@ -2615,9 +2615,11 @@
     },
     {
       "requirement_id": "MJ-REQ-221",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-13-route-attempt-concurrency.md"
+      ],
+      "note": "Verified at 0c8b6c5c2ed9c29167363a097f765b44f6321791 in PR615: two independent worker processes on disposable PostgreSQL race for one route; exactly one synthetic ATS submit, other worker durably blocked before browser. Restart, immutable ownership, completed replay, explicit sequential retry, ambiguous receipt retention and verified fenced recovery release pass. Connected UI reload/new intent passes. Required exact-source CI/integration/browser/Compose gates PASS; real external submission OFF.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"

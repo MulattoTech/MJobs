@@ -2643,7 +2643,7 @@
       "MJ-REQ-121",
       "MJ-REQ-156"
     ],
-    "status": "LOCAL_ACCEPTANCE_PASS_HOSTED_PENDING",
+    "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
     "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
     "branch": "fix/route-attempt-concurrency-222",
     "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
@@ -2662,7 +2662,7 @@
       "required_hosted_gates": "PASS",
       "parent_acceptance": "PARTIAL"
     },
-    "acceptance": "NOT_RUN until PostgreSQL two-worker and connected browser evidence passes on exact published head; no real submission",
+    "acceptance": "MJ-REQ-221 PASS from exact-source behavioral proof; related umbrella requirements remain PARTIAL",
     "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
     "local_validation": {
       "unit_pass": 1560,
@@ -2673,6 +2673,20 @@
       "postgres_skipped": 5,
       "build": "PASS",
       "policy": "PASS"
+    },
+    "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791",
+    "pr": 615,
+    "hosted_validation": {
+      "integration_run": 38341073391,
+      "integration_pass": 2002,
+      "integration_skip": 10,
+      "new_postgres_cases_pass": 5,
+      "browser_run": 38341071800,
+      "browser_pass": 256,
+      "browser_skip": 5,
+      "compose_run": 38341073316,
+      "compose_artifacts_pass": 5,
+      "required_gates": "PASS"
     }
   }
 }

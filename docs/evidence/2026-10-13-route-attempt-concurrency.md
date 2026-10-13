@@ -2,8 +2,8 @@
 
 Area: Test Harness, with required Application Automation and durable worker integration.
 Base: `0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc`.
-Candidate: the commit containing this evidence; exact published revisions and hosted results are recorded in the PR.
-Acceptance is **NOT_RUN** pending exact-revision PostgreSQL and hosted gates. No catalogue priority changes.
+Verified source revision: `0c8b6c5c2ed9c29167363a097f765b44f6321791`, published in [PR #615](https://github.com/MulattoTech/MJobs/pull/615).
+MJ-REQ-221 acceptance is **PASS** for its stated two-worker route-idempotency requirement. No catalogue priority changes; broader Application Automation and orchestration requirements remain PARTIAL.
 
 ## Behavior and acceptance oracle
 
@@ -36,3 +36,16 @@ The existing mock controls show why admission was blocked. Reload is read-only; 
 The PostgreSQL suite requires an explicit loopback disposable `MJOBS_TEST_POSTGRES_URL`, rejects connection-query overrides, creates a unique schema and uses independent process connections. Its five cases cover the same ownership/recovery contracts. It uses current metadata without a schema change; it does not independently prove Alembic migration behavior. Hosted integration supplies the disposable database and must execute these cases, not skip them.
 
 Real external submissions remain disabled. Test fixtures and browser contexts are disposable. Unknown legacy RUNNING ownership deliberately requires review; there is no unsafe timeout-based steal or automatic retry.
+
+## Exact-revision hosted evidence
+
+All required checks passed on `0c8b6c5c2ed9c29167363a097f765b44f6321791` before acceptance was recorded:
+
+- [PostgreSQL/Redis integration 38341073391](https://github.com/MulattoTech/MJobs/actions/runs/38341073391): **2,002 PASS, ten explicit skips**. All five `RouteAttemptPostgreSQLTests` executed PASS: completed replay; independent routes and unknown legacy ownership; parallel reservation/restart; receipt recovery/ambiguity; and two real worker processes submitting once followed by reviewed sequential retry. None of these five was skipped.
+- [Full browser 38341071800](https://github.com/MulattoTech/MJobs/actions/runs/38341071800): **256 PASS, five Windows-only manual-auth skips**. `test_blocked_route_survives_reload_and_needs_new_reviewed_intent` executed PASS.
+- [Disposable Compose 38341073316](https://github.com/MulattoTech/MJobs/actions/runs/38341073316): UI, mock workflow, outage recovery, backup and independent restore artifacts all PASS; each reports external submission disabled.
+- [Fast CI 38341073363](https://github.com/MulattoTech/MJobs/actions/runs/38341073363), [secret scan 38341073370](https://github.com/MulattoTech/MJobs/actions/runs/38341073370) and [introduced dependency review 38341073347](https://github.com/MulattoTech/MJobs/actions/runs/38341073347): PASS.
+
+This acceptance depends on the executed behavioral oracles above, not merely green check labels. The later acceptance-record commit changes planning/evidence only; production source and test bytes remain identical to this verified revision. Required checks on the final PR head are still mandatory before protected integration.
+
+Dashboard delta: Test Harness **1/23 -> 2/23**; highlighted-area P1 **17/91 -> 18/91**; global P1 **39/116 -> 40/116**. P0 and all other area counts are unchanged. Denominators and catalogue priorities are unchanged.

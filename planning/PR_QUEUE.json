@@ -2700,8 +2700,10 @@
         "requirement": "MJ-REQ-221",
         "issue": 222,
         "branch": "fix/route-attempt-concurrency-222",
-        "status": "LOCAL_ACCEPTANCE_PASS_HOSTED_PENDING",
-        "note": "Only route idempotency slice; remaining queue requirements retain their existing acceptance."
+        "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
+        "note": "Only route idempotency slice; remaining queue requirements retain their existing acceptance.",
+        "pr": 615,
+        "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791"
       }
     },
     {
