@@ -96,4 +96,3 @@ class ProfileAICredentialPostgreSQLTests(unittest.TestCase):
 
     def test_legacy_snapshot_keeps_runtime_source_without_backfilling_a_key(self):
         self.case.test_legacy_snapshot_keeps_runtime_source_without_backfilling_a_key()
-
