@@ -163,7 +163,12 @@ class MissionControl:
                      for name, values in state["areas"].items()]
             priorities = [{"name": name, **counts(values, sum(values.values()))}
                           for name, values in state["priorities"].items()]
-            head = git_text(self.root, "rev-parse", "HEAD")
+            checkout_head = git_text(self.root, "rev-parse", "HEAD")
+            checkout_branch = git_text(self.root, "branch", "--show-current")
+            try:
+                local_main = git_text(self.root, "rev-parse", "refs/heads/main")
+            except RuntimeError:
+                local_main = None
             remote_sha, remote_note = self._remote_sha()
             from tools.verification.progress_dashboard import DASHBOARD, render_dashboard
             dashboard = self.root / DASHBOARD
@@ -184,9 +189,13 @@ class MissionControl:
                 "areas": sorted(areas, key=lambda x: (x["accepted_percent"], x["name"])),
                 "priorities": sorted(priorities, key=lambda x: x["name"]),
                 "git": {
-                    "local_main_sha": head,
+                    "local_main_sha": local_main,
+                    "checkout_head_sha": checkout_head,
+                    "checkout_branch": checkout_branch,
                     "github_main_sha": remote_sha,
-                    "published_matches_local_main": head == remote_sha if remote_sha else None,
+                    "published_matches_local_main": (
+                        local_main == remote_sha if local_main and remote_sha else None
+                    ),
                     "note": remote_note,
                 },
                 "caveat": "Only fully accepted requirements count. Partial work is not a fractional PASS; release readiness is separate.",
