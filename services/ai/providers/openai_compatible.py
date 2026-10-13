@@ -14,7 +14,7 @@ import httpx
 from services.ai.providers import AIProviderError, ProviderCapabilities
 from services.ai.telemetry import get_default_telemetry_engine
 from services.ai.providers.endpoint_security import secure_base_url
-from services.ai.providers.transport import _shutdown_response_socket, response_deadline
+from services.ai.providers.transport import _shutdown_response_socket, request_guard
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:8000/v1"
@@ -136,37 +136,17 @@ class OpenAICompatibleProvider:
 
         start_time = time.monotonic()
         client = None
-        active_response = None
-        stop_cancellation_watch = threading.Event()
-        watcher = None
 
         try:
             client = self._client_factory(
                 trust_env=False,
                 timeout=httpx.Timeout(float(timeout_seconds)),
             )
-            if cancellation_event is not None:
-                def close_client_when_cancelled():
-                    while not stop_cancellation_watch.wait(0.01):
-                        if cancellation_event.is_set():
-                            try:
-                                _shutdown_response_socket(active_response)
-                                client.close()
-                            except Exception:
-                                pass
-                            return
-
-                watcher = threading.Thread(
-                    target=close_client_when_cancelled,
-                    name=f"mjobs-{self.name}-cancel-watch",
-                    daemon=True,
-                )
-                watcher.start()
-
-            with client:
-                with client.stream("POST", self.endpoint, json=payload, headers=headers, follow_redirects=False) as response, response_deadline(
-                        response, deadline=start_time + float(timeout_seconds)):
-                    active_response = response
+            with client, request_guard(client, deadline=start_time + float(timeout_seconds),
+                                       cancellation_event=cancellation_event) as guard:
+                with client.stream("POST", self.endpoint, json=payload, headers=headers, follow_redirects=False,
+                                   extensions={"trace": guard.trace}) as response:
+                    guard.bind_response(response)
                     if cancellation_event is not None and cancellation_event.is_set():
                         _shutdown_response_socket(response)
                         raise AIProviderError("AI_PROVIDER_CANCELLED")
@@ -197,10 +177,6 @@ class OpenAICompatibleProvider:
             if cancellation_event is not None and cancellation_event.is_set():
                 raise AIProviderError("AI_PROVIDER_CANCELLED") from None
             raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
-        finally:
-            stop_cancellation_watch.set()
-            if watcher is not None:
-                watcher.join(timeout=1)
 
         latency_ms = (time.monotonic() - start_time) * 1000
 

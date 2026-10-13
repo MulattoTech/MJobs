@@ -5,6 +5,7 @@ import select
 import threading
 import time
 import unittest
+import httpx
 
 from services.ai.providers import (
     AIProviderError, AzureOpenAIProvider, LocalEndpointProvider, OllamaProvider,
@@ -18,7 +19,7 @@ PROVIDERS = (OllamaProvider, OpenAICompatibleProvider, OpenAIProvider,
 
 class AIResponseDeadlineTests(unittest.TestCase):
     def request(self, provider_type, *, delay, budget):
-        closed, finish = threading.Event(), threading.Event()
+        closed, finish, started_event = threading.Event(), threading.Event(), threading.Event()
         body = json.dumps({'response': 'ok', 'done': True} if provider_type is OllamaProvider
                           else {'choices': [{'message': {'content': 'ok'}}]}).encode()
 
@@ -28,6 +29,7 @@ class AIResponseDeadlineTests(unittest.TestCase):
                 self.send_response(200)
                 self.send_header('Content-Length', str(len(body)))
                 self.end_headers()
+                started_event.set()
                 try:
                     for value in body:
                         # Observe the peer's FIN directly. A successful write
@@ -40,7 +42,7 @@ class AIResponseDeadlineTests(unittest.TestCase):
                         self.wfile.flush()
                         if finish.wait(delay):
                             return
-                except (BrokenPipeError, ConnectionResetError):
+                except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
                     closed.set()
 
             def log_message(self, *_args):
@@ -51,7 +53,11 @@ class AIResponseDeadlineTests(unittest.TestCase):
         thread = threading.Thread(target=server.serve_forever,
                                   kwargs={'poll_interval': .01}, daemon=True)
         thread.start()
-        provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}')
+        # Keep client/TLS-context construction outside this body-read oracle.
+        # Production may correctly exhaust a tiny budget before connecting.
+        client = httpx.Client(trust_env=False, timeout=httpx.Timeout(budget))
+        provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}',
+                                 client_factory=lambda **_kwargs: client)
         started = time.monotonic()
         try:
             try:
@@ -60,9 +66,11 @@ class AIResponseDeadlineTests(unittest.TestCase):
             except AIProviderError as error:
                 result = error.code
             elapsed = time.monotonic() - started
+            self.assertTrue(started_event.is_set(), 'Body oracle never received response headers')
             disconnected = closed.wait(.4) if result != 'ok' else False
             return result, elapsed, disconnected
         finally:
+            client.close()
             finish.set()
             server.shutdown()
             server.server_close()

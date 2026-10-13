@@ -564,6 +564,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self._assert_cancel_closes_transport(OllamaProvider)
 
     def test_slow_provider_deadline_is_durable_without_partial_evaluation(self):
+        import httpx
         import json
         import threading
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -604,7 +605,9 @@ class DurableAIEvaluationTests(unittest.TestCase):
                 thread = threading.Thread(target=server.serve_forever,
                     kwargs={'poll_interval': .01}, daemon=True)
                 thread.start()
-                provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}')
+                transport = httpx.Client(trust_env=False, timeout=.15)
+                provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}',
+                                         client_factory=lambda **_kwargs: transport)
 
                 class ShortBudgetProvider:
                     capabilities = provider.capabilities
@@ -637,10 +640,67 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     self.assertEqual(readback.json()['state'], 'BLOCKED')
                     self.assertEqual(readback.json()['error'], 'AI_PROVIDER_TIMEOUT')
                 finally:
+                    transport.close()
                     finish.set()
                     server.shutdown()
                     server.server_close()
                     thread.join(timeout=2)
+
+    def test_pre_header_timeout_and_cancellation_are_durable_without_partial_evaluation(self):
+        from concurrent.futures import ThreadPoolExecutor
+        import time
+        import httpx
+        from services.ai.tasks import AITaskRouter
+        from tests.unit.test_ai_header_deadline import HeaderServer, PROVIDERS
+
+        for provider_type in PROVIDERS:
+            for cancel in (False, True):
+                with self.subTest(provider=provider_type.name, cancel=cancel), HeaderServer(provider_type) as server:
+                    budget = 4 if cancel else .3
+                    server.client.timeout = httpx.Timeout(budget)
+                    class BoundedProvider:
+                        capabilities = server.provider.capabilities
+
+                        def generate(self, **kwargs):
+                            kwargs['timeout_seconds'] = budget
+                            return server.provider.generate(**kwargs)
+
+                    self.router = lambda configuration: AITaskRouter(configuration,
+                        provider_factory=lambda _name: BoundedProvider())
+                    admitted = self.client.post('/profiles/fixture/ai-cost-plan/evaluate/queued',
+                        json={'request_id': f'headers-{provider_type.name}-{cancel}'})
+                    self.assertEqual(admitted.status_code, 202, admitted.text)
+                    operation_id = admitted.json()['operation_id']
+                    path = '/profiles/fixture/ai-cost-plan/operations/' + operation_id
+                    with ThreadPoolExecutor(max_workers=1) as pool:
+                        work = pool.submit(self.run_worker, operation_id)
+                        self.assertTrue(server.started.wait(3), 'Pre-header provider boundary not reached')
+                        start = time.monotonic()
+                        if cancel:
+                            acknowledged = self.new_client().post(path + '/cancel')
+                            self.assertEqual(acknowledged.status_code, 200, acknowledged.text)
+                        result = work.result(timeout=3)
+                        self.assertLess(time.monotonic() - start, 1)
+                    expected = 'CANCELLED' if cancel else 'BLOCKED'
+                    self.assertEqual(result['status'], expected, result)
+                    if not cancel:
+                        self.assertEqual(result['error_category'], 'AI_PROVIDER_TIMEOUT')
+                    self.assertTrue(server.closed.wait(.4))
+                    self.assertEqual(server.calls, 1)
+                    self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+                    reopened = Store(self.url)
+                    try:
+                        with reopened.engine.connect() as connection:
+                            state = connection.execute(select(m.operations.c.state).where(
+                                m.operations.c.id == operation_id)).scalar_one()
+                            self.assertEqual(state, expected)
+                    finally:
+                        reopened.engine.dispose()
+                    readback = self.new_client().get(path)
+                    self.assertEqual(readback.status_code, 200, readback.text)
+                    self.assertEqual(readback.json()['state'], expected)
+                    if not cancel:
+                        self.assertEqual(readback.json()['error'], 'AI_PROVIDER_TIMEOUT')
 
     def test_cancel_closes_actual_controlled_openai_transport(self):
         from services.ai.providers import OpenAIProvider

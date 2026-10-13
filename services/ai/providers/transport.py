@@ -16,8 +16,11 @@ def _shutdown_response_socket(response) -> None:
     """
     if response is None:
         return
+    _shutdown_stream_socket(response.extensions.get("network_stream"))
+
+
+def _shutdown_stream_socket(stream):
     try:
-        stream = response.extensions.get("network_stream")
         connection = stream.get_extra_info("socket") if stream is not None else None
         if isinstance(connection, socket.socket):
             connection.shutdown(socket.SHUT_RDWR)
@@ -26,39 +29,85 @@ def _shutdown_response_socket(response) -> None:
         return
 
 
+class _RequestGuard:
+    def __init__(self, client, deadline, cancellation_event):
+        self.client = client
+        self.deadline = deadline
+        self.cancellation_event = cancellation_event
+        self.stream = None
+        self.response = None
+        self.lock = threading.Lock()
+        self.finished = threading.Event()
+
+    def check(self):
+        if self.cancellation_event is not None and self.cancellation_event.is_set():
+            self.interrupt()
+            raise AIProviderError("AI_PROVIDER_CANCELLED")
+        if time.monotonic() >= self.deadline:
+            self.interrupt()
+            raise AIProviderError("AI_PROVIDER_TIMEOUT")
+
+    def trace(self, event, info):
+        # HTTPX's documented trace extension exposes these streams before any
+        # response exists. httpcore is pinned; the loopback tests exercise this
+        # actual hook. Never retain/log request, header or TLS trace metadata.
+        if event in {"connection.connect_tcp.complete", "connection.start_tls.complete"}:
+            with self.lock:
+                self.stream = info.get("return_value")
+        # Do not raise from response-close traces invoked by our own cleanup.
+        if (event.endswith(".started") and ".response_closed." not in event) or event in {
+                "connection.connect_tcp.complete", "connection.start_tls.complete"}:
+            self.check()
+
+    def bind_response(self, response):
+        with self.lock:
+            self.response = response
+            self.stream = response.extensions.get("network_stream", self.stream)
+        self.check()
+
+    def interrupt(self):
+        with self.lock:
+            stream, response = self.stream, self.response
+        _shutdown_stream_socket(stream)
+        # A connect-complete trace can fire before the pool owns the stream.
+        # Close it explicitly too; shutdown alone must not leave an orphan FD.
+        for resource in (response, stream, self.client):
+            if resource is not None:
+                try:
+                    resource.close()
+                except Exception:
+                    # Continue closing other owned resources after a close race.
+                    pass
+
+    def watch(self):
+        while not self.finished.is_set():
+            try:
+                self.check()
+            except AIProviderError:
+                return
+            remaining = max(0, self.deadline - time.monotonic())
+            self.finished.wait(min(.01, remaining) if self.cancellation_event is not None else remaining)
+
+
 @contextmanager
-def response_deadline(response, *, deadline):
-    """Bound body consumption even if each read receives bytes before its timeout.
+def request_guard(client, *, deadline, cancellation_event=None):
+    """Interrupt only this request's connected transport, including header reads.
 
-    The caller's monotonic deadline includes time already spent obtaining headers.
-    Before headers arrive, HTTPX's connect/write/read timeouts still apply. Only
-    this response's socket is interrupted; its client never reuses the connection.
+    DNS/connect/TLS establishment retains HTTPX's phase timeouts until a stream
+    is exposed. Custom transports may omit trace/socket metadata. The normal
+    response close fallback remains, but cannot certify arbitrary custom I/O.
     """
-    finished, expired = threading.Event(), threading.Event()
-
-    def interrupt_at_deadline():
-        if finished.wait(max(0, deadline - time.monotonic())):
-            return
-        expired.set()
-        _shutdown_response_socket(response)
-        try:
-            response.close()
-        except Exception:
-            # A concurrent cancellation/close is harmless; timeout is authoritative.
-            pass
-
-    watcher = threading.Thread(target=interrupt_at_deadline,
-                               name='mjobs-response-deadline', daemon=True)
+    guard = _RequestGuard(client, deadline, cancellation_event)
+    guard.check()
+    watcher = threading.Thread(target=guard.watch, name="mjobs-request-deadline", daemon=True)
     watcher.start()
     try:
         try:
-            yield
+            yield guard
         except Exception:
-            if expired.is_set() or time.monotonic() >= deadline:
-                raise AIProviderError('AI_PROVIDER_TIMEOUT') from None
+            guard.check()
             raise
-        if expired.is_set() or time.monotonic() >= deadline:
-            raise AIProviderError('AI_PROVIDER_TIMEOUT')
+        guard.check()
     finally:
-        finished.set()
+        guard.finished.set()
         watcher.join(timeout=1)
