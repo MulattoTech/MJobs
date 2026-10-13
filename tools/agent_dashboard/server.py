@@ -16,6 +16,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from .supervisor import AgentSupervisor, LANES
 from .mission_control import MissionControl, LaunchRequest
 from .work_history import WorkHistory
+from .progress_history import ProgressHistory
 from tools.feature_studio.control import StudioStore, inventory as studio_inventory, probe as studio_probe, probe_remote as studio_probe_remote, plan as studio_plan
 from tools.feature_studio.validate import validate_spec
 
@@ -38,7 +39,8 @@ class StudioDraftRequest(BaseModel):
     idempotency_key: str = Field(min_length=8, max_length=128)
 
 
-def create_app(root: Path | None = None, *, mission_instance: bool = False) -> FastAPI:
+def create_app(root: Path | None = None, *, mission_instance: bool = False,
+               progress_history_db: Path | None = None) -> FastAPI:
     repo = (root or Path.cwd()).resolve()
     supervisor = AgentSupervisor(repo, mission_instance=mission_instance)
     static_dir = Path(__file__).parent / "static"
@@ -59,6 +61,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
     app.state.mission_control = mission
     history = WorkHistory(repo)
     app.state.work_history = history
+    progress_history = ProgressHistory(repo, db_path=progress_history_db)
+    app.state.progress_history = progress_history
 
     studio = StudioStore()
     app.state.feature_studio = studio
@@ -143,7 +147,39 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False) -> F
 
     @app.get("/api/progress")
     def release_progress():
-        return mission.progress()
+        response = mission.progress()
+        if response.get("available"):
+            try:
+                response["history_capture"] = progress_history.observe()
+            except (ValueError, OSError, KeyError):
+                response["history_capture"] = {"created": False, "error": "history capture unavailable"}
+        return response
+
+    @app.get("/api/progress/history")
+    def progress_timeline(limit: int = Query(default=120, ge=1, le=500)):
+        return progress_history.timeline(limit=limit)
+
+    @app.get("/api/progress/history/{snapshot_id}")
+    def progress_detail(snapshot_id: int):
+        try:
+            return progress_history.detail(snapshot_id)
+        except KeyError:
+            raise HTTPException(404, "Progress capture not found") from None
+
+    @app.get("/api/progress/history/diff/{before_id}/{after_id}")
+    def progress_diff(before_id: int, after_id: int):
+        try:
+            return progress_history.difference(before_id, after_id)
+        except KeyError:
+            raise HTTPException(404, "Progress capture not found") from None
+
+    @app.post("/api/progress/history/capture")
+    def progress_capture(request: Request):
+        mission.require_token(request, mission.token)
+        try:
+            return progress_history.observe(force=True, reason="manual")
+        except (ValueError, OSError, KeyError):
+            raise HTTPException(503, "Progress capture unavailable; acceptance evidence was not changed") from None
 
     @app.get("/api/history")
     def recent_work_history(limit: int = Query(default=50, ge=1, le=100),

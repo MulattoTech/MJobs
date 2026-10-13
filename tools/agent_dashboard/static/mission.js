@@ -643,6 +643,7 @@
       <div class="progress-disclaimer">${safe(data.caveat)} The page reads original canonical requirements and
       reference gaps on every refresh. It never marks an unfinished requirement PASS or overwrites acceptance records.</div>`;
     $("#releaseRefreshTime").textContent = "Verified " + new Date(data.observed_at).toLocaleTimeString();
+    if (window.MJobsProgressHistory) window.MJobsProgressHistory.onProgress(data);
   }
 
   async function refreshProgress() {
