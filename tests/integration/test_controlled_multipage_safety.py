@@ -30,11 +30,14 @@ class ControlledMultipageSafetyTests(unittest.TestCase):
                 fixture, sort_keys=True, separators=(",", ":")).encode()).hexdigest()
             return fixture
 
-        with patch.object(service, "template", altered):
+        with patch.object(service, "template", altered), \
+             patch.object(service, "run_browser", wraps=service.run_browser) as browser_spy:
             _, body, queued = self.review_and_queue(request_id)
             result = self.execute(queued["operation_id"])
             saved = self.client.get(self.path()+"/runs/"+body["request_id"]).json()
-        self.assertNotEqual(result["status"], "COMPLETED", result)
+        browser_spy.assert_called_once()
+        self.assertEqual(result["status"], "BLOCKED", result)
+        self.assertEqual(saved["error_code"], "CONTROLLED_DRY_RUN_REVIEW_REQUIRED", saved)
         self.assertIsNone(saved["receipt"], saved)
         self.assertEqual(self.store.count("application_attempts"), 0)
         return result, saved
@@ -63,20 +66,32 @@ class ControlledMultipageSafetyTests(unittest.TestCase):
         from playwright.sync_api import Locator
 
         original_click = Locator.click
+        navigation_attempts = []
+        intercepted_attempts = []
 
         def navigate_to_unlisted(locator, *args, **kwargs):
             if locator.get_attribute("data-controlled-next") is not None:
                 # The fixed loopback URL is intercepted by the context route; no
                 # employer or external host is contacted by this adversarial test.
-                return locator.page.goto(UNAUTHORIZED_LOCAL, wait_until="domcontentloaded")
+                navigation_attempts.append(UNAUTHORIZED_LOCAL)
+                try:
+                    return locator.page.goto(UNAUTHORIZED_LOCAL, wait_until="domcontentloaded")
+                except Exception:
+                    intercepted_attempts.append(True)
+                    raise
             return original_click(locator, *args, **kwargs)
 
-        with patch.object(Locator, "click", navigate_to_unlisted):
+        with patch.object(service, "run_browser", wraps=service.run_browser) as browser_spy, \
+             patch.object(Locator, "click", navigate_to_unlisted):
             _, body, queued = self.review_and_queue("unexpected-navigation")
             result = self.execute(queued["operation_id"])
             saved = self.client.get(self.path()+"/runs/"+body["request_id"]).json()
 
-        self.assertNotEqual(result["status"], "COMPLETED", result)
+        browser_spy.assert_called_once()
+        self.assertEqual(navigation_attempts, [UNAUTHORIZED_LOCAL])
+        self.assertEqual(intercepted_attempts, [True])
+        self.assertEqual(result["status"], "BLOCKED", result)
+        self.assertEqual(saved["error_code"], "CONTROLLED_DRY_RUN_BROWSER_FAILED", saved)
         self.assertIsNone(saved["receipt"], saved)
         self.assertEqual(self.store.count("application_attempts"), 0)
 
