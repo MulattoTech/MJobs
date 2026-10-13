@@ -6,7 +6,6 @@ import ipaddress
 import json
 import os
 import re
-import socket
 import threading
 from typing import Callable, Mapping
 from urllib.parse import urlsplit
@@ -14,6 +13,7 @@ from urllib.parse import urlsplit
 import httpx
 
 from services.ai.providers import AIProviderError, ProviderCapabilities
+from services.ai.providers.transport import _shutdown_response_socket
 
 
 DEFAULT_BASE_URL = "http://127.0.0.1:11434"
@@ -56,25 +56,6 @@ def _unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 
 def _reject_constant(_value: str) -> None:
     raise ValueError("non-standard JSON constant")
-
-
-def _shutdown_response_socket(response) -> None:
-    """Wake an in-flight read before close; close alone can leave Linux recv blocked.
-
-    HTTPX exposes the request-owned network stream as a documented response
-    extension. Custom transports may omit it; their normal close still applies.
-    No socket is reused: this request's client is closed immediately afterward.
-    """
-    if response is None:
-        return
-    try:
-        stream = response.extensions.get("network_stream")
-        connection = stream.get_extra_info("socket") if stream is not None else None
-        if isinstance(connection, socket.socket):
-            connection.shutdown(socket.SHUT_RDWR)
-    except (AttributeError, OSError, TypeError, ValueError, NotImplementedError):
-        # A concurrent close or a transport without socket metadata is harmless.
-        return
 
 
 class OllamaProvider:
