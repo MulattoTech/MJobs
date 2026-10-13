@@ -755,8 +755,19 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                         })
                     dynamic_problem = (dynamic_result if "reason" in dynamic_result else None)
                     if dynamic_problem is not None:
-                        return _record_dynamic_review(store, application_id, preflight,
-                                                      dynamic_problem)
+                        from services.applications.mock_dynamic_review import fill_reviewed
+                        controls_before_review = _visible_form_controls(page)
+                        if (submit or dynamic_problem["reason"] != "DYNAMIC_REQUIRED_FIELDS_REVIEW_REQUIRED"
+                                or not fill_reviewed(store, application_id, preflight,
+                                                     dynamic_result["fields"], page, check,
+                                                     timeout_ms=lambda: _playwright_action_timeout_ms(check))
+                                or _visible_form_controls(page) != controls_before_review):
+                            return _record_dynamic_review(store, application_id, preflight,
+                                                          dynamic_problem)
+                        store.transition(application_id, ["FILLING"], "FILLING",
+                                         "REVIEWED_CONDITIONAL_DRY_RUN")
+                        # These fields are required and reviewed, not optional.
+                        dynamic_result = {"fields": []}
                     if dynamic_result.get("fields"):
                         updated = dict(preflight)
                         updated["mappings"] = list(preflight.get("mappings", []))

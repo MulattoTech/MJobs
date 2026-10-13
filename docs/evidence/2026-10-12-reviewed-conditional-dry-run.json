@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-13T01:42:50.627439+00:00",
+  "feature": "Explicitly reviewed conditional MOCK dry-run continuation",
+  "requirements": [
+    "MJ-REQ-133",
+    "MJ-REQ-121",
+    "MJ-REQ-135",
+    "MJ-REQ-208",
+    "MJ-REQ-156",
+    "MJ-REQ-158"
+  ],
+  "issues": [
+    134,
+    122,
+    136,
+    209,
+    157,
+    159
+  ],
+  "base_commit": "e76d3898972ac754db74a30b34bf95cc92e69948",
+  "branch": "feat/reviewed-dynamic-dry-run-134",
+  "source_identity": "SHA256 identifies final LF-normalized source and test bytes; focused connected tests and frontend build repeated after newline normalization. Commit containing artifact is candidate revision.",
+  "source_sha256": {
+    "services/applications/mock_dynamic_review.py": "66f94376fd31fa8777eadf0ba80760374775ca491978176afa3394abb96bd13a",
+    "services/applications/mock_adapter.py": "556459122cc501a6c61723dbe244b43ea92ba3dc226196e85e7cc6cbf3158e77",
+    "apps/api/mock_dynamic_review.py": "561a86d0bf02beb4e98428938aaf4cc8b4987aa2bdadd15ec500bc4dc27f3376",
+    "apps/api/main.py": "286dc3c24bf0bdd20f09036927b05b155eab8ce346cc5044976e09082c2457c5",
+    "apps/web/src/mock-dynamic-review.tsx": "8da00e8be9928853640201d89716193bf6cbd3c12281ad4ee03c0cd9c3bb4073",
+    "apps/web/src/mock-run-controls.tsx": "444ca23fdb9e0e3e07436139f1e443f89d896bf5b0538c5ff66cad28a8c92dbe",
+    "apps/web/src/mock-dynamic-review.test.tsx": "7e79c5123a67d9792592e3569fa8d8e399682a3b3685bbaedfb443f638a4ffaf",
+    "tests/unit/test_mock_dynamic_review.py": "892467f56b73a5652a4c4cc40657ad6c383a54005706e6f6e2cac412de2b8414",
+    "tests/integration/test_mock_dynamic_review.py": "183f0937f03ccefa6e527b715310a6a552681826c1c801692da11b9f0f475005",
+    "tests/browser/test_mock_dynamic_review.py": "cc91ababb9361e154133894ef216e3b7ba8221ea7ee0bdb783d4759f3c0e8590"
+  },
+  "environment": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "browser": "installed Playwright Chromium; disposable loopback synthetic ATS and SQLite; fresh worker subprocesses"
+  },
+  "local_acceptance": "PASS",
+  "parent_acceptance": "PARTIAL",
+  "hosted_acceptance": "NOT_RUN at candidate creation; inspect exact PR head before integration",
+  "checks": [
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS",
+      "tests": 1556,
+      "subtests": 1018
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "PASS",
+      "tests": 779,
+      "files": 132
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_mock_dynamic_review.py tests/integration/test_mock_dynamic_review.py tests/browser/test_mock_dynamic_review.py --junitxml=outputs/verification/red-zone-dynamic.xml",
+      "result": "PASS",
+      "tests": 11,
+      "subtests": 22
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_mock_dynamic_review.py tests/integration/test_mock_dynamic_review.py tests/integration/test_application_run_requests.py tests/integration/test_application_rehearsal.py tests/browser/test_mock_dynamic_review.py tests/browser/test_mock_application.py tests/browser/test_mock_run_controls.py",
+      "result": "FAIL",
+      "passed": 58,
+      "failed": 1,
+      "subtests": 36,
+      "reason": "Existing 250ms launch-budget test timed out during Chromium startup while full unit suite ran concurrently; failure preceded changed code."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_mock_application.py::MockApplicationTests::test_playwright_actions_never_exceed_remaining_worker_budget",
+      "result": "PASS",
+      "tests": 1,
+      "reason": "Isolated after concurrent suite completed; assertion and budget unchanged."
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; tools.ci.check_repository; agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "red_evidence": [
+    "New real-browser conditional review test initially failed with missing endpoint 404 after REVIEW_REQUIRED.",
+    "Control replacement regression initially retained old name descriptor; after live metadata recheck it passes for name/id/required/multiple/disabled/hidden/conditional changes."
+  ],
+  "verified": [
+    "Sourced synthetic job and approved profile/docs reach a known conditional dropdown and stop before review.",
+    "Explicit scope-bound acknowledgement is idempotent and contains no chosen answer value.",
+    "Lost acknowledgement reply and page reload recover the durable saved review.",
+    "New worker consumes reviewed exact inputs and reaches DRY_RUN_COMPLETE.",
+    "Repeated delivery of either operation creates no additional browser attempt.",
+    "Profile, route, document, questionnaire/options changes invalidate consent; unknown fields stay blocked.",
+    "Dry-run review does not authorize even mock submission; observed review=1 submit=0 on successful flow, no external browser requests."
+  ],
+  "limitations": [
+    "Known conditional single-select controls in the explicit local mock ATS only.",
+    "Other dynamic field kinds, arbitrary employer forms, full adapter family and broad DRY_RUN parents remain PARTIAL.",
+    "Real external submissions remain OFF. No live paid AI/provider use.",
+    "No whole-product or P0/P1 acceptance promotion.",
+    "PostgreSQL/full browser/Compose hosted candidate gates pending at artifact creation."
+  ],
+  "review": "Local Luna read-only review found one control identity issue; reproduced/fixed/reviewed with no further critical or important finding. Not human or hosted AI certification."
+}

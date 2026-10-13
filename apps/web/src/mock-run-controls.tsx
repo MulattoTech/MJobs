@@ -1,4 +1,5 @@
 import {useEffect,useRef,useState} from 'react';
+import {MockDynamicReview} from './mock-dynamic-review';
 import {cancelMockRun,forgetTerminalMockRun,loadMockRunIntent,lookupMockRun,mockRunTerminal,
   postMockRun,saveMockRunIntent,type MockRunIntent,type MockRunReceipt,type MockRunScope} from './mock-run-client';
 
@@ -144,8 +145,10 @@ function MockRunController(props:Props) {
     await perform(async()=>{await cancelMockRun(result.operation_id);await lookup(saved);
       if(alive.current)setNotice('Cancellation requested. A submit reservation requires receipt reconciliation, not another submission.');});
   }
-  return <MockRunControlsView intent={intent} receipt={run} busy={busy} disabled={!!props.disabled}
+  return <><MockDynamicReview profileId={props.profileId} applicationId={props.applicationId}
+    applicationState={props.applicationState} disabled={props.disabled||busy||!!run&&['QUEUED','RUNNING'].includes(run.state)}/>
+    <MockRunControlsView intent={intent} receipt={run} busy={busy} disabled={!!props.disabled}
     canStart={editable.has(props.applicationState)} canCancel={!['SUBMITTING','SUBMISSION_UNCONFIRMED','CONFIRMED'].includes(props.applicationState)} consent={consent} error={error} notice={notice} storageBlocked={storageBlocked}
     onConsent={setConsent} onBegin={value=>void begin(value)} onLookup={()=>{const saved=currentIntent.current;if(saved)void perform(()=>lookup(saved));}}
-    onResend={()=>void resend()} onNew={newReviewedRun} onCancel={()=>void cancel()}/>;
+    onResend={()=>void resend()} onNew={newReviewedRun} onCancel={()=>void cancel()}/></>;
 }
