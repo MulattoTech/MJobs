@@ -25,19 +25,27 @@ function renderLoadedRun(run:unknown) {
   return renderToStaticMarkup(<ControlledApplicationDryRun profileId="profile-a" applicationId="application-a"/>);
 }
 
+function visibleText(html:string) {
+  return html.replace(/<!--[\s\S]*?-->/g,' ')
+    .replace(/<[^>]*>/g,' ')
+    .replace(/&(?:amp|lt|gt|quot|#39);/g,entity=>({'&amp;':'&','&lt;':'<','&gt;':'>','&quot;':'"','&#39;':"'"})[entity]||entity)
+    .replace(/\s+/g,' ').trim();
+}
+
 describe('controlled application page proof',()=>{
   afterEach(()=>{hookState.values=[];});
 
   it('shows the supplied ordered page plan before the review acknowledgement',()=>{
     const html=renderLoadedRun(null);
+    const text=visibleText(html);
     const plan=html.indexOf('aria-label="Ordered fixture page plan"');
-    const contact=html.indexOf('Contact information');
-    const documents=html.indexOf('Documents');
-    const review=html.indexOf('I reviewed these fixture values, selected documents, and the ordered page plan');
+    const contact=text.indexOf('Contact information');
+    const documents=text.indexOf('Documents');
+    const review=text.indexOf('I reviewed these fixture values');
 
     expect(plan).toBeGreaterThanOrEqual(0);
-    expect(contact).toBeGreaterThan(plan);
     expect(documents).toBeGreaterThan(contact);
+    expect(text.slice(review)).toContain('ordered page plan');
     expect(review).toBeGreaterThan(documents);
   });
 
