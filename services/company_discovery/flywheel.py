@@ -530,19 +530,26 @@ def directly_monitored(store, company_id, *, public=False, connection=None):
                                 m.company_sources.c.collection_strategy != "FIXTURE",
                                 m.company_sources.c.last_success.is_not(None))
             from services.company_discovery.monitoring import _monitor, _validate, _profiles
+            from services.discovery.scheduler import _has_saved_search_scheduler, _scheduler_criteria
             profiles = list(connection.execute(select(m.search_profiles).where(m.search_profiles.c.enabled.is_(True))).mappings())
-            for source in connection.execute(query).mappings():
+            # Exhaust the result before an early True return, so SQLite releases
+            # its read cursor even when the first matching source is sufficient.
+            for source in connection.execute(query).mappings().all():
                 if source['collector_source_id']:
                     collector = connection.execute(select(m.job_sources).where(m.job_sources.c.id == source['collector_source_id'])).mappings().one()
-                    if collector['provider'] != 'greenhouse':
+                    if collector['provider'] not in {'greenhouse', 'lever'}:
                         continue  # An aggregator is not an employer's directly monitored inventory.
                     from services.company_discovery.ats_enrollment import bound_company_source
                     from services.discovery.sources.errors import SourceError
                     try:
-                        bound_company_source(store, connection, collector)
+                        if bound_company_source(store, connection, collector) is None:
+                            continue
                     except (ValueError, PublicFetchError, SourceError):
                         continue
-                    if collector['enabled'] and any(not row['source_ids'] or collector['id'] in row['source_ids'] for row in profiles):
+                    if collector['enabled'] and any(
+                            (not row['source_ids'] or collector['id'] in row['source_ids'])
+                            and (not _has_saved_search_scheduler(row) or _scheduler_criteria(row) is not None)
+                            for row in profiles):
                         return True
                     continue
                 monitor = _monitor(connection, source['id'])

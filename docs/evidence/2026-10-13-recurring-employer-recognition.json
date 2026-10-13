@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "utc": "2026-10-13T00:17:59.616352+00:00",
+  "issue": 160,
+  "requirement": "MJ-REQ-159",
+  "status": "PARTIAL",
+  "base": "cfa598ee6f1249ed22892d440bca0a3fa3532de9",
+  "behavior": "Recognize qualified recurring Greenhouse/Lever inventory before Add Company; paused saved-search schedules permit explicit one-time discovery; authorization remains fail closed",
+  "source_hash_definition": "SHA256 of UTF-8 text with universal newline normalization; evidence excluded",
+  "source_sha256": {
+    "services/company_discovery/flywheel.py": "ee02737835acfc2ad921ffd1b09b6e35923cc05ecb926b6cf89324e504105861",
+    "tests/integration/test_lever_autodiscovery.py": "80bf8f77bdb77ad09fcec9404d1cf573b63e2d3d1e51256ea65a2999259d0137",
+    "tests/integration/test_reviewed_greenhouse_enrollment.py": "9713f2bf4b9927cd1f53bd5270f1909329d39ad821863c811ccd70ee3d6411a5",
+    "tests/browser/test_greenhouse_autodiscovery.py": "41f1d80cd5ec8f3aac46450f7c0a7a7081a99cad4345dc535d12fe9e2e818325",
+    "planning/IMPLEMENTATION_STATE.json": "49d1e2fe9832778fa208d79a01e7282e9a6f877914dcd5c910d5713409d5cee7"
+  },
+  "verification": [
+    {
+      "command": "focused Lever/Greenhouse regression before correction",
+      "result": "RED: three assertion failures demonstrated missing Lever recognition and incorrect paused-search recognition; Windows cleanup also exposed an unexhausted read cursor"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_lever_autodiscovery.py tests/integration/test_reviewed_greenhouse_enrollment.py tests/integration/test_company_discovery_idempotency.py",
+      "result": "36 passed, 3 PostgreSQL skipped, 21 subtests passed"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_lever_autodiscovery.py tests/integration/test_reviewed_greenhouse_enrollment.py tests/browser/test_greenhouse_autodiscovery.py --junitxml=outputs/ci/root609-connected.xml",
+      "result": "30 passed, 13 subtests passed; actual Chromium Add Company no-extra-operation/no-extra-fetch path included"
+    }
+  ],
+  "hosted": "NOT_RUN on this candidate; inherited actual PostgreSQL suite, full browser and required checks remain mandatory before integration",
+  "review": "Read-only local Luna review: no material blocker; suggested paused-scheduler explicit queue regression subsequently added and passed",
+  "limitations": [
+    "Only qualified Greenhouse/Lever recurrence recognition; no new provider or employer authority",
+    "Full task idempotency remains PARTIAL",
+    "Unrelated dirty files and partial handoff recovery preserved"
+  ],
+  "external_submission_enabled": false,
+  "acceptance_authorities_changed": false
+}

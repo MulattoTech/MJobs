@@ -16,6 +16,7 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence import models as m
 from services.company_discovery.public_client import PublicCompanyClient
+from services.company_discovery.domains import record_company_domain
 from services.discovery.scheduler import schedule_due_sources
 from services.discovery.sources.greenhouse import Greenhouse
 from services.discovery.sources.lever import Lever
@@ -48,7 +49,10 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
     def test_reviewed_lever_eu_discovery_reload_and_pause(self):
         self._journey(reviewed=True,lever_region='eu')
 
-    def _journey(self, markup=None, reviewed=False, lever_region=None):
+    def test_verified_lever_add_recognizes_existing_recurring_inventory(self):
+        self._journey(reviewed=True, lever_region='global', readd_monitored=True)
+
+    def _journey(self, markup=None, reviewed=False, lever_region=None, readd_monitored=False):
         case = (lever_contract.LeverAutodiscoveryTests() if lever_region else
                 reviewed_contract.ReviewedGreenhouseEnrollmentTests() if reviewed
                 else contract.GreenhouseAutodiscoveryTests())
@@ -130,6 +134,22 @@ class GreenhouseAutodiscoveryBrowserTests(unittest.TestCase):
                         expect(card).to_contain_text('User-confirmed employer identity. Not independently verified.')
                         expect(card).to_contain_text('Not verified')
                         self.assertEqual(case.store.count('company_domains'), 0)
+                    if readd_monitored:
+                        record_company_domain(case.store, case.company_id, 'employer.example',
+                            'FIRST_PARTY_JOB_LINK', ['Controlled independently verified employer link'])
+                        before_ops = case.store.count('worker_operations')
+                        before_fetches = len(case.fetches)
+                        page.get_by_label('Company name', exact=True).fill(company_name)
+                        page.get_by_label('Company website (HTTPS)', exact=True).fill('https://employer.example/')
+                        with page.expect_response(lambda response: response.request.method == 'POST'
+                                and response.url.endswith('/companies/discovery')) as readded:
+                            page.get_by_role('button', name='Discover company jobs', exact=True).click()
+                        self.assertEqual(readded.value.status, 202)
+                        self.assertEqual(readded.value.json()['status'], 'ALREADY_MONITORED')
+                        self.assertIsNone(readded.value.json()['operation_id'])
+                        expect(page.get_by_text('This company is already being monitored. Its saved source information is unchanged.', exact=True)).to_be_visible()
+                        self.assertEqual(case.store.count('worker_operations'), before_ops)
+                        self.assertEqual(len(case.fetches), before_fetches)
                     with page.expect_response(lambda response: response.request.method == 'PUT'
                                               and response.url.endswith('/enabled')):
                         card.get_by_role('button', name='Disable ' + company_name + ' source', exact=True).click()
