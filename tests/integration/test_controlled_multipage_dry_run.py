@@ -108,6 +108,45 @@ class ControlledMultipageDryRunTests(unittest.TestCase):
         self._assert_tampered_second_page_fails("wrong-identity", lambda html: html.replace(
             'data-controlled-page="documents"', 'data-controlled-page="contact"', 1))
 
+    def test_second_page_template_change_after_review_blocks_before_browser(self):
+        _, body, queued = self.review_and_queue("second-page-changed")
+        original = service.template
+
+        def changed(provider):
+            fixture = original(provider)
+            fixture.setdefault("document_html", "<form data-controlled-page='documents'></form>")
+            fixture["document_html"] = fixture["document_html"].replace(
+                "supporting_documents", "tampered_supporting_documents", 1)
+            fixture["template_sha256"] = "f" * 64
+            return fixture
+
+        with patch.object(service, "template", changed), patch.object(
+            service, "run_browser", side_effect=AssertionError("stale second page must not launch browser"),
+        ):
+            result = self.execute(queued["operation_id"])
+        self.assertEqual(result["status"], "BLOCKED", result)
+        saved = self.client.get(self.path() + "/runs/" + body["request_id"])
+        self.assertIsNone(saved.json()["receipt"])
+
+    def test_page_plan_change_after_review_blocks_before_browser(self):
+        _, body, queued = self.review_and_queue("page-plan-changed")
+        original = service.template
+
+        def reordered(provider):
+            fixture = original(provider)
+            fixture.setdefault("pages", EXPECTED_PAGES)
+            fixture["pages"] = list(reversed(fixture["pages"]))
+            fixture["template_sha256"] = "e" * 64
+            return fixture
+
+        with patch.object(service, "template", reordered), patch.object(
+            service, "run_browser", side_effect=AssertionError("stale page plan must not launch browser"),
+        ):
+            result = self.execute(queued["operation_id"])
+        self.assertEqual(result["status"], "BLOCKED", result)
+        saved = self.client.get(self.path() + "/runs/" + body["request_id"])
+        self.assertIsNone(saved.json()["receipt"])
+
     def test_legacy_receipt_without_pages_remains_readable_unchanged(self):
         _, body, queued = self.review_and_queue("legacy-receipt")
         legacy_receipt = {
