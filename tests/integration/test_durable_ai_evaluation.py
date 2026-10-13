@@ -560,11 +560,30 @@ class DurableAIEvaluationTests(unittest.TestCase):
         self.assertEqual(len(self.calls), 1)
 
     def test_cancel_closes_actual_controlled_ollama_transport(self):
+        from services.ai.providers import OllamaProvider
+        self._assert_cancel_closes_transport(OllamaProvider)
+
+    def test_cancel_closes_actual_controlled_openai_transport(self):
+        from services.ai.providers import OpenAIProvider
+        self._assert_cancel_closes_transport(OpenAIProvider)
+
+    def test_cancel_closes_actual_controlled_compatible_transport(self):
+        from services.ai.providers import OpenAICompatibleProvider
+        self._assert_cancel_closes_transport(OpenAICompatibleProvider)
+
+    def test_cancel_closes_actual_controlled_azure_transport(self):
+        from services.ai.providers import AzureOpenAIProvider
+        self._assert_cancel_closes_transport(AzureOpenAIProvider)
+
+    def test_cancel_closes_actual_controlled_local_transport(self):
+        from services.ai.providers import LocalEndpointProvider
+        self._assert_cancel_closes_transport(LocalEndpointProvider)
+
+    def _assert_cancel_closes_transport(self, provider_type):
         import socket
         import threading
         from concurrent.futures import ThreadPoolExecutor
         from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-        from services.ai.providers import OllamaProvider
         from services.ai.tasks import AITaskRouter
         started, closed, finish = threading.Event(), threading.Event(), threading.Event()
         class Handler(BaseHTTPRequestHandler):
@@ -595,7 +614,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
         response = self.queue()
         self.assertEqual(response.status_code, 202, response.text)
         operation_id = response.json()['operation_id']
-        provider = OllamaProvider(base_url=f'http://127.0.0.1:{server.server_port}')
+        provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}')
         self.router = lambda configuration: AITaskRouter(configuration, provider_factory=lambda _name: provider)
         try:
             with ThreadPoolExecutor(max_workers=1) as executor:
@@ -609,6 +628,15 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     finish.set()
                 self.assertEqual(work.result(timeout=5)['status'], 'CANCELLED')
             self.assertEqual(self.store.ai_evaluation_history('fixture'), [])
+            reopened = Store(self.url)
+            self.addCleanup(reopened.engine.dispose)
+            with reopened.engine.connect() as connection:
+                persisted = connection.execute(select(m.operations).where(
+                    m.operations.c.id == operation_id)).mappings().one()
+                self.assertEqual(persisted['state'], 'CANCELLED')
+            readback = self.new_client().get('/profiles/fixture/ai-cost-plan/operations/' + operation_id)
+            self.assertEqual(readback.status_code, 200, readback.text)
+            self.assertEqual(readback.json()['state'], 'CANCELLED')
         finally:
             finish.set()
             server.shutdown()

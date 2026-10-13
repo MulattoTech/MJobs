@@ -14,6 +14,7 @@ import httpx
 from services.ai.providers import AIProviderError, ProviderCapabilities
 from services.ai.telemetry import get_default_telemetry_engine
 from services.ai.providers.endpoint_security import secure_base_url
+from services.ai.providers.transport import _shutdown_response_socket
 
 
 DEFAULT_AZURE_API_VERSION = "2024-02-15-preview"
@@ -144,6 +145,7 @@ class AzureOpenAIProvider:
 
         start_time = time.monotonic()
         client = None
+        active_response = None
         stop_cancellation_watch = threading.Event()
         watcher = None
 
@@ -157,6 +159,7 @@ class AzureOpenAIProvider:
                     while not stop_cancellation_watch.wait(0.01):
                         if cancellation_event.is_set():
                             try:
+                                _shutdown_response_socket(active_response)
                                 client.close()
                             except Exception:
                                 pass
@@ -171,6 +174,10 @@ class AzureOpenAIProvider:
 
             with client:
                 with client.stream("POST", endpoint, json=payload, headers=headers, follow_redirects=False) as response:
+                    active_response = response
+                    if cancellation_event is not None and cancellation_event.is_set():
+                        _shutdown_response_socket(response)
+                        raise AIProviderError("AI_PROVIDER_CANCELLED")
                     if not 200 <= response.status_code < 300:
                         raise AIProviderError("AI_PROVIDER_HTTP_ERROR")
                     body = bytearray()

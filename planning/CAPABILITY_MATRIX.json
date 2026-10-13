@@ -78,9 +78,10 @@
         "docs/evidence/2026-10-07-backup-command-output-bounds.json",
         "docs/evidence/2026-10-07-compose-recovery-output-bounds.json",
         "docs/evidence/2026-10-07-live-http-resume-disconnect-cancel.json",
-        "docs/evidence/2026-10-10-application-recovery-transfer-validation.json"
+        "docs/evidence/2026-10-10-application-recovery-transfer-validation.json",
+        "docs/evidence/2026-10-13-provider-response-cancellation.json"
       ],
-      "note": "The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete.",
+      "note": "The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL.",
       "latest_evidence_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045946420",
       "latest_release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045955420",
       "priority": "P0",
