@@ -100,7 +100,7 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     "provider": "greenhouse", "tenant": "routechoice",
                 },
             )
-            route_resolution.start()
+            resolver = route_resolution.start()
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
@@ -183,6 +183,22 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     expect(page.get_by_role("link", name="Review detected ATS destination ↗")).to_have_attribute(
                         "href", "https://boards.greenhouse.io/routechoice/jobs/1")
                     expect(prepare).to_be_enabled()
+                    # Rechecking must reject a changed employer URL even if
+                    # stale resolution metadata still names the verified tenant.
+                    verified_result = dict(resolver.return_value)
+                    resolver.return_value = {**verified_result,
+                        'candidate_url': 'https://boards.greenhouse.io/other/jobs/77'}
+                    with page.expect_response(lambda response: response.request.method == 'POST'
+                            and response.url.endswith('/save-verified-destination')) as rejected:
+                        page.get_by_role('button', name='Save detected destination as selectable route',
+                                         exact=True).click()
+                    self.assertEqual(rejected.value.status, 409)
+                    expect(page.get_by_role('alert').filter(
+                        has_text='The destination could not be saved.')).to_be_visible()
+                    expect(route_picker).to_have_value('browser-route-board')
+                    self.assertEqual(store.count('application_routes'), 3)
+                    self.assertEqual(application_requests, [])
+                    resolver.return_value = verified_result
                     with page.expect_response(lambda response: response.request.method == "POST"
                                                and response.url.endswith(
                                                    "/jobs/" + job_id + "/routes/browser-route-board/"
@@ -221,7 +237,7 @@ class ApplicationRoutePreferenceBrowserTests(unittest.TestCase):
                     self.assertEqual(application_requests[0]["route_mode"], "THIS_ROUTE")
                     self.assertEqual(application_requests[0]["route_id"], saved_route_id)
                     self.assertEqual(route_checks, [None])
-                    self.assertEqual(route_saves, [None])
+                    self.assertEqual(route_saves, [None, None])
                     self.assertEqual(errors, [])
                     self.assertEqual(external, [])
                     context.close()

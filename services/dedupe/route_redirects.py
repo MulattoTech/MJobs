@@ -88,6 +88,16 @@ def _ats_tenant_for_url(host, path, tenants):
             "*.myworkdayjobs.com" in hosts and host.endswith(".myworkdayjobs.com")
         )
         identifiers = _tenant_identifiers(row)
+        if provider == 'greenhouse':
+            # Tenant/org/board metadata elsewhere in a URL is not its board
+            # identity. Accept only the provider's structural public URL forms;
+            # encoded separators and dot segments must not change that slot.
+            match = re.fullmatch(r'/([A-Za-z0-9][A-Za-z0-9_-]{0,79})(?:/jobs/[0-9]+)?/?', path)
+            tenant = str(row.get('tenant_identifier') or '')
+            if (host_matches and identifiers and match
+                    and match[1].casefold() == tenant.casefold()):
+                return {'provider': provider, 'tenant': tenant}
+            continue
         if provider == 'lever':
             from services.discovery.sources.lever import listing_url
             tenant = str(row.get('tenant_identifier') or '')
@@ -106,6 +116,20 @@ def _ats_tenant_for_url(host, path, tenants):
 def _sanitized_candidate_url(url):
     parsed = urlsplit(str(url))
     return urlunsplit(("https", parsed.netloc, parsed.path or "/", "", ""))
+
+
+def qualified_ats_tenant(url, tenants):
+    """Bind current tenant evidence to the complete public destination URL."""
+    parsed = _parse_url(url)
+    if parsed is None:
+        return None
+    value, host, _ = parsed
+    tenant = _ats_tenant_for_url(host, value.path, tenants)
+    if tenant and tenant['provider'] == 'lever':
+        from services.discovery.sources.lever import listing_url
+        if not listing_url(tenant['tenant'], url):
+            return None
+    return tenant
 
 
 class RouteRedirectProbeClient(PublicCompanyClient):
@@ -129,7 +153,7 @@ class RouteRedirectProbeClient(PublicCompanyClient):
             return True
         if any(host == domain or host.endswith("." + domain) for domain in self._verified_domains):
             return True
-        return _ats_tenant_for_url(host, value.path, self._ats_tenants) is not None
+        return qualified_ats_tenant(url, self._ats_tenants) is not None
 
     def _robots_for(self, url, deadline):
         parsed = _parse_url(url)
@@ -200,7 +224,7 @@ def resolve_aggregator_redirect(url, *, verified_domains, ats_tenants, check=Non
         if employer:
             return {"status": "RESOLVED_EMPLOYER_ROUTE",
                     "candidate_url": _sanitized_candidate_url(final_url)}
-        tenant = _ats_tenant_for_url(host, final.path, client._ats_tenants)
+        tenant = qualified_ats_tenant(final_url, client._ats_tenants)
         if tenant:
             return {"status": "RESOLVED_ATS_ROUTE",
                     "candidate_url": _sanitized_candidate_url(final_url), **tenant}

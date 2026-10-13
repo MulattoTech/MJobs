@@ -201,6 +201,11 @@ def qualify_route_authority(connection, routes):
             m.company_ats_tenants.c.provider == route["provider"],
             m.company_ats_tenants.c.tenant_identifier == route["tenant"],
         ).order_by(m.company_ats_tenants.c.id)).mappings().all()
+        if route['provider'] in {'greenhouse', 'lever'}:
+            from services.dedupe.route_redirects import qualified_ats_tenant
+            if qualified_ats_tenant(str(route.get('url') or ''),
+                                    [dict(row) for row in tenants]) is None:
+                continue
         if (route["provider"] in FIRST_PARTY_PROVIDERS and len(tenants) == 1
                 and 0.75 <= float(tenants[0]["confidence"]) <= 1.0
                 and isinstance(tenants[0]["evidence"], list)
