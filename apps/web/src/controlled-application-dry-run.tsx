@@ -2,10 +2,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import {api} from './api';
 import type {ApplicationRehearsalSnapshot} from './application-rehearsal';
 
-type Preview = ApplicationRehearsalSnapshot & {provider:string; context:'CONTROLLED_FIXTURE'};
+type Preview = ApplicationRehearsalSnapshot & {provider:string; context:'CONTROLLED_FIXTURE'; pages?:{id:'contact'|'documents';title:string;field_keys:string[]}[]};
 type Run = {request_id:string|null; state:string; fingerprint?:string;cancel_requested?:boolean;retry_of?:string|null; error_code:string|null; receipt:null|{
   fingerprint:string;
   documents:{kind:string; document_id:string; size_bytes:number; sha256:string}[];
+  pages?:{id:string;control_count:number;validation:'PASS'}[];
   verification:string; provider_acceptance_claimed:false;
 }};
 type Selection = {available:{revision_id:string; label:string; filename:string}[];
@@ -137,6 +138,14 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
         {field.label}: <output aria-label={`${field.key} fixture value`}>{field.value===null?'Needs a verified value':String(field.value)}</output>
         {' · '}{field.source==='VERIFIED_ANSWER'?'Approved saved answer':field.source==='CONTACT'?'Profile contact':field.source==='DOCUMENT'?'Owned document':'Unresolved'}
       </li>)}</ul>
+      {preview.pages&&<section aria-label="Ordered fixture page plan">
+        <h3>Fixture page plan</h3>
+        <ol>{preview.pages.map((page,index)=><li key={`${page.id}-${index}`}>
+          <strong>{page.title|| (page.id==='contact'?'Contact and answer':'Documents')}</strong>
+          {page.field_keys.length>0&&<ul>{page.field_keys.map(key=><li key={key}>{key}</li>)}</ul>}
+        </li>)}</ol>
+      </section>}
+      {!preview.pages&&<p>Ordered fixture page plan is not available for this preview.</p>}
       {preview.blockers.length>0&&<p role="status">Review the unresolved fields or unavailable documents before running this fixture.</p>}
       {selection&&<fieldset disabled={busy||active}><legend>Supporting documents for this fixture</legend>
         {selection.available.length===0?<p>No supporting documents are saved in this profile. Add them in the document library when needed.</p>:selection.available.map(item=><label key={item.revision_id}>
@@ -146,7 +155,7 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
         <button type="button" onClick={()=>void action('select')}>Save fixture document selection</button>
       </fieldset>}
       {selectionDirty&&<p role="status">Save the supporting document selection before reviewing or running.</p>}
-      <label><input type="checkbox" checked={checked} disabled={busy||active||selectionDirty||!preview.ready} onChange={event=>setChecked(event.currentTarget.checked)}/>I reviewed these fixture values and selected documents</label>
+      <label><input type="checkbox" checked={checked} disabled={busy||active||selectionDirty||!preview.ready} onChange={event=>setChecked(event.currentTarget.checked)}/>I reviewed these fixture values, selected documents, and any provided ordered page plan</label>
       <button type="button" disabled={busy||active||selectionDirty||!checked||!preview.ready} onClick={()=>void action('review')}>Record fixture review</button>{' '}
       <button type="button" disabled={busy||active||selectionDirty||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint||(terminal&&run?.fingerprint===preview.fingerprint)} onClick={()=>void action('run')}>Run controlled fixture</button>
       {terminal&&<div><label><input type="checkbox" checked={retryChecked} disabled={busy||selectionDirty||!preview.ready||preview.latest_review?.fingerprint!==preview.fingerprint} onChange={event=>setRetryChecked(event.currentTarget.checked)}/>I reviewed current inputs and want a new fixture attempt</label>
@@ -164,6 +173,11 @@ export function ControlledApplicationDryRun({profileId, applicationId}:{profileI
     {run?.receipt&&<section aria-label="Saved fixture verification"><p>Selected document bytes verified locally. No employer acceptance or submission is claimed.</p>
       {preview&&run.receipt.fingerprint!==preview.fingerprint&&<p>This receipt belongs to earlier inputs. Review and run the current fixture to verify the changed inputs.</p>}
       <ul>{run.receipt.documents.map(item=><li key={item.document_id}>{item.kind} · {item.size_bytes} bytes · SHA-256 {item.sha256}</li>)}</ul>
+      {run.receipt.pages&&<section aria-label="Saved fixture page proof"><h3>Saved page proof</h3>
+        <ol>{run.receipt.pages.map((page,index)=><li key={`${page.id}-${index}`}>
+          {page.id==='contact'?'Contact and answer':page.id==='documents'?'Documents':page.id} · {page.control_count} controls · {page.validation}
+        </li>)}</ol>
+      </section>}
     </section>}
     <button type="button" disabled={busy} onClick={()=>void refresh().catch(()=>setNotice('Could not refresh. Your saved operation can be read after reconnecting.'))}>Refresh fixture preparation</button>
     {notice&&<p role="status">{notice}</p>}
