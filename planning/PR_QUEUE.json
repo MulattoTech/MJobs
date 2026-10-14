@@ -5657,11 +5657,16 @@
         "MJ-REQ-176",
         "MJ-REQ-175"
       ],
-      "status": "LOCAL_VERIFIED_PR_PENDING",
+      "status": "MERGED",
       "branch": "codex/p0p1-only-20261013-232152",
-      "notes": "Project queue-7/live open P1 cards only; parent acceptance remains PARTIAL.",
+      "notes": "Project queue-7/live open P1 #177/#176; 8 new PostgreSQL cases passed; original parents PARTIAL. No acceptance promotion.",
       "source_revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
-      "evidence": "docs/evidence/2026-10-14-p1-application-audit-history.json"
+      "evidence": "docs/evidence/2026-10-14-p1-application-audit-history.json",
+      "pr_number": 646,
+      "verified_head": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+      "merge_commit": "0d1cd4f7e4449c06e738b802722575635632fc93",
+      "merged_at": "2026-10-14T08:15:00Z",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

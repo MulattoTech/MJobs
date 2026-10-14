@@ -8,7 +8,7 @@
     "MJ-REQ-176",
     "MJ-REQ-175"
   ],
-  "status": "LOCAL_VERIFIED_PARENTS_PARTIAL_HOSTED_PENDING",
+  "status": "MERGED_VERIFIED_PARENTS_PARTIAL",
   "recorded_at_utc": "2026-10-14T08:02:46.845838+00:00",
   "source_revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
   "base_main": "df05062fef969e919a07faaffc05bb4a085f34f1",
@@ -68,7 +68,7 @@
     },
     {
       "command": "python -m pytest -q tests/unit -p no:cacheprovider --tb=short",
-      "result": "PARTIAL initial full run: 1593 passed / 1113 subtests / 8 Linux-only skips; 1 unrelated retention subtest failure, UNSAFE_PATH expected vs PRUNE_FAILED observed; same-source full rerun pending"
+      "result": "PARTIAL initial full run: 1593 passed / 1113 subtests / 8 Linux-only skips; 1 unrelated retention subtest failure, UNSAFE_PATH expected vs PRUNE_FAILED observed; same-source rerun recorded separately below"
     },
     {
       "command": "python -m pytest -q tests/unit/test_transient_retention.py -p no:cacheprovider --tb=short",
@@ -90,6 +90,17 @@
       "command": "python -m tools.verification.commit_provenance --commit HEAD",
       "revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
       "result": "PASS 11 source files"
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider --tb=short",
+      "revision": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+      "source_sha256_unchanged": true,
+      "result": "PASS same-source full rerun: 1593 tests / 1114 subtests; 8 Linux-only skips; initial unrelated retention failure retained above"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_application_audit_subject_history.py tests/integration/test_application_audit_subject_privacy.py -p no:cacheprovider --tb=short",
+      "revision": "0d1cd4f7e4449c06e738b802722575635632fc93",
+      "result": "PASS 8 tests / 11 subtests; 8 local PostgreSQL skips NOT_RUN; all 8 exact-PR-head PostgreSQL cases passed without skips"
     }
   ],
   "review": {
@@ -98,7 +109,258 @@
     "tests_run_by_reviewer": false
   },
   "hosted": {
-    "status": "PENDING_EXACT_FINAL_PR_HEAD"
+    "status": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "head": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+    "required_checks": [
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553390/job/115750876754"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553350/job/115749102584"
+      },
+      {
+        "name": "CI / required",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553421/job/115748383660"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553414/job/115747609945"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553361/job/115747609632"
+      }
+    ],
+    "all_checks": [
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553390/job/115750876754"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553350/job/115749102584"
+      },
+      {
+        "name": "CI / required",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553421/job/115748383660"
+      },
+      {
+        "name": "CodeQL",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/runs/115747840737"
+      },
+      {
+        "name": "Web / Vitest and production build",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553421/job/115747611735"
+      },
+      {
+        "name": "Repository / policy and docs",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553421/job/115747611308"
+      },
+      {
+        "name": "Python / unit and integrity",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553421/job/115747611056"
+      },
+      {
+        "name": "Integration / shard 1",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553390/job/115747610808"
+      },
+      {
+        "name": "Integration / shard 2",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553390/job/115747610671"
+      },
+      {
+        "name": "Integration / shard 0",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553390/job/115747610397"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553414/job/115747609945"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532553361/job/115747609632"
+      },
+      {
+        "name": "Analyze (javascript-typescript)",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532550763/job/115747605756"
+      },
+      {
+        "name": "Analyze (python)",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532550763/job/115747605748"
+      },
+      {
+        "name": "Analyze (actions)",
+        "head_sha": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38532550763/job/115747605712"
+      }
+    ],
+    "integration_run": 38532553390,
+    "integration_reports": [
+      {
+        "file": "integration-0\\integration-0.xml",
+        "cases": 551,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "file": "integration-1\\integration-1.xml",
+        "cases": 627,
+        "failures": 0,
+        "errors": 0,
+        "skips": 3
+      },
+      {
+        "file": "integration-2\\integration-2.xml",
+        "cases": 523,
+        "failures": 0,
+        "errors": 0,
+        "skips": 16
+      }
+    ],
+    "integration_totals": {
+      "cases": 1701,
+      "failures": 0,
+      "errors": 0,
+      "skips": 19
+    },
+    "integration_passed_cases": 1682,
+    "new_postgres_cases": [
+      {
+        "classname": "tests.integration.test_application_audit_subject_history.ApplicationAuditSubjectHistoryPostgresTests",
+        "name": "test_application_removal_retains_history_without_exposing_it_to_another_profile",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_application_audit_subject_history.ApplicationAuditSubjectHistoryPostgresTests",
+        "name": "test_application_state_lifecycle_keeps_original_labels",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_application_audit_subject_history.ApplicationAuditSubjectHistoryPostgresTests",
+        "name": "test_document_submission_confirmation_and_tracking_survive_rename_replay_and_reopen",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_application_audit_subject_history.ApplicationAuditSubjectHistoryPostgresTests",
+        "name": "test_legacy_application_events_keep_type_time_and_unknown_labels",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_application_audit_subject_history.ApplicationAuditSubjectHistoryPostgresTests",
+        "name": "test_real_confirmation_state_does_not_invent_employer_receipt",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_application_audit_subject_history.ApplicationAuditSubjectHistoryPostgresTests",
+        "name": "test_tracking_post_insert_failure_rolls_back_and_retry_records_once",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_application_audit_subject_privacy.ApplicationAuditSubjectPrivacyPostgresTests",
+        "name": "test_malformed_or_cross_profile_context_cannot_reassign_audit_ownership",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_application_audit_subject_privacy.ApplicationAuditSubjectPrivacyPostgresTests",
+        "name": "test_private_labels_are_withheld_before_document_submission_and_tracking_persistence",
+        "status": "PASS"
+      }
+    ],
+    "new_postgres_skips": 0,
+    "new_postgres_failures": 0,
+    "compose_run": 38532553350,
+    "compose_reports": [
+      {
+        "artifact": "ci-backup-recovery.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-backup.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-mock-e2e.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-recovery.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-ui.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      }
+    ],
+    "merge_tree_identical": true,
+    "source_hashes_unchanged": true,
+    "main_push_checks": "NOT_RUN_SEPARATE_GATE"
   },
   "boundaries": [
     "Both original requirements remain PARTIAL; no acceptance promotion",
@@ -108,7 +370,14 @@
     "Whole-product release acceptance NOT_RUN"
   ],
   "publication": {
-    "status": "LOCAL_SOURCE_COMMITTED_PR_PENDING"
+    "status": "MERGED",
+    "pr": 646,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/646",
+    "merge_commit": "0d1cd4f7e4449c06e738b802722575635632fc93",
+    "local_main": "0d1cd4f7e4449c06e738b802722575635632fc93",
+    "origin_main": "0d1cd4f7e4449c06e738b802722575635632fc93",
+    "receipt_checkpoint": "Documentation-only; local for next substantive source PR"
   },
-  "next_action": "Publish one reviewable P1 source PR, verify all required exact-head checks including new PostgreSQL cases, integrate under protected-main rules, and record merged receipt."
+  "next_action": "Carry this local documentation-only merged receipt with the next substantive source PR; reconcile the next Project-only snapshot, live Project #1 and ownership, then claim the highest-value unowned open P0/P1 vertical slice. Both current parent requirements remain PARTIAL.",
+  "closed_at_utc": "2026-10-14T08:17:45.842972+00:00"
 }

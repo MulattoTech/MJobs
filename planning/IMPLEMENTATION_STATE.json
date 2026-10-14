@@ -3067,7 +3067,7 @@
       "MJ-REQ-176",
       "MJ-REQ-175"
     ],
-    "status": "LOCAL_VERIFIED_PR_PENDING",
+    "status": "MERGED_VERIFIED_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "acceptance": "Transaction-time safe application/document/tracking labels and immutable owner/target; historical readback after rename/removal/reopen with fail-closed privacy and legacy unknowns.",
     "owned_source": [
@@ -3086,8 +3086,16 @@
     "evidence": "docs/evidence/2026-10-14-p1-application-audit-history.json",
     "local_focused": "76 PASS / 52 subtests / 22 PostgreSQL skips; privacy follow-up 3 PASS / 26 subtests",
     "browser": "3 connected Chromium cases PASS",
-    "full_unit": "PARTIAL initial; same-source rerun pending",
-    "hosted_checks": "PENDING_EXACT_HEAD",
-    "updated_at_utc": "2026-10-14T08:02:46.845838+00:00"
+    "full_unit": "Same-source full rerun PASS 1593 tests/1114 subtests/8 Linux-only skips; initial unrelated retention failure preserved",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "updated_at_utc": "2026-10-14T08:17:45.842972+00:00",
+    "pr": 646,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/646",
+    "verified_head": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+    "merge_commit": "0d1cd4f7e4449c06e738b802722575635632fc93",
+    "publication": "MERGED PR #646; documentation-only receipt local for next source PR",
+    "post_merge": "8 tests/11 subtests PASS; 8 PostgreSQL skips locally; all 8 new hosted PostgreSQL cases PASS, zero skips",
+    "local_review": "Local Luna High read-only review: no remaining critical or important finding",
+    "next_action": "Carry this local documentation-only merged receipt with the next substantive source PR; reconcile the next Project-only snapshot, live Project #1 and ownership, then claim the highest-value unowned open P0/P1 vertical slice. Both current parent requirements remain PARTIAL."
   }
 }
