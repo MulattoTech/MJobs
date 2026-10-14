@@ -2,7 +2,7 @@
   "schema_version": 1,
   "issue": 168,
   "requirement": "MJ-REQ-167",
-  "status": "LOCAL_VERIFIED_PARENT_PARTIAL_PR_PENDING",
+  "status": "MERGED_VERIFIED_PARENT_PARTIAL",
   "recorded_at_utc": "2026-10-14T08:37:38.208241+00:00",
   "base_main": "0d1cd4f7e4449c06e738b802722575635632fc93",
   "source_revision": "3087b4abb91909df117c427f911522c8ab9512fe",
@@ -26,7 +26,7 @@
     "Copy only verified manifest inventory and checksum-verify an owned snapshot before any Docker target operation",
     "Consume pinned database, documents, manifest and fixture receipts through entire restore",
     "Reject changed copy bytes before target calls; sanitize disk failure; clean temp on success/failure",
-    "Standalone archive verification rejects unsupported special filesystem nodes; POSIX oracle awaits Linux exact-head check"
+    "Standalone archive verification rejects unsupported special filesystem nodes; native POSIX FIFO oracle PASS on exact-head Linux unit artifact"
   ],
   "red": "3 new tests failed before implementation; current restore fed unverified changed dump to PostgreSQL; no snapshot/copy/cleanup existed",
   "validation": [
@@ -70,6 +70,11 @@
       "command": "python -m pytest -q tests/unit -p no:cacheprovider --tb=short",
       "revision": "3087b4abb91909df117c427f911522c8ab9512fe",
       "result": "PASS 1598 tests / 1114 subtests; 9 platform skips NOT_RUN; final source bytes unchanged during run"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_transient_retention_receipt_safety.py tests/unit/test_backup_restore_snapshot.py -p no:cacheprovider --tb=short",
+      "revision": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
+      "result": "PASS 9 cases / 2 subtests; 1 POSIX-only skip locally; all 10 new exact-PR-head Linux cases PASS without skips"
     }
   ],
   "runtime": {
@@ -85,7 +90,175 @@
     "tests_run_by_reviewer": false
   },
   "hosted": {
-    "status": "PENDING_EXACT_FINAL_PR_HEAD"
+    "status": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "head": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+    "required_checks": [
+      {
+        "name": "CI / required",
+        "head_sha": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38536458764/job/115761183655"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38536458594/job/115763799752"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38536458733/job/115760407636"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38536458750/job/115760407775"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38536458642/job/115760406547"
+      }
+    ],
+    "reports": [
+      {
+        "report": "unit.xml",
+        "cases": 1607,
+        "passed": 1570,
+        "failures": 0,
+        "errors": 0,
+        "skips": 37
+      },
+      {
+        "report": "integration-0.xml",
+        "cases": 570,
+        "passed": 570,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "report": "integration-1.xml",
+        "cases": 602,
+        "passed": 599,
+        "failures": 0,
+        "errors": 0,
+        "skips": 3
+      },
+      {
+        "report": "integration-2.xml",
+        "cases": 533,
+        "passed": 517,
+        "failures": 0,
+        "errors": 0,
+        "skips": 16
+      }
+    ],
+    "new_acceptance": [
+      {
+        "classname": "tests.unit.test_backup_restore_snapshot",
+        "name": "test_restore_uses_original_database_documents_and_manifest_after_source_changes",
+        "time": "0.006",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_backup_restore_snapshot",
+        "name": "test_change_while_snapshot_is_copied_fails_before_any_target_operation",
+        "time": "0.003",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_backup_restore_snapshot",
+        "name": "test_failed_restore_releases_snapshot_and_preserves_source_archive",
+        "time": "0.006",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_backup_restore_snapshot",
+        "name": "test_fixture_receipts_are_pinned_with_database_and_cleaned_after_restore",
+        "time": "0.012",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_backup_restore_snapshot",
+        "name": "test_snapshot_disk_failure_is_sanitized_before_target_operations",
+        "time": "0.003",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_backup_restore_snapshot",
+        "name": "test_unlisted_special_archive_node_is_rejected_before_restore",
+        "time": "0.002",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_transient_retention_receipt_safety.RetentionReceiptSafetyTests",
+        "name": "test_core_history_destination_blocks_before_pruning",
+        "time": "0.097",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_transient_retention_receipt_safety.RetentionReceiptSafetyTests",
+        "name": "test_new_unknown_destination_after_sweep_preserves_file_and_counts",
+        "time": "0.090",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_transient_retention_receipt_safety.RetentionReceiptSafetyTests",
+        "name": "test_unrecognized_existing_destination_blocks_before_pruning",
+        "time": "0.095",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_transient_retention_receipt_safety.RetentionReceiptSafetyTests",
+        "name": "test_write_failure_keeps_actual_removals_and_retry_readback",
+        "time": "0.100",
+        "status": "PASS"
+      }
+    ],
+    "synthetic_compose": [
+      {
+        "artifact": "ci-backup-recovery.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-backup.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-mock-e2e.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-recovery.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-ui.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      }
+    ],
+    "unit_run": 38536458764,
+    "integration_run": 38536458594,
+    "synthetic_run": 38536458733,
+    "unit_skip_scope": "37 Windows-only / optional host-installed CLI skips; all six new backup cases PASS",
+    "merge_tree_identical": true,
+    "source_hashes_unchanged": true,
+    "main_push_checks": "NOT_RUN_SEPARATE_GATE"
   },
   "boundaries": [
     "Original parent remains PARTIAL; no acceptance promotion or issue closure",
@@ -96,7 +269,15 @@
     "Whole-product release acceptance NOT_RUN"
   ],
   "publication": {
-    "status": "LOCAL_SOURCE_COMMITTED_PR_PENDING"
+    "status": "MERGED",
+    "pr": 647,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/647",
+    "merge_commit": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
+    "local_main": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
+    "origin_main": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
+    "receipt_checkpoint": "Documentation-only; local for next substantive source PR"
   },
-  "rollback": "Ordinary scoped revert; no schema migration or source-archive/data deletion"
+  "rollback": "Ordinary scoped revert; no schema migration or source-archive/data deletion",
+  "closed_at_utc": "2026-10-14T08:48:46.563845+00:00",
+  "next_action": "Reconcile the next Project-only P0/P1 snapshot and ownership; select an unowned ready card, prioritizing remaining security/data-safety gaps. Carry this documentation-only exact-head merged receipt in the next substantive PR."
 }
