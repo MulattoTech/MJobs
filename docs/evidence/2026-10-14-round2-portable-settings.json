@@ -20,7 +20,7 @@
     "tests/integration/test_settings_transfer_flow.py": "2899ab14977631b5b0b885b85c524ffdfc63cfdca8f89d0600863ee1b0aaa374",
     "tests/integration/test_settings_transfer_portable.py": "902a780029479aff52dd1c1e852fd76c536b8e6ced84ce3746154c23036faee4",
     "tests/browser/test_settings_transfer_recovery.py": "f6e729c6a7f2fd714ef830179482701929003166807a8284cea687ed9ca1464a",
-    ".github/workflows/connected-acceptance.yml": "6e9ab48b842c9693e57d164eace2486c1c0c1be5d6f812d15b52331f96f0f35d"
+    ".github/workflows/connected-acceptance.yml": "28dfb26e394f3d1eecb9746119b10a1569afff88e85808bff01a702f6447abde"
   },
   "acceptance_checklist": {
     "saved_searches": "Validated criteria, target-only replacement, reload/readback and legacy v1 compatibility",
@@ -70,7 +70,16 @@
   ],
   "pr_cap": "Four planned delivery PR units; six unrelated Dependabot PRs excluded from this unit count; serial campaign publication with two other delivery PRs active",
   "p0_limits": "Reviewed #6, #14, #15 retain canonical real-provider/host-restart gates; no P0 status promotion or requirement weakening",
-  "publication": "Pending; Git fetch fails locked FETCH_HEAD then Schannel SEC_E_NO_CREDENTIALS. Use existing authenticated GitHub REST git API with exact blob/tree equality; never extract credentials or modify host settings",
+  "publication": "Published PR653 via existing GitHub REST git API, exact blob/tree equality PASS; local650680d9/remote699e11f2. origin/main now e9041819; public signed merge objects verified against exact Git object hashes.",
   "external_submission": "OFF",
-  "rollback": "Scoped source revert; no migration, private data or existing-source policy change"
+  "rollback": "Scoped source revert; no migration, private data or existing-source policy change",
+  "hosted_initial": {
+    "pr": 653,
+    "head": "699e11f27e6521fb68beedf8a1191ecc07f3d9aa",
+    "compose_run": 38580338679,
+    "job": 115908246735,
+    "result": "FAIL",
+    "reason": "New browser step could not start: pytest absent from runtime-only dependency installation",
+    "repair": "Use declared .github/test-requirements.txt in existing dependency step; no assertions weakened"
+  }
 }
