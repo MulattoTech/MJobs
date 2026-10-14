@@ -16,6 +16,7 @@ from apps.api.main import create_app
 from apps.api.transient_retention import create_transient_retention_router
 from packages.persistence.store import Store
 from services.privacy.transient_retention import run_transient_retention
+from services.privacy import transient_retention
 from workers.transient_retention import CONFIG_ENV, run_from_environment, run_with_config
 
 
@@ -227,6 +228,44 @@ class TransientRetentionIntegrationTests(unittest.TestCase):
                 self.assertEqual(saved["removed_count"], 1)
                 self.assertFalse(old.exists())
                 self.assertNotIn(str(self.root), after_sweep.text)
+
+    def test_worker_redirect_failure_has_no_success_receipt_and_recovers(self):
+        old = self._write_old("redirected-debug.png")
+        live_config = {**self.config, "dry_run": False, "prune_enabled": True}
+        original_reparse = transient_retention._is_reparse_point
+        candidate_checks = 0
+        redirected = False
+
+        def redirected_ancestor_after_scan(path):
+            nonlocal candidate_checks, redirected
+            if path == old:
+                candidate_checks += 1
+                redirected = candidate_checks >= 2
+            if path == self.managed and redirected:
+                return True
+            return original_reparse(path)
+
+        with patch.object(transient_retention, "_is_reparse_point", redirected_ancestor_after_scan):
+            blocked = run_with_config(live_config, engine=self._engine)
+        self.assertEqual(blocked["status"], "BLOCKED")
+        self.assertEqual(blocked["errors"], ["UNSAFE_PATH"])
+        self.assertEqual(blocked["removed_count"], 0)
+        self.assertTrue(old.exists())
+        self.assertFalse(self.summary_path.exists(), "blocked pruning cannot publish a success receipt")
+
+        recovered = run_with_config(live_config, engine=self._engine)
+        self.assertEqual(recovered["status"], "OK")
+        self.assertEqual(recovered["removed_count"], 1)
+        self.assertFalse(old.exists())
+        app = FastAPI()
+        app.include_router(create_transient_retention_router(
+            environ={CONFIG_ENV: json.dumps(live_config)}, engine=self._engine,
+        ))
+        with TestClient(app) as client:
+            response = client.get("/retention/preview")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["last_sweep"], recovered)
+        self.assertNotIn(str(self.root), response.text)
 
     def test_api_router_can_be_mounted_without_exposing_root_selection(self):
         old = self._write_old("router-preview.png")

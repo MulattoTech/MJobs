@@ -265,6 +265,13 @@ def run_transient_retention(
                  current_stat.st_mtime_ns) != (size, device, inode, modified) or not path.is_file()):
                 errors.add("FILE_CHANGED")
                 continue
+            # A renamed managed directory can be replaced by a junction or
+            # symlink to the same file outside the configured tree. Its inode
+            # still matches, so recheck every ancestor immediately before
+            # deletion rather than trusting the scan-time resolved path.
+            if _safe_absolute(path.parent) != path.parent:
+                errors.add("UNSAFE_PATH")
+                continue
             path.unlink()
             files_pruned += 1
             bytes_pruned += size
