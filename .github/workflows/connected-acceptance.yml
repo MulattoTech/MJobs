@@ -45,8 +45,8 @@ jobs:
         run: |
           echo "COMPOSE_PROJECT_NAME=mjobs-fixture-$(python -c 'import secrets; print(secrets.token_hex(6))')" >> "$GITHUB_ENV"
           echo "BACKUP_TARGET_PROJECT=mjobs-fixture-$(python -c 'import secrets; print(secrets.token_hex(6))')" >> "$GITHUB_ENV"
-      - name: Build and start disposable fixture stack
-        run: docker compose --profile fixture up -d --build --wait --wait-timeout 180
+      - name: Build and start disposable fixture stack through the Linux launcher
+        run: bash .devcontainer/mjobs.sh fixture
       - name: Controlled mock source + ATS end-to-end
         run: python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json
       - name: Browser-integrated UI acceptance
@@ -56,11 +56,11 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
-      - name: Build and verify portable settings through the production API and Chromium
+      - name: Build and verify settings and appearance through the production API and Chromium
         run: |
           npm ci --prefix apps/web --no-audit --no-fund
           npm run build --prefix apps/web
-          python -m pytest -q tests/browser/test_settings_transfer_recovery.py --junitxml=outputs/ci-settings-browser.xml
+          python -m pytest -q tests/browser/test_settings_transfer_recovery.py tests/browser/test_theme.py --junitxml=outputs/ci-settings-browser.xml
       - name: Restart and persistence recovery
         run: python -m cli.compose_recovery --baseline outputs/ci-ui.json --evidence outputs/ci-recovery.json --project-name "$COMPOSE_PROJECT_NAME" --port "$MJOBS_PORT"
       - name: Fresh-project backup restore and independent receipt replay

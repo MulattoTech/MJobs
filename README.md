@@ -45,6 +45,8 @@ Open **http://127.0.0.1:18700**. The launcher builds the application, initialize
 
 Load the fictional demo, inspect Jobs and Sources, review a profile, prepare sample documents and exercise the local mock application. Nothing is sent to a real employer.
 
+Use **Appearance** in the workspace header to choose System, Light or Dark. The choice is saved in this browser; System follows your device's appearance setting.
+
 ### Keep personal data separate
 
 ```powershell

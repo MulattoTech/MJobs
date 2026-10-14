@@ -100,6 +100,16 @@ bash .devcontainer/mjobs.sh fixture
 bash .devcontainer/mjobs.sh status
 ```
 
+For an isolated synthetic Linux startup, set `COMPOSE_PROJECT_NAME=mjobs-fixture-`
+followed by 12 lowercase hexadecimal characters and optionally `MJOBS_PORT`
+(`1024`–`65535`) before running the fixture launcher. Personal overrides use
+`mjobs-personal-` with the same suffix format. Inputs are validated before
+configuration initialization. Without overrides, the project names and ports
+remain `mjobs`/18700 and `mjobs-personal`/18701. The `status` and `down-*`
+shortcuts always address those defaults; inspect or stop a disposable override
+explicitly with `docker compose -p <project> --profile fixture ps` or `down`
+(omit the fixture profile for a personal project). Keep its port set for Compose.
+
 An optional separate personal stack is available, but real personal data should
 not be introduced into cloud development by default:
 
@@ -107,7 +117,7 @@ not be introduced into cloud development by default:
 bash .devcontainer/mjobs.sh personal
 ```
 
-Ports are 18700 (FIXTURE), 18701 (PERSONAL) and 18702 (feedback). Open the app
+Default ports are 18700 (FIXTURE), 18701 (PERSONAL) and 18702 (feedback). Open the app
 through the Codespace **Ports** panel/forwarded URL, not your PC's localhost.
 Verify each port remains **Private**. Do not publish app or database ports.
 The Codespace does not access or start the stopped Windows runtime.

@@ -100,9 +100,9 @@ export function JobMatchScoreBadge({
           role="alert"
           data-testid="job-match-dealbreaker-alert"
           style={{
-            border: '1px solid #e53e3e',
-            backgroundColor: '#fff5f5',
-            color: '#c53030',
+            border: '1px solid var(--danger)',
+            backgroundColor: 'var(--danger-bg)',
+            color: 'var(--danger)',
             padding: '0.5rem 0.75rem',
             borderRadius: '4px',
             marginBottom: '0.75rem',
@@ -129,7 +129,7 @@ export function JobMatchScoreBadge({
             alignItems: 'center',
             justifyContent: 'space-between',
             fontSize: '0.8125rem',
-            color: '#718096',
+            color: 'var(--muted)',
             marginTop: '0.5rem',
           }}
         >
@@ -138,7 +138,7 @@ export function JobMatchScoreBadge({
             style={{
               width: '100px',
               height: '6px',
-              backgroundColor: '#e2e8f0',
+              backgroundColor: 'var(--border)',
               borderRadius: '3px',
               overflow: 'hidden',
               marginLeft: '0.5rem',
@@ -148,7 +148,7 @@ export function JobMatchScoreBadge({
               style={{
                 width: `${Math.min(100, Math.max(0, coveragePercent))}%`,
                 height: '100%',
-                backgroundColor: '#3182ce',
+                backgroundColor: 'var(--info)',
               }}
             />
           </div>
