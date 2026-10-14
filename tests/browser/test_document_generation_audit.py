@@ -17,6 +17,8 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.audit_history import record_mock_application_submitted
+from services.tracking.applications import add_application_note
 from tests.integration.test_spine import PROFILE
 
 
@@ -36,6 +38,12 @@ class DocumentGenerationAuditBrowserTests(unittest.TestCase):
                 discover(store, fixture_origin, "fixture")
             job_id = store.jobs("fixture")[0]["id"]
             application_id = prepare(store, job_id, "fixture", root)
+            record_mock_application_submitted(store, application_id)
+            store.transition(application_id, ['PREPARED'], 'CONFIRMED')
+            with store.engine.begin() as connection:
+                connection.execute(update(m.jobs).where(m.jobs.c.id == job_id).values(
+                    title="Engineer api_key=SYNTHETIC_PRIVATE_ACTIVITY"))
+            add_application_note(store, 'fixture', application_id, 'SYNTHETIC_PRIVATE_NOTE', 'browser-note')
             app = create_app(store, "http://127.0.0.1:1", ROOT,
                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
             sock = bound_browser_socket()
@@ -69,15 +77,25 @@ class DocumentGenerationAuditBrowserTests(unittest.TestCase):
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("Resume prepared")
                     expect(history).to_contain_text("Cover letter prepared")
+                    expect(history).to_contain_text("Fictional mock application outcome confirmed")
+                    expect(history).to_contain_text("Details withheld")
+                    expect(history).not_to_contain_text("SYNTHETIC_PRIVATE")
                     initial = page.request.get(origin + "/profiles/fixture/audit-history").json()
                     with store.engine.begin() as connection:
+                        connection.execute(update(m.jobs).values(title="Later application title"))
+                        connection.execute(update(m.companies).values(name="Later application employer"))
                         connection.execute(delete(m.documents).where(
                             m.documents.c.application_id == application_id))
+                        connection.execute(delete(m.application_route_choices).where(
+                            m.application_route_choices.c.application_id == application_id))
+                        connection.execute(delete(m.applications).where(m.applications.c.id == application_id))
                     page.reload()
                     page.get_by_role("button", name="Activity", exact=True).click()
                     history = page.get_by_role("list", name="Audit history")
                     expect(history).to_contain_text("Resume prepared")
                     expect(history).to_contain_text("Cover letter prepared")
+                    expect(history).to_contain_text("Fictional mock application outcome confirmed")
+                    expect(history).not_to_contain_text("Later application")
                     self.assertEqual(page.request.get(origin + "/profiles/fixture/audit-history").json(), initial)
                     # A legacy event keeps its timestamp, without invented kinds.
                     with store.engine.begin() as connection:

@@ -2,7 +2,7 @@
 
 import re
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
@@ -68,7 +68,8 @@ def record_mock_application_submitted(store, application_id: str) -> None:
         event_id = identity("application-audit", application["profile_id"],
                             application_id, action)
         values = {"id": event_id, "entity_id": application_id,
-                  "action": action, "payload": {}, "timestamp": now()}
+                  "action": action, "payload": snapshot_application_audit_payload(
+                      connection, application_id, action, {}), "timestamp": now()}
         dialect = connection.dialect.name
         if dialect == "sqlite":
             statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
@@ -216,6 +217,48 @@ def _historical_labels(payload) -> tuple[str, str]:
             _display_label(snapshot["company"], ""))
 
 
+def snapshot_application_audit_payload(connection, application_id: str,
+                                       action: str, payload: dict) -> dict:
+    """Capture safe display labels and ownership in the event's transaction."""
+    if action not in {*_APPLICATION_EVENTS, "DOCUMENTS_PREPARED"}:
+        return payload
+    application = connection.execute(select(m.applications).where(
+        m.applications.c.id == application_id)).mappings().one()
+    labels = _snapshot_payload(connection, "JOB_DISCOVERED",
+                               {"job_id": application["job_id"]})["subject_snapshot"]
+    return {**payload, "subject_snapshot": labels, "application_context": {
+        "profile_id": application["profile_id"],
+        "application_id": application_id,
+        "target": application["target"],
+    }}
+
+
+def _application_context(row, profile_id, applications, tracking_entities, owners):
+    payload = row["payload"]
+    if isinstance(payload, dict) and "application_context" in payload:
+        context = payload["application_context"]
+        if (not isinstance(context, dict)
+                or set(context) != {"profile_id", "application_id", "target"}
+                or any(not isinstance(v, str) or not v or len(v) > 128
+                       for v in context.values())
+                or context["profile_id"] != profile_id
+                or context["target"] not in {"MOCK", "REAL", "EXTERNAL_REPORTED"}):
+            return None
+        application_id = context["application_id"]
+        if row["entity_id"] not in {application_id, identity(
+                "application-tracking", profile_id, application_id)}:
+            return None
+        # An extant application also proves ownership. Reject contradictory
+        # stored context rather than reassigning history to another profile.
+        if application_id in owners and owners[application_id] != profile_id:
+            return None
+        return context
+    # Old rows have no retained owner: use current ownership only to find them,
+    # never to infer the labels at the event timestamp.
+    application_id = tracking_entities.get(row["entity_id"], row["entity_id"])
+    return applications.get(application_id)
+
+
 def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
     """Return a bounded timeline without exposing stored audit payloads."""
     store.profile(profile_id)
@@ -237,35 +280,34 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
             events.append(_event(row, event_type, summary, subject, company))
 
         application_rows = connection.execute(select(
-            m.applications.c.id, m.applications.c.target, m.jobs.c.title,
-            m.companies.c.name.label("company"),
-        ).select_from(m.applications.join(m.jobs, m.applications.c.job_id == m.jobs.c.id)
-                      .join(m.companies, m.jobs.c.company_id == m.companies.c.id)).where(
+            m.applications.c.id, m.applications.c.target,
+        ).where(
             m.applications.c.profile_id == profile_id,
         ).order_by(m.applications.c.created_at.desc()).limit(200)).mappings().all()
         applications = {row["id"]: row for row in application_rows}
-        if applications:
-            tracking_entities = {
-                identity("application-tracking", profile_id, application_id): application_id
-                for application_id in applications
-            }
-            application_audits = connection.execute(select(
-                m.audit.c.id, m.audit.c.entity_id, m.audit.c.action, m.audit.c.timestamp,
-                m.audit.c.payload,
-            ).where(m.audit.c.entity_id.in_([*applications, *tracking_entities]),
-                    m.audit.c.action.in_([*_APPLICATION_EVENTS, "DOCUMENTS_PREPARED"])).order_by(
-                m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(limit)).mappings()
-        else:
-            tracking_entities = {}
-            application_audits = []
+        tracking_entities = {
+            identity("application-tracking", profile_id, application_id): application_id
+            for application_id in applications
+        }
+        application_audits = connection.execute(select(
+            m.audit.c.id, m.audit.c.entity_id, m.audit.c.action, m.audit.c.timestamp,
+            m.audit.c.payload,
+        ).where(or_(m.audit.c.entity_id.in_([*applications, *tracking_entities]),
+                    m.audit.c.payload["application_context"]["profile_id"].as_string() == profile_id),
+                m.audit.c.action.in_([*_APPLICATION_EVENTS, "DOCUMENTS_PREPARED"])).order_by(
+            m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(limit)).mappings().all()
+        context_ids = {row["payload"]["application_context"].get("application_id")
+                       for row in application_audits if isinstance(row["payload"], dict)
+                       and isinstance(row["payload"].get("application_context"), dict)
+                       and isinstance(row["payload"]["application_context"].get("application_id"), str)}
+        owners = dict(connection.execute(select(m.applications.c.id, m.applications.c.profile_id).where(
+            m.applications.c.id.in_(context_ids))).all()) if context_ids else {}
         for row in application_audits:
-            application_id = row["entity_id"]
-            if application_id not in applications:
-                application_id = tracking_entities.get(application_id)
-            application = applications.get(application_id)
+            application = _application_context(row, profile_id, applications, tracking_entities, owners)
             if application is None:
                 continue
             action = row["action"]
+            subject, company = _historical_labels(row["payload"])
             mapped = _APPLICATION_EVENTS.get(action)
             if action == "DOCUMENTS_PREPARED":
                 payload = row["payload"]
@@ -274,7 +316,7 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                         and all(isinstance(kind, str) and kind in _DOCUMENT_EVENTS for kind in kinds)):
                     for kind in sorted(set(kinds)):
                         event_type, summary, suffix = _DOCUMENT_EVENTS[kind]
-                        events.append(_event(row, event_type, summary, application["title"], application["company"], suffix))
+                        events.append(_event(row, event_type, summary, subject, company, suffix))
                 else:
                     # Older rows did not record kinds. Current artifacts cannot
                     # establish what was generated at a historical timestamp.
@@ -282,7 +324,7 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                               and "document_kinds" not in payload else "unavailable")
                     events.append(_event(row, "DOCUMENTS_PREPARED",
                                          f"Documents prepared (document types {detail})",
-                                         application["title"], application["company"]))
+                                         subject, company))
             elif mapped:
                 event_type, summary = mapped
                 if action == "CONFIRMED" and application["target"] == "MOCK":
@@ -290,7 +332,7 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                 elif action == "CONFIRMED":
                     # A persisted state alone is not evidence of employer receipt.
                     continue
-                events.append(_event(row, event_type, summary, application["title"], application["company"]))
+                events.append(_event(row, event_type, summary, subject, company))
 
     events.sort(key=lambda event: (event["timestamp"], event["id"]), reverse=True)
     return {"profile_id": profile_id, "events": events[:limit]}
