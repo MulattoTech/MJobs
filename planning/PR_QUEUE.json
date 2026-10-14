@@ -5765,6 +5765,27 @@
       "draft_until_verified": true,
       "notes": "Two locally verified P1 source fixes. Final full unit1603PASS/1147subtests/9platformSKIP, connected API/Chromium14PASS/16subtests; local Luna review no critical/important findings. PR opening deferred: eight live open PRs exceeds canonical cap four. Hosted exact-head/integration NOT_RUN. Original requirements remain PARTIAL. Evidence docs/evidence/2026-10-14-p1-settings-retention-validation.json Published feature branch via GitHub REST git API at 997a3b685a4c09d3a2681699a0acb1a8560cdb59; tree exactly matches tested local candidate. Hosted CI/integration NOT_RUN; latest ref receipt in campaign publication-11.json.",
       "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59"
+    },
+    {
+      "id": "MJ-PR-P1-EXPORT-BACKUP-12",
+      "title": "Safe route exports and Windows backup junction rejection",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-167",
+        "MJ-REQ-169"
+      ],
+      "issue_ids": [
+        168,
+        170
+      ],
+      "status": "PARTIAL",
+      "branch": "codex/p1-export-backup-safety-12",
+      "depends_on": [
+        "MJ-PR-P1-SETTINGS-RETENTION-278-171"
+      ],
+      "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
+      "evidence": "docs/evidence/2026-10-14-p1-export-backup-boundaries.json",
+      "notes": "Locally verified source; preserve pending predecessor. Original requirements PARTIAL. PR opening deferred: eight live PRs exceeds cap four. Exact-head hosted gates and integration NOT_RUN."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

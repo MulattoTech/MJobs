@@ -76,6 +76,25 @@ class DataExportFlowTests(unittest.TestCase):
         self.store.engine.dispose()
         self.directory.cleanup()
 
+    def test_session_path_exports_survive_reopen_and_public_route_recovery(self):
+        private_url = "https://jobs.example.test/apply/session/SYNTHETIC_PATH_TOKEN"
+        with self.store.engine.begin() as connection:
+            connection.execute(m.routes.update().where(m.routes.c.job_id == self.job_id).values(url=private_url))
+        self.store.engine.dispose()
+        for suffix in ("jobs.csv", "applications.csv", "backup.json"):
+            response = self.client.get(f"/profiles/fixture/exports/{suffix}")
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertNotIn("SYNTHETIC_PATH_TOKEN", response.text)
+        public_url = "https://jobs.example.test/jobs/REQ-PUBLIC"
+        with self.store.engine.begin() as connection:
+            self.assertEqual(connection.execute(m.routes.select().where(
+                m.routes.c.job_id == self.job_id)).mappings().first()["url"], private_url)
+            connection.execute(m.routes.update().where(m.routes.c.job_id == self.job_id).values(url=public_url))
+        self.store.engine.dispose()
+        response = self.client.get("/profiles/fixture/exports/applications.csv")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(public_url, response.text)
+
     def test_csv_exports_are_profile_scoped_attachments(self):
         jobs = self.client.get("/profiles/fixture/exports/jobs.csv")
         applications = self.client.get("/profiles/other-profile/exports/applications.csv")

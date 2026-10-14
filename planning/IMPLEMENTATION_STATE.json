@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Immutable document-generation audit history and private-label exclusion (#177, #176)",
+  "current_objective": "Safe profile exports and native Windows backup path boundaries (#170/#168)",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -782,7 +782,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "61305d46f809217511e7d708b0ede45c54d5919e",
+  "last_implementation_commit": "36edc0350ee781d23be580c9c6aed0381552baf9",
   "publication": {
     "result": "PARTIAL",
     "scope": "Local fast-forward integration only; current local main is not published.",
@@ -2849,32 +2849,40 @@
   },
   "current_slice": {
     "campaign_id": "p0p1-20261013-232152",
-    "iteration": 11,
+    "iteration": 12,
     "issues": [
-      278,
-      171
+      168,
+      170
     ],
     "requirements": [
-      "MJ-REQ-277",
-      "MJ-REQ-170"
+      "MJ-REQ-167",
+      "MJ-REQ-169"
     ],
     "status": "LOCAL_VERIFIED_PARTIAL",
-    "source_revision": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
-    "publication_branch": "codex/p1-settings-retention-11",
-    "evidence": "docs/evidence/2026-10-14-p1-settings-retention-validation.json",
-    "local_checks": "Final full unit1603PASS/1147subtests/9platformSKIP; combined unit/API/Chromium14PASS/16subtests; retention broader34PASS/21subtests; frontend4PASS/build/validatorsPASS",
+    "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
+    "publication_branch": "codex/p1-export-backup-safety-12",
+    "predecessor": "codex/p1-settings-retention-11",
+    "evidence": "docs/evidence/2026-10-14-p1-export-backup-boundaries.json",
+    "local_full_unit": {
+      "passed": 1612,
+      "skipped": 9,
+      "subtests_passed": 1151,
+      "seconds": 257.27
+    },
+    "local_affected": {
+      "passed": 74,
+      "skipped": 1,
+      "subtests_passed": 15,
+      "seconds": 28.31
+    },
     "original_acceptance_changed": false,
-    "hosted_checks": "NOT_RUN_PR_CAP",
     "open_prs": 8,
     "max_active_prs": 4,
-    "next_action": "Open a P1 #278/#171 PR when the canonical active-PR cap permits; run exact-head hosted gates, integrate under repository rules, retain original PARTIAL acceptance.",
-    "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
-    "authorization": "directive-11.md plus live Project1/snapshot queue-11.json; current AGENTS permits reviewed native CI, superseding historical local-only notes",
-    "rollback": "Scoped source revert; no schema or private-data migration",
-    "publication": "PUBLISHED_BRANCH_ONLY_PR_CAP",
-    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
-    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
-    "publication_receipt": "Git common-dir campaign publication-11.json"
+    "hosted_checks": "NOT_RUN_PR_CAP",
+    "integration": "NOT_RUN",
+    "publication_receipt": "Git common-dir campaign publication-12.json",
+    "recorded_at_utc": "2026-10-14T10:49:01.395165+00:00",
+    "next_action": "When open PR count is at most three, publish/qualify the pending #278/#171 predecessor PR, integrate under repository rules, then qualify codex/p1-export-backup-safety-12 for #168/#170 with exact-head hosted gates. Continue only eligible fresh Project P0/P1 cards."
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -3274,5 +3282,42 @@
     "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
     "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
     "publication_receipt": "Git common-dir campaign publication-11.json"
+  },
+  "p0p1_iteration_12": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 12,
+    "issues": [
+      168,
+      170
+    ],
+    "requirements": [
+      "MJ-REQ-167",
+      "MJ-REQ-169"
+    ],
+    "status": "LOCAL_VERIFIED_PARTIAL",
+    "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
+    "publication_branch": "codex/p1-export-backup-safety-12",
+    "predecessor": "codex/p1-settings-retention-11",
+    "evidence": "docs/evidence/2026-10-14-p1-export-backup-boundaries.json",
+    "local_full_unit": {
+      "passed": 1612,
+      "skipped": 9,
+      "subtests_passed": 1151,
+      "seconds": 257.27
+    },
+    "local_affected": {
+      "passed": 74,
+      "skipped": 1,
+      "subtests_passed": 15,
+      "seconds": 28.31
+    },
+    "original_acceptance_changed": false,
+    "open_prs": 8,
+    "max_active_prs": 4,
+    "hosted_checks": "NOT_RUN_PR_CAP",
+    "integration": "NOT_RUN",
+    "publication_receipt": "Git common-dir campaign publication-12.json",
+    "recorded_at_utc": "2026-10-14T10:49:01.395165+00:00",
+    "next_action": "When open PR count is at most three, publish/qualify the pending #278/#171 predecessor PR, integrate under repository rules, then qualify codex/p1-export-backup-safety-12 for #168/#170 with exact-head hosted gates. Continue only eligible fresh Project P0/P1 cards."
   }
 }
