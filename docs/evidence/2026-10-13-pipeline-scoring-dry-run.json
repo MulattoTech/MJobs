@@ -4,12 +4,12 @@
   "slice_issue": 632,
   "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkQFI",
   "source_commit": "e269eb71a0270222ea326758da37f0954c91de2e",
-  "recorded_at_utc": "2026-10-13T23:51:52.098274+00:00",
+  "recorded_at_utc": "2026-10-14T00:11:06.168400+00:00",
   "model": "gpt-6-astra",
   "reasoning_effort": "medium",
   "local_behavior": "PASS",
   "requirement_result": "PARTIAL",
-  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "hosted_checks": "NOT_RUN_PENDING_FINAL_REVISION",
   "behavior": [
     "Pipeline exposes explicitly profile-wide local rescoring and polls persisted scoring/preparation status until terminal, including reload recovery.",
     "Scoring and preparation admission share the profile database lock, exclude active conflicting work, and reject distinct concurrent scoring requests. Exact request replay preserves terminal state even after profile changes.",
@@ -90,6 +90,23 @@
       "seconds": 278.45,
       "source_commit": "e269eb71a0270222ea326758da37f0954c91de2e",
       "scope": "Final frozen-source run; no executable or test changes during run."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_saved_search_filters.py",
+      "result": "PASS",
+      "tests": 26,
+      "subtests": 12,
+      "seconds": 37.08,
+      "source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c"
+    },
+    {
+      "command": "docker run --rm --network none (read-only /app) python -m unittest tests.integration.test_saved_search_filters -q",
+      "result": "PASS",
+      "tests": 26,
+      "skipped": 0,
+      "seconds": 37.042,
+      "source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c",
+      "source_hashes": "unchanged before/after"
     }
   ],
   "review": {
@@ -98,7 +115,8 @@
   },
   "diagnostic_history": [
     "Baseline global-rescore readiness test failed as expected. Existing empty-response test needed the new explicit scoring_operation:null contract.",
-    "Initial full unit run began before review fixes and is not used as final-revision evidence. Final frozen-source verification is recorded separately."
+    "Initial full unit run began before review fixes and is not used as final-revision evidence. Final frozen-source verification is recorded separately.",
+    "Initial PR633 integration run38487464145 failed one existing saved-search date test after UTC advanced to October14: its fixed October7 recent timestamp exceeded the seven-day window. Reproduced locally. Pinned only the test API clock and derived future timestamp to its October8 fixture reference; preserved all positive/negative assertions. Production source unchanged."
   ],
   "limitations": [
     "No paid inference, live employer interaction or real external submission. Discovery uses the existing local synthetic fixture.",
@@ -112,5 +130,6 @@
       "NOT_RUN": 54
     },
     "promoted_original_requirements": 0
-  }
+  },
+  "final_source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c"
 }
