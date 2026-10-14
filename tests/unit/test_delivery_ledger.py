@@ -320,3 +320,28 @@ def test_branch_kind_is_valid_pagination_filter(monkeypatch, repo, tmp_path):
         "observed_at": "2026-10-14T18:00:00Z", "note": "",
     })
     assert store.query(kind="branch")["total_matching"] == 1
+
+def test_search_finds_branch_scopes_and_issue_number(monkeypatch, repo, tmp_path):
+    history = ProgressHistory(repo, db_path=tmp_path / "history.sqlite3")
+    store = ledger.DeliveryLedger(repo, history)
+    now = "2026-10-14T19:00:00Z"
+    commit = ledger._event(
+        "commit", "commit:branch-sha", now, "Routine work", "Git history",
+        scopes=["GitHub branch: feat/matching-special"], sha="f" * 40,
+    )
+    pr = ledger._event(
+        "pr", "pr:merged:655", now, "Merged implementation", "GitHub pull requests",
+        number=655,
+    )
+    head = ledger._event(
+        "branch", "branch-head:feat/matching-special", now,
+        "GitHub branch HEAD", "GitHub branch head",
+        branch="feat/matching-special",
+    )
+    monkeypatch.setattr(store, "_read", lambda: {
+        "events": [commit, pr, head], "inventory": [], "coverage": {},
+        "observed_at": now, "note": "",
+    })
+    assert store.query(kind="commit", search="matching-special")["total_matching"] == 1
+    assert store.query(kind="branch", search="matching-special")["total_matching"] == 1
+    assert store.query(kind="pr", search="655")["total_matching"] == 1

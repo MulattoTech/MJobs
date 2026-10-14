@@ -631,7 +631,10 @@ class DeliveryLedger:
             events = [e for e in events if term in e["title"].casefold()
                       or term in str(e.get("requirement_id") or "").casefold()
                       or term in str(e.get("sha") or "").casefold()
-                      or term in str(e.get("workspace") or "").casefold()]
+                      or term in str(e.get("workspace") or "").casefold()
+                      or term in str(e.get("branch") or "").casefold()
+                      or term in str(e.get("number") or "").casefold()
+                      or any(term in scope.casefold() for scope in (e.get("scopes") or []))]
         counts = dict(Counter(row["kind"] for row in result["events"]))
         return {
             "available": True, "events": events[offset:offset + limit],
