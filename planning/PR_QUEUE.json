@@ -1879,6 +1879,44 @@
         "pr": 640,
         "verified_head": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
         "merge_commit": "2dde6085dc9769b5e0c539320f53309f8eb073f7"
+      },
+      "p0p1_iteration_2": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 2,
+        "issues": [
+          176,
+          170
+        ],
+        "requirements": [
+          "MJ-REQ-169"
+        ],
+        "status": "LOCALLY_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/data_export.py",
+          "services/documents/uploads.py"
+        ],
+        "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+        "plan": [
+          "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+          "Filter credential field names without dropping work_authorization",
+          "Cap generated/uploaded file reads and accumulated document payload",
+          "Verify API reopen, failure/retry and connected Chromium downloads",
+          "Run full local units and validators; obtain local Luna review",
+          "Commit, publish reviewable PR; integrate only with repository required gates"
+        ],
+        "rollback": "Scoped revert; no schema/data mutation by exports",
+        "original_acceptance": {
+          "MJ-REQ-175": "PARTIAL",
+          "MJ-REQ-169": "PARTIAL"
+        },
+        "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+        "hosted_checks": "NOT_RUN",
+        "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+        "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+        "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+        "full_unit": "NOT_RUN_PENDING_COMPLETION",
+        "local_reviews": "PASS_BOUNDED_SCOPE"
       }
     },
     {
@@ -1973,7 +2011,45 @@
           "issue_state": "OPEN/PARTIAL",
           "external_submission": "OFF"
         }
-      ]
+      ],
+      "p0p1_iteration_2": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 2,
+        "issues": [
+          176,
+          170
+        ],
+        "requirements": [
+          "MJ-REQ-175"
+        ],
+        "status": "LOCALLY_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/data_export.py",
+          "services/documents/uploads.py"
+        ],
+        "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+        "plan": [
+          "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+          "Filter credential field names without dropping work_authorization",
+          "Cap generated/uploaded file reads and accumulated document payload",
+          "Verify API reopen, failure/retry and connected Chromium downloads",
+          "Run full local units and validators; obtain local Luna review",
+          "Commit, publish reviewable PR; integrate only with repository required gates"
+        ],
+        "rollback": "Scoped revert; no schema/data mutation by exports",
+        "original_acceptance": {
+          "MJ-REQ-175": "PARTIAL",
+          "MJ-REQ-169": "PARTIAL"
+        },
+        "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+        "hosted_checks": "NOT_RUN",
+        "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+        "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+        "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+        "full_unit": "NOT_RUN_PENDING_COMPLETION",
+        "local_reviews": "PASS_BOUNDED_SCOPE"
+      }
     },
     {
       "id": "MJ-PR-049",
@@ -4874,7 +4950,45 @@
       "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
       "integration_method": "NON_FORCE_FAST_FORWARD",
       "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
-      "pr_state": "NOT_OPENED_LOCAL_ONLY"
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "p0p1_iteration_2": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 2,
+        "issues": [
+          176,
+          170
+        ],
+        "requirements": [
+          "MJ-REQ-175"
+        ],
+        "status": "LOCALLY_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/data_export.py",
+          "services/documents/uploads.py"
+        ],
+        "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+        "plan": [
+          "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+          "Filter credential field names without dropping work_authorization",
+          "Cap generated/uploaded file reads and accumulated document payload",
+          "Verify API reopen, failure/retry and connected Chromium downloads",
+          "Run full local units and validators; obtain local Luna review",
+          "Commit, publish reviewable PR; integrate only with repository required gates"
+        ],
+        "rollback": "Scoped revert; no schema/data mutation by exports",
+        "original_acceptance": {
+          "MJ-REQ-175": "PARTIAL",
+          "MJ-REQ-169": "PARTIAL"
+        },
+        "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+        "hosted_checks": "NOT_RUN",
+        "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+        "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+        "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+        "full_unit": "NOT_RUN_PENDING_COMPLETION",
+        "local_reviews": "PASS_BOUNDED_SCOPE"
+      }
     },
     {
       "id": "MJ-PR-159",
