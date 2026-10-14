@@ -4,12 +4,12 @@
   "slice_issue": 634,
   "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkp7Q",
   "source_commit": "db3a08832a8dc9bf1e7cbc15f0acedaa7441ca06",
-  "recorded_at_utc": "2026-10-14T00:48:03.376219+00:00",
+  "recorded_at_utc": "2026-10-14T00:58:21.186832+00:00",
   "model": "gpt-6-astra",
   "reasoning_effort": "medium",
   "local_behavior": "PASS",
   "requirement_result": "PARTIAL",
-  "hosted_checks": "NOT_RUN_PENDING_FINAL_REVISION",
+  "hosted_checks": "PASS",
   "behavior": [
     "Exact immutable COMPANY_SOURCE_REFRESHED receipt, bound by action, entity and both payload IDs, protects committed imports from late cancellation and acknowledgement timeout/error.",
     "Expired RUNNING worker recovery completes directly from receipt without network/import retry, even with spent attempt budget and prior cancellation flag.",
@@ -110,5 +110,18 @@
     "integration_run": 38491102109,
     "result": "FAIL",
     "reason": "Existing150ms slow-body fixture could time out before its loopback POST on loaded runner; one subtest failed exact request-count oracle. Fixed fixture admission budget after deterministic reproduction; no production change."
+  },
+  "tested_pr_commit": "549567b0fd2001627dd1b0c284993b52677bd618",
+  "merge_commit": "6478bd21dace062c936e3f5aa3a8b1775c8967cd",
+  "merge_tree_equals_tested_head": true,
+  "project_status": "Done",
+  "project_acceptance": "PASS",
+  "required_ci_runs": {
+    "fast": 38492204653,
+    "integration": 38492204680,
+    "compose": 38492204607,
+    "dependencies": 38492204662,
+    "secrets": 38492205147,
+    "codeql": 38492199717
   }
 }
