@@ -98,12 +98,18 @@ class LocalOriginMiddleware:
 
         request = Request(scope, receive)
         origin = request.headers.get("origin")
-        if request.method not in ("GET", "HEAD", "OPTIONS") and origin and origin != str(request.base_url).rstrip("/"):
+        unsafe_method = request.method not in ("GET", "HEAD", "OPTIONS")
+        cross_site = request.headers.get("sec-fetch-site") == "cross-site"
+        if unsafe_method and ((origin and origin != str(request.base_url).rstrip("/")) or cross_site):
             response = JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
             await response(scope, receive, send)
             return
-        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(
-                ("/profiles", "/documents", "/applications", "/operations", "/duplicate-reviews", "/company-sources")):
+        # API namespaces grow as new workflows are added. Protect them by
+        # default; only the public shell/assets and health probes are exempt.
+        public_read = (request.url.path in ("/", "/health", "/ready", "/readiness",
+                                           "/favicon.ico", "/favicon.svg")
+                       or request.url.path.startswith("/assets/"))
+        if cross_site and not public_read:
             response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
             await response(scope, receive, send)
             return
