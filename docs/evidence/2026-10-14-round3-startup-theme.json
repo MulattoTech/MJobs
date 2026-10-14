@@ -1,5 +1,5 @@
 {
-  "recorded_at_utc": "2026-10-14T21:22:52.929846+00:00",
+  "recorded_at_utc": "2026-10-14T21:33:23.895703+00:00",
   "base_sha": "50976a7fb73775273443daebf8f40e141d7f73b2",
   "issues": [
     15,
@@ -7,7 +7,7 @@
   ],
   "requirements": {
     "MJ-REQ-014": "PARTIAL",
-    "MJ-REQ-257": "PARTIAL_PENDING_EXACT_HEAD_CI"
+    "MJ-REQ-257": "PASS"
   },
   "environment": "Windows / Python3.12 / Node25.9.0 / Chromium headless / temporary fictional SQLite stores",
   "hash_format": "SHA256 of text inputs normalized to LF; excludes documentation-only closeout inputs",
@@ -38,7 +38,7 @@
   "criterion_evidence": {
     "MJ-REQ-014": {
       "config_health_migrations_bootstrap_docs": "Existing accepted code retained; launcher regression and existing prior evidence remain scoped.",
-      "linux_launcher_real_compose": "NOT_RUN locally: Docker engine pipe absent; exact-head synthetic workflow required.",
+      "linux_launcher_real_compose": "PASS on source head: actual Bash launcher, Compose services/health, mock and UI E2E, service restart, fresh-target backup/restore and independent receipt replay.",
       "physical_host_restart": "NOT_RUN; parent remains PARTIAL; no reboot authorized or performed."
     },
     "MJ-REQ-257": {
@@ -113,7 +113,7 @@
       "resolution": "Fixed light sidebar foreground, inherited sidebar paragraph color, added actual descendant/SVG/active-nav contrast and focus assertions."
     }
   ],
-  "hosted_checks": "NOT_RUN_PENDING_SOURCE_PUBLICATION",
+  "hosted_checks": "PASS_ON_SOURCE_HEAD",
   "limitations": [
     "Physical host reboot NOT_RUN; MJ-REQ-014 remains PARTIAL.",
     "Local Docker/PostgreSQL/Redis Compose runtime NOT_RUN: Docker engine unavailable.",
@@ -121,5 +121,170 @@
     "Theme preference belongs to the browser, not profile settings transfer; no API/schema migration.",
     "Broader product acceptance and release eligibility remain incomplete."
   ],
-  "rollback": "Scoped source revert; no schema migration or existing data changes."
+  "rollback": "Scoped source revert; no schema migration or existing data changes.",
+  "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+  "required_source_checks": [
+    {
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38640023114/job/116116251496",
+      "id": 116116251496,
+      "name": "Integration / PostgreSQL and Redis",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38640023210/job/116113636992",
+      "id": 116113636992,
+      "name": "CI / required",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38640023128/job/116112857233",
+      "id": 116112857233,
+      "name": "Disposable Compose / mock end-to-end",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38640023091/job/116112856962",
+      "id": 116112856962,
+      "name": "Security / secret scan",
+      "status": "completed"
+    },
+    {
+      "conclusion": "success",
+      "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38640023039/job/116112856619",
+      "id": 116112856619,
+      "name": "Dependencies / introduced vulnerabilities",
+      "status": "completed"
+    }
+  ],
+  "source_compose_run": {
+    "id": 38640023128,
+    "job_id": 116112857233,
+    "head": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+    "result": "PASS",
+    "artifacts": [
+      {
+        "name": "ci-backup-recovery.json",
+        "result": "PASS",
+        "sha256": "3a1b8a147aaca5ca96bbc73eec3a0481b42377c1879a6a1936402b1de5f769a5"
+      },
+      {
+        "name": "ci-backup.json",
+        "result": "PASS",
+        "sha256": "0bb6107cf0642e8dfef212511cd3f343cc6cf7e2fce055b837479f20bacf8026"
+      },
+      {
+        "name": "ci-mock-e2e.json",
+        "result": "PASS",
+        "sha256": "0361ffd750bfb692182fe26f86d92f05d073a7a0413357685e3e8cc2d8a4f1b6"
+      },
+      {
+        "name": "ci-recovery.json",
+        "result": "PASS",
+        "sha256": "6765241e621fb813ad0a059f0236af2d7f542258b54b02e81afdd59c12a7bba3"
+      },
+      {
+        "name": "ci-ui.json",
+        "result": "PASS",
+        "sha256": "91161d2ee4edc9622d032f2bd83ed1a98f50c31c78837a0e9ad0d9a443a34218"
+      }
+    ]
+  },
+  "hosted_browser": {
+    "run_id": 38640023128,
+    "tests": 2,
+    "failures": 0,
+    "skipped": 0,
+    "seconds": 9.726
+  },
+  "hosted_linux_launcher": {
+    "run_id": 38640023210,
+    "tests": 10,
+    "skipped": 0,
+    "result": "PASS"
+  },
+  "hosted_units": {
+    "run_id": 38640023210,
+    "junit_records": 2775,
+    "failures": 0,
+    "errors": 0,
+    "skipped_records": 43
+  },
+  "final_pr": {
+    "number": 654,
+    "url": "https://github.com/MulattoTech/MJobs/pull/654",
+    "final_head_checks": "PENDING_DOC_ONLY_ACCEPTANCE_REVISION"
+  },
+  "original_pass_counts": {
+    "before": {
+      "P0": 7,
+      "P1": 41
+    },
+    "after": {
+      "P0": 7,
+      "P1": 42
+    },
+    "completed_original_requirements": [
+      "MJ-REQ-257"
+    ],
+    "additive_completed": []
+  },
+  "hosted_integration": {
+    "run_id": 38640023114,
+    "head": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+    "junit_records": 2471,
+    "failures": 0,
+    "errors": 0,
+    "skipped_records": 19,
+    "shards": [
+      {
+        "name": "integration-0.xml",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "0",
+            "skipped": "16",
+            "tests": "914",
+            "time": "382.958",
+            "timestamp": "2026-10-14T21:25:45.920805+00:00",
+            "hostname": "runnervm8k3b6"
+          }
+        ]
+      },
+      {
+        "name": "integration-1.xml",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "0",
+            "skipped": "0",
+            "tests": "701",
+            "time": "316.635",
+            "timestamp": "2026-10-14T21:25:48.888611+00:00",
+            "hostname": "runnervm8k3b6"
+          }
+        ]
+      },
+      {
+        "name": "integration-2.xml",
+        "suites": [
+          {
+            "name": "pytest",
+            "errors": "0",
+            "failures": "0",
+            "skipped": "3",
+            "tests": "856",
+            "time": "290.345",
+            "timestamp": "2026-10-14T21:25:29.332534+00:00",
+            "hostname": "runnervmmprz5"
+          }
+        ]
+      }
+    ]
+  }
 }

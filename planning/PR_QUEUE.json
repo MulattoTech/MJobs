@@ -3349,7 +3349,8 @@
       "status": "IN_PROGRESS",
       "branch": "codex/mj-pr-070-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Round3 owns only MJ-REQ-257 light/dark acceptance; grouped requirements retain their independent status. Serial campaign PR; no empty publication."
+      "notes": "Round3 PR654: only MJ-REQ-257 fully verified PASS on source b931cbb5; final protected integration pending. Other grouped requirements unchanged and open.",
+      "pr_number": 654
     },
     {
       "id": "MJ-PR-071",
