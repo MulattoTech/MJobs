@@ -2101,15 +2101,20 @@
           177,
           176
         ],
-        "status": "READY_FOR_PR_REPAIR_PARTIAL",
+        "status": "MERGED_VERIFIED_PARTIAL",
         "outcome": "Immutable document-generation history and withheld known credential-shaped labels; original requirements PARTIAL",
-        "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
         "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
         "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
         "validation": "1593 units / 1114 subtests PASS, 8 Linux-only skips; final audit API 19/26 PASS, 8 PostgreSQL skips; affected integration 38/21 PASS; Chromium 4 PASS plus final new rerun; native Vite build and validators PASS",
         "pr": 644,
         "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
-        "hosted_fixture_repair": "PostgreSQL VARCHAR(500) rejected 501-char fixture; preserved boundary oracle with valid stored 500 chars + direct 501-char projection; no product/schema change"
+        "hosted_fixture_repair": "PostgreSQL VARCHAR(500) rejected 501-char fixture; preserved boundary oracle with valid stored 500 chars + direct 501-char projection; no product/schema change",
+        "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+        "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+        "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+        "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+        "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
       }
     },
     {
