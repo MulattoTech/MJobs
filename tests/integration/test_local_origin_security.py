@@ -130,3 +130,20 @@ class LocalOriginSecurityTests(unittest.TestCase):
                                                     "sec-fetch-site": "same-site"})
         self.assertEqual(public.status_code, 200, public.text)
         self.assertFalse(public.json()["external_submission_enabled"])
+
+    def test_origin_denials_keep_browser_security_headers_without_reflecting_input(self):
+        for method, headers in (
+            ("PUT", {"origin": "https://attacker.example/private-marker"}),
+            ("GET", {"sec-fetch-site": "cross-site"}),
+            ("GET", {"sec-fetch-site": "same-site"}),
+        ):
+            with self.subTest(method=method, headers=headers):
+                response = self.client.request(method, "/search-profiles", headers=headers,
+                                               json=self.search if method == "PUT" else None)
+                self.assertEqual(response.status_code, 403, response.text)
+                self.assertEqual(response.headers.get("cache-control"), "no-store")
+                self.assertEqual(response.headers.get("x-content-type-options"), "nosniff")
+                self.assertEqual(response.headers.get("referrer-policy"), "no-referrer")
+                self.assertIn("frame-ancestors 'none'", response.headers.get("content-security-policy", ""))
+                self.assertNotIn("attacker.example", response.text + str(response.headers))
+                self.assertNotIn("Private synthetic search", response.text)

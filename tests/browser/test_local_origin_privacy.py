@@ -42,6 +42,10 @@ class LocalOriginPrivacyBrowserTests(unittest.TestCase):
                 return (f'<a href="{origin}/search-profiles/{saved["id"]}">Private record</a>'
                         f'<a href="{origin}/">Open MJobs</a>')
 
+            @attack.get("/frame", response_class=HTMLResponse)
+            def sibling_frame():
+                return f'<iframe src="{origin}/search-profiles/{saved["id"]}"></iframe>'
+
             apps = [create_app(store, "http://127.0.0.1:1", root,
                                "redis://127.0.0.1:1/0", operation_mode="FIXTURE"), attack]
             received = []
@@ -100,6 +104,11 @@ class LocalOriginPrivacyBrowserTests(unittest.TestCase):
                     self.assertEqual(received[-1].get(b"sec-fetch-site"), b"same-site", received[-1])
                     self.assertEqual(rejected.status, 403)
                     self.assertNotIn(name, rejected.text())
+                    self.assertEqual(rejected.headers.get("cache-control"), "no-store")
+                    self.assertEqual(rejected.headers.get("x-content-type-options"), "nosniff")
+                    self.assertEqual(rejected.headers.get("referrer-policy"), "no-referrer")
+                    with page.expect_console_message(lambda message: "frame-ancestors" in message.text):
+                        page.goto(sibling + "/frame", wait_until="domcontentloaded")
 
                     page.goto(sibling, wait_until="domcontentloaded")
                     page.get_by_role("link", name="Open MJobs", exact=True).click()
