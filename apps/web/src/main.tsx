@@ -1,6 +1,7 @@
 import {AIJobSourceEvidence,type AIJobEvidence,AIProviderAccess,type AIProviderAccessInfo,AIEvaluationFreshness,AICandidatePreview, AISearchProvenance, AIScoreDetails, type AISearchScope, type AIScoreEvidence, type AICandidate} from './ai-search-provenance';
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
+import {initializeTheme, ThemeControl} from './theme';
 import { api, eligible, terminal } from './api';
 import {DurableAIEvaluation} from './durable-ai-evaluation';
 import {MockRunControls} from './mock-run-controls';
@@ -1415,7 +1416,7 @@ function App() {
   ];
   return <div className="layout" data-operation-mode={operationMode||'LOADING'}>
     <aside className="sidebar"><a className="brand" href="/">M<span>Jobs</span><small>YOUR LOCAL WORKSPACE</small></a><nav aria-label="Main navigation">{(['Jobs','Pipeline','Profile','Career Stories','Learning','Sources','Applications','Review Queue','AI Settings','Activity'] as Tab[]).map(item=><button key={item} aria-current={tab===item?'page':undefined} onClick={()=>setTab(item)}>{item}<span>{item==='Jobs'?jobs.length:item==='Applications'?apps.length:item==='Review Queue'?reviewQueueApplications.filter(application=>application.question_preflight?.result==='UNKNOWN'||application.question_preflight?.result==='FAIL').length:''}</span></button>)}</nav><div className="side-note"><strong>Built around your facts.</strong><p>Discover opportunities, prepare truthful documents, and keep a clear record.</p><span className="status">External submission OFF</span></div></aside>
-    <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tab==='Jobs'?'Find your next opportunity.':tab==='Pipeline'?'Move opportunities forward.':tab==='Profile'?'Your experience, in your words.':tab==='Career Stories'?'Build reusable career stories.':tab==='Learning'?'Understand your matches.':tab==='Sources'?'Choose where to look.':tab==='Applications'?'Every application, accounted for.':tab==='Review Queue'?'Review application blockers.':tab==='AI Settings'?'Choose models by task.':'See what is happening.'}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div></header>
+    <main><header><div className="eyebrow">LOCAL FIRST · USER TESTING</div><div className="header-row"><h1>{tab==='Jobs'?'Find your next opportunity.':tab==='Pipeline'?'Move opportunities forward.':tab==='Profile'?'Your experience, in your words.':tab==='Career Stories'?'Build reusable career stories.':tab==='Learning'?'Understand your matches.':tab==='Sources'?'Choose where to look.':tab==='Applications'?'Every application, accounted for.':tab==='Review Queue'?'Review application blockers.':tab==='AI Settings'?'Choose models by task.':'See what is happening.'}</h1><span className={'status '+(ready?.status==='ready'?'good':'warn')}>{ready?.status==='ready'?'Services ready':'Services '+(ready?.status||'checking')}</span></div><div className="profile-switch"><label htmlFor="active-profile">Active profile</label><select id="active-profile" disabled={!!busy} value={profileId} onChange={e=>switchProfile(e.target.value)}><option value="">Select a profile</option>{profiles.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select><button className="quiet" disabled={!!busy} onClick={()=>{++editorSequence.current;switchProfile('');profileBaselineRef.current=null;setEditor(newProfile());setTab('Profile');}}>New profile</button></div><ThemeControl/></header>
       <FirstRunWizard
         key={profileId||'new-profile'}
         profileId={profileId}
@@ -1824,4 +1825,5 @@ function App() {
     </main>
   </div>;
 }
+initializeTheme();
 createRoot(document.getElementById('root')!).render(<React.StrictMode><App/></React.StrictMode>);

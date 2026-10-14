@@ -103,9 +103,9 @@ export function MatchComponentsBreakdown({
           role="alert"
           data-testid="negative-requirements-alert"
           style={{
-            border: '1px solid #e53e3e',
-            backgroundColor: '#fff5f5',
-            color: '#c53030',
+            border: '1px solid var(--danger)',
+            backgroundColor: 'var(--danger-bg)',
+            color: 'var(--danger)',
             padding: '0.75rem 1rem',
             borderRadius: '6px',
             marginBottom: '1rem',
@@ -122,7 +122,7 @@ export function MatchComponentsBreakdown({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#f7fafc',
+          backgroundColor: 'var(--surface-subtle)',
           padding: '0.75rem 1rem',
           borderRadius: '6px',
           marginBottom: '1rem',
@@ -131,7 +131,7 @@ export function MatchComponentsBreakdown({
         <div>
           <span style={{ fontWeight: 600 }}>Signal Coverage: </span>
           <span data-testid="coverage-percent">{coverageDisplay}</span>
-          <span style={{ color: '#718096', fontSize: '0.875rem', marginLeft: '0.5rem' }}>
+          <span style={{ color: 'var(--muted)', fontSize: '0.875rem', marginLeft: '0.5rem' }}>
             ({knownDimensions.length} known, {unknownDimensions.length} unstated/unknown)
           </span>
         </div>
@@ -139,7 +139,7 @@ export function MatchComponentsBreakdown({
           style={{
             width: '120px',
             height: '8px',
-            backgroundColor: '#e2e8f0',
+            backgroundColor: 'var(--border)',
             borderRadius: '4px',
             overflow: 'hidden',
           }}
@@ -148,7 +148,7 @@ export function MatchComponentsBreakdown({
             style={{
               width: `${Math.min(100, Math.max(0, coveragePercent ?? 0))}%`,
               height: '100%',
-              backgroundColor: '#3182ce',
+              backgroundColor: 'var(--info)',
             }}
           />
         </div>
@@ -157,7 +157,7 @@ export function MatchComponentsBreakdown({
       <div className="table-responsive">
         <table className="table match-components-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #edf2f7', textAlign: 'left' }}>
+            <tr style={{ borderBottom: '2px solid var(--surface-subtle)', textAlign: 'left' }}>
               <th style={{ padding: '0.5rem' }}>Dimension</th>
               <th style={{ padding: '0.5rem' }}>Weight</th>
               <th style={{ padding: '0.5rem' }}>Raw Score</th>
@@ -177,8 +177,8 @@ export function MatchComponentsBreakdown({
                   <tr
                     data-testid={`dimension-row-${dim.dimension}`}
                     style={{
-                      borderBottom: '1px solid #edf2f7',
-                      backgroundColor: isSelected ? '#ebf8ff' : 'transparent',
+                      borderBottom: '1px solid var(--surface-subtle)',
+                      backgroundColor: isSelected ? 'var(--info-bg)' : 'transparent',
                       cursor: 'pointer',
                     }}
                     onClick={() => setSelectedDimension(isSelected ? null : dim.dimension)}
@@ -198,7 +198,7 @@ export function MatchComponentsBreakdown({
                             style={{
                               width: '50px',
                               height: '6px',
-                              backgroundColor: '#e2e8f0',
+                              backgroundColor: 'var(--border)',
                               borderRadius: '3px',
                               overflow: 'hidden',
                             }}
@@ -208,20 +208,20 @@ export function MatchComponentsBreakdown({
                                 width: `${Math.min(100, Math.max(0, dim.raw_score))}%`,
                                 height: '100%',
                                 backgroundColor:
-                                  dim.raw_score >= 80 ? '#38a169' : dim.raw_score >= 50 ? '#d69e2e' : '#e53e3e',
+                                  dim.raw_score >= 80 ? 'var(--good)' : dim.raw_score >= 50 ? 'var(--warning)' : 'var(--danger)',
                               }}
                             />
                           </div>
                         </div>
                       ) : (
-                        <span style={{ color: '#a0aec0', fontStyle: 'italic' }}>—</span>
+                        <span style={{ color: 'var(--muted)', fontStyle: 'italic' }}>—</span>
                       )}
                     </td>
                     <td style={{ padding: '0.6rem 0.5rem' }}>
                       {isKnown && dim.weighted_contribution != null ? (
                         <span>+{dim.weighted_contribution.toFixed(1)} pts</span>
                       ) : (
-                        <span style={{ color: '#a0aec0' }}>0.0 pts</span>
+                        <span style={{ color: 'var(--muted)' }}>0.0 pts</span>
                       )}
                     </td>
                     <td style={{ padding: '0.6rem 0.5rem' }}>
@@ -233,8 +233,8 @@ export function MatchComponentsBreakdown({
                           borderRadius: '4px',
                           fontSize: '0.75rem',
                           fontWeight: 600,
-                          backgroundColor: isKnown ? '#c6f6d5' : '#edf2f7',
-                          color: isKnown ? '#22543d' : '#4a5568',
+                          backgroundColor: isKnown ? 'var(--good-bg)' : 'var(--surface-subtle)',
+                          color: isKnown ? 'var(--good)' : 'var(--text)',
                         }}
                       >
                         {dim.status}
@@ -248,7 +248,7 @@ export function MatchComponentsBreakdown({
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: '#3182ce',
+                          color: 'var(--info)',
                           cursor: 'pointer',
                           padding: 0,
                           fontSize: '0.875rem',
@@ -261,7 +261,7 @@ export function MatchComponentsBreakdown({
                   {isSelected && (
                     <tr
                       data-testid={`dimension-details-${dim.dimension}`}
-                      style={{ backgroundColor: '#f7fafc', borderBottom: '1px solid #edf2f7' }}
+                      style={{ backgroundColor: 'var(--surface-subtle)', borderBottom: '1px solid var(--surface-subtle)' }}
                     >
                       <td colSpan={6} style={{ padding: '0.75rem 1rem' }}>
                         <div style={{ fontSize: '0.875rem', lineHeight: '1.5' }}>
@@ -270,11 +270,11 @@ export function MatchComponentsBreakdown({
                             {dim.explanation}
                           </p>
                           {dim.provenance && Object.keys(dim.provenance).length > 0 && (
-                            <details style={{ marginTop: '0.5rem', color: '#718096' }}>
+                            <details style={{ marginTop: '0.5rem', color: 'var(--muted)' }}>
                               <summary style={{ cursor: 'pointer', fontWeight: 500 }}>Audit Provenance</summary>
                               <pre
                                 style={{
-                                  backgroundColor: '#edf2f7',
+                                  backgroundColor: 'var(--surface-subtle)',
                                   padding: '0.5rem',
                                   borderRadius: '4px',
                                   marginTop: '0.25rem',

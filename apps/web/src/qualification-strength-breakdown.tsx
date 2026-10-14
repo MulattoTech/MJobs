@@ -122,18 +122,18 @@ export function QualificationStrengthBreakdown({
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#fffaf0',
-            border: '1px solid #feebc8',
+            backgroundColor: 'var(--warning-bg)',
+            border: '1px solid var(--warning-bg)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#c05621' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--warning)' }}>
             ⚡ MANDATORY REQUIREMENTS
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }}>
             {requiredCoveragePercent != null ? `${requiredCoveragePercent.toFixed(0)}% Met` : '—'}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             {reqCount ? `${reqCount.covered}/${reqCount.total} verified` : `${items.filter((i) => i.strength === 'REQUIRED').length} items`}
           </span>
         </div>
@@ -142,18 +142,18 @@ export function QualificationStrengthBreakdown({
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#ebf8ff',
-            border: '1px solid #bee3f8',
+            backgroundColor: 'var(--info-bg)',
+            border: '1px solid var(--info-bg)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#2b6cb0' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--info)' }}>
             ⭐ PREFERRED QUALIFICATIONS
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }}>
             {preferredCoveragePercent != null ? `${preferredCoveragePercent.toFixed(0)}% Met` : '—'}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             {prefCount ? `${prefCount.covered}/${prefCount.total} verified` : `${items.filter((i) => i.strength === 'PREFERRED').length} items`}
           </span>
         </div>
@@ -162,36 +162,36 @@ export function QualificationStrengthBreakdown({
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#f0fff4',
-            border: '1px solid #c6f6d5',
+            backgroundColor: 'var(--good-bg)',
+            border: '1px solid var(--good-bg)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#276749' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--good)' }}>
             ✨ NICE-TO-HAVE / BONUS
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }}>
             {niceCount ? `${niceCount.covered}/${niceCount.total} Met` : 'Bonus Only'}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Non-penalizing</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>Non-penalizing</span>
         </div>
 
         <div
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#f7fafc',
-            border: '1px solid #e2e8f0',
+            backgroundColor: 'var(--surface-subtle)',
+            border: '1px solid var(--border)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4a5568' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)' }}>
             ❔ UNSTATED / UNKNOWN
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }}>
             {unkCount ? `${unkCount.total} Unstated` : `${items.filter((i) => i.strength === 'UNKNOWN').length} Unstated`}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>Not assumed required</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>Not assumed required</span>
         </div>
       </div>
 
@@ -202,7 +202,7 @@ export function QualificationStrengthBreakdown({
           style={{
             fontSize: '0.875rem',
             padding: '0.5rem 0.75rem',
-            backgroundColor: '#edf2f7',
+            backgroundColor: 'var(--surface-subtle)',
             borderRadius: '4px',
             marginBottom: '1rem',
           }}
@@ -235,9 +235,9 @@ export function QualificationStrengthBreakdown({
               style={{
                 padding: '0.4rem 0.8rem',
                 borderRadius: '4px',
-                border: isActive ? '1px solid #3182ce' : '1px solid #e2e8f0',
-                backgroundColor: isActive ? '#3182ce' : '#fff',
-                color: isActive ? '#fff' : '#4a5568',
+                border: isActive ? '1px solid var(--info)' : '1px solid var(--border)',
+                backgroundColor: isActive ? 'var(--info)' : 'var(--surface)',
+                color: isActive ? 'var(--surface)' : 'var(--text)',
                 fontWeight: 600,
                 fontSize: '0.8125rem',
                 cursor: 'pointer',
@@ -253,7 +253,7 @@ export function QualificationStrengthBreakdown({
       <div className="table-responsive">
         <table className="table qualification-strength-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ borderBottom: '2px solid #edf2f7', textAlign: 'left' }}>
+            <tr style={{ borderBottom: '2px solid var(--surface-subtle)', textAlign: 'left' }}>
               <th style={{ padding: '0.5rem' }}>Qualification</th>
               <th style={{ padding: '0.5rem' }}>Strength</th>
               <th style={{ padding: '0.5rem' }}>Candidate Status</th>
@@ -263,7 +263,7 @@ export function QualificationStrengthBreakdown({
           <tbody>
             {filteredItems.length === 0 ? (
               <tr>
-                <td colSpan={4} style={{ padding: '1rem', textAlign: 'center', color: '#a0aec0' }}>
+                <td colSpan={4} style={{ padding: '1rem', textAlign: 'center', color: 'var(--muted)' }}>
                   No qualifications match the selected filter.
                 </td>
               </tr>
@@ -276,7 +276,7 @@ export function QualificationStrengthBreakdown({
                   <tr
                     key={`${item.name}-${idx}`}
                     data-testid={`qualification-row-${item.strength.toLowerCase()}`}
-                    style={{ borderBottom: '1px solid #edf2f7' }}
+                    style={{ borderBottom: '1px solid var(--surface-subtle)' }}
                   >
                     <td style={{ padding: '0.6rem 0.5rem', fontWeight: 600 }}>
                       <span aria-hidden="true" style={{ marginRight: '0.4rem' }}>
@@ -287,7 +287,7 @@ export function QualificationStrengthBreakdown({
                         <span
                           style={{
                             fontSize: '0.75rem',
-                            color: '#718096',
+                            color: 'var(--muted)',
                             marginLeft: '0.5rem',
                             fontWeight: 400,
                           }}
@@ -307,20 +307,20 @@ export function QualificationStrengthBreakdown({
                           fontWeight: 600,
                           backgroundColor:
                             item.strength === 'REQUIRED'
-                              ? '#feebc8'
+                              ? 'var(--warning-bg)'
                               : item.strength === 'PREFERRED'
-                              ? '#bee3f8'
+                              ? 'var(--info-bg)'
                               : item.strength === 'NICE_TO_HAVE'
-                              ? '#c6f6d5'
-                              : '#edf2f7',
+                              ? 'var(--good-bg)'
+                              : 'var(--surface-subtle)',
                           color:
                             item.strength === 'REQUIRED'
-                              ? '#7b341e'
+                              ? 'var(--warning)'
                               : item.strength === 'PREFERRED'
-                              ? '#2a4365'
+                              ? 'var(--info)'
                               : item.strength === 'NICE_TO_HAVE'
-                              ? '#22543d'
-                              : '#4a5568',
+                              ? 'var(--good)'
+                              : 'var(--text)',
                         }}
                       >
                         {item.strength}
@@ -336,13 +336,13 @@ export function QualificationStrengthBreakdown({
                           gap: '0.25rem',
                           fontWeight: 600,
                           fontSize: '0.8125rem',
-                          color: isCovered ? '#2f855a' : '#c05621',
+                          color: isCovered ? 'var(--good)' : 'var(--warning)',
                         }}
                       >
                         {isCovered ? '✓ Covered in Profile' : '✗ Missing from Facts'}
                       </span>
                     </td>
-                    <td style={{ padding: '0.6rem 0.5rem', fontSize: '0.8125rem', color: '#4a5568' }}>
+                    <td style={{ padding: '0.6rem 0.5rem', fontSize: '0.8125rem', color: 'var(--text)' }}>
                       {item.score_impact}
                     </td>
                   </tr>

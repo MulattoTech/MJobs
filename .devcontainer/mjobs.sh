@@ -4,6 +4,29 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Reject invalid invocations before private configuration or Docker side effects.
+mode="${1:-fixture}"
+case "$mode" in
+  fixture|personal|status|down-fixture|down-personal|down-all) ;;
+  *) echo "Usage: $0 {fixture|personal|status|down-fixture|down-personal|down-all}" >&2; exit 2 ;;
+esac
+if [[ "$mode" == fixture || "$mode" == personal ]]; then
+  default_project=mjobs
+  default_port=18700
+  [[ "$mode" == personal ]] && default_project=mjobs-personal && default_port=18701
+  project="${COMPOSE_PROJECT_NAME:-$default_project}"
+  port="${MJOBS_PORT:-$default_port}"
+  # Named overrides are deliberately restricted to disposable MJobs projects.
+  if [[ "$project" != "$default_project" && ! "$project" =~ ^mjobs-$mode-[a-f0-9]{12}$ ]]; then
+    echo "Invalid startup project: use the mode default or mjobs-$mode- followed by 12 lowercase hex digits." >&2
+    exit 2
+  fi
+  if [[ ! "$port" =~ ^[1-9][0-9]{0,4}$ ]] || ((port < 1024 || port > 65535)); then
+    echo "Invalid startup port: expected an integer from 1024 to 65535 without leading zeros." >&2
+    exit 2
+  fi
+fi
+
 # Only the stdlib configuration initializer runs on the host; application
 # dependencies and their Python version remain owned by the Compose images.
 PY=""
@@ -35,23 +58,22 @@ wait_for_docker() {
 
 wait_for_docker
 
-mode="${1:-fixture}"
 case "$mode" in
   fixture)
-    export MJOBS_PORT=18700
+    export MJOBS_PORT="$port"
     export MJOBS_OPERATION_MODE=FIXTURE
     export MJOBS_COMPOSE_MOCK=1
     export COMPOSE_PROFILES=fixture
-    docker compose -p mjobs --profile fixture up -d --build --wait --wait-timeout 180
-    echo "MJobs FIXTURE stack is ready on forwarded port 18700."
+    docker compose -p "$project" --profile fixture up -d --build --wait --wait-timeout 180
+    echo "MJobs FIXTURE stack is ready on forwarded port $MJOBS_PORT."
     ;;
   personal)
-    export MJOBS_PORT=18701
+    export MJOBS_PORT="$port"
     export MJOBS_OPERATION_MODE=PERSONAL
     export MJOBS_COMPOSE_MOCK=0
     export COMPOSE_PROFILES=
-    docker compose -p mjobs-personal up -d --build --wait --wait-timeout 180
-    echo "MJobs PERSONAL stack is ready on forwarded port 18701."
+    docker compose -p "$project" up -d --build --wait --wait-timeout 180
+    echo "MJobs PERSONAL stack is ready on forwarded port $MJOBS_PORT."
     echo "Real external submission remains OFF."
     ;;
   status)

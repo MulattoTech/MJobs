@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Complete portable settings transfer for Project P1 #278 / MJ-REQ-277",
+  "current_objective": "Round3: isolated Linux startup MJ-REQ-014 and complete light/dark mode MJ-REQ-257",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -191,10 +191,11 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-277"
+    "MJ-REQ-014",
+    "MJ-REQ-257"
   ],
   "active_prs": [
-    653
+    654
   ],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -786,7 +787,7 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "36edc0350ee781d23be580c9c6aed0381552baf9",
+  "last_implementation_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
   "publication": {
     "result": "PR_PENDING_FINAL_GATES",
     "pr": 653,
@@ -1384,14 +1385,16 @@
   },
   "active_development_issue": {
     "numbers": [
-      278
+      15,
+      258
     ],
     "requirement_ids": [
-      "MJ-REQ-277"
+      "MJ-REQ-014",
+      "MJ-REQ-257"
     ],
-    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
-    "pr": 653,
-    "outcome": "Validated portable search profiles, real discovery schedules and public source policies; full criterion proofs on head680e63cb"
+    "status": "ACCEPTANCE_VERIFIED_PENDING_FINAL_INTEGRATION",
+    "pr": 654,
+    "outcome": "Only MJ-REQ-257 PASS; MJ-REQ-014 PARTIAL for physical host restart"
   },
   "historical_control_snapshots": [
     {
@@ -2796,7 +2799,13 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "Project-only iteration root was sole source writer/integrator. PR #644 merged; only its two temporary claims and Codex integration lock are released at closeout. Historical external claims/worktrees/private data/AFK goal preserved.",
+  "ownership": {
+    "integration_owner": "Codex round3 sole writer",
+    "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-143805",
+    "branch": "codex/p0p1-round3-20261014-143805",
+    "workers": "Two read-only local Luna scouts/reviewers; no child writes",
+    "coordination": "No lane lock or standing runner; own Project#15/#258 cards In Progress until closeout"
+  },
   "delivery_policy": {
     "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
     "authority": "AGENTS.md and round2 directive-001.md explicitly authorize exact-head hosted checks and controlled PR integration",
@@ -2804,7 +2813,7 @@
     "external_submission": "OFF",
     "original_pass_requires_all_criteria": true
   },
-  "updated_at": "2026-10-14T14:42:34.482004+00:00",
+  "updated_at": "2026-10-14T21:33:23.895703+00:00",
   "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
   "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
@@ -2814,7 +2823,7 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-11T01:47:52Z",
+  "current_verified_at": "2026-10-14T21:22:52.929846+00:00",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
@@ -2853,97 +2862,20 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "campaign": "round2-20261014-084702",
-    "issue": 278,
-    "requirement": "MJ-REQ-277",
-    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
-    "branch": "codex/p0p1-round2-20261014-084702",
-    "base": "733f2144ff83e388e2e106fc3b0d133fb4b7f17d",
-    "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
-    "acceptance_checklist": {
-      "saved_searches": "Validated criteria, target-only replacement, reload/readback and legacy v1 compatibility",
-      "automation_rules": "Real scheduled_search rules round-trip into the existing durable scheduler; enabled rules enqueue one DISCOVER operation and duplicate ticks do not replay",
-      "source_configuration": "Public provider/tenant and six policy values transfer to a fresh installation; missing sources created atomically, existing shared policies must match",
-      "secret_exclusion": "Exact allowlisted settings only; no career facts, documents, private provider state, credentials or source history; malformed/secret-bearing fields reject generically",
-      "recovery_isolation": "Invalid later references, audit interruption, shared-source mismatch and unknown profile roll back source creation and replacement; other profiles remain unchanged",
-      "concurrency": "Shared profile transaction fence prevents lost partial edits and queuing removed searches during replacement",
-      "request_bounds": "Declared, dishonest and chunked request lengths enforce actual streamed 1 MiB limit before JSON parsing",
-      "browser": "Download, preview rule count, invalid import and shared-policy conflict preservation, retry, reload and post-reopen scheduler; hosted connected gate pending",
-      "postgresql": "Same ten criterion-level contracts run in isolated schemas in existing integration shards; NOT_RUN locally"
+    "campaign": "round3-20261014-143805",
+    "issues": [
+      15,
+      258
+    ],
+    "status": "ACCEPTANCE_VERIFIED_PENDING_FINAL_INTEGRATION",
+    "branch": "codex/p0p1-round3-20261014-143805",
+    "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+    "evidence": "docs\\evidence\\2026-10-14-round3-startup-theme.json",
+    "original_pass_counts": {
+      "P0": 7,
+      "P1": 42
     },
-    "local_checks": {
-      "focused": "42 passed, 45 subtests passed, 10 PostgreSQL cases skipped; outputs/round2-settings-focused.xml",
-      "typescript": "PASS: node apps/web/node_modules/typescript/bin/tsc --noEmit --project apps/web/tsconfig.json",
-      "integrity": "PASS: catalogue, agent_skills, progress validate, progress_dashboard --check, reference_provenance, check_repository, git diff --check",
-      "interim_full_unit": "1611 passed, 1151 subtests passed, 9 skips, 1 Mission Control launch failure. Focused launcher rerun 1 PASS. Interim run predates final fence fixes and does not certify final source.",
-      "final_full_unit": "PASS: 1612 passed, 1151 subtests passed, 9 platform skips in 270.60s; outputs/round2-settings-unit-final.xml",
-      "browser_build": "BLOCKED_ENVIRONMENT: Vite Windows net-use helper spawn EPERM; dependencies installed locally, TypeScript passed; no dependency patch or host-permission change",
-      "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed"
-    },
-    "rollback": "Scoped source revert; no migration, private data or existing-source policy change",
-    "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
-    "pr": 653,
-    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
-    "hosted_qualification": {
-      "verified_at_utc": "2026-10-14T14:40:48.562814+00:00",
-      "pr": 653,
-      "head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
-      "base": "e9041819eb51c8717a7018074365b962f2f1dd2f",
-      "merge_state": "CLEAN",
-      "required_gates": "5 PASS",
-      "runs": {
-        "CI / required": 38581156198,
-        "Integration / PostgreSQL and Redis": 38581156140,
-        "Disposable Compose / mock end-to-end": 38581156436,
-        "Dependencies / introduced vulnerabilities": 38581156116,
-        "Security / secret scan": 38581156078
-      },
-      "postgresql": {
-        "result": "PASS",
-        "executed": 10,
-        "skipped": 0,
-        "contracts": [
-          "test_api_bounds_actual_stream_before_parsing_and_preserves_settings",
-          "test_api_import_fresh_sources_counts_rejection_and_other_profile_isolation",
-          "test_existing_shared_source_mismatch_and_later_failure_preserve_other_profiles",
-          "test_failure_after_new_source_admission_rolls_back_every_category",
-          "test_fresh_install_round_trip_all_categories_reopen_and_actual_enqueue",
-          "test_invalid_rules_and_policies_reject_atomically_without_value_disclosure",
-          "test_partial_saved_search_edit_preserves_replacement_criteria",
-          "test_rules_only_and_legacy_scheduler_only_both_persist_real_schedule",
-          "test_scheduler_tick_after_replacement_never_enqueues_removed_search",
-          "test_unknown_profile_and_secret_stored_source_cannot_create_or_export_policy"
-        ]
-      },
-      "browser": {
-        "result": "PASS",
-        "executed": 1,
-        "skipped": 0,
-        "contract": "test_invalid_import_preserves_settings_then_valid_file_imports"
-      },
-      "compose": {
-        "ci-mock-e2e.json": "PASS",
-        "ci-ui.json": "PASS",
-        "ci-recovery.json": "PASS",
-        "ci-backup.json": "PASS",
-        "ci-backup-recovery.json": "PASS"
-      },
-      "integration_total_records": 1735,
-      "integration_skips": 19,
-      "external_submission": "OFF"
-    },
-    "local_source_commit": "650680d99347d63e34b590928dbd87ebfb429430",
-    "next_action": "Requalify documentation-only final head, merge PR653, close #278, synchronize Project and release owned coordination",
-    "previous_active_development_issue": {
-      "numbers": [
-        156
-      ],
-      "requirement_ids": [
-        "MJ-REQ-155"
-      ],
-      "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
-      "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
-    }
+    "additive_completed": []
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -3472,6 +3404,71 @@
       ],
       "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
       "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
+    }
+  },
+  "p0p1_round3_001": {
+    "status": "ACCEPTANCE_VERIFIED_PENDING_FINAL_INTEGRATION",
+    "owner": "Codex round3 sole writer",
+    "issues": [
+      15,
+      258
+    ],
+    "base_sha": "50976a7fb73775273443daebf8f40e141d7f73b2",
+    "owned_paths": [
+      ".devcontainer/mjobs.sh",
+      ".github/workflows/connected-acceptance.yml",
+      "apps/web/src/theme.tsx",
+      "apps/web/src/theme.test.tsx",
+      "apps/web/src/main.tsx",
+      "apps/web/src/style.css",
+      "tests/unit/test_linux_launcher.py",
+      "tests/unit/test_launcher_admission.py",
+      "tests/browser/test_theme.py",
+      "planning/SESSION_HANDOFF.md",
+      "planning/IMPLEMENTATION_STATE.json",
+      "planning/PR_QUEUE.json",
+      "planning/CAPABILITY_MATRIX.json",
+      "planning/REQUIREMENT_INDEX.json",
+      "docs/evidence/2026-10-14-round3-startup-theme.json",
+      "apps/web/src/job-match-score-badge.tsx",
+      "apps/web/src/llm-telemetry-dashboard.tsx",
+      "apps/web/src/match-components-breakdown.tsx",
+      "apps/web/src/qualification-strength-breakdown.tsx",
+      "apps/web/src/source-relationship-graph.tsx",
+      "README.md",
+      "docs/CODESPACES.md",
+      "docs/evidence/2026-10-14-round3-startup-theme.json"
+    ],
+    "acceptance": [
+      "launcher defaults unchanged; validated disposable startup overrides and fail before side effects",
+      "real Linux launcher Compose startup plus existing mock/browser/restart/backup journey",
+      "accessible light/dark/system choice, system changes, preference reload, app-wide usable contrast, storage failure"
+    ],
+    "limitations": [
+      "Local Docker engine unavailable",
+      "Physical host restart NOT_RUN; MJ-REQ-014 remains PARTIAL"
+    ],
+    "rollback": "Scoped source revert; no migrations or personal services touched",
+    "agent_mode": "Sole writer; two read-only Luna scouts; later read-only review",
+    "evidence": "docs/evidence/2026-10-14-round3-startup-theme.json",
+    "local_units": "1613PASS/1157subtests/11platformskips; reviewed targeted8negative subtests PASS",
+    "local_frontend": "804PASS/buildPASS",
+    "local_browser": "3PASS",
+    "hosted": "All five source-head gates PASS; five Compose artifacts PASS; hosted settings/theme2PASS, Linux launcher10PASS",
+    "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+    "pr": 654,
+    "complete_original_requirements": [
+      "MJ-REQ-257"
+    ],
+    "original_pass_counts": {
+      "P0": 7,
+      "P1": 42
+    },
+    "prior_live_reconciliation": {
+      "651": "MERGED99c614e1",
+      "652": "MERGEDe9041819",
+      "653": "MERGED50976a7f",
+      "278": "CLOSED; MJ-REQ-277 PASS preserved"
     }
   }
 }
