@@ -3147,7 +3147,7 @@
       "MJ-REQ-171",
       "MJ-REQ-172"
     ],
-    "status": "LOCAL_VERIFIED_PR_PENDING",
+    "status": "MERGED_VERIFIED_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "source_revision": "0649558f17cdced36123781cd31041723b910949",
     "acceptance": "Deny sibling-origin/private browser access and preserve security headers on origin denials; parent original criteria NOT_RUN retained",
@@ -3171,9 +3171,15 @@
       "findings": "No critical, important or minor defect",
       "tests_executed_by_reviewer": false
     },
-    "hosted_checks": "PENDING_EXACT_HEAD",
-    "updated_at_utc": "2026-10-14T09:07:08.526755+00:00",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "updated_at_utc": "2026-10-14T09:19:01.596973+00:00",
     "rollback": "Scoped revert of source changes; no migrations or persisted data changes",
-    "next_action": "Publish one reviewable P1 PR; verify all five required checks on exact head, integrate when qualified; reconcile P0 #638 ownership before touching its existing TLS-handshake worktree"
+    "next_action": "Reconcile fresh Project-only P0/P1 queue and live ownership of open P0 #638 and its existing TLS-handshake worktree before selecting that work; preserve uncertain ownership",
+    "pr": 648,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/648",
+    "verified_head": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+    "merge_commit": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
+    "publication": "MERGED PR #648; documentation-only receipt local for next substantive source PR",
+    "post_merge": "11 PASS / 30 subtests PASS"
   }
 }

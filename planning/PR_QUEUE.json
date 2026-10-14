@@ -5696,13 +5696,18 @@
         "MJ-REQ-171",
         "MJ-REQ-172"
       ],
-      "status": "LOCAL_VERIFIED_PR_PENDING",
+      "status": "MERGED",
       "branch": "codex/p0p1-only-20261013-232152",
       "source_revision": "0649558f17cdced36123781cd31041723b910949",
       "notes": "Only queue-9/live Project open P1 #172/#173; both original parents remain NOT_RUN; scoped delivery PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-14-p1-browser-origin-privacy.json"
-      ]
+      ],
+      "pr_number": 648,
+      "verified_head": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+      "merge_commit": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
+      "merged_at": "2026-10-14T09:16:50Z",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

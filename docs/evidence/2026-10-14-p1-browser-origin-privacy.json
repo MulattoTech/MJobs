@@ -8,8 +8,8 @@
     "MJ-REQ-171",
     "MJ-REQ-172"
   ],
-  "status": "LOCAL_VERIFIED_PARENT_NOT_RUN",
-  "recorded_at_utc": "2026-10-14T09:07:08.526755+00:00",
+  "status": "MERGED_VERIFIED_PARENT_NOT_RUN",
+  "recorded_at_utc": "2026-10-14T09:19:01.596973+00:00",
   "base_main": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
   "source_revision": "0649558f17cdced36123781cd31041723b910949",
   "source_sha256": {
@@ -112,8 +112,8 @@
     "Duplicate raw browser Origin/Fetch Metadata cannot be supplied by ordinary browser JS; broader native malicious-client authentication is outside this slice",
     "Host/DNS rebinding, complete authentication/session/CSRF controls, and non-origin unhandled 500 header behavior remain broader web/security acceptance work"
   ],
-  "hosted_checks": "NOT_RUN_YET",
-  "publication": "PR_PENDING",
+  "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+  "publication": "MERGED PR #648; documentation-only receipt local for next substantive source PR",
   "acceptance_boundary": {
     "delivery": "PARTIAL",
     "original_MJ_REQ_171": "NOT_RUN retained",
@@ -122,5 +122,150 @@
     "local_Compose_PostgreSQL": "NOT_RUN",
     "whole_product_release": "INCOMPLETE"
   },
-  "rollback": "Scoped revert of source changes; no migrations or persisted data changes"
+  "rollback": "Scoped revert of source changes; no migrations or persisted data changes",
+  "pr": 648,
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/648",
+  "verified_head": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+  "merge_commit": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
+  "merged_at": "2026-10-14T09:16:50Z",
+  "hosted_evidence": {
+    "required_checks": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-14T09:11:37Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/38540026086/job/115772197870",
+        "name": "Disposable Compose / mock end-to-end",
+        "startedAt": "2026-10-14T09:07:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Connected acceptance — synthetic"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-14T09:07:30Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/38540026092/job/115772197999",
+        "name": "Dependencies / introduced vulnerabilities",
+        "startedAt": "2026-10-14T09:07:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Dependency review"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-14T09:07:31Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/38540026047/job/115772198274",
+        "name": "Security / secret scan",
+        "startedAt": "2026-10-14T09:07:21Z",
+        "status": "COMPLETED",
+        "workflowName": "Secret scan - reviewed history"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-14T09:15:53Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/38540026143/job/115775606980",
+        "name": "Integration / PostgreSQL and Redis",
+        "startedAt": "2026-10-14T09:15:49Z",
+        "status": "COMPLETED",
+        "workflowName": "Integration - PostgreSQL and Redis"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-14T09:09:35Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/MulattoTech/MJobs/actions/runs/38540026173/job/115773059187",
+        "name": "CI / required",
+        "startedAt": "2026-10-14T09:09:32Z",
+        "status": "COMPLETED",
+        "workflowName": "CI - fast"
+      }
+    ],
+    "runs": [
+      {
+        "id": 38540026173,
+        "head_sha": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38540026173"
+      },
+      {
+        "id": 38540026143,
+        "head_sha": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38540026143"
+      },
+      {
+        "id": 38540026086,
+        "head_sha": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38540026086"
+      },
+      {
+        "id": 38540026092,
+        "head_sha": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38540026092"
+      },
+      {
+        "id": 38540026047,
+        "head_sha": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+        "event": "pull_request",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38540026047"
+      }
+    ],
+    "unit_and_integration": {
+      "cases_including_subtests": 5111,
+      "passing_cases": 5055,
+      "skips": 56,
+      "failures": 0,
+      "errors": 0
+    },
+    "new_integration_tests": "All 5 new methods PASS, no skips; unittest loops execute the explicit Origin/Fetch Metadata/denial variants",
+    "compose_artifacts": [
+      {
+        "artifact": "ci-backup-recovery.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-backup.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-mock-e2e.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-recovery.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      },
+      {
+        "artifact": "ci-ui.json",
+        "result": "PASS",
+        "external_submission_enabled": false
+      }
+    ]
+  },
+  "post_merge": {
+    "tested_revision": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
+    "tree_matches_verified_PR_head": true,
+    "source_hashes_unchanged": true,
+    "command": "python -m pytest -q tests/integration/test_local_origin_security.py tests/browser/test_local_origin_privacy.py -p no:cacheprovider --tb=short",
+    "result": "11 PASS / 30 subtests PASS",
+    "junit_cases_including_subtests": 41
+  },
+  "main_push_checks": "NOT_INDEPENDENTLY_VERIFIED; exact PR checks and identical merged tree are the recorded proof"
 }
