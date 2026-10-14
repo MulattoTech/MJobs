@@ -20,6 +20,7 @@ class AuditDisplayPrivacyTests(unittest.TestCase):
     prepared_rows = fixture.DocumentGenerationAuditTests.prepared_rows
 
     def test_known_secret_markers_and_urls_in_labels_are_withheld_without_mutating_data(self):
+        before = self.document_events()
         for label in (
             "Engineer api_key=SYNTHETIC_PRIVATE_KEY",
             'Engineer password: "SYNTHETIC PRIVATE VALUE"',
@@ -47,20 +48,30 @@ class AuditDisplayPrivacyTests(unittest.TestCase):
             self.assertNotIn("SYNTHETIC", response.text)
             events = response.json()["events"]
             self.assertTrue(any(event["type"] == "RESUME_GENERATED" for event in events))
-            self.assertTrue(all(event["subject"] == "Details withheld" and event["company"] == ""
-                                for event in events if event["type"] == "RESUME_GENERATED"))
+            # A later private current label cannot replace a safe label already
+            # recorded at generation time. New private snapshots are tested by
+            # test_application_audit_subject_privacy.
+            self.assertEqual(self.document_events(), before)
+            projected = _event({"id": "private-label", "timestamp": "2026-10-14T00:00:00Z"},
+                               "RESUME_GENERATED", "Resume prepared", label, label)
+            self.assertEqual(projected['subject'], 'Details withheld')
+            self.assertEqual(projected['company'], '')
             with self.store.engine.connect() as connection:
                 self.assertEqual(connection.execute(select(m.jobs.c.title).where(
                     m.jobs.c.id == self.job_id)).scalar_one(), label)
 
     def test_normal_labels_keep_meaning_and_projection_remains_bounded(self):
+        before = self.document_events()
         for label, expected in (("Secret Service Data Engineer", "Secret Service Data Engineer"),
                                 ("Token Platform Engineer", "Token Platform Engineer"),
                                 ("Data Engineer", "Data Engineer"),
                                 ("x" * 500, "x" * 500)):
             with self.subTest(label=label[:40]), self.store.engine.begin() as connection:
                 connection.execute(update(m.jobs).where(m.jobs.c.id == self.job_id).values(title=label))
-            self.assertTrue(all(event["subject"] == expected for event in self.document_events()))
+            self.assertEqual(self.document_events(), before)
+            projected = _event({"id": "normal-label", "timestamp": "2026-10-14T00:00:00Z"},
+                               "RESUME_GENERATED", "Resume prepared", label, "")
+            self.assertEqual(projected["subject"], expected)
         # PostgreSQL rejects >500 characters at storage admission; SQLite does
         # not. Exercise the projection's defensive limit without making an
         # invalid PostgreSQL fixture or weakening its schema constraint.

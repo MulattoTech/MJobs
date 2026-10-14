@@ -3021,7 +3021,7 @@
       "MJ-REQ-176",
       "MJ-REQ-175"
     ],
-    "status": "LOCAL_VERIFIED_PARTIAL",
+    "status": "MERGED_VERIFIED_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "acceptance": "Immutable safe job/company snapshots for profile discovery, merge, scoring and preparation lifecycle events; retain history after rename/removal/reopen and explicit unknown legacy labels.",
     "owned_source": [
@@ -3045,8 +3045,49 @@
     "local_focused": "47 PASS / 39 subtests / 37 PostgreSQL-Redis skips",
     "browser": "3 connected Chromium cases PASS",
     "full_unit": "1593 PASS / 1114 subtests / 8 Linux-only skips",
-    "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
     "local_review": "Local Luna High read-only review: no critical or important finding",
-    "updated_at_utc": "2026-10-14T07:32:35.434602+00:00"
+    "updated_at_utc": "2026-10-14T07:45:44.808186+00:00",
+    "verified_head": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+    "merge_commit": "df05062fef969e919a07faaffc05bb4a085f34f1",
+    "pr": 645,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/645",
+    "post_merge": "6 acceptance tests/7 subtests PASS; 6 PostgreSQL skips locally; all 6 new hosted PostgreSQL cases PASS, zero skips",
+    "publication": "MERGED PR #645; documentation-only receipt local for next source PR",
+    "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project and ownership, then continue open P1 #177 / MJ-REQ-176 and #176 / MJ-REQ-175 with safe immutable historical labels for document/application/tracking events and removal/reopen/profile-isolation proofs."
+  },
+  "p0p1_iteration_7": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 7,
+    "issues": [
+      177,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-176",
+      "MJ-REQ-175"
+    ],
+    "status": "LOCAL_VERIFIED_PR_PENDING",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "acceptance": "Transaction-time safe application/document/tracking labels and immutable owner/target; historical readback after rename/removal/reopen with fail-closed privacy and legacy unknowns.",
+    "owned_source": [
+      "services/audit_history.py",
+      "packages/persistence/store.py",
+      "services/tracking/applications.py",
+      "services/tracking/email_status_store.py"
+    ],
+    "original_acceptance": {
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "rollback": "Scoped revert; additive audit JSON, no migration/data deletion",
+    "recorded_at_utc": "2026-10-14T07:50:51.350312+00:00",
+    "source_revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
+    "evidence": "docs/evidence/2026-10-14-p1-application-audit-history.json",
+    "local_focused": "76 PASS / 52 subtests / 22 PostgreSQL skips; privacy follow-up 3 PASS / 26 subtests",
+    "browser": "3 connected Chromium cases PASS",
+    "full_unit": "PARTIAL initial; same-source rerun pending",
+    "hosted_checks": "PENDING_EXACT_HEAD",
+    "updated_at_utc": "2026-10-14T08:02:46.845838+00:00"
   }
 }

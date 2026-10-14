@@ -5,6 +5,7 @@ from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.audit_history import snapshot_application_audit_payload
 
 
 PIPELINE_STATUSES = {
@@ -158,7 +159,8 @@ def record_external_application_report(store, profile_id: str, application_id: s
             upsert(connection, m.audit, {
                 "id": event_id, "entity_id": entity,
                 "action": "EXTERNAL_APPLICATION_REPORTED",
-                "payload": {**tracking_values, "sequence": sequence},
+                "payload": snapshot_application_audit_payload(connection, application_id,
+                    "EXTERNAL_APPLICATION_REPORTED", {**tracking_values, "sequence": sequence}),
                 "timestamp": now(),
             })
             statuses = [row for row in prior
@@ -175,9 +177,10 @@ def record_external_application_report(store, profile_id: str, application_id: s
                 upsert(connection, m.audit, {
                     "id": status_id, "entity_id": entity,
                     "action": "APPLICATION_PIPELINE_STATUS",
-                    "payload": {"status": "APPLIED",
+                    "payload": snapshot_application_audit_payload(connection, application_id,
+                        "APPLICATION_PIPELINE_STATUS", {"status": "APPLIED",
                                 "attribution": "EXTERNAL_USER_REPORTED",
-                                "sequence": sequence + 1},
+                                "sequence": sequence + 1}),
                     "timestamp": now(),
                 })
     return {"created": existing_capture is None,
@@ -233,7 +236,8 @@ def _append_event(store, profile_id: str, application_id: str, request_id: str,
             "id": event_id,
             "entity_id": entity,
             "action": action,
-            "payload": {**values, "sequence": sequence},
+            "payload": snapshot_application_audit_payload(connection, application_id,
+                action, {**values, "sequence": sequence}),
             "timestamp": now(),
         })
 

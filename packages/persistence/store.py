@@ -1182,4 +1182,6 @@ class Store:
             self._audit(connection, application_id, state, {"step": step})
 
     def _audit(self, connection, entity, action, payload):
+        from services.audit_history import snapshot_application_audit_payload
+        payload = snapshot_application_audit_payload(connection, entity, action, payload)
         connection.execute(m.audit.insert().values(id=uuid4().hex, entity_id=entity, action=action, payload=payload, timestamp=now()))

@@ -8,7 +8,7 @@
     "MJ-REQ-176",
     "MJ-REQ-175"
   ],
-  "status": "LOCAL_PASS_PARENTS_PARTIAL",
+  "status": "MERGED_VERIFIED_PARENTS_PARTIAL",
   "recorded_at_utc": "2026-10-14T07:32:07.703623+00:00",
   "source_revision": "94c7dc183ce1b2a53b222d4b4807d1f176ab9fe7",
   "base_main": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
@@ -77,6 +77,11 @@
     {
       "command": "python -m tools.verification.commit_provenance --commit HEAD",
       "result": "PASS 5 source files on source revision"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_audit_subject_history.py tests/integration/test_audit_subject_privacy.py -p no:cacheprovider --tb=short",
+      "revision": "df05062fef969e919a07faaffc05bb4a085f34f1",
+      "result": "PASS 6 tests / 7 subtests; 6 local PostgreSQL skips NOT_RUN; all 6 exact-PR-head hosted PostgreSQL cases passed"
     }
   ],
   "review": {
@@ -85,13 +90,237 @@
     "tests_run_by_reviewer": false
   },
   "hosted": {
-    "status": "NOT_RUN_PENDING_PUBLICATION"
+    "status": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "head": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+    "required_checks": [
+      {
+        "name": "CI / required",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072616/job/115736983982"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072596/job/115736286091"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072620/job/115736285894"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072655/job/115739393479"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072665/job/115736285913"
+      }
+    ],
+    "all_checks": [
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072655/job/115739393479"
+      },
+      {
+        "name": "CI / required",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072616/job/115736983982"
+      },
+      {
+        "name": "CodeQL",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/runs/115736496339"
+      },
+      {
+        "name": "Python / unit and integrity",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072616/job/115736286732"
+      },
+      {
+        "name": "Web / Vitest and production build",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072616/job/115736286634"
+      },
+      {
+        "name": "Integration / shard 0",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072655/job/115736286395"
+      },
+      {
+        "name": "Integration / shard 1",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072655/job/115736286334"
+      },
+      {
+        "name": "Repository / policy and docs",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072616/job/115736286303"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072596/job/115736286091"
+      },
+      {
+        "name": "Integration / shard 2",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072655/job/115736285999"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072665/job/115736285913"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529072620/job/115736285894"
+      },
+      {
+        "name": "Analyze (actions)",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529070621/job/115736284294"
+      },
+      {
+        "name": "Analyze (javascript-typescript)",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529070621/job/115736284113"
+      },
+      {
+        "name": "Analyze (python)",
+        "head_sha": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38529070621/job/115736283927"
+      }
+    ],
+    "integration_run": 38529072655,
+    "integration_reports": [
+      {
+        "artifact": "integration-0.xml",
+        "cases": 541,
+        "failures": 0,
+        "errors": 0,
+        "skips": 16
+      },
+      {
+        "artifact": "integration-1.xml",
+        "cases": 528,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0
+      },
+      {
+        "artifact": "integration-2.xml",
+        "cases": 616,
+        "failures": 0,
+        "errors": 0,
+        "skips": 3
+      }
+    ],
+    "integration_totals": {
+      "cases": 1685,
+      "failures": 0,
+      "errors": 0,
+      "skips": 19
+    },
+    "integration_passed_cases": 1666,
+    "new_postgres_cases": [
+      {
+        "classname": "tests.integration.test_audit_subject_privacy.AuditSubjectPrivacyPostgresTests",
+        "name": "test_malformed_and_private_snapshots_fail_closed_without_reflecting_payload",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_audit_subject_privacy.AuditSubjectPrivacyPostgresTests",
+        "name": "test_private_current_labels_are_not_copied_into_new_audit_payloads",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_audit_subject_history.AuditSubjectHistoryPostgresTests",
+        "name": "test_deleted_subjects_keep_all_profile_event_types_and_replays_keep_first_snapshot",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_audit_subject_history.AuditSubjectHistoryPostgresTests",
+        "name": "test_discovery_subjects_survive_rename_replay_and_database_reopen",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_audit_subject_history.AuditSubjectHistoryPostgresTests",
+        "name": "test_legacy_subject_is_explicitly_unknown_even_when_current_labels_exist",
+        "status": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_audit_subject_history.AuditSubjectHistoryPostgresTests",
+        "name": "test_rollback_does_not_leave_subject_history_and_retry_appends_once",
+        "status": "PASS"
+      }
+    ],
+    "new_postgres_skips": 0,
+    "new_postgres_failures": 0,
+    "merge_tree_identical": true,
+    "source_hashes_unchanged": true,
+    "main_push_checks": "NOT_RUN_SEPARATE_GATE"
   },
   "boundaries": [
     "Both original parent criteria remain PARTIAL; no matrix/index/dashboard acceptance change",
     "Application/document/tracking subject labels remain current-row-derived and are the next history gap",
     "Historical raw labels/data are not rewritten; arbitrary unmarked secrets remain outside existing marker filter",
     "No migration, paid inference, real applications, credential values, private runtime/database data or hosted AI review",
-    "Local PostgreSQL/Redis/Compose and whole-product release acceptance NOT_RUN; required hosted gates pending"
-  ]
+    "Local PostgreSQL/Redis/Compose, separate main-push checks and whole-product release acceptance NOT_RUN; required exact-PR-head hosted gates PASS"
+  ],
+  "closed_at_utc": "2026-10-14T07:45:44.808186+00:00",
+  "publication": {
+    "status": "MERGED",
+    "pr": 645,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/645",
+    "merge_commit": "df05062fef969e919a07faaffc05bb4a085f34f1",
+    "local_main": "df05062fef969e919a07faaffc05bb4a085f34f1",
+    "origin_main": "df05062fef969e919a07faaffc05bb4a085f34f1",
+    "receipt_checkpoint": "Documentation-only; local for next substantive source PR"
+  },
+  "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project and ownership, then continue open P1 #177 / MJ-REQ-176 and #176 / MJ-REQ-175 with safe immutable historical labels for document/application/tracking events and removal/reopen/profile-isolation proofs."
 }
