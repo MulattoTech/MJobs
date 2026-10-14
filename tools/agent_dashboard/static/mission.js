@@ -650,10 +650,69 @@
     try { renderProgress(await fetchJson("/api/progress")); }
     catch (error) { $("#releaseContent").textContent = "Release tracker unavailable: " + error.message; }
   }
+  function renderExternalSprint(result) {
+    const holder = $("#externalSprintContent");
+    const status = $("#externalSprintStatus");
+    if (!result.available) {
+      status.textContent = "No discoverable campaign";
+      holder.textContent = result.reason || "No eligible external Codex session is registered.";
+      return;
+    }
+    const running = result.observation === "RUNNING";
+    status.textContent = running ? "Codex process observed" : result.observation;
+    const root = result.root_session || {};
+    const sessions = result.sessions || [];
+    const children = sessions.filter(s => s.role === "subagent");
+    const counts = result.tokens || {};
+    const quota = result.quota || {};
+    const n = value => Number(value || 0).toLocaleString();
+    const quotaText = quota.available && quota.used_percent != null
+      ? `${n(quota.used_percent)}% used / ${n(quota.remaining_percent)}% remaining`
+      : "Not available (see native Codex /status)";
+    const agentRows = sessions.map(s => (
+      `<tr><td>${safe(s.name)}</td><td>${safe(s.role)}</td>
+      <td>${safe(s.model)} / ${safe(s.effort)}</td>
+      <td>${n(s.input_tokens)} in / ${n(s.output_tokens)} out</td></tr>`
+    )).join("");
+    const changeList = (result.changed_files || []).slice(0, 12)
+      .map(f => `<li><code>${safe(f)}</code></li>`).join("");
+    holder.innerHTML = `
+      <div class="release-meta"><strong>${safe(result.campaign)}</strong> ?
+        ${safe(result.branch)} ? ${safe(result.observation)}
+        ? process ID(s): ${safe((result.pids || []).join(", ") || "not observed")}</div>
+      <p><strong>Current goal:</strong> ${safe(result.goal || "No native goal record found")}
+      <br/><strong>Root model:</strong> ${safe(root.model || "Not yet observed")} /
+      ${safe(root.effort || "unknown")} ? <strong>Subagent sessions:</strong>
+      ${n(children.length)} ? <strong>Changed files, not committed:</strong>
+      ${result.changed_count == null ? "unavailable" : n(result.changed_count)}</p>
+      <p><strong>Processed tokens:</strong> ${n(counts.input_tokens)} input
+        (${n(counts.cached_tokens)} cached) + ${n(counts.output_tokens)} output.
+        Account quota is separate from processed tokens.<br/>
+        <strong>Codex account usage:</strong> ${safe(quotaText)}</p>
+      <div class="release-meta"><strong>Workspace:</strong>
+        <code>${safe(result.workspace)}</code><br/>
+        <strong>Current checkout commit:</strong> <code>${safe((result.head || "").slice(0, 12))}</code></div>
+      <details><summary>Observed agent sessions (${n(sessions.length)})</summary>
+        <table><thead><tr><th>Name</th><th>Role</th><th>Model / effort</th><th>Tokens</th></tr></thead>
+        <tbody>${agentRows}</tbody></table></details>
+      <details><summary>Uncommitted files (${result.changed_count == null ? "?" : n(result.changed_count)})</summary>
+        <ul>${changeList || "<li>No uncommitted file changes observed</li>"}</ul></details>
+      <p class="progress-disclaimer">${safe(result.note)}
+      Git Graph on main cannot display uncommitted changes in this separate clone.
+      A completed feature requires a real commit and verified integration.</p>`;
+  }
+  async function refreshExternalSprint() {
+    try { renderExternalSprint(await fetchJson("/api/sprints/active")); }
+    catch (error) {
+      $("#externalSprintStatus").textContent = "Observer unavailable";
+      $("#externalSprintContent").textContent = error.message;
+    }
+  }
+
   async function refreshEverything() {
     if (inflight) return;
     inflight = true;
-    try { await Promise.all([refreshOptions(),refreshProgress()]); }
+    try { await Promise.all([refreshOptions(),refreshProgress(),refreshExternalSprint()]); }
     catch (error) { $("#launchStatus").textContent = "Launcher temporarily unavailable: " + error.message; }
     finally { inflight = false; }
   }
