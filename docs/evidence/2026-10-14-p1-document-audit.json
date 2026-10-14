@@ -12,8 +12,8 @@
   ],
   "priority": "P1",
   "status": "PARTIAL",
-  "recorded_at_utc": "2026-10-14T06:47:49.260675+00:00",
-  "source_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+  "recorded_at_utc": "2026-10-14T07:02:28.678802+00:00",
+  "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
   "base_main": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac",
   "runtime": {
     "python": "3.12.10",
@@ -26,7 +26,7 @@
     "services/audit_history.py": "5fc1d9c355fd078b1df603843d76e3708b7bae57237a41b4e187603c4ca40d1a",
     "services/documents/generate.py": "c059c70337d4f4496ad5de1797f925088c1f61f5cd9587fbbe2bf707fbbbd32e",
     "tests/integration/test_document_generation_audit.py": "a4debc964f6bf9fef417bd628b0b24755074ef35d2707f842f43f7b8a86e769e",
-    "tests/integration/test_audit_display_privacy.py": "5f998d73071b10d97bd4c01b7f0e2106e60325804a7f3dc974dc4009e7352611",
+    "tests/integration/test_audit_display_privacy.py": "6a13b7e7bd6003a05fda9a7a69fb211f94411ca6c0a55bd140254f0a32528e62",
     "tests/browser/test_document_generation_audit.py": "d112d993ad27e30f4f44a8ed9daeb323ed07052cc54cf423eaf22563c1f25bc2"
   },
   "outcomes": [
@@ -47,8 +47,8 @@
     {
       "command": "python -m pytest -q tests/integration/test_document_generation_audit.py tests/integration/test_audit_display_privacy.py tests/integration/test_audit_history.py",
       "result": "PASS: 19 tests and 26 subtests; 8 PostgreSQL NOT_RUN skips",
-      "revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
-      "report": "outputs/iteration5-final.xml (ignored local)"
+      "revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+      "report": "outputs/iteration5-final-revised.xml (ignored local)"
     },
     {
       "command": "python -m pytest -q tests/integration/test_document_generation_audit.py tests/integration/test_audit_display_privacy.py tests/integration/test_audit_history.py tests/integration/test_spine.py tests/integration/test_document_artifact_recovery.py tests/integration/test_application_supporting_documents.py tests/integration/test_document_generation_failure_flow.py tests/integration/test_cover_letter_workflow.py",
@@ -83,7 +83,7 @@
     "result": "Two known-marker omissions reproduced and fixed; missing rollback artifact assertions added; final bounded review found no remaining important issue; reviewer did not execute tests",
     "independent_external_review": "NOT_RUN"
   },
-  "hosted_checks": "NOT_RUN: ready for ordinary permitted source PR, exact-head CI required before integration",
+  "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
   "acceptance": {
     "MJ-REQ-176": "PARTIAL: whole listed audit lifecycle and real-provider events not certified by this slice",
     "MJ-REQ-175": "PARTIAL: marker filter does not identify arbitrary unmarked secrets; other projections outside this audit scope not certified"
@@ -100,5 +100,18 @@
     "Original and reference acceptance matrices/index unchanged; no PASS promotion"
   ],
   "coordination_validation": "Existing historical lane snapshots unavailable (20 missing files); native common lock and disjoint claims verified, historical lanes not fabricated",
-  "rollback": "Ordinary scoped revert; no destructive data migration; snapshots remain additive"
+  "rollback": "Ordinary scoped revert; no destructive data migration; snapshots remain additive",
+  "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+  "pr": "https://github.com/MulattoTech/MJobs/pull/644",
+  "hosted_attempts": [
+    {
+      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+      "integration_run": 38524654090,
+      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+    }
+  ]
 }

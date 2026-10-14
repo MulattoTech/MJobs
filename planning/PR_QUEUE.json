@@ -2101,12 +2101,15 @@
           177,
           176
         ],
-        "status": "READY_FOR_PR_PARTIAL",
+        "status": "READY_FOR_PR_REPAIR_PARTIAL",
         "outcome": "Immutable document-generation history and withheld known credential-shaped labels; original requirements PARTIAL",
-        "hosted_checks": "NOT_RUN",
-        "source_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+        "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
+        "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
         "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
-        "validation": "1593 units / 1114 subtests PASS, 8 Linux-only skips; final audit API 19/26 PASS, 8 PostgreSQL skips; affected integration 38/21 PASS; Chromium 4 PASS plus final new rerun; native Vite build and validators PASS"
+        "validation": "1593 units / 1114 subtests PASS, 8 Linux-only skips; final audit API 19/26 PASS, 8 PostgreSQL skips; affected integration 38/21 PASS; Chromium 4 PASS plus final new rerun; native Vite build and validators PASS",
+        "pr": 644,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+        "hosted_fixture_repair": "PostgreSQL VARCHAR(500) rejected 501-char fixture; preserved boundary oracle with valid stored 500 chars + direct 501-char projection; no product/schema change"
       }
     },
     {

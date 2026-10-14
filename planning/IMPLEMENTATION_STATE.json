@@ -2800,7 +2800,7 @@
       "MJ-REQ-176",
       "MJ-REQ-175"
     ],
-    "status": "READY_FOR_PR_PARTIAL",
+    "status": "READY_FOR_PR_REPAIR_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "owned_source": [
       "services/audit_history.py",
@@ -2819,15 +2819,27 @@
       "MJ-REQ-176": "PARTIAL",
       "MJ-REQ-175": "PARTIAL"
     },
-    "hosted_checks": "NOT_RUN",
+    "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
     "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
     "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
     "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
     "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
     "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
-    "source_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+    "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
     "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
-    "updated_at_utc": "2026-10-14T06:47:49.260675+00:00"
+    "updated_at_utc": "2026-10-14T07:02:28.678802+00:00",
+    "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+    "pr": 644,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+    "hosted_fixture_repair": {
+      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+      "integration_run": 38524654090,
+      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+    }
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -2950,7 +2962,7 @@
       "MJ-REQ-176",
       "MJ-REQ-175"
     ],
-    "status": "READY_FOR_PR_PARTIAL",
+    "status": "READY_FOR_PR_REPAIR_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "owned_source": [
       "services/audit_history.py",
@@ -2969,14 +2981,26 @@
       "MJ-REQ-176": "PARTIAL",
       "MJ-REQ-175": "PARTIAL"
     },
-    "hosted_checks": "NOT_RUN",
+    "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
     "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
     "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
     "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
     "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
     "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
-    "source_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+    "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
     "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
-    "updated_at_utc": "2026-10-14T06:47:49.260675+00:00"
+    "updated_at_utc": "2026-10-14T07:02:28.678802+00:00",
+    "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+    "pr": 644,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+    "hosted_fixture_repair": {
+      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+      "integration_run": 38524654090,
+      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+    }
   }
 }
