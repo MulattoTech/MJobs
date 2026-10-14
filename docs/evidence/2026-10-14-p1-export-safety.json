@@ -1,5 +1,5 @@
 {
-  "recorded_at_utc": "2026-10-14T05:14:08.265530+00:00",
+  "recorded_at_utc": "2026-10-14T05:18:30.008621+00:00",
   "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
   "source_sha256": {
     "services/data_export.py": "5e730237369e223692d00307c6ef03c3be765462444d75e58096558e5b703e09",
@@ -66,8 +66,8 @@
     },
     {
       "command": "python -m pytest -q -p no:cacheprovider tests/unit --tb=short",
-      "result": "NOT_RUN_PENDING_COMPLETION",
-      "detail": "Final-source full unit run in progress; earlier full run is historical only."
+      "result": "PASS",
+      "detail": "1589 passed, 8 skipped, 1080 subtests passed in 245.55s (0:04:05)"
     },
     {
       "command": "npm --prefix apps/web run build -- --configLoader runner",
