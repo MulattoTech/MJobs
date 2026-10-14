@@ -17,6 +17,7 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
+from packages.persistence import models as m
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -55,6 +56,15 @@ class DataExportBrowserTests(unittest.TestCase):
                 discover(store, fixture, 'export-fixture-one')
             job = store.jobs('export-fixture-one')[0]
             application_id = prepare(store, job['id'], 'export-fixture-one', root)
+            with store.engine.begin() as connection:
+                connection.execute(m.profile_versions.update().where(
+                    m.profile_versions.c.profile_id == 'export-fixture-one',
+                ).values(answers=[{'metadata': {
+                    'api_key': 'SYNTHETIC_BROWSER_API_KEY',
+                    'Authorization': 'SYNTHETIC_BROWSER_AUTH_HEADER',
+                    'work_authorization': 'Synthetic employment answer',
+                }}]))
+            store.engine.dispose()
             app = create_app(
                 store, 'http://127.0.0.1:1', root,
                 'redis://127.0.0.1:1/0', operation_mode='FIXTURE',
@@ -121,6 +131,9 @@ class DataExportBrowserTests(unittest.TestCase):
                     self.assertEqual(first_export['profile']['name'], 'Export Fixture One')
                     self.assertIn('fixture-one-only-value', json.dumps(first_export))
                     self.assertNotIn('fixture-two-only-value', json.dumps(first_export))
+                    self.assertNotIn('SYNTHETIC_BROWSER_API_KEY', first_profile_text)
+                    self.assertNotIn('SYNTHETIC_BROWSER_AUTH_HEADER', first_profile_text)
+                    self.assertIn('Synthetic employment answer', first_profile_text)
                     expect(export_panel.get_by_role('status')).to_have_text('Export downloaded.')
 
                     jobs_text = download_export(
@@ -142,6 +155,9 @@ class DataExportBrowserTests(unittest.TestCase):
                     first_backup = json.loads(backup_text)
                     self.assertEqual(first_backup['export_type'], 'profile_backup')
                     self.assertEqual(first_backup['profile_id'], 'export-fixture-one')
+                    self.assertNotIn('SYNTHETIC_BROWSER_API_KEY', backup_text)
+                    self.assertNotIn('SYNTHETIC_BROWSER_AUTH_HEADER', backup_text)
+                    self.assertIn('Synthetic employment answer', backup_text)
                     self.assertIn(job['id'], {row['id'] for row in first_backup['jobs']})
                     self.assertIn(application_id,
                                   {row['id'] for row in first_backup['applications']})

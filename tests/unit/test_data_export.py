@@ -166,6 +166,28 @@ class DataExportTests(unittest.TestCase):
         self.assertEqual(backup["career_stories"], [])
         self.assertEqual(backup["uploaded_resumes"], [])
 
+    def test_nested_authentication_fields_are_omitted_without_losing_answers(self):
+        keys = ("api_key", "X-API-Key", "accessKey", "private-key",
+                "Authorization", "Proxy_Authorization", "auth", "auth_header", "bearer",
+                "authentication", "authentication_header", "authorization_header", "http_authorization")
+        nested = {key: f"SYNTHETIC_AUTH_{index}" for index, key in enumerate(keys)}
+        nested.update(work_authorization="Authorized to work", answer="Synthetic answer")
+        with self.store.engine.begin() as connection:
+            connection.execute(m.profile_versions.update().where(
+                m.profile_versions.c.profile_id == "profile-a",
+            ).values(answers=[{"metadata": nested}]))
+        for exported in (export_profile_json(self.store, "profile-a"),
+                         json.dumps(export_profile_backup(self.store, "profile-a"))):
+            self.assertNotIn("SYNTHETIC_AUTH_", exported)
+            self.assertIn("Authorized to work", exported)
+            self.assertIn("Synthetic answer", exported)
+        # Export redaction must never mutate the durable answers.
+        with self.store.engine.connect() as connection:
+            persisted = connection.execute(m.profile_versions.select().where(
+                m.profile_versions.c.profile_id == "profile-a",
+            )).mappings().first()["answers"]
+        self.assertEqual(persisted, [{"metadata": nested}])
+
     def test_backup_includes_verified_profile_document_bytes_without_local_paths(self):
         backup = export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
 

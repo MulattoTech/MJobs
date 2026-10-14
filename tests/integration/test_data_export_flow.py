@@ -156,6 +156,27 @@ class DataExportFlowTests(unittest.TestCase):
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()["detail"]["code"], "DATA_EXPORT_PROFILE_NOT_FOUND")
 
+    def test_download_redacts_nested_auth_fields_after_database_reopen(self):
+        answers = [{"metadata": {"api_key": "SYNTHETIC_API_KEY_VALUE",
+                                 "Authorization": "SYNTHETIC_AUTH_HEADER_VALUE",
+                                 "work_authorization": "Synthetic work answer"}}]
+        with self.store.engine.begin() as connection:
+            connection.execute(m.profile_versions.update().where(
+                m.profile_versions.c.profile_id == "fixture",
+            ).values(answers=answers))
+        self.store.engine.dispose()
+        for kind in ("profile.json", "backup.json"):
+            response = self.client.get(f"/profiles/fixture/exports/{kind}")
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertNotIn("SYNTHETIC_API_KEY_VALUE", response.text)
+            self.assertNotIn("SYNTHETIC_AUTH_HEADER_VALUE", response.text)
+            self.assertIn("Synthetic work answer", response.text)
+        with self.store.engine.connect() as connection:
+            persisted = connection.execute(m.profile_versions.select().where(
+                m.profile_versions.c.profile_id == "fixture",
+            )).mappings().first()["answers"]
+        self.assertEqual(persisted, answers)
+
     def test_json_service_scope_mismatch_fails_closed(self):
         with patch("services.data_export.export_profile_json", return_value=json.dumps({
             "schema_version": 1,
@@ -168,6 +189,39 @@ class DataExportFlowTests(unittest.TestCase):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.json()["detail"]["code"], "DATA_EXPORT_RESPONSE_INVALID")
         self.assertNotIn("other-profile", response.text)
+
+    def test_growing_backup_file_returns_fixed_error_and_safe_retry(self):
+        from services.data_export import MAX_EXPORT_BYTES
+
+        with self.store.engine.connect() as connection:
+            document = connection.execute(m.documents.select().where(
+                m.documents.c.application_id == self.application_id,
+            )).mappings().first()
+        file_format = next(kind for kind in ("docx", "pdf", "txt") if kind in document["files"])
+        target = self.root / self.application_id / document["files"][file_format]
+        original = target.read_bytes()
+        original_open = Path.open
+        changed = False
+
+        def grow_on_open(path, *args, **kwargs):
+            nonlocal changed
+            if path == target and not changed:
+                changed = True
+                with original_open(path, "wb") as stream:
+                    stream.write(b"x" * (MAX_EXPORT_BYTES + 1))
+            return original_open(path, *args, **kwargs)
+
+        with patch.object(Path, "open", grow_on_open):
+            response = self.client.get("/profiles/fixture/exports/backup.json")
+        self.assertTrue(changed)
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.json(), {"detail": {"code": "DATA_EXPORT_FAILED"}})
+        self.assertNotIn("content-disposition", response.headers)
+        target.write_bytes(original)
+        self.store.engine.dispose()
+        response = self.client.get("/profiles/fixture/exports/backup.json")
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertTrue(response.json()["document_files"])
 
 
 if __name__ == "__main__":

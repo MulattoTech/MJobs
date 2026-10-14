@@ -32,7 +32,12 @@ _APPLICATION_COLUMNS = (
 _EXCLUDED_KEY_PARTS = (
     "password", "credential", "secret", "token", "cookie", "browser", "session",
     "raw", "diagnostic", "trace", "confirmation", "steps", "generationcontext",
+    "apikey", "accesskey", "privatekey", "signingkey", "encryptionkey",
 )
+_EXCLUDED_KEYS = frozenset({
+    "authorization", "proxyauthorization", "auth", "authheader", "bearer",
+    "authentication", "authenticationheader", "authorizationheader", "httpauthorization",
+})
 _NON_ALPHANUMERIC = re.compile(r"[^a-z0-9]+")
 
 
@@ -69,7 +74,8 @@ def _safe_json_value(value):
         for key, item in value.items():
             key_text = str(key)
             compact_key = _NON_ALPHANUMERIC.sub("", key_text.casefold())
-            if any(part in compact_key for part in _EXCLUDED_KEY_PARTS):
+            if (compact_key in _EXCLUDED_KEYS
+                    or any(part in compact_key for part in _EXCLUDED_KEY_PARTS)):
                 continue
             safe[key_text] = _safe_json_value(item)
         return safe
@@ -253,6 +259,15 @@ def _document_file_records(store, connection, profile_id, output_dir):
     if root.is_symlink() or not root.is_dir():
         raise DataExportError("EXPORT_FILE_UNAVAILABLE")
     records = []
+    record_bytes = 2
+
+    def append_record(record):
+        nonlocal record_bytes
+        record_bytes += len(_json_text(record).encode("utf-8")) + 1
+        if record_bytes > MAX_EXPORT_BYTES:
+            raise DataExportError("EXPORT_TOO_LARGE")
+        records.append(record)
+
     documents = connection.execute(
         select(m.documents.c.id, m.documents.c.application_id, m.documents.c.files,
                m.documents.c.sha256)
@@ -284,20 +299,27 @@ def _document_file_records(store, connection, profile_id, output_dir):
                         or not resolved.is_file()):
                     raise DataExportError("EXPORT_FILE_UNAVAILABLE")
                 size = resolved.stat().st_size
-                if size > MAX_EXPORT_BYTES:
+                # Reserve room for base64 expansion and previously read files.
+                read_limit = min(MAX_EXPORT_BYTES, ((MAX_EXPORT_BYTES - record_bytes) // 4) * 3)
+                if size > read_limit:
                     raise DataExportError("EXPORT_TOO_LARGE")
-                content = resolved.read_bytes()
+                with resolved.open("rb") as stream:
+                    content = stream.read(read_limit + 1)
+                if len(content) > read_limit:
+                    raise DataExportError("EXPORT_TOO_LARGE")
+            except DataExportError:
+                raise
             except (OSError, RuntimeError, ValueError):
                 raise DataExportError("EXPORT_FILE_UNAVAILABLE") from None
             digest = hashlib.sha256(content).hexdigest()
             if digest.casefold() != expected.casefold():
                 raise DataExportError("EXPORT_FILE_UNAVAILABLE")
-            records.append({"id": document["id"], "format": file_format,
+            append_record({"id": document["id"], "format": file_format,
                             "size_bytes": len(content), "sha256": digest,
                             "content_base64": base64.b64encode(content).decode("ascii")})
 
     uploads = connection.execute(
-        select(m.uploaded_resumes.c.id, m.uploaded_resumes.c.format)
+        select(m.uploaded_resumes.c.id, m.uploaded_resumes.c.format, m.uploaded_resumes.c.size_bytes)
         .where(m.uploaded_resumes.c.profile_id == profile_id)
         .order_by(m.uploaded_resumes.c.id).limit(MAX_EXPORT_ROWS + 1)
     ).mappings()
@@ -308,13 +330,16 @@ def _document_file_records(store, connection, profile_id, output_dir):
         upload_count += 1
         if upload_count > MAX_EXPORT_ROWS:
             raise DataExportError("EXPORT_TOO_LARGE")
+        read_limit = min(MAX_EXPORT_BYTES, ((MAX_EXPORT_BYTES - record_bytes) // 4) * 3)
+        if upload["size_bytes"] > read_limit:
+            raise DataExportError("EXPORT_TOO_LARGE")
         try:
             metadata, content = read_resume(store, output_dir=output_dir,
                                            profile_id=profile_id, identifier=upload["id"])
         except Exception:
             # Do not expose filesystem or persistence details in the API error.
             raise DataExportError("EXPORT_FILE_UNAVAILABLE") from None
-        records.append({"id": metadata["id"], "format": metadata["format"],
+        append_record({"id": metadata["id"], "format": metadata["format"],
                         "size_bytes": len(content), "sha256": metadata["sha256"],
                         "content_base64": base64.b64encode(content).decode("ascii")})
     return records
