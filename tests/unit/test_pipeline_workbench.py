@@ -11,6 +11,26 @@ from tests.integration.test_spine import PROFILE
 
 
 class PipelineWorkbenchTests(unittest.TestCase):
+    def test_profile_wide_rescore_blocks_preparation_and_recovers_saved_status(self):
+        from workers.dispatch import enqueue_operation
+        self.add_job("scoring-job")
+        before = self.read()["items"][0]
+        operation_id = enqueue_operation(self.store, "DISCOVER", "fixture", {
+            "rescore_only": True, "profile_version": self.profile_version,
+            "request_id": "refresh-profile-scores",
+        })
+        snapshot = self.read()
+        item = snapshot["items"][0]
+        self.assertFalse(item["can_prepare"])
+        self.assertIn("DISCOVERY_RUNNING", {b["code"] for b in item["blockers"]})
+        self.assertNotEqual(item["fingerprint"], before["fingerprint"])
+        self.assertEqual(snapshot["scoring_operation"], {"operation_id": operation_id, "state": "QUEUED"})
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(state="COMPLETED"))
+        recovered = self.read()
+        self.assertTrue(recovered["items"][0]["can_prepare"])
+        self.assertEqual(recovered["scoring_operation"]["state"], "COMPLETED")
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.store = Store(f"sqlite:///{(Path(self.temp.name) / 'pipeline.db').as_posix()}")
@@ -213,7 +233,7 @@ class PipelineWorkbenchTests(unittest.TestCase):
             self.fail(f"pipeline readiness projection is missing: {error}")
         self.assertEqual(read_pipeline_workbench(self.store, "empty"), {
             "profile_id": "empty", "profile_version": self.store.profile("empty")["version"],
-            "items": [], "counts": {"total": 0, "by_stage": {
+            "items": [], "scoring_operation": None, "counts": {"total": 0, "by_stage": {
                 "DISCOVERED": 0, "NEEDS_SCORING": 0, "NEEDS_REVIEW": 0,
                 "READY_TO_PREPARE": 0, "PREPARING": 0, "PREPARED": 0, "TRACKING": 0,
             }}, "truncated": False,

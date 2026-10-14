@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import datetime, timedelta, timezone
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
@@ -787,6 +788,9 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
         self.assertEqual(self.store.count("worker_operations"), operations_before)
 
     def test_posted_within_filters_before_limit_and_excludes_unknown_posting_dates(self):
+        reference_time = datetime(2026, 10, 8, 12, tzinfo=timezone.utc)
+        clock = self.enterContext(patch("apps.api.main.datetime", wraps=datetime))
+        clock.now.return_value = reference_time
         jobs = {row["title"]: row for row in self.store.jobs()}
         old_id = jobs["Python Developer"]["id"]
         recent_id = jobs["Data Engineer"]["id"]
@@ -825,7 +829,7 @@ class SavedSearchFiltersApiTests(unittest.TestCase):
             posted_after=datetime(2026, 3, 1, tzinfo=timezone.utc),
             posted_before=datetime(2026, 3, 31, tzinfo=timezone.utc))
         self.assertNotIn(recent_id, [row["id"] for row in impossible_date_rows])
-        future = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+        future = (reference_time + timedelta(days=1)).isoformat()
         with self.store.engine.begin() as connection:
             connection.execute(update(m.jobs).where(m.jobs.c.id == recent_id).values(
                 attributes={"reported_posted_at": future}))

@@ -2503,9 +2503,10 @@
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-09-30-ci-370.json",
         "docs/evidence/2026-10-13-controlled-dry-run-recovery.json",
-        "docs/evidence/2026-10-13-controlled-multipage-preparation.json"
+        "docs/evidence/2026-10-13-controlled-multipage-preparation.json",
+        "docs/evidence/2026-10-13-pipeline-scoring-dry-run.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open Controlled DRY_RUN now has scoped cancellation, serialized active admission and acknowledged fresh retry with prior-attempt UI readback. Separate-process receipt/crash recovery avoids browser replay. SQLite/PostgreSQL/browser/Linux queue/full Compose restart/fresh restore PASS; full umbrella remains PARTIAL. Reviewed two-page controlled preparation verifies contact and selected document bytes, persists value-free page proof, and survives cancellation/crash/retry. This local fixture slice does not promote the original pipeline requirement.",
+      "note": "Initial scoped behavior only; full requirement remains open Controlled DRY_RUN now has scoped cancellation, serialized active admission and acknowledged fresh retry with prior-attempt UI readback. Separate-process receipt/crash recovery avoids browser replay. SQLite/PostgreSQL/browser/Linux queue/full Compose restart/fresh restore PASS; full umbrella remains PARTIAL. Reviewed two-page controlled preparation verifies contact and selected document bytes, persists value-free page proof, and survives cancellation/crash/retry. This local fixture slice does not promote the original pipeline requirement. Pipeline now connects profile-wide score refresh, durable document preparation, and reviewed local dry-run. SQLite/PostgreSQL admission races and connected browser recovery prove this fixture journey with zero submissions; broader original acceptance remains PARTIAL.",
       "priority": "P1",
       "area": "test_harness",
       "category": "major-feature"

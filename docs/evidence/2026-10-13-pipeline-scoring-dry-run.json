@@ -1,0 +1,135 @@
+{
+  "requirement": "MJ-REQ-208",
+  "issue": 209,
+  "slice_issue": 632,
+  "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkQFI",
+  "source_commit": "e269eb71a0270222ea326758da37f0954c91de2e",
+  "recorded_at_utc": "2026-10-14T00:11:06.168400+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_FINAL_REVISION",
+  "behavior": [
+    "Pipeline exposes explicitly profile-wide local rescoring and polls persisted scoring/preparation status until terminal, including reload recovery.",
+    "Scoring and preparation admission share the profile database lock, exclude active conflicting work, and reject distinct concurrent scoring requests. Exact request replay preserves terminal state even after profile changes.",
+    "Request identity is stored before POST; storage failure sends no request. Lost acknowledgement retries the same persisted identity after reload. Late profile responses and unavailable/malformed progress cannot enable preparation.",
+    "Connected Chromium journey starts with stale discovered fixture jobs, scores via the API/worker, prepares persisted resume and cover letter, downloads and verifies their hashes, opens the application and completes submit:false dry-run. Fresh Store/UI readback and fixture review=1/submit=0 prove saved outcome."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_pipeline_workbench.py -k profile_wide_rescore (baseline)",
+      "result": "FAIL_EXPECTED",
+      "detail": "can_prepare was true while profile-wide rescore was QUEUED."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_preparation_priority.py tests/integration/test_pipeline_workbench.py tests/unit/test_pipeline_workbench.py",
+      "environment": "Windows Python3.12; isolated PostgreSQL17 mjobs_priority_validation on loopback63268 plus isolated SQLite stores",
+      "result": "PASS",
+      "tests": 51,
+      "subtests": 2,
+      "skipped": 2,
+      "skip_reason": "Redis-only Linux worker tests; required hosted integration will run its configured services.",
+      "seconds": 46.89
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_pipeline_scoring_journey.py",
+      "result": "PASS",
+      "tests": 4,
+      "seconds": 26.07,
+      "detail": "Connected journey; lost acknowledgement/reload/replay/terminal failure; delayed ACK/profile switch/poll failure; storage failure/no POST."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_pipeline_scoring_journey.py tests/browser/test_pipeline_workbench.py tests/browser/test_mock_run_controls.py",
+      "result": "PASS",
+      "tests": 9,
+      "seconds": 67.84,
+      "scope": "Before storage/cross-tab review fixes; affected journey rerun after fixes."
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "PASS",
+      "tests": 801,
+      "scope": "Before storage/cross-tab review fixes; affected frontend9 and production build rerun after fixes."
+    },
+    {
+      "command": "npm --prefix apps/web test -- --run src/pipeline-workbench.test.tsx; npm --prefix apps/web run build",
+      "result": "PASS",
+      "tests": 9,
+      "note": "Existing bundle-size warning"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; tools.site.build; commit_provenance; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "docker run --rm --network none (read-only /app) python -m unittest tests.unit.test_pipeline_workbench tests.integration.test_pipeline_workbench tests.integration.test_preparation_priority tests.browser.test_pipeline_scoring_journey -q",
+      "result": "PASS",
+      "tests_run": 57,
+      "passed": 41,
+      "skipped": 16,
+      "skip_reason": "Optional isolated PostgreSQL/Redis cases; PostgreSQL covered separately in Windows suite.",
+      "seconds": 65.024,
+      "source_commit": "e269eb71a0270222ea326758da37f0954c91de2e",
+      "source_hashes": "unchanged before/after",
+      "image": "sha256:af02cdeaa62f8fd3a8ba079ea4616a0e7912887d283ae58908cf69298157de98"
+    },
+    {
+      "command": "npm --prefix apps/web test",
+      "result": "PASS",
+      "tests": 801,
+      "seconds": 4.18,
+      "source_commit": "e269eb71a0270222ea326758da37f0954c91de2e",
+      "scope": "Final frozen source"
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS",
+      "tests": 1582,
+      "subtests": 1078,
+      "seconds": 278.45,
+      "source_commit": "e269eb71a0270222ea326758da37f0954c91de2e",
+      "scope": "Final frozen-source run; no executable or test changes during run."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_saved_search_filters.py",
+      "result": "PASS",
+      "tests": 26,
+      "subtests": 12,
+      "seconds": 37.08,
+      "source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c"
+    },
+    {
+      "command": "docker run --rm --network none (read-only /app) python -m unittest tests.integration.test_saved_search_filters -q",
+      "result": "PASS",
+      "tests": 26,
+      "skipped": 0,
+      "seconds": 37.042,
+      "source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c",
+      "source_hashes": "unchanged before/after"
+    }
+  ],
+  "review": {
+    "kind": "local Luna read-only review, not human approval",
+    "findings": "Mace reviewed database admission/projection; Han identified storage-unavailable and cross-tab duplicate admission gaps. Both fixed with negative browser/concurrent tests; follow-up found no blocker."
+  },
+  "diagnostic_history": [
+    "Baseline global-rescore readiness test failed as expected. Existing empty-response test needed the new explicit scoring_operation:null contract.",
+    "Initial full unit run began before review fixes and is not used as final-revision evidence. Final frozen-source verification is recorded separately.",
+    "Initial PR633 integration run38487464145 failed one existing saved-search date test after UTC advanced to October14: its fixed October7 recent timestamp exceeded the seven-day window. Reproduced locally. Pinned only the test API clock and derived future timestamp to its October8 fixture reference; preserved all positive/negative assertions. Production source unchanged."
+  ],
+  "limitations": [
+    "No paid inference, live employer interaction or real external submission. Discovery uses the existing local synthetic fixture.",
+    "Parent also includes company discovery and broader complete dry-run product acceptance; those original criteria are not promoted by this slice.",
+    "Legacy /matches callers that omit request_id retain their existing semantics; stable lost-ack replay is guaranteed for the Pipeline action that requires and persists its request ID."
+  ],
+  "acceptance_before_after": {
+    "original_P0_P1": {
+      "PASS": 47,
+      "PARTIAL": 41,
+      "NOT_RUN": 54
+    },
+    "promoted_original_requirements": 0
+  },
+  "final_source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c"
+}

@@ -37,9 +37,7 @@ class MockRunBrowserHarness(unittest.TestCase):
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.addCleanup(self.store.engine.dispose)
         self.store.migrate(); self.store.bind_workspace_mode("FIXTURE"); self.store.save_profile(dict(PROFILE))
-        discover(self.store, self.fixture, "fixture")
-        self.job = self.store.jobs("fixture")[0]
-        self.app_id = prepare(self.store, self.job["id"], "fixture", self.root)
+        self.seed_workflow()
         app = create_app(self.store, self.fixture, self.root, "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
         self.socket = bound_browser_socket()
         self.origin = f"http://127.0.0.1:{self.socket.getsockname()[1]}"
@@ -70,6 +68,14 @@ class MockRunBrowserHarness(unittest.TestCase):
         self.page.on("request", track)
         self.page.goto(self.origin, wait_until="domcontentloaded")
         self.page.evaluate("localStorage.setItem('mjobs-profile','fixture')")
+        self.open_initial_view()
+
+    def seed_workflow(self):
+        discover(self.store, self.fixture, "fixture")
+        self.job = self.store.jobs("fixture")[0]
+        self.app_id = prepare(self.store, self.job["id"], "fixture", self.root)
+
+    def open_initial_view(self):
         self.open_application()
 
     def stop_server(self):
