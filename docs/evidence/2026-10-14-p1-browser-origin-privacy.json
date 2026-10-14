@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "issues": [
+    172,
+    173
+  ],
+  "requirements": [
+    "MJ-REQ-171",
+    "MJ-REQ-172"
+  ],
+  "status": "LOCAL_VERIFIED_PARENT_NOT_RUN",
+  "recorded_at_utc": "2026-10-14T09:07:08.526755+00:00",
+  "base_main": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
+  "source_revision": "0649558f17cdced36123781cd31041723b910949",
+  "source_sha256": {
+    "apps/api/main.py": "0765cef71d920ff3540bef1a791816933dcf7a0eb417ad9160aef532ad50aed2",
+    "tests/integration/test_local_origin_security.py": "15eaed5a2d5f626ef1812e028b165790b10cc814a3789181d981c527d2099082",
+    "tests/browser/test_local_origin_privacy.py": "66215e53b5bc83931e473f4b371b5fc09617454fba8fe98ea064d20721edb323"
+  },
+  "selection": {
+    "snapshot": "queue-9.json",
+    "project": 1,
+    "live_project_cards": 459,
+    "snapshot_eligible_cards": 99,
+    "state": "OPEN",
+    "priority": "P1",
+    "verified_before_claim": true,
+    "serial_nonoverlapping_ownership": true
+  },
+  "behavior": [
+    "Private reads reject conflicting, empty and null Origin, including a sibling localhost port",
+    "Explicit same-site, cross-site and invalid Fetch Metadata deny private reads and unsafe writes before routes execute",
+    "Retain headerless native clients, direct navigation, same-origin UI and public shell/assets/health probes",
+    "Both origin-denial branches retain no-store, nosniff, no-referrer and existing Content Security Policy without reflecting input",
+    "Real Chromium saves a search through the UI, verifies server-observed same-site request denial, proves CSP frame rejection, returns to own shell and reloads the saved record",
+    "Rejected saved-search mutation preserves original bytes through database reopen"
+  ],
+  "red": {
+    "privacy": "16 failing cases/subtests reproduced disclosed private search and admitted overwrite; 8 passed plus 12 passing subtests before the fix",
+    "denial_headers": "3 new denial subtests failed because Cache-Control was absent"
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/integration/test_local_origin_security.py tests/integration/test_ai_cost_policy_api.py tests/integration/test_provider_credentials_api.py tests/integration/test_data_export_flow.py tests/integration/test_profile_restore.py tests/integration/test_least_data_profile_access.py tests/integration/test_profile_access.py -p no:cacheprovider --tb=short",
+      "result": "45 PASS / 36 subtests PASS",
+      "junit": {
+        "result": "PASS",
+        "junit_cases_including_subtests": 81,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "duration_seconds": 30.398
+      }
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_local_origin_privacy.py tests/browser/test_provider_credentials.py tests/browser/test_search_profile_seed.py -p no:cacheprovider --tb=short",
+      "result": "3 connected Chromium PASS; no external traffic",
+      "junit": {
+        "result": "PASS",
+        "junit_cases_including_subtests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "duration_seconds": 16.917
+      }
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider --tb=short",
+      "junit": {
+        "result": "PASS",
+        "junit_cases_including_subtests": 2721,
+        "failures": 0,
+        "errors": 0,
+        "skips": 9,
+        "duration_seconds": 248.419
+      }
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS TypeScript and production Vite build; existing bundle-size advisory"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; commit_provenance; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "environment": {
+    "os": "Windows",
+    "python": "3.12",
+    "database": "disposable SQLite",
+    "browser": "local headless Chromium",
+    "operation_mode": "FIXTURE/PERSONAL synthetic",
+    "external_submission_enabled": false,
+    "schema_change": false,
+    "private_runtime_mutation": false
+  },
+  "verification_recovery": [
+    "Default TEMP denied by sandbox; tests use an explicitly writable campaign directory in Git common metadata",
+    "First full unit run: 1598 PASS / 1113 subtests PASS / 9 platform skips; 1 fixture subtest failed because its outside-repository file was inside the worktree TEMP directory. Corrected TEMP location: affected module 11 PASS / 14 subtests, full suite rerun recorded above",
+    "First broader integration run: 44 PASS / 36 subtests, one unchanged DataExportFlowTests.test_growing_backup_file_returns_fixed_error_and_safe_retry Windows database cleanup failure. Isolated module 7 PASS and final combined run 45 PASS / 36 subtests",
+    "Browser-side Playwright header projection omitted Fetch Metadata; test now asserts headers received by the ASGI server",
+    "Schannel Git transport failed SEC_E_NO_CREDENTIALS; per-command OpenSSL transport verifies TLS and works without persistent Git or host changes"
+  ],
+  "local_review": {
+    "model": "gpt-6-luna",
+    "effort": "high",
+    "type": "read-only local Luna review",
+    "findings": "No critical, important or minor defect",
+    "tests_executed_by_reviewer": false
+  },
+  "review_scope_rulings": [
+    "Duplicate raw browser Origin/Fetch Metadata cannot be supplied by ordinary browser JS; broader native malicious-client authentication is outside this slice",
+    "Host/DNS rebinding, complete authentication/session/CSRF controls, and non-origin unhandled 500 header behavior remain broader web/security acceptance work"
+  ],
+  "hosted_checks": "NOT_RUN_YET",
+  "publication": "PR_PENDING",
+  "acceptance_boundary": {
+    "delivery": "PARTIAL",
+    "original_MJ_REQ_171": "NOT_RUN retained",
+    "original_MJ_REQ_172": "NOT_RUN retained",
+    "original_reference_matrices": "UNCHANGED",
+    "local_Compose_PostgreSQL": "NOT_RUN",
+    "whole_product_release": "INCOMPLETE"
+  },
+  "rollback": "Scoped revert of source changes; no migrations or persisted data changes"
+}

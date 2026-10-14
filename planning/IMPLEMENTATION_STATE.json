@@ -3137,5 +3137,43 @@
     "merge_commit": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
     "publication": "MERGED PR #647; documentation-only exact-head receipt local for next source PR",
     "post_merge": "9 cases / 2 subtests PASS; 1 POSIX skip locally; all 10 exact-PR-head Linux new cases PASS"
+  },
+  "p0p1_iteration_9": {
+    "issues": [
+      172,
+      173
+    ],
+    "requirements": [
+      "MJ-REQ-171",
+      "MJ-REQ-172"
+    ],
+    "status": "LOCAL_VERIFIED_PR_PENDING",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "source_revision": "0649558f17cdced36123781cd31041723b910949",
+    "acceptance": "Deny sibling-origin/private browser access and preserve security headers on origin denials; parent original criteria NOT_RUN retained",
+    "evidence": [
+      "docs/evidence/2026-10-14-p1-browser-origin-privacy.json"
+    ],
+    "targeted_integration": "45 PASS / 36 subtests",
+    "browser": "3 connected Chromium PASS",
+    "full_unit": {
+      "result": "PASS",
+      "junit_cases_including_subtests": 2721,
+      "failures": 0,
+      "errors": 0,
+      "skips": 9,
+      "duration_seconds": 248.419
+    },
+    "local_review": {
+      "model": "gpt-6-luna",
+      "effort": "high",
+      "type": "read-only local Luna review",
+      "findings": "No critical, important or minor defect",
+      "tests_executed_by_reviewer": false
+    },
+    "hosted_checks": "PENDING_EXACT_HEAD",
+    "updated_at_utc": "2026-10-14T09:07:08.526755+00:00",
+    "rollback": "Scoped revert of source changes; no migrations or persisted data changes",
+    "next_action": "Publish one reviewable P1 PR; verify all five required checks on exact head, integrate when qualified; reconcile P0 #638 ownership before touching its existing TLS-handshake worktree"
   }
 }
