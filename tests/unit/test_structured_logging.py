@@ -7,6 +7,51 @@ from workers.structured_logging import log_operation_finished
 
 
 class StructuredOperationLoggingTests(unittest.TestCase):
+    def test_document_ai_and_review_outcomes_emit_only_fixed_context(self):
+        for kind in ("RESUME_EXTRACT_QUEUED", "UPLOADED_RESUME_COMPARE_QUEUED",
+                     "AI_EVALUATE_QUEUED", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"):
+            for result in ("COMPLETED", "BLOCKED", "CANCELLED", "DEAD_LETTERED"):
+                with self.subTest(kind=kind, result=result), \
+                        self.assertLogs("mjobs.operations", level="INFO") as captured:
+                    log_operation_finished({
+                        "id": "operation-123", "kind": kind,
+                        "entity_id": "private-resume-id", "job_id": "private-job-id",
+                        "params": {"resume_text": "SYNTHETIC_PRIVATE_RESUME",
+                                   "api_key": "SYNTHETIC_PRIVATE_KEY"},
+                    }, result, "INPUT_INVALID", .025)
+                self.assertEqual(len(captured.records), 1)
+                message = captured.records[0].getMessage()
+                record = json.loads(message)
+                self.assertEqual(record["operation_id"], "operation-123")
+                self.assertEqual(record["operation_kind"], kind)
+                self.assertEqual(record["result"], result)
+                self.assertEqual(record["duration_ms"], 25)
+                self.assertEqual(record["error_code"], "INPUT_INVALID")
+                for marker in ("SYNTHETIC_PRIVATE", "private-resume-id", "private-job-id", "params"):
+                    self.assertNotIn(marker, message)
+
+    def test_all_identifier_fields_reject_recognized_secret_shapes(self):
+        for kind, field, secret in (
+            ("DISCOVER", "operation_id", "api-key-SYNTHETIC-CREDENTIAL"),
+            ("PREPARE", "job_id", "token-SYNTHETIC-CREDENTIAL"),
+            ("COMPANY_DISCOVER", "company_id", "password-SYNTHETIC-CREDENTIAL"),
+            ("APPLY_MOCK", "application_id", "credential-SYNTHETIC-CREDENTIAL"),
+        ):
+            operation = {"id": "operation-1", "kind": kind,
+                         "entity_id": "entity-1", "params": {"job_id": "job-1"}}
+            if field == "operation_id":
+                operation["id"] = secret
+            elif field == "job_id":
+                operation["params"]["job_id"] = secret
+            else:
+                operation["entity_id"] = secret
+            with self.subTest(field=field), self.assertLogs("mjobs.operations", level="INFO") as captured:
+                log_operation_finished(operation, "BLOCKED", "API_KEY_SYNTHETIC_CREDENTIAL", 0)
+            record = json.loads(captured.records[0].getMessage())
+            self.assertIsNone(record.get(field))
+            self.assertNotIn("error_code", record)
+            self.assertNotIn("SYNTHETIC", captured.records[0].getMessage())
+
     def test_configured_worker_output_is_one_json_line(self):
         configure = getattr(structured_logging, "configure_operation_logger", None)
         self.assertTrue(callable(configure), "worker operation logger must use a JSON-only output handler")

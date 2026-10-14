@@ -13,6 +13,8 @@ from services.ats_detection.detector import KNOWN_ATS_PROVIDERS
 _LOGGER = logging.getLogger("mjobs.operations")
 _OPERATION_KINDS = {
     "DISCOVER", "COMPANY_DISCOVER", "COMPANY_SOURCE_REFRESH", "PREPARE", "APPLY_MOCK",
+    "RESUME_EXTRACT_QUEUED", "UPLOADED_RESUME_COMPARE_QUEUED", "AI_EVALUATE_QUEUED",
+    "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN",
 }
 _RESULTS = {"COMPLETED", "BLOCKED", "CANCELLED", "DEAD_LETTERED"}
 _SAFE_IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
@@ -25,7 +27,8 @@ _SAFE_ATS_PROVIDERS = KNOWN_ATS_PROVIDERS | {"mock-ats"}
 
 
 def _safe_identifier(value):
-    return value if isinstance(value, str) and _SAFE_IDENTIFIER.fullmatch(value) else None
+    return value if (isinstance(value, str) and _SAFE_IDENTIFIER.fullmatch(value)
+                     and not _SECRET_SHAPED_IDENTIFIER.search(value)) else None
 
 
 def _safe_discovery_source_id(operation):
@@ -49,7 +52,8 @@ def _safe_discovery_source_id(operation):
 
 
 def _safe_error_code(value):
-    return value if isinstance(value, str) and _SAFE_ERROR_CODE.fullmatch(value) else None
+    return value if (isinstance(value, str) and _SAFE_ERROR_CODE.fullmatch(value)
+                     and not _SECRET_SHAPED_IDENTIFIER.search(value)) else None
 
 
 def _safe_ats_provider(value):

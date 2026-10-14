@@ -1,0 +1,78 @@
+{
+  "recorded_at_utc": "2026-10-14T05:44:17.719081+00:00",
+  "status": "PARTIAL",
+  "issues": [
+    178,
+    176
+  ],
+  "base_revision": "b8a45f68519014779921d8b18e582d72b25fab0a",
+  "source_sha256": {
+    "workers/structured_logging.py": "fef2fcd473befcd6826660fa1e133872aedaacc1d317c70ff8cefb3df7b04615",
+    "tests/unit/test_structured_logging.py": "95934de880e4e4d673e330e7e6d8ad696c0f16ac1a88af4f0a8b94d878847fb0",
+    "tests/integration/test_durable_resume_extraction.py": "b082684494f842d1fccab1a747856f1265a4889375c2a3416d582aa61fb81d5d"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "mode": "isolated synthetic SQLite and Chromium; external submissions OFF"
+  },
+  "eligibility": [
+    {
+      "issue": 178,
+      "snapshot_priority": "P1",
+      "live_project_priority": "P1",
+      "project_status": "Todo"
+    },
+    {
+      "issue": 176,
+      "snapshot_priority": "P1",
+      "live_project_priority": "P1",
+      "project_status": "Todo"
+    },
+    {
+      "issue": 524,
+      "snapshot_priority": "P1",
+      "live_project_priority": "P1",
+      "project_status": "Todo"
+    }
+  ],
+  "behavior": [
+    "All ten dispatched worker types emit fixed terminal outcome context",
+    "Existing recognized secret-marker filter now protects every identifier and error-code field",
+    "Resume extraction persists state and result before logging; duplicate claim is silent",
+    "Corrupt source logs fixed BLOCKED error, repaired retry survives reopened API; process-crash recovery emits one final record"
+  ],
+  "local_validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_durable_resume_extraction.py tests/integration/test_worker_lifecycle.py tests/integration/test_durable_uploaded_comparison.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_controlled_application_dry_run.py tests/integration/test_application_form_review_flow.py -p no:cacheprovider",
+      "result": "121 PASS, 62 passing subtests, 15 explicit environment skips"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_resume_extraction.py -k \"invalid_extraction_logs or completed_result_is_private or process_crash\" -p no:cacheprovider",
+      "result": "3 PASS after final test strengthening"
+    },
+    {
+      "command": "npm --prefix apps/web run build -- --configLoader native",
+      "result": "PASS TypeScript/Vite; default bundler loader hit spawn EPERM; existing chunk-size warning"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_profile_import.py tests/browser/test_uploaded_resume_comparison.py -p no:cacheprovider",
+      "result": "4 connected Chromium PASS; zero skips"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "local_full_unit": "1591 PASS, 1104 passing subtests, 8 explicit Linux-only skips in 255.00 seconds",
+  "review": "Read-only local Luna High review: no critical/important finding; minor blocked-before-log assertion strengthened and retested",
+  "hosted_checks": "NOT_RUN pending publication",
+  "limitations": [
+    "Recognized-marker filtering cannot detect credentials under arbitrary names or arbitrary free text",
+    "Broader logging fields and whole secret-management original requirements remain PARTIAL",
+    "No provider inference, real application, private profile, credential-store read or production change",
+    "Local PostgreSQL/Redis/Compose NOT_RUN; environment-gated focused cases explicitly skipped"
+  ],
+  "rollback": "Scoped source revert; no schema migration or data mutation",
+  "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf"
+}

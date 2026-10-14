@@ -1890,7 +1890,7 @@
         "requirements": [
           "MJ-REQ-169"
         ],
-        "status": "LOCALLY_VERIFIED_PARTIAL",
+        "status": "MERGED_VERIFIED_PARTIAL",
         "branch": "codex/p0p1-only-20261013-232152",
         "owned_source": [
           "services/data_export.py",
@@ -1911,12 +1911,18 @@
           "MJ-REQ-169": "PARTIAL"
         },
         "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
-        "hosted_checks": "NOT_RUN",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
         "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
         "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
         "local_focused": "40 tests and 30 subtests PASS, including Chromium",
         "full_unit": "PASS",
-        "local_reviews": "PASS_BOUNDED_SCOPE"
+        "local_reviews": "PASS_BOUNDED_SCOPE",
+        "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+        "pr": 641,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+        "post_merge": "40 tests and 30 subtests PASS",
+        "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
       }
     },
     {
@@ -2022,7 +2028,7 @@
         "requirements": [
           "MJ-REQ-175"
         ],
-        "status": "LOCALLY_VERIFIED_PARTIAL",
+        "status": "MERGED_VERIFIED_PARTIAL",
         "branch": "codex/p0p1-only-20261013-232152",
         "owned_source": [
           "services/data_export.py",
@@ -2043,12 +2049,45 @@
           "MJ-REQ-169": "PARTIAL"
         },
         "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
-        "hosted_checks": "NOT_RUN",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
         "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
         "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
         "local_focused": "40 tests and 30 subtests PASS, including Chromium",
         "full_unit": "PASS",
-        "local_reviews": "PASS_BOUNDED_SCOPE"
+        "local_reviews": "PASS_BOUNDED_SCOPE",
+        "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+        "pr": 641,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+        "post_merge": "40 tests and 30 subtests PASS",
+        "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+      },
+      "p0p1_iteration_3": {
+        "issues": [
+          178,
+          176,
+          524
+        ],
+        "requirements": [
+          "MJ-REQ-177",
+          "MJ-REQ-175"
+        ],
+        "status": "PARTIAL",
+        "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf",
+        "outcome": "Safe fixed terminal records for all ten current dispatch kinds; recognized secret-marker filtering uniformly protects identifiers/error codes; 10 CodeQL alerts individually reviewed, 11 deferred under external claim",
+        "evidence": [
+          "docs/evidence/2026-10-14-p1-worker-log-privacy.json",
+          "docs/evidence/2026-10-14-codeql-triage.json"
+        ],
+        "validation": "1591 units/1104 subtests PASS with 8 skips; 121 focused/62 subtests PASS with 15 environment skips; final extraction 3 PASS; Chromium 4 PASS; native-loader build/validators PASS",
+        "hosted_checks": "NOT_RUN pending publication",
+        "acceptance": {
+          "MJ-REQ-177": "PARTIAL",
+          "MJ-REQ-175": "PARTIAL",
+          "issue_524": "PARTIAL"
+        },
+        "rollback": "Scoped ordinary source revert; no schema or persistence-format change",
+        "updated_at_utc": "2026-10-14T05:44:17.719081+00:00"
       }
     },
     {
@@ -4961,7 +5000,7 @@
         "requirements": [
           "MJ-REQ-175"
         ],
-        "status": "LOCALLY_VERIFIED_PARTIAL",
+        "status": "MERGED_VERIFIED_PARTIAL",
         "branch": "codex/p0p1-only-20261013-232152",
         "owned_source": [
           "services/data_export.py",
@@ -4982,12 +5021,18 @@
           "MJ-REQ-169": "PARTIAL"
         },
         "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
-        "hosted_checks": "NOT_RUN",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
         "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
         "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
         "local_focused": "40 tests and 30 subtests PASS, including Chromium",
         "full_unit": "PASS",
-        "local_reviews": "PASS_BOUNDED_SCOPE"
+        "local_reviews": "PASS_BOUNDED_SCOPE",
+        "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+        "pr": 641,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+        "post_merge": "40 tests and 30 subtests PASS",
+        "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
       }
     },
     {

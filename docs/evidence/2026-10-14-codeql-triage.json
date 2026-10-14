@@ -1,0 +1,184 @@
+{
+  "issue": 524,
+  "recorded_at_utc": "2026-10-14T05:42:19.162196+00:00",
+  "revision": "b8a45f68519014779921d8b18e582d72b25fab0a",
+  "status": "PARTIAL",
+  "open_alert_count": 21,
+  "individually_reviewed_count": 10,
+  "alerts": [
+    {
+      "line": 150,
+      "number": 62,
+      "path": "services/applications/browser_process.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "CDP root identity is read-only; exact profile, valid PID and immutable host/creation identity required; failures are UNKNOWN."
+    },
+    {
+      "line": 140,
+      "number": 61,
+      "path": "services/applications/browser_process.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Profile verification resolves the CDP command argument and compares to the requested root; errors are fixed, private paths not exposed."
+    },
+    {
+      "line": 193,
+      "number": 57,
+      "path": "tests/integration/test_public_company_discovery.py",
+      "rule": "py/incomplete-url-substring-sanitization",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Assertion is in a synthetic integration test; production exact-origin URL and DNS checks are separate. Test predicate alone is not a production sanitizer."
+    },
+    {
+      "line": 264,
+      "number": 56,
+      "path": "services/company_discovery/public_client.py",
+      "rule": "py/insecure-protocol",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Python 3.12 default TLS context observed minimum TLSv1_2, hostname validation ON, CERT_REQUIRED; no protocol downgrade in client."
+    },
+    {
+      "line": 253,
+      "number": 47,
+      "path": "tools/agent_dashboard/supervisor.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Atomic JSON replacement uses server-owned workspace state file paths; client cannot supply filesystem destination."
+    },
+    {
+      "line": 253,
+      "number": 46,
+      "path": "tools/agent_dashboard/supervisor.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Temporary JSON write path is derived from fixed state/config path; lane input is allowlisted."
+    },
+    {
+      "line": 252,
+      "number": 45,
+      "path": "tools/agent_dashboard/supervisor.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "JSON write destination is server-owned path, not prompt content; unknown runtime lanes are discarded."
+    },
+    {
+      "line": 90,
+      "number": 41,
+      "path": "services/applications/manual_auth.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Profile directory must remain beneath resolved application root and be existing; fixture latest-attempt authorization precedes lookup."
+    },
+    {
+      "line": 87,
+      "number": 40,
+      "path": "services/applications/manual_auth.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Resolved application root is confined beneath configured output root; rejected traversal cannot launch."
+    },
+    {
+      "line": 86,
+      "number": 39,
+      "path": "services/applications/manual_auth.py",
+      "rule": "py/path-injection",
+      "assessment": "NO_CONFIRMED_VULNERABILITY_IN_REVIEWED_BOUNDARY",
+      "reason": "Configured output directory is server-owned; fixed fixture operation requires persisted latest AUTH_REQUIRED attempt."
+    },
+    {
+      "line": 324,
+      "number": 33,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 307,
+      "number": 32,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 305,
+      "number": 31,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 305,
+      "number": 30,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 301,
+      "number": 29,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 292,
+      "number": 28,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 291,
+      "number": 27,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 287,
+      "number": 26,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 284,
+      "number": 25,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 200,
+      "number": 24,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    },
+    {
+      "line": 197,
+      "number": 23,
+      "path": "services/documents/answers.py",
+      "rule": "py/path-injection",
+      "assessment": "NOT_REVIEWED_OWNED_PATH",
+      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+    }
+  ],
+  "validation": {
+    "command": "python -m pytest -q tests/unit/test_browser_process_identity.py tests/unit/test_manual_auth_host.py tests/unit/test_public_company_client.py tests/unit/test_agent_dashboard.py tests/unit/test_mission_visible_terminal.py -p no:cacheprovider",
+    "result": "66 PASS, 43 passing subtests, zero skips"
+  },
+  "review": "Read-only local Luna High source/trust-boundary review; no independent external certification",
+  "limitation": "No exploit reproduced in reviewed sites; not a claim of whole-repository security. Alerts left open; no scanner suppression or dismissal. TLS observation is specific to current Python runtime."
+}
