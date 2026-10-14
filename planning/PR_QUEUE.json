@@ -5708,6 +5708,22 @@
       "merge_commit": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
       "merged_at": "2026-10-14T09:16:50Z",
       "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P0P1-TLS-10",
+      "title": "P0 connected TLS handshake cancellation and durable readback",
+      "requirements": [
+        "MJ-REQ-004"
+      ],
+      "issue_ids": [
+        638,
+        5
+      ],
+      "status": "VERIFIED_LOCAL_PARTIAL",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "source_commit": "c371e3ffc69bed1f49086b3e5a225382cd47a44f",
+      "evidence": "docs/evidence/2026-10-14-p0-tls-handshake.json",
+      "notes": "Child #638 exact-head/Linux checks pending; parent #5 remains PARTIAL. No real inference/submission."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

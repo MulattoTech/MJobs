@@ -3181,5 +3181,18 @@
     "merge_commit": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
     "publication": "MERGED PR #648; documentation-only receipt local for next substantive source PR",
     "post_merge": "11 PASS / 30 subtests PASS"
+  },
+  "p0p1_iteration_10": {
+    "source_commit": "c371e3ffc69bed1f49086b3e5a225382cd47a44f",
+    "issue_ids": [
+      638,
+      5
+    ],
+    "result": "PARTIAL",
+    "local_checks": "Final focused21PASS/147subtests; impacted integration51PASS/23subtests/1RedisSKIP; Chromium3PASS; build/validatorsPASS.",
+    "evidence": "docs/evidence/2026-10-14-p0-tls-handshake.json",
+    "hosted_exact_head": "NOT_RUN",
+    "original_acceptance_changed": false,
+    "next": "Publish reviewable PR; verify all five exact-head gates before integration."
   }
 }
