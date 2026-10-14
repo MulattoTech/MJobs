@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Persisted application context and private-field exclusion for P1 worker logs (#178, #176)",
+  "current_objective": "Immutable document-generation audit history and private-label exclusion (#177, #176)",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -191,7 +191,8 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-005"
+    "MJ-REQ-176",
+    "MJ-REQ-175"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -2647,10 +2648,10 @@
     }
   },
   "session_control": {
-    "owner": "Authorized Project-only P0/P1 iteration 1",
+    "owner": "Authorized Project-only P0/P1 iteration 5",
     "write_lanes": 1,
-    "status": "HANDOFF_READY",
-    "note": "Two eligible P1 safety slices merged. No background runner or new session exists. Release only the three named campaign claims and Codex integration lock at this checkpoint; consult the common bus before new writes."
+    "status": "ACTIVE",
+    "note": "One integration owner; no AFK runner; read-only local Luna review only; external worktrees/claims preserved"
   },
   "pr023_completion": {
     "timestamp": "2026-10-03T20:33:37.729938-05:00",
@@ -2727,7 +2728,7 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "Project-only iteration root was sole writer/integrator; source is merged. Three campaign claims and its integration lock are released at closeout. Historical external claims/worktrees/AFK state are preserved; recheck the native common coordination bus before future mutation.",
+  "ownership": "Single Project-only integration owner in supplied isolated worktree; native common integration lock and exact issue/path claim acquired; historical state preserved",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -2790,48 +2791,55 @@
   },
   "current_slice": {
     "campaign_id": "p0p1-20261013-232152",
-    "iteration": 2,
+    "iteration": 5,
     "issues": [
-      176,
-      170
+      177,
+      176
     ],
     "requirements": [
-      "MJ-REQ-175",
-      "MJ-REQ-169"
+      "MJ-REQ-176",
+      "MJ-REQ-175"
     ],
-    "status": "MERGED_VERIFIED_PARTIAL",
+    "status": "READY_FOR_PR_REPAIR_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "owned_source": [
-      "services/data_export.py",
-      "services/documents/uploads.py"
+      "services/audit_history.py",
+      "services/documents/generate.py"
     ],
-    "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+    "acceptance": "Commit document kinds atomically; display accurate resume and cover-letter events after mutations/removal/reopen; unknown legacy types remain explicit; reject private payload projection",
     "plan": [
-      "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
-      "Filter credential field names without dropping work_authorization",
-      "Cap generated/uploaded file reads and accumulated document payload",
-      "Verify API reopen, failure/retry and connected Chromium downloads",
-      "Run full local units and validators; obtain local Luna review",
-      "Commit, publish reviewable PR; integrate only with repository required gates"
+      "Demonstrate mutable-kind and missing cover-letter defects with failing tests",
+      "Snapshot exact generated kinds in existing transaction and project allowlisted event types",
+      "Verify rollback/retry, profile isolation, API and connected Chromium reload",
+      "Run affected regressions and validators, local Luna review, exact-head required checks",
+      "Integrate qualified PR and record receipt; leave whole requirement PARTIAL"
     ],
-    "rollback": "Scoped revert; no schema/data mutation by exports",
+    "rollback": "Ordinary scoped revert; additive audit payload, no schema migration",
     "original_acceptance": {
-      "MJ-REQ-175": "PARTIAL",
-      "MJ-REQ-169": "PARTIAL"
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
     },
-    "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
-    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
-    "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
-    "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
-    "local_focused": "40 tests and 30 subtests PASS, including Chromium",
-    "full_unit": "PASS",
-    "local_reviews": "PASS_BOUNDED_SCOPE",
-    "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
-    "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
-    "pr": 641,
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
-    "post_merge": "40 tests and 30 subtests PASS",
-    "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+    "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
+    "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
+    "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
+    "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
+    "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
+    "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
+    "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+    "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+    "updated_at_utc": "2026-10-14T07:02:28.678802+00:00",
+    "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+    "pr": 644,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+    "hosted_fixture_repair": {
+      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+      "integration_run": 38524654090,
+      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+    }
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -2887,8 +2895,112 @@
     "evidence": [
       "docs/evidence/2026-10-14-p1-application-context-logs.json"
     ],
-    "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
     "rollback": "Ordinary scoped source revert; no migration",
-    "updated_at_utc": "2026-10-14T06:15:01.742193+00:00"
+    "updated_at_utc": "2026-10-14T06:28:41.347867+00:00",
+    "pr": 643,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/643",
+    "verified_head": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+    "merge_commit": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac",
+    "post_merge": "21 tests / 61 subtests PASS at merged main; 6 local PostgreSQL skips; 6 hosted new PostgreSQL cases PASS, zero skips",
+    "publication": "MERGED; documentation-only receipt is local for next substantive source PR",
+    "next_action": "Reconcile ownership and claim open P1 #177 / MJ-REQ-176; reproduce and fix document-generation audit history borrowing mutable document kinds, then verify immutable event snapshots across document removal, profile isolation and UI/API reload."
+  },
+  "p0p1_iteration_2": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 2,
+    "issues": [
+      176,
+      170
+    ],
+    "requirements": [
+      "MJ-REQ-175",
+      "MJ-REQ-169"
+    ],
+    "status": "MERGED_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "owned_source": [
+      "services/data_export.py",
+      "services/documents/uploads.py"
+    ],
+    "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+    "plan": [
+      "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+      "Filter credential field names without dropping work_authorization",
+      "Cap generated/uploaded file reads and accumulated document payload",
+      "Verify API reopen, failure/retry and connected Chromium downloads",
+      "Run full local units and validators; obtain local Luna review",
+      "Commit, publish reviewable PR; integrate only with repository required gates"
+    ],
+    "rollback": "Scoped revert; no schema/data mutation by exports",
+    "original_acceptance": {
+      "MJ-REQ-175": "PARTIAL",
+      "MJ-REQ-169": "PARTIAL"
+    },
+    "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+    "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+    "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+    "full_unit": "PASS",
+    "local_reviews": "PASS_BOUNDED_SCOPE",
+    "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+    "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+    "pr": 641,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+    "post_merge": "40 tests and 30 subtests PASS",
+    "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+  },
+  "p0p1_iteration_5": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 5,
+    "issues": [
+      177,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-176",
+      "MJ-REQ-175"
+    ],
+    "status": "READY_FOR_PR_REPAIR_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "owned_source": [
+      "services/audit_history.py",
+      "services/documents/generate.py"
+    ],
+    "acceptance": "Commit document kinds atomically; display accurate resume and cover-letter events after mutations/removal/reopen; unknown legacy types remain explicit; reject private payload projection",
+    "plan": [
+      "Demonstrate mutable-kind and missing cover-letter defects with failing tests",
+      "Snapshot exact generated kinds in existing transaction and project allowlisted event types",
+      "Verify rollback/retry, profile isolation, API and connected Chromium reload",
+      "Run affected regressions and validators, local Luna review, exact-head required checks",
+      "Integrate qualified PR and record receipt; leave whole requirement PARTIAL"
+    ],
+    "rollback": "Ordinary scoped revert; additive audit payload, no schema migration",
+    "original_acceptance": {
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
+    "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
+    "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
+    "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
+    "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
+    "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
+    "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+    "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+    "updated_at_utc": "2026-10-14T07:02:28.678802+00:00",
+    "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+    "pr": 644,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+    "hosted_fixture_repair": {
+      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+      "integration_run": 38524654090,
+      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+    }
   }
 }

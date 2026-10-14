@@ -2095,6 +2095,21 @@
         "next_action": "Carry this documentation-only receipt with the next P0/P1 source PR; claim #178 and add safe persisted application/job/company/known-ATS context for APPLICATION_DRY_RUN and APPLICATION_FORM_REVIEW using the existing APPLY_MOCK lookup, with blocked/recovery/reopen and resolver-failure tests.",
         "post_merge": "28 tests / 43 subtests PASS, zero skips at ef18c3a9",
         "publication": "MERGED; documentation-only receipt remains local for next substantive source PR"
+      },
+      "p0p1_iteration_5": {
+        "issues": [
+          177,
+          176
+        ],
+        "status": "READY_FOR_PR_REPAIR_PARTIAL",
+        "outcome": "Immutable document-generation history and withheld known credential-shaped labels; original requirements PARTIAL",
+        "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
+        "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+        "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+        "validation": "1593 units / 1114 subtests PASS, 8 Linux-only skips; final audit API 19/26 PASS, 8 PostgreSQL skips; affected integration 38/21 PASS; Chromium 4 PASS plus final new rerun; native Vite build and validators PASS",
+        "pr": 644,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+        "hosted_fixture_repair": "PostgreSQL VARCHAR(500) rejected 501-char fixture; preserved boundary oracle with valid stored 500 chars + direct 501-char projection; no product/schema change"
       }
     },
     {
@@ -5610,10 +5625,10 @@
       ],
       "target_area": "workers/tasks.py and workers/structured_logging.py",
       "depends_on": [],
-      "status": "VERIFIED_LOCAL",
+      "status": "MERGED",
       "branch": "codex/p0p1-only-20261013-232152",
       "draft_until_verified": true,
-      "notes": "Source a89f4716839dfae8c381474035a06c78698c4c4c; persisted application projection and privacy/recovery scoped PASS; 1593 units and 4 Chromium PASS; new disposable PostgreSQL cases added, local skipped; exact-head hosted gates pending. Parents remain PARTIAL."
+      "notes": "PR #643 merged ca9f8df8042cb876fb694ebe34f4865a7b5a35ac after all five required gates PASS at a64880745bb8b01061ab69fd0eec6db4bb4805c5; six new PostgreSQL cases PASS, zero skips. Source a89f4716 unchanged. Parents remain PARTIAL; local documentation receipt travels with next source PR."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

@@ -1,5 +1,7 @@
 """Safe, profile-scoped summaries of append-only audit history."""
 
+import re
+
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
@@ -25,6 +27,21 @@ _APPLICATION_PREPARATION_EVENTS = {
     "APPLICATION_QUEUED", "APPLICATION_STARTED", "APPLICATION_FAILED",
 }
 _COMPANY_EVENTS = {"COMPANY_DISCOVERED", "COMPANY_SOURCE_ENROLLED"}
+_DOCUMENT_EVENTS = {
+    "resume": ("RESUME_GENERATED", "Resume prepared", "RESUME"),
+    "cover-letter": ("COVER_LETTER_GENERATED", "Cover letter prepared", "COVER_LETTER"),
+}
+# Labels are persisted external/user input. Withhold the complete label when
+# it contains a recognized credential marker or URL, rather than guessing how
+# far a quoted/multiline secret extends. Unmarked arbitrary secrets are outside
+# this bounded filter's detection contract.
+_PRIVATE_LABEL = re.compile(
+    r"(?<![A-Za-z0-9])(?:api[-_ ]?key|access[-_ ]?key|private[-_ ]?key|client[-_ ]?secret|"
+    r"access[-_ ]?token|refresh[-_ ]?token|password|passcode|"
+    r"secret|credential|token|session|cookie|authorization)(?:[-_ ](?:id|value))?[\"']?\s*[:=]|"
+    r"\b(?:Bearer|Basic)\s+\S+|https?://",
+    re.IGNORECASE,
+)
 _APPLICATION_EVENTS = {
     "APPLICATION_SUBMITTED": ("APPLICATION_SUBMITTED", "Application submitted to the local mock ATS"),
     "APPLICATION_QUEUED": ("APPLICATION_QUEUED", "Application preparation queued"),
@@ -238,14 +255,9 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
                 identity("application-tracking", profile_id, application_id): application_id
                 for application_id in applications
             }
-            documents_by_application = {}
-            document_rows = connection.execute(select(
-                m.documents.c.application_id, m.documents.c.kind,
-            ).where(m.documents.c.application_id.in_(applications))).mappings()
-            for document in document_rows:
-                documents_by_application.setdefault(document["application_id"], set()).add(document["kind"])
             application_audits = connection.execute(select(
                 m.audit.c.id, m.audit.c.entity_id, m.audit.c.action, m.audit.c.timestamp,
+                m.audit.c.payload,
             ).where(m.audit.c.entity_id.in_([*applications, *tracking_entities]),
                     m.audit.c.action.in_([*_APPLICATION_EVENTS, "DOCUMENTS_PREPARED"])).order_by(
                 m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(limit)).mappings()
@@ -262,12 +274,21 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
             action = row["action"]
             mapped = _APPLICATION_EVENTS.get(action)
             if action == "DOCUMENTS_PREPARED":
-                for kind in sorted(documents_by_application.get(row["entity_id"], set())):
-                    normalized = str(kind).upper()
-                    if "RESUME" in normalized:
-                        events.append(_event(row, "RESUME_GENERATED", "Resume prepared", application["title"], application["company"], normalized))
-                    elif "COVER_LETTER" in normalized:
-                        events.append(_event(row, "COVER_LETTER_GENERATED", "Cover letter prepared", application["title"], application["company"], normalized))
+                payload = row["payload"]
+                kinds = payload.get("document_kinds") if isinstance(payload, dict) else None
+                if (isinstance(kinds, list) and 0 < len(kinds) <= len(_DOCUMENT_EVENTS)
+                        and all(isinstance(kind, str) and kind in _DOCUMENT_EVENTS for kind in kinds)):
+                    for kind in sorted(set(kinds)):
+                        event_type, summary, suffix = _DOCUMENT_EVENTS[kind]
+                        events.append(_event(row, event_type, summary, application["title"], application["company"], suffix))
+                else:
+                    # Older rows did not record kinds. Current artifacts cannot
+                    # establish what was generated at a historical timestamp.
+                    detail = ("not recorded" if isinstance(payload, dict)
+                              and "document_kinds" not in payload else "unavailable")
+                    events.append(_event(row, "DOCUMENTS_PREPARED",
+                                         f"Documents prepared (document types {detail})",
+                                         application["title"], application["company"]))
             elif mapped:
                 event_type, summary = mapped
                 if action == "CONFIRMED" and application["target"] == "MOCK":
@@ -287,7 +308,13 @@ def _event(row, event_type: str, summary: str, subject: str, company: str,
         "id": f"{row['id']}:{event_suffix}" if event_suffix else row["id"],
         "type": event_type,
         "summary": summary,
-        "subject": subject,
-        "company": company,
+        "subject": _display_label(subject, "Details withheld"),
+        "company": _display_label(company, ""),
         "timestamp": row["timestamp"],
     }
+
+
+def _display_label(value, fallback: str) -> str:
+    if not isinstance(value, str) or len(value) > 500 or _PRIVATE_LABEL.search(value):
+        return fallback
+    return value
