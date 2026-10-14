@@ -24,7 +24,7 @@ $common = (Invoke-Checked git @('-C',$repo,'rev-parse','--path-format=absolute',
 $stateDir = Join-Path $common 'mjobs-p0p1-orchestrator'
 $latestPath = Join-Path $stateDir 'latest.json'
 if ($Status) {
-    if (Test-Path -LiteralPath $latestPath) { Get-Content -LiteralPath $latestPath -Raw } 
+    if (Test-Path -LiteralPath $latestPath) { Get-Content -LiteralPath $latestPath -Raw }
     else { Write-Output 'No campaign started by this launcher yet.' }
     return
 }
@@ -161,7 +161,7 @@ Keep working through multiple P0/P1 cards in this iteration. Do not return a pla
             $latestData | ConvertTo-Json | Set-Content -LiteralPath $latestPath -Encoding utf8
             throw "Codex iteration $attempt failed (exit $exit). Workspace and checkpoints preserved: $workspace"
         }
-        try { $result = Get-Content -LiteralPath $outputPath -Raw | ConvertFrom-Json } 
+        try { $result = Get-Content -LiteralPath $outputPath -Raw | ConvertFrom-Json }
         catch { throw "Malformed iteration response in $outputPath; stopping without repeating." }
         $allowed = @($queue | ForEach-Object {$_.issue})
         foreach ($issue in @($result.issueIds)) {
