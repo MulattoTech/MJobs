@@ -5610,10 +5610,10 @@
       ],
       "target_area": "workers/tasks.py and workers/structured_logging.py",
       "depends_on": [],
-      "status": "VERIFIED_LOCAL",
+      "status": "MERGED",
       "branch": "codex/p0p1-only-20261013-232152",
       "draft_until_verified": true,
-      "notes": "Source a89f4716839dfae8c381474035a06c78698c4c4c; persisted application projection and privacy/recovery scoped PASS; 1593 units and 4 Chromium PASS; new disposable PostgreSQL cases added, local skipped; exact-head hosted gates pending. Parents remain PARTIAL."
+      "notes": "PR #643 merged ca9f8df8042cb876fb694ebe34f4865a7b5a35ac after all five required gates PASS at a64880745bb8b01061ab69fd0eec6db4bb4805c5; six new PostgreSQL cases PASS, zero skips. Source a89f4716 unchanged. Parents remain PARTIAL; local documentation receipt travels with next source PR."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

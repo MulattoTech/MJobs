@@ -2887,8 +2887,15 @@
     "evidence": [
       "docs/evidence/2026-10-14-p1-application-context-logs.json"
     ],
-    "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
     "rollback": "Ordinary scoped source revert; no migration",
-    "updated_at_utc": "2026-10-14T06:15:01.742193+00:00"
+    "updated_at_utc": "2026-10-14T06:28:41.347867+00:00",
+    "pr": 643,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/643",
+    "verified_head": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+    "merge_commit": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac",
+    "post_merge": "21 tests / 61 subtests PASS at merged main; 6 local PostgreSQL skips; 6 hosted new PostgreSQL cases PASS, zero skips",
+    "publication": "MERGED; documentation-only receipt is local for next substantive source PR",
+    "next_action": "Reconcile ownership and claim open P1 #177 / MJ-REQ-176; reproduce and fix document-generation audit history borrowing mutable document kinds, then verify immutable event snapshots across document removal, profile isolation and UI/API reload."
   }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-14T06:15:01.739637+00:00",
+  "recorded_at_utc": "2026-10-14T06:28:41.347867+00:00",
   "issues": [
     178,
     176
@@ -131,9 +131,121 @@
     "Whole parent requirements remain PARTIAL; original/reference acceptance matrices unchanged",
     "Recognized secret-marker filter cannot detect arbitrary free-text secrets encoded as otherwise valid identifiers",
     "Posting/source context for all relevant operations and universal operational logging are not proven",
-    "Local PostgreSQL/Redis/Compose and full Python/browser product regressions NOT_RUN; required hosted gates pending",
-    "No real provider fetch, job application or paid inference; controlled browser fixtures claim no employer acceptance"
+    "No real provider fetch, job application or paid inference; controlled browser fixtures claim no employer acceptance",
+    "Local PostgreSQL/Redis/Compose and full browser product regression NOT_RUN; hosted required gates ran PostgreSQL/Redis/Compose. Whole-product release remains PARTIAL."
   ],
-  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
-  "rollback": "Ordinary scoped revert; no schema/data-format/migration change"
+  "hosted_checks": {
+    "result": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "pr": 643,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/643",
+    "verified_head": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+    "required_checks": [
+      {
+        "name": "CI / required",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277372/job/115711914025",
+        "completed_at": "2026-10-14T06:18:54Z"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277389/job/115713770298",
+        "completed_at": "2026-10-14T06:24:53Z"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277300/job/115711287527",
+        "completed_at": "2026-10-14T06:21:36Z"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277173/job/115711287044",
+        "completed_at": "2026-10-14T06:16:55Z"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277321/job/115711287569",
+        "completed_at": "2026-10-14T06:16:58Z"
+      }
+    ],
+    "postgres_new_cases": {
+      "head": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+      "run_id": 38521277389,
+      "artifact_id": 11873239758,
+      "postgres_passed": 6,
+      "postgres_skipped": 0,
+      "cases": [
+        {
+          "class": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests",
+          "name": "test_form_review_ignores_private_payload_and_forged_context",
+          "result": "PASS",
+          "seconds": "1.319"
+        },
+        {
+          "class": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests",
+          "name": "test_lookup_failure_preserves_terminal_outcomes_without_diagnostic_values",
+          "result": "PASS",
+          "seconds": "2.442"
+        },
+        {
+          "class": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests",
+          "name": "test_missing_malformed_and_nonapplication_entities_never_become_log_context",
+          "result": "PASS",
+          "seconds": "0.977"
+        },
+        {
+          "class": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests",
+          "name": "test_dry_run_blocked_then_fresh_intent_logs_persisted_context_and_receipt",
+          "result": "PASS",
+          "seconds": "2.314"
+        },
+        {
+          "class": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests",
+          "name": "test_form_review_logs_after_persisted_result_and_survives_reopen",
+          "result": "PASS",
+          "seconds": "1.050"
+        },
+        {
+          "class": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests",
+          "name": "test_process_crash_receipt_recovery_logs_once_without_browser_replay",
+          "result": "PASS",
+          "seconds": "3.933"
+        }
+      ]
+    },
+    "integration_junit": {
+      "run_id": 38521277389,
+      "tests": 2240,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 19,
+      "passed_cases": 2221
+    },
+    "merge_commit": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac"
+  },
+  "rollback": "Ordinary scoped revert; no schema/data-format/migration change",
+  "post_merge": {
+    "revision": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac",
+    "tree_identical_to_checked_pr": true,
+    "source_files_identical": 5,
+    "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_application_operation_logs.py tests/integration/test_application_log_privacy.py -p no:cacheprovider --basetemp <owned-post-merge-temp>",
+    "result": "PASS",
+    "tests": 21,
+    "subtests": 61,
+    "skipped": 6
+  },
+  "checkpoint_publication": "Documentation-only post-merge receipt is local and must travel with the next substantive P0/P1 source PR; no hosted PASS is claimed for this newer local documentation commit"
 }
