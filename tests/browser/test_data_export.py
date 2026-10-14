@@ -64,6 +64,9 @@ class DataExportBrowserTests(unittest.TestCase):
                     'Authorization': 'SYNTHETIC_BROWSER_AUTH_HEADER',
                     'work_authorization': 'Synthetic employment answer',
                 }}]))
+                connection.execute(m.routes.update().where(
+                    m.routes.c.job_id == job['id'],
+                ).values(url='https://jobs.example.test/apply/%73ession/SYNTHETIC_BROWSER_PATH_TOKEN'))
             store.engine.dispose()
             app = create_app(
                 store, 'http://127.0.0.1:1', root,
@@ -140,6 +143,7 @@ class DataExportBrowserTests(unittest.TestCase):
                         'export-fixture-one', 'Download jobs CSV', 'jobs.csv',
                         'mjobs-jobs-export-fixture-one.csv')
                     jobs = list(csv.DictReader(io.StringIO(jobs_text)))
+                    self.assertNotIn('SYNTHETIC_BROWSER_PATH_TOKEN', jobs_text)
                     self.assertTrue(jobs, 'jobs export should include the synthetic matched posting')
                     self.assertIn(job['id'], {row['id'] for row in jobs})
 
@@ -147,12 +151,20 @@ class DataExportBrowserTests(unittest.TestCase):
                         'export-fixture-one', 'Download applications CSV', 'applications.csv',
                         'mjobs-applications-export-fixture-one.csv')
                     applications = list(csv.DictReader(io.StringIO(applications_text)))
+                    self.assertNotIn('SYNTHETIC_BROWSER_PATH_TOKEN', applications_text)
                     self.assertEqual({row['id'] for row in applications}, {application_id})
 
                     backup_text = download_export(
                         'export-fixture-one', 'Download complete backup', 'backup.json',
                         'mjobs-backup-export-fixture-one.json')
                     first_backup = json.loads(backup_text)
+                    self.assertNotIn('SYNTHETIC_BROWSER_PATH_TOKEN', backup_text)
+                    self.assertTrue(all(row['url'] is None for row in first_backup['application_routes']
+                                        if row['job_id'] == job['id']))
+                    with store.engine.connect() as connection:
+                        saved_url = connection.execute(m.routes.select().where(
+                            m.routes.c.job_id == job['id'])).mappings().first()['url']
+                    self.assertIn('SYNTHETIC_BROWSER_PATH_TOKEN', saved_url)
                     self.assertEqual(first_backup['export_type'], 'profile_backup')
                     self.assertEqual(first_backup['profile_id'], 'export-fixture-one')
                     self.assertNotIn('SYNTHETIC_BROWSER_API_KEY', backup_text)

@@ -10,7 +10,7 @@ import json
 import math
 import re
 from pathlib import Path
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import unquote, urlsplit, urlunsplit
 
 from sqlalchemy import case, func, select, union
 
@@ -105,6 +105,14 @@ def _safe_url(value):
         parsed = urlsplit(value)
         if (parsed.scheme.casefold() not in {"http", "https"}
                 or not parsed.hostname or parsed.username is not None or parsed.password is not None):
+            return None
+        # A capability in the path is as private as a query token. Omit the
+        # entire link rather than exporting a secret or a misleading partial URL.
+        # Decode before splitting so encoded separators cannot hide a marker.
+        sensitive_segments = {"token", "session", "auth", "password", "secret",
+                              "credential", "access_key"}
+        if any(segment.casefold() in sensitive_segments
+               for segment in unquote(parsed.path).split("/")):
             return None
         # Query strings and fragments can carry access tokens or session state.
         host = parsed.hostname.casefold()

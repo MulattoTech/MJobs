@@ -117,6 +117,26 @@ class DataExportTests(unittest.TestCase):
         self.store.engine.dispose()
         self.temporary.cleanup()
 
+    def test_exports_omit_session_bearing_paths_without_changing_saved_routes(self):
+        for path in ("session/PRIVATE_PATH_VALUE", "%73ession/PRIVATE_PATH_VALUE",
+                     "apply%2Ftoken%2FPRIVATE_PATH_VALUE", "AUTH/PRIVATE_PATH_VALUE"):
+            with self.subTest(path=path):
+                original = f"https://jobs.lever.co/tenant-a/{path}?token=PRIVATE_QUERY"
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.routes.update().where(m.routes.c.id == "route-a").values(url=original))
+                self.store.engine.dispose()
+                jobs = export_jobs_csv(self.store, "profile-a")
+                applications = export_applications_csv(self.store, "profile-a")
+                backup = export_profile_backup(self.store, "profile-a")
+                for text in (jobs, applications, json.dumps(backup)):
+                    self.assertNotIn("PRIVATE_PATH_VALUE", text)
+                    self.assertNotIn("PRIVATE_QUERY", text)
+                self.assertIsNone(backup["application_routes"][0]["url"])
+                self.assertEqual(backup["applications"][0]["id"], "application-a")
+                with self.store.engine.connect() as connection:
+                    self.assertEqual(connection.execute(m.routes.select().where(
+                        m.routes.c.id == "route-a")).mappings().one()["url"], original)
+
     def test_csv_exports_are_deterministic_profile_scoped_and_header_stable(self):
         jobs = export_jobs_csv(self.store, "profile-a")
         applications = export_applications_csv(self.store, "profile-a")
