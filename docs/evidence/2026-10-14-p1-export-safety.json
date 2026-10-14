@@ -1,5 +1,5 @@
 {
-  "recorded_at_utc": "2026-10-14T05:18:30.008621+00:00",
+  "recorded_at_utc": "2026-10-14T05:30:16.702447+00:00",
   "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
   "source_sha256": {
     "services/data_export.py": "5e730237369e223692d00307c6ef03c3be765462444d75e58096558e5b703e09",
@@ -82,6 +82,15 @@
       "command": "python -m tools.verification.commit_provenance --commit HEAD",
       "result": "PASS",
       "detail": "Source commit attribution verified for six files."
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_data_export.py tests/unit/test_data_export_bounds.py tests/unit/test_application_upload_integrity.py tests/integration/test_data_export_flow.py tests/integration/test_resume_upload.py tests/browser/test_data_export.py tests/browser/test_application_upload_integrity.py --tb=short",
+      "revision": "480032dd154903cafe75f81c7f4add6b1f542437",
+      "result": "PASS",
+      "tests": 40,
+      "subtests": 30,
+      "skips": 0,
+      "detail": "Post-merge retest; all source hashes and complete PR/merge trees identical."
     }
   ],
   "review": {
@@ -99,6 +108,163 @@
     "Path/checksum controls are preserved; this change does not claim atomic defense against hostile filesystem replacement."
   ],
   "hosted": {
-    "status": "NOT_RUN"
-  }
+    "status": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "pr": 641,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+    "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+    "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+    "tree": "bf497dc10622b2541a4cf2dceddb36a13391f471",
+    "merge_tree_identical": true,
+    "required_checks": [
+      {
+        "name": "CI / required",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935513/job/115695243305",
+        "completed_at": "2026-10-14T05:20:55Z"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935598/job/115696881688",
+        "completed_at": "2026-10-14T05:26:41Z"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935639/job/115694623935",
+        "completed_at": "2026-10-14T05:22:39Z"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935644/job/115694624179",
+        "completed_at": "2026-10-14T05:18:46Z"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935658/job/115694624176",
+        "completed_at": "2026-10-14T05:18:50Z"
+      }
+    ],
+    "all_checks": [
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935598/job/115696881688"
+      },
+      {
+        "name": "CI / required",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935513/job/115695243305"
+      },
+      {
+        "name": "CodeQL",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/runs/115694784380"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935644/job/115694624179"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935658/job/115694624176"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935639/job/115694623935"
+      },
+      {
+        "name": "Integration / shard 1",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935598/job/115694623893"
+      },
+      {
+        "name": "Integration / shard 2",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935598/job/115694623869"
+      },
+      {
+        "name": "Repository / policy and docs",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935513/job/115694623856"
+      },
+      {
+        "name": "Python / unit and integrity",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935513/job/115694623716"
+      },
+      {
+        "name": "Integration / shard 0",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935598/job/115694623667"
+      },
+      {
+        "name": "Web / Vitest and production build",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515935513/job/115694623538"
+      },
+      {
+        "name": "Analyze (python)",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515933868/job/115694621481"
+      },
+      {
+        "name": "Analyze (actions)",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515933868/job/115694621377"
+      },
+      {
+        "name": "Analyze (javascript-typescript)",
+        "head_sha": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38515933868/job/115694621134"
+      }
+    ],
+    "merged_main_push_checks": "NOT_RUN_PENDING_SEPARATE_EVIDENCE"
+  },
+  "transport": "An intermittent Windows schannel read-only refresh failure was resolved using per-command OpenSSL transport with TLS certificate verification retained. No global Git, host or security setting changed."
 }
