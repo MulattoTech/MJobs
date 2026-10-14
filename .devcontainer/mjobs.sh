@@ -4,10 +4,19 @@ set -Eeuo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-if [[ -x .venv/bin/python ]]; then
-  PY="$ROOT/.venv/bin/python"
-else
-  PY="$(command -v python)"
+# Only the stdlib configuration initializer runs on the host; application
+# dependencies and their Python version remain owned by the Compose images.
+PY=""
+for candidate in "$ROOT/.venv/bin/python" "$(command -v python3 || true)" "$(command -v python || true)"; do
+  if [[ -n "$candidate" && -x "$candidate" ]] &&
+      "$candidate" -c 'import sys; sys.exit(sys.version_info < (3, 10))' >/dev/null 2>&1; then
+    PY="$candidate"
+    break
+  fi
+done
+if [[ -z "$PY" ]]; then
+  echo "Python 3.10 or newer is required to initialize local configuration. Install python3 or create a supported .venv." >&2
+  exit 1
 fi
 
 "$PY" -m cli.init_env
