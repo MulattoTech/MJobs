@@ -3346,10 +3346,11 @@
         "MJ-PR-069",
         "MJ-PR-063"
       ],
-      "status": "QUEUED",
+      "status": "IN_PROGRESS",
       "branch": "codex/mj-pr-070-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Round3 PR654: only MJ-REQ-257 fully verified PASS on source b931cbb5; final protected integration pending. Other grouped requirements unchanged and open.",
+      "pr_number": 654
     },
     {
       "id": "MJ-PR-071",

@@ -139,7 +139,7 @@ export function SourceRelationshipGraphPanel({profileId,graph,loading,error,onRe
       <button type="button" onClick={onRetry}>Refresh graph</button></div>
     <div className="source-relationship-graph-grid" style={{display:'grid',gridTemplateColumns:'1fr',gap:18,alignItems:'start'}}>
       <div className="source-relationship-map" role="region" aria-label="Relationship map"
-        style={{overflow:'auto',border:'1px solid #dce2de',borderRadius:8,padding:10,background:'#f8faf8'}}>
+        style={{overflow:'auto',border:'1px solid var(--border)',borderRadius:8,padding:10,background:'var(--surface-subtle)'}}>
         <svg style={{display:'block',minWidth:1280,width:'100%',height:'auto'}} viewBox={`0 0 ${20 + 5 * COLUMN_GAP + NODE_WIDTH + 20} ${height}`} role="group" aria-label="Company and application relationships">
           {safeGraph.edges.map(edge=>{
             const source=positions.get(edge.source); const target=positions.get(edge.target);
@@ -148,7 +148,7 @@ export function SourceRelationshipGraphPanel({profileId,graph,loading,error,onRe
             const x1=source.x+(forward?NODE_WIDTH:0); const x2=target.x+(forward?0:NODE_WIDTH);
             const y1=source.y+NODE_HEIGHT/2; const y2=target.y+NODE_HEIGHT/2;
             const bend=Math.max(28,Math.abs(x2-x1)*0.42);
-            return <path key={edge.id} fill="none" stroke={currentSelection.kind==='edge'&&currentSelection.id===edge.id?'#276e58':'#8a9c99'} strokeWidth={currentSelection.kind==='edge'&&currentSelection.id===edge.id?3:2}
+            return <path key={edge.id} fill="none" stroke={currentSelection.kind==='edge'&&currentSelection.id===edge.id?'var(--good)':'var(--edge)'} strokeWidth={currentSelection.kind==='edge'&&currentSelection.id===edge.id?3:2}
               d={`M ${x1} ${y1} C ${x1+(forward?bend:-bend)} ${y1}, ${x2-(forward?bend:-bend)} ${y2}, ${x2} ${y2}`} />;
           })}
           {safeGraph.nodes.map(node=>{
@@ -160,9 +160,9 @@ export function SourceRelationshipGraphPanel({profileId,graph,loading,error,onRe
               onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();onSelect({kind:'node',id:node.id});}}}>
               <title>{`${NODE_TYPES[node.type].label}: ${node.label}`}</title>
               <rect x={point.x} y={point.y} width={NODE_WIDTH} height={NODE_HEIGHT} rx="8"
-                fill={active?'#e4f1ea':'#ffffff'} stroke={active?'#276e58':'#b9c8c3'} strokeWidth={active?3:1.5} />
-              <text x={point.x+12} y={point.y+21} fill="#587670" fontSize="11" fontWeight="700">{NODE_TYPES[node.type].label}</text>
-              <text x={point.x+12} y={point.y+42} fill="#243e49" fontSize="13" fontWeight="600">{displayLabel(node.label)}</text>
+                fill={active?'var(--good-bg)':'var(--surface)'} stroke={active?'var(--good)':'var(--border)'} strokeWidth={active?3:1.5} />
+              <text x={point.x+12} y={point.y+21} fill="var(--muted)" fontSize="11" fontWeight="700">{NODE_TYPES[node.type].label}</text>
+              <text x={point.x+12} y={point.y+42} fill="var(--text)" fontSize="13" fontWeight="600">{displayLabel(node.label)}</text>
             </g>;
           })}
         </svg>
@@ -176,7 +176,7 @@ export function SourceRelationshipGraphPanel({profileId,graph,loading,error,onRe
           <p>{nodesById.get(selectedEdge.source)?.label} → {nodesById.get(selectedEdge.target)?.label}</p></>}
       </aside>
     </div>
-    <section className="source-relationship-links" aria-label="Relationships" style={{marginTop:18,borderTop:'1px solid #e1e6e2',paddingTop:12}}>
+    <section className="source-relationship-links" aria-label="Relationships" style={{marginTop:18,borderTop:'1px solid var(--border)',paddingTop:12}}>
       <h3>Relationships</h3>
       {safeGraph.edges.length ? <ul>{safeGraph.edges.map(edge=>{
         const source=nodesById.get(edge.source); const target=nodesById.get(edge.target);
@@ -184,7 +184,7 @@ export function SourceRelationshipGraphPanel({profileId,graph,loading,error,onRe
         const active=currentSelection.kind==='edge'&&currentSelection.id===edge.id;
         return <li key={edge.id}><button type="button" className={active?'selected':''} aria-pressed={active}
           aria-label={`${EDGE_TYPES[edge.type]}: ${source.label} → ${target.label}`}
-          style={{display:'grid',gap:3,textAlign:'left',width:'100%',margin:'5px 0',borderColor:active?'#276e58':undefined,background:active?'#eef6f1':undefined}}
+          style={{display:'grid',gap:3,textAlign:'left',width:'100%',margin:'5px 0',borderColor:active?'var(--good)':undefined,background:active?'var(--good-bg)':undefined}}
           onClick={()=>onSelect({kind:'edge',id:edge.id})}>
           <span>{EDGE_TYPES[edge.type]}</span><small>{source.label} → {target.label}</small>
         </button></li>;
