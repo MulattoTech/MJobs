@@ -1,0 +1,104 @@
+{
+  "recorded_at_utc": "2026-10-14T05:18:30.008621+00:00",
+  "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+  "source_sha256": {
+    "services/data_export.py": "5e730237369e223692d00307c6ef03c3be765462444d75e58096558e5b703e09",
+    "services/documents/uploads.py": "f67f34b5edb897f3b514d422983e8eed1103dcaa782e810d839c865a078d162c",
+    "tests/unit/test_data_export.py": "cd7fbf6835d82b7734eb62f952c17dfa1e1be2b86fb349ce1db904ed514ea443",
+    "tests/unit/test_data_export_bounds.py": "55b52280cfb7ac4c75b059b3e247d6e7a28bff4a051fe5236fad4c08baed6357",
+    "tests/integration/test_data_export_flow.py": "1c1098ed255ed057e52ae92c8d0c587d781662c22d422e208045405e168c8e3e",
+    "tests/browser/test_data_export.py": "83e7dc6af0052470fa5aa946b3cc4e3f6c704b69d5461996423d937f94c190d7"
+  },
+  "issues": [
+    176,
+    170
+  ],
+  "requirements": [
+    "MJ-REQ-175",
+    "MJ-REQ-169"
+  ],
+  "project": {
+    "owner": "MulattoTech",
+    "number": 1,
+    "snapshot": "queue-2.json",
+    "live_priority_verified": {
+      "176": "P1",
+      "170": "P1"
+    },
+    "verified_base_main": "2dde6085dc9769b5e0c539320f53309f8eb073f7"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "os": "Windows",
+    "fixtures": "temporary synthetic SQLite and local HTTP/Chromium; existing private databases untouched"
+  },
+  "scope_behavior": "PASS",
+  "original_acceptance": {
+    "MJ-REQ-175": "PARTIAL",
+    "MJ-REQ-169": "PARTIAL"
+  },
+  "behavior": [
+    "Profile JSON and backup exports omit recognized credential key families and enumerated HTTP authentication aliases at any nested mapping depth.",
+    "Work authorization and ordinary answers survive; export redaction never changes persisted inputs.",
+    "Generated file reads cap bytes despite growth after stat; uploaded reads stop at recorded size plus one byte and recheck size/checksum.",
+    "Accumulated document-file JSON is bounded; oversized upload metadata is rejected before opening the file.",
+    "API backup failure returns fixed error without attachment or partial payload; repaired-file retry and database reopen succeed.",
+    "Connected Chromium downloads remain readable/profile-scoped; synthetic credential markers are absent from downloaded exports."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_data_export.py -k nested_authentication (before fixes)",
+      "result": "FAIL_EXPECTED",
+      "detail": "Observed initial credential-family leakage and review-discovered HTTP-auth alias leakage."
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_data_export_bounds.py (before fixes)",
+      "result": "FAIL_EXPECTED",
+      "detail": "Generated/uploaded reads used size=-1; growing generated file returned checksum error after unbounded read."
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_data_export.py tests/unit/test_data_export_bounds.py tests/unit/test_application_upload_integrity.py tests/integration/test_data_export_flow.py tests/integration/test_resume_upload.py tests/browser/test_data_export.py tests/browser/test_application_upload_integrity.py --tb=short",
+      "result": "PASS",
+      "tests": 40,
+      "subtests": 30,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit --tb=short",
+      "result": "PASS",
+      "detail": "1589 passed, 8 skipped, 1080 subtests passed in 245.55s (0:04:05)"
+    },
+    {
+      "command": "npm --prefix apps/web run build -- --configLoader runner",
+      "result": "PASS",
+      "detail": "TypeScript and production Vite build; existing chunk-size advisory."
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS",
+      "detail": "Source commit attribution verified for six files."
+    }
+  ],
+  "review": {
+    "kind": "local Luna review",
+    "result": "Two read-only GPT-6 Luna High reviewers; credential alias findings fixed; no remaining critical/important findings in bounded scope"
+  },
+  "not_run": [
+    "Local PostgreSQL/Redis/Compose full stack",
+    "Whole-product release acceptance",
+    "Real external application submission (OFF)"
+  ],
+  "limitations": [
+    "This is field-name filtering, not detection of secrets in arbitrary fields or free text.",
+    "Complete backup/restore and whole secret-management criteria remain PARTIAL.",
+    "Path/checksum controls are preserved; this change does not claim atomic defense against hostile filesystem replacement."
+  ],
+  "hosted": {
+    "status": "NOT_RUN"
+  }
+}

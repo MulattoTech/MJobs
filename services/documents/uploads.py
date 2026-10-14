@@ -181,7 +181,11 @@ def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str,
         raise UploadIntegrityError("Uploaded resume is missing or path is unsafe")
     if path.stat().st_size != record["size_bytes"] or record["size_bytes"] > MAX_UPLOAD_BYTES:
         raise UploadIntegrityError("Uploaded resume size changed")
-    data = path.read_bytes()
+    # The file may grow after stat; never read beyond the recorded size.
+    with path.open("rb") as stream:
+        data = stream.read(record["size_bytes"] + 1)
+    if len(data) != record["size_bytes"]:
+        raise UploadIntegrityError("Uploaded resume size changed")
     if hashlib.sha256(data).hexdigest() != record["sha256"]:
         raise UploadIntegrityError("Uploaded resume checksum changed")
     return record, data
