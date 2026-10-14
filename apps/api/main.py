@@ -96,24 +96,6 @@ class LocalOriginMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = Request(scope, receive)
-        origin = request.headers.get("origin")
-        unsafe_method = request.method not in ("GET", "HEAD", "OPTIONS")
-        cross_site = request.headers.get("sec-fetch-site") == "cross-site"
-        if unsafe_method and ((origin and origin != str(request.base_url).rstrip("/")) or cross_site):
-            response = JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
-            await response(scope, receive, send)
-            return
-        # API namespaces grow as new workflows are added. Protect them by
-        # default; only the public shell/assets and health probes are exempt.
-        public_read = (request.url.path in ("/", "/health", "/ready", "/readiness",
-                                           "/favicon.ico", "/favicon.svg")
-                       or request.url.path.startswith("/assets/"))
-        if cross_site and not public_read:
-            response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
-            await response(scope, receive, send)
-            return
-
         async def send_with_security_headers(message):
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
@@ -125,6 +107,29 @@ class LocalOriginMiddleware:
                     "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
                 )
             await send(message)
+
+        request = Request(scope, receive)
+        origin = request.headers.get("origin")
+        unsafe_method = request.method not in ("GET", "HEAD", "OPTIONS")
+        foreign_origin = origin is not None and origin != str(request.base_url).rstrip("/")
+        fetch_site = request.headers.get("sec-fetch-site")
+        # Another port on localhost is same-site, but does not own this API.
+        # Missing metadata preserves native clients; explicit invalid metadata
+        # fails closed. Direct address-bar navigation is identified as "none".
+        foreign_browser = fetch_site is not None and fetch_site not in {"same-origin", "none"}
+        if unsafe_method and (foreign_origin or foreign_browser):
+            response = JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
+            await response(scope, receive, send_with_security_headers)
+            return
+        # API namespaces grow as new workflows are added. Protect them by
+        # default; only the public shell/assets and health probes are exempt.
+        public_read = (request.url.path in ("/", "/health", "/ready", "/readiness",
+                                           "/favicon.ico", "/favicon.svg")
+                       or request.url.path.startswith("/assets/"))
+        if (foreign_origin or foreign_browser) and not public_read:
+            response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
+            await response(scope, receive, send_with_security_headers)
+            return
 
         await self.app(scope, receive, send_with_security_headers)
 

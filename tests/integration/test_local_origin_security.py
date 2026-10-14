@@ -80,3 +80,70 @@ class LocalOriginSecurityTests(unittest.TestCase):
             headers={"origin": "https://attacker.example", "sec-fetch-site": "same-origin"},
         )
         self.assertEqual(response.status_code, 403, response.text)
+
+    def test_private_reads_reject_foreign_or_invalid_explicit_origins(self):
+        self.assertEqual(self.client.put("/search-profiles", json=self.search).status_code, 200)
+        for origin in ("http://testserver:9999", "https://attacker.example", "null", ""):
+            for method in ("GET", "HEAD", "OPTIONS"):
+                with self.subTest(origin=origin, method=method):
+                    response = self.client.request(
+                        method, "/search-profiles/private-search",
+                        headers={"origin": origin, "sec-fetch-site": "same-origin"},
+                    )
+                    self.assertEqual(response.status_code, 403)
+                    self.assertNotIn("Private synthetic search", response.text)
+
+    def test_same_site_and_invalid_browser_metadata_cannot_read_private_records(self):
+        self.assertEqual(self.client.put("/search-profiles", json=self.search).status_code, 200)
+        for fetch_site in ("same-site", "invalid", ""):
+            with self.subTest(fetch_site=fetch_site):
+                response = self.client.get(
+                    "/search-profiles/private-search", headers={"sec-fetch-site": fetch_site},
+                )
+                self.assertEqual(response.status_code, 403, response.text)
+                self.assertNotIn("Private synthetic search", response.text)
+
+    def test_same_site_mutation_without_origin_preserves_saved_search_after_restart(self):
+        self.assertEqual(self.client.put("/search-profiles", json=self.search).status_code, 200)
+        response = self.client.put(
+            "/search-profiles", json={**self.search, "name": "Sibling origin replacement"},
+            headers={"sec-fetch-site": "same-site"},
+        )
+        self.assertEqual(response.status_code, 403, response.text)
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.url)
+        self.client = self._client()
+        reopened = self.client.get("/search-profiles/private-search")
+        self.assertEqual(reopened.status_code, 200, reopened.text)
+        self.assertEqual(reopened.json()["name"], "Private synthetic search")
+
+    def test_direct_navigation_and_same_origin_can_read_but_foreign_shell_is_public(self):
+        self.assertEqual(self.client.put("/search-profiles", json=self.search).status_code, 200)
+        for headers in ({}, {"sec-fetch-site": "none"},
+                        {"origin": "http://testserver", "sec-fetch-site": "same-origin"}):
+            with self.subTest(headers=headers):
+                response = self.client.get("/search-profiles/private-search", headers=headers)
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(response.json()["name"], "Private synthetic search")
+        public = self.client.get("/health", headers={"origin": "http://testserver:9999",
+                                                    "sec-fetch-site": "same-site"})
+        self.assertEqual(public.status_code, 200, public.text)
+        self.assertFalse(public.json()["external_submission_enabled"])
+
+    def test_origin_denials_keep_browser_security_headers_without_reflecting_input(self):
+        for method, headers in (
+            ("PUT", {"origin": "https://attacker.example/private-marker"}),
+            ("GET", {"sec-fetch-site": "cross-site"}),
+            ("GET", {"sec-fetch-site": "same-site"}),
+        ):
+            with self.subTest(method=method, headers=headers):
+                response = self.client.request(method, "/search-profiles", headers=headers,
+                                               json=self.search if method == "PUT" else None)
+                self.assertEqual(response.status_code, 403, response.text)
+                self.assertEqual(response.headers.get("cache-control"), "no-store")
+                self.assertEqual(response.headers.get("x-content-type-options"), "nosniff")
+                self.assertEqual(response.headers.get("referrer-policy"), "no-referrer")
+                self.assertIn("frame-ancestors 'none'", response.headers.get("content-security-policy", ""))
+                self.assertNotIn("attacker.example", response.text + str(response.headers))
+                self.assertNotIn("Private synthetic search", response.text)
