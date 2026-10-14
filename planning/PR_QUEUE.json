@@ -5634,6 +5634,21 @@
       "branch": "codex/p0p1-only-20261013-232152",
       "draft_until_verified": true,
       "notes": "PR #643 merged ca9f8df8042cb876fb694ebe34f4865a7b5a35ac after all five required gates PASS at a64880745bb8b01061ab69fd0eec6db4bb4805c5; six new PostgreSQL cases PASS, zero skips. Source a89f4716 unchanged. Parents remain PARTIAL; local documentation receipt travels with next source PR."
+    },
+    {
+      "id": "MJ-PR-P1-AUDIT-SUBJECT-HISTORY-177-176",
+      "title": "Keep safe immutable job/company subjects in Activity history",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-176",
+        "MJ-REQ-175"
+      ],
+      "target_area": "services/audit_history.py",
+      "depends_on": [],
+      "status": "IN_PROGRESS",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "draft_until_verified": true,
+      "notes": "Source 94c7dc183ce1b2a53b222d4b4807d1f176ab9fe7; local 47 tests/39 subtests and 3 Chromium cases PASS; full 1593 units/1114 subtests PASS. Required hosted checks pending; full parents remain PARTIAL."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

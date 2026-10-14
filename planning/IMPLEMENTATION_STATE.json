@@ -3009,5 +3009,44 @@
     "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
     "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
     "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
+  },
+  "p0p1_iteration_6": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 6,
+    "issues": [
+      177,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-176",
+      "MJ-REQ-175"
+    ],
+    "status": "LOCAL_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "acceptance": "Immutable safe job/company snapshots for profile discovery, merge, scoring and preparation lifecycle events; retain history after rename/removal/reopen and explicit unknown legacy labels.",
+    "owned_source": [
+      "services/audit_history.py"
+    ],
+    "plan": [
+      "Fail real API regressions for mutable/dropped history and raw snapshot leakage",
+      "Snapshot sanitized labels in existing audit transactions; project allowlisted fields fail closed",
+      "Verify replay/rollback, profile isolation, database reopen, connected Activity UI",
+      "Local Luna review, targeted/full units/build/validators, commit and exact-head required PR checks",
+      "Integrate only qualified source; parent requirements remain PARTIAL"
+    ],
+    "rollback": "Ordinary scoped revert; additive audit payload only, no schema/data deletion",
+    "original_acceptance": {
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "recorded_at_utc": "2026-10-14T07:24:16.281633+00:00",
+    "source_revision": "94c7dc183ce1b2a53b222d4b4807d1f176ab9fe7",
+    "evidence": "docs/evidence/2026-10-14-p1-audit-subject-history.json",
+    "local_focused": "47 PASS / 39 subtests / 37 PostgreSQL-Redis skips",
+    "browser": "3 connected Chromium cases PASS",
+    "full_unit": "1593 PASS / 1114 subtests / 8 Linux-only skips",
+    "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+    "local_review": "Local Luna High read-only review: no critical or important finding",
+    "updated_at_utc": "2026-10-14T07:32:35.434602+00:00"
   }
 }
