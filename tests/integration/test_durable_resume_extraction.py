@@ -1,6 +1,7 @@
 """Durable queued resume extraction preserves pending-only review semantics."""
 from datetime import datetime, timedelta, timezone
 import hashlib
+import json
 import os
 import socket
 from pathlib import Path
@@ -200,13 +201,30 @@ class DurableResumeExtractionTests(unittest.TestCase):
             calls.append(1)
             return real_extract(*args, **kwargs)
 
+        from workers.structured_logging import log_operation_finished
+
+        def persisted_then_log(operation, state, error, duration):
+            self.assertEqual(self.operation(operation_id)["state"], state)
+            self.assertEqual(self.store.count("resume_extraction_results"), 1)
+            log_operation_finished(operation, state, error, duration)
+
         with patch.dict("os.environ", worker_env), patch.object(
-                durable_extraction, "extract_resume", side_effect=count_extract):
+                durable_extraction, "extract_resume", side_effect=count_extract), \
+                patch("workers.tasks.log_operation_finished", side_effect=persisted_then_log), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured:
             result = execute_operation(operation_id)
             duplicate = execute_operation(operation_id)
         self.assertEqual(result["status"], "COMPLETED")
         self.assertNotEqual(duplicate["status"], "COMPLETED")
         self.assertEqual(len(calls), 1)
+        self.assertEqual(len(captured.records), 1)
+        record = json.loads(captured.records[0].getMessage())
+        self.assertEqual(record["operation_id"], operation_id)
+        self.assertEqual(record["operation_kind"], "RESUME_EXTRACT_QUEUED")
+        self.assertEqual(record["result"], self.operation(operation_id)["state"])
+        for private in (self.profile_id, self.resume["id"], self.request_id,
+                        "Synthetic Applicant", "Built durable local systems.", str(self.root)):
+            self.assertNotIn(private, captured.records[0].getMessage())
         self.assertEqual(self.store.profile(self.profile_id), before_profile)
         readback = self.client.get(
             f"/profiles/{self.profile_id}/resumes/{self.resume['id']}/extract/queued/{operation_id}")
@@ -227,6 +245,50 @@ class DurableResumeExtractionTests(unittest.TestCase):
             f"/profiles/{self.profile_id}/resumes/{self.resume['id']}/extract/queued/{operation_id}"
         ).status_code, 409)
         upload_path.write_bytes(self.resume_bytes)
+
+    def test_invalid_extraction_logs_blocked_outcome_and_repaired_retry_survives_restart(self):
+        operation_id = self.queue().json()["operation_id"]
+        upload_path = self.root / "uploads" / f"{self.resume['id']}.txt"
+        upload_path.write_bytes(b"SYNTHETIC_PRIVATE_CORRUPT_RESUME")
+        before = self.store.profile(self.profile_id)
+        worker_env = dict(MJOBS_DATABASE_URL=self.database_url,
+                          MJOBS_OUTPUT_DIR=str(self.root), MJOBS_OPERATION_MODE="PERSONAL")
+        from workers.structured_logging import log_operation_finished
+
+        def persisted_then_log(operation, state, error, duration):
+            self.assertEqual(self.operation(operation_id)["state"], "BLOCKED")
+            self.assertEqual(self.store.count("resume_extraction_results"), 0)
+            log_operation_finished(operation, state, error, duration)
+
+        with patch.dict(os.environ, worker_env), \
+                patch("workers.tasks.log_operation_finished", side_effect=persisted_then_log), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured:
+            failed = execute_operation(operation_id)
+        self.assertEqual(failed["status"], "BLOCKED")
+        self.assertEqual(len(captured.records), 1)
+        record = json.loads(captured.records[0].getMessage())
+        self.assertEqual(record["result"], self.operation(operation_id)["state"])
+        self.assertEqual(record["error_code"], "RESUME_EXTRACTION_SOURCE_INVALID")
+        self.assertEqual(self.store.count("resume_extraction_results"), 0)
+        self.assertNotIn("SYNTHETIC_PRIVATE", captured.records[0].getMessage())
+        upload_path.write_bytes(self.resume_bytes)
+        retry_id = self.queue(request_id="repaired-" + uuid4().hex).json()["operation_id"]
+        with patch.dict(os.environ, worker_env), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured:
+            self.assertEqual(execute_operation(retry_id)["status"], "COMPLETED")
+        self.assertEqual(json.loads(captured.records[0].getMessage())["operation_id"], retry_id)
+        reopened = Store(self.database_url)
+        try:
+            with TestClient(create_app(reopened, "http://127.0.0.1:1", self.root,
+                                      operation_mode="PERSONAL")) as restarted:
+                readback = restarted.get(
+                    f"/profiles/{self.profile_id}/resumes/{self.resume['id']}/extract/queued/{retry_id}")
+                self.assertEqual(readback.status_code, 200, readback.text)
+                self.assertEqual(readback.json()["state"], "COMPLETED")
+                self.assertTrue(readback.json()["result"]["facts"])
+        finally:
+            reopened.engine.dispose()
+        self.assertEqual(self.store.profile(self.profile_id), before)
 
     def test_process_crash_after_extraction_replays_and_commits_one_result(self):
         queued = self.queue()
@@ -280,8 +342,11 @@ os._exit(74)
             return result
 
         with patch.dict("os.environ", worker_env), patch.object(
-                durable_extraction, "extract_resume", side_effect=count_recovery_extract):
+                durable_extraction, "extract_resume", side_effect=count_recovery_extract), \
+                self.assertLogs("mjobs.operations", level="INFO") as captured:
             self.assertEqual(execute_operation(operation_id)["status"], "COMPLETED")
+        self.assertEqual(len(captured.records), 1)
+        self.assertEqual(json.loads(captured.records[0].getMessage())["operation_id"], operation_id)
         self.assertEqual((self.root / "extract-count").read_text(encoding="ascii"), "2")
         self.assertEqual(self.store.count("resume_extraction_results"), 1)
         readback = self.client.get(
