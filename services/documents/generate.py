@@ -656,5 +656,6 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                  'claim_validation': r['generation_context']['claim_validation']}
                 for r in records]})
         store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"],
+            "document_kinds": sorted({record["kind"] for record in records}),
             "adapter_knowledge": application_adapter_knowledge(connection, route["id"])})
         return application_id

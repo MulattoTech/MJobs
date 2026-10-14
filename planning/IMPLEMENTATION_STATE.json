@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Make controlled application preparation cancellation and retry durable and user-controlled",
+  "current_objective": "Complete portable settings transfer for Project P1 #278 / MJ-REQ-277",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -70,7 +70,7 @@
     "MJ-REF-020 / issue #390: connected UI/API records externally completed applications with source/time, route-first then cautious company/title reconciliation, provenance-marked minimal job creation, profile-scoped idempotency, and non-regressing application history (docs/evidence/2026-10-07-external-application-capture.json).",
     "MJ-REQ-007 / issue #8: stated requirement acceptance PASS. Healthy Git source-control safety, conditional no-Git N/A, atomic private configuration initialization, prior backup/restore, SQLite/PostgreSQL migration rollback/retry, and protected credential migration rollback/retry with ciphertext-preserving downgrade refusal are evidenced in docs/evidence/2026-10-07-source-change-safety-completion.json. Offline SQL generation probe failure at existing cb72f9041d6a remains separately recorded and is outside issue acceptance. Full repository release remains PARTIAL; hosted checks NOT_RUN_BY_USER_POLICY.",
     "MJ-REQ-180 / issue #181 acceptance PASS: all discovered production CLI screenshot artifact paths route through screenshot-only content masking; arbitrary DOM and pseudo-element text plus embedded image/canvas/video/frame content are suppressed, sensitive controls remain blacked out, and the live page remains unchanged. No product HTML snapshot/trace persistence found. Evidence docs/evidence/2026-10-07-feedback-screenshot-content-masking.json. Connected UI E2E NOT_RUN; hosted checks NOT_RUN_BY_USER_POLICY; overall product/release remains PARTIAL.",
-    "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB Ã— 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB Ã— 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
+    "MJ-REQ-178 / issue #179 Log Retention PASS: all nine Compose services configure bounded json-file rotation (10 MiB \u00c3\u2014 5). Isolated no-network Docker runtime test proved rollover: 50 large synthetic lines emitted, 11 retained with 1 MiB \u00c3\u2014 2 cap, exit 0, temporary container removed; personal MJobs stack untouched. Existing evidence/tests confirm feedback sessions expire after 30 days, raw Playwright traces are not written and no product HTML snapshot writer exists. Related suite 20 PASS; Compose render and validators PASS. Evidence docs/evidence/2026-10-07-compose-log-rotation.json. Issue CLOSED/readback verified; hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-165 / issue #166 Full-Text Search PASS: PostgreSQL GIN full-text indexes cover title, description, JSON skills and location plus company names; GET /jobs?q= searches all five required fields, with connected UI/API readback and saved-search compatibility. Evidence: docs/evidence/2026-10-07-full-text-search.json. Source 108c502ce0b2c8aa92a4868b09687b4b4a0206f1; integrated code/evidence at 59039a51701258a35c93fc7deca6fbf85d72fddd. Full Python 962 tests/8 skipped, frontend 63/build, connected Chromium, SQLite/PostgreSQL migrations and index-plan checks PASS. Hosted checks NOT_RUN_BY_USER_POLICY; external submission OFF.",
     "MJ-REQ-173 upload security across all seven supported document kinds; evidence docs/evidence/2026-10-07-seven-kind-upload-security.json",
     "Issue #117 / MJ-REQ-116 Match Categories locally verified PASS at docs/evidence/2026-10-08-match-categories.json; parent MJ-PR-032 and other matching requirements remain queued/partial.",
@@ -174,7 +174,7 @@
     "#372 / MJ-REF-002: connected answer-review workspace displays current approved career stories and linked fact fingerprints, requires explicit story-reference review/selection, suppresses sensitive-question lookup, and keeps answer text/review separate. Source c8b8f88d0bad3b2d135a4e3faad62eb4a28db0d3; evidence docs/evidence/2026-10-09-career-story-answer-citations.json. Story citation is transient, not stored in answer export; document-generation selection and broader story-bank acceptance remain incomplete.",
     "MJ-REQ-236 / issue #237: connected profile-scoped durable history for terminal discovery runs with source/query/filter context, UTC start/finish, result and new-job counts, status/errors, idempotent atomic persistence, read-only API, keyset pagination and Activity UI reload readback. Source e3ec3f40476129e5bca57baf48f9485d5db16259 (tree e5669e85ce084004a18f30f3232eec7982925f77); integrated local main bc523f642a27795e3791d7bf0926e22473376277. Evidence docs/evidence/2026-10-09-search-history.json. Duplicate counts remain null because collectors do not report a reliable total; hosted/live source NOT_RUN_BY_USER_POLICY.",
     "MJ-FEATURE-517 / issue #517 bounded source-candidate slice: exact capture replay is a no-op with immutable observation timestamps; distinct events preserve earliest first_seen and latest last_seen independent of arrival order; changed request reuse conflicts; review history displays sanitized API/feed evidence reference. Tested code 72bbc73f42179a33de71ba6c777abc721d162c52 (tree 6ce2cac4de565f6606d8af10b3b64611794df2e0); integrated local main 59e4e627a2891ae3f91e2b7bc2d0b51756b5f90c. Evidence docs/evidence/2026-10-09-source-candidate-replay-idempotency.json. Issue remains OPEN/PARTIAL.",
-    "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved companyâ€™s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json).",
+    "MJ-REQ-060: personal discovery without a supplied website reuses a uniquely resolved company\u00e2\u20ac\u2122s persisted VERIFIED domain with approved method and evidence before optional search; original evidence precedence and same-tier ambiguity are enforced. Automatic domain acquisition across all supported methods/paths remains incomplete (docs/evidence/2026-10-09-official-domain-evidence-order.json).",
     "MJ-REF-006 local acceptance: 29 focused unit/API/integration/browser-recovery tests pass for deterministic measured trimming, bounded attempts, protected facts, no-write previews and unavailable-measurement recovery. A measured-success connected browser flow and broader release gates remain unverified (docs/evidence/2026-10-09-resume-page-fit-acceptance-audit.json).",
     "MJ-REF-002 / #372: current approved fact-linked story revisions can be explicitly selected for job-specific cover letters; generated text retains exact user-authored story content and document history resolves revision/fact provenance. Resume story reuse and broader story-bank acceptance remain incomplete. Evidence docs/evidence/2026-10-09-cover-letter-story-reuse.json.",
     "Issue #372 / MJ-REF-002 explicit job-specific resume story reuse integrated locally at 9adee1f554283eb4ee5f46913eacc175671e428c (tree f8e7647cbf1356a9e5ad175f753a24388998845c); evidence docs/evidence/2026-10-09-resume-story-reuse.json; focused Python 32, frontend 24, connected resume/cover-letter Chromium 2, build and local validators PASS. Exact story text and immutable story/fact provenance survive durable generation/history; broader story-bank and interview-preparation acceptance remains PARTIAL.",
@@ -182,7 +182,7 @@
     "Profile-owned supporting-document and certification revisions can be selected per prepared fictional mock application, durably saved, restored after reload, integrity-checked, and uploaded only during the controlled local mock dry run; archived selections fail closed before requests (MJ-REQ-134 remains PARTIAL because real ATS upload adapters are unsupported).",
     "Prepared application details reuse company ATS discovery identity and exact route evidence to explain provider, tenant, discovery basis and actual adapter availability; ambiguous evidence selects no provider or adapter, and Greenhouse remains manual-only because no application adapter is supported (MJ-REQ-084 remains PARTIAL).",
     "Explainable match coverage now shows covered/possible base skill weights and per-skill contributions (issue #115 / MJ-REQ-114; integrated 55c6a6036dc42bb15f6a5d8e60289afb73fb55af; evidence docs/evidence/2026-10-09-explainable-skill-score-breakdown.json). Broader original score dimensions remain incomplete.",
-    "Issue #247 / MJ-REQ-246: monitored company-source transient failures show bounded HEALTHY â†’ DEGRADED â†’ FAILED recovery, manual reset, blocked-access handling and preserved rediscovery gate. Local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; broader source failure lifecycle remains incomplete.",
+    "Issue #247 / MJ-REQ-246: monitored company-source transient failures show bounded HEALTHY \u00e2\u2020\u2019 DEGRADED \u00e2\u2020\u2019 FAILED recovery, manual reset, blocked-access handling and preserved rediscovery gate. Local main 4e7cc5aea9f1e42e6c86f489516e3ae1c7859c47; evidence docs/evidence/2026-10-09-source-failure-recovery.json; broader source failure lifecycle remains incomplete.",
     "Issue #247 / MJ-REQ-247 PASS: a failed parser does not remove or rewrite the employer source; enabled configuration, provider/endpoints, terminal monitoring state and all failure events survive a fresh Store readback. Main 85a73d268a1fa6b6d281d707a8fd8058e1a3bc40; evidence docs/evidence/2026-10-09-failed-source-preservation.json.",
     "Issue #517 discovered source-site catalogue remains PARTIAL: other provider/browser intake and overall source suitability/integration acceptance are incomplete.",
     "2026-10-10 MJ-REQ-138 durable mock attempt lifecycle and connected history",
@@ -191,9 +191,11 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-005"
+    "MJ-REQ-277"
   ],
-  "active_prs": [],
+  "active_prs": [
+    653
+  ],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -672,7 +674,7 @@
     "MJ-REQ-005 candidate ec28943ec20109c2b1bc12c0130a26a2991b0636: first exact-head full run hit one nonreproducible CompanyDiscoveryRequestsBrowserTests Uvicorn thread shutdown assertion; isolated test and all 35 browser tests passed, then same-head 674-test full suite passed with only the optional PostgreSQL skip. See docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json.",
     "MJ-REQ-004 candidate 3d604b27b1a4c25e2ff0ee6fa68a07e9ff8f74a0: full suite initially saw stale ignored apps/web/dist; rebuilding restored current Sources UI and isolated browser acceptance. A first rebuilt full run later hit the known intermittent CompanyDiscoveryRequestsBrowserTests server-thread shutdown assertion; isolated case and all 35 browser tests passed, followed by a same-head 680-test full suite pass. Do not weaken shutdown timeout; evidence docs/evidence/2026-10-06-bounded-ocr-diagnostics.json.",
     "Fresh Codex worktrees may lack ignored apps/web/node_modules and apps/web/dist; run npm ci and npm run build --prefix apps/web before browser/full-suite validation. MJ-REF-011 exact-source rerun passed 854 tests after restoring those artifacts; evidence docs/evidence/2026-10-07-ai-prompt-truncation.json",
-    "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkoutâ€™s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
+    "Resolved on issue #5 exact-main revalidation: running Python browser tests with the root checkout\u00e2\u20ac\u2122s stale ignored apps/web/dist caused 4 browser failures; locked npm ci and npm run build in a fresh worktree restored current assets and full 903-test discovery passed with 2 skips. Evidence docs/evidence/2026-10-07-backup-command-output-bounds.json.",
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
@@ -784,14 +786,19 @@
     "guide": "docs/USER_TESTING.md",
     "independent_review": "docs/evidence/2026-09-30-mvp-independent-verification.json"
   },
-  "last_implementation_commit": "61305d46f809217511e7d708b0ede45c54d5919e",
+  "last_implementation_commit": "36edc0350ee781d23be580c9c6aed0381552baf9",
   "publication": {
-    "result": "PARTIAL",
-    "scope": "Local fast-forward integration only; current local main is not published.",
-    "integration_method": "Non-force fast-forward from current origin/main under the local Codex integration lock.",
-    "local_main": "61305d46f809217511e7d708b0ede45c54d5919e",
-    "origin_main": "e884ee9a649e3fcff0b24697cb7078473aa9c2a5",
-    "hosted_checks": "NOT_RUN_BY_USER_POLICY"
+    "result": "PR_PENDING_FINAL_GATES",
+    "pr": 653,
+    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+    "prior_prs_merged": [
+      651,
+      652
+    ],
+    "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+    "original_requirements_accepted": [
+      "MJ-REQ-277"
+    ]
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -1377,13 +1384,14 @@
   },
   "active_development_issue": {
     "numbers": [
-      156
+      278
     ],
     "requirement_ids": [
-      "MJ-REQ-155"
+      "MJ-REQ-277"
     ],
-    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
-    "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
+    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
+    "pr": 653,
+    "outcome": "Validated portable search profiles, real discovery schedules and public source policies; full criterion proofs on head680e63cb"
   },
   "historical_control_snapshots": [
     {
@@ -2402,6 +2410,220 @@
           "issue_comment": "https://github.com/MulattoTech/MJobs/issues/267#issuecomment-6087319835"
         }
       }
+    },
+    {
+      "recorded_at_utc": "2026-10-14T04:39:39.067387+00:00",
+      "reason": "Preserve prior current-slice and session control before the explicitly authorized Project-only campaign",
+      "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
+      "current_objective": "Make controlled application preparation cancellation and retry durable and user-controlled",
+      "current_slice": {
+        "requirement": "MJ-REQ-208",
+        "issue": 209,
+        "related_requirements": [
+          "MJ-REQ-158"
+        ],
+        "branch": "feat/astra-controlled-dry-run-recovery-20261013",
+        "status": "PUBLISHED_HOSTED_PENDING",
+        "depends_on_pr": 621,
+        "behavior": "Owner-scoped cancellation, serialized active admission and explicit reviewed retry preserving prior DRY_RUN history",
+        "previous_checkpoint": {
+          "requirement": "MJ-REQ-111",
+          "issue": 112,
+          "related_requirements": [
+            "MJ-REQ-114"
+          ],
+          "branch": "feat/astra-ai-source-quotes-20261013",
+          "status": "MERGED_VERIFIED",
+          "depends_on_pr": 620,
+          "behavior": "Checked posting quotes and explicit unknown/advisory AI explanation readback",
+          "previous_checkpoint": {
+            "issue": 109,
+            "requirement": "MJ-REQ-108",
+            "related_requirements": [
+              "MJ-REQ-109",
+              "MJ-REQ-110",
+              "MJ-REQ-127"
+            ],
+            "status": "LOCAL_VERIFIED_HOSTED_PENDING",
+            "branch": "feat/astra-profile-ai-credentials-20261013",
+            "depends_on_pr": 618,
+            "behavior": "Profile-bound credential source, fixed saved-key destination, rotation/deletion fences and truthful preview/history",
+            "previous_checkpoint": {
+              "issue": 111,
+              "requirement": "MJ-REQ-110",
+              "related_requirements": [
+                "MJ-REQ-112",
+                "MJ-REQ-114"
+              ],
+              "status": "MERGED_VERIFIED",
+              "branch": "feat/astra-grounded-ai-candidates-20261013",
+              "depends_on_pr": 617,
+              "behavior": "Current grounded profile-wide selection, disclosed unknown coverage and durable explanation readback",
+              "previous_checkpoint": {
+                "issue": 111,
+                "requirement": "MJ-REQ-110",
+                "status": "MERGED_VERIFIED",
+                "branch": "feat/astra-ai-job-freshness-20261013",
+                "verified_source": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
+                "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json",
+                "behavior": "Durable job-input fences, truthful stale/unknown history and reviewed document worker validation",
+                "previous_integrated_slice": {
+                  "issue": 120,
+                  "requirement": "MJ-REQ-119",
+                  "status": "ACCEPTED_MERGED",
+                  "branch": "feat/astra-medium-redzone-root-20261013",
+                  "verified_source": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
+                  "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
+                  "behavior": "Grounded fresh-match preparation priority at durable worker claim, hourly aging, restart persistence and scoped Activity readback",
+                  "previous_integrated_slice": {
+                    "issue": 222,
+                    "requirement": "MJ-REQ-221",
+                    "related_requirements": [
+                      "MJ-REQ-121",
+                      "MJ-REQ-156"
+                    ],
+                    "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
+                    "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
+                    "branch": "fix/route-attempt-concurrency-222",
+                    "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
+                    "owned_paths": [
+                      "services/applications/attempt_history.py",
+                      "apps/web/src/mock-run-controls.tsx",
+                      "apps/web/src/mock-run-controls.test.tsx",
+                      "tests/integration/test_route_attempt_concurrency.py",
+                      "tests/integration/test_route_attempt_concurrency_postgres.py",
+                      "tests/browser/test_route_attempt_ownership.py"
+                    ],
+                    "previous_integrated_slice": {
+                      "pr": 614,
+                      "source": "fe83f9b289de5293328b081543ac1eec23cdc701",
+                      "merge": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
+                      "required_hosted_gates": "PASS",
+                      "parent_acceptance": "PARTIAL"
+                    },
+                    "acceptance": "MJ-REQ-221 PASS from exact-source behavioral proof; related umbrella requirements remain PARTIAL",
+                    "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
+                    "local_validation": {
+                      "unit_pass": 1560,
+                      "unit_subtests_pass": 1018,
+                      "frontend_pass": 784,
+                      "integration_browser_pass": 42,
+                      "integration_subtests_pass": 6,
+                      "postgres_skipped": 5,
+                      "build": "PASS",
+                      "policy": "PASS"
+                    },
+                    "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791",
+                    "pr": 615,
+                    "hosted_validation": {
+                      "integration_run": 38341073391,
+                      "integration_pass": 2002,
+                      "integration_skip": 10,
+                      "new_postgres_cases_pass": 5,
+                      "browser_run": 38341071800,
+                      "browser_pass": 256,
+                      "browser_skip": 5,
+                      "compose_run": 38341073316,
+                      "compose_artifacts_pass": 5,
+                      "required_gates": "PASS"
+                    }
+                  },
+                  "pr_url": "https://github.com/MulattoTech/MJobs/pull/616",
+                  "merge_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e"
+                },
+                "pr": 617,
+                "verified_head": "f0d8ad2ce56828fe5ef454c9483cbfc6ecab339f",
+                "merge_commit": "263cfd68490c890a40e30a0ba29473a1c246e914"
+              },
+              "verified_source": "3fc521236daf622f3c6b776f4abc8e5de513633f",
+              "evidence": "docs/evidence/2026-10-13-grounded-ai-candidates.json",
+              "pr": 618,
+              "verified_head": "747b6a23fd564bfa5e62907bc06324f9a3971d12",
+              "merge_commit": "365711aa5639461921bb8ed65cf198902c4255b0"
+            },
+            "verified_source": "7e2d0752e57178aae86dff4d298eb727b28fadb9",
+            "evidence": "docs/evidence/2026-10-13-profile-ai-credentials.json",
+            "pr": 620
+          },
+          "verified_source": "0b3b218f685d9e863e2c05b722dfc81bd77482e4",
+          "evidence": "docs/evidence/2026-10-13-ai-source-quotes.json",
+          "pr": 621,
+          "verified_head": "ce1669708f452a0d39d2a7ac14317e5245d862f3",
+          "merge_commit": "e1d0053206264088709b8e4228394ebddadd0132"
+        },
+        "verified_source": "4c58d31ea8a2b196a71019e51ad6b55e0c13237f",
+        "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json",
+        "pr": 623,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/623"
+      },
+      "session_control": {
+        "owner": "ChatGPT Web user-authorized application sprint",
+        "write_lanes": 1,
+        "status": "HANDOFF_READY",
+        "requested_action": "FINISH_OWNED_METADATA_PUBLICATION_AND_RELEASE_OWN_CLAIMS",
+        "note": "No background work or new agents. Historical records do not override live claims; other writers are not stopped."
+      }
+    },
+    {
+      "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
+      "reason": "Preserve previous current_slice before authorized iteration11",
+      "current_slice": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 5,
+        "issues": [
+          177,
+          176
+        ],
+        "requirements": [
+          "MJ-REQ-176",
+          "MJ-REQ-175"
+        ],
+        "status": "MERGED_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/audit_history.py",
+          "services/documents/generate.py"
+        ],
+        "acceptance": "Commit document kinds atomically; display accurate resume and cover-letter events after mutations/removal/reopen; unknown legacy types remain explicit; reject private payload projection",
+        "plan": [
+          "Demonstrate mutable-kind and missing cover-letter defects with failing tests",
+          "Snapshot exact generated kinds in existing transaction and project allowlisted event types",
+          "Verify rollback/retry, profile isolation, API and connected Chromium reload",
+          "Run affected regressions and validators, local Luna review, exact-head required checks",
+          "Integrate qualified PR and record receipt; leave whole requirement PARTIAL"
+        ],
+        "rollback": "Ordinary scoped revert; additive audit payload, no schema migration",
+        "original_acceptance": {
+          "MJ-REQ-176": "PARTIAL",
+          "MJ-REQ-175": "PARTIAL"
+        },
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
+        "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
+        "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
+        "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
+        "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
+        "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+        "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+        "updated_at_utc": "2026-10-14T07:18:55.844488+00:00",
+        "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+        "pr": 644,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+        "hosted_fixture_repair": {
+          "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+          "integration_run": 38524654090,
+          "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+          "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+          "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+          "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+          "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+        },
+        "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+        "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+        "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+        "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+        "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -2494,11 +2716,10 @@
     }
   },
   "session_control": {
-    "owner": "ChatGPT Web user-authorized application sprint",
+    "owner": "Authorized Project-only P0/P1 iteration 5",
     "write_lanes": 1,
     "status": "HANDOFF_READY",
-    "requested_action": "FINISH_OWNED_METADATA_PUBLICATION_AND_RELEASE_OWN_CLAIMS",
-    "note": "No background work or new agents. Historical records do not override live claims; other writers are not stopped."
+    "note": "Two scoped P1 fixes merged; no runner/watcher/new session exists; release only p0p1-document-audit-5, p0p1-audit-privacy-5 and owned Codex lock after committing this receipt"
   },
   "pr023_completion": {
     "timestamp": "2026-10-03T20:33:37.729938-05:00",
@@ -2575,20 +2796,15 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "Current Codex root holds the local integration lock; claims for integrated #157/#170/#171/#263 paths were released after issue comments and local acceptance. Previous branches/worktrees and user-owned untracked files remain preserved; no other lane claims were changed.",
+  "ownership": "Project-only iteration root was sole source writer/integrator. PR #644 merged; only its two temporary claims and Codex integration lock are released at closeout. Historical external claims/worktrees/private data/AFK goal preserved.",
   "delivery_policy": {
-    "mode": "LOCAL_ONLY",
-    "effective_at": "2026-10-05T16:32:10.763994-05:00",
-    "github_actions_enabled": false,
-    "hosted_tests_allowed": false,
-    "github_agent_reviews_allowed": false,
-    "additional_ai_reviewers_allowed": false,
-    "local_deterministic_verification": "Required for changed behavior; explicitly invoked locally, never hosted",
-    "hosted_gates": "NOT_RUN_BY_USER_POLICY",
-    "full_pass_requires_all_acceptance": true,
-    "policy": "AGENTS.md#active-budget-policy--local-only-delivery-2026-10-05"
+    "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
+    "authority": "AGENTS.md and round2 directive-001.md explicitly authorize exact-head hosted checks and controlled PR integration",
+    "paid_ai_services": "OFF",
+    "external_submission": "OFF",
+    "original_pass_requires_all_criteria": true
   },
-  "updated_at": "2026-10-13T19:39:24.740504+00:00",
+  "updated_at": "2026-10-14T14:42:34.482004+00:00",
   "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
   "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
@@ -2637,143 +2853,625 @@
     "current_entry_preserved": "APPLICATION-WORKFLOW-RECOVERY-TRANSFER-20261010"
   },
   "current_slice": {
-    "requirement": "MJ-REQ-208",
-    "issue": 209,
-    "related_requirements": [
-      "MJ-REQ-158"
-    ],
-    "branch": "feat/astra-controlled-dry-run-recovery-20261013",
-    "status": "PUBLISHED_HOSTED_PENDING",
-    "depends_on_pr": 621,
-    "behavior": "Owner-scoped cancellation, serialized active admission and explicit reviewed retry preserving prior DRY_RUN history",
-    "previous_checkpoint": {
-      "requirement": "MJ-REQ-111",
-      "issue": 112,
-      "related_requirements": [
-        "MJ-REQ-114"
-      ],
-      "branch": "feat/astra-ai-source-quotes-20261013",
-      "status": "MERGED_VERIFIED",
-      "depends_on_pr": 620,
-      "behavior": "Checked posting quotes and explicit unknown/advisory AI explanation readback",
-      "previous_checkpoint": {
-        "issue": 109,
-        "requirement": "MJ-REQ-108",
-        "related_requirements": [
-          "MJ-REQ-109",
-          "MJ-REQ-110",
-          "MJ-REQ-127"
-        ],
-        "status": "LOCAL_VERIFIED_HOSTED_PENDING",
-        "branch": "feat/astra-profile-ai-credentials-20261013",
-        "depends_on_pr": 618,
-        "behavior": "Profile-bound credential source, fixed saved-key destination, rotation/deletion fences and truthful preview/history",
-        "previous_checkpoint": {
-          "issue": 111,
-          "requirement": "MJ-REQ-110",
-          "related_requirements": [
-            "MJ-REQ-112",
-            "MJ-REQ-114"
-          ],
-          "status": "MERGED_VERIFIED",
-          "branch": "feat/astra-grounded-ai-candidates-20261013",
-          "depends_on_pr": 617,
-          "behavior": "Current grounded profile-wide selection, disclosed unknown coverage and durable explanation readback",
-          "previous_checkpoint": {
-            "issue": 111,
-            "requirement": "MJ-REQ-110",
-            "status": "MERGED_VERIFIED",
-            "branch": "feat/astra-ai-job-freshness-20261013",
-            "verified_source": "57798a83650d35d98bfa8f4f360d3c46f30b57fd",
-            "evidence": "docs/evidence/2026-10-13-ai-job-input-freshness.json",
-            "behavior": "Durable job-input fences, truthful stale/unknown history and reviewed document worker validation",
-            "previous_integrated_slice": {
-              "issue": 120,
-              "requirement": "MJ-REQ-119",
-              "status": "ACCEPTED_MERGED",
-              "branch": "feat/astra-medium-redzone-root-20261013",
-              "verified_source": "f0c00408e2480e5303ea9ad42b6c1fb495864b8b",
-              "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
-              "behavior": "Grounded fresh-match preparation priority at durable worker claim, hourly aging, restart persistence and scoped Activity readback",
-              "previous_integrated_slice": {
-                "issue": 222,
-                "requirement": "MJ-REQ-221",
-                "related_requirements": [
-                  "MJ-REQ-121",
-                  "MJ-REQ-156"
-                ],
-                "status": "VERIFIED_FEATURE_PASS_INTEGRATION_PENDING",
-                "base": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
-                "branch": "fix/route-attempt-concurrency-222",
-                "behavior": "Durable shared-route browser admission, truthful blocked UI, restart fencing and explicit reviewed retry",
-                "owned_paths": [
-                  "services/applications/attempt_history.py",
-                  "apps/web/src/mock-run-controls.tsx",
-                  "apps/web/src/mock-run-controls.test.tsx",
-                  "tests/integration/test_route_attempt_concurrency.py",
-                  "tests/integration/test_route_attempt_concurrency_postgres.py",
-                  "tests/browser/test_route_attempt_ownership.py"
-                ],
-                "previous_integrated_slice": {
-                  "pr": 614,
-                  "source": "fe83f9b289de5293328b081543ac1eec23cdc701",
-                  "merge": "0d8dca7c07c6d35ce61ffe2f2029e403dff4ccdc",
-                  "required_hosted_gates": "PASS",
-                  "parent_acceptance": "PARTIAL"
-                },
-                "acceptance": "MJ-REQ-221 PASS from exact-source behavioral proof; related umbrella requirements remain PARTIAL",
-                "evidence": "docs/evidence/2026-10-13-route-attempt-concurrency.md",
-                "local_validation": {
-                  "unit_pass": 1560,
-                  "unit_subtests_pass": 1018,
-                  "frontend_pass": 784,
-                  "integration_browser_pass": 42,
-                  "integration_subtests_pass": 6,
-                  "postgres_skipped": 5,
-                  "build": "PASS",
-                  "policy": "PASS"
-                },
-                "verified_source": "0c8b6c5c2ed9c29167363a097f765b44f6321791",
-                "pr": 615,
-                "hosted_validation": {
-                  "integration_run": 38341073391,
-                  "integration_pass": 2002,
-                  "integration_skip": 10,
-                  "new_postgres_cases_pass": 5,
-                  "browser_run": 38341071800,
-                  "browser_pass": 256,
-                  "browser_skip": 5,
-                  "compose_run": 38341073316,
-                  "compose_artifacts_pass": 5,
-                  "required_gates": "PASS"
-                }
-              },
-              "pr_url": "https://github.com/MulattoTech/MJobs/pull/616",
-              "merge_commit": "6546837aaa553f5a6f65bfbcf8c1a5363c873f2e"
-            },
-            "pr": 617,
-            "verified_head": "f0d8ad2ce56828fe5ef454c9483cbfc6ecab339f",
-            "merge_commit": "263cfd68490c890a40e30a0ba29473a1c246e914"
-          },
-          "verified_source": "3fc521236daf622f3c6b776f4abc8e5de513633f",
-          "evidence": "docs/evidence/2026-10-13-grounded-ai-candidates.json",
-          "pr": 618,
-          "verified_head": "747b6a23fd564bfa5e62907bc06324f9a3971d12",
-          "merge_commit": "365711aa5639461921bb8ed65cf198902c4255b0"
-        },
-        "verified_source": "7e2d0752e57178aae86dff4d298eb727b28fadb9",
-        "evidence": "docs/evidence/2026-10-13-profile-ai-credentials.json",
-        "pr": 620
-      },
-      "verified_source": "0b3b218f685d9e863e2c05b722dfc81bd77482e4",
-      "evidence": "docs/evidence/2026-10-13-ai-source-quotes.json",
-      "pr": 621,
-      "verified_head": "ce1669708f452a0d39d2a7ac14317e5245d862f3",
-      "merge_commit": "e1d0053206264088709b8e4228394ebddadd0132"
+    "campaign": "round2-20261014-084702",
+    "issue": 278,
+    "requirement": "MJ-REQ-277",
+    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
+    "branch": "codex/p0p1-round2-20261014-084702",
+    "base": "733f2144ff83e388e2e106fc3b0d133fb4b7f17d",
+    "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+    "acceptance_checklist": {
+      "saved_searches": "Validated criteria, target-only replacement, reload/readback and legacy v1 compatibility",
+      "automation_rules": "Real scheduled_search rules round-trip into the existing durable scheduler; enabled rules enqueue one DISCOVER operation and duplicate ticks do not replay",
+      "source_configuration": "Public provider/tenant and six policy values transfer to a fresh installation; missing sources created atomically, existing shared policies must match",
+      "secret_exclusion": "Exact allowlisted settings only; no career facts, documents, private provider state, credentials or source history; malformed/secret-bearing fields reject generically",
+      "recovery_isolation": "Invalid later references, audit interruption, shared-source mismatch and unknown profile roll back source creation and replacement; other profiles remain unchanged",
+      "concurrency": "Shared profile transaction fence prevents lost partial edits and queuing removed searches during replacement",
+      "request_bounds": "Declared, dishonest and chunked request lengths enforce actual streamed 1 MiB limit before JSON parsing",
+      "browser": "Download, preview rule count, invalid import and shared-policy conflict preservation, retry, reload and post-reopen scheduler; hosted connected gate pending",
+      "postgresql": "Same ten criterion-level contracts run in isolated schemas in existing integration shards; NOT_RUN locally"
     },
-    "verified_source": "4c58d31ea8a2b196a71019e51ad6b55e0c13237f",
-    "evidence": "docs/evidence/2026-10-13-controlled-dry-run-recovery.json",
-    "pr": 623,
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/623"
+    "local_checks": {
+      "focused": "42 passed, 45 subtests passed, 10 PostgreSQL cases skipped; outputs/round2-settings-focused.xml",
+      "typescript": "PASS: node apps/web/node_modules/typescript/bin/tsc --noEmit --project apps/web/tsconfig.json",
+      "integrity": "PASS: catalogue, agent_skills, progress validate, progress_dashboard --check, reference_provenance, check_repository, git diff --check",
+      "interim_full_unit": "1611 passed, 1151 subtests passed, 9 skips, 1 Mission Control launch failure. Focused launcher rerun 1 PASS. Interim run predates final fence fixes and does not certify final source.",
+      "final_full_unit": "PASS: 1612 passed, 1151 subtests passed, 9 platform skips in 270.60s; outputs/round2-settings-unit-final.xml",
+      "browser_build": "BLOCKED_ENVIRONMENT: Vite Windows net-use helper spawn EPERM; dependencies installed locally, TypeScript passed; no dependency patch or host-permission change",
+      "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed"
+    },
+    "rollback": "Scoped source revert; no migration, private data or existing-source policy change",
+    "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
+    "pr": 653,
+    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+    "hosted_qualification": {
+      "verified_at_utc": "2026-10-14T14:40:48.562814+00:00",
+      "pr": 653,
+      "head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+      "base": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+      "merge_state": "CLEAN",
+      "required_gates": "5 PASS",
+      "runs": {
+        "CI / required": 38581156198,
+        "Integration / PostgreSQL and Redis": 38581156140,
+        "Disposable Compose / mock end-to-end": 38581156436,
+        "Dependencies / introduced vulnerabilities": 38581156116,
+        "Security / secret scan": 38581156078
+      },
+      "postgresql": {
+        "result": "PASS",
+        "executed": 10,
+        "skipped": 0,
+        "contracts": [
+          "test_api_bounds_actual_stream_before_parsing_and_preserves_settings",
+          "test_api_import_fresh_sources_counts_rejection_and_other_profile_isolation",
+          "test_existing_shared_source_mismatch_and_later_failure_preserve_other_profiles",
+          "test_failure_after_new_source_admission_rolls_back_every_category",
+          "test_fresh_install_round_trip_all_categories_reopen_and_actual_enqueue",
+          "test_invalid_rules_and_policies_reject_atomically_without_value_disclosure",
+          "test_partial_saved_search_edit_preserves_replacement_criteria",
+          "test_rules_only_and_legacy_scheduler_only_both_persist_real_schedule",
+          "test_scheduler_tick_after_replacement_never_enqueues_removed_search",
+          "test_unknown_profile_and_secret_stored_source_cannot_create_or_export_policy"
+        ]
+      },
+      "browser": {
+        "result": "PASS",
+        "executed": 1,
+        "skipped": 0,
+        "contract": "test_invalid_import_preserves_settings_then_valid_file_imports"
+      },
+      "compose": {
+        "ci-mock-e2e.json": "PASS",
+        "ci-ui.json": "PASS",
+        "ci-recovery.json": "PASS",
+        "ci-backup.json": "PASS",
+        "ci-backup-recovery.json": "PASS"
+      },
+      "integration_total_records": 1735,
+      "integration_skips": 19,
+      "external_submission": "OFF"
+    },
+    "local_source_commit": "650680d99347d63e34b590928dbd87ebfb429430",
+    "next_action": "Requalify documentation-only final head, merge PR653, close #278, synchronize Project and release owned coordination",
+    "previous_active_development_issue": {
+      "numbers": [
+        156
+      ],
+      "requirement_ids": [
+        "MJ-REQ-155"
+      ],
+      "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+      "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
+    }
+  },
+  "p0p1_iteration_3": {
+    "issues": [
+      178,
+      176,
+      524
+    ],
+    "requirements": [
+      "MJ-REQ-177",
+      "MJ-REQ-175"
+    ],
+    "status": "PARTIAL",
+    "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf",
+    "outcome": "Safe outcome logs for all ten dispatch types; uniform recognized secret-marker filtering; all 21 CodeQL alerts individually reviewed with unresolved local-filesystem race threat documented",
+    "evidence": [
+      "docs/evidence/2026-10-14-p1-worker-log-privacy.json",
+      "docs/evidence/2026-10-14-codeql-triage.json"
+    ],
+    "validation": "1591 units/1104 subtests PASS with 8 skips; 121 focused/62 subtests PASS with 15 environment skips; final extraction 3 PASS; Chromium 4 PASS; native-loader build/validators PASS",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "acceptance": {
+      "MJ-REQ-177": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL",
+      "issue_524": "PARTIAL"
+    },
+    "rollback": "Scoped ordinary source revert; no schema or persistence-format change",
+    "updated_at_utc": "2026-10-14T05:57:09.070968+00:00",
+    "pr": 642,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/642",
+    "verified_head": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+    "merge_commit": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+    "next_action": "Carry this documentation-only receipt with the next P0/P1 source PR; claim #178 and add safe persisted application/job/company/known-ATS context for APPLICATION_DRY_RUN and APPLICATION_FORM_REVIEW using the existing APPLY_MOCK lookup, with blocked/recovery/reopen and resolver-failure tests.",
+    "post_merge": "28 tests / 43 subtests PASS, zero skips at ef18c3a9",
+    "publication": "MERGED; documentation-only receipt remains local for next substantive source PR"
+  },
+  "p0p1_iteration_4": {
+    "issues": [
+      178,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-177",
+      "MJ-REQ-175"
+    ],
+    "status": "PARTIAL",
+    "outcome": "Persisted application/job/company/known-ATS projection after terminal worker commit; local fixture and read-only review only",
+    "validation": "1593 units/1114 subtests PASS, 8 skips; affected 73/57 PASS, 20 skips; final new tests 21/61 PASS, 6 PostgreSQL skips; connected Chromium 4 PASS; native-loader build and validators PASS",
+    "acceptance": {
+      "MJ-REQ-177": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "source_revision": "a89f4716839dfae8c381474035a06c78698c4c4c",
+    "evidence": [
+      "docs/evidence/2026-10-14-p1-application-context-logs.json"
+    ],
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "rollback": "Ordinary scoped source revert; no migration",
+    "updated_at_utc": "2026-10-14T06:28:41.347867+00:00",
+    "pr": 643,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/643",
+    "verified_head": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+    "merge_commit": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac",
+    "post_merge": "21 tests / 61 subtests PASS at merged main; 6 local PostgreSQL skips; 6 hosted new PostgreSQL cases PASS, zero skips",
+    "publication": "MERGED; documentation-only receipt is local for next substantive source PR",
+    "next_action": "Reconcile ownership and claim open P1 #177 / MJ-REQ-176; reproduce and fix document-generation audit history borrowing mutable document kinds, then verify immutable event snapshots across document removal, profile isolation and UI/API reload."
+  },
+  "p0p1_iteration_2": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 2,
+    "issues": [
+      176,
+      170
+    ],
+    "requirements": [
+      "MJ-REQ-175",
+      "MJ-REQ-169"
+    ],
+    "status": "MERGED_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "owned_source": [
+      "services/data_export.py",
+      "services/documents/uploads.py"
+    ],
+    "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+    "plan": [
+      "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+      "Filter credential field names without dropping work_authorization",
+      "Cap generated/uploaded file reads and accumulated document payload",
+      "Verify API reopen, failure/retry and connected Chromium downloads",
+      "Run full local units and validators; obtain local Luna review",
+      "Commit, publish reviewable PR; integrate only with repository required gates"
+    ],
+    "rollback": "Scoped revert; no schema/data mutation by exports",
+    "original_acceptance": {
+      "MJ-REQ-175": "PARTIAL",
+      "MJ-REQ-169": "PARTIAL"
+    },
+    "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+    "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+    "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+    "full_unit": "PASS",
+    "local_reviews": "PASS_BOUNDED_SCOPE",
+    "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+    "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+    "pr": 641,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+    "post_merge": "40 tests and 30 subtests PASS",
+    "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+  },
+  "p0p1_iteration_5": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 5,
+    "issues": [
+      177,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-176",
+      "MJ-REQ-175"
+    ],
+    "status": "MERGED_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "owned_source": [
+      "services/audit_history.py",
+      "services/documents/generate.py"
+    ],
+    "acceptance": "Commit document kinds atomically; display accurate resume and cover-letter events after mutations/removal/reopen; unknown legacy types remain explicit; reject private payload projection",
+    "plan": [
+      "Demonstrate mutable-kind and missing cover-letter defects with failing tests",
+      "Snapshot exact generated kinds in existing transaction and project allowlisted event types",
+      "Verify rollback/retry, profile isolation, API and connected Chromium reload",
+      "Run affected regressions and validators, local Luna review, exact-head required checks",
+      "Integrate qualified PR and record receipt; leave whole requirement PARTIAL"
+    ],
+    "rollback": "Ordinary scoped revert; additive audit payload, no schema migration",
+    "original_acceptance": {
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
+    "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
+    "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
+    "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
+    "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
+    "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+    "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+    "updated_at_utc": "2026-10-14T07:18:55.844488+00:00",
+    "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+    "pr": 644,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+    "hosted_fixture_repair": {
+      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+      "integration_run": 38524654090,
+      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+    },
+    "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+    "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+    "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+    "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+    "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
+  },
+  "p0p1_iteration_6": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 6,
+    "issues": [
+      177,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-176",
+      "MJ-REQ-175"
+    ],
+    "status": "MERGED_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "acceptance": "Immutable safe job/company snapshots for profile discovery, merge, scoring and preparation lifecycle events; retain history after rename/removal/reopen and explicit unknown legacy labels.",
+    "owned_source": [
+      "services/audit_history.py"
+    ],
+    "plan": [
+      "Fail real API regressions for mutable/dropped history and raw snapshot leakage",
+      "Snapshot sanitized labels in existing audit transactions; project allowlisted fields fail closed",
+      "Verify replay/rollback, profile isolation, database reopen, connected Activity UI",
+      "Local Luna review, targeted/full units/build/validators, commit and exact-head required PR checks",
+      "Integrate only qualified source; parent requirements remain PARTIAL"
+    ],
+    "rollback": "Ordinary scoped revert; additive audit payload only, no schema/data deletion",
+    "original_acceptance": {
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "recorded_at_utc": "2026-10-14T07:24:16.281633+00:00",
+    "source_revision": "94c7dc183ce1b2a53b222d4b4807d1f176ab9fe7",
+    "evidence": "docs/evidence/2026-10-14-p1-audit-subject-history.json",
+    "local_focused": "47 PASS / 39 subtests / 37 PostgreSQL-Redis skips",
+    "browser": "3 connected Chromium cases PASS",
+    "full_unit": "1593 PASS / 1114 subtests / 8 Linux-only skips",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "local_review": "Local Luna High read-only review: no critical or important finding",
+    "updated_at_utc": "2026-10-14T07:45:44.808186+00:00",
+    "verified_head": "496416676b9d01d08bb46a126f1b3d77be39b0ab",
+    "merge_commit": "df05062fef969e919a07faaffc05bb4a085f34f1",
+    "pr": 645,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/645",
+    "post_merge": "6 acceptance tests/7 subtests PASS; 6 PostgreSQL skips locally; all 6 new hosted PostgreSQL cases PASS, zero skips",
+    "publication": "MERGED PR #645; documentation-only receipt local for next source PR",
+    "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project and ownership, then continue open P1 #177 / MJ-REQ-176 and #176 / MJ-REQ-175 with safe immutable historical labels for document/application/tracking events and removal/reopen/profile-isolation proofs."
+  },
+  "p0p1_iteration_7": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 7,
+    "issues": [
+      177,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-176",
+      "MJ-REQ-175"
+    ],
+    "status": "MERGED_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "acceptance": "Transaction-time safe application/document/tracking labels and immutable owner/target; historical readback after rename/removal/reopen with fail-closed privacy and legacy unknowns.",
+    "owned_source": [
+      "services/audit_history.py",
+      "packages/persistence/store.py",
+      "services/tracking/applications.py",
+      "services/tracking/email_status_store.py"
+    ],
+    "original_acceptance": {
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "rollback": "Scoped revert; additive audit JSON, no migration/data deletion",
+    "recorded_at_utc": "2026-10-14T07:50:51.350312+00:00",
+    "source_revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
+    "evidence": "docs/evidence/2026-10-14-p1-application-audit-history.json",
+    "local_focused": "76 PASS / 52 subtests / 22 PostgreSQL skips; privacy follow-up 3 PASS / 26 subtests",
+    "browser": "3 connected Chromium cases PASS",
+    "full_unit": "Same-source full rerun PASS 1593 tests/1114 subtests/8 Linux-only skips; initial unrelated retention failure preserved",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "updated_at_utc": "2026-10-14T08:17:45.842972+00:00",
+    "pr": 646,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/646",
+    "verified_head": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+    "merge_commit": "0d1cd4f7e4449c06e738b802722575635632fc93",
+    "publication": "MERGED PR #646; documentation-only receipt local for next source PR",
+    "post_merge": "8 tests/11 subtests PASS; 8 PostgreSQL skips locally; all 8 new hosted PostgreSQL cases PASS, zero skips",
+    "local_review": "Local Luna High read-only review: no remaining critical or important finding",
+    "next_action": "Carry this local documentation-only merged receipt with the next substantive source PR; reconcile the next Project-only snapshot, live Project #1 and ownership, then claim the highest-value unowned open P0/P1 vertical slice. Both current parent requirements remain PARTIAL."
+  },
+  "p0p1_iteration_8": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 8,
+    "issues": [
+      171,
+      168
+    ],
+    "requirements": [
+      "MJ-REQ-170",
+      "MJ-REQ-167"
+    ],
+    "status": "MERGED_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "source_revision": "3087b4abb91909df117c427f911522c8ab9512fe",
+    "acceptance": "Retention receipt failures preserve history and observed cleanup counts; restore consumes one verified snapshot across all target operation boundaries.",
+    "owned_source": [
+      "workers/transient_retention.py",
+      "cli/local_backup.py",
+      "tests/integration/test_transient_retention_receipt_safety.py",
+      "tests/unit/test_backup_restore_snapshot.py"
+    ],
+    "original_acceptance": {
+      "MJ-REQ-170": "PARTIAL",
+      "MJ-REQ-167": "PARTIAL"
+    },
+    "local_focused": "Retention24 PASS/11 subtests; final integration12 PASS/2subtests/1 PostgreSQLskip; backup44PASS/11subtests/1POSIXskip",
+    "full_unit": "1598 PASS/1114 subtests/9 platform skips",
+    "browser": "1 connected Chromium PASS",
+    "local_review": "Local Luna High read-only review; no remaining critical or important finding",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "updated_at_utc": "2026-10-14T08:48:46.563845+00:00",
+    "rollback": "Scoped revert; no migrations/private data changes",
+    "next_action": "Reconcile the next Project-only P0/P1 snapshot and ownership; select an unowned ready card, prioritizing remaining security/data-safety gaps. Carry this documentation-only exact-head merged receipt in the next substantive PR.",
+    "pr": 647,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/647",
+    "verified_head": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+    "merge_commit": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
+    "publication": "MERGED PR #647; documentation-only exact-head receipt local for next source PR",
+    "post_merge": "9 cases / 2 subtests PASS; 1 POSIX skip locally; all 10 exact-PR-head Linux new cases PASS"
+  },
+  "p0p1_iteration_9": {
+    "issues": [
+      172,
+      173
+    ],
+    "requirements": [
+      "MJ-REQ-171",
+      "MJ-REQ-172"
+    ],
+    "status": "MERGED_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "source_revision": "0649558f17cdced36123781cd31041723b910949",
+    "acceptance": "Deny sibling-origin/private browser access and preserve security headers on origin denials; parent original criteria NOT_RUN retained",
+    "evidence": [
+      "docs/evidence/2026-10-14-p1-browser-origin-privacy.json"
+    ],
+    "targeted_integration": "45 PASS / 36 subtests",
+    "browser": "3 connected Chromium PASS",
+    "full_unit": {
+      "result": "PASS",
+      "junit_cases_including_subtests": 2721,
+      "failures": 0,
+      "errors": 0,
+      "skips": 9,
+      "duration_seconds": 248.419
+    },
+    "local_review": {
+      "model": "gpt-6-luna",
+      "effort": "high",
+      "type": "read-only local Luna review",
+      "findings": "No critical, important or minor defect",
+      "tests_executed_by_reviewer": false
+    },
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "updated_at_utc": "2026-10-14T09:19:01.596973+00:00",
+    "rollback": "Scoped revert of source changes; no migrations or persisted data changes",
+    "next_action": "Reconcile fresh Project-only P0/P1 queue and live ownership of open P0 #638 and its existing TLS-handshake worktree before selecting that work; preserve uncertain ownership",
+    "pr": 648,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/648",
+    "verified_head": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+    "merge_commit": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
+    "publication": "MERGED PR #648; documentation-only receipt local for next substantive source PR",
+    "post_merge": "11 PASS / 30 subtests PASS"
+  },
+  "p0p1_iteration_10": {
+    "source_commit": "c371e3ffc69bed1f49086b3e5a225382cd47a44f",
+    "issue_ids": [
+      638,
+      5
+    ],
+    "result": "PARTIAL",
+    "local_checks": "Final focused21PASS/147subtests; impacted integration51PASS/23subtests/1RedisSKIP; Chromium3PASS; build/validatorsPASS.",
+    "evidence": "docs/evidence/2026-10-14-p0-tls-handshake.json",
+    "hosted_exact_head": "PASS",
+    "original_acceptance_changed": false,
+    "next": "Publish reviewable PR; verify all five exact-head gates before integration.",
+    "merge_commit": "32fb4a4042a80f4785e00f6d41a648366d5d5de4",
+    "pr": 649,
+    "child_638": "PASS; CLOSED; Project Done/PASS"
+  },
+  "p0p1_iteration_10_private_errors": {
+    "issue_ids": [
+      172,
+      173
+    ],
+    "result": "PARTIAL",
+    "source_commit": "63123dd8e1760008817aaa35a691df1ecc0306ba",
+    "evidence": "docs/evidence/2026-10-14-p1-private-error-headers.json",
+    "hosted_exact_head": "PASS",
+    "original_acceptance_changed": false,
+    "local": "integration34PASS/30subtests; Chromium4PASS; unit1598PASS/1114subtests/9platformSKIP; combined affected checks PASS.",
+    "pr": 650,
+    "merge_commit": "168f3da7edc2371594dbb058a92a10f7a93d649c",
+    "owned_coordination": "Released after local receipt commit"
+  },
+  "p0p1_iteration_11": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 11,
+    "issues": [
+      278,
+      171
+    ],
+    "requirements": [
+      "MJ-REQ-277",
+      "MJ-REQ-170"
+    ],
+    "status": "LOCAL_VERIFIED_PARTIAL",
+    "source_revision": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
+    "publication_branch": "codex/p1-settings-retention-11",
+    "evidence": "docs/evidence/2026-10-14-p1-settings-retention-validation.json",
+    "local_checks": "Final full unit1603PASS/1147subtests/9platformSKIP; combined unit/API/Chromium14PASS/16subtests; retention broader34PASS/21subtests; frontend4PASS/build/validatorsPASS",
+    "original_acceptance_changed": false,
+    "hosted_checks": "NOT_RUN_PR_CAP",
+    "open_prs": 8,
+    "max_active_prs": 4,
+    "next_action": "Open a P1 #278/#171 PR when the canonical active-PR cap permits; run exact-head hosted gates, integrate under repository rules, retain original PARTIAL acceptance.",
+    "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
+    "authorization": "directive-11.md plus live Project1/snapshot queue-11.json; current AGENTS permits reviewed native CI, superseding historical local-only notes",
+    "rollback": "Scoped source revert; no schema or private-data migration",
+    "publication": "PUBLISHED_BRANCH_ONLY_PR_CAP",
+    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
+    "publication_receipt": "Git common-dir campaign publication-11.json"
+  },
+  "p0p1_iteration_12": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 12,
+    "issues": [
+      168,
+      170
+    ],
+    "requirements": [
+      "MJ-REQ-167",
+      "MJ-REQ-169"
+    ],
+    "status": "LOCAL_VERIFIED_PARTIAL",
+    "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
+    "publication_branch": "codex/p1-export-backup-safety-12",
+    "predecessor": "codex/p1-settings-retention-11",
+    "evidence": "docs/evidence/2026-10-14-p1-export-backup-boundaries.json",
+    "local_full_unit": {
+      "passed": 1612,
+      "skipped": 9,
+      "subtests_passed": 1151,
+      "seconds": 257.27
+    },
+    "local_affected": {
+      "passed": 74,
+      "skipped": 1,
+      "subtests_passed": 15,
+      "seconds": 28.31
+    },
+    "original_acceptance_changed": false,
+    "open_prs": 8,
+    "max_active_prs": 4,
+    "hosted_checks": "NOT_RUN_PR_CAP",
+    "integration": "NOT_RUN",
+    "publication_receipt": "Git common-dir campaign publication-12.json",
+    "recorded_at_utc": "2026-10-14T10:49:01.395165+00:00",
+    "next_action": "When open PR count is at most three, publish/qualify the pending #278/#171 predecessor PR, integrate under repository rules, then qualify codex/p1-export-backup-safety-12 for #168/#170 with exact-head hosted gates. Continue only eligible fresh Project P0/P1 cards."
+  },
+  "p0p1_round2_001": {
+    "campaign": "round2-20261014-084702",
+    "issue": 278,
+    "requirement": "MJ-REQ-277",
+    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
+    "branch": "codex/p0p1-round2-20261014-084702",
+    "base": "733f2144ff83e388e2e106fc3b0d133fb4b7f17d",
+    "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+    "acceptance_checklist": {
+      "saved_searches": "Validated criteria, target-only replacement, reload/readback and legacy v1 compatibility",
+      "automation_rules": "Real scheduled_search rules round-trip into the existing durable scheduler; enabled rules enqueue one DISCOVER operation and duplicate ticks do not replay",
+      "source_configuration": "Public provider/tenant and six policy values transfer to a fresh installation; missing sources created atomically, existing shared policies must match",
+      "secret_exclusion": "Exact allowlisted settings only; no career facts, documents, private provider state, credentials or source history; malformed/secret-bearing fields reject generically",
+      "recovery_isolation": "Invalid later references, audit interruption, shared-source mismatch and unknown profile roll back source creation and replacement; other profiles remain unchanged",
+      "concurrency": "Shared profile transaction fence prevents lost partial edits and queuing removed searches during replacement",
+      "request_bounds": "Declared, dishonest and chunked request lengths enforce actual streamed 1 MiB limit before JSON parsing",
+      "browser": "Download, preview rule count, invalid import and shared-policy conflict preservation, retry, reload and post-reopen scheduler; hosted connected gate pending",
+      "postgresql": "Same ten criterion-level contracts run in isolated schemas in existing integration shards; NOT_RUN locally"
+    },
+    "local_checks": {
+      "focused": "42 passed, 45 subtests passed, 10 PostgreSQL cases skipped; outputs/round2-settings-focused.xml",
+      "typescript": "PASS: node apps/web/node_modules/typescript/bin/tsc --noEmit --project apps/web/tsconfig.json",
+      "integrity": "PASS: catalogue, agent_skills, progress validate, progress_dashboard --check, reference_provenance, check_repository, git diff --check",
+      "interim_full_unit": "1611 passed, 1151 subtests passed, 9 skips, 1 Mission Control launch failure. Focused launcher rerun 1 PASS. Interim run predates final fence fixes and does not certify final source.",
+      "final_full_unit": "PASS: 1612 passed, 1151 subtests passed, 9 platform skips in 270.60s; outputs/round2-settings-unit-final.xml",
+      "browser_build": "BLOCKED_ENVIRONMENT: Vite Windows net-use helper spawn EPERM; dependencies installed locally, TypeScript passed; no dependency patch or host-permission change",
+      "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed"
+    },
+    "rollback": "Scoped source revert; no migration, private data or existing-source policy change",
+    "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
+    "pr": 653,
+    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+    "hosted_qualification": {
+      "verified_at_utc": "2026-10-14T14:40:48.562814+00:00",
+      "pr": 653,
+      "head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+      "base": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+      "merge_state": "CLEAN",
+      "required_gates": "5 PASS",
+      "runs": {
+        "CI / required": 38581156198,
+        "Integration / PostgreSQL and Redis": 38581156140,
+        "Disposable Compose / mock end-to-end": 38581156436,
+        "Dependencies / introduced vulnerabilities": 38581156116,
+        "Security / secret scan": 38581156078
+      },
+      "postgresql": {
+        "result": "PASS",
+        "executed": 10,
+        "skipped": 0,
+        "contracts": [
+          "test_api_bounds_actual_stream_before_parsing_and_preserves_settings",
+          "test_api_import_fresh_sources_counts_rejection_and_other_profile_isolation",
+          "test_existing_shared_source_mismatch_and_later_failure_preserve_other_profiles",
+          "test_failure_after_new_source_admission_rolls_back_every_category",
+          "test_fresh_install_round_trip_all_categories_reopen_and_actual_enqueue",
+          "test_invalid_rules_and_policies_reject_atomically_without_value_disclosure",
+          "test_partial_saved_search_edit_preserves_replacement_criteria",
+          "test_rules_only_and_legacy_scheduler_only_both_persist_real_schedule",
+          "test_scheduler_tick_after_replacement_never_enqueues_removed_search",
+          "test_unknown_profile_and_secret_stored_source_cannot_create_or_export_policy"
+        ]
+      },
+      "browser": {
+        "result": "PASS",
+        "executed": 1,
+        "skipped": 0,
+        "contract": "test_invalid_import_preserves_settings_then_valid_file_imports"
+      },
+      "compose": {
+        "ci-mock-e2e.json": "PASS",
+        "ci-ui.json": "PASS",
+        "ci-recovery.json": "PASS",
+        "ci-backup.json": "PASS",
+        "ci-backup-recovery.json": "PASS"
+      },
+      "integration_total_records": 1735,
+      "integration_skips": 19,
+      "external_submission": "OFF"
+    },
+    "local_source_commit": "650680d99347d63e34b590928dbd87ebfb429430",
+    "next_action": "Requalify documentation-only final head, merge PR653, close #278, synchronize Project and release owned coordination",
+    "previous_active_development_issue": {
+      "numbers": [
+        156
+      ],
+      "requirement_ids": [
+        "MJ-REQ-155"
+      ],
+      "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+      "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
+    }
   }
 }

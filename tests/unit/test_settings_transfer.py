@@ -47,13 +47,19 @@ class SettingsTransferTests(unittest.TestCase):
         self.assertEqual(set(exported["settings"]), {
             "search_profiles", "automation_rules", "source_configuration",
         })
-        self.assertEqual(exported["settings"]["automation_rules"], [])
+        self.assertEqual(exported["settings"]["automation_rules"], [{
+            "kind": "scheduled_search", "search_profile_name": "Original",
+            "enabled": True, "interval_seconds": 1800,
+        }])
         profile = exported["settings"]["search_profiles"][0]
         self.assertEqual(profile["name"], "Original")
         self.assertNotIn("profile_id", profile)
         self.assertNotIn("id", profile)
         self.assertEqual(exported["settings"]["source_configuration"], [{
             "search_profile_name": "Original", "source_ids": [self.source_id],
+            "sources": [{"id": self.source_id, "provider": "greenhouse", "tenant": "settings-transfer-test",
+                         "enabled": True, "poll_interval": 300, "concurrency": 1,
+                         "request_timeout": 10, "rate_limit": 60, "jitter_seconds": 30}],
         }])
         self.assertNotIn("credentials", repr(exported).lower())
         self.assertNotIn("password", repr(exported).lower())
@@ -67,6 +73,7 @@ class SettingsTransferTests(unittest.TestCase):
         payload = export_settings(self.store, "fixture")
         payload["settings"]["search_profiles"][0]["name"] = "Imported"
         payload["settings"]["source_configuration"][0]["search_profile_name"] = "Imported"
+        payload["settings"]["automation_rules"][0]["search_profile_name"] = "Imported"
 
         result = import_settings(self.store, "fixture", payload)
 

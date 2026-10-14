@@ -283,7 +283,10 @@ def save_search_profile(store, data):
     enabled = data.get("enabled")
     timestamp = now()
     with store.engine.begin() as connection:
-        connection.execute(select(m.profiles.c.id).where(m.profiles.c.id == data["profile_id"])).one()
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == data["profile_id"]).with_for_update()).one()
         if source_ids:
             existing_sources = set(connection.execute(
                 select(m.job_sources.c.id).where(m.job_sources.c.id.in_(source_ids))).scalars())

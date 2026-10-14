@@ -12,6 +12,7 @@ from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.documents.generate import prepare
+from services.audit_history import list_audit_history
 from services.discovery.pipeline import discover
 from services.tracking.applications import read_application_tracking, set_application_pipeline_status
 from tests.integration.test_spine import PROFILE
@@ -183,6 +184,18 @@ class EmailStatusApiTests(unittest.TestCase):
         after = self.store.application(self.application_id)
         self.assertEqual(after["state"], before["state"])
         self.assertEqual(after["confirmation"], before["confirmation"])
+        activity = [e for e in list_audit_history(self.store, 'fixture')['events']
+                    if e['id'] == email_events[0]['id']]
+        self.assertEqual(len(activity), 1)
+        self.assertEqual(email_events[0]['payload']['subject_snapshot'],
+                         {'subject': activity[0]['subject'], 'company': activity[0]['company']})
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).values(title='Later email title'))
+            connection.execute(update(m.companies).values(name='Later email employer'))
+        self.assertEqual([e for e in list_audit_history(self.store, 'fixture')['events']
+                          if e['id'] == email_events[0]['id']], activity)
+        self.assertFalse(any(e['id'] == email_events[0]['id']
+                             for e in list_audit_history(self.store, 'other')['events']))
 
     def test_email_tracking_event_uses_a_separate_request_id_namespace(self):
         email_request_id = "idempotency-collision-fixture"

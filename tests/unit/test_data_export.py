@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from sqlalchemy.engine import Connection
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
@@ -117,6 +118,45 @@ class DataExportTests(unittest.TestCase):
         self.store.engine.dispose()
         self.temporary.cleanup()
 
+    def test_exports_omit_session_bearing_paths_without_changing_saved_routes(self):
+        for path in ("session/PRIVATE_PATH_VALUE", "%73ession/PRIVATE_PATH_VALUE",
+                     "apply%2Ftoken%2FPRIVATE_PATH_VALUE", "AUTH/PRIVATE_PATH_VALUE"):
+            with self.subTest(path=path):
+                original = f"https://jobs.lever.co/tenant-a/{path}?token=PRIVATE_QUERY"
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.routes.update().where(m.routes.c.id == "route-a").values(url=original))
+                self.store.engine.dispose()
+                jobs = export_jobs_csv(self.store, "profile-a")
+                applications = export_applications_csv(self.store, "profile-a")
+                backup = export_profile_backup(self.store, "profile-a")
+                for text in (jobs, applications, json.dumps(backup)):
+                    self.assertNotIn("PRIVATE_PATH_VALUE", text)
+                    self.assertNotIn("PRIVATE_QUERY", text)
+                self.assertIsNone(backup["application_routes"][0]["url"])
+                self.assertEqual(backup["applications"][0]["id"], "application-a")
+                with self.store.engine.connect() as connection:
+                    self.assertEqual(connection.execute(m.routes.select().where(
+                        m.routes.c.id == "route-a")).mappings().one()["url"], original)
+
+    def test_failed_document_export_closes_cursor_before_error_is_discarded(self):
+        generated = self.output_dir / "application-a" / "v1" / "1" / "resume.txt"
+        generated.write_bytes(b"synthetic-tampered-content")
+        original_execute = Connection.execute
+        cursors = []
+
+        def execute(connection, *args, **kwargs):
+            result = original_execute(connection, *args, **kwargs)
+            if result.returns_rows and set(result.keys()) == {"id", "application_id", "files", "sha256"}:
+                cursors.append(result)
+            return result
+
+        with patch.object(Connection, "execute", execute):
+            with self.assertRaises(DataExportError) as failure:
+                export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
+        self.assertEqual(failure.exception.code, "EXPORT_FILE_UNAVAILABLE")
+        self.assertTrue(cursors)
+        self.assertTrue(all(cursor.closed for cursor in cursors))
+
     def test_csv_exports_are_deterministic_profile_scoped_and_header_stable(self):
         jobs = export_jobs_csv(self.store, "profile-a")
         applications = export_applications_csv(self.store, "profile-a")
@@ -165,6 +205,28 @@ class DataExportTests(unittest.TestCase):
         self.assertIn("profile_versions", backup)
         self.assertEqual(backup["career_stories"], [])
         self.assertEqual(backup["uploaded_resumes"], [])
+
+    def test_nested_authentication_fields_are_omitted_without_losing_answers(self):
+        keys = ("api_key", "X-API-Key", "accessKey", "private-key",
+                "Authorization", "Proxy_Authorization", "auth", "auth_header", "bearer",
+                "authentication", "authentication_header", "authorization_header", "http_authorization")
+        nested = {key: f"SYNTHETIC_AUTH_{index}" for index, key in enumerate(keys)}
+        nested.update(work_authorization="Authorized to work", answer="Synthetic answer")
+        with self.store.engine.begin() as connection:
+            connection.execute(m.profile_versions.update().where(
+                m.profile_versions.c.profile_id == "profile-a",
+            ).values(answers=[{"metadata": nested}]))
+        for exported in (export_profile_json(self.store, "profile-a"),
+                         json.dumps(export_profile_backup(self.store, "profile-a"))):
+            self.assertNotIn("SYNTHETIC_AUTH_", exported)
+            self.assertIn("Authorized to work", exported)
+            self.assertIn("Synthetic answer", exported)
+        # Export redaction must never mutate the durable answers.
+        with self.store.engine.connect() as connection:
+            persisted = connection.execute(m.profile_versions.select().where(
+                m.profile_versions.c.profile_id == "profile-a",
+            )).mappings().first()["answers"]
+        self.assertEqual(persisted, [{"metadata": nested}])
 
     def test_backup_includes_verified_profile_document_bytes_without_local_paths(self):
         backup = export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)

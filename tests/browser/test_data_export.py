@@ -17,6 +17,7 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
+from packages.persistence import models as m
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -55,6 +56,18 @@ class DataExportBrowserTests(unittest.TestCase):
                 discover(store, fixture, 'export-fixture-one')
             job = store.jobs('export-fixture-one')[0]
             application_id = prepare(store, job['id'], 'export-fixture-one', root)
+            with store.engine.begin() as connection:
+                connection.execute(m.profile_versions.update().where(
+                    m.profile_versions.c.profile_id == 'export-fixture-one',
+                ).values(answers=[{'metadata': {
+                    'api_key': 'SYNTHETIC_BROWSER_API_KEY',
+                    'Authorization': 'SYNTHETIC_BROWSER_AUTH_HEADER',
+                    'work_authorization': 'Synthetic employment answer',
+                }}]))
+                connection.execute(m.routes.update().where(
+                    m.routes.c.job_id == job['id'],
+                ).values(url='https://jobs.example.test/apply/%73ession/SYNTHETIC_BROWSER_PATH_TOKEN'))
+            store.engine.dispose()
             app = create_app(
                 store, 'http://127.0.0.1:1', root,
                 'redis://127.0.0.1:1/0', operation_mode='FIXTURE',
@@ -121,12 +134,16 @@ class DataExportBrowserTests(unittest.TestCase):
                     self.assertEqual(first_export['profile']['name'], 'Export Fixture One')
                     self.assertIn('fixture-one-only-value', json.dumps(first_export))
                     self.assertNotIn('fixture-two-only-value', json.dumps(first_export))
+                    self.assertNotIn('SYNTHETIC_BROWSER_API_KEY', first_profile_text)
+                    self.assertNotIn('SYNTHETIC_BROWSER_AUTH_HEADER', first_profile_text)
+                    self.assertIn('Synthetic employment answer', first_profile_text)
                     expect(export_panel.get_by_role('status')).to_have_text('Export downloaded.')
 
                     jobs_text = download_export(
                         'export-fixture-one', 'Download jobs CSV', 'jobs.csv',
                         'mjobs-jobs-export-fixture-one.csv')
                     jobs = list(csv.DictReader(io.StringIO(jobs_text)))
+                    self.assertNotIn('SYNTHETIC_BROWSER_PATH_TOKEN', jobs_text)
                     self.assertTrue(jobs, 'jobs export should include the synthetic matched posting')
                     self.assertIn(job['id'], {row['id'] for row in jobs})
 
@@ -134,14 +151,25 @@ class DataExportBrowserTests(unittest.TestCase):
                         'export-fixture-one', 'Download applications CSV', 'applications.csv',
                         'mjobs-applications-export-fixture-one.csv')
                     applications = list(csv.DictReader(io.StringIO(applications_text)))
+                    self.assertNotIn('SYNTHETIC_BROWSER_PATH_TOKEN', applications_text)
                     self.assertEqual({row['id'] for row in applications}, {application_id})
 
                     backup_text = download_export(
                         'export-fixture-one', 'Download complete backup', 'backup.json',
                         'mjobs-backup-export-fixture-one.json')
                     first_backup = json.loads(backup_text)
+                    self.assertNotIn('SYNTHETIC_BROWSER_PATH_TOKEN', backup_text)
+                    self.assertTrue(all(row['url'] is None for row in first_backup['application_routes']
+                                        if row['job_id'] == job['id']))
+                    with store.engine.connect() as connection:
+                        saved_url = connection.execute(m.routes.select().where(
+                            m.routes.c.job_id == job['id'])).mappings().first()['url']
+                    self.assertIn('SYNTHETIC_BROWSER_PATH_TOKEN', saved_url)
                     self.assertEqual(first_backup['export_type'], 'profile_backup')
                     self.assertEqual(first_backup['profile_id'], 'export-fixture-one')
+                    self.assertNotIn('SYNTHETIC_BROWSER_API_KEY', backup_text)
+                    self.assertNotIn('SYNTHETIC_BROWSER_AUTH_HEADER', backup_text)
+                    self.assertIn('Synthetic employment answer', backup_text)
                     self.assertIn(job['id'], {row['id'] for row in first_backup['jobs']})
                     self.assertIn(application_id,
                                   {row['id'] for row in first_backup['applications']})

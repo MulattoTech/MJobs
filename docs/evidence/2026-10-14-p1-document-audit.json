@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "campaign": "p0p1-20261013-232152",
+  "iteration": 5,
+  "issues": [
+    177,
+    176
+  ],
+  "requirements": [
+    "MJ-REQ-176",
+    "MJ-REQ-175"
+  ],
+  "priority": "P1",
+  "status": "PARTIAL",
+  "recorded_at_utc": "2026-10-14T07:18:55.844488+00:00",
+  "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+  "base_main": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac",
+  "runtime": {
+    "python": "3.12.10",
+    "platform": "Windows",
+    "database": "temporary SQLite FIXTURE",
+    "browser": "headless Chromium; localhost-only request guard",
+    "postgres_local": "NOT_RUN: no explicit disposable PostgreSQL URL supplied",
+    "hosted_database": "Disposable PostgreSQL/Redis workflow fixtures; new case artifacts individually inspected"
+  },
+  "source_sha256": {
+    "services/audit_history.py": "5fc1d9c355fd078b1df603843d76e3708b7bae57237a41b4e187603c4ca40d1a",
+    "services/documents/generate.py": "c059c70337d4f4496ad5de1797f925088c1f61f5cd9587fbbe2bf707fbbbd32e",
+    "tests/integration/test_document_generation_audit.py": "a4debc964f6bf9fef417bd628b0b24755074ef35d2707f842f43f7b8a86e769e",
+    "tests/integration/test_audit_display_privacy.py": "6a13b7e7bd6003a05fda9a7a69fb211f94411ca6c0a55bd140254f0a32528e62",
+    "tests/browser/test_document_generation_audit.py": "d112d993ad27e30f4f44a8ed9daeb323ed07052cc54cf423eaf22563c1f25bc2"
+  },
+  "outcomes": [
+    "DOCUMENTS_PREPARED atomically records the actual generated document kinds with document/application changes",
+    "Activity renders resume and cover-letter events from exact allowlisted immutable event snapshots; hyphenated cover-letter now appears",
+    "Document mutation/removal and reopen do not erase or rewrite generation events; repeated preparation preserves older snapshots",
+    "Legacy missing kinds retain a generic event; malformed/unknown kinds are explicit unavailable instead of inferred",
+    "Known credential assignments, Bearer/Basic values and HTTP URLs in persisted labels are withheld from audit API/UI without modifying source data; labels bounded to 500 characters"
+  ],
+  "negative_controls": [
+    "Profile isolation across API and browser switching",
+    "Failure after audit insert rolls back application revision, event and failed artifact directory; prior artifact bytes unchanged and retry commits exactly once",
+    "Malformed/nonlist/unknown/oversized kind snapshots and private payload fields never serialize",
+    "Composite environment-shaped names and quoted JSON assignments reproduced failing before repair",
+    "Normal Secret Service and Token Platform labels remain meaningful"
+  ],
+  "verification": [
+    {
+      "command": "python -m pytest -q tests/integration/test_document_generation_audit.py tests/integration/test_audit_display_privacy.py tests/integration/test_audit_history.py",
+      "result": "PASS: 19 tests and 26 subtests; 8 PostgreSQL NOT_RUN skips",
+      "revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+      "report": "outputs/iteration5-final-revised.xml (ignored local)"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_document_generation_audit.py tests/integration/test_audit_display_privacy.py tests/integration/test_audit_history.py tests/integration/test_spine.py tests/integration/test_document_artifact_recovery.py tests/integration/test_application_supporting_documents.py tests/integration/test_document_generation_failure_flow.py tests/integration/test_cover_letter_workflow.py",
+      "result": "PASS: 38 tests and 21 subtests; 8 PostgreSQL NOT_RUN skips; before final composite-marker edit, final affected API suite above rerun afterward",
+      "report": "outputs/iteration5-integration.xml (ignored local)"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_document_generation_audit.py tests/browser/test_audit_history.py tests/browser/test_document_history.py",
+      "result": "PASS: 4 connected Chromium tests; final new case rerun after final source edit PASS",
+      "report": "outputs/iteration5-browser.xml; outputs/iteration5-browser-final.xml (ignored local)"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "Default Vite configuration loader FAIL: spawn EPERM; TypeScript completed; node node_modules/vite/bin/vite.js build --configLoader native PASS; no dependency/configuration changes",
+      "limitation": "Existing bundle-size warning retained"
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS corrected outside-worktree temp environment: 1593 tests / 1114 subtests; 8 Linux-only skips",
+      "resolution": "Retested tests/unit/test_compose_recovery_target.py using owned temp under writable Git common directory: 11 tests / 14 subtests PASS; full rerun uses same outside-worktree temp root",
+      "initial_run": "One fixture-location failure with temp root inside worktree; resolved without source/test weakening",
+      "report": "outputs/iteration5-unit-final.xml (ignored local)",
+      "revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f"
+    },
+    {
+      "command": "python -m tools.ci.check_repository; python -m tools.verification.reference_provenance; python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check; python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_audit_display_privacy.py tests/integration/test_document_generation_audit.py tests/integration/test_audit_history.py",
+      "revision": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+      "result": "PASS: 19 tests / 26 subtests; 8 local PostgreSQL NOT_RUN skips",
+      "report": "outputs/iteration5-postmerge.xml (ignored local)"
+    }
+  ],
+  "review": {
+    "kind": "Local Luna High read-only review",
+    "result": "Two known-marker omissions reproduced and fixed; missing rollback artifact assertions added; final bounded review found no remaining important issue; reviewer did not execute tests",
+    "independent_external_review": "NOT_RUN"
+  },
+  "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+  "acceptance": {
+    "MJ-REQ-176": "PARTIAL: whole listed audit lifecycle and real-provider events not certified by this slice",
+    "MJ-REQ-175": "PARTIAL: marker filter does not identify arbitrary unmarked secrets; other projections outside this audit scope not certified"
+  },
+  "safety": {
+    "real_submissions": "OFF",
+    "paid_inference": "OFF",
+    "credential_access": "NONE",
+    "migration": "NONE; additive existing event payload only",
+    "private_applicant_data": "NONE; fictional fixtures only"
+  },
+  "preserved": [
+    "External claims/worktrees, dirty private data and historical AFK goal",
+    "Original and reference acceptance matrices/index unchanged; no PASS promotion"
+  ],
+  "coordination_validation": "Existing historical lane snapshots unavailable (20 missing files); native common lock and disjoint claims verified, historical lanes not fabricated",
+  "rollback": "Ordinary scoped revert; no destructive data migration; snapshots remain additive",
+  "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+  "pr": "https://github.com/MulattoTech/MJobs/pull/644",
+  "hosted_attempts": [
+    {
+      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+      "integration_run": 38524654090,
+      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+    },
+    {
+      "head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+      "required_gates": {
+        "CI / required": "PASS",
+        "Integration / PostgreSQL and Redis": "PASS",
+        "Disposable Compose / mock end-to-end": "PASS",
+        "Dependencies / introduced vulnerabilities": "PASS",
+        "Security / secret scan": "PASS"
+      },
+      "runs": {
+        "fast": 38525863020,
+        "integration": 38525862992,
+        "compose": 38525863006,
+        "dependencies": 38525863009,
+        "secret_scan": 38525863017
+      },
+      "integration_artifacts": {
+        "head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+        "integration_run": 38525862992,
+        "junit_cases": 1673,
+        "passed": 1654,
+        "skipped": 19,
+        "failures_errors": 0,
+        "new_postgres_cases": 8,
+        "new_postgres_result": "PASS zero skips/failures/errors"
+      },
+      "review_policy": "Live rules require 0 human approvals; local Luna review is not hosted/human review; no administrative bypass used"
+    }
+  ],
+  "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+  "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+  "pr_number": 644,
+  "merge_tree_equals_checked_head": true,
+  "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+  "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+  "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests.",
+  "merged_main_push_checks": "NOT_RUN in this receipt; separate from exact PR-head gates",
+  "publication_route": "Native Git push prompt helper unavailable; Git-object API preserved every local blob/tree/commit hash; branch updated without force. Connector merge approval flow unavailable, ordinary CLI merge pinned expected head and enforced live repository rules."
+}

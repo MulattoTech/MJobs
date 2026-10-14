@@ -8,8 +8,10 @@ import unittest
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from sqlalchemy import select, update
 
 from apps.api.transient_retention import create_transient_retention_router
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from workers.transient_retention import CONFIG_ENV, run_with_config
 
@@ -146,6 +148,41 @@ class RetentionPolicyIntegrationTests(unittest.TestCase):
             self.assertEqual(json.loads(self.summary.read_text(encoding="utf-8")), outcome)
         finally:
             reopened.engine.dispose()
+
+    def test_noninteger_stored_schema_disables_pruning_until_reconfirmed(self):
+        for schema_version in (True, 1.0):
+            with self.subTest(schema_version=schema_version):
+                initial = self.client.get("/retention/policy").json()
+                saved = self._put(expected_revision=initial["revision"], age=15)
+                self.assertEqual(saved.status_code, 200, saved.text)
+                revision = saved.json()["revision"]
+                audit_id = f"retention-policy-v1-{revision:020d}"
+                with self.store.engine.begin() as connection:
+                    payload = dict(connection.execute(select(m.audit.c.payload).where(
+                        m.audit.c.id == audit_id)).scalar_one())
+                    payload["schema_version"] = schema_version
+                    connection.execute(update(m.audit).where(m.audit.c.id == audit_id).values(payload=payload))
+                old = self._write_old(self.managed / "must-survive-invalid-consent.png", days=40)
+                policy = self.client.get("/retention/policy").json()
+                self.assertEqual(policy["revision"], revision)
+                self.assertTrue(policy["requires_review"])
+                self.assertFalse(policy["enabled"])
+                self.store.engine.dispose()
+                reopened = Store(f"sqlite:///{self.database.as_posix()}")
+                try:
+                    result = run_with_config(self.config, store=reopened, now=NOW)
+                    self.assertTrue(result["dry_run"])
+                    self.assertEqual(result["removed_count"], 0)
+                    self.assertTrue(old.exists())
+                finally:
+                    reopened.engine.dispose()
+                recovered = self._put(expected_revision=revision, age=15)
+                self.assertEqual(recovered.status_code, 200, recovered.text)
+                self.assertFalse(recovered.json()["requires_review"])
+                result = run_with_config(self.config, store=self.store, now=NOW)
+                self.assertFalse(result["dry_run"])
+                self.assertEqual(result["removed_count"], 1)
+                self.assertFalse(old.exists())
 
     def test_changed_config_requires_reconfirmation_and_admin_ceiling_blocks_pruning(self):
         stale = self._write_old(self.managed / "must-survive.png")

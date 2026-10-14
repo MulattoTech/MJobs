@@ -13,6 +13,8 @@ from services.ats_detection.detector import KNOWN_ATS_PROVIDERS
 _LOGGER = logging.getLogger("mjobs.operations")
 _OPERATION_KINDS = {
     "DISCOVER", "COMPANY_DISCOVER", "COMPANY_SOURCE_REFRESH", "PREPARE", "APPLY_MOCK",
+    "RESUME_EXTRACT_QUEUED", "UPLOADED_RESUME_COMPARE_QUEUED", "AI_EVALUATE_QUEUED",
+    "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN",
 }
 _RESULTS = {"COMPLETED", "BLOCKED", "CANCELLED", "DEAD_LETTERED"}
 _SAFE_IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
@@ -25,7 +27,8 @@ _SAFE_ATS_PROVIDERS = KNOWN_ATS_PROVIDERS | {"mock-ats"}
 
 
 def _safe_identifier(value):
-    return value if isinstance(value, str) and _SAFE_IDENTIFIER.fullmatch(value) else None
+    return value if (isinstance(value, str) and _SAFE_IDENTIFIER.fullmatch(value)
+                     and not _SECRET_SHAPED_IDENTIFIER.search(value)) else None
 
 
 def _safe_discovery_source_id(operation):
@@ -49,7 +52,8 @@ def _safe_discovery_source_id(operation):
 
 
 def _safe_error_code(value):
-    return value if isinstance(value, str) and _SAFE_ERROR_CODE.fullmatch(value) else None
+    return value if (isinstance(value, str) and _SAFE_ERROR_CODE.fullmatch(value)
+                     and not _SECRET_SHAPED_IDENTIFIER.search(value)) else None
 
 
 def _safe_ats_provider(value):
@@ -101,19 +105,23 @@ def log_operation_finished(operation, result, error_code, duration_seconds):
         company_id = _safe_identifier(operation.get("company_id"))
         if company_id and not _SECRET_SHAPED_IDENTIFIER.search(company_id):
             record["company_id"] = company_id
-    elif kind == "APPLY_MOCK":
-        application_id = _safe_identifier(operation.get("entity_id"))
+    elif kind in {"APPLY_MOCK", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"}:
+        # Reviews and fixture runs get context only from the persisted projection.
+        # Their entity/params may identify other private inputs on invalid work.
+        application_id = _safe_identifier(operation.get(
+            "entity_id" if kind == "APPLY_MOCK" else "application_id"))
         if application_id:
             record["application_id"] = application_id
-        job_id = _safe_identifier(operation.get("job_id"))
-        if job_id and not _SECRET_SHAPED_IDENTIFIER.search(job_id):
-            record["job_id"] = job_id
-        company_id = _safe_identifier(operation.get("company_id"))
-        if company_id and not _SECRET_SHAPED_IDENTIFIER.search(company_id):
-            record["company_id"] = company_id
-        ats_provider = _safe_ats_provider(operation.get("ats_provider"))
-        if ats_provider:
-            record["ats"] = ats_provider
+        if application_id or kind == "APPLY_MOCK":
+            job_id = _safe_identifier(operation.get("job_id"))
+            if job_id:
+                record["job_id"] = job_id
+            company_id = _safe_identifier(operation.get("company_id"))
+            if company_id:
+                record["company_id"] = company_id
+            ats_provider = _safe_ats_provider(operation.get("ats_provider"))
+            if ats_provider:
+                record["ats"] = ats_provider
 
     safe_code = _safe_error_code(error_code)
     if safe_code:

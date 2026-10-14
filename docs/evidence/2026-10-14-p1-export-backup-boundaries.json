@@ -1,0 +1,81 @@
+{
+  "recorded_at_utc": "2026-10-14T10:49:01.395165+00:00",
+  "iteration": 12,
+  "issues": [
+    168,
+    170
+  ],
+  "requirements": [
+    "MJ-REQ-167",
+    "MJ-REQ-169"
+  ],
+  "status": "LOCAL_VERIFIED_PARTIAL",
+  "authorization": "directive-12.md and queue-12.json; live Project #1 Todo/P1 and issue OPEN/priority:P1 verified",
+  "invocation_base": "6c1cc548108eb014bc7b20cce7bfbb9e2c197fbd",
+  "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
+  "source_tree": "6069d112809b6a8f080692b42d0abebf25de6ceb",
+  "source_sha256": {
+    "cli/local_backup.py": "83eed9b4d1ad36379f96e5ca1e219386c5c99405886a79dc70c11c58a68bd65e",
+    "services/data_export.py": "41a69130671c4e1bded4bcaa5b06aa5c2febee4b2e8d2ac3e999b38b99bc0e32",
+    "tests/unit/test_data_export.py": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496",
+    "tests/unit/test_backup_restore_snapshot.py": "99e4ebeb7637ea601f63518ac8d2e3aff7794753daf5ad3bdabeb8a788f72737",
+    "tests/integration/test_data_export_flow.py": "07aded7e2fce46c76c762a10f86ddb237b620823051712621029ffe1859f258b",
+    "tests/browser/test_data_export.py": "f06717cf7c9b4bc1fea6c37b33c3994e38fad2d92f14de703d67ab8d2c737cf8"
+  },
+  "runtime": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "database": "synthetic file-backed SQLite",
+    "browser": "local headless Chromium after production build"
+  },
+  "behavior": {
+    "170": "Jobs/applications CSV and profile backup omit links whose once-decoded path contains exact sensitive markers, including encoded separators. Public links and saved route bytes survive reopen. Document/upload query results close on failure before safe retry.",
+    "168": "Reject native Windows junctions at archive root/ancestors/documents, destination ancestors and copied/restored inventories. Check child links before recursive inventory; fail closed on scan errors. Preserve source, linked targets and restore snapshot cleanup."
+  },
+  "checks": {
+    "final_full_unit": {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider --junitxml=outputs/directive12-unit-exact.xml",
+      "result": {
+        "passed": 1612,
+        "skipped": 9,
+        "subtests_passed": 1151,
+        "seconds": 257.27
+      }
+    },
+    "final_affected": {
+      "command": "python -m pytest -q tests/unit/test_backup_restore_snapshot.py tests/unit/test_local_backup.py tests/unit/test_backup_config_snapshot.py tests/unit/test_backup_fixture_receipts.py tests/unit/test_backup_credential_restore.py tests/unit/test_backup_acceptance.py tests/unit/test_data_export.py tests/unit/test_data_export_bounds.py tests/integration/test_data_export_flow.py tests/browser/test_data_export.py -p no:cacheprovider",
+      "result": {
+        "passed": 74,
+        "skipped": 1,
+        "subtests_passed": 15,
+        "seconds": 28.31
+      }
+    },
+    "build": "PASS: npm --prefix apps/web run build; existing chunk-size warning",
+    "integrity": "PASS: catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; git diff --check",
+    "provenance": "PASS: both new source commits; actual primary model unknown",
+    "review": "Local read-only GPT-6 Luna High review: no remaining critical/important findings; not human/hosted certification",
+    "native_junction_cases": "PASS: archive, ancestor, documents, nested unlisted inventory, destination, captured document tree",
+    "red_controls": "Initial exports/root-junction checks failed; destination started capture before rejection; nested inventory statted junction; unreadable empty tree incorrectly passed; original query cursor remained open after error. Each final control passes.",
+    "regression_investigation": "Existing growing-backup API test failed Windows SQLite cleanup with original export sanitizer too. Explicit document/upload result contexts fixed the retained cursor; final API failure/retry and full suite rerun after fix.",
+    "earlier_full_runs": "1608 PASS/9 SKIP/1151 subtests and 1611 PASS/9 SKIP/1151 subtests were before final cursor correction; not used to certify final source."
+  },
+  "privacy": "Synthetic fixtures only; real submission OFF; no credential extraction, schema migration or private runtime change",
+  "limitations": [
+    "Original #168 and #170 remain PARTIAL; no matrix/index/dashboard acceptance promotion",
+    "Actual Docker/PostgreSQL backup/restore NOT_RUN for this OS-path slice",
+    "Hosted exact-head CI/integration/main-push verification NOT_RUN; eight live PRs exceeds canonical cap four",
+    "Marker filtering does not certify arbitrary opaque URL paths as secret-free",
+    "No whole-product release eligibility claim"
+  ],
+  "publication": {
+    "candidate_branch": "codex/p1-export-backup-safety-12",
+    "predecessor": "codex/p1-settings-retention-11",
+    "reason": "Branch switching denied HEAD.lock; preserve existing checkout and prior pending source. New candidate retains tested predecessor bytes and requires predecessor integration first.",
+    "receipt": "Git common-dir campaign publication-12.json",
+    "pull_request": "NOT_OPENED_PR_CAP",
+    "hosted_checks": "NOT_RUN",
+    "integration": "NOT_RUN"
+  },
+  "rollback": "Scoped reverts of the two iteration-12 source commits; no schema/data migration; preserve predecessor and private stores"
+}

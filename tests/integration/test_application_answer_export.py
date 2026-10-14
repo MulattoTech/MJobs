@@ -14,7 +14,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store, identity
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
-from sqlalchemy import select
+from sqlalchemy import select, update
 from tests.integration.test_spine import PROFILE
 
 
@@ -267,6 +267,20 @@ class ApplicationAnswerExportTests(unittest.TestCase):
                          'EXACT_NORMALIZATION')
         self.assertEqual(row['generation_context']['items'][0]['match_score'], 1.0)
         self.assertEqual(row['profile_version'], self.client.get('/profiles/fixture').json()['version'])
+        before = [e for e in self.client.get('/profiles/fixture/audit-history').json()['events']
+                  if e['type'] == 'APPLICATION_ANSWERS_EXPORTED']
+        self.assertEqual(len(before), 1)
+        with self.store.engine.begin() as connection:
+            audit = connection.execute(select(m.audit).where(
+                m.audit.c.action == 'APPLICATION_ANSWERS_EXPORTED')).mappings().one()
+            self.assertEqual(audit['payload']['subject_snapshot'],
+                             {'subject': before[0]['subject'], 'company': before[0]['company']})
+            self.assertEqual(audit['payload']['application_context']['profile_id'], 'fixture')
+            connection.execute(update(m.jobs).values(title='Later answer-export title'))
+            connection.execute(update(m.companies).values(name='Later answer-export employer'))
+        after = [e for e in self.client.get('/profiles/fixture/audit-history').json()['events']
+                 if e['type'] == 'APPLICATION_ANSWERS_EXPORTED']
+        self.assertEqual(after, before)
 
     def test_export_rejects_reusable_answer_for_opposite_polarity_without_creating_document(self):
         profile = dict(PROFILE, answers=[{

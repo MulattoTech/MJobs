@@ -51,7 +51,7 @@ class SettingsTransferFlowTests(unittest.TestCase):
     def _client(self):
         return TestClient(create_app(
             self.store, "http://127.0.0.1:1", self.root,
-            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"), raise_server_exceptions=False)
 
     def tearDown(self):
         self.client.close()
@@ -95,10 +95,16 @@ class SettingsTransferFlowTests(unittest.TestCase):
         self.assertEqual(saved_search["criteria"]["include_titles"], ["Systems Administrator"])
         self.assertNotIn("id", saved_search)
         self.assertNotIn("profile_id", saved_search)
-        self.assertEqual(exported["settings"]["automation_rules"], [])
+        self.assertEqual(exported["settings"]["automation_rules"], [{
+            "kind": "scheduled_search", "search_profile_name": "Infrastructure search",
+            "enabled": False, "interval_seconds": 600,
+        }])
         self.assertEqual(exported["settings"]["source_configuration"], [{
             "search_profile_name": "Infrastructure search",
             "source_ids": [self.source_id],
+            "sources": [{"id": self.source_id, "provider": "greenhouse", "tenant": "settings-transfer-fixture",
+                         "enabled": False, "poll_interval": 600, "concurrency": 2,
+                         "request_timeout": 8, "rate_limit": 20, "jitter_seconds": 5}],
         }])
         for private_value in (
                 "Alex Fixture", "alex@example.test", "PRIVATE_CAREER_FACT_SENTINEL",
@@ -152,6 +158,29 @@ class SettingsTransferFlowTests(unittest.TestCase):
         self.assertEqual(self.client.get("/profiles/missing-profile/settings/export").status_code, 404)
         self.assertEqual(self.client.post(
             "/profiles/missing-profile/settings/import", json=payload).status_code, 404)
+
+    def test_malformed_criteria_rejects_without_replacement_and_recovers_after_reopen(self):
+        before = self._export("other-profile")
+        source_before = self._export("fixture")
+        for field in ("remote", "salary_period", "date_window"):
+            for value in ([], {"private": "PRIVATE_IMPORT_SENTINEL"}):
+                with self.subTest(field=field, value=value):
+                    payload = copy.deepcopy(source_before)
+                    payload["settings"]["search_profiles"][0]["criteria"][field] = value
+                    response = self.client.post("/profiles/other-profile/settings/import", json=payload)
+                    self.assertEqual(response.status_code, 422, response.text)
+                    self.assertNotIn("PRIVATE_IMPORT_SENTINEL", response.text)
+                    self.assertEqual(self._export("other-profile"), before)
+                    self.assertEqual(self._export("fixture"), source_before)
+
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = self._client()
+        self.assertEqual(self._export("other-profile"), before)
+        response = self.client.post("/profiles/other-profile/settings/import", json=source_before)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(self._export("other-profile"), source_before)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.audit_history import snapshot_application_audit_payload
 from services.tracking.applications import TRACKING_ACTIONS, _entity
 from services.tracking.email_status import classify_email_status
 
@@ -265,7 +266,8 @@ def apply_email_status(store, profile_id: str, application_id: str, preview_id: 
             "id": status_event_id,
             "entity_id": tracking_entity,
             "action": "APPLICATION_PIPELINE_STATUS",
-            "payload": status_payload,
+            "payload": snapshot_application_audit_payload(connection, application_id,
+                "APPLICATION_PIPELINE_STATUS", status_payload),
             "timestamp": now(),
         })
         upsert(connection, m.audit, {

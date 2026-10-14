@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
+  "issue_ids": [
+    278,
+    171
+  ],
+  "result": "PARTIAL",
+  "base_head": "8a5179658c0617007451317d00fd0fd2bcbc3c00",
+  "source_sha256": {
+    "tests/integration/test_settings_transfer_flow.py": "930583156ed2bfb2e9b60b7aa1b6b8f000786eb2ce72e084990d3963efc5b63b",
+    "tests/integration/test_retention_policy.py": "e0da37e607e0132bcf3875f15571155085a1044db844aea0cc6c2ffd298bf65a",
+    "services/privacy/retention_policy.py": "fc79b3c3d47ba3c8a923513283efcbcbabb5f61e1d422b810958ba739e306916",
+    "services/settings_transfer.py": "7d6d3b70f95c50cd8abcda654c787ae30710d6d4e6a04dcab09551380fcb09c9",
+    "tests/browser/test_settings_transfer_recovery.py": "78035fa35d4d2f785ccfdb955fa16772d5a6c76bdc47cd9f498473db91af13a0"
+  },
+  "scope": "Validated JSON settings import rejection and recovery; fail-closed retained consent schema types",
+  "local_checks": [
+    "Settings unit/integration: 9 passed, 14 subtests",
+    "Settings Chromium/integration: 5 passed, 11 subtests",
+    "Retention affected unit/integration/Chromium: 34 passed, 21 subtests",
+    "Frontend settings: 4 passed",
+    "Production build: PASS",
+    "Catalogue/progress/dashboard/skills/reference/repository/diff: PASS",
+    "Final full unit suite: 1603 passed, 9 platform skips, 1147 subtests passed in 254.98 seconds",
+    "Final combined settings/retention unit/API/Chromium: 14 passed, 16 subtests passed"
+  ],
+  "red_controls": [
+    "Six malformed criteria subcases returned 500 before fix, now 422 without replacing profile settings",
+    "Boolean and float stored consent schemas accepted before fix, now require review and prevent pruning"
+  ],
+  "review": "Local Luna High read-only review: no critical or important findings; not human or hosted approval",
+  "limitations": [
+    "Original requirements remain PARTIAL; automation rules unsupported",
+    "Hosted exact-head checks and integration NOT_RUN; PR publication deferred by canonical four-PR cap",
+    "First full unit run: 1603 passed, 9 skipped, 1146 subtests passed, one Compose path subtest failed because fixture temp was inside repository; outside-repository isolated rerun 11 passed/14 subtests; final full rerun PASS",
+    "Initial temp fixture baseline failed due inaccessible default temp directory; stopped owned run",
+    "Initial browser run failed from test-only expected success wording mismatch; corrected and rerun passed",
+    "Branch switch denied HEAD.lock then index.lock; staged source preserved on current owned branch; no permission changes or alternate Git metadata",
+    "Git push failed in Windows Schannel and askpass; existing gh GitHub REST git API published an identical reviewed tree without credential extraction or host changes. Remote branch commit differs from local source history; exact tree and executable/test hashes match."
+  ],
+  "external_submission": "OFF",
+  "source_commit": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
+  "full_unit": {
+    "passed": 1603,
+    "skipped": 9,
+    "subtests_passed": 1147,
+    "seconds": 254.98,
+    "command": "TEMP/TMP=<campaign common-dir>/test-temp-11; python -m pytest -q tests/unit -p no:cacheprovider --tb=short --junitxml=outputs/directive11-unit-final.xml"
+  },
+  "publication": {
+    "status": "PUBLISHED_BRANCH_ONLY",
+    "branch": "codex/p1-settings-retention-11",
+    "pr": "NOT_OPENED_PR_CAP",
+    "open_prs": 8,
+    "max_active_prs": 4,
+    "hosted_exact_head": "NOT_RUN",
+    "integration": "NOT_RUN",
+    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
+    "local_candidate": "7b1ac253c6b86c2031187711c8c26fd7d0fb44de",
+    "route": "GitHub REST git tree/commit/ref via existing authenticated gh; no credential extraction",
+    "live_receipt": "Git common-dir campaign publication-11.json"
+  }
+}

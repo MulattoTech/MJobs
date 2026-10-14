@@ -544,7 +544,7 @@ def execute_operation(operation_id):
                     connection, "APPLICATION_FAILED", operation["entity_id"],
                     operation["params"]["job_id"], operation_id)
         logged_operation = operation
-        if operation["kind"] == "APPLY_MOCK":
+        if operation["kind"] in {"APPLY_MOCK", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"}:
             try:
                 context = _resolve_application_log_context(store, operation)
             except Exception:
@@ -565,11 +565,12 @@ def execute_operation(operation_id):
 
 
 def _resolve_application_log_context(store, operation):
-    """Read persisted provider and job/company IDs for APPLY_MOCK log context."""
-    if operation.get("kind") != "APPLY_MOCK":
+    """Read only persisted application context for application worker outcomes."""
+    if operation.get("kind") not in {"APPLY_MOCK", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"}:
         return {}
     with store.engine.connect() as connection:
         row = connection.execute(select(
+            m.applications.c.id.label("application_id"),
             m.routes.c.provider.label("ats_provider"),
             m.applications.c.job_id.label("job_id"),
             m.jobs.c.company_id.label("company_id"),

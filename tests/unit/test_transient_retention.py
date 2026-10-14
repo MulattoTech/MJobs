@@ -2,11 +2,13 @@
 from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
 
 from services.privacy.transient_retention import run_transient_retention
+from services.privacy import transient_retention
 
 
 class TransientRetentionTests(unittest.TestCase):
@@ -151,6 +153,58 @@ class TransientRetentionTests(unittest.TestCase):
         self.assertEqual(result["status"], "BLOCKED")
         self.assertIn("UNSAFE_PATH", result["errors"])
         self.assertTrue(outside.exists())
+
+    def test_directory_redirect_after_scan_preserves_moved_file(self):
+        for redirect_ancestor in (False, True):
+            with self.subTest(redirect_ancestor=redirect_ancestor):
+                # Each case owns a separate tree; the target remains inside
+                # this fixture but outside the configured retention root.
+                with tempfile.TemporaryDirectory() as directory:
+                    fixture = Path(directory).resolve()
+                    root = fixture / "configured"
+                    managed = root / "transient" / "raw"
+                    managed.mkdir(parents=True)
+                    candidate = managed / "raw-old.json"
+                    candidate.write_bytes(b"preserve moved transient")
+                    modified = (self.now - timedelta(days=6)).timestamp()
+                    os.utime(candidate, (modified, modified))
+                    redirect = managed.parent if redirect_ancestor else managed
+                    moved = fixture / "moved"
+                    preserved = moved / "raw" / candidate.name if redirect_ancestor else moved / candidate.name
+                    sentinel = fixture / "history.json"
+                    sentinel.write_bytes(b"preserve application history")
+                    original_reparse = transient_retention._is_reparse_point
+                    candidate_checks = 0
+
+                    def redirect_before_prune(path):
+                        nonlocal candidate_checks
+                        if path == candidate:
+                            candidate_checks += 1
+                            if candidate_checks == 2:
+                                redirect.rename(moved)
+                                try:
+                                    redirect.symlink_to(moved, target_is_directory=True)
+                                except OSError:
+                                    if os.name != "nt":
+                                        raise
+                                    result = subprocess.run(
+                                        ["cmd", "/c", "mklink", "/J", str(redirect), str(moved)],
+                                        capture_output=True, timeout=10,
+                                    )
+                                    if result.returncode:
+                                        self.skipTest("Directory links unavailable for native redirect fixture")
+                        return original_reparse(path)
+
+                    with patch.object(transient_retention, "_is_reparse_point", redirect_before_prune):
+                        result = run_transient_retention(
+                            root, self.rules, allowed_roots=[root], now=self.now, dry_run=False,
+                        )
+                    self.assertEqual(result["candidate_count"], 1)
+                    self.assertEqual(result["removed_count"], 0)
+                    self.assertEqual(result["status"], "BLOCKED")
+                    self.assertIn("UNSAFE_PATH", result["errors"])
+                    self.assertEqual(preserved.read_bytes(), b"preserve moved transient")
+                    self.assertEqual(sentinel.read_bytes(), b"preserve application history")
 
 
 if __name__ == "__main__":

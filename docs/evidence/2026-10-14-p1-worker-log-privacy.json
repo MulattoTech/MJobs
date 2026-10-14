@@ -1,0 +1,140 @@
+{
+  "recorded_at_utc": "2026-10-14T05:57:09.070968+00:00",
+  "status": "PARTIAL",
+  "issues": [
+    178,
+    176
+  ],
+  "base_revision": "b8a45f68519014779921d8b18e582d72b25fab0a",
+  "source_sha256": {
+    "workers/structured_logging.py": "fef2fcd473befcd6826660fa1e133872aedaacc1d317c70ff8cefb3df7b04615",
+    "tests/unit/test_structured_logging.py": "95934de880e4e4d673e330e7e6d8ad696c0f16ac1a88af4f0a8b94d878847fb0",
+    "tests/integration/test_durable_resume_extraction.py": "b082684494f842d1fccab1a747856f1265a4889375c2a3416d582aa61fb81d5d"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "mode": "isolated synthetic SQLite and Chromium; external submissions OFF"
+  },
+  "eligibility": [
+    {
+      "issue": 178,
+      "snapshot_priority": "P1",
+      "live_project_priority": "P1",
+      "project_status": "Todo"
+    },
+    {
+      "issue": 176,
+      "snapshot_priority": "P1",
+      "live_project_priority": "P1",
+      "project_status": "Todo"
+    },
+    {
+      "issue": 524,
+      "snapshot_priority": "P1",
+      "live_project_priority": "P1",
+      "project_status": "Todo"
+    }
+  ],
+  "behavior": [
+    "All ten dispatched worker types emit fixed terminal outcome context",
+    "Existing recognized secret-marker filter now protects every identifier and error-code field",
+    "Resume extraction persists state and result before logging; duplicate claim is silent",
+    "Corrupt source logs fixed BLOCKED error, repaired retry survives reopened API; process-crash recovery emits one final record"
+  ],
+  "local_validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_durable_resume_extraction.py tests/integration/test_worker_lifecycle.py tests/integration/test_durable_uploaded_comparison.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_controlled_application_dry_run.py tests/integration/test_application_form_review_flow.py -p no:cacheprovider",
+      "result": "121 PASS, 62 passing subtests, 15 explicit environment skips"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_resume_extraction.py -k \"invalid_extraction_logs or completed_result_is_private or process_crash\" -p no:cacheprovider",
+      "result": "3 PASS after final test strengthening"
+    },
+    {
+      "command": "npm --prefix apps/web run build -- --configLoader native",
+      "result": "PASS TypeScript/Vite; default bundler loader hit spawn EPERM; existing chunk-size warning"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_profile_import.py tests/browser/test_uploaded_resume_comparison.py -p no:cacheprovider",
+      "result": "4 connected Chromium PASS; zero skips"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "local_full_unit": "1591 PASS, 1104 passing subtests, 8 explicit Linux-only skips in 255.00 seconds",
+  "review": "Read-only local Luna High review: no critical/important finding; minor blocked-before-log assertion strengthened and retested",
+  "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+  "limitations": [
+    "Recognized-marker filtering cannot detect credentials under arbitrary names or arbitrary free text",
+    "Broader logging fields and whole secret-management original requirements remain PARTIAL",
+    "No provider inference, real application, private profile, credential-store read or production change",
+    "Local PostgreSQL/Redis/Compose NOT_RUN; environment-gated focused cases explicitly skipped"
+  ],
+  "rollback": "Scoped source revert; no schema migration or data mutation",
+  "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf",
+  "pr": 642,
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/642",
+  "verified_head": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+  "merge_commit": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+  "required_checks": [
+    {
+      "name": "CI / required",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353327/job/115702742517",
+      "completed_at": "2026-10-14T05:47:45Z"
+    },
+    {
+      "name": "Integration / PostgreSQL and Redis",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353313/job/115704621751",
+      "completed_at": "2026-10-14T05:54:25Z"
+    },
+    {
+      "name": "Disposable Compose / mock end-to-end",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353291/job/115702146518",
+      "completed_at": "2026-10-14T05:49:45Z"
+    },
+    {
+      "name": "Dependencies / introduced vulnerabilities",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353395/job/115702146455",
+      "completed_at": "2026-10-14T05:45:44Z"
+    },
+    {
+      "name": "Security / secret scan",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353276/job/115702146476",
+      "completed_at": "2026-10-14T05:45:46Z"
+    }
+  ],
+  "additional_validation": {
+    "command": "python -m tools.coordination.lane_coordination validate",
+    "result": "FAIL: twenty historical lane snapshot files absent; current status/claim/lock bus operational. Not repaired; canonical contribution checks PASS."
+  },
+  "initial_command_errors": [
+    "Default TEMP path could not open synthetic SQLite under sandbox; using writable campaign TEMP resolved and reproduced expected RED.",
+    "Initial expanded-suite command named a nonexistent test_lever_form_review.py; no tests ran. Corrected to test_application_form_review_flow.py; 121 tests passed.",
+    "Default Vite bundled config loader spawn EPERM; supported --configLoader native production build passed.",
+    "Default schannel Git transport unavailable and inherited FETCH_HEAD write denied; per-command OpenSSL with certificate verification and --no-write-fetch-head succeeded."
+  ],
+  "post_merge": {
+    "revision": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+    "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_durable_resume_extraction.py -p no:cacheprovider",
+    "result": "28 PASS, 43 passing subtests, zero skips in 11.93 seconds",
+    "tree_matches_verified_pr_head": true
+  }
+}

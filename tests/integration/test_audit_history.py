@@ -4,7 +4,7 @@ import tempfile
 import unittest
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -369,7 +369,10 @@ class AuditHistoryApiTests(unittest.TestCase):
         self.assertNotIn(application_url, response.text)
         with self.store.engine.connect() as connection:
             self.assertEqual(connection.execute(select(m.audit.c.payload).where(
-                m.audit.c.id == merged[0]["id"])).scalar_one(), {"job_id": first_job_id})
+                m.audit.c.id == merged[0]["id"])).scalar_one(), {
+                    "job_id": first_job_id,
+                    "subject_snapshot": {"subject": "Systems Administrator", "company": "Merge Employer"},
+                })
         self.assertFalse(any(event["type"] == "JOB_MERGED" for event in
                              self.client.get("/profiles/other/audit-history").json()["events"]))
         with self.store.engine.connect() as connection:
@@ -427,6 +430,12 @@ class AuditHistoryApiTests(unittest.TestCase):
         self.assertTrue(all(event["subject"] for event in tracked))
         self.assertNotIn("Private recruiter follow-up detail", response.text)
         self.assertNotIn("SUBMISSION_CONFIRMED", response.text)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.jobs).values(title='Later external-report title'))
+            connection.execute(update(m.companies).values(name='Later external-report employer'))
+        after = [e for e in self.client.get('/profiles/fixture/audit-history').json()['events']
+                 if e['id'] in {e['id'] for e in tracked}]
+        self.assertEqual(after, tracked)
         other_profile = self.client.get("/profiles/other/audit-history")
         self.assertEqual(other_profile.status_code, 200, other_profile.text)
         self.assertFalse(any(event["type"] in {

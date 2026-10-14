@@ -187,8 +187,8 @@ export function SettingsTransfer({ profileId, busy = false, error, success, onEx
     <p>Move validated search profiles, automation rules, and source configuration between MJobs installations.</p>
     <ul aria-label="Supported settings">
       <li>Search profiles</li>
-      <li>Automation rules</li>
-      <li>Source configuration</li>
+      <li>Automation rules for scheduled searches</li>
+      <li>Source configuration and public collection policies</li>
     </ul>
     <p>Secrets, career facts, and documents are never included.</p>
 
@@ -218,6 +218,7 @@ export function SettingsTransfer({ profileId, busy = false, error, success, onEx
       {preview?.ok && <div aria-live="polite" aria-label="Settings import preview">
         <p>Preview: {preview.counts.searchProfiles} search profiles, {preview.counts.automationRules} automation rules, and {preview.counts.sourceConfigurations} source configurations.</p>
         <p>Import replaces the supported settings in the selected profile. Nothing changes until you confirm.</p>
+        <p>Missing public sources are created with the imported collection policy. Existing shared source policies must match; an import cannot overwrite another profile's source settings. Automation rules schedule discovery only.</p>
         <label>
           <input type="checkbox" checked={confirmReplace} disabled={locked} onChange={event => setConfirmReplace(event.currentTarget.checked)} />
           I understand this will replace the selected profile's supported settings.

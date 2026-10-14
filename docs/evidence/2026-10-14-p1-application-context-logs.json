@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-14T06:28:41.347867+00:00",
+  "issues": [
+    178,
+    176
+  ],
+  "requirements": [
+    "MJ-REQ-177",
+    "MJ-REQ-175"
+  ],
+  "scope_result": "PASS_SCOPED_LOCAL_BEHAVIOR",
+  "original_acceptance": {
+    "MJ-REQ-177": "PARTIAL",
+    "MJ-REQ-175": "PARTIAL"
+  },
+  "project_authority": {
+    "project": 1,
+    "snapshot": "queue-4.json",
+    "live_verification": "Live Project #1 cards and issue state/priority:P1 labels verified 2026-10-14; both open incomplete; no reprioritization"
+  },
+  "branch": "codex/p0p1-only-20261013-232152",
+  "base_main": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+  "source_revision": "a89f4716839dfae8c381474035a06c78698c4c4c",
+  "source_sha256": {
+    "workers/tasks.py": "3dc3e18f25fc885110e16e5ce92268a554f7c1d125f22549a223d911526c2b41",
+    "workers/structured_logging.py": "e37b19559870c11c012e5155ed3167fe1787b4b09b939c72d7e691aff7dfa24d",
+    "tests/unit/test_structured_logging.py": "0519878cd3821735b3884e26fa5475eb9766a3809a356ffbbd5664e72bbaf5c4",
+    "tests/integration/test_application_operation_logs.py": "ecb24e600a60a4c68fc5bd26853d91027edd4e929a6c9051dfcc5d71502fc233",
+    "tests/integration/test_application_log_privacy.py": "dc740839b8b6531ef30dcf573a89d2d8bb29a0790450d1bdc4dc80714bcb0b87"
+  },
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows",
+    "database": "Temporary SQLite; PostgreSQL classes added but locally skipped without disposable URL",
+    "browser": "Local headless Chromium via Playwright; bounded synthetic fixtures only",
+    "external_submission": "OFF",
+    "paid_inference": "NOT_RUN"
+  },
+  "behavior": [
+    "APPLICATION_FORM_REVIEW and APPLICATION_DRY_RUN resolve application_id/job_id/company_id/known ATS only from persisted relations after terminal commit",
+    "Terminal state and complete analysis/receipt are independently visible via API before the log call",
+    "Private params, URL, request/profile/resume/answer values and resolver exception diagnostics are never serialized by the fixed log projection",
+    "Missing, malformed and nonapplication entity IDs emit fixed terminal context without application/job/company/ATS",
+    "Corrupted selected document produces BLOCKED context; explicit acknowledged retry gets new durable intent and verified local receipt after reopen",
+    "Process exits after receipt save with no terminal log; expiry recovery emits one completion log and never replays browser; duplicate execution emits no record",
+    "APPLY_MOCK behavior and other private operation kinds retained"
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_worker_lifecycle.py -p no:cacheprovider --basetemp <owned-baseline-temp>",
+      "result": "PASS",
+      "tests": 36,
+      "subtests": 43,
+      "skipped": 2
+    },
+    {
+      "command": "Three selected new unit/API context tests before source change",
+      "result": "EXPECTED_RED",
+      "failed": 3,
+      "failure": "Missing application_id in outcome record"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_application_operation_logs.py tests/integration/test_application_log_privacy.py tests/integration/test_worker_lifecycle.py tests/unit/test_application_form_review_worker.py tests/integration/test_application_form_review_flow.py tests/integration/test_controlled_application_dry_run.py tests/integration/test_controlled_dry_run_recovery.py -p no:cacheprovider --basetemp <owned-focused-temp>",
+      "result": "PASS",
+      "tests": 73,
+      "subtests": 57,
+      "skipped": 20,
+      "note": "Before adding missing-entity and new PostgreSQL subclass tests; executable source unchanged"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_application_operation_logs.py tests/integration/test_application_log_privacy.py tests/unit/test_structured_logging.py -p no:cacheprovider --basetemp <owned-final-temp>",
+      "result": "PASS",
+      "tests": 21,
+      "subtests": 61,
+      "skipped": 6,
+      "note": "Final strengthened result-before-log assertions and private entity boundaries; six PostgreSQL cases require disposable URL"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_application_log_privacy.py tests/browser/test_controlled_application_dry_run.py tests/browser/test_controlled_dry_run_recovery.py tests/browser/test_lever_form_review.py -p no:cacheprovider --basetemp <owned-browser-temp>",
+      "result": "PASS",
+      "tests": 7,
+      "subtests": 10,
+      "skipped": 0,
+      "note": "Four connected Chromium cases and three privacy cases; browser executed after production build"
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider --basetemp <owned-unit-temp>",
+      "result": "PASS",
+      "tests": 1593,
+      "subtests": 1114,
+      "skipped": 8,
+      "duration_seconds": 250.95,
+      "note": "Eight explicit Linux-only startup tests skipped on Windows; no unit changes afterward"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "BLOCKED_ENVIRONMENT",
+      "error": "Vite default bundle config loader spawn EPERM on Windows"
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit; node node_modules/vite/bin/vite.js build --configLoader native (apps/web cwd)",
+      "result": "PASS",
+      "note": "Production build; existing large-chunk warning remains"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit a89f4716839dfae8c381474035a06c78698c4c4c",
+      "result": "PASS"
+    }
+  ],
+  "review": {
+    "kind": "Read-only local Luna High review",
+    "result": "No critical/important findings; minor missing-entity coverage added and reviewed",
+    "independent_release_certification": false
+  },
+  "development_failures": [
+    {
+      "result": "CORRECTED_TEST",
+      "detail": "Initial recovery test used ordinary queue after BLOCKED and correctly received CONTROLLED_DRY_RUN_RETRY_REVIEW_REQUIRED; test now uses explicit acknowledged retry endpoint. No safety gate changed."
+    },
+    {
+      "result": "CORRECTED_COMMAND",
+      "detail": "Initial native-loader invocation duplicated apps/web path; corrected relative cwd invocation passed."
+    }
+  ],
+  "limitations": [
+    "Whole parent requirements remain PARTIAL; original/reference acceptance matrices unchanged",
+    "Recognized secret-marker filter cannot detect arbitrary free-text secrets encoded as otherwise valid identifiers",
+    "Posting/source context for all relevant operations and universal operational logging are not proven",
+    "No real provider fetch, job application or paid inference; controlled browser fixtures claim no employer acceptance",
+    "Local PostgreSQL/Redis/Compose and full browser product regression NOT_RUN; hosted required gates ran PostgreSQL/Redis/Compose. Whole-product release remains PARTIAL."
+  ],
+  "hosted_checks": {
+    "result": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "pr": 643,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/643",
+    "verified_head": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+    "required_checks": [
+      {
+        "name": "CI / required",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277372/job/115711914025",
+        "completed_at": "2026-10-14T06:18:54Z"
+      },
+      {
+        "name": "Integration / PostgreSQL and Redis",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277389/job/115713770298",
+        "completed_at": "2026-10-14T06:24:53Z"
+      },
+      {
+        "name": "Disposable Compose / mock end-to-end",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277300/job/115711287527",
+        "completed_at": "2026-10-14T06:21:36Z"
+      },
+      {
+        "name": "Dependencies / introduced vulnerabilities",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277173/job/115711287044",
+        "completed_at": "2026-10-14T06:16:55Z"
+      },
+      {
+        "name": "Security / secret scan",
+        "head_sha": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+        "status": "completed",
+        "conclusion": "success",
+        "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38521277321/job/115711287569",
+        "completed_at": "2026-10-14T06:16:58Z"
+      }
+    ],
+    "postgres_new_cases": {
+      "head": "a64880745bb8b01061ab69fd0eec6db4bb4805c5",
+      "run_id": 38521277389,
+      "artifact_id": 11873239758,
+      "postgres_passed": 6,
+      "postgres_skipped": 0,
+      "cases": [
+        {
+          "class": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests",
+          "name": "test_form_review_ignores_private_payload_and_forged_context",
+          "result": "PASS",
+          "seconds": "1.319"
+        },
+        {
+          "class": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests",
+          "name": "test_lookup_failure_preserves_terminal_outcomes_without_diagnostic_values",
+          "result": "PASS",
+          "seconds": "2.442"
+        },
+        {
+          "class": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests",
+          "name": "test_missing_malformed_and_nonapplication_entities_never_become_log_context",
+          "result": "PASS",
+          "seconds": "0.977"
+        },
+        {
+          "class": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests",
+          "name": "test_dry_run_blocked_then_fresh_intent_logs_persisted_context_and_receipt",
+          "result": "PASS",
+          "seconds": "2.314"
+        },
+        {
+          "class": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests",
+          "name": "test_form_review_logs_after_persisted_result_and_survives_reopen",
+          "result": "PASS",
+          "seconds": "1.050"
+        },
+        {
+          "class": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests",
+          "name": "test_process_crash_receipt_recovery_logs_once_without_browser_replay",
+          "result": "PASS",
+          "seconds": "3.933"
+        }
+      ]
+    },
+    "integration_junit": {
+      "run_id": 38521277389,
+      "tests": 2240,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 19,
+      "passed_cases": 2221
+    },
+    "merge_commit": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac"
+  },
+  "rollback": "Ordinary scoped revert; no schema/data-format/migration change",
+  "post_merge": {
+    "revision": "ca9f8df8042cb876fb694ebe34f4865a7b5a35ac",
+    "tree_identical_to_checked_pr": true,
+    "source_files_identical": 5,
+    "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_application_operation_logs.py tests/integration/test_application_log_privacy.py -p no:cacheprovider --basetemp <owned-post-merge-temp>",
+    "result": "PASS",
+    "tests": 21,
+    "subtests": 61,
+    "skipped": 6
+  },
+  "checkpoint_publication": "Documentation-only post-merge receipt is local and must travel with the next substantive P0/P1 source PR; no hosted PASS is claimed for this newer local documentation commit"
+}

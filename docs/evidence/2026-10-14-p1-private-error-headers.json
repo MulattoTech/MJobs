@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-14T10:04:57.156513+00:00",
+  "issue_ids": [
+    172,
+    173
+  ],
+  "requirements": [
+    "MJ-REQ-171",
+    "MJ-REQ-172"
+  ],
+  "result": "PARTIAL",
+  "source_commit": "63123dd8e1760008817aaa35a691df1ecc0306ba",
+  "source_sha256": {
+    "apps/api/main.py": "6c284e2be5462a2255e10424106ed95397720b5f43fe89cca194ddf9082214e5",
+    "tests/integration/test_local_origin_security.py": "cf8592eee149f3e4dbe404232f169a1751de12b97f73f6ad42afce9c3372f010",
+    "tests/browser/test_local_error_privacy.py": "2f619d7d64591cd2ff1fa1e41c17fc2e3b78059c3bbede8aada8146bfc9db92b"
+  },
+  "integration_base": "32fb4a4042a80f4785e00f6d41a648366d5d5de4",
+  "external_submission_enabled": false,
+  "authority": "Both cards occur in queue-10.json and live Project1; reverified OPEN/priority:P1. Campaign sole writer owns exact paths.",
+  "behavior": [
+    "Unhandled pre-response API errors return fixed JSON detail with no exception or applicant input reflection.",
+    "Same no-store/nosniff/no-referrer/CSP policy applies to success, expected denials and unexpected 500s.",
+    "Specific validation/not-found/HTTP handlers remain unchanged.",
+    "Injected private saved-search read failure recovers on database reopen and Chromium reload; saved data remains intact."
+  ],
+  "red_controls": [
+    {
+      "command": "python -m pytest -q tests/integration/test_local_origin_security.py -k unhandled -p no:cacheprovider",
+      "result": "FAIL",
+      "observed": "500 response lacked Cache-Control: no-store."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_local_error_privacy.py -p no:cacheprovider",
+      "result": "FAIL",
+      "observed": "Real Chromium 500 response lacked no-store. Initial fixture database cleanup failure repaired before behavioral red control."
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "python -m pytest -q tests/integration/test_local_origin_security.py tests/browser/test_local_error_privacy.py -p no:cacheprovider",
+      "result": "PASS",
+      "tests": 12,
+      "subtests": 30
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_local_origin_security.py tests/integration/test_profile_ai_credentials.py tests/integration/test_data_export_flow.py -p no:cacheprovider",
+      "result": "PASS",
+      "tests": 34,
+      "subtests": 30
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_local_error_privacy.py tests/browser/test_local_origin_privacy.py tests/browser/test_local_origin_security.py tests/browser/test_profile_ai_credentials.py -p no:cacheprovider",
+      "result": "PASS",
+      "tests": 4,
+      "duration_seconds": 15.54,
+      "note": "Run after production build; repeated on combined tree."
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider",
+      "result": "PASS",
+      "tests": 1598,
+      "subtests": 1114,
+      "skipped": 9,
+      "duration_seconds": 248.84,
+      "note": "Private-error branch before TLS main integration. These executable inputs unchanged after integration; combined affected checks rerun, final full exact-head hosted gate pending."
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "review": {
+    "kind": "local Luna High read-only review",
+    "result": "PASS",
+    "findings": []
+  },
+  "hosted_exact_head": {
+    "result": "PASS",
+    "pr": 650,
+    "head": "9d97927d23cf026155b8ea3167408d0d3b85caef",
+    "merge_commit": "168f3da7edc2371594dbb058a92a10f7a93d649c",
+    "merge_tree_identical": true,
+    "required_checks": {
+      "CI / required": {
+        "id": 115791804323,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697725/job/115791804323"
+      },
+      "Integration / PostgreSQL and Redis": {
+        "id": 115794356257,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697748/job/115794356257"
+      },
+      "Disposable Compose / mock end-to-end": {
+        "id": 115791073511,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697874/job/115791073511"
+      },
+      "Dependencies / introduced vulnerabilities": {
+        "id": 115791073230,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697834/job/115791073230"
+      },
+      "Security / secret scan": {
+        "id": 115791073288,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697782/job/115791073288"
+      }
+    },
+    "note": "All five required gates passed on exact PR head. Original security parents remain incomplete; main-push checks not independently verified.",
+    "artifacts": {
+      "integration": {
+        "cases": 1712,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 19,
+        "new_private_error_cases": [
+          {
+            "name": "test_unhandled_private_read_error_has_safe_headers_and_recovers_after_reopen",
+            "skipped": false,
+            "failed": false
+          }
+        ]
+      },
+      "unit": {
+        "cases": 2745,
+        "skipped": 37,
+        "failures": 0,
+        "errors": 0
+      },
+      "compose": {
+        "passing_artifacts": 5,
+        "external_submission_enabled": false
+      }
+    }
+  },
+  "remaining": [
+    "Original #172/#173 remain OPEN/NOT_RUN; bounded response privacy delivery is PARTIAL.",
+    "Broader authentication/session/CSRF/XSS and whole-product PII acceptance remain incomplete.",
+    "Response-start streaming errors use existing response headers; this change does not replace partial streaming output or sanitize private server logs."
+  ],
+  "rollback": "Scoped source revert; no schema, data, credentials or submission change.",
+  "local_harness_error": "An initial broad command named nonexistent test files and ran no tests; corrected command passed34tests/30subtests.",
+  "combined_scope": {
+    "command": "python -m pytest -q tests/unit/test_ai_tls_handshake.py tests/unit/test_remote_provider_cancellation.py tests/integration/test_ai_tls_recovery.py tests/integration/test_local_origin_security.py -p no:cacheprovider",
+    "summary": "18 passed, 73 subtests passed in 18.91s",
+    "browser_summary": "4 passed in 15.46s",
+    "tls_source_hashes_unchanged": true
+  },
+  "merged_retest": {
+    "command": "python -m pytest -q tests/integration/test_local_origin_security.py::LocalOriginSecurityTests::test_unhandled_private_read_error_has_safe_headers_and_recovers_after_reopen tests/integration/test_ai_tls_recovery.py tests/browser/test_local_error_privacy.py -p no:cacheprovider",
+    "result": "PASS",
+    "tests": 3,
+    "subtests": 6,
+    "duration_seconds": 7.17
+  }
+}

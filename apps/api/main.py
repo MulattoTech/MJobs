@@ -11,7 +11,7 @@ from typing import Literal, Annotated
 from urllib.parse import unquote
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi import Depends, FastAPI, HTTPException, Request, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -85,6 +85,17 @@ def _uploaded_comparison_entity_id(profile_id, application_id, base_revision_id,
     return "uploaded-comparison:" + hashlib.sha256(scope.encode("utf-8")).hexdigest()
 
 
+BROWSER_SECURITY_HEADERS = {
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Content-Security-Policy": (
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+        "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    ),
+}
+
+
 class LocalOriginMiddleware:
     """Apply local-origin guards without wrapping the request receive channel."""
 
@@ -96,29 +107,34 @@ class LocalOriginMiddleware:
             await self.app(scope, receive, send)
             return
 
-        request = Request(scope, receive)
-        origin = request.headers.get("origin")
-        if request.method not in ("GET", "HEAD", "OPTIONS") and origin and origin != str(request.base_url).rstrip("/"):
-            response = JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
-            await response(scope, receive, send)
-            return
-        if request.headers.get("sec-fetch-site") == "cross-site" and request.url.path.startswith(
-                ("/profiles", "/documents", "/applications", "/operations", "/duplicate-reviews", "/company-sources")):
-            response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
-            await response(scope, receive, send)
-            return
-
         async def send_with_security_headers(message):
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
-                headers["Cache-Control"] = "no-store"
-                headers["X-Content-Type-Options"] = "nosniff"
-                headers["Referrer-Policy"] = "no-referrer"
-                headers["Content-Security-Policy"] = (
-                    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-                    "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-                )
+                headers.update(BROWSER_SECURITY_HEADERS)
             await send(message)
+
+        request = Request(scope, receive)
+        origin = request.headers.get("origin")
+        unsafe_method = request.method not in ("GET", "HEAD", "OPTIONS")
+        foreign_origin = origin is not None and origin != str(request.base_url).rstrip("/")
+        fetch_site = request.headers.get("sec-fetch-site")
+        # Another port on localhost is same-site, but does not own this API.
+        # Missing metadata preserves native clients; explicit invalid metadata
+        # fails closed. Direct address-bar navigation is identified as "none".
+        foreign_browser = fetch_site is not None and fetch_site not in {"same-origin", "none"}
+        if unsafe_method and (foreign_origin or foreign_browser):
+            response = JSONResponse({"detail": "Cross-origin mutation blocked"}, status_code=403)
+            await response(scope, receive, send_with_security_headers)
+            return
+        # API namespaces grow as new workflows are added. Protect them by
+        # default; only the public shell/assets and health probes are exempt.
+        public_read = (request.url.path in ("/", "/health", "/ready", "/readiness",
+                                           "/favicon.ico", "/favicon.svg")
+                       or request.url.path.startswith("/assets/"))
+        if (foreign_origin or foreign_browser) and not public_read:
+            response = JSONResponse({"detail": "Cross-site personal data access blocked"}, status_code=403)
+            await response(scope, receive, send_with_security_headers)
+            return
 
         await self.app(scope, receive, send_with_security_headers)
 
@@ -728,6 +744,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_operation_progress_router(store))
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
     app.add_middleware(LocalOriginMiddleware)
+
+    @app.exception_handler(Exception)
+    async def unexpected_error(_, error):
+        # ServerErrorMiddleware emits unhandled 500s outside user middleware.
+        # Apply the same privacy policy explicitly and never reflect exception
+        # details, which can contain database parameters or applicant content.
+        return JSONResponse({"detail": "Internal server error"}, status_code=500,
+                            headers=BROWSER_SECURITY_HEADERS)
 
     @app.exception_handler(ValueError)
     async def invalid(_, error):
@@ -1418,8 +1442,26 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 raise HTTPException(404, "Career profile not found") from None
             raise HTTPException(422, "Settings export is unavailable") from None
 
+    async def bounded_settings_document(request: Request):
+        limit = 1024 * 1024
+        length = request.headers.get("content-length")
+        if length is not None and (not length.isdecimal() or int(length) > limit):
+            raise HTTPException(413, "Settings document exceeds the 1 MiB limit")
+        content = bytearray()
+        async for chunk in request.stream():
+            if len(content) + len(chunk) > limit:
+                raise HTTPException(413, "Settings document exceeds the 1 MiB limit")
+            content.extend(chunk)
+        try:
+            payload = json.loads(content.decode("utf-8"))
+        except (ValueError, RecursionError):
+            raise HTTPException(422, "Settings document is invalid or unsupported") from None
+        if not isinstance(payload, dict):
+            raise HTTPException(422, "Settings document is invalid or unsupported")
+        return payload
+
     @app.post("/profiles/{profile_id}/settings/import")
-    def profile_settings_import(profile_id: str, payload: dict):
+    def profile_settings_import(profile_id: str, payload: dict = Depends(bounded_settings_document)):
         from services.settings_transfer import import_settings
         try:
             return import_settings(store, profile_id, payload)

@@ -183,16 +183,30 @@ def _read_runtime_configuration(path: Path, operation_mode: str) -> dict:
     return snapshot
 
 
+def _is_reparse_point(path: Path) -> bool:
+    return path.is_symlink() or (hasattr(path, "is_junction") and path.is_junction())
+
+
+def _has_link_ancestor(path: Path) -> bool:
+    # Inspect the original spelling before resolve() erases junction ancestors.
+    original = path.absolute()
+    return any(_is_reparse_point(part) for part in (original, *original.parents))
+
+
+def _inventory_error(_error: OSError) -> None:
+    raise BackupError("Backup inventory could not be read") from None
+
+
 def verify_backup(archive: Path) -> dict:
-    if archive.is_symlink():
+    if _has_link_ancestor(archive):
         raise BackupError("Backup directory is a symbolic link")
     archive = archive.resolve()
     if not archive.is_dir():
         raise BackupError("Backup directory is missing or is a symbolic link")
-    if not (archive / "documents").is_dir() or (archive / "documents").is_symlink():
+    if _is_reparse_point(archive / "documents") or not (archive / "documents").is_dir():
         raise BackupError("Backup document directory is missing or unsafe")
     manifest_path = archive / "manifest.json"
-    if not manifest_path.is_file() or manifest_path.is_symlink():
+    if _is_reparse_point(manifest_path) or not manifest_path.is_file():
         raise BackupError("Backup manifest is missing or is a symbolic link")
     try:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -226,18 +240,25 @@ def verify_backup(archive: Path) -> dict:
         if not SHA256.fullmatch(str(expected)):
             raise BackupError("Backup manifest contains an invalid checksum")
         path = archive.joinpath(*parts)
-        if not path.is_file() or path.is_symlink() or not path.resolve().is_relative_to(archive):
+        if _has_link_ancestor(path) or not path.is_file() or not path.resolve().is_relative_to(archive):
             raise BackupError("Backup file is missing or unsafe: " + name)
         if checksum(path) != expected:
             raise BackupError("Backup checksum mismatch: " + name)
-    actual = {
-        path.relative_to(archive).as_posix()
-        for path in archive.rglob("*") if path.is_file()
-    }
+    actual = set()
+    # Inspect immediate children before walk descends into directories. Unlike
+    # symlinks, Windows junctions need an explicit check even with followlinks off.
+    for directory, children, names in os.walk(archive, topdown=True, followlinks=False,
+                                            onerror=_inventory_error):
+        for name in children + names:
+            path = Path(directory) / name
+            if _is_reparse_point(path):
+                raise BackupError("Backup contains a symbolic link")
+            if path.is_file():
+                actual.add(path.relative_to(archive).as_posix())
+            elif not path.is_dir():
+                raise BackupError("Backup contains an unsupported filesystem node")
     if actual != set(files) | {"manifest.json"}:
         raise BackupError("Backup contains unlisted or missing files")
-    if any(path.is_symlink() for path in archive.rglob("*")):
-        raise BackupError("Backup contains a symbolic link")
     if schema_version == 3:
         if manifest["operation_mode"] != "FIXTURE" or RECEIPT_PATH not in files:
             raise BackupError("Fixture receipt snapshot is required only for FIXTURE schema 3")
@@ -397,6 +418,8 @@ def _sql(project: str, query: str, environment: dict[str, str]) -> str:
 def create_backup(project: str, archive: Path) -> dict:
     if not PROJECT.fullmatch(project):
         raise BackupError("Invalid source project name")
+    if _has_link_ancestor(archive):
+        raise BackupError("Backup destination contains an unsafe link")
     if archive.exists() or archive.is_symlink():
         raise BackupError("Backup destination already exists; choose a new path")
     parent = archive.absolute().parent.resolve()
@@ -425,8 +448,11 @@ def create_backup(project: str, archive: Path) -> dict:
         _require_quiescent(_service_states(project, environment), mode)
         # Playwright browser profiles may contain live cookies. They are not
         # documents and must not be carried into a portable backup.
-        for directory, children, _ in os.walk(documents, topdown=True, followlinks=False):
+        for directory, children, _ in os.walk(documents, topdown=True, followlinks=False,
+                                              onerror=_inventory_error):
             for child in list(children):
+                if _is_reparse_point(Path(directory) / child):
+                    raise BackupError("Document volume contains an unsupported file type")
                 if child != "browser-profile":
                     continue
                 target = Path(directory) / child
@@ -436,7 +462,7 @@ def create_backup(project: str, archive: Path) -> dict:
                 children.remove(child)
         files: dict[str, str] = {"database.dump": checksum(stage / "database.dump")}
         for path in sorted(documents.rglob("*")):
-            if path.is_symlink() or (not path.is_file() and not path.is_dir()):
+            if _is_reparse_point(path) or (not path.is_file() and not path.is_dir()):
                 raise BackupError("Document volume contains an unsupported file type")
             if path.is_file():
                 files[path.relative_to(stage).as_posix()] = checksum(path)
@@ -550,8 +576,42 @@ def verify_credential_recoverability(database_url: str) -> int:
 
 
 def restore_backup(archive: Path, project: str, port: int) -> dict:
+    """Pin verified bytes before Docker calls can race source-archive edits."""
     manifest = verify_backup(archive)
     archive = archive.resolve()
+    # Restore is a multi-step operation. Rechecking the caller's archive
+    # before each Docker call would still let a changed file reach pg_restore
+    # or docker cp. Copy only the verified inventory into an owned snapshot,
+    # verify the copied bytes, and use that tree for the entire operation.
+    with tempfile.TemporaryDirectory(prefix="mjobs-restore-snapshot-") as directory:
+        snapshot = Path(directory)
+        try:
+            (snapshot / "documents").mkdir()
+            for name, expected in manifest["files"].items():
+                source = archive.joinpath(*name.split("/"))
+                if (not source.is_file() or source.is_symlink()
+                        or not source.resolve().is_relative_to(archive)):
+                    raise BackupError("Backup file changed before snapshot")
+                current = source
+                while current != archive:
+                    if current.is_symlink() or (hasattr(current, "is_junction") and current.is_junction()):
+                        raise BackupError("Backup path changed before snapshot")
+                    current = current.parent
+                destination = snapshot.joinpath(*name.split("/"))
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, destination, follow_symlinks=False)
+                if destination.is_symlink() or checksum(destination) != expected:
+                    raise BackupError("Backup checksum mismatch while preparing restore snapshot")
+            # Pin validated metadata as well; never reread a replaced manifest.
+            (snapshot / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            if verify_backup(snapshot) != manifest:
+                raise BackupError("Backup metadata changed while preparing restore snapshot")
+        except OSError:
+            raise BackupError("Restore snapshot could not be prepared") from None
+        return _restore_verified_snapshot(snapshot, manifest, project, port)
+
+
+def _restore_verified_snapshot(archive: Path, manifest: dict, project: str, port: int) -> dict:
     if checksum(ROOT / "compose.yml") != manifest["compose_sha256"]:
         raise BackupError("Compose configuration differs from the backup; use matching code")
     if not 1024 <= port <= 65535:
@@ -615,15 +675,18 @@ def restore_backup(archive: Path, project: str, port: int) -> dict:
 def verify_document_tree(manifest: dict, root: Path) -> None:
     """Confirm that the restored volume has exactly the archived document files."""
     documents = root / "documents"
-    if not documents.is_dir() or documents.is_symlink():
+    if _has_link_ancestor(documents) or not documents.is_dir():
         raise BackupError("Restored document directory is missing or unsafe")
     expected_files = {name for name in manifest["files"] if name.startswith("documents/")}
     actual_files: set[str] = set()
-    for path in documents.rglob("*"):
-        if path.is_symlink() or (not path.is_file() and not path.is_dir()):
-            raise BackupError("Restored document volume contains an unsafe file")
-        if path.is_file():
-            actual_files.add(path.relative_to(root).as_posix())
+    for directory, children, names in os.walk(documents, topdown=True, followlinks=False,
+                                            onerror=_inventory_error):
+        for name in children + names:
+            path = Path(directory) / name
+            if _is_reparse_point(path) or (not path.is_file() and not path.is_dir()):
+                raise BackupError("Restored document volume contains an unsafe file")
+            if path.is_file():
+                actual_files.add(path.relative_to(root).as_posix())
     if actual_files != expected_files:
         raise BackupError("Restored document volume contains unlisted or missing files")
     for name, expected in manifest["files"].items():

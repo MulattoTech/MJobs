@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -398,7 +398,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company’s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company\u2019s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
       "head": "d93508f4da500e139c62eedc5171ff975ef70462",
@@ -1868,11 +1868,66 @@
       "candidate": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
       "integration_method": "NON_FORCE_FAST_FORWARD",
       "integration_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
-      "pr_state": "NOT_OPENED_LOCAL_ONLY"
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "p0p1_20261013_232152": {
+        "issue": 171,
+        "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
+        "evidence": "docs/evidence/2026-10-14-p1-api-retention-guards.json",
+        "scope_complete": false,
+        "local_behavior": "PASS",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "pr": 640,
+        "verified_head": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+        "merge_commit": "2dde6085dc9769b5e0c539320f53309f8eb073f7"
+      },
+      "p0p1_iteration_2": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 2,
+        "issues": [
+          176,
+          170
+        ],
+        "requirements": [
+          "MJ-REQ-169"
+        ],
+        "status": "MERGED_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/data_export.py",
+          "services/documents/uploads.py"
+        ],
+        "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+        "plan": [
+          "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+          "Filter credential field names without dropping work_authorization",
+          "Cap generated/uploaded file reads and accumulated document payload",
+          "Verify API reopen, failure/retry and connected Chromium downloads",
+          "Run full local units and validators; obtain local Luna review",
+          "Commit, publish reviewable PR; integrate only with repository required gates"
+        ],
+        "rollback": "Scoped revert; no schema/data mutation by exports",
+        "original_acceptance": {
+          "MJ-REQ-175": "PARTIAL",
+          "MJ-REQ-169": "PARTIAL"
+        },
+        "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+        "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+        "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+        "full_unit": "PASS",
+        "local_reviews": "PASS_BOUNDED_SCOPE",
+        "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+        "pr": 641,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+        "post_merge": "40 tests and 30 subtests PASS",
+        "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+      }
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1888,11 +1943,22 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-047-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements.",
+      "p0p1_20261013_232152": {
+        "issue": 173,
+        "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
+        "evidence": "docs/evidence/2026-10-14-p1-api-retention-guards.json",
+        "scope_complete": false,
+        "local_behavior": "PASS",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "pr": 640,
+        "verified_head": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+        "merge_commit": "2dde6085dc9769b5e0c539320f53309f8eb073f7"
+      }
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -1951,7 +2017,105 @@
           "issue_state": "OPEN/PARTIAL",
           "external_submission": "OFF"
         }
-      ]
+      ],
+      "p0p1_iteration_2": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 2,
+        "issues": [
+          176,
+          170
+        ],
+        "requirements": [
+          "MJ-REQ-175"
+        ],
+        "status": "MERGED_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/data_export.py",
+          "services/documents/uploads.py"
+        ],
+        "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+        "plan": [
+          "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+          "Filter credential field names without dropping work_authorization",
+          "Cap generated/uploaded file reads and accumulated document payload",
+          "Verify API reopen, failure/retry and connected Chromium downloads",
+          "Run full local units and validators; obtain local Luna review",
+          "Commit, publish reviewable PR; integrate only with repository required gates"
+        ],
+        "rollback": "Scoped revert; no schema/data mutation by exports",
+        "original_acceptance": {
+          "MJ-REQ-175": "PARTIAL",
+          "MJ-REQ-169": "PARTIAL"
+        },
+        "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+        "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+        "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+        "full_unit": "PASS",
+        "local_reviews": "PASS_BOUNDED_SCOPE",
+        "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+        "pr": 641,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+        "post_merge": "40 tests and 30 subtests PASS",
+        "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+      },
+      "p0p1_iteration_3": {
+        "issues": [
+          178,
+          176,
+          524
+        ],
+        "requirements": [
+          "MJ-REQ-177",
+          "MJ-REQ-175"
+        ],
+        "status": "PARTIAL",
+        "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf",
+        "outcome": "Safe outcome logs for all ten dispatch types; uniform recognized secret-marker filtering; all 21 CodeQL alerts individually reviewed with unresolved local-filesystem race threat documented",
+        "evidence": [
+          "docs/evidence/2026-10-14-p1-worker-log-privacy.json",
+          "docs/evidence/2026-10-14-codeql-triage.json"
+        ],
+        "validation": "1591 units/1104 subtests PASS with 8 skips; 121 focused/62 subtests PASS with 15 environment skips; final extraction 3 PASS; Chromium 4 PASS; native-loader build/validators PASS",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "acceptance": {
+          "MJ-REQ-177": "PARTIAL",
+          "MJ-REQ-175": "PARTIAL",
+          "issue_524": "PARTIAL"
+        },
+        "rollback": "Scoped ordinary source revert; no schema or persistence-format change",
+        "updated_at_utc": "2026-10-14T05:57:09.070968+00:00",
+        "pr": 642,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/642",
+        "verified_head": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+        "merge_commit": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+        "next_action": "Carry this documentation-only receipt with the next P0/P1 source PR; claim #178 and add safe persisted application/job/company/known-ATS context for APPLICATION_DRY_RUN and APPLICATION_FORM_REVIEW using the existing APPLY_MOCK lookup, with blocked/recovery/reopen and resolver-failure tests.",
+        "post_merge": "28 tests / 43 subtests PASS, zero skips at ef18c3a9",
+        "publication": "MERGED; documentation-only receipt remains local for next substantive source PR"
+      },
+      "p0p1_iteration_5": {
+        "issues": [
+          177,
+          176
+        ],
+        "status": "MERGED_VERIFIED_PARTIAL",
+        "outcome": "Immutable document-generation history and withheld known credential-shaped labels; original requirements PARTIAL",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+        "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+        "validation": "1593 units / 1114 subtests PASS, 8 Linux-only skips; final audit API 19/26 PASS, 8 PostgreSQL skips; affected integration 38/21 PASS; Chromium 4 PASS plus final new rerun; native Vite build and validators PASS",
+        "pr": 644,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+        "hosted_fixture_repair": "PostgreSQL VARCHAR(500) rejected 501-char fixture; preserved boundary oracle with valid stored 500 chars + direct 501-char projection; no product/schema change",
+        "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+        "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+        "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+        "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+        "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
+      }
     },
     {
       "id": "MJ-PR-049",
@@ -2741,7 +2905,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -2761,7 +2925,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3082,7 +3246,7 @@
           "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
           "Six-month source history with no strong matches schedules less often.",
           "Insufficient evidence keeps the configured baseline.",
-          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
+          "Every interval is clamped to 300\u2013604800 seconds; failures retain existing bounded retry behavior.",
           "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
         ],
         "status": "ACTIVE_IMPLEMENTATION",
@@ -4852,7 +5016,51 @@
       "candidate": "7636b620b60e53380b48051a5550aa1dc23be663",
       "integration_method": "NON_FORCE_FAST_FORWARD",
       "integration_commit": "7636b620b60e53380b48051a5550aa1dc23be663",
-      "pr_state": "NOT_OPENED_LOCAL_ONLY"
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "p0p1_iteration_2": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 2,
+        "issues": [
+          176,
+          170
+        ],
+        "requirements": [
+          "MJ-REQ-175"
+        ],
+        "status": "MERGED_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/data_export.py",
+          "services/documents/uploads.py"
+        ],
+        "acceptance": "Nested credential fields absent from JSON/browser downloads; safe employment answers and persisted inputs preserved; document reads and accumulated file payload bounded; failed backup can retry after repair.",
+        "plan": [
+          "Reproduce secret disclosure and unbounded reads with synthetic durable fixtures",
+          "Filter credential field names without dropping work_authorization",
+          "Cap generated/uploaded file reads and accumulated document payload",
+          "Verify API reopen, failure/retry and connected Chromium downloads",
+          "Run full local units and validators; obtain local Luna review",
+          "Commit, publish reviewable PR; integrate only with repository required gates"
+        ],
+        "rollback": "Scoped revert; no schema/data mutation by exports",
+        "original_acceptance": {
+          "MJ-REQ-175": "PARTIAL",
+          "MJ-REQ-169": "PARTIAL"
+        },
+        "evidence": "docs/evidence/2026-10-14-p1-export-safety.json",
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "recorded_at_utc": "2026-10-14T05:09:38.933925+00:00",
+        "source_commit": "40218b285c7e65e27ed4b7dc48640a123d3d1571",
+        "local_focused": "40 tests and 30 subtests PASS, including Chromium",
+        "full_unit": "PASS",
+        "local_reviews": "PASS_BOUNDED_SCOPE",
+        "verified_head": "c6033ce5fcb181dff669c5ec7f59702194742643",
+        "merge_commit": "480032dd154903cafe75f81c7f4add6b1f542437",
+        "pr": 641,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
+        "post_merge": "40 tests and 30 subtests PASS",
+        "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+      }
     },
     {
       "id": "MJ-PR-159",
@@ -5411,6 +5619,195 @@
       "branch": "fix/verified-greenhouse-enrollment-156-20261012",
       "draft_until_verified": true,
       "notes": "Controlled worker/API/browser slice verified locally; actual hosted PostgreSQL acceptance pending. Parent remains PARTIAL."
+    },
+    {
+      "id": "MJ-PR-P1-APPLICATION-LOG-CONTEXT-178-176",
+      "title": "Persisted context for safe application review and controlled fixture worker logs",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-177",
+        "MJ-REQ-175"
+      ],
+      "target_area": "workers/tasks.py and workers/structured_logging.py",
+      "depends_on": [],
+      "status": "MERGED",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "draft_until_verified": true,
+      "notes": "PR #643 merged ca9f8df8042cb876fb694ebe34f4865a7b5a35ac after all five required gates PASS at a64880745bb8b01061ab69fd0eec6db4bb4805c5; six new PostgreSQL cases PASS, zero skips. Source a89f4716 unchanged. Parents remain PARTIAL; local documentation receipt travels with next source PR."
+    },
+    {
+      "id": "MJ-PR-P1-AUDIT-SUBJECT-HISTORY-177-176",
+      "title": "Keep safe immutable job/company subjects in Activity history",
+      "domain": "orchestration_data_security",
+      "requirements": [
+        "MJ-REQ-176",
+        "MJ-REQ-175"
+      ],
+      "target_area": "services/audit_history.py",
+      "depends_on": [],
+      "status": "MERGED",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "draft_until_verified": true,
+      "notes": "PR #645 merged df05062fef969e919a07faaffc05bb4a085f34f1 after all five required gates PASS at 496416676b9d01d08bb46a126f1b3d77be39b0ab; all six new PostgreSQL cases PASS without skips; merge tree/source hashes identical. Parents remain PARTIAL; documentation-only receipt travels with next source PR."
+    },
+    {
+      "id": "MJ-PR-P1-APPLICATION-AUDIT-HISTORY-177-176",
+      "title": "Persist safe historical document/application/tracking labels",
+      "requirements": [
+        "MJ-REQ-176",
+        "MJ-REQ-175"
+      ],
+      "status": "MERGED",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "notes": "Project queue-7/live open P1 #177/#176; 8 new PostgreSQL cases passed; original parents PARTIAL. No acceptance promotion.",
+      "source_revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
+      "evidence": "docs/evidence/2026-10-14-p1-application-audit-history.json",
+      "pr_number": 646,
+      "verified_head": "e20288e494bfe9a9e2005509eeb4f589b24e862c",
+      "merge_commit": "0d1cd4f7e4449c06e738b802722575635632fc93",
+      "merged_at": "2026-10-14T08:15:00Z",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P1-RETENTION-BACKUP-SAFETY-171-168",
+      "title": "Protect retention receipts and pin verified backup restore bytes",
+      "requirements": [
+        "MJ-REQ-170",
+        "MJ-REQ-167"
+      ],
+      "status": "MERGED",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "source_revision": "3087b4abb91909df117c427f911522c8ab9512fe",
+      "notes": "Only queue-8/live Project P1 #171/#168; both original parents remain PARTIAL; no acceptance promotion",
+      "evidence": [
+        "docs/evidence/2026-10-14-p1-retention-receipt-safety.json",
+        "docs/evidence/2026-10-14-p1-backup-restore-snapshot.json"
+      ],
+      "pr_number": 647,
+      "verified_head": "85ec58f4bbbd5b64259c14b01cde2b328ab4190f",
+      "merge_commit": "7c605f4fbba755a551640ac5d6e8a76f7cc32708",
+      "merged_at": "2026-10-14T08:47:41Z",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P1-BROWSER-ORIGIN-172-173",
+      "title": "Deny sibling-origin private access and secure browser denials",
+      "requirements": [
+        "MJ-REQ-171",
+        "MJ-REQ-172"
+      ],
+      "status": "MERGED",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "source_revision": "0649558f17cdced36123781cd31041723b910949",
+      "notes": "Only queue-9/live Project open P1 #172/#173; both original parents remain NOT_RUN; scoped delivery PARTIAL",
+      "evidence": [
+        "docs/evidence/2026-10-14-p1-browser-origin-privacy.json"
+      ],
+      "pr_number": 648,
+      "verified_head": "693603f1f8016afc13ad70ce0b04dc7569a05ccb",
+      "merge_commit": "a17b9f4e88a2e5e37ea8fe18d4738c44772d35b1",
+      "merged_at": "2026-10-14T09:16:50Z",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P0P1-TLS-10",
+      "title": "P0 connected TLS handshake cancellation and durable readback",
+      "requirements": [
+        "MJ-REQ-004"
+      ],
+      "issue_ids": [
+        638,
+        5
+      ],
+      "status": "MERGED",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "source_commit": "c371e3ffc69bed1f49086b3e5a225382cd47a44f",
+      "evidence": "docs/evidence/2026-10-14-p0-tls-handshake.json",
+      "notes": "Child #638 CLOSED/Done/PASS; original parent #5 remains PARTIAL.",
+      "pr_number": 649,
+      "merge_commit": "32fb4a4042a80f4785e00f6d41a648366d5d5de4",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P0P1-ERROR-10",
+      "title": "Private unexpected API error headers and saved-record recovery",
+      "requirements": [
+        "MJ-REQ-171",
+        "MJ-REQ-172"
+      ],
+      "issue_ids": [
+        172,
+        173
+      ],
+      "status": "MERGED",
+      "branch": "codex/p1-server-error-privacy-10",
+      "source_commit": "63123dd8e1760008817aaa35a691df1ecc0306ba",
+      "evidence": "docs/evidence/2026-10-14-p1-private-error-headers.json",
+      "notes": "Scoped private-error response privacy verified; original #172/#173 remain OPEN/NOT_RUN.",
+      "pr_number": 650,
+      "merge_commit": "168f3da7edc2371594dbb058a92a10f7a93d649c",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P1-SETTINGS-RETENTION-278-171",
+      "title": "Reject malformed settings imports and invalid retention consent schemas",
+      "domain": "orchestration_data_security / operations_ux_ci",
+      "requirements": [
+        "MJ-REQ-277",
+        "MJ-REQ-170"
+      ],
+      "target_area": "services/settings_transfer.py; services/privacy/retention_policy.py; connected tests",
+      "depends_on": [],
+      "status": "MERGED_PARTIAL",
+      "branch": "codex/p1-settings-retention-11",
+      "priority": "P1",
+      "source_commit": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
+      "draft_until_verified": true,
+      "notes": "Reconciled prior published branch and merged PR651 after five exact-head required checks and five Compose artifacts PASS. Original retention #171 remains PARTIAL. Settings #278 is completed separately by PR653's criterion-level proof; preserve historical source/evidence fields.",
+      "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+      "pr_number": 651,
+      "verified_head": "656cbc9d64b389edfced3d87f0dbff507d8479bb",
+      "merge_commit": "99c614e1b31afc8584b642ea0b98ac24d9dabcde"
+    },
+    {
+      "id": "MJ-PR-P1-EXPORT-BACKUP-12",
+      "title": "Safe route exports and Windows backup junction rejection",
+      "priority": "P1",
+      "requirements": [
+        "MJ-REQ-167",
+        "MJ-REQ-169"
+      ],
+      "issue_ids": [
+        168,
+        170
+      ],
+      "status": "MERGED_PARTIAL",
+      "branch": "codex/p1-export-backup-safety-12",
+      "depends_on": [
+        "MJ-PR-P1-SETTINGS-RETENTION-278-171"
+      ],
+      "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
+      "evidence": "docs/evidence/2026-10-14-p1-export-backup-boundaries.json",
+      "notes": "Reconciled dependent prior branch after PR651; same tree as source733f2144, verified head70076e44, merged PR652 after five required checks and five Compose artifacts PASS. Original #168/#170 remain PARTIAL.",
+      "pr_number": 652,
+      "verified_head": "70076e4475f00366fc5d6f52a74d98add9e9dd32",
+      "merge_commit": "e9041819eb51c8717a7018074365b962f2f1dd2f"
+    },
+    {
+      "id": "MJ-PR-ROUND2-PORTABLE-SETTINGS-278",
+      "title": "Portable search schedules and public source policies",
+      "requirements": [
+        "MJ-REQ-277"
+      ],
+      "status": "VERIFIED_PENDING_FINAL_GATES",
+      "branch": "codex/p0p1-round2-20261014-084702",
+      "depends_on": [],
+      "draft_until_verified": true,
+      "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
+      "notes": "Every original MJ-REQ-277 criterion proven; final documentation/index/dashboard head still requires protected gates and integration.",
+      "pr_number": 653,
+      "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+      "scope_complete": true
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"
