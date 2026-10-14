@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-14T09:40:03.562657+00:00",
+  "issue_ids": [
+    638,
+    5
+  ],
+  "requirement": "MJ-REQ-004",
+  "result": "PARTIAL",
+  "source_commit": "c371e3ffc69bed1f49086b3e5a225382cd47a44f",
+  "source_sha256": {
+    "services/ai/providers/transport.py": "3eaa250cca28930462b2f14b5318acff378b08ed8255c8af37d2863c181750ce",
+    "tests/unit/test_ai_tls_handshake.py": "2c40ed3c2e211903208327eafe70e42dbbc4f5e94001f51b1645c2769916dae9",
+    "tests/integration/test_ai_tls_recovery.py": "be3f50321a6637ef317c9e3399dad2ef523eb5c50b37a1d872a2e30bde331b70"
+  },
+  "environment": {
+    "os": "Windows 11",
+    "python": "3.12.10",
+    "httpx": "0.28.1",
+    "httpcore": "1.0.9"
+  },
+  "scope": "Request-owned interruption through connected TLS handshake; durable advisory work terminal readback and no replay.",
+  "authority": {
+    "snapshot": "queue-10.json",
+    "live_project": 1,
+    "live_priorities": {
+      "638": "P0",
+      "5": "P0"
+    },
+    "ownership": "Stopped clean b6a400ed checkpoint with no active claim; reclaimed by campaign integration owner. Historical worktree preserved."
+  },
+  "changes": [
+    "Duplicate the connected socket before SSL wrapping transfers ownership.",
+    "Shutdown that duplicate on cancellation/deadline; release at TLS completion or HTTP response binding, with guard finally fallback.",
+    "Close the unpooled TCP stream if duplicate allocation fails.",
+    "Treat missing/raising custom socket metadata as unavailable; preserve close fallback."
+  ],
+  "red_controls": [
+    {
+      "command": "python -m pytest -q tests/unit/test_ai_tls_handshake.py -p no:cacheprovider",
+      "revision": "a17b9f4e",
+      "result": "FAIL",
+      "observed": "Six real stalled TLS timing cases waited approximately 1.5 seconds."
+    },
+    {
+      "revision": "adapted b6a400ed checkpoint",
+      "result": "FAIL",
+      "observed": "Three injected duplicate-allocation failures left unpooled raw sockets open."
+    },
+    {
+      "revision": "initial candidate before optional metadata fix",
+      "result": "FAIL",
+      "observed": "18 custom metadata provider subcases aborted generation."
+    },
+    {
+      "command": "In-process replacement of guard.trace with a17b9f4e baseline, then new durable TLS integration test",
+      "result": "FAIL",
+      "observed": "All six API/worker TLS timing cases waited for phase timeout; disk source unchanged."
+    }
+  ],
+  "local_checks": [
+    {
+      "command": "python -m pytest -q tests/unit/test_remote_provider_cancellation.py tests/unit/test_ai_tls_handshake.py tests/unit/test_ai_header_deadline.py tests/unit/test_provider_socket_cancellation.py tests/unit/test_ai_response_deadline.py tests/unit/test_ai_provider_transport.py tests/integration/test_ai_tls_recovery.py -p no:cacheprovider",
+      "result": "PASS",
+      "tests": 21,
+      "subtests": 147,
+      "duration_seconds": 24.71,
+      "extra_test": "tests/unit/test_remote_provider_cancellation.py included in final command"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_ai_tls_recovery.py tests/integration/test_durable_ai_evaluation.py tests/integration/test_durable_ai_dispatch.py tests/integration/test_profile_ai_credentials.py -p no:cacheprovider",
+      "result": "PARTIAL",
+      "passed": 51,
+      "subtests": 23,
+      "skipped": 1,
+      "limitation": "Disposable MJOBS_AI_REDIS_TEST_URL unavailable locally. Final optional metadata change separately rechecked by final focused scope."
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_selected_search_ai.py tests/browser/test_ai_task_settings.py -p no:cacheprovider",
+      "result": "PASS",
+      "tests": 3,
+      "duration_seconds": 16.81
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider",
+      "result": "PASS",
+      "summary": "1603 passed, 9 skipped, 1147 subtests passed in 253.93s (0:04:13)",
+      "revision_note": "Final executable inputs after metadata/lifetime repairs. Exact final Linux unit suite is pending hosted gate."
+    }
+  ],
+  "review": {
+    "kind": "local Luna High read-only review",
+    "result": "PASS",
+    "finding_resolved": "Optional metadata fallback preserved; limited duplicate lifetime also re-reviewed without blockers."
+  },
+  "observed_behavior": [
+    "All three HTTPS-capable providers cancel/timeout during real ClientHello before longer phase timeout.",
+    "Peer connection, duplicate descriptor, client and request watchdog close on tested paths.",
+    "Trusted TLS succeeds; default certificate verification rejects synthetic untrusted certificate before request data.",
+    "Existing TLS header/body deadlines, independent requests and custom transport behavior remain covered.",
+    "Durable API cancellation/timeout persists CANCELLED/BLOCKED after store reopen with no evaluation publication or uncertain-call redelivery."
+  ],
+  "hosted_exact_head": {
+    "result": "NOT_RUN",
+    "note": "Required Windows/Linux acceptance not yet complete; inspect exact PR head before integration."
+  },
+  "remaining": [
+    "Parent #5 remains PARTIAL: DNS/TCP establishment before stream exposure and broader external-operation acceptance unresolved.",
+    "Original and reference acceptance matrices/index remain unchanged; no whole-product release claim."
+  ],
+  "external_submission_enabled": false,
+  "real_provider_calls": false,
+  "rollback": "Revert scoped transport/test commit; no migration, runtime data or credentials changed.",
+  "local_failures_repaired": [
+    {
+      "command": "Initial full Windows unit suite",
+      "result": "FAIL",
+      "passed": 1602,
+      "failed": 4,
+      "skipped": 9,
+      "subtests": 1125,
+      "test": "tests/unit/test_remote_provider_cancellation.py::RemoteProviderCancellationTests::test_cancel_interrupts_stalled_body_and_closes_peer",
+      "repair": "Extra Windows socket handle kept recv blocked. Baseline trace and early duplicate-release probe passed; close duplicate at TLS completion or response binding."
+    },
+    {
+      "command": "Initial durable TLS integration",
+      "result": "FAIL",
+      "repair": "Terminal worker redelivery returns existing ALREADY_CLAIMED_OR_CAPACITY status; corrected new test assertion, no production behavior weakened."
+    }
+  ]
+}
