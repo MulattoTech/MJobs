@@ -1,5 +1,5 @@
 {
-  "recorded_at_utc": "2026-10-14T05:44:17.719081+00:00",
+  "recorded_at_utc": "2026-10-14T05:57:09.070968+00:00",
   "status": "PARTIAL",
   "issues": [
     178,
@@ -60,13 +60,13 @@
       "result": "4 connected Chromium PASS; zero skips"
     },
     {
-      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; git diff --check",
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; git diff --check",
       "result": "PASS"
     }
   ],
   "local_full_unit": "1591 PASS, 1104 passing subtests, 8 explicit Linux-only skips in 255.00 seconds",
   "review": "Read-only local Luna High review: no critical/important finding; minor blocked-before-log assertion strengthened and retested",
-  "hosted_checks": "NOT_RUN pending publication",
+  "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
   "limitations": [
     "Recognized-marker filtering cannot detect credentials under arbitrary names or arbitrary free text",
     "Broader logging fields and whole secret-management original requirements remain PARTIAL",
@@ -74,5 +74,67 @@
     "Local PostgreSQL/Redis/Compose NOT_RUN; environment-gated focused cases explicitly skipped"
   ],
   "rollback": "Scoped source revert; no schema migration or data mutation",
-  "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf"
+  "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf",
+  "pr": 642,
+  "pr_url": "https://github.com/MulattoTech/MJobs/pull/642",
+  "verified_head": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+  "merge_commit": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+  "required_checks": [
+    {
+      "name": "CI / required",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353327/job/115702742517",
+      "completed_at": "2026-10-14T05:47:45Z"
+    },
+    {
+      "name": "Integration / PostgreSQL and Redis",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353313/job/115704621751",
+      "completed_at": "2026-10-14T05:54:25Z"
+    },
+    {
+      "name": "Disposable Compose / mock end-to-end",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353291/job/115702146518",
+      "completed_at": "2026-10-14T05:49:45Z"
+    },
+    {
+      "name": "Dependencies / introduced vulnerabilities",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353395/job/115702146455",
+      "completed_at": "2026-10-14T05:45:44Z"
+    },
+    {
+      "name": "Security / secret scan",
+      "head_sha": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+      "status": "completed",
+      "conclusion": "success",
+      "html_url": "https://github.com/MulattoTech/MJobs/actions/runs/38518353276/job/115702146476",
+      "completed_at": "2026-10-14T05:45:46Z"
+    }
+  ],
+  "additional_validation": {
+    "command": "python -m tools.coordination.lane_coordination validate",
+    "result": "FAIL: twenty historical lane snapshot files absent; current status/claim/lock bus operational. Not repaired; canonical contribution checks PASS."
+  },
+  "initial_command_errors": [
+    "Default TEMP path could not open synthetic SQLite under sandbox; using writable campaign TEMP resolved and reproduced expected RED.",
+    "Initial expanded-suite command named a nonexistent test_lever_form_review.py; no tests ran. Corrected to test_application_form_review_flow.py; 121 tests passed.",
+    "Default Vite bundled config loader spawn EPERM; supported --configLoader native production build passed.",
+    "Default schannel Git transport unavailable and inherited FETCH_HEAD write denied; per-command OpenSSL with certificate verification and --no-write-fetch-head succeeded."
+  ],
+  "post_merge": {
+    "revision": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+    "command": "python -m pytest -q tests/unit/test_structured_logging.py tests/integration/test_durable_resume_extraction.py -p no:cacheprovider",
+    "result": "28 PASS, 43 passing subtests, zero skips in 11.93 seconds",
+    "tree_matches_verified_pr_head": true
+  }
 }
