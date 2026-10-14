@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from sqlalchemy.engine import Connection
 
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
@@ -136,6 +137,25 @@ class DataExportTests(unittest.TestCase):
                 with self.store.engine.connect() as connection:
                     self.assertEqual(connection.execute(m.routes.select().where(
                         m.routes.c.id == "route-a")).mappings().one()["url"], original)
+
+    def test_failed_document_export_closes_cursor_before_error_is_discarded(self):
+        generated = self.output_dir / "application-a" / "v1" / "1" / "resume.txt"
+        generated.write_bytes(b"synthetic-tampered-content")
+        original_execute = Connection.execute
+        cursors = []
+
+        def execute(connection, *args, **kwargs):
+            result = original_execute(connection, *args, **kwargs)
+            if result.returns_rows and set(result.keys()) == {"id", "application_id", "files", "sha256"}:
+                cursors.append(result)
+            return result
+
+        with patch.object(Connection, "execute", execute):
+            with self.assertRaises(DataExportError) as failure:
+                export_profile_backup(self.store, "profile-a", output_dir=self.output_dir)
+        self.assertEqual(failure.exception.code, "EXPORT_FILE_UNAVAILABLE")
+        self.assertTrue(cursors)
+        self.assertTrue(all(cursor.closed for cursor in cursors))
 
     def test_csv_exports_are_deterministic_profile_scoped_and_header_stable(self):
         jobs = export_jobs_csv(self.store, "profile-a")

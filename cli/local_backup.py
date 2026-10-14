@@ -193,6 +193,10 @@ def _has_link_ancestor(path: Path) -> bool:
     return any(_is_reparse_point(part) for part in (original, *original.parents))
 
 
+def _inventory_error(_error: OSError) -> None:
+    raise BackupError("Backup inventory could not be read") from None
+
+
 def verify_backup(archive: Path) -> dict:
     if _has_link_ancestor(archive):
         raise BackupError("Backup directory is a symbolic link")
@@ -240,17 +244,21 @@ def verify_backup(archive: Path) -> dict:
             raise BackupError("Backup file is missing or unsafe: " + name)
         if checksum(path) != expected:
             raise BackupError("Backup checksum mismatch: " + name)
-    actual = {
-        path.relative_to(archive).as_posix()
-        for path in archive.rglob("*") if path.is_file()
-    }
+    actual = set()
+    # Inspect immediate children before walk descends into directories. Unlike
+    # symlinks, Windows junctions need an explicit check even with followlinks off.
+    for directory, children, names in os.walk(archive, topdown=True, followlinks=False,
+                                            onerror=_inventory_error):
+        for name in children + names:
+            path = Path(directory) / name
+            if _is_reparse_point(path):
+                raise BackupError("Backup contains a symbolic link")
+            if path.is_file():
+                actual.add(path.relative_to(archive).as_posix())
+            elif not path.is_dir():
+                raise BackupError("Backup contains an unsupported filesystem node")
     if actual != set(files) | {"manifest.json"}:
         raise BackupError("Backup contains unlisted or missing files")
-    for path in archive.rglob("*"):
-        if _is_reparse_point(path):
-            raise BackupError("Backup contains a symbolic link")
-        if not path.is_file() and not path.is_dir():
-            raise BackupError("Backup contains an unsupported filesystem node")
     if schema_version == 3:
         if manifest["operation_mode"] != "FIXTURE" or RECEIPT_PATH not in files:
             raise BackupError("Fixture receipt snapshot is required only for FIXTURE schema 3")
@@ -440,7 +448,8 @@ def create_backup(project: str, archive: Path) -> dict:
         _require_quiescent(_service_states(project, environment), mode)
         # Playwright browser profiles may contain live cookies. They are not
         # documents and must not be carried into a portable backup.
-        for directory, children, _ in os.walk(documents, topdown=True, followlinks=False):
+        for directory, children, _ in os.walk(documents, topdown=True, followlinks=False,
+                                              onerror=_inventory_error):
             for child in list(children):
                 if _is_reparse_point(Path(directory) / child):
                     raise BackupError("Document volume contains an unsupported file type")
@@ -670,11 +679,14 @@ def verify_document_tree(manifest: dict, root: Path) -> None:
         raise BackupError("Restored document directory is missing or unsafe")
     expected_files = {name for name in manifest["files"] if name.startswith("documents/")}
     actual_files: set[str] = set()
-    for path in documents.rglob("*"):
-        if _is_reparse_point(path) or (not path.is_file() and not path.is_dir()):
-            raise BackupError("Restored document volume contains an unsafe file")
-        if path.is_file():
-            actual_files.add(path.relative_to(root).as_posix())
+    for directory, children, names in os.walk(documents, topdown=True, followlinks=False,
+                                            onerror=_inventory_error):
+        for name in children + names:
+            path = Path(directory) / name
+            if _is_reparse_point(path) or (not path.is_file() and not path.is_dir()):
+                raise BackupError("Restored document volume contains an unsafe file")
+            if path.is_file():
+                actual_files.add(path.relative_to(root).as_posix())
     if actual_files != expected_files:
         raise BackupError("Restored document volume contains unlisted or missing files")
     for name, expected in manifest["files"].items():

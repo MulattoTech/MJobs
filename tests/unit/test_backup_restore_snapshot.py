@@ -12,6 +12,29 @@ from tests.unit import test_local_backup as fixtures
 from tests.unit.test_backup_fixture_receipts import capture_fixture, RECEIPTS
 
 
+def test_unreadable_empty_document_tree_cannot_pass_inventory():
+    with tempfile.TemporaryDirectory() as directory:
+        archive = Path(directory)
+        manifest = fixtures.LocalBackupTests.archive_fixture(archive)
+        (archive / "documents" / "resume.pdf").unlink()
+        del manifest["files"]["documents/resume.pdf"]
+        (archive / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+        original_scandir = os.scandir
+
+        def scandir(path):
+            if Path(path) == archive / "documents":
+                raise PermissionError("synthetic-private-inventory-error")
+            return original_scandir(path)
+
+        with patch.object(os, "scandir", side_effect=scandir):
+            for verify in (lambda: local_backup.verify_backup(archive),
+                           lambda: local_backup.verify_document_tree(manifest, archive)):
+                with pytest.raises(local_backup.BackupError) as error:
+                    verify()
+                assert "synthetic-private" not in str(error.value)
+        assert local_backup.verify_backup(archive) == manifest
+
+
 @pytest.mark.skipif(os.name != "nt", reason="Native Windows junction boundary")
 @pytest.mark.parametrize("linked_component", ["archive", "ancestor", "documents"])
 def test_native_junction_rejected_before_read_or_target_operation(linked_component):
@@ -54,6 +77,41 @@ def test_native_junction_rejected_before_read_or_target_operation(linked_compone
             link.rmdir()  # Remove only the junction, preserving its target.
         if linked_component == "documents":
             destination.rename(archive / "documents")
+        assert local_backup.verify_backup(archive) == manifest
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Native Windows junction boundary")
+def test_unlisted_nested_junction_rejected_before_inventory_stats_target():
+    import _winapi
+
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        archive = root / "archive"
+        archive.mkdir()
+        manifest = fixtures.LocalBackupTests.archive_fixture(archive)
+        target = root / "unrelated"
+        target.mkdir()
+        sentinel = target / "private.txt"
+        sentinel.write_bytes(b"synthetic-private")
+        link = archive / "documents" / "unlisted"
+        assert link.absolute().is_relative_to(root.absolute())
+        assert target.absolute().is_relative_to(root.absolute())
+        _winapi.CreateJunction(str(target), str(link))
+        original_is_file = Path.is_file
+
+        def is_file(path):
+            assert path != link and link not in path.parents, "inventory followed a junction"
+            return original_is_file(path)
+
+        try:
+            with patch.object(Path, "is_file", is_file):
+                with pytest.raises(local_backup.BackupError):
+                    local_backup.verify_backup(archive)
+                with pytest.raises(local_backup.BackupError):
+                    local_backup.verify_document_tree(manifest, archive)
+            assert sentinel.read_bytes() == b"synthetic-private"
+        finally:
+            link.rmdir()
         assert local_backup.verify_backup(archive) == manifest
 
 
