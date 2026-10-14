@@ -36,6 +36,7 @@ class _RequestGuard:
         self.cancellation_event = cancellation_event
         self.stream = None
         self.response = None
+        self.interrupt_socket = None
         self.lock = threading.Lock()
         self.finished = threading.Event()
 
@@ -54,6 +55,26 @@ class _RequestGuard:
         if event in {"connection.connect_tcp.complete", "connection.start_tls.complete"}:
             with self.lock:
                 self.stream = info.get("return_value")
+                if event == "connection.connect_tcp.complete" and self.interrupt_socket is None:
+                    # SSL wrapping detaches the raw socket before its handshake
+                    # returns. Keep our own handle to the same connection so
+                    # shutdown can still wake that handshake. Closing this
+                    # duplicate normally does not shut down the live stream.
+                    try:
+                        connection = self.stream.get_extra_info("socket") if self.stream is not None else None
+                    except (AttributeError, OSError, TypeError, ValueError, NotImplementedError):
+                        # Injected transports can emit traces without socket
+                        # metadata. Preserve their existing close fallback.
+                        connection = None
+                    if isinstance(connection, socket.socket):
+                        try:
+                            self.interrupt_socket = connection.dup()
+                        except OSError:
+                            # This trace precedes pool ownership. If handle
+                            # allocation fails, explicitly close the unpooled
+                            # stream rather than leak it or enter unguarded I/O.
+                            self.stream.close()
+                            raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
         # Do not raise from response-close traces invoked by our own cleanup.
         if (event.endswith(".started") and ".response_closed." not in event) or event in {
                 "connection.connect_tcp.complete", "connection.start_tls.complete"}:
@@ -68,6 +89,12 @@ class _RequestGuard:
     def interrupt(self):
         with self.lock:
             stream, response = self.stream, self.response
+            connection = self.interrupt_socket
+            if connection is not None:
+                try:
+                    connection.shutdown(socket.SHUT_RDWR)
+                except OSError:
+                    pass
         _shutdown_stream_socket(stream)
         # A connect-complete trace can fire before the pool owns the stream.
         # Close it explicitly too; shutdown alone must not leave an orphan FD.
@@ -78,6 +105,12 @@ class _RequestGuard:
                 except Exception:
                     # Continue closing other owned resources after a close race.
                     pass
+
+    def close(self):
+        with self.lock:
+            if self.interrupt_socket is not None:
+                self.interrupt_socket.close()
+                self.interrupt_socket = None
 
     def watch(self):
         while not self.finished.is_set():
@@ -93,8 +126,9 @@ class _RequestGuard:
 def request_guard(client, *, deadline, cancellation_event=None):
     """Interrupt only this request's connected transport, including header reads.
 
-    DNS/connect/TLS establishment retains HTTPX's phase timeouts until a stream
-    is exposed. Custom transports may omit trace/socket metadata. The normal
+    DNS/TCP establishment retains HTTPX's phase timeouts until a stream
+    is exposed. The connected socket remains interruptible through TLS wrapping.
+    Custom transports may omit trace/socket metadata. The normal
     response close fallback remains, but cannot certify arbitrary custom I/O.
     """
     guard = _RequestGuard(client, deadline, cancellation_event)
@@ -111,3 +145,4 @@ def request_guard(client, *, deadline, cancellation_event=None):
     finally:
         guard.finished.set()
         watcher.join(timeout=1)
+        guard.close()
