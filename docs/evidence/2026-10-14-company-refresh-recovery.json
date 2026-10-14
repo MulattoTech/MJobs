@@ -1,0 +1,114 @@
+{
+  "requirement": "MJ-REQ-158",
+  "issue": 159,
+  "slice_issue": 634,
+  "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkp7Q",
+  "source_commit": "db3a08832a8dc9bf1e7cbc15f0acedaa7441ca06",
+  "recorded_at_utc": "2026-10-14T00:48:03.376219+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_FINAL_REVISION",
+  "behavior": [
+    "Exact immutable COMPANY_SOURCE_REFRESHED receipt, bound by action, entity and both payload IDs, protects committed imports from late cancellation and acknowledgement timeout/error.",
+    "Expired RUNNING worker recovery completes directly from receipt without network/import retry, even with spent attempt budget and prior cancellation flag.",
+    "State and attempt ownership fences precede receipt reconciliation. Missing, mismatched and other-kind receipts preserve normal cancellation/retry behavior.",
+    "Actual subprocess os._exit(73) after import commit proves persisted job/posting/match/quality/receipt survival, Store reopen, no duplicate records or second network request and truthful operation API readback."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/integration/test_company_refresh_receipts.py (before fix, corrected harness)",
+      "result": "FAIL_EXPECTED",
+      "failed": 5,
+      "passed": 3,
+      "subtests": 4,
+      "detail": "Late cancellation, pointer replacement, post-commit timeout/exception and process-death recovery failed as expected. Initial harness mistakes were corrected before recording this baseline."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_company_refresh_receipts.py tests/integration/test_company_monitoring_recovery.py tests/integration/test_company_source_monitoring.py tests/integration/test_company_monitoring_api.py tests/integration/test_worker_lifecycle.py tests/integration/test_operation_retries.py tests/integration/test_operation_progress_lifecycle.py tests/unit/test_operation_concurrency.py tests/unit/test_operation_progress.py",
+      "result": "PASS",
+      "tests": 84,
+      "subtests": 46,
+      "skipped": 9,
+      "seconds": 59.54,
+      "environment": "Windows Python3.12; SQLite plus isolated PostgreSQL17 on loopback63468, database mjobs_refresh_validation",
+      "skip_reason": "Existing optional environment-specific worker tests; new SQLite/PostgreSQL receipt tests all executed."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_company_source_monitoring.py tests/browser/test_operation_progress.py",
+      "result": "PASS",
+      "tests": 2,
+      "seconds": 12.72
+    },
+    {
+      "command": "npm --prefix apps/web run build; catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; tools.site.build; commit_provenance; git diff --check",
+      "result": "PASS",
+      "note": "Existing production bundle-size warning"
+    },
+    {
+      "command": "python -m unittest tests.integration.test_company_refresh_receipts tests.integration.test_company_monitoring_recovery tests.integration.test_company_source_monitoring tests.browser.test_company_source_monitoring tests.browser.test_operation_progress -q",
+      "result": "PASS",
+      "tests": 32,
+      "skipped": 9,
+      "seconds": 41.878,
+      "environment": "Cached Linux image mjobs-priority-validation:20261013; read-only source mount; network none; Python3.12",
+      "skip_reason": "Optional PostgreSQL class not configured in network-isolated Linux container; all9 separately executed locally",
+      "source_commit": "db3a08832a8dc9bf1e7cbc15f0acedaa7441ca06",
+      "source_hashes_unchanged": true
+    },
+    {
+      "command": "python -m pytest -q tests/unit",
+      "result": "PASS",
+      "tests": 1582,
+      "subtests": 1078,
+      "seconds": 284.35,
+      "source_commit": "db3a08832a8dc9bf1e7cbc15f0acedaa7441ca06",
+      "scope": "Frozen production/test source; only evidence/planning metadata changed while running."
+    },
+    {
+      "command": "Injected200ms before HTTPTransport.handle_request for slow-provider durable timeout test",
+      "result": "PASS_AFTER_FIX",
+      "detail": "Original150ms fixture budget reproduced zero-request assertion failure for all5 providers. One-second fixture budget reaches body then times out for all5, retaining exact request count and persisted failure assertions. Production code unchanged."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_evaluation.py",
+      "result": "PASS",
+      "tests": 34,
+      "subtests": 17,
+      "seconds": 47.12
+    },
+    {
+      "command": "Linux read-only network-none python -m unittest tests.integration.test_durable_ai_evaluation -q",
+      "result": "PASS",
+      "tests": 34,
+      "skipped": 0,
+      "seconds": 54.104,
+      "source_commit": "bad2b03757c0aaca331ed689648c4babff462a3e"
+    }
+  ],
+  "local_reviews": [
+    "Mace Windu: no lock-order/fresh-flow ownership blocker; historical terminal repair excluded explicitly.",
+    "R2-D2: physical crash oracle reviewed; timeout/exception seam corrected to worker acknowledgement boundary and monitor HEALTHY/no-failure assertions added.",
+    "R2-D2 final frozen-source review: no remaining test-oracle blocker."
+  ],
+  "limitations": [
+    "Parent MJ-REQ-158 spans other operation classes and remains PARTIAL.",
+    "Historical terminal CANCELLED/DEAD_LETTERED records from older versions are not automatically rewritten.",
+    "A cancel request after saved import returns REFRESH_ALREADY_SAVED and retains active state until normal acknowledgement or expired-worker recovery.",
+    "No real external network collection, job submission or paid inference was performed.",
+    "No monitoring/source-learning owner files or schema were changed."
+  ],
+  "original_p0_p1_before_after": {
+    "PASS": 47,
+    "PARTIAL": 41,
+    "NOT_RUN": 54
+  },
+  "final_source_commit": "bad2b03757c0aaca331ed689648c4babff462a3e",
+  "initial_hosted_ci": {
+    "revision": "4324449d20e5130bfaa54a7ab8505411c2455ed3",
+    "integration_run": 38491102109,
+    "result": "FAIL",
+    "reason": "Existing150ms slow-body fixture could time out before its loopback POST on loaded runner; one subtest failed exact request-count oracle. Fixed fixture admission budget after deterministic reproduction; no production change."
+  }
+}
