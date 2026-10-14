@@ -7,6 +7,36 @@ from workers.structured_logging import log_operation_finished
 
 
 class StructuredOperationLoggingTests(unittest.TestCase):
+    def test_review_and_dry_run_log_only_validated_resolved_application_context(self):
+        for kind in ("APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"):
+            for result in ("COMPLETED", "BLOCKED", "CANCELLED", "DEAD_LETTERED"):
+                with self.subTest(kind=kind, result=result), self.assertLogs("mjobs.operations", level="INFO") as captured:
+                    log_operation_finished({
+                        "id": "operation-1", "kind": kind, "entity_id": "unresolved-entity",
+                        "application_id": "application-1", "job_id": "job-1", "company_id": "company-1",
+                        "ats_provider": "greenhouse", "params": {"api_key": "SYNTHETIC_PRIVATE_KEY"},
+                    }, result, "SAFE_ERROR", .01)
+                record = json.loads(captured.records[0].getMessage())
+                self.assertEqual(record["application_id"], "application-1")
+                self.assertEqual(record["job_id"], "job-1")
+                self.assertEqual(record["company_id"], "company-1")
+                self.assertEqual(record["ats"], "greenhouse")
+                self.assertNotIn("unresolved-entity", captured.records[0].getMessage())
+                self.assertNotIn("SYNTHETIC_PRIVATE", captured.records[0].getMessage())
+
+    def test_review_context_rejects_secret_shapes_and_unknown_providers(self):
+        for kind in ("APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"):
+            with self.subTest(kind=kind), self.assertLogs("mjobs.operations", level="INFO") as captured:
+                log_operation_finished({
+                    "id": "operation-1", "kind": kind, "entity_id": "unresolved-entity",
+                    "application_id": "credential-SYNTHETIC", "job_id": "token-SYNTHETIC",
+                    "company_id": "password-SYNTHETIC", "ats_provider": "https://private.test/?key=SYNTHETIC",
+                }, "BLOCKED", "API_KEY_SYNTHETIC", .01)
+            record = json.loads(captured.records[0].getMessage())
+            for field in ("application_id", "job_id", "company_id", "ats", "error_code"):
+                self.assertNotIn(field, record)
+            self.assertNotIn("SYNTHETIC", captured.records[0].getMessage())
+
     def test_document_ai_and_review_outcomes_emit_only_fixed_context(self):
         for kind in ("RESUME_EXTRACT_QUEUED", "UPLOADED_RESUME_COMPARE_QUEUED",
                      "AI_EVALUATE_QUEUED", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"):

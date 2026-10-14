@@ -105,19 +105,23 @@ def log_operation_finished(operation, result, error_code, duration_seconds):
         company_id = _safe_identifier(operation.get("company_id"))
         if company_id and not _SECRET_SHAPED_IDENTIFIER.search(company_id):
             record["company_id"] = company_id
-    elif kind == "APPLY_MOCK":
-        application_id = _safe_identifier(operation.get("entity_id"))
+    elif kind in {"APPLY_MOCK", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"}:
+        # Reviews and fixture runs get context only from the persisted projection.
+        # Their entity/params may identify other private inputs on invalid work.
+        application_id = _safe_identifier(operation.get(
+            "entity_id" if kind == "APPLY_MOCK" else "application_id"))
         if application_id:
             record["application_id"] = application_id
-        job_id = _safe_identifier(operation.get("job_id"))
-        if job_id and not _SECRET_SHAPED_IDENTIFIER.search(job_id):
-            record["job_id"] = job_id
-        company_id = _safe_identifier(operation.get("company_id"))
-        if company_id and not _SECRET_SHAPED_IDENTIFIER.search(company_id):
-            record["company_id"] = company_id
-        ats_provider = _safe_ats_provider(operation.get("ats_provider"))
-        if ats_provider:
-            record["ats"] = ats_provider
+        if application_id or kind == "APPLY_MOCK":
+            job_id = _safe_identifier(operation.get("job_id"))
+            if job_id:
+                record["job_id"] = job_id
+            company_id = _safe_identifier(operation.get("company_id"))
+            if company_id:
+                record["company_id"] = company_id
+            ats_provider = _safe_ats_provider(operation.get("ats_provider"))
+            if ats_provider:
+                record["ats"] = ats_provider
 
     safe_code = _safe_error_code(error_code)
     if safe_code:
