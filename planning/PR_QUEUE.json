@@ -5645,10 +5645,10 @@
       ],
       "target_area": "services/audit_history.py",
       "depends_on": [],
-      "status": "IN_PROGRESS",
+      "status": "MERGED",
       "branch": "codex/p0p1-only-20261013-232152",
       "draft_until_verified": true,
-      "notes": "Source 94c7dc183ce1b2a53b222d4b4807d1f176ab9fe7; local 47 tests/39 subtests and 3 Chromium cases PASS; full 1593 units/1114 subtests PASS. Required hosted checks pending; full parents remain PARTIAL."
+      "notes": "PR #645 merged df05062fef969e919a07faaffc05bb4a085f34f1 after all five required gates PASS at 496416676b9d01d08bb46a126f1b3d77be39b0ab; all six new PostgreSQL cases PASS without skips; merge tree/source hashes identical. Parents remain PARTIAL; documentation-only receipt travels with next source PR."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"
