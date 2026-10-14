@@ -605,7 +605,13 @@ class DurableAIEvaluationTests(unittest.TestCase):
                 thread = threading.Thread(target=server.serve_forever,
                     kwargs={'poll_interval': .01}, daemon=True)
                 thread.start()
-                transport = httpx.Client(trust_env=False, timeout=.15)
+                # This integration oracle needs to reach the response body.
+                # A 150 ms whole-request budget can correctly expire during
+                # loopback admission on a busy CI runner, before any POST.
+                # The trickled body takes several seconds; keep its timeout
+                # and exact one-request/persisted-failure assertions intact.
+                request_budget = 1.0
+                transport = httpx.Client(trust_env=False, timeout=request_budget)
                 provider = provider_type(base_url=f'http://127.0.0.1:{server.server_port}',
                                          client_factory=lambda **_kwargs: transport)
 
@@ -613,7 +619,7 @@ class DurableAIEvaluationTests(unittest.TestCase):
                     capabilities = provider.capabilities
 
                     def generate(self, **kwargs):
-                        kwargs['timeout_seconds'] = .15
+                        kwargs['timeout_seconds'] = request_budget
                         return provider.generate(**kwargs)
 
                 self.router = lambda configuration: AITaskRouter(configuration,
