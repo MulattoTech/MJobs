@@ -1868,7 +1868,15 @@
       "candidate": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
       "integration_method": "NON_FORCE_FAST_FORWARD",
       "integration_commit": "64dfebcd51d0d1c926d9b3856a42028ec577f88d",
-      "pr_state": "NOT_OPENED_LOCAL_ONLY"
+      "pr_state": "NOT_OPENED_LOCAL_ONLY",
+      "p0p1_20261013_232152": {
+        "issue": 171,
+        "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
+        "evidence": "docs/evidence/2026-10-14-p1-api-retention-guards.json",
+        "scope_complete": false,
+        "local_behavior": "PASS",
+        "hosted_checks": "NOT_RUN_PENDING_PUBLICATION"
+      }
     },
     {
       "id": "MJ-PR-047",
@@ -1888,7 +1896,15 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-047-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. MJ-REQ-173 / issue #174 is separately accepted PASS at main 84136dc; this umbrella queue item stays QUEUED for its remaining PII/web requirements.",
+      "p0p1_20261013_232152": {
+        "issue": 173,
+        "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
+        "evidence": "docs/evidence/2026-10-14-p1-api-retention-guards.json",
+        "scope_complete": false,
+        "local_behavior": "PASS",
+        "hosted_checks": "NOT_RUN_PENDING_PUBLICATION"
+      }
     },
     {
       "id": "MJ-PR-048",

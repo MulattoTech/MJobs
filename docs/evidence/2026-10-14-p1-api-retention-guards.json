@@ -1,0 +1,97 @@
+{
+  "recorded_at_utc": "2026-10-14T04:41:01.619980+00:00",
+  "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
+  "source_sha256": {
+    "apps/api/main.py": "242fa9659c35ca00f085ff38ee66cb47be28b493b82222580d6a3d3ae9dfd7c5",
+    "services/privacy/transient_retention.py": "9848306263f5f9ef0fe53ae569c738c2fe2d1f2ffbb9dc10e7a427328629a90f",
+    "tests/integration/test_local_origin_security.py": "8e5fc2cdaaaf249b845e541b4158ddbac3b1203bd88a9df8165dfe8a2f753c09",
+    "tests/browser/test_local_origin_security.py": "f769f71136acb29df96f84a12042e01129cf453956e054446720690a1de08f7f",
+    "tests/unit/test_transient_retention.py": "6645f9f89e5b393cd49a04e2fafd51da08397f22e1ddba4cc4b3fd5e9cb61e3e",
+    "tests/integration/test_transient_retention.py": "bfef3ad31a2670a85e912253a01a4748034753d07367c97e3bddd5a28fd26f48"
+  },
+  "issues": [
+    173,
+    171
+  ],
+  "requirements": [
+    "MJ-REQ-172",
+    "MJ-REQ-170"
+  ],
+  "project": {
+    "owner": "MulattoTech",
+    "number": 1,
+    "verified_main": "73957bd963bf808120be11a90c91ef7b1b3d358e",
+    "eligible_snapshot": "p0p1-20261013-232152/queue-1.json",
+    "live_priorities": {
+      "173": "P1",
+      "171": "P1"
+    }
+  },
+  "model": "unknown",
+  "local_reviews": "Two read-only GPT-6 Luna High reviews; no critical or important findings",
+  "local_behavior": "PASS",
+  "original_requirement_acceptance": {
+    "MJ-REQ-172": "NOT_RUN",
+    "MJ-REQ-170": "PARTIAL"
+  },
+  "scope": [
+    "Cross-site unsafe requests are denied before every API route even when Origin is missing.",
+    "Cross-site API reads are denied by default; public shell/assets and health probes remain accessible.",
+    "Same-origin and headerless local clients retain persisted save/readback behavior.",
+    "Before transient pruning, every file ancestor is rechecked for symlinks/junctions after file-identity validation.",
+    "Blocked sweeps preserve files and do not publish a new success receipt; safe retry persists a receipt readable from the API."
+  ],
+  "validation": [
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/integration/test_local_origin_security.py --tb=short (before fix)",
+      "result": "FAIL_EXPECTED",
+      "failures": 8,
+      "detail": "Saved-search overwrite succeeded and new API namespaces disclosed data to cross-site request shapes."
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_transient_retention.py -k redirect --tb=short (before fix)",
+      "result": "FAIL_EXPECTED",
+      "failures": 2,
+      "detail": "Real native directory-link fixtures for managed and intermediate ancestor redirects each pruned one moved file."
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_transient_retention.py tests/unit/test_transient_retention_scheduler.py tests/unit/test_retention_policy.py tests/integration/test_transient_retention.py tests/integration/test_retention_policy.py tests/integration/test_local_origin_security.py tests/integration/test_ai_cost_policy_api.py tests/browser/test_local_origin_security.py tests/browser/test_retention_policy.py --tb=short",
+      "result": "PASS",
+      "tests": 42,
+      "subtests": 26,
+      "skips": 0
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit --tb=short",
+      "result": "PASS",
+      "detail": "1583 passed, 8 skipped, 1080 subtests passed in 246.09s (0:04:06)"
+    },
+    {
+      "command": "npm run build --prefix apps/web -- --configLoader runner",
+      "result": "PASS",
+      "detail": "TypeScript and production Vite build; Node 25.9.0. Default config bundling hit sandbox spawn EPERM; supported runner loader succeeded."
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.agent_skills; python -m tools.verification.progress_dashboard --check; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD (each source commit)",
+      "result": "PASS"
+    }
+  ],
+  "harness_failures_resolved": [
+    "Initial temporary-directory access failures were avoided by selecting an owned writable TEMP.",
+    "The first full unit run had 1582 passes, 1077 passing subtests, eight skips and one outside-repository fixture failure because TEMP was inside the worktree. Moving TEMP outside the checkout restored the negative fixture; its 11 methods and 14 subtests passed.",
+    "First new Chromium run had a test-only link hidden under the app shell; positioned the synthetic link and reran both connected tests successfully."
+  ],
+  "limitations": [
+    "No full security/authentication or all-category retention acceptance; parent issues remain open and matrices are unchanged.",
+    "An ancestry check followed by path-based unlink does not provide atomic protection against a hostile filesystem swap between the final check and deletion.",
+    "Windows local tests use synthetic SQLite and native temporary directory links; PostgreSQL/Redis/Compose local full-stack checks NOT_RUN.",
+    "Eight Linux-launcher unit cases require Linux and remain skipped on the Windows host; required exact-head hosted checks pending.",
+    "Real applications, live provider inference, credential access and unrelated host changes were not performed."
+  ],
+  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+  "publication": "PENDING"
+}
