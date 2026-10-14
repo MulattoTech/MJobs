@@ -14,6 +14,8 @@ from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .supervisor import AgentSupervisor, LANES
+from .external_sprints import current_round3
+from .observability import windows_process_snapshot, read_codex_rate_limits
 from .mission_control import MissionControl, LaunchRequest
 from .work_history import WorkHistory
 from .progress_history import ProgressHistory
@@ -214,6 +216,17 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
     @app.post("/api/launcher/{lane}/launch")
     def launcher_launch(lane: str, options: LaunchRequest, request: Request):
         mission.require_token(request, mission.token)
+        if lane == "codex":
+            observed = current_round3(
+                repo, processes=supervisor._cached_telemetry(
+                    "processes", 2.5, windows_process_snapshot,
+                ),
+            )
+            if observed.get("observation") == "RUNNING":
+                raise HTTPException(
+                    409, "An external Codex P0/P1 sprint is already running; "
+                         "Mission Control will not start a second integration owner.",
+                )
         try:
             return mission.launch(lane, options)
         except (ValueError, RuntimeError, OSError):
@@ -245,6 +258,34 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
     @app.get("/api/state")
     def state():
         return supervisor.snapshot()
+
+    @app.get("/api/sprints/active")
+    def external_sprint():
+        """Observe externally launched Codex agents without assuming process ownership."""
+        def inspect():
+            processes = supervisor._cached_telemetry(
+                "processes", 2.5, windows_process_snapshot,
+            )
+            return current_round3(repo, processes=processes)
+        observed = supervisor._cached_telemetry("external_round3", 8.0, inspect)
+        if not observed.get("available"):
+            return observed
+        # The account quota belongs to the account, not a particular Codex agent.
+        try:
+            quota = supervisor._cached_telemetry(
+                "codex_usage", 30.0, read_codex_rate_limits,
+            )
+        except (OSError, RuntimeError, ValueError):
+            quota = {"available": False}
+        return {
+            **observed,
+            "quota": {
+                "available": quota.get("available", False),
+                "used_percent": quota.get("used_percent"),
+                "remaining_percent": quota.get("remaining_percent"),
+                "resets_at": quota.get("resets_at"),
+            },
+        }
 
     @app.get("/api/lanes/{lane}/log")
     def log(lane: str, lines: int = Query(default=200, ge=1, le=1000)):
