@@ -9,6 +9,7 @@ param(
     [switch]$Yolo,
     [switch]$ManualApprovals,
     [switch]$StatusOnly,
+    [switch]$Preview,
     [ValidatePattern('^[a-zA-Z0-9._-]+$')][string]$Model = 'gpt-6.1-sol',
     [ValidateSet('medium','high','xhigh')][string]$Reasoning = 'high',
     [ValidateRange(1,6)][int]$AgentThreads = 4
@@ -37,11 +38,11 @@ $busy=@(Get-CimInstance Win32_Process -Filter "Name='codex.exe'" | Where-Object 
 if($busy.Count -gt 0) {
     Write-Host "Existing Codex is still active ($($busy.ProcessId -join ', ')); do not start another integration owner."
     if($StatusOnly){ return }
-    throw 'Exit or checkpoint the existing native Codex session before resuming it.'
+    if(-not $Preview){ throw 'Exit or checkpoint the existing native Codex session before resuming it.' }
 }
 $principal=[Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
 $admin=$principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-if($Yolo -and $admin) {
+if($Yolo -and $admin -and -not $Preview) {
     throw 'YOLO_BLOCKED_ELEVATED: Close elevated VS Code after checkpointing Codex, reopen MJobs normally from your desktop shortcut (not Run as administrator), then retry.'
 }
 $lookup=@'
@@ -75,7 +76,10 @@ Write-Host "Campaign: $($state.campaign)"
 Write-Host "Workspace: $workspace"
 Write-Host "Root session: $sessionId"
 Write-Host "Model: $Model ($Reasoning); max agent threads: $AgentThreads"
-if($StatusOnly){ return }
+if($StatusOnly -or $Preview){
+    Write-Host "Preview only. No model, Codex session, or Git operation started."
+    return
+}
 $approval = if($Yolo) {
     @('--dangerously-bypass-approvals-and-sandbox')
 } elseif($ManualApprovals) {

@@ -51,3 +51,31 @@ pwsh -NoProfile -File .\tools\orchestration\Test-MJobsRound3.ps1
 python .\tools\orchestration\Test-Round3-Flow.py
 ```
 The live smoke script is optional and uses one actual Codex task. Do not run it as part of routine offline regression checks.
+
+## October 14 — external session visibility and approvals
+
+The sole MJobs root remains `C:\Tools\Dev\MJobs`. The active Round 3 checkout is kept inside `.mjobs-recovery\active`; its uncommitted edits are **not** Git Graph commits. Mission Control at `http://127.0.0.1:18729/` exposes a read-only **Active Codex sprint and subagents** panel. It cannot own, stop, or resume externally started Codex processes.
+
+Codex **automatic approval review** is the default in the corrected launcher and exact-session resume script; interactive `y/p` approval can be restored with `-ManualApprovals`. The `-Yolo` flag is opt-in and disables sandbox/approvals, so the scripts refuse it when Windows is elevated. Restart VS Code from its regular desktop shortcut (without "Run as administrator") **only after the current sprint has reached a safe checkpoint and exited**. A running CLI session will not acquire changed launch flags automatically.
+
+Safe checks from the root:
+
+```powershell
+pwsh -NoProfile -File .\Start-MJobs-P0P1-Round3.ps1 -Preview
+pwsh -NoProfile -File .\Resume-MJobs-P0P1.ps1 -Preview
+python .\tools\orchestration\Sync-MJobs-SprintGraph.py
+```
+
+After the current native Codex session exits, resume its exact root session with:
+
+```powershell
+pwsh -NoProfile -File .\Resume-MJobs-P0P1.ps1
+```
+
+Or deliberately accept unsandboxed execution in a non-administrator terminal:
+
+```powershell
+pwsh -NoProfile -File .\Resume-MJobs-P0P1.ps1 -Yolo
+```
+
+Future P0/P1 launches now direct the integration owner to delegate independent **implementation and testing**, rather than selection-only audits, when writable file ownership can be proven non-overlapping. Never spawn competing integration owners. The Git Graph local mirror branch `mjobs/sprint-live` imports **committed** sprint history only, never merges it. The observer panel shows uncommitted files.
