@@ -19,6 +19,7 @@ from .observability import windows_process_snapshot, read_codex_rate_limits
 from .mission_control import MissionControl, LaunchRequest
 from .work_history import WorkHistory
 from .progress_history import ProgressHistory
+from .delivery_ledger import DeliveryLedger
 from tools.feature_studio.control import StudioStore, inventory as studio_inventory, probe as studio_probe, probe_remote as studio_probe_remote, plan as studio_plan
 from tools.feature_studio.validate import validate_spec
 
@@ -65,6 +66,8 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
     app.state.work_history = history
     progress_history = ProgressHistory(repo, db_path=progress_history_db)
     app.state.progress_history = progress_history
+    delivery_ledger = DeliveryLedger(repo, progress_history)
+    app.state.delivery_ledger = delivery_ledger
 
     studio = StudioStore()
     app.state.feature_studio = studio
@@ -182,6 +185,22 @@ def create_app(root: Path | None = None, *, mission_instance: bool = False,
             return progress_history.observe(force=True, reason="manual")
         except (ValueError, OSError, KeyError):
             raise HTTPException(503, "Progress capture unavailable; acceptance evidence was not changed") from None
+
+    @app.get("/api/delivery-ledger")
+    def delivery_activity(
+        offset: int = Query(default=0, ge=0, le=100000),
+        limit: int = Query(default=60, ge=1, le=150),
+        kind: Literal["all", "commit", "branch", "pr", "issue", "acceptance", "capture", "workspace", "pass"] = "all",
+        search: str = Query(default="", max_length=120),
+        refresh: bool = False,
+    ):
+        """Unified read-only timeline with actual coverage and provenance labels."""
+        try:
+            return delivery_ledger.query(
+                offset=offset, limit=limit, kind=kind, search=search, refresh=refresh,
+            )
+        except (ValueError, OSError, RuntimeError):
+            raise HTTPException(503, "Recorded delivery history is temporarily unavailable") from None
 
     @app.get("/api/history")
     def recent_work_history(limit: int = Query(default=50, ge=1, le=100),

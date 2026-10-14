@@ -26,7 +26,33 @@ def git(*args):
 
 git('init', '--quiet', '--initial-branch=main')
 (repo/'README.txt').write_text('Synthetic launcher integration fixture.\n',encoding='utf-8')
-git('add', 'README.txt')
+# Supply the exact production prompt/authority files in the fixture; a newly
+# cloned campaign MUST fail if its canonical references were removed.
+asset_files = [
+    'AGENTS.md', '.agents/skills/mjobs-delivery/SKILL.md',
+    'planning/CAPABILITY_MATRIX.json', 'planning/REFERENCE_GAP_MATRIX.json',
+    'planning/REQUIREMENT_INDEX.json', 'planning/ISSUE_SEED.jsonl',
+    'planning/SESSION_HANDOFF.md',
+    'prompts/codex/project-board-end-to-end.md',
+    'prompts/codex/board-p0p1-plan.md',
+    'prompts/codex/board-p0p1-goal.md',
+    'prompts/codex/board-p0p1-main.md',
+]
+for asset in asset_files:
+    source = SOURCE / asset
+    if not source.is_file():
+        raise RuntimeError(f'Required test source is missing: {asset}')
+    target = repo / asset
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        source.read_text(encoding='utf-8').replace(r'C:\Tools\Dev\MJobs', str(repo)),
+        encoding='utf-8',
+    )
+(repo/'tools/orchestration/prompt_inventory.py').write_text(
+    (SOURCE/'tools/orchestration/prompt_inventory.py').read_text(encoding='utf-8'),
+    encoding='utf-8',
+)
+git('add', '-A')
 git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','--quiet','-m','Fixture seed')
 head = git('rev-parse','HEAD')
 module = (SOURCE/'tools/orchestration/MJobsRound3.psm1').read_text(encoding='utf-8')
