@@ -3258,7 +3258,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-278",
@@ -3446,8 +3446,8 @@
     }
   ],
   "summary": {
-    "PARTIAL": 115,
-    "PASS": 127,
+    "PARTIAL": 114,
+    "PASS": 128,
     "NOT_RUN": 183
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."

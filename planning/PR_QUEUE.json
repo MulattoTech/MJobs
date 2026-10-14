@@ -5763,7 +5763,7 @@
       "priority": "P1",
       "source_commit": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
       "draft_until_verified": true,
-      "notes": "Two locally verified P1 source fixes. Final full unit1603PASS/1147subtests/9platformSKIP, connected API/Chromium14PASS/16subtests; local Luna review no critical/important findings. PR opening deferred: eight live open PRs exceeds canonical cap four. Hosted exact-head/integration NOT_RUN. Original requirements remain PARTIAL. Evidence docs/evidence/2026-10-14-p1-settings-retention-validation.json Published feature branch via GitHub REST git API at 997a3b685a4c09d3a2681699a0acb1a8560cdb59; tree exactly matches tested local candidate. Hosted CI/integration NOT_RUN; latest ref receipt in campaign publication-11.json.",
+      "notes": "Reconciled prior published branch and merged PR651 after five exact-head required checks and five Compose artifacts PASS. Original retention #171 remains PARTIAL. Settings #278 is completed separately by PR653's criterion-level proof; preserve historical source/evidence fields.",
       "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
       "pr_number": 651,
       "verified_head": "656cbc9d64b389edfced3d87f0dbff507d8479bb",
@@ -5788,7 +5788,7 @@
       ],
       "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
       "evidence": "docs/evidence/2026-10-14-p1-export-backup-boundaries.json",
-      "notes": "Locally verified source; preserve pending predecessor. Original requirements PARTIAL. PR opening deferred: eight live PRs exceeds cap four. Exact-head hosted gates and integration NOT_RUN.",
+      "notes": "Reconciled dependent prior branch after PR651; same tree as source733f2144, verified head70076e44, merged PR652 after five required checks and five Compose artifacts PASS. Original #168/#170 remain PARTIAL.",
       "pr_number": 652,
       "verified_head": "70076e4475f00366fc5d6f52a74d98add9e9dd32",
       "merge_commit": "e9041819eb51c8717a7018074365b962f2f1dd2f"
@@ -5799,12 +5799,15 @@
       "requirements": [
         "MJ-REQ-277"
       ],
-      "status": "IMPLEMENTED_PENDING_VERIFICATION",
+      "status": "VERIFIED_PENDING_FINAL_GATES",
       "branch": "codex/p0p1-round2-20261014-084702",
       "depends_on": [],
       "draft_until_verified": true,
       "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
-      "notes": "Only original Project P1 #278 selected for new implementation; prior branches reconciled and merged in dependency order. All parent criteria require exact-source browser and PostgreSQL proof before PASS."
+      "notes": "Every original MJ-REQ-277 criterion proven; final documentation/index/dashboard head still requires protected gates and integration.",
+      "pr_number": 653,
+      "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+      "scope_complete": true
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

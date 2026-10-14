@@ -190,8 +190,12 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
-  "active_prs": [],
+  "active_requirements": [
+    "MJ-REQ-277"
+  ],
+  "active_prs": [
+    653
+  ],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -784,13 +788,17 @@
   },
   "last_implementation_commit": "36edc0350ee781d23be580c9c6aed0381552baf9",
   "publication": {
-    "result": "PARTIAL",
-    "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+    "result": "PR_PENDING_FINAL_GATES",
+    "pr": 653,
+    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
     "prior_prs_merged": [
       651,
       652
     ],
-    "current_slice": "NOT_PUBLISHED"
+    "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+    "original_requirements_accepted": [
+      "MJ-REQ-277"
+    ]
   },
   "optional_afk_journal": {
     "result": "PASS",
@@ -1376,13 +1384,14 @@
   },
   "active_development_issue": {
     "numbers": [
-      156
+      278
     ],
     "requirement_ids": [
-      "MJ-REQ-155"
+      "MJ-REQ-277"
     ],
-    "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
-    "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
+    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
+    "pr": 653,
+    "outcome": "Validated portable search profiles, real discovery schedules and public source policies; full criterion proofs on head680e63cb"
   },
   "historical_control_snapshots": [
     {
@@ -2795,7 +2804,7 @@
     "external_submission": "OFF",
     "original_pass_requires_all_criteria": true
   },
-  "updated_at": "2026-10-14T14:19:51.158812+00:00",
+  "updated_at": "2026-10-14T14:42:34.482004+00:00",
   "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
   "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
   "next_candidates": [
@@ -2847,7 +2856,7 @@
     "campaign": "round2-20261014-084702",
     "issue": 278,
     "requirement": "MJ-REQ-277",
-    "status": "PARTIAL_PENDING_EXACT_HEAD_GATES",
+    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
     "branch": "codex/p0p1-round2-20261014-084702",
     "base": "733f2144ff83e388e2e106fc3b0d133fb4b7f17d",
     "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
@@ -2872,7 +2881,69 @@
       "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed"
     },
     "rollback": "Scoped source revert; no migration, private data or existing-source policy change",
-    "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json"
+    "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
+    "pr": 653,
+    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+    "hosted_qualification": {
+      "verified_at_utc": "2026-10-14T14:40:48.562814+00:00",
+      "pr": 653,
+      "head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+      "base": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+      "merge_state": "CLEAN",
+      "required_gates": "5 PASS",
+      "runs": {
+        "CI / required": 38581156198,
+        "Integration / PostgreSQL and Redis": 38581156140,
+        "Disposable Compose / mock end-to-end": 38581156436,
+        "Dependencies / introduced vulnerabilities": 38581156116,
+        "Security / secret scan": 38581156078
+      },
+      "postgresql": {
+        "result": "PASS",
+        "executed": 10,
+        "skipped": 0,
+        "contracts": [
+          "test_api_bounds_actual_stream_before_parsing_and_preserves_settings",
+          "test_api_import_fresh_sources_counts_rejection_and_other_profile_isolation",
+          "test_existing_shared_source_mismatch_and_later_failure_preserve_other_profiles",
+          "test_failure_after_new_source_admission_rolls_back_every_category",
+          "test_fresh_install_round_trip_all_categories_reopen_and_actual_enqueue",
+          "test_invalid_rules_and_policies_reject_atomically_without_value_disclosure",
+          "test_partial_saved_search_edit_preserves_replacement_criteria",
+          "test_rules_only_and_legacy_scheduler_only_both_persist_real_schedule",
+          "test_scheduler_tick_after_replacement_never_enqueues_removed_search",
+          "test_unknown_profile_and_secret_stored_source_cannot_create_or_export_policy"
+        ]
+      },
+      "browser": {
+        "result": "PASS",
+        "executed": 1,
+        "skipped": 0,
+        "contract": "test_invalid_import_preserves_settings_then_valid_file_imports"
+      },
+      "compose": {
+        "ci-mock-e2e.json": "PASS",
+        "ci-ui.json": "PASS",
+        "ci-recovery.json": "PASS",
+        "ci-backup.json": "PASS",
+        "ci-backup-recovery.json": "PASS"
+      },
+      "integration_total_records": 1735,
+      "integration_skips": 19,
+      "external_submission": "OFF"
+    },
+    "local_source_commit": "650680d99347d63e34b590928dbd87ebfb429430",
+    "next_action": "Requalify documentation-only final head, merge PR653, close #278, synchronize Project and release owned coordination",
+    "previous_active_development_issue": {
+      "numbers": [
+        156
+      ],
+      "requirement_ids": [
+        "MJ-REQ-155"
+      ],
+      "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+      "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
+    }
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -3314,7 +3385,7 @@
     "campaign": "round2-20261014-084702",
     "issue": 278,
     "requirement": "MJ-REQ-277",
-    "status": "PARTIAL_PENDING_EXACT_HEAD_GATES",
+    "status": "PASS_CRITERIA_PENDING_FINAL_PR_INTEGRATION",
     "branch": "codex/p0p1-round2-20261014-084702",
     "base": "733f2144ff83e388e2e106fc3b0d133fb4b7f17d",
     "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
@@ -3339,6 +3410,68 @@
       "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed"
     },
     "rollback": "Scoped source revert; no migration, private data or existing-source policy change",
-    "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json"
+    "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
+    "pr": 653,
+    "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+    "hosted_qualification": {
+      "verified_at_utc": "2026-10-14T14:40:48.562814+00:00",
+      "pr": 653,
+      "head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+      "base": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+      "merge_state": "CLEAN",
+      "required_gates": "5 PASS",
+      "runs": {
+        "CI / required": 38581156198,
+        "Integration / PostgreSQL and Redis": 38581156140,
+        "Disposable Compose / mock end-to-end": 38581156436,
+        "Dependencies / introduced vulnerabilities": 38581156116,
+        "Security / secret scan": 38581156078
+      },
+      "postgresql": {
+        "result": "PASS",
+        "executed": 10,
+        "skipped": 0,
+        "contracts": [
+          "test_api_bounds_actual_stream_before_parsing_and_preserves_settings",
+          "test_api_import_fresh_sources_counts_rejection_and_other_profile_isolation",
+          "test_existing_shared_source_mismatch_and_later_failure_preserve_other_profiles",
+          "test_failure_after_new_source_admission_rolls_back_every_category",
+          "test_fresh_install_round_trip_all_categories_reopen_and_actual_enqueue",
+          "test_invalid_rules_and_policies_reject_atomically_without_value_disclosure",
+          "test_partial_saved_search_edit_preserves_replacement_criteria",
+          "test_rules_only_and_legacy_scheduler_only_both_persist_real_schedule",
+          "test_scheduler_tick_after_replacement_never_enqueues_removed_search",
+          "test_unknown_profile_and_secret_stored_source_cannot_create_or_export_policy"
+        ]
+      },
+      "browser": {
+        "result": "PASS",
+        "executed": 1,
+        "skipped": 0,
+        "contract": "test_invalid_import_preserves_settings_then_valid_file_imports"
+      },
+      "compose": {
+        "ci-mock-e2e.json": "PASS",
+        "ci-ui.json": "PASS",
+        "ci-recovery.json": "PASS",
+        "ci-backup.json": "PASS",
+        "ci-backup-recovery.json": "PASS"
+      },
+      "integration_total_records": 1735,
+      "integration_skips": 19,
+      "external_submission": "OFF"
+    },
+    "local_source_commit": "650680d99347d63e34b590928dbd87ebfb429430",
+    "next_action": "Requalify documentation-only final head, merge PR653, close #278, synchronize Project and release owned coordination",
+    "previous_active_development_issue": {
+      "numbers": [
+        156
+      ],
+      "requirement_ids": [
+        "MJ-REQ-155"
+      ],
+      "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
+      "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
+    }
   }
 }

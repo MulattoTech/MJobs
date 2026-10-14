@@ -5,7 +5,7 @@
   "recorded_at_utc": "2026-10-14T14:19:51.158812+00:00",
   "issue": 278,
   "requirement": "MJ-REQ-277",
-  "status": "PARTIAL_PENDING_EXACT_HEAD_GATES",
+  "status": "PASS_ORIGINAL_CRITERIA",
   "branch": "codex/p0p1-round2-20261014-084702",
   "base": "733f2144ff83e388e2e106fc3b0d133fb4b7f17d",
   "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
@@ -40,7 +40,9 @@
     "interim_full_unit": "1611 passed, 1151 subtests passed, 9 skips, 1 Mission Control launch failure. Focused launcher rerun 1 PASS. Interim run predates final fence fixes and does not certify final source.",
     "final_full_unit": "PASS: 1612 passed, 1151 subtests passed, 9 platform skips in 270.60s; outputs/round2-settings-unit-final.xml",
     "browser_build": "BLOCKED_ENVIRONMENT: Vite Windows net-use helper spawn EPERM; dependencies installed locally, TypeScript passed; no dependency patch or host-permission change",
-    "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed"
+    "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed",
+    "postgresql": "Local NOT_RUN; exact-source hosted ten contracts PASS with zero skips",
+    "browser": "Local BLOCKED_ENVIRONMENT; exact-source hosted production build and Chromium flow PASS with zero skips"
   },
   "red_controls": [
     "Fresh target import rejected real scheduled rules and missing sources before implementation",
@@ -81,5 +83,65 @@
     "result": "FAIL",
     "reason": "New browser step could not start: pytest absent from runtime-only dependency installation",
     "repair": "Use declared .github/test-requirements.txt in existing dependency step; no assertions weakened"
-  }
+  },
+  "accepted_original_requirement": "MJ-REQ-277",
+  "accepted_at_utc": "2026-10-14T14:42:34.482004+00:00",
+  "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+  "local_source_commit": "650680d99347d63e34b590928dbd87ebfb429430",
+  "final_documentation_head_gates": "PENDING; executable and criterion inputs unchanged",
+  "hosted_qualification": {
+    "verified_at_utc": "2026-10-14T14:40:48.562814+00:00",
+    "pr": 653,
+    "head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
+    "base": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+    "merge_state": "CLEAN",
+    "required_gates": "5 PASS",
+    "runs": {
+      "CI / required": 38581156198,
+      "Integration / PostgreSQL and Redis": 38581156140,
+      "Disposable Compose / mock end-to-end": 38581156436,
+      "Dependencies / introduced vulnerabilities": 38581156116,
+      "Security / secret scan": 38581156078
+    },
+    "postgresql": {
+      "result": "PASS",
+      "executed": 10,
+      "skipped": 0,
+      "contracts": [
+        "test_api_bounds_actual_stream_before_parsing_and_preserves_settings",
+        "test_api_import_fresh_sources_counts_rejection_and_other_profile_isolation",
+        "test_existing_shared_source_mismatch_and_later_failure_preserve_other_profiles",
+        "test_failure_after_new_source_admission_rolls_back_every_category",
+        "test_fresh_install_round_trip_all_categories_reopen_and_actual_enqueue",
+        "test_invalid_rules_and_policies_reject_atomically_without_value_disclosure",
+        "test_partial_saved_search_edit_preserves_replacement_criteria",
+        "test_rules_only_and_legacy_scheduler_only_both_persist_real_schedule",
+        "test_scheduler_tick_after_replacement_never_enqueues_removed_search",
+        "test_unknown_profile_and_secret_stored_source_cannot_create_or_export_policy"
+      ]
+    },
+    "browser": {
+      "result": "PASS",
+      "executed": 1,
+      "skipped": 0,
+      "contract": "test_invalid_import_preserves_settings_then_valid_file_imports"
+    },
+    "compose": {
+      "ci-mock-e2e.json": "PASS",
+      "ci-ui.json": "PASS",
+      "ci-recovery.json": "PASS",
+      "ci-backup.json": "PASS",
+      "ci-backup-recovery.json": "PASS"
+    },
+    "integration_total_records": 1735,
+    "integration_skips": 19,
+    "external_submission": "OFF"
+  },
+  "limitations": [
+    "Transfers supported scheduled discovery rules only; no automatic external submission or inert unsupported rule types",
+    "Existing shared source policies require equality; imports reject conflicts rather than overwriting other profiles",
+    "Ten portable PostgreSQL criteria executed without skips; broader integration has 19 unrelated optional/provider skips",
+    "Local Docker/Vite helper limitations remain; hosted disposable environment supplied criterion proofs",
+    "Other original P0/P1 acceptance and whole-product release remain incomplete"
+  ]
 }
