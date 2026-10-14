@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Round3: isolated Linux startup MJ-REQ-014 and complete light/dark mode MJ-REQ-257",
+  "current_objective": "Round3 scoped delivery complete; next reconcile original P1 settings versioning against live Project#1",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -190,13 +190,8 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-014",
-    "MJ-REQ-257"
-  ],
-  "active_prs": [
-    654
-  ],
+  "active_requirements": [],
+  "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
     "Live backlog synchronization: 366 mapped; rerun 0 created",
@@ -679,14 +674,13 @@
     "The broad tests.browser.test_core_workflow_trial journey did not reach status tracking: its scheduled-search button/message selectors are stale, and the subsequent status-region assertion is ambiguous. The dedicated tests.browser.test_application_status_tracking path independently passes the complete status lifecycle."
   ],
   "last_verified_checkpoint": {
-    "commit": "61305d46f809217511e7d708b0ede45c54d5919e",
-    "tree": "b3f2def3d8241de48f04cb2351f5a297eec09262",
-    "result": "PARTIAL",
-    "evidence": [
-      "docs/evidence/2026-10-11-connected-feature-batch.json",
-      "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
-    ],
-    "verified_at_utc": "2026-10-11T01:47:52Z"
+    "utc": "2026-10-14T21:47:49.717359+00:00",
+    "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
+    "tested_head": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+    "main": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce",
+    "pr": 654,
+    "required_gates": "PASS5/5",
+    "evidence": "docs\\evidence\\2026-10-14-round3-startup-theme.json"
   },
   "ci_verification": {
     "result": "NOT_RUN",
@@ -753,7 +747,7 @@
     "push_run_id": 36785746644,
     "evidence_path": "docs/evidence/2026-09-30-ci-428-workspace-identity.json"
   },
-  "recommended_resume_step": "Verify exact TLS regression Linux checks, integrate serially, then wire explicit preferred-company discovery via the existing durable requests framework.",
+  "recommended_resume_step": "Read current Git/Project#1 and #277/MJ-REQ-276 original settings-versioning contract; #15 remains PARTIAL for unrun physical host restart.",
   "release_readiness": "UNKNOWN",
   "migrations_applied": [
     "92f0997f753e",
@@ -1384,17 +1378,11 @@
     "integration": "Locally integrated/tested source; tracker checkpoint current; remote sync pending."
   },
   "active_development_issue": {
-    "numbers": [
-      15,
-      258
-    ],
-    "requirement_ids": [
-      "MJ-REQ-014",
-      "MJ-REQ-257"
-    ],
-    "status": "ACCEPTANCE_VERIFIED_PENDING_FINAL_INTEGRATION",
-    "pr": 654,
-    "outcome": "Only MJ-REQ-257 PASS; MJ-REQ-014 PARTIAL for physical host restart"
+    "numbers": [],
+    "requirement_ids": [],
+    "status": "NONE",
+    "last_pr": 654,
+    "last_completed_original_requirement": "MJ-REQ-257"
   },
   "historical_control_snapshots": [
     {
@@ -2719,10 +2707,9 @@
     }
   },
   "session_control": {
-    "owner": "Authorized Project-only P0/P1 iteration 5",
-    "write_lanes": 1,
-    "status": "HANDOFF_READY",
-    "note": "Two scoped P1 fixes merged; no runner/watcher/new session exists; release only p0p1-document-audit-5, p0p1-audit-privacy-5 and owned Codex lock after committing this receipt"
+    "status": "SCOPED_CAMPAIGN_CLOSED",
+    "active_runner": false,
+    "next_action": "Reconcile Project#1 original #277/MJ-REQ-276 settings versioning; no automatic continuation"
   },
   "pr023_completion": {
     "timestamp": "2026-10-03T20:33:37.729938-05:00",
@@ -2802,9 +2789,10 @@
   "ownership": {
     "integration_owner": "Codex round3 sole writer",
     "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-143805",
-    "branch": "codex/p0p1-round3-20261014-143805",
+    "branch": "main",
     "workers": "Two read-only local Luna scouts/reviewers; no child writes",
-    "coordination": "No lane lock or standing runner; own Project#15/#258 cards In Progress until closeout"
+    "coordination": "No Codex claims/locks or runner; #15 restored Todo/PARTIAL; #258 Done/PASS",
+    "active": false
   },
   "delivery_policy": {
     "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
@@ -2813,9 +2801,9 @@
     "external_submission": "OFF",
     "original_pass_requires_all_criteria": true
   },
-  "updated_at": "2026-10-14T21:33:23.895703+00:00",
-  "current_verified_local_state": "Four connected slices for issues #157, #170, #171, and #263 are integrated on local main at 61305d46f809217511e7d708b0ede45c54d5919e (tree b3f2def3d8241de48f04cb2351f5a297eec09262). Evidence docs/evidence/2026-10-11-connected-four-feature-acceptance.json; focused Python/API/Chromium 47/47, frontend 27/27, build, skill/lane validators and diff check PASS. PostgreSQL/Compose and hosted checks NOT_RUN; external submission OFF.",
-  "current_verified_github_state": "GitHub main remains e884ee9a649e3fcff0b24697cb7078473aa9c2a5; local main is 37 commits ahead and has not been pushed. Issues #157/#170/#171/#263 remain OPEN/PARTIAL; acceptance checkpoint comments are recorded on those issues.",
+  "updated_at": "2026-10-14T21:47:49.717359+00:00",
+  "current_verified_local_state": "PR654 product/source main c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce merged; final documentation deltas preserved in a checksummed archive under .mjobs-recovery/archives/round3-final-closeout-20261014 and proposed on chore/round3-final-closeout-20261014. No uncommitted product source changes.",
+  "current_verified_github_state": "PR654 MERGED at c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce; exact final-head five required gates PASS; #258 closed/Done/PASS; #15 open/Todo/PARTIAL. Final paperwork awaiting separately protected PR review, not additional product delivery.",
   "next_candidates": [
     {
       "issue": 246,
@@ -2823,7 +2811,7 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-14T21:22:52.929846+00:00",
+  "current_verified_at": "2026-10-14T21:47:49.717359+00:00",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
@@ -2867,7 +2855,7 @@
       15,
       258
     ],
-    "status": "ACCEPTANCE_VERIFIED_PENDING_FINAL_INTEGRATION",
+    "status": "DELIVERED",
     "branch": "codex/p0p1-round3-20261014-143805",
     "source_commit": "b931cbb57e8a25c3cdf6c3a965de379dae8410ee",
     "evidence": "docs\\evidence\\2026-10-14-round3-startup-theme.json",
@@ -2875,7 +2863,13 @@
       "P0": 7,
       "P1": 42
     },
-    "additive_completed": []
+    "additive_completed": [],
+    "merge_commit": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce",
+    "tested_final_head": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+    "complete_original_requirements": [
+      "MJ-REQ-257"
+    ],
+    "active_claims": []
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -3407,7 +3401,7 @@
     }
   },
   "p0p1_round3_001": {
-    "status": "ACCEPTANCE_VERIFIED_PENDING_FINAL_INTEGRATION",
+    "status": "DELIVERED",
     "owner": "Codex round3 sole writer",
     "issues": [
       15,
@@ -3469,6 +3463,11 @@
       "652": "MERGEDe9041819",
       "653": "MERGED50976a7f",
       "278": "CLOSED; MJ-REQ-277 PASS preserved"
-    }
+    },
+    "merge_commit": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce",
+    "tested_final_head": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+    "final_required_checks": "PASS5/5",
+    "claims": "RELEASED",
+    "runner": false
   }
 }

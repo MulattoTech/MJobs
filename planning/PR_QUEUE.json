@@ -3346,11 +3346,12 @@
         "MJ-PR-069",
         "MJ-PR-063"
       ],
-      "status": "IN_PROGRESS",
+      "status": "INTEGRATED_PARTIAL",
       "branch": "codex/mj-pr-070-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Round3 PR654: only MJ-REQ-257 fully verified PASS on source b931cbb5; final protected integration pending. Other grouped requirements unchanged and open.",
-      "pr_number": 654
+      "notes": "PR654 merged: MJ-REQ-257 complete PASS. Other grouped requirements unchanged/open; no standing claim. Final head a3287caa passed all five required gates.",
+      "pr_number": 654,
+      "merge_commit": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce"
     },
     {
       "id": "MJ-PR-071",
