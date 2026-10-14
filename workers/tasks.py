@@ -35,7 +35,7 @@ from services.ai.structured_output import StructuredOutputError
 from services.discovery.search_history import record_search_history
 from services.discovery.search_history_events import build_search_history_record
 from services.discovery.search_profiles import FixtureSearchUnavailable
-from workers.operations import claim, check_cancelled, OperationCancelled, OperationTimedOut, timeout
+from workers.operations import claim, check_cancelled, company_refresh_saved, OperationCancelled, OperationTimedOut, timeout
 from workers.structured_logging import log_operation_finished
 from workers.retries import discovery_retry_plan
 from workers.application_form_review import FormReviewError, handle_form_review
@@ -451,6 +451,12 @@ def execute_operation(operation_id):
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
             if current["cancel_requested"] and operation["kind"] != "APPLY_MOCK":
                 state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
+            # The import transaction already committed its complete result.
+            # This follows the state/attempt fence above: a stale worker may
+            # never acknowledge a newer owner, even when a receipt exists.
+            refresh_saved = company_refresh_saved(connection, current)
+            if refresh_saved:
+                state, error, retry_failure = "COMPLETED", None, None
             if operation['kind'] == AI_EVALUATION_KIND and state == 'COMPLETED':
                 current_profile_version = connection.execute(select(m.profiles.c.version).where(
                     m.profiles.c.id == operation['entity_id']).with_for_update()).scalar_one()
@@ -479,6 +485,8 @@ def execute_operation(operation_id):
                                             {"action": "MANUAL_REVIEW"} if state in {"DEAD_LETTERED", "BLOCKED"} else {})}
             if retry is not None:
                 values.update(retry, current_step="RETRY_WAIT", retry_count=operation["retry_count"] + 1)
+            if refresh_saved:
+                values['cancel_requested'] = False
             if state == "COMPLETED":
                 values["progress"] = 100
             if state == "DEAD_LETTERED":
