@@ -145,7 +145,13 @@ def _validate_searches_without_writes(store, profile_id, searches):
             }
             if "scheduler" in search:
                 data["scheduler"] = search["scheduler"]
-            identifier = save_search_profile(validator, data)
+            try:
+                identifier = save_search_profile(validator, data)
+            except TypeError:
+                # JSON containers in scalar criteria can fail inside the
+                # shared saved-search validator. Reject them before touching
+                # the target store, without exposing imported values.
+                raise ValueError("Saved search criteria are invalid") from None
             with validator.engine.connect() as connection:
                 row = connection.execute(select(m.search_profiles).where(
                     m.search_profiles.c.id == identifier)).mappings().one()

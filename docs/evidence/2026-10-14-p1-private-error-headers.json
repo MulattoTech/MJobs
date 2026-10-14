@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-14T09:53:17.712637+00:00",
+  "recorded_at_utc": "2026-10-14T10:04:57.156513+00:00",
   "issue_ids": [
     172,
     173
@@ -81,8 +81,64 @@
     "findings": []
   },
   "hosted_exact_head": {
-    "result": "NOT_RUN",
-    "note": "Inspect all five required gates on final PR head before integration."
+    "result": "PASS",
+    "pr": 650,
+    "head": "9d97927d23cf026155b8ea3167408d0d3b85caef",
+    "merge_commit": "168f3da7edc2371594dbb058a92a10f7a93d649c",
+    "merge_tree_identical": true,
+    "required_checks": {
+      "CI / required": {
+        "id": 115791804323,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697725/job/115791804323"
+      },
+      "Integration / PostgreSQL and Redis": {
+        "id": 115794356257,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697748/job/115794356257"
+      },
+      "Disposable Compose / mock end-to-end": {
+        "id": 115791073511,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697874/job/115791073511"
+      },
+      "Dependencies / introduced vulnerabilities": {
+        "id": 115791073230,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697834/job/115791073230"
+      },
+      "Security / secret scan": {
+        "id": 115791073288,
+        "conclusion": "success",
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/38545697782/job/115791073288"
+      }
+    },
+    "note": "All five required gates passed on exact PR head. Original security parents remain incomplete; main-push checks not independently verified.",
+    "artifacts": {
+      "integration": {
+        "cases": 1712,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 19,
+        "new_private_error_cases": [
+          {
+            "name": "test_unhandled_private_read_error_has_safe_headers_and_recovers_after_reopen",
+            "skipped": false,
+            "failed": false
+          }
+        ]
+      },
+      "unit": {
+        "cases": 2745,
+        "skipped": 37,
+        "failures": 0,
+        "errors": 0
+      },
+      "compose": {
+        "passing_artifacts": 5,
+        "external_submission_enabled": false
+      }
+    }
   },
   "remaining": [
     "Original #172/#173 remain OPEN/NOT_RUN; bounded response privacy delivery is PARTIAL.",
@@ -96,5 +152,12 @@
     "summary": "18 passed, 73 subtests passed in 18.91s",
     "browser_summary": "4 passed in 15.46s",
     "tls_source_hashes_unchanged": true
+  },
+  "merged_retest": {
+    "command": "python -m pytest -q tests/integration/test_local_origin_security.py::LocalOriginSecurityTests::test_unhandled_private_read_error_has_safe_headers_and_recovers_after_reopen tests/integration/test_ai_tls_recovery.py tests/browser/test_local_error_privacy.py -p no:cacheprovider",
+    "result": "PASS",
+    "tests": 3,
+    "subtests": 6,
+    "duration_seconds": 7.17
   }
 }
