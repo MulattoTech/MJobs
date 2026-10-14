@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "issues": [
+    177,
+    176
+  ],
+  "requirements": [
+    "MJ-REQ-176",
+    "MJ-REQ-175"
+  ],
+  "status": "LOCAL_PASS_PARENTS_PARTIAL",
+  "recorded_at_utc": "2026-10-14T07:32:07.703623+00:00",
+  "source_revision": "94c7dc183ce1b2a53b222d4b4807d1f176ab9fe7",
+  "base_main": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+  "source_sha256": {
+    "services/audit_history.py": "0672254d8c8ebf113cf0dc21f81b136633aae02713b165b81394a75a719f5551",
+    "tests/integration/test_audit_history.py": "8abb015a5fa608731ca5d347564b59dcf6487bf98bb98cb1049b769db6ea425a",
+    "tests/integration/test_audit_subject_history.py": "e2d997d21dbda26de62959c47e907dfafeb96c1cc1a244e6529b70e1a44172b4",
+    "tests/integration/test_audit_subject_privacy.py": "9676716b51365581cb9b6c2112dbc27434fcf531f5cee19bf4dbe306008de0f5",
+    "tests/browser/test_audit_subject_history.py": "591c30eaf39badf0b547ad293bd5b12b6b8498f0aca6a21603fcbec75da3440b"
+  },
+  "runtime": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "database": "isolated SQLite",
+    "browser": "headless Chromium; all external browser traffic blocked",
+    "temp_root": "Git-common campaign-owned temp root outside worktree"
+  },
+  "selection": {
+    "snapshot": "queue-6.json",
+    "live_project": 1,
+    "issues_open": true,
+    "priority_labels": [
+      "priority:P1"
+    ],
+    "acceptance": "PARTIAL",
+    "reconciled_before_claim": true,
+    "conflicting_claims": false
+  },
+  "behavior": [
+    "Snapshot safe job/company labels in existing profile audit transactions for discovery, scoring, merge, company discovery/enrollment, application queued/started/failed",
+    "First idempotent event payload retained across replay; rollback and retry do not invent events",
+    "API and Activity retain original labels and timestamps after canonical rename/removal/reopen; profile isolation preserved",
+    "Legacy rows keep type/time but explicitly say historical details not recorded instead of attributing current labels",
+    "Recognized private/URL labels withheld before snapshot persistence and at readback; exact field shape/type/length validated without reflecting arbitrary payload"
+  ],
+  "red": {
+    "command": "python -m pytest -q tests/integration/test_audit_subject_history.py tests/integration/test_audit_subject_privacy.py -p no:cacheprovider --tb=short",
+    "result": "5 behavior FAIL / 1 PASS / 6 PostgreSQL skips after temp-root correction",
+    "initial_environment_failure": "Default temp root denied SQLite writes by sandbox; isolated writable temp root corrected without source changes"
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/integration/test_audit_history.py tests/integration/test_document_generation_audit.py tests/integration/test_audit_display_privacy.py tests/integration/test_audit_subject_history.py tests/integration/test_audit_subject_privacy.py tests/integration/test_preparation_priority.py tests/integration/test_operation_retries.py tests/integration/test_operation_progress_lifecycle.py -p no:cacheprovider --tb=short",
+      "result": "PASS 47 tests / 39 subtests; 37 PostgreSQL/Redis skips NOT_RUN locally"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_audit_subject_history.py tests/browser/test_audit_history.py tests/browser/test_document_generation_audit.py -p no:cacheprovider --tb=short",
+      "result": "PASS 3 connected Chromium cases after production build"
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider --tb=short",
+      "result": "PASS 1593 tests / 1114 subtests; 8 Linux-only skips"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "TypeScript PASS; default Vite config loader EPERM"
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build --configLoader native (cwd apps/web)",
+      "result": "PASS production build; existing bundle-size advisory"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS; dashboard CURRENT; acceptance authorities unchanged"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "result": "PASS 5 source files on source revision"
+    }
+  ],
+  "review": {
+    "kind": "local Luna High read-only review",
+    "result": "No critical or important finding",
+    "tests_run_by_reviewer": false
+  },
+  "hosted": {
+    "status": "NOT_RUN_PENDING_PUBLICATION"
+  },
+  "boundaries": [
+    "Both original parent criteria remain PARTIAL; no matrix/index/dashboard acceptance change",
+    "Application/document/tracking subject labels remain current-row-derived and are the next history gap",
+    "Historical raw labels/data are not rewritten; arbitrary unmarked secrets remain outside existing marker filter",
+    "No migration, paid inference, real applications, credential values, private runtime/database data or hosted AI review",
+    "Local PostgreSQL/Redis/Compose and whole-product release acceptance NOT_RUN; required hosted gates pending"
+  ]
+}

@@ -190,10 +190,7 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-176",
-    "MJ-REQ-175"
-  ],
+  "active_requirements": [],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -2650,8 +2647,8 @@
   "session_control": {
     "owner": "Authorized Project-only P0/P1 iteration 5",
     "write_lanes": 1,
-    "status": "ACTIVE",
-    "note": "One integration owner; no AFK runner; read-only local Luna review only; external worktrees/claims preserved"
+    "status": "HANDOFF_READY",
+    "note": "Two scoped P1 fixes merged; no runner/watcher/new session exists; release only p0p1-document-audit-5, p0p1-audit-privacy-5 and owned Codex lock after committing this receipt"
   },
   "pr023_completion": {
     "timestamp": "2026-10-03T20:33:37.729938-05:00",
@@ -2728,7 +2725,7 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "Single Project-only integration owner in supplied isolated worktree; native common integration lock and exact issue/path claim acquired; historical state preserved",
+  "ownership": "Project-only iteration root was sole source writer/integrator. PR #644 merged; only its two temporary claims and Codex integration lock are released at closeout. Historical external claims/worktrees/private data/AFK goal preserved.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -2800,7 +2797,7 @@
       "MJ-REQ-176",
       "MJ-REQ-175"
     ],
-    "status": "READY_FOR_PR_REPAIR_PARTIAL",
+    "status": "MERGED_VERIFIED_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "owned_source": [
       "services/audit_history.py",
@@ -2819,7 +2816,7 @@
       "MJ-REQ-176": "PARTIAL",
       "MJ-REQ-175": "PARTIAL"
     },
-    "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
     "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
     "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
     "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
@@ -2827,7 +2824,7 @@
     "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
     "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
     "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
-    "updated_at_utc": "2026-10-14T07:02:28.678802+00:00",
+    "updated_at_utc": "2026-10-14T07:18:55.844488+00:00",
     "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
     "pr": 644,
     "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
@@ -2839,7 +2836,12 @@
       "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
       "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
       "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
-    }
+    },
+    "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+    "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+    "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+    "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+    "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -2962,7 +2964,7 @@
       "MJ-REQ-176",
       "MJ-REQ-175"
     ],
-    "status": "READY_FOR_PR_REPAIR_PARTIAL",
+    "status": "MERGED_VERIFIED_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "owned_source": [
       "services/audit_history.py",
@@ -2981,7 +2983,7 @@
       "MJ-REQ-176": "PARTIAL",
       "MJ-REQ-175": "PARTIAL"
     },
-    "hosted_checks": "PENDING revised exact head; original head failed one PostgreSQL fixture before product projection",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
     "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
     "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
     "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
@@ -2989,7 +2991,7 @@
     "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
     "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
     "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
-    "updated_at_utc": "2026-10-14T07:02:28.678802+00:00",
+    "updated_at_utc": "2026-10-14T07:18:55.844488+00:00",
     "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
     "pr": 644,
     "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
@@ -3001,6 +3003,50 @@
       "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
       "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
       "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
-    }
+    },
+    "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+    "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+    "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+    "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+    "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
+  },
+  "p0p1_iteration_6": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 6,
+    "issues": [
+      177,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-176",
+      "MJ-REQ-175"
+    ],
+    "status": "LOCAL_VERIFIED_PARTIAL",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "acceptance": "Immutable safe job/company snapshots for profile discovery, merge, scoring and preparation lifecycle events; retain history after rename/removal/reopen and explicit unknown legacy labels.",
+    "owned_source": [
+      "services/audit_history.py"
+    ],
+    "plan": [
+      "Fail real API regressions for mutable/dropped history and raw snapshot leakage",
+      "Snapshot sanitized labels in existing audit transactions; project allowlisted fields fail closed",
+      "Verify replay/rollback, profile isolation, database reopen, connected Activity UI",
+      "Local Luna review, targeted/full units/build/validators, commit and exact-head required PR checks",
+      "Integrate only qualified source; parent requirements remain PARTIAL"
+    ],
+    "rollback": "Ordinary scoped revert; additive audit payload only, no schema/data deletion",
+    "original_acceptance": {
+      "MJ-REQ-176": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "recorded_at_utc": "2026-10-14T07:24:16.281633+00:00",
+    "source_revision": "94c7dc183ce1b2a53b222d4b4807d1f176ab9fe7",
+    "evidence": "docs/evidence/2026-10-14-p1-audit-subject-history.json",
+    "local_focused": "47 PASS / 39 subtests / 37 PostgreSQL-Redis skips",
+    "browser": "3 connected Chromium cases PASS",
+    "full_unit": "1593 PASS / 1114 subtests / 8 Linux-only skips",
+    "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+    "local_review": "Local Luna High read-only review: no critical or important finding",
+    "updated_at_utc": "2026-10-14T07:32:35.434602+00:00"
   }
 }
