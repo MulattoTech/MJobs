@@ -4,7 +4,7 @@
   "slice_issue": 634,
   "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkp7Q",
   "source_commit": "db3a08832a8dc9bf1e7cbc15f0acedaa7441ca06",
-  "recorded_at_utc": "2026-10-14T00:35:49.380516+00:00",
+  "recorded_at_utc": "2026-10-14T00:48:03.376219+00:00",
   "model": "gpt-6-astra",
   "reasoning_effort": "medium",
   "local_behavior": "PASS",
@@ -65,6 +65,26 @@
       "seconds": 284.35,
       "source_commit": "db3a08832a8dc9bf1e7cbc15f0acedaa7441ca06",
       "scope": "Frozen production/test source; only evidence/planning metadata changed while running."
+    },
+    {
+      "command": "Injected200ms before HTTPTransport.handle_request for slow-provider durable timeout test",
+      "result": "PASS_AFTER_FIX",
+      "detail": "Original150ms fixture budget reproduced zero-request assertion failure for all5 providers. One-second fixture budget reaches body then times out for all5, retaining exact request count and persisted failure assertions. Production code unchanged."
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_durable_ai_evaluation.py",
+      "result": "PASS",
+      "tests": 34,
+      "subtests": 17,
+      "seconds": 47.12
+    },
+    {
+      "command": "Linux read-only network-none python -m unittest tests.integration.test_durable_ai_evaluation -q",
+      "result": "PASS",
+      "tests": 34,
+      "skipped": 0,
+      "seconds": 54.104,
+      "source_commit": "bad2b03757c0aaca331ed689648c4babff462a3e"
     }
   ],
   "local_reviews": [
@@ -83,5 +103,12 @@
     "PASS": 47,
     "PARTIAL": 41,
     "NOT_RUN": 54
+  },
+  "final_source_commit": "bad2b03757c0aaca331ed689648c4babff462a3e",
+  "initial_hosted_ci": {
+    "revision": "4324449d20e5130bfaa54a7ab8505411c2455ed3",
+    "integration_run": 38491102109,
+    "result": "FAIL",
+    "reason": "Existing150ms slow-body fixture could time out before its loopback POST on loaded runner; one subtest failed exact request-count oracle. Fixed fixture admission budget after deterministic reproduction; no production change."
   }
 }
