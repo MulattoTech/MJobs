@@ -36,7 +36,8 @@
     "First full unit run: 1603 passed, 9 skipped, 1146 subtests passed, one Compose path subtest failed because fixture temp was inside repository; outside-repository isolated rerun 11 passed/14 subtests; final full rerun PASS",
     "Initial temp fixture baseline failed due inaccessible default temp directory; stopped owned run",
     "Initial browser run failed from test-only expected success wording mismatch; corrected and rerun passed",
-    "Branch switch denied HEAD.lock then index.lock; staged source preserved on current owned branch; no permission changes or alternate Git metadata"
+    "Branch switch denied HEAD.lock then index.lock; staged source preserved on current owned branch; no permission changes or alternate Git metadata",
+    "Git push failed in Windows Schannel and askpass; existing gh GitHub REST git API published an identical reviewed tree without credential extraction or host changes. Remote branch commit differs from local source history; exact tree and executable/test hashes match."
   ],
   "external_submission": "OFF",
   "source_commit": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
@@ -48,12 +49,17 @@
     "command": "TEMP/TMP=<campaign common-dir>/test-temp-11; python -m pytest -q tests/unit -p no:cacheprovider --tb=short --junitxml=outputs/directive11-unit-final.xml"
   },
   "publication": {
-    "status": "PENDING_BRANCH_PUBLICATION",
+    "status": "PUBLISHED_BRANCH_ONLY",
     "branch": "codex/p1-settings-retention-11",
     "pr": "NOT_OPENED_PR_CAP",
     "open_prs": 8,
     "max_active_prs": 4,
     "hosted_exact_head": "NOT_RUN",
-    "integration": "NOT_RUN"
+    "integration": "NOT_RUN",
+    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
+    "local_candidate": "7b1ac253c6b86c2031187711c8c26fd7d0fb44de",
+    "route": "GitHub REST git tree/commit/ref via existing authenticated gh; no credential extraction",
+    "live_receipt": "Git common-dir campaign publication-11.json"
   }
 }

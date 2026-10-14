@@ -5763,7 +5763,8 @@
       "priority": "P1",
       "source_commit": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
       "draft_until_verified": true,
-      "notes": "Two locally verified P1 source fixes. Final full unit1603PASS/1147subtests/9platformSKIP, connected API/Chromium14PASS/16subtests; local Luna review no critical/important findings. PR opening deferred: eight live open PRs exceeds canonical cap four. Hosted exact-head/integration NOT_RUN. Original requirements remain PARTIAL. Evidence docs/evidence/2026-10-14-p1-settings-retention-validation.json"
+      "notes": "Two locally verified P1 source fixes. Final full unit1603PASS/1147subtests/9platformSKIP, connected API/Chromium14PASS/16subtests; local Luna review no critical/important findings. PR opening deferred: eight live open PRs exceeds canonical cap four. Hosted exact-head/integration NOT_RUN. Original requirements remain PARTIAL. Evidence docs/evidence/2026-10-14-p1-settings-retention-validation.json Published feature branch via GitHub REST git API at 997a3b685a4c09d3a2681699a0acb1a8560cdb59; tree exactly matches tested local candidate. Hosted CI/integration NOT_RUN; latest ref receipt in campaign publication-11.json.",
+      "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59"
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

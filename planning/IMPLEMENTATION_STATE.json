@@ -2870,7 +2870,11 @@
     "next_action": "Open a P1 #278/#171 PR when the canonical active-PR cap permits; run exact-head hosted gates, integrate under repository rules, retain original PARTIAL acceptance.",
     "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
     "authorization": "directive-11.md plus live Project1/snapshot queue-11.json; current AGENTS permits reviewed native CI, superseding historical local-only notes",
-    "rollback": "Scoped source revert; no schema or private-data migration"
+    "rollback": "Scoped source revert; no schema or private-data migration",
+    "publication": "PUBLISHED_BRANCH_ONLY_PR_CAP",
+    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
+    "publication_receipt": "Git common-dir campaign publication-11.json"
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -3265,6 +3269,10 @@
     "next_action": "Open a P1 #278/#171 PR when the canonical active-PR cap permits; run exact-head hosted gates, integrate under repository rules, retain original PARTIAL acceptance.",
     "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
     "authorization": "directive-11.md plus live Project1/snapshot queue-11.json; current AGENTS permits reviewed native CI, superseding historical local-only notes",
-    "rollback": "Scoped source revert; no schema or private-data migration"
+    "rollback": "Scoped source revert; no schema or private-data migration",
+    "publication": "PUBLISHED_BRANCH_ONLY_PR_CAP",
+    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
+    "publication_receipt": "Git common-dir campaign publication-11.json"
   }
 }
