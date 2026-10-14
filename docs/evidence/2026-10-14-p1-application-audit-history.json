@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "issues": [
+    177,
+    176
+  ],
+  "requirements": [
+    "MJ-REQ-176",
+    "MJ-REQ-175"
+  ],
+  "status": "LOCAL_VERIFIED_PARENTS_PARTIAL_HOSTED_PENDING",
+  "recorded_at_utc": "2026-10-14T08:02:46.845838+00:00",
+  "source_revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
+  "base_main": "df05062fef969e919a07faaffc05bb4a085f34f1",
+  "source_sha256": {
+    "packages/persistence/store.py": "705c6dc6520b5e731e666b75f3ec091f990d11882619111d8d31e44ad28ad737",
+    "services/audit_history.py": "488c076f3fe9064a0686201a84f3ae21f4e79fb61db341df1af0f17951adcbc1",
+    "services/tracking/applications.py": "d761247c539560831e61f6bcb464a23a51ec61ff0fa68db2cf3b66c2360eedde",
+    "services/tracking/email_status_store.py": "1ceaedd19e9ea649e86445277e74004085b140089564dc8c29faba6ffe4121a9",
+    "tests/browser/test_document_generation_audit.py": "caf7a1868be49a61ea4ab452b796e2b3dc1c4668efcfa476476098a38deabbc3",
+    "tests/integration/test_application_answer_export.py": "649b7963cf42991c868df1bf7875f2b7097ea9bbd579b7705744eb2839f7c176",
+    "tests/integration/test_application_audit_subject_history.py": "1ac58c52ab75cfb5afa50176b761c9a448d32bd2cada5c47852ac8487eb9ccec",
+    "tests/integration/test_application_audit_subject_privacy.py": "a89b6a058085195f430a83df76123ce68e4cbebe2471b02515c999520c0d29f1",
+    "tests/integration/test_audit_display_privacy.py": "623bd2a367da9775f2f08b4c7072c1ad5f5fb2f8413d709548e3228ca5354837",
+    "tests/integration/test_audit_history.py": "a9f3d9011685278beea315101a8a00254ff41ecff86599eac43f56b79f2f773a",
+    "tests/integration/test_email_status.py": "12d0ed318094356c89915fd020d6ff3475d35058d179421ff72d0da779240c09"
+  },
+  "runtime": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "database": "isolated SQLite",
+    "browser": "headless Chromium; external traffic blocked",
+    "temp_root": "campaign-owned Git-common temp root"
+  },
+  "selection": {
+    "snapshot": "queue-7.json",
+    "live_project": 1,
+    "issues_open": true,
+    "priority_labels": [
+      "priority:P1"
+    ],
+    "acceptance": "PARTIAL",
+    "reconciled_before_claim": true,
+    "conflicting_claims": false
+  },
+  "behavior": [
+    "Safe transaction-time subject/company and profile/application/target context for document preparation/export, application state/mock submission and all tracking producers including reviewed email status",
+    "Historical labels, timestamps, ownership and fictional mock meaning retained across rename, app deletion, reopen and profile switching; both target mutation directions tested",
+    "Legacy labels unknown; malformed/cross-profile ownership context rejected; allowlisted Activity response excludes notes, raw payloads, URLs and credentials",
+    "Replay keeps first snapshot; post-insert rollback leaves no event; retry appends once; real confirmation state does not invent employer receipt"
+  ],
+  "red": {
+    "command": "python -m pytest -q tests/integration/test_application_audit_subject_history.py tests/integration/test_application_audit_subject_privacy.py -p no:cacheprovider --tb=short",
+    "result": "9 behavior failures including 5 subtest failures; 1 passed; 5 PostgreSQL skips"
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/integration/test_application_audit_subject_history.py tests/integration/test_application_audit_subject_privacy.py tests/integration/test_audit_history.py tests/integration/test_audit_display_privacy.py tests/integration/test_document_generation_audit.py tests/integration/test_audit_subject_history.py tests/integration/test_audit_subject_privacy.py tests/integration/test_application_pipeline.py tests/integration/test_external_application_capture.py tests/integration/test_email_status.py tests/integration/test_application_answer_export.py -p no:cacheprovider --tb=short",
+      "result": "PASS 76 tests / 52 subtests; 22 local PostgreSQL skips NOT_RUN"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_audit_display_privacy.py -p no:cacheprovider --tb=short",
+      "result": "PASS 3 tests / 26 subtests; 3 PostgreSQL skips; latest marker-filter assertions"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_document_generation_audit.py tests/browser/test_audit_subject_history.py tests/browser/test_audit_history.py -p no:cacheprovider --tb=short",
+      "result": "PASS 3 connected Chromium cases after production build"
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider --tb=short",
+      "result": "PARTIAL initial full run: 1593 passed / 1113 subtests / 8 Linux-only skips; 1 unrelated retention subtest failure, UNSAFE_PATH expected vs PRUNE_FAILED observed; same-source full rerun pending"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_transient_retention.py -p no:cacheprovider --tb=short",
+      "result": "PASS 8 tests / 8 subtests; module and test unchanged from base; no test weakened"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "TypeScript PASS; default Vite loader sandbox spawn EPERM"
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build --configLoader native (cwd apps/web)",
+      "result": "PASS production build; existing bundle-size advisory"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS; acceptance matrices/index unchanged"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD",
+      "revision": "1cab438b68b7a76a355ee9cd4ec8b884e565d59d",
+      "result": "PASS 11 source files"
+    }
+  ],
+  "review": {
+    "kind": "local Luna High read-only review",
+    "result": "No remaining critical or important finding; event-time target finding retracted after tracing saved context return",
+    "tests_run_by_reviewer": false
+  },
+  "hosted": {
+    "status": "PENDING_EXACT_FINAL_PR_HEAD"
+  },
+  "boundaries": [
+    "Both original requirements remain PARTIAL; no acceptance promotion",
+    "Legacy rows without retained ownership require extant application association; no historical data rewrite/migration",
+    "Recognized credential-marker/URL filter cannot detect arbitrary unmarked secrets",
+    "No real submission, paid inference, credential values, private runtime data or hosted AI review",
+    "Whole-product release acceptance NOT_RUN"
+  ],
+  "publication": {
+    "status": "LOCAL_SOURCE_COMMITTED_PR_PENDING"
+  },
+  "next_action": "Publish one reviewable P1 source PR, verify all required exact-head checks including new PostgreSQL cases, integrate under protected-main rules, and record merged receipt."
+}
