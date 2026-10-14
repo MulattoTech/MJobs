@@ -5719,11 +5719,31 @@
         638,
         5
       ],
-      "status": "VERIFIED_LOCAL_PARTIAL",
+      "status": "MERGED",
       "branch": "codex/p0p1-only-20261013-232152",
       "source_commit": "c371e3ffc69bed1f49086b3e5a225382cd47a44f",
       "evidence": "docs/evidence/2026-10-14-p0-tls-handshake.json",
-      "notes": "Child #638 exact-head/Linux checks pending; parent #5 remains PARTIAL. No real inference/submission."
+      "notes": "Child #638 CLOSED/Done/PASS; original parent #5 remains PARTIAL.",
+      "pr_number": 649,
+      "merge_commit": "32fb4a4042a80f4785e00f6d41a648366d5d5de4",
+      "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P0P1-ERROR-10",
+      "title": "Private unexpected API error headers and saved-record recovery",
+      "requirements": [
+        "MJ-REQ-171",
+        "MJ-REQ-172"
+      ],
+      "issue_ids": [
+        172,
+        173
+      ],
+      "status": "VERIFIED_LOCAL_PARTIAL",
+      "branch": "codex/p1-server-error-privacy-10",
+      "source_commit": "63123dd8e1760008817aaa35a691df1ecc0306ba",
+      "evidence": "docs/evidence/2026-10-14-p1-private-error-headers.json",
+      "notes": "Original parents remain OPEN/NOT_RUN; exact-head checks pending; no whole-product security claim."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

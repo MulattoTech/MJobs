@@ -3191,8 +3191,23 @@
     "result": "PARTIAL",
     "local_checks": "Final focused21PASS/147subtests; impacted integration51PASS/23subtests/1RedisSKIP; Chromium3PASS; build/validatorsPASS.",
     "evidence": "docs/evidence/2026-10-14-p0-tls-handshake.json",
+    "hosted_exact_head": "PASS",
+    "original_acceptance_changed": false,
+    "next": "Publish reviewable PR; verify all five exact-head gates before integration.",
+    "merge_commit": "32fb4a4042a80f4785e00f6d41a648366d5d5de4",
+    "pr": 649,
+    "child_638": "PASS; CLOSED; Project Done/PASS"
+  },
+  "p0p1_iteration_10_private_errors": {
+    "issue_ids": [
+      172,
+      173
+    ],
+    "result": "PARTIAL",
+    "source_commit": "63123dd8e1760008817aaa35a691df1ecc0306ba",
+    "evidence": "docs/evidence/2026-10-14-p1-private-error-headers.json",
     "hosted_exact_head": "NOT_RUN",
     "original_acceptance_changed": false,
-    "next": "Publish reviewable PR; verify all five exact-head gates before integration."
+    "local": "integration34PASS/30subtests; Chromium4PASS; unit1598PASS/1114subtests/9platformSKIP; combined affected checks PASS."
   }
 }
