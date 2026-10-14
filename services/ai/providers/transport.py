@@ -75,6 +75,11 @@ class _RequestGuard:
                             # stream rather than leak it or enter unguarded I/O.
                             self.stream.close()
                             raise AIProviderError("AI_PROVIDER_UNAVAILABLE") from None
+            if event == "connection.start_tls.complete":
+                # The replacement TLS stream now owns a usable socket. Retain
+                # the duplicate only across ownership transfer: on Windows an
+                # extra live handle can keep a later body recv blocked on close.
+                self.close()
         # Do not raise from response-close traces invoked by our own cleanup.
         if (event.endswith(".started") and ".response_closed." not in event) or event in {
                 "connection.connect_tcp.complete", "connection.start_tls.complete"}:
@@ -84,6 +89,8 @@ class _RequestGuard:
         with self.lock:
             self.response = response
             self.stream = response.extensions.get("network_stream", self.stream)
+        # Plain HTTP reaches response ownership without a TLS-complete trace.
+        self.close()
         self.check()
 
     def interrupt(self):
