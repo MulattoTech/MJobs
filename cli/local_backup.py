@@ -236,8 +236,11 @@ def verify_backup(archive: Path) -> dict:
     }
     if actual != set(files) | {"manifest.json"}:
         raise BackupError("Backup contains unlisted or missing files")
-    if any(path.is_symlink() for path in archive.rglob("*")):
-        raise BackupError("Backup contains a symbolic link")
+    for path in archive.rglob("*"):
+        if path.is_symlink():
+            raise BackupError("Backup contains a symbolic link")
+        if not path.is_file() and not path.is_dir():
+            raise BackupError("Backup contains an unsupported filesystem node")
     if schema_version == 3:
         if manifest["operation_mode"] != "FIXTURE" or RECEIPT_PATH not in files:
             raise BackupError("Fixture receipt snapshot is required only for FIXTURE schema 3")
@@ -550,8 +553,42 @@ def verify_credential_recoverability(database_url: str) -> int:
 
 
 def restore_backup(archive: Path, project: str, port: int) -> dict:
+    """Pin verified bytes before Docker calls can race source-archive edits."""
     manifest = verify_backup(archive)
     archive = archive.resolve()
+    # Restore is a multi-step operation. Rechecking the caller's archive
+    # before each Docker call would still let a changed file reach pg_restore
+    # or docker cp. Copy only the verified inventory into an owned snapshot,
+    # verify the copied bytes, and use that tree for the entire operation.
+    with tempfile.TemporaryDirectory(prefix="mjobs-restore-snapshot-") as directory:
+        snapshot = Path(directory)
+        try:
+            (snapshot / "documents").mkdir()
+            for name, expected in manifest["files"].items():
+                source = archive.joinpath(*name.split("/"))
+                if (not source.is_file() or source.is_symlink()
+                        or not source.resolve().is_relative_to(archive)):
+                    raise BackupError("Backup file changed before snapshot")
+                current = source
+                while current != archive:
+                    if current.is_symlink() or (hasattr(current, "is_junction") and current.is_junction()):
+                        raise BackupError("Backup path changed before snapshot")
+                    current = current.parent
+                destination = snapshot.joinpath(*name.split("/"))
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, destination, follow_symlinks=False)
+                if destination.is_symlink() or checksum(destination) != expected:
+                    raise BackupError("Backup checksum mismatch while preparing restore snapshot")
+            # Pin validated metadata as well; never reread a replaced manifest.
+            (snapshot / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+            if verify_backup(snapshot) != manifest:
+                raise BackupError("Backup metadata changed while preparing restore snapshot")
+        except OSError:
+            raise BackupError("Restore snapshot could not be prepared") from None
+        return _restore_verified_snapshot(snapshot, manifest, project, port)
+
+
+def _restore_verified_snapshot(archive: Path, manifest: dict, project: str, port: int) -> dict:
     if checksum(ROOT / "compose.yml") != manifest["compose_sha256"]:
         raise BackupError("Compose configuration differs from the backup; use matching code")
     if not 1024 <= port <= 65535:
