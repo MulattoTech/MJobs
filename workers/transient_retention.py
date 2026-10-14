@@ -11,7 +11,7 @@ import tempfile
 from typing import Callable
 
 from services.privacy.retention_policy import effective_retention_config, read_retention_policy
-from services.privacy.transient_retention import run_transient_retention
+from services.privacy.transient_retention import _PROTECTED_COMPONENTS, run_transient_retention
 
 
 CONFIG_ENV = "MJOBS_TRANSIENT_RETENTION_CONFIG"
@@ -25,6 +25,7 @@ _RESULT_FIELDS = {
 _SAFE_CODE = re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
 _RULE_FIELDS = {"id", "category", "candidate_count", "removed_count",
                 "candidate_bytes", "removed_bytes"}
+_MAX_SUMMARY_BYTES = 1024 * 1024
 
 
 class RetentionConfigError(ValueError):
@@ -108,6 +109,9 @@ def parse_config(value: str | Mapping | None) -> dict:
     if (summary_path is None or summary_path == configured_root
             or not any(_below(summary_path, root) for root in allowed)
             or (summary_path.exists() and summary_path.is_dir())):
+        raise RetentionConfigError("CONFIG_INVALID")
+    if any(part.casefold() in _PROTECTED_COMPONENTS
+           for part in summary_path.relative_to(configured_root).parts):
         raise RetentionConfigError("CONFIG_INVALID")
     if any(not isinstance(rule, Mapping) for rule in rules):
         raise RetentionConfigError("CONFIG_INVALID")
@@ -284,6 +288,38 @@ def _effective_config(store, parsed: Mapping) -> dict | None:
     return effective
 
 
+def _existing_summary(path: Path) -> dict | None:
+    """Recognize only bounded, complete receipts produced by this worker."""
+    if _reparse(path) or not path.is_file():
+        return None
+    with path.open("rb") as stream:
+        payload = stream.read(_MAX_SUMMARY_BYTES + 1)
+    if len(payload) > _MAX_SUMMARY_BYTES:
+        return None
+    raw = json.loads(payload)
+    summary = sanitize_summary(raw)
+    if (summary["status"] not in {"OK", "PARTIAL"}
+            or summary["dry_run"] or raw != summary):
+        return None
+    return summary
+
+
+def _summary_destination_safe(path: Path) -> bool:
+    if _reparse(path) or _safe_absolute(path) != path:
+        return False
+    try:
+        return not path.exists() or _existing_summary(path) is not None
+    except (OSError, ValueError, TypeError):
+        return False
+
+
+def _receipt_failure(summary: dict, code: str) -> dict:
+    # Cleanup has already run. Keep its observed counts even if publishing
+    # the receipt fails; zero removals would be a false recovery signal.
+    return {**summary, "status": "PARTIAL" if summary["removed_count"] else "BLOCKED",
+            "errors": sorted(set(summary["errors"]) | {code})}
+
+
 def _write_summary(path: Path, summary: Mapping) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temp_name = tempfile.mkstemp(
@@ -295,6 +331,8 @@ def _write_summary(path: Path, summary: Mapping) -> None:
             stream.write(json.dumps(summary, sort_keys=True, ensure_ascii=False) + "\n")
             stream.flush()
             os.fsync(stream.fileno())
+        if not _summary_destination_safe(path):
+            raise RetentionConfigError("SUMMARY_PATH_UNSAFE")
         os.replace(temp, path)
         flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
         try:
@@ -337,6 +375,9 @@ def run_with_config(
         rules = parsed["rules"]
         may_prune = parsed["prune_enabled"] and not parsed["dry_run"]
     effective_dry_run = not may_prune
+    path = Path(parsed["summary_path"])
+    if may_prune and not _summary_destination_safe(path):
+        return _failure("SUMMARY_PATH_UNSAFE", dry_run=False)
     try:
         result = engine(
             parsed["configured_root"], rules,
@@ -347,13 +388,14 @@ def run_with_config(
         return _failure("SWEEP_FAILED", dry_run=effective_dry_run)
     summary = sanitize_summary(result)
     if may_prune and summary["status"] == "OK":
-        path = Path(parsed["summary_path"])
-        if _reparse(path) or _safe_absolute(path) is None:
-            return _failure("SUMMARY_PATH_UNSAFE", dry_run=False)
+        if not _summary_destination_safe(path):
+            return _receipt_failure(summary, "SUMMARY_PATH_UNSAFE")
         try:
             _write_summary(path, summary)
+        except RetentionConfigError as error:
+            return _receipt_failure(summary, error.code)
         except OSError:
-            return _failure("SUMMARY_WRITE_FAILED", dry_run=False)
+            return _receipt_failure(summary, "SUMMARY_WRITE_FAILED")
     return summary
 
 
@@ -394,11 +436,7 @@ def read_saved_summary(config: str | Mapping) -> dict | None:
         path = Path(parsed["summary_path"])
         if _reparse(path) or not path.is_file():
             return None
-        raw = json.loads(path.read_text(encoding="utf-8"))
-        summary = sanitize_summary(raw)
-        if summary["status"] not in {"OK", "PARTIAL"}:
-            return None
-        return summary
+        return _existing_summary(path)
     except (OSError, ValueError, TypeError):
         return None
 
