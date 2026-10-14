@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Protect P1 exports from nested credential disclosure and unbounded document reads (#176, #170)",
+  "current_objective": "Complete P1 durable worker outcome logs and privacy (#178, #176), with bounded #524 alert triage",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2832,5 +2832,32 @@
     "pr_url": "https://github.com/MulattoTech/MJobs/pull/641",
     "post_merge": "40 tests and 30 subtests PASS",
     "next_action": "Carry this receipt checkpoint into the next source PR; recheck Project/ownership and triage eligible P1 #524 current CodeQL findings before selecting a reproducible security fix."
+  },
+  "p0p1_iteration_3": {
+    "issues": [
+      178,
+      176,
+      524
+    ],
+    "requirements": [
+      "MJ-REQ-177",
+      "MJ-REQ-175"
+    ],
+    "status": "PARTIAL",
+    "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf",
+    "outcome": "Safe fixed terminal records for all ten current dispatch kinds; recognized secret-marker filtering uniformly protects identifiers/error codes; 10 CodeQL alerts individually reviewed, 11 deferred under external claim",
+    "evidence": [
+      "docs/evidence/2026-10-14-p1-worker-log-privacy.json",
+      "docs/evidence/2026-10-14-codeql-triage.json"
+    ],
+    "validation": "1591 units/1104 subtests PASS with 8 skips; 121 focused/62 subtests PASS with 15 environment skips; final extraction 3 PASS; Chromium 4 PASS; native-loader build/validators PASS",
+    "hosted_checks": "NOT_RUN pending publication",
+    "acceptance": {
+      "MJ-REQ-177": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL",
+      "issue_524": "PARTIAL"
+    },
+    "rollback": "Scoped ordinary source revert; no schema or persistence-format change",
+    "updated_at_utc": "2026-10-14T05:44:17.719081+00:00"
   }
 }
