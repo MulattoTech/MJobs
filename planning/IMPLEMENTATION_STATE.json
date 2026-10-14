@@ -2553,6 +2553,67 @@
         "requested_action": "FINISH_OWNED_METADATA_PUBLICATION_AND_RELEASE_OWN_CLAIMS",
         "note": "No background work or new agents. Historical records do not override live claims; other writers are not stopped."
       }
+    },
+    {
+      "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
+      "reason": "Preserve previous current_slice before authorized iteration11",
+      "current_slice": {
+        "campaign_id": "p0p1-20261013-232152",
+        "iteration": 5,
+        "issues": [
+          177,
+          176
+        ],
+        "requirements": [
+          "MJ-REQ-176",
+          "MJ-REQ-175"
+        ],
+        "status": "MERGED_VERIFIED_PARTIAL",
+        "branch": "codex/p0p1-only-20261013-232152",
+        "owned_source": [
+          "services/audit_history.py",
+          "services/documents/generate.py"
+        ],
+        "acceptance": "Commit document kinds atomically; display accurate resume and cover-letter events after mutations/removal/reopen; unknown legacy types remain explicit; reject private payload projection",
+        "plan": [
+          "Demonstrate mutable-kind and missing cover-letter defects with failing tests",
+          "Snapshot exact generated kinds in existing transaction and project allowlisted event types",
+          "Verify rollback/retry, profile isolation, API and connected Chromium reload",
+          "Run affected regressions and validators, local Luna review, exact-head required checks",
+          "Integrate qualified PR and record receipt; leave whole requirement PARTIAL"
+        ],
+        "rollback": "Ordinary scoped revert; additive audit payload, no schema migration",
+        "original_acceptance": {
+          "MJ-REQ-176": "PARTIAL",
+          "MJ-REQ-175": "PARTIAL"
+        },
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
+        "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
+        "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
+        "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
+        "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
+        "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
+        "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+        "updated_at_utc": "2026-10-14T07:18:55.844488+00:00",
+        "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+        "pr": 644,
+        "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
+        "hosted_fixture_repair": {
+          "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
+          "integration_run": 38524654090,
+          "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
+          "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
+          "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
+          "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
+          "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
+        },
+        "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
+        "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
+        "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
+        "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
+        "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
+      }
     }
   ],
   "current_user_browser_acceptance": {
@@ -2788,60 +2849,32 @@
   },
   "current_slice": {
     "campaign_id": "p0p1-20261013-232152",
-    "iteration": 5,
+    "iteration": 11,
     "issues": [
-      177,
-      176
+      278,
+      171
     ],
     "requirements": [
-      "MJ-REQ-176",
-      "MJ-REQ-175"
+      "MJ-REQ-277",
+      "MJ-REQ-170"
     ],
-    "status": "MERGED_VERIFIED_PARTIAL",
-    "branch": "codex/p0p1-only-20261013-232152",
-    "owned_source": [
-      "services/audit_history.py",
-      "services/documents/generate.py"
-    ],
-    "acceptance": "Commit document kinds atomically; display accurate resume and cover-letter events after mutations/removal/reopen; unknown legacy types remain explicit; reject private payload projection",
-    "plan": [
-      "Demonstrate mutable-kind and missing cover-letter defects with failing tests",
-      "Snapshot exact generated kinds in existing transaction and project allowlisted event types",
-      "Verify rollback/retry, profile isolation, API and connected Chromium reload",
-      "Run affected regressions and validators, local Luna review, exact-head required checks",
-      "Integrate qualified PR and record receipt; leave whole requirement PARTIAL"
-    ],
-    "rollback": "Ordinary scoped revert; additive audit payload, no schema migration",
-    "original_acceptance": {
-      "MJ-REQ-176": "PARTIAL",
-      "MJ-REQ-175": "PARTIAL"
-    },
-    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
-    "recorded_at_utc": "2026-10-14T06:34:32.550274+00:00",
-    "local_focused": "Final 19 tests / 26 subtests PASS, 8 optional PostgreSQL skips; broader affected 38/21 PASS, 8 optional skips",
-    "browser": "4 affected Chromium cases PASS; final new case rerun PASS",
-    "full_unit": "1593 tests / 1114 subtests PASS; 8 Linux-only skips; correct outside-worktree temp root",
-    "local_review": "Local Luna High read-only review; two reproduced marker findings fixed; final no important finding",
-    "source_revision": "3e34005c4b5b7df375d0158f5c8dbaffc750abae",
-    "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
-    "updated_at_utc": "2026-10-14T07:18:55.844488+00:00",
-    "implementation_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
-    "pr": 644,
-    "pr_url": "https://github.com/MulattoTech/MJobs/pull/644",
-    "hosted_fixture_repair": {
-      "head": "ab04d55ababb9a7c34e02044fae9bc18d1435873",
-      "integration_run": 38524654090,
-      "result": "FAIL: one new privacy PostgreSQL test attempted 501 chars in VARCHAR(500); schema correctly rejected fixture",
-      "document_pg": "5 PASS, zero skips/failures/errors in shard2 artifact",
-      "privacy_pg": "2 PASS, 1 fixture FAIL in shard0 artifact",
-      "repair": "Retained 500-char real database/API readback and direct 501-char _event projection oracle; no schema/product changes; local Luna review no finding",
-      "other_required_checks": "CI / required, Compose mock end-to-end, dependencies and secrets PASS at old head; final head must independently qualify"
-    },
-    "verified_head": "b5383a5c2f8dc23ed96b4b46013c6adec3577a46",
-    "merge_commit": "4bac45997e99efb750bbbc2167d5970cb78e01f8",
-    "post_merge": "19 audit API tests / 26 subtests PASS at merged main; 8 local PostgreSQL NOT_RUN skips; all 8 new hosted PostgreSQL cases PASS",
-    "publication": "MERGED PR #644; this documentation-only receipt remains local for next substantive source PR",
-    "next_action": "Carry this documentation-only receipt with the next substantive source PR; reconcile live Project/ownership, then claim open P1 #177 / MJ-REQ-176 to snapshot safe historical job/company subjects instead of borrowing mutable entity names, with removal/reopen/profile-isolation tests."
+    "status": "LOCAL_VERIFIED_PARTIAL",
+    "source_revision": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
+    "publication_branch": "codex/p1-settings-retention-11",
+    "evidence": "docs/evidence/2026-10-14-p1-settings-retention-validation.json",
+    "local_checks": "Final full unit1603PASS/1147subtests/9platformSKIP; combined unit/API/Chromium14PASS/16subtests; retention broader34PASS/21subtests; frontend4PASS/build/validatorsPASS",
+    "original_acceptance_changed": false,
+    "hosted_checks": "NOT_RUN_PR_CAP",
+    "open_prs": 8,
+    "max_active_prs": 4,
+    "next_action": "Open a P1 #278/#171 PR when the canonical active-PR cap permits; run exact-head hosted gates, integrate under repository rules, retain original PARTIAL acceptance.",
+    "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
+    "authorization": "directive-11.md plus live Project1/snapshot queue-11.json; current AGENTS permits reviewed native CI, superseding historical local-only notes",
+    "rollback": "Scoped source revert; no schema or private-data migration",
+    "publication": "PUBLISHED_BRANCH_ONLY_PR_CAP",
+    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
+    "publication_receipt": "Git common-dir campaign publication-11.json"
   },
   "p0p1_iteration_3": {
     "issues": [
@@ -3206,8 +3239,40 @@
     "result": "PARTIAL",
     "source_commit": "63123dd8e1760008817aaa35a691df1ecc0306ba",
     "evidence": "docs/evidence/2026-10-14-p1-private-error-headers.json",
-    "hosted_exact_head": "NOT_RUN",
+    "hosted_exact_head": "PASS",
     "original_acceptance_changed": false,
-    "local": "integration34PASS/30subtests; Chromium4PASS; unit1598PASS/1114subtests/9platformSKIP; combined affected checks PASS."
+    "local": "integration34PASS/30subtests; Chromium4PASS; unit1598PASS/1114subtests/9platformSKIP; combined affected checks PASS.",
+    "pr": 650,
+    "merge_commit": "168f3da7edc2371594dbb058a92a10f7a93d649c",
+    "owned_coordination": "Released after local receipt commit"
+  },
+  "p0p1_iteration_11": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 11,
+    "issues": [
+      278,
+      171
+    ],
+    "requirements": [
+      "MJ-REQ-277",
+      "MJ-REQ-170"
+    ],
+    "status": "LOCAL_VERIFIED_PARTIAL",
+    "source_revision": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
+    "publication_branch": "codex/p1-settings-retention-11",
+    "evidence": "docs/evidence/2026-10-14-p1-settings-retention-validation.json",
+    "local_checks": "Final full unit1603PASS/1147subtests/9platformSKIP; combined unit/API/Chromium14PASS/16subtests; retention broader34PASS/21subtests; frontend4PASS/build/validatorsPASS",
+    "original_acceptance_changed": false,
+    "hosted_checks": "NOT_RUN_PR_CAP",
+    "open_prs": 8,
+    "max_active_prs": 4,
+    "next_action": "Open a P1 #278/#171 PR when the canonical active-PR cap permits; run exact-head hosted gates, integrate under repository rules, retain original PARTIAL acceptance.",
+    "recorded_at_utc": "2026-10-14T10:23:00.512665+00:00",
+    "authorization": "directive-11.md plus live Project1/snapshot queue-11.json; current AGENTS permits reviewed native CI, superseding historical local-only notes",
+    "rollback": "Scoped source revert; no schema or private-data migration",
+    "publication": "PUBLISHED_BRANCH_ONLY_PR_CAP",
+    "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+    "reviewed_tree": "730af126a28fca358f8edf740b9e7275fd1f40b0",
+    "publication_receipt": "Git common-dir campaign publication-11.json"
   }
 }

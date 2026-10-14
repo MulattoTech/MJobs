@@ -134,7 +134,7 @@ def _public(normalized, record):
     if record is not None:
         candidate_revision = record.get("revision")
         candidate_ages = record.get("max_age_days_by_rule")
-        valid = (record.get("schema_version") == 1
+        valid = (type(record.get("schema_version")) is int and record["schema_version"] == 1
                  and type(candidate_revision) is int and candidate_revision >= 1
                  and record.get("config_fingerprint") == normalized["fingerprint"]
                  and type(record.get("enabled")) is bool

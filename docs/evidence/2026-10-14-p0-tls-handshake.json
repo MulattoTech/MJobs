@@ -142,7 +142,7 @@
       }
     },
     "linux_unit": "All five new TLS test methods ran without skips; 2745 cases, 37 skips, zero failures/errors.",
-    "integration": "1711 cases, 19 skips, zero failures/errors; new six-provider/mode TLS subcases executed without skips.",
+    "integration": "1711 cases, 19 skips, zero failures/errors; three providers x two modes executed without skips.",
     "compose": "All five controlled artifacts PASS; external_submission_enabled=false."
   },
   "remaining": [

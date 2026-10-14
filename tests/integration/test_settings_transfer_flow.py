@@ -51,7 +51,7 @@ class SettingsTransferFlowTests(unittest.TestCase):
     def _client(self):
         return TestClient(create_app(
             self.store, "http://127.0.0.1:1", self.root,
-            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL"), raise_server_exceptions=False)
 
     def tearDown(self):
         self.client.close()
@@ -152,6 +152,29 @@ class SettingsTransferFlowTests(unittest.TestCase):
         self.assertEqual(self.client.get("/profiles/missing-profile/settings/export").status_code, 404)
         self.assertEqual(self.client.post(
             "/profiles/missing-profile/settings/import", json=payload).status_code, 404)
+
+    def test_malformed_criteria_rejects_without_replacement_and_recovers_after_reopen(self):
+        before = self._export("other-profile")
+        source_before = self._export("fixture")
+        for field in ("remote", "salary_period", "date_window"):
+            for value in ([], {"private": "PRIVATE_IMPORT_SENTINEL"}):
+                with self.subTest(field=field, value=value):
+                    payload = copy.deepcopy(source_before)
+                    payload["settings"]["search_profiles"][0]["criteria"][field] = value
+                    response = self.client.post("/profiles/other-profile/settings/import", json=payload)
+                    self.assertEqual(response.status_code, 422, response.text)
+                    self.assertNotIn("PRIVATE_IMPORT_SENTINEL", response.text)
+                    self.assertEqual(self._export("other-profile"), before)
+                    self.assertEqual(self._export("fixture"), source_before)
+
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = self._client()
+        self.assertEqual(self._export("other-profile"), before)
+        response = self.client.post("/profiles/other-profile/settings/import", json=source_before)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(self._export("other-profile"), source_before)
 
 
 if __name__ == "__main__":
