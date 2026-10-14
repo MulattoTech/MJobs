@@ -355,11 +355,28 @@ def check_cancelled(store, operation_id, attempt_count=None):
         raise OperationCancelled("Operation no longer authorized to continue")
 
 
+def company_refresh_saved(connection, operation):
+    """Read the import transaction's receipt without reversing its lock order.
+
+    Callers hold the operation lock. The source/monitor pointer can change after
+    a later refresh, so only the immutable, exactly bound audit is authoritative.
+    """
+    if operation['kind'] != 'COMPANY_SOURCE_REFRESH':
+        return False
+    return connection.execute(select(m.audit.c.id).where(
+        m.audit.c.action == 'COMPANY_SOURCE_REFRESHED',
+        m.audit.c.entity_id == operation['entity_id'],
+        m.audit.c.payload['company_source_id'].as_string() == operation['entity_id'],
+        m.audit.c.payload['operation_id'].as_string() == operation['id']).limit(1)).first() is not None
+
+
 def request_cancel(store, operation_id):
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
         row = dict(connection.execute(select(m.operations).where(m.operations.c.id == operation_id).with_for_update()).mappings().one())
+        if row['state'] in {'QUEUED', 'RUNNING'} and company_refresh_saved(connection, row):
+            return {**row, 'reason': 'REFRESH_ALREADY_SAVED'}
         if row['kind'] == 'APPLICATION_DRY_RUN' and row['state'] in {'QUEUED', 'RUNNING'}:
             receipt = connection.execute(select(m.audit.c.id).where(
                 m.audit.c.id == identity('APPLICATION_DRY_RUN', operation_id),
@@ -493,11 +510,16 @@ def recover_expired(store):
                             error = "PRE_SUBMIT_REVIEW_REQUIRED"
                             connection.execute(update(m.applications).where(
                                 m.applications.c.id == application["id"]).values(state="REVIEW_REQUIRED"))
+            refresh_saved = company_refresh_saved(connection, row)
+            if refresh_saved:
+                state, error = "COMPLETED", None
             values = {"state": state, "error": error, "lease_expires_at": None,
                       "updated_at": timestamp,
                       "current_step": "RECOVERING",
                       "retry_count": row["retry_count"] + (1 if state == "QUEUED" else 0),
                       "recovery_metadata": {"action": "RESUME" if state == "QUEUED" else "MANUAL_REVIEW"}}
+            if refresh_saved:
+                values.update(cancel_requested=False, recovery_metadata={"action": "NONE"})
             if state in {"COMPLETED", "CANCELLED", "FAILED", "BLOCKED", "DEAD_LETTERED"}:
                 values["completed_at"] = timestamp
                 if state == "COMPLETED":
