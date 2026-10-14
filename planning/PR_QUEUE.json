@@ -2095,6 +2095,18 @@
         "next_action": "Carry this documentation-only receipt with the next P0/P1 source PR; claim #178 and add safe persisted application/job/company/known-ATS context for APPLICATION_DRY_RUN and APPLICATION_FORM_REVIEW using the existing APPLY_MOCK lookup, with blocked/recovery/reopen and resolver-failure tests.",
         "post_merge": "28 tests / 43 subtests PASS, zero skips at ef18c3a9",
         "publication": "MERGED; documentation-only receipt remains local for next substantive source PR"
+      },
+      "p0p1_iteration_5": {
+        "issues": [
+          177,
+          176
+        ],
+        "status": "READY_FOR_PR_PARTIAL",
+        "outcome": "Immutable document-generation history and withheld known credential-shaped labels; original requirements PARTIAL",
+        "hosted_checks": "NOT_RUN",
+        "source_revision": "612136ed7ac67c6eca3e1ca3aeadeaa95a3fd50f",
+        "evidence": "docs/evidence/2026-10-14-p1-document-audit.json",
+        "validation": "1593 units / 1114 subtests PASS, 8 Linux-only skips; final audit API 19/26 PASS, 8 PostgreSQL skips; affected integration 38/21 PASS; Chromium 4 PASS plus final new rerun; native Vite build and validators PASS"
       }
     },
     {
