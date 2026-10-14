@@ -5,6 +5,7 @@ import unittest
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
+from services.audit_history import _event
 from tests.integration import test_document_generation_audit as fixture
 from tests.integration import test_lever_form_review_flow as postgres_fixture
 
@@ -56,10 +57,17 @@ class AuditDisplayPrivacyTests(unittest.TestCase):
         for label, expected in (("Secret Service Data Engineer", "Secret Service Data Engineer"),
                                 ("Token Platform Engineer", "Token Platform Engineer"),
                                 ("Data Engineer", "Data Engineer"),
-                                ("x" * 501, "Details withheld")):
+                                ("x" * 500, "x" * 500)):
             with self.subTest(label=label[:40]), self.store.engine.begin() as connection:
                 connection.execute(update(m.jobs).where(m.jobs.c.id == self.job_id).values(title=label))
             self.assertTrue(all(event["subject"] == expected for event in self.document_events()))
+        # PostgreSQL rejects >500 characters at storage admission; SQLite does
+        # not. Exercise the projection's defensive limit without making an
+        # invalid PostgreSQL fixture or weakening its schema constraint.
+        projected = _event({"id": "label-limit", "timestamp": "2026-10-14T00:00:00Z"},
+                           "JOB_DISCOVERED", "Job added", "x" * 501, "x" * 501)
+        self.assertEqual(projected["subject"], "Details withheld")
+        self.assertEqual(projected["company"], "")
 
     def test_unknown_private_document_kinds_and_payload_fields_never_reach_history(self):
         row = self.prepared_rows()[0]
