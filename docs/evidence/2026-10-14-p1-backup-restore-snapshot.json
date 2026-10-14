@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "issue": 168,
+  "requirement": "MJ-REQ-167",
+  "status": "LOCAL_VERIFIED_PARENT_PARTIAL_PR_PENDING",
+  "recorded_at_utc": "2026-10-14T08:37:38.208241+00:00",
+  "base_main": "0d1cd4f7e4449c06e738b802722575635632fc93",
+  "source_revision": "3087b4abb91909df117c427f911522c8ab9512fe",
+  "source_sha256": {
+    "workers/transient_retention.py": "1a9c7f0d079fba9c251cc8fd1e4ed9a46cf24a8dba762554d80d6473031c3c4c",
+    "cli/local_backup.py": "2d05ad8b569bdb5438c5c3df7aa90d2d5275b30d110c38ec160191fbf04f81e7",
+    "tests/integration/test_transient_retention_receipt_safety.py": "7ddfa4eee436d144f59f0937fd477adf753a544eadda042173b6b92106c24bee",
+    "tests/unit/test_backup_restore_snapshot.py": "c5d660c35fc270a7ba5b8aec75f4ea70280750ee4cf69b0b440090fa2bb85764"
+  },
+  "selection": {
+    "snapshot": "queue-8.json",
+    "live_project": 1,
+    "live_project_cards": 459,
+    "snapshot_eligible_cards": 99,
+    "state": "OPEN",
+    "priority": "P1",
+    "verified_before_claim": true,
+    "nonoverlapping_owned_paths": true
+  },
+  "behavior": [
+    "Copy only verified manifest inventory and checksum-verify an owned snapshot before any Docker target operation",
+    "Consume pinned database, documents, manifest and fixture receipts through entire restore",
+    "Reject changed copy bytes before target calls; sanitize disk failure; clean temp on success/failure",
+    "Standalone archive verification rejects unsupported special filesystem nodes; POSIX oracle awaits Linux exact-head check"
+  ],
+  "red": "3 new tests failed before implementation; current restore fed unverified changed dump to PostgreSQL; no snapshot/copy/cleanup existed",
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_backup_restore_snapshot.py tests/unit/test_backup_fixture_receipts.py tests/unit/test_backup_credential_restore.py tests/unit/test_backup_config_snapshot.py tests/unit/test_local_backup.py tests/unit/test_backup_acceptance.py -p no:cacheprovider --tb=short",
+      "result": "PASS 44 tests / 11 subtests; 1 native POSIX FIFO skip NOT_RUN on Windows"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_transient_retention_receipt_safety.py tests/integration/test_transient_retention.py tests/integration/test_retention_policy.py tests/unit/test_retention_policy.py tests/unit/test_transient_retention_scheduler.py -p no:cacheprovider --tb=short",
+      "result": "PASS 24 tests / 11 subtests"
+    },
+    {
+      "command": "python -m pytest -q tests/integration/test_transient_retention_receipt_safety.py tests/integration/test_transient_retention.py tests/integration/test_retention_policy.py tests/integration/test_backup_credential_recoverability_postgres.py -p no:cacheprovider --tb=short",
+      "result": "PASS 12 tests / 2 subtests; 1 optional PostgreSQL skip NOT_RUN"
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_retention_policy.py -p no:cacheprovider --tb=short",
+      "result": "PASS 1 connected Chromium case after production build"
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "result": "TypeScript PASS; default Vite loader blocked by spawn EPERM"
+    },
+    {
+      "command": "node node_modules/vite/bin/vite.js build --configLoader native (cwd apps/web)",
+      "result": "PASS production build; existing bundle-size advisory"
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python -m tools.verification.agent_skills; python -m tools.verification.reference_provenance; git diff --check",
+      "result": "PASS; original/reference matrices and compact index unchanged"
+    },
+    {
+      "command": "python -m tools.coordination.lane_coordination validate",
+      "result": "FAIL existing legacy lane-file prerequisites missing for codex/antigravity/ollama/claude; live shared lock and claims separately reconciled; no competing metadata created"
+    },
+    {
+      "command": "python -m tools.verification.commit_provenance --commit HEAD; python -m tools.verification.commit_provenance --commit HEAD~1",
+      "result": "PASS both source commits / 4 source files"
+    },
+    {
+      "command": "python -m pytest -q tests/unit -p no:cacheprovider --tb=short",
+      "revision": "3087b4abb91909df117c427f911522c8ab9512fe",
+      "result": "PASS 1598 tests / 1114 subtests; 9 platform skips NOT_RUN; final source bytes unchanged during run"
+    }
+  ],
+  "runtime": {
+    "os": "Windows",
+    "python": "3.12.10",
+    "database": "isolated SQLite; PostgreSQL NOT_RUN locally",
+    "browser": "headless Chromium, local-only",
+    "temp": "campaign-owned Git common directory"
+  },
+  "review": {
+    "kind": "local Luna High read-only review",
+    "result": "No critical or important remaining finding",
+    "tests_run_by_reviewer": false
+  },
+  "hosted": {
+    "status": "PENDING_EXACT_FINAL_PR_HEAD"
+  },
+  "boundaries": [
+    "Original parent remains PARTIAL; no acceptance promotion or issue closure",
+    "Owned restore snapshot needs temporary disk space proportional to verified archive inventory",
+    "Ordinary configuration failures and source-archive edits covered; hostile same-user mutation after final path checks outside scoped acceptance",
+    "No real submission, paid inference, credential values or private runtime data accessed",
+    "Local restore consumers exercise production entrypoint with Docker boundary doubles; full synthetic Compose restore NOT_RUN locally",
+    "Whole-product release acceptance NOT_RUN"
+  ],
+  "publication": {
+    "status": "LOCAL_SOURCE_COMMITTED_PR_PENDING"
+  },
+  "rollback": "Ordinary scoped revert; no schema migration or source-archive/data deletion"
+}

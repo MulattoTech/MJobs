@@ -3097,5 +3097,39 @@
     "post_merge": "8 tests/11 subtests PASS; 8 PostgreSQL skips locally; all 8 new hosted PostgreSQL cases PASS, zero skips",
     "local_review": "Local Luna High read-only review: no remaining critical or important finding",
     "next_action": "Carry this local documentation-only merged receipt with the next substantive source PR; reconcile the next Project-only snapshot, live Project #1 and ownership, then claim the highest-value unowned open P0/P1 vertical slice. Both current parent requirements remain PARTIAL."
+  },
+  "p0p1_iteration_8": {
+    "campaign_id": "p0p1-20261013-232152",
+    "iteration": 8,
+    "issues": [
+      171,
+      168
+    ],
+    "requirements": [
+      "MJ-REQ-170",
+      "MJ-REQ-167"
+    ],
+    "status": "LOCAL_VERIFIED_PR_PENDING",
+    "branch": "codex/p0p1-only-20261013-232152",
+    "source_revision": "3087b4abb91909df117c427f911522c8ab9512fe",
+    "acceptance": "Retention receipt failures preserve history and observed cleanup counts; restore consumes one verified snapshot across all target operation boundaries.",
+    "owned_source": [
+      "workers/transient_retention.py",
+      "cli/local_backup.py",
+      "tests/integration/test_transient_retention_receipt_safety.py",
+      "tests/unit/test_backup_restore_snapshot.py"
+    ],
+    "original_acceptance": {
+      "MJ-REQ-170": "PARTIAL",
+      "MJ-REQ-167": "PARTIAL"
+    },
+    "local_focused": "Retention24 PASS/11 subtests; final integration12 PASS/2subtests/1 PostgreSQLskip; backup44PASS/11subtests/1POSIXskip",
+    "full_unit": "1598 PASS/1114 subtests/9 platform skips",
+    "browser": "1 connected Chromium PASS",
+    "local_review": "Local Luna High read-only review; no remaining critical or important finding",
+    "hosted_checks": "PENDING_EXACT_HEAD",
+    "updated_at_utc": "2026-10-14T08:37:38.208241+00:00",
+    "rollback": "Scoped revert; no migrations/private data changes",
+    "next_action": "Publish one reviewable P1 PR; verify all five protected-main gates on exact head, inspect FIFO and synthetic backup restore results, integrate when qualified."
   }
 }

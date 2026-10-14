@@ -5667,6 +5667,22 @@
       "merge_commit": "0d1cd4f7e4449c06e738b802722575635632fc93",
       "merged_at": "2026-10-14T08:15:00Z",
       "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD"
+    },
+    {
+      "id": "MJ-PR-P1-RETENTION-BACKUP-SAFETY-171-168",
+      "title": "Protect retention receipts and pin verified backup restore bytes",
+      "requirements": [
+        "MJ-REQ-170",
+        "MJ-REQ-167"
+      ],
+      "status": "LOCAL_VERIFIED_PR_PENDING",
+      "branch": "codex/p0p1-only-20261013-232152",
+      "source_revision": "3087b4abb91909df117c427f911522c8ab9512fe",
+      "notes": "Only queue-8/live Project P1 #171/#168; both original parents remain PARTIAL; no acceptance promotion",
+      "evidence": [
+        "docs/evidence/2026-10-14-p1-retention-receipt-safety.json",
+        "docs/evidence/2026-10-14-p1-backup-restore-snapshot.json"
+      ]
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"
