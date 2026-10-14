@@ -33,6 +33,8 @@ class LinuxLauncherTests(unittest.TestCase):
         self.env = {**os.environ, 'PATH': str(self.bin), 'PYTHONPATH': '',
                     'LAUNCHER_TEST_LOG': str(self.log)}
         self.env.pop('PYTHONHOME', None)
+        self.env.pop('COMPOSE_PROJECT_NAME', None)
+        self.env.pop('MJOBS_PORT', None)
         docker = self.bin / 'docker'
         docker.write_text(f'''#!{sys.executable}
 import json, os, sys
@@ -95,6 +97,32 @@ raise SystemExit(int(os.environ.get('LAUNCHER_TEST_COMPOSE_EXIT', '0')) if sys.a
         self.python('python')
         self.assertEqual(self.launch().returncode, 0)
         self.assertTrue((self.root / '.env').is_file())
+
+    def test_disposable_project_and_port_are_honored_in_each_startup_mode(self):
+        self.python()
+        for mode, port in (('fixture', '1024'), ('personal', '65535')):
+            with self.subTest(mode=mode, port=port):
+                project = f'mjobs-{mode}-012345abcdef'
+                self.env.update(COMPOSE_PROJECT_NAME=project, MJOBS_PORT=port)
+                result = self.launch(mode)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(self.calls()[-1]['args'][0:3], ['compose', '-p', project])
+                self.assertEqual(self.calls()[-1]['port'], port)
+                self.assertIn(f'port {port}', result.stdout)
+
+    def test_startup_overrides_do_not_retarget_default_maintenance_commands(self):
+        self.python()
+        self.env.update(COMPOSE_PROJECT_NAME='mjobs-fixture-012345abcdef', MJOBS_PORT='19234')
+        for mode, expected in [('status', ['mjobs', 'mjobs-personal']),
+                               ('down-fixture', ['mjobs']), ('down-personal', ['mjobs-personal']),
+                               ('down-all', ['mjobs', 'mjobs-personal'])]:
+            with self.subTest(mode=mode):
+                if self.log.exists():
+                    self.log.unlink()
+                result = self.launch(mode)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                calls = [x['args'] for x in self.calls() if x['args'][0] == 'compose']
+                self.assertEqual([x[2] for x in calls], expected)
 
     def test_virtualenv_interpreter_takes_precedence(self):
         self.python()

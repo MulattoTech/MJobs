@@ -1,0 +1,125 @@
+{
+  "recorded_at_utc": "2026-10-14T21:22:52.929846+00:00",
+  "base_sha": "50976a7fb73775273443daebf8f40e141d7f73b2",
+  "issues": [
+    15,
+    258
+  ],
+  "requirements": {
+    "MJ-REQ-014": "PARTIAL",
+    "MJ-REQ-257": "PARTIAL_PENDING_EXACT_HEAD_CI"
+  },
+  "environment": "Windows / Python3.12 / Node25.9.0 / Chromium headless / temporary fictional SQLite stores",
+  "hash_format": "SHA256 of text inputs normalized to LF; excludes documentation-only closeout inputs",
+  "source_hashes": {
+    ".devcontainer/mjobs.sh": "3d5ee6f2accfccaa3a90214626a69069547abe854a6e8fdc9fa4dc6a44df7881",
+    ".github/workflows/connected-acceptance.yml": "3e5aa1d71ab723ef2fccd505c719a7168c72ce98caddd7ea8004305a16cfe8d4",
+    "apps/web/src/main.tsx": "f8467ff7157ab4ec802b6a1264fb73fd4179711c95d18460b6d4b392f3332027",
+    "apps/web/src/theme.tsx": "991f9b00a90f146ee40d7bc739573f4333d0948457a1a0152b88c57d1b5e3298",
+    "apps/web/src/theme.test.tsx": "47dfce0debd0032dd2c825af857446dca015d6f56e5fe600ed31a88744c74fd4",
+    "apps/web/src/style.css": "acc34139e018f9024c9ffea15f49790b7b448669b5c05243cde49594552d6e97",
+    "tests/unit/test_linux_launcher.py": "eb613af1356ac3249f2679ff58d506b40603314a931889b67a7a87a26e421a06",
+    "tests/unit/test_launcher_admission.py": "b80022963fe81b312f8ae922c3f800e3d31f18b438d0ec74b001be962012fe68",
+    "tests/browser/test_theme.py": "03e4df528ca5f3d667676eb0122032a3c9c7a38805b6c198915170b49f615e4c",
+    "apps/web/src/job-match-score-badge.tsx": "4aa0204736717953421b369430675300892c22083dbbe6a56a3178680ed56daf",
+    "apps/web/src/llm-telemetry-dashboard.tsx": "fe75f259c740146f6006b26476db54bf1bc4ebd95a45ee23f94172bc92ce4c7b",
+    "apps/web/src/match-components-breakdown.tsx": "ba185e22c2a177fe2706a40a7a323cf346dae8ba09a8448f811e023385dbe016",
+    "apps/web/src/qualification-strength-breakdown.tsx": "bdd7cb546269a3343f02971609a2a3ed5769af951004de954a312698149ee536",
+    "apps/web/src/source-relationship-graph.tsx": "795e93cef1bd790d325292f3b456e6dd77439eb1c675c83080150a14f6dc0fca"
+  },
+  "behavior": [
+    "Startup rejects unknown modes and invalid project/port overrides before private-config initialization or Docker.",
+    "Fixture/personal startup can use guarded disposable projects and ports1024-65535; default startup/maintenance targets remain unchanged.",
+    "Existing synthetic workflow now exercises actual Linux Bash launcher with real Compose before mock E2E, browser, restart and fresh-target backup/restore.",
+    "Workspace Appearance native select offers System, Light and Dark; valid preference is saved locally and applied before React mounts.",
+    "System media changes and cross-tab storage changes update appearance; storage denial keeps a usable per-visit choice with truthful feedback.",
+    "Shared CSS and all five inline chart/graph palettes use semantic colors, including native controls, safety states, links and focus indicators."
+  ],
+  "criterion_evidence": {
+    "MJ-REQ-014": {
+      "config_health_migrations_bootstrap_docs": "Existing accepted code retained; launcher regression and existing prior evidence remain scoped.",
+      "linux_launcher_real_compose": "NOT_RUN locally: Docker engine pipe absent; exact-head synthetic workflow required.",
+      "physical_host_restart": "NOT_RUN; parent remains PARTIAL; no reboot authorized or performed."
+    },
+    "MJ-REQ-257": {
+      "explicit_and_system_themes": "PASS: actual production bundle via API in Chromium; System responds to media changes and explicit choice overrides media.",
+      "persistence_and_isolation": "PASS: reload, second tab readback, cross-tab update, invalid persisted value and storage clear.",
+      "failure": "PASS: denied helper reads/writes and actual browser quota failure; control remains usable and per-visit feedback shown.",
+      "keyboard_mobile_navigation": "PASS: labeled native select, keyboard End/Enter, focus, profile/source/pipeline/activity/AI tabs,390px layout without page overflow.",
+      "colors": "PASS: light/dark root, panels, controls, representative nested labels/status text, active sidebar, actual persisted SVG graph text >=4.5 contrast; graph keyboard focus3px.",
+      "screenshots": "outputs/theme-{light,dark}-{desktop,mobile}.png; fictional local ignored diagnostics; visually inspected."
+    }
+  },
+  "validation": [
+    {
+      "command": "python -m pytest -q tests/unit/test_launcher_admission.py --tb=short BEFORE fix",
+      "result": "FAIL_EXPECTED",
+      "detail": "6 cases reach initializer before validation; then fixed; later8 negative subtests PASS."
+    },
+    {
+      "command": "npm test --prefix apps/web -- src/theme.test.tsx BEFORE implementation",
+      "result": "FAIL_EXPECTED",
+      "detail": "Theme module absent; later3 tests PASS."
+    },
+    {
+      "command": "python -m pytest -q tests/unit --tb=short --junitxml=outputs/round3-unit.xml",
+      "result": "PASS",
+      "passed": 1613,
+      "subtests": 1157,
+      "skipped": 11,
+      "seconds": 260.7,
+      "detail": "10 Linux-only launcher tests and1 POSIX FIFO skip. Review changed launcher boundaries during this run; separate final targeted rerun covers changed cases."
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_theme.py tests/unit/test_launcher_admission.py tests/unit/test_linux_launcher.py --tb=short",
+      "result": "PASS",
+      "passed": 2,
+      "subtests": 8,
+      "skipped": 10,
+      "seconds": 7.04
+    },
+    {
+      "command": "python -m pytest -q tests/browser/test_theme.py tests/browser/test_source_relationship_graph.py tests/browser/test_match_categories.py --tb=short",
+      "result": "PASS",
+      "passed": 3,
+      "seconds": 21.4
+    },
+    {
+      "command": "npm test --prefix apps/web",
+      "result": "PASS",
+      "passed": 804,
+      "files": 137,
+      "seconds": 2.77
+    },
+    {
+      "command": "npm run build --prefix apps/web",
+      "result": "PASS",
+      "detail": "TypeScript and production build; existing bundle-size warning. Node25.9.0 has Vitest engine warning; exact-head Linux CI uses Node24."
+    },
+    {
+      "command": "catalogue; progress validate; dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "local_luna_reviews": [
+    {
+      "scope": "startup",
+      "finding": "Ports below1024 incompatible with recovery tools",
+      "resolution": "Guard1024-65535;1023 rejection and1024/65535 acceptance coverage; followup no important issue."
+    },
+    {
+      "scope": "theme",
+      "finding": "Active sidebar dark foreground on dark background; sampled contrast omitted descendants",
+      "resolution": "Fixed light sidebar foreground, inherited sidebar paragraph color, added actual descendant/SVG/active-nav contrast and focus assertions."
+    }
+  ],
+  "hosted_checks": "NOT_RUN_PENDING_SOURCE_PUBLICATION",
+  "limitations": [
+    "Physical host reboot NOT_RUN; MJ-REQ-014 remains PARTIAL.",
+    "Local Docker/PostgreSQL/Redis Compose runtime NOT_RUN: Docker engine unavailable.",
+    "No external providers, real submissions, paid AI, host configuration, credentials or older worktrees used.",
+    "Theme preference belongs to the browser, not profile settings transfer; no API/schema migration.",
+    "Broader product acceptance and release eligibility remain incomplete."
+  ],
+  "rollback": "Scoped source revert; no schema migration or existing data changes."
+}

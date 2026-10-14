@@ -131,18 +131,18 @@ export function LLMTelemetryDashboard({
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: budgetWarningTriggered ? '#fffaf0' : '#f7fafc',
-            border: budgetWarningTriggered ? '1px solid #feebc8' : '1px solid #e2e8f0',
+            backgroundColor: budgetWarningTriggered ? 'var(--warning-bg)' : 'var(--surface-subtle)',
+            border: budgetWarningTriggered ? '1px solid var(--warning-bg)' : '1px solid var(--border)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)' }}>
             ESTIMATED SPEND
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }} data-testid="kpi-total-cost">
             ${totalCostUsd.toFixed(4)}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#718096' }}>
+          <div style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             {budgetCeilingUsd != null
               ? `Budget: $${budgetCeilingUsd.toFixed(2)} ($${(budgetRemainingUsd ?? 0).toFixed(2)} left)`
               : 'Unlimited'}
@@ -152,7 +152,7 @@ export function LLMTelemetryDashboard({
               style={{
                 width: '100%',
                 height: '6px',
-                backgroundColor: '#edf2f7',
+                backgroundColor: 'var(--surface-subtle)',
                 borderRadius: '3px',
                 overflow: 'hidden',
                 marginTop: '0.4rem',
@@ -162,7 +162,7 @@ export function LLMTelemetryDashboard({
                 style={{
                   width: `${budgetUsagePercent}%`,
                   height: '100%',
-                  backgroundColor: budgetUsagePercent >= 80 ? '#dd6b20' : '#3182ce',
+                  backgroundColor: budgetUsagePercent >= 80 ? 'var(--warning)' : 'var(--info)',
                 }}
               />
             </div>
@@ -174,18 +174,18 @@ export function LLMTelemetryDashboard({
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#f7fafc',
-            border: '1px solid #e2e8f0',
+            backgroundColor: 'var(--surface-subtle)',
+            border: '1px solid var(--border)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)' }}>
             TOKEN CONSUMPTION
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }} data-testid="kpi-total-tokens">
             {totalTokens.toLocaleString()}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             Prompt: {totalPromptTokens.toLocaleString()} • Completion: {totalCompletionTokens.toLocaleString()}
           </span>
         </div>
@@ -195,18 +195,18 @@ export function LLMTelemetryDashboard({
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#f7fafc',
-            border: '1px solid #e2e8f0',
+            backgroundColor: 'var(--surface-subtle)',
+            border: '1px solid var(--border)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)' }}>
             ACTIVE CONCURRENCY
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }} data-testid="kpi-concurrency">
             {activeConcurrency} / {globalConcurrencyLimit}
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             Global slot saturation: {((activeConcurrency / Math.max(1, globalConcurrencyLimit)) * 100).toFixed(0)}%
           </span>
         </div>
@@ -216,18 +216,18 @@ export function LLMTelemetryDashboard({
           className="kpi-card"
           style={{
             padding: '0.75rem',
-            backgroundColor: '#f7fafc',
-            border: '1px solid #e2e8f0',
+            backgroundColor: 'var(--surface-subtle)',
+            border: '1px solid var(--border)',
             borderRadius: '6px',
           }}
         >
-          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)' }}>
             REQUEST SUCCESS RATE
           </span>
           <div style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0.25rem 0' }} data-testid="kpi-success-rate">
             {successRate.toFixed(1)}%
           </div>
-          <span style={{ fontSize: '0.75rem', color: '#718096' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--muted)' }}>
             {successfulCalls} succeeded • {failedCalls} failed
           </span>
         </div>
@@ -249,9 +249,9 @@ export function LLMTelemetryDashboard({
             style={{
               padding: '0.4rem 0.8rem',
               borderRadius: '4px',
-              border: selectedTab === tab ? '1px solid #3182ce' : '1px solid #e2e8f0',
-              backgroundColor: selectedTab === tab ? '#3182ce' : '#fff',
-              color: selectedTab === tab ? '#fff' : '#4a5568',
+              border: selectedTab === tab ? '1px solid var(--info)' : '1px solid var(--border)',
+              backgroundColor: selectedTab === tab ? 'var(--info)' : 'var(--surface)',
+              color: selectedTab === tab ? 'var(--surface)' : 'var(--text)',
               fontWeight: 600,
               fontSize: '0.8125rem',
               cursor: 'pointer',
@@ -269,7 +269,7 @@ export function LLMTelemetryDashboard({
           <div className="table-responsive">
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #edf2f7', textAlign: 'left' }}>
+                <tr style={{ borderBottom: '2px solid var(--surface-subtle)', textAlign: 'left' }}>
                   <th style={{ padding: '0.5rem' }}>Provider</th>
                   <th style={{ padding: '0.5rem' }}>Active / Limit</th>
                   <th style={{ padding: '0.5rem' }}>Total Calls</th>
@@ -281,13 +281,13 @@ export function LLMTelemetryDashboard({
               <tbody>
                 {Object.keys(byProvider).length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ padding: '1rem', textAlign: 'center', color: '#a0aec0' }}>
+                    <td colSpan={6} style={{ padding: '1rem', textAlign: 'center', color: 'var(--muted)' }}>
                       No provider activity recorded yet.
                     </td>
                   </tr>
                 ) : (
                   Object.values(byProvider).map((p) => (
-                    <tr key={p.provider} style={{ borderBottom: '1px solid #edf2f7' }}>
+                    <tr key={p.provider} style={{ borderBottom: '1px solid var(--surface-subtle)' }}>
                       <td style={{ padding: '0.5rem', fontWeight: 600 }}>{p.provider}</td>
                       <td style={{ padding: '0.5rem' }}>
                         {p.active_concurrency} / {p.concurrency_limit}
@@ -316,7 +316,7 @@ export function LLMTelemetryDashboard({
           <div className="table-responsive">
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #edf2f7', textAlign: 'left' }}>
+                <tr style={{ borderBottom: '2px solid var(--surface-subtle)', textAlign: 'left' }}>
                   <th style={{ padding: '0.5rem' }}>Task</th>
                   <th style={{ padding: '0.5rem' }}>Calls</th>
                   <th style={{ padding: '0.5rem' }}>Total Tokens</th>
@@ -327,13 +327,13 @@ export function LLMTelemetryDashboard({
               <tbody>
                 {Object.keys(byTask).length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ padding: '1rem', textAlign: 'center', color: '#a0aec0' }}>
+                    <td colSpan={5} style={{ padding: '1rem', textAlign: 'center', color: 'var(--muted)' }}>
                       No task telemetry recorded.
                     </td>
                   </tr>
                 ) : (
                   Object.entries(byTask).map(([taskName, t]) => (
-                    <tr key={taskName} style={{ borderBottom: '1px solid #edf2f7' }}>
+                    <tr key={taskName} style={{ borderBottom: '1px solid var(--surface-subtle)' }}>
                       <td style={{ padding: '0.5rem', fontWeight: 600 }}>{taskName}</td>
                       <td style={{ padding: '0.5rem' }}>
                         {t.successful_calls}/{t.total_calls} ok
@@ -357,7 +357,7 @@ export function LLMTelemetryDashboard({
           <div className="table-responsive">
             <table className="table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #edf2f7', textAlign: 'left' }}>
+                <tr style={{ borderBottom: '2px solid var(--surface-subtle)', textAlign: 'left' }}>
                   <th style={{ padding: '0.5rem' }}>Task</th>
                   <th style={{ padding: '0.5rem' }}>Provider / Model</th>
                   <th style={{ padding: '0.5rem' }}>Latency</th>
@@ -370,13 +370,13 @@ export function LLMTelemetryDashboard({
               <tbody>
                 {recentAttempts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ padding: '1rem', textAlign: 'center', color: '#a0aec0' }}>
+                    <td colSpan={7} style={{ padding: '1rem', textAlign: 'center', color: 'var(--muted)' }}>
                       No recent attempts.
                     </td>
                   </tr>
                 ) : (
                   recentAttempts.slice(-10).map((a) => (
-                    <tr key={a.attempt_id} style={{ borderBottom: '1px solid #edf2f7' }}>
+                    <tr key={a.attempt_id} style={{ borderBottom: '1px solid var(--surface-subtle)' }}>
                       <td style={{ padding: '0.5rem', fontWeight: 500 }}>{a.task}</td>
                       <td style={{ padding: '0.5rem' }}>
                         {a.provider} ({a.model})
@@ -389,7 +389,7 @@ export function LLMTelemetryDashboard({
                       </td>
                       <td style={{ padding: '0.5rem' }}>{a.total_tokens}</td>
                       <td style={{ padding: '0.5rem' }}>${a.estimated_cost.toFixed(4)}</td>
-                      <td style={{ padding: '0.5rem', color: '#718096' }}>
+                      <td style={{ padding: '0.5rem', color: 'var(--muted)' }}>
                         {a.fallback_reason || a.error_code || '—'}
                       </td>
                     </tr>
@@ -406,10 +406,10 @@ export function LLMTelemetryDashboard({
         style={{
           marginTop: '1rem',
           padding: '0.5rem 0.75rem',
-          backgroundColor: '#edf2f7',
+          backgroundColor: 'var(--surface-subtle)',
           borderRadius: '4px',
           fontSize: '0.75rem',
-          color: '#4a5568',
+          color: 'var(--text)',
         }}
       >
         🔒 <strong>Privacy Assured:</strong> Telemetry metrics record only token counts, latencies, error codes, and cost estimations. Prompt content, personal information, and user facts are never stored in telemetry records.

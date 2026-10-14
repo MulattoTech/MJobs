@@ -3346,10 +3346,10 @@
         "MJ-PR-069",
         "MJ-PR-063"
       ],
-      "status": "QUEUED",
+      "status": "IN_PROGRESS",
       "branch": "codex/mj-pr-070-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Round3 owns only MJ-REQ-257 light/dark acceptance; grouped requirements retain their independent status. Serial campaign PR; no empty publication."
     },
     {
       "id": "MJ-PR-071",

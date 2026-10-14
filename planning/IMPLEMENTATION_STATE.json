@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Complete portable settings transfer for Project P1 #278 / MJ-REQ-277",
+  "current_objective": "Round3: isolated Linux startup MJ-REQ-014 and complete light/dark mode MJ-REQ-257",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2814,7 +2814,7 @@
       "status": "ACTIVE_IMPLEMENTATION on codex/solo-mj-req245-source-learning-20261009; parent MJ-PR-066 remains QUEUED on unmet declared dependencies MJ-PR-065/MJ-PR-057."
     }
   ],
-  "current_verified_at": "2026-10-11T01:47:52Z",
+  "current_verified_at": "2026-10-14T21:22:52.929846+00:00",
   "webpro_application_sprint": {
     "base_commit": "fa3e29aef27f503bef23c74ea18f4a2fc32c03b7",
     "source_commits": [
@@ -3473,5 +3473,55 @@
       "status": "LOCAL_VERIFIED_HOSTED_NOT_RUN",
       "outcome": "Lever regional public inventory through reviewed enrollment, immediate dedupe, filters, reload and recurrence"
     }
+  },
+  "p0p1_round3_001": {
+    "status": "LOCAL_VERIFIED_PENDING_PUBLICATION",
+    "owner": "Codex round3 sole writer",
+    "issues": [
+      15,
+      258
+    ],
+    "base_sha": "50976a7fb73775273443daebf8f40e141d7f73b2",
+    "owned_paths": [
+      ".devcontainer/mjobs.sh",
+      ".github/workflows/connected-acceptance.yml",
+      "apps/web/src/theme.tsx",
+      "apps/web/src/theme.test.tsx",
+      "apps/web/src/main.tsx",
+      "apps/web/src/style.css",
+      "tests/unit/test_linux_launcher.py",
+      "tests/unit/test_launcher_admission.py",
+      "tests/browser/test_theme.py",
+      "planning/SESSION_HANDOFF.md",
+      "planning/IMPLEMENTATION_STATE.json",
+      "planning/PR_QUEUE.json",
+      "planning/CAPABILITY_MATRIX.json",
+      "planning/REQUIREMENT_INDEX.json",
+      "docs/evidence/2026-10-14-round3-startup-theme.json",
+      "apps/web/src/job-match-score-badge.tsx",
+      "apps/web/src/llm-telemetry-dashboard.tsx",
+      "apps/web/src/match-components-breakdown.tsx",
+      "apps/web/src/qualification-strength-breakdown.tsx",
+      "apps/web/src/source-relationship-graph.tsx",
+      "README.md",
+      "docs/CODESPACES.md",
+      "docs/evidence/2026-10-14-round3-startup-theme.json"
+    ],
+    "acceptance": [
+      "launcher defaults unchanged; validated disposable startup overrides and fail before side effects",
+      "real Linux launcher Compose startup plus existing mock/browser/restart/backup journey",
+      "accessible light/dark/system choice, system changes, preference reload, app-wide usable contrast, storage failure"
+    ],
+    "limitations": [
+      "Local Docker engine unavailable",
+      "Physical host restart NOT_RUN; MJ-REQ-014 remains PARTIAL"
+    ],
+    "rollback": "Scoped source revert; no migrations or personal services touched",
+    "agent_mode": "Sole writer; two read-only Luna scouts; later read-only review",
+    "evidence": "docs/evidence/2026-10-14-round3-startup-theme.json",
+    "local_units": "1613PASS/1157subtests/11platformskips; reviewed targeted8negative subtests PASS",
+    "local_frontend": "804PASS/buildPASS",
+    "local_browser": "3PASS",
+    "hosted": "NOT_RUN_PENDING_SOURCE_PUBLICATION"
   }
 }
