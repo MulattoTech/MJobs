@@ -1,10 +1,10 @@
 {
   "issue": 524,
-  "recorded_at_utc": "2026-10-14T05:42:19.162196+00:00",
+  "recorded_at_utc": "2026-10-14T05:57:09.070968+00:00",
   "revision": "b8a45f68519014779921d8b18e582d72b25fab0a",
   "status": "PARTIAL",
   "open_alert_count": 21,
-  "individually_reviewed_count": 10,
+  "individually_reviewed_count": 21,
   "alerts": [
     {
       "line": 150,
@@ -91,88 +91,88 @@
       "number": 33,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Transaction rollback unlinks only confined final artifact associated with aborted upsert/audit; traversal not reproduced."
     },
     {
       "line": 307,
       "number": 32,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Failure cleanup unlinks only generated UUID temporary sibling; no caller-supplied deletion path."
     },
     {
       "line": 305,
       "number": 31,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Atomic replacement destination is generated confined digest artifact; concurrent hostile filesystem writer risk remains uncertain."
     },
     {
       "line": 305,
       "number": 30,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Atomic replacement source is exclusive same-directory generated temporary artifact; no caller supplies source destination."
     },
     {
       "line": 301,
       "number": 29,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Temporary artifact is a random UUID sibling of the confined generated path, created with exclusive xb."
     },
     {
       "line": 292,
       "number": 28,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "read_bytes uses confined artifact and requires byte/hash equality on readback; no remote arbitrary read found."
     },
     {
       "line": 291,
       "number": 27,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "exists checks the confined generated content-addressed artifact; local concurrent directory replacement risk remains uncertain."
     },
     {
       "line": 287,
       "number": 26,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Parent mkdir follows resolved file containment; components are generated from persisted version and digest, not raw applicant fields."
     },
     {
       "line": 284,
       "number": 25,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Final document path uses fixed answers directory, persisted integer version and content-addressed document/hash components; resolved containment checked before use."
     },
     {
       "line": 200,
       "number": 24,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Application mkdir target follows ownership lookup, generated application identity and root containment. No remotely controlled arbitrary destination found."
     },
     {
       "line": 197,
       "number": 23,
       "path": "services/documents/answers.py",
       "rule": "py/path-injection",
-      "assessment": "NOT_REVIEWED_OWNED_PATH",
-      "reason": "services/documents/answers.py remains under historical external claim; preserved, no conflicting mutation or dismissal."
+      "assessment": "NO_CONFIRMED_REMOTE_TRAVERSAL_IN_REVIEWED_BOUNDARY",
+      "reason": "Remote endpoint resolves existing application and verifies profile ownership before export. IDs originate from SHA-256 identity; resolved application root confined beneath output root before mkdir."
     }
   ],
   "validation": {
@@ -180,5 +180,11 @@
     "result": "66 PASS, 43 passing subtests, zero skips"
   },
   "review": "Read-only local Luna High source/trust-boundary review; no independent external certification",
-  "limitation": "No exploit reproduced in reviewed sites; not a claim of whole-repository security. Alerts left open; no scanner suppression or dismissal. TLS observation is specific to current Python runtime."
+  "limitation": "All 21 observed alerts individually reviewed; no confirmed remotely reachable exploit reproduced. This is bounded local source/test review, not whole-repository security or release certification. Residual shared-filesystem threat model remains unresolved; source owner and all alerts preserved.",
+  "reviewed_final_revision": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+  "answer_path_validation": {
+    "command": "python -m pytest -q tests/integration/test_application_answer_export.py tests/integration/test_application_answer_story_citation_export.py -p no:cacheprovider",
+    "result": "27 PASS, eight passing subtests, zero skips; no real resumes/credentials accessed"
+  },
+  "residual_risk": "Path-based confinement can race a less-trusted concurrent filesystem writer replacing private output directories with symlinks/junctions. Remote callers were not shown able to write there. Deployment exposure is unresolved; no race/no-follow regression was run. Any repair must reconcile historical answers.py owner and use no-follow directory traversal or enforce private directory ownership. No alert dismissal or suppression."
 }

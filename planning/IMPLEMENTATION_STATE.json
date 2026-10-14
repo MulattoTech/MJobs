@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Complete P1 durable worker outcome logs and privacy (#178, #176), with bounded #524 alert triage",
+  "current_objective": "Persisted application context and private-field exclusion for P1 worker logs (#178, #176)",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -2845,19 +2845,50 @@
     ],
     "status": "PARTIAL",
     "source_revision": "3b8cd06662b487c72b6130babe3172fd017c1baf",
-    "outcome": "Safe fixed terminal records for all ten current dispatch kinds; recognized secret-marker filtering uniformly protects identifiers/error codes; 10 CodeQL alerts individually reviewed, 11 deferred under external claim",
+    "outcome": "Safe outcome logs for all ten dispatch types; uniform recognized secret-marker filtering; all 21 CodeQL alerts individually reviewed with unresolved local-filesystem race threat documented",
     "evidence": [
       "docs/evidence/2026-10-14-p1-worker-log-privacy.json",
       "docs/evidence/2026-10-14-codeql-triage.json"
     ],
     "validation": "1591 units/1104 subtests PASS with 8 skips; 121 focused/62 subtests PASS with 15 environment skips; final extraction 3 PASS; Chromium 4 PASS; native-loader build/validators PASS",
-    "hosted_checks": "NOT_RUN pending publication",
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
     "acceptance": {
       "MJ-REQ-177": "PARTIAL",
       "MJ-REQ-175": "PARTIAL",
       "issue_524": "PARTIAL"
     },
     "rollback": "Scoped ordinary source revert; no schema or persistence-format change",
-    "updated_at_utc": "2026-10-14T05:44:17.719081+00:00"
+    "updated_at_utc": "2026-10-14T05:57:09.070968+00:00",
+    "pr": 642,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/642",
+    "verified_head": "90093d148e900ba7971b69fc3d196a86a7cb5974",
+    "merge_commit": "ef18c3a9d3566177b8a9d46a7fcf080a38ac8e2d",
+    "next_action": "Carry this documentation-only receipt with the next P0/P1 source PR; claim #178 and add safe persisted application/job/company/known-ATS context for APPLICATION_DRY_RUN and APPLICATION_FORM_REVIEW using the existing APPLY_MOCK lookup, with blocked/recovery/reopen and resolver-failure tests.",
+    "post_merge": "28 tests / 43 subtests PASS, zero skips at ef18c3a9",
+    "publication": "MERGED; documentation-only receipt remains local for next substantive source PR"
+  },
+  "p0p1_iteration_4": {
+    "issues": [
+      178,
+      176
+    ],
+    "requirements": [
+      "MJ-REQ-177",
+      "MJ-REQ-175"
+    ],
+    "status": "PARTIAL",
+    "outcome": "Persisted application/job/company/known-ATS projection after terminal worker commit; local fixture and read-only review only",
+    "validation": "1593 units/1114 subtests PASS, 8 skips; affected 73/57 PASS, 20 skips; final new tests 21/61 PASS, 6 PostgreSQL skips; connected Chromium 4 PASS; native-loader build and validators PASS",
+    "acceptance": {
+      "MJ-REQ-177": "PARTIAL",
+      "MJ-REQ-175": "PARTIAL"
+    },
+    "source_revision": "a89f4716839dfae8c381474035a06c78698c4c4c",
+    "evidence": [
+      "docs/evidence/2026-10-14-p1-application-context-logs.json"
+    ],
+    "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
+    "rollback": "Ordinary scoped source revert; no migration",
+    "updated_at_utc": "2026-10-14T06:15:01.742193+00:00"
   }
 }
