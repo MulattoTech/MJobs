@@ -86,11 +86,18 @@ def schedule_due_search_profiles(store, at=None):
     scheduled = []
     skipped = []
     with store.engine.begin() as connection:
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
+        # Share the profile fence with settings replacement and ordinary saved
+        # search edits. Newly created profiles wait until the next tick.
+        profile_ids = list(connection.execute(select(m.profiles.c.id).order_by(
+            m.profiles.c.id).with_for_update()).scalars())
         sources = [dict(row) for row in connection.execute(
             select(m.job_sources).where(m.job_sources.c.enabled.is_(True))).mappings()]
         source_by_id = {row["id"]: row for row in sources}
         profiles = [dict(row) for row in connection.execute(
-            select(m.search_profiles).where(m.search_profiles.c.enabled.is_(True))).mappings()]
+            select(m.search_profiles).where(m.search_profiles.c.enabled.is_(True),
+                                           m.search_profiles.c.profile_id.in_(profile_ids))).mappings()]
         receipts = [dict(row) for row in connection.execute(select(m.audit).where(
             m.audit.c.action == "SEARCH_PROFILE_SCHEDULE_ENQUEUED")).mappings()]
         active = list(connection.execute(select(m.operations).where(

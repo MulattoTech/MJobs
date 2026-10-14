@@ -96,7 +96,7 @@
     },
     {
       "id": "MJ-PR-005",
-      "title": "Core Search Model: Domain Model â€” Core Concepts; Global Job Sources",
+      "title": "Core Search Model: Domain Model \u00e2\u20ac\u201d Core Concepts; Global Job Sources",
       "domain": "core_search_model",
       "requirements": [
         "MJ-REQ-015",
@@ -275,7 +275,7 @@
     },
     {
       "id": "MJ-PR-013",
-      "title": "Job Identity Dedupe: Deduplication â€” Strong Signals; Deduplication â€” Company Identity",
+      "title": "Job Identity Dedupe: Deduplication \u00e2\u20ac\u201d Strong Signals; Deduplication \u00e2\u20ac\u201d Company Identity",
       "domain": "job_identity_dedupe",
       "requirements": [
         "MJ-REQ-044",
@@ -398,7 +398,7 @@
       "status": "MERGED",
       "branch": "codex/mj-pr-017-company-ats-discovery",
       "draft_until_verified": true,
-      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company’s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
+      "notes": "GitHub reports MERGED. Exact head d93508f4da500e139c62eedc5171ff975ef70462 passed PR Verification run 36939463587 and push Verification run 36939459649; merge commit 5e66bfe7029698b590fb57987a7ac657a958b516. MJ-REQ-058..059 PASS; MJ-REQ-060..061 PARTIAL. Bounded #62 sitemap slice integrated locally on 2026-10-08 at d9f92cfdd9b9f5e1bc683004e2c713ac0a9c9d88; 49 focused discovery tests and connected synthetic browser proof PASS. MJ-REQ-061 remains PARTIAL; real-source, PostgreSQL and hosted verification remain unverified. Bounded #61 follow-up integrated locally on 2026-10-09: no-website discovery reuses a uniquely resolved company\u2019s persisted verified/evidenced domain before optional search, preserves original evidence precedence, and leaves same-tier conflicts ambiguous. 42 focused integration tests and validators PASS; evidence docs/evidence/2026-10-09-official-domain-evidence-order.json. MJ-REQ-060 remains PARTIAL; hosted/PostgreSQL/live-employer checks NOT_RUN.",
       "pr_number": 444,
       "url": "https://github.com/MulattoTech/MJobs/pull/444",
       "head": "d93508f4da500e139c62eedc5171ff975ef70462",
@@ -1927,7 +1927,7 @@
     },
     {
       "id": "MJ-PR-047",
-      "title": "Orchestration Data Security: Security â€” Pii; Security â€” Web",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Pii; Security \u00e2\u20ac\u201d Web",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-171",
@@ -1958,7 +1958,7 @@
     },
     {
       "id": "MJ-PR-048",
-      "title": "Orchestration Data Security: Security â€” Secret Management; Audit Log",
+      "title": "Orchestration Data Security: Security \u00e2\u20ac\u201d Secret Management; Audit Log",
       "domain": "orchestration_data_security",
       "requirements": [
         "MJ-REQ-175",
@@ -2905,7 +2905,7 @@
     },
     {
       "id": "MJ-PR-059",
-      "title": "Test Harness: Unit Tests â€” Company Resolution; Unit Tests â€” Ats Detection",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Company Resolution; Unit Tests \u00e2\u20ac\u201d Ats Detection",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-216",
@@ -2925,7 +2925,7 @@
     },
     {
       "id": "MJ-PR-060",
-      "title": "Test Harness: Unit Tests â€” Application State; Application Idempotency Test",
+      "title": "Test Harness: Unit Tests \u00e2\u20ac\u201d Application State; Application Idempotency Test",
       "domain": "test_harness",
       "requirements": [
         "MJ-REQ-220",
@@ -3246,7 +3246,7 @@
           "At least three recent distinct source postings scoring in existing strong categories schedule sooner than the configured baseline.",
           "Six-month source history with no strong matches schedules less often.",
           "Insufficient evidence keeps the configured baseline.",
-          "Every interval is clamped to 300–604800 seconds; failures retain existing bounded retry behavior.",
+          "Every interval is clamped to 300\u2013604800 seconds; failures retain existing bounded retry behavior.",
           "Connected monitoring UI explains the learned interval and observed signal without claiming profile facts or changing the user-configured baseline."
         ],
         "status": "ACTIVE_IMPLEMENTATION",
@@ -5758,13 +5758,16 @@
       ],
       "target_area": "services/settings_transfer.py; services/privacy/retention_policy.py; connected tests",
       "depends_on": [],
-      "status": "PARTIAL",
+      "status": "MERGED_PARTIAL",
       "branch": "codex/p1-settings-retention-11",
       "priority": "P1",
       "source_commit": "a685d5d0d96636f9c9249c6f270791d2f720e51f",
       "draft_until_verified": true,
       "notes": "Two locally verified P1 source fixes. Final full unit1603PASS/1147subtests/9platformSKIP, connected API/Chromium14PASS/16subtests; local Luna review no critical/important findings. PR opening deferred: eight live open PRs exceeds canonical cap four. Hosted exact-head/integration NOT_RUN. Original requirements remain PARTIAL. Evidence docs/evidence/2026-10-14-p1-settings-retention-validation.json Published feature branch via GitHub REST git API at 997a3b685a4c09d3a2681699a0acb1a8560cdb59; tree exactly matches tested local candidate. Hosted CI/integration NOT_RUN; latest ref receipt in campaign publication-11.json.",
-      "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59"
+      "remote_source_candidate": "997a3b685a4c09d3a2681699a0acb1a8560cdb59",
+      "pr_number": 651,
+      "verified_head": "656cbc9d64b389edfced3d87f0dbff507d8479bb",
+      "merge_commit": "99c614e1b31afc8584b642ea0b98ac24d9dabcde"
     },
     {
       "id": "MJ-PR-P1-EXPORT-BACKUP-12",
@@ -5778,14 +5781,30 @@
         168,
         170
       ],
-      "status": "PARTIAL",
+      "status": "MERGED_PARTIAL",
       "branch": "codex/p1-export-backup-safety-12",
       "depends_on": [
         "MJ-PR-P1-SETTINGS-RETENTION-278-171"
       ],
       "source_revision": "36edc0350ee781d23be580c9c6aed0381552baf9",
       "evidence": "docs/evidence/2026-10-14-p1-export-backup-boundaries.json",
-      "notes": "Locally verified source; preserve pending predecessor. Original requirements PARTIAL. PR opening deferred: eight live PRs exceeds cap four. Exact-head hosted gates and integration NOT_RUN."
+      "notes": "Locally verified source; preserve pending predecessor. Original requirements PARTIAL. PR opening deferred: eight live PRs exceeds cap four. Exact-head hosted gates and integration NOT_RUN.",
+      "pr_number": 652,
+      "verified_head": "70076e4475f00366fc5d6f52a74d98add9e9dd32",
+      "merge_commit": "e9041819eb51c8717a7018074365b962f2f1dd2f"
+    },
+    {
+      "id": "MJ-PR-ROUND2-PORTABLE-SETTINGS-278",
+      "title": "Portable search schedules and public source policies",
+      "requirements": [
+        "MJ-REQ-277"
+      ],
+      "status": "IMPLEMENTED_PENDING_VERIFICATION",
+      "branch": "codex/p0p1-round2-20261014-084702",
+      "depends_on": [],
+      "draft_until_verified": true,
+      "evidence": "docs/evidence/2026-10-14-round2-portable-settings.json",
+      "notes": "Only original Project P1 #278 selected for new implementation; prior branches reconciled and merged in dependency order. All parent criteria require exact-source browser and PostgreSQL proof before PASS."
     }
   ],
   "generated_at": "2026-10-09T21:37:30Z"

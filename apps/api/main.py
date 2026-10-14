@@ -11,7 +11,7 @@ from typing import Literal, Annotated
 from urllib.parse import unquote
 from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi import Depends, FastAPI, HTTPException, Request, Query
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -1442,8 +1442,26 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                 raise HTTPException(404, "Career profile not found") from None
             raise HTTPException(422, "Settings export is unavailable") from None
 
+    async def bounded_settings_document(request: Request):
+        limit = 1024 * 1024
+        length = request.headers.get("content-length")
+        if length is not None and (not length.isdecimal() or int(length) > limit):
+            raise HTTPException(413, "Settings document exceeds the 1 MiB limit")
+        content = bytearray()
+        async for chunk in request.stream():
+            if len(content) + len(chunk) > limit:
+                raise HTTPException(413, "Settings document exceeds the 1 MiB limit")
+            content.extend(chunk)
+        try:
+            payload = json.loads(content.decode("utf-8"))
+        except (ValueError, RecursionError):
+            raise HTTPException(422, "Settings document is invalid or unsupported") from None
+        if not isinstance(payload, dict):
+            raise HTTPException(422, "Settings document is invalid or unsupported")
+        return payload
+
     @app.post("/profiles/{profile_id}/settings/import")
-    def profile_settings_import(profile_id: str, payload: dict):
+    def profile_settings_import(profile_id: str, payload: dict = Depends(bounded_settings_document)):
         from services.settings_transfer import import_settings
         try:
             return import_settings(store, profile_id, payload)

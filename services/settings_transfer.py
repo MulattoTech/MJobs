@@ -1,15 +1,21 @@
 """Validated, profile-scoped transfer for explicitly allowlisted settings."""
+import re
 from uuid import uuid4
 
 from sqlalchemy import delete, insert, select
 
 from packages.persistence import models as m
 from packages.persistence.store import now
-from services.discovery.search_profiles import save_search_profile
+from services.discovery.search_profiles import _clean_search_scheduler, save_search_profile
+from services.discovery.sources.collect import configure_source
 
 
 SCHEMA_VERSION = 1
 _SETTING_KEYS = {"search_profiles", "automation_rules", "source_configuration"}
+_SOURCE_POLICY_KEYS = {
+    "id", "provider", "tenant", "enabled", "poll_interval", "concurrency",
+    "request_timeout", "rate_limit", "jitter_seconds",
+}
 _CRITERIA_KEYS = {
     "include_titles", "exclude_titles", "required_keywords", "optional_keywords",
     "excluded_keywords", "exact_phrases", "technology_aliases", "required_skills",
@@ -32,12 +38,15 @@ def export_settings(store, profile_id):
         rows = list(connection.execute(select(m.search_profiles).where(
             m.search_profiles.c.profile_id == profile_id).order_by(
                 m.search_profiles.c.name, m.search_profiles.c.id)).mappings())
-        sources = {row["id"] for row in connection.execute(
-            select(m.job_sources.c.id).where(m.job_sources.c.id.in_(
+        sources = {row["id"]: dict(row) for row in connection.execute(
+            select(m.job_sources).where(m.job_sources.c.id.in_(
                 {source_id for row in rows for source_id in row["source_ids"] or []}))).mappings()}
 
     search_profiles = []
     source_configuration = []
+    automation_rules = []
+    portable_sources = {policy["id"]: policy for policy in _validate_source_policies([
+        {key: source[key] for key in _SOURCE_POLICY_KEYS} for source in sources.values()])}
     for row in rows:
         criteria = dict(row["criteria"] or {})
         scheduler = criteria.pop("scheduler", None)
@@ -45,17 +54,21 @@ def export_settings(store, profile_id):
             raise ValueError("Stored saved search contains unsupported settings")
         search_profile = {"name": row["name"], "enabled": row["enabled"], "criteria": criteria}
         if scheduler is not None:
+            scheduler = _clean_search_scheduler(scheduler)
             search_profile["scheduler"] = scheduler
+            automation_rules.append({"kind": "scheduled_search",
+                                     "search_profile_name": row["name"], **scheduler})
         search_profiles.append(search_profile)
         source_ids = list(row["source_ids"] or [])
-        if set(source_ids) - sources:
+        if set(source_ids) - sources.keys():
             raise ValueError("Stored saved search references an unavailable source")
-        source_configuration.append({"search_profile_name": row["name"], "source_ids": source_ids})
+        policies = [portable_sources[source_id] for source_id in source_ids]
+        source_configuration.append({"search_profile_name": row["name"], "source_ids": source_ids,
+                                     "sources": policies})
 
     return {"schema_version": SCHEMA_VERSION, "settings": {
         "search_profiles": search_profiles,
-        # There is no persisted automation-rule model in this version.
-        "automation_rules": [],
+        "automation_rules": automation_rules,
         "source_configuration": source_configuration,
     }}
 
@@ -73,8 +86,8 @@ def _validate_envelope(payload):
     source_configuration = settings["source_configuration"]
     if not isinstance(searches, list) or len(searches) > 100:
         raise ValueError("Settings document has an invalid saved search list")
-    if not isinstance(automation, list) or automation:
-        raise ValueError("Automation rules are unsupported by this settings version")
+    if not isinstance(automation, list) or len(automation) > 100:
+        raise ValueError("Settings document has an invalid automation rule list")
     if not isinstance(source_configuration, list) or len(source_configuration) > 100:
         raise ValueError("Settings document has an invalid source configuration list")
 
@@ -102,9 +115,31 @@ def _validate_envelope(payload):
             **({"scheduler": item["scheduler"]} if "scheduler" in item else {}),
         })
 
+    by_name = {search["name"].casefold(): search for search in clean_searches}
+    rule_names = set()
+    for rule in automation:
+        if not isinstance(rule, dict) or set(rule) != {
+                "kind", "search_profile_name", "enabled", "interval_seconds"}:
+            raise ValueError("Automation rule has unsupported fields")
+        name = rule["search_profile_name"]
+        if (rule["kind"] != "scheduled_search" or not isinstance(name, str)
+                or name.strip().casefold() not in names):
+            raise ValueError("Automation rule references an unsupported action or saved search")
+        folded = name.strip().casefold()
+        if folded in rule_names:
+            raise ValueError("Automation rules contain a duplicate saved search")
+        rule_names.add(folded)
+        scheduler = _clean_search_scheduler({key: rule[key] for key in ("enabled", "interval_seconds")})
+        search = by_name[folded]
+        if "scheduler" in search and _clean_search_scheduler(search["scheduler"]) != scheduler:
+            raise ValueError("Automation rule conflicts with saved search scheduler")
+        search["scheduler"] = scheduler
+
     source_rows = {}
+    source_policies = {}
     for item in source_configuration:
-        if not isinstance(item, dict) or set(item) != {"search_profile_name", "source_ids"}:
+        if (not isinstance(item, dict) or not {"search_profile_name", "source_ids"} <= set(item)
+                or set(item) - {"search_profile_name", "source_ids", "sources"}):
             raise ValueError("Source configuration has unsupported fields")
         name, source_ids = item["search_profile_name"], item["source_ids"]
         if not isinstance(name, str) or name.strip().casefold() not in names:
@@ -117,9 +152,65 @@ def _validate_envelope(payload):
         ) or len(set(source_ids)) != len(source_ids):
             raise ValueError("Source configuration source IDs are invalid")
         source_rows[folded_name] = list(source_ids)
+        if "sources" in item:
+            policies = item["sources"]
+            if (not isinstance(policies, list) or len(policies) > 100
+                    or any(not isinstance(policy, dict) or set(policy) != _SOURCE_POLICY_KEYS
+                           or not isinstance(policy["id"], str) for policy in policies)):
+                raise ValueError("Source policy list is invalid")
+            policy_ids = [policy["id"] for policy in policies]
+            if len(set(policy_ids)) != len(policy_ids) or set(policy_ids) != set(source_ids):
+                raise ValueError("Source policies do not match saved search source IDs")
+            for policy in policies:
+                identifier = policy["id"]
+                if identifier in source_policies and source_policies[identifier] != policy:
+                    raise ValueError("Source configuration contains conflicting source policies")
+                source_policies[identifier] = policy
+            if len(source_policies) > 100:
+                raise ValueError("Settings document has too many source policies")
     if set(source_rows) != names:
         raise ValueError("Each saved search must have source configuration")
-    return clean_searches, source_rows
+    _validate_source_policies(list(source_policies.values()))
+    return clean_searches, source_rows, source_policies
+
+
+def _validate_source_policies(policies):
+    """Reuse source admission in an isolated store, never fetching providers."""
+    from packages.persistence.store import Store
+
+    if not isinstance(policies, list) or len(policies) > 100:
+        raise ValueError("Source policy list is invalid")
+    if not policies:
+        return []
+    validator = Store("sqlite:///:memory:")
+    try:
+        validator.migrate()
+        seen = set()
+        clean = []
+        for policy in policies:
+            if (not isinstance(policy, dict) or set(policy) != _SOURCE_POLICY_KEYS
+                    or not isinstance(policy["provider"], str)
+                    or not isinstance(policy["tenant"], str)
+                    or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_:-]{0,127}", policy["tenant"])):
+                raise ValueError("Source policy fields are invalid")
+            try:
+                identifier = configure_source(validator, **{key: policy[key] for key in
+                                                            _SOURCE_POLICY_KEYS - {"id"}})
+            except (TypeError, ValueError):
+                raise ValueError("Source policy is invalid") from None
+            if identifier != policy["id"] or identifier in seen:
+                raise ValueError("Source policy identity is invalid or duplicated")
+            seen.add(identifier)
+            with validator.engine.connect() as connection:
+                row = connection.execute(select(m.job_sources).where(
+                    m.job_sources.c.id == identifier)).mappings().one()
+                canonical = {key: row[key] for key in _SOURCE_POLICY_KEYS}
+            if canonical != policy:
+                raise ValueError("Source policy identity must be canonical")
+            clean.append(canonical)
+        return clean
+    finally:
+        validator.engine.dispose()
 
 
 def _validate_searches_without_writes(store, profile_id, searches):
@@ -164,24 +255,34 @@ def _validate_searches_without_writes(store, profile_id, searches):
 
 def import_settings(store, profile_id, payload):
     """Validate then atomically replace the target profile's allowlisted settings."""
-    searches, source_ids_by_name = _validate_envelope(payload)
+    searches, source_ids_by_name, source_policies = _validate_envelope(payload)
     clean_searches = _validate_searches_without_writes(store, profile_id, searches)
     all_source_ids = {source_id for values in source_ids_by_name.values() for source_id in values}
-    with store.engine.connect() as connection:
+    timestamp = now()
+    for row in clean_searches:
+        row["source_ids"] = source_ids_by_name[row["name"].casefold()]
+    with store.engine.begin() as connection:
+        # Serialize profile replacement and source-policy admission across local
+        # SQLite connections. PostgreSQL source rows are locked below.
+        if connection.dialect.name == "sqlite":
+            connection.exec_driver_sql("BEGIN IMMEDIATE")
         profile_exists = connection.execute(select(m.profiles.c.id).where(
-            m.profiles.c.id == profile_id)).scalar_one_or_none()
+            m.profiles.c.id == profile_id).with_for_update()).scalar_one_or_none()
         if profile_exists is None:
             raise ValueError("Career profile does not exist")
+        for identifier, policy in sorted(source_policies.items()):
+            configure_source(store, **{key: policy[key] for key in _SOURCE_POLICY_KEYS - {"id"}},
+                             connection=connection, preserve_existing=True)
+            existing = connection.execute(select(m.job_sources).where(
+                m.job_sources.c.id == identifier).with_for_update()).mappings().one()
+            if any(existing[key] != policy[key] for key in _SOURCE_POLICY_KEYS):
+                raise ValueError("Existing shared source policy differs; review Sources before import")
         if all_source_ids:
             existing = set(connection.execute(select(m.job_sources.c.id).where(
                 m.job_sources.c.id.in_(all_source_ids))).scalars())
             if existing != all_source_ids:
                 raise ValueError("Source configuration references an unavailable source")
 
-    timestamp = now()
-    for row in clean_searches:
-        row["source_ids"] = source_ids_by_name[row["name"].casefold()]
-    with store.engine.begin() as connection:
         connection.execute(delete(m.search_profiles).where(m.search_profiles.c.profile_id == profile_id))
         for row in clean_searches:
             connection.execute(insert(m.search_profiles).values(
@@ -190,8 +291,9 @@ def import_settings(store, profile_id, payload):
                 updated_at=timestamp,
             ))
         store._audit(connection, profile_id, "SETTINGS_IMPORTED", {"saved_search_count": len(clean_searches)})
+    rule_count = sum("scheduler" in row["criteria"] for row in clean_searches)
     return {"imported_count": len(clean_searches), "search_profile_count": len(clean_searches),
-            "automation_rule_count": 0, "source_configuration_count": len(clean_searches)}
+            "automation_rule_count": rule_count, "source_configuration_count": len(clean_searches)}
 
 
 __all__ = ["SCHEMA_VERSION", "export_settings", "import_settings"]

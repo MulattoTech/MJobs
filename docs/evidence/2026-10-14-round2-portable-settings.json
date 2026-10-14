@@ -1,0 +1,76 @@
+{
+  "campaign": "round2-20261014-084702",
+  "directive": "directive-001.md",
+  "queue": "queue-001.json",
+  "recorded_at_utc": "2026-10-14T14:19:51.158812+00:00",
+  "issue": 278,
+  "requirement": "MJ-REQ-277",
+  "status": "PARTIAL_PENDING_EXACT_HEAD_GATES",
+  "branch": "codex/p0p1-round2-20261014-084702",
+  "base": "733f2144ff83e388e2e106fc3b0d133fb4b7f17d",
+  "remote_main": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+  "source_sha256": {
+    "services/settings_transfer.py": "b0817c612cbca227f52be2cc935c4c358b9fb318cb4a37547ac2f85f95748832",
+    "services/discovery/search_profiles.py": "74477ee9d603ab4151b2c905b709596660153b0a4f06be7be6e3ccaa3c1be7df",
+    "services/discovery/scheduler.py": "48c48ae7aa21496ee1ae24bfec5ea4f36766368a391229dce1efa78eae88f5a5",
+    "apps/api/main.py": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00",
+    "apps/web/src/settings-transfer.tsx": "941f1a521ebbc354a37248d0cf3f7d047b2b95af567fe91bb89479ca59b01d48",
+    "apps/web/src/settings-transfer.test.tsx": "4f4f5e95f8b574a94cc1eee8f8378cd657fa41d8f0e98923939411a35993900a",
+    "tests/unit/test_settings_transfer.py": "1e206e18297406cf86469f3156be7f2ee37e1e3361903b5d17749bb64f12ec4b",
+    "tests/integration/test_settings_transfer_flow.py": "2899ab14977631b5b0b885b85c524ffdfc63cfdca8f89d0600863ee1b0aaa374",
+    "tests/integration/test_settings_transfer_portable.py": "902a780029479aff52dd1c1e852fd76c536b8e6ced84ce3746154c23036faee4",
+    "tests/browser/test_settings_transfer_recovery.py": "f6e729c6a7f2fd714ef830179482701929003166807a8284cea687ed9ca1464a",
+    ".github/workflows/connected-acceptance.yml": "6e9ab48b842c9693e57d164eace2486c1c0c1be5d6f812d15b52331f96f0f35d"
+  },
+  "acceptance_checklist": {
+    "saved_searches": "Validated criteria, target-only replacement, reload/readback and legacy v1 compatibility",
+    "automation_rules": "Real scheduled_search rules round-trip into the existing durable scheduler; enabled rules enqueue one DISCOVER operation and duplicate ticks do not replay",
+    "source_configuration": "Public provider/tenant and six policy values transfer to a fresh installation; missing sources created atomically, existing shared policies must match",
+    "secret_exclusion": "Exact allowlisted settings only; no career facts, documents, private provider state, credentials or source history; malformed/secret-bearing fields reject generically",
+    "recovery_isolation": "Invalid later references, audit interruption, shared-source mismatch and unknown profile roll back source creation and replacement; other profiles remain unchanged",
+    "concurrency": "Shared profile transaction fence prevents lost partial edits and queuing removed searches during replacement",
+    "request_bounds": "Declared, dishonest and chunked request lengths enforce actual streamed 1 MiB limit before JSON parsing",
+    "browser": "Download, preview rule count, invalid import and shared-policy conflict preservation, retry, reload and post-reopen scheduler; hosted connected gate pending",
+    "postgresql": "Same ten criterion-level contracts run in isolated schemas in existing integration shards; NOT_RUN locally"
+  },
+  "local_checks": {
+    "focused": "42 passed, 45 subtests passed, 10 PostgreSQL cases skipped; outputs/round2-settings-focused.xml",
+    "typescript": "PASS: node apps/web/node_modules/typescript/bin/tsc --noEmit --project apps/web/tsconfig.json",
+    "integrity": "PASS: catalogue, agent_skills, progress validate, progress_dashboard --check, reference_provenance, check_repository, git diff --check",
+    "interim_full_unit": "1611 passed, 1151 subtests passed, 9 skips, 1 Mission Control launch failure. Focused launcher rerun 1 PASS. Interim run predates final fence fixes and does not certify final source.",
+    "final_full_unit": "PASS: 1612 passed, 1151 subtests passed, 9 platform skips in 270.60s; outputs/round2-settings-unit-final.xml",
+    "browser_build": "BLOCKED_ENVIRONMENT: Vite Windows net-use helper spawn EPERM; dependencies installed locally, TypeScript passed; no dependency patch or host-permission change",
+    "docker": "BLOCKED_ENVIRONMENT: Docker API access denied; no host changes or private volumes accessed"
+  },
+  "red_controls": [
+    "Fresh target import rejected real scheduled rules and missing sources before implementation",
+    "Settings export emitted zero automation rules and no source policies",
+    "Concurrent partial saved-search edit erased replacement keywords",
+    "Concurrent scheduler tick enqueued removed old-search after replacement",
+    "Oversized actual streamed body returned JSON 422 instead of bounded 413"
+  ],
+  "review": "Local GPT-6 Luna High scoped review and follow-up: no remaining important findings; not human/hosted certification",
+  "prior_branch_closeout": [
+    {
+      "pr": 651,
+      "verified_head": "656cbc9d64b389edfced3d87f0dbff507d8479bb",
+      "merge": "99c614e1b31afc8584b642ea0b98ac24d9dabcde",
+      "required_gates": "5 PASS",
+      "compose_artifacts": "5 PASS",
+      "original_acceptance": "PARTIAL"
+    },
+    {
+      "pr": 652,
+      "verified_head": "70076e4475f00366fc5d6f52a74d98add9e9dd32",
+      "merge": "e9041819eb51c8717a7018074365b962f2f1dd2f",
+      "required_gates": "5 PASS",
+      "compose_artifacts": "5 PASS",
+      "original_acceptance": "PARTIAL"
+    }
+  ],
+  "pr_cap": "Four planned delivery PR units; six unrelated Dependabot PRs excluded from this unit count; serial campaign publication with two other delivery PRs active",
+  "p0_limits": "Reviewed #6, #14, #15 retain canonical real-provider/host-restart gates; no P0 status promotion or requirement weakening",
+  "publication": "Pending; Git fetch fails locked FETCH_HEAD then Schannel SEC_E_NO_CREDENTIALS. Use existing authenticated GitHub REST git API with exact blob/tree equality; never extract credentials or modify host settings",
+  "external_submission": "OFF",
+  "rollback": "Scoped source revert; no migration, private data or existing-source policy change"
+}

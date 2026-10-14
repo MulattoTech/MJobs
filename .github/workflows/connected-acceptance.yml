@@ -51,6 +51,16 @@ jobs:
         run: python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json
       - name: Browser-integrated UI acceptance
         run: python -m cli.ui_e2e --evidence outputs/ci-ui.json
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - name: Build and verify portable settings through the production API and Chromium
+        run: |
+          npm ci --prefix apps/web --no-audit --no-fund
+          npm run build --prefix apps/web
+          python -m pytest -q tests/browser/test_settings_transfer_recovery.py --junitxml=outputs/ci-settings-browser.xml
       - name: Restart and persistence recovery
         run: python -m cli.compose_recovery --baseline outputs/ci-ui.json --evidence outputs/ci-recovery.json --project-name "$COMPOSE_PROJECT_NAME" --port "$MJOBS_PORT"
       - name: Fresh-project backup restore and independent receipt replay
@@ -61,6 +71,14 @@ jobs:
         with:
           name: synthetic-acceptance-json
           path: outputs/ci-*.json
+          if-no-files-found: ignore
+          retention-days: 3
+      - name: Upload settings browser acceptance
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: settings-browser-results
+          path: outputs/ci-settings-browser.xml
           if-no-files-found: ignore
           retention-days: 3
       - name: Remove disposable GitHub-runner containers
