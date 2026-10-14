@@ -4,12 +4,12 @@
   "slice_issue": 632,
   "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkQFI",
   "source_commit": "e269eb71a0270222ea326758da37f0954c91de2e",
-  "recorded_at_utc": "2026-10-14T00:11:06.168400+00:00",
+  "recorded_at_utc": "2026-10-14T00:22:14.960657+00:00",
   "model": "gpt-6-astra",
   "reasoning_effort": "medium",
   "local_behavior": "PASS",
   "requirement_result": "PARTIAL",
-  "hosted_checks": "NOT_RUN_PENDING_FINAL_REVISION",
+  "hosted_checks": "PASS",
   "behavior": [
     "Pipeline exposes explicitly profile-wide local rescoring and polls persisted scoring/preparation status until terminal, including reload recovery.",
     "Scoring and preparation admission share the profile database lock, exclude active conflicting work, and reject distinct concurrent scoring requests. Exact request replay preserves terminal state even after profile changes.",
@@ -131,5 +131,18 @@
     },
     "promoted_original_requirements": 0
   },
-  "final_source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c"
+  "final_source_commit": "a6ab915c23dabdcd156ba8e9fed94a267b0d0b0c",
+  "tested_pr_commit": "891b3645a8f7254a33f866dad19a8669bba3e597",
+  "merge_commit": "07be59d527493463d2b5217bc2ad3937394add6e",
+  "merge_tree_equals_tested_head": true,
+  "project_status": "Done",
+  "project_acceptance": "PASS",
+  "required_ci_runs": {
+    "fast": 38488698507,
+    "integration": 38488698482,
+    "compose": 38488698506,
+    "dependencies": 38488698517,
+    "secrets": 38488698513,
+    "codeql": 38488695056
+  }
 }

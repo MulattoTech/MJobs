@@ -220,9 +220,10 @@
         "docs/evidence/2026-09-30-ci-430.json",
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
-        "docs/evidence/2026-10-11-six-team-integration.json"
+        "docs/evidence/2026-10-11-six-team-integration.json",
+        "docs/evidence/2026-10-14-linux-python-startup.json"
       ],
-      "note": "Atomic fresh PowerShell configuration and fail-closed legacy key validation; actual isolated launcher, connected browser, Redis/full-service recovery verified. Original root legacy key remains missing and was preserved. Full host-restart acceptance remains open.",
+      "note": "Atomic fresh PowerShell configuration and fail-closed legacy key validation; actual isolated launcher, connected browser, Redis/full-service recovery verified. Original root legacy key remains missing and was preserved. Full host-restart acceptance remains open. 2026-10-14: #636 fixes Python3-only Linux launcher admission with explicit host interpreter compatibility checks. Real Bash/Python bootstrap, private config preservation, failure propagation and actual Compose config validation PASS; Docker launch is stubbed in launcher tests, so full Linux image startup remains unverified and parent PARTIAL.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"

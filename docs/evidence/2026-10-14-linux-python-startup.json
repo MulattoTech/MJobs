@@ -1,0 +1,81 @@
+{
+  "requirement": "MJ-REQ-014",
+  "issue": 15,
+  "slice_issue": 636,
+  "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhAkz9Y",
+  "source_commit": "62599110aceaa85e669016f2fceaaedaadb8cd91",
+  "recorded_at_utc": "2026-10-14T00:59:44.975487+00:00",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "local_behavior": "PASS",
+  "requirement_result": "PARTIAL",
+  "hosted_checks": "NOT_RUN_PENDING_FINAL_REVISION",
+  "behavior": [
+    "Linux startup wrapper selects compatible local virtualenv, python3 or python, probes Python>=3.10 before config/Docker, and fails clearly when no supported host interpreter is available.",
+    "Host interpreter executes only the stdlib private-config initializer. Compose application Python baseline and all mode/readiness controls are unchanged.",
+    "Real Bash/Python temporary-copy tests prove Python3-only startup creates complete0600 config, preserves existing config byte-for-byte, keeps secrets out of stdout/stderr, and sends correct fixture/personal Compose readiness arguments.",
+    "Missing or simulated unsupported3.9 interpreter, initializer failure and Compose failure cannot report readiness."
+  ],
+  "validation": [
+    {
+      "command": "Linux python -m unittest tests.unit.test_linux_launcher -q before implementation",
+      "result": "FAIL_EXPECTED",
+      "test_methods": 8,
+      "failure_events": 6,
+      "detail": "Python3-only startup failed before config/Docker, and missing interpreter lacked a diagnostic."
+    },
+    {
+      "command": "Linux bash -n .devcontainer/mjobs.sh; python -m unittest tests.unit.test_linux_launcher tests.unit.test_init_env tests.unit.test_compose_modes -q",
+      "result": "PASS",
+      "tests": 15,
+      "skipped": 10,
+      "skip_reason": "Cached Linux image lacks Docker CLI for Compose-mode tests; launcher itself uses explicit stubbed Docker. Host separately executed Compose-mode tests.",
+      "source_commit": "62599110aceaa85e669016f2fceaaedaadb8cd91",
+      "source_hashes_unchanged": true,
+      "environment": "Cached mjobs-priority-validation:20261013, read-only source mount, network none"
+    },
+    {
+      "command": "python -m pytest -q tests/unit/test_init_env.py tests/unit/test_start_mjobs.py tests/unit/test_compose_modes.py",
+      "result": "PASS",
+      "tests": 22,
+      "subtests": 40,
+      "seconds": 9.0,
+      "environment": "Windows Python3.12, PowerShell and local Docker Compose"
+    },
+    {
+      "command": "docker compose --env-file <synthetic-temp-config> -f compose.yml [--profile fixture] config --quiet",
+      "result": "PASS",
+      "detail": "Actual Compose parser accepted fixture and personal config. Missing-key legacy config rejected; original bytes unchanged. No services started."
+    },
+    {
+      "command": "catalogue; progress validate; progress_dashboard --check; agent_skills; reference_provenance; tools.ci.check_repository; commit_provenance; git diff --check",
+      "result": "PASS"
+    },
+    {
+      "command": "After merging verified main6478bd21: Linux launcher+initializer and Windows initializer/startup/Compose suites",
+      "result": "PASS",
+      "source_commit": "ec0219709c566585078c382df1a6c345ce1376f5",
+      "linux_tests": 15,
+      "linux_seconds": 1.909,
+      "windows_tests": 22,
+      "windows_subtests": 40,
+      "windows_seconds": 9.3
+    }
+  ],
+  "local_reviews": [
+    "Princess Leia reproduced Python3-only failure in isolated Linux before claim.",
+    "Princess Leia reviewed implementation/config failure safety; optional version-probe gap strengthened with actual probe executed against simulated3.9 version."
+  ],
+  "limitations": [
+    "Parent complete-startup requirement remains PARTIAL.",
+    "Launcher tests substitute Docker, and real Compose checks validate configuration only; full Linux image startup/health readiness is NOT_RUN.",
+    "No host packages, global aliases, Docker settings, existing root.env, personal databases or services were changed.",
+    "Host helper requires Python>=3.10; this does not change application container baseline Python3.12."
+  ],
+  "original_p0_p1_before_after": {
+    "PASS": 47,
+    "PARTIAL": 41,
+    "NOT_RUN": 54
+  },
+  "final_source_commit": "ec0219709c566585078c382df1a6c345ce1376f5"
+}
