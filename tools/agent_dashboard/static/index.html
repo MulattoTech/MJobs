@@ -6,6 +6,7 @@
   <title>MJobs Mission Control — Launch & Release Tracker</title>
   <link rel="stylesheet" href="/static/mission.css?v=6">
   <link rel="stylesheet" href="/static/progress_history.css?v=1">
+  <link rel="stylesheet" href="/static/delivery_ledger.css?v=1">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -27,12 +28,66 @@
     <div class="mission-heading"><div><h2>Feature Development Studio</h2><p>Guided intake, evidence-aware specifications, and safe draft export.</p></div><a href="/static/feature-studio.html">Open Feature Studio →</a></div>
     <p>Local pilot only: no autonomous agent execution or GitHub mutations from the form.</p>
   </section>
+  <section class="panel" id="externalCodexSprint" aria-label="Observed external Codex P0 P1 sprint">
+    <div class="mission-heading">
+      <div><h2>Active Codex sprint and subagents</h2>
+        <p>Read-only observation of externally launched P0/P1 campaigns; these processes are not owned by Mission Control.</p>
+      </div>
+      <span class="sync-pill" id="externalSprintStatus">Discovering...</span>
+    </div>
+    <div id="externalSprintContent" aria-live="polite">Looking for an active Codex campaign...</div>
+  </section>
   <section class="panel" id="releaseTracker" aria-label="Live MJobs release acceptance">
     <div class="mission-heading">
       <div><h2>Release acceptance</h2><p>Live verified requirements · the same canonical source as the mjobs-progress skill</p></div>
       <span id="releaseRefreshTime" class="sync-pill">Loading…</span>
     </div>
     <div id="releaseContent" aria-live="polite">Reading canonical matrices…</div>
+  </section>
+
+  <section class="panel ledger-panel" id="deliveryLedgerPanel" aria-label="Unified MJobs delivery history">
+    <div class="mission-heading">
+      <div>
+        <h2>Complete recorded delivery history</h2>
+        <p>Git commits from known local refs and retained clones, GitHub PRs and issues, original requirement acceptance transitions, and uncommitted workspace observations.</p>
+      </div>
+      <div class="history-header-actions">
+        <span class="sync-pill" id="ledgerStatus" role="status">Collecting recorded history...</span>
+        <button type="button" id="ledgerRefresh">Refresh all sources</button>
+      </div>
+    </div>
+    <div class="ledger-summary" id="ledgerSummary" aria-live="polite"></div>
+    <div class="ledger-highlights" id="ledgerHighlights" aria-live="polite">Loading recent requirement acceptance changes...</div>
+    <div class="ledger-controls">
+      <label>Activity type
+        <select id="ledgerKind">
+          <option value="all">All recorded activity</option>
+          <option value="pass">Requirements promoted to PASS</option>
+          <option value="acceptance">Committed requirement changes</option>
+          <option value="capture">Recorded acceptance snapshots</option>
+          <option value="commit">Git commits (local and remote)</option>
+          <option value="branch">GitHub branch HEADs</option>
+          <option value="pr">GitHub pull requests</option>
+          <option value="issue">GitHub issue history</option>
+          <option value="workspace">Uncommitted local workspaces</option>
+        </select>
+      </label>
+      <label>Find requirement, commit, or worktree
+        <input id="ledgerSearch" type="search" placeholder="MJ-REQ-277, startup, branch, SHA..." maxlength="120"/>
+      </label>
+      <button type="button" id="ledgerSearchGo">Search</button>
+      <button type="button" id="ledgerExport">Export all recorded metadata (JSON)</button>
+    </div>
+    <div class="ledger-coverage" id="ledgerCoverage" aria-live="polite"></div>
+    <div class="ledger-feed" id="ledgerFeed" aria-live="polite">Reading known Git and GitHub history...</div>
+    <div class="ledger-footer">
+      <span id="ledgerPaging" role="status"></span>
+      <button type="button" id="ledgerOlder" disabled>Load older records</button>
+    </div>
+    <details class="ledger-inventory"><summary id="ledgerWorkspaceSummary">Local registered workspaces and archived clones</summary>
+      <div id="ledgerWorkspaces"></div>
+    </details>
+    <p class="history-disclaimer" id="ledgerCaveat">Commit, PR and issue events are not automatically proof that every original requirement was accepted.</p>
   </section>
 
   <section class="panel history-panel" id="historyTracker" aria-label="MJobs development history">
@@ -294,5 +349,6 @@
 <script src="/static/progress_history_ui.js?v=1"></script>
 <script src="/static/mission.js?v=7"></script>
 <script src="/static/history.js?v=1"></script>
+<script src="/static/delivery_ledger.js?v=1"></script>
 </body>
 </html>
