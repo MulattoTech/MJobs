@@ -60,11 +60,27 @@ if ($Status) {
     } else { 'No Round 3 campaign checkpoint exists yet.' }
     return
 }
+# Never reference deleted/moved MJobs files in generated coding prompts.
+# Verify the exact authority files and referenced prompt paths before launching.
+function Assert-CampaignAssets([string]$Checkout) {
+    $validator = Join-Path $repo 'tools/orchestration/prompt_inventory.py'
+    if (-not (Test-Path -LiteralPath $validator)) {
+        throw 'MJOBS_PROMPT_PATH_MISSING: The prompt inventory validator is absent. Restore the required tooling from the reviewed branch.'
+    }
+    $python = Get-Command python -ErrorAction Stop
+    $result = & $python.Source $validator --root $Checkout
+    if ($LASTEXITCODE -ne 0) {
+        throw "MJOBS_PROMPT_PATH_MISSING: Required documents or referenced paths do not exist in $Checkout. Review the printed inventory and update the prompt; never guess an old worktree path."
+    }
+    return $result
+}
 foreach ($program in @('gh','codex','git')) {
     if (-not (Get-Command $program -ErrorAction SilentlyContinue)) { throw "Required command not found: $program" }
 }
 function Read-Board { return @(Get-MJobsQueue) }
 function Read-MainAcceptance { return Get-MJobsMainAcceptance }
+# Fail before any model call if a referenced MJobs file was moved or deleted.
+$null = Assert-CampaignAssets $repo
 # Stop before cloning, locking, creating campaign state or invoking Codex when auth is invalid.
 $projectAccess = Assert-MJobsGitHubAccess -RepairAuth:$RepairAuth
 Write-Host "GitHub authenticated: MulattoTech | Project #1: $($projectAccess.title)"
@@ -115,14 +131,15 @@ try {
         $iteration = [int]$current.iteration
         Write-Host "Resuming saved campaign $campaign."
     } else {
-        # Do not start a second mutation owner while a previous interactive
-        # Round 3 Codex process is still bound to an external checkout.
+        # Discover ANY live Round 3 Codex from the actual canonical active
+        # directory. A stale hard-coded historical path must never be used.
+        $currentActive = Join-Path $repo '.mjobs-recovery\active'
         $otherRound3 = @(Get-CimInstance Win32_Process | Where-Object {
-            $_.Name -in @('codex.exe','node.exe') -and $_.CommandLine -and
-            $_.CommandLine -match 'MJobs-Round3-20261014-133144'
+            $_.Name -eq 'codex.exe' -and $_.CommandLine -and
+            $_.CommandLine -like "*$currentActive\MJobs-Round3-*"
         })
         if ($otherRound3.Count -gt 0) {
-            throw 'The older Round 3 interactive session is still running. Exit it cleanly before starting another campaign.'
+            throw 'Another P0/P1 Round 3 Codex integration owner is still running inside MJobs. Preserve that session; do not start a conflicting campaign.'
         }
         $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
         $campaign = "round3-$stamp"
@@ -138,6 +155,8 @@ try {
         Invoke-External git @('-C',$worktree,'switch','-c',$branch) | Out-Null
         $iteration = 0
     }
+    # Fresh clone must contain the same existing authority/prompt files.
+    $null = Assert-CampaignAssets $worktree
     # Context files live in the working directory, not inside protected .git metadata.
     New-Item -ItemType Directory -Force $runDir | Out-Null
     $excludeFile = Join-Path $worktree '.git/info/exclude'
@@ -204,6 +223,11 @@ Return JSON matching the requested schema. issueIds contains only P0/P1 issues t
         $log = Join-Path $runDir ("codex-{0:000}.jsonl" -f $iteration)
         $stampInfo = [ordered]@{campaign=$campaign;branch=$branch;worktree=$worktree;runDir=$runDir;iteration=$iteration;status='RUNNING';updatedUtc=(Get-Date).ToUniversalTime().ToString('o')}
         Write-MJobsJson $latest $stampInfo
+        foreach ($artifact in @($schemaPath,$queueFile,$directiveFile)) {
+            if (-not (Test-Path -LiteralPath $artifact -PathType Leaf)) {
+                throw "MJOBS_PROMPT_PATH_MISSING: Generated context file does not exist: $artifact"
+            }
+        }
         $short = "Read $directiveFile and $queueFile. Execute the scoped MJobs P0/P1 implementation and closeout campaign now. Return the required JSON report."
         # Native approval flags, chosen before the process starts.
         # --approve-for-me supplies workspace-write sandbox, and conflicts with -s.
