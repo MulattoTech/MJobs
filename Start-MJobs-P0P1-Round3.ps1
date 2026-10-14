@@ -1,14 +1,21 @@
 #requires -Version 7.0
+# ROUND3_AUTH_REPAIR_V2 - tested auth preflight, standard approvals and native TUI option.
 <#
 Run in C:\Tools\Dev\MJobs with:
   pwsh -NoProfile -File .\Start-MJobs-P0P1-Round3.ps1 -Preview
   pwsh -NoProfile -File .\Start-MJobs-P0P1-Round3.ps1
   pwsh -NoProfile -File .\Start-MJobs-P0P1-Round3.ps1 -Status
-The campaign is synchronous: closing this terminal stops the launcher.
+Use -RepairAuth -Preview to reauthorize GitHub, then -Interactive for native Codex UI.
+Default mode runs bounded automatic iterations with saved logs. All modes select P0/P1 only.
 #>
 [CmdletBinding()]
 param(
     [switch]$Preview,
+    [switch]$RepairAuth,
+    [switch]$Interactive,
+    [switch]$Yolo,
+    [switch]$ManualApprovals,
+    [switch]$PrepareOnly,
     [switch]$Status,
     [switch]$NewCampaign,
     [ValidateRange(1,8)][int]$Iterations = 4,
@@ -17,11 +24,24 @@ param(
     [ValidateRange(1,6)][int]$AgentThreads = 4
 )
 $ErrorActionPreference = 'Stop'
+if ($Yolo -and $ManualApprovals) { throw 'Choose either -Yolo or -ManualApprovals.' }
+# YOLO deliberately disables both sandbox and approvals. Never do this in elevated VS Code.
+if ($Yolo -and -not $Preview) {
+    $principal = [Security.Principal.WindowsPrincipal]::new([Security.Principal.WindowsIdentity]::GetCurrent())
+    if ($principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        throw 'YOLO_BLOCKED_ELEVATED: Close the elevated VS Code AFTER saving the active sprint checkpoint, then reopen MJobs using the desktop shortcut normally. Do not use Run as administrator. Use -Yolo only from a standard Windows terminal.'
+    }
+}
+# Encoding is process-local; do not change host or user-wide settings.
+[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
+$OutputEncoding = [Text.UTF8Encoding]::new($false)
 $repo = $PSScriptRoot
+Import-Module (Join-Path $repo 'tools/orchestration/MJobsRound3.psm1') -Force -DisableNameChecking
+if ($Status -and ($Preview -or $RepairAuth -or $Interactive -or $PrepareOnly -or $Yolo -or $ManualApprovals)) { throw 'Use -Status on its own.' }
+if ($Interactive -and $PrepareOnly) { throw 'Choose -Interactive or -PrepareOnly.' }
 function Invoke-External([string]$Program,[string[]]$Arguments) {
-    $output = & $Program @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "$Program failed (exit $LASTEXITCODE): $($Arguments -join ' ')" }
-    return $output
+    $response = Invoke-MJobsRead -Program $Program -Arguments $Arguments -TimeoutSeconds 180
+    return ([string]$response.StdOut).TrimEnd([char[]]"`r`n")
 }
 $realRoot = [string]((Invoke-External 'git' @('-C',$repo,'rev-parse','--show-toplevel')) -join '').Trim()
 if ([IO.Path]::GetFullPath($realRoot).TrimEnd('\') -ine [IO.Path]::GetFullPath($repo).TrimEnd('\')) {
@@ -43,42 +63,11 @@ if ($Status) {
 foreach ($program in @('gh','codex','git')) {
     if (-not (Get-Command $program -ErrorAction SilentlyContinue)) { throw "Required command not found: $program" }
 }
-function Read-Board {
-    $text = Invoke-External 'gh' @('project','item-list','1','--owner','MulattoTech','--limit','1000','--format','json')
-    $json = ($text -join [Environment]::NewLine) | ConvertFrom-Json
-    $all = @($json.items)
-    if (-not $all.Count -or ($null -ne $json.totalCount -and $all.Count -lt [int]$json.totalCount)) {
-        throw 'Project #1 returned an empty or incomplete queue. Refusing to dispatch.'
-    }
-    $eligible = foreach ($item in $all) {
-        if ($item.content.repository -ne 'MulattoTech/MJobs' -or $item.content.type -ne 'Issue') { continue }
-        if ($item.priority -cnotin @('P0','P1') -or $item.status -eq 'Done' -or $item.acceptance -eq 'PASS') { continue }
-        $labels = @($item.labels | Where-Object {$_ -like 'priority:*'})
-        if ($labels.Count -ne 1 -or $labels[0] -cne "priority:$($item.priority)") {
-            throw "Project priority/label drift on #$($item.content.number)"
-        }
-        [pscustomobject]@{
-            issue = [int]$item.content.number
-            priority = [string]$item.priority
-            acceptance = [string]$item.acceptance
-            status = [string]$item.status
-            area = [string]$item.area
-            category = [string]$item.category
-            title = [string]$item.title
-        }
-    }
-    return @($eligible | Sort-Object priority,issue -Unique)
-}
-function Read-MainAcceptance {
-    $source = Invoke-External 'git' @('-C',$repo,'show','origin/main:planning/CAPABILITY_MATRIX.json')
-    $matrix = ($source -join [Environment]::NewLine) | ConvertFrom-Json
-    $original = @($matrix.requirements | Where-Object { $_.priority -in @('P0','P1') -and $_.result -eq 'PASS' })
-    $byPriority = @{}
-    foreach ($priority in @('P0','P1')) {
-        $byPriority[$priority] = @($original | Where-Object priority -eq $priority).Count
-    }
-    return $byPriority
-}
+function Read-Board { return @(Get-MJobsQueue) }
+function Read-MainAcceptance { return Get-MJobsMainAcceptance }
+# Stop before cloning, locking, creating campaign state or invoking Codex when auth is invalid.
+$projectAccess = Assert-MJobsGitHubAccess -RepairAuth:$RepairAuth
+Write-Host "GitHub authenticated: MulattoTech | Project #1: $($projectAccess.title)"
 $queue = @(Read-Board)
 $p0 = @($queue | Where-Object priority -eq 'P0').Count
 $p1 = @($queue | Where-Object priority -eq 'P1').Count
@@ -86,8 +75,10 @@ $openPRs = @(Invoke-External 'gh' @('pr','list','--repo','MulattoTech/MJobs','--
 Write-Host "Project #1: $p0 incomplete P0 and $p1 incomplete P1; $($openPRs.Count) open PRs. P2-P6 excluded."
 if ($Preview) {
     $baseline = Read-MainAcceptance
-    Write-Host "Current original requirement PASS: P0=$($baseline.P0)/26; P1=$($baseline.P1)/116."
-    Write-Host 'No mutations. Candidate queue preview (not an automatic work assignment):'
+    Write-Host "Current original requirement PASS: P0=$($baseline.P0)/$($baseline.P0Total); P1=$($baseline.P1)/$($baseline.P1Total)."
+    Write-Host 'Preflight passed. No clone or Codex model run was started.'
+    Write-Host 'Default interactive mode uses automatic approval review; -ManualApprovals restores y/p prompts.'
+    Write-Host 'Use -Yolo only in a non-administrator terminal: disables sandbox and approvals for this invocation.'
     $queue | Select-Object -First 20 issue,priority,acceptance,title | Format-Table -AutoSize
     $openPRs | Select-Object number,headRefName | Format-Table -AutoSize
     return
@@ -95,15 +86,27 @@ if ($Preview) {
 if ($queue.Count -eq 0) { Write-Host 'No incomplete P0/P1 cards: nothing to launch.'; return }
 New-Item -ItemType Directory -Force $stateRoot | Out-Null
 $lock = $null
-try { $lock = [IO.File]::Open((Join-Path $stateRoot 'owner.lock'),'OpenOrCreate','ReadWrite','None') }
+try { $lock = [IO.File]::Open((Join-Path $commonDir 'mjobs-p0p1-launcher.owner.lock'),'OpenOrCreate','ReadWrite','None') }
 catch { throw 'Another Round 3 owner may be active. Never run overlapping orchestrators.' }
 try {
+    $legacyLocks = @()
+    foreach ($relative in @('mjobs-p0p1-orchestrator/owner.lock','mjobs-p0p1-round2/owner.lock','mjobs-p0p1-round3/owner.lock','afk-dev/run.owner.lock')) {
+        $oldLock = Join-Path $commonDir $relative
+        if (Test-Path -LiteralPath $oldLock) {
+            try { $legacyLocks += [IO.File]::Open($oldLock,'Open','ReadWrite','None') }
+            catch { throw "Another runner still holds $relative. No processes were stopped." }
+        }
+    }
     if (-not $NewCampaign -and (Test-Path $latest)) {
         $current = Get-Content $latest -Raw | ConvertFrom-Json
         $worktree = [string]$current.worktree
+        $canonicalActive = Join-Path $repo '.mjobs-recovery\active'
+        if (-not $worktree.StartsWith($canonicalActive + [IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase)) {
+            throw 'Existing Round 3 campaign lives outside MJobs. Finish the running interactive session, then use -NewCampaign to start a fresh campaign inside C:\Tools\Dev\MJobs\.mjobs-recovery\active.'
+        }
         $campaign = [string]$current.campaign
         $branch = [string]((Invoke-External git @('-C',$worktree,'branch','--show-current')) -join '').Trim()
-        if (-not (Test-Path (Join-Path $worktree '.git'))) { throw 'Saved clone has no independent .git directory.' }
+        if (-not (Test-Path (Join-Path $worktree '.git') -PathType Container)) { throw 'Saved clone has no independent .git directory.' }
         if ($current.status -in @('BLOCKED','ERROR')) { throw 'Previous Round3 run is blocked; inspect checkpoint instead of repeating unchanged work.' }
         if ($branch -ne [string]$current.branch -or $branch -notlike 'codex/*') {
             throw 'Saved campaign branch changed; refuse automatic mutation.'
@@ -112,19 +115,39 @@ try {
         $iteration = [int]$current.iteration
         Write-Host "Resuming saved campaign $campaign."
     } else {
+        # Do not start a second mutation owner while a previous interactive
+        # Round 3 Codex process is still bound to an external checkout.
+        $otherRound3 = @(Get-CimInstance Win32_Process | Where-Object {
+            $_.Name -in @('codex.exe','node.exe') -and $_.CommandLine -and
+            $_.CommandLine -match 'MJobs-Round3-20261014-133144'
+        })
+        if ($otherRound3.Count -gt 0) {
+            throw 'The older Round 3 interactive session is still running. Exit it cleanly before starting another campaign.'
+        }
         $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
         $campaign = "round3-$stamp"
         $branch = "codex/p0p1-round3-$stamp"
         # A fully independent clone puts .git inside the Codex writable root.
         # Do not link metadata to the blocked Round2 worktree.
-        $worktree = Join-Path (Split-Path -Parent $repo) "MJobs-Round3-$stamp"
-        $runDir = Join-Path $stateRoot $campaign
+        $workspaceParent = Join-Path $repo '.mjobs-recovery\active'
+        New-Item -Path $workspaceParent -ItemType Directory -Force | Out-Null
+        $worktree = Join-Path $workspaceParent "MJobs-Round3-$stamp"
+        $runDir = Join-Path (Join-Path $worktree '.mjobs-run') $campaign
         if (Test-Path $worktree) { throw "Clone destination already exists: $worktree" }
         Invoke-External git @('clone','--single-branch','--branch','main','https://github.com/MulattoTech/MJobs.git',$worktree) | Out-Null
         Invoke-External git @('-C',$worktree,'switch','-c',$branch) | Out-Null
         $iteration = 0
     }
+    # Context files live in the working directory, not inside protected .git metadata.
     New-Item -ItemType Directory -Force $runDir | Out-Null
+    $excludeFile = Join-Path $worktree '.git/info/exclude'
+    if (-not (Select-String -LiteralPath $excludeFile -Pattern '^/\.mjobs-run/$' -Quiet)) {
+        [IO.File]::AppendAllText($excludeFile,"`n/.mjobs-run/`n",[Text.UTF8Encoding]::new($false))
+    }
+    $initialState = [ordered]@{campaign=$campaign;branch=$branch;worktree=$worktree;runDir=$runDir;iteration=$iteration;status='READY';updatedUtc=(Get-Date).ToUniversalTime().ToString('o')}
+    Write-MJobsJson $latest $initialState
+    if ($PrepareOnly) { Write-Host "Prepared standalone clone: $worktree. No Codex agent started."; return }
+
     $schemaPath = Join-Path $runDir 'completion.schema.json'
     $schema = @{
         type = 'object'
@@ -143,13 +166,12 @@ try {
     $noProgress = 0
     for($round=1; $round -le $Iterations; $round++) {
         $iteration++
-        Invoke-External git @('-C',$repo,'fetch','origin','main') | Out-Null
         $before = Read-MainAcceptance
-        $mainBefore = [string]((Invoke-External git @('-C',$repo,'rev-parse','origin/main')) -join '').Trim()
+        $mainBefore = [string]$before.Head
         $queue = @(Read-Board)
         if (-not $queue.Count) { Write-Host 'No incomplete P0/P1 cards remaining.'; break }
         $queueFile = Join-Path $runDir ("queue-{0:000}.json" -f $iteration)
-        [IO.File]::WriteAllText($queueFile,($queue | ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
+        Write-MJobsJson $queueFile @($queue)
         $directiveFile = Join-Path $runDir ("directive-{0:000}.md" -f $iteration)
         $directive = @"
 # MJobs original P0/P1 completion campaign, round $iteration
@@ -158,12 +180,11 @@ Project work queue: $queueFile
 Current coding checkout: $worktree
 Baseline origin/main SHA: $mainBefore
 Original PASS baseline: P0=$($before.P0), P1=$($before.P1).
-Previous campaign checkpoint: $commonDir\mjobs-p0p1-orchestrator\latest.json
-Previous worktree: $repo\.worktrees\p0p1-orchestrator-20261013-232152
+Prior blocked worktrees and credentials are off limits; use this current clone and the live Project board.
 
 You are one integration owner with at most $AgentThreads agent threads, where up to 3 agents may write only in non-overlapping owned worktrees. Enforce all AGENTS.md, code safety, ownership and branch protections. This prompt authorizes code implementation and controlled Project/GitHub changes required for selected P0/P1 work.
 
-PRIORITY #1 (RECONCILE, NOT REBUILD): GitHub already merged PRs #651, #652, and #653. MJ-REQ-277 is PASS and issue #278 is closed. Do not reopen, duplicate or reintegrate them. Round 2's linked worktree contains a pending local merge/closeout commit blocked by index.lock; it is off limits. This independent clone starts from fresh GitHub main and uses its OWN writable .git directory. Verify that these accepted results are present. Review the current Project board, ownership, required CI and actual PR queue policy; do not close unrelated Dependabot PRs or bypass a genuine PR cap. Spend implementation effort on genuinely unfinished original P0/P1 requirements, not historical publication bookkeeping.
+PRIORITY #1 (RECONCILE, NOT REBUILD): GitHub already merged PRs #651, #652, and #653. MJ-REQ-277 is PASS and issue #278 is closed. Do not reopen, duplicate or reintegrate them. Round 2's linked worktree contains a pending local merge/closeout commit blocked by index.lock; it is off limits. This independent clone starts from fresh GitHub main and has its OWN .git directory. Codex may still protect Git metadata; request approval through the configured reviewer for legitimate Git operations, and stop if approval is denied. Do not try API or filesystem workarounds to evade a denial. Verify that these accepted results are present. Review the current Project board, ownership, required CI and actual PR queue policy; do not close unrelated Dependabot PRs or bypass a genuine PR cap. Spend implementation effort on genuinely unfinished original P0/P1 requirements, not historical publication bookkeeping.
 
 PRIORITY #2 (ACTUALLY COMPLETE ORIGINAL REQUIREMENTS): Choose ONE or TWO achievable original incomplete P0/P1 MJ-REQ requirements to bring fully to PASS, prioritizing a meaningful P0 and P1. Prioritize an achievable P0 completion plus an achievable P1 completion where evidence supports it. Read the original issue acceptance contract and its canonical requirement matrix note; make a precise checklist of every missing criterion. Before writing new code, determine whether the gap is actual behavior, missing integration, missing proof, or external impossibility. Avoid huge umbrella P0 planning/reporting directives that lack independent user-observable completion.
 
@@ -175,38 +196,69 @@ For every deliverable: focused tests, affected PostgreSQL/Redis/Chromium/Compose
 
 No real job application submissions, paid AI/API services, secret access/extraction, host config changes, reset/clean of another worktree, force push or approval/security bypass. Stop on genuine missing permissions or a repeated unchanged failure; otherwise deliver real code.
 
-Return JSON matching the requested schema. issueIds contains only P0/P1 issues that you actually worked on from the supplied queue. completeOriginalRequirements contains only fully verified MJ-REQ/MJ-REF identifiers, never speculative upgrades. When safe meaningful P0/P1 work remains return CONTINUE with nextAction. A plan-only response is insufficient.
+Return JSON matching the requested schema. issueIds contains only P0/P1 issues that you actually worked on from the supplied queue. completeOriginalRequirements contains only fully verified original MJ-REQ identifiers. Report additive MJ-REF work separately; never use it to inflate original counts. When safe meaningful P0/P1 work remains return CONTINUE with nextAction. A plan-only response is insufficient.
 "@
         [IO.File]::WriteAllText($directiveFile,$directive,[Text.UTF8Encoding]::new($false))
         $resultFile = Join-Path $runDir ("result-{0:000}.json" -f $iteration)
         $log = Join-Path $runDir ("codex-{0:000}.jsonl" -f $iteration)
         $stampInfo = [ordered]@{campaign=$campaign;branch=$branch;worktree=$worktree;runDir=$runDir;iteration=$iteration;status='RUNNING';updatedUtc=(Get-Date).ToUniversalTime().ToString('o')}
-        $stampInfo|ConvertTo-Json|Set-Content -LiteralPath $latest -Encoding utf8
+        Write-MJobsJson $latest $stampInfo
         $short = "Read $directiveFile and $queueFile. Execute the scoped MJobs P0/P1 implementation and closeout campaign now. Return the required JSON report."
-        $arguments = @('exec','-C',$worktree,
-            '-s','workspace-write','-m',$Model,
+        # Native approval flags, chosen before the process starts.
+        # --approve-for-me supplies workspace-write sandbox, and conflicts with -s.
+        $approvalArguments = if ($Yolo) {
+            @('--dangerously-bypass-approvals-and-sandbox')
+        } elseif ($ManualApprovals) {
+            @('-s','workspace-write','-a','on-request','-c','approvals_reviewer="user"')
+        } else {
+            @('--approve-for-me','-c','approvals_reviewer="auto_review"')
+        }
+        $standardArguments = @(
+            '-m',$Model,
             '-c',"model_reasoning_effort=`"$Reasoning`"",
-            '-c','approval_policy="never"',
             '-c',"agents.max_concurrent_threads_per_session=$AgentThreads",
             '-c','agents.default_subagent_model="gpt-6-luna"',
             '-c','agents.default_subagent_reasoning_effort="high"',
-            '--enable','multi_agent','--json',
-            '--output-schema',$schemaPath,'--output-last-message',$resultFile,
-            $short)
+            '--enable','multi_agent'
+        )
+        $arguments = @('exec','-C',$worktree) + $approvalArguments + $standardArguments + @(
+            '--json','--output-schema',$schemaPath,
+            '--output-last-message',$resultFile,$short
+        )
+        if ($Interactive) {
+            $tuiPrompt = $short + ' Interactive mode: execute normally and give a readable handoff rather than a JSON-only final response.'
+            $tuiArguments = @('-C',$worktree) + $approvalArguments + $standardArguments + @($tuiPrompt)
+            Write-Host ("Effective Codex approvals: " + $(if($Yolo){'YOLO (NO SANDBOX)'}elseif($ManualApprovals){'manual on-request'}else{'automatic reviewed'}))
+            Write-Host 'Opening native Codex TUI. /status and agent views are provided by Codex itself.'
+            Write-Host 'Exiting this TUI returns to PowerShell; it does not silently launch another session.'
+            Push-Location $worktree
+            try { & codex @tuiArguments; $tuiExit=$LASTEXITCODE } finally { Pop-Location }
+            $stampInfo.status = if ($tuiExit -eq 0) { 'INTERACTIVE_EXIT' } else { 'ERROR' }
+            $stampInfo.branch = Invoke-External git @('-C',$worktree,'branch','--show-current')
+            $stampInfo.updatedUtc=(Get-Date).ToUniversalTime().ToString('o')
+            Write-MJobsJson $latest $stampInfo
+            if ($tuiExit -ne 0) { throw "Interactive Codex exited $tuiExit; checkout preserved." }
+            break
+        }
         Write-Host "=== Round 3 iteration $iteration | P0 PASS $($before.P0), P1 PASS $($before.P1) ==="
         Write-Host "Saved full Codex event log: $log"
         Write-Host "Primary model: $Model | reasoning: $Reasoning | subagent default: gpt-6-luna high | agent limit: $AgentThreads"
         $startedAt = Get-Date
         $cmdCount = 0
         $fileCount = 0
-        & codex @arguments 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
+        # Explicit EOF prevents codex exec waiting for inherited redirected stdin.
+        '' | & codex @arguments 2>&1 | Tee-Object -FilePath $log | ForEach-Object {
             $event = $null
-            try { $event = ([string]$_) | ConvertFrom-Json -ErrorAction Stop } catch { return }
+            try { $event = ([string]$_) | ConvertFrom-Json -ErrorAction Stop } catch {
+                $plain = Protect-MJobsText ([string]$_)
+                if ($plain) { Write-Host $plain }
+                return
+            }
             $kind = [string]$event.item.type
             if ($event.type -eq 'item.started' -and $kind -eq 'command_execution') {
                 $cmdCount++
                 if ($cmdCount -le 5 -or $cmdCount % 8 -eq 0) {
-                    $commandText = [string]$event.item.command
+                    $commandText = Protect-MJobsText ([string]$event.item.command)
                     Write-Host ("CMD #{0}: {1}" -f $cmdCount,$commandText.Substring(0,[Math]::Min(145,$commandText.Length))) -ForegroundColor DarkGray
                 }
             } elseif ($event.type -eq 'item.completed' -and $kind -eq 'file_change') {
@@ -217,7 +269,7 @@ Return JSON matching the requested schema. issueIds contains only P0/P1 issues t
                     }
                 }
             } elseif ($event.type -eq 'item.completed' -and $kind -eq 'agent_message') {
-                $message = ([string]$event.item.text -replace '[\r\n]+',' ')
+                $message = Protect-MJobsText ([string]$event.item.text -replace '[\r\n]+',' ')
                 if ($message.Length -gt 320) { $message = $message.Substring(0,320) + '...' }
                 Write-Host "AGENT: $message" -ForegroundColor Cyan
             } elseif ($event.type -eq 'turn.completed') {
@@ -232,7 +284,7 @@ Return JSON matching the requested schema. issueIds contains only P0/P1 issues t
         $code = $LASTEXITCODE
         if ($code -ne 0 -or -not (Test-Path $resultFile)) {
             $stampInfo.status='ERROR'
-            $stampInfo|ConvertTo-Json|Set-Content -LiteralPath $latest -Encoding utf8
+            Write-MJobsJson $latest $stampInfo
             throw "Codex failed at iteration $iteration (exit $code). Full log: $log. Worktrees preserved."
         }
         try { $report = Get-Content $resultFile -Raw | ConvertFrom-Json }
@@ -241,25 +293,41 @@ Return JSON matching the requested schema. issueIds contains only P0/P1 issues t
         foreach($number in @($report.issueIds)) {
             if ([int]$number -notin $allowed) { throw "Codex reported out-of-scope issue #$number; halting immediately." }
         }
-        Invoke-External git @('-C',$repo,'fetch','origin','main') | Out-Null
         $after = Read-MainAcceptance
-        $mainAfter = [string]((Invoke-External git @('-C',$repo,'rev-parse','origin/main')) -join '').Trim()
+        $mainAfter = [string]$after.Head
         Write-Host ("Original P0 PASS: {0} -> {1}; P1 PASS: {2} -> {3}" -f $before.P0,$after.P0,$before.P1,$after.P1)
-        $changed = ($mainBefore -ne $mainAfter) -or ($after.P0 -gt $before.P0) -or ($after.P1 -gt $before.P1)
+        foreach ($claimed in @($report.completeOriginalRequirements)) {
+            if ($claimed -notin $after.PassIds) { throw "MJOBS_UNVERIFIED_COMPLETION: $claimed is not PASS on current published main." }
+        }
+        if ($report.status -eq 'COMPLETE' -and ($after.P0 -lt $after.P0Total -or $after.P1 -lt $after.P1Total)) {
+            throw 'MJOBS_FALSE_COMPLETE: Original P0/P1 requirements remain incomplete; preserving checkpoint for review.'
+        }
+        $changed = ($after.P0 -gt $before.P0) -or ($after.P1 -gt $before.P1)
         if ($changed) { $noProgress=0 } else { $noProgress++ }
         $stampInfo.status=[string]$report.status
         $stampInfo.branch = [string]((Invoke-External git @('-C',$worktree,'branch','--show-current')) -join '').Trim()
         $stampInfo.updatedUtc=(Get-Date).ToUniversalTime().ToString('o')
-        $stampInfo|ConvertTo-Json|Set-Content -LiteralPath $latest -Encoding utf8
+        Write-MJobsJson $latest $stampInfo
         Write-Host ("Codex: {0} | {1}" -f $report.status,$report.summary)
         if ($report.status -in @('BLOCKED','COMPLETE')) { break }
         if ($noProgress -ge 2) {
-            Write-Warning 'Two rounds without any new main commit or original PASS; pause and review before burning more usage.'
+            Write-Warning 'Two rounds without an original P0/P1 PASS increase; pause and review before further usage.'
             break
         }
     }
     Write-Host "Campaign checkpoint: $latest"
     Write-Host "Full logs and directives: $runDir"
+} catch {
+    $failure = $_
+    if ($stampInfo) {
+        $stampInfo.status='ERROR'
+        $stampInfo.updatedUtc=(Get-Date).ToUniversalTime().ToString('o')
+        $detail=Protect-MJobsText $failure.Exception.Message
+        $stampInfo.error=$detail.Substring(0,[Math]::Min(500,$detail.Length))
+        try { Write-MJobsJson $latest $stampInfo } catch { Write-Warning 'Could not update the local failure checkpoint.' }
+    }
+    throw $failure
 } finally {
+    foreach ($held in $legacyLocks) { $held.Dispose() }
     $lock.Dispose()
 }
