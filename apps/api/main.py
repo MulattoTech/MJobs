@@ -85,6 +85,17 @@ def _uploaded_comparison_entity_id(profile_id, application_id, base_revision_id,
     return "uploaded-comparison:" + hashlib.sha256(scope.encode("utf-8")).hexdigest()
 
 
+BROWSER_SECURITY_HEADERS = {
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "Content-Security-Policy": (
+        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+        "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    ),
+}
+
+
 class LocalOriginMiddleware:
     """Apply local-origin guards without wrapping the request receive channel."""
 
@@ -99,13 +110,7 @@ class LocalOriginMiddleware:
         async def send_with_security_headers(message):
             if message["type"] == "http.response.start":
                 headers = MutableHeaders(scope=message)
-                headers["Cache-Control"] = "no-store"
-                headers["X-Content-Type-Options"] = "nosniff"
-                headers["Referrer-Policy"] = "no-referrer"
-                headers["Content-Security-Policy"] = (
-                    "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-                    "connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-                )
+                headers.update(BROWSER_SECURITY_HEADERS)
             await send(message)
 
         request = Request(scope, receive)
@@ -739,6 +744,14 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     app.include_router(create_operation_progress_router(store))
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=["127.0.0.1", "localhost", "api", "testserver"])
     app.add_middleware(LocalOriginMiddleware)
+
+    @app.exception_handler(Exception)
+    async def unexpected_error(_, error):
+        # ServerErrorMiddleware emits unhandled 500s outside user middleware.
+        # Apply the same privacy policy explicitly and never reflect exception
+        # details, which can contain database parameters or applicant content.
+        return JSONResponse({"detail": "Internal server error"}, status_code=500,
+                            headers=BROWSER_SECURITY_HEADERS)
 
     @app.exception_handler(ValueError)
     async def invalid(_, error):

@@ -3,6 +3,7 @@ import copy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -147,3 +148,24 @@ class LocalOriginSecurityTests(unittest.TestCase):
                 self.assertIn("frame-ancestors 'none'", response.headers.get("content-security-policy", ""))
                 self.assertNotIn("attacker.example", response.text + str(response.headers))
                 self.assertNotIn("Private synthetic search", response.text)
+
+    def test_unhandled_private_read_error_has_safe_headers_and_recovers_after_reopen(self):
+        self.assertEqual(self.client.put('/search-profiles', json=self.search).status_code, 200)
+        expected_headers = self.client.get('/search-profiles/private-search').headers
+        with TestClient(self.client.app, raise_server_exceptions=False) as client:
+            with patch('apps.api.main.get_search_profile', side_effect=RuntimeError(
+                    'synthetic-private-email@example.test resume employment history')):
+                response = client.get('/search-profiles/private-search')
+            self.assertEqual(response.status_code, 500)
+            for header in ('cache-control', 'x-content-type-options', 'referrer-policy',
+                           'content-security-policy'):
+                self.assertEqual(response.headers.get(header), expected_headers[header], header)
+            self.assertEqual(response.json(), {'detail': 'Internal server error'})
+            self.assertNotIn('synthetic-private-email', response.text + str(response.headers))
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.url)
+        self.client = self._client()
+        recovered = self.client.get('/search-profiles/private-search')
+        self.assertEqual(recovered.status_code, 200, recovered.text)
+        self.assertEqual(recovered.json()['name'], self.search['name'])
