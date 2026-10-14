@@ -2649,8 +2649,8 @@
   "session_control": {
     "owner": "Authorized Project-only P0/P1 iteration 1",
     "write_lanes": 1,
-    "status": "ACTIVE",
-    "note": "Current root is sole integrator. Two read-only local Luna reviewers; no AFK runner or historical goal was changed."
+    "status": "HANDOFF_READY",
+    "note": "Two eligible P1 safety slices merged. No background runner or new session exists. Release only the three named campaign claims and Codex integration lock at this checkpoint; consult the common bus before new writes."
   },
   "pr023_completion": {
     "timestamp": "2026-10-03T20:33:37.729938-05:00",
@@ -2727,7 +2727,7 @@
     "Issue #244 / MJ-REQ-243 exact integrated source 88b781bfc45c44363cd024e61af4b9a8d01866e4: 23 focused Python unit/API/pipeline/worker tests, 2 connected Chromium tests and 4 web tests PASS; TypeScript/Vite, py_compile, diff and lane validation PASS. Evidence docs/evidence/2026-10-09-company-source-cheap-prefilter.json. PostgreSQL/full suite/live providers/hosted NOT_RUN; external submission OFF.",
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
-  "ownership": "Current Codex root holds the local integration lock; claims for integrated #157/#170/#171/#263 paths were released after issue comments and local acceptance. Previous branches/worktrees and user-owned untracked files remain preserved; no other lane claims were changed.",
+  "ownership": "Project-only iteration root was sole writer/integrator; source is merged. Three campaign claims and its integration lock are released at closeout. Historical external claims/worktrees/AFK state are preserved; recheck the native common coordination bus before future mutation.",
   "delivery_policy": {
     "mode": "LOCAL_ONLY",
     "effective_at": "2026-10-05T16:32:10.763994-05:00",
@@ -2798,13 +2798,18 @@
       "MJ-REQ-172",
       "MJ-REQ-170"
     ],
-    "status": "PARTIAL",
+    "status": "MERGED_VERIFIED_PARTIAL",
     "branch": "codex/p0p1-only-20261013-232152",
     "source_commit": "454a10c1d991ea64be97297301559e802c9f874a",
     "evidence": "docs/evidence/2026-10-14-p1-api-retention-guards.json",
     "local_focused": "42 tests and 26 subtests PASS, including two Chromium tests",
     "full_unit": "PASS",
-    "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
-    "next_action": "Publish reviewable PR, require all five exact-head required checks before integration"
+    "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+    "next_action": "Carry the local evidence checkpoint into the next unowned P0/P1 Project source slice; reconcile ownership before selection",
+    "verified_head": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+    "merge_commit": "2dde6085dc9769b5e0c539320f53309f8eb073f7",
+    "pr": 640,
+    "pr_url": "https://github.com/MulattoTech/MJobs/pull/640",
+    "post_merge": "42 tests and 26 subtests PASS"
   }
 }

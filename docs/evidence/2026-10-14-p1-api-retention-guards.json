@@ -89,9 +89,65 @@
     "No full security/authentication or all-category retention acceptance; parent issues remain open and matrices are unchanged.",
     "An ancestry check followed by path-based unlink does not provide atomic protection against a hostile filesystem swap between the final check and deletion.",
     "Windows local tests use synthetic SQLite and native temporary directory links; PostgreSQL/Redis/Compose local full-stack checks NOT_RUN.",
-    "Eight Linux-launcher unit cases require Linux and remain skipped on the Windows host; required exact-head hosted checks pending.",
+    "Eight Linux-launcher unit cases require Linux and remain skipped on the Windows host; all five required checks passed on the exact PR head; main-push workflows are a separate gate.",
     "Real applications, live provider inference, credential access and unrelated host changes were not performed."
   ],
-  "hosted_checks": "NOT_RUN_PENDING_PUBLICATION",
-  "publication": "PENDING"
+  "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+  "publication": "MERGED",
+  "closed_out_at_utc": "2026-10-14T04:59:15.731318+00:00",
+  "pr": "https://github.com/MulattoTech/MJobs/pull/640",
+  "verified_pr_head": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+  "merge_commit": "2dde6085dc9769b5e0c539320f53309f8eb073f7",
+  "merge_tree_identical_to_verified_pr": true,
+  "required_check_receipts": [
+    {
+      "name": "Integration / PostgreSQL and Redis",
+      "id": 115687833160,
+      "head_sha": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+      "conclusion": "success",
+      "completed_at": "2026-10-14T04:53:46Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/38513041988/job/115687833160"
+    },
+    {
+      "name": "CI / required",
+      "id": 115686181342,
+      "head_sha": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+      "conclusion": "success",
+      "completed_at": "2026-10-14T04:47:37Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/38513042037/job/115686181342"
+    },
+    {
+      "name": "Security / secret scan",
+      "id": 115685637455,
+      "head_sha": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+      "conclusion": "success",
+      "completed_at": "2026-10-14T04:45:44Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/38513041965/job/115685637455"
+    },
+    {
+      "name": "Disposable Compose / mock end-to-end",
+      "id": 115685637421,
+      "head_sha": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+      "conclusion": "success",
+      "completed_at": "2026-10-14T04:49:28Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/38513041930/job/115685637421"
+    },
+    {
+      "name": "Dependencies / introduced vulnerabilities",
+      "id": 115685637357,
+      "head_sha": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+      "conclusion": "success",
+      "completed_at": "2026-10-14T04:45:38Z",
+      "url": "https://github.com/MulattoTech/MJobs/actions/runs/38513041978/job/115685637357"
+    }
+  ],
+  "post_merge_validation": {
+    "revision": "2dde6085dc9769b5e0c539320f53309f8eb073f7",
+    "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_transient_retention.py tests/unit/test_transient_retention_scheduler.py tests/unit/test_retention_policy.py tests/integration/test_transient_retention.py tests/integration/test_retention_policy.py tests/integration/test_local_origin_security.py tests/integration/test_ai_cost_policy_api.py tests/browser/test_local_origin_security.py tests/browser/test_retention_policy.py --tb=short",
+    "result": "PASS",
+    "tests": 42,
+    "subtests": 26,
+    "skipped": 0
+  },
+  "main_push_checks": "NOT_RUN_PENDING_SEPARATE_MAIN_PUSH_WORKFLOW_COMPLETION"
 }

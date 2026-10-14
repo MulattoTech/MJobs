@@ -1875,7 +1875,10 @@
         "evidence": "docs/evidence/2026-10-14-p1-api-retention-guards.json",
         "scope_complete": false,
         "local_behavior": "PASS",
-        "hosted_checks": "NOT_RUN_PENDING_PUBLICATION"
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "pr": 640,
+        "verified_head": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+        "merge_commit": "2dde6085dc9769b5e0c539320f53309f8eb073f7"
       }
     },
     {
@@ -1903,7 +1906,10 @@
         "evidence": "docs/evidence/2026-10-14-p1-api-retention-guards.json",
         "scope_complete": false,
         "local_behavior": "PASS",
-        "hosted_checks": "NOT_RUN_PENDING_PUBLICATION"
+        "hosted_checks": "PASS_REQUIRED_EXACT_PR_HEAD",
+        "pr": 640,
+        "verified_head": "43b5be07f2f2ea4c1e836829da9688f44d353e31",
+        "merge_commit": "2dde6085dc9769b5e0c539320f53309f8eb073f7"
       }
     },
     {
