@@ -111,8 +111,9 @@ def record_application_preparation_event(connection, action: str, profile_id: st
     event_id = identity("profile-audit", action, profile_id, job_id,
                         operation_id, attempt)
     values = {"id": event_id, "entity_id": profile_id, "action": action,
-              "payload": {"job_id": job_id, "operation_id": operation_id,
-                          "attempt": attempt}, "timestamp": now()}
+              "payload": _snapshot_payload(connection, action,
+                  {"job_id": job_id, "operation_id": operation_id, "attempt": attempt}),
+              "timestamp": now()}
     dialect = connection.dialect.name
     if dialect == "sqlite":
         statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
@@ -144,7 +145,7 @@ def _append_profile_event(connection, action: str, profile_id: str,
                           stable_subject_id: str, payload: dict) -> None:
     event_id = identity("profile-audit", action, profile_id, stable_subject_id)
     values = {"id": event_id, "entity_id": profile_id, "action": action,
-              "payload": payload, "timestamp": now()}
+              "payload": _snapshot_payload(connection, action, payload), "timestamp": now()}
     dialect = connection.dialect.name
     if dialect == "sqlite":
         statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
@@ -164,7 +165,7 @@ def _append_once(connection, profile_id: str, action: str, job_id: str,
                  payload: dict, profile_version: str = "") -> None:
     event_id = identity("profile-audit", action, profile_id, job_id, profile_version)
     values = {"id": event_id, "entity_id": profile_id, "action": action,
-              "payload": payload, "timestamp": now()}
+              "payload": _snapshot_payload(connection, action, payload), "timestamp": now()}
     dialect = connection.dialect.name
     if dialect == "sqlite":
         statement = sqlite_insert(m.audit).values(**values).on_conflict_do_nothing(
@@ -180,6 +181,41 @@ def _append_once(connection, profile_id: str, action: str, job_id: str,
     connection.execute(statement)
 
 
+def _snapshot_payload(connection, action: str, payload: dict) -> dict:
+    """Capture only safe labels in the same transaction as their audit event."""
+    if action in _COMPANY_EVENTS:
+        subject = connection.execute(select(m.companies.c.name).where(
+            m.companies.c.id == payload["company_id"])).scalar_one_or_none()
+        company = ""
+    elif action in {"JOB_DISCOVERED", "JOB_MERGED", "MATCH_SCORED",
+                    *_APPLICATION_PREPARATION_EVENTS}:
+        job = connection.execute(select(m.jobs.c.title, m.companies.c.name).select_from(
+            m.jobs.join(m.companies, m.jobs.c.company_id == m.companies.c.id)).where(
+                m.jobs.c.id == payload["job_id"])).first()
+        subject, company = job if job else (None, None)
+    else:
+        return payload
+    return {**payload, "subject_snapshot": {
+        "subject": _display_label(subject, "Details withheld"),
+        "company": _display_label(company, ""),
+    }}
+
+
+def _historical_labels(payload) -> tuple[str, str]:
+    if not isinstance(payload, dict):
+        return "Details withheld", ""
+    if "subject_snapshot" not in payload:
+        # Current entity names cannot establish a historical event's labels.
+        return "Historical details not recorded", ""
+    snapshot = payload["subject_snapshot"]
+    if (not isinstance(snapshot, dict) or set(snapshot) != {"subject", "company"}
+            or any(not isinstance(value, str) or len(value) > 500
+                   for value in snapshot.values())):
+        return "Details withheld", ""
+    return (_display_label(snapshot["subject"], "Details withheld"),
+            _display_label(snapshot["company"], ""))
+
+
 def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
     """Return a bounded timeline without exposing stored audit payloads."""
     store.profile(profile_id)
@@ -191,56 +227,14 @@ def list_audit_history(store, profile_id: str, limit: int = 100) -> dict:
         ).where(m.audit.c.entity_id == profile_id,
                m.audit.c.action.in_(_PROFILE_EVENTS)).order_by(
             m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(limit)).mappings())
-        profile_job_ids = {
-            (row["payload"] or {}).get("job_id") for row in profile_rows
-            if row["action"] in {"JOB_DISCOVERED", "MATCH_SCORED"}
-            and isinstance((row["payload"] or {}).get("job_id"), str)
-        }
-        profile_job_ids.update(
-            (row["payload"] or {}).get("job_id") for row in profile_rows
-            if row["action"] == "JOB_MERGED"
-            and isinstance((row["payload"] or {}).get("job_id"), str)
-        )
-        profile_job_ids.update(
-            (row["payload"] or {}).get("job_id") for row in profile_rows
-            if row["action"] in _APPLICATION_PREPARATION_EVENTS
-            and isinstance((row["payload"] or {}).get("job_id"), str)
-        )
-        profile_company_ids = {
-            (row["payload"] or {}).get("company_id") for row in profile_rows
-            if row["action"] in _COMPANY_EVENTS
-            and isinstance((row["payload"] or {}).get("company_id"), str)
-        }
-        profile_jobs = {}
-        profile_companies = {}
-        if profile_company_ids:
-            profile_companies = {row["id"]: row["name"] for row in connection.execute(select(
-                m.companies.c.id, m.companies.c.name,
-            ).where(m.companies.c.id.in_(profile_company_ids))).mappings()}
-        if profile_job_ids:
-            profile_jobs = {row["id"]: row for row in connection.execute(select(
-                m.jobs.c.id, m.jobs.c.title,
-                m.companies.c.name.label("company"),
-            ).select_from(m.jobs.join(m.companies,
-                                     m.jobs.c.company_id == m.companies.c.id)).where(
-                m.jobs.c.id.in_(profile_job_ids),
-            )).mappings()}
         for row in profile_rows:
-            mapped = _PROFILE_EVENTS.get(row["action"])
-            if mapped:
-                event_type, summary = mapped
-                if row["action"] in {"JOB_DISCOVERED", "JOB_MERGED", "MATCH_SCORED", *_APPLICATION_PREPARATION_EVENTS}:
-                    job = profile_jobs.get((row["payload"] or {}).get("job_id"))
-                    if job is None:
-                        continue
-                    events.append(_event(row, event_type, summary, job["title"], job["company"]))
-                elif row["action"] in _COMPANY_EVENTS:
-                    company_name = profile_companies.get((row["payload"] or {}).get("company_id"))
-                    if company_name is None:
-                        continue
-                    events.append(_event(row, event_type, summary, company_name, ""))
-                else:
-                    events.append(_event(row, event_type, summary, "Profile", ""))
+            event_type, summary = _PROFILE_EVENTS[row["action"]]
+            if row["action"] in {"JOB_DISCOVERED", "JOB_MERGED", "MATCH_SCORED",
+                                  *_APPLICATION_PREPARATION_EVENTS, *_COMPANY_EVENTS}:
+                subject, company = _historical_labels(row["payload"])
+            else:
+                subject, company = "Profile", ""
+            events.append(_event(row, event_type, summary, subject, company))
 
         application_rows = connection.execute(select(
             m.applications.c.id, m.applications.c.target, m.jobs.c.title,

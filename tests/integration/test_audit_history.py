@@ -369,7 +369,10 @@ class AuditHistoryApiTests(unittest.TestCase):
         self.assertNotIn(application_url, response.text)
         with self.store.engine.connect() as connection:
             self.assertEqual(connection.execute(select(m.audit.c.payload).where(
-                m.audit.c.id == merged[0]["id"])).scalar_one(), {"job_id": first_job_id})
+                m.audit.c.id == merged[0]["id"])).scalar_one(), {
+                    "job_id": first_job_id,
+                    "subject_snapshot": {"subject": "Systems Administrator", "company": "Merge Employer"},
+                })
         self.assertFalse(any(event["type"] == "JOB_MERGED" for event in
                              self.client.get("/profiles/other/audit-history").json()["events"]))
         with self.store.engine.connect() as connection:
