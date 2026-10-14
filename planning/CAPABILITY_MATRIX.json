@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-11T08:34:03.129830+00:00",
+  "timestamp": "2026-10-14T14:42:34.482004+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -3210,11 +3210,12 @@
     },
     {
       "requirement_id": "MJ-REQ-277",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-11-connected-feature-batch.json"
+        "docs/evidence/2026-10-11-connected-feature-batch.json",
+        "docs/evidence/2026-10-14-round2-portable-settings.json"
       ],
-      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence.",
+      "note": "Full original #278 JSON-transfer contract PASS on PR653 source head680e63cb09143c7a44c6582be6ad51e79ee33fa3. Validated search criteria, real scheduled-search automation rules, and public provider/tenant plus all six collection-policy fields round-trip to fresh targets, persist across reopen and feed durable scheduling. Legacy v1 files accepted; source-policy conflicts, invalid fields, interruption and unknown profiles reject atomically. Shared-profile fences preserve concurrent criteria and prevent removed-search scheduling; actual streamed request bound enforced. Final local units1612PASS/1151subtests/9platformSKIP; affected42PASS/45subtests/10localPGskip. All five exact-head hosted gates PASS; ten PostgreSQL contracts and connected Chromium execute without skips; all five Compose artifacts PASS. Broader integration1735records/19unrelatedskips. Existing shared source policies are never overwritten; supported automation schedules discovery only; external submission OFF. Final documentation/index/dashboard head requires protected integration gates; no other original acceptance promotion.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"

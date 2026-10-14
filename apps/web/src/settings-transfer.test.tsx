@@ -17,6 +17,8 @@ describe('settings transfer component', () => {
     expect(html).toContain('Search profiles');
     expect(html).toContain('Automation rules');
     expect(html).toContain('Source configuration');
+    expect(html).toContain('Automation rules for scheduled searches');
+    expect(html).toContain('public collection policies');
     expect(html).toContain('Secrets, career facts, and documents are never included.');
     expect(html).not.toContain('password');
     expect(html).not.toContain('resume');

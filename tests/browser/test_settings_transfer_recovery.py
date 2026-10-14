@@ -15,6 +15,8 @@ from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from packages.persistence.store import Store
 from services.discovery.search_profiles import save_search_profile
+from services.discovery.scheduler import schedule_due_search_profiles
+from services.discovery.sources.collect import configure_source
 from services.settings_transfer import export_settings
 from tests.integration.test_spine import PROFILE
 
@@ -28,14 +30,22 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
             store.migrate()
             store.bind_workspace_mode("PERSONAL")
             store.save_profile(dict(PROFILE))
+            source_id = configure_source(store, "settings-browser-fixture", jitter_seconds=0)
             save_search_profile(store, {"id": "original", "profile_id": "fixture",
-                                       "name": "Original search", "enabled": False})
+                                       "name": "Original search", "enabled": True,
+                                       "source_ids": [source_id],
+                                       "scheduler": {"enabled": True, "interval_seconds": 600}})
             before = export_settings(store, "fixture")
             valid = copy.deepcopy(before)
             valid["settings"]["search_profiles"][0]["name"] = "Imported search"
             valid["settings"]["source_configuration"][0]["search_profile_name"] = "Imported search"
+            valid["settings"]["automation_rules"][0]["search_profile_name"] = "Imported search"
             invalid = copy.deepcopy(valid)
             invalid["settings"]["search_profiles"][0]["criteria"]["remote"] = []
+            conflicting = copy.deepcopy(valid)
+            conflicting["settings"]["automation_rules"][0]["interval_seconds"] = 1800
+            source_conflict = copy.deepcopy(valid)
+            source_conflict["settings"]["source_configuration"][0]["sources"][0]["concurrency"] = 2
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
             server = uvicorn.Server(uvicorn.Config(create_app(
@@ -70,10 +80,17 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
                         expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
                         page.get_by_role("button", name="Profile", exact=True).click()
                         panel = page.get_by_role("region", name="Settings transfer", exact=True)
-                        for payload, status in ((invalid, 422), (valid, 200)):
+                        with page.expect_download() as captured_download:
+                            panel.get_by_role("button", name="Download settings JSON", exact=True).click()
+                        downloaded = Path(captured_download.value.path()).read_text(encoding="utf-8")
+                        self.assertEqual(json.loads(downloaded), before)
+                        for payload, status in ((invalid, 422), (conflicting, 422),
+                                                (source_conflict, 422), (valid, 200)):
                             panel.get_by_label("Choose a settings JSON file (maximum 1 MiB)").set_input_files({
                                 "name": "settings.json", "mimeType": "application/json",
                                 "buffer": json.dumps(payload).encode()})
+                            expect(panel.get_by_label("Settings import preview")).to_contain_text(
+                                "1 automation rules")
                             panel.get_by_role("checkbox").check()
                             with page.expect_response(lambda response: response.url.endswith(
                                     "/profiles/fixture/settings/import") and response.request.method == "POST") as captured:
@@ -99,5 +116,8 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
             reopened = Store(database_url)
             try:
                 self.assertEqual(export_settings(reopened, "fixture"), valid)
+                scheduled = schedule_due_search_profiles(reopened)
+                self.assertEqual(len(scheduled["scheduled"]), 1)
+                self.assertEqual(schedule_due_search_profiles(reopened)["scheduled"], [])
             finally:
                 reopened.engine.dispose()

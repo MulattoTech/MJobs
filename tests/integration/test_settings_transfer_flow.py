@@ -95,10 +95,16 @@ class SettingsTransferFlowTests(unittest.TestCase):
         self.assertEqual(saved_search["criteria"]["include_titles"], ["Systems Administrator"])
         self.assertNotIn("id", saved_search)
         self.assertNotIn("profile_id", saved_search)
-        self.assertEqual(exported["settings"]["automation_rules"], [])
+        self.assertEqual(exported["settings"]["automation_rules"], [{
+            "kind": "scheduled_search", "search_profile_name": "Infrastructure search",
+            "enabled": False, "interval_seconds": 600,
+        }])
         self.assertEqual(exported["settings"]["source_configuration"], [{
             "search_profile_name": "Infrastructure search",
             "source_ids": [self.source_id],
+            "sources": [{"id": self.source_id, "provider": "greenhouse", "tenant": "settings-transfer-fixture",
+                         "enabled": False, "poll_interval": 600, "concurrency": 2,
+                         "request_timeout": 8, "rate_limit": 20, "jitter_seconds": 5}],
         }])
         for private_value in (
                 "Alex Fixture", "alex@example.test", "PRIVATE_CAREER_FACT_SENTINEL",
