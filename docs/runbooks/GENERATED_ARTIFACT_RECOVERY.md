@@ -5,6 +5,13 @@ published to an immutable revision path. An interrupted write cannot replace a
 previous revision. Answer exports use the same-directory atomic-write pattern.
 No background cleanup runs automatically.
 
+If rendering or writing a document fails, Activity shows
+`DOCUMENT_GENERATION_FAILED`. No incomplete revision is published. Review the
+source details, correct the local failure, then use **Retry task** in the
+dead-letter queue. A successful retry creates a complete validated revision;
+previous revisions remain intact. Do not use or submit partial files recovered
+outside MJobs. Cancellation and operation timeout retain their own statuses.
+
 Recovery commands require an explicit local artifact directory and a protected
 `MJOBS_DATABASE_URL` bound to an active MJobs workspace. The inventory reports
 references and classifications without reading artifact contents into output.

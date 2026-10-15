@@ -24,7 +24,7 @@ from services.documents.avoid_list import validate_content as validate_avoid_lis
 from services.documents.artifacts import atomic_generate, publish_directory
 from services.documents.cover_letter import COVER_LETTER_TEMPLATE, build_cover_letter
 from services.documents.errors import PreparationError
-from services.documents.failure_status import validate_generated_outputs
+from services.documents.failure_status import DOCUMENT_GENERATION_FAILED, validate_generated_outputs
 from services.documents.history import application_documents
 from services.documents.page_fit import fit_to_page_target
 from services.documents.render import render_pdf
@@ -49,6 +49,21 @@ def uncommitted_files():
             else:
                 path.unlink(missing_ok=True)
         raise
+
+
+def _generate_document_artifact(destination, writer):
+    """Translate renderer and writer failures while preserving recovery controls."""
+    from workers.operations import OperationCancelled, OperationTimedOut
+
+    try:
+        return atomic_generate(destination, writer)
+    except (PreparationError, OperationCancelled, OperationTimedOut):
+        raise
+    except Exception as error:
+        raise PreparationError(
+            DOCUMENT_GENERATION_FAILED,
+            "Document generation failed validation. Generate a new revision before using this file.",
+        ) from error
 
 
 def _measure_and_fit_resume_rows(profile, job, rows, template, page_target, probe_dir,
@@ -98,7 +113,7 @@ def _measure_and_fit_resume_rows(profile, job, rows, template, page_target, prob
         candidate_bold_indices = {index for index, row in zip(candidate_fact_indices, candidate_rows)
             if row['fact_id'] in candidate_emphasis}
         probe_path = probe_dir / f'.resume-page-fit-attempt-{measurement_index}.pdf'
-        atomic_generate(probe_path, lambda path: render_pdf(
+        _generate_document_artifact(probe_path, lambda path: render_pdf(
             path, candidate_paragraphs, heading_indices=candidate_headings,
             bold_indices=candidate_bold_indices))
         try:
@@ -191,7 +206,7 @@ def preview_resume_page_fit(store, profile_id, job_id, output_dir, target_pdf_pa
         len(paragraphs)) if index not in headings]
     bold_indices = {index for index, row in zip(fact_indices, selected_rows)
         if row['fact_id'] in emphasized}
-    atomic_generate(preview_pdf_path, lambda path: render_pdf(
+    _generate_document_artifact(preview_pdf_path, lambda path: render_pdf(
         path, paragraphs, heading_indices=headings, bold_indices=bold_indices))
     return {
         'page_fit': _page_fit_api_result(page_fit),
@@ -628,10 +643,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             docx_path = staging / f"{kind}.docx"
             pdf_path = staging / f"{kind}.pdf"
             txt_path = staging / f"{kind}.txt"
-            atomic_generate(docx_path, document.save)
-            atomic_generate(txt_path, lambda path: path.write_text(
+            _generate_document_artifact(docx_path, document.save)
+            _generate_document_artifact(txt_path, lambda path: path.write_text(
                 '\n'.join(paragraphs) + '\n', encoding='utf-8', newline='\n'))
-            atomic_generate(pdf_path, lambda path: render_pdf(
+            _generate_document_artifact(pdf_path, lambda path: render_pdf(
                 path, paragraphs, heading_indices=headings, bold_indices=bold_indices))
             validate_generated_outputs({'docx': docx_path, 'pdf': pdf_path, 'txt': txt_path})
             records.append({"id": identity(application_id, kind, revision), "application_id": application_id,

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-14T14:42:34.482004+00:00",
+  "timestamp": "2026-10-15T00:56:08.718936+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -3204,9 +3204,11 @@
     },
     {
       "requirement_id": "MJ-REQ-276",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-14-settings-versioning.json"
+      ],
+      "note": "Whole original contract verified: version2 schema, safe actual v1 migration, atomic reject, privacy/profile isolation, durable API/UI reload and scheduling. Exact source eab2349c; PR657 merge6ef4add0; five required hosted gates PASS including10PostgreSQL settings cases and2connected Chromium tests.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"

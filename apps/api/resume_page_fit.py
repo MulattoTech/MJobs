@@ -12,6 +12,8 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy.exc import NoResultFound
 
+from services.documents.errors import PreparationError
+from services.documents.failure_status import DOCUMENT_GENERATION_FAILED
 from services.documents.tailor import target_fingerprint
 
 
@@ -234,6 +236,14 @@ def create_resume_page_fit_router(store, output_dir: str | Path, *,
             if isinstance(result, dict):
                 _cleanup_preview_file(output_dir, {"runner_result": result})
             raise HTTPException(404, {"code": "RESUME_PAGE_FIT_TARGET_NOT_FOUND"}) from None
+        except PreparationError as error:
+            if isinstance(result, dict):
+                _cleanup_preview_file(output_dir, {"runner_result": result})
+            if error.code == DOCUMENT_GENERATION_FAILED:
+                raise HTTPException(503, {
+                    "code": "RESUME_PAGE_FIT_MEASUREMENT_UNAVAILABLE",
+                }) from None
+            raise HTTPException(422, {"code": "RESUME_PAGE_FIT_PREVIEW_INVALID"}) from error
         except (ValueError, TypeError) as error:
             if isinstance(result, dict):
                 _cleanup_preview_file(output_dir, {"runner_result": result})

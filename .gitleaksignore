@@ -178,3 +178,5 @@ d65ac3e724ecfc82f140484fde1904b1359dc8e1:tests/unit/test_feature_studio_control.
 # Verified SHA-256 of committed apps/web/src/api.ts and api.test.ts; not credentials.
 1cc5bb0cae23e8ce1e0bf86d68cdb496b1527af1:docs/evidence/2026-10-12-search-scoped-ai-evaluation.json:generic-api-key:28
 1cc5bb0cae23e8ce1e0bf86d68cdb496b1527af1:docs/evidence/2026-10-12-search-scoped-ai-evaluation.json:generic-api-key:29
+# Verified SHA-256 of public tests/integration/test_resume_page_fit_api.py; not a credential.
+aa4eeae21821bf3fa01ebd893da6b41ba2b2dbcb:docs/evidence/2026-10-14-document-render-failure.json:generic-api-key:46
