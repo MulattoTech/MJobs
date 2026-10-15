@@ -15,6 +15,18 @@
 
 All third-party actions are pinned to commit SHAs. Defaults are `contents: read`; only trusted publication jobs may request narrowly scoped additional permissions. Superseded PR runs are cancelled, jobs have explicit timeouts, and test reports have short retention. Required check names remain stable.
 
+## Publication capacity and execution capacity
+
+The [PR publication policy](../PR_PUBLICATION_POLICY.md) defaults to 32 concurrently
+open development PRs, including drafts, with a configurable soft warning. Only
+authenticated dependency automation is excluded. Use the read-only live queue
+preflight; report unknown authorship/category, backlog, conflicts and exact-head CI.
+The 32 publication slots are independent of expensive CI capacity. Aim for 4–6
+expensive jobs where supported; existing per-run matrices and workflow/PR concurrency
+groups do not enforce an aggregate repository semaphore. Preserve all required and
+security checks, unrelated runs, billing and runner configuration. One integration
+owner still serializes protected integration after applicable authorization.
+
 ## Native merge gate
 
 Use short-lived PRs and native GitHub required checks/auto-merge. Do not create a workflow that approves its own changes. Automatic successful checks are not a human review, license audit or whole-product PASS. Keep an audit trail of maintainer-authorized integration and exact tested revision.
