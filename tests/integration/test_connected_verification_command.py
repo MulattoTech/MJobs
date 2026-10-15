@@ -12,6 +12,10 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[2]
+requires_windows_connected = pytest.mark.skipif(
+    sys.platform != "win32",
+    reason="NOT_RUN: connected verifier requires Windows retained Job; see local Windows functional evidence",
+)
 
 
 def command(*args, env=None):
@@ -19,6 +23,7 @@ def command(*args, env=None):
                           cwd=ROOT, env=env, capture_output=True, text=True, timeout=150)
 
 
+@requires_windows_connected
 def test_connected_command_executes_sources_and_durable_application():
     result = command("--connected", "--fixture", "--json", "--connected-timeout", "120")
     assert result.returncode in (0, 2), result.stdout + result.stderr
@@ -49,6 +54,7 @@ def test_connected_requires_explicit_fixture_admission():
     assert "--fixture" in result.stderr
 
 
+@requires_windows_connected
 def test_connected_repeats_with_new_identity_and_ignores_personal_environment(tmp_path):
     sentinel = tmp_path / "private.db"
     sentinel.write_bytes(b"private database must never be opened")
@@ -75,6 +81,7 @@ def test_connected_rejects_user_service_target():
     assert "owns its fixture target" in result.stderr
 
 
+@requires_windows_connected
 def test_deadline_cancels_owned_child_and_removes_temporary_files():
     result = command("--connected", "--fixture", "--json", "--connected-timeout", "1")
     assert result.returncode == 1, result.stdout + result.stderr
@@ -86,6 +93,7 @@ def test_deadline_cancels_owned_child_and_removes_temporary_files():
     assert report["cleanup"]["status"] == "PASS"
 
 
+@requires_windows_connected
 def test_missing_browser_preserves_executed_sources_and_nonzero_partial(tmp_path):
     env = dict(os.environ, PLAYWRIGHT_BROWSERS_PATH=str(tmp_path / "no-installed-browser"))
     result = command("--connected", "--fixture", "--json", env=env)
@@ -100,6 +108,7 @@ def test_missing_browser_preserves_executed_sources_and_nonzero_partial(tmp_path
     assert not Path(report["workspace"]).exists()
 
 
+@requires_windows_connected
 def test_executed_detector_failure_propagates_without_passing_downstream(tmp_path):
     from cli.verification_checks import new_report, exit_status
     from cli.verification_fixture import exercise
@@ -120,6 +129,7 @@ def test_executed_detector_failure_propagates_without_passing_downstream(tmp_pat
     assert exit_status(report) == 1
 
 
+@requires_windows_connected
 @pytest.mark.parametrize("stage", ["upload", "confirmation"])
 def test_real_browser_failures_cannot_project_success(stage, tmp_path):
     import httpx
@@ -215,3 +225,13 @@ def test_default_readiness_performs_only_one_read_and_no_fixture_writes(tmp_path
         server.shutdown()
         server.server_close()
         thread.join(timeout=5)
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="NOT_RUN: non-Windows contract is exercised by Linux CI")
+def test_non_windows_connected_command_is_blocked_without_functional_pass():
+    result = command("--connected", "--fixture", "--json")
+    assert result.returncode == 1, result.stdout + result.stderr
+    report = json.loads(result.stdout)
+    assert report["checks"]["adapter registry"]["status"] == "BLOCKED"
+    assert report["cleanup"]["status"] == "BLOCKED"
+    assert not any(row["status"] == "PASS" for row in report["checks"].values())
