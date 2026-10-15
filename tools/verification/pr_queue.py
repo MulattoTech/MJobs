@@ -16,6 +16,7 @@ import subprocess
 REPOSITORY = "MulattoTech/MJobs"
 CATEGORIES = {"feature", "docs-maintenance", "security", "acceptance", "integration"}
 SHA = re.compile(r"[0-9a-f]{40}")
+REPO = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
 
 
 def nonempty(value):
@@ -24,6 +25,11 @@ def nonempty(value):
 
 def positive(value):
     return type(value) is int and value > 0
+
+
+def repository(value):
+    """Canonical case-insensitive GitHub owner/name, or unknown."""
+    return value.casefold() if isinstance(value, str) and REPO.fullmatch(value) else None
 
 
 def validate_policy(policy):
@@ -102,6 +108,9 @@ def assess(prs, policy, metadata=None, candidate=None):
                 errors.append(f"candidate requires {key}")
         if not SHA.fullmatch(str(candidate.get("head_sha", ""))):
             errors.append("candidate requires full head_sha")
+        candidate_repo = repository(candidate.get("head_repo"))
+        if candidate_repo is None:
+            errors.append("candidate requires qualified head_repo owner/name")
         for key in ("commit_count", "changed_files"):
             if not positive(candidate.get(key)):
                 errors.append(f"candidate requires positive {key}")
@@ -112,7 +121,13 @@ def assess(prs, policy, metadata=None, candidate=None):
             errors.append("candidate requires reviewed meaningful_change")
         for pr in open_prs:
             head = pr.get("head") if isinstance(pr.get("head"), dict) else {}
-            if (head.get("sha") == candidate.get("head_sha") or head.get("ref") == candidate.get("head_ref")
+            source = head.get("repo") if isinstance(head.get("repo"), dict) else {}
+            source_repo = repository(source.get("full_name"))
+            matching_ref = head.get("ref") == candidate.get("head_ref")
+            if matching_ref and source_repo is None:
+                errors.append(f"unknown source repository for matching branch: {pr.get('number')}")
+            if (head.get("sha") == candidate.get("head_sha")
+                    or (matching_ref and candidate_repo is not None and source_repo == candidate_repo)
                     or (nonempty(candidate.get("work_id"))
                         and reviewed(pr, metadata).get("work_id") == candidate["work_id"])):
                 errors.append(f"duplicate open PR scope/identity: {pr.get('number')}")

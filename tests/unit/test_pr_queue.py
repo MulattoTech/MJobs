@@ -13,14 +13,15 @@ POLICY = {"max_active_prs": 32, "capacity_behavior": "warn"}
 def pull(number=1, **updates):
     result = {"number": number, "state": "open", "draft": False,
               "user": {"id": 5900632, "login": "MulattoTech", "type": "User"},
-              "head": {"sha": f"{number:040x}", "ref": f"feature/{number}"},
+              "head": {"sha": f"{number:040x}", "ref": f"feature/{number}",
+                       "repo": {"full_name": "MulattoTech/MJobs"}},
               "title": "Bump dependencies", "mergeable": None}
     result.update(updates)
     return result
 
 
 def candidate():
-    return {"head_sha": "f" * 40, "head_ref": "feature/new", "work_id": "policy-32",
+    return {"head_sha": "f" * 40, "head_ref": "feature/new", "head_repo": "MulattoTech/MJobs", "work_id": "policy-32",
             "owner": "mjobs-17", "commit_count": 1, "changed_files": 3,
             "meaningful_change": True, "local_validation": ["pytest: PASS"],
             "nonduplicate_review": "Compared live open PR scope and owned paths"}
@@ -94,6 +95,31 @@ def test_duplicate_identity_and_reviewed_work_are_blocked():
     meta = {"1": {"head_sha": pull()["head"]["sha"], "reviewed_by": "owner",
                   "review_reference": "review/1", "work_id": item["work_id"]}}
     assert not assess([pull()], POLICY, meta, item)["allowed"]
+
+
+def test_matching_branch_names_across_forks_are_not_duplicate_work():
+    item = dict(candidate(), head_repo="bob/MJobs", head_ref="patch-1")
+    pr = pull(head={"sha": "a" * 40, "ref": "patch-1", "repo": {"full_name": "alice/MJobs"}})
+    assert assess([pr], POLICY, {}, item)["allowed"]
+
+
+def test_matching_branch_in_same_repository_is_duplicate_case_insensitive_repo():
+    item = dict(candidate(), head_repo="ALICE/mjobs", head_ref="patch-1")
+    pr = pull(head={"sha": "a" * 40, "ref": "patch-1", "repo": {"full_name": "alice/MJobs"}})
+    assert not assess([pr], POLICY, {}, item)["allowed"]
+
+
+@pytest.mark.parametrize("source", [None, "", "not-qualified", [], "alice/MJobs/extra"])
+def test_candidate_requires_qualified_source_repository(source):
+    assert not assess([], POLICY, {}, dict(candidate(), head_repo=source))["allowed"]
+
+
+def test_unknown_source_repository_cannot_clear_matching_branch():
+    item = candidate()
+    pr = pull(head={"sha": "a" * 40, "ref": item["head_ref"], "repo": None})
+    result = assess([pr], POLICY, {}, item)
+    assert not result["allowed"]
+    assert any("unknown source repository" in error for error in result["errors"])
 
 
 @pytest.mark.parametrize("prs", [[None], [pull(), pull()], [{"state": "open"}], {}])

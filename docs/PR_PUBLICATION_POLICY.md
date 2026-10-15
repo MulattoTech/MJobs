@@ -56,11 +56,16 @@ file through the normal ownership/review process; PR-authored bodies/labels are
 not trusted reviewed metadata. Stale, missing or malformed metadata becomes
 unknown. Do not edit historical queue items merely to classify live PRs.
 
-Candidate evidence has `head_sha` (full SHA), `head_ref`, `work_id`, `owner`, positive
+Candidate evidence has `head_sha` (full SHA), `head_repo` (GitHub source repository
+`owner/name`, from trusted API metadata), `head_ref`, `work_id`, `owner`, positive
 integer `commit_count` and `changed_files`, `meaningful_change: true`, a nonempty
 `local_validation` list of executed command/results, and `nonduplicate_review`
 describing the live scope comparison. The tool rejects identical open head SHA,
-branch or reviewed work ID; semantic duplication still requires human/owner review.
+source-repository-qualified branch or reviewed work ID; repository names compare
+case-insensitively while refs remain case-sensitive. Same short refs in distinct
+forks are independent. A missing/deleted source repository for a matching ref blocks
+preflight with an explicit unknown-source error rather than claiming duplication.
+Semantic duplication still requires human/owner review.
 These are reviewable attestations, not proof of executed tests or meaningfulness.
 Verify the actual diff/commits and preserve safe rollback before publication.
 
