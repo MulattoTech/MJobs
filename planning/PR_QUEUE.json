@@ -3469,7 +3469,13 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-074-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "document_failure_campaign": {
+        "issue": 273,
+        "requirement": "MJ-REQ-272",
+        "status": "LOCAL_VERIFIED_PENDING_HOSTED",
+        "branch": "feat/document-render-failure-20261014"
+      }
     },
     {
       "id": "MJ-PR-075",
@@ -3493,9 +3499,11 @@
       "settings_versioning_campaign": {
         "issue": 277,
         "requirement": "MJ-REQ-276",
-        "status": "IN_PROGRESS",
+        "status": "PASS",
         "branch": "codex/p0p1-round3-20261014-193432",
-        "acceptance": "Complete #277 only; other grouped requirements retain their independent state"
+        "acceptance": "Complete #277 only; other grouped requirements retain their independent state",
+        "pr": 657,
+        "merge_commit": "6ef4add0821e51465bd3b9569a1e05031b97f2af"
       }
     },
     {

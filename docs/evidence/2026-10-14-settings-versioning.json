@@ -2,9 +2,9 @@
   "schema_version": 1,
   "requirement": "MJ-REQ-276",
   "issue": 277,
-  "result": "PARTIAL",
+  "result": "PASS",
   "baseline": "0397e8c8714bcf55d2fc718ca6bfa67ca1277e30",
-  "utc": "2026-10-15T00:45:36.522799+00:00",
+  "utc": "2026-10-15T00:56:08.718936+00:00",
   "behavior": [
     "Version 2 export has one schedule representation in automation_rules",
     "Version 1 imports preserve inline-only, rule-only and agreeing redundant schedules",
@@ -19,12 +19,10 @@
     "frontend": "809 passed; production build PASS (existing bundle-size warning); Node25.9.0 has existing Vitest engine warning",
     "integrity": "catalogue,progress,dashboard,agent_skills,reference_provenance,repository policy,diff PASS",
     "units": "1656 passed,11 skipped,1170 subtests passed in350.34s",
-    "review": "Local Luna review: no blockers; array-only preview and inline scheduler count regressions fixed"
+    "review": "Local Luna review: no blockers; array-only preview and inline scheduler count regressions fixed",
+    "full_integration": "Still running in source checkout; hosted complete integration is independently verified"
   },
-  "pending": [
-    "full local integration",
-    "exact-head required hosted gates"
-  ],
+  "pending": [],
   "not_run": [
     "Local PostgreSQL: disposable test URL not configured",
     "physical host reboot (not in scope)",
@@ -40,5 +38,61 @@
     "root_effort": "high",
     "child_model": "gpt-6-luna",
     "child_effort": "high"
+  },
+  "source_commit": "eab2349c1c9b695b9bbdcc9c136479a47a968545",
+  "merge_commit": "6ef4add0821e51465bd3b9569a1e05031b97f2af",
+  "pr": "https://github.com/MulattoTech/MJobs/pull/657",
+  "hosted": {
+    "required_checks": [
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38661878870/job/116187203311",
+        "name": "Integration / PostgreSQL and Redis",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38661878838/job/116185473251",
+        "name": "CI / required",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38661878856/job/116184806875",
+        "name": "Security / secret scan",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38661878899/job/116184806910",
+        "name": "Dependencies / introduced vulnerabilities",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38661878871/job/116184806546",
+        "name": "Disposable Compose / mock end-to-end",
+        "state": "SUCCESS"
+      }
+    ],
+    "integration": {
+      "test_records": 1736,
+      "failures": 0,
+      "skips": 19,
+      "settings_records": 25,
+      "settings_skips": 0,
+      "settings_failures": 0,
+      "postgres_settings_records": 10
+    },
+    "synthetic": "Five Compose startup/mock/UI/restart/backup artifacts PASS; settings/theme Chromium2PASS/0skip",
+    "runs": {
+      "fast": 38661878838,
+      "integration": 38661878870,
+      "synthetic": 38661878871
+    }
+  },
+  "input_sha256": {
+    "services/settings_transfer.py": "ae9709836cafb49dfdc7d3d697ad88cd9aec9b4444d9c36dd366778103e025fa",
+    "apps/web/src/settings-transfer.tsx": "c86529718d3e1563c2961c70c75a18082814243dd2faed4e5405bacc0e0ac176",
+    "apps/web/src/settings-transfer.test.tsx": "6fcdaf3dd5d376f1ba00bacae2578d346a585400b515b1485d61992df6d56589",
+    "tests/unit/test_settings_transfer.py": "4db460b9c2857f80ea8688400c188476c7677decc80a56dc365f66099099a2da",
+    "tests/integration/test_settings_transfer_flow.py": "004c83a99690151cb3b397532e0b76882a704cb657c13144295e4735fb8121d6",
+    "tests/integration/test_settings_transfer_portable.py": "d91069ff50fd5fb3f416243fa496e848b0bc6abeac4cc93820f61733760a3aae",
+    "tests/browser/test_settings_transfer_recovery.py": "4e7162623b4b8c03fe6ba253ed9129a880bc58455985a5ee7a1be97e10298721"
   }
 }
