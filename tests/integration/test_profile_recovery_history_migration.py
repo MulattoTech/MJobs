@@ -4,10 +4,13 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
+from uuid import uuid4
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, inspect, select
+from sqlalchemy import create_engine, inspect, select, text
+from sqlalchemy.engine import make_url
+from sqlalchemy.pool import NullPool
 
 from packages.persistence import models as m
 
@@ -47,7 +50,6 @@ class ProfileRecoveryHistoryMigrationTests(unittest.TestCase):
                         self.assertIn("company_discovery_requests", tables)
             finally:
                 engine.dispose()
-
     def test_populated_archive_refuses_downgrade_without_losing_snapshot(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-recovery-migration-") as directory:
             url = f"sqlite:///{(Path(directory) / 'preserve.db').as_posix()}"
@@ -74,6 +76,36 @@ class ProfileRecoveryHistoryMigrationTests(unittest.TestCase):
                         self.assertEqual(connection.execute(select(m.company_discovery_requests)).all(), [])
             finally:
                 engine.dispose()
+
+
+@unittest.skipUnless(os.environ.get("MJOBS_TEST_POSTGRES_URL"),
+                     "Requires the disposable MJOBS_TEST_POSTGRES_URL PostgreSQL fixture")
+class PostgreSQLProfileRecoveryHistoryMigrationTests(ProfileRecoveryHistoryMigrationTests):
+    def setUp(self):
+        url = make_url(os.environ["MJOBS_TEST_POSTGRES_URL"])
+        if (not url.drivername.startswith("postgresql")
+                or url.host not in ("localhost", "127.0.0.1", "::1")
+                or not url.database
+                or (url.database != "mjobs_test" and not url.database.startswith("mjobs_test_"))):
+            raise ValueError("Requires a disposable loopback mjobs_test PostgreSQL database")
+        self.schema = "profile_recovery_history_" + uuid4().hex
+        self.admin = create_engine(url, poolclass=NullPool)
+        with self.admin.begin() as connection:
+            connection.execute(text(f'CREATE SCHEMA "{self.schema}"'))
+        self.addCleanup(self.cleanup_schema)
+        self.url = url.update_query_dict({"options": "-csearch_path=" + self.schema}).render_as_string(
+            hide_password=False,
+        )
+
+    def cleanup_schema(self):
+        with self.admin.begin() as connection:
+            connection.execute(text(f'DROP SCHEMA "{self.schema}" CASCADE'))
+        self.admin.dispose()
+
+    def _config(self, url):
+        config = super()._config(url)
+        config.set_main_option("sqlalchemy.url", url.replace("%", "%%"))
+        return config
 
 
 if __name__ == "__main__":

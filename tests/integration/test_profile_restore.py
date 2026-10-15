@@ -13,7 +13,7 @@ from sqlalchemy import select, update
 from apps.api.profile_restore import create_profile_restore_router
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.data_export import export_profile_backup
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
@@ -665,6 +665,89 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
             self.assertEqual(connection.execute(select(m.profile_recovery_history_snapshots)).all(), [])
         self.assertEqual(sentinel.read_bytes(), b'leave this file untouched')
         self.assertEqual(set(uploads_root.iterdir()), existing_files)
+
+    def test_metadata_only_backup_import_filters_revisions_for_missing_upload_bytes(self):
+        backup = copy.deepcopy(self.backup)
+        backup['document_files'] = []
+        target = Store(f"sqlite:///{(self.root / 'metadata-only-target.db').as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        output = self.root / 'metadata-only-output'
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, output))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            self.assertIn('UPLOADED_FILES_NOT_INCLUDED', preview.json()['warnings'])
+            self.assertIn('RESUME_REVISION_METADATA_PARTIALLY_RESTORED', preview.json()['warnings'])
+            self.assertIn('resume_revision_metadata_without_upload_bytes',
+                          preview.json()['omitted_sections'])
+            restored = client.post('/profile-restores', json={
+                'backup': backup, 'request_id': 'metadata-only-restore',
+                'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+            })
+        self.assertEqual(restored.status_code, 201, restored.text)
+        self.assertFalse(output.exists())
+        with target.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.resume_revisions)).all(), [])
+            self.assertEqual(connection.execute(select(m.uploaded_resumes)).all(), [])
+
+    def test_profile_only_restore_does_not_require_missing_output_directory(self):
+        backup = copy.deepcopy(self.backup)
+        backup['uploaded_resumes'] = []
+        backup['resume_revisions'] = []
+        backup['documents'] = []
+        backup['document_files'] = []
+        target = Store(f"sqlite:///{(self.root / 'profile-only-target.db').as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        output = self.root / 'not-created-yet'
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, output))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            restored = client.post('/profile-restores', json={
+                'backup': backup, 'request_id': 'profile-only-restore',
+                'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+            })
+        self.assertEqual(restored.status_code, 201, restored.text)
+        self.assertFalse(output.exists())
+
+    def test_restored_application_can_regenerate_documents_after_review(self):
+        target = Store(f"sqlite:///{(self.root / 'regenerate-target.db').as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        output = self.root / 'regenerate-output'
+        output.mkdir()
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, output))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': self.backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            restored = client.post('/profile-restores', json={
+                'backup': self.backup, 'request_id': 'regenerate-restored-documents',
+                'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+            })
+        self.assertEqual(restored.status_code, 201, restored.text)
+        profile_id = restored.json()['profile_id']
+        job = target.jobs(profile_id)[0]
+        with target.engine.begin() as connection:
+            connection.execute(m.facts.update().where(
+                m.facts.c.profile_id == profile_id,
+            ).values(verified=True, user_approved=True, confidence=100))
+            application = connection.execute(select(m.applications).where(
+                m.applications.c.profile_id == profile_id,
+            )).mappings().one()
+        self.assertEqual(application['id'], identity(job['id'], profile_id))
+        regenerated_id = prepare(
+            target, job['id'], profile_id, output,
+            route_mode='THIS_ROUTE', route_id=application['route_id'],
+        )
+        self.assertEqual(regenerated_id, application['id'])
 
 
 if __name__ == '__main__':

@@ -504,7 +504,7 @@ def apply_profile_restore(store, plan: dict, output_dir: str | Path, request_id:
                            for row in history["companies"]}
             route_ids = {row["id"]: identity("restored-route", profile["id"], fingerprint, row["id"])
                          for row in history["application_routes"]}
-            app_ids = {row["id"]: identity("restored-application", profile["id"], fingerprint, row["id"])
+            app_ids = {row["id"]: identity(job_ids[row["job_id"]], profile["id"])
                        for row in history["applications"]}
             doc_ids = {row["id"]: identity("restored-document", profile["id"], fingerprint, row["id"])
                        for row in history["documents"]}
@@ -581,10 +581,12 @@ def apply_profile_restore(store, plan: dict, output_dir: str | Path, request_id:
                     underlying_key=key[:2200], requested_mode=row["requested_mode"],
                     state=row["state"], created_at=row["created_at"],
                 ))
-            root = Path(output_dir).resolve(strict=True)
+            root = None
             for kind, item, staged_path in staged_files:
                 if kind != "document":
                     continue
+                if root is None:
+                    root = Path(output_dir).resolve(strict=True)
                 document = item["document"]
                 app_id = app_ids[document["application_id"]]
                 app_dir = root / app_id

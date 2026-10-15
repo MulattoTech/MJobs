@@ -32,12 +32,14 @@ OMITTED_SECTIONS = (
 )
 
 
-def _omitted_sections(payload):
+def _omitted_sections(payload, *, missing_resume_revision_uploads=False):
     """List intentional security exclusions and populated unsupported exports."""
     omitted = list(OMITTED_SECTIONS)
     settings = payload.get("settings") if isinstance(payload.get("settings"), dict) else {}
     if settings.get("ai_task_settings"):
         omitted.append("ai_task_provider_model")
+    if missing_resume_revision_uploads:
+        omitted.append("resume_revision_metadata_without_upload_bytes")
     return omitted
 
 
@@ -947,6 +949,16 @@ def _validated(payload):
     searches = _search_profiles(normalized)
     safe_settings = _safe_settings(normalized)
     history = _restore_history(normalized, source_id, versions, generated_documents)
+    available_upload_ids = {row["source_id"] for row in uploaded_files}
+    kept_resume_revisions = [
+        row for row in history["resume_revisions"]
+        if row["upload_id"] in available_upload_ids
+    ]
+    missing_resume_revision_uploads = (
+        len(kept_resume_revisions) != len(history["resume_revisions"])
+    )
+    history["resume_revisions"] = kept_resume_revisions
+    history["omitted"] = history["omitted"] or missing_resume_revision_uploads
     history["profile_versions"] = _version_snapshots(versions, current_version)
     history["profile_facts"] = all_facts
     history["current_source_version"] = current_version
@@ -986,6 +998,8 @@ def _validated(payload):
             warnings.append("DISCOVERY_HISTORY_METADATA_PARTIAL")
     if files_omitted:
         warnings.append("UPLOADED_FILES_NOT_INCLUDED")
+    if missing_resume_revision_uploads:
+        warnings.append("RESUME_REVISION_METADATA_PARTIALLY_RESTORED")
     if generated_documents_omitted:
         warnings.append("GENERATED_DOCUMENTS_NOT_INCLUDED")
     if history["omitted"]:
@@ -1020,7 +1034,9 @@ def _validated(payload):
         "safe_settings": safe_settings,
         "counts": counts,
         "warnings": warnings,
-        "omitted_sections": _omitted_sections(normalized),
+        "omitted_sections": _omitted_sections(
+            normalized, missing_resume_revision_uploads=missing_resume_revision_uploads,
+        ),
     }
 
 
