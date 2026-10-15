@@ -29,10 +29,14 @@ OMITTED_SECTIONS = (
     "worker_operations",
     "source_monitoring_and_feed_state",
     "posting_raw_diagnostics",
+    "application_attempt_execution_steps",
+    "application_submission_traces_and_confirmations",
+    "document_generation_context",
 )
 
 
-def _omitted_sections(payload, *, missing_resume_revision_uploads=False):
+def _omitted_sections(payload, *, missing_resume_revision_uploads=False,
+                      history_omitted_sections=()):
     """List intentional security exclusions and populated unsupported exports."""
     omitted = list(OMITTED_SECTIONS)
     settings = payload.get("settings") if isinstance(payload.get("settings"), dict) else {}
@@ -40,6 +44,7 @@ def _omitted_sections(payload, *, missing_resume_revision_uploads=False):
         omitted.append("ai_task_provider_model")
     if missing_resume_revision_uploads:
         omitted.append("resume_revision_metadata_without_upload_bytes")
+    omitted.extend(history_omitted_sections)
     return omitted
 
 
@@ -763,6 +768,21 @@ def _restore_history(payload, source_id, versions, generated_documents):
         if row.get("upload_id") not in upload_ids:
             _fail("RESTORE_LINKAGE_INVALID")
 
+    omitted_sections = []
+    if len(routes_by_id) != len(rows["application_routes"]):
+        omitted_sections.append("unsafe_application_routes")
+    if len(jobs) != len(rows["jobs"]):
+        omitted_sections.append("jobs_without_safe_routes")
+    if len(apps) != len(rows["applications"]):
+        omitted_sections.append("applications_without_safe_routes")
+    if len(choices) != len(rows["application_route_choices"]):
+        omitted_sections.append("route_choices_without_safe_routes")
+    if docs_omitted:
+        omitted_sections.append("generated_documents_without_verified_bytes")
+    if (len(evaluations) != len(rows["ai_job_evaluations"])
+            or len(reviews) != len(rows["ai_document_reviews"])):
+        omitted_sections.append("ai_job_evaluation_history_without_safe_jobs")
+
     return {
         "jobs": jobs,
         "companies": [{"id": identifier, "name": name} for identifier, name in companies.items()],
@@ -785,14 +805,9 @@ def _restore_history(payload, source_id, versions, generated_documents):
         ),
         "resume_revisions": resume_revisions,
         "omitted": (
-            len(jobs) != len(rows["jobs"])
-            or len(routes_by_id) != len(rows["application_routes"])
-            or len(apps) != len(rows["applications"])
-            or len(choices) != len(rows["application_route_choices"])
-            or docs_omitted
-            or len(evaluations) != len(rows["ai_job_evaluations"])
-            or len(reviews) != len(rows["ai_document_reviews"])
+            bool(omitted_sections)
         ),
+        "omitted_sections": omitted_sections,
     }
 
 
@@ -1004,8 +1019,7 @@ def _validated(payload):
         warnings.append("GENERATED_DOCUMENTS_NOT_INCLUDED")
     if history["omitted"]:
         warnings.append("APPLICATION_HISTORY_PARTIALLY_RESTORED")
-    if any(row["state"] not in {"PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "AUTH_REQUIRED"}
-           for row in history["applications"]):
+    if history["applications"]:
         warnings.append("APPLICATION_STATES_REQUIRE_REVIEW")
     counts = {
         "facts": len(current_facts),
@@ -1036,6 +1050,7 @@ def _validated(payload):
         "warnings": warnings,
         "omitted_sections": _omitted_sections(
             normalized, missing_resume_revision_uploads=missing_resume_revision_uploads,
+            history_omitted_sections=history["omitted_sections"],
         ),
     }
 

@@ -37,7 +37,7 @@ const WARNING_LABELS: Record<string, string> = {
   RESUME_REVISION_METADATA_PARTIALLY_RESTORED: 'Uploaded resume history was partially restored because file bytes were unavailable.',
   GENERATED_DOCUMENTS_NOT_INCLUDED: 'Some generated document bytes are not included in this backup.',
   APPLICATION_HISTORY_PARTIALLY_RESTORED: 'Some history could not be restored because its safe links or document bytes were unavailable.',
-  APPLICATION_STATES_REQUIRE_REVIEW: 'Imported application states were made inert and require review; no submission will be replayed.',
+  APPLICATION_STATES_REQUIRE_REVIEW: 'Imported applications are never replayed; active states require review and ambiguous submissions remain unconfirmed.',
   CAREER_STORIES_REQUIRE_REVIEW: 'Imported career stories are pending review in the new profile.',
   SOURCE_CANDIDATES_DISABLED: 'Imported source candidates are disabled and require review before collection.',
   COMPANY_DISCOVERY_HISTORY_ARCHIVED: 'Company discovery records were recovered as read-only history.',
@@ -55,6 +55,15 @@ const OMITTED_SECTION_LABELS: Record<string, string> = {
   source_monitoring_and_feed_state: 'Source monitoring and feed state',
   posting_raw_diagnostics: 'Raw posting diagnostics',
   resume_revision_metadata_without_upload_bytes: 'Resume revision metadata without its original upload bytes',
+  application_attempt_execution_steps: 'Application attempt execution steps (not replayed)',
+  application_submission_traces_and_confirmations: 'Application submission traces and confirmation receipts (not portable)',
+  document_generation_context: 'Private document generation context',
+  unsafe_application_routes: 'Application routes rejected because their URLs were unsafe',
+  jobs_without_safe_routes: 'Jobs without a safe application route',
+  applications_without_safe_routes: 'Applications without a safe route',
+  route_choices_without_safe_routes: 'Route choices without a safe route',
+  generated_documents_without_verified_bytes: 'Generated document records without verified file bytes',
+  ai_job_evaluation_history_without_safe_jobs: 'AI job evaluation history without a restored safe job',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

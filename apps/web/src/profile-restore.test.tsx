@@ -66,7 +66,16 @@ describe('profile restore', () => {
     const metadataOnlyPreview = {
       ...preview,
       warnings: [...preview.warnings, 'RESUME_REVISION_METADATA_PARTIALLY_RESTORED'],
-      omitted_sections: [...preview.omitted_sections, 'resume_revision_metadata_without_upload_bytes'],
+      omitted_sections: [
+        ...preview.omitted_sections,
+        'resume_revision_metadata_without_upload_bytes',
+        'application_attempt_execution_steps',
+        'application_submission_traces_and_confirmations',
+        'document_generation_context',
+        'unsafe_application_routes',
+        'route_choices_without_safe_routes',
+        'generated_documents_without_verified_bytes',
+      ],
     };
     const request = vi.fn()
       .mockResolvedValueOnce(metadataOnlyPreview)
@@ -80,6 +89,12 @@ describe('profile restore', () => {
       confirmed={true} onConfirmedChange={() => {}} onRestore={() => {}} restoring={false} />);
     expect(markup).toContain('Uploaded resume history was partially restored because file bytes were unavailable.');
     expect(markup).toContain('Resume revision metadata without its original upload bytes');
+    expect(markup).toContain('Application attempt execution steps (not replayed)');
+    expect(markup).toContain('Application submission traces and confirmation receipts (not portable)');
+    expect(markup).toContain('Private document generation context');
+    expect(markup).toContain('Application routes rejected because their URLs were unsafe');
+    expect(markup).toContain('Route choices without a safe route');
+    expect(markup).toContain('Generated document records without verified file bytes');
     expect(await submitProfileRestore(request, backup, 'restore-metadata-only', projected.fingerprint, true))
       .toEqual({ ok: true, profileId: 'restored-profile' });
     expect(request).toHaveBeenCalledTimes(2);

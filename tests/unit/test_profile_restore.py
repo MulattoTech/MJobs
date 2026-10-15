@@ -252,6 +252,9 @@ class ProfileRestoreTests(unittest.TestCase):
         self.assertIn("SEARCH_PROFILES_DISABLED", result["warnings"])
         self.assertNotIn("job_history", result["omitted_sections"])
         self.assertIn("provider_credentials", result["omitted_sections"])
+        self.assertIn("application_attempt_execution_steps", result["omitted_sections"])
+        self.assertIn("application_submission_traces_and_confirmations", result["omitted_sections"])
+        self.assertIn("document_generation_context", result["omitted_sections"])
         self.assertEqual(len(result["fingerprint"]), 64)
         self.assertEqual(json_result["fingerprint"], result["fingerprint"])
         rendered = json.dumps(result, sort_keys=True)
@@ -313,7 +316,40 @@ class ProfileRestoreTests(unittest.TestCase):
 
         self.assertIn("GENERATED_DOCUMENTS_NOT_INCLUDED", preview["warnings"])
         self.assertNotIn("generated_documents", preview["omitted_sections"])
+        self.assertIn("generated_documents_without_verified_bytes", preview["omitted_sections"])
         self.assertEqual(plan["generated_documents"], [])
+
+    def test_preview_names_history_dropped_for_unsafe_routes_and_foreign_job_links(self):
+        payload = _payload()
+        payload["application_routes"].append({
+            **payload["application_routes"][0],
+            "id": "route-unsafe",
+            "provider": "unsafe-fixture",
+            "url": "https://jobs.example.test/token/private/apply",
+        })
+        payload["application_route_choices"].append({
+            "id": "choice-unsafe", "application_id": "application-1",
+            "route_id": "route-unsafe", "requested_mode": "DRY_RUN",
+            "state": "SELECTED", "created_at": "2026-10-11T12:00:00Z",
+        })
+        payload["ai_evaluation_runs"] = [{
+            "id": "run-1", "profile_version": "v-current", "policy": {},
+            "task_provider": "disabled", "task_model": "fixture",
+            "evaluated_candidate_count": 1, "created_at": "2026-10-11T12:00:00Z",
+        }]
+        payload["ai_job_evaluations"] = [{
+            "id": "evaluation-1", "run_id": "run-1", "job_id": "foreign-global-job",
+            "title": "Private unrelated job", "company": "Unrelated employer",
+            "deterministic_score": 50, "category": "MAYBE", "rationale": "fixture",
+            "created_at": "2026-10-11T12:00:00Z",
+        }]
+
+        preview = preview_profile_restore(payload)
+        self.assertIn("APPLICATION_HISTORY_PARTIALLY_RESTORED", preview["warnings"])
+        self.assertIn("unsafe_application_routes", preview["omitted_sections"])
+        self.assertIn("route_choices_without_safe_routes", preview["omitted_sections"])
+        self.assertIn("ai_job_evaluation_history_without_safe_jobs", preview["omitted_sections"])
+        self.assertNotIn("Private unrelated job", json.dumps(preview))
 
     def test_rejects_unsupported_version_export_and_malformed_current_snapshot(self):
         for update in (

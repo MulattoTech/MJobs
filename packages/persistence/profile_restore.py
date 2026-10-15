@@ -554,13 +554,14 @@ def apply_profile_restore(store, plan: dict, output_dir: str | Path, request_id:
                 ))
             ambiguous_states = {"SUBMITTING", "CONFIRMED", "SUBMISSION_CONFIRMED",
                                 "SUBMISSION_UNCONFIRMED", "APPLICATION_SUBMITTED"}
-            inert_states = {"PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "AUTH_REQUIRED"}
+            terminal_states = {"FAILED", "CANCELLED", "REJECTED", "BLOCKED",
+                               "DEAD_LETTERED", "DISCARDED", "UNKNOWN"}
             for row in history["applications"]:
                 state = row["state"]
                 submitted_at = row.get("submitted_at")
                 if state in ambiguous_states:
                     state, submitted_at = "SUBMISSION_UNCONFIRMED", None
-                elif state not in inert_states:
+                elif state not in terminal_states and state != "REVIEW_REQUIRED":
                     state, submitted_at = "REVIEW_REQUIRED", None
                 connection.execute(m.applications.insert().values(
                     id=app_ids[row["id"]], job_id=job_ids[row["job_id"]],

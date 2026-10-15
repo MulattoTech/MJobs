@@ -1,5 +1,6 @@
 """Transactional, profile-scoped recovery from a sanitized export."""
 import copy
+import base64
 import hashlib
 from pathlib import Path
 import tempfile
@@ -132,6 +133,29 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.application_id = prepare(
             self.store, job['id'], self.source_profile_id, self.root,
         )
+        source_application = self.store.application(self.application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(m.routes.insert().values(
+                id='synthetic-alt-route', job_id=source_application['job_id'],
+                company_id=self.store.job(source_application['job_id'])['company_id'],
+                provider='synthetic-alt', tenant='history', requisition='history-route',
+                url='https://history.example/alternate-apply',
+            ))
+            connection.execute(m.application_route_choices.insert().values(
+                id='synthetic-route-choice', application_id=self.application_id,
+                route_id='synthetic-alt-route',
+                underlying_key='synthetic-alt|history|https://history.example/alternate-apply',
+                requested_mode='DRY_RUN', state='SELECTED',
+                created_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.attempts.insert(), [
+                {'id': 'synthetic-failed-attempt', 'application_id': self.application_id,
+                 'state': 'FAILED', 'steps': ['PRIVATE_SYNTHETIC_TRACE'],
+                 'started_at': '2026-10-11T01:00:00+00:00'},
+                {'id': 'synthetic-running-attempt', 'application_id': self.application_id,
+                 'state': 'RUNNING', 'steps': ['PRIVATE_SYNTHETIC_ACTIVE_STEP'],
+                 'started_at': '2026-10-11T02:00:00+00:00'},
+            ])
         source_version = self.store.profile(self.source_profile_id)['version']
         with self.store.engine.begin() as connection:
             from services.profile_restore import _profile_fact_id, _profile_version_id
@@ -258,6 +282,8 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertEqual(self.backup['company_discovery_requests'][0]['selected_website'],
                          'https://history.example/careers')
         self.assertNotIn('SYNTHETIC_SECRET_DO_NOT_EXPORT', str(self.backup))
+        self.assertNotIn('PRIVATE_SYNTHETIC_TRACE', str(self.backup))
+        self.assertNotIn('PRIVATE_SYNTHETIC_ACTIVE_STEP', str(self.backup))
         self.assertEqual(self.backup['company_discovery_history'][0]['payload']['reasons'],
                          ['HIGH_MATCH_JOB'])
         app = FastAPI()
@@ -271,6 +297,17 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
             source_discovery_before = dict(connection.execute(select(m.company_discovery_requests).where(
                 m.company_discovery_requests.c.id == 'synthetic-discovery-request',
             )).mappings().one())
+            source_rows_before = {
+                'jobs': [dict(row) for row in connection.execute(select(m.jobs).where(
+                    m.jobs.c.id.in_([row['id'] for row in self.backup['jobs']]),
+                ).order_by(m.jobs.c.id)).mappings()],
+                'routes': [dict(row) for row in connection.execute(select(m.routes).where(
+                    m.routes.c.id.in_([row['id'] for row in self.backup['application_routes']]),
+                ).order_by(m.routes.c.id)).mappings()],
+                'applications': [dict(row) for row in connection.execute(select(m.applications).where(
+                    m.applications.c.profile_id == self.source_profile_id,
+                )).mappings()],
+            }
         preview_response = self.client.post('/profile-restores/preview', json={
             'backup': self.backup,
         })
@@ -319,6 +356,15 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
                 m.company_discovery_requests.c.id == 'synthetic-discovery-request',
             )).mappings().one())
             self.assertEqual(source_discovery_after, source_discovery_before)
+            self.assertEqual([dict(row) for row in connection.execute(select(m.jobs).where(
+                m.jobs.c.id.in_([row['id'] for row in self.backup['jobs']]),
+            ).order_by(m.jobs.c.id)).mappings()], source_rows_before['jobs'])
+            self.assertEqual([dict(row) for row in connection.execute(select(m.routes).where(
+                m.routes.c.id.in_([row['id'] for row in self.backup['application_routes']]),
+            ).order_by(m.routes.c.id)).mappings()], source_rows_before['routes'])
+            self.assertEqual([dict(row) for row in connection.execute(select(m.applications).where(
+                m.applications.c.profile_id == self.source_profile_id,
+            )).mappings()], source_rows_before['applications'])
             self.assertEqual(connection.execute(select(
                 m.profile_recovery_history_snapshots,
             ).where(m.profile_recovery_history_snapshots.c.profile_id == self.source_profile_id)
@@ -354,7 +400,7 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertEqual(len(restored_applications), len(self.backup['applications']))
         self.assertEqual(
             [application['state'] for application in restored_applications],
-            [application['state'] for application in self.backup['applications']],
+            ['REVIEW_REQUIRED' for _ in self.backup['applications']],
         )
         source_job_ids = {job['id'] for job in self.backup['jobs']}
         restored_job_ids = {application['job_id'] for application in restored_applications}
@@ -413,10 +459,11 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         with TestClient(api) as client:
             preview = client.post('/profile-restores/preview', json={'backup': backup})
             self.assertEqual(preview.status_code, 200, preview.text)
+            fingerprint = preview.json()['fingerprint']
             self.assertNotIn('historical_profile_versions', preview.json()['omitted_sections'])
             restored = client.post('/profile-restores', json={
                 'backup': backup, 'request_id': 'fresh-target-recovery',
-                'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+                'expected_fingerprint': fingerprint, 'confirmed': True,
             })
             self.assertEqual(restored.status_code, 201, restored.text)
             profile_id = restored.json()['profile_id']
@@ -432,12 +479,88 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
             self.assertEqual(len(restored_apps), len(self.backup['applications']))
             self.assertEqual(restored_apps[0]['state'], 'SUBMISSION_UNCONFIRMED')
             with reloaded.engine.connect() as connection:
+                companies = connection.execute(select(m.companies)).mappings().all()
+                routes = connection.execute(select(m.routes)).mappings().all()
+                matches = connection.execute(select(m.matches).where(
+                    m.matches.c.profile_id == profile_id,
+                )).mappings().all()
                 jobs = connection.execute(select(m.jobs)).mappings().all()
                 docs = connection.execute(select(m.documents).join(
                     m.applications, m.documents.c.application_id == m.applications.c.id,
                 ).where(m.applications.c.profile_id == profile_id)).mappings().all()
             self.assertEqual(len(jobs), len(self.backup['jobs']))
+            self.assertEqual(len(routes), len(self.backup['application_routes']))
+            self.assertEqual(len(matches), len(self.backup['job_matches']))
+            self.assertEqual(len(companies), len({row['company_id'] for row in self.backup['application_routes']}))
+            expected_job_ids = {
+                source['id']: identity('restored-job', profile_id, fingerprint, source['id'])
+                for source in self.backup['jobs']
+            }
+            expected_company_ids = {
+                source['company_id']: identity('restored-company', profile_id, fingerprint,
+                                               source['company_id'])
+                for source in self.backup['application_routes']
+            }
+            expected_route_ids = {
+                source['id']: identity('restored-route', profile_id, fingerprint, source['id'])
+                for source in self.backup['application_routes']
+            }
+            expected_app_ids = {
+                row['id']: identity(expected_job_ids[row['job_id']], profile_id)
+                for row in self.backup['applications']
+            }
+            self.assertEqual({row['id'] for row in restored_apps}, set(expected_app_ids.values()))
+            self.assertTrue({row['id'] for row in restored_apps}.isdisjoint(
+                {row['id'] for row in self.backup['applications']}))
+            self.assertTrue({row['job_id'] for row in restored_apps} <= set(expected_job_ids.values()))
+            self.assertTrue({row['route_id'] for row in restored_apps} <= set(expected_route_ids.values()))
+            self.assertEqual({row['id'] for row in jobs}, set(expected_job_ids.values()))
+            self.assertEqual({row['id'] for row in routes}, set(expected_route_ids.values()))
+            self.assertEqual({row['id'] for row in companies}, set(expected_company_ids.values()))
+            self.assertEqual({row['job_id'] for row in routes}, set(expected_job_ids.values()))
+            self.assertEqual({row['company_id'] for row in routes}, set(expected_company_ids.values()))
+            self.assertTrue({row['id'] for row in jobs}.isdisjoint(
+                {row['id'] for row in self.backup['jobs']}))
+            self.assertTrue({row['id'] for row in routes}.isdisjoint(
+                {row['id'] for row in self.backup['application_routes']}))
+            self.assertTrue({row['job_id'] for row in matches} <= set(expected_job_ids.values()))
+            self.assertTrue({row['id'] for row in matches}.isdisjoint(
+                {row['id'] for row in self.backup['job_matches']}))
             self.assertEqual(len(docs), len(self.backup['documents']))
+            self.assertTrue({row['id'] for row in docs}.isdisjoint(
+                {row['id'] for row in self.backup['documents']}))
+            self.assertTrue({row['application_id'] for row in docs} ==
+                            {row['id'] for row in restored_apps})
+            expected_doc_ids = {
+                row['id']: identity('restored-document', profile_id, fingerprint, row['id'])
+                for row in self.backup['documents']
+            }
+            self.assertEqual({row['id'] for row in docs}, set(expected_doc_ids.values()))
+            source_doc_ids = {target_id: source_id for source_id, target_id in expected_doc_ids.items()}
+            expected_document_files = {
+                (row['id'], row['format']): row for row in self.backup['document_files']
+            }
+            with reloaded.engine.connect() as connection:
+                choices = connection.execute(select(m.application_route_choices).where(
+                    m.application_route_choices.c.application_id == restored_apps[0]['id'],
+                )).mappings().all()
+                attempts = connection.execute(select(m.attempts).where(
+                    m.attempts.c.application_id == restored_apps[0]['id'],
+                )).mappings().all()
+            self.assertEqual(len(choices), len(self.backup['application_route_choices']))
+            self.assertEqual({row['state'] for row in choices}, {'PLANNED', 'SELECTED'})
+            self.assertTrue({row['id'] for row in choices}.isdisjoint(
+                {row['id'] for row in self.backup['application_route_choices']}))
+            self.assertTrue(all(row['application_id'] != self.backup['applications'][0]['id']
+                                for row in choices))
+            self.assertTrue({row['route_id'] for row in choices}.isdisjoint(
+                {row['route_id'] for row in self.backup['application_route_choices']}))
+            self.assertEqual({row['state'] for row in attempts}, {'FAILED', 'UNKNOWN'})
+            self.assertTrue(all(row['steps'] == [] for row in attempts))
+            self.assertTrue({row['id'] for row in attempts}.isdisjoint(
+                {row['id'] for row in self.backup['attempts']}))
+            self.assertTrue(all(row['application_id'] == restored_apps[0]['id']
+                                for row in attempts))
             with reloaded.engine.connect() as connection:
                 versions = connection.execute(select(m.profile_versions).where(
                     m.profile_versions.c.profile_id == profile_id,
@@ -446,7 +569,19 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
                     m.facts.c.profile_id == profile_id,
                 )).mappings().all()
             self.assertEqual(len(versions), len(self.backup['profile_versions']))
+            restored_current_version = reloaded.profile(profile_id)['version']
+            expected_versions = {
+                row['version']: (restored_current_version if row['version'] == self.backup['profile']['version']
+                                 else identity('restored-historical-profile-version', profile_id,
+                                               fingerprint, row['version']))
+                for row in self.backup['profile_versions']
+            }
+            self.assertEqual({row['version'] for row in versions}, set(expected_versions.values()))
             self.assertEqual(len(restored_facts), len(self.backup['facts']))
+            self.assertTrue({row['id'] for row in restored_facts}.isdisjoint(
+                {row['id'] for row in self.backup['facts']}))
+            self.assertTrue({row['version'] for row in restored_facts} <=
+                            {row['version'] for row in versions})
             self.assertTrue(all(not item['verified'] and not item['user_approved']
                                 for item in restored_facts))
             self.assertTrue(all(Path(target_root, app['id']).is_dir() for app in restored_apps))
@@ -455,6 +590,11 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
                     document_path = target_root / document['application_id'] / relative
                     contents = document_path.read_bytes()
                     self.assertEqual(hashlib.sha256(contents).hexdigest(), document['sha256'][file_format])
+                    source_file = expected_document_files[(source_doc_ids[document['id']], file_format)]
+                    self.assertEqual(len(contents), source_file['size_bytes'])
+                    self.assertEqual(hashlib.sha256(contents).hexdigest(), source_file['sha256'])
+                    self.assertEqual(base64.b64encode(contents).decode('ascii'),
+                                     source_file['content_base64'])
             with reloaded.engine.connect() as connection:
                 from packages.persistence import resume_workspace as workspace
                 stories = connection.execute(select(m.career_stories).where(
@@ -497,8 +637,14 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
                 answer_policy = connection.execute(select(m.answer_confidence_policies).where(
                     m.answer_confidence_policies.c.profile_id == profile_id,
                 )).mappings().all()
+                search_profiles = connection.execute(select(m.search_profiles).where(
+                    m.search_profiles.c.profile_id == profile_id,
+                )).mappings().all()
                 resume_revisions = connection.execute(select(m.resume_revisions).where(
                     m.resume_revisions.c.profile_id == profile_id,
+                )).mappings().all()
+                uploads = connection.execute(select(m.uploaded_resumes).where(
+                    m.uploaded_resumes.c.profile_id == profile_id,
                 )).mappings().all()
             self.assertEqual(len(stories), len(self.backup['career_stories']))
             self.assertEqual(stories[0]['text'], 'Synthetic content retained through recovery.')
@@ -510,6 +656,25 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
             self.assertNotEqual(stories[0]['id'], self.backup['career_stories'][0]['id'])
             self.assertEqual(len(workspaces), len(self.backup['resume_workspace_revisions']))
             self.assertEqual(workspaces[0]['rendered_text'], 'Synthetic workspace rendered text')
+            self.assertTrue({row['id'] for row in stories}.isdisjoint(
+                {row['id'] for row in self.backup['career_stories']}))
+            self.assertTrue(all(row['profile_version'] in set(expected_versions.values())
+                                for row in stories + workspaces + packs))
+            self.assertTrue(all(row['job_id'] in set(expected_job_ids.values())
+                                for row in workspaces + packs))
+            self.assertEqual(len(ai_runs), len(self.backup['ai_evaluation_runs']))
+            self.assertEqual(len(ai_evals), len(self.backup['ai_job_evaluations']))
+            self.assertEqual(len(ai_reviews), len(self.backup['ai_document_reviews']))
+            ai_run_ids = {row['id'] for row in ai_runs}
+            self.assertTrue({row['run_id'] for row in ai_evals + ai_reviews} <= ai_run_ids)
+            self.assertTrue(all(row['job_id'] in set(expected_job_ids.values())
+                                for row in ai_evals + ai_reviews))
+            self.assertEqual(len(source_candidates), len(self.backup['source_candidates']))
+            self.assertEqual(len(source_reviews), len(self.backup['source_candidate_reviews']))
+            candidate_ids = {row['id'] for row in source_candidates}
+            self.assertTrue({row['candidate_id'] for row in source_reviews} <= candidate_ids)
+            self.assertEqual(len(resume_revisions), len(self.backup['resume_revisions']))
+            self.assertEqual(len(uploads), len(self.backup['uploaded_resumes']))
             self.assertEqual(operations, [])
             self.assertEqual(target_sources, [])
             self.assertEqual(target_discovery, [])
@@ -536,11 +701,27 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
             self.assertEqual(source_reviews[0]['candidate_id'], source_candidates[0]['id'])
             self.assertEqual(ai_task_settings[0]['provider'], 'disabled')
             self.assertIsNone(ai_task_settings[0]['model'])
+            self.assertTrue(search_profiles)
+            self.assertTrue(all(not row['enabled'] and row['source_ids'] == []
+                                for row in search_profiles))
+            self.assertFalse(reloaded.profile(profile_id)['preferences']['company_discovery'][
+                'company_discovery_enabled'])
+            self.assertEqual(reloaded.profile(profile_id)['preferences'][
+                'application_route_preference'], 'USER_CHOICE')
             self.assertEqual(ai_cost[0]['minimum_score'], 50)
             self.assertEqual(answer_policy[0]['minimum_saved_answer_confidence'], 85)
             self.assertEqual(len(resume_revisions), len(self.backup['resume_revisions']))
             self.assertTrue({row['series_id'] for row in resume_revisions}.isdisjoint(
                 {row['series_id'] for row in self.backup['resume_revisions']}))
+            self.assertEqual(len(uploads), len(self.backup['uploaded_resumes']))
+            self.assertTrue(all(row['upload_id'] in {upload['id'] for upload in uploads}
+                                for row in resume_revisions))
+            self.assertTrue({row['id'] for row in uploads}.isdisjoint(
+                {row['id'] for row in self.backup['uploaded_resumes']}))
+            for stored in uploads:
+                metadata, contents = read_resume(reloaded, target_root, profile_id, stored['id'])
+                self.assertEqual(metadata['sha256'], hashlib.sha256(contents).hexdigest())
+                self.assertEqual(metadata['size_bytes'], len(contents))
             reloaded.bind_workspace_mode('FIXTURE')
             reloaded.save_profile({**PROFILE, 'id': 'other-profile',
                                    'name': 'Other Synthetic', 'email': 'other@example.invalid'})
@@ -615,6 +796,49 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
             self.assertEqual(len(self.store.applications(self.source_profile_id)), 1)
         finally:
             reloaded.engine.dispose()
+
+    def test_import_keeps_terminal_unknown_and_ambiguous_states_inert(self):
+        expectations = {
+            'UNKNOWN': 'UNKNOWN',
+            'FAILED': 'FAILED',
+            'CANCELLED': 'CANCELLED',
+            'PREPARED': 'REVIEW_REQUIRED',
+            'AUTH_REQUIRED': 'REVIEW_REQUIRED',
+            'SUBMITTING': 'SUBMISSION_UNCONFIRMED',
+        }
+        for source_state, expected_state in expectations.items():
+            with self.subTest(source_state=source_state):
+                root = self.root / f"state-{source_state.casefold()}"
+                root.mkdir()
+                target = Store(f"sqlite:///{(root / 'target.db').as_posix()}")
+                target.migrate()
+                target.bind_workspace_mode('FIXTURE')
+                api = FastAPI()
+                api.include_router(create_profile_restore_router(target, root))
+                backup = copy.deepcopy(self.backup)
+                backup['applications'][0]['state'] = source_state
+                with TestClient(api) as client:
+                    preview = client.post('/profile-restores/preview', json={'backup': backup})
+                    self.assertEqual(preview.status_code, 200, preview.text)
+                    restored = client.post('/profile-restores', json={
+                        'backup': backup, 'request_id': f'state-recovery-{source_state.casefold()}',
+                        'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+                    })
+                    self.assertEqual(restored.status_code, 201, restored.text)
+                    target.engine.dispose()
+                    reloaded = Store(f"sqlite:///{(root / 'target.db').as_posix()}")
+                    reloaded.migrate()
+                    try:
+                        profile_id = restored.json()['profile_id']
+                        applications = reloaded.applications(profile_id)
+                        self.assertEqual(len(applications), 1)
+                        self.assertEqual(applications[0]['state'], expected_state)
+                        with reloaded.engine.connect() as connection:
+                            self.assertEqual(connection.execute(select(m.operations)).all(), [])
+                            self.assertEqual(connection.execute(select(m.company_sources)).all(), [])
+                            self.assertEqual(connection.execute(select(m.company_discovery_requests)).all(), [])
+                    finally:
+                        reloaded.engine.dispose()
 
     def test_unconfirmed_and_stale_imports_do_not_create_profiles(self):
         preview = self.client.post('/profile-restores/preview', json={'backup': self.backup})
