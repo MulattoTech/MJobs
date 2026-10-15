@@ -76,11 +76,17 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
 
         client.get.side_effect = get
         worker_counts = iter((1, 1, 2))
+        redis_available = True
 
         def run_bounded(command, *, timeout, action, environment=None):
+            nonlocal redis_available
             compose_calls.append((list(command), dict(environment or {})))
             events.append(("docker", tuple(command)))
             if command[:2] == ["docker", "compose"]:
+                if "stop" in command and "redis" in command:
+                    redis_available = False
+                if "start" in command and "redis" in command:
+                    redis_available = True
                 if "ps" in command:
                     service = command[-1]
                     return "container-fixture-" + service + "\n"
@@ -89,6 +95,9 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
                 return ""
             if command[:2] == ["docker", "inspect"]:
                 service = command[-1].removeprefix("container-fixture-")
+                if ".State.Health" in command[3]:
+                    health = "unhealthy" if service == "api" and not redis_available else "healthy"
+                    return f"running|{health}\n"
                 labels = {
                     "com.docker.compose.project": PROJECT,
                     "com.docker.compose.service": service,
@@ -137,7 +146,8 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         self.assertTrue(any(command[:2] == ["docker", "inspect"]
                             and command[-1] == "container-fixture-worker" for command, _ in compose_calls))
 
-        inspect_calls = [command for command, _ in compose_calls if command[:2] == ["docker", "inspect"]]
+        inspect_calls = [command for command, _ in compose_calls
+                         if command[:2] == ["docker", "inspect"] and ".Config.Labels" in command[3]]
         self.assertEqual(len(inspect_calls), len(compose_recovery.RECOVERY_MUTATION_SERVICES))
         self.assertTrue(any(command[-4:] == ["ps", "--all", "-q", "worker"] for command, _ in compose_calls
                             if command[:2] == ["docker", "compose"]))
@@ -148,6 +158,13 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         self.assertTrue(any('stop' in command and 'ai-worker' in command for command, _ in compose_calls))
         self.assertTrue(any('start' in command and 'ai-worker' in command for command, _ in compose_calls))
         self.assertEqual(evidence["result"], "PASS")
+        self.assertIn("container_health", evidence)
+        health = evidence["container_health"]
+        self.assertEqual(set(health["before"]), set(compose_recovery.RECOVERY_RESTART_SERVICES))
+        self.assertTrue(all(row == {"status": "running", "health": "healthy"}
+                            for row in health["before"].values()))
+        self.assertEqual(health["redis_outage"]["api"], {"status": "running", "health": "unhealthy"})
+        self.assertEqual(health["after"], health["before"])
 
         urls = [call[1] for call in http_calls]
         self.assertIn("/discovery", urls)
