@@ -1,0 +1,436 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-15T16:18:57.790761+00:00",
+  "recording_status": "LOCAL_BRANCH_CANDIDATE_NOT_INTEGRATED",
+  "validated_product_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+  "recording_base_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+  "validation_scope": "Executed product evidence belongs to the recorded product revision. This acceptance-recording change does not claim that old tests executed on a future commit.",
+  "source_input_closure": {
+    "checked_at_utc": "2026-10-15T16:18:57.790761+00:00",
+    "remote_main_readback": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "local_main_readback": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "working_revision": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "method": "Recorded SHA-256 values matched working bytes. Git clean-filtered object IDs matched main for all 971 unique inputs (970 headless plus nine concurrency, with overlap). Three raw Git blobs differ from working SHA-256 only through checkout line-ending normalization; no content mismatch. Remote main SHA read back with git ls-remote.",
+    "headless_input_count": 970,
+    "headless_manifest_sha256": "a699d0e826c14019dc470e61d168858ad83e39d091921d0bf6ae2797e280138a",
+    "concurrency_recorded_input_count": 9,
+    "mismatches": [],
+    "future_base_rule": "Compare affected source/test/dependency inputs again after base changes. Preserve original tested revision and hosted head SHA; rerun affected behavior only if executable inputs change."
+  },
+  "authority": {
+    "type": "ORIGINAL_MJ_REQ",
+    "working_spec": "docs/spec/areas/governance_safety.md",
+    "live_issue_readback": "OPEN; authoritative literal text matches reviewed specification",
+    "supplementary_authority_unchanged": "planning/REFERENCE_GAP_MATRIX.json",
+    "real_ats_or_account_is_required": false
+  },
+  "independent_review": {
+    "reviewer": "mjobs-8",
+    "type": "Independent read-only criterion, source, artifact and hash review",
+    "completed_utc": "2026-10-15T07:19:00Z",
+    "timestamp_precision": "minute; exact seconds not recorded",
+    "artifact_name": "final-p0-4-6-acceptance-review.md",
+    "artifact_sha256": "7345cd2210d20544dc57c020da4f7f80c7effac074e2c9b9209ce23f1c837838",
+    "conclusion": "Acceptance-ready for both original literal requirements at the tested product revision; no unmet literal clause or actionable defect identified.",
+    "reviewer_runtime_execution": "NOT_RUN",
+    "acceptance_and_integration_owner": "mjobs-1"
+  },
+  "approval_proposal_sha256": "b00a636a56b36f28593dc6f78e3fb7dd0a6105200c4df4421aa50d967cc6dba6",
+  "external_boundaries": {
+    "real_employer_submission": "OFF",
+    "real_ats_or_live_provider_inference": "NOT_RUN",
+    "personal_credentials_or_applicant_data_used": false,
+    "whole_product_release": "PARTIAL",
+    "project_mutation": false,
+    "new_hosted_workflow_triggered_for_evidence": false
+  },
+  "requirement_id": "MJ-REQ-005",
+  "github_issue": 6,
+  "issue_url": "https://github.com/MulattoTech/MJobs/issues/6",
+  "requirement_result": "PASS",
+  "scope": "Deliberate concurrency and five independent conservative limits; cross-Store admission, release, progress and recovery.",
+  "original_execution_artifact": {
+    "name": "MJ-REQ-005-concurrency-proof.md",
+    "sha256": "5743ec0f16bbc175bec84528f1e45704cc7f5a81424419df26396ea1ff98740a"
+  },
+  "environment": {
+    "local": "Windows 11 build 26300 / Python 3.12.10 / compatible existing Playwright 1.63.0 / cached Chromium1243; synthetic SQLite/fixtures",
+    "hosted": "Existing exact-main Ubuntu24.04 / Python3.12 / PostgreSQL17 / Redis7 integration execution; downloaded read-only",
+    "dependency_installation": false
+  },
+  "criteria": [
+    {
+      "criterion": "Deliberate lightweight source fetch parallelism",
+      "executed_evidence": "Greenhouse search uses two independent GET futures with `max_workers=min(self.concurrency, 2)`. Five fresh synthetic tests cover measured per-source overlap at caps 1/2, persisted policy, failure isolation, and cancellation.",
+      "result_and_limits": "Executed checks PASS. No public source contacted."
+    },
+    {
+      "criterion": "Suitable parsing/scoring/controlled AI parallelism",
+      "executed_evidence": "Parsing/scoring run within source work or selected synchronous scoring; no new pool was introduced. Scoring action admission/replay/exclusion tests pass. AI queued workers share the ai category; the fresh durable-AI concurrency test queues two jobs, observes one running/other capacity-denied, then progresses the second after release. Synthetic telemetry test completes 24 tasks across eight threads and releases all slots.",
+      "result_and_limits": "Executed checks PASS for bounded paths. Telemetry test is an auxiliary component test, not proof of a live provider. Suitable-parallelism examples do not require manufacturing separate parser/scorer pools."
+    },
+    {
+      "criterion": "Five independent configuration limits",
+      "executed_evidence": "Three fresh unit tests verify defaults, independent configuration, operation-kind mapping, empty/invalid/zero/out-of-range rejection. Worker lifecycle tests exercise independent source/document/application and shared company categories.",
+      "result_and_limits": "Executed checks PASS. Settings and full mapping below."
+    },
+    {
+      "criterion": "Conservative browser application concurrency / no uncontrolled Chromium",
+      "executed_evidence": "Durable application category caps worker claims and manual-auth API admissions before launch. Per-entity manual/worker exclusion also applies at cap 2. Thirty-seven fresh manual-auth tests plus browser cancellation test pass in compatible existing venv.",
+      "result_and_limits": "Executed checks PASS on synthetic fixtures. Seven hosted PG cases include application/manual cross-Store races. No live ATS/account criterion."
+    },
+    {
+      "criterion": "Conservative docs/OCR/company discovery",
+      "executed_evidence": "PREPARE, resume extraction and comparison share document_generation; COMPANY_DISCOVER and COMPANY_SOURCE_REFRESH share company_discovery. OCR adds one process-local bounded slot and sequential page/tool work, released in finally. Eighteen OCR unit tests pass, including busy slot, page limits, cancellation, timeout and child reaping.",
+      "result_and_limits": "Executed checks PASS; native OCR resource enforcement is unavailable on Windows and mocked in unit checks. No new semaphore system."
+    },
+    {
+      "criterion": "Cross-Store race / no overbooking",
+      "executed_evidence": "Existing PG transaction advisory locks serialize category count-and-admit. SQLite uses BEGIN IMMEDIATE. Exact-head hosted JUnit contains all seven current PostgreSQLConcurrencyTests, no skip/failure/error; fresh SQLite independent-Store worker race passes.",
+      "result_and_limits": "PostgreSQL evidence PASS from exact-head hosted execution; local PostgreSQL NOT_RUN (no dedicated URL). SQLite is not used as PG proof."
+    },
+    {
+      "criterion": "Release after completion/failure/cancel",
+      "executed_evidence": "Fresh AI concurrency progress, worker terminal/failure/cancellation, comparison cancellation race, OCR child cleanup and manual-auth cleanup cases pass. Manual uncertain browser exit retains capacity until confirmed closure, rather than freeing it on timeout alone.",
+      "result_and_limits": "Executed checks PASS, including negative release controls."
+    },
+    {
+      "criterion": "Stale lease / recovery / work progress",
+      "executed_evidence": "Fresh SQLite worker subprocess crash/reclaim and stale-attempt fencing pass; AI unknown-outcome recovery blocks replay; extraction stale worker cannot publish. Hosted same-head PostgreSQL crash/reclaim and stale-worker side-effect fence cases both pass. Seven operation progress tests and workbench replay/readback tests pass.",
+      "result_and_limits": "Executed checks PASS. This is not a full-product release declaration."
+    }
+  ],
+  "configured_limits": [
+    {
+      "category": "source_collection",
+      "default": 2,
+      "maximum": 4,
+      "operations": [
+        "DISCOVER"
+      ]
+    },
+    {
+      "category": "company_discovery",
+      "default": 1,
+      "maximum": 2,
+      "operations": [
+        "COMPANY_DISCOVER",
+        "COMPANY_SOURCE_REFRESH"
+      ]
+    },
+    {
+      "category": "ai",
+      "default": 1,
+      "maximum": 2,
+      "operations": [
+        "AI_EVALUATE",
+        "AI_EVALUATE_QUEUED"
+      ]
+    },
+    {
+      "category": "document_generation",
+      "default": 1,
+      "maximum": 2,
+      "operations": [
+        "PREPARE",
+        "RESUME_EXTRACT",
+        "RESUME_EXTRACT_QUEUED",
+        "UPLOADED_RESUME_COMPARE",
+        "UPLOADED_RESUME_COMPARE_QUEUED"
+      ]
+    },
+    {
+      "category": "application_automation",
+      "default": 1,
+      "maximum": 2,
+      "operations": [
+        "APPLY_MOCK",
+        "APPLICATION_FORM_REVIEW",
+        "APPLICATION_DRY_RUN",
+        "MANUAL_AUTH"
+      ]
+    }
+  ],
+  "local_commands": "python -m pytest -q -p no:cacheprovider tests/unit/test_operation_concurrency.py tests/integration/test_operation_concurrency_postgres.py tests/integration/test_worker_lifecycle.py tests/integration/test_manual_auth_concurrency.py tests/unit/test_resume_ocr.py --junitxml=\"$env:TEMP/mjobs-15-local-concurrency/local.xml\"\n# 43 passed, 38 failed, 9 skipped, 19 subtests passed. Failures: 37 manual-auth setup failures (missing Chromium 1248); one browser cancellation assertion returns DEAD_LETTERED before form entry. NOT a passing broad run. Failed setup also produced temporary SQLite cleanup warnings (WinError 32).\npython -m pytest -xq -p no:cacheprovider tests/integration/test_manual_auth_concurrency.py --tb=short\n# Diagnostic reproduction: 1 failure before behavior in setUp, missing Playwright Chromium executable. No source changed.\npython -m pytest -q -p no:cacheprovider tests/integration/test_durable_ai_evaluation.py tests/integration/test_durable_resume_extraction.py tests/integration/test_durable_uploaded_comparison.py -k \"worker_concurrency_is_shared or stale_worker or cross_instance_queued_cancellation or cancel_queued_survives or completion_cancel_race or queued_api_response_precedes\" --junitxml=\"$env:TEMP/mjobs-15-local-concurrency/categories.xml\"\n# 6 passed, 58 deselected.\npython -m pytest -q -p no:cacheprovider tests/integration/test_greenhouse.py -k \"per_source_concurrency or persisted_source_concurrency or parallel_fetch_failure or local_cancellation_outweighs or successful_parallel_request\" --junitxml=\"$env:TEMP/mjobs-15-local-concurrency/sources.xml\"\n# 5 passed, 24 deselected.\npython -m pytest -q -p no:cacheprovider tests/unit/test_operation_progress.py tests/integration/test_llm_telemetry_integration.py tests/integration/test_pipeline_workbench.py::PipelineWorkbenchActionTests --junitxml=\"$env:TEMP/mjobs-15-local-concurrency/progress.xml\"\n# 23 passed, 17 subtests passed.\n& .venv/Scripts/python.exe -m pytest -q -p no:cacheprovider tests/integration/test_manual_auth_concurrency.py tests/integration/test_worker_lifecycle.py::WorkerLifecycleTests::test_cancelled_running_browser_never_reserves_submission --junitxml=\"$env:TEMP/mjobs-15-local-concurrency/browser-compatible.xml\" --tb=short\n# 38 passed, 9 subtests passed. All initial browser-dependent failures pass with compatible existing runtime.\ngit diff --check\ngit status --porcelain=v1\ngit rev-parse HEAD",
+  "local_results": {
+    "distinct_passing_nodes": 115,
+    "passing_subtests": 45,
+    "local_postgresql_skipped": 9,
+    "initial_broad_run": {
+      "passed": 43,
+      "failed": 38,
+      "skipped": 9,
+      "subtests_passed": 19,
+      "reason": "Global Playwright1.64 expected absent Chromium1248; 37 manual-auth setup failures and one dependent browser cancellation failure. Not a green run."
+    },
+    "compatible_browser_rerun": {
+      "passed": 38,
+      "failed": 0,
+      "skipped": 0,
+      "subtests_passed": 9,
+      "reason": "Existing project venv and cached Chromium1243; every initially failed node has a passing compatible rerun."
+    },
+    "other_runs": {
+      "categories": {
+        "passed": 6,
+        "deselected": 58
+      },
+      "sources": {
+        "passed": 5,
+        "deselected": 24
+      },
+      "progress": {
+        "passed": 23,
+        "subtests_passed": 17
+      }
+    },
+    "passing_test_nodes": [
+      "tests.integration.test_durable_ai_evaluation.DurableAIEvaluationTests::test_cross_instance_queued_cancellation_persists",
+      "tests.integration.test_durable_ai_evaluation.DurableAIEvaluationTests::test_stale_worker_cannot_publish_after_recovery_blocks_uncertain_call",
+      "tests.integration.test_durable_ai_evaluation.DurableAIEvaluationTests::test_worker_concurrency_is_shared_and_does_not_reject_durable_admission",
+      "tests.integration.test_durable_resume_extraction.DurableResumeExtractionTests::test_stale_worker_cannot_commit_after_expired_lease_is_reclaimed",
+      "tests.integration.test_durable_uploaded_comparison.DurableUploadedComparisonTests::test_cancel_queued_survives_reopen_and_never_publishes_result",
+      "tests.integration.test_durable_uploaded_comparison.DurableUploadedComparisonTests::test_completion_cancel_race_discards_computed_result",
+      "tests.integration.test_greenhouse.GreenhouseTests::test_local_cancellation_outweighs_concurrent_network_failure",
+      "tests.integration.test_greenhouse.GreenhouseTests::test_parallel_fetch_failure_records_history_without_partial_jobs",
+      "tests.integration.test_greenhouse.GreenhouseTests::test_per_source_concurrency_bounds_parallel_read_requests",
+      "tests.integration.test_greenhouse.GreenhouseTests::test_persisted_source_concurrency_controls_collection_requests",
+      "tests.integration.test_greenhouse.GreenhouseTests::test_successful_parallel_request_does_not_hide_provider_failure",
+      "tests.integration.test_llm_telemetry_integration.LLMTelemetryIntegrationTests::test_multithreaded_concurrency_and_cost_accounting",
+      "tests.integration.test_llm_telemetry_integration.LLMTelemetryIntegrationTests::test_privacy_guarantee_no_pii_in_telemetry",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_api_process_identity_persisted_before_launch_and_private_after_restart",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_api_reports_failed_owner_release_without_claiming_success",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_bare_closure_flag_cannot_release_another_api_calls_browser",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_browser_and_transport_cleanup_failure_cannot_release_capacity",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_browser_callback_exposes_original_api_deadline",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_cancel_closes_controlled_window_before_releasing_admission",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_cancellation_query_time_is_subtracted_from_browser_budget",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_closed_page_with_failed_cleanup_stays_blocked_before_driver_exit",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_confirmed_closure_cannot_record_a_blocked_release",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_corrupt_owner_metadata_fails_closed_without_mutation",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_deadline_releases_admission_without_retry",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_failure_before_launch_releases_capacity_for_explicit_retry",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_finish_without_closure_confirmation_cannot_release_crashed_owner",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_launch_failure_without_context_retains_capacity_and_blocks_retry",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_legacy_unknown_owner_cannot_release_blocked_capacity",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_live_page_wait_error_is_unavailable_after_cleanup_not_successful_close",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_owned_window_progress_and_public_reads_hide_internal_ownership",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_owner_token_fences_reopened_store_expired_release_and_duplicate",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_process_identity_is_durable_immutable_private_and_owner_fenced",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_progress_cannot_bypass_manual_auth_owner_release",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_progress_update_preserves_private_owner_fence",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_public_cancellation_hides_owner_and_preserves_owned_capacity",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_real_helper_cancel_check_cleans_context_before_driver_exit_and_release",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_running_worker_blocks_manual_window_and_manual_window_blocks_worker",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_two_api_instances_reject_duplicate_before_launch_and_allow_explicit_retry",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_unavailable_api_process_identity_never_admits_or_launches",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_uncertain_close_retains_capacity_and_prevents_retry",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_unknown_window_status_retains_capacity",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_unsupported_headed_browser_runtime_fails_closed_without_attempt_or_submission",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_unsupported_runtime_and_other_profile_fail_closed_without_opening_session",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_user_started_sign_in_opens_same_attempt_profile_without_retry_or_submission",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthConcurrencyTests::test_window_failure_releases_slot_and_crash_recovery_retains_uncertain_capacity",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthSessionApiTests::test_browser_callback_exposes_original_api_deadline",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthSessionApiTests::test_cancellation_query_time_is_subtracted_from_browser_budget",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthSessionApiTests::test_unsupported_headed_browser_runtime_fails_closed_without_attempt_or_submission",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthSessionApiTests::test_unsupported_runtime_and_other_profile_fail_closed_without_opening_session",
+      "tests.integration.test_manual_auth_concurrency.ManualAuthSessionApiTests::test_user_started_sign_in_opens_same_attempt_profile_without_retry_or_submission",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_fresh_ready_request_queues_once_and_replays_actual_state",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_initial_ack_reads_state_from_persisted_operation",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_malformed_callback_rolls_back_queued_operation_and_binding",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_new_application_uses_explicit_selected_route",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_non_ready_item_never_calls_prepare",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_persisted_ready_job_queues_through_real_workbench_projection",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_read_route_hides_missing_profile_as_not_found",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_read_route_uses_persisted_core_snapshot_for_profile",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_replay_returns_current_persisted_state_without_requeueing",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_request_id_cannot_be_rebound_to_different_readiness",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_response_never_serializes_callback_payload",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_scoring_admission_replays_terminal_state_and_excludes_preparation",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_stale_version_or_fingerprint_never_calls_prepare",
+      "tests.integration.test_pipeline_workbench.PipelineWorkbenchActionTests::test_unexpected_route_mode_fails_closed",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_application_worker_exposes_its_remaining_monotonic_budget",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_apply_mock_context_lookup_failure_does_not_change_outcome_or_log_diagnostics",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_apply_mock_logs_persisted_ats_provider_after_terminal_persistence",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_cancel_before_claim_and_running_cancellation_are_durable",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_cancelled_running_browser_never_reserves_submission",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_capacity_is_independent_and_a_duplicate_cannot_claim",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_company_discovery_kinds_share_one_category_capacity",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_company_source_refresh_context_lookup_failure_preserves_result_and_omits_diagnostics",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_company_source_refresh_logs_persisted_company_fk_after_terminal_persistence",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_concurrent_application_workers_share_capacity_across_store_instances",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_discovery_expiry_retries_at_most_three_claims",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_over_budget_worker_is_not_recorded_completed",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_personal_worker_blocks_stale_fixture_discovery",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_personal_worker_blocks_stale_fixture_preparation",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_personal_worker_blocks_stale_fixture_submission_before_browser",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_pre_submit_crash_stops_for_review",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_prepare_retry_limit_adds_one_profile_scoped_failure_event",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_product_worker_process_crash_recovers_from_durable_lease",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_reclaimed_attempt_fences_original_worker_before_side_effect",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_recovered_application_without_receipt_is_explicitly_blocked",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_reserved_submission_only_reconciles_and_cannot_cancel",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_terminal_prepare_failure_is_recorded_without_rewrite_payload",
+      "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_worker_logs_successful_operation_as_structured_record",
+      "tests.unit.test_operation_concurrency.OperationConcurrencyTests::test_category_limits_are_independent_and_operation_kinds_map_to_them",
+      "tests.unit.test_operation_concurrency.OperationConcurrencyTests::test_each_required_category_has_a_conservative_independent_default",
+      "tests.unit.test_operation_concurrency.OperationConcurrencyTests::test_unknown_categories_and_out_of_range_values_fail_closed",
+      "tests.unit.test_operation_progress.OperationProgressTests::test_invalid_progress_state_transition_and_recovery_metadata_do_not_write",
+      "tests.unit.test_operation_progress.OperationProgressTests::test_missing_operation_has_stable_code",
+      "tests.unit.test_operation_progress.OperationProgressTests::test_omitted_step_does_not_clear_the_current_step",
+      "tests.unit.test_operation_progress.OperationProgressTests::test_progress_cannot_regress_and_retry_count_is_monotonic",
+      "tests.unit.test_operation_progress.OperationProgressTests::test_progress_update_persists_safe_read_model_and_stable_timestamps",
+      "tests.unit.test_operation_progress.OperationProgressTests::test_retry_count_and_progress_reject_non_integer_types",
+      "tests.unit.test_operation_progress.OperationProgressTests::test_terminal_state_sets_completion_time_and_cannot_be_reopened_or_mutated",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_cancellation_kills_and_reaps_running_ocr_child",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_disconnect_cancellation_propagates_through_scanned_pdf_enrichment",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_launch_failure_is_distinguished_from_resource_limit",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_missing_engine_keeps_scanned_resume_explicitly_unprocessed",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_missing_recognition_output_is_reported_as_incomplete_extraction",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_missing_renderer_output_is_not_reported_as_resource_exhaustion",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_nonzero_tool_exit_reports_status_without_exposing_diagnostics",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_oversized_raster_never_reaches_recognition",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_page_limit_does_not_launch_unbounded_tools",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_process_wrapper_caps_and_sanitizes_captured_diagnostics",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_process_wrapper_has_limits_no_shell_and_no_application_secrets",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_scanned_page_and_mixed_page_preserve_native_first_review",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_timeout_is_classified_without_discarding_native_text",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_timeout_preserves_native_text_and_cleans_temporary_files",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_tool_wall_timeout_kills_and_reaps_child",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_total_deadline_and_busy_slot_skip_work_without_blocking",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_unexpected_ocr_failure_cannot_discard_native_contact_text",
+      "tests.unit.test_resume_ocr.ResumeOCRTests::test_worker_fence_exceptions_reap_owned_ocr_child"
+    ],
+    "unresolved_initial_failures": 0
+  },
+  "hosted_postgresql": {
+    "run_id": 38668685396,
+    "attempt": 1,
+    "url": "https://github.com/MulattoTech/MJobs/actions/runs/38668685396",
+    "head_sha": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "head_branch": "main",
+    "conclusion": "success",
+    "created_at_utc": "2026-10-15T02:00:24Z",
+    "completed_at_utc": "2026-10-15T02:10:25Z",
+    "provenance": "Existing result downloaded by evidence author and independently checked by reviewer; no workflow rerun.",
+    "artifact_metadata_and_download_commands": "gh api 'repos/MulattoTech/MJobs/actions/runs?head_sha=06ffb07a207dc68b42b565870f67fc3eb67aae03&per_page=100'\ngh api repos/MulattoTech/MJobs/actions/runs/38668685396\ngh api repos/MulattoTech/MJobs/actions/runs/38668685396/artifacts\ngh api repos/MulattoTech/MJobs/actions/runs/38668685396/jobs\ngh run download 38668685396 --repo MulattoTech/MJobs --pattern \"integration-results-*\" --dir \"$env:TEMP/mjobs-15-concurrency-proof\"",
+    "xml_artifacts": [
+      {
+        "name": "integration-results-0",
+        "artifact_id": 11942759742,
+        "xml": "integration-0.xml",
+        "xml_sha256": "0dfa4b3e9eb7c9bbbbd0e76aecc8e73af0980e8f9f10a3662aaf4af9c8b0816a"
+      },
+      {
+        "name": "integration-results-1",
+        "artifact_id": 11942809174,
+        "xml": "integration-1.xml",
+        "xml_sha256": "88fbc5e339cfa88b1fe0227d533f633a42fee04144ebeb7add7af492a44f1d01"
+      },
+      {
+        "name": "integration-results-2",
+        "artifact_id": 11942293900,
+        "xml": "integration-2.xml",
+        "xml_sha256": "c4b2aee60c2c186991c21bc9448ed70cac33e49d58f8aa10d29e96cb4614e52f"
+      }
+    ],
+    "category_cases": [
+      {
+        "class": "tests.integration.test_operation_concurrency_postgres.PostgreSQLConcurrencyTests",
+        "test": "test_cross_kind_parallel_claims_respect_one_shared_category_cap",
+        "result": "PASS",
+        "duration_seconds": 0.111,
+        "failure_error_or_skipped_child": false
+      },
+      {
+        "class": "tests.integration.test_operation_concurrency_postgres.PostgreSQLConcurrencyTests",
+        "test": "test_document_generation_cap_is_shared_between_inline_and_worker_operations",
+        "result": "PASS",
+        "duration_seconds": 0.021,
+        "failure_error_or_skipped_child": false
+      },
+      {
+        "class": "tests.integration.test_operation_concurrency_postgres.PostgreSQLConcurrencyTests",
+        "test": "test_manual_auth_and_worker_share_application_capacity",
+        "result": "PASS",
+        "duration_seconds": 0.021,
+        "failure_error_or_skipped_child": false
+      },
+      {
+        "class": "tests.integration.test_operation_concurrency_postgres.PostgreSQLConcurrencyTests",
+        "test": "test_manual_auth_duplicate_entity_rejected_across_stores_at_limit_two",
+        "result": "PASS",
+        "duration_seconds": 0.018,
+        "failure_error_or_skipped_child": false
+      },
+      {
+        "class": "tests.integration.test_operation_concurrency_postgres.PostgreSQLConcurrencyTests",
+        "test": "test_parallel_ai_admissions_respect_one_shared_category_cap",
+        "result": "PASS",
+        "duration_seconds": 0.018,
+        "failure_error_or_skipped_child": false
+      },
+      {
+        "class": "tests.integration.test_operation_concurrency_postgres.PostgreSQLConcurrencyTests",
+        "test": "test_parallel_application_claims_respect_one_shared_category_cap",
+        "result": "PASS",
+        "duration_seconds": 0.023,
+        "failure_error_or_skipped_child": false
+      },
+      {
+        "class": "tests.integration.test_operation_concurrency_postgres.PostgreSQLConcurrencyTests",
+        "test": "test_source_collection_parallel_claims_respect_one_shared_category_cap",
+        "result": "PASS",
+        "duration_seconds": 0.023,
+        "failure_error_or_skipped_child": false
+      }
+    ],
+    "recovery_cases": [
+      {
+        "class": "tests.integration.test_worker_lifecycle.PostgreSQLWorkerCrashRecoveryTests",
+        "test": "test_postgresql_reclaimed_attempt_fences_original_worker_side_effect",
+        "result": "PASS",
+        "failure_error_or_skipped_child": false
+      },
+      {
+        "class": "tests.integration.test_worker_lifecycle.PostgreSQLWorkerCrashRecoveryTests",
+        "test": "test_postgresql_worker_process_crash_recovers_and_reclaims_durable_operation",
+        "result": "PASS",
+        "failure_error_or_skipped_child": false
+      }
+    ],
+    "artifact_retention_limit": "Artifacts were available and unexpired at author/reviewer inspection; selected results and XML hashes are retained here without raw logs."
+  },
+  "source_input_sha256": {
+    "workers/operations.py": "49ed098cf3673c2114a80b774f6ceac7e58fdfff10d3ae2e0c4f2c27648228f4",
+    "workers/tasks.py": "3dc3e18f25fc885110e16e5ce92268a554f7c1d125f22549a223d911526c2b41",
+    "workers/main.py": "0116d6c279b56d1af78586b8eb60c471092f55c0329812d22b53e62e1c479f43",
+    "apps/api/manual_auth.py": "93d2c51c0445409198c6b99440ae2935a9f2ac25475f851968a12970406702c2",
+    "services/career_profile/ocr.py": "11bf452ee3d295c8ec6b7811bfb9ebb49876bc6669e9ec6b180f2f0042834e0d",
+    "services/discovery/sources/greenhouse.py": "e895f84ef585986f280ab779915dfa523117e48727d3e03b894b281283b1690c",
+    "tests/unit/test_operation_concurrency.py": "f920c34ed550a52aa9cb59b3bee6ac996b2f97dc019cecdbfff712d5a6ed3565",
+    "tests/integration/test_operation_concurrency_postgres.py": "a9a0d42b353e03d8732db83d95ee42ff56df9cbe4e120969ea1366faeb19ec6e",
+    ".github/workflows/integration.yml": "c93daa066dc04354c5a1d3f8e95addccc2e939b08650366f064274d3ebc482d4"
+  },
+  "source_closure_note": "The independent headless bundle also binds 970 shared product/test/dependency inputs at this exact revision. Both bundles matched during preparation; the nine concurrency-specific inputs include its executed hosted workflow.",
+  "limitations": [
+    "Nine local PostgreSQL tests remain skipped/NOT_RUN; exact-main hosted PostgreSQL execution supplies that distinct proof. SQLite is not substituted for PostgreSQL.",
+    "Native OCR resource enforcement is unavailable/not executed on this Windows host; executed synthetic unit tests establish conservative slot/page/tool sequencing and cleanup, not native OCR functionality.",
+    "Threaded telemetry is auxiliary component evidence, not live provider inference. No parser/scorer framework or pool is required or introduced.",
+    "Full product regression and native process-tree certification are not claimed."
+  ],
+  "unmet_literal_criteria": [],
+  "historical_evidence_preserved": true,
+  "superseded_blocker": "No literal real ATS/provider runtime clause exists. Synthetic admission/race, cleanup and recovery oracles plus exact-main hosted PostgreSQL prove the stated concurrency contract.",
+  "safe_recovery": "Recording-only revert; no schema/product change. Preserve temporary ownership fences and all historical evidence; no unrelated process cleanup.",
+  "post_policy_merge_input_closure": {
+    "checked_at_utc": "2026-10-15T16:30:29.620815+00:00",
+    "publication_base_commit": "da8e43d9e760c826212dc4a1039a88f635aebb73",
+    "ordinary_merge_commit": "fbd22e8bc37b77223c4c76b083f204752f126bf2",
+    "original_product_execution_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "unique_recorded_inputs_checked": 971,
+    "working_sha256_mismatches": [],
+    "clean_filtered_origin_main_blob_mismatches": [],
+    "interpretation": "All previously recorded product/test/dependency and hosted-integration inputs unchanged. Policy adds or edits publication governance, fast-CI cache key and verifier/tests; focused recording/policy checks run separately. Original product/hosted tests were not rerun and are not represented as executing on this later commit."
+  }
+}
