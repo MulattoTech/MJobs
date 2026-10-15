@@ -71,6 +71,62 @@ describe('settings transfer component', () => {
     expect(JSON.stringify(preview)).not.toContain('private profile name');
   });
 
+  it('counts a legacy inline scheduler when no automation rule is present', () => {
+    const preview = getSettingsImportPreview(JSON.stringify({
+      schema_version: 1,
+      settings: {
+        search_profiles: [{
+          name: 'Daily search',
+          scheduler: { enabled: true, interval_seconds: 3600 },
+        }],
+        automation_rules: [],
+        source_configuration: [],
+      },
+    }));
+
+    expect(preview).toEqual({
+      ok: true,
+      schemaVersion: 1,
+      counts: { searchProfiles: 1, automationRules: 1, sourceConfigurations: 0 },
+    });
+  });
+
+  it('counts a matching legacy inline scheduler and automation rule only once', () => {
+    const scheduler = { enabled: true, interval_seconds: 3600 };
+    const preview = getSettingsImportPreview(JSON.stringify({
+      schema_version: 1,
+      settings: {
+        search_profiles: [{ name: 'Daily search', scheduler }],
+        automation_rules: [{
+          kind: 'scheduled_search',
+          search_profile_name: 'daily search',
+          ...scheduler,
+        }],
+        source_configuration: [],
+      },
+    }));
+
+    expect(preview).toEqual({
+      ok: true,
+      schemaVersion: 1,
+      counts: { searchProfiles: 1, automationRules: 1, sourceConfigurations: 0 },
+    });
+  });
+
+  it('rejects object maps where settings categories must be arrays', () => {
+    for (const category of ['search_profiles', 'automation_rules', 'source_configuration']) {
+      expect(getSettingsImportPreview(JSON.stringify({
+        schema_version: 1,
+        settings: {
+          search_profiles: [],
+          automation_rules: [],
+          source_configuration: [],
+          [category]: { first: {} },
+        },
+      }))).toEqual({ ok: false, errorCode: 'unsupported_format' });
+    }
+  });
+
   it('rejects unsupported and non-integer schema versions', () => {
     for (const schemaVersion of [0, 3, -1, 1.5, true, '1', null]) {
       expect(getSettingsImportPreview(JSON.stringify({
