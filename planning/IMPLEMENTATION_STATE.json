@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-12T01:39:09.023815+00:00",
+  "generated_at": "2026-10-15T01:46:08.317894+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
     "observed_local_state": "directory exists, empty, not a git repository",
     "observed_github_state": "private repository exists; default branch main; size 0; no issues; no pull requests",
     "baseline_must_be_reverified": true,
-    "current_verified_local_state": "PR543 replay metadata repair locally verified:25comparisonPASS/6subtests,3connectedChromiumPASS,unit/build/validatorsPASS;5PostgreSQLNOT_RUN. Exact source hashes docs/evidence/2026-10-11-comparison-replay-metadata.json; original dirty plan preserved.",
-    "current_verified_github_state": "Live remote main12466a8cc820712b4842af02c9f2d4482102827a and PR543 predecessor9e1f3231 verified; predecessor integration replay/Compose overflow FAIL. Repair publication and exact-head checks tracked in AFK state; original/reference acceptance unchanged.",
-    "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
+    "current_verified_local_state": "Verified product source at PR659 head7c96a899; closeout branch records acceptance with executable inputs unchanged. Final main synchronization and clean-status readback are required before the completion report. Private and unrelated histories preserved.",
+    "current_verified_github_state": "PR657 settings and PR658 document recovery merged with exact-head required checks; PR659 Docker health merged with verified source/restored-project outage evidence. Final acceptance closeout follows through protected PR.",
+    "current_verified_at": "2026-10-15T01:46:08.317894+00:00"
   },
-  "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Complete third original P1 #250 container health; record verified document recovery acceptance",
+  "current_milestone": "ORIGINAL-P0P1-20261014-193432",
+  "current_objective": "Three original P1 capabilities verified and integrated; protected closeout, then stop this iteration",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -190,9 +190,7 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [
-    "MJ-REQ-249"
-  ],
+  "active_requirements": [],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -3543,7 +3541,7 @@
   "container_health_campaign": {
     "issue": 250,
     "requirement": "MJ-REQ-249",
-    "status": "IN_PROGRESS",
+    "status": "PASS",
     "base_sha": "9d2c58bb81f574243c2cef226273738c3faf7e8e",
     "gap": "Scheduler and five worker services have no Docker health checks; API health does not use complete readiness",
     "owned_paths": [
@@ -3561,6 +3559,44 @@
       "fresh scheduler success; Redis failures sanitized and bounded",
       "running API becomes unhealthy during dependency outage; all services recover healthy"
     ],
-    "rollback": "Scoped source/Compose revert; no schema migrations or user-host runtime mutation"
+    "rollback": "Scoped source/Compose revert; no schema migrations or user-host runtime mutation",
+    "source_commit": "7c96a899fcead9f3250824f4220a778fb2b6faa0",
+    "merge_commit": "c00e57cdcf9ac27db7a7b13991d84870bd65471d",
+    "pr": 659,
+    "evidence": "docs/evidence/2026-10-14-container-health.json",
+    "original_pass_delta": {
+      "P0": 0,
+      "P1": 1
+    },
+    "validation": {
+      "local": "60PASS/71subtests; local Luna review no blockers",
+      "hosted": "Five required gates PASS; source and fresh-restored Docker projects all10healthy/outage/recovery;3ChromiumPASS/0skip"
+    }
+  },
+  "campaign_closeout": {
+    "status": "CONTINUE",
+    "issues": [
+      277,
+      273,
+      250
+    ],
+    "complete_original_requirements": [
+      "MJ-REQ-276",
+      "MJ-REQ-272",
+      "MJ-REQ-249"
+    ],
+    "original_pass_before": {
+      "P0": 7,
+      "P1": 42
+    },
+    "original_pass_after": {
+      "P0": 7,
+      "P1": 45
+    },
+    "additive_completions": 0,
+    "release": "PARTIAL",
+    "external_submission": "OFF",
+    "physical_host_reboot": "NOT_RUN",
+    "next_candidate": "Reconcile live Project1 and original #275/MJ-REQ-274 process restart recovery before any new claim. No automatic continuation."
   }
 }

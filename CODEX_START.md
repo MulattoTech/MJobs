@@ -2,7 +2,7 @@
 
 Open only the canonical repository root: C:\Tools\Dev\MJobs. VS Code should show the root main branch; archived clones/worktrees remain preserved beneath the root and hidden from the normal explorer.
 
-Before a NEW campaign, inspect AGENTS.md, planning/SESSION_HANDOFF.md, live Project #1 and any pending PRs. The last Round3 product PR #654 delivered MJ-REQ-257 PASS while MJ-REQ-014 remains PARTIAL. Never resume its completed interactive session or reuse its old queue.
+Before a NEW campaign, inspect AGENTS.md, planning/SESSION_HANDOFF.md, live Project #1 and any pending PRs. The latest campaign delivered original MJ-REQ-276 settings versioning (PR #657), MJ-REQ-272 document failure recovery (PR #658), and MJ-REQ-249 container health (PR #659), all PASS. Earlier MJ-REQ-257 remains PASS; MJ-REQ-014 remains PARTIAL pending a separately authorized physical-host restart. Never resume a completed interactive session or reuse its old queue.
 
 From a normal (not Administrator) PowerShell or the VS Code terminal at that root, run a read-only preview:
 

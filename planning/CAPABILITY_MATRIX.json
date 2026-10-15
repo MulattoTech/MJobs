@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-15T01:21:57.764209+00:00",
+  "timestamp": "2026-10-15T01:46:08.317894+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -2919,9 +2919,11 @@
     },
     {
       "requirement_id": "MJ-REQ-249",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-14-container-health.json"
+      ],
+      "note": "Whole original contract verified: functional health checks for all ten long-running services; complete API readiness; container-specific worker queue/hostname/PID/freshness; scheduler success freshness. Exact source7c96a899; PR659 five required gates PASS; both original and fresh-restored Docker projects prove all10healthy, running API unhealthy with Redis down, then all10healthy after service restart. No physical host reboot required or performed.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"

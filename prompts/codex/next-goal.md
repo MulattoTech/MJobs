@@ -4,7 +4,7 @@ Finish genuinely usable, user-visible ORIGINAL P0 and P1 MJobs capabilities, max
 
 One canonical developer root: C:\Tools\Dev\MJobs. GitHub Project #1 is the exclusive P0/P1 task queue. Original issue/spec criteria and planning/CAPABILITY_MATRIX.json determine PASS; supplementary MJ-REF and child slices never inflate original counts.
 
-Start by reconciling GitHub main, local main, existing PRs, true active owners, archived/dirty workspaces and exact requirement state. Historical Round3: MJ-REQ-257 PASS and #258 closed; MJ-REQ-014 PARTIAL because physical-host restart is NOT_RUN. Verify these observations before excluding work. Select the highest-impact feasible unowned original P0/P1 next; candidate MJ-REQ-276 / #277 must first be checked live.
+Start by reconciling GitHub main, local main, existing PRs, true active owners, archived/dirty workspaces and exact requirement state. Latest completed originals: MJ-REQ-276/#277, MJ-REQ-272/#273, and MJ-REQ-249/#250 PASS through PRs #657/#658/#659; earlier MJ-REQ-257/#258 remains PASS. MJ-REQ-014 remains PARTIAL because physical-host restart is NOT_RUN. Verify these observations before excluding work. Select the highest-impact feasible unowned original P0/P1 next; candidate MJ-REQ-274/#275 process restart recovery must first be checked live against all original criteria, including ambiguous submissions.
 
 GPT-6.1 Sol High is the single integration owner when selected. Use at most two writing Luna High subagents for genuinely independent meaningful features with disjoint writable paths and real tests. Validate UI/API/services/worker, durable state/reload, profile privacy and negative recovery paths as applicable. Merge serially only through exact-head required GitHub CI and review.
 
