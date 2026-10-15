@@ -1,5 +1,6 @@
 """Transactional, profile-scoped recovery from a sanitized export."""
 import copy
+import base64
 import hashlib
 from pathlib import Path
 import tempfile
@@ -8,17 +9,44 @@ from unittest.mock import patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.profile_restore import create_profile_restore_router
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.data_export import export_profile_backup
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.uploads import read_resume, save_resume
 from tests.integration.test_spine import PROFILE
+
+
+# Keep every persisted top-level backup section accounted for as recovery is
+# extended. `partial` rows are surfaced in preview.omitted_sections.
+BACKUP_SECTION_ACCOUNTING = {
+    'profile': 'recovered', 'profile_versions': 'all versions with remapped IDs',
+    'facts': 'all versions imported unverified',
+    'settings': 'search profiles and policies recovered; model providers disabled',
+    'career_stories': 'recovered pending review',
+    'ai_evaluation_runs': 'recovered immutable historical metadata only',
+    'ai_job_evaluations': 'recovered remapped inert evaluation output',
+    'ai_document_reviews': 'recovered remapped historical review marker',
+    'source_candidates': 'recovered with collection disabled and review required',
+    'source_candidate_reviews': 'recovered remapped immutable review history',
+    'company_discovery_requests': 'converted to inert, profile-owned archive snapshots',
+    'company_discovery_history': 'preserved safe history with remapped references and authorization required',
+    'jobs': 'recovered remapped profile-associated jobs',
+    'job_matches': 'recovered remapped profile matches',
+    'applications': 'recovered inert profile applications',
+    'application_routes': 'recovered safe routes',
+    'application_route_choices': 'recovered remapped choices',
+    'documents': 'recovered verified bytes and metadata', 'attempts': 'recovered without execution steps',
+    'resume_revisions': 'recovered remapped version and series lineage',
+    'uploaded_resumes': 'recovered unreviewed bytes', 'document_files': 'recovered verified bytes',
+    'resume_workspace_revisions': 'recovered inert revision',
+    'interview_prep_packs': 'recovered inert revision',
+}
 
 
 class ProfileRestoreIntegrationTests(unittest.TestCase):
@@ -51,9 +79,174 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
             discover(self.store, fixture, self.source_profile_id)
         job = next(row for row in self.store.jobs(self.source_profile_id)
                    if row['requisition'] == 'B')
+        discovery_profile_version = self.store.profile(self.source_profile_id)['version']
+        with self.store.engine.begin() as connection:
+            connection.execute(m.companies.insert().values(
+                id='synthetic-discovery-company', name='Synthetic History Employer', domain=''))
+            connection.execute(m.company_sources.insert().values(
+                id='synthetic-discovery-source', company_id='synthetic-discovery-company',
+                provider='rss', tenant='synthetic-history', endpoint='https://history.example/feed',
+                discovered_automatically=False, collection_strategy='RSS', confidence=0.9,
+                enabled=True))
+            connection.execute(m.jobs.insert().values(
+                id='synthetic-discovery-job', company_id='synthetic-discovery-company',
+                requisition='history-req', title='Synthetic History Job', description='Synthetic only',
+                skills=[], location='Remote', remote_type='REMOTE', attributes={}))
+            connection.execute(m.routes.insert().values(
+                id='synthetic-discovery-route', job_id='synthetic-discovery-job',
+                company_id='synthetic-discovery-company', provider='synthetic', tenant='history',
+                requisition='history-req', url='https://history.example/apply/1'))
+            connection.execute(m.matches.insert().values(
+                id='synthetic-discovery-match', job_id='synthetic-discovery-job',
+                profile_id=self.source_profile_id, profile_version=discovery_profile_version,
+                score=77.5, missing=[], components={'synthetic': True}))
+            connection.execute(m.postings.insert().values(
+                id='synthetic-discovery-posting', job_id='synthetic-discovery-job', source='synthetic',
+                source_job_id='history-req', source_url='https://history.example/feed',
+                application_url='https://history.example/jobs/1', raw={},
+                fetched_at='2026-10-11T00:00:00+00:00'))
+            connection.execute(m.posting_snapshots.insert().values(
+                id='synthetic-discovery-snapshot', posting_id='synthetic-discovery-posting', raw={},
+                sha256='a' * 64, retrieved_at='2026-10-11T00:00:00+00:00'))
+            connection.execute(m.source_quality_observations.insert().values(
+                id='synthetic-discovery-quality', company_source_id='synthetic-discovery-source',
+                source_endpoint='https://history.example/feed', observed_at='2026-10-11T00:00:00+00:00',
+                succeeded=True, available=True))
+            connection.execute(m.posting_value_candidates.insert().values(
+                id='synthetic-discovery-candidate', posting_id='synthetic-discovery-posting',
+                posting_snapshot_id='synthetic-discovery-snapshot',
+                company_source_id='synthetic-discovery-source',
+                quality_observation_id='synthetic-discovery-quality',
+                observed_at='2026-10-11T00:00:00+00:00', normalized={'synthetic': True},
+                application_url='https://history.example/jobs/1'))
+            connection.execute(m.company_discovery_requests.insert().values(
+                id='synthetic-discovery-request', company_id='synthetic-discovery-company',
+                company_source_id='synthetic-discovery-source', candidate_id='synthetic-discovery-candidate',
+                trigger_job_id='synthetic-discovery-job', profile_id=self.source_profile_id,
+                profile_version=discovery_profile_version,
+                reasons=['HIGH_MATCH_JOB'], highest_match_score=77.5,
+                created_at='2026-10-11T00:00:00+00:00', last_seen_at='2026-10-12T00:00:00+00:00',
+                state='NEEDS_ORIGIN_REVIEW', revision=2,
+                selected_website='https://history.example/careers?token=SYNTHETIC_SECRET_DO_NOT_EXPORT',
+                authorization='USER_CONFIRMED', domain_evidence=[], source_snapshot={'private': 'excluded'},
+            ))
         self.application_id = prepare(
             self.store, job['id'], self.source_profile_id, self.root,
         )
+        source_application = self.store.application(self.application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(m.routes.insert().values(
+                id='synthetic-alt-route', job_id=source_application['job_id'],
+                company_id=self.store.job(source_application['job_id'])['company_id'],
+                provider='synthetic-alt', tenant='history', requisition='history-route',
+                url='https://history.example/alternate-apply',
+            ))
+            connection.execute(m.application_route_choices.insert().values(
+                id='synthetic-route-choice', application_id=self.application_id,
+                route_id='synthetic-alt-route',
+                underlying_key='synthetic-alt|history|https://history.example/alternate-apply',
+                requested_mode='DRY_RUN', state='SELECTED',
+                created_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.attempts.insert(), [
+                {'id': 'synthetic-failed-attempt', 'application_id': self.application_id,
+                 'state': 'FAILED', 'steps': ['PRIVATE_SYNTHETIC_TRACE'],
+                 'started_at': '2026-10-11T01:00:00+00:00'},
+                {'id': 'synthetic-running-attempt', 'application_id': self.application_id,
+                 'state': 'RUNNING', 'steps': ['PRIVATE_SYNTHETIC_ACTIVE_STEP'],
+                 'started_at': '2026-10-11T02:00:00+00:00'},
+            ])
+        source_version = self.store.profile(self.source_profile_id)['version']
+        with self.store.engine.begin() as connection:
+            from services.profile_restore import _profile_fact_id, _profile_version_id
+            current_snapshot = dict(connection.execute(select(m.profile_versions).where(
+                m.profile_versions.c.profile_id == self.source_profile_id,
+                m.profile_versions.c.version == source_version,
+            )).mappings().one())
+            old_version = 'synthetic-old-profile-version'
+            old_contact = copy.deepcopy(current_snapshot['contact'])
+            old_contact['name'] = 'Earlier Synthetic Name'
+            connection.execute(m.profile_versions.insert().values(
+                id=_profile_version_id(self.source_profile_id, old_version),
+                profile_id=self.source_profile_id, version=old_version,
+                contact=old_contact, answers=current_snapshot['answers'],
+            ))
+            current_fact = connection.execute(select(m.facts).where(
+                m.facts.c.profile_id == self.source_profile_id,
+                m.facts.c.version == source_version,
+            )).mappings().first()
+            if current_fact:
+                connection.execute(m.facts.insert().values(
+                    id=_profile_fact_id(self.source_profile_id, old_version, current_fact['fact_id']),
+                    profile_id=self.source_profile_id, version=old_version,
+                    fact_id=current_fact['fact_id'], kind=current_fact['kind'],
+                    text='Earlier synthetic fact version', source='Synthetic prior snapshot',
+                    verified=True, user_approved=True, confidence=95,
+                ))
+            connection.execute(m.career_stories.insert().values(
+                id='synthetic-story-rev-1', profile_id=self.source_profile_id,
+                story_key='synthetic-impact', revision=1, profile_version=source_version,
+                kind='STAR_STORY', title='Synthetic recovery story',
+                text='Synthetic content retained through recovery.', fact_ids=[],
+                fact_fingerprints=[], tags=['synthetic'], allowed_uses=['INTERVIEW'],
+                review_status='PENDING', review_note=None, created_at='2026-10-11T00:00:00+00:00',
+                reviewed_at=None,
+            ))
+            connection.execute(m.ai_evaluation_runs.insert().values(
+                id='synthetic-ai-run', profile_id=self.source_profile_id,
+                profile_version=source_version, policy={'minimum_score': 55},
+                task_provider='disabled', task_model='historical-only',
+                evaluated_candidate_count=1, created_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.ai_job_evaluations.insert().values(
+                id='synthetic-ai-evaluation', run_id='synthetic-ai-run',
+                profile_id=self.source_profile_id, job_id=job['id'], title=job['title'],
+                company=job['company'], deterministic_score=72, category='STRONG',
+                rationale='Synthetic historical evaluation', job_fingerprint='e' * 64,
+                created_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.ai_document_reviews.insert().values(
+                id='synthetic-ai-document-review', profile_id=self.source_profile_id,
+                run_id='synthetic-ai-run', job_id=job['id'],
+                reviewed_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.source_candidates.insert().values(
+                id='synthetic-source-candidate', profile_id=self.source_profile_id,
+                domain='jobs.example.test', display_name='Synthetic Jobs Site',
+                site_type='JOB_BOARD', state='INTEGRATED',
+                first_seen_at='2026-10-10T00:00:00+00:00',
+                last_seen_at='2026-10-11T00:00:00+00:00', collection_enabled=True,
+                review_reason='Synthetic candidate', integration_issue=None,
+            ))
+            connection.execute(m.source_candidate_reviews.insert().values(
+                id='synthetic-source-review', candidate_id='synthetic-source-candidate',
+                profile_id=self.source_profile_id, state='REJECTED', site_type='JOB_BOARD',
+                reason='Synthetic rejected fixture', api_feed_evidence_status='UNKNOWN',
+                api_feed_evidence_reference=None, api_feed_evidence_note='Synthetic evidence note',
+                access_terms_note='Synthetic terms note', capabilities_limits_note='Synthetic limits note',
+                expected_value_maintenance_note='Synthetic maintenance note', integration_issue=None,
+                reviewed_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.interview_prep_packs.insert().values(
+                id='synthetic-interview-pack', profile_id=self.source_profile_id,
+                job_id=job['id'], pack_version=1, profile_version=source_version,
+                job_fingerprint='a' * 64, selected_story_revision_ids=['synthetic-story-rev-1'],
+                questions=['Synthetic question'], talking_points=['Synthetic point'],
+                star_prompts=['Synthetic prompt'], missing_evidence=[],
+                export_text='Synthetic interview preparation content',
+                created_at='2026-10-11T00:00:00+00:00',
+            ))
+            from packages.persistence import resume_workspace as workspace
+            from datetime import datetime, timezone
+            connection.execute(workspace.resume_workspace_revisions.insert().values(
+                id='synthetic-workspace-revision', profile_id=self.source_profile_id,
+                job_id=job['id'], version=1, profile_version=source_version,
+                job_fingerprint='b' * 64, template_id='default',
+                sections=[{'id': 'summary', 'text': 'Synthetic workspace text'}],
+                preview_fingerprint='c' * 64, rendered_text='Synthetic workspace rendered text',
+                source_refs=[], request_id='source-request', payload_fingerprint='d' * 64,
+                created_at=datetime(2026, 10, 11, tzinfo=timezone.utc),
+            ))
         with self.store.engine.begin() as connection:
             connection.execute(m.search_profiles.insert().values(
                 id='source-search-profile', profile_id=self.source_profile_id,
@@ -62,9 +255,37 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
                 source_ids=['fixture'], created_at='2026-10-11T00:00:00+00:00',
                 updated_at='2026-10-11T00:00:00+00:00',
             ))
+            connection.execute(m.ai_task_settings.insert().values(
+                id='synthetic-ai-task', profile_id=self.source_profile_id,
+                task='job_match', provider='openai', model='synthetic-model-disabled-on-restore',
+                updated_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.ai_cost_policies.insert().values(
+                id='synthetic-ai-cost', profile_id=self.source_profile_id,
+                minimum_score=50, max_input_candidates=100, max_ai_candidates=0,
+                max_document_candidates=0, updated_at='2026-10-11T00:00:00+00:00',
+            ))
+            connection.execute(m.answer_confidence_policies.insert().values(
+                id='synthetic-answer-policy', profile_id=self.source_profile_id,
+                minimum_saved_answer_confidence=85, minimum_question_match_confidence=0.8,
+                updated_at='2026-10-11T00:00:00+00:00',
+            ))
         self.backup = export_profile_backup(
             self.store, self.source_profile_id, output_dir=self.root,
         )
+        self.assertEqual(set(self.backup) - {'schema_version', 'export_type', 'profile_id'},
+                         set(BACKUP_SECTION_ACCOUNTING))
+        self.assertEqual(len(self.backup['company_discovery_requests']), 1)
+        self.assertEqual(len(self.backup['company_discovery_history']), 1)
+        self.assertNotIn('authorization', self.backup['company_discovery_requests'][0])
+        self.assertNotIn('source_snapshot', self.backup['company_discovery_requests'][0])
+        self.assertEqual(self.backup['company_discovery_requests'][0]['selected_website'],
+                         'https://history.example/careers')
+        self.assertNotIn('SYNTHETIC_SECRET_DO_NOT_EXPORT', str(self.backup))
+        self.assertNotIn('PRIVATE_SYNTHETIC_TRACE', str(self.backup))
+        self.assertNotIn('PRIVATE_SYNTHETIC_ACTIVE_STEP', str(self.backup))
+        self.assertEqual(self.backup['company_discovery_history'][0]['payload']['reasons'],
+                         ['HIGH_MATCH_JOB'])
         app = FastAPI()
         app.include_router(create_profile_restore_router(self.store, self.root))
         self.client = TestClient(app)
@@ -72,6 +293,21 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
 
     def test_preview_explicit_import_readback_and_request_idempotency(self):
         before = self.store.profile(self.source_profile_id)
+        with self.store.engine.connect() as connection:
+            source_discovery_before = dict(connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == 'synthetic-discovery-request',
+            )).mappings().one())
+            source_rows_before = {
+                'jobs': [dict(row) for row in connection.execute(select(m.jobs).where(
+                    m.jobs.c.id.in_([row['id'] for row in self.backup['jobs']]),
+                ).order_by(m.jobs.c.id)).mappings()],
+                'routes': [dict(row) for row in connection.execute(select(m.routes).where(
+                    m.routes.c.id.in_([row['id'] for row in self.backup['application_routes']]),
+                ).order_by(m.routes.c.id)).mappings()],
+                'applications': [dict(row) for row in connection.execute(select(m.applications).where(
+                    m.applications.c.profile_id == self.source_profile_id,
+                )).mappings()],
+            }
         preview_response = self.client.post('/profile-restores/preview', json={
             'backup': self.backup,
         })
@@ -82,6 +318,9 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         })
         self.assertEqual(preview['counts']['facts'], len(before['facts']))
         self.assertEqual(preview['counts']['uploaded_files'], 2)
+        self.assertEqual(preview['counts']['company_discovery_history'], 1)
+        self.assertIn('COMPANY_DISCOVERY_HISTORY_ARCHIVED', preview['warnings'])
+        self.assertNotIn('DISCOVERY_HISTORY_METADATA_PARTIAL', preview['warnings'])
         self.assertTrue(preview['omitted_sections'])
         self.assertTrue(any('review' in warning.casefold() for warning in preview['warnings']))
 
@@ -112,6 +351,24 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertEqual(self.store.profile(self.source_profile_id), before)
         self.assertTrue(self.store.jobs(self.source_profile_id))
         self.assertEqual(len(self.store.applications(self.source_profile_id)), 1)
+        with self.store.engine.connect() as connection:
+            source_discovery_after = dict(connection.execute(select(m.company_discovery_requests).where(
+                m.company_discovery_requests.c.id == 'synthetic-discovery-request',
+            )).mappings().one())
+            self.assertEqual(source_discovery_after, source_discovery_before)
+            self.assertEqual([dict(row) for row in connection.execute(select(m.jobs).where(
+                m.jobs.c.id.in_([row['id'] for row in self.backup['jobs']]),
+            ).order_by(m.jobs.c.id)).mappings()], source_rows_before['jobs'])
+            self.assertEqual([dict(row) for row in connection.execute(select(m.routes).where(
+                m.routes.c.id.in_([row['id'] for row in self.backup['application_routes']]),
+            ).order_by(m.routes.c.id)).mappings()], source_rows_before['routes'])
+            self.assertEqual([dict(row) for row in connection.execute(select(m.applications).where(
+                m.applications.c.profile_id == self.source_profile_id,
+            )).mappings()], source_rows_before['applications'])
+            self.assertEqual(connection.execute(select(
+                m.profile_recovery_history_snapshots,
+            ).where(m.profile_recovery_history_snapshots.c.profile_id == self.source_profile_id)
+            ).all(), [])
 
         with self.store.engine.connect() as connection:
             restored_uploads = connection.execute(select(
@@ -139,14 +396,28 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertFalse(searches[0]['enabled'])
         self.assertEqual(searches[0]['source_ids'], [])
         self.assertNotIn('scheduler', searches[0]['criteria'])
-        self.assertEqual(self.store.applications(restored_id), [])
-        # Job postings are global records and remain visible to every profile.
-        # The restore must not create profile-specific scoring or applications.
+        restored_applications = self.store.applications(restored_id)
+        self.assertEqual(len(restored_applications), len(self.backup['applications']))
+        self.assertEqual(
+            [application['state'] for application in restored_applications],
+            ['REVIEW_REQUIRED' for _ in self.backup['applications']],
+        )
+        source_job_ids = {job['id'] for job in self.backup['jobs']}
+        restored_job_ids = {application['job_id'] for application in restored_applications}
+        self.assertTrue(restored_job_ids)
+        self.assertTrue(source_job_ids.isdisjoint(restored_job_ids))
         with self.store.engine.connect() as connection:
-            self.assertEqual(connection.execute(select(m.matches).where(
+            restored_matches = connection.execute(select(m.matches).where(
                 m.matches.c.profile_id == restored_id,
-            )).all(), [])
-        self.assertTrue(self.store.jobs(restored_id))
+            )).mappings().all()
+            restored_documents = connection.execute(select(m.documents).join(
+                m.applications, m.documents.c.application_id == m.applications.c.id,
+            ).where(m.applications.c.profile_id == restored_id)).mappings().all()
+        self.assertEqual(len(restored_matches), len(self.backup['job_matches']))
+        self.assertEqual(len(restored_documents), len(self.backup['documents']))
+        self.assertTrue(all(document['application_id'] in {
+            application['id'] for application in restored_applications
+        } for document in restored_documents))
 
         with patch('packages.persistence.profile_restore._stage_files',
                    side_effect=AssertionError('durable replay must precede upload staging')):
@@ -154,21 +425,531 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertEqual(replay.status_code, 200, replay.text)
         self.assertEqual(replay.json(), restored)
         self.assertEqual(len(self.store.profiles()), 2)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(len(connection.execute(select(
+                m.profile_recovery_history_snapshots,
+            ).where(m.profile_recovery_history_snapshots.c.profile_id == restored_id)
+            ).all()), 1)
 
         changed = copy.deepcopy(self.backup)
         changed['profile']['name'] = 'Changed Synthetic Source'
         for version in changed['profile_versions']:
             if version['version'] == changed['profile']['version']:
                 version['contact']['name'] = changed['profile']['name']
-        changed_preview = self.client.post('/profile-restores/preview', json={
-            'backup': changed,
-        })
+        changed_preview = self.client.post('/profile-restores/preview', json={'backup': changed})
         self.assertEqual(changed_preview.status_code, 200, changed_preview.text)
         changed_request = dict(request, backup=changed,
                                expected_fingerprint=changed_preview.json()['fingerprint'])
         conflict = self.client.post('/profile-restores', json=changed_request)
         self.assertEqual(conflict.status_code, 409, conflict.text)
         self.assertEqual(len(self.store.profiles()), 2)
+
+    def test_exported_capability_routes_omit_only_dependent_history_on_fresh_restore(self):
+        self._assert_exported_route_filtering('job')
+
+    def test_exported_unsafe_application_route_preserves_safe_job_and_sibling(self):
+        self._assert_exported_route_filtering('application')
+
+    def test_exported_all_unsafe_routes_preserve_profile_but_no_job_descendants(self):
+        self._assert_exported_route_filtering('all')
+
+    def _assert_exported_route_filtering(self, mode):
+        original_app = self.store.application(self.application_id)
+        sibling_job = next(row for row in self.store.jobs(self.source_profile_id)
+                           if row['id'] != original_app['job_id'] and row['requisition'] != 'history-req')
+        sibling_app = prepare(self.store, sibling_job['id'], self.source_profile_id, self.root)
+        with self.store.engine.begin() as connection:
+            statement = update(m.routes)
+            if mode == 'job':
+                statement = statement.where(m.routes.c.job_id == original_app['job_id'])
+            elif mode == 'application':
+                statement = statement.where(m.routes.c.id == original_app['route_id'])
+            connection.execute(statement.values(url='https://synthetic.example/session/PRIVATE_CAPABILITY'))
+        backup = export_profile_backup(self.store, self.source_profile_id, output_dir=self.root)
+        self.assertNotIn('PRIVATE_CAPABILITY', str(backup))
+        self.assertTrue(any(row['url'] is None for row in backup['application_routes']))
+        expected_jobs = 0 if mode == 'all' else len(backup['jobs']) - (mode == 'job')
+        expected_apps = 0 if mode == 'all' else 1
+        target_root = self.root / 'filtered-target'
+        target_root.mkdir()
+        target_db = target_root / 'target.db'
+        target = Store(f"sqlite:///{target_db.as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, target_root))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            body = preview.json()
+            self.assertEqual(body['counts']['jobs'], expected_jobs)
+            self.assertEqual(body['counts']['applications'], expected_apps)
+            safe_docs = [row for row in backup['documents'] if row['application_id'] == sibling_app and mode != 'all']
+            self.assertEqual(body['counts']['generated_documents'], len(safe_docs))
+            self.assertIn('dependent_history_without_safe_routes', body['omitted_sections'])
+            request = dict(backup=backup, request_id='filtered-fresh-target',
+                           expected_fingerprint=body['fingerprint'], confirmed=True)
+            for section, field in (('applications', 'job_id'), ('documents', 'application_id'),
+                                   ('job_matches', 'job_id')):
+                forged = copy.deepcopy(backup)
+                forged[section][0][field] = 'forged-missing-reference'
+                rejected_preview = client.post('/profile-restores/preview', json={'backup': forged})
+                self.assertEqual(rejected_preview.status_code, 422, rejected_preview.text)
+                rejected_import = client.post('/profile-restores', json={**request, 'backup': forged})
+                self.assertEqual(rejected_import.status_code, 422, rejected_import.text)
+                self.assertEqual(target.profiles(), [])
+            # Filtered recovery retains transactional file rollback and request retry.
+            if mode == 'job':
+                before_files = {path for path in target_root.rglob('*') if path.is_file()}
+                from os import link as real_link
+                calls = []
+                def fail_second_link(source, destination):
+                    calls.append(destination)
+                    if len(calls) == 2:
+                        raise OSError('PRIVATE_SYNTHETIC_FILE_FAILURE')
+                    return real_link(source, destination)
+                with patch('packages.persistence.profile_restore.os.link', side_effect=fail_second_link):
+                    failed = client.post('/profile-restores', json=request)
+                self.assertEqual(failed.status_code, 500, failed.text)
+                self.assertNotIn('PRIVATE_SYNTHETIC_FILE_FAILURE', failed.text)
+                self.assertEqual(target.profiles(), [])
+                self.assertEqual({path for path in target_root.rglob('*') if path.is_file()}, before_files)
+            restored = client.post('/profile-restores', json=request)
+            self.assertEqual(restored.status_code, 201, restored.text)
+            profile_id = restored.json()['profile_id']
+            replay = client.post('/profile-restores', json=request)
+            self.assertEqual(replay.status_code, 200, replay.text)
+            self.assertEqual(replay.json()['profile_id'], profile_id)
+        target.engine.dispose()
+        reloaded = Store(f"sqlite:///{target_db.as_posix()}")
+        self.addCleanup(reloaded.engine.dispose)
+        reloaded.migrate()
+        self.assertEqual(len(reloaded.profiles()), 1)
+        self.assertEqual(len(reloaded.jobs(profile_id)), expected_jobs)
+        apps = reloaded.applications(profile_id)
+        self.assertEqual(len(apps), expected_apps)
+        self.assertTrue(all(app['state'] == 'REVIEW_REQUIRED' for app in apps))
+        recovered = export_profile_backup(reloaded, profile_id, output_dir=target_root)
+        self.assertEqual(len(recovered['documents']), len(safe_docs))
+        safe_doc_ids = {row['id'] for row in safe_docs}
+        expected_bytes = sorted((row['format'], row['sha256'], row['content_base64'])
+                                for row in backup['document_files'] if row['id'] in safe_doc_ids)
+        recovered_doc_ids = {row['id'] for row in recovered['documents']}
+        self.assertEqual(sorted((row['format'], row['sha256'], row['content_base64'])
+                                for row in recovered['document_files'] if row['id'] in recovered_doc_ids),
+                         expected_bytes)
+        self.assertEqual(recovered['attempts'], [])
+        self.assertEqual(len(recovered['application_route_choices']), expected_apps)
+        self.assertTrue(all(row['application_id'] == apps[0]['id']
+                            for row in recovered['application_route_choices']))
+        for section in ('resume_workspace_revisions', 'interview_prep_packs', 'ai_job_evaluations'):
+            self.assertEqual(len(recovered[section]), len(backup[section]) if mode == 'application' else 0)
+        self.assertEqual(len(recovered['job_matches']),
+                         sum(row['job_id'] != original_app['job_id'] for row in backup['job_matches'])
+                         if mode == 'job' else len(backup['job_matches']) if mode == 'application' else 0)
+        self.assertEqual(len([path for path in target_root.rglob('*') if path.is_file() and path.suffix != '.db']),
+                         len(recovered['document_files']))
+        with reloaded.engine.connect() as connection:
+            for table in (m.company_sources, m.company_discovery_requests, m.operations):
+                self.assertEqual(connection.execute(select(table)).all(), [])
+        self.assertEqual(export_profile_backup(self.store, self.source_profile_id, output_dir=self.root), backup)
+
+    def test_export_restores_into_empty_separate_database_and_reloads(self):
+        target_root = self.root / 'isolated-target'
+        target_root.mkdir()
+        target_db = target_root / 'target.db'
+        target = Store(f"sqlite:///{target_db.as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, target_root))
+        backup = copy.deepcopy(self.backup)
+        backup['applications'][0]['state'] = 'SUBMITTING'
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            fingerprint = preview.json()['fingerprint']
+            self.assertNotIn('historical_profile_versions', preview.json()['omitted_sections'])
+            restored = client.post('/profile-restores', json={
+                'backup': backup, 'request_id': 'fresh-target-recovery',
+                'expected_fingerprint': fingerprint, 'confirmed': True,
+            })
+            self.assertEqual(restored.status_code, 201, restored.text)
+            profile_id = restored.json()['profile_id']
+        target.engine.dispose()
+
+        # Reopen the physical target database and verify durable rows and
+        # document bytes, while proving the source database remains unchanged.
+        reloaded = Store(f"sqlite:///{target_db.as_posix()}")
+        reloaded.migrate()
+        try:
+            self.assertEqual(len(reloaded.profiles()), 1)
+            restored_apps = reloaded.applications(profile_id)
+            self.assertEqual(len(restored_apps), len(self.backup['applications']))
+            self.assertEqual(restored_apps[0]['state'], 'SUBMISSION_UNCONFIRMED')
+            with reloaded.engine.connect() as connection:
+                companies = connection.execute(select(m.companies)).mappings().all()
+                routes = connection.execute(select(m.routes)).mappings().all()
+                matches = connection.execute(select(m.matches).where(
+                    m.matches.c.profile_id == profile_id,
+                )).mappings().all()
+                jobs = connection.execute(select(m.jobs)).mappings().all()
+                docs = connection.execute(select(m.documents).join(
+                    m.applications, m.documents.c.application_id == m.applications.c.id,
+                ).where(m.applications.c.profile_id == profile_id)).mappings().all()
+            self.assertEqual(len(jobs), len(self.backup['jobs']))
+            self.assertEqual(len(routes), len(self.backup['application_routes']))
+            self.assertEqual(len(matches), len(self.backup['job_matches']))
+            self.assertEqual(len(companies), len({row['company_id'] for row in self.backup['application_routes']}))
+            expected_job_ids = {
+                source['id']: identity('restored-job', profile_id, fingerprint, source['id'])
+                for source in self.backup['jobs']
+            }
+            expected_company_ids = {
+                source['company_id']: identity('restored-company', profile_id, fingerprint,
+                                               source['company_id'])
+                for source in self.backup['application_routes']
+            }
+            expected_route_ids = {
+                source['id']: identity('restored-route', profile_id, fingerprint, source['id'])
+                for source in self.backup['application_routes']
+            }
+            expected_app_ids = {
+                row['id']: identity(expected_job_ids[row['job_id']], profile_id)
+                for row in self.backup['applications']
+            }
+            self.assertEqual({row['id'] for row in restored_apps}, set(expected_app_ids.values()))
+            self.assertTrue({row['id'] for row in restored_apps}.isdisjoint(
+                {row['id'] for row in self.backup['applications']}))
+            self.assertTrue({row['job_id'] for row in restored_apps} <= set(expected_job_ids.values()))
+            self.assertTrue({row['route_id'] for row in restored_apps} <= set(expected_route_ids.values()))
+            self.assertEqual({row['id'] for row in jobs}, set(expected_job_ids.values()))
+            self.assertEqual({row['id'] for row in routes}, set(expected_route_ids.values()))
+            self.assertEqual({row['id'] for row in companies}, set(expected_company_ids.values()))
+            self.assertEqual({row['job_id'] for row in routes}, set(expected_job_ids.values()))
+            self.assertEqual({row['company_id'] for row in routes}, set(expected_company_ids.values()))
+            self.assertTrue({row['id'] for row in jobs}.isdisjoint(
+                {row['id'] for row in self.backup['jobs']}))
+            self.assertTrue({row['id'] for row in routes}.isdisjoint(
+                {row['id'] for row in self.backup['application_routes']}))
+            self.assertTrue({row['job_id'] for row in matches} <= set(expected_job_ids.values()))
+            self.assertTrue({row['id'] for row in matches}.isdisjoint(
+                {row['id'] for row in self.backup['job_matches']}))
+            self.assertEqual(len(docs), len(self.backup['documents']))
+            self.assertTrue({row['id'] for row in docs}.isdisjoint(
+                {row['id'] for row in self.backup['documents']}))
+            self.assertTrue({row['application_id'] for row in docs} ==
+                            {row['id'] for row in restored_apps})
+            expected_doc_ids = {
+                row['id']: identity('restored-document', profile_id, fingerprint, row['id'])
+                for row in self.backup['documents']
+            }
+            self.assertEqual({row['id'] for row in docs}, set(expected_doc_ids.values()))
+            source_doc_ids = {target_id: source_id for source_id, target_id in expected_doc_ids.items()}
+            expected_document_files = {
+                (row['id'], row['format']): row for row in self.backup['document_files']
+            }
+            with reloaded.engine.connect() as connection:
+                choices = connection.execute(select(m.application_route_choices).where(
+                    m.application_route_choices.c.application_id == restored_apps[0]['id'],
+                )).mappings().all()
+                attempts = connection.execute(select(m.attempts).where(
+                    m.attempts.c.application_id == restored_apps[0]['id'],
+                )).mappings().all()
+            self.assertEqual(len(choices), len(self.backup['application_route_choices']))
+            self.assertEqual({row['state'] for row in choices}, {'PLANNED', 'SELECTED'})
+            self.assertTrue({row['id'] for row in choices}.isdisjoint(
+                {row['id'] for row in self.backup['application_route_choices']}))
+            self.assertTrue(all(row['application_id'] != self.backup['applications'][0]['id']
+                                for row in choices))
+            self.assertTrue({row['route_id'] for row in choices}.isdisjoint(
+                {row['route_id'] for row in self.backup['application_route_choices']}))
+            self.assertEqual({row['state'] for row in attempts}, {'FAILED', 'UNKNOWN'})
+            self.assertTrue(all(row['steps'] == [] for row in attempts))
+            self.assertTrue({row['id'] for row in attempts}.isdisjoint(
+                {row['id'] for row in self.backup['attempts']}))
+            self.assertTrue(all(row['application_id'] == restored_apps[0]['id']
+                                for row in attempts))
+            with reloaded.engine.connect() as connection:
+                versions = connection.execute(select(m.profile_versions).where(
+                    m.profile_versions.c.profile_id == profile_id,
+                )).mappings().all()
+                restored_facts = connection.execute(select(m.facts).where(
+                    m.facts.c.profile_id == profile_id,
+                )).mappings().all()
+            self.assertEqual(len(versions), len(self.backup['profile_versions']))
+            restored_current_version = reloaded.profile(profile_id)['version']
+            expected_versions = {
+                row['version']: (restored_current_version if row['version'] == self.backup['profile']['version']
+                                 else identity('restored-historical-profile-version', profile_id,
+                                               fingerprint, row['version']))
+                for row in self.backup['profile_versions']
+            }
+            self.assertEqual({row['version'] for row in versions}, set(expected_versions.values()))
+            self.assertEqual(len(restored_facts), len(self.backup['facts']))
+            self.assertTrue({row['id'] for row in restored_facts}.isdisjoint(
+                {row['id'] for row in self.backup['facts']}))
+            self.assertTrue({row['version'] for row in restored_facts} <=
+                            {row['version'] for row in versions})
+            self.assertTrue(all(not item['verified'] and not item['user_approved']
+                                for item in restored_facts))
+            self.assertTrue(all(Path(target_root, app['id']).is_dir() for app in restored_apps))
+            for document in docs:
+                for file_format, relative in document['files'].items():
+                    document_path = target_root / document['application_id'] / relative
+                    contents = document_path.read_bytes()
+                    self.assertEqual(hashlib.sha256(contents).hexdigest(), document['sha256'][file_format])
+                    source_file = expected_document_files[(source_doc_ids[document['id']], file_format)]
+                    self.assertEqual(len(contents), source_file['size_bytes'])
+                    self.assertEqual(hashlib.sha256(contents).hexdigest(), source_file['sha256'])
+                    self.assertEqual(base64.b64encode(contents).decode('ascii'),
+                                     source_file['content_base64'])
+            with reloaded.engine.connect() as connection:
+                from packages.persistence import resume_workspace as workspace
+                stories = connection.execute(select(m.career_stories).where(
+                    m.career_stories.c.profile_id == profile_id,
+                )).mappings().all()
+                packs = connection.execute(select(m.interview_prep_packs).where(
+                    m.interview_prep_packs.c.profile_id == profile_id,
+                )).mappings().all()
+                workspaces = connection.execute(select(workspace.resume_workspace_revisions).where(
+                    workspace.resume_workspace_revisions.c.profile_id == profile_id,
+                )).mappings().all()
+                operations = connection.execute(select(m.operations)).mappings().all()
+                archived_history = connection.execute(select(
+                    m.profile_recovery_history_snapshots,
+                ).where(m.profile_recovery_history_snapshots.c.profile_id == profile_id)
+                ).mappings().all()
+                target_sources = connection.execute(select(m.company_sources)).mappings().all()
+                target_discovery = connection.execute(select(m.company_discovery_requests)).mappings().all()
+                ai_runs = connection.execute(select(m.ai_evaluation_runs).where(
+                    m.ai_evaluation_runs.c.profile_id == profile_id,
+                )).mappings().all()
+                ai_evals = connection.execute(select(m.ai_job_evaluations).where(
+                    m.ai_job_evaluations.c.profile_id == profile_id,
+                )).mappings().all()
+                ai_reviews = connection.execute(select(m.ai_document_reviews).where(
+                    m.ai_document_reviews.c.profile_id == profile_id,
+                )).mappings().all()
+                source_candidates = connection.execute(select(m.source_candidates).where(
+                    m.source_candidates.c.profile_id == profile_id,
+                )).mappings().all()
+                source_reviews = connection.execute(select(m.source_candidate_reviews).where(
+                    m.source_candidate_reviews.c.profile_id == profile_id,
+                )).mappings().all()
+                ai_task_settings = connection.execute(select(m.ai_task_settings).where(
+                    m.ai_task_settings.c.profile_id == profile_id,
+                )).mappings().all()
+                ai_cost = connection.execute(select(m.ai_cost_policies).where(
+                    m.ai_cost_policies.c.profile_id == profile_id,
+                )).mappings().all()
+                answer_policy = connection.execute(select(m.answer_confidence_policies).where(
+                    m.answer_confidence_policies.c.profile_id == profile_id,
+                )).mappings().all()
+                search_profiles = connection.execute(select(m.search_profiles).where(
+                    m.search_profiles.c.profile_id == profile_id,
+                )).mappings().all()
+                resume_revisions = connection.execute(select(m.resume_revisions).where(
+                    m.resume_revisions.c.profile_id == profile_id,
+                )).mappings().all()
+                uploads = connection.execute(select(m.uploaded_resumes).where(
+                    m.uploaded_resumes.c.profile_id == profile_id,
+                )).mappings().all()
+            self.assertEqual(len(stories), len(self.backup['career_stories']))
+            self.assertEqual(stories[0]['text'], 'Synthetic content retained through recovery.')
+            self.assertEqual(stories[0]['review_status'], 'PENDING')
+            self.assertEqual(len(packs), len(self.backup['interview_prep_packs']))
+            self.assertEqual(packs[0]['export_text'], 'Synthetic interview preparation content')
+            self.assertNotEqual(packs[0]['job_id'], self.backup['interview_prep_packs'][0]['job_id'])
+            self.assertEqual(packs[0]['selected_story_revision_ids'], [stories[0]['id']])
+            self.assertNotEqual(stories[0]['id'], self.backup['career_stories'][0]['id'])
+            self.assertEqual(len(workspaces), len(self.backup['resume_workspace_revisions']))
+            self.assertEqual(workspaces[0]['rendered_text'], 'Synthetic workspace rendered text')
+            self.assertTrue({row['id'] for row in stories}.isdisjoint(
+                {row['id'] for row in self.backup['career_stories']}))
+            self.assertTrue(all(row['profile_version'] in set(expected_versions.values())
+                                for row in stories + workspaces + packs))
+            self.assertTrue(all(row['job_id'] in set(expected_job_ids.values())
+                                for row in workspaces + packs))
+            self.assertEqual(len(ai_runs), len(self.backup['ai_evaluation_runs']))
+            self.assertEqual(len(ai_evals), len(self.backup['ai_job_evaluations']))
+            self.assertEqual(len(ai_reviews), len(self.backup['ai_document_reviews']))
+            ai_run_ids = {row['id'] for row in ai_runs}
+            self.assertTrue({row['run_id'] for row in ai_evals + ai_reviews} <= ai_run_ids)
+            self.assertTrue(all(row['job_id'] in set(expected_job_ids.values())
+                                for row in ai_evals + ai_reviews))
+            self.assertEqual(len(source_candidates), len(self.backup['source_candidates']))
+            self.assertEqual(len(source_reviews), len(self.backup['source_candidate_reviews']))
+            candidate_ids = {row['id'] for row in source_candidates}
+            self.assertTrue({row['candidate_id'] for row in source_reviews} <= candidate_ids)
+            self.assertEqual(len(resume_revisions), len(self.backup['resume_revisions']))
+            self.assertEqual(len(uploads), len(self.backup['uploaded_resumes']))
+            self.assertEqual(operations, [])
+            self.assertEqual(target_sources, [])
+            self.assertEqual(target_discovery, [])
+            self.assertEqual(len(archived_history), 1)
+            self.assertEqual(archived_history[0]['profile_id'], profile_id)
+            self.assertEqual(archived_history[0]['source_identity'], 'synthetic-discovery-request')
+            self.assertEqual(archived_history[0]['payload']['historical_refs']['profile_id'],
+                             self.source_profile_id)
+            self.assertEqual(archived_history[0]['payload']['reference_status'], 'LINKED')
+            self.assertEqual(archived_history[0]['payload']['metadata_status'], 'COMPLETE')
+            self.assertNotEqual(archived_history[0]['payload']['target_job_id'],
+                                'synthetic-discovery-job')
+            self.assertNotEqual(archived_history[0]['payload']['target_company_id'],
+                                'synthetic-discovery-company')
+            self.assertEqual(len(ai_runs), len(self.backup['ai_evaluation_runs']))
+            self.assertEqual(len(ai_evals), len(self.backup['ai_job_evaluations']))
+            self.assertEqual(len(ai_reviews), len(self.backup['ai_document_reviews']))
+            self.assertNotEqual(ai_runs[0]['id'], self.backup['ai_evaluation_runs'][0]['id'])
+            self.assertNotEqual(ai_evals[0]['job_id'], self.backup['ai_job_evaluations'][0]['job_id'])
+            self.assertEqual(len(source_candidates), len(self.backup['source_candidates']))
+            self.assertFalse(source_candidates[0]['collection_enabled'])
+            self.assertEqual(source_candidates[0]['state'], 'NEEDS_REVIEW')
+            self.assertEqual(len(source_reviews), len(self.backup['source_candidate_reviews']))
+            self.assertEqual(source_reviews[0]['candidate_id'], source_candidates[0]['id'])
+            self.assertEqual(ai_task_settings[0]['provider'], 'disabled')
+            self.assertIsNone(ai_task_settings[0]['model'])
+            self.assertTrue(search_profiles)
+            self.assertTrue(all(not row['enabled'] and row['source_ids'] == []
+                                for row in search_profiles))
+            self.assertFalse(reloaded.profile(profile_id)['preferences']['company_discovery'][
+                'company_discovery_enabled'])
+            self.assertEqual(reloaded.profile(profile_id)['preferences'][
+                'application_route_preference'], 'USER_CHOICE')
+            self.assertEqual(ai_cost[0]['minimum_score'], 50)
+            self.assertEqual(answer_policy[0]['minimum_saved_answer_confidence'], 85)
+            self.assertEqual(len(resume_revisions), len(self.backup['resume_revisions']))
+            self.assertTrue({row['series_id'] for row in resume_revisions}.isdisjoint(
+                {row['series_id'] for row in self.backup['resume_revisions']}))
+            self.assertEqual(len(uploads), len(self.backup['uploaded_resumes']))
+            self.assertTrue(all(row['upload_id'] in {upload['id'] for upload in uploads}
+                                for row in resume_revisions))
+            self.assertTrue({row['id'] for row in uploads}.isdisjoint(
+                {row['id'] for row in self.backup['uploaded_resumes']}))
+            for stored in uploads:
+                metadata, contents = read_resume(reloaded, target_root, profile_id, stored['id'])
+                self.assertEqual(metadata['sha256'], hashlib.sha256(contents).hexdigest())
+                self.assertEqual(metadata['size_bytes'], len(contents))
+            reloaded.bind_workspace_mode('FIXTURE')
+            reloaded.save_profile({**PROFILE, 'id': 'other-profile',
+                                   'name': 'Other Synthetic', 'email': 'other@example.invalid'})
+            api = FastAPI()
+            api.include_router(create_profile_restore_router(reloaded, target_root))
+            with TestClient(api) as client:
+                history_response = client.get(f'/profile-restores/{profile_id}/history')
+                self.assertEqual(history_response.status_code, 200, history_response.text)
+                history_body = history_response.json()
+                self.assertEqual(history_body['mode'], 'READ_ONLY_HISTORICAL_ARCHIVE')
+                self.assertTrue(history_body['authorization_required_for_future_live_action'])
+                self.assertEqual(len(history_body['history']), 1)
+                self.assertEqual(history_body['history'][0]['source_identity'],
+                                 'synthetic-discovery-request')
+                with reloaded.engine.begin() as connection:
+                    damaged = dict(archived_history[0]['payload'])
+                    damaged['target_job_id'] = 'foreign-profile-job'
+                    connection.execute(update(m.profile_recovery_history_snapshots).where(
+                        m.profile_recovery_history_snapshots.c.profile_id == profile_id,
+                    ).values(payload=damaged))
+                corrupt = client.get(f'/profile-restores/{profile_id}/history')
+                self.assertEqual(corrupt.status_code, 500)
+                self.assertEqual(corrupt.json()['detail']['code'], 'RECOVERY_HISTORY_UNAVAILABLE')
+                with reloaded.engine.begin() as connection:
+                    connection.execute(update(m.profile_recovery_history_snapshots).where(
+                        m.profile_recovery_history_snapshots.c.profile_id == profile_id,
+                    ).values(payload=archived_history[0]['payload']))
+                other_history = client.get('/profile-restores/other-profile/history')
+                self.assertEqual(other_history.status_code, 200)
+                self.assertEqual(other_history.json()['history'], [])
+
+            recovered_backup = export_profile_backup(reloaded, profile_id, output_dir=target_root)
+            self.assertEqual(len(recovered_backup['company_discovery_history']), 1)
+            second_root = self.root / 'second-isolated-target'
+            second_root.mkdir()
+            second = Store(f"sqlite:///{(second_root / 'second.db').as_posix()}")
+            second.migrate()
+            second.bind_workspace_mode('FIXTURE')
+            second_api = FastAPI()
+            second_api.include_router(create_profile_restore_router(second, second_root))
+            try:
+                with TestClient(second_api) as client:
+                    second_preview = client.post('/profile-restores/preview',
+                                                json={'backup': recovered_backup})
+                    self.assertEqual(second_preview.status_code, 200, second_preview.text)
+                    second_restore = client.post('/profile-restores', json={
+                        'backup': recovered_backup, 'request_id': 'recovery-reexport-roundtrip',
+                        'expected_fingerprint': second_preview.json()['fingerprint'], 'confirmed': True,
+                    })
+                    self.assertEqual(second_restore.status_code, 201, second_restore.text)
+                    second_profile = second_restore.json()['profile_id']
+                    second_history = client.get(f'/profile-restores/{second_profile}/history')
+                    self.assertEqual(second_history.status_code, 200)
+                    self.assertEqual(len(second_history.json()['history']), 1)
+                    self.assertEqual(second_history.json()['history'][0]['source_identity'],
+                                     'synthetic-discovery-request')
+                with second.engine.connect() as connection:
+                    self.assertEqual(connection.execute(select(m.company_sources)).all(), [])
+                    self.assertEqual(connection.execute(select(m.company_discovery_requests)).all(), [])
+                    self.assertEqual(connection.execute(select(m.operations)).all(), [])
+                    second_snapshot = connection.execute(select(
+                        m.profile_recovery_history_snapshots,
+                    ).where(m.profile_recovery_history_snapshots.c.profile_id == second_profile)
+                    ).mappings().one()
+                self.assertNotEqual(second_snapshot['payload']['target_job_id'],
+                                    archived_history[0]['payload']['target_job_id'])
+                self.assertEqual(second_snapshot['payload']['historical_refs']['profile_id'],
+                                 self.source_profile_id)
+            finally:
+                second.engine.dispose()
+            self.assertEqual(len(self.store.profiles()), 1)
+            self.assertEqual(len(self.store.applications(self.source_profile_id)), 1)
+        finally:
+            reloaded.engine.dispose()
+
+    def test_import_keeps_terminal_unknown_and_ambiguous_states_inert(self):
+        expectations = {
+            'UNKNOWN': 'UNKNOWN',
+            'FAILED': 'FAILED',
+            'CANCELLED': 'CANCELLED',
+            'PREPARED': 'REVIEW_REQUIRED',
+            'AUTH_REQUIRED': 'REVIEW_REQUIRED',
+            'SUBMITTING': 'SUBMISSION_UNCONFIRMED',
+        }
+        for source_state, expected_state in expectations.items():
+            with self.subTest(source_state=source_state):
+                root = self.root / f"state-{source_state.casefold()}"
+                root.mkdir()
+                target = Store(f"sqlite:///{(root / 'target.db').as_posix()}")
+                target.migrate()
+                target.bind_workspace_mode('FIXTURE')
+                api = FastAPI()
+                api.include_router(create_profile_restore_router(target, root))
+                backup = copy.deepcopy(self.backup)
+                backup['applications'][0]['state'] = source_state
+                with TestClient(api) as client:
+                    preview = client.post('/profile-restores/preview', json={'backup': backup})
+                    self.assertEqual(preview.status_code, 200, preview.text)
+                    restored = client.post('/profile-restores', json={
+                        'backup': backup, 'request_id': f'state-recovery-{source_state.casefold()}',
+                        'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+                    })
+                    self.assertEqual(restored.status_code, 201, restored.text)
+                    target.engine.dispose()
+                    reloaded = Store(f"sqlite:///{(root / 'target.db').as_posix()}")
+                    reloaded.migrate()
+                    try:
+                        profile_id = restored.json()['profile_id']
+                        applications = reloaded.applications(profile_id)
+                        self.assertEqual(len(applications), 1)
+                        self.assertEqual(applications[0]['state'], expected_state)
+                        with reloaded.engine.connect() as connection:
+                            self.assertEqual(connection.execute(select(m.operations)).all(), [])
+                            self.assertEqual(connection.execute(select(m.company_sources)).all(), [])
+                            self.assertEqual(connection.execute(select(m.company_discovery_requests)).all(), [])
+                    finally:
+                        reloaded.engine.dispose()
 
     def test_unconfirmed_and_stale_imports_do_not_create_profiles(self):
         preview = self.client.post('/profile-restores/preview', json={'backup': self.backup})
@@ -215,8 +996,108 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertEqual(failed.status_code, 500, failed.text)
         self.assertEqual(failed.json()['detail']['code'], 'PROFILE_RESTORE_FILE_WRITE_FAILED')
         self.assertEqual(len(self.store.profiles()), 1)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.profile_recovery_history_snapshots)).all(), [])
         self.assertEqual(sentinel.read_bytes(), b'leave this file untouched')
         self.assertEqual(set(uploads_root.iterdir()), existing_files)
+
+    def test_metadata_only_backup_import_filters_revisions_for_missing_upload_bytes(self):
+        backup = export_profile_backup(self.store, self.source_profile_id)
+        self.assertEqual(backup['document_files'], [])
+        self.assertTrue(backup['uploaded_resumes'])
+        self.assertTrue(backup['resume_revisions'])
+        target = Store(f"sqlite:///{(self.root / 'metadata-only-target.db').as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        output = self.root / 'metadata-only-output'
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, output))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            self.assertIn('UPLOADED_FILES_NOT_INCLUDED', preview.json()['warnings'])
+            self.assertIn('RESUME_REVISION_METADATA_PARTIALLY_RESTORED', preview.json()['warnings'])
+            self.assertIn('resume_revision_metadata_without_upload_bytes',
+                          preview.json()['omitted_sections'])
+            restored = client.post('/profile-restores', json={
+                'backup': backup, 'request_id': 'metadata-only-restore',
+                'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+            })
+        self.assertEqual(restored.status_code, 201, restored.text)
+        self.assertFalse(output.exists())
+        with target.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.resume_revisions)).all(), [])
+            self.assertEqual(connection.execute(select(m.uploaded_resumes)).all(), [])
+
+    def test_profile_only_restore_does_not_require_missing_output_directory(self):
+        backup = copy.deepcopy(self.backup)
+        backup['uploaded_resumes'] = []
+        backup['resume_revisions'] = []
+        backup['documents'] = []
+        backup['document_files'] = []
+        target = Store(f"sqlite:///{(self.root / 'profile-only-target.db').as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        output = self.root / 'not-created-yet'
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, output))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            restored = client.post('/profile-restores', json={
+                'backup': backup, 'request_id': 'profile-only-restore',
+                'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+            })
+        self.assertEqual(restored.status_code, 201, restored.text)
+        self.assertFalse(output.exists())
+
+    def test_restored_application_can_regenerate_documents_after_review(self):
+        target = Store(f"sqlite:///{(self.root / 'regenerate-target.db').as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        output = self.root / 'regenerate-output'
+        output.mkdir()
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, output))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': self.backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            restored = client.post('/profile-restores', json={
+                'backup': self.backup, 'request_id': 'regenerate-restored-documents',
+                'expected_fingerprint': preview.json()['fingerprint'], 'confirmed': True,
+            })
+        self.assertEqual(restored.status_code, 201, restored.text)
+        profile_id = restored.json()['profile_id']
+        job = target.jobs(profile_id)[0]
+        with target.engine.begin() as connection:
+            connection.execute(m.facts.update().where(
+                m.facts.c.profile_id == profile_id,
+            ).values(verified=True, user_approved=True, confidence=100))
+            application = connection.execute(select(m.applications).where(
+                m.applications.c.profile_id == profile_id,
+            )).mappings().one()
+        self.assertEqual(application['id'], identity(job['id'], profile_id))
+        self.assertEqual(application['state'], 'REVIEW_REQUIRED')
+        regenerated_id = prepare(
+            target, job['id'], profile_id, output,
+            route_mode='THIS_ROUTE', route_id=application['route_id'],
+        )
+        self.assertEqual(regenerated_id, application['id'])
+        with target.engine.connect() as connection:
+            regenerated = connection.execute(select(m.applications).where(
+                m.applications.c.job_id == job['id'],
+                m.applications.c.profile_id == profile_id,
+            )).mappings().all()
+            documents = connection.execute(select(m.documents).where(
+                m.documents.c.application_id == application['id'],
+            )).mappings().all()
+        self.assertEqual(len(regenerated), 1)
+        self.assertEqual(regenerated[0]['id'], identity(job['id'], profile_id))
+        self.assertEqual(regenerated[0]['state'], 'PREPARED')
+        self.assertTrue(documents)
 
 
 if __name__ == '__main__':

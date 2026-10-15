@@ -4,8 +4,10 @@ import tempfile
 import unittest
 
 import httpx
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.sources.contract import (
@@ -59,6 +61,7 @@ class RemotiveTests(unittest.TestCase):
         self.root = Path(self.directory.name)
         self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
         self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(PROFILE)
         self.requests = []
 
@@ -197,3 +200,59 @@ class RemotiveTests(unittest.TestCase):
             source_row = conn.execute(select(m.job_sources).where(m.job_sources.c.id == source_id)).mappings().one()
             self.assertEqual(source_row["health_status"], "HEALTHY")
             self.assertEqual(source_row["provider"], "remotive")
+
+    def test_link_boundary_survives_collection_reopen_and_api_readback(self):
+        urls = (
+            "https://remotive.com.attacker.invalid/jobs/1",
+            "https://notremotive.com/jobs/1",
+            "https://@remotive.com/jobs/1",
+            "https:///jobs/1",
+            "https://[broken/jobs/1",
+            "http://remotive.com/jobs/1",
+            RAW_REMOTIVE_PAYLOAD["jobs"][0]["url"],
+        )
+        payload = {"jobs": [dict(RAW_REMOTIVE_PAYLOAD["jobs"][0],
+                                id=9000 + index, title=f"Safety Engineer {index}", url=url)
+                            for index, url in enumerate(urls)]}
+        requests = []
+
+        def transport(request):
+            requests.append(str(request.url))
+            self.assertEqual(str(request.url), "https://remotive.com/api/remote-jobs")
+            return httpx.Response(200, json=payload)
+
+        source_id = configure_source(self.store, "default", provider="remotive")
+        result = collect_source(self.store, source_id, "fixture", transport=httpx.MockTransport(transport))
+        self.assertEqual(result["jobs_seen"], len(urls))
+        self.assertFalse(result["direct_application"])
+        self.assertFalse(result["rejected"])
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        with self.store.engine.connect() as connection:
+            jobs = connection.execute(select(m.jobs)).mappings().all()
+            postings = connection.execute(select(m.postings)).mappings().all()
+            snapshots = connection.execute(select(m.posting_snapshots)).mappings().all()
+            routes = connection.execute(select(m.routes)).mappings().all()
+            tenants = connection.execute(select(m.company_ats_tenants)).mappings().all()
+        self.assertEqual(len(jobs), len(urls))
+        self.assertEqual(len(snapshots), len(urls))
+        self.assertEqual(tenants, [])
+        self.assertEqual(self.store.count("applications"), 0)
+        for posting in postings:
+            index = int(posting["raw"]["id"]) - 9000
+            self.assertEqual(posting["raw"]["url"], urls[index])
+            self.assertEqual(posting["application_url"], urls[index] if index == len(urls) - 1 else "")
+        self.assertEqual({route["url"] for route in routes}, {"", urls[-1]})
+        with TestClient(create_app(self.store, "http://127.0.0.1:1", self.root,
+                                  "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
+            for _ in range(2):
+                for job in jobs:
+                    index = int(job["requisition"]) - 9000
+                    response = client.get(f"/jobs/{job['id']}")
+                    self.assertEqual(response.status_code, 200, response.text)
+                    detail = response.json()
+                    self.assertEqual(detail["application_url"] or "", urls[index] if index == len(urls) - 1 else "")
+                    self.assertEqual(detail["attributes"]["submission_capability"], "MANUAL_ONLY")
+                    self.assertEqual(detail["attributes"]["application_url_status"],
+                                     "PROVIDER_SUPPLIED" if index == len(urls) - 1 else "UNAVAILABLE")
+        self.assertEqual(requests, ["https://remotive.com/api/remote-jobs"])

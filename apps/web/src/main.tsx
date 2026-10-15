@@ -1590,7 +1590,7 @@ function App() {
           }}/>}
       </form>}
       {tab==='Profile'&&profileId&&editor.id===profileId&&<DataExport profileId={profileId} busy={!!busy}/>}
-      {tab==='Profile'&&<ProfileRestore onRestored={id=>{setProfileId(id);void refresh(id).catch(e=>setError(String(e)));setNotice('Profile recovered. Review the imported facts before using them.');}}/>}
+      {tab==='Profile'&&<ProfileRestore profileId={profileId} onRestored={id=>{setProfileId(id);void refresh(id).catch(e=>setError(String(e)));setNotice('Profile recovered. Review the imported facts before using them.');}}/>}
       {tab==='Career Stories'&&profileId&&editor.id===profileId&&<CareerStoryBankConnected
         key={`${profileId}:${editor.version||'unversioned'}`}
         profileId={profileId}
