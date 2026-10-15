@@ -11,6 +11,7 @@ from sqlalchemy import func, select, text
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.ai.prompt_provenance import capture_document
 from services.documents.avoid_list import validate_content as validate_avoid_list
 
 
@@ -273,6 +274,8 @@ def export_answers(store, application_id, output_dir, items):
                                  "match_method": match["method"] if match else None,
                                  "match_score": match["score"] if match else None})
 
+            provenance = capture_document('screening_answers', 'reviewed-application-answers-v1',
+                                          'manual-reviewed-answers-v1')
             content = ("\n".join(exported).rstrip() + "\n").encode("utf-8")
             latest = connection.execute(select(func.max(m.documents.c.version)).where(
                 m.documents.c.application_id == application_id,
@@ -313,6 +316,7 @@ def export_answers(store, application_id, output_dir, items):
                       "created_at": datetime.now(timezone.utc).isoformat(),
                       "generation_model": "manual-reviewed-answers-v1",
                       "generation_context": {"mode": "REVIEWED_APPLICATION_ANSWERS",
+                          "prompt_provenance": provenance,
                           "application_id": application_id, "profile_id": application["profile_id"],
                           "profile_version": profile["version"], "items": manifest}}
             try:

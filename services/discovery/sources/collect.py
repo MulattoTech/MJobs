@@ -12,6 +12,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.ai.prompt_provenance import capture_parser
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
 from services.company_discovery.quality import posting_metrics, record_observation
 from services.company_discovery.requests import record_discovery_requests
@@ -128,7 +129,10 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
         for item in batch.items:
             check()
             try:
-                normalized.append((item, adapter.normalize(item.raw)))
+                provenance = capture_parser(adapter)
+                parsed = adapter.normalize(item.raw)
+                parsed['attributes']['prompt_provenance'] = provenance
+                normalized.append((item, parsed))
             except SourceError:
                 rejected += 1
         if bound:

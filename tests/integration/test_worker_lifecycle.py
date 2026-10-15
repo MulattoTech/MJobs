@@ -206,7 +206,9 @@ class WorkerLifecycleTests(unittest.TestCase):
         self.assertEqual(saved["error"], "OPERATION_TIMEOUT")
 
     def test_worker_logs_successful_operation_as_structured_record(self):
-        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"source_id": "source-123"})
+        from services.discovery.sources.collect import configure_source
+        source_id = configure_source(self.store, "logged-source", provider="greenhouse", jitter_seconds=0)
+        operation = enqueue_operation(self.store, "DISCOVER", "fixture", {"source_id": source_id})
         with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
                         MJOBS_MOCK_ORIGIN="http://127.0.0.1:8090", MJOBS_OUTPUT_DIR=str(self.root),
                         MJOBS_OPERATION_MODE="FIXTURE"), \
@@ -219,9 +221,11 @@ class WorkerLifecycleTests(unittest.TestCase):
         record = json.loads(captured.records[0].getMessage())
         self.assertEqual(record["operation_id"], operation)
         self.assertEqual(record["operation_kind"], "DISCOVER")
-        self.assertEqual(record["source_id"], "source-123")
+        self.assertEqual(record["source_id"], source_id)
         self.assertEqual(record["result"], "COMPLETED")
         self.assertNotIn("error_code", record)
+        self.assertEqual(record["source"], "greenhouse")
+        self.assertEqual(record["ats"], "greenhouse")
 
     def test_apply_mock_logs_persisted_ats_provider_after_terminal_persistence(self):
         with fixture_server() as origin:
@@ -332,7 +336,9 @@ class WorkerLifecycleTests(unittest.TestCase):
             record = json.loads(message)
             self.assertEqual(record["company_id"], "company-logged-id")
             self.assertEqual(record["source_id"], source["id"])
-            for private_value in ("Private Employer Name", "private.example", "private-tenant", "rss"):
+            self.assertEqual(record["source"], "rss")
+            self.assertNotIn("ats", record)
+            for private_value in ("Private Employer Name", "private.example", "private-tenant"):
                 self.assertNotIn(private_value, message)
             self.assertNotIn("params", record)
         finally:
