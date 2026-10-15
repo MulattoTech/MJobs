@@ -16,6 +16,7 @@ from sqlalchemy import case, func, select, union
 
 from packages.persistence import models as m
 from packages.persistence import resume_workspace as _resume_workspace  # registers its table
+from packages.persistence.recovery_history import SAFE_DISCOVERY_REASON_CODES, read_recovery_history
 
 
 MAX_EXPORT_ROWS = 10_000
@@ -158,6 +159,61 @@ def _profile_job_ids(profile_id):
         select(m.matches.c.job_id).where(m.matches.c.profile_id == profile_id),
         select(m.applications.c.job_id).where(m.applications.c.profile_id == profile_id),
     ).subquery("profile_export_job_ids")
+
+
+def _safe_discovery_reasons(value):
+    if not isinstance(value, list):
+        return [], False
+    safe = [item for item in value if isinstance(item, str) and item in SAFE_DISCOVERY_REASON_CODES]
+    return safe, len(safe) == len(value)
+
+
+def _discovery_history(connection, profile_id, jobs, route_rows):
+    """Return allowlisted inert snapshots plus previously recovered history."""
+    job_ids = {row["id"] for row in jobs}
+    company_ids = {row["company_id"] for row in route_rows}
+    rows = {}
+    requests = _bounded_rows(
+        connection, m.company_discovery_requests, profile_id,
+        ("id", "company_id", "company_source_id", "candidate_id", "trigger_job_id",
+         "profile_id", "reasons", "highest_match_score", "created_at", "last_seen_at",
+         "state", "revision", "selected_website"),
+    )
+    for request in requests:
+        source_id = request["id"]
+        trigger = request["trigger_job_id"]
+        company = request["company_id"]
+        safe_reasons, reasons_complete = _safe_discovery_reasons(request["reasons"])
+        payload = {
+            "historical_refs": {key: request[key] for key in (
+                "profile_id", "company_id", "company_source_id", "candidate_id", "trigger_job_id",
+            ) if request.get(key) is not None},
+            "target_job_id": trigger if trigger in job_ids else None,
+            "target_company_id": company if company in company_ids else None,
+            "state": request["state"] if request["state"] in {
+                "NEEDS_ORIGIN_REVIEW", "QUEUED", "DISMISSED",
+            } else "UNKNOWN",
+            "reasons": safe_reasons,
+            "highest_match_score": request["highest_match_score"],
+            "created_at": request["created_at"], "last_seen_at": request["last_seen_at"],
+            "revision": request["revision"], "selected_website": _safe_url(request["selected_website"]),
+            "reference_status": "LINKED" if trigger in job_ids else "JOB_NOT_IN_BACKUP",
+            "metadata_status": ("COMPLETE" if reasons_complete and all(request.get(key) for key in (
+                "company_id", "company_source_id", "candidate_id", "trigger_job_id",
+            )) else "PARTIAL"),
+            "authorization_required": True,
+        }
+        rows[source_id] = {"kind": "company_discovery_request", "source_identity": source_id,
+                           "schema_version": 1, "payload": payload,
+                           "created_at": request["created_at"]}
+    for item in read_recovery_history(connection, profile_id):
+        # The archive contains a fixed allowlisted payload; export retains the
+        # same stable source identity and remapped target references.
+        current = rows.get(item["source_identity"])
+        if current is not None and current != {key: item[key] for key in current}:
+            raise DataExportError("EXPORT_INVALID_DATA")
+        rows[item["source_identity"]] = item
+    return [rows[key] for key in sorted(rows)]
 
 
 def _jobs(connection, profile, profile_id):
@@ -379,6 +435,16 @@ def export_profile_backup(store, profile_id: str, *, output_dir=None) -> dict:
         route_rows = _collect_rows(connection, route_statement)
         for row in route_rows:
             row["url"] = _safe_url(row["url"])
+        discovery_history = _discovery_history(connection, profile_id, jobs, route_rows)
+        discovery_requests = _profile_rows(
+            connection, m.company_discovery_requests, profile_id,
+            ("id", "company_id", "company_source_id", "candidate_id", "trigger_job_id",
+             "profile_version", "reasons", "highest_match_score", "created_at", "last_seen_at",
+             "state", "revision", "selected_website"),
+        )
+        for row in discovery_requests:
+            row["selected_website"] = _safe_url(row["selected_website"])
+            row["reasons"], _ = _safe_discovery_reasons(row["reasons"])
 
         application_ids = select(m.applications.c.id).where(
             m.applications.c.profile_id == profile_id,
@@ -464,12 +530,8 @@ def export_profile_backup(store, profile_id: str, *, output_dir=None) -> dict:
                  "capabilities_limits_note", "expected_value_maintenance_note", "integration_issue",
                  "reviewed_at"),
             ),
-            "company_discovery_requests": _profile_rows(
-                connection, m.company_discovery_requests, profile_id,
-                ("id", "company_id", "trigger_job_id", "profile_version", "reasons",
-                 "highest_match_score", "created_at", "last_seen_at", "state", "revision",
-                 "selected_website"),
-            ),
+            "company_discovery_requests": discovery_requests,
+            "company_discovery_history": discovery_history,
             "jobs": jobs,
             "job_matches": _profile_rows(
                 connection, m.matches, profile_id,

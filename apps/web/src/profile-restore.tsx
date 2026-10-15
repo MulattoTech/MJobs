@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { api as defaultApi } from './api';
 
 export const MAX_PROFILE_RESTORE_BYTES = 5 * 1024 * 1024;
@@ -13,7 +13,7 @@ export type RestoreBackupParseResult =
 export type ProfileRestorePreview = {
   fingerprint: string;
   sourceProfile: { name: string; email: string };
-  counts: { facts: number; answers: number; uploaded_files: number; search_profiles: number };
+  counts: { facts: number; answers: number; uploaded_files: number; generated_documents: number; jobs: number; applications: number; search_profiles: number; company_discovery_history: number };
   warnings: string[];
   omittedSections: string[];
 };
@@ -23,7 +23,9 @@ export type RestoreRequestResult =
   | { ok: false; reason: 'confirmation_required' | 'invalid_response' };
 
 const COUNT_LABELS = {
-  facts: 'fact', answers: 'answer', uploaded_files: 'uploaded file', search_profiles: 'saved search profile',
+  facts: 'fact', answers: 'answer', uploaded_files: 'uploaded file',
+  generated_documents: 'generated document', jobs: 'job record', applications: 'application record',
+  search_profiles: 'saved search profile', company_discovery_history: 'recovered discovery history record',
 } as const;
 
 const WARNING_LABELS: Record<string, string> = {
@@ -32,19 +34,37 @@ const WARNING_LABELS: Record<string, string> = {
   SEARCH_PROFILES_DISABLED: 'Imported search profiles are disabled until reviewed.',
   AUTOMATION_NOT_RESTORED: 'Automation settings are not activated by restore.',
   UPLOADED_FILES_NOT_INCLUDED: 'Original uploaded files are not included in this backup.',
+  RESUME_REVISION_METADATA_PARTIALLY_RESTORED: 'Uploaded resume history was partially restored because file bytes were unavailable.',
+  GENERATED_DOCUMENTS_NOT_INCLUDED: 'Some generated document bytes are not included in this backup.',
+  APPLICATION_HISTORY_PARTIALLY_RESTORED: 'Some history could not be restored because its safe links or document bytes were unavailable.',
+  APPLICATION_STATES_REQUIRE_REVIEW: 'Imported applications are never replayed; active states require review and ambiguous submissions remain unconfirmed.',
+  CAREER_STORIES_REQUIRE_REVIEW: 'Imported career stories are pending review in the new profile.',
+  SOURCE_CANDIDATES_DISABLED: 'Imported source candidates are disabled and require review before collection.',
+  COMPANY_DISCOVERY_HISTORY_ARCHIVED: 'Company discovery records were recovered as read-only history.',
+  DISCOVERY_HISTORY_REFERENCES_INCOMPLETE: 'Some historical job references were not present in the backup.',
+  DISCOVERY_HISTORY_METADATA_PARTIAL: 'Some discovery history metadata was missing from this older backup.',
 };
 
 const OMITTED_SECTION_LABELS: Record<string, string> = {
-  job_history: 'Employment history and job records',
-  application_history: 'Application history',
-  application_routes: 'Application routes',
-  application_attempts: 'Application attempts',
-  ai_evaluations: 'AI evaluation history',
-  source_discovery: 'Source discovery',
-  company_discovery: 'Company discovery',
-  generated_documents: 'Generated documents',
-  resume_workspace: 'Resume workspace',
-  interview_prep: 'Interview preparation',
+  ai_task_provider_model: 'AI task provider and model choices (restored disabled)',
+  ai_cost_policy: 'AI cost policy',
+  answer_confidence_policy: 'Answer confidence policy',
+  provider_credentials: 'Provider credentials',
+  browser_state: 'Private browser state',
+  worker_operations: 'Queued or running operations',
+  source_monitoring_and_feed_state: 'Source monitoring and feed state',
+  posting_raw_diagnostics: 'Raw posting diagnostics',
+  resume_revision_metadata_without_upload_bytes: 'Resume revision metadata without its original upload bytes',
+  application_attempt_execution_steps: 'Application attempt execution steps (not replayed)',
+  application_submission_traces_and_confirmations: 'Application submission traces and confirmation receipts (not portable)',
+  document_generation_context: 'Private document generation context',
+  unsafe_application_routes: 'Application routes rejected because their URLs were unsafe',
+  dependent_history_without_safe_routes: 'Dependent matches, documents, attempts and preparation history without safe routes',
+  jobs_without_safe_routes: 'Jobs without a safe application route',
+  applications_without_safe_routes: 'Applications without a safe route',
+  route_choices_without_safe_routes: 'Route choices without a safe route',
+  generated_documents_without_verified_bytes: 'Generated document records without verified file bytes',
+  ai_job_evaluation_history_without_safe_jobs: 'AI job evaluation history without a restored safe job',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -88,7 +108,7 @@ function projectPreview(value: unknown): ProfileRestorePreview | null {
       !isRecord(value.counts) || !Array.isArray(value.warnings) || value.warnings.length > 20 ||
       !Array.isArray(value.omitted_sections) || value.omitted_sections.length > 30) return null;
 
-  const countKeys = ['facts', 'answers', 'uploaded_files', 'search_profiles'] as const;
+  const countKeys = ['facts', 'answers', 'uploaded_files', 'generated_documents', 'jobs', 'applications', 'search_profiles', 'company_discovery_history'] as const;
   const counts = {} as ProfileRestorePreview['counts'];
   for (const key of countKeys) {
     const count = value.counts[key];
@@ -159,6 +179,44 @@ export type ProfileRestorePreviewCardProps = {
   restoring: boolean;
 };
 
+export type RecoveredHistoryRecord = {
+  sourceIdentity: string;
+  state: string;
+  reasons: string[];
+  referenceStatus: string;
+  metadataStatus: string;
+  createdAt: string;
+};
+
+export async function loadRecoveredHistory(request: RestoreApi, profileId: string): Promise<RecoveredHistoryRecord[] | null> {
+  try {
+    const response = await request(`/profile-restores/${encodeURIComponent(profileId)}/history`);
+    if (!isRecord(response) || response.profile_id !== profileId || !Array.isArray(response.history) ||
+        response.history.length > 10000 || response.mode !== 'READ_ONLY_HISTORICAL_ARCHIVE' ||
+        response.authorization_required_for_future_live_action !== true) return null;
+    const valid = response.history.every(value => {
+      if (!isRecord(value) || !isRecord(value.payload)) return false;
+      return value.kind === 'company_discovery_request' && value.schema_version === 1 &&
+        isBoundedString(value.source_identity, 128) && typeof value.payload.state === 'string' &&
+        Array.isArray(value.payload.reasons) &&
+        value.payload.reasons.every(reason => typeof reason === 'string' && reason.length <= 500) &&
+        typeof value.payload.reference_status === 'string' &&
+        ['COMPLETE', 'PARTIAL'].includes(String(value.payload.metadata_status)) &&
+        typeof value.created_at === 'string';
+    });
+    if (!valid) return null;
+    return response.history.map(value => {
+      if (!isRecord(value) || !isRecord(value.payload)) throw new Error('invalid recovered history response');
+      return { sourceIdentity: value.source_identity as string, state: value.payload.state as string,
+        reasons: value.payload.reasons as string[], referenceStatus: value.payload.reference_status as string,
+        metadataStatus: value.payload.metadata_status as string,
+        createdAt: value.created_at as string };
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function ProfileRestorePreviewCard({ preview, confirmed, onConfirmedChange, onRestore, restoring }: ProfileRestorePreviewCardProps) {
   const summary = (Object.keys(COUNT_LABELS) as (keyof ProfileRestorePreview['counts'])[])
     .filter(key => preview.counts[key] > 0)
@@ -191,6 +249,7 @@ export function ProfileRestorePreviewCard({ preview, confirmed, onConfirmedChang
 
 export type ProfileRestoreProps = {
   api?: RestoreApi;
+  profileId?: string;
   onRestored?: (profileId: string) => void;
 };
 
@@ -203,7 +262,40 @@ function safeError(reason: string): string {
   }
 }
 
-export function ProfileRestore({ api = (path, init) => defaultApi<unknown>(path, init), onRestored }: ProfileRestoreProps) {
+const restoreApi: RestoreApi = (path, init) => defaultApi<unknown>(path, init);
+
+/** A keyed instance owns one profile's reads, including retries and late responses. */
+function RecoveredHistory({ api, profileId }: { api: RestoreApi; profileId: string }) {
+  const [history, setHistory] = useState<RecoveredHistoryRecord[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setHistory(null);
+    void loadRecoveredHistory(api, profileId).then(result => {
+      if (!active) return;
+      setHistory(result);
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [api, profileId, retry]);
+
+  return <section aria-label="Recovered company discovery history" aria-busy={loading}>
+    <h3>Recovered company discovery history</h3>
+    <p>These records are read-only historical snapshots. Restore does not authorize or schedule new discovery; fresh authorization is required for any future live action.</p>
+    {loading ? <p role="status">Loading recovered history…</p> : history === null ? <>
+      <p role="alert">Recovered history could not be loaded. Try again.</p>
+      <button type="button" onClick={() => { setLoading(true); setRetry(value => value + 1); }}>Retry recovered history</button>
+    </> : history.length === 0 ? <p>No recovered company discovery history for this profile.</p> :
+      <ul>{history.map(item => <li key={item.sourceIdentity}>
+        <strong>{item.state}</strong> — {item.reasons.join('; ') || 'No reason recorded'}
+        <span> ({item.referenceStatus}; {item.metadataStatus.toLowerCase()} metadata; {item.createdAt || 'time unavailable'})</span>
+      </li>)}</ul>}
+  </section>;
+}
+
+export function ProfileRestore({ api = restoreApi, profileId, onRestored }: ProfileRestoreProps) {
   const input = useRef<HTMLInputElement>(null);
   const [backup, setBackup] = useState<RestoreBackup | null>(null);
   const [preview, setPreview] = useState<ProfileRestorePreview | null>(null);
@@ -307,5 +399,6 @@ export function ProfileRestore({ api = (path, init) => defaultApi<unknown>(path,
     {preview && <ProfileRestorePreviewCard preview={preview} confirmed={confirmed} onConfirmedChange={setConfirmed} onRestore={() => void restore()} restoring={restoring} />}
     {error && <p role="alert">{error}</p>}
     {success && <p role="status">{success}</p>}
+    {profileId && <RecoveredHistory key={profileId} api={api} profileId={profileId} />}
   </section>;
 }
