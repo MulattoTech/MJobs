@@ -15,6 +15,7 @@ from sqlalchemy import select
 from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
+from services.ai.prompt_provenance import capture_document
 from services.career_profile import story_selection
 from services.dedupe.routes import persist_route_choices, plan_application_routes, qualify_route_authority
 from services.dedupe.source_values import require_route_review
@@ -520,7 +521,7 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             prior_letter_context = (prior_letter['generation_context'] or {}) if prior_letter else {}
             same_letter=bool(prior_letter and prior_letter['template']==COVER_LETTER_TEMPLATE
                 and {key:value for key,value in prior_letter_context.items()
-                     if key != 'claim_validation'} == cover_letter_context)
+                     if key not in {'claim_validation', 'prompt_provenance'}} == cover_letter_context)
             if prior["profile_version"] == profile["version"] and same_mode and same_target and same_selection and same_rephrases and same_page_fit and same_resume_stories and same_letter and prior['state'] != 'REVIEW_REQUIRED':
                 persist_route_choices(connection, prior["id"], route_plan)
                 return prior["id"]
@@ -600,6 +601,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         if include_resume_contact:
             context=context or {'mode':'APPROVED_CONTACT_HEADER'}
             context['contact_header']=contact_header(profile,resume_template)
+        resume_provenance = capture_document('resume', resume_template, resume_model)
+        letter_provenance = capture_document('cover_letter', COVER_LETTER_TEMPLATE,
+                                             'deterministic-job-evidence-v1')
         kinds = compose_paragraphs(profile, job, ordered_rows, texts, resume_template)
         resume_story_paragraphs, resume_story_headings = story_selection.resume_story_paragraphs(
             selected_resume_stories)
@@ -624,7 +628,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 selected_stories=(selected_stories if kind == 'cover-letter'
                                   else selected_resume_stories if kind == 'resume' else None))
             generation_context = {**(generation_context or {}),
-                                 'claim_validation': claim_validation}
+                                 'claim_validation': claim_validation,
+                                 'prompt_provenance': (resume_provenance if kind == 'resume'
+                                                       else letter_provenance)}
             headings = resume_layout(profile, ordered_rows, template)[1] if kind=='resume' else set()
             if kind == 'resume':
                 headings.update(resume_story_offset + index for index in resume_story_headings)
