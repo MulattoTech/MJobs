@@ -12,6 +12,8 @@ from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.career_profile.story_bank import create_story, review_story
 from services.documents.tailor import target_fingerprint
+from services.documents.errors import PreparationError
+from services.documents.failure_status import DOCUMENT_GENERATION_FAILED
 from tests.integration import test_document_provenance as fixtures
 from tests.integration.test_spine import PROFILE
 from fixtures.mock_server import fixture_server
@@ -28,6 +30,7 @@ class ResumePageFitApiTests(unittest.TestCase):
             discover(self.store, origin, "fixture")
         self.job_id = self.store.jobs("fixture")[0]["id"]
         self.calls = {"preview": [], "generate": []}
+        self.preview_failure = None
         self.preview_story_options = []
         self.now = [100.0]
         self.outside_preview_path = None
@@ -51,6 +54,8 @@ class ResumePageFitApiTests(unittest.TestCase):
         def preview_runner(store, profile_id, job_id, output_dir, target_pdf_pages, **kwargs):
             self.calls["preview"].append((profile_id, job_id, target_pdf_pages))
             self.preview_story_options.append(kwargs)
+            if self.preview_failure is not None:
+                raise self.preview_failure
             preview_root = Path(output_dir) / ".page-fit-previews"
             preview_root.mkdir(parents=True, exist_ok=True)
             preview_path = preview_root / f"preview-{len(self.calls['preview'])}.pdf"
@@ -197,6 +202,38 @@ class ResumePageFitApiTests(unittest.TestCase):
         )
         self.assertEqual(blocked.status_code, 409, blocked.text)
         self.assertEqual(self.calls["generate"], [])
+        self.assertEqual(self.counts(), before)
+
+    def test_document_generation_failure_is_reported_as_unavailable_measurement(self):
+        before = self.counts()
+        self.preview_failure = PreparationError(
+            DOCUMENT_GENERATION_FAILED,
+            "private renderer path and profile contents",
+        )
+
+        response = self.client.post(self.url(), json={"target_pdf_pages": 1})
+
+        self.assertEqual(response.status_code, 503, response.text)
+        self.assertEqual(response.json(), {
+            "detail": {"code": "RESUME_PAGE_FIT_MEASUREMENT_UNAVAILABLE"},
+        })
+        self.assertNotIn("private", response.text)
+        self.assertEqual(list(self.root.rglob("*.pdf")), [])
+        self.assertEqual(self.counts(), before)
+
+    def test_other_business_preparation_errors_keep_preview_invalid_response(self):
+        before = self.counts()
+        self.preview_failure = PreparationError(
+            "DOCUMENT_NO_APPROVED_FACTS",
+            "approve a sourced fact before generating",
+        )
+
+        response = self.client.post(self.url(), json={"target_pdf_pages": 1})
+
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(response.json(), {
+            "detail": {"code": "RESUME_PAGE_FIT_PREVIEW_INVALID"},
+        })
         self.assertEqual(self.counts(), before)
 
     def test_measured_over_target_is_reported_as_unmet(self):
