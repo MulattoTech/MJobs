@@ -1,7 +1,11 @@
 {
   "schema_version": 1,
   "policy": {
-    "max_active_prs": 4,
+    "max_active_prs": 32,
+    "capacity_behavior": "warn",
+    "capacity_scope": "concurrently open development PRs; drafts included; authenticated dependency automation excluded",
+    "publication_policy": "docs/PR_PUBLICATION_POLICY.md",
+    "ci_capacity_target": "4-6 expensive jobs where supported; not a repository-wide semaphore",
     "open_draft_only_after_first_real_commit": true,
     "never_create_empty_prs": true,
     "merge_order": "dependency-aware; keep main green",
