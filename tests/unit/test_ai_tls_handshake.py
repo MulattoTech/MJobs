@@ -85,6 +85,29 @@ class TLSHandshakeTests(unittest.TestCase):
                         self.assertEqual(duplicates[0].fileno(), -1)
                         self.assertFalse(any(t.name == 'mjobs-request-deadline' for t in threading.enumerate()))
 
+    def test_trusted_certificate_still_rejects_hostname_mismatch(self):
+        with tls_contexts() as (server_context, client_context):
+            for provider_type in HTTPS_PROVIDERS:
+                with self.subTest(provider=provider_type.name), HeaderServer(
+                        provider_type, slow=False, tls_context=server_context,
+                        client_context=client_context) as server:
+                    original_getaddrinfo = socket.getaddrinfo
+                    hostname = 'hostname-mismatch.synthetic.test'
+                    server.provider = provider_type(
+                        base_url=f'https://{hostname}:{server.server.server_port}',
+                        client_factory=lambda **_kwargs: server.client)
+
+                    def resolve_to_loopback(_host, port, *args, **kwargs):
+                        return original_getaddrinfo('127.0.0.1', port, *args, **kwargs)
+
+                    with patch('services.ai.providers.transport.socket.getaddrinfo',
+                               side_effect=resolve_to_loopback):
+                        result = server.generate(budget=2)
+                    self.assertEqual(result, 'AI_PROVIDER_UNAVAILABLE')
+                    self.assertEqual(server.calls, 0, 'HTTP request sent despite hostname mismatch')
+                    self.assertTrue(server.client.is_closed)
+                    self.assertFalse(any(t.name == 'mjobs-request-deadline' for t in threading.enumerate()))
+
     def test_duplicate_failure_closes_tcp_stream_before_pool_ownership(self):
         for provider_type in HTTPS_PROVIDERS:
             sockets = []

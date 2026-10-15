@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-15T01:46:08.317894+00:00",
+  "timestamp": "2026-10-15T16:18:57.790761+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -38,11 +38,12 @@
     },
     {
       "requirement_id": "MJ-REQ-003",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-06-headless-browser-acceptance.json"
+        "docs/evidence/2026-10-06-headless-browser-acceptance.json",
+        "docs/evidence/2026-10-15-headless-development-full-criterion.json"
       ],
-      "note": "36 existing browser tests and 62 frontend tests pass for local/mock headless Chromium flows covering navigation, DOM/source review, uploads, multi-step application, validation, simulated submission/receipt, and intervention. Requirement remains PARTIAL/OPEN because no real ATS provider or account exists to verify authenticated-session persistence; external submission is OFF. One full test discovery run had a pre-existing Uvicorn cleanup assertion that passed alone and within the full browser suite.",
+      "note": "All nine literal headless/local browser criteria executed at main 06ffb07a207dc68b42b565870f67fc3eb67aae03; 26 existing tests and four subtests plus real-browser invalid-form/profile-isolation probe passed. Persistent mock authentication closes/reopens and resumes through the real worker to one fixture receipt. Independent criterion/source/hash review found no unmet literal clause. The historical real ATS/account blocker is superseded because it is not part of this requirement. Native OS PID certification and broad regression are not claimed; external employer submission remains OFF. Acceptance recording is a branch candidate until protected integration.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
@@ -92,16 +93,17 @@
     },
     {
       "requirement_id": "MJ-REQ-005",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-06-operation-concurrency-categories.json",
         "docs/evidence/2026-10-06-per-source-greenhouse-concurrency.json",
         "docs/evidence/2026-10-07-ai-evaluation-concurrency-admission.json",
         "docs/evidence/2026-10-07-application-automation-category-capacity.json",
         "docs/evidence/2026-10-07-postgres-concurrency-runtime.json",
-        "docs/evidence/2026-10-07-postgres-all-category-concurrency.json"
+        "docs/evidence/2026-10-07-postgres-all-category-concurrency.json",
+        "docs/evidence/2026-10-15-controlled-concurrency-full-criterion.json"
       ],
-      "note": "Durable operations have independent bounded source collection, company discovery, AI, document generation, and application automation admission ceilings. Greenhouse per-source concurrency bounds its two independent public reads; shared request-start pacing prevents burst bypass; source failure/cancellation history and Sources UI readback are locally verified. Direct structured AI evaluations now reserve the database-backed AI category across API instances and persist safe terminal/expired-lease outcomes. PARTIAL: real ATS automation remains unavailable/unverified; external submission stays OFF. Latest scoped acceptance coverage integrated at main 60c2a85e47a7aaaed382cfa9b1683fbb4ec8e209: independent Store engines racing for APPLY_MOCK capacity one produce exactly one RUNNING and one QUEUED/no-attempt operation, while PREPARE capacity remains independent. 23 worker/dead-letter/category tests and isolated regression PASS; evidence docs/evidence/2026-10-07-application-automation-category-capacity.json. This closes a local SQLite cross-Store race coverage gap only; real ATS concurrency remains NOT_RUN, so issue #6 / MJ-REQ-005 remains OPEN/PARTIAL. Supplemental evidence: docs/evidence/2026-10-07-postgres-concurrency-runtime.json proves PostgreSQL advisory-lock category capacity for cross-kind company discovery and application automation across independent Store engines (21 focused tests twice). Real ATS/provider runtime remains NOT_RUN; requirement remains PARTIAL. New local PostgreSQL 17 runtime evidence docs/evidence/2026-10-07-postgres-all-category-concurrency.json covers independent source_collection, company_discovery, ai inline admissions, shared inline/worker document_generation and application_automation category capacity. Five PG race tests plus three category-unit and sixteen worker-lifecycle tests passed twice (24 per run) on one fresh disposable database; synthetic operation cleanup makes the test repeatable. Real ATS/provider runtime remains NOT_RUN; issue #6 stays OPEN/PARTIAL. Latest all-category PostgreSQL evidence was integrated at main 3895e62a3dcf053998d872f3072c0476064128b5; GitHub release readback: https://github.com/MulattoTech/MJobs/issues/6#issuecomment-6037452250. PostgreSQL runtime passed locally; only real ATS/provider concurrency remains NOT_RUN.",
+      "note": "All five independently configured concurrency categories and deliberate/conservative admission, release and recovery executed at main 06ffb07a207dc68b42b565870f67fc3eb67aae03; 115 distinct local nodes and 45 subtests passed after compatible-browser rerun. Nine local PostgreSQL skips are explicitly supplemented by exact-main hosted run38668685396: seven PostgreSQL category cases and two crash/reclaim/fencing cases passed. Independent criterion/source/artifact review found no unmet literal clause. Historical real ATS/provider blocker is superseded because the literal contract does not require live providers. Native OCR enforcement on Windows and broad regression are not claimed; external submission remains OFF. Acceptance recording is a branch candidate until protected integration.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
