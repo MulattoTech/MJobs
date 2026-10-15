@@ -11,6 +11,8 @@ Read the current user's request, `AGENTS.md`, live Git/GitHub state, `planning/R
 
 Work in `C:\Tools\Dev\MJobs` and publish tested changes through short-lived reviewable PRs and native required checks into GitHub `main`. Native auto-merge is not a human review. Keep existing uncommitted data and historical unmerged work intact unless an explicit, verified backup makes removal safe. The current issue's priority/category/area labels guide the next authorized slice; code and executed tests—not issue closure or merge alone—determine acceptance.
 
+Before each authorized publication, follow `docs/PR_PUBLICATION_POLICY.md`: run `python -m tools.verification.pr_queue --live --candidate <reviewed-evidence.json>` (optionally `--metadata <reviewed-metadata.json>`). The default is 32 concurrently OPEN development PRs, including drafts, with a soft warning; only authenticated dependency automation is excluded. Preserve meaningful commits, owner, local validation and duplicate/empty safeguards even above the soft threshold. Report backlog, CI and conflict uncertainty; stop after the bounded authorized slice. Publication slots do not grant CI capacity or integration permission. Only the integration owner integrates through protected checks and explicit applicable authorization.
+
 Load only the relevant specialized playbook:
 - database schema: `references/db-migration.md`
 - job source: `references/source-adapter.md`
