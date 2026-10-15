@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-15T16:18:57.790761+00:00",
+  "generated_at": "2026-10-15T19:01:21.652133+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "PR657 settings and PR658 document recovery merged with exact-head required checks; PR659 Docker health merged with verified source/restored-project outage evidence. Final acceptance closeout follows through protected PR.",
     "current_verified_at": "2026-10-15T01:46:08.317894+00:00"
   },
-  "current_milestone": "ORIGINAL-P0-003-005-ACCEPTANCE-RECORDING-20261015",
-  "current_objective": "Record reviewed original #4/MJ-REQ-003 and #6/MJ-REQ-005 evidence; local branch candidate pending protected integration",
+  "current_milestone": "ORIGINAL-VERIFIED-DELIVERY-CLOSEOUT-20261015",
+  "current_objective": "Record five independently reviewed original criteria and four bounded partial slices with protected final-source execution",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -914,12 +914,64 @@
         "git_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
         "evidence_path": "docs/evidence/2026-10-15-headless-development-full-criterion.json"
       }
+    },
+    {
+      "milestone_id": "ORIGINAL-VERIFIED-DELIVERY-CLOSEOUT-20261015",
+      "timestamp": "2026-10-15T19:01:21.652133+00:00",
+      "current_phase": "ACCEPTANCE_RECORDING_PENDING_PROTECTED_INTEGRATION",
+      "requirements": [
+        "MJ-REQ-013",
+        "MJ-REQ-014",
+        "MJ-REQ-177",
+        "MJ-REQ-263",
+        "MJ-REQ-270"
+      ],
+      "acceptance": "Five reviewed original literal requirements recorded; four partial slice results unchanged. Protected source integrated; acceptance-recording integration and official Project remain primary-owned.",
+      "validated_product_commit": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+      "completed_steps": [
+        "Reconciled integrated feature source and final e17 full Integration/Connected executions, actual checkout tree, named assertions and typed public input hashes.",
+        "Recorded five original results, partial-only evidence updates, preserved003/005 and supplementary authority, and refreshed derived counts."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/SESSION_HANDOFF.md",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Final e17 current hosted Integration38788781235 and Connected38788781436 SUCCESS;95 selected integration cases and19 selected units individually parsed; all targeted complete-parent cases PASS/non-SKIP.",
+        "Actual public CLI backup/verify/restore exit0/PASS;42files; seven local domains survive four comparisons; refusal/replay/health controls PASS.",
+        "694 public raw Git source SHA256 records plus full-tree/actual-checkout equality reconcile final integrated source.",
+        "Recording checks: catalogue/journal/dashboard/skills PASS;99 focused tests and5subtests PASS; semantic/sanitization/source closure PASS; diff clean."
+      ],
+      "tests_remaining": [
+        "Exact recording PR native/hosted/protected gates remain separate; official Project/readback primary-owned."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "Whole product remains PARTIAL; release_readiness UNKNOWN; external employer submissions OFF.",
+        "004/018/169/288 stay PARTIAL. Reviewer runtime NOT_RUN; Linux connected verifier functional NOT_RUN; actual Windows synthetic proof separate.",
+        "Recording branch originated on main564; tested e17 and protected source merge d29 have equal trees. Recording PR review/CI/integration remain separate."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+        "evidence_path": "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+      }
     }
   ],
-  "current_phase": "ACCEPTANCE_RECORDING_LOCAL_PENDING_INTEGRATION",
+  "current_phase": "ACCEPTANCE_RECORDING_PENDING_PROTECTED_INTEGRATION",
   "last_safe_checkpoint": {
-    "git_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
-    "evidence_path": "docs/evidence/2026-10-15-headless-development-full-criterion.json"
+    "git_commit": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+    "evidence_path": "docs/evidence/2026-10-15-verified-delivery-closeout.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

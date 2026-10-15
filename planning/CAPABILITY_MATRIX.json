@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-15T16:18:57.790761+00:00",
+  "timestamp": "2026-10-15T19:01:21.652133+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -82,9 +82,10 @@
         "docs/evidence/2026-10-10-application-recovery-transfer-validation.json",
         "docs/evidence/2026-10-13-provider-response-cancellation.json",
         "docs/evidence/2026-10-13-provider-response-deadline.json",
-        "docs/evidence/2026-10-13-provider-header-deadline.json"
+        "docs/evidence/2026-10-13-provider-header-deadline.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL. HTTP AI response bodies now obey the remaining request deadline even while bytes trickle continuously. Five-provider real loopback transport and durable timeout/no-partial-result readback PASS locally. Connected pre-response-header reads now share the request deadline and cancellation guard across all five HTTP AI providers, with real TCP/TLS loopback and durable terminal-state proof. DNS/TCP/TLS establishment before stream exposure and broader external-operation acceptance remain PARTIAL.",
+      "note": "Historical checkpoint: The credential timeout outcome is now shown in AI Settings using fixed safe copy; connected UI distinguishes provider timeout from invalid credential and network unavailability. Provider calls remain synthetic/mocked. Broader timeouts/retries across all external operations remain incomplete. Scoped provider response cancellation now interrupts blocked socket reads for OpenAI-compatible, OpenAI, Azure OpenAI and Local Endpoint. Synthetic Linux transport, durable SQLite API/worker cancellation and mounted browser cancellation PASS; full external-operation acceptance remains PARTIAL. HTTP AI response bodies now obey the remaining request deadline even while bytes trickle continuously. Five-provider real loopback transport and durable timeout/no-partial-result readback PASS locally. Connected pre-response-header reads now share the request deadline and cancellation guard across all five HTTP AI providers, with real TCP/TLS loopback and durable terminal-state proof. DNS/TCP/TLS establishment before stream exposure and broader external-operation acceptance remain PARTIAL. Current verified campaign closeout: Current campaign PR662 adds executed bounded DNS/TCP/TLS establishment/deadline/cancellation and synthetic loopback/durable terminal-state proof; prior connection-establishment limitation is superseded for this slice. Broader external-operation parent remains PARTIAL; no whole-parent approval or live-provider/paid-inference execution claimed.",
       "latest_evidence_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045946420",
       "latest_release_comment": "https://github.com/MulattoTech/MJobs/issues/5#issuecomment-6045955420",
       "priority": "P0",
@@ -200,22 +201,23 @@
     },
     {
       "requirement_id": "MJ-REQ-013",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-local-restart.json",
         "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
         "docs/evidence/2026-09-30-ci-430.json",
         "docs/evidence/2026-09-30-pr004-backup-restore-local.json",
-        "docs/evidence/2026-09-30-pr004-upload-restore-local.json"
+        "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist. Fresh PERSONAL direct Compose, browser upload, and fresh-project offline restore retained an unreviewed original with exact checksum. Protected host-configuration backup, physical host restart and full local-first acceptance remain open.",
+      "note": "Historical checkpoint: Self-hosted PostgreSQL/Redis/documents and ignored local configuration exist. Fresh PERSONAL direct Compose, browser upload, and fresh-project offline restore retained an unreviewed original with exact checksum. Protected host-configuration backup, physical host restart and full local-first acceptance remain open. Current verified campaign closeout: Reviewed literal local-first acceptance: actual self-hosted Compose/API/workers require no proprietary hosted backend in the exercised core flow; all seven nonempty local data domains persist across restart, capture and fresh-volume restore. Final-source e17 Integration/Connected artifacts and exact checkout/tree closure corroborate current integrated functionality. Historical physical-reboot/host-configuration barriers are superseded for this literal requirement; no physical reboot, live employer or PERSONAL/all-platform run claimed.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-014",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-pr004-local-restart.json",
         "docs/evidence/2026-09-30-pr004-local-personal-mode.json",
@@ -224,9 +226,10 @@
         "docs/evidence/2026-09-30-pr004-upload-restore-local.json",
         "docs/evidence/2026-10-11-six-team-integration.json",
         "docs/evidence/2026-10-14-linux-python-startup.json",
-        "docs/evidence/2026-10-14-round3-startup-theme.json"
+        "docs/evidence/2026-10-14-round3-startup-theme.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "Atomic fresh PowerShell configuration and fail-closed legacy key validation; actual isolated launcher, connected browser, Redis/full-service recovery verified. Original root legacy key remains missing and was preserved. Full host-restart acceptance remains open. 2026-10-14: #636 fixes Python3-only Linux launcher admission with explicit host interpreter compatibility checks. Real Bash/Python bootstrap, private config preservation, failure propagation and actual Compose config validation PASS; Docker launch is stubbed in launcher tests, so full Linux image startup remains unverified and parent PARTIAL. Round3: guarded disposable Linux launcher projects/ports and fail-before-side-effects input admission implemented. Authentic Linux Compose launcher acceptance pending exact-head workflow; physical host restart remains NOT_RUN; PARTIAL. Exact source b931cbb5: all five required gates PASS; actual Linux Bash launcher starts disposable Compose stack; five mock/UI/restart/backup/receipt artifacts PASS. Only physical host-restart acceptance remains unverified; original remains PARTIAL.",
+      "note": "Historical checkpoint: Atomic fresh PowerShell configuration and fail-closed legacy key validation; actual isolated launcher, connected browser, Redis/full-service recovery verified. Original root legacy key remains missing and was preserved. Full host-restart acceptance remains open. 2026-10-14: #636 fixes Python3-only Linux launcher admission with explicit host interpreter compatibility checks. Real Bash/Python bootstrap, private config preservation, failure propagation and actual Compose config validation PASS; Docker launch is stubbed in launcher tests, so full Linux image startup remains unverified and parent PARTIAL. Round3: guarded disposable Linux launcher projects/ports and fail-before-side-effects input admission implemented. Authentic Linux Compose launcher acceptance pending exact-head workflow; physical host restart remains NOT_RUN; PARTIAL. Exact source b931cbb5: all five required gates PASS; actual Linux Bash launcher starts disposable Compose stack; five mock/UI/restart/backup/receipt artifacts PASS. Only physical host-restart acceptance remains unverified; original remains PARTIAL. Current verified campaign closeout: Reviewed complete startup acceptance: actual Linux fixture launcher/configuration/migrations/health/bootstrap and functioning browser/API/document/application flows; named development/testing commands executed. Public cli.local_backup backup/verify/restore subprocesses each exit0/PASS against one42-file archive and distinct fresh target; refusal, persistence, receipt/replay controls PASS on final e17 source. Prior positive-CLI evidence gap closed by real execution; physical reboot is not a literal startup criterion. Whole-product release remains PARTIAL.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
@@ -278,9 +281,10 @@
         "docs/evidence/2026-09-30-user-testing.md",
         "docs/evidence/2026-09-30-source-adapter-foundation.json",
         "docs/evidence/2026-09-30-ci-429.json",
-        "docs/evidence/2026-10-11-six-team-integration.json"
+        "docs/evidence/2026-10-11-six-team-integration.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "Four supported adapters expose bounded collection policies through the API/UI. HTML source structure and raw provenance survive document preparation. Greenhouse live read-only collection/preparation verified; other provider live evidence and broader strategy ladder remain incomplete.",
+      "note": "Historical checkpoint: Four supported adapters expose bounded collection policies through the API/UI. HTML source structure and raw provenance survive document preparation. Greenhouse live read-only collection/preparation verified; other provider live evidence and broader strategy ladder remain incomplete. Current verified campaign closeout: Current campaign PR665 verifies strict canonical Remotive HTTPS origin/default port, invalid/lookalike/userinfo refusal, raw job preservation, durable collection/API/readback and rendered link safety. PUBLIC_JSON and MANUAL_ONLY preserved; broader strategy-ladder parent remains PARTIAL, no whole-parent approval or live-provider run claimed.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -2047,9 +2051,10 @@
       "requirement_id": "MJ-REQ-169",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json"
+        "docs/evidence/2026-10-11-connected-four-feature-acceptance.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "Profile-scoped jobs/applications CSV, JSON, and document-byte backup routes are mounted and connected to the Profile UI. Connected browser acceptance downloads and parses all four formats, checks profile isolation and empty CSV states; full backup/recovery requirement remains PARTIAL.",
+      "note": "Historical checkpoint: Profile-scoped jobs/applications CSV, JSON, and document-byte backup routes are mounted and connected to the Profile UI. Connected browser acceptance downloads and parses all four formats, checks profile isolation and empty CSV states; full backup/recovery requirement remains PARTIAL. Current verified campaign closeout: Current campaign PR661 adds safe profile-scoped backup/restore, immutable history/readback/isolation and actual PostgreSQL migration proof; current final-source named profile-restore integration results retained. Dedicated archive-history browser proof LOCAL PASS/HOSTED NOT_RUN; generic hosted settings/theme/document flows are separate. Whole backup/recovery parent remains PARTIAL; no whole-parent approval.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -2140,15 +2145,16 @@
     },
     {
       "requirement_id": "MJ-REQ-177",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-07-structured-worker-operation-logs.json",
         "docs/evidence/2026-10-08-worker-context-logs.json",
         "docs/evidence/2026-10-08-apply-mock-ats-logs.json",
         "docs/evidence/2026-10-08-company-source-refresh-company-context.json",
-        "docs/evidence/2026-10-08-apply-mock-job-company-context.json"
+        "docs/evidence/2026-10-08-apply-mock-job-company-context.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "Additional APPLY_MOCK job/company context logs validated from persisted relations after terminal state; 33 tests PASS, one optional PostgreSQL class skipped. Broader structured logging remains PARTIAL; PostgreSQL/RQ/full suite/hosted NOT_RUN.",
+      "note": "Historical checkpoint: Additional APPLY_MOCK job/company context logs validated from persisted relations after terminal state; 33 tests PASS, one optional PostgreSQL class skipped. Broader structured logging remains PARTIAL; PostgreSQL/RQ/full suite/hosted NOT_RUN. Current verified campaign closeout: All twelve literal structured-log context fields verified where appropriate through fixed/per-kind persisted safe projections; absent/ambiguous/inapplicable context omitted. Final-source named context/privacy/application PostgreSQL/worker lifecycle cases and structured logging units PASS; durable terminal result precedes log and enrichment failure cannot change outcome/replay. Safe scalar/enumeration allowlists exclude secret/raw diagnostic/private payloads in exercised paths. Independent static reviewer execution NOT_RUN; actual hosted execution separately bound.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
@@ -3065,11 +3071,12 @@
     },
     {
       "requirement_id": "MJ-REQ-263",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-11-connected-feature-batch.json"
+        "docs/evidence/2026-10-11-connected-feature-batch.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence.",
+      "note": "Historical checkpoint: Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence. Current verified campaign closeout: Separate real company RQ queue and nonblocking import verified on final e17 Linux source: production dispatcher, wrong-queue consumer exclusion, held-company-job/no-employer-egress imports, fresh dedicated company consumer, reopened durable completion and duplicate-free replay. Named real RQ case actually PASS/non-SKIP using test-private SQLite plus Redis; separate PostgreSQL idempotency cases are distinct corroboration. Windows real-RQ execution NOT_RUN; no live employer submissions.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3146,9 +3153,11 @@
     },
     {
       "requirement_id": "MJ-REQ-270",
-      "result": "NOT_RUN",
-      "evidence": [],
-      "note": "Not implemented or verified in current milestones",
+      "result": "PASS",
+      "evidence": [
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+      ],
+      "note": "Historical checkpoint: Not implemented or verified in current milestones Current verified campaign closeout: Actual resume, cover-letter, reviewed screening export and job-parser producers retain immutable public implementation/template/model/version provenance. Four final-source connected storage tests and eleven versioning units PASS: historical definitions/output survive changed code and reopen; profile/provider/target isolation, malformed/tampered records and unapproved inputs fail closed. Screening export is manual/deterministic ai_executed=false; stored integrity is not DB-writer authentication or executable runtime archival.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"
@@ -3323,9 +3332,10 @@
       "requirement_id": "MJ-REQ-288",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-11-six-team-integration.json"
+        "docs/evidence/2026-10-11-six-team-integration.json",
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
       ],
-      "note": "Live verification command reports observed configuration, actual PostgreSQL migration heads, Redis, scheduler freshness and each exact worker queue; stopped/malformed/stale dependencies fail closed. Full source/application/deep-check summary remains incomplete.",
+      "note": "Historical checkpoint: Live verification command reports observed configuration, actual PostgreSQL migration heads, Redis, scheduler freshness and each exact worker queue; stopped/malformed/stale dependencies fail closed. Full source/application/deep-check summary remains incomplete. Current verified campaign closeout: Current campaign final verifier e17 executes actual Windows synthetic connected command12/12 checks plus retained-Job zero-active/reaped-host/workspace-removed cleanup, current45tests/5subtests and51affectedtests/16subtests. Post-confirmation/tamper negatives retain truthful prior proof. Linux functional verification NOT_RUN/fail-closed; synthetic SQLite/inline executor is not deployed PostgreSQL/Redis/RQ/scheduler readiness. Historical TEMP failure/skips preserved in consolidated record; whole parent remains PARTIAL.",
       "priority": "P1",
       "area": "docs_verification",
       "category": "major-feature"
