@@ -136,10 +136,12 @@ def test_invalid_extended_baseline_rejected_before_runtime(module_name, tmp_path
 
 
 @pytest.mark.parametrize('extended', [False, True])
-def test_existing_backup_entrypoint_preserves_legacy_and_orders_new_proof(extended, tmp_path, monkeypatch):
+@pytest.mark.parametrize('failure', [None, 'backup', 'verify', 'restore', 'file_count'])
+def test_existing_backup_entrypoint_preserves_legacy_and_orders_new_proof(extended, failure, tmp_path, monkeypatch):
     from cli import backup_acceptance as backup
     from cli import local_persistence_acceptance as persistence
     from contextlib import nullcontext
+    import sys
     events = []
     baseline = {'profile_id': 'synthetic-profile', 'application_id': 'synthetic-app',
                 'operation_id': 'synthetic-operation', 'request_id': 'synthetic-request',
@@ -166,14 +168,53 @@ def test_existing_backup_entrypoint_preserves_legacy_and_orders_new_proof(extend
     for helper in ('require_running_backup_refusal', 'require_corrupt_restore_refusal',
                    'require_occupied_restore_refusal'):
         monkeypatch.setattr(persistence, helper, lambda *a, name=helper: events.append((name,)) or 'PASS')
-    monkeypatch.setattr(local_backup, 'create_backup', lambda *a: events.append(('capture',)) or {
+    def public_command(command, **kwargs):
+        assert command[:3] == [sys.executable, '-m', 'cli.local_backup']
+        assert kwargs['environment'] == {}
+        assert kwargs['timeout'] > 0
+        action = command[3]
+        if action == failure:
+            events.append(('public_failure', action))
+            raise RuntimeError('Public ' + action + ' CLI failed with exit code 2')
+        if action == 'backup':
+            assert command[4:] == ['--project', 'mjobs-fixture-012345abcdef', '--archive', str(tmp_path / 'archive')]
+            events.append(('capture',))
+            return 'Backup created: 1 files; mode FIXTURE\nConfiguration snapshot: non-secret runtime settings saved for manual review\n'
+        if action == 'verify':
+            assert command[4:] == ['--archive', str(tmp_path / 'archive')]
+            events.append(('verify',))
+            if failure == 'file_count':
+                return 'Backup verified: 2 files; mode FIXTURE\n'
+            return 'Backup verified: 1 files; mode FIXTURE\n'
+        assert action == 'restore'
+        assert command[4:] == ['--archive', str(tmp_path / 'archive'), '--target-project',
+                               'mjobs-fixture-abcdef012345', '--port', '18700']
+        events.append(('restore',))
+        return 'Restored FIXTURE project mjobs-fixture-abcdef012345 at 127.0.0.1:18700\n'
+    monkeypatch.setattr(backup.recovery, '_run_bounded', public_command)
+    monkeypatch.setattr(local_backup, 'verify_backup', lambda *a: {
         'schema_version': 3, 'files': {local_backup.RECEIPT_PATH: 'b' * 64}})
-    monkeypatch.setattr(local_backup, 'restore_backup', lambda *a: events.append(('restore',)))
+    def forbidden_positive_helper(*args):
+        raise AssertionError('Positive backup/restore proof must execute public CLI, not call engine helper')
+    monkeypatch.setattr(local_backup, 'create_backup', forbidden_positive_helper)
+    monkeypatch.setattr(local_backup, 'restore_backup', forbidden_positive_helper)
     monkeypatch.setattr(backup.recovery, 'run', lambda *a: events.append(('receipt_recovery',)))
+    if failure:
+        with pytest.raises(RuntimeError, match='file counts differ' if failure == 'file_count' else 'exit code 2'):
+            backup.run(path, tmp_path / 'evidence.json', 'mjobs-fixture-012345abcdef',
+                       'mjobs-fixture-abcdef012345', 18700, tmp_path / 'archive')
+        assert not (tmp_path / 'evidence.json').exists()
+        assert ('receipt_recovery',) not in events
+        assert ('require_occupied_restore_refusal',) not in events
+        if failure in {'backup', 'verify', 'file_count'}:
+            assert ('require_corrupt_restore_refusal',) not in events
+            assert ('down', '--remove-orphans') not in events
+        return
     evidence = backup.run(path, tmp_path / 'evidence.json', 'mjobs-fixture-012345abcdef',
                          'mjobs-fixture-abcdef012345', 18700, tmp_path / 'archive')
     stop = ('stop', *persistence.documented_stop_services())
     assert events.index(('require_running_backup_refusal',)) < events.index(stop) < events.index(('capture',))
+    assert events.index(('capture',)) < events.index(('verify',)) < events.index(('require_corrupt_restore_refusal',))
     assert events.index(('require_corrupt_restore_refusal',)) < events.index(('restore',))
     assert events.index(('restore',)) < events.index(('require_occupied_restore_refusal',)) < events.index(('receipt_recovery',))
     assert ('stop', 'mock') in events
@@ -183,3 +224,58 @@ def test_existing_backup_entrypoint_preserves_legacy_and_orders_new_proof(extend
     assert evidence['source_after_backup']['result'] == ('PASS' if extended else 'NOT_RUN')
     assert events.count(('observe',)) == (3 if extended else 0)
     assert events.count(stop) == (2 if extended else 1)
+    assert set(evidence['public_cli']) == {'backup', 'verify', 'restore'}
+    assert all(row['exit_code'] == 0 and row['result'] == 'PASS' for row in evidence['public_cli'].values())
+    assert all('stdout' not in row and 'environment' not in row for row in evidence['public_cli'].values())
+
+
+@pytest.mark.parametrize('output', ['', 'Backup refused: private diagnostic\n',
+                                  'Backup verified: 0 files; mode FIXTURE\n',
+                                  'Backup verified: 2 files; mode PERSONAL\n',
+                                  'Backup verified: 2 files; mode FIXTURE\nprivate unexpected output\n'])
+def test_public_cli_requires_expected_positive_status_without_echo(output, tmp_path, monkeypatch):
+    from cli import backup_acceptance as backup
+    monkeypatch.setattr(backup.recovery, '_run_bounded', lambda *a, **k: output)
+    with pytest.raises(RuntimeError, match='expected positive status') as error:
+        backup.run_public_cli('verify', tmp_path / 'archive', environment={})
+    assert 'private' not in str(error.value)
+
+
+def test_public_cli_propagates_nonzero_without_emitting_positive_evidence(tmp_path, monkeypatch):
+    from cli import backup_acceptance as backup
+    def failed(*args, **kwargs):
+        raise RuntimeError('Public verify CLI failed with exit code 2')
+    monkeypatch.setattr(backup.recovery, '_run_bounded', failed)
+    with pytest.raises(RuntimeError, match='exit code 2'):
+        backup.run_public_cli('verify', tmp_path / 'archive', environment={})
+
+
+@pytest.mark.parametrize('subcommand,project,port', [
+    ('create', None, None), ('backup', 'mjobs-personal', None),
+    ('restore', 'mjobs-personal', 18700), ('restore', 'mjobs-fixture-012345abcdef', 80),
+])
+def test_public_command_rejects_unadmitted_target_before_spawn(subcommand, project, port, tmp_path):
+    from cli import backup_acceptance as backup
+    from unittest.mock import patch
+    with patch.object(backup.recovery, '_run_bounded') as runner:
+        with pytest.raises(ValueError):
+            backup.run_public_cli(subcommand, tmp_path / 'archive', environment={}, project=project, port=port)
+        runner.assert_not_called()
+
+
+def test_public_verify_executes_actual_parser_and_checks_nonzero_offline(tmp_path):
+    from cli import backup_acceptance as backup
+    from tests.unit.test_local_backup import LocalBackupTests
+    import os
+    archive = tmp_path / 'synthetic-archive'
+    archive.mkdir()
+    manifest = LocalBackupTests.archive_fixture(archive)
+    manifest['operation_mode'] = 'FIXTURE'
+    (archive / 'manifest.json').write_text(json.dumps(manifest))
+    proof = backup.run_public_cli('verify', archive, environment=os.environ.copy())
+    assert proof['exit_code'] == 0 and proof['file_count'] == 2
+    assert proof['command'][1:4] == ['-m', 'cli.local_backup', 'verify']
+    (archive / 'database.dump').write_bytes(b'corrupt synthetic dump')
+    with pytest.raises(RuntimeError, match='exit code 2') as error:
+        backup.run_public_cli('verify', archive, environment=os.environ.copy())
+    assert 'database.dump' not in str(error.value)  # Child diagnostics stay captured.
