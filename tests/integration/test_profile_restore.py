@@ -969,11 +969,24 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
                 m.applications.c.profile_id == profile_id,
             )).mappings().one()
         self.assertEqual(application['id'], identity(job['id'], profile_id))
+        self.assertEqual(application['state'], 'REVIEW_REQUIRED')
         regenerated_id = prepare(
             target, job['id'], profile_id, output,
             route_mode='THIS_ROUTE', route_id=application['route_id'],
         )
         self.assertEqual(regenerated_id, application['id'])
+        with target.engine.connect() as connection:
+            regenerated = connection.execute(select(m.applications).where(
+                m.applications.c.job_id == job['id'],
+                m.applications.c.profile_id == profile_id,
+            )).mappings().all()
+            documents = connection.execute(select(m.documents).where(
+                m.documents.c.application_id == application['id'],
+            )).mappings().all()
+        self.assertEqual(len(regenerated), 1)
+        self.assertEqual(regenerated[0]['id'], identity(job['id'], profile_id))
+        self.assertEqual(regenerated[0]['state'], 'PREPARED')
+        self.assertTrue(documents)
 
 
 if __name__ == '__main__':
