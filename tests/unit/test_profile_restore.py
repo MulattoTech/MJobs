@@ -96,20 +96,100 @@ def _payload():
         ],
         "documents": [{
             "id": "generated-doc-1", "application_id": "application-1", "kind": "resume",
+            "version": 1, "profile_version": current_version, "fact_ids": [],
             "sha256": {"txt": hashlib.sha256(generated).hexdigest()},
+            "template": "fixture-v1", "created_at": "2026-10-11T12:00:00Z",
+            "generation_model": "deterministic-fixture-v1",
         }],
         "settings": {"search_profiles": [{
             "id": "search-1", "name": "Remote roles", "enabled": True,
             "criteria": {"remote_only": True, "scheduler": {"enabled": True}},
             "source_ids": ["source-1"],
         }]},
-        "jobs": [{"id": "private-job", "title": "Omitted job"}],
-        "applications": [{"id": "private-application", "state": "SUBMITTED"}],
+        "jobs": [{
+            "id": "private-job", "company": "Synthetic Employer", "requisition": "req-1",
+            "title": "Synthetic Role", "description": "Synthetic public job description",
+            "skills": ["Python"], "location": "Remote", "remote_type": "REMOTE_US",
+            "application_url": "https://jobs.example.test/apply/req-1",
+            "match_score": 90, "application_state": "PREPARED",
+        }],
+        "application_routes": [{
+            "id": "route-1", "job_id": "private-job", "company_id": "company-1",
+            "provider": "fixture", "tenant": "synthetic", "requisition": "req-1",
+            "url": "https://jobs.example.test/apply/req-1",
+        }],
+        "job_matches": [],
+        "applications": [{
+            "id": "application-1", "job_id": "private-job", "title": "Synthetic Role",
+            "company": "Synthetic Employer", "state": "PREPARED", "target": "MOCK",
+            "provider": "fixture", "application_url": "https://jobs.example.test/apply/req-1",
+            "created_at": "2026-10-11T12:00:00Z", "submitted_at": None,
+        }],
+        "application_route_choices": [],
+        "attempts": [],
         "provider_credentials": [{"secret": "must never be copied"}],
     }
 
 
 class ProfileRestoreTests(unittest.TestCase):
+    def test_discovery_history_requires_bounded_allowlisted_snapshot_and_safe_references(self):
+        payload = _payload()
+        snapshot = {
+            "kind": "company_discovery_request", "source_identity": "historical-request-1",
+            "schema_version": 1, "created_at": "2026-10-11T00:00:00Z",
+            "payload": {
+                "historical_refs": {"profile_id": "source-profile", "company_id": "company-1",
+                                    "company_source_id": "old-source", "candidate_id": "old-candidate",
+                                    "trigger_job_id": "private-job"},
+                "target_job_id": "private-job", "target_company_id": "company-1",
+                "state": "QUEUED", "reasons": ["HIGH_MATCH_JOB"], "highest_match_score": 81.0,
+                "created_at": "2026-10-11T00:00:00Z", "last_seen_at": "2026-10-12T00:00:00Z",
+                "revision": 3, "selected_website": "https://jobs.example.test/careers",
+                "reference_status": "LINKED", "metadata_status": "COMPLETE",
+                "authorization_required": True,
+            },
+        }
+        payload["company_discovery_history"] = [copy.deepcopy(snapshot)]
+        preview = preview_profile_restore(payload)
+        plan = build_restore_plan(payload, "new-profile")
+        self.assertEqual(preview["counts"]["company_discovery_history"], 1)
+        self.assertNotIn("company_discovery_history", preview["omitted_sections"])
+        recovered = plan["history"]["company_discovery_history"][0]
+        self.assertEqual(recovered["source_identity"], "historical-request-1")
+        self.assertTrue(recovered["payload"]["authorization_required"])
+        self.assertEqual(recovered["payload"]["target_job_id"], "private-job")
+
+        legacy = _payload()
+        legacy["company_discovery_requests"] = [{
+            "id": "legacy-request", "state": "QUEUED", "reasons": ["LEGACY"],
+            "created_at": "", "last_seen_at": "", "revision": 1,
+        }]
+        legacy_preview = preview_profile_restore(legacy)
+        self.assertIn("COMPANY_DISCOVERY_HISTORY_ARCHIVED", legacy_preview["warnings"])
+        self.assertIn("DISCOVERY_HISTORY_REFERENCES_INCOMPLETE", legacy_preview["warnings"])
+        self.assertIn("DISCOVERY_HISTORY_METADATA_PARTIAL", legacy_preview["warnings"])
+
+        malformed = copy.deepcopy(payload)
+        malformed["company_discovery_history"][0]["schema_version"] = 2
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(malformed)
+        malformed_boolean_version = copy.deepcopy(payload)
+        malformed_boolean_version["company_discovery_history"][0]["schema_version"] = True
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(malformed_boolean_version)
+        oversized = copy.deepcopy(payload)
+        oversized["company_discovery_history"][0]["payload"]["reasons"] = ["oversized"] * 51
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(oversized)
+        private_field = copy.deepcopy(payload)
+        private_field["company_discovery_history"][0]["payload"]["authorization"] = "USER_CONFIRMED"
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(private_field)
+        duplicate = copy.deepcopy(payload)
+        duplicate["company_discovery_history"].append(copy.deepcopy(snapshot))
+        with self.assertRaises(ProfileRestoreError):
+            build_restore_plan(duplicate, "duplicate-profile")
+
     def test_real_profile_backup_export_round_trips_with_large_uploaded_resume(self):
         with tempfile.TemporaryDirectory(prefix="profile-restore-roundtrip-") as temporary:
             root = Path(temporary)
@@ -163,11 +243,18 @@ class ProfileRestoreTests(unittest.TestCase):
             "name": "Synthetic Person", "email": "person@example.test",
         })
         self.assertEqual(result["counts"], {
-            "facts": 1, "answers": 1, "uploaded_files": 1, "search_profiles": 1,
+            "facts": 1, "answers": 1, "uploaded_files": 1,
+            "generated_documents": 1, "jobs": 1, "applications": 1,
+            "search_profiles": 1, "ai_task_settings": 0,
+            "company_discovery_history": 0,
         })
         self.assertIn("IMPORTED_FACTS_REQUIRE_REVIEW", result["warnings"])
         self.assertIn("SEARCH_PROFILES_DISABLED", result["warnings"])
-        self.assertIn("job_history", result["omitted_sections"])
+        self.assertNotIn("job_history", result["omitted_sections"])
+        self.assertIn("provider_credentials", result["omitted_sections"])
+        self.assertIn("application_attempt_execution_steps", result["omitted_sections"])
+        self.assertIn("application_submission_traces_and_confirmations", result["omitted_sections"])
+        self.assertIn("document_generation_context", result["omitted_sections"])
         self.assertEqual(len(result["fingerprint"]), 64)
         self.assertEqual(json_result["fingerprint"], result["fingerprint"])
         rendered = json.dumps(result, sort_keys=True)
@@ -194,8 +281,13 @@ class ProfileRestoreTests(unittest.TestCase):
             "mode": "ALWAYS_REQUIRE_REVIEW", "response": None,
         })
         self.assertEqual(plan["uploaded_files"][0]["content"], b"synthetic uploaded resume")
-        self.assertNotIn("private-job", json.dumps({k: v for k, v in plan.items()
-                                                     if k != "uploaded_files"}, default=str))
+        generated = plan["generated_documents"][0]
+        self.assertEqual(generated["id"], "generated-doc-1")
+        self.assertEqual(generated["sha256"], {
+            "txt": hashlib.sha256(b"synthetic generated text").hexdigest(),
+        })
+        self.assertEqual(generated["files"], {"txt": b"synthetic generated text"})
+        self.assertEqual(plan["history"]["jobs"][0]["id"], "private-job")
         search = plan["search_profiles"][0]
         self.assertFalse(search["enabled"])
         self.assertEqual(search["source_ids"], [])
@@ -211,6 +303,111 @@ class ProfileRestoreTests(unittest.TestCase):
         self.assertIn("UPLOADED_FILES_NOT_INCLUDED", result["warnings"])
         self.assertEqual(result["counts"]["uploaded_files"], 0)
         self.assertEqual(plan["uploaded_files"], [])
+
+    def test_missing_generated_document_bytes_are_explicitly_reported(self):
+        payload = _payload()
+        payload["document_files"] = [
+            item for item in payload["document_files"]
+            if item["id"] != "generated-doc-1"
+        ]
+
+        preview = preview_profile_restore(payload)
+        plan = build_restore_plan(payload, "restored-profile")
+
+        self.assertIn("GENERATED_DOCUMENTS_NOT_INCLUDED", preview["warnings"])
+        self.assertNotIn("generated_documents", preview["omitted_sections"])
+        self.assertIn("generated_documents_without_verified_bytes", preview["omitted_sections"])
+        self.assertEqual(plan["generated_documents"], [])
+
+    def test_preview_names_history_dropped_for_unsafe_routes_and_foreign_job_links(self):
+        payload = _payload()
+        payload["application_routes"].append({
+            **payload["application_routes"][0],
+            "id": "route-unsafe",
+            "provider": "unsafe-fixture",
+            "url": "https://jobs.example.test/token/private/apply",
+        })
+        payload["application_route_choices"].append({
+            "id": "choice-unsafe", "application_id": "application-1",
+            "route_id": "route-unsafe", "requested_mode": "DRY_RUN",
+            "state": "SELECTED", "created_at": "2026-10-11T12:00:00Z",
+        })
+        payload["ai_evaluation_runs"] = [{
+            "id": "run-1", "profile_version": "v-current", "policy": {},
+            "task_provider": "disabled", "task_model": "fixture",
+            "evaluated_candidate_count": 1, "created_at": "2026-10-11T12:00:00Z",
+        }]
+        payload["ai_job_evaluations"] = [{
+            "id": "evaluation-1", "run_id": "run-1", "job_id": "foreign-global-job",
+            "title": "Private unrelated job", "company": "Unrelated employer",
+            "deterministic_score": 50, "category": "MAYBE", "rationale": "fixture",
+            "created_at": "2026-10-11T12:00:00Z",
+        }]
+
+        preview = preview_profile_restore(payload)
+        self.assertIn("APPLICATION_HISTORY_PARTIALLY_RESTORED", preview["warnings"])
+        self.assertIn("unsafe_application_routes", preview["omitted_sections"])
+        self.assertIn("route_choices_without_safe_routes", preview["omitted_sections"])
+        self.assertIn("ai_job_evaluation_history_without_safe_jobs", preview["omitted_sections"])
+        self.assertNotIn("Private unrelated job", json.dumps(preview))
+
+    def test_all_safety_filtered_jobs_omit_their_valid_descendants_and_bytes(self):
+        payload = _payload()
+        payload['application_routes'][0]['url'] = None
+        payload['applications'][0]['application_url'] = None
+        payload['job_matches'] = [{'id': 'match-1', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+        payload['attempts'] = [{'id': 'attempt-1', 'application_id': 'application-1',
+                                'state': 'UNKNOWN', 'started_at': '2026-10-11T12:00:00Z'}]
+        preview = preview_profile_restore(payload)
+        self.assertEqual(preview['counts']['jobs'], 0)
+        self.assertEqual(preview['counts']['applications'], 0)
+        self.assertEqual(preview['counts']['generated_documents'], 0)
+        self.assertIn('dependent_history_without_safe_routes', preview['omitted_sections'])
+        plan = build_restore_plan(payload, 'fresh-target')
+        for name in ('jobs', 'applications', 'job_matches', 'documents', 'attempts'):
+            self.assertEqual(plan['history'][name], [])
+        self.assertEqual(plan['generated_documents'], [])
+        self.assertEqual(len(plan['uploaded_files']), 1)
+
+    def test_safety_filtering_still_rejects_invalid_original_descendant_links(self):
+        mutations = [
+            ('applications', 'job_id'), ('documents', 'application_id'), ('documents', 'profile_version'),
+            ('job_matches', 'job_id'), ('job_matches', 'profile_version'),
+            ('application_route_choices', 'application_id'), ('application_route_choices', 'route_id'),
+            ('attempts', 'application_id'), ('resume_workspace_revisions', 'job_id'),
+            ('resume_workspace_revisions', 'profile_version'), ('interview_prep_packs', 'job_id'),
+            ('interview_prep_packs', 'profile_version'),
+        ]
+        for section, field in mutations:
+            with self.subTest(section=section, field=field):
+                payload = _payload()
+                payload['application_routes'][0]['url'] = None
+                payload['applications'][0]['application_url'] = None
+                payload['job_matches'] = [{'id': 'match', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+                payload['application_route_choices'] = [{'id': 'choice', 'application_id': 'application-1', 'route_id': 'route-1'}]
+                payload['attempts'] = [{'id': 'attempt', 'application_id': 'application-1', 'state': 'UNKNOWN', 'started_at': '2026-10-11'}]
+                payload['resume_workspace_revisions'] = [{'id': 'workspace', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+                payload['interview_prep_packs'] = [{'id': 'interview', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+                payload[section][0][field] = 'forged-missing-reference'
+                with self.assertRaises(ProfileRestoreError):
+                    build_restore_plan(payload, 'fresh-target')
+
+    def test_filtered_graph_rejects_cross_job_choices_and_invalid_interview_story(self):
+        payload = _payload()
+        payload['jobs'].append({**payload['jobs'][0], 'id': 'other-job'})
+        payload['application_routes'].append({**payload['application_routes'][0],
+                                             'id': 'other-route', 'job_id': 'other-job'})
+        payload['application_routes'][0]['url'] = None
+        payload['applications'][0]['application_url'] = None
+        payload['application_route_choices'] = [{'id': 'forged-choice',
+            'application_id': 'application-1', 'route_id': 'other-route'}]
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(payload)
+        payload['application_route_choices'] = []
+        payload['interview_prep_packs'] = [{'id': 'pack', 'job_id': 'private-job',
+            'profile_version': 'v-current', 'selected_story_revision_ids': ['missing-story']}]
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(payload)
 
     def test_rejects_unsupported_version_export_and_malformed_current_snapshot(self):
         for update in (
@@ -244,6 +441,17 @@ class ProfileRestoreTests(unittest.TestCase):
         payload["document_files"][0]["content_base64"] = base64.b64encode(
             b"X" * original_size,
         ).decode()
+        with self.assertRaises(ProfileRestoreError):
+            build_restore_plan(payload, "restored-profile")
+
+    def test_rejects_foreign_application_linkage_and_unsafe_route_without_replaying(self):
+        payload = _payload()
+        payload["applications"][0]["profile_id"] = "foreign-profile"
+        with self.assertRaises(ProfileRestoreError):
+            build_restore_plan(payload, "restored-profile")
+
+        payload = _payload()
+        payload["application_routes"][0]["url"] = "https://example.test/session/private"
         with self.assertRaises(ProfileRestoreError):
             build_restore_plan(payload, "restored-profile")
 

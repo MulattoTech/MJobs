@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-15T01:46:08.317894+00:00",
+  "generated_at": "2026-10-15T16:18:57.790761+00:00",
   "baseline": {
     "local_path": "C:\\Tools\\Dev\\MJobs",
     "github_repo": "MulattoTech/MJobs",
@@ -11,8 +11,8 @@
     "current_verified_github_state": "PR657 settings and PR658 document recovery merged with exact-head required checks; PR659 Docker health merged with verified source/restored-project outage evidence. Final acceptance closeout follows through protected PR.",
     "current_verified_at": "2026-10-15T01:46:08.317894+00:00"
   },
-  "current_milestone": "ORIGINAL-P0P1-20261014-193432",
-  "current_objective": "Three original P1 capabilities verified and integrated; protected closeout, then stop this iteration",
+  "current_milestone": "ORIGINAL-P0-003-005-ACCEPTANCE-RECORDING-20261015",
+  "current_objective": "Record reviewed original #4/MJ-REQ-003 and #6/MJ-REQ-005 evidence; local branch candidate pending protected integration",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -862,12 +862,64 @@
         "Real ATS and PostgreSQL crash-recovery evidence are not claimed.",
         "Four parent requirements remain PARTIAL; complete ATS automation and all external-operation classes are unfinished."
       ]
+    },
+    {
+      "milestone_id": "ORIGINAL-P0-003-005-ACCEPTANCE-RECORDING-20261015",
+      "timestamp": "2026-10-15T16:18:57.790761+00:00",
+      "current_phase": "ACCEPTANCE_RECORDING_LOCAL_PENDING_INTEGRATION",
+      "requirements": [
+        "MJ-REQ-003",
+        "MJ-REQ-005"
+      ],
+      "acceptance": "Two original acceptance entries record independently reviewed literal-criterion evidence. Local branch candidate only; official Project status and protected integration remain with primary.",
+      "validated_product_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+      "completed_steps": [
+        "Bound exact-main executed headless and controlled-concurrency evidence to recorded source inputs and independent criterion review.",
+        "Prepared two sanitized original evidence records and only their original matrix entries; supplementary acceptance and whole-product PARTIAL preserved."
+      ],
+      "files_added": [
+        "docs/evidence/2026-10-15-headless-development-full-criterion.json",
+        "docs/evidence/2026-10-15-controlled-concurrency-full-criterion.json"
+      ],
+      "files_modified": [
+        "planning/CAPABILITY_MATRIX.json",
+        "planning/IMPLEMENTATION_STATE.json",
+        "planning/REQUIREMENT_INDEX.json",
+        "docs/PROGRESS_DASHBOARD.md",
+        "docs/PROGRESS_CARD.json",
+        "docs/PROGRESS_CARD.svg",
+        "planning/PR_QUEUE.json"
+      ],
+      "tests_completed": [
+        "Headless evidence: 26 tests and four subtests; successful serial real-browser probe at recorded product revision.",
+        "Concurrency evidence: 115 distinct local test nodes and 45 subtests; seven PostgreSQL category and two recovery cases from existing exact-main hosted execution.",
+        "Recorded headless970 and concurrency9 input hashes matched working bytes and current main before recording.",
+        "Recording-only validation: catalogue PASS; progress journal PASS; generated dashboard/card CURRENT; 34 focused catalogue/journal/dashboard/card/provenance tests passed in 0.94s; diff check clean.",
+        "Policy main da8e43d9 merged ordinarily, preserving original recording a3551f26; all971 recorded source inputs match both working SHA-256 and clean-filtered origin/main blobs. Original product execution remains bound to06ffb07a.",
+        "Post-policy recording validation: 91 focused catalogue/journal/dashboard/card/provenance/queue/skill tests and five subtests passed in1.34s; catalogue/progress/dashboard/agent-skills validators and diff check passed."
+      ],
+      "tests_remaining": [
+        "Native PR review and required exact-head hosted gates pending. Original product/browser execution remains bound to06ffb07a; no full rerun claimed."
+      ],
+      "migrations_applied": [],
+      "live_integrations_tested": [],
+      "known_errors": [],
+      "known_limitations": [
+        "External employer submission OFF; whole-product release PARTIAL.",
+        "Original source execution remains bound to 06ffb07a207dc68b42b565870f67fc3eb67aae03; no claim of product tests executing on a later source revision.",
+        "Native OS PID certification and native Windows OCR enforcement not claimed. Local PostgreSQL skipped; distinct hosted evidence retained.",
+        "Only relevant historical PR_QUEUE acceptance notes released and updated after policy integration. Queue policy unchanged. Protected merge and official Project readback remain primary-owned."
+      ],
+      "last_safe_checkpoint": {
+        "git_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+        "evidence_path": "docs/evidence/2026-10-15-headless-development-full-criterion.json"
+      }
     }
   ],
-  "current_phase": "VERIFIED_PARTIAL_CHECKPOINT",
+  "current_phase": "ACCEPTANCE_RECORDING_LOCAL_PENDING_INTEGRATION",
   "last_safe_checkpoint": {
-    "git_commit": "e3115f1e826de9e6ea01cb663caeef2045854adc",
-    "evidence_path": "docs/evidence/2026-10-10-application-recovery-transfer-validation.json"
+    "git_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "evidence_path": "docs/evidence/2026-10-15-headless-development-full-criterion.json"
   },
   "live_integrations_tested": [
     "Public Greenhouse read-only scheduler: 21 jobs; three completed durable collections across two automatic five-minute intervals",

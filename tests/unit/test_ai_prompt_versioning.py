@@ -123,5 +123,72 @@ class AIPromptVersioningTests(unittest.TestCase):
         )
 
 
+class PersistedPromptProvenanceTests(unittest.TestCase):
+    def setUp(self):
+        from services.ai.prompt_provenance import capture_document
+        self.snapshot = capture_document("screening_answers", "reviewed-application-answers-v1",
+                                         "manual-reviewed-answers-v1")
+
+    def reseal(self, mutation):
+        """Corrupt shape even with a matching hash, to test schema independently."""
+        from copy import deepcopy
+        import hashlib
+        import json
+        snapshot = deepcopy(self.snapshot)
+        manifest = json.loads(snapshot["definition"]["template"])
+        mutation(manifest)
+        text = json.dumps(manifest, sort_keys=True, ensure_ascii=False,
+                          separators=(",", ":"), allow_nan=False)
+        digest = hashlib.sha256(text.encode()).hexdigest()
+        snapshot["definition"].update(template=text, sha256=digest,
+                                          version="1.0.0-sha256." + digest)
+        return snapshot
+
+    def test_stored_manifest_never_resolves_imports_paths_or_current_source(self):
+        from unittest.mock import patch
+        from services.ai.prompt_provenance import resolve_provenance
+        with patch("services.ai.prompt_provenance._helpers", side_effect=AssertionError("no source reads")), \
+                patch("pathlib.Path.read_bytes", side_effect=AssertionError("no file reads")), \
+                patch("importlib.import_module", side_effect=AssertionError("no dynamic imports")):
+            resolved = resolve_provenance(self.snapshot)
+        self.assertEqual(resolved["target"], "screening_answers")
+        self.assertFalse(resolved["ai_executed"])
+
+    def test_tampered_helper_paths_producers_shapes_and_oversize_are_rejected(self):
+        from services.ai.prompt_provenance import resolve_provenance
+        mutations = (
+            lambda value: value["helpers"][0].update(module="../../private"),
+            lambda value: value["helpers"][0].update(module="services.documents.unknown"),
+            lambda value: value["helpers"][0].update(path="C:/private"),
+            lambda value: value["helpers"].append(value["helpers"][0]),
+            lambda value: value["helpers"].clear(),
+            lambda value: value["helpers"][0].update(sha256="not-a-digest"),
+            lambda value: value["definitions"][0].update(entrypoint="os.system"),
+            lambda value: value["definitions"][0]["constants"].update(rendered_input="private"),
+            lambda value: value["definitions"][0].update(source="x" * 131072),
+            lambda value: value.update(unknown="shape"),
+            lambda value: value.update(target="resume"),
+        )
+        for number, mutation in enumerate(mutations):
+            with self.subTest(mutation=number), self.assertRaises(ValueError):
+                resolve_provenance(self.reseal(mutation))
+
+    def test_unknown_parser_is_explicitly_unsupported_without_fabricated_version(self):
+        from services.ai.prompt_provenance import capture_parser, resolve_provenance
+        result = capture_parser(object())
+        self.assertEqual(result["status"], "UNSUPPORTED_PRODUCER")
+        self.assertNotIn("definition", result)
+        with self.assertRaises(ValueError):
+            resolve_provenance(result)
+
+    def test_nested_static_definition_shape_is_checked(self):
+        from services.ai.prompt_provenance import capture_document, resolve_provenance
+        from services.documents.templates import BASE_TEMPLATE, BASE_MODEL
+        self.snapshot = capture_document("resume", BASE_TEMPLATE, BASE_MODEL)
+        corrupted = self.reseal(lambda value: value["definitions"][0]["constants"].update(HEADINGS=[]))
+        with self.assertRaises(ValueError):
+            resolve_provenance(corrupted)
+
+
 if __name__ == "__main__":
     unittest.main()

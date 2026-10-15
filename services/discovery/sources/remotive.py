@@ -222,10 +222,15 @@ class Remotive:
         education = parse_education_requirement(description)
         skill_data = extract_skills(combined)
 
-        url = str(raw.get("url") or "")
+        url = raw.get("url") if isinstance(raw.get("url"), str) else ""
         try:
             parsed = urlsplit(url)
-            if parsed.scheme != "https" or "remotive.com" not in parsed.hostname or parsed.username or parsed.password:
+            # Only the adapter's canonical HTTPS origin is provider-supplied.
+            # Reject parser/browser ambiguities rather than repairing source data.
+            if (parsed.scheme != "https" or parsed.hostname != "remotive.com"
+                    or parsed.username is not None or parsed.password is not None
+                    or parsed.port not in (None, 443)
+                    or "\\" in url or any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in url)):
                 url = ""
         except ValueError:
             url = ""
