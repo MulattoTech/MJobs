@@ -280,6 +280,29 @@ def preflight_recovery_targets(project_name, port, *, config_files=None):
     return targets
 
 
+def container_health(container_id):
+    """Read bounded status-only health evidence for a preflight-verified container."""
+    result = _run_bounded([
+        "docker", "inspect", "--format",
+        "{{.State.Status}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}missing{{end}}",
+        container_id,
+    ], timeout=10, action="Inspect fixture container health").strip().split("|")
+    if (len(result) != 2 or result[0] not in {
+            "created", "running", "paused", "restarting", "removing", "exited", "dead"}
+            or result[1] not in {"healthy", "unhealthy", "starting"}):
+        raise RuntimeError("Fixture container health check is missing or malformed")
+    return {"status": result[0], "health": result[1]}
+
+
+def healthy_containers(targets):
+    if set(targets) != set(RECOVERY_RESTART_SERVICES):
+        raise RuntimeError("Fixture container health targets are incomplete")
+    snapshot = {service: container_health(target["container_id"])
+                for service, target in targets.items()}
+    return snapshot if all(row == {"status": "running", "health": "healthy"}
+                           for row in snapshot.values()) else False
+
+
 def validate_baseline(baseline):
     """Require the exact connected UI evidence needed for receipt-only replay."""
     if not isinstance(baseline, dict):
@@ -348,6 +371,7 @@ def run(baseline_path, evidence_path, project_name, port):
 
         # Validate supplied UI evidence and durable caller identity before stopping anything.
         application_path = verify_recovered_application(request, baseline)
+        health_before = until(lambda: healthy_containers(initial_targets))
         services_to_restore = tuple(
             service for service in RECOVERY_RESTART_SERVICES
             if initial_targets[service]["status"] == "running"
@@ -361,6 +385,10 @@ def run(baseline_path, evidence_path, project_name, port):
             assert queued["state"] == "QUEUED"
             degraded = client.get("/readiness")
             assert degraded.status_code == 503 and degraded.json()["checks"]["queue"] is False
+            def api_is_unhealthy():
+                probe = container_health(initial_targets["api"]["container_id"])
+                return probe if probe == {"status": "running", "health": "unhealthy"} else False
+            health_during_outage = until(api_is_unhealthy)
             actions.append({"action": "Redis disconnected; discovery persisted", "result": "PASS", "operation_id": queued["operation_id"]})
             # --no-deps prevents Compose from helpfully restoring Redis early.
             compose(project_name, port, "up", "-d", "--no-deps", "--no-build", "worker",
@@ -390,6 +418,12 @@ def run(baseline_path, evidence_path, project_name, port):
             receipt = json.loads(compose(project_name, port, "exec", "-T", "api", "python", "-c", program,
                                          baseline["application_id"], config_files=config_files))
             assert receipt == baseline["confirmation"] and receipt["submission_count"] == 1
+            # Compose up can replace a stopped worker. Reverify the complete
+            # project/service/config-file identity before inspecting fresh IDs.
+            recovered_targets = preflight_recovery_targets(
+                project_name, port, config_files=config_files,
+            )
+            health_after = until(lambda: healthy_containers(recovered_targets))
             actions.append({"action": "All services restarted; original application, operation and independent receipt survived without another submission", "result": "PASS"})
         finally:
             compose(project_name, port, "start", *services_to_restore, config_files=config_files)
@@ -403,7 +437,9 @@ def run(baseline_path, evidence_path, project_name, port):
                            "project_directory": str(REPOSITORY_ROOT.resolve()),
                            "profile": "fixture", "services": list(RECOVERY_RESTART_SERVICES)},
         "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery", "actions": actions,
-        "application_id": baseline["application_id"], "external_submission_enabled": False}
+        "application_id": baseline["application_id"], "external_submission_enabled": False,
+        "container_health": {"before": health_before, "redis_outage": {"api": health_during_outage},
+                             "after": health_after}}
     Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(evidence, indent=2))
 

@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Deliver original P1 #273 document renderer failure recovery; record fully verified #277 acceptance",
+  "current_objective": "Complete third original P1 #250 container health; record verified document recovery acceptance",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -191,7 +191,7 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-272"
+    "MJ-REQ-249"
   ],
   "active_prs": [],
   "tests_passed": [
@@ -3490,7 +3490,8 @@
       "focused": "22PASS/39subtests/10PGskips",
       "chromium": "1PASS",
       "review": "local Luna no blockers",
-      "hosted": "NOT_RUN"
+      "hosted": "Five required gates PASS at eab2349c;10PostgreSQL settings casesPASS;2ChromiumPASS",
+      "full_integration": "1512 passed,224 optional environment skips,639 subtests passed in1583.31s at source eab2349c; one unrelated Pydantic alias-schema warning"
     },
     "source_commit": "eab2349c1c9b695b9bbdcc9c136479a47a968545",
     "merge_commit": "6ef4add0821e51465bd3b9569a1e05031b97f2af",
@@ -3505,7 +3506,7 @@
     "issue": 273,
     "requirement": "MJ-REQ-272",
     "base_sha": "0397e8c8714bcf55d2fc718ca6bfa67ca1277e30",
-    "status": "LOCAL_VERIFIED_PENDING_HOSTED",
+    "status": "PASS",
     "owned_paths": [
       "services/documents/generate.py",
       "tests/integration/test_document_generation_failure_flow.py",
@@ -3529,7 +3530,37 @@
       "combined": "57PASS/7PGskips/27subtests",
       "browser": "settings migration and document-failure recovery bothPASS",
       "review": "local Luna preview classification fix re-reviewed; no blockers",
-      "hosted": "NOT_RUN"
+      "hosted": "Five required gates PASS at bff2e0e; both PostgreSQL failure/retry contractsPASS;3ChromiumPASS/0skip"
+    },
+    "source_commit": "bff2e0e60faee520fec8bc3e49ae2dd2e32df02c",
+    "merge_commit": "9d2c58bb81f574243c2cef226273738c3faf7e8e",
+    "pr": 658,
+    "original_pass_delta": {
+      "P0": 0,
+      "P1": 1
     }
+  },
+  "container_health_campaign": {
+    "issue": 250,
+    "requirement": "MJ-REQ-249",
+    "status": "IN_PROGRESS",
+    "base_sha": "9d2c58bb81f574243c2cef226273738c3faf7e8e",
+    "gap": "Scheduler and five worker services have no Docker health checks; API health does not use complete readiness",
+    "owned_paths": [
+      "compose.yml",
+      "services/runtime_health.py",
+      "cli/compose_recovery.py",
+      "tests/unit/test_container_health.py",
+      "tests/unit/test_runtime_health.py",
+      "tests/unit/test_compose_health_checks.py",
+      "tests/integration/test_compose_recovery_target.py"
+    ],
+    "acceptance": [
+      "all long-running containers have functional probes",
+      "own-container worker registration/queue/PID plus fresh progress",
+      "fresh scheduler success; Redis failures sanitized and bounded",
+      "running API becomes unhealthy during dependency outage; all services recover healthy"
+    ],
+    "rollback": "Scoped source/Compose revert; no schema migrations or user-host runtime mutation"
   }
 }

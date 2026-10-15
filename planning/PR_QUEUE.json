@@ -3309,7 +3309,13 @@
       "status": "INTEGRATED_PARTIAL",
       "branch": "codex/mj-pr-068-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "MJ-REQ-250 first-run wizard locally integrated. Initial connected test used a synthetic zero-result collector; follow-up at 9cd92d1098752d63e49fb97d42aa380ec3669186 proved a positive synthetic Greenhouse adapter result, durable search history, and Jobs readback. Fresh-profile completion at local main source 04f3b47851a6436f3ab8ba96926078cf61589cc7 / tree 074646cac5d88c3e3fe0f8fcebb47bcd0a19af13 now proves all ten steps through the visible UI, including a real synthetic PDF upload/extraction, explicit pending-fact review and approval, profile and search preferences, enabled source, manual-only choice, and positive first search. Evidence docs/evidence/2026-10-09-first-run-fresh-profile-complete.json. Browser 1/1, affected integration 52/52, web 540/540, build and local validators PASS. MJ-REQ-250 is PASS locally; this grouped package remains INTEGRATED_PARTIAL because other requirements remain incomplete. Live provider, PostgreSQL, hosted checks/review and cross-device browser acknowledgments remain NOT_RUN; external submission OFF. No push."
+      "notes": "MJ-REQ-250 first-run wizard locally integrated. Initial connected test used a synthetic zero-result collector; follow-up at 9cd92d1098752d63e49fb97d42aa380ec3669186 proved a positive synthetic Greenhouse adapter result, durable search history, and Jobs readback. Fresh-profile completion at local main source 04f3b47851a6436f3ab8ba96926078cf61589cc7 / tree 074646cac5d88c3e3fe0f8fcebb47bcd0a19af13 now proves all ten steps through the visible UI, including a real synthetic PDF upload/extraction, explicit pending-fact review and approval, profile and search preferences, enabled source, manual-only choice, and positive first search. Evidence docs/evidence/2026-10-09-first-run-fresh-profile-complete.json. Browser 1/1, affected integration 52/52, web 540/540, build and local validators PASS. MJ-REQ-250 is PASS locally; this grouped package remains INTEGRATED_PARTIAL because other requirements remain incomplete. Live provider, PostgreSQL, hosted checks/review and cross-device browser acknowledgments remain NOT_RUN; external submission OFF. No push.",
+      "container_health_campaign": {
+        "issue": 250,
+        "requirement": "MJ-REQ-249",
+        "status": "IN_PROGRESS",
+        "branch": "feat/container-health-proof-20261014"
+      }
     },
     {
       "id": "MJ-PR-069",
@@ -3473,8 +3479,11 @@
       "document_failure_campaign": {
         "issue": 273,
         "requirement": "MJ-REQ-272",
-        "status": "LOCAL_VERIFIED_PENDING_HOSTED",
-        "branch": "feat/document-render-failure-20261014"
+        "status": "PASS",
+        "branch": "feat/document-render-failure-20261014",
+        "source_commit": "bff2e0e60faee520fec8bc3e49ae2dd2e32df02c",
+        "merge_commit": "9d2c58bb81f574243c2cef226273738c3faf7e8e",
+        "pr": 658
       }
     },
     {

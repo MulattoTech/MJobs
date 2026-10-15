@@ -86,10 +86,11 @@ services:
       migrate: {condition: service_completed_successfully}
       redis: {condition: service_healthy}
     healthcheck:
-      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=3)"]
       interval: 5s
       timeout: 4s
-      retries: 20
+      retries: 5
+      start_period: 30s
   mock:
     <<: *runtime
     profiles: [fixture]
@@ -107,6 +108,12 @@ services:
     <<: *runtime
     command: [python, -m, workers.main]
     restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -m, services.runtime_health, worker]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 30s
     environment:
       <<: *environment
       MJOBS_WORKER_QUEUE: mjobs-application
@@ -118,6 +125,12 @@ services:
     <<: *runtime
     command: [python, -m, services.discovery.scheduler]
     restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -m, services.runtime_health, scheduler]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 30s
     depends_on:
       migrate: {condition: service_completed_successfully}
   source-worker:
@@ -125,6 +138,12 @@ services:
     networks: [private, source-egress]
     command: [python, -m, workers.main]
     restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -m, services.runtime_health, worker]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 30s
     environment:
       <<: *environment
       MJOBS_WORKER_QUEUE: mjobs-discovery
@@ -137,6 +156,12 @@ services:
     networks: [private, source-egress]
     command: [python, -m, workers.company_discovery_worker]
     restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -m, services.runtime_health, worker]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 30s
     environment:
       <<: *environment
       MJOBS_WORKER_QUEUE: mjobs-company-discovery
@@ -149,6 +174,12 @@ services:
     networks: [private, source-egress]
     command: [python, -m, workers.main]
     restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -m, services.runtime_health, worker]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 30s
     environment:
       <<: *environment
       MJOBS_WORKER_QUEUE: mjobs-ai
@@ -169,6 +200,12 @@ services:
     <<: *runtime
     command: [python, -m, workers.main]
     restart: unless-stopped
+    healthcheck:
+      test: [CMD, python, -m, services.runtime_health, worker]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 30s
     environment:
       <<: *environment
       MJOBS_WORKER_QUEUE: mjobs-document

@@ -2,9 +2,15 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+import argparse
 import json
+import os
+from pathlib import Path
+import socket
+import sys
 
-from rq import Worker
+from redis import Redis
+from rq import Queue, Worker
 from rq.defaults import DEFAULT_WORKER_TTL
 
 from workers.operations import QUEUES
@@ -14,6 +20,7 @@ SCHEDULER_HEARTBEAT_KEY = "mjobs:runtime:scheduler:last_success"
 SCHEDULER_MIN_INTERVAL_SECONDS = 5
 SCHEDULER_MAX_INTERVAL_SECONDS = 300
 SCHEDULER_HEARTBEAT_GRACE_SECONDS = 30
+HEALTH_REDIS_SOCKET_TIMEOUT_SECONDS = 1
 REQUIRED_QUEUES = tuple(sorted(set(QUEUES.values())))
 
 
@@ -95,6 +102,104 @@ def _scheduler_is_fresh(value: object, *, now: datetime) -> bool:
     return _is_fresh(heartbeat.get("timestamp"), now=now, max_age_seconds=max_age)
 
 
+def scheduler_health_probe(redis_connection, *, now: datetime | None = None) -> bool:
+    """Return whether a complete scheduler tick has a fresh success heartbeat."""
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None or current.utcoffset() is None:
+        return False
+    try:
+        return _scheduler_is_fresh(
+            redis_connection.get(SCHEDULER_HEARTBEAT_KEY),
+            now=current.astimezone(timezone.utc),
+        )
+    except Exception:
+        return False
+
+
+def _worker_pid_exists_in_container(pid: object) -> bool:
+    """Check Linux container-local process metadata without signaling it."""
+    if sys.platform != "linux" or type(pid) is not int or pid <= 0:
+        return False
+    try:
+        return Path(f"/proc/{pid}").is_dir()
+    except OSError:
+        return False
+
+
+def worker_health_probe(
+    redis_connection, queue: str, hostname: str, *, now: datetime | None = None,
+) -> bool:
+    """Require this container's active worker and heartbeat on the exact queue."""
+    if queue not in REQUIRED_QUEUES or not isinstance(hostname, str) or not hostname:
+        return False
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None or current.utcoffset() is None:
+        return False
+    current = current.astimezone(timezone.utc)
+    try:
+        queue_record = Queue(queue, connection=redis_connection)
+        workers = Worker.all(connection=redis_connection, queue=queue_record)
+    except Exception:
+        return False
+
+    for worker in workers:
+        try:
+            if getattr(worker, "hostname", None) != hostname:
+                continue
+            if not _worker_pid_exists_in_container(getattr(worker, "pid", None)):
+                continue
+            if queue not in worker.queue_names():
+                continue
+            if worker.get_state() not in ("idle", "busy"):
+                continue
+            worker_ttl = getattr(worker, "worker_ttl", DEFAULT_WORKER_TTL)
+            if type(worker_ttl) is not int or worker_ttl <= 0:
+                continue
+            if _is_fresh(
+                getattr(worker, "last_heartbeat", None),
+                now=current,
+                max_age_seconds=worker_ttl + 60,
+            ):
+                return True
+        except Exception:
+            continue
+    return False
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run a quiet, bounded Redis-only Docker health probe."""
+    parser = argparse.ArgumentParser(prog="python -m services.runtime_health")
+    parser.add_argument("role", choices=("worker", "scheduler"))
+    arguments = parser.parse_args(argv)
+    redis_url = os.environ.get("MJOBS_REDIS_URL")
+    if not redis_url:
+        return 1
+
+    try:
+        redis_connection = Redis.from_url(
+            redis_url,
+            socket_connect_timeout=HEALTH_REDIS_SOCKET_TIMEOUT_SECONDS,
+            socket_timeout=HEALTH_REDIS_SOCKET_TIMEOUT_SECONDS,
+        )
+    except Exception:
+        return 1
+
+    try:
+        if arguments.role == "scheduler":
+            ready = scheduler_health_probe(redis_connection)
+        else:
+            queue = os.environ.get("MJOBS_WORKER_QUEUE", "mjobs-application")
+            ready = worker_health_probe(redis_connection, queue, socket.gethostname())
+        return 0 if ready else 1
+    except Exception:
+        return 1
+    finally:
+        try:
+            redis_connection.close()
+        except Exception:
+            pass
+
+
 def read_runtime_health(redis_connection, *, now: datetime | None = None) -> dict:
     """Check a fresh scheduler tick and a live RQ consumer for every queue."""
     current = now or datetime.now(timezone.utc)
@@ -128,3 +233,7 @@ def read_runtime_health(redis_connection, *, now: datetime | None = None) -> dic
         except Exception:
             continue
     return {"scheduler": scheduler, "workers": workers}
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

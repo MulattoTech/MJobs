@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-249",
+  "issue": 250,
+  "result": "PARTIAL",
+  "utc": "2026-10-15T01:34:15.930501+00:00",
+  "behavior": [
+    "Every long-running Compose service has a functional health check; the one-shot migrator is excluded",
+    "API uses complete readiness instead of database-only liveness",
+    "Worker probe requires the exact queue, container hostname, live container-local PID, active state and fresh nonfuture heartbeat",
+    "Scheduler probe requires a fresh successful tick; Redis errors fail closed without diagnostic output",
+    "Guarded fixture recovery records all ten services healthy before and after restart and a running unhealthy API during a Redis outage"
+  ],
+  "local": {
+    "recovery_readiness": "37 passed,49 subtests passed in23.82s",
+    "review": "Local Luna combined review: no blockers; code-only review, no independent tests run",
+    "docker": "NOT_RUN: local Docker engine unavailable",
+    "combined": "60 passed,71 subtests passed in21.24s after target recreation repair",
+    "child_units": "1665 passed,11 skipped,1182 subtests before explicit Linux PID guard; guard regression red-green and final focused23 passed/22subtests",
+    "combined_tested_tree": "6496986762163801d2c25b188890bf266c2d47f4"
+  },
+  "commands": [
+    "python -m pytest -q tests/unit/test_compose_health_checks.py tests/integration/test_compose_recovery_target.py tests/integration/test_compose_recovery_guardrails.py tests/unit/test_compose_recovery_target.py tests/integration/test_runtime_readiness_api.py tests/integration/test_api_queue.py --tb=short",
+    "python -m pytest -q tests/unit/test_container_health.py tests/unit/test_runtime_health.py tests/unit/test_discovery_scheduler_health.py tests/unit/test_worker_queue_binding.py tests/unit/test_compose_health_checks.py tests/integration/test_compose_recovery_target.py tests/integration/test_compose_recovery_guardrails.py tests/unit/test_compose_recovery_target.py tests/integration/test_runtime_readiness_api.py tests/integration/test_api_queue.py --tb=short"
+  ],
+  "pending": [
+    "Five exact-head required hosted gates",
+    "Real Docker health baseline, outage and recovery in both source and restored fixture projects"
+  ],
+  "safety": "Health probes perform Redis reads and read-only Linux /proc lookup; no process signaling. Recovery mutations remain confined to label-verified disposable FIXTURE containers, explicit project and port, verified baseline receipt and external submissions OFF. No personal .env, credentials or host configuration changed.",
+  "rollback": "Scoped source/Compose revert. No schema migration or persistent-data rewrite.",
+  "not_run": [
+    "Physical host reboot: not authorized and outside this requirement",
+    "Real external application submission: OFF"
+  ],
+  "source_commits": [
+    "e253c30f7b35d54229332b9b9745e5b335c10557",
+    "01c56b34297161bbb2bbc20b7a0afa2a6ccc87c2",
+    "bd8741d463fec5f05dc214037206b305a7a1e604"
+  ],
+  "source_inputs": [
+    {
+      "path": "compose.yml",
+      "sha256": "8fc1ddf1248c372b2183ff2a73767e8433f6ab96141148d7d26562ac582d6c5b"
+    },
+    {
+      "path": "services/runtime_health.py",
+      "sha256": "ebf7ea1f911f94b66afea4fd148ef4b8cd59bdb4eb1ee8d00fe0fb4ff3aed89b"
+    },
+    {
+      "path": "cli/compose_recovery.py",
+      "sha256": "7addc609e0e877c7552a72e96d61b9e40eb7420688d76a68a4cf1ace00631ae5"
+    },
+    {
+      "path": "tests/unit/test_container_health.py",
+      "sha256": "2d95bc2c0894283bbd6e9006798064ee3bc24a1a335009a6224db4a83a105553"
+    },
+    {
+      "path": "tests/unit/test_compose_health_checks.py",
+      "sha256": "8e814cae66ea891b7b4ddc8e1f60b4baa4d91b25814e5a65c240935e454b24f3"
+    },
+    {
+      "path": "tests/integration/test_compose_recovery_target.py",
+      "sha256": "65cc132f051554e1eb7dc49bff34a2d3c54e2822fa98c9c84f9012b0945fdcc3"
+    }
+  ],
+  "source_hash_method": "SHA256 of Git blob bytes (portable across checkout line endings)",
+  "ci_repair": {
+    "head": "1f9ad5f22f38a67dd0c6da0269daa4b4d77f8afe",
+    "run": 38665837529,
+    "job": 116197479663,
+    "failure": "Final health inspection used a worker ID replaced by Compose up",
+    "classification": "Recovery evidence target-lifecycle bug; startup all10healthy and API outage unhealthy checks reached",
+    "resolution": "Re-run complete project/service/config-file/working-directory/running preflight after restart, then inspect only freshly label-verified IDs",
+    "regression": "Existing public recovery flow now recreates the worker, rejects stale ID and asserts replacement label check precedes health. RED1failure6PASS/16subtests, then combined60PASS/71subtests",
+    "review": "Local Luna review of exact repair: no blockers; no relaxed target checks, fallback or retry"
+  }
+}

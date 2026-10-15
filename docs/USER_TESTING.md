@@ -105,6 +105,15 @@ also reject attempts to run the mock adapter on real applications.
 
 ## Diagnostics and recovery
 
+`docker compose ps` reports health for every long-running service. The API uses
+`/ready`, so a running process is unhealthy when its database, Redis, scheduler,
+required workers, or fixture mock is unavailable. Each worker checks its own
+container registration, queue, live process and fresh heartbeat; the scheduler
+checks its last successful tick. The one-shot migration service has no ongoing
+health check. Allow startup and heartbeat grace periods before diagnosing an
+unhealthy service, then inspect that service's bounded logs. Health probes do not
+restart containers or delete data.
+
 **Activity** shows database/queue/worker readiness and, in fictional verification
 mode, mock readiness. Durable operation
 states. Failed, blocked, and cancelled work stops UI polling and displays an
