@@ -82,8 +82,9 @@ class _RequestScopedBackend(httpcore.SyncBackend):
         last_error = None
         for family, socktype, proto, _canonname, address in addresses[:_MAX_ADDRESS_ATTEMPTS]:
             self.guard.check()
-            connection = socket.socket(family, socktype, proto)
+            connection = None
             try:
+                connection = socket.socket(family, socktype, proto)
                 connection.setblocking(False)
                 if local_address is not None:
                     connection.bind((local_address, 0))
@@ -116,7 +117,8 @@ class _RequestScopedBackend(httpcore.SyncBackend):
             except (OSError, ValueError, select.error) as error:
                 failures += 1
                 last_error = error
-                self.guard.release_connecting(connection, close=True)
+                if connection is not None:
+                    self.guard.release_connecting(connection, close=True)
         self.guard.check()
         if failures == 0:
             raise httpcore.ConnectError("No usable connection addresses")

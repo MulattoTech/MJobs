@@ -297,6 +297,56 @@ class AIConnectionEstablishmentTests(unittest.TestCase):
         self.assertEqual(len(attempts), 8)
         self.assertTrue(all(sock.closed for sock in PendingSocket.instances))
 
+    def test_socket_creation_failure_falls_back_to_next_dns_address(self):
+        class Handler(BaseHTTPRequestHandler):
+            def do_POST(self):
+                self.rfile.read(int(self.headers["Content-Length"]))
+                body = json.dumps({"choices": [{"message": {"content": "ok"}}]}).encode()
+                self.send_response(200)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_args):
+                pass
+
+        server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        server.daemon_threads = True
+        thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01})
+        thread.start()
+        original_socket = socket.socket
+        unsupported_family = 999
+        attempted_families = []
+
+        class SelectiveSocket(original_socket):
+            def __new__(cls, family=socket.AF_INET, type=socket.SOCK_STREAM,
+                        proto=0, fileno=None):
+                attempted_families.append(family)
+                if family == unsupported_family:
+                    raise OSError(errno.EAFNOSUPPORT, "synthetic unsupported address family")
+                return original_socket.__new__(cls, family, type, proto, fileno)
+
+        def addresses(_host, port, *args, **kwargs):
+            return [
+                (unsupported_family, socket.SOCK_STREAM, 0, "", ("127.0.0.1", port)),
+                *original_socket_getaddrinfo("127.0.0.1", port, type=socket.SOCK_STREAM),
+            ]
+
+        original_socket_getaddrinfo = socket.getaddrinfo
+        try:
+            with patch("services.ai.providers.transport.socket.getaddrinfo", side_effect=addresses), \
+                    patch("services.ai.providers.transport.socket.socket", SelectiveSocket):
+                provider = self.make_provider(
+                    f"http://127.0.0.1:{server.server_port}/v1")
+                result = self.provider_result(provider, timeout=2)
+            self.assertEqual(result, "ok", attempted_families)
+            self.assertEqual(attempted_families[:2], [unsupported_family, socket.AF_INET])
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+        self.assertFalse(thread.is_alive(), "loopback server thread leaked")
+
     def test_cancellation_racing_with_tcp_completion_closes_both_socket_handles(self):
         cancellation = threading.Event()
         provider = self.make_provider("https://race.synthetic.invalid/v1")
