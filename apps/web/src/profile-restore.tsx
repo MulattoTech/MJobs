@@ -34,6 +34,7 @@ const WARNING_LABELS: Record<string, string> = {
   SEARCH_PROFILES_DISABLED: 'Imported search profiles are disabled until reviewed.',
   AUTOMATION_NOT_RESTORED: 'Automation settings are not activated by restore.',
   UPLOADED_FILES_NOT_INCLUDED: 'Original uploaded files are not included in this backup.',
+  RESUME_REVISION_METADATA_PARTIALLY_RESTORED: 'Uploaded resume history was partially restored because file bytes were unavailable.',
   GENERATED_DOCUMENTS_NOT_INCLUDED: 'Some generated document bytes are not included in this backup.',
   APPLICATION_HISTORY_PARTIALLY_RESTORED: 'Some history could not be restored because its safe links or document bytes were unavailable.',
   APPLICATION_STATES_REQUIRE_REVIEW: 'Imported application states were made inert and require review; no submission will be replayed.',
@@ -53,6 +54,7 @@ const OMITTED_SECTION_LABELS: Record<string, string> = {
   worker_operations: 'Queued or running operations',
   source_monitoring_and_feed_state: 'Source monitoring and feed state',
   posting_raw_diagnostics: 'Raw posting diagnostics',
+  resume_revision_metadata_without_upload_bytes: 'Resume revision metadata without its original upload bytes',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {

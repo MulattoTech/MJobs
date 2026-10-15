@@ -62,6 +62,34 @@ describe('profile restore', () => {
     expect(JSON.stringify(result)).not.toContain('PRIVATE_FACT');
   });
 
+  it('previews metadata-only recovery warnings and submits the explicit import', async () => {
+    const metadataOnlyPreview = {
+      ...preview,
+      warnings: [...preview.warnings, 'RESUME_REVISION_METADATA_PARTIALLY_RESTORED'],
+      omitted_sections: [...preview.omitted_sections, 'resume_revision_metadata_without_upload_bytes'],
+    };
+    const request = vi.fn()
+      .mockResolvedValueOnce(metadataOnlyPreview)
+      .mockResolvedValueOnce({ profile_id: 'restored-profile', request_id: 'restore-metadata-only' });
+
+    const projected = await requestRestorePreview(request, backup);
+
+    expect(projected).not.toBeNull();
+    if (!projected) throw new Error('metadata-only preview was rejected');
+    const markup = renderToStaticMarkup(<ProfileRestorePreviewCard preview={projected}
+      confirmed={true} onConfirmedChange={() => {}} onRestore={() => {}} restoring={false} />);
+    expect(markup).toContain('Uploaded resume history was partially restored because file bytes were unavailable.');
+    expect(markup).toContain('Resume revision metadata without its original upload bytes');
+    expect(await submitProfileRestore(request, backup, 'restore-metadata-only', projected.fingerprint, true))
+      .toEqual({ ok: true, profileId: 'restored-profile' });
+    expect(request).toHaveBeenCalledTimes(2);
+
+    expect(await requestRestorePreview(vi.fn(async () => ({
+      ...metadataOnlyPreview,
+      omitted_sections: ['UNKNOWN_PRIVATE_SECTION'],
+    })), backup)).toBeNull();
+  });
+
   it('rejects unknown preview codes and hides provider error details', async () => {
     const invalidPreview = await requestRestorePreview(vi.fn(async () => ({
       ...preview,
