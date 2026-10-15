@@ -418,7 +418,12 @@ def run(baseline_path, evidence_path, project_name, port):
             receipt = json.loads(compose(project_name, port, "exec", "-T", "api", "python", "-c", program,
                                          baseline["application_id"], config_files=config_files))
             assert receipt == baseline["confirmation"] and receipt["submission_count"] == 1
-            health_after = until(lambda: healthy_containers(initial_targets))
+            # Compose up can replace a stopped worker. Reverify the complete
+            # project/service/config-file identity before inspecting fresh IDs.
+            recovered_targets = preflight_recovery_targets(
+                project_name, port, config_files=config_files,
+            )
+            health_after = until(lambda: healthy_containers(recovered_targets))
             actions.append({"action": "All services restarted; original application, operation and independent receipt survived without another submission", "result": "PASS"})
         finally:
             compose(project_name, port, "start", *services_to_restore, config_files=config_files)
