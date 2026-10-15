@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-276",
+  "issue": 277,
+  "result": "PARTIAL",
+  "baseline": "0397e8c8714bcf55d2fc718ca6bfa67ca1277e30",
+  "utc": "2026-10-15T00:45:36.522799+00:00",
+  "behavior": [
+    "Version 2 export has one schedule representation in automation_rules",
+    "Version 1 imports preserve inline-only, rule-only and agreeing redundant schedules",
+    "Unknown versions, malformed records and conflicting schedules fail before durable replacement",
+    "Target profile isolation and shared-source policy admission preserved",
+    "Explicit UI confirmation, legacy notice, reload and scheduler tick verified"
+  ],
+  "local": {
+    "red": "unit 2 failed/5 passed; new API migration 1 failed at v2 export assertion",
+    "focused": "22 passed,39 subtests passed,10 PostgreSQL skips; final API includes v1 rules-only case",
+    "chromium": "1 passed in 6.57s; v1 inline-only scheduler migrates with accurate count, v2 confirmed import, invalid/conflicting inputs reject, reload/store reopen/scheduler tick/zero external requests",
+    "frontend": "809 passed; production build PASS (existing bundle-size warning); Node25.9.0 has existing Vitest engine warning",
+    "integrity": "catalogue,progress,dashboard,agent_skills,reference_provenance,repository policy,diff PASS",
+    "units": "1656 passed,11 skipped,1170 subtests passed in350.34s",
+    "review": "Local Luna review: no blockers; array-only preview and inline scheduler count regressions fixed"
+  },
+  "pending": [
+    "full local integration",
+    "exact-head required hosted gates"
+  ],
+  "not_run": [
+    "Local PostgreSQL: disposable test URL not configured",
+    "physical host reboot (not in scope)",
+    "real external submission (OFF)"
+  ],
+  "privacy": "Synthetic fixtures only; no personal .env, keys, career data or browser profiles read or changed",
+  "rollback": "Scoped source revert. No database schema change; v1 documents remain accepted.",
+  "runtime": {
+    "python": "3.12.10",
+    "node": "25.9.0",
+    "os": "Windows",
+    "root_model": "gpt-6.1-sol",
+    "root_effort": "high",
+    "child_model": "gpt-6-luna",
+    "child_effort": "high"
+  }
+}

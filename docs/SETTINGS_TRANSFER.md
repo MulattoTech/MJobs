@@ -5,7 +5,7 @@ the category counts, and confirm replacement of the selected profile's settings.
 Career facts, documents, credentials, source history, and application history are
 outside this transfer.
 
-The version 1 document transfers saved-search criteria, discovery schedules, and
+The version 2 document transfers saved-search criteria, discovery schedules, and
 public source configuration. Each `scheduled_search` automation rule references
 a saved search by name and has a boolean `enabled` plus an integer
 `interval_seconds` from 300 through 604800. These are the existing durable
@@ -20,9 +20,14 @@ in the same transaction as profile replacement. Existing shared sources must
 match every imported policy field, so an import never overwrites their settings
 or affects another profile. Review a mismatch in Sources before trying again.
 
-Legacy version 1 files with only source IDs require those sources to exist on
-the target. Legacy per-search `scheduler` fields remain accepted and exported.
-When both scheduler representations occur, they must agree. Invalid rules,
+Version 2 defines schedules only in `automation_rules`, avoiding duplicate
+definitions. Version 1 files are migrated when you confirm import; per-search
+`scheduler` fields and automation rules are accepted, and when both occur they
+must agree. Re-export produces version 2 without changing the schedule. Files
+with only source IDs require those sources to exist on the target. Unsupported
+versions are rejected; changing a version number by hand is not a migration.
+
+Invalid rules,
 unknown fields, missing sources, policy conflicts, and malformed search criteria
 reject the entire import. No partial source creation or profile replacement is
 committed. Re-export after import or reload to verify the saved configuration.

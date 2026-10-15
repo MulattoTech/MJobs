@@ -3489,7 +3489,14 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-075-operations-ux-ci",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting.",
+      "settings_versioning_campaign": {
+        "issue": 277,
+        "requirement": "MJ-REQ-276",
+        "status": "IN_PROGRESS",
+        "branch": "codex/p0p1-round3-20261014-193432",
+        "acceptance": "Complete #277 only; other grouped requirements retain their independent state"
+      }
     },
     {
       "id": "MJ-PR-076",

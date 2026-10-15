@@ -98,10 +98,13 @@ class PortableSettingsTests(unittest.TestCase):
 
     def test_rules_only_and_legacy_scheduler_only_both_persist_real_schedule(self):
         rules_only = copy.deepcopy(self.payload)
-        rules_only["settings"]["search_profiles"][0].pop("scheduler")
         import_settings(self.target, "fixture", rules_only)
         self.assertEqual(export_settings(self.target, "fixture"), self.payload)
         legacy = copy.deepcopy(self.payload)
+        legacy["schema_version"] = 1
+        rule = legacy["settings"]["automation_rules"][0]
+        legacy["settings"]["search_profiles"][0]["scheduler"] = {
+            key: rule[key] for key in ("enabled", "interval_seconds")}
         legacy["settings"]["automation_rules"] = []
         legacy["settings"]["source_configuration"][0].pop("sources")
         import_settings(self.target, "fixture", legacy)
@@ -118,6 +121,9 @@ class PortableSettingsTests(unittest.TestCase):
             payload["settings"]["automation_rules"][0][field] = value
             cases.append(payload)
         conflict = copy.deepcopy(self.payload)
+        conflict["schema_version"] = 1
+        conflict["settings"]["search_profiles"][0]["scheduler"] = {
+            "enabled": True, "interval_seconds": 1800}
         conflict["settings"]["automation_rules"][0]["interval_seconds"] = 600
         cases.append(conflict)
         duplicate = copy.deepcopy(self.payload)
