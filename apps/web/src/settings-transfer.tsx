@@ -9,7 +9,7 @@ export type SettingsImportCounts = {
 };
 
 export type SettingsImportPreview =
-  | { ok: true; counts: SettingsImportCounts }
+  | { ok: true; schemaVersion: 1 | 2; counts: SettingsImportCounts }
   | { ok: false; errorCode: 'file_too_large' | 'invalid_json' | 'unsupported_format' };
 
 export type SettingsImportResult = {
@@ -52,7 +52,10 @@ export function getSettingsImportPreview(text: string): SettingsImportPreview {
     return { ok: false, errorCode: 'invalid_json' };
   }
 
-  if (!isRecord(parsed) || parsed.schema_version !== 1 || !isRecord(parsed.settings)) {
+  if (!isRecord(parsed)
+    || !Number.isInteger(parsed.schema_version)
+    || (parsed.schema_version !== 1 && parsed.schema_version !== 2)
+    || !isRecord(parsed.settings)) {
     return { ok: false, errorCode: 'unsupported_format' };
   }
 
@@ -65,6 +68,7 @@ export function getSettingsImportPreview(text: string): SettingsImportPreview {
 
   return {
     ok: true,
+    schemaVersion: parsed.schema_version,
     counts: { searchProfiles, automationRules, sourceConfigurations },
   };
 }
@@ -217,6 +221,7 @@ export function SettingsTransfer({ profileId, busy = false, error, success, onEx
       {preview && !preview.ok && <p role="alert">{importErrorMessage(preview.errorCode)}</p>}
       {preview?.ok && <div aria-live="polite" aria-label="Settings import preview">
         <p>Preview: {preview.counts.searchProfiles} search profiles, {preview.counts.automationRules} automation rules, and {preview.counts.sourceConfigurations} source configurations.</p>
+        {preview.schemaVersion === 1 && <p>This legacy settings file will be migrated to the current format when you confirm import.</p>}
         <p>Import replaces the supported settings in the selected profile. Nothing changes until you confirm.</p>
         <p>Missing public sources are created with the imported collection policy. Existing shared source policies must match; an import cannot overwrite another profile's source settings. Automation rules schedule discovery only.</p>
         <label>

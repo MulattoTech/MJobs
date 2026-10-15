@@ -33,7 +33,7 @@ describe('settings transfer component', () => {
     expect(onExport).not.toHaveBeenCalled();
   });
 
-  it('summarizes only supported category counts without exposing payload values', () => {
+  it('previews legacy v1 settings as migration-required without exposing payload values', () => {
     const preview = getSettingsImportPreview(JSON.stringify({
       schema_version: 1,
       settings: {
@@ -47,9 +47,37 @@ describe('settings transfer component', () => {
 
     expect(preview).toEqual({
       ok: true,
+      schemaVersion: 1,
       counts: { searchProfiles: 1, automationRules: 2, sourceConfigurations: 1 },
     });
     expect(JSON.stringify(preview)).not.toMatch(/private|secret|token|resume/i);
+  });
+
+  it('previews current v2 settings with counts only', () => {
+    const preview = getSettingsImportPreview(JSON.stringify({
+      schema_version: 2,
+      settings: {
+        search_profiles: [{ name: 'private profile name' }],
+        automation_rules: [{ id: 'rule-1' }],
+        source_configuration: [],
+      },
+    }));
+
+    expect(preview).toEqual({
+      ok: true,
+      schemaVersion: 2,
+      counts: { searchProfiles: 1, automationRules: 1, sourceConfigurations: 0 },
+    });
+    expect(JSON.stringify(preview)).not.toContain('private profile name');
+  });
+
+  it('rejects unsupported and non-integer schema versions', () => {
+    for (const schemaVersion of [0, 3, -1, 1.5, true, '1', null]) {
+      expect(getSettingsImportPreview(JSON.stringify({
+        schema_version: schemaVersion,
+        settings: { search_profiles: [], automation_rules: [], source_configuration: [] },
+      }))).toEqual({ ok: false, errorCode: 'unsupported_format' });
+    }
   });
 
   it('rejects malformed JSON and oversized files before import can begin', () => {
