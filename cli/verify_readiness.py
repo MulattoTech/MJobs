@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
 import sys
 
@@ -86,7 +87,29 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--api", default="http://127.0.0.1:18700")
     parser.add_argument("--timeout", type=validate_timeout, default=5.0)
+    from cli.verification_checks import run_connected, exit_status, validate_connected_timeout
+    parser.add_argument("--connected", action="store_true", help="Execute isolated synthetic flows; separate from deployment readiness")
+    parser.add_argument("--fixture", action="store_true", help="Explicitly admit a newly owned temporary FIXTURE/API/database")
+    parser.add_argument("--connected-timeout", type=validate_connected_timeout, default=120,
+                        help="Total connected child deadline, 1..120 seconds")
+    parser.add_argument("--json", action="store_true", help="Emit current connected report as JSON")
     args = parser.parse_args(argv)
+    if args.connected:
+        if not args.fixture:
+            parser.error("--connected requires explicit --fixture admission")
+        if args.api != "http://127.0.0.1:18700":
+            parser.error("--connected owns its fixture target; --api cannot be used")
+        result = run_connected(fixture=True, timeout=args.connected_timeout)
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print("Job Platform Verification — isolated synthetic FIXTURE (not deployment readiness)")
+            print(f"Invocation: {result['invocation_id']} Revision: {result['revision']} Inputs: {result['source_sha256']}")
+            for name, row in result["checks"].items():
+                print(f"[{row['status']}] {name}: {row['reason']}")
+        return exit_status(result)
+    if args.fixture or args.json or args.connected_timeout != 120:
+        parser.error("--fixture, --json and --connected-timeout require --connected")
     return run(args.api, timeout=args.timeout)
 
 
