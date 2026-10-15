@@ -1143,5 +1143,15 @@
   ],
   "historical_record_preserved": "docs/evidence/2026-10-06-headless-browser-acceptance.json",
   "superseded_blocker": "The historical real ATS/account authentication note is not a literal requirement. Real persisted local-mock authentication is now executed and independently reviewed.",
-  "safe_recovery": "No production changes or migration. Revert only acceptance-recording files if needed. Close only owned fixture/context resources; preserve historical work and unrelated processes."
+  "safe_recovery": "No production changes or migration. Revert only acceptance-recording files if needed. Close only owned fixture/context resources; preserve historical work and unrelated processes.",
+  "post_policy_merge_input_closure": {
+    "checked_at_utc": "2026-10-15T16:30:29.620815+00:00",
+    "publication_base_commit": "da8e43d9e760c826212dc4a1039a88f635aebb73",
+    "ordinary_merge_commit": "fbd22e8bc37b77223c4c76b083f204752f126bf2",
+    "original_product_execution_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "unique_recorded_inputs_checked": 971,
+    "working_sha256_mismatches": [],
+    "clean_filtered_origin_main_blob_mismatches": [],
+    "interpretation": "All previously recorded product/test/dependency and hosted-integration inputs unchanged. Policy adds or edits publication governance, fast-CI cache key and verifier/tests; focused recording/policy checks run separately. Original product/hosted tests were not rerun and are not represented as executing on this later commit."
+  }
 }

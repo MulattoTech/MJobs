@@ -422,5 +422,15 @@
   "unmet_literal_criteria": [],
   "historical_evidence_preserved": true,
   "superseded_blocker": "No literal real ATS/provider runtime clause exists. Synthetic admission/race, cleanup and recovery oracles plus exact-main hosted PostgreSQL prove the stated concurrency contract.",
-  "safe_recovery": "Recording-only revert; no schema/product change. Preserve temporary ownership fences and all historical evidence; no unrelated process cleanup."
+  "safe_recovery": "Recording-only revert; no schema/product change. Preserve temporary ownership fences and all historical evidence; no unrelated process cleanup.",
+  "post_policy_merge_input_closure": {
+    "checked_at_utc": "2026-10-15T16:30:29.620815+00:00",
+    "publication_base_commit": "da8e43d9e760c826212dc4a1039a88f635aebb73",
+    "ordinary_merge_commit": "fbd22e8bc37b77223c4c76b083f204752f126bf2",
+    "original_product_execution_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
+    "unique_recorded_inputs_checked": 971,
+    "working_sha256_mismatches": [],
+    "clean_filtered_origin_main_blob_mismatches": [],
+    "interpretation": "All previously recorded product/test/dependency and hosted-integration inputs unchanged. Policy adds or edits publication governance, fast-CI cache key and verifier/tests; focused recording/policy checks run separately. Original product/hosted tests were not rerun and are not represented as executing on this later commit."
+  }
 }

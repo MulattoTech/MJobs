@@ -887,16 +887,19 @@
         "planning/REQUIREMENT_INDEX.json",
         "docs/PROGRESS_DASHBOARD.md",
         "docs/PROGRESS_CARD.json",
-        "docs/PROGRESS_CARD.svg"
+        "docs/PROGRESS_CARD.svg",
+        "planning/PR_QUEUE.json"
       ],
       "tests_completed": [
         "Headless evidence: 26 tests and four subtests; successful serial real-browser probe at recorded product revision.",
         "Concurrency evidence: 115 distinct local test nodes and 45 subtests; seven PostgreSQL category and two recovery cases from existing exact-main hosted execution.",
         "Recorded headless970 and concurrency9 input hashes matched working bytes and current main before recording.",
-        "Recording-only validation: catalogue PASS; progress journal PASS; generated dashboard/card CURRENT; 34 focused catalogue/journal/dashboard/card/provenance tests passed in 0.94s; diff check clean."
+        "Recording-only validation: catalogue PASS; progress journal PASS; generated dashboard/card CURRENT; 34 focused catalogue/journal/dashboard/card/provenance tests passed in 0.94s; diff check clean.",
+        "Policy main da8e43d9 merged ordinarily, preserving original recording a3551f26; all971 recorded source inputs match both working SHA-256 and clean-filtered origin/main blobs. Original product execution remains bound to06ffb07a.",
+        "Post-policy recording validation: 91 focused catalogue/journal/dashboard/card/provenance/queue/skill tests and five subtests passed in1.34s; catalogue/progress/dashboard/agent-skills validators and diff check passed."
       ],
       "tests_remaining": [
-        "New recording PR native review and required exact-head CI pending publication authorization; original browser acceptance is not rerun absent relevant input drift."
+        "Native PR review and required exact-head hosted gates pending. Original product/browser execution remains bound to06ffb07a; no full rerun claimed."
       ],
       "migrations_applied": [],
       "live_integrations_tested": [],
@@ -905,7 +908,7 @@
         "External employer submission OFF; whole-product release PARTIAL.",
         "Original source execution remains bound to 06ffb07a207dc68b42b565870f67fc3eb67aae03; no claim of product tests executing on a later source revision.",
         "Native OS PID certification and native Windows OCR enforcement not claimed. Local PostgreSQL skipped; distinct hosted evidence retained.",
-        "PR_QUEUE is reserved to worker17 pending explicit root path release. No Project/publication mutation."
+        "Only relevant historical PR_QUEUE acceptance notes released and updated after policy integration. Queue policy unchanged. Protected merge and official Project readback remain primary-owned."
       ],
       "last_safe_checkpoint": {
         "git_commit": "06ffb07a207dc68b42b565870f67fc3eb67aae03",
