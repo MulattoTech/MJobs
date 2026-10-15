@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "timestamp": "2026-10-15T00:56:08.718936+00:00",
+  "timestamp": "2026-10-15T01:21:57.764209+00:00",
   "overall_result": "PARTIAL",
   "requirements": [
     {
@@ -3160,11 +3160,11 @@
     },
     {
       "requirement_id": "MJ-REQ-272",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-11-connected-feature-batch.json"
+        "docs/evidence/2026-10-14-document-render-failure.json"
       ],
-      "note": "Bounded implementation is integrated locally; broader requirement remains PARTIAL. See connected feature batch evidence.",
+      "note": "Whole original contract verified: sanitized renderer/write failure, atomic output cleanup and preserved revisions, durable Activity guidance and explicit retry, cancellation/timeout and page-fit classification preserved. Exact source bff2e0e; PR658 merge9d2c58bb; five required hosted gates PASS including both PostgreSQL failure/retry contracts and3connected Chromium flows.",
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature"

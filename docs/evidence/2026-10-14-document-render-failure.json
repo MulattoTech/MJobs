@@ -2,8 +2,8 @@
   "schema_version": 1,
   "requirement": "MJ-REQ-272",
   "issue": 273,
-  "result": "PARTIAL",
-  "utc": "2026-10-15T00:57:57.788432+00:00",
+  "result": "PASS",
+  "utc": "2026-10-15T01:21:57.764209+00:00",
   "source_commits": [
     "7d3ebed448cc1bd4176e2c3351c25b6aedd1929c",
     "244ae4fcb4416b690b2da3d1f4d8edf9372a4016"
@@ -33,9 +33,7 @@
     "python -m pytest -q tests/integration/test_resume_page_fit_api.py tests/browser/test_document_generation_failure.py",
     "python -m pytest -q tests/integration/test_document_validation.py tests/integration/test_resume_page_fit.py tests/integration/test_resume_page_fit_render_contract.py"
   ],
-  "pending": [
-    "exact-head required hosted gates"
-  ],
+  "pending": [],
   "privacy": "Synthetic fixture profiles and loopback mock only. No credentials/private profiles read. No real external submission.",
   "rollback": "Scoped source revert; no schema migration or data rewrite.",
   "source_inputs": [
@@ -81,6 +79,54 @@
     "isolation": "Explicit disposable loopback mjobs_test_* database; unique UUID schema; actual Alembic head; same scoped URL passed to worker; drop only owned schema",
     "local": "2 SQLite contracts PASS;2 PostgreSQL contracts NOT_RUN (URL unconfigured); connected Chromium PASS",
     "review": "Local Luna test-safety review found no blockers",
-    "hosted": "PENDING exact-head execution of both PostgreSQL failure/retry contracts"
+    "hosted": "Both isolated PostgreSQL failure/retry contracts PASS, zero skips at exact source bff2e0e"
+  },
+  "source_commit": "bff2e0e60faee520fec8bc3e49ae2dd2e32df02c",
+  "merge_commit": "9d2c58bb81f574243c2cef226273738c3faf7e8e",
+  "pr": "https://github.com/MulattoTech/MJobs/pull/658",
+  "hosted": {
+    "required_checks": [
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38663836913/job/116193847897",
+        "name": "Integration / PostgreSQL and Redis",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38663836978/job/116191667874",
+        "name": "CI / required",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38663837100/job/116191052380",
+        "name": "Dependencies / introduced vulnerabilities",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38663837046/job/116191051889",
+        "name": "Security / secret scan",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38663836860/job/116191051859",
+        "name": "Disposable Compose / mock end-to-end",
+        "state": "SUCCESS"
+      }
+    ],
+    "integration": {
+      "records": 1741,
+      "failures": 0,
+      "skips": 19,
+      "postgresql_document_contracts": [
+        "test_corrupt_generation_is_dead_lettered_hidden_then_explicitly_retried",
+        "test_renderer_exception_is_sanitized_and_same_operation_can_be_retried"
+      ],
+      "hosted_browser": 3
+    },
+    "synthetic": "Five Compose startup/mock/UI/restart/backup JSON artifacts PASS; connected Chromium3PASS/0skip",
+    "runs": {
+      "fast": 38663836978,
+      "integration": 38663836913,
+      "synthetic": 38663836860
+    }
   }
 }
