@@ -68,7 +68,19 @@ function Assert-CampaignAssets([string]$Checkout) {
         throw 'MJOBS_PROMPT_PATH_MISSING: The prompt inventory validator is absent. Restore the required tooling from the reviewed branch.'
     }
     $python = Get-Command python -ErrorAction Stop
-    $result = & $python.Source $validator --root $Checkout
+    # Validate the ACTUAL next-sprint goal/plan/main alongside the Project master
+    # prompts. This fails closed if a cleaned-up path was removed or renamed.
+    $validationArgs = @('--root',$Checkout)
+    foreach ($relative in @(
+        'prompts/codex/project-board-end-to-end.md',
+        'prompts/codex/board-p0p1-plan.md',
+        'prompts/codex/board-p0p1-goal.md',
+        'prompts/codex/board-p0p1-main.md',
+        'prompts/codex/next-plan.md',
+        'prompts/codex/next-goal.md',
+        'prompts/codex/next-main.md'
+    )) { $validationArgs += @('--prompt',$relative) }
+    $result = & $python.Source $validator @validationArgs
     if ($LASTEXITCODE -ne 0) {
         throw "MJOBS_PROMPT_PATH_MISSING: Required documents or referenced paths do not exist in $Checkout. Review the printed inventory and update the prompt; never guess an old worktree path."
     }
@@ -123,7 +135,7 @@ try {
         $campaign = [string]$current.campaign
         $branch = [string]((Invoke-External git @('-C',$worktree,'branch','--show-current')) -join '').Trim()
         if (-not (Test-Path (Join-Path $worktree '.git') -PathType Container)) { throw 'Saved clone has no independent .git directory.' }
-        if ($current.status -in @('BLOCKED','ERROR')) { throw 'Previous Round3 run is blocked; inspect checkpoint instead of repeating unchanged work.' }
+        if ($current.status -in @('BLOCKED','ERROR','CLOSED_VERIFIED','INTERACTIVE_EXIT','COMPLETE')) { throw 'Previous Round3 campaign already stopped or completed. Use -NewCampaign for fresh P0/P1 work after reconciling its published PRs; never replay stale queue.' }
         if ($branch -ne [string]$current.branch -or $branch -notlike 'codex/*') {
             throw 'Saved campaign branch changed; refuse automatic mutation.'
         }
@@ -192,31 +204,47 @@ try {
         $queueFile = Join-Path $runDir ("queue-{0:000}.json" -f $iteration)
         Write-MJobsJson $queueFile @($queue)
         $directiveFile = Join-Path $runDir ("directive-{0:000}.md" -f $iteration)
+        # The effective native Codex prompt MUST consume the reviewed next
+        # goal, plan and implementation directive. Old Round3 priority text
+        # remains historical, not the next campaign's current work queue.
+        $goalFile = Join-Path $worktree 'prompts/codex/next-goal.md'
+        $planFile = Join-Path $worktree 'prompts/codex/next-plan.md'
+        $mainFile = Join-Path $worktree 'prompts/codex/next-main.md'
+        foreach ($sourceFile in @($goalFile,$planFile,$mainFile)) {
+            if (-not (Test-Path -LiteralPath $sourceFile -PathType Leaf)) {
+                throw "MJOBS_PROMPT_PATH_MISSING: Reviewed next-sprint prompt not found: $sourceFile"
+            }
+        }
+        $goalText = [IO.File]::ReadAllText($goalFile,[Text.UTF8Encoding]::new($false))
+        $planText = [IO.File]::ReadAllText($planFile,[Text.UTF8Encoding]::new($false))
+        $mainText = [IO.File]::ReadAllText($mainFile,[Text.UTF8Encoding]::new($false))
         $directive = @"
-# MJobs original P0/P1 completion campaign, round $iteration
+# Current MJobs ORIGINAL P0/P1 campaign ? iteration $iteration
 
-Project work queue: $queueFile
-Current coding checkout: $worktree
-Baseline origin/main SHA: $mainBefore
-Original PASS baseline: P0=$($before.P0), P1=$($before.P1).
-Prior blocked worktrees and credentials are off limits; use this current clone and the live Project board.
+Canonical working tree: $worktree
+Live Project #1 queue saved at: $queueFile
+Current verified main baseline SHA: $mainBefore
+Original PASS baseline: P0=$($before.P0), P1=$($before.P1)
+Codex agent threads: maximum $AgentThreads. One root integration owner.
+The queue is fresh discovery, not a static assignment. Only ORIGINAL P0/P1.
+Never restart an archived campaign, remove unique Git work, or claim PASS from a merged slice.
 
-You are one integration owner with at most $AgentThreads agent threads, where up to 3 agents may write only in non-overlapping owned worktrees. Enforce all AGENTS.md, code safety, ownership and branch protections. This prompt authorizes code implementation and controlled Project/GitHub changes required for selected P0/P1 work.
-PARALLEL FEATURE DELIVERY: When the selected P0 and P1 contracts have genuinely disjoint writable paths and ownership, promptly delegate at least two independent implementation-and-test workstreams to Luna High subagents instead of giving them audit-only work. Each implementation subagent must own a meaningful user-visible feature, start with an executable acceptance check, produce production changes and tests, and return exact evidence for coordinator review. The Sol High root agent is the sole integration and GitHub delivery owner; prioritize coordinating feature acceptance, tests, review, and integration rather than coding every independent feature directly. Never force multiple writers onto shared UI files, migrations, CI, planning matrices or other contested paths: serialize those edits and use read-only reviewers as needed. Never count planned agents as actually spawned. Report root/subagent roles, actual writing vs review contributions, verified accepted requirements, and merged PRs.
+## GOAL FROM EXISTING REVIEWED FILE: prompts/codex/next-goal.md
+$goalText
 
-PRIORITY #1 (RECONCILE, NOT REBUILD): GitHub already merged PRs #651, #652, and #653. MJ-REQ-277 is PASS and issue #278 is closed. Do not reopen, duplicate or reintegrate them. Round 2's linked worktree contains a pending local merge/closeout commit blocked by index.lock; it is off limits. This independent clone starts from fresh GitHub main and has its OWN .git directory. Codex may still protect Git metadata; request approval through the configured reviewer for legitimate Git operations, and stop if approval is denied. Do not try API or filesystem workarounds to evade a denial. Verify that these accepted results are present. Review the current Project board, ownership, required CI and actual PR queue policy; do not close unrelated Dependabot PRs or bypass a genuine PR cap. Spend implementation effort on genuinely unfinished original P0/P1 requirements, not historical publication bookkeeping.
+## PLAN FROM EXISTING REVIEWED FILE: prompts/codex/next-plan.md
+$planText
 
-PRIORITY #2 (ACTUALLY COMPLETE ORIGINAL REQUIREMENTS): Choose ONE or TWO achievable original incomplete P0/P1 MJ-REQ requirements to bring fully to PASS, prioritizing a meaningful P0 and P1. Prioritize an achievable P0 completion plus an achievable P1 completion where evidence supports it. Read the original issue acceptance contract and its canonical requirement matrix note; make a precise checklist of every missing criterion. Before writing new code, determine whether the gap is actual behavior, missing integration, missing proof, or external impossibility. Avoid huge umbrella P0 planning/reporting directives that lack independent user-observable completion.
+## MAIN EXECUTION PROMPT FROM EXISTING REVIEWED FILE: prompts/codex/next-main.md
+$mainText
 
-Implement all reasonably achievable required behavior for the selected original requirement: UI/API/domain/persistence/worker/browser/restart as applicable, including failures and isolation. Run criterion-level tests and authentic end-to-end proofs within allowed synthetic/local environments. Complete user-visible capabilities rather than a series of tiny defensive patches. Do not switch parent requirements after one incremental fix merely to increase PR count; continue working on the selected parent until fully PASS or a documented external dependency makes full PASS impossible.
-
-Use GitHub Project #1 as the ONLY source for selecting new work. Only its incomplete P0/P1 cards listed in the queue are eligible; cross-check one matching issue priority:P0 or priority:P1 label and real issue state. P2-P6 tasks, reclassification, lower-priority independent work, fake P0/P1 child issue inflation and unrelated housekeeping work are FORBIDDEN. Small supporting changes may be necessary for the selected original P0/P1 contract. Do not touch claimed paths owned by other agents or use another running AFK orchestrator.
-
-For every deliverable: focused tests, affected PostgreSQL/Redis/Chromium/Compose checks when applicable, code/provenance review, short-lived PR, required exact-head hosted checks and integration. Only update canonical original matrix status to PASS with full acceptance evidence and regenerate the requirement index/dashboard; never promote from source commits or green CI alone. A child P0 issue may PASS while its parent stays PARTIAL.
-
-No real job application submissions, paid AI/API services, secret access/extraction, host config changes, reset/clean of another worktree, force push or approval/security bypass. Stop on genuine missing permissions or a repeated unchanged failure; otherwise deliver real code.
-
-Return JSON matching the requested schema. issueIds contains only P0/P1 issues that you actually worked on from the supplied queue. completeOriginalRequirements contains only fully verified original MJ-REQ identifiers. Report additive MJ-REF work separately; never use it to inflate original counts. When safe meaningful P0/P1 work remains return CONTINUE with nextAction. A plan-only response is insufficient.
+## Required report
+Return status CONTINUE, BLOCKED or COMPLETE and a full report matching the existing
+completion.schema.json in this campaign. Report issueIds only for P0/P1 issues
+actually worked from the supplied queue, prs with real URLs, and
+completeOriginalRequirements only for original MJ-REQ IDs with independently
+verified whole-criterion PASS. Keep MJ-REF and child delivery outcomes separate.
+Explain nextAction honestly; a plan-only answer does not complete this iteration.
 "@
         [IO.File]::WriteAllText($directiveFile,$directive,[Text.UTF8Encoding]::new($false))
         $resultFile = Join-Path $runDir ("result-{0:000}.json" -f $iteration)

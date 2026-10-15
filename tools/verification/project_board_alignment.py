@@ -16,9 +16,14 @@ PROJECT_NUMBER = "1"
 
 
 def github_json(*args: str):
-    result = subprocess.run(["gh", *args], text=True, capture_output=True, check=False, timeout=90)
+    result = subprocess.run(
+        ["gh", *args], text=True, encoding="utf-8", errors="replace",
+        capture_output=True, check=False, stdin=subprocess.DEVNULL, timeout=90,
+    )
     if result.returncode:
         raise RuntimeError("GitHub query failed: " + " ".join(args[:2]))
+    if not isinstance(result.stdout, str):
+        raise RuntimeError("GitHub returned no decodable JSON")
     try:
         return json.loads(result.stdout)
     except json.JSONDecodeError as exc:

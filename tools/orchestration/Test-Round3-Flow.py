@@ -37,6 +37,9 @@ asset_files = [
     'prompts/codex/board-p0p1-plan.md',
     'prompts/codex/board-p0p1-goal.md',
     'prompts/codex/board-p0p1-main.md',
+    'prompts/codex/next-plan.md',
+    'prompts/codex/next-goal.md',
+    'prompts/codex/next-main.md',
 ]
 for asset in asset_files:
     source = SOURCE / asset
@@ -117,6 +120,14 @@ launch('-Preview'); assert not list(ROOT.glob('MJobs-Round3-*'));passed.append('
 launch('-PrepareOnly'); latest=repo/'.git/mjobs-p0p1-round3/latest.json';state=json.loads(latest.read_text(encoding='utf-8-sig'));clone=Path(state['worktree']);assert (clone/'.git').is_dir();assert Path(state['runDir']).is_relative_to(clone);passed.append('prepare clones real local Git and stores context inside its workspace')
 assert not (ROOT/'codex-commands.jsonl').exists();passed.append('preparation never invokes a model')
 launch('-Iterations','1'); state=json.loads(latest.read_text(encoding='utf-8-sig'));assert state['status']=='CONTINUE';calls=(ROOT/'codex-commands.jsonl').read_text().splitlines();assert len(calls)==1;passed.append('automatic iteration executes once and saves validated result')
+directive_text=next(Path(state['runDir']).glob('directive-*.md')).read_text(encoding='utf8')
+assert '## GOAL FROM EXISTING REVIEWED FILE' in directive_text
+assert '## PLAN FROM EXISTING REVIEWED FILE' in directive_text
+assert '## MAIN EXECUTION PROMPT FROM EXISTING REVIEWED FILE' in directive_text
+assert 'MJ-REQ-276' in directive_text
+assert 'PRIORITY #1 (RECONCILE, NOT REBUILD)' not in directive_text
+passed.append('effective native Codex instruction uses current reviewed next-goal/plan/main, not a stale Round3 directive')
+
 q=json.loads(next(Path(state['runDir']).glob('queue-*.json')).read_text());assert [x['issue'] for x in q]==[1,2];passed.append('staged dispatch queue excludes P2 in the full launcher')
 launch('-Interactive');state=json.loads(latest.read_text(encoding='utf-8-sig'));assert state['status']=='INTERACTIVE_EXIT';calls=(ROOT/'codex-commands.jsonl').read_text().splitlines();assert len(calls)==2;args=json.loads(calls[-1]);assert args[0]!='exec' and '--json' not in args;passed.append('native interactive path inherits terminal and never starts another iteration')
 launch('-Status');assert len((ROOT/'codex-commands.jsonl').read_text().splitlines())==2;passed.append('status never invokes a model')

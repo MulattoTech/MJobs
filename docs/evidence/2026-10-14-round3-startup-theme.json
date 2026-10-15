@@ -113,7 +113,7 @@
       "resolution": "Fixed light sidebar foreground, inherited sidebar paragraph color, added actual descendant/SVG/active-nav contrast and focus assertions."
     }
   ],
-  "hosted_checks": "PASS_ON_SOURCE_HEAD",
+  "hosted_checks": "PASS_ON_SOURCE_AND_FINAL_PR_HEAD",
   "limitations": [
     "Physical host reboot NOT_RUN; MJ-REQ-014 remains PARTIAL.",
     "Local Docker/PostgreSQL/Redis Compose runtime NOT_RUN: Docker engine unavailable.",
@@ -216,7 +216,51 @@
   "final_pr": {
     "number": 654,
     "url": "https://github.com/MulattoTech/MJobs/pull/654",
-    "final_head_checks": "PENDING_DOC_ONLY_ACCEPTANCE_REVISION"
+    "tested_head": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+    "merge_commit": "c9af54bd6fdf73d7bdb1eac6924e718a4dbef5ce",
+    "required_checks": "PASS_5_OF_5",
+    "checks": [
+      {
+        "conclusion": "success",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38641767483/job/116122319728",
+        "head_sha": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+        "id": 116122319728,
+        "name": "Integration / PostgreSQL and Redis",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38641767396/job/116119743508",
+        "head_sha": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+        "id": 116119743508,
+        "name": "CI / required",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38641767453/job/116118766073",
+        "head_sha": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+        "id": 116118766073,
+        "name": "Disposable Compose / mock end-to-end",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38641767398/job/116118765827",
+        "head_sha": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+        "id": 116118765827,
+        "name": "Dependencies / introduced vulnerabilities",
+        "status": "completed"
+      },
+      {
+        "conclusion": "success",
+        "details_url": "https://github.com/MulattoTech/MJobs/actions/runs/38641767448/job/116118765258",
+        "head_sha": "a3287caa58d58a01a88449e62b7de51732bfb89e",
+        "id": 116118765258,
+        "name": "Security / secret scan",
+        "status": "completed"
+      }
+    ]
   },
   "original_pass_counts": {
     "before": {
@@ -286,5 +330,52 @@
         ]
       }
     ]
-  }
+  },
+  "final_compose": {
+    "run_id": 38641767453,
+    "artifacts": [
+      {
+        "name": "ci-backup-recovery.json",
+        "result": "PASS",
+        "sha256": "189474e84a65e0d2afde7b69563ee27edf9e536034e4dc67dc157960737356c0"
+      },
+      {
+        "name": "ci-backup.json",
+        "result": "PASS",
+        "sha256": "dae3d8d8be09d4e298fbd382234a07893dec334087060b3191320c2f1a02e0b8"
+      },
+      {
+        "name": "ci-mock-e2e.json",
+        "result": "PASS",
+        "sha256": "a11e68bc4a0976bffba28b9c85443c9ee7d2fb02e54cac5341d4deb7d57bdb7e"
+      },
+      {
+        "name": "ci-recovery.json",
+        "result": "PASS",
+        "sha256": "ad76be338625f90bd40304032b5f4b6235d44a1721c12e1435aa9dd88193eb25"
+      },
+      {
+        "name": "ci-ui.json",
+        "result": "PASS",
+        "sha256": "87845a56bac1c499ae07ac6c9f01acf502c404db65269996c5222c15e08ac7bb"
+      }
+    ],
+    "result": "PASS"
+  },
+  "final_browser": {
+    "run_id": 38641767453,
+    "suites": [
+      {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "2",
+        "time": "14.221",
+        "timestamp": "2026-10-14T21:41:19.677059+00:00",
+        "hostname": "runnervmmprz5"
+      }
+    ]
+  },
+  "closeout_utc": "2026-10-14T21:47:49.717359+00:00"
 }

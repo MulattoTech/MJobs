@@ -1,7 +1,9 @@
 """Project board audit must catch drift without falsifying acceptance."""
 import unittest
+import subprocess
+from unittest.mock import patch
 
-from tools.verification.project_board_alignment import REPOSITORY, audit
+from tools.verification.project_board_alignment import REPOSITORY, audit, github_json
 
 
 def issue(number=10, state="OPEN", priority="P1"):
@@ -15,6 +17,25 @@ def card(number=10, status="Todo", acceptance="PARTIAL", priority="P1"):
 
 
 class ProjectBoardAlignmentTests(unittest.TestCase):
+    def test_gh_json_uses_explicit_utf8_not_windows_codepage(self):
+        observed = {}
+
+        def fake_run(args, **kwargs):
+            observed.update(kwargs)
+            return subprocess.CompletedProcess(args, 0, stdout='{"text":"é – ✓"}', stderr="")
+
+        with patch("tools.verification.project_board_alignment.subprocess.run", side_effect=fake_run):
+            self.assertEqual(github_json("project", "item-list"), {"text": "é – ✓"})
+        self.assertEqual(observed["encoding"], "utf-8")
+        self.assertEqual(observed["errors"], "replace")
+        self.assertIs(observed["stdin"], subprocess.DEVNULL)
+
+    def test_gh_json_empty_stdout_fails_closed(self):
+        with patch("tools.verification.project_board_alignment.subprocess.run",
+                   return_value=subprocess.CompletedProcess(["gh"], 0, stdout=None, stderr="")):
+            with self.assertRaisesRegex(RuntimeError, "no decodable JSON"):
+                github_json("issue", "list")
+
     def test_aligned_open_issue_stays_todo(self):
         result = audit([card()], [issue()])
         self.assertTrue(result["aligned"])
