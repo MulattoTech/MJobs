@@ -27,7 +27,7 @@ the repository. Existing archives are never overwritten.
 
 ```powershell
 $project = 'mjobs-personal'
-docker compose -p $project stop api worker source-worker document-worker scheduler company-discovery-worker
+docker compose -p $project stop api worker source-worker document-worker ai-worker migrate scheduler company-discovery-worker
 .venv\Scripts\python.exe -m cli.local_backup backup --project $project --archive 'D:\PrivateBackups\mjobs-2026-10-01'
 .venv\Scripts\python.exe -m cli.local_backup verify --archive 'D:\PrivateBackups\mjobs-2026-10-01'
 ```

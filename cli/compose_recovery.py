@@ -307,6 +307,9 @@ def validate_baseline(baseline):
     """Require the exact connected UI evidence needed for receipt-only replay."""
     if not isinstance(baseline, dict):
         raise ValueError("Baseline must be a UI evidence object")
+    if 'local_persistence' in baseline:
+        from cli.local_persistence_acceptance import validate
+        validate(baseline['local_persistence'])
     for key in ("profile_id", "application_id", "operation_id", "request_id"):
         value = baseline.get(key)
         if not isinstance(value, str) or REQUEST_ID_PATTERN.fullmatch(value) is None:
@@ -424,6 +427,10 @@ def run(baseline_path, evidence_path, project_name, port):
                 project_name, port, config_files=config_files,
             )
             health_after = until(lambda: healthy_containers(recovered_targets))
+            from cli import local_persistence_acceptance as persistence
+            persistence_result = persistence.compare_baseline(
+                baseline, persistence.observe_http(client, baseline)
+                if 'local_persistence' in baseline else None)
             actions.append({"action": "All services restarted; original application, operation and independent receipt survived without another submission", "result": "PASS"})
         finally:
             compose(project_name, port, "start", *services_to_restore, config_files=config_files)
@@ -438,6 +445,7 @@ def run(baseline_path, evidence_path, project_name, port):
                            "profile": "fixture", "services": list(RECOVERY_RESTART_SERVICES)},
         "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery", "actions": actions,
         "application_id": baseline["application_id"], "external_submission_enabled": False,
+        "local_persistence": persistence_result,
         "container_health": {"before": health_before, "redis_outage": {"api": health_during_outage},
                              "after": health_after}}
     Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")

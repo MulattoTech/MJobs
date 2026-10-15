@@ -9,6 +9,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
+from sqlalchemy import select
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from packages.persistence.profile_restore import (
@@ -61,6 +62,24 @@ def create_profile_restore_router(store, output_dir) -> APIRouter:
     """Create bounded preview/import routes for restoring into a fresh profile."""
     router = APIRouter()
     storage_root = Path(output_dir)
+
+    @router.get("/profile-restores/{profile_id}/history")
+    async def recovery_history(profile_id: str):
+        from packages.persistence import models as m
+        from packages.persistence.recovery_history import read_recovery_history
+        if not profile_id or len(profile_id) > 128:
+            raise HTTPException(404, detail={"code": "PROFILE_NOT_FOUND"})
+        with store.engine.connect() as connection:
+            if connection.execute(select(m.profiles.c.id).where(
+                    m.profiles.c.id == profile_id)).first() is None:
+                raise HTTPException(404, detail={"code": "PROFILE_NOT_FOUND"})
+            try:
+                rows = read_recovery_history(connection, profile_id)
+            except (TypeError, ValueError, RecursionError):
+                raise HTTPException(500, detail={"code": "RECOVERY_HISTORY_UNAVAILABLE"}) from None
+        return {"profile_id": profile_id, "history": rows,
+                "mode": "READ_ONLY_HISTORICAL_ARCHIVE",
+                "authorization_required_for_future_live_action": True}
 
     @router.post("/profile-restores/preview")
     async def preview(request: Request):

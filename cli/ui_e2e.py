@@ -15,6 +15,7 @@ from playwright.sync_api import sync_playwright, expect
 from reportlab.pdfgen import canvas
 
 from cli.live_feedback import capture_redacted_screenshot
+from cli import local_persistence_acceptance as persistence
 
 
 def wait_for_mock_run(request, path, operation_id, *, timeout_seconds=210,
@@ -566,6 +567,18 @@ def run(base_url, evidence_path, onboarding=False):
             assert not failures, failures
             assert not unsafe_requests, unsafe_requests
             actions.append({"action": "Browser reload restores selected profile and application history; responsive Activity has no horizontal overflow or browser exceptions", "result": "PASS"})
+            def read_bytes(path):
+                response = context.request.get(base_url + path)
+                assert response.ok, 'Persistence download failed'
+                return response.body()
+            sources = request('/company-sources')['company_sources']
+            assert sources, 'Persistence proof requires a seeded company source'
+            pinned = context.request.put(base_url + '/company-sources/' + sources[0]['id'] + '/pin',
+                                         data={'pinned': True})
+            assert pinned.ok, 'Synthetic company source control did not persist'
+            assert next(row for row in request('/company-sources')['company_sources']
+                        if row['id'] == sources[0]['id'])['priority'] == 'USER_PINNED'
+            local_persistence = persistence.collect(request, read_bytes, profile_id, identifier)
         except BaseException:
             capture_redacted_screenshot(page, artifacts / "failure.png")
             raise
@@ -576,6 +589,7 @@ def run(base_url, evidence_path, onboarding=False):
         "command": "python -m cli.ui_e2e --base-url " + base_url + (" --onboarding" if onboarding else ""), "target": "Connected React UI / PostgreSQL / three RQ queues / actual Chromium",
         "profile_id": profile_id, "application_id": identifier, "operation_id": repeated["operation_id"], "request_id": intent['requestId'], "confirmation": confirmed["confirmation"], "external_submission_enabled": False,
         "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
+        "local_persistence": local_persistence,
         "discovery_operation_id": discovery_operation_id if onboarding else None,
         "discovery_request_id": discovery_request_id if onboarding else None,
         "limitations": ([
