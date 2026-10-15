@@ -226,6 +226,7 @@ def test_existing_backup_entrypoint_preserves_legacy_and_orders_new_proof(extend
     assert events.count(stop) == (2 if extended else 1)
     assert set(evidence['public_cli']) == {'backup', 'verify', 'restore'}
     assert all(row['exit_code'] == 0 and row['result'] == 'PASS' for row in evidence['public_cli'].values())
+    assert all(row['status'] == 'PASS' for row in evidence['public_cli'].values())
     assert all('stdout' not in row and 'environment' not in row for row in evidence['public_cli'].values())
 
 

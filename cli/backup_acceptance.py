@@ -42,7 +42,7 @@ def run_public_cli(subcommand, archive, *, environment, project=None, port=None)
     matched = re.fullmatch(status, output)
     if matched is None:
         raise RuntimeError('Public ' + subcommand + ' CLI did not return the expected positive status')
-    result = {'command': command, 'exit_code': 0, 'result': 'PASS'}
+    result = {'command': command, 'exit_code': 0, 'status': 'PASS', 'result': 'PASS'}
     if subcommand in {'backup', 'verify'}:
         result['file_count'] = int(matched[1])
     return result
