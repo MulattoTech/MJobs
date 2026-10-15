@@ -10,7 +10,8 @@ from services.discovery.search_profiles import _clean_search_scheduler, save_sea
 from services.discovery.sources.collect import configure_source
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+SUPPORTED_SCHEMA_VERSIONS = (1, SCHEMA_VERSION)
 _SETTING_KEYS = {"search_profiles", "automation_rules", "source_configuration"}
 _SOURCE_POLICY_KEYS = {
     "id", "provider", "tenant", "enabled", "poll_interval", "concurrency",
@@ -29,7 +30,7 @@ _CRITERIA_KEYS = {
 
 
 def export_settings(store, profile_id):
-    """Return a portable v1 document containing only settings owned by profile_id."""
+    """Return current portable settings; scheduling is defined only by automation rules."""
     with store.engine.connect() as connection:
         exists = connection.execute(select(m.profiles.c.id).where(
             m.profiles.c.id == profile_id)).scalar_one_or_none()
@@ -55,7 +56,6 @@ def export_settings(store, profile_id):
         search_profile = {"name": row["name"], "enabled": row["enabled"], "criteria": criteria}
         if scheduler is not None:
             scheduler = _clean_search_scheduler(scheduler)
-            search_profile["scheduler"] = scheduler
             automation_rules.append({"kind": "scheduled_search",
                                      "search_profile_name": row["name"], **scheduler})
         search_profiles.append(search_profile)
@@ -74,10 +74,19 @@ def export_settings(store, profile_id):
 
 
 def _validate_envelope(payload):
+    """Normalize supported schemas to the current internal shape before any writes.
+
+    Version 1 allowed inline schedulers as well as automation rules. Preserve
+    scheduler-only files and require redundant definitions to agree. Version 2
+    has one scheduling authority: automation_rules. Never guess unknown versions
+    or mutate the caller's document during migration.
+    """
     if not isinstance(payload, dict) or set(payload) != {"schema_version", "settings"}:
         raise ValueError("Settings document envelope is invalid")
-    if type(payload["schema_version"]) is not int or payload["schema_version"] != SCHEMA_VERSION:
+    if (type(payload["schema_version"]) is not int
+            or payload["schema_version"] not in SUPPORTED_SCHEMA_VERSIONS):
         raise ValueError("Settings document version is unsupported")
+    legacy = payload["schema_version"] == 1
     settings = payload["settings"]
     if not isinstance(settings, dict) or set(settings) != _SETTING_KEYS:
         raise ValueError("Settings document categories are invalid")
@@ -93,10 +102,10 @@ def _validate_envelope(payload):
 
     clean_searches = []
     names = set()
+    search_keys = {"name", "enabled", "criteria"} | ({"scheduler"} if legacy else set())
     for item in searches:
-        if not isinstance(item, dict) or not {"name", "enabled", "criteria"} <= set(item) or set(item) - {
-            "name", "enabled", "criteria", "scheduler",
-        }:
+        if (not isinstance(item, dict) or not {"name", "enabled", "criteria"} <= set(item)
+                or set(item) - search_keys):
             raise ValueError("Saved search settings have unsupported fields")
         name, enabled, criteria = item["name"], item["enabled"], item["criteria"]
         if not isinstance(name, str) or not name.strip() or len(name.strip()) > 200:

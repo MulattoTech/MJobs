@@ -43,7 +43,15 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
             invalid = copy.deepcopy(valid)
             invalid["settings"]["search_profiles"][0]["criteria"]["remote"] = []
             conflicting = copy.deepcopy(valid)
+            conflicting["schema_version"] = 1
+            conflicting["settings"]["search_profiles"][0]["scheduler"] = {
+                "enabled": True, "interval_seconds": 600}
             conflicting["settings"]["automation_rules"][0]["interval_seconds"] = 1800
+            legacy = copy.deepcopy(valid)
+            legacy["schema_version"] = 1
+            legacy["settings"]["search_profiles"][0]["scheduler"] = {
+                "enabled": True, "interval_seconds": 600}
+            legacy["settings"]["automation_rules"] = []
             source_conflict = copy.deepcopy(valid)
             source_conflict["settings"]["source_configuration"][0]["sources"][0]["concurrency"] = 2
             sock = bound_browser_socket()
@@ -85,12 +93,15 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
                         downloaded = Path(captured_download.value.path()).read_text(encoding="utf-8")
                         self.assertEqual(json.loads(downloaded), before)
                         for payload, status in ((invalid, 422), (conflicting, 422),
-                                                (source_conflict, 422), (valid, 200)):
+                                                (source_conflict, 422), (legacy, 200), (valid, 200)):
                             panel.get_by_label("Choose a settings JSON file (maximum 1 MiB)").set_input_files({
                                 "name": "settings.json", "mimeType": "application/json",
                                 "buffer": json.dumps(payload).encode()})
                             expect(panel.get_by_label("Settings import preview")).to_contain_text(
-                                "1 automation rules")
+                                f"{2 if payload is conflicting else 1} automation rules")
+                            if payload["schema_version"] == 1:
+                                expect(panel.get_by_label("Settings import preview")).to_contain_text(
+                                    "migrat")
                             panel.get_by_role("checkbox").check()
                             with page.expect_response(lambda response: response.url.endswith(
                                     "/profiles/fixture/settings/import") and response.request.method == "POST") as captured:
@@ -104,6 +115,8 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
                             else:
                                 expect(panel.get_by_role("status")).to_contain_text("Settings imported successfully")
                                 self.assertEqual(export_settings(store, "fixture"), valid)
+                                page.reload(wait_until="domcontentloaded")
+                                page.get_by_role("button", name="Profile", exact=True).click()
                         self.assertEqual(external, [])
                     finally:
                         browser.close()
