@@ -891,8 +891,10 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertEqual(set(uploads_root.iterdir()), existing_files)
 
     def test_metadata_only_backup_import_filters_revisions_for_missing_upload_bytes(self):
-        backup = copy.deepcopy(self.backup)
-        backup['document_files'] = []
+        backup = export_profile_backup(self.store, self.source_profile_id)
+        self.assertEqual(backup['document_files'], [])
+        self.assertTrue(backup['uploaded_resumes'])
+        self.assertTrue(backup['resume_revisions'])
         target = Store(f"sqlite:///{(self.root / 'metadata-only-target.db').as_posix()}")
         self.addCleanup(target.engine.dispose)
         target.migrate()
