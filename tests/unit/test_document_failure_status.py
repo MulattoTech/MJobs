@@ -3,6 +3,7 @@ import hashlib
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from docx import Document
 
@@ -11,7 +12,10 @@ from services.documents.failure_status import (
     failure_status,
     validate_generated_outputs,
 )
+from services.documents import generate
+from services.documents.errors import PreparationError
 from services.documents.render import render_pdf
+from workers.operations import OperationCancelled, OperationTimedOut
 
 
 class DocumentFailureStatusTests(unittest.TestCase):
@@ -79,6 +83,38 @@ class DocumentFailureStatusTests(unittest.TestCase):
             "error_code": DOCUMENT_GENERATION_FAILED,
             "recovery": "REGENERATE",
         })
+
+    def test_partial_atomic_write_failure_is_sanitized_and_removes_temporary_file(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "resume.pdf"
+            destination.write_bytes(b"previous valid revision")
+
+            def write_partial_then_fail(path):
+                path.write_bytes(b"partial private output")
+                raise OSError("private path and profile details")
+
+            with self.assertRaises(PreparationError) as caught:
+                generate._generate_document_artifact(destination, write_partial_then_fail)
+
+            self.assertEqual(caught.exception.code, DOCUMENT_GENERATION_FAILED)
+            self.assertNotIn("private", str(caught.exception))
+            self.assertEqual(destination.read_bytes(), b"previous valid revision")
+            self.assertEqual(list(root.glob(".resume.pdf.*.tmp")), [])
+
+    def test_artifact_generation_preserves_control_and_preparation_errors(self):
+        errors = [
+            PreparationError("DOCUMENT_FONT_UNAVAILABLE", "font recovery remains distinct"),
+            OperationCancelled("cancel request remains distinct"),
+            OperationTimedOut("deadline remains distinct"),
+        ]
+        for error in errors:
+            with self.subTest(error=type(error).__name__), tempfile.TemporaryDirectory() as directory:
+                with patch.object(generate, "atomic_generate", side_effect=error):
+                    with self.assertRaises(type(error)) as caught:
+                        generate._generate_document_artifact(Path(directory) / "resume.pdf", lambda _path: None)
+
+                self.assertIs(caught.exception, error)
 
 
 if __name__ == "__main__":

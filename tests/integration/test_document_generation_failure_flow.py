@@ -117,6 +117,68 @@ class DocumentGenerationFailureFlowTests(unittest.TestCase):
                         document["sha256"][artifact.suffix[1:]],
                     )
 
+    def test_renderer_exception_is_sanitized_and_same_operation_can_be_retried(self):
+        with fixture_server() as origin, TestClient(create_app(
+                self.store, origin, self.root, operation_mode="FIXTURE")) as client:
+            client.put("/profiles", json=PROFILE).raise_for_status()
+            discover(self.store, origin, "fixture")
+            job = self.store.jobs("fixture")[0]
+            queued_response = client.post("/applications", json={
+                "profile_id": "fixture",
+                "job_id": job["id"],
+            })
+            self.assertEqual(queued_response.status_code, 202, queued_response.text)
+            queued = queued_response.json()
+            application_id = queued["application_id"]
+            operation_id = queued["operation_id"]
+
+            renderer_failed = {"value": False}
+
+            def fail_renderer(*args, **kwargs):
+                renderer_failed["value"] = True
+                raise OSError("private renderer path and profile contents")
+
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                            MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
+                            MJOBS_OPERATION_MODE="FIXTURE"), \
+                    patch("services.documents.generate.render_pdf", side_effect=fail_renderer):
+                failed = execute_operation(operation_id)
+
+            self.assertTrue(renderer_failed["value"], "fault injection must reach the PDF renderer")
+            self.assertEqual(failed["status"], "DEAD_LETTERED")
+            failed_operation = client.get(f"/operations/{operation_id}").json()
+            self.assertEqual(failed_operation["error"], "DOCUMENT_GENERATION_FAILED")
+            self.assertNotIn("private renderer", str(failed_operation))
+            dead_letters = client.get("/operations/dead-letter-queue?profile_id=fixture").json()
+            self.assertEqual(dead_letters["count"], 1)
+            self.assertTrue(dead_letters["operations"][0]["retryable"])
+            self.assertEqual(self.store.count("applications"), 0)
+            self.assertEqual(self.store.count("documents"), 0)
+            for extension in ("docx", "pdf", "txt"):
+                self.assertEqual(list(self.root.rglob(f"*.{extension}")), [])
+            self.assertEqual(list(self.root.rglob("*.tmp")), [])
+            self.assertNotEqual(
+                client.get(f"/profiles/fixture/applications/{application_id}").status_code,
+                200,
+            )
+
+            retry = client.post(f"/operations/{operation_id}/retry")
+            self.assertEqual(retry.status_code, 202, retry.text)
+            self.assertEqual(retry.json(), {"operation_id": operation_id, "state": "QUEUED"})
+            with patch.dict("os.environ", MJOBS_DATABASE_URL=self.store.url,
+                            MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
+                            MJOBS_OPERATION_MODE="FIXTURE"):
+                recovered = execute_operation(operation_id)
+
+            self.assertEqual(recovered["status"], "COMPLETED")
+            self.assertEqual(client.get(f"/operations/{operation_id}").json()["state"], "COMPLETED")
+            self.assertEqual(self.store.count("applications"), 1)
+            self.assertEqual(self.store.count("documents"), 2)
+            self.assertEqual(
+                client.get(f"/profiles/fixture/applications/{application_id}").json()["state"],
+                "PREPARED",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()
