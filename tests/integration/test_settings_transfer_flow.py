@@ -85,7 +85,7 @@ class SettingsTransferFlowTests(unittest.TestCase):
     def test_versioned_export_import_is_profile_scoped_and_survives_reload(self):
         exported = self._export("fixture")
         self.assertEqual(set(exported), {"schema_version", "settings"})
-        self.assertEqual(exported["schema_version"], 1)
+        self.assertEqual(exported["schema_version"], 2)
         self.assertEqual(set(exported["settings"]), {
             "search_profiles", "automation_rules", "source_configuration",
         })
@@ -158,6 +158,41 @@ class SettingsTransferFlowTests(unittest.TestCase):
         self.assertEqual(self.client.get("/profiles/missing-profile/settings/export").status_code, 404)
         self.assertEqual(self.client.post(
             "/profiles/missing-profile/settings/import", json=payload).status_code, 404)
+
+    def test_v1_migration_is_profile_isolated_atomic_and_durable(self):
+        expected = self._export("fixture")
+        legacy = copy.deepcopy(expected)
+        legacy["schema_version"] = 1
+        rule = legacy["settings"]["automation_rules"][0]
+        legacy["settings"]["search_profiles"][0]["scheduler"] = {
+            key: rule[key] for key in ("enabled", "interval_seconds")}
+        original = copy.deepcopy(legacy)
+        target_before = self._export("other-profile")
+        for version in (True, 1.0, 2.0, "1", 0, 3, None):
+            bad = {**copy.deepcopy(legacy), "schema_version": version}
+            response = self.client.post("/profiles/other-profile/settings/import", json=bad)
+            self.assertEqual(response.status_code, 422, response.text)
+            self.assertEqual(self._export("other-profile"), target_before)
+        conflict = copy.deepcopy(legacy)
+        conflict["settings"]["automation_rules"][0]["interval_seconds"] = 1800
+        response = self.client.post("/profiles/other-profile/settings/import", json=conflict)
+        self.assertEqual(response.status_code, 422, response.text)
+        self.assertEqual(self._export("other-profile"), target_before)
+        rules_only = copy.deepcopy(legacy)
+        rules_only["settings"]["search_profiles"][0].pop("scheduler")
+        for payload in (legacy, legacy, rules_only, {**copy.deepcopy(legacy), "settings": {
+                **copy.deepcopy(legacy["settings"]), "automation_rules": []}}):
+            response = self.client.post("/profiles/other-profile/settings/import", json=payload)
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(self._export("other-profile"), expected)
+        self.assertEqual(legacy, original)
+        self.assertEqual(self._export("fixture"), expected)
+        self.client.close()
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.client = self._client()
+        self.assertEqual(self._export("other-profile"), expected)
+        self.assertEqual(self._export("other-profile")["schema_version"], 2)
 
     def test_malformed_criteria_rejects_without_replacement_and_recovers_after_reopen(self):
         before = self._export("other-profile")

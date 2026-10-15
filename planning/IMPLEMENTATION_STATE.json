@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Round3 scoped delivery complete; next reconcile original P1 settings versioning against live Project#1",
+  "current_objective": "Complete original P1 #277 / MJ-REQ-276 settings versioning with safe v1 migration and connected recovery proof",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -190,7 +190,10 @@
     "2026-10-10 MJ-REQ-134 immutable browser-verified document selection"
   ],
   "blocked_capabilities": [],
-  "active_requirements": [],
+  "active_requirements": [
+    "MJ-REQ-276",
+    "MJ-REQ-272"
+  ],
   "active_prs": [],
   "tests_passed": [
     "28 domain/control-plane unit tests",
@@ -2787,12 +2790,11 @@
     "Issue #517 local integration-task source e7553f04e82b3b551feb74fbe3d374cf680241d4 integrated at 9c5ac464a574a1101eb3910b0a0a796c36138106; evidence docs/evidence/2026-10-09-source-candidate-local-integration-task.json; 11 API/service/connected Chromium, 12 focused web, TypeScript/Vite build and local validators PASS. Broader #517 remains PARTIAL; PostgreSQL/full suite/live/hosted NOT_RUN; collection and external submission OFF."
   ],
   "ownership": {
-    "integration_owner": "Codex round3 sole writer",
-    "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-143805",
-    "branch": "main",
-    "workers": "Two read-only local Luna scouts/reviewers; no child writes",
-    "coordination": "No Codex claims/locks or runner; #15 restored Todo/PARTIAL; #258 Done/PASS",
-    "active": false
+    "integration_owner": "Codex campaign 20261014-193432",
+    "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-193432",
+    "branch": "codex/p0p1-round3-20261014-193432",
+    "workers": "One isolated Luna High frontend writer; root backend/testing/integration",
+    "active": true
   },
   "delivery_policy": {
     "mode": "CURRENT_DIRECTIVE_REQUIRED_HOSTED_GATES",
@@ -3469,5 +3471,46 @@
     "final_required_checks": "PASS5/5",
     "claims": "RELEASED",
     "runner": false
+  },
+  "settings_versioning_campaign": {
+    "issue": 277,
+    "base_sha": "0397e8c8714bcf55d2fc718ca6bfa67ca1277e30",
+    "status": "LOCAL_VERIFIED_PENDING_HOSTED",
+    "acceptance": [
+      "v2 canonical single-source scheduler settings",
+      "safely migrate actual v1 files without mutating input",
+      "atomic reject conflict/future/malformed documents",
+      "profile-isolated durable API/UI import, reload and scheduler execution"
+    ],
+    "rollback": "Scoped source revert; v1 import preserved, no database migration or private files changed",
+    "local_review": "Local Luna review: no blockers; array-preview finding fixed with regression test",
+    "evidence": "docs/evidence/2026-10-14-settings-versioning.json",
+    "validation": {
+      "units": "1656PASS/1170subtests/11skips",
+      "frontend": "809PASS/buildPASS",
+      "focused": "22PASS/39subtests/10PGskips",
+      "chromium": "1PASS",
+      "review": "local Luna no blockers",
+      "hosted": "NOT_RUN"
+    }
+  },
+  "document_failure_campaign": {
+    "issue": 273,
+    "requirement": "MJ-REQ-272",
+    "base_sha": "0397e8c8714bcf55d2fc718ca6bfa67ca1277e30",
+    "status": "IN_PROGRESS",
+    "owned_paths": [
+      "services/documents/generate.py",
+      "tests/integration/test_document_generation_failure_flow.py",
+      "tests/unit/test_document_failure_status.py"
+    ],
+    "gap": "Renderer exceptions currently recorded as generic error instead of DOCUMENT_GENERATION_FAILED",
+    "acceptance": [
+      "safe classification and durable error",
+      "no partial publication, preserved existing revisions",
+      "explicit retry and connected UI recovery",
+      "cancel/timeout retain their semantics"
+    ],
+    "rollback": "Scoped source revert; no schema changes"
   }
 }

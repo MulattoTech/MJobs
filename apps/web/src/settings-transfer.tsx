@@ -9,7 +9,7 @@ export type SettingsImportCounts = {
 };
 
 export type SettingsImportPreview =
-  | { ok: true; counts: SettingsImportCounts }
+  | { ok: true; schemaVersion: 1 | 2; counts: SettingsImportCounts }
   | { ok: false; errorCode: 'file_too_large' | 'invalid_json' | 'unsupported_format' };
 
 export type SettingsImportResult = {
@@ -35,8 +35,31 @@ function isRecord(value: unknown): value is RecordValue {
 
 function countCategory(value: unknown): number | null {
   if (Array.isArray(value)) return value.length;
-  if (isRecord(value)) return Object.keys(value).length;
   return null;
+}
+
+function isValidScheduler(value: unknown): value is { enabled: boolean; interval_seconds: number } {
+  return isRecord(value)
+    && Object.keys(value).length === 2
+    && typeof value.enabled === 'boolean'
+    && Number.isInteger(value.interval_seconds)
+    && Number(value.interval_seconds) >= 300
+    && Number(value.interval_seconds) <= 604800;
+}
+
+function legacySchedulersMissingRules(searchProfiles: unknown[], automationRules: unknown[]): number {
+  const rules = automationRules.filter((value): value is RecordValue => isRecord(value));
+  return searchProfiles.filter(value => {
+    if (!isRecord(value) || typeof value.name !== 'string') return false;
+    const scheduler = value.scheduler;
+    if (!isValidScheduler(scheduler)) return false;
+    const profileName = value.name.trim().toLowerCase();
+    return !rules.some(rule => rule.kind === 'scheduled_search'
+      && typeof rule.search_profile_name === 'string'
+      && rule.search_profile_name.trim().toLowerCase() === profileName
+      && rule.enabled === scheduler.enabled
+      && rule.interval_seconds === scheduler.interval_seconds);
+  }).length;
 }
 
 /** Return category counts only. Never return imported setting values to the UI. */
@@ -52,20 +75,31 @@ export function getSettingsImportPreview(text: string): SettingsImportPreview {
     return { ok: false, errorCode: 'invalid_json' };
   }
 
-  if (!isRecord(parsed) || parsed.schema_version !== 1 || !isRecord(parsed.settings)) {
+  if (!isRecord(parsed)
+    || !Number.isInteger(parsed.schema_version)
+    || (parsed.schema_version !== 1 && parsed.schema_version !== 2)
+    || !isRecord(parsed.settings)) {
     return { ok: false, errorCode: 'unsupported_format' };
   }
 
   const searchProfiles = countCategory(parsed.settings.search_profiles);
-  const automationRules = countCategory(parsed.settings.automation_rules);
+  const automationRuleRows = parsed.settings.automation_rules;
+  const automationRules = countCategory(automationRuleRows);
   const sourceConfigurations = countCategory(parsed.settings.source_configuration);
-  if (searchProfiles === null || automationRules === null || sourceConfigurations === null) {
+  const searchProfileRows = parsed.settings.search_profiles;
+  if (searchProfiles === null || automationRules === null || sourceConfigurations === null
+    || !Array.isArray(searchProfileRows) || !Array.isArray(automationRuleRows)) {
     return { ok: false, errorCode: 'unsupported_format' };
   }
 
+  const migratedSchedulers = parsed.schema_version === 1
+    ? legacySchedulersMissingRules(searchProfileRows, automationRuleRows)
+    : 0;
+
   return {
     ok: true,
-    counts: { searchProfiles, automationRules, sourceConfigurations },
+    schemaVersion: parsed.schema_version,
+    counts: { searchProfiles, automationRules: automationRules + migratedSchedulers, sourceConfigurations },
   };
 }
 
@@ -217,6 +251,7 @@ export function SettingsTransfer({ profileId, busy = false, error, success, onEx
       {preview && !preview.ok && <p role="alert">{importErrorMessage(preview.errorCode)}</p>}
       {preview?.ok && <div aria-live="polite" aria-label="Settings import preview">
         <p>Preview: {preview.counts.searchProfiles} search profiles, {preview.counts.automationRules} automation rules, and {preview.counts.sourceConfigurations} source configurations.</p>
+        {preview.schemaVersion === 1 && <p>This legacy settings file will be migrated to the current format when you confirm import.</p>}
         <p>Import replaces the supported settings in the selected profile. Nothing changes until you confirm.</p>
         <p>Missing public sources are created with the imported collection policy. Existing shared source policies must match; an import cannot overwrite another profile's source settings. Automation rules schedule discovery only.</p>
         <label>
