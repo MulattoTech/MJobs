@@ -223,6 +223,7 @@ def exercise(report, root, timeout):
                             and confirmed["confirmation"]["receipt"] == receipt["receipt"]
                             and receipt["confirmation_url"] == origin + "/ats/submit/B",
                             "mock confirmation not corroborated by owned fixture receipt")
+                    report["observations"].update(application_id=app_id, submission_count=receipt["submission_count"])
                     passed(active, "API mock submit executed in Chromium; confirmation matches owned mock receipt")
 
                     active = "duplicate-submission protection"
@@ -244,7 +245,7 @@ def exercise(report, root, timeout):
                         reopened.engine.dispose()
                     require(json.loads(receipt_file.read_text())[app_id]["submission_count"] == 1,
                             "mock receipt not durable")
-                    report["observations"].update(application_id=app_id, persisted_state=restored["state"], submission_count=1)
+                    report["observations"]["persisted_state"] = restored["state"]
                     passed(active, "fresh database connection and on-disk mock receipt retain one confirmed application")
     except ModuleNotFoundError:
         report["checks"][active] = {"status": "NOT_RUN", "reason": "required local Python dependency unavailable"}

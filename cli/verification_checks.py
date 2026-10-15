@@ -137,8 +137,10 @@ def _corroborate(report, expected):
             receipt = json.loads((root / "receipts.json").read_text(encoding="utf-8"))[row[0][0]]
             confirmation = json.loads(row[0][2])
             if (receipt["submission_count"] != 1 or receipt["receipt"] != confirmation["receipt"]
-                    or observed.get("submission_count") != 1 or observed.get("persisted_state") != "CONFIRMED"):
+                    or observed.get("submission_count") != 1):
                 raise ValueError("confirmation evidence mismatch")
+            if passed("durable readback") and observed.get("persisted_state") != "CONFIRMED":
+                raise ValueError("durable readback evidence mismatch")
 
 
 def exit_status(report):

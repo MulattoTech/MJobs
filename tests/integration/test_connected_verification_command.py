@@ -1,5 +1,6 @@
 """Operator command must execute isolated flows, never import an old PASS."""
 import json
+from copy import deepcopy
 import os
 from pathlib import Path
 import subprocess
@@ -185,6 +186,60 @@ def test_real_browser_failures_cannot_project_success(stage, tmp_path):
             assert receipts[application["id"]]["submission_count"] == 1
     finally:
         store.engine.dispose()
+
+
+@requires_windows_connected
+@pytest.mark.parametrize("stage", ["duplicate", "readback"])
+def test_parent_preserves_post_confirmation_failure_stage(stage, monkeypatch):
+    from cli.verification_checks import run_connected, exit_status, validate_report
+    from cli.verification_process import OwnedProcess
+
+    # Execute the actual child workflow and parent protocol in an owned Job.
+    # Only the selected late boundary fails; worker preparation/submit retain
+    # their real implementation, imported before the replay-only fault.
+    script = '''
+import sys
+from unittest.mock import patch
+import workers.tasks
+from packages.persistence.store import Store
+from services.applications import mock_adapter
+from cli.verification_fixture import main
+stage=sys.argv.pop()
+original_count=Store.count
+def fail_readback(store, table):
+ if table=='applications': raise RuntimeError('injected fresh-store readback failure')
+ return original_count(store,table)
+fault=(patch.object(mock_adapter,'apply_mock',side_effect=RuntimeError('injected duplicate replay failure'))
+       if stage=='duplicate' else patch.object(Store,'count',fail_readback))
+with fault: sys.exit(main())
+'''
+
+    def launch(argv, **kwargs):
+        return OwnedProcess([sys.executable, "-c", script, *argv[3:], stage], **kwargs)
+
+    def validate_with_tamper_controls(report, expected, *, pid):
+        validate_report(report, expected, pid=pid)
+        corrupted = deepcopy(report)
+        corrupted["observations"]["submission_count"] = 2
+        with pytest.raises(ValueError):
+            validate_report(corrupted, expected, pid=pid)
+        fabricated = deepcopy(report)
+        fabricated["checks"]["durable readback"]["status"] = "PASS"
+        with pytest.raises(ValueError):
+            validate_report(fabricated, expected, pid=pid)
+
+    monkeypatch.setattr("cli.verification_checks.OwnedProcess", launch)
+    monkeypatch.setattr("cli.verification_checks.validate_report", validate_with_tamper_controls)
+    report = run_connected(fixture=True, timeout=120)
+    assert report["checks"]["adapter registry"]["status"] == "PASS", report
+    assert report["checks"]["mock confirmation"]["status"] == "PASS"
+    assert report["observations"]["submission_count"] == 1
+    assert "persisted_state" not in report["observations"]
+    assert report["checks"]["duplicate-submission protection"]["status"] == ("FAIL" if stage == "duplicate" else "PASS")
+    assert report["checks"]["durable readback"]["status"] == ("NOT_RUN" if stage == "duplicate" else "FAIL")
+    assert exit_status(report) == 1
+    assert report["cleanup"]["status"] == "PASS"
+    assert not Path(report["workspace"]).exists()
 
 
 def test_default_readiness_performs_only_one_read_and_no_fixture_writes(tmp_path):
