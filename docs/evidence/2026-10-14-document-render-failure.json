@@ -53,7 +53,7 @@
     },
     {
       "path": "tests/integration/test_document_generation_failure_flow.py",
-      "sha256": "29095e1ea1df17af7ca4b3d1c364c8cfa5affee5188603fcd8a011487d27df28"
+      "sha256": "7a00e646ee8a4c9e3cc1517d6d876c8535da3d223d373c7c1bbc31310ae3ecb5"
     },
     {
       "path": "tests/integration/test_resume_page_fit_api.py",
@@ -75,5 +75,12 @@
     "classification": "Verified public source SHA256 false positive in evidence metadata; not a credential",
     "resolution": "Use path/sha256 records and exact historical fingerprint only; no rule or path suppression",
     "review": "Local Luna review independently recomputed public Git blob SHA256 and justified only the exact historical fingerprint"
+  },
+  "postgresql_contract": {
+    "environment": "MJOBS_APPLICATION_CRASH_POSTGRES_URL (existing required integration fixture)",
+    "isolation": "Explicit disposable loopback mjobs_test_* database; unique UUID schema; actual Alembic head; same scoped URL passed to worker; drop only owned schema",
+    "local": "2 SQLite contracts PASS;2 PostgreSQL contracts NOT_RUN (URL unconfigured); connected Chromium PASS",
+    "review": "Local Luna test-safety review found no blockers",
+    "hosted": "PENDING exact-head execution of both PostgreSQL failure/retry contracts"
   }
 }

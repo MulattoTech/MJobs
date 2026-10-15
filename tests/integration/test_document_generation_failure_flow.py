@@ -1,11 +1,17 @@
 """Fail-closed document generation and explicit recovery flow."""
 from pathlib import Path
 import hashlib
+import os
 import tempfile
 import unittest
 from unittest.mock import patch
+from uuid import uuid4
 
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, text
+from sqlalchemy.engine import make_url
 
 from apps.api.main import create_app
 from packages.persistence import models as m
@@ -20,7 +26,15 @@ class DocumentGenerationFailureFlowTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="mjobs-document-failure-")
         self.root = Path(self.directory.name)
-        self.store = Store(f"sqlite:///{(self.root / 'test.db').as_posix()}")
+        self.addCleanup(self.directory.cleanup)
+        self.store = Store(self.create_database())
+        self.addCleanup(self.store.engine.dispose)
+        self.migrate_database()
+
+    def create_database(self):
+        return f"sqlite:///{(self.root / 'test.db').as_posix()}"
+
+    def migrate_database(self):
         self.store.migrate()
 
     def tearDown(self):
@@ -178,6 +192,37 @@ class DocumentGenerationFailureFlowTests(unittest.TestCase):
                 client.get(f"/profiles/fixture/applications/{application_id}").json()["state"],
                 "PREPARED",
             )
+
+
+@unittest.skipUnless(os.environ.get("MJOBS_APPLICATION_CRASH_POSTGRES_URL"),
+                     "Requires a disposable loopback mjobs_test_* PostgreSQL database")
+class PostgreSQLDocumentGenerationFailureFlowTests(DocumentGenerationFailureFlowTests):
+    """Run the same real worker rollback/retry contract on the released schema."""
+
+    def create_database(self):
+        url = make_url(os.environ["MJOBS_APPLICATION_CRASH_POSTGRES_URL"])
+        if (not url.drivername.startswith("postgresql")
+                or url.host not in ("localhost", "127.0.0.1", "::1")
+                or not url.database or not url.database.startswith("mjobs_test_")
+                or set(url.query) - {"sslmode", "connect_timeout", "application_name"}):
+            raise RuntimeError("A disposable loopback mjobs_test_* PostgreSQL database is required")
+        self.schema = "document_failure_" + uuid4().hex
+        self.admin = create_engine(url, connect_args={"connect_timeout": 10})
+        self.addCleanup(self.admin.dispose)
+        with self.admin.begin() as connection:
+            connection.execute(text(f'CREATE SCHEMA "{self.schema}"'))
+        self.addCleanup(self.drop_schema)
+        return url.update_query_dict({
+            "options": f"-csearch_path={self.schema} -clock_timeout=5000 -cstatement_timeout=30000",
+        }).render_as_string(hide_password=False)
+
+    def migrate_database(self):
+        with patch.dict(os.environ, MJOBS_DATABASE_URL=self.store.url):
+            command.upgrade(Config(str(Path(__file__).resolve().parents[2] / "alembic.ini")), "head")
+
+    def drop_schema(self):
+        with self.admin.begin() as connection:
+            connection.execute(text(f'DROP SCHEMA IF EXISTS "{self.schema}" CASCADE'))
 
 
 if __name__ == "__main__":
