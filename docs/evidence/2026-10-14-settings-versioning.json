@@ -88,11 +88,12 @@
   },
   "input_sha256": {
     "services/settings_transfer.py": "ae9709836cafb49dfdc7d3d697ad88cd9aec9b4444d9c36dd366778103e025fa",
-    "apps/web/src/settings-transfer.tsx": "c86529718d3e1563c2961c70c75a18082814243dd2faed4e5405bacc0e0ac176",
-    "apps/web/src/settings-transfer.test.tsx": "6fcdaf3dd5d376f1ba00bacae2578d346a585400b515b1485d61992df6d56589",
+    "apps/web/src/settings-transfer.tsx": "e9d31bd2a46599632ba9b0c1f8d5c283251c4220821256bc0acb1df16093f2f9",
+    "apps/web/src/settings-transfer.test.tsx": "04ec51775c1519af6fc790a68d8f4b24f0a33ed966be10ca56cb61b2e1935925",
     "tests/unit/test_settings_transfer.py": "4db460b9c2857f80ea8688400c188476c7677decc80a56dc365f66099099a2da",
     "tests/integration/test_settings_transfer_flow.py": "004c83a99690151cb3b397532e0b76882a704cb657c13144295e4735fb8121d6",
     "tests/integration/test_settings_transfer_portable.py": "d91069ff50fd5fb3f416243fa496e848b0bc6abeac4cc93820f61733760a3aae",
     "tests/browser/test_settings_transfer_recovery.py": "4e7162623b4b8c03fe6ba253ed9129a880bc58455985a5ee7a1be97e10298721"
-  }
+  },
+  "source_hash_method": "SHA256 of Git blob bytes; two prior TypeScript checkout hashes were independently verified CRLF equivalents before normalization. No source change."
 }

@@ -2,8 +2,8 @@
   "schema_version": 1,
   "requirement": "MJ-REQ-249",
   "issue": 250,
-  "result": "PARTIAL",
-  "utc": "2026-10-15T01:34:15.930501+00:00",
+  "result": "PASS",
+  "utc": "2026-10-15T01:46:08.317894+00:00",
   "behavior": [
     "Every long-running Compose service has a functional health check; the one-shot migrator is excluded",
     "API uses complete readiness instead of database-only liveness",
@@ -23,10 +23,7 @@
     "python -m pytest -q tests/unit/test_compose_health_checks.py tests/integration/test_compose_recovery_target.py tests/integration/test_compose_recovery_guardrails.py tests/unit/test_compose_recovery_target.py tests/integration/test_runtime_readiness_api.py tests/integration/test_api_queue.py --tb=short",
     "python -m pytest -q tests/unit/test_container_health.py tests/unit/test_runtime_health.py tests/unit/test_discovery_scheduler_health.py tests/unit/test_worker_queue_binding.py tests/unit/test_compose_health_checks.py tests/integration/test_compose_recovery_target.py tests/integration/test_compose_recovery_guardrails.py tests/unit/test_compose_recovery_target.py tests/integration/test_runtime_readiness_api.py tests/integration/test_api_queue.py --tb=short"
   ],
-  "pending": [
-    "Five exact-head required hosted gates",
-    "Real Docker health baseline, outage and recovery in both source and restored fixture projects"
-  ],
+  "pending": [],
   "safety": "Health probes perform Redis reads and read-only Linux /proc lookup; no process signaling. Recovery mutations remain confined to label-verified disposable FIXTURE containers, explicit project and port, verified baseline receipt and external submissions OFF. No personal .env, credentials or host configuration changed.",
   "rollback": "Scoped source/Compose revert. No schema migration or persistent-data rewrite.",
   "not_run": [
@@ -74,5 +71,76 @@
     "resolution": "Re-run complete project/service/config-file/working-directory/running preflight after restart, then inspect only freshly label-verified IDs",
     "regression": "Existing public recovery flow now recreates the worker, rejects stale ID and asserts replacement label check precedes health. RED1failure6PASS/16subtests, then combined60PASS/71subtests",
     "review": "Local Luna review of exact repair: no blockers; no relaxed target checks, fallback or retry"
+  },
+  "source_commit": "7c96a899fcead9f3250824f4220a778fb2b6faa0",
+  "merge_commit": "c00e57cdcf9ac27db7a7b13991d84870bd65471d",
+  "pr": "https://github.com/MulattoTech/MJobs/pull/659",
+  "hosted": {
+    "required_checks": [
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38666436059/job/116202170241",
+        "name": "Integration / PostgreSQL and Redis",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38666436065/job/116199954934",
+        "name": "CI / required",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38666436099/job/116199351871",
+        "name": "Dependencies / introduced vulnerabilities",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38666436075/job/116199350842",
+        "name": "Security / secret scan",
+        "state": "SUCCESS"
+      },
+      {
+        "link": "https://github.com/MulattoTech/MJobs/actions/runs/38666436134/job/116199351543",
+        "name": "Disposable Compose / mock end-to-end",
+        "state": "SUCCESS"
+      }
+    ],
+    "validation": {
+      "synthetic": {
+        "ci-backup-recovery.json": {
+          "result": "PASS",
+          "healthy_services_before": 10,
+          "running_api_unhealthy_during_redis_outage": true,
+          "healthy_services_after": 10
+        },
+        "ci-backup.json": "PASS",
+        "ci-mock-e2e.json": "PASS",
+        "ci-recovery.json": {
+          "result": "PASS",
+          "healthy_services_before": 10,
+          "running_api_unhealthy_during_redis_outage": true,
+          "healthy_services_after": 10
+        },
+        "ci-ui.json": "PASS"
+      },
+      "browser_passed": 3
+    },
+    "runs": {
+      "Integration / PostgreSQL and Redis": 38666436059,
+      "CI / required": 38666436065,
+      "Dependencies / introduced vulnerabilities": 38666436099,
+      "Security / secret scan": 38666436075,
+      "Disposable Compose / mock end-to-end": 38666436134
+    },
+    "runtime": "Ubuntu24.04 GitHub runner; isolated Linux Docker FIXTURE projects, source and fresh restore",
+    "integration": {
+      "records": 1741,
+      "failures": 0,
+      "skips": 19,
+      "postgres_document_contracts": [
+        "test_corrupt_generation_is_dead_lettered_hidden_then_explicitly_retried",
+        "test_renderer_exception_is_sanitized_and_same_operation_can_be_retried"
+      ],
+      "settings_cases": 25,
+      "settings_skips": 0
+    }
   }
 }

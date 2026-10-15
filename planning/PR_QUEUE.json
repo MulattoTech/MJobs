@@ -3313,8 +3313,11 @@
       "container_health_campaign": {
         "issue": 250,
         "requirement": "MJ-REQ-249",
-        "status": "IN_PROGRESS",
-        "branch": "feat/container-health-proof-20261014"
+        "status": "PASS",
+        "branch": "feat/container-health-proof-20261014",
+        "source_commit": "7c96a899fcead9f3250824f4220a778fb2b6faa0",
+        "merge_commit": "c00e57cdcf9ac27db7a7b13991d84870bd65471d",
+        "pr": 659
       }
     },
     {
@@ -5836,5 +5839,5 @@
       "scope_complete": true
     }
   ],
-  "generated_at": "2026-10-09T21:37:30Z"
+  "generated_at": "2026-10-15T01:46:08.317894+00:00"
 }
