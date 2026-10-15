@@ -1,7 +1,7 @@
 """Reject incomplete, stale and forged connected child evidence."""
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
-import os
+import subprocess
 import sys
 
 import pytest
@@ -70,7 +70,46 @@ def test_no_fixture_admission_cannot_launch_or_connect(monkeypatch):
     def forbidden(*args, **kwargs):
         pytest.fail("unsafe request launched fixture execution")
 
-    monkeypatch.setattr("cli.verification_checks.subprocess.Popen", forbidden)
+    monkeypatch.setattr("cli.verification_checks.OwnedProcess", forbidden)
     report = run_connected(fixture=False)
     assert exit_status(report) == 1
     assert not any(row["status"] == "PASS" for row in report["checks"].values())
+
+
+def test_unavailable_containment_is_blocked_without_uncontained_fallback(monkeypatch):
+    monkeypatch.setattr("cli.verification_checks.source_identity", lambda: ("revision", "inputs"))
+    monkeypatch.setattr("cli.verification_process.sys.platform", "unsupported-platform")
+    report = run_connected(fixture=True)
+    assert exit_status(report) == 1
+    assert report["checks"][CHECKS[0]]["status"] == "BLOCKED"
+    assert report["cleanup"]["status"] == "BLOCKED"
+
+
+def test_unprovable_cleanup_is_never_silently_downgraded_to_not_run(monkeypatch):
+    from cli.verification_process import CleanupError
+
+    class UnprovableProcess:
+        pid = 123
+
+        def wait(self, timeout):
+            raise subprocess.TimeoutExpired("owned child", timeout)
+
+        def finalize(self):
+            raise CleanupError("injected native proof failure")
+
+    monkeypatch.setattr("cli.verification_checks.source_identity", lambda: ("revision", "inputs"))
+    monkeypatch.setattr("cli.verification_checks.OwnedProcess", lambda *args, **kwargs: UnprovableProcess())
+    report = run_connected(fixture=True)
+    assert report["cleanup"]["status"] == "BLOCKED"
+    assert report["checks"][CHECKS[0]]["status"] == "FAIL"
+    assert exit_status(report) == 1
+
+
+def test_text_command_displays_unproven_cleanup(monkeypatch, capsys):
+    from cli.verify_readiness import main
+
+    report = new_report("invocation", "revision", "inputs")
+    report["cleanup"] = {"status": "BLOCKED", "reason": "owned tree termination could not be proven"}
+    monkeypatch.setattr("cli.verification_checks.run_connected", lambda **kwargs: report)
+    assert main(["--connected", "--fixture"]) == 1
+    assert "[BLOCKED] Isolated cleanup: owned tree termination could not be proven" in capsys.readouterr().out

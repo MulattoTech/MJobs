@@ -107,6 +107,8 @@ def main(argv=None):
             print(f"Invocation: {result['invocation_id']} Revision: {result['revision']} Inputs: {result['source_sha256']}")
             for name, row in result["checks"].items():
                 print(f"[{row['status']}] {name}: {row['reason']}")
+            cleanup = result.get("cleanup", {"status": "NOT_RUN", "reason": "no owned execution admitted"})
+            print(f"[{cleanup['status']}] Isolated cleanup: {cleanup['reason']}")
         return exit_status(result)
     if args.fixture or args.json or args.connected_timeout != 120:
         parser.error("--fixture, --json and --connected-timeout require --connected")

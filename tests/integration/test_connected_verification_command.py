@@ -8,6 +8,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 from unittest.mock import patch
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -116,6 +118,63 @@ def test_executed_detector_failure_propagates_without_passing_downstream(tmp_pat
     assert report["checks"]["ATS detector"]["status"] == "FAIL"
     assert report["checks"]["mock confirmation"]["status"] == "NOT_RUN"
     assert exit_status(report) == 1
+
+
+@pytest.mark.parametrize("stage", ["upload", "confirmation"])
+def test_real_browser_failures_cannot_project_success(stage, tmp_path):
+    import httpx
+    from cli.verification_checks import new_report, exit_status
+    from cli.verification_fixture import exercise
+    from packages.persistence.store import Store
+    from services.discovery.pipeline import MockClient
+    from services.applications import upload_integrity
+
+    report = new_report("failure-" + stage, "revision", "source-hash")
+    original_get = MockClient.get
+
+    def corrupt_confirmation(client, url):
+        response = original_get(client, url)
+        if "/ats/receipts/" in url:
+            payload = response.json()
+            if "receipt" in payload:
+                payload["confirmation_text"] = "Your application is still being processed."
+                return httpx.Response(response.status_code, json=payload, request=response.request)
+        return response
+
+    if stage == "upload":
+        # Fail at the browser selected-File verification boundary. Everything
+        # upstream, including document generation and Chromium launch, is real.
+        fault = patch.object(upload_integrity, "verify_file_selection",
+                             side_effect=upload_integrity.UploadIntegrityError("injected byte mismatch"))
+    else:
+        # The owned mock server and browser submit really execute, but corrupt
+        # the read-back receipt text so it cannot certify confirmation.
+        fault = patch.object(MockClient, "get", corrupt_confirmation)
+    with patch.dict(os.environ), fault:
+        exercise(report, tmp_path, 120)
+    assert report["checks"]["Document engine healthy"]["status"] == "PASS"
+    assert report["checks"]["Browser worker healthy"]["status"] == "PASS"
+    assert exit_status(report) == 1
+    store = Store(f"sqlite:///{(tmp_path / 'fixture.db').as_posix()}")
+    try:
+        apps = store.applications(report["observations"]["profile_id"])
+        assert len(apps) == 1
+        application = store.application(apps[0]["id"])
+        assert application["confirmation"] is None
+        receipts = json.loads((tmp_path / "receipts.json").read_text()) if (tmp_path / "receipts.json").exists() else {}
+        if stage == "upload":
+            assert report["checks"]["Dry-run mode functional"]["status"] == "FAIL"
+            assert report["checks"]["mock upload"]["status"] == "NOT_RUN"
+            assert report["checks"]["mock confirmation"]["status"] == "NOT_RUN"
+            assert not receipts
+        else:
+            assert report["checks"]["mock upload"]["status"] == "PASS"
+            assert report["checks"]["mock confirmation"]["status"] == "FAIL"
+            assert report["checks"]["duplicate-submission protection"]["status"] == "NOT_RUN"
+            assert application["state"] == "SUBMISSION_UNCONFIRMED"
+            assert receipts[application["id"]]["submission_count"] == 1
+    finally:
+        store.engine.dispose()
 
 
 def test_default_readiness_performs_only_one_read_and_no_fixture_writes(tmp_path):

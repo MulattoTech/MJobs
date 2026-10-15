@@ -13,12 +13,13 @@ import json
 import math
 import os
 from pathlib import Path
-import signal
 import sqlite3
 import subprocess
 import sys
 import tempfile
 from uuid import uuid4
+
+from cli.verification_process import CleanupError, ContainmentUnavailable, OwnedProcess
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -142,21 +143,16 @@ def _corroborate(report, expected):
 
 def exit_status(report):
     statuses = {row["status"] for row in report["checks"].values()}
+    if report.get("cleanup", {}).get("status") in {"FAIL", "BLOCKED"}:
+        return 1
     if statuses & {"FAIL", "BLOCKED"}:
         return 1
     return 2 if "NOT_RUN" in statuses else 0
 
 
 def _stop(process):
-    """Cancel only this still-owned child and its descendants, then reap it."""
-    if process.poll() is None:
-        if os.name == "nt":
-            subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
-                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=10,
-                           check=True)
-        else:
-            os.killpg(process.pid, signal.SIGKILL)
-    process.wait(timeout=10)
+    """Finalize retained Job ownership, independently of direct-root liveness."""
+    process.finalize()
 
 
 def run_connected(*, fixture=False, timeout=120):
@@ -168,6 +164,13 @@ def run_connected(*, fixture=False, timeout=120):
         return report
     try:
         return _execute_connected(report, timeout)
+    except ContainmentUnavailable:
+        report["checks"][CHECKS[0]] = {"status": "BLOCKED", "reason": "atomic retained process-tree containment unavailable; no uncontained fallback"}
+        report["cleanup"] = {"status": "BLOCKED", "reason": "contained execution was not admitted"}
+        return report
+    except CleanupError:
+        report["cleanup"] = {"status": "BLOCKED", "reason": "owned process-tree cleanup could not be proven"}
+        return report
     except (OSError, subprocess.SubprocessError):
         # Permission/missing local executable errors are dependencies, not a
         # successful check or a dump of arbitrary private environment details.
@@ -183,37 +186,48 @@ def _execute_connected(report, timeout):
                "USERPROFILE", "LOCALAPPDATA", "APPDATA", "HOME", "PLAYWRIGHT_BROWSERS_PATH"}
     env = {key: value for key, value in os.environ.items() if key.upper() in allowed}
     env["PYTHONUTF8"] = "1"
-    with tempfile.TemporaryDirectory(prefix="mjobs-connected-verification-") as directory:
-        root = Path(directory)
+    temporary = tempfile.TemporaryDirectory(prefix="mjobs-connected-verification-")
+    process = None
+    cleanup_failed = False
+    try:
+        root = Path(temporary.name)
         request = root / "invocation.json"
         output = root / "result.json"
         report["workspace"] = str(root / "fixture")
         request.write_text(json.dumps(report), encoding="utf-8")
-        with (root / "child.log").open("w", encoding="utf-8") as log:
-            process = subprocess.Popen(
-                [sys.executable, "-m", "cli.verification_fixture", str(request), str(output), str(timeout)],
-                cwd=ROOT, env=env, stdout=log, stderr=log,
-                start_new_session=os.name != "nt",
-            )
+        process = OwnedProcess(
+            [sys.executable, "-m", "cli.verification_fixture", str(request), str(output), str(timeout)],
+            cwd=ROOT, env=env,
+        )
+        try:
+            process.wait(timeout=timeout)
+            received = json.loads(output.read_text(encoding="utf-8"))
+            validate_report(received, report, pid=process.pid)
+            if source_identity() != (revision, source_hash):
+                raise ValueError("verification inputs changed during invocation")
+            if process.returncode != exit_status(received):
+                raise ValueError("connected child exit/evidence disagreement")
+            report = received
+        except subprocess.TimeoutExpired:
+            report["checks"][CHECKS[0]] = {"status": "FAIL", "reason": "connected execution deadline exceeded; child cancelled"}
+        except (OSError, ValueError, KeyError, TypeError, sqlite3.Error):
+            report["checks"][CHECKS[0]] = {"status": "FAIL", "reason": "missing, malformed or mismatched current child evidence"}
+    finally:
+        # Every path, including a valid report or crashed/exited host, finalizes
+        # the Job before deleting inputs. A dead numeric PID is never used.
+        if process is not None:
             try:
-                process.wait(timeout=timeout)
-                received = json.loads(output.read_text(encoding="utf-8"))
-                validate_report(received, report, pid=process.pid)
-                if source_identity() != (revision, source_hash):
-                    raise ValueError("verification inputs changed during invocation")
-                if process.returncode != exit_status(received):
-                    raise ValueError("connected child exit/evidence disagreement")
-                report = received
-            except subprocess.TimeoutExpired:
                 _stop(process)
-                report["checks"][CHECKS[0]] = {"status": "FAIL", "reason": "connected execution deadline exceeded; child cancelled"}
-            except (OSError, ValueError, KeyError, TypeError, sqlite3.Error):
-                report["checks"][CHECKS[0]] = {"status": "FAIL", "reason": "missing, malformed or mismatched current child evidence"}
-            except BaseException:
-                _stop(process)
-                raise
-            finally:
-                if process.poll() is None:
-                    _stop(process)
-    report["cleanup"] = {"status": "PASS", "reason": "owned child reaped and temporary fixture/API/database removed"}
+            except CleanupError:
+                cleanup_failed = True
+        try:
+            temporary.cleanup()
+        except OSError:
+            cleanup_failed = True
+        if cleanup_failed:
+            report["cleanup"] = {"status": "BLOCKED", "reason": "owned tree termination or workspace removal could not be proven"}
+        elif process is None:
+            report["cleanup"] = {"status": "NOT_RUN", "reason": "no contained child admitted; temporary workspace removed"}
+        else:
+            report["cleanup"] = {"status": "PASS", "reason": "retained Job has zero active members; original host reaped and owned workspace removed"}
     return report
