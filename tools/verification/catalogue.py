@@ -5,12 +5,16 @@ import json
 from pathlib import Path
 import re
 
+from tools.verification.pr_queue import validate_policy
+
 
 def validate_catalogue(root: Path) -> list[str]:
     seeds = [json.loads(line) for line in (root / "planning/ISSUE_SEED.jsonl")
              .read_text(encoding="utf-8").splitlines() if line.strip()]
-    items = json.loads((root / "planning/PR_QUEUE.json").read_text(encoding="utf-8"))["items"]
-    errors = []
+    document = json.loads((root / "planning/PR_QUEUE.json").read_text(encoding="utf-8"))
+    items = document["items"]
+    # Older catalogue fixtures contain only items. Canonical queue always has policy.
+    errors = validate_policy(document["policy"]) if "policy" in document else []
     ids = set()
     for seed in seeds:
         requirement = seed["id"]
