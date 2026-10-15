@@ -444,6 +444,22 @@ company_discovery_requests = table(
     ),
 )
 Index("ix_company_discovery_requests_last_seen", company_discovery_requests.c.last_seen_at)
+profile_recovery_history_snapshots = table(
+    "profile_recovery_history_snapshots",
+    Column("profile_id", ForeignKey("career_profiles.id", ondelete="CASCADE"), nullable=False),
+    Column("kind", String(64), nullable=False),
+    Column("source_identity", String(128), nullable=False),
+    Column("schema_version", Integer, nullable=False),
+    Column("payload", JSON, nullable=False),
+    Column("created_at", String(64), nullable=False),
+    constraints=(
+        UniqueConstraint("profile_id", "kind", "source_identity",
+                         name="uq_recovery_history_profile_kind_source"),
+        CheckConstraint("schema_version = 1", name="ck_recovery_history_schema_version"),
+    ),
+)
+Index("ix_recovery_history_profile_kind", profile_recovery_history_snapshots.c.profile_id,
+      profile_recovery_history_snapshots.c.kind)
 company_source_monitoring = table(
     "company_source_monitoring",
     Column("source_id", ForeignKey("company_job_sources.id"), nullable=False),

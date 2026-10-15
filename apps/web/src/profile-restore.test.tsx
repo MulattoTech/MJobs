@@ -6,6 +6,7 @@ import {
   ProfileRestore,
   ProfileRestorePreviewCard,
   requestRestorePreview,
+  loadRecoveredHistory,
   submitProfileRestore,
   MAX_PROFILE_RESTORE_BYTES,
 } from './profile-restore';
@@ -20,9 +21,9 @@ const backup = {
 const preview = {
   fingerprint: 'a'.repeat(64),
   source_profile: { name: 'Source Person', email: 'source@example.test' },
-  counts: { facts: 2, answers: 1, uploaded_files: 1, search_profiles: 1 },
-  warnings: ['IMPORTED_FACTS_REQUIRE_REVIEW', 'SEARCH_PROFILES_DISABLED', 'UPLOADED_FILES_NOT_INCLUDED'],
-  omitted_sections: ['job_history', 'application_history', 'ai_evaluations'],
+  counts: { facts: 2, answers: 1, uploaded_files: 1, generated_documents: 1, jobs: 3, applications: 1, search_profiles: 1, company_discovery_history: 1 },
+  warnings: ['IMPORTED_FACTS_REQUIRE_REVIEW', 'SEARCH_PROFILES_DISABLED', 'UPLOADED_FILES_NOT_INCLUDED', 'GENERATED_DOCUMENTS_NOT_INCLUDED', 'APPLICATION_HISTORY_PARTIALLY_RESTORED', 'COMPANY_DISCOVERY_HISTORY_ARCHIVED'],
+  omitted_sections: ['provider_credentials'],
   imported_private_payload: 'DO_NOT_DISPLAY',
 };
 
@@ -53,9 +54,9 @@ describe('profile restore', () => {
     expect(result).toEqual({
       fingerprint: 'a'.repeat(64),
       sourceProfile: { name: 'Source Person', email: 'source@example.test' },
-      counts: { facts: 2, answers: 1, uploaded_files: 1, search_profiles: 1 },
-      warnings: ['IMPORTED_FACTS_REQUIRE_REVIEW', 'SEARCH_PROFILES_DISABLED', 'UPLOADED_FILES_NOT_INCLUDED'],
-      omittedSections: ['job_history', 'application_history', 'ai_evaluations'],
+      counts: { facts: 2, answers: 1, uploaded_files: 1, generated_documents: 1, jobs: 3, applications: 1, search_profiles: 1, company_discovery_history: 1 },
+      warnings: ['IMPORTED_FACTS_REQUIRE_REVIEW', 'SEARCH_PROFILES_DISABLED', 'UPLOADED_FILES_NOT_INCLUDED', 'GENERATED_DOCUMENTS_NOT_INCLUDED', 'APPLICATION_HISTORY_PARTIALLY_RESTORED', 'COMPANY_DISCOVERY_HISTORY_ARCHIVED'],
+      omittedSections: ['provider_credentials'],
     });
     expect(JSON.stringify(result)).not.toContain('DO_NOT_DISPLAY');
     expect(JSON.stringify(result)).not.toContain('PRIVATE_FACT');
@@ -94,6 +95,26 @@ describe('profile restore', () => {
     });
   });
 
+  it('loads only the requested profile inert history summary and rejects malformed archives', async () => {
+    const request = vi.fn(async () => ({
+      profile_id: 'restored-profile', mode: 'READ_ONLY_HISTORICAL_ARCHIVE',
+      authorization_required_for_future_live_action: true,
+      history: [{ kind: 'company_discovery_request', source_identity: 'old-request', schema_version: 1,
+        created_at: '2026-10-12T00:00:00Z', payload: { state: 'QUEUED', reasons: ['SYNTHETIC'], reference_status: 'LINKED', metadata_status: 'COMPLETE', authorization: 'HIDDEN' } }],
+      secret: 'DO_NOT_DISPLAY',
+    }));
+    const result = await loadRecoveredHistory(request, 'restored-profile');
+    expect(request).toHaveBeenCalledExactlyOnceWith('/profile-restores/restored-profile/history');
+    expect(result).toEqual([{ sourceIdentity: 'old-request', state: 'QUEUED',
+      reasons: ['SYNTHETIC'], referenceStatus: 'LINKED', metadataStatus: 'COMPLETE', createdAt: '2026-10-12T00:00:00Z' }]);
+    expect(JSON.stringify(result)).not.toContain('HIDDEN');
+    expect(JSON.stringify(result)).not.toContain('DO_NOT_DISPLAY');
+    expect(await loadRecoveredHistory(vi.fn(async () => ({
+      profile_id: 'other-profile', history: [], mode: 'READ_ONLY_HISTORICAL_ARCHIVE',
+      authorization_required_for_future_live_action: true,
+    })), 'restored-profile')).toBeNull();
+  });
+
   it('shows omissions, verification reset, a new-profile warning, and no imported values before preview', () => {
     const markup = renderToStaticMarkup(<ProfileRestore api={api} />);
     expect(markup).toContain('Restore a profile backup');
@@ -114,8 +135,9 @@ describe('profile restore', () => {
     }} confirmed={false} onConfirmedChange={() => {}} onRestore={() => {}} restoring={false} />);
     expect(markup).toContain('2 facts');
     expect(markup).toContain('1 answer');
-    expect(markup).toContain('Employment history and job records');
-    expect(markup).toContain('Application history');
+    expect(markup).toContain('1 generated document');
+    expect(markup).toContain('1 recovered discovery history record');
+    expect(markup).toContain('Provider credentials');
     expect(markup).toContain('Original uploaded files are not included');
     expect(markup).toContain('I understand this creates a new profile');
     expect(markup).not.toContain('DO_NOT_DISPLAY');

@@ -27,6 +27,7 @@ _BACKUP_SECTIONS = {
     "settings", "career_stories", "ai_evaluation_runs", "ai_job_evaluations",
     "ai_document_reviews", "source_candidates", "source_candidate_reviews",
     "company_discovery_requests", "jobs", "job_matches", "applications",
+    "company_discovery_history",
     "application_routes", "application_route_choices", "documents", "document_files",
     "attempts", "resume_revisions", "uploaded_resumes", "resume_workspace_revisions",
     "interview_prep_packs",
