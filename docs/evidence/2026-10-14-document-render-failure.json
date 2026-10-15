@@ -38,13 +38,42 @@
   ],
   "privacy": "Synthetic fixture profiles and loopback mock only. No credentials/private profiles read. No real external submission.",
   "rollback": "Scoped source revert; no schema migration or data rewrite.",
-  "input_sha256": {
-    "services/documents/generate.py": "52bb7a2844ccf02ac262c385b88f84bb2b9364de59d79923f8fca1ef8b2fb1ed",
-    "apps/api/resume_page_fit.py": "ec207f1cbfb09ea580f307018bb2038b2a24712cf95e76fd8473e6a094feb8ce",
-    "tests/unit/test_document_failure_status.py": "ac41bc04a70cfe4ab8a894015c8ad1d2fba0b510c436198a2b8fda72875e73eb",
-    "tests/integration/test_document_generation_failure_flow.py": "29095e1ea1df17af7ca4b3d1c364c8cfa5affee5188603fcd8a011487d27df28",
-    "tests/integration/test_resume_page_fit_api.py": "7ff77c34a81e181d8434a9374e196dfcea4ced125fd541577f465ea9a21858dc",
-    "tests/browser/test_document_generation_failure.py": "552b1fb1f84f4e239f2f785e2b73cc97ccc2a6230617f3c4f2775ad5d8cfbce1",
-    ".github/workflows/connected-acceptance.yml": "3d2edd87cb6812ee60fcda53bf9cec1f6653952954201f617795f9e2e40cdda1"
+  "source_inputs": [
+    {
+      "path": "services/documents/generate.py",
+      "sha256": "52bb7a2844ccf02ac262c385b88f84bb2b9364de59d79923f8fca1ef8b2fb1ed"
+    },
+    {
+      "path": "apps/api/resume_page_fit.py",
+      "sha256": "ec207f1cbfb09ea580f307018bb2038b2a24712cf95e76fd8473e6a094feb8ce"
+    },
+    {
+      "path": "tests/unit/test_document_failure_status.py",
+      "sha256": "ac41bc04a70cfe4ab8a894015c8ad1d2fba0b510c436198a2b8fda72875e73eb"
+    },
+    {
+      "path": "tests/integration/test_document_generation_failure_flow.py",
+      "sha256": "29095e1ea1df17af7ca4b3d1c364c8cfa5affee5188603fcd8a011487d27df28"
+    },
+    {
+      "path": "tests/integration/test_resume_page_fit_api.py",
+      "sha256": "7ff77c34a81e181d8434a9374e196dfcea4ced125fd541577f465ea9a21858dc"
+    },
+    {
+      "path": "tests/browser/test_document_generation_failure.py",
+      "sha256": "552b1fb1f84f4e239f2f785e2b73cc97ccc2a6230617f3c4f2775ad5d8cfbce1"
+    },
+    {
+      "path": ".github/workflows/connected-acceptance.yml",
+      "sha256": "3d2edd87cb6812ee60fcda53bf9cec1f6653952954201f617795f9e2e40cdda1"
+    }
+  ],
+  "ci_repair": {
+    "head": "aa4eeae21821bf3fa01ebd893da6b41ba2b2dbcb",
+    "run": 38663009676,
+    "job": 116188426367,
+    "classification": "Verified public source SHA256 false positive in evidence metadata; not a credential",
+    "resolution": "Use path/sha256 records and exact historical fingerprint only; no rule or path suppression",
+    "review": "Local Luna review independently recomputed public Git blob SHA256 and justified only the exact historical fingerprint"
   }
 }
