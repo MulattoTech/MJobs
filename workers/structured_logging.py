@@ -31,26 +31,6 @@ def _safe_identifier(value):
                      and not _SECRET_SHAPED_IDENTIFIER.search(value)) else None
 
 
-def _safe_discovery_source_id(operation):
-    """Return only an explicit persisted source identifier for a discovery kind."""
-    params = operation.get("params")
-    if not isinstance(params, dict):
-        return None
-
-    kind = operation.get("kind")
-    if kind == "DISCOVER" or kind == "COMPANY_SOURCE_REFRESH":
-        value = params.get("source_id")
-    elif kind == "COMPANY_DISCOVER":
-        value = params.get("monitoring_source_id")
-    else:
-        return None
-
-    identifier = _safe_identifier(value)
-    if identifier and not _SECRET_SHAPED_IDENTIFIER.search(identifier):
-        return identifier
-    return None
-
-
 def _safe_error_code(value):
     return value if (isinstance(value, str) and _SAFE_ERROR_CODE.fullmatch(value)
                      and not _SECRET_SHAPED_IDENTIFIER.search(value)) else None
@@ -58,6 +38,43 @@ def _safe_error_code(value):
 
 def _safe_ats_provider(value):
     return value if isinstance(value, str) and value in _SAFE_ATS_PROVIDERS else None
+
+
+# Exact scalar field sets by operation kind; payloads and batch arrays never pass.
+_JOB_FIELDS = {"job_id", "posting_id", "company_id", "application_id", "source_id", "source", "ats_provider"}
+_SOURCE_FIELDS = {"source_id", "source", "company_id", "ats_provider"}
+_CONTEXT_FIELDS = {
+    "PREPARE": _JOB_FIELDS,
+    "APPLY_MOCK": _JOB_FIELDS,
+    "APPLICATION_FORM_REVIEW": _JOB_FIELDS,
+    "APPLICATION_DRY_RUN": _JOB_FIELDS,
+    "UPLOADED_RESUME_COMPARE_QUEUED": _JOB_FIELDS,
+    "DISCOVER": _SOURCE_FIELDS,
+    "COMPANY_DISCOVER": _JOB_FIELDS - {"application_id"},
+    "COMPANY_SOURCE_REFRESH": _SOURCE_FIELDS,
+}
+_SAFE_SOURCES = _SAFE_ATS_PROVIDERS | {
+    "mock-board", "mock-employer", "remotive", "wwr", "remoteok", "remote_ok",
+    "rss", "sitemap", "html", "json", "public-api",
+}
+
+
+def safe_operation_context(kind, context):
+    """Filter a persisted projection again at the JSON boundary."""
+    if not isinstance(context, dict):
+        return {}
+    result = {}
+    for field in _CONTEXT_FIELDS.get(kind, ()):
+        value = context.get(field)
+        if field == "ats_provider":
+            value = _safe_ats_provider(value)
+        elif field == "source":
+            value = value if isinstance(value, str) and value in _SAFE_SOURCES else None
+        else:
+            value = _safe_identifier(value)
+        if value is not None:
+            result[field] = value
+    return result
 
 
 def configure_operation_logger(stream=None):
@@ -88,40 +105,10 @@ def log_operation_finished(operation, result, error_code, duration_seconds):
         "duration_ms": max(0, int(duration_seconds * 1000)),
         "result": result,
     }
-    params = operation.get("params")
-    source_id = _safe_discovery_source_id(operation)
-    if source_id:
-        record["source_id"] = source_id
-
-    if kind == "PREPARE" and isinstance(params, dict):
-        job_id = _safe_identifier(params.get("job_id"))
-        if job_id:
-            record["job_id"] = job_id
-    elif kind == "COMPANY_DISCOVER":
-        company_id = _safe_identifier(operation.get("entity_id"))
-        if company_id:
-            record["company_id"] = company_id
-    elif kind == "COMPANY_SOURCE_REFRESH":
-        company_id = _safe_identifier(operation.get("company_id"))
-        if company_id and not _SECRET_SHAPED_IDENTIFIER.search(company_id):
-            record["company_id"] = company_id
-    elif kind in {"APPLY_MOCK", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"}:
-        # Reviews and fixture runs get context only from the persisted projection.
-        # Their entity/params may identify other private inputs on invalid work.
-        application_id = _safe_identifier(operation.get(
-            "entity_id" if kind == "APPLY_MOCK" else "application_id"))
-        if application_id:
-            record["application_id"] = application_id
-        if application_id or kind == "APPLY_MOCK":
-            job_id = _safe_identifier(operation.get("job_id"))
-            if job_id:
-                record["job_id"] = job_id
-            company_id = _safe_identifier(operation.get("company_id"))
-            if company_id:
-                record["company_id"] = company_id
-            ats_provider = _safe_ats_provider(operation.get("ats_provider"))
-            if ats_provider:
-                record["ats"] = ats_provider
+    context = safe_operation_context(kind, operation.get("log_context"))
+    if "ats_provider" in context:
+        context["ats"] = context.pop("ats_provider")
+    record.update(context)
 
     safe_code = _safe_error_code(error_code)
     if safe_code:

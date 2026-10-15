@@ -543,21 +543,16 @@ def execute_operation(operation_id):
                 record_application_preparation_event(
                     connection, "APPLICATION_FAILED", operation["entity_id"],
                     operation["params"]["job_id"], operation_id)
-        logged_operation = operation
-        if operation["kind"] in {"APPLY_MOCK", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"}:
-            try:
+        try:
+            if operation["kind"] == "COMPANY_SOURCE_REFRESH":
+                context = _resolve_company_source_company_id(store, operation, full_context=True)
+            else:
                 context = _resolve_application_log_context(store, operation)
-            except Exception:
-                # Logging context is best effort and cannot change a persisted outcome.
-                context = {}
-            logged_operation = {**operation, **context}
-        elif operation["kind"] == "COMPANY_SOURCE_REFRESH":
-            try:
-                company_id = _resolve_company_source_company_id(store, operation)
-            except Exception:
-                # Logging context is best effort and cannot change a persisted outcome.
-                company_id = None
-            logged_operation = {**operation, "company_id": company_id}
+        except Exception:
+            # Enrichment is read-only and best effort after durable persistence.
+            # Never log database diagnostics or alter/replay a completed operation.
+            context = {}
+        logged_operation = {**operation, "log_context": context}
         log_operation_finished(logged_operation, state, error, time.monotonic() - started_at)
         return {"operation_id": operation_id, "status": state, "error_category": error}
     finally:
@@ -565,27 +560,15 @@ def execute_operation(operation_id):
 
 
 def _resolve_application_log_context(store, operation):
-    """Read only persisted application context for application worker outcomes."""
-    if operation.get("kind") not in {"APPLY_MOCK", "APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN"}:
-        return {}
-    with store.engine.connect() as connection:
-        row = connection.execute(select(
-            m.applications.c.id.label("application_id"),
-            m.routes.c.provider.label("ats_provider"),
-            m.applications.c.job_id.label("job_id"),
-            m.jobs.c.company_id.label("company_id"),
-        ).select_from(m.applications.join(
-            m.routes, m.applications.c.route_id == m.routes.c.id,
-        ).join(
-            m.jobs, m.applications.c.job_id == m.jobs.c.id,
-        )).where(m.applications.c.id == operation.get("entity_id"))).mappings().one_or_none()
-    return dict(row) if row is not None else {}
+    """Compatibility seam for post-persistence operation context resolution."""
+    from workers.operation_log_context import resolve_operation_log_context
+
+    return resolve_operation_log_context(store, operation)
 
 
-def _resolve_company_source_company_id(store, operation):
-    """Read only the persisted company FK for COMPANY_SOURCE_REFRESH log context."""
+def _resolve_company_source_company_id(store, operation, *, full_context=False):
+    """Compatibility lookup using the same validated read-only projection."""
     if operation.get("kind") != "COMPANY_SOURCE_REFRESH":
         return None
-    with store.engine.connect() as connection:
-        return connection.execute(select(m.company_sources.c.company_id).where(
-            m.company_sources.c.id == operation.get("entity_id"))).scalar_one_or_none()
+    context = _resolve_application_log_context(store, operation)
+    return context if full_context else context.get("company_id")
