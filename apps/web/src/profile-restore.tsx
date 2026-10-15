@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { api as defaultApi } from './api';
 
 export const MAX_PROFILE_RESTORE_BYTES = 5 * 1024 * 1024;
@@ -248,6 +248,7 @@ export function ProfileRestorePreviewCard({ preview, confirmed, onConfirmedChang
 
 export type ProfileRestoreProps = {
   api?: RestoreApi;
+  profileId?: string;
   onRestored?: (profileId: string) => void;
 };
 
@@ -260,7 +261,40 @@ function safeError(reason: string): string {
   }
 }
 
-export function ProfileRestore({ api = (path, init) => defaultApi<unknown>(path, init), onRestored }: ProfileRestoreProps) {
+const restoreApi: RestoreApi = (path, init) => defaultApi<unknown>(path, init);
+
+/** A keyed instance owns one profile's reads, including retries and late responses. */
+function RecoveredHistory({ api, profileId }: { api: RestoreApi; profileId: string }) {
+  const [history, setHistory] = useState<RecoveredHistoryRecord[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setHistory(null);
+    void loadRecoveredHistory(api, profileId).then(result => {
+      if (!active) return;
+      setHistory(result);
+      setLoading(false);
+    });
+    return () => { active = false; };
+  }, [api, profileId, retry]);
+
+  return <section aria-label="Recovered company discovery history" aria-busy={loading}>
+    <h3>Recovered company discovery history</h3>
+    <p>These records are read-only historical snapshots. Restore does not authorize or schedule new discovery; fresh authorization is required for any future live action.</p>
+    {loading ? <p role="status">Loading recovered history…</p> : history === null ? <>
+      <p role="alert">Recovered history could not be loaded. Try again.</p>
+      <button type="button" onClick={() => { setLoading(true); setRetry(value => value + 1); }}>Retry recovered history</button>
+    </> : history.length === 0 ? <p>No recovered company discovery history for this profile.</p> :
+      <ul>{history.map(item => <li key={item.sourceIdentity}>
+        <strong>{item.state}</strong> — {item.reasons.join('; ') || 'No reason recorded'}
+        <span> ({item.referenceStatus}; {item.metadataStatus.toLowerCase()} metadata; {item.createdAt || 'time unavailable'})</span>
+      </li>)}</ul>}
+  </section>;
+}
+
+export function ProfileRestore({ api = restoreApi, profileId, onRestored }: ProfileRestoreProps) {
   const input = useRef<HTMLInputElement>(null);
   const [backup, setBackup] = useState<RestoreBackup | null>(null);
   const [preview, setPreview] = useState<ProfileRestorePreview | null>(null);
@@ -271,7 +305,6 @@ export function ProfileRestore({ api = (path, init) => defaultApi<unknown>(path,
   const [requestId, setRequestId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [recoveredHistory, setRecoveredHistory] = useState<RecoveredHistoryRecord[] | null>(null);
   const [selected, setSelected] = useState(false);
   const busy = reading || previewing || restoring;
 
@@ -282,7 +315,6 @@ export function ProfileRestore({ api = (path, init) => defaultApi<unknown>(path,
     setRequestId(null);
     setError(null);
     setSuccess(null);
-    setRecoveredHistory([]);
     setSelected(false);
     if (input.current) input.current.value = '';
   };
@@ -334,7 +366,6 @@ export function ProfileRestore({ api = (path, init) => defaultApi<unknown>(path,
         return;
       }
       setSuccess(`Profile ${result.profileId} was restored. Review imported facts, answers, and saved search profiles before using them.`);
-      setRecoveredHistory(await loadRecoveredHistory(api, result.profileId));
       setBackup(null);
       setPreview(null);
       setConfirmed(false);
@@ -367,14 +398,6 @@ export function ProfileRestore({ api = (path, init) => defaultApi<unknown>(path,
     {preview && <ProfileRestorePreviewCard preview={preview} confirmed={confirmed} onConfirmedChange={setConfirmed} onRestore={() => void restore()} restoring={restoring} />}
     {error && <p role="alert">{error}</p>}
     {success && <p role="status">{success}</p>}
-    {success && recoveredHistory === null && <p role="status">The profile was restored, but its recovered history could not be loaded. Refresh the profile history view to try again.</p>}
-    {recoveredHistory && recoveredHistory.length > 0 && <section aria-label="Recovered company discovery history">
-      <h3>Recovered company discovery history</h3>
-      <p>These records are read-only historical snapshots. Restore does not authorize or schedule new discovery; fresh authorization is required for any future live action.</p>
-      <ul>{recoveredHistory.map(item => <li key={item.sourceIdentity}>
-        <strong>{item.state}</strong> — {item.reasons.join('; ') || 'No reason recorded'}
-        <span> ({item.referenceStatus}; {item.metadataStatus.toLowerCase()} metadata; {item.createdAt || 'time unavailable'})</span>
-      </li>)}</ul>
-    </section>}
+    {profileId && <RecoveredHistory key={profileId} api={api} profileId={profileId} />}
   </section>;
 }

@@ -168,6 +168,15 @@ describe('profile restore', () => {
     expect(markup).not.toContain('PRIVATE_FACT');
   });
 
+  it('starts a selected profile archive as loading, without claiming an empty or failed read', () => {
+    const markup = renderToStaticMarkup(<ProfileRestore api={api} profileId="recovered-profile" />);
+    expect(markup).toContain('Loading recovered history');
+    expect(markup).toContain('read-only historical snapshots');
+    expect(markup).not.toContain('No recovered company discovery history');
+    expect(markup).not.toContain('could not be loaded');
+    expect(renderToStaticMarkup(<ProfileRestore api={api} />)).not.toContain('Loading recovered history');
+  });
+
   it('renders a fixed-label preview with omissions and an explicit confirm control only', () => {
     const markup = renderToStaticMarkup(<ProfileRestorePreviewCard preview={{
       fingerprint: preview.fingerprint,
