@@ -1,0 +1,4188 @@
+{
+  "schema_version": 1,
+  "requirement_authority": "Original CAPABILITY_MATRIX only; supplementary authority unchanged",
+  "recorded_at": "2026-10-15T19:01:21.652133+00:00",
+  "recording_kind": "Evidence-based original acceptance candidate; protected integration/Project readback remain primary-owned",
+  "accepted_original_requirements": [
+    "MJ-REQ-013",
+    "MJ-REQ-014",
+    "MJ-REQ-177",
+    "MJ-REQ-263",
+    "MJ-REQ-270"
+  ],
+  "partial_evidence_only": [
+    "MJ-REQ-004",
+    "MJ-REQ-018",
+    "MJ-REQ-169",
+    "MJ-REQ-288"
+  ],
+  "overall_result": "PARTIAL",
+  "whole_product_release_readiness": "UNKNOWN",
+  "external_submission_enabled": false,
+  "source_closure": {
+    "revision": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+    "git_tree": "beca4f1e4179cbe5f642d41b93ebf6adbab4f563",
+    "recording_base": "564770457b92a72dc537a2f3d47813107fdcdec7",
+    "base_tree": "632c90b723842318950f3fe4df7d3f78b4b77555",
+    "byte_basis": "Raw git show stdout bytes; no text/newline conversion; only tracked public source. Complete Git tree binds every tracked input; selected SHA256 array covers product, harness, fixture, workflow, dependency and affected tests.",
+    "changes_from_recording_base": [
+      "cli/verification_checks.py",
+      "cli/verification_fixture.py",
+      "cli/verification_process.py",
+      "cli/verify_readiness.py",
+      "tests/integration/test_connected_verification_command.py",
+      "tests/unit/test_cli_verification_checks.py",
+      "tests/unit/test_cli_verification_process.py"
+    ],
+    "source_inputs": [
+      {
+        "path": ".devcontainer/Dockerfile",
+        "sha256": "0b7cdf00e36f5de187bebcca2ad7de591da61c33715d7d50ab9c0425fb1f0d20"
+      },
+      {
+        "path": ".devcontainer/bootstrap-codex.sh",
+        "sha256": "b5b154ad83b05afd76657cafb99945d0944c5b7ca920611d2dfc29dd09b780c9"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/SKILL.md",
+        "sha256": "d07ac9b3d7b411db9d40b283cd23a9e01161bb51f6a0d4b923826e58e67968c0"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/agents/openai.yaml",
+        "sha256": "87fd7ad9764aeb0cbe11b3e87bebd68785bca6f8a84e115fc2828bfc80b07c2a"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/authority-handoffs.md",
+        "sha256": "d0dd5b58c0e54c6d65c79d2efbee8df507993c806ab719152cde7555ca32485b"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/browser-automation.md",
+        "sha256": "bc19ff0626e2f897036889a90bc7e0ae831aeceda2776045fe83018c273fcc72"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/ci-repair.md",
+        "sha256": "c946c171fc78cb119fd068b68a66d796a3cb4649f89de6108677e2c83177e6d1"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/iteration-result.schema.json",
+        "sha256": "c7fb5b6179ac657555f252e38164cc025f4b80624e082aabbbba4ee90b137397"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/loop-and-recovery.md",
+        "sha256": "8ec91a294ebc2ecc7a5c8bfd79aa72b2612f666e930ba1aecbdbb28e48d97dd8"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/orchestration.md",
+        "sha256": "aa0a119b345e8c831b8ec654ae2a2c30d0e197716d79494ddf5a23648e04cc09"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/project-integration.md",
+        "sha256": "80fad4cd8059325c23f83b1ac334f5b435008fc9a9ca1253ffd5ef300ebfd072"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/safety-and-authority.md",
+        "sha256": "42f25c87d3df9144b7bf201bfa3cddd9a90ed77414dbcf14223d6709b4cad037"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/references/state-and-learning.md",
+        "sha256": "4d0937305c7caa130c20c152ef6ce18cdd4e68413c3553f0c96f1ea8211bd95f"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/scripts/afk_browser.py",
+        "sha256": "1f0d11894173146bbb5db12e679a5487799900a12d5a5a754bb92f4c33d33e65"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/scripts/afk_ci.py",
+        "sha256": "1b00ccde034c9f91084bfea238e7eb96317bbe868e5d49b8e8d4a77b30bab7c5"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/scripts/afk_loop.py",
+        "sha256": "7cc82b7bf4e2fb45ffda52814ad9b7e3b4ce3a2b8c0404220261930dc6d19b86"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/scripts/afk_maintain.py",
+        "sha256": "41787ab54f8ce3c3285cd32ca76b8c935385928f7123c0899d761a4f4afc00b0"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/scripts/afk_redact.py",
+        "sha256": "ee02881fe7ebd553a4d35d15b7ae8b4bb5813ad2b1065d12abe5c6100980749c"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/scripts/afk_session_evidence.py",
+        "sha256": "9265ce122011347149cda2e03a39f8bcca102fc73d698ee181a3793499a71c25"
+      },
+      {
+        "path": ".devcontainer/codex-skills/afk-dev/scripts/afk_state.py",
+        "sha256": "9f8e344cf1f6f592871d7e615c9bf2ff707c78b3b5e598296312b8e9550642d8"
+      },
+      {
+        "path": ".devcontainer/devcontainer.json",
+        "sha256": "0ad86e4dcb94c1cfa8c2217e4dfe853d46c5f40774fe27a42706d4ecc8086a78"
+      },
+      {
+        "path": ".devcontainer/feedback.sh",
+        "sha256": "7acd9078de92075534299dc5fa6a38b8efb4d0041d36be700f72b39699fd21c9"
+      },
+      {
+        "path": ".devcontainer/mjobs.sh",
+        "sha256": "3d5ee6f2accfccaa3a90214626a69069547abe854a6e8fdc9fa4dc6a44df7881"
+      },
+      {
+        "path": ".devcontainer/post-start.sh",
+        "sha256": "f30353a8decc4ed224ecd62087489b34e46b51712310f8846dba18154eb060b2"
+      },
+      {
+        "path": ".devcontainer/setup.sh",
+        "sha256": "369da7be8c1dbc51314b9d8e1ada8359f2bd31e40013cde20922afa026ac8819"
+      },
+      {
+        "path": ".devcontainer/test-bootstrap.sh",
+        "sha256": "78d395ff4e780cc50e057fa3653bb7cf4706bdee0e8e79cc9eaa03e47c976681"
+      },
+      {
+        "path": ".devcontainer/verify.sh",
+        "sha256": "85b39bd609bbf2d3e1c035dae0fbdb0559a2d7cc4e7c6561483263c3c63b6925"
+      },
+      {
+        "path": ".env.example",
+        "sha256": "193e486301f1332322fe8edd9b9070053e277f0f496aa57e48f3fd66294ba764"
+      },
+      {
+        "path": ".github/test-requirements.txt",
+        "sha256": "c1bd9679c5a250a75427371a464113e33bd444e8ccb02ff121c0d5a4e16ba30a"
+      },
+      {
+        "path": ".github/workflows/browser-regression.yml",
+        "sha256": "6d6408a9c19b61f8dcc7c88d0039718970afe3f2ca4e016906a485f97a8eb898"
+      },
+      {
+        "path": ".github/workflows/ci.yml",
+        "sha256": "3c3ddbd20f0e1b4bb8f557d3bdc94f8a984017e0cfb4c75610f6fa8a421576fb"
+      },
+      {
+        "path": ".github/workflows/codespaces.yml",
+        "sha256": "cb0bb54ed3c92381e01f8123ef096222527a2191384527a56e0d0046a33410c0"
+      },
+      {
+        "path": ".github/workflows/connected-acceptance.yml",
+        "sha256": "3d2edd87cb6812ee60fcda53bf9cec1f6653952954201f617795f9e2e40cdda1"
+      },
+      {
+        "path": ".github/workflows/dependency-review.yml",
+        "sha256": "4fdda6eba202e3b9ce6f2c55f54c9b71ae7cc8458e0c2ce7c51be1cb9f4b88ce"
+      },
+      {
+        "path": ".github/workflows/feature-studio.yml",
+        "sha256": "45e7040ce4f372d97f40c01a4f6210902382899b20f12f036272a1275319f1a5"
+      },
+      {
+        "path": ".github/workflows/integration.yml",
+        "sha256": "c93daa066dc04354c5a1d3f8e95addccc2e939b08650366f064274d3ebc482d4"
+      },
+      {
+        "path": ".github/workflows/pages.yml",
+        "sha256": "12487be5e969d70c73581107268faa9341536d76ac1acb618263f8598b9aa87a"
+      },
+      {
+        "path": ".github/workflows/release.yml",
+        "sha256": "629dcab20c038c9da480f8aa2c47041bc475389acbd29bb824d2442058363c40"
+      },
+      {
+        "path": ".github/workflows/secret-scan.yml",
+        "sha256": "ca33b999ef7c1258aec9e37c0bc121a90e86725261e982d5d0826ae3afb2e3e8"
+      },
+      {
+        "path": ".github/workflows/verified-review.yml",
+        "sha256": "95e6048e7bd8beeab2cebf54f9efd1f211414ba48830cb3edab7c92a8dbd61c1"
+      },
+      {
+        "path": "README.md",
+        "sha256": "819af4e4097efb547757eb6b78682d587f58feab7bb0a24c382afd9ddb8574c8"
+      },
+      {
+        "path": "apps/api/AREA.md",
+        "sha256": "a8a16c854af9655ae09857a4dfde81ce365697d839402fbb39a24ab74ca4ae9d"
+      },
+      {
+        "path": "apps/api/application_answer_matching.py",
+        "sha256": "eeca72611102691e2c6d3b71b5e9da6220d3d47aaed11ee4abe651b2fb590728"
+      },
+      {
+        "path": "apps/api/application_attempt_history.py",
+        "sha256": "6f8503bb6700cc4c2b5dbfd52c5abd9d16236ac49aac18dbc25bb6669c5775c2"
+      },
+      {
+        "path": "apps/api/application_confirmation_recovery.py",
+        "sha256": "23ea74db5cbdd02628300dfbdc1965b8a244c2c865ae4117a518aa4c8086fad6"
+      },
+      {
+        "path": "apps/api/application_form_review.py",
+        "sha256": "3fb7f61f8c315ac3b4c9181465b2f147f3ce79ec0067dab327b0990b9b24a732"
+      },
+      {
+        "path": "apps/api/application_multipage_state.py",
+        "sha256": "227f68dfc3a01e29f76c9dfdfbf921437b230ee99b941a40b54c93403fdcb893"
+      },
+      {
+        "path": "apps/api/application_priority.py",
+        "sha256": "bb50dde6e15826cefe4f93ae2fb2c823e1f65c6a8502764bd5c462784de9a442"
+      },
+      {
+        "path": "apps/api/application_rehearsal.py",
+        "sha256": "a9617f79b7ed4b7ae196c0b1b1eafa9b860d7ce4823cb7e4ce512546175e90cf"
+      },
+      {
+        "path": "apps/api/application_supporting_documents.py",
+        "sha256": "ff6b001f95b8161a9facebdb99768713804b1d473a9f49bf919b6c5c3c01bdd6"
+      },
+      {
+        "path": "apps/api/browser_job_extraction.py",
+        "sha256": "5d6148f74993df39b7d68508515f29ef3eb140055860f1cc3173f5816a47888e"
+      },
+      {
+        "path": "apps/api/career_story_bank.py",
+        "sha256": "150f980bd3b7c0b3b1e1fdf5c632000d371aab94129f177f1eee852907412b88"
+      },
+      {
+        "path": "apps/api/career_story_selection.py",
+        "sha256": "84b21b57ce25f62b2446d964facb2e5edd4b3a33f7e8faa46cec039f07f90f97"
+      },
+      {
+        "path": "apps/api/cheap_prefilter.py",
+        "sha256": "b0796c3903454726bbd55a735569067a33871052a9c3ecd8838e72bf373c6041"
+      },
+      {
+        "path": "apps/api/company_discovery_activity.py",
+        "sha256": "9beb6f6f0634b478a901a2cfbe374c6383d66fdfa756b59ed42390d4fde7d496"
+      },
+      {
+        "path": "apps/api/company_discovery_queue.py",
+        "sha256": "7fa04fad5e494f73d2c97fb2c01a11c1e6799e67bc877b04156e6543f976c89f"
+      },
+      {
+        "path": "apps/api/company_preferences.py",
+        "sha256": "17a49aa42c9ba8065f6696057ea072a26e3188ffedc61720d71a3dbfdebb7681"
+      },
+      {
+        "path": "apps/api/controlled_application_dry_run.py",
+        "sha256": "da104c66987b62686e50cd3319af82325866e05873f72780d35436aafd12c711"
+      },
+      {
+        "path": "apps/api/cover_letter_preview.py",
+        "sha256": "7cb31e11736136289687d049348b8918d859ec7d5b9a044a83929b7f01d3d88a"
+      },
+      {
+        "path": "apps/api/data_export.py",
+        "sha256": "6aa0e2c3f57b8318a21c8038a1e1a717cd840c877b6013f62aac398e452b7e4b"
+      },
+      {
+        "path": "apps/api/document_archive.py",
+        "sha256": "0c9509822dd5ec8f3f1609827068de9d0049b5316e59cc4a38400d001a3d55a8"
+      },
+      {
+        "path": "apps/api/dynamic_application_fields.py",
+        "sha256": "a47fb48eaef85b60141d1e8c86423ab53ffb1930e4f712e1dec3bd790d4a569e"
+      },
+      {
+        "path": "apps/api/email_status.py",
+        "sha256": "405157ad2b949ceeedc203c40cbb503f7f538e67190822f474af64426464453c"
+      },
+      {
+        "path": "apps/api/interview_preparation.py",
+        "sha256": "b8b9542af64f34c51422c425ae652936472d29c7a8df36423334f0ce53177c85"
+      },
+      {
+        "path": "apps/api/job_comparison.py",
+        "sha256": "e1449944656ecf9cdb7c0995080f595a25531a227e3edb99ab58546cb090f6b6"
+      },
+      {
+        "path": "apps/api/job_risk_signals.py",
+        "sha256": "bd3f4158c5946832982a0c1d4f840a65c7e9dffca4e2b80f04d9871fa921381a"
+      },
+      {
+        "path": "apps/api/main.py",
+        "sha256": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00"
+      },
+      {
+        "path": "apps/api/manual_auth.py",
+        "sha256": "93d2c51c0445409198c6b99440ae2935a9f2ac25475f851968a12970406702c2"
+      },
+      {
+        "path": "apps/api/match_feedback.py",
+        "sha256": "7465c678d5825f74982c96363603156922f29a9398f137c3764711db23555456"
+      },
+      {
+        "path": "apps/api/matching_explanations.py",
+        "sha256": "bdcbac58c07d0978443ba39146f20e4064c42fb27a7e3a35fb062e7e600152c1"
+      },
+      {
+        "path": "apps/api/mock_dynamic_review.py",
+        "sha256": "561a86d0bf02beb4e98428938aaf4cc8b4987aa2bdadd15ec500bc4dc27f3376"
+      },
+      {
+        "path": "apps/api/operation_progress.py",
+        "sha256": "e578e2a27f43275b246c44526137c332b862a213d897901108f9cd62dc0cd726"
+      },
+      {
+        "path": "apps/api/pipeline_workbench.py",
+        "sha256": "bcf22cd102181c9de6abad16f055263518f76903a5cde4969301b7e246b75e57"
+      },
+      {
+        "path": "apps/api/profile_restore.py",
+        "sha256": "b772f83a16640f19eb85787383ee4c4b83d05219efd01543abd807a2c019d026"
+      },
+      {
+        "path": "apps/api/recruiter_classification.py",
+        "sha256": "cf7a1450bd61283b249af750392fa36b5e2cffc2723cec17a81388a83cec3ef1"
+      },
+      {
+        "path": "apps/api/resume_page_fit.py",
+        "sha256": "ec207f1cbfb09ea580f307018bb2038b2a24712cf95e76fd8473e6a094feb8ce"
+      },
+      {
+        "path": "apps/api/resume_rewrite_review.py",
+        "sha256": "638863c80824a85d3e64bf75ca0152768926d9271b598324725fe1a73078b035"
+      },
+      {
+        "path": "apps/api/resume_workspace.py",
+        "sha256": "c87d903b2f0de25dcc3cdd040c8df1ba49084d97682c15f609b5d3d19b5dd451"
+      },
+      {
+        "path": "apps/api/resume_workspace_editor.py",
+        "sha256": "0777d331fb6fc3f98fa7c3d7f55ec06d2512fb9cdb53322fe7660d5f19c467d7"
+      },
+      {
+        "path": "apps/api/resume_workspace_preview.py",
+        "sha256": "b880604ca4ad5c21fb1a59ed3682c1c45b760b1186ceceb02a87feb30d14b13d"
+      },
+      {
+        "path": "apps/api/role_lenses.py",
+        "sha256": "7d058c9175c4e3803c945cee1e61ad49b0cbe70fb0896a407d773e3200f55e87"
+      },
+      {
+        "path": "apps/api/scoring_profiles.py",
+        "sha256": "6c56eed7a604f1ca81169e5448da45a519fc0d7066653b07c878ca1c040d8c15"
+      },
+      {
+        "path": "apps/api/search_history.py",
+        "sha256": "8b78cc3bfae1c02c6db4d69728b0074ae04284f3d9bd8566ac1a2190c87c9b8d"
+      },
+      {
+        "path": "apps/api/search_profile_suggestions.py",
+        "sha256": "c5be29d0fc299ad6d099eed65619cfd62f46077846624d0d3ce9c807027e32b0"
+      },
+      {
+        "path": "apps/api/skill_gap_heatmap.py",
+        "sha256": "4f2816549cf2ce18dcb33432c68187a68ac2f27620ce2196cd80168d785ecd47"
+      },
+      {
+        "path": "apps/api/source_relationship_graph.py",
+        "sha256": "2cf28cc3b56d1c894009cb9b917b75fc75b7f00abafbcf4221ba412f02ae2aaa"
+      },
+      {
+        "path": "apps/api/transient_retention.py",
+        "sha256": "ade2a798147b75b91d654f5bfdd32bfdf0137d2ac3b09454611f59e02dfe1c61"
+      },
+      {
+        "path": "apps/web/package-lock.json",
+        "sha256": "815ec61881ead4193fa236a1806eb09eaddbb56f8b0f52e15527f62b7304aac6"
+      },
+      {
+        "path": "apps/web/src/ai-cost-funnel.test.tsx",
+        "sha256": "837026281a1058dc8f5e88d9562be223d074fded0bcb49fb1fa49a67bc99f9b8"
+      },
+      {
+        "path": "apps/web/src/ai-cost-funnel.tsx",
+        "sha256": "1abcb3dbba43422484ff77700d1e50c3174f71cd3bed2522afde13ab8ddfc5b3"
+      },
+      {
+        "path": "apps/web/src/ai-job-evidence.test.tsx",
+        "sha256": "15038645a677825039e9c7511b2e672f5f8902beff614dd6e43323bb32f688d9"
+      },
+      {
+        "path": "apps/web/src/ai-prompt-versioning.test.tsx",
+        "sha256": "433cc7c234ced04491d32f18c0adf04ae3bf38a346cbec56de1b518ec6e49a3e"
+      },
+      {
+        "path": "apps/web/src/ai-prompt-versioning.tsx",
+        "sha256": "e77a995b20e6b762c9eccb9ccd97de6a0fcc309fa0bc16088d6b3421a1e454dc"
+      },
+      {
+        "path": "apps/web/src/ai-provider-settings.test.tsx",
+        "sha256": "b8f8b3ede3906d0ca3778fd777bd546390dee30a2f9999462808653e68cf9f16"
+      },
+      {
+        "path": "apps/web/src/ai-provider-settings.tsx",
+        "sha256": "f2536c59121ab5c5e752aaee40ae3fd767737dbf73a5c9b47ab551485e9b2a0e"
+      },
+      {
+        "path": "apps/web/src/ai-search-provenance.test.tsx",
+        "sha256": "ab4b70c0bbb16866bf62fbdcc883d8e95793a81463062beb2db83319c42c65df"
+      },
+      {
+        "path": "apps/web/src/ai-search-provenance.tsx",
+        "sha256": "cb73d7ae15b7f651c545de5a522ef511ae12f2cd009b0a54618fca8d19bf69da"
+      },
+      {
+        "path": "apps/web/src/ai-structured-output-inspector.test.tsx",
+        "sha256": "0d9424619cc70fc3b6bb578dc6f3269f295f4b8386d808df60bb98e71c33ae4a"
+      },
+      {
+        "path": "apps/web/src/ai-structured-output-inspector.tsx",
+        "sha256": "be12ba6f7ad74fdb5a50b4d99415b4d5dba62f4eac41e75c6571c36567df884c"
+      },
+      {
+        "path": "apps/web/src/ai-task-configuration.test.tsx",
+        "sha256": "6953989cc4a258882d8bceddf4e31c0780a6fe0a6637d78b662195cf55485f9a"
+      },
+      {
+        "path": "apps/web/src/ai-task-configuration.tsx",
+        "sha256": "4f28a6db7fc01400e21b990613895dc28f243899bc7dd44cab503b099ff0154c"
+      },
+      {
+        "path": "apps/web/src/answer-matching.test.ts",
+        "sha256": "500b604ebdd9913f05954a844ed0948ac91ce49215ccdb28781de24fab4707a2"
+      },
+      {
+        "path": "apps/web/src/answer-matching.ts",
+        "sha256": "ffdb1210c2ecf44b17874c00a4d8a4799f9468544f9f308ffc290cae97c81b83"
+      },
+      {
+        "path": "apps/web/src/api.test.ts",
+        "sha256": "4bb8369d3bd5be2e394e828724e599e9238d445a2af8688ed13e322bdfd36c85"
+      },
+      {
+        "path": "apps/web/src/api.ts",
+        "sha256": "26cb94907623e3916f66e15e900ead49a2b0c7298e6f074a557d08158fdfe491"
+      },
+      {
+        "path": "apps/web/src/application-adapter-knowledge.test.tsx",
+        "sha256": "baa9332bf227b27453f400db9c6cd269352ba291b54592e028841ec65dafa847"
+      },
+      {
+        "path": "apps/web/src/application-adapter-knowledge.tsx",
+        "sha256": "f2b41040f76fb199e23969f75f1a6fa28ae0a9dea6d82830472d92dd8e9f39c3"
+      },
+      {
+        "path": "apps/web/src/application-answer-matching-client.test.ts",
+        "sha256": "05d0ba3531bce1a1d3ef5750c3608947ed120da5ef27978a6bdb4f4b8e208402"
+      },
+      {
+        "path": "apps/web/src/application-answer-matching-client.ts",
+        "sha256": "f1cd5a7af18b2e9a2dc73040e6e891ff01f66cfbeb91d45b218e8196e536249e"
+      },
+      {
+        "path": "apps/web/src/application-answer-matching.test.tsx",
+        "sha256": "79f161db2cead316d63064aa6ac8070e4f1196f00a351b2aa2e92a3bb3ab8f77"
+      },
+      {
+        "path": "apps/web/src/application-answer-matching.tsx",
+        "sha256": "50f5420d19c01a05d3d861545c8b320d33f299b56589b0e6370e9033340f1ef0"
+      },
+      {
+        "path": "apps/web/src/application-attempt-history.test.tsx",
+        "sha256": "cfd9b0c8fd4904a46e0291f07ad1fa338bcfbdc216504d367d26b3ffa2aefc2a"
+      },
+      {
+        "path": "apps/web/src/application-attempt-history.tsx",
+        "sha256": "ebd2eba678b8d161f75eed9a6766ed60b3dc60fdba167ea538e400b3f99f3c5e"
+      },
+      {
+        "path": "apps/web/src/application-capability-filter.test.tsx",
+        "sha256": "5be9f993aa1e320212458a6a592e8ccf0d23937eada198a838e956d212b580c6"
+      },
+      {
+        "path": "apps/web/src/application-capability-filter.tsx",
+        "sha256": "0521e340c4827aa11c6cc4d15f5f13adf2941d94a4b1b61e15f980ad4b688a59"
+      },
+      {
+        "path": "apps/web/src/application-confirmation-recovery.test.tsx",
+        "sha256": "c415161545384842c69b1462d3430ee26463d4c3f6b5714916b6b416d55c6ccb"
+      },
+      {
+        "path": "apps/web/src/application-confirmation-recovery.tsx",
+        "sha256": "112e7a1b04a487254911b32d0177d807179eadefa6ccd111a92d78668ae85ab5"
+      },
+      {
+        "path": "apps/web/src/application-dynamic-field-review.test.tsx",
+        "sha256": "0bd187550a30d6a4cab389d939b2a33cf39f9bf828d7bd5ccecfdb60e763b4d0"
+      },
+      {
+        "path": "apps/web/src/application-dynamic-field-review.tsx",
+        "sha256": "63a10def50fdb4b04aae50d0edbac1a3fd06eddfe05a3908386154530dbf4a8b"
+      },
+      {
+        "path": "apps/web/src/application-follow-up-drafts.test.tsx",
+        "sha256": "e1c953b6f1743d6dbc8c547096f7f229e4e3e568174cb225326a98aeef96cf9f"
+      },
+      {
+        "path": "apps/web/src/application-follow-up-drafts.tsx",
+        "sha256": "e98ee51f95a1d2905322a900185f151c4ce179830629fce6f61a7f2c6ffa2f2c"
+      },
+      {
+        "path": "apps/web/src/application-form-review-connected.test.tsx",
+        "sha256": "032e9b7dca59a00c8e6ce57e736327f8343be77d31633062f4f53dd0966e5ada"
+      },
+      {
+        "path": "apps/web/src/application-form-review-connected.tsx",
+        "sha256": "9fbc74acc2d44d80b9d66c6e6e230640d7084a225c60aee88b7856b01e13afbb"
+      },
+      {
+        "path": "apps/web/src/application-form-review.test.tsx",
+        "sha256": "86f909d72a6b8a08f97dae6c7ee09557ef560ca4998956091cdf33c199482004"
+      },
+      {
+        "path": "apps/web/src/application-form-review.tsx",
+        "sha256": "0695375cd4b1d5ead4e39b3a365c1c95c30f233bc258db46bb9b42cb4636d8c7"
+      },
+      {
+        "path": "apps/web/src/application-link-filter.test.tsx",
+        "sha256": "74e34d831268dda6ed7832caf237b49e2c87797b843b43e178f78379a5140f15"
+      },
+      {
+        "path": "apps/web/src/application-link-filter.tsx",
+        "sha256": "b635cd87db5ee0b2c03288bef729a68248de2871eb84d366bd7ee9977b69b784"
+      },
+      {
+        "path": "apps/web/src/application-multipage-review.test.tsx",
+        "sha256": "4ffca9c5c028322ae9ae67df0e7ca1af34124c3a0753ff189c329dc3d46e8abe"
+      },
+      {
+        "path": "apps/web/src/application-multipage-review.tsx",
+        "sha256": "bde3bf9ba959e8e6a6495bba783cd00a655e8a55628f6f874461a587f983e648"
+      },
+      {
+        "path": "apps/web/src/application-multipage-workspace.test.tsx",
+        "sha256": "59dd4abe57111c1653e6c6ebbd1b86d34e3cfc21d3d5dfc1ef7c81da0378e890"
+      },
+      {
+        "path": "apps/web/src/application-multipage-workspace.tsx",
+        "sha256": "4313d969d2671a25a8124aad381de276b51d545f85ab5bcaf114a8920b77e241"
+      },
+      {
+        "path": "apps/web/src/application-pipeline-status-filter.test.tsx",
+        "sha256": "ba550f73cbbe8d5e4e37dda8863960a0d8d1490da4d13ebf23c31ebcbc586823"
+      },
+      {
+        "path": "apps/web/src/application-pipeline-status-filter.tsx",
+        "sha256": "c55449b15a360e1b1bd9c481254b28c062733d2678c397d58db81d96ce0f2ff4"
+      },
+      {
+        "path": "apps/web/src/application-priority-client.test.ts",
+        "sha256": "d988f466229c01854f28fe7d30ca70ef21a512d8081c914cb66a7054523d8cae"
+      },
+      {
+        "path": "apps/web/src/application-priority-client.ts",
+        "sha256": "cd5b582c6ca9443511067bbf269ed766cb6dbdda2f8d90cb1bcb80b4eb5bda85"
+      },
+      {
+        "path": "apps/web/src/application-priority-panel.test.tsx",
+        "sha256": "24b0bca11642f82f1dc84317845b8fd4d24b8256f465f126baebd9497e30d581"
+      },
+      {
+        "path": "apps/web/src/application-priority-panel.tsx",
+        "sha256": "fbc52f36dcc1f209be077bd0a57bedda7c37646b8c9fab7f5ec15ab55cde5da6"
+      },
+      {
+        "path": "apps/web/src/application-priority.test.tsx",
+        "sha256": "57444d929b83344e856a7bfdb705c4e8d1e134074efb29192de15e686f2aa281"
+      },
+      {
+        "path": "apps/web/src/application-priority.tsx",
+        "sha256": "e5ff619a053c0e89da7e288684391fe1c141272956ecfe0dd28c6500ce3e6d72"
+      },
+      {
+        "path": "apps/web/src/application-rehearsal.test.tsx",
+        "sha256": "8b688d0900ed846150962eeb9b658fd75c649691840fd29376a0e8829917ec3e"
+      },
+      {
+        "path": "apps/web/src/application-rehearsal.tsx",
+        "sha256": "8f9d356df7f6d39cfa401db478242cf6deeee9acffe40224a5c1a3b84fe772c0"
+      },
+      {
+        "path": "apps/web/src/application-review-answers.test.tsx",
+        "sha256": "a8e48104a7d7930959cb6ba2d9813046fab4e3c29114c5ab04f38a9f788fb2a1"
+      },
+      {
+        "path": "apps/web/src/application-review-answers.tsx",
+        "sha256": "aed614c524ddd47cb629ebf6999dd0f5fdf05051fe348668f1af62def1c97b36"
+      },
+      {
+        "path": "apps/web/src/application-review-queue.test.tsx",
+        "sha256": "b5e2b8c3025e96233fdb302a745ebff44253c8d323ae10e7381745ebe31c52d0"
+      },
+      {
+        "path": "apps/web/src/application-review-queue.tsx",
+        "sha256": "82495b0324f34dfe0eb3686310e3188f7522b4be3a2365417b3e8a8f221fa98b"
+      },
+      {
+        "path": "apps/web/src/application-route-discovery.test.tsx",
+        "sha256": "98f42075af6ba3ea960d98056651eb271105931c5fe09e23f562d3df3998a6f6"
+      },
+      {
+        "path": "apps/web/src/application-route-discovery.tsx",
+        "sha256": "c9b65466fc38e5d9b4f5e8a0ea114815d45e1df027e0090757e7f124f4ab7bff"
+      },
+      {
+        "path": "apps/web/src/application-route-preference.test.tsx",
+        "sha256": "d8a55cc66bf988e153ad969829a32829d13af75f038c017b80bd3a7a387896ee"
+      },
+      {
+        "path": "apps/web/src/application-route-preference.tsx",
+        "sha256": "735e0e6d15ec487183faf4ec15cf0c57d36d71834fcea246994548f4f6d0f20c"
+      },
+      {
+        "path": "apps/web/src/application-story-reference-workspace.test.tsx",
+        "sha256": "2f4cc24fa4d2494560efcdebcf90652478df7c97a43e437070bf85d0cd8d09ab"
+      },
+      {
+        "path": "apps/web/src/application-story-reference-workspace.tsx",
+        "sha256": "f0d5cd6365168806ea4746d8f45b4a3253f9a11482efe7a62b13761bd7e0462d"
+      },
+      {
+        "path": "apps/web/src/application-supporting-documents.tsx",
+        "sha256": "2235911124d9976b0ddf19de3dafb45f84e5133ec767e93fcbc2947cfa04f70e"
+      },
+      {
+        "path": "apps/web/src/browser-job-extraction-capture.test.ts",
+        "sha256": "5dfa2d60c1a710ddbf55969a0dbc20f88760cd519dee8833c4e18dfb9c0e7639"
+      },
+      {
+        "path": "apps/web/src/browser-job-extraction-capture.ts",
+        "sha256": "24210fad7d24462c16f51e95c5e2d5832cdb68408b1105cf4bdc84f1dd0aab18"
+      },
+      {
+        "path": "apps/web/src/browser-job-extraction-confirmation.test.tsx",
+        "sha256": "069929797df5f000805e1a555b6db7533d6efb9c8030088e374e511ba636a7cf"
+      },
+      {
+        "path": "apps/web/src/browser-job-extraction-confirmation.tsx",
+        "sha256": "dd13cfb032b6c8e7ea0923c5cf372f72af70105ea5c8799ca9f0914a9406cb67"
+      },
+      {
+        "path": "apps/web/src/browser-job-extraction.test.tsx",
+        "sha256": "4b536285bacdeb8f611349029b6cde43d620e7f1c4c2f4e678237e579cbcd918"
+      },
+      {
+        "path": "apps/web/src/browser-job-extraction.tsx",
+        "sha256": "5609c8bcf1caa189eebbd653fa9b470473904a9d6b3e6b67e3f4821adf17ca73"
+      },
+      {
+        "path": "apps/web/src/career-story-bank-adapter.test.ts",
+        "sha256": "fd5f3af327db9f22322584e4766672b0f819af2d3af1860b0fba10424dab2a4f"
+      },
+      {
+        "path": "apps/web/src/career-story-bank-adapter.ts",
+        "sha256": "919dd84ca3a20057f13cc63ad8ac262a608b0d85e871ee3172e7f957ec15cbd7"
+      },
+      {
+        "path": "apps/web/src/career-story-bank-connected.test.tsx",
+        "sha256": "226af3580462778c8ed3a99737bc7eadfb5b620859547d7b184c0a4232846681"
+      },
+      {
+        "path": "apps/web/src/career-story-bank-connected.tsx",
+        "sha256": "0fcad535bfdf47e0da814ea89b1d548de3fae76f3e8b5238b650417f9f9fc944"
+      },
+      {
+        "path": "apps/web/src/career-story-bank.test.tsx",
+        "sha256": "5325bce9f03b9f8832456900920a09d1e71a9a36290f358d04764f4715993967"
+      },
+      {
+        "path": "apps/web/src/career-story-bank.tsx",
+        "sha256": "801d33327ed5087a13de2c695c1e5ed42cc0d94f8e30c2b53cedb34f54bd3fcd"
+      },
+      {
+        "path": "apps/web/src/career-story-reuse-picker.test.tsx",
+        "sha256": "7f8ae67a58c530afd645ebc5ee3a1455cf05fa22b21a17fa9c62fee72f615f61"
+      },
+      {
+        "path": "apps/web/src/career-story-reuse-picker.tsx",
+        "sha256": "cd45600e047319303982d4e034928755d1a9b7eef939370fbe65f2ef15b7cd93"
+      },
+      {
+        "path": "apps/web/src/career-story-selection-review.test.tsx",
+        "sha256": "6bf69034f151f6f8b2966e969bbe97e4a4358a9ff471414cba0ebf078dec958c"
+      },
+      {
+        "path": "apps/web/src/career-story-selection-review.tsx",
+        "sha256": "25cbe3f9073650bd8649e04d0f7827391e0af5b3e87a7949d24431c1ff02f0b0"
+      },
+      {
+        "path": "apps/web/src/career-story-selection.test.tsx",
+        "sha256": "17ffa6640a1916b0cde4fece2b8a29fee74027829dfc83d3e4182e5d2e1c6a45"
+      },
+      {
+        "path": "apps/web/src/career-story-selection.tsx",
+        "sha256": "bf1ec1b9ddd1cc129df7a758e9c50deeaa1b3b33177c375aa5aac12a7a1dd6e7"
+      },
+      {
+        "path": "apps/web/src/company-activity.test.ts",
+        "sha256": "a6fe95dac31bdac6f7af3f4b16e6ce9aca11cd30459d9f2ab8df7788b2f14cad"
+      },
+      {
+        "path": "apps/web/src/company-activity.ts",
+        "sha256": "a8cf7fa0006ff568beb848ee670e9b6e629397f5c8ef0101d442d3bb859acaf1"
+      },
+      {
+        "path": "apps/web/src/company-discovery-activity.test.tsx",
+        "sha256": "ed0ddfac7d59f79f5d6aaf1879138f5f5939f1ad71274e08b375d090a66ff921"
+      },
+      {
+        "path": "apps/web/src/company-discovery-activity.tsx",
+        "sha256": "4aea74b29e3be8474501263fae78210ec60366a48e7232100b8cc36812489d2d"
+      },
+      {
+        "path": "apps/web/src/company-discovery-policy.test.tsx",
+        "sha256": "2e290f2fff700e02ea1c783d47d40b5f616f7974256df52c92a23d08db82213f"
+      },
+      {
+        "path": "apps/web/src/company-discovery-policy.tsx",
+        "sha256": "8e87d1895a733f5492369eb13cbb3922b78f457330475e4e1e03f85198701369"
+      },
+      {
+        "path": "apps/web/src/company-discovery-queue.test.tsx",
+        "sha256": "1f6e642b8b574228f5d89f0f49afb96bf96bd0e36dad63c91007070318c55af0"
+      },
+      {
+        "path": "apps/web/src/company-discovery-queue.tsx",
+        "sha256": "bfb1453e32e9d6aaca06cc57a435dca39821435210fd2a2988b688ea7e643ac8"
+      },
+      {
+        "path": "apps/web/src/company-discovery-requests.test.tsx",
+        "sha256": "cba22348df2128316dd2f87c65a5698c1d0d212260f259d5bc0955137d762e38"
+      },
+      {
+        "path": "apps/web/src/company-discovery-requests.tsx",
+        "sha256": "bbadc8d339839ff36a42b8d9dc886571129f53ed0942387b188c5912ac71d61d"
+      },
+      {
+        "path": "apps/web/src/company-discovery.test.tsx",
+        "sha256": "4fb7ea912e558f5b6d5b68b0b1b7bbfd4c8b056f4527977e26f996649bfe0da4"
+      },
+      {
+        "path": "apps/web/src/company-discovery.tsx",
+        "sha256": "542fa281fda4e0cec0bdc2c10ac04d8833209129ce59c78c6fbe852ed966524c"
+      },
+      {
+        "path": "apps/web/src/company-preferences-client.test.ts",
+        "sha256": "136c9876b4a05457fd3f659383319768ffd194c6edcae62cc099c64b2d08c938"
+      },
+      {
+        "path": "apps/web/src/company-preferences-client.ts",
+        "sha256": "47420263ac92d9ca345861ab639954a4a5716df23cbcd03b695759e2d54dcec5"
+      },
+      {
+        "path": "apps/web/src/company-preferences.test.tsx",
+        "sha256": "6d56f504b3a63d6005b15a2ecc98397f2102e3bc41c21501257f50aeae247503"
+      },
+      {
+        "path": "apps/web/src/company-preferences.tsx",
+        "sha256": "70a20bbc4a5deace9587e2fc2c5bf71e9918035366591ff1ba11d0ed1a1f8e77"
+      },
+      {
+        "path": "apps/web/src/company-source-monitoring.test.tsx",
+        "sha256": "5e86e864a50343f51cab0a5d74f5cacbe1fe908ab8d12c63e979a36b5a92de8a"
+      },
+      {
+        "path": "apps/web/src/company-source-monitoring.tsx",
+        "sha256": "fd03e0fa71a6c5327c6da3c718771e0b433c0674b0a9c0df0e9955e9a11f56ef"
+      },
+      {
+        "path": "apps/web/src/company-sources.test.tsx",
+        "sha256": "0cd6b2076a1a7cbccf88c93db6485b8ffaf1852c86409e02369f19a76793119f"
+      },
+      {
+        "path": "apps/web/src/company-sources.tsx",
+        "sha256": "09594a64785832f6a8bafb783f1e5260b38a2a326743dd4978ad05ce74e510f2"
+      },
+      {
+        "path": "apps/web/src/controlled-application-dry-run.tsx",
+        "sha256": "0fa70e89d4ae1076ceed299779b37e9fbcd29fba90415e2c351336ea460db444"
+      },
+      {
+        "path": "apps/web/src/controlled-application-pages.test.tsx",
+        "sha256": "215a141ff8607c49c146b0f4d68610ed8016abad2bb5d8b1722fbbbc2a0a2edc"
+      },
+      {
+        "path": "apps/web/src/cover-letter-review-preview.test.tsx",
+        "sha256": "80a2160810e46a7cc227b9546fa0706b975fc622118891ae0db01164efc4e7cb"
+      },
+      {
+        "path": "apps/web/src/cover-letter-review-preview.tsx",
+        "sha256": "fc3ca3a73c74594e7abadad3f008dc228bbbaa285a4ba7683fa68be22b8a2ed5"
+      },
+      {
+        "path": "apps/web/src/cover-letter-story-selection.tsx",
+        "sha256": "04de0c10658595e1df2aed5d94a15c61dfe4ef57a016767cbf1fa19a786eede6"
+      },
+      {
+        "path": "apps/web/src/credential-connection-feedback.test.tsx",
+        "sha256": "c80e22a30a48de4516d1fdeb39cb9848b7fef698f35b775b63d70896a562c238"
+      },
+      {
+        "path": "apps/web/src/credential-connection-feedback.tsx",
+        "sha256": "854cca2100019152666eb55d31bb87b5394c9e15b964ae22fb1cc42f0d23ec72"
+      },
+      {
+        "path": "apps/web/src/data-export.test.tsx",
+        "sha256": "fdad49d1fafc53537f71aaa4d95c996828421e0206695e0cfb00059b0825f747"
+      },
+      {
+        "path": "apps/web/src/data-export.tsx",
+        "sha256": "9f3f76900f72876eb11fabc073ef64bc11dd3ec0d1e87a3f862e59ef852442bb"
+      },
+      {
+        "path": "apps/web/src/document-archive.test.tsx",
+        "sha256": "c35bf5d50e085ac5c14803fac2faf334cd964ab8fec7a416ea743eb8b9a49eee"
+      },
+      {
+        "path": "apps/web/src/document-archive.tsx",
+        "sha256": "5ae95a189daa65d45d90742928b0554ecec5f8eb102c93f2a6cf32ced727899f"
+      },
+      {
+        "path": "apps/web/src/document-generation-failure.test.tsx",
+        "sha256": "5621142ff9e2b56fad320e022fc34d4d0c9f21f166fb27c862584c24890e7851"
+      },
+      {
+        "path": "apps/web/src/document-generation-failure.tsx",
+        "sha256": "a434075a40647212bc6f4a900c3712b819b54d28765e2942c37e7153c1323fac"
+      },
+      {
+        "path": "apps/web/src/document-history.test.tsx",
+        "sha256": "6cdc41ec325d8c23227d0b24eb8433dfdc30b9fd0afef58f0a6d5adb7e6906fd"
+      },
+      {
+        "path": "apps/web/src/document-history.tsx",
+        "sha256": "11c9cbc8d10f0fa7b8671f749b6f299f4ad46dcca0431b299b5de390c7a194c4"
+      },
+      {
+        "path": "apps/web/src/document-library.tsx",
+        "sha256": "2a8d8408e34d06de9bfa3218cf5e072da00195b59a547d4d4a744292cbc9634d"
+      },
+      {
+        "path": "apps/web/src/durable-ai-evaluation.test.tsx",
+        "sha256": "27e55c7c9043155a0d1778fe3dedec8c39396a1d4347c680e048baa6fc630de0"
+      },
+      {
+        "path": "apps/web/src/durable-ai-evaluation.tsx",
+        "sha256": "72ec7c8b278140fd78199381d28c1d9fdeff965126581976fb6e656b0e10e4ff"
+      },
+      {
+        "path": "apps/web/src/dynamic-application-form-client.test.ts",
+        "sha256": "7f9b6f552beb32877b9a482833b177c52f1aa9af6149bd087d546d5c82a4998a"
+      },
+      {
+        "path": "apps/web/src/dynamic-application-form-client.ts",
+        "sha256": "0cd95dafe1bef0ec84f122f2997ed781ac0cbee80ad55d843b575b59ac4f12c0"
+      },
+      {
+        "path": "apps/web/src/dynamic-application-form-connected.test.tsx",
+        "sha256": "754209164ce6ed01b62acdd943f88ae836135d09551754262a8feb0152d82581"
+      },
+      {
+        "path": "apps/web/src/dynamic-application-form-connected.tsx",
+        "sha256": "65e7e9492df3c1d08e4d381cd3f390996c7e2e66f1fcd44584ff0521c30f2c0b"
+      },
+      {
+        "path": "apps/web/src/dynamic-application-form.test.tsx",
+        "sha256": "9896d83811268c68508d6a29bf88a8042cd78c6abee5a9977a0a01e1d04035b7"
+      },
+      {
+        "path": "apps/web/src/dynamic-application-form.tsx",
+        "sha256": "d840551a149010b15950d0af968c9ea831a2b3ad68722fe515eea161af80ecce"
+      },
+      {
+        "path": "apps/web/src/email-status-review.test.tsx",
+        "sha256": "7fd961ff5de88a708a612acce0eb9bd2f89231472cfd2bf667d4ee482820f445"
+      },
+      {
+        "path": "apps/web/src/email-status-review.tsx",
+        "sha256": "75379206f0133b2ac6ece77532799c32799684fb78096d983193ed1b03029dfb"
+      },
+      {
+        "path": "apps/web/src/employer-search-rules.tsx",
+        "sha256": "fb66a43c26a13d1b434a4328dc6bf5f99720a3cab979b471c7f8d85d060ee0b6"
+      },
+      {
+        "path": "apps/web/src/explainable-matching-breakdown.test.tsx",
+        "sha256": "ac821f00849df37d5144533e88ee05630371b3a4c966e925234924337cfbff70"
+      },
+      {
+        "path": "apps/web/src/explainable-matching-breakdown.tsx",
+        "sha256": "442b0ec4e648cfe660a987a8f7eb6663e84c87a93097b33039feafc152e53357"
+      },
+      {
+        "path": "apps/web/src/fact-review.test.ts",
+        "sha256": "209a27ac0092a6ae24a99f7d8e77b4efe23033a53cd3604ce600729dc16b6d42"
+      },
+      {
+        "path": "apps/web/src/fact-review.ts",
+        "sha256": "0e2d037397a836ca10dbbb6544035ac258d039b0244440d522580662c31b7b22"
+      },
+      {
+        "path": "apps/web/src/feature-connections.test.tsx",
+        "sha256": "1b3b1118e30e6128d8ab52a612c57dc82166144854a4f15e4e387ef697bf400e"
+      },
+      {
+        "path": "apps/web/src/feature-connections.tsx",
+        "sha256": "40940c66e0b234f1274e65c48c1442d7af240ca5bebeae2f44e0d4fe64f53e2d"
+      },
+      {
+        "path": "apps/web/src/first-run-wizard.test.tsx",
+        "sha256": "99ece99954ab8a83ad1064eb856f99d210ba4445ff93487f083654faf78b9e82"
+      },
+      {
+        "path": "apps/web/src/first-run-wizard.tsx",
+        "sha256": "e279a3e2e657295caff82e67c6d99ff27c6b2f9580bf64567c1cf65248d66c4c"
+      },
+      {
+        "path": "apps/web/src/fresh-job-priority-badge.test.tsx",
+        "sha256": "e74376cef1ab736cfdd3548445bea473b2a1efc05c0f4e03813e999bd3cddab3"
+      },
+      {
+        "path": "apps/web/src/fresh-job-priority-badge.tsx",
+        "sha256": "9c7fa13395074840a20b7a6f1b897f5fc0fe37a3fb5a87d1e3a19e6236bc196b"
+      },
+      {
+        "path": "apps/web/src/interview-preparation-client.test.ts",
+        "sha256": "28813e651472969e7ffd7236e72eb57222ee21f8d88599380e2027f8bc72db94"
+      },
+      {
+        "path": "apps/web/src/interview-preparation-client.ts",
+        "sha256": "4a59b78b9bc19d1c968ba76b34a9faf335425c63cd3b46dc3f4d398ef643cf10"
+      },
+      {
+        "path": "apps/web/src/interview-preparation-connected.test.tsx",
+        "sha256": "78048c05599f92f3cee184a66d446c64f7743ef61345c57d7b230ff2a7f82581"
+      },
+      {
+        "path": "apps/web/src/interview-preparation-connected.tsx",
+        "sha256": "62d024ca0f0223f2a1c36181ec4a15433c74fe829e50f02f5ea3f7a9fbbcc833"
+      },
+      {
+        "path": "apps/web/src/interview-preparation.test.tsx",
+        "sha256": "ecdc19c95e42ee4efbbb661d29f5876f3b569b4388e3f3845a2fd9d5d98125d0"
+      },
+      {
+        "path": "apps/web/src/interview-preparation.tsx",
+        "sha256": "aedcd08016e0dfa6ca3a8d03d223fd2616b1c0f1e68ec551b8fb9b3f202f550a"
+      },
+      {
+        "path": "apps/web/src/job-comparison-client.test.ts",
+        "sha256": "ce623f35978322210a139ec3778b41ba3d6ac797bfed15c4084385e95336b6b9"
+      },
+      {
+        "path": "apps/web/src/job-comparison-client.ts",
+        "sha256": "91cc2c38f4291c3763449c0f84f15f8826ac26bc521c935391d7fe8bdf4aa661"
+      },
+      {
+        "path": "apps/web/src/job-comparison-workspace-recovery.test.tsx",
+        "sha256": "b4b6e8825f30cb127324c8ff011391d4297aad7da93f595d99669a1f8d86dadc"
+      },
+      {
+        "path": "apps/web/src/job-comparison-workspace.test.tsx",
+        "sha256": "7324379643cc39a0aa0d4ed2c453ff6c8c44dab1b66d4ac23ca4cd3e95c7f368"
+      },
+      {
+        "path": "apps/web/src/job-comparison-workspace.tsx",
+        "sha256": "c918a970959772d5098e3f0664c1e86b5d17cf3d5bad02ef48da42ff602da4f0"
+      },
+      {
+        "path": "apps/web/src/job-match-score-badge.test.tsx",
+        "sha256": "0d594f0b809ab628f8ab3e5ce427824d85b9c9b76fb00fa069d5fd140b85fdcc"
+      },
+      {
+        "path": "apps/web/src/job-match-score-badge.tsx",
+        "sha256": "4aa0204736717953421b369430675300892c22083dbbe6a56a3178680ed56daf"
+      },
+      {
+        "path": "apps/web/src/job-match-score-filter.test.tsx",
+        "sha256": "9707d02a9474b02ca3802d3e65e79498f52776f52bab734c23847d5c581e614c"
+      },
+      {
+        "path": "apps/web/src/job-match-score-filter.tsx",
+        "sha256": "8ef8d42067da8df480d0377efd2b78ef8a931db7cdc8b90c35667f1744d0c942"
+      },
+      {
+        "path": "apps/web/src/job-prefilter.test.tsx",
+        "sha256": "f732631be174409cd6b25c5fc6b853d8bbc5d32f822b67ecc378b7bbbce78899"
+      },
+      {
+        "path": "apps/web/src/job-prefilter.tsx",
+        "sha256": "d4d5ea3d11e47d0b9d41129e5f3cfc7cccb06e696226583b9bfc66d6ab73c6a3"
+      },
+      {
+        "path": "apps/web/src/job-risk-signals.test.tsx",
+        "sha256": "4979f39e8321267828bd46bd843f4a5d1c9f87cbb71da04d6a8c52fb6091da50"
+      },
+      {
+        "path": "apps/web/src/job-risk-signals.tsx",
+        "sha256": "739cdf903ea21a3cff3d4ba8b2329fe996ca11b5b326f6e969d9c700cb11647b"
+      },
+      {
+        "path": "apps/web/src/job-route-provenance.test.tsx",
+        "sha256": "9222e129dabf9899399f12c35aa7d2e22a93ba7d015de9445c07ac62b2caab3a"
+      },
+      {
+        "path": "apps/web/src/job-route-provenance.tsx",
+        "sha256": "5a53db15e282befa89f37f7b0c47055412406105b9d60fdab43100595481d9cb"
+      },
+      {
+        "path": "apps/web/src/job-source-filter.test.tsx",
+        "sha256": "a8e4c7671e182cb1d47995c8343b69f3040fae8d5369799206b40142163014f3"
+      },
+      {
+        "path": "apps/web/src/job-source-filter.tsx",
+        "sha256": "d9d9bdfb392db3eef3584390acc721db4b370401e2df5cfff52c45aa4a7b7090"
+      },
+      {
+        "path": "apps/web/src/llm-telemetry-dashboard.test.tsx",
+        "sha256": "7962fcea53bed9ed4e1d547c1b32e8f3d59f62ecc6ef65717107af5b737c35f1"
+      },
+      {
+        "path": "apps/web/src/llm-telemetry-dashboard.tsx",
+        "sha256": "fe75f259c740146f6006b26476db54bf1bc4ebd95a45ee23f94172bc92ce4c7b"
+      },
+      {
+        "path": "apps/web/src/main.tsx",
+        "sha256": "4695755857a3b8f939fa3fefa7107edd65e1703ffcdc4065e15cc95c15ec33b1"
+      },
+      {
+        "path": "apps/web/src/manual-mock-authentication.test.tsx",
+        "sha256": "cf52c9a39c1a445d94187c3ab140c653167adc729a9fa8601c7fdc8ed7067823"
+      },
+      {
+        "path": "apps/web/src/manual-mock-authentication.tsx",
+        "sha256": "110138264943ded0f977049b63f7eb1c2185cabc62f0811edd6291546906a144"
+      },
+      {
+        "path": "apps/web/src/match-category.test.ts",
+        "sha256": "436fc5a3611645889de3687b406d586ee0447531bdef90d689fe8dc0ba6c1c9a"
+      },
+      {
+        "path": "apps/web/src/match-category.ts",
+        "sha256": "f9e2a116fd3e9afde63fc9adf9d9c514e7b3519b6b90d00b7cbb354b4bd83d25"
+      },
+      {
+        "path": "apps/web/src/match-components-breakdown.test.tsx",
+        "sha256": "f5aae95ba8f2f518cfbe117761586d90d32e77ced6a8430b778d90011846729d"
+      },
+      {
+        "path": "apps/web/src/match-components-breakdown.tsx",
+        "sha256": "ba185e22c2a177fe2706a40a7a323cf346dae8ba09a8448f811e023385dbe016"
+      },
+      {
+        "path": "apps/web/src/match-feedback-client.test.ts",
+        "sha256": "d127f294b8184c81dcf7ba9bf18c9ba1343f63b0043e15fd8ac64d474e2968d0"
+      },
+      {
+        "path": "apps/web/src/match-feedback-client.ts",
+        "sha256": "d0714e36ea69794640e0f0df42043151cf8f2bb2402e1a71b2b186d744958d0d"
+      },
+      {
+        "path": "apps/web/src/match-feedback.test.tsx",
+        "sha256": "daa554e63b79eeb52706dca74c811aca96e561c8686f5ec1783556f2b0ad0a34"
+      },
+      {
+        "path": "apps/web/src/match-feedback.tsx",
+        "sha256": "4e5e5f5ed22af4dd3e10fd0e395d813119b91a86e2f45a9ef835299968be62c8"
+      },
+      {
+        "path": "apps/web/src/match-weight-configuration.test.tsx",
+        "sha256": "9d2ff574a1f2871d505011876ff6c3ccaae9f4444cf285f5da68f5167a6b9e02"
+      },
+      {
+        "path": "apps/web/src/match-weight-configuration.tsx",
+        "sha256": "982852cf980ce2b054b45365f803e3f6cd1f466e93bc67cfad9b54bf2ad56d5c"
+      },
+      {
+        "path": "apps/web/src/matching-explanation-client.test.ts",
+        "sha256": "c431b47258377f21d23db9c4ec2a35e0919445e6cfa0c741eb8d801f57fe3a60"
+      },
+      {
+        "path": "apps/web/src/matching-explanation-client.ts",
+        "sha256": "b876eda6532b473e74783590a9a48f08125096cc9bd40d83182f7626ea217d12"
+      },
+      {
+        "path": "apps/web/src/matching-explanation-workflow.test.tsx",
+        "sha256": "fd5455a63eb8ef83e711e9b22f3b1dd23ae774107d0842b19bd407ecedb95f54"
+      },
+      {
+        "path": "apps/web/src/matching-explanation-workflow.tsx",
+        "sha256": "7557e365b670ea1b2f5f4c6c449c43bb71968bdf88aceaf7b2dad9b2a963efad"
+      },
+      {
+        "path": "apps/web/src/matching-explanation.test.tsx",
+        "sha256": "96db81abf80085e34c5eff64cc54c471fc4dc6f62283d010755deb5025cfec13"
+      },
+      {
+        "path": "apps/web/src/matching-explanation.tsx",
+        "sha256": "f9aac5a755e8ee2862a68b952413987e288dd2f85bb750c427ce7330b7fa93e9"
+      },
+      {
+        "path": "apps/web/src/mock-dynamic-review.test.tsx",
+        "sha256": "7e79c5123a67d9792592e3569fa8d8e399682a3b3685bbaedfb443f638a4ffaf"
+      },
+      {
+        "path": "apps/web/src/mock-dynamic-review.tsx",
+        "sha256": "8da00e8be9928853640201d89716193bf6cbd3c12281ad4ee03c0cd9c3bb4073"
+      },
+      {
+        "path": "apps/web/src/mock-run-client.test.ts",
+        "sha256": "e73690f6697ecc287c3673a64429fbb570513a0971b749dddbb4b30a4311c202"
+      },
+      {
+        "path": "apps/web/src/mock-run-client.ts",
+        "sha256": "78ad6dac3f22134db0c37bdba813a45c761bb22ff768e44bed4b682da80085b5"
+      },
+      {
+        "path": "apps/web/src/mock-run-controls.test.tsx",
+        "sha256": "04d4dd2266713f9e4f9d09eff884b3039356ebb98e0bb0e13c5ee7aebd2ed7c2"
+      },
+      {
+        "path": "apps/web/src/mock-run-controls.tsx",
+        "sha256": "e55b903da0a773febfb96b44e00bfdad74b6b9015c948e7cef0fc4ef30344fa4"
+      },
+      {
+        "path": "apps/web/src/operation-progress-connected.tsx",
+        "sha256": "25a56ba19ec167cd780fdb773c794d10998a4b4b1f31d615e7e734d13e867ae0"
+      },
+      {
+        "path": "apps/web/src/operation-progress.test.tsx",
+        "sha256": "92dc50563fa33d5b99873072644fec3d13525c13f498579d85d9ad7e12cc0648"
+      },
+      {
+        "path": "apps/web/src/operation-progress.tsx",
+        "sha256": "8b22ffa2a82467ead32e5a6f81940506812133b6c4f0d3333ba59fe6c248b528"
+      },
+      {
+        "path": "apps/web/src/pipeline-workbench.test.tsx",
+        "sha256": "00ec01e7869ff808926528724441bfa0287b185c3753e8690bc7cd9a09caeb1f"
+      },
+      {
+        "path": "apps/web/src/pipeline-workbench.tsx",
+        "sha256": "49f6ba292403ad8712be2e3cadfd83f923a6422c213660f5b436567d03bc9cfd"
+      },
+      {
+        "path": "apps/web/src/profile-import.test.ts",
+        "sha256": "ef7562697101bf74f92f9c869cd194f07a262b5dccb799d3f173bf3c36b12c31"
+      },
+      {
+        "path": "apps/web/src/profile-import.ts",
+        "sha256": "1f50144effea3fa3ad1ba7eb8c6101da703bc17cf83e31d8c52accf4050deb2b"
+      },
+      {
+        "path": "apps/web/src/profile-restore.test.tsx",
+        "sha256": "7855318b19019603304778f7108cd6b5bfa9886198d78d833b9e8afd598b0077"
+      },
+      {
+        "path": "apps/web/src/profile-restore.tsx",
+        "sha256": "15492bbebea01f95e998211445da513d7a2da5a3b1f0c8cad88d730dd61a91dd"
+      },
+      {
+        "path": "apps/web/src/qualification-strength-breakdown.test.tsx",
+        "sha256": "707c54e1b9a115415739c79c436c0f17a74fc0acdca5b68b8e273d37a659569e"
+      },
+      {
+        "path": "apps/web/src/qualification-strength-breakdown.tsx",
+        "sha256": "bdd7cb546269a3343f02971609a2a3ed5769af951004de954a312698149ee536"
+      },
+      {
+        "path": "apps/web/src/recruiter-classification.test.tsx",
+        "sha256": "8a78d69264c34130ad42e9b440cdd04fae7d6d5810da171a0654b568d9ff4d68"
+      },
+      {
+        "path": "apps/web/src/recruiter-classification.tsx",
+        "sha256": "1f4254486bbd389fbff6c383d1a1428057ae733306b9a1cc9e8a209de5682415"
+      },
+      {
+        "path": "apps/web/src/resume-comparison.test.tsx",
+        "sha256": "75c11e56ad962c6d43b57430c70bda426b669d946100280156cd8e87a0963b18"
+      },
+      {
+        "path": "apps/web/src/resume-comparison.tsx",
+        "sha256": "adc66947cc3dfd73ba683d57c6ae52d87b12413bbfa35170e9896907e9ba58d2"
+      },
+      {
+        "path": "apps/web/src/resume-fact-selection.test.tsx",
+        "sha256": "08ae3a9cdebb11c119c18d9d0e20e901fa2c7c0398e1598d78979608900baad3"
+      },
+      {
+        "path": "apps/web/src/resume-fact-selection.tsx",
+        "sha256": "2b25d8da03506d05a13363a19bbd3a0238c5db49c47b79d90bab35ed6cc73884"
+      },
+      {
+        "path": "apps/web/src/resume-library.tsx",
+        "sha256": "2ec54a9b7dd0ea32d28b61410d1e46b64ce4b7b35819af64d3565cb2dd77ed04"
+      },
+      {
+        "path": "apps/web/src/resume-page-fit-job-scope.test.tsx",
+        "sha256": "7ae5c96635eca820534468544c25d2266a3c12a347607f42663ec9669ddbf8de"
+      },
+      {
+        "path": "apps/web/src/resume-page-fit.test.tsx",
+        "sha256": "51c645c46b44b3452198310c2c162fca05be133f133366fd05b7b2d52256a26c"
+      },
+      {
+        "path": "apps/web/src/resume-page-fit.tsx",
+        "sha256": "0c8d848b900b28c2cdf42b9156f5f047664fc05644cd8d0b4e1be1f359120f07"
+      },
+      {
+        "path": "apps/web/src/resume-rewrite-review.test.tsx",
+        "sha256": "339bcf1bb6634a1ea74ac3b31a6404d432f5aedb5da70bfabbc4b2bee7eb27d7"
+      },
+      {
+        "path": "apps/web/src/resume-rewrite-review.tsx",
+        "sha256": "89fe78775616249c91abfb15d7e0dac35a1ad26949e67c13c0e5e7a9c9090660"
+      },
+      {
+        "path": "apps/web/src/resume-story-selection.tsx",
+        "sha256": "6d99b40cbca3c9d74accf010c66d4086522ff8bb73dbfff27b55cf3df3cd4cdf"
+      },
+      {
+        "path": "apps/web/src/resume-workspace-client.test.ts",
+        "sha256": "ea88cff607480442e7731e87fdb796d6fb97db44fa378e48d1b397b4136aa6f8"
+      },
+      {
+        "path": "apps/web/src/resume-workspace-client.ts",
+        "sha256": "f780b8018c142d88edf0f154d3f2498e7d220bb8e903ea5fdd06d80a3ff91271"
+      },
+      {
+        "path": "apps/web/src/resume-workspace-connected.tsx",
+        "sha256": "6c7446a8b4a93e2909f294a8f99f58126830749d3f2e66e36e94cb4602c23ae9"
+      },
+      {
+        "path": "apps/web/src/resume-workspace.test.tsx",
+        "sha256": "d791324c4cd51a462b15deba9002c83bc063c595a7c0ae114243ba0f6e641b2d"
+      },
+      {
+        "path": "apps/web/src/resume-workspace.tsx",
+        "sha256": "8e78abccbd0bf19a5432cd64050b1931857dc3ddf9ddb43fe20740dbd348e7bb"
+      },
+      {
+        "path": "apps/web/src/retention-policy.test.tsx",
+        "sha256": "03c589109213e6c18b7fd8b469e3d33e02029dd3b1bd07dd78fdc33a8e3df4f1"
+      },
+      {
+        "path": "apps/web/src/retention-policy.tsx",
+        "sha256": "c5e71aee06d1c1d687eb5a2149d389805d6fb49912f3741d8009517d7e4cdf4c"
+      },
+      {
+        "path": "apps/web/src/role-lens-picker.test.tsx",
+        "sha256": "15e89eb40d266c54b4d20a1ca0dc2fd0ba6d98cb27a6ffa646ff17c90b8a462b"
+      },
+      {
+        "path": "apps/web/src/role-lens-picker.tsx",
+        "sha256": "5c0796821591987b15e92256b07670dc4f8117b7d6552e455b8507cf3c9acb55"
+      },
+      {
+        "path": "apps/web/src/role-lens-selection.test.tsx",
+        "sha256": "f55eaf99180f725b3cf7a0c406685fe8aaed708993ce6aeb274e33d42dbcc3fa"
+      },
+      {
+        "path": "apps/web/src/role-lens-selection.tsx",
+        "sha256": "f74a269141a68960c600df8fb2f9dc1e523f92022cbb6d947d922ec559ba26f5"
+      },
+      {
+        "path": "apps/web/src/role-scoring-custom-dimensions.test.tsx",
+        "sha256": "adade44ed654d19a37b70200a391ac035109700dc3385bd91f19ba863994a3d8"
+      },
+      {
+        "path": "apps/web/src/role-scoring-preference-dimensions.test.tsx",
+        "sha256": "21e370bb084293076577124787ba7e622e6f85ca343b463b8a0d3ed1326d8e99"
+      },
+      {
+        "path": "apps/web/src/role-scoring-preview-client.ts",
+        "sha256": "929ed4d6c006691b58bca69b08e71088e85412b34d46d5d59735fdba1fa8b0fc"
+      },
+      {
+        "path": "apps/web/src/role-scoring-preview.test.tsx",
+        "sha256": "0dbdd75d41d8c9f3a5522cd34c93d464f6153680dd37c9815eb33c6aa29a7335"
+      },
+      {
+        "path": "apps/web/src/role-scoring-preview.tsx",
+        "sha256": "8da0e09f2ab07c8efe5268b4c8cb5d59c84dea879b7ebd43429abfe5f110b50c"
+      },
+      {
+        "path": "apps/web/src/role-scoring-profile-client.test.ts",
+        "sha256": "1fc8c5302d465ec242ec0f5eee20f7398abef7b3bb0a644dd8d83e6eadc350b5"
+      },
+      {
+        "path": "apps/web/src/role-scoring-profile-client.ts",
+        "sha256": "376b0896f690cfef00a92d20c6a24d3dd28b9a43d9159550f2024ce8a34f1285"
+      },
+      {
+        "path": "apps/web/src/role-scoring-profile-editor.test.tsx",
+        "sha256": "44404d265d85085b70b09f2ae02951aa41c23ed987de7ea87d553944b5d58870"
+      },
+      {
+        "path": "apps/web/src/role-scoring-profile-editor.tsx",
+        "sha256": "c4cfbf9eb0a771be7db1c675f9b7dcd1ac187d372f4116874312008796314cf6"
+      },
+      {
+        "path": "apps/web/src/saved-search-schedule.test.tsx",
+        "sha256": "0a41628c2e0c6e6ae09cfe32282a16cdcf1d2894aa81432066401f4af838fe34"
+      },
+      {
+        "path": "apps/web/src/saved-search-schedule.tsx",
+        "sha256": "e9c39a8af042c294333fa15ffa789e8899f350784d2b01a1c5d00ccc45bbd64d"
+      },
+      {
+        "path": "apps/web/src/search-history-client.test.ts",
+        "sha256": "710942bd47f717dc9baddf8c906d5e4019062679493ccf5d230a59cd6d53b91b"
+      },
+      {
+        "path": "apps/web/src/search-history-client.ts",
+        "sha256": "2bc6ad7d59acca034b0dd31c9c2f9dd5a60e3d61656b432e814d060ea0703365"
+      },
+      {
+        "path": "apps/web/src/search-history-panel.test.tsx",
+        "sha256": "a631f895e617f4b3ee23ec2b2779ed0f37456d2798257946f487eeba0a4605a1"
+      },
+      {
+        "path": "apps/web/src/search-history-panel.tsx",
+        "sha256": "fd647dcc49890b7b040488a858be777c38be83b3a55bb0a1dd24d18074574d50"
+      },
+      {
+        "path": "apps/web/src/search-profile-seed.test.tsx",
+        "sha256": "10c56e8bdb911930fb331d934f36b35e7cab98b76d999d90d5cd6dc0541a510e"
+      },
+      {
+        "path": "apps/web/src/search-profile-seed.tsx",
+        "sha256": "7b2d16ca9bbb3f39ffc565496c9ca8616f42a4c939f4fc015d6b302bb9165733"
+      },
+      {
+        "path": "apps/web/src/search-profile-suggestions-recovery.test.tsx",
+        "sha256": "6db3a435aaeef3c7c28025e3cdc6935af4ceb52a7e84754a0b0f264c37b3d2f9"
+      },
+      {
+        "path": "apps/web/src/search-profile-suggestions-scope.test.tsx",
+        "sha256": "a38af5a294fc061da5d236cb9c1e6d2019b59a45c8c8d3019f8ecf535801df48"
+      },
+      {
+        "path": "apps/web/src/search-profile-suggestions.accessibility.test.tsx",
+        "sha256": "a6b08bb31e4a34f5abaada0afafab28a9e34c7d48d71aa52c87e2be924212ce1"
+      },
+      {
+        "path": "apps/web/src/search-profile-suggestions.test.tsx",
+        "sha256": "78009579fad0e7d2855c263e4a96397bc15cbef5f9b7e89ab7cf621b9faed2d8"
+      },
+      {
+        "path": "apps/web/src/search-profile-suggestions.tsx",
+        "sha256": "b0fbe899e02a07f48c6de219b5d5a1fd0c3632c0d82894e1d25f870f81472796"
+      },
+      {
+        "path": "apps/web/src/sensitive-answer-policy.test.tsx",
+        "sha256": "447b88243dc67232e52b297830b9875eb5922aa0e8d5aec6334273627fc2ed42"
+      },
+      {
+        "path": "apps/web/src/sensitive-answer-policy.tsx",
+        "sha256": "b75d160d77a234c62d9a4b34e5f382a0f7816655b801bd19d5a2d254bb29fa8f"
+      },
+      {
+        "path": "apps/web/src/settings-transfer.test.tsx",
+        "sha256": "04ec51775c1519af6fc790a68d8f4b24f0a33ed966be10ca56cb61b2e1935925"
+      },
+      {
+        "path": "apps/web/src/settings-transfer.tsx",
+        "sha256": "e9d31bd2a46599632ba9b0c1f8d5c283251c4220821256bc0acb1df16093f2f9"
+      },
+      {
+        "path": "apps/web/src/skill-gap-heatmap.recovery.test.tsx",
+        "sha256": "dfaef460a81d07580d2d87577f77223c7caaac15eb79774f119283c87b69eaac"
+      },
+      {
+        "path": "apps/web/src/skill-gap-heatmap.test.tsx",
+        "sha256": "bd0768a3c9de90b9d803bad0a4a40cac759b0ca93b5e3d7b4be82f5e8239d207"
+      },
+      {
+        "path": "apps/web/src/skill-gap-heatmap.tsx",
+        "sha256": "2e6098b7e88a951c408b76c5be65dd0f1b61884a566048e34592ea879e1dacb6"
+      },
+      {
+        "path": "apps/web/src/source-candidate-local-task.test.tsx",
+        "sha256": "13ad2cb2149df60046a8f50f55685009a5cb25cb7501e54b2fa5f833b46d3547"
+      },
+      {
+        "path": "apps/web/src/source-candidate-review-client.test.ts",
+        "sha256": "83b7cd6b9d65a2991b9cf5d0fc3f3bfe8ac5e0f9fcb4f0e0fea64aae91e3b45a"
+      },
+      {
+        "path": "apps/web/src/source-candidate-review-client.ts",
+        "sha256": "b6530776d66a4e9747262319fcb318421ce0136cf51574ef892793879fdd41a5"
+      },
+      {
+        "path": "apps/web/src/source-candidate-review-panel.test.tsx",
+        "sha256": "2c95c60ad8e89e4286330506e6c318811b4f8929e9ae9d9dd3486f63886c357d"
+      },
+      {
+        "path": "apps/web/src/source-candidate-review-panel.tsx",
+        "sha256": "79a1ad2f3a55f847e9f7ac5cf0e88215e06aa66f04f8850a3df675dd60760405"
+      },
+      {
+        "path": "apps/web/src/source-candidate-review.test.tsx",
+        "sha256": "4ae1a320cfbe5d4c8d37f8361a4606191691a771af2cf19d2f8d56adc486d824"
+      },
+      {
+        "path": "apps/web/src/source-candidate-review.tsx",
+        "sha256": "f05b88c6c8f89ef9e9f1c5cb1d0ff5e2054e1d3e4fa0d8ca359863824e1c88f5"
+      },
+      {
+        "path": "apps/web/src/source-link-evidence.test.tsx",
+        "sha256": "2983cc18293b335255ddf64d8039b35a16af8b3fc7aa3c13e1723f5ed09aa2c5"
+      },
+      {
+        "path": "apps/web/src/source-link-evidence.tsx",
+        "sha256": "ee0181a73f891d35653dc0e8762e09ceaca7d0ba81daa6fb57af742034377a2c"
+      },
+      {
+        "path": "apps/web/src/source-quality.test.tsx",
+        "sha256": "c119b7a7c532894b1d1acdea210ddb881047ef9ffdac90744512a59b859f8bf1"
+      },
+      {
+        "path": "apps/web/src/source-quality.tsx",
+        "sha256": "fe928f29da09026f01128b71ea2de5a5a9a5f70812ac50d01ba0acb18b0f6349"
+      },
+      {
+        "path": "apps/web/src/source-relationship-graph.test.tsx",
+        "sha256": "275fe3851be24e750e02cde3ccfb5e5e906a0f91154710141f3a50dfc277fa63"
+      },
+      {
+        "path": "apps/web/src/source-relationship-graph.tsx",
+        "sha256": "795e93cef1bd790d325292f3b456e6dd77439eb1c675c83080150a14f6dc0fca"
+      },
+      {
+        "path": "apps/web/src/source-value-evidence.test.tsx",
+        "sha256": "e012df2c6f0b837fa89e231fcf23f60ebc51300db382def560b59d92dd038a56"
+      },
+      {
+        "path": "apps/web/src/source-value-evidence.tsx",
+        "sha256": "bf69d2abede0fee31d28dcc0072952eaeeeb3c1f9a79fe40bb880c3f81bccc46"
+      },
+      {
+        "path": "apps/web/src/style.css",
+        "sha256": "acc34139e018f9024c9ffea15f49790b7b448669b5c05243cde49594552d6e97"
+      },
+      {
+        "path": "apps/web/src/technology-skill-seed.test.tsx",
+        "sha256": "886f91e509ba2cdf9d3f060b469d4a710c896601d5cb123557e1101f8d151ceb"
+      },
+      {
+        "path": "apps/web/src/technology-skill-seed.tsx",
+        "sha256": "5bac8d9c1a98b06752597ff5f8fe8b2fe778a4bbc6f7c802cf134810cf64b80d"
+      },
+      {
+        "path": "apps/web/src/theme.test.tsx",
+        "sha256": "47dfce0debd0032dd2c825af857446dca015d6f56e5fe600ed31a88744c74fd4"
+      },
+      {
+        "path": "apps/web/src/theme.tsx",
+        "sha256": "991f9b00a90f146ee40d7bc739573f4333d0948457a1a0152b88c57d1b5e3298"
+      },
+      {
+        "path": "apps/web/src/transient-retention.test.tsx",
+        "sha256": "d85e3304ba81c36c5771789a852601f3e6334ce134f3d140424f5132d83e2ffc"
+      },
+      {
+        "path": "apps/web/src/transient-retention.tsx",
+        "sha256": "24cc646f445dd2f5fef3d08e73413abefc3cb0afddfb626dab249950624af4f6"
+      },
+      {
+        "path": "apps/web/src/vite-env.d.ts",
+        "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+      },
+      {
+        "path": "cli/AREA.md",
+        "sha256": "6eefbc4383206354ac4dd063a95757d0f9105388ceeed137b46e47e607d8b577"
+      },
+      {
+        "path": "cli/backup_acceptance.py",
+        "sha256": "3b1e706272110a1937b4d7916fdcb5bcefa7b757323391fc5ebfc221ba75acfe"
+      },
+      {
+        "path": "cli/compose_recovery.py",
+        "sha256": "0d88d533f45ab7a705417fa95cb572fd0a30201dc0bbd5f5a045ecd294628566"
+      },
+      {
+        "path": "cli/document_artifacts.py",
+        "sha256": "c42f5962c5c4a9c7c170444525f287b049c82e7f78463d90186f07e74c352a8e"
+      },
+      {
+        "path": "cli/feedback_gui.py",
+        "sha256": "7e2d23e3d33df7f0062e932cc4bbb7760af274ce6cfdff47a2a51f4782c2dc2d"
+      },
+      {
+        "path": "cli/feedback_tasks.json",
+        "sha256": "ba91da3a489d9fda53cd034242e0c34bcc5fec0263b7e3f0488bb729e2ecff70"
+      },
+      {
+        "path": "cli/feedback_ui/app.js",
+        "sha256": "264e3fe4921d858769587ca0fb2111a3ff5482b6da81edc8d6f0318d9fb004e0"
+      },
+      {
+        "path": "cli/feedback_ui/index.html",
+        "sha256": "946d834ae7aaefe7a4c7697d5eff4d71288369bd25a08e8c45c9ad96b6b8b85d"
+      },
+      {
+        "path": "cli/feedback_ui/style.css",
+        "sha256": "7cfdcbc33397abeb9ebfd8ee262256de5019904cfc88e8de86cf2985b6927087"
+      },
+      {
+        "path": "cli/init_env.py",
+        "sha256": "4d1dbb3ac4a5f24363087cdff21b618c8ea27ef655e13ce22d6bb5fc90f21c34"
+      },
+      {
+        "path": "cli/live_feedback.py",
+        "sha256": "74bb9fa2a4b5f3770017887911c9453d13fc8abc7910ac288783685803f80d01"
+      },
+      {
+        "path": "cli/local_backup.py",
+        "sha256": "83eed9b4d1ad36379f96e5ca1e219386c5c99405886a79dc70c11c58a68bd65e"
+      },
+      {
+        "path": "cli/local_persistence_acceptance.py",
+        "sha256": "e5fc03d33ac6be2f7ae6940332829adfecf13da879ec84d705d197f30c642a7f"
+      },
+      {
+        "path": "cli/mock_e2e.py",
+        "sha256": "ab16795b05762c932f98334cd07693bfd9e33bc722abea324832b9accf1c3aee"
+      },
+      {
+        "path": "cli/personal_mode_e2e.py",
+        "sha256": "e63b1db651917ce53ff38e0dd45d564080dc1736a846263dcee3e2dcce46b156"
+      },
+      {
+        "path": "cli/profile_ocr_e2e.py",
+        "sha256": "dedefbe84f9349e71fbc1e085b5970184bd663f530bd7bfaead133e094f115d0"
+      },
+      {
+        "path": "cli/provision_database.py",
+        "sha256": "4ef6d23f37cadc0da778630f45b76a2cc0c85c4cd245f46bbd46c245835aff74"
+      },
+      {
+        "path": "cli/public_source_probe.py",
+        "sha256": "c6d267701aa5d959db42101a761e92f7feb99905a967e21ae7fbe1753aa3214d"
+      },
+      {
+        "path": "cli/runtime_database.py",
+        "sha256": "ccc75c8fa94b5c6c19e17be9b71cd046103834a3b75c4d7f5c23e5734feb2e12"
+      },
+      {
+        "path": "cli/ui_e2e.py",
+        "sha256": "6686bb896f423504603185fc87d5b504ffc725780b23d5ff92e981e8ce27b9be"
+      },
+      {
+        "path": "cli/ui_source_readback.py",
+        "sha256": "b7cc199e6443476f90bae7765f62f4586741317d7052f26b713c77ad1a75852a"
+      },
+      {
+        "path": "cli/uploaded_resume_comparison_e2e.py",
+        "sha256": "2d46668df9b9a167a4c2f434b5d722bf49a92e5c5c7ee8c14a63f04cd8b72aa8"
+      },
+      {
+        "path": "cli/verification_checks.py",
+        "sha256": "b58aef67129ddf749117fbbc9833cdf818233522a51312582bad9353e866e673"
+      },
+      {
+        "path": "cli/verification_fixture.py",
+        "sha256": "2b7a0ffa5f46a66a837877298ed0657089d8d6b06a7d58157a3fd4bdbbb8166f"
+      },
+      {
+        "path": "cli/verification_process.py",
+        "sha256": "22e6b75e3599b46d52bf631ecdb9e81ef325aac15bdb630d6cd4070547523e5e"
+      },
+      {
+        "path": "cli/verify_readiness.py",
+        "sha256": "bf00876e6deb96e64a79f69ba13e9f08daa915b2aac8b18afcba7db0a5e19105"
+      },
+      {
+        "path": "cli/workspace_identity.py",
+        "sha256": "82f019f36445a64a68aa7d23935879ebb41b2efb718f9e7a9ac03b0e4e9af10a"
+      },
+      {
+        "path": "compose.yml",
+        "sha256": "8fc1ddf1248c372b2183ff2a73767e8433f6ab96141148d7d26562ac582d6c5b"
+      },
+      {
+        "path": "fixtures/AREA.md",
+        "sha256": "fb63b39ef87f03c4a6b5d836a4f3614b581f062302c9953cce389e99b0c14b31"
+      },
+      {
+        "path": "fixtures/browser_ports.py",
+        "sha256": "d9173c06b82d35069c99bb11d6fe80d7f75de196dc4e48db7cb983bc568748a7"
+      },
+      {
+        "path": "fixtures/mock_server.py",
+        "sha256": "01f324fd616e0e02b95c93c4cbec874a78bdb0ea361df76324d50675df6995ec"
+      },
+      {
+        "path": "fixtures/resume_scans.py",
+        "sha256": "3b8491b243cf357c6cc0bc8909faaa478f60a8918c8c8ec86fc0c92cdd619efb"
+      },
+      {
+        "path": "packages/domain/AREA.md",
+        "sha256": "0a341059abf36b164301b0cff8980d3400dbe520cff83bbb76b2a161881aed40"
+      },
+      {
+        "path": "packages/domain/operation_mode.py",
+        "sha256": "e62d0d02486739f7eb2b6c3211e6840ba62eb8d80d270ec83cbf73ddd3231166"
+      },
+      {
+        "path": "packages/domain/profile.py",
+        "sha256": "60fc047042db97e6da4891bfa6e4cf8e1afc2e116c3a12a15eda5ccfd4a44682"
+      },
+      {
+        "path": "packages/domain/safety.py",
+        "sha256": "907457d1d6953bd7db84c80f9ed7bf56d2b6ff25d94b7311355cd269d03c9285"
+      },
+      {
+        "path": "packages/persistence/AREA.md",
+        "sha256": "ea6d41ee4152c39c5f0d59eb685a65651e9071d34ad187166d64ed85947397dc"
+      },
+      {
+        "path": "packages/persistence/models.py",
+        "sha256": "5c928e8ce49220bb586e0c0485a488189c42384bd1b79cef209b17205d6d3fb6"
+      },
+      {
+        "path": "packages/persistence/profile_restore.py",
+        "sha256": "ee2d9ae691792ace8ddf3abffeb094c787f19597679f71538ee75839690fc1e7"
+      },
+      {
+        "path": "packages/persistence/prompt_provenance.py",
+        "sha256": "fe8ce1ca2bb6afedc272e14e296a2bca2fb7ef8897123ac5f6d4337360bb3942"
+      },
+      {
+        "path": "packages/persistence/recovery_history.py",
+        "sha256": "f9129d893f4141194bfa14e5746937b5183e2dff49dc8bf8a44a3799c35d2f68"
+      },
+      {
+        "path": "packages/persistence/resume_workspace.py",
+        "sha256": "b6202d4cb3794e429513598d5ed652aa00fe3d151e7a4b3e9b4b7b43a3e54ae3"
+      },
+      {
+        "path": "packages/persistence/store.py",
+        "sha256": "705c6dc6520b5e731e666b75f3ec091f990d11882619111d8d31e44ad28ad737"
+      },
+      {
+        "path": "requirements.lock",
+        "sha256": "0d2b46f83633cea05c38e2c09f7ca1be4c675423e3b93e30edd722d0b373ef1e"
+      },
+      {
+        "path": "requirements.txt",
+        "sha256": "8219cf40e60f1f9da7956c11abd36c4a53d2cd9adbd5a10b568be36724e653f0"
+      },
+      {
+        "path": "services/agents/AREA.md",
+        "sha256": "1a3cde474deb4fdd989e97ae15103343811cf47788ec4c02b2ba4d9f134c8670"
+      },
+      {
+        "path": "services/agents/__init__.py",
+        "sha256": "c166a3fd9dda9ac57932cac4590bdc3243065b5173c52b231d2e192856312744"
+      },
+      {
+        "path": "services/agents/acceptance.py",
+        "sha256": "58f78e218e41ab798bc1c1e65863c136ed6ce4dc9528108e9dc03338e0b454c1"
+      },
+      {
+        "path": "services/agents/defaults.py",
+        "sha256": "48dd1542afbd469cdc8802915aa78d06682aa21d478310fb41d0cf20103d67de"
+      },
+      {
+        "path": "services/agents/registry.py",
+        "sha256": "d25efcc5d37d95a7a71d48fbb3bf31b1645504f8ae5edbb84b9ba702afd297a7"
+      },
+      {
+        "path": "services/agents/runtime.py",
+        "sha256": "a49f8d045f3e336110dc8c52884ac8f8671f0394a6971099bef3452af826403a"
+      },
+      {
+        "path": "services/agents/task_prompts.py",
+        "sha256": "542068fa1a9a36aa70af3633bd3a1102ff198a8ab0112cde30402b40b361045f"
+      },
+      {
+        "path": "services/agents/traces.py",
+        "sha256": "01af18126736a634c81b96054a02ead41cb1473ca736fbb750603b1027e641c7"
+      },
+      {
+        "path": "services/ai/AREA.md",
+        "sha256": "197629d7cecbfc2a9b72cafc133d5ab5b05def83d84300828500005f5e4a49c4"
+      },
+      {
+        "path": "services/ai/__init__.py",
+        "sha256": "7377c3ed705188d32c04f6ad010c003460db2a4571f94dbc58582ac188887619"
+      },
+      {
+        "path": "services/ai/consumer.py",
+        "sha256": "07df2d58630502a909f334a0ee3e18e81ae19b06a114e156b38a0a6bd24f7f27"
+      },
+      {
+        "path": "services/ai/cost_controls.py",
+        "sha256": "6e725bac052c39934bad71aaf410327955bc4dbd25837884b9ffdcd55df5e910"
+      },
+      {
+        "path": "services/ai/durable_evaluation.py",
+        "sha256": "540748c23019bbae9f0a119808189c32297d3a68de6d5c926632c791d2638580"
+      },
+      {
+        "path": "services/ai/input_freshness.py",
+        "sha256": "91cb669631078f77f8a52e28599158cc50ee980e8d446e117e247437da8f0f3c"
+      },
+      {
+        "path": "services/ai/prompt_provenance.py",
+        "sha256": "ad9e112d35d9b05d0f3ce7aeccca0e4f747a4e5c7df45cd4382124eac37d050c"
+      },
+      {
+        "path": "services/ai/prompt_versioning.py",
+        "sha256": "4712d5010d07d59b73729a60efbb26673f36b41b64439019dd5be2a3bdf04c88"
+      },
+      {
+        "path": "services/ai/provider_credentials.py",
+        "sha256": "4dc93905f4c216bbc4b4a3827eab3e493a4fac7da68b0a3a553e50b16b8d74d7"
+      },
+      {
+        "path": "services/ai/providers/AREA.md",
+        "sha256": "f4b107214d3ff68865cb24038dc5997c70fa3eec83acb41983ebfa0916d015fe"
+      },
+      {
+        "path": "services/ai/providers/__init__.py",
+        "sha256": "2ebd696408cbf59c02920c3392247f5cf5fc7548b38a42b16eb304dee195f85c"
+      },
+      {
+        "path": "services/ai/providers/azure_openai.py",
+        "sha256": "32129dac55486c72b9ee57bc8856b777a6ae28274c218e6fed25723546c1e562"
+      },
+      {
+        "path": "services/ai/providers/endpoint_security.py",
+        "sha256": "d59e2cd737526c750180255807c4b0b8e589d00c1af8c94b2d2445c704bce15e"
+      },
+      {
+        "path": "services/ai/providers/local_endpoint.py",
+        "sha256": "0a9adab7481cd4bacac3e82b36bff5cd6bdc38e4e22c57e1b60e7a3ca2e5b127"
+      },
+      {
+        "path": "services/ai/providers/ollama.py",
+        "sha256": "f7ee36bee6e074d988ab9c214a676526df946f1919047eaf128566023e19ac71"
+      },
+      {
+        "path": "services/ai/providers/openai.py",
+        "sha256": "fb93ad3608e3b4fce7bed262807a979547bc08b49d206246ecdc92f73d7a6ea2"
+      },
+      {
+        "path": "services/ai/providers/openai_compatible.py",
+        "sha256": "de89ca53ffb2a58717ece73f931b4ab5d9647102c5e078d2129d9c7d49915f25"
+      },
+      {
+        "path": "services/ai/providers/transport.py",
+        "sha256": "01198bd71ee1c199dc3d83b4ef6c120adc763fbb6d094c6fb5af4ce26529fe57"
+      },
+      {
+        "path": "services/ai/selected_search_candidates.py",
+        "sha256": "ce80d4a2e228be6c6024e9dab0fad7c161a0cae003396a9ad86d1dd40fe42301"
+      },
+      {
+        "path": "services/ai/structured_output.py",
+        "sha256": "536177f4b7828a6a4b875e424d053616d65ffd05bd626ce90f2ec1d20077e1c9"
+      },
+      {
+        "path": "services/ai/tasks.py",
+        "sha256": "7f9c99fc4351a11d733876c8d6b49e49fcbbf5cebb91164f945b7356cb7d4069"
+      },
+      {
+        "path": "services/ai/telemetry.py",
+        "sha256": "3652849afb76c5c741e0b658441a712bd5da015543bbcffadfb1ad63d4231dc8"
+      },
+      {
+        "path": "services/applications/AREA.md",
+        "sha256": "b16d7bf5b2931af11b01307a3b9cdf9ae3e29d34900af88e1c87527dec9a6ab2"
+      },
+      {
+        "path": "services/applications/adapters/greenhouse.py",
+        "sha256": "9b037e815d97e1079e66a3557f691e39d5f007b17a1c70b82a8d2e7ff0a1ab4e"
+      },
+      {
+        "path": "services/applications/adapters/lever.py",
+        "sha256": "2482db471a0296b9268c030f95677842c37d1df2270a60926197fc0dd4c0ed31"
+      },
+      {
+        "path": "services/applications/adapters/lever_markup.py",
+        "sha256": "6cffc3aaf9b781bcd51c1f0fd4a017e675136702903b7273e5d9565ad6c0383d"
+      },
+      {
+        "path": "services/applications/attempt_history.py",
+        "sha256": "2a883ce2375e02bf98829319ee0253f47a27c24cf9a1a8b17856df8b465870d2"
+      },
+      {
+        "path": "services/applications/browser_capture.py",
+        "sha256": "bd1c51a6a1aa3f3a17a5228e3e6e4e36a097616aeebac23290363e92e7d5d9bc"
+      },
+      {
+        "path": "services/applications/browser_process.py",
+        "sha256": "49e571bff482b4edfe1d32e961379504daa218f44b6247c612f7594afe72d8f6"
+      },
+      {
+        "path": "services/applications/browser_tree.py",
+        "sha256": "4a437d74a8e5ab11d312ea93bdc19d268df93c18d34617f016d3eaef75814906"
+      },
+      {
+        "path": "services/applications/browser_tree_certificate.py",
+        "sha256": "a87e6f2e14539d9bfdb045b7338d4e129d84f95dfbff6adb893b132cdcc1f6c6"
+      },
+      {
+        "path": "services/applications/browser_tree_ipc.py",
+        "sha256": "310e4e3a8a595bd4235454343372a1d8fa7c95c6012ec9be4bb4e92e82b2de48"
+      },
+      {
+        "path": "services/applications/capability_filter.py",
+        "sha256": "ec7ce7d37653c215c9158ef89f27b04b0a190990d131f2f4b1a2556aaf675420"
+      },
+      {
+        "path": "services/applications/confirmation_recovery.py",
+        "sha256": "992fb663f7eec58322b63165545e41ce1558a8f288f96aeb15bec4d15ca7c696"
+      },
+      {
+        "path": "services/applications/controlled_dry_run.py",
+        "sha256": "735690d43ac9d2fb42de1ea948e34617ab8ab8d151a98e2fcc2e89796eb4d604"
+      },
+      {
+        "path": "services/applications/debug_capture.py",
+        "sha256": "7f19d1dc0b9573659a38f9806037141c0eba84279c737f960301382ea5b50c16"
+      },
+      {
+        "path": "services/applications/dynamic_form_state.py",
+        "sha256": "668e2e97b23154fd62b45e26f347130d2ff31f8ddad27e53170dd1e706f3b9e9"
+      },
+      {
+        "path": "services/applications/external_capture.py",
+        "sha256": "98e11ce15fe1a8e958201831d6b2a3f6c3610877787ca174ee392469c3ef7a13"
+      },
+      {
+        "path": "services/applications/form_analysis.py",
+        "sha256": "e5249a53753af0decc964c0fd9545fb91e4195bc94177bb7bb9a87d1289277bb"
+      },
+      {
+        "path": "services/applications/form_review.py",
+        "sha256": "7fafa1399fd1929ccdac7dfbe72d8c7d6343b919229517069e72fdcddb6dd093"
+      },
+      {
+        "path": "services/applications/form_review_providers.py",
+        "sha256": "cf69bbc11f777e92a89b9b03fc6b70cc5076c20d060b61ebbcd0cd0d26210160"
+      },
+      {
+        "path": "services/applications/job_extraction.py",
+        "sha256": "4fde39d6a01e869cf12b00b6625fb7e3e96a467675e27b70b2bf831893cf6cca"
+      },
+      {
+        "path": "services/applications/knowledge.py",
+        "sha256": "91be04bc5c9d81b1b3d91d02513424c2153199fe19f1e1acf81fccef82c37321"
+      },
+      {
+        "path": "services/applications/manual_auth.py",
+        "sha256": "0fe285c71a8caa91b2957a532754f3d9c9eaffefda11cd74f399d39620803a36"
+      },
+      {
+        "path": "services/applications/manual_auth_host.py",
+        "sha256": "f8275c19b48012eee9755542abc962807c1587333a110e5d7925fc8f78e91d64"
+      },
+      {
+        "path": "services/applications/manual_auth_isolated.py",
+        "sha256": "898f93ff7a6f4692b506232cbdbbbb1febdf95d3c06c0572eda056da0531a49f"
+      },
+      {
+        "path": "services/applications/manual_auth_recovery.py",
+        "sha256": "1b8f8b97fd552eca75a78cc4598e3772b3c385e7477142da40450f289ed01d17"
+      },
+      {
+        "path": "services/applications/mock_adapter.py",
+        "sha256": "556459122cc501a6c61723dbe244b43ea92ba3dc226196e85e7cc6cbf3158e77"
+      },
+      {
+        "path": "services/applications/mock_answer_bindings.py",
+        "sha256": "7adf11c8e3df139b93f3990e6f8bf1c89b19e85a4b06557e4be4feed046b7045"
+      },
+      {
+        "path": "services/applications/mock_dynamic_review.py",
+        "sha256": "66f94376fd31fa8777eadf0ba80760374775ca491978176afa3394abb96bd13a"
+      },
+      {
+        "path": "services/applications/multipage_state.py",
+        "sha256": "2a5b1c82b0b8884f2f3ce4bdc0d7566bda01c45319351c9b8279ce3fe7dddbd8"
+      },
+      {
+        "path": "services/applications/preflight.py",
+        "sha256": "aa5757d874b15ef1a9c1d17a10292d1b585dc390e58b4d1855fa269b3fc768e2"
+      },
+      {
+        "path": "services/applications/rehearsal.py",
+        "sha256": "ca59f9a906a8339e2db3bf633dd07e2bda18f49006873934a51556c7553d9bce"
+      },
+      {
+        "path": "services/applications/rehearsal_store.py",
+        "sha256": "2512c07e5f167ebfd4c683b3ed066b96b594365267d5a4626ab16239f8148b0c"
+      },
+      {
+        "path": "services/applications/run_requests.py",
+        "sha256": "f3ddd3c192444c2e4b3e9dc9cf1a4c321ccb3d4b97dc8a81e2b58ae2610ae776"
+      },
+      {
+        "path": "services/applications/supporting_documents.py",
+        "sha256": "04789ae7961ec9e37cc84b7ca37bb3b9aaee6804481463498aa2fc4a387a39e1"
+      },
+      {
+        "path": "services/applications/upload_integrity.py",
+        "sha256": "7335757d39d0aff03a69efdbb761e05ede2cf19c5f4e48a5d42d20ee76188e06"
+      },
+      {
+        "path": "services/ats_detection/AREA.md",
+        "sha256": "18a3b8214a120fe73f03b2be5a342471c1d2cb77401c38fa478bc384aca29b85"
+      },
+      {
+        "path": "services/ats_detection/__init__.py",
+        "sha256": "51883db31c2b4e9be68b25f5ad4fd567627c697b39db6947651589ad458e9604"
+      },
+      {
+        "path": "services/ats_detection/board_links.py",
+        "sha256": "033152c7c65d5b1b3d6e579920bd02253f33320dbfd8063b2e01cdaa24cac34d"
+      },
+      {
+        "path": "services/ats_detection/detector.py",
+        "sha256": "e0349ec5e0df1890b74d7a9b082ee83a2c1da79641eb4960d52e21e4926f525e"
+      },
+      {
+        "path": "services/audit_history.py",
+        "sha256": "2cb14c631319d70afe57fd6f3fffdc699c39dd3bccf8ba8a1a31bce16192fe48"
+      },
+      {
+        "path": "services/career_profile/AREA.md",
+        "sha256": "29ca66e6a522da83c2471c92f6375cd546469bf2b13cddb63452fc1ca5866ab4"
+      },
+      {
+        "path": "services/career_profile/durable_extraction.py",
+        "sha256": "ba598d6f10b836540f0b523ab5473d6680df853843293726bac93e112180442e"
+      },
+      {
+        "path": "services/career_profile/extraction.py",
+        "sha256": "5dc4ab1f21c6f68723e71e4bd74216ec4c33a325dc6beaf2513304b2a8c429e1"
+      },
+      {
+        "path": "services/career_profile/interview_preparation.py",
+        "sha256": "96bcd2538ccb2e93f8a1358bc8d4d18d2e80d8573480c81daa196c4f1a50ae2e"
+      },
+      {
+        "path": "services/career_profile/ocr.py",
+        "sha256": "11bf452ee3d295c8ec6b7811bfb9ebb49876bc6669e9ec6b180f2f0042834e0d"
+      },
+      {
+        "path": "services/career_profile/parser_worker.py",
+        "sha256": "5c8b3d09e27a4fe633f11aaa2501ce42197f00d6a27a0ec0b06795452f837ed0"
+      },
+      {
+        "path": "services/career_profile/profile_access.py",
+        "sha256": "b10e13d406a62ff1a1734a99daf8b37afff17d396ee0668068220785b1779acf"
+      },
+      {
+        "path": "services/career_profile/role_lenses.py",
+        "sha256": "1a7355f959f247f3e28fda20923a8f53a445ebe0f233f6bce89bc0f29a648cee"
+      },
+      {
+        "path": "services/career_profile/story_bank.py",
+        "sha256": "b4affd377bf9019ec1c719ab7c7800f444b4d30594b9485a62d7f5c44166de9a"
+      },
+      {
+        "path": "services/career_profile/story_selection.py",
+        "sha256": "2e4004feecc9628ba8b194f9c2d799a7956afd16a9e11fe31bab9f63efd0b0f2"
+      },
+      {
+        "path": "services/company_discovery/AREA.md",
+        "sha256": "a2b1cb9437d521d72faf4628937dde4f30b5621326b596334b421ef8340ff8f1"
+      },
+      {
+        "path": "services/company_discovery/activity.py",
+        "sha256": "f96c9fa368c25683333794ab178f5e34b2320c8fe3a0c78e75df538142a8f406"
+      },
+      {
+        "path": "services/company_discovery/aliases.py",
+        "sha256": "8d4259c3c646260fc940734ac3a08e77cd8d37204d86b5dc0b3c4c576e0a6652"
+      },
+      {
+        "path": "services/company_discovery/application_links.py",
+        "sha256": "cc821ae9a9e0920e2e6ab3a15b6f893226c84b34407f31026698683ca6a820e9"
+      },
+      {
+        "path": "services/company_discovery/ats_enrollment.py",
+        "sha256": "0943ccda4ba8b9204e015c29eaf79a04902b3991c33fd757a4f2819fb67eb3d7"
+      },
+      {
+        "path": "services/company_discovery/career_pages.py",
+        "sha256": "e3d6e9b27301dac27a1a7b4536696bb535b4c7b376789087e2dd1c246cdb16a7"
+      },
+      {
+        "path": "services/company_discovery/company_context.py",
+        "sha256": "41419f1fbaa35ab81aa752bc2ab853aaeb57f2ac6930c435067f17a6149db691"
+      },
+      {
+        "path": "services/company_discovery/domains.py",
+        "sha256": "31f99c39e0d0d60acf31314898431b979e38be0c8143493cd2dd835a7c3790c8"
+      },
+      {
+        "path": "services/company_discovery/endpoints.py",
+        "sha256": "f9cb8fde0a38779e6944927a322e3c8c06b778b74480fa9c921e605e39853064"
+      },
+      {
+        "path": "services/company_discovery/fetch_policy.py",
+        "sha256": "e95937680a48431e46ffb0cab56fffe90d9238bd538dd617c08ec7c57becc67a"
+      },
+      {
+        "path": "services/company_discovery/flywheel.py",
+        "sha256": "ee02737835acfc2ad921ffd1b09b6e35923cc05ecb926b6cf89324e504105861"
+      },
+      {
+        "path": "services/company_discovery/link_evidence.py",
+        "sha256": "f267544e89a855b36572e83c72b6b79cf39b6ab5ec9e3c877540fa58feeeae70"
+      },
+      {
+        "path": "services/company_discovery/monitoring.py",
+        "sha256": "c252bcf7c118374936e7f3bd999ee360890d7b94ca121773fb9aa34df78ad319"
+      },
+      {
+        "path": "services/company_discovery/public_client.py",
+        "sha256": "213b27fb6aa118b011bcfad43a59aa2a05688f927a0595d03f2b8c8c2e254a88"
+      },
+      {
+        "path": "services/company_discovery/public_resolution.py",
+        "sha256": "d6cc5ac7ab7ef5e863bd02ce8a786a85ded497f3ca79d9bd560eb7a16f533e4d"
+      },
+      {
+        "path": "services/company_discovery/quality.py",
+        "sha256": "db3a1cb13bcef5dcce9f5e92b9a00fa39419e1eb835a6bb4d35bc4563afbd6a4"
+      },
+      {
+        "path": "services/company_discovery/quality_score.py",
+        "sha256": "f50b70489f9f9170cf045855d97613e4ea6191f1cd59e0fa6c1f88dbb35c5cd8"
+      },
+      {
+        "path": "services/company_discovery/queue_status.py",
+        "sha256": "cbf7ed226bae3dd7520771a06009c77780a83dcb47b9d8df898e11d1e8b0acec"
+      },
+      {
+        "path": "services/company_discovery/requests.py",
+        "sha256": "97a6cfefd65592450906d180c69bf18140b7f8ce13a9068fb4b5e7ea9b9d6d2c"
+      },
+      {
+        "path": "services/company_discovery/resolution.py",
+        "sha256": "60213d176d37dfee0120ecedfcdea10a21c79bdb9e47ace9e8a34dfcdf574736"
+      },
+      {
+        "path": "services/company_discovery/search.py",
+        "sha256": "d9c2a2f213c21fd96e904ba59e0974ac24c80641605cf7591c7cdc70ae6b2db8"
+      },
+      {
+        "path": "services/company_discovery/source_host_locks.py",
+        "sha256": "db4d44cc22d8b6242cc5aca89b9ca01aa64d1727bc9bf1f4a85e7c4c2a9cca9e"
+      },
+      {
+        "path": "services/company_discovery/sources.py",
+        "sha256": "85df7540ce086bc9946a1050bb072228b0d5572bd032eb31298870985822c6a1"
+      },
+      {
+        "path": "services/company_discovery/triggers.py",
+        "sha256": "d6a191d208ff9fc1678d527198c98073dc2b5030bb34209d5d567fb844124b82"
+      },
+      {
+        "path": "services/credentials/__init__.py",
+        "sha256": "12dd75163e668eaa533c0b19a81ef7c84495b1cee92a6c6ab2230a74b0aed6a0"
+      },
+      {
+        "path": "services/credentials/connection.py",
+        "sha256": "43d9a034822f5b86ec1c63004c1b027eec0250feefc3268e59d52c3edba3d743"
+      },
+      {
+        "path": "services/credentials/vault.py",
+        "sha256": "024f8e290ca86e3fb0956a0608105ba9a0b0859b6d9716a06d27701ab73e1e42"
+      },
+      {
+        "path": "services/data_export.py",
+        "sha256": "18cf64dcaad2db2d716ebed86f7cf5bb99622348d92ae3137f31c6ad1b15c1db"
+      },
+      {
+        "path": "services/dedupe/AREA.md",
+        "sha256": "943caced335ab7bd238e7e8e7e15457e891bd3a47acfe9deb497242b01c3da4a"
+      },
+      {
+        "path": "services/dedupe/ingestion_identity.py",
+        "sha256": "d8d0c5fa80012f6e586ac72ed5b00a4411fd7e34e8f4ac3e77bef208c40405a8"
+      },
+      {
+        "path": "services/dedupe/policy.py",
+        "sha256": "948be03a7db086959bd0421ce3449b445726f768830bb7964260eb8ffcdce847"
+      },
+      {
+        "path": "services/dedupe/reviews.py",
+        "sha256": "6ea6969cf035b53126f6fd02fcb0d2205444583fc96d37ab24f097882c5533ff"
+      },
+      {
+        "path": "services/dedupe/route_redirects.py",
+        "sha256": "23393077acea1a897dc2c8f8913b2e7d7b079982948ee5013e16172b1f40bde2"
+      },
+      {
+        "path": "services/dedupe/route_trust.py",
+        "sha256": "b4e0bec51a3d6e1b7a126b3f09d5628e91feed15d8b179d512c8ace80e90b7ff"
+      },
+      {
+        "path": "services/dedupe/routes.py",
+        "sha256": "dc8629fdca2608ff77887fcb4a7b9aea0ca6915e464eae0c2643785268f56711"
+      },
+      {
+        "path": "services/dedupe/signals.py",
+        "sha256": "491d80ee768d9cef3b4f34a188b9c7adbb5ff7a9f48dc0cea8ad0104479e0100"
+      },
+      {
+        "path": "services/dedupe/source_values.py",
+        "sha256": "6ad437bedf5223661e9bf0497d472de857244417a1bd4599bc7cac146ebf095a"
+      },
+      {
+        "path": "services/discovery/AREA.md",
+        "sha256": "43cb7523fe8d78a1a4544fbf2b429cd03db86510d0006a025baebabb4d6b7ac0"
+      },
+      {
+        "path": "services/discovery/application_priority.py",
+        "sha256": "beb21b89ac32afc3b516acb5f0cc9f802a994aca4e5b4adcb457f165f7399bae"
+      },
+      {
+        "path": "services/discovery/cheap_prefilter.py",
+        "sha256": "8ec637682b183581bb8ad857c3d1e87252b239999b0bf9ec3563ef6a3f872b8a"
+      },
+      {
+        "path": "services/discovery/cheap_prefilter_pipeline.py",
+        "sha256": "3dfff5a54a2be884f457ca08de9f3c33f0825a7809342e2a6d35989e98dad698"
+      },
+      {
+        "path": "services/discovery/company_feed.py",
+        "sha256": "716a32344dfa55713f6968e60acf894c5ae92e391a77f1f16df14bc862ebe931"
+      },
+      {
+        "path": "services/discovery/feed_items.py",
+        "sha256": "b81f84d84f92c17a97b288f65eaf44f356f4f43460bf1fa099925a4044bc5e6e"
+      },
+      {
+        "path": "services/discovery/job_risk_signals.py",
+        "sha256": "9e3e20e687eb73db3a000970163f70ca3bd1826aa18c9513355abff97daf31d2"
+      },
+      {
+        "path": "services/discovery/lifecycle.py",
+        "sha256": "a971a79d29dad7df2655e4112742601295cd13609f07702cc829f058c013cbc7"
+      },
+      {
+        "path": "services/discovery/manual_capture.py",
+        "sha256": "01b9ec36b2a32cd254114f1b046da92601649f63690ec6b673c06d273a9c4572"
+      },
+      {
+        "path": "services/discovery/matching.py",
+        "sha256": "8d99a7e757111956bcdf5c52b7a89ca77687a512322baef0949bbffc390cc996"
+      },
+      {
+        "path": "services/discovery/negative_filters.py",
+        "sha256": "a39f604f0560003842a5caa48e4b5dffd344538e54201fdcb90b0dd910628ec1"
+      },
+      {
+        "path": "services/discovery/pipeline.py",
+        "sha256": "8cc5927e0c03fa55b4e517ab1f02b16eaee1372a39df2d81e6f678fa50ad304c"
+      },
+      {
+        "path": "services/discovery/recruiter_classification.py",
+        "sha256": "e2f533b0346a3175156b725320438594ea919bcd05b43b7779707a48ca88b2f5"
+      },
+      {
+        "path": "services/discovery/requirement_parsers.py",
+        "sha256": "f2cb5c1385dfd8b48b71b72f96722627e5f4b6e45cedbe89a203222e159d6dde"
+      },
+      {
+        "path": "services/discovery/scheduler.py",
+        "sha256": "48c48ae7aa21496ee1ae24bfec5ea4f36766368a391229dce1efa78eae88f5a5"
+      },
+      {
+        "path": "services/discovery/search_history.py",
+        "sha256": "dcd6dfbd0053ab317b8b135faabe1976e96d9fa1ee6c3291be5534b082dd888e"
+      },
+      {
+        "path": "services/discovery/search_history_events.py",
+        "sha256": "63186854a3ef20ea5c4ffeed06cd5b2a8c77c5c240ad7740f66b5f5dd135b150"
+      },
+      {
+        "path": "services/discovery/search_profiles.py",
+        "sha256": "74477ee9d603ab4151b2c905b709596660153b0a4f06be7be6e3ccaa3c1be7df"
+      },
+      {
+        "path": "services/discovery/search_semantics.py",
+        "sha256": "68a746d8f7b7d5384d631d12e5a5187ad3aaa01cae7a9ba2df5e7ffbbd674516"
+      },
+      {
+        "path": "services/discovery/skill_taxonomy.py",
+        "sha256": "0653b171b3183471e0af18a68eaa0e6c0a24b70e0454f98521f00e82192538be"
+      },
+      {
+        "path": "services/discovery/sources/AREA.md",
+        "sha256": "70c0732ea029ab1133f661922d0d949488c55ac95dc130d036a9032bc695b1c7"
+      },
+      {
+        "path": "services/discovery/sources/collect.py",
+        "sha256": "0e510b33ae2ca5e2c44c5e8c0056bad186f407686ceec6dbad5d9b927a956cba"
+      },
+      {
+        "path": "services/discovery/sources/contract.py",
+        "sha256": "e3fa8444cabb26ba0db329e6e63312dc67e68d5d70b842d462a73a30d359ddf1"
+      },
+      {
+        "path": "services/discovery/sources/errors.py",
+        "sha256": "56db073c314c6f04d65618c2a28ac7819b2d7b8adc321e7b1f774e1f52aac66f"
+      },
+      {
+        "path": "services/discovery/sources/greenhouse.py",
+        "sha256": "e895f84ef585986f280ab779915dfa523117e48727d3e03b894b281283b1690c"
+      },
+      {
+        "path": "services/discovery/sources/lever.py",
+        "sha256": "068bb3c00bc92e0b6b86db51783a3ce5c1a7ffcc2a885b181022168f16f7cd38"
+      },
+      {
+        "path": "services/discovery/sources/registry.py",
+        "sha256": "bfebe6e83e9133a546093654adf5d6740bba305f1838de40176fcac5a51fd771"
+      },
+      {
+        "path": "services/discovery/sources/remoteok.py",
+        "sha256": "6ca29bc7133ab5ea7e3391b812d3e4a70f29794525f2f27c31c50d9685916d3e"
+      },
+      {
+        "path": "services/discovery/sources/remotive.py",
+        "sha256": "f3fb997c08b4459d4f2f391a992400ffb6583b72353eeacff52471aea10f1800"
+      },
+      {
+        "path": "services/discovery/sources/structured_text.py",
+        "sha256": "f517e4279f6e6cd5958de7f760c3e508c5e9fd655b7055adf047a0fdcf716bf5"
+      },
+      {
+        "path": "services/discovery/sources/wwr.py",
+        "sha256": "609639a0a082343cfcb2399cea5cd31440ff956208c14a918034152b1f2f7675"
+      },
+      {
+        "path": "services/documents/AREA.md",
+        "sha256": "609ad2915ba8441ab67a9a8276501d8ec5648498590155f0b6eb682695048fbd"
+      },
+      {
+        "path": "services/documents/alignment_preview.py",
+        "sha256": "620217c4aac089d731b4a423ba0767d57ae9527d9d9f4e4ba01b316f5065f47b"
+      },
+      {
+        "path": "services/documents/answer_story_citations.py",
+        "sha256": "ffb999db7ef9288cf7aed10c363e808da2c6d12413310afb9741126b80aeb38c"
+      },
+      {
+        "path": "services/documents/answers.py",
+        "sha256": "6a02d01420ffc7c92c17087c9e664eee919cfc0a1140a2a9fbcac43b7ae4bf24"
+      },
+      {
+        "path": "services/documents/archive.py",
+        "sha256": "c7095b15a0fdaca3532e99120c8f2f6bf9116dd4390e23dc8ba15b1f5e4211ec"
+      },
+      {
+        "path": "services/documents/archive_store.py",
+        "sha256": "8f5556183ff6912af683abc6e25a3a5f996908c94f44f8a322158b24aee17181"
+      },
+      {
+        "path": "services/documents/artifacts.py",
+        "sha256": "d5b59c52f93484b0aebc7ade099b24a90df02819cacdbd7b4e197e0dedf8c863"
+      },
+      {
+        "path": "services/documents/avoid_list.py",
+        "sha256": "7dd36d93db2170fd1406c0ce50e50415b4b63c4221036524850262f14478b608"
+      },
+      {
+        "path": "services/documents/comparison.py",
+        "sha256": "73f0d3ce2d5c996355a8c3e45346eb9435e95532b1b993c48cd48fa8be9419ae"
+      },
+      {
+        "path": "services/documents/cover_letter.py",
+        "sha256": "270e7af83b8e63308763325b350070f418f6754bfbc720284b5966dbbabbc21c"
+      },
+      {
+        "path": "services/documents/cover_letter_preview.py",
+        "sha256": "2ee26724c09e642193b1ae2bdfcf8ef3f3ad0c8b843edf3e7f6b86b70baf0cab"
+      },
+      {
+        "path": "services/documents/durable_comparison.py",
+        "sha256": "37d7cf3efd1076472df17fc9361129e5e167c4840457e9ea2568ee572e56be10"
+      },
+      {
+        "path": "services/documents/errors.py",
+        "sha256": "9881d8adef5161f7f64a4d875fb8ecf70a536c909f1876f1449a69449bb09fbd"
+      },
+      {
+        "path": "services/documents/failure_status.py",
+        "sha256": "032c43a63a0b9cee33c0b21c27403b98e99f9e3702f64c080d244d0678a19079"
+      },
+      {
+        "path": "services/documents/generate.py",
+        "sha256": "8dad588c9e2246001236dca57837e14fba3489e8ed0fe676efedf7544d169334"
+      },
+      {
+        "path": "services/documents/history.py",
+        "sha256": "1c6b6f13249650929b862721bf6042627d634d60f94c015c7dcf96c9d416188d"
+      },
+      {
+        "path": "services/documents/library.py",
+        "sha256": "c6b8eb29fdc6ab84bd3b03ceb840b1df9aa206cd186438f4c209f0534c0a3ad2"
+      },
+      {
+        "path": "services/documents/page_fit.py",
+        "sha256": "2d5a398ddc7686b57f378b4f0514689dc4cd89cc1f779a413f95b87eaa3d8201"
+      },
+      {
+        "path": "services/documents/render.py",
+        "sha256": "45fd0388357a39fb61c8d26f06be225fe2ea00245a1684dc43ae13640d3c53cc"
+      },
+      {
+        "path": "services/documents/resume_templates.py",
+        "sha256": "bda0695fd4861f613c2b27a39bec107cef1f81f09f79cee4dbb3268c38a3bde8"
+      },
+      {
+        "path": "services/documents/resume_workspace.py",
+        "sha256": "2d34cabcb0fa3655f1ddde7557577ac815479c3f0c8aad3cbdcd4c8ee66d8239"
+      },
+      {
+        "path": "services/documents/resume_workspace_export.py",
+        "sha256": "47530c9cb351fe618cc0253ac927d1f39542e804ea396d8033d4fbc6f252ea58"
+      },
+      {
+        "path": "services/documents/resume_workspace_preview.py",
+        "sha256": "b971056865401c64db04df9102565784590a2288a0df071889bdaed584dcfab4"
+      },
+      {
+        "path": "services/documents/rewrite_review.py",
+        "sha256": "1cccd161bb7dbe149767af1eba5efd7907cd5012a44586d8074d91780ba6dea6"
+      },
+      {
+        "path": "services/documents/sensitive_answer_policy.py",
+        "sha256": "c4100f697d7af2c9b7f029adf0a6b4a0ce3a766d92e911179333d382d02acb84"
+      },
+      {
+        "path": "services/documents/tailor.py",
+        "sha256": "85ebfecfaec26a12251274711ca356317cd79d897c27d9a45a6d7d17889991fd"
+      },
+      {
+        "path": "services/documents/templates.py",
+        "sha256": "52a4ecc0f01791bb4487973231d817e3dd550328684767239bb93e471d3bd45b"
+      },
+      {
+        "path": "services/documents/uploaded_comparison.py",
+        "sha256": "8da4a3d78388d9fb7921c3af8193f2acc8673577c0ff7ed5547a069f52f0b47f"
+      },
+      {
+        "path": "services/documents/uploads.py",
+        "sha256": "f67f34b5edb897f3b514d422983e8eed1103dcaa782e810d839c865a078d162c"
+      },
+      {
+        "path": "services/documents/validation.py",
+        "sha256": "bf8ee69aa57484bb7566f54aeca0e83b4a95c0e74e82e74edb1c2bc7c0e5cc1a"
+      },
+      {
+        "path": "services/learning/search_profile_suggestions.py",
+        "sha256": "a5b6f488e6cb89428f907bf21288641c231bc0150d1596ee8190b08d7e2261d3"
+      },
+      {
+        "path": "services/learning/skill_gap_heatmap.py",
+        "sha256": "a33f397574ea558ae8adc00868ea5a918ea28606133b9e0a690dc91af369e94d"
+      },
+      {
+        "path": "services/matching/application_priority.py",
+        "sha256": "7dc601b339f7f7289376c993a5d637c9677c2b218e00567972a8f2d283eea9f6"
+      },
+      {
+        "path": "services/matching/company_preferences.py",
+        "sha256": "ebaee51d6c416a40f746a5d28f6225adae3f6e820a02b85760d7cd31df01d2b1"
+      },
+      {
+        "path": "services/matching/components.py",
+        "sha256": "1fc71b0d727c44bb460e3ba9d858e988d1900b47d6e068ffd1e1b40905ebdf83"
+      },
+      {
+        "path": "services/matching/draft_preview.py",
+        "sha256": "c86a2abaff8ced3d3c31613d286ce643161139d5e3bb8b2acfad01b8bc561605"
+      },
+      {
+        "path": "services/matching/engine.py",
+        "sha256": "02ee315b2d55e403754fba1c85b4151d6a37771e068dbeed8c1367d1adcbbf7b"
+      },
+      {
+        "path": "services/matching/explainable_breakdown.py",
+        "sha256": "513bf9e4e4d2a528e135ce725c9c4e7e9a1f17025dc894cb1df52628ddc7b654"
+      },
+      {
+        "path": "services/matching/job_comparison.py",
+        "sha256": "01339ef94409982ac34f4be38e3ff94877ffddad77f50ea33bc0a32b436b05cc"
+      },
+      {
+        "path": "services/matching/preference_scoring.py",
+        "sha256": "db358e9f9019f362838e35fc28bed69382d57dc2ca94d32ebd3b3dea580c5731"
+      },
+      {
+        "path": "services/matching/preparation_priority.py",
+        "sha256": "0b3c9b25f49cf17a84d791e560184f7d344089ba84097ea985b630d3366a74a2"
+      },
+      {
+        "path": "services/matching/profile_scoring.py",
+        "sha256": "fc12580e2ede7f1ce23b65cda358a12e27b6dc58f7b53544ec0419b1cd8cdeb9"
+      },
+      {
+        "path": "services/matching/queue_priority.py",
+        "sha256": "315473bd8231e69aefe373cc67b1c1c11e4562e44b7b4d4d2e07dc67118f73c5"
+      },
+      {
+        "path": "services/matching/requirement_strength.py",
+        "sha256": "447e302985722ff8944d425b002742eca3906768eaa0a6dd87d9bfdfc2ba5006"
+      },
+      {
+        "path": "services/matching/scoring_profiles.py",
+        "sha256": "6857be60d4464ac63545a153f308fb2ab3dd45f513f6c6e8791b6db852fa1eff"
+      },
+      {
+        "path": "services/matching/selected_search_scoring.py",
+        "sha256": "97e504df853a0eac9aa0cff1f13f111da0a17bfab591dd1168a841e95cd21272"
+      },
+      {
+        "path": "services/matching/skill_evidence.py",
+        "sha256": "2f1ed87f2f968f6f03c6de57b8a54a5b809e1dbbcfeba7c342f76411657129d2"
+      },
+      {
+        "path": "services/matching/specialized_signals.py",
+        "sha256": "ad9e3902743c54b90f4a3f2807c637655741960b7654ea3fbb653bc2ae4709da"
+      },
+      {
+        "path": "services/matching/user_match_feedback.py",
+        "sha256": "070384ca50439c15b914fa2174b404669640e572c50ca39f3619dd368f2029b1"
+      },
+      {
+        "path": "services/matching/weight_configuration.py",
+        "sha256": "f080d0b2d27e0cdc72d3d168853d474c4f58fe96bd5b7d4f4b90f0d25a57fda8"
+      },
+      {
+        "path": "services/normalization/AREA.md",
+        "sha256": "52b501107794173f49e2d54f080973f239aad53a50ede1c6b707bbe3d9615937"
+      },
+      {
+        "path": "services/normalization/jobs.py",
+        "sha256": "e72e9c13f548159acfbba68cdc5227d20d1898700f63c691a54a7db739703a9c"
+      },
+      {
+        "path": "services/operations/pipeline_actions.py",
+        "sha256": "783aba48b1477a55c2bfb773e889ea9ca8ba064fd05ed3acaee344508416c11d"
+      },
+      {
+        "path": "services/operations/pipeline_workbench.py",
+        "sha256": "5d382eadecdd081b86ee2cf3ecfe880a45bb5222bfcf774985935ad42dc092d5"
+      },
+      {
+        "path": "services/operations/progress.py",
+        "sha256": "ae83130461b4811fc3103e6fbf3397eec4a7408d35bf5e170fdb307d75e570d4"
+      },
+      {
+        "path": "services/operations/source_relationship_graph.py",
+        "sha256": "05eedd50e2f7c2cac4d2f84a31cd6d091ceb212396411dd2c082e4afe7a3518d"
+      },
+      {
+        "path": "services/privacy/retention_policy.py",
+        "sha256": "fc79b3c3d47ba3c8a923513283efcbcbabb5f61e1d422b810958ba739e306916"
+      },
+      {
+        "path": "services/privacy/transient_retention.py",
+        "sha256": "9848306263f5f9ef0fe53ae569c738c2fe2d1f2ffbb9dc10e7a427328629a90f"
+      },
+      {
+        "path": "services/profile_restore.py",
+        "sha256": "c36d47c23066aafc9b88c6d99f6aaa526890616ec44922f90d42bc6a5870cced"
+      },
+      {
+        "path": "services/runtime_health.py",
+        "sha256": "ebf7ea1f911f94b66afea4fd148ef4b8cd59bdb4eb1ee8d00fe0fb4ff3aed89b"
+      },
+      {
+        "path": "services/settings_transfer.py",
+        "sha256": "ae9709836cafb49dfdc7d3d697ad88cd9aec9b4444d9c36dd366778103e025fa"
+      },
+      {
+        "path": "services/source_candidates/catalogue.py",
+        "sha256": "06d14fc0396d61666b93ddede3602650f1a5b5471efe15731207ba0f2f9ee562"
+      },
+      {
+        "path": "services/tracking/__init__.py",
+        "sha256": "bb2536c526edae1ce85904ee07d43366aca6e9796b592b7d716e37d18c29f6d3"
+      },
+      {
+        "path": "services/tracking/applications.py",
+        "sha256": "d761247c539560831e61f6bcb464a23a51ec61ff0fa68db2cf3b66c2360eedde"
+      },
+      {
+        "path": "services/tracking/companies.py",
+        "sha256": "98db7280d043e7586d662a4675baaa04fbb7ad753e0eddcb532c2f57c82c2e59"
+      },
+      {
+        "path": "services/tracking/email_status.py",
+        "sha256": "891a258d2a93cd2ea9bd7eb12cc292fe4d748aecfea99d4874b6cb0eba631e17"
+      },
+      {
+        "path": "services/tracking/email_status_store.py",
+        "sha256": "1ceaedd19e9ea649e86445277e74004085b140089564dc8c29faba6ffe4121a9"
+      },
+      {
+        "path": "services/tracking/follow_up_drafts.py",
+        "sha256": "3d5d0f060fa491802bd3b682decb413b3edf2c6df49cb31e17b32715a43fe655"
+      },
+      {
+        "path": "services/tracking/jobs.py",
+        "sha256": "57e8f8432d767c922ed20a1db1578a32820eba6cd0975dc7f199290f7315cc32"
+      },
+      {
+        "path": "tests/browser/test_company_discovery_activity.py",
+        "sha256": "0e208c0c524b9c3da3783adc90481bdcd4693d0f2cce91b0b315f9a81b027ee9"
+      },
+      {
+        "path": "tests/browser/test_company_discovery_idempotency.py",
+        "sha256": "82121ce1b0d42c09c8a9d751f2ec5787d3fc2d50bb4ea5cf6272d02c26e710b6"
+      },
+      {
+        "path": "tests/browser/test_company_discovery_policy.py",
+        "sha256": "bf3b66c820353c59effac5d07d9f2247ddb3f31825ab35fe45c0003d669b8365"
+      },
+      {
+        "path": "tests/browser/test_company_discovery_requests.py",
+        "sha256": "f10d6c6f2101738e43ec20c41d795c3a27f0bed5048763bb9a06cda08e8599d7"
+      },
+      {
+        "path": "tests/browser/test_company_discovery_sitemap.py",
+        "sha256": "8a0533e17221287d21cefb405db9ef60db26bf78b9413566bc63508c439ebb98"
+      },
+      {
+        "path": "tests/browser/test_data_export.py",
+        "sha256": "f06717cf7c9b4bc1fea6c37b33c3994e38fad2d92f14de703d67ab8d2c737cf8"
+      },
+      {
+        "path": "tests/browser/test_preferred_company_discovery.py",
+        "sha256": "eaf1c24a1f309f3c3572f7a2a680120cea64a835ca79e9b1b1bab77a072efc3c"
+      },
+      {
+        "path": "tests/browser/test_profile_restore.py",
+        "sha256": "079d8431d1d82aabd88bbafc5ee852a4d33ef7479414ed11ecb51bed067fe9d6"
+      },
+      {
+        "path": "tests/browser/test_profile_restore_history_readback.py",
+        "sha256": "93ec4d112630336218be8f7c0d21c8d707e87ec0dc6dd465e680bcfd8da8a2ba"
+      },
+      {
+        "path": "tests/browser/test_public_company_discovery.py",
+        "sha256": "cfcaa373d24764d2c9e16625cdb9f7fbdf993e029bb41387628a559c7e45c239"
+      },
+      {
+        "path": "tests/browser/test_remotive_link_safety.py",
+        "sha256": "39bf1503575d5cd2a6df1cbf87f9747328d9af04002abf66082e396c19c7620f"
+      },
+      {
+        "path": "tests/integration/test_application_operation_logs.py",
+        "sha256": "ecb24e600a60a4c68fc5bd26853d91027edd4e929a6c9051dfcc5d71502fc233"
+      },
+      {
+        "path": "tests/integration/test_company_discovery.py",
+        "sha256": "df1c0521056b01bd06afcffb6f1a14f2822aac05916771bb7b8b7c378d6ec4d3"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_activity.py",
+        "sha256": "815ef940782ddb15d290ba74d09438cb07b3745997d431564e51afeae3e9932a"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_activity_api.py",
+        "sha256": "a9bfaf2dbb8cf091f18efe8e25e6084c57f2e1dfc5c38757437dbedee488b6ea"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_idempotency.py",
+        "sha256": "e899ace2cd9c5cad8dec68e2d9acc376280e9878f3f0ff8f961024cf942f58ca"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_policy.py",
+        "sha256": "e56dff8c994d6222a24775e3f468aee52984444d2d144bdc2e5cc7b8724934b9"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_queue_api.py",
+        "sha256": "f789115268992562a92d8da198ca94453e52b7eb056b9a2d0d3c3aa7af00379b"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_requests_migration.py",
+        "sha256": "0620ab8743ecf17e8e749551e748b187473ba0c5e35e2b4f2bce3c573cb08d33"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_rq_acceptance.py",
+        "sha256": "4daae1b93c49f27203d54d01b87098898ff3afae1116dcb87951d626eabca7a0"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_sitemap_safety.py",
+        "sha256": "86b9ebc3b0f294c1008584577723a44b0636e96f7a36f3d0d31f4a239067d754"
+      },
+      {
+        "path": "tests/integration/test_company_discovery_sitemaps.py",
+        "sha256": "29b351156bc96bd339a7a0af5a542f55c2b7ee2d5fc5d73d31aa6aa2e507b001"
+      },
+      {
+        "path": "tests/integration/test_connected_verification_command.py",
+        "sha256": "0023cfc76bc6646e9279b7445b01d6e66d1096fb0fffee4c671bed40d452bcf3"
+      },
+      {
+        "path": "tests/integration/test_data_export_flow.py",
+        "sha256": "f3b170d65b81b4b2df79aa7912269f388187698b1ffc47eecdb79a9b550bca3a"
+      },
+      {
+        "path": "tests/integration/test_local_persistence_acceptance.py",
+        "sha256": "6952c24b14a367ca128c92b2432156ad44b4bb84dd9c487e973ac0fde0bf6409"
+      },
+      {
+        "path": "tests/integration/test_operation_log_context.py",
+        "sha256": "cc63982c594821665210c26eb3dc22bbfc0df852dc4c823dd2a6a038e8e74de1"
+      },
+      {
+        "path": "tests/integration/test_preferred_company_discovery.py",
+        "sha256": "288ccde6118a8d5416ac6de59a4793122093cf750cf2566b121d0341940d345d"
+      },
+      {
+        "path": "tests/integration/test_profile_restore.py",
+        "sha256": "79312d56263945a9bfe481800cc5ad3eb55c88aec392ae20f0049d58c8b340ff"
+      },
+      {
+        "path": "tests/integration/test_prompt_provenance.py",
+        "sha256": "7759cbf8b9dd45d76c72c4fef8505e2e1fa7cd2d13eb98c238455b38c61a1514"
+      },
+      {
+        "path": "tests/integration/test_public_company_discovery.py",
+        "sha256": "0c207acf8c1e5636b2b1b467755fe6d683d507f402fa95f2066f1a27c79b8e79"
+      },
+      {
+        "path": "tests/integration/test_remotive.py",
+        "sha256": "3d5c861980c8c566d0b3c4de621d34ec62b27ac2e7dd518c1dc3359538b36e1c"
+      },
+      {
+        "path": "tests/integration/test_worker_lifecycle.py",
+        "sha256": "e5ccc992bc2688b09e2e5bfb7c7260cfe21d6921bab1592458fece30cacd352d"
+      },
+      {
+        "path": "tests/unit/test_ai_prompt_versioning.py",
+        "sha256": "8067b27b985a9f2c0aeb9a0d1dd92c3fa7bbf0f50ebc582c7a4c4cc4a82f966c"
+      },
+      {
+        "path": "tests/unit/test_ai_provider_transport.py",
+        "sha256": "205f264aae5a54f63d1d6021374f8ab2ee66f54891530d1753c53af177209054"
+      },
+      {
+        "path": "tests/unit/test_cli_verification_checks.py",
+        "sha256": "514fd739fe72579174b4714661197042005d39343c813f8988bcf0a5554b0b5c"
+      },
+      {
+        "path": "tests/unit/test_cli_verification_process.py",
+        "sha256": "118651be078d2d61f037b09ea1e7c892f5d5bf9aa1fab62d3ad12a345e2214a7"
+      },
+      {
+        "path": "tests/unit/test_cli_verify_readiness.py",
+        "sha256": "8af3b5edd5858cf3bf5dc277e943acd3c7faa389d3990afe638515e327351b9d"
+      },
+      {
+        "path": "tests/unit/test_company_discovery_queue_status.py",
+        "sha256": "927b8cb81d38378cfd28048d728413a6c8fe6b8020e172a67d447f32e1c9ab94"
+      },
+      {
+        "path": "tests/unit/test_company_discovery_worker.py",
+        "sha256": "fe881ae60fd01df05bac2d89ffc12507ff2ad59d7a01cec07b5ad754217393cb"
+      },
+      {
+        "path": "tests/unit/test_data_export.py",
+        "sha256": "e6a837b14b3db6c89c7303fdc3a65491e7908367bc1f6eb72d77066016767496"
+      },
+      {
+        "path": "tests/unit/test_data_export_bounds.py",
+        "sha256": "55b52280cfb7ac4c75b059b3e247d6e7a28bff4a051fe5236fad4c08baed6357"
+      },
+      {
+        "path": "tests/unit/test_launcher_admission.py",
+        "sha256": "b80022963fe81b312f8ae922c3f800e3d31f18b438d0ec74b001be962012fe68"
+      },
+      {
+        "path": "tests/unit/test_linux_launcher.py",
+        "sha256": "eb613af1356ac3249f2679ff58d506b40603314a931889b67a7a87a26e421a06"
+      },
+      {
+        "path": "tests/unit/test_local_backup.py",
+        "sha256": "84463db96fade8b1b67a2110f6cea9cef5acee0111c5ea2c999dba2d9af04490"
+      },
+      {
+        "path": "tests/unit/test_local_persistence_acceptance.py",
+        "sha256": "f6d28bd6b4d9cb7c416ca076ba891931b7ea5a8246f72f5e11cf72826b2e925c"
+      },
+      {
+        "path": "tests/unit/test_profile_restore.py",
+        "sha256": "55ae4ea384e5e0e3844c00d8044c76b4c832d9cd5f61c668e407506a1046492b"
+      },
+      {
+        "path": "tests/unit/test_remotive_url_contract.py",
+        "sha256": "336d54e27897fa84190ab8f44b617aca89e4d33ee190e6fb7ac8fa4eac13ea6f"
+      },
+      {
+        "path": "tests/unit/test_structured_logging.py",
+        "sha256": "ca43471a800dd44dbfa47a94fd457d440a9bf2cb9f8299ac23351a4bce482b79"
+      },
+      {
+        "path": "tests/unit/test_verification_fact_review.py",
+        "sha256": "8871049ce34af91245ac83c7ba95587ea53695644ceffb59d654cc2e37d44b3e"
+      },
+      {
+        "path": "tools/ci/__init__.py",
+        "sha256": "5531f6c22c6180e1571c918af9449d2a4e2c75200a7003486d21ac00e72f0e7a"
+      },
+      {
+        "path": "tools/ci/check_repository.py",
+        "sha256": "35be806df1950d17bfc42c34ff3cdaf6ae46f847fd65a84e3c5b49dcd2a2db82"
+      },
+      {
+        "path": "tools/ci/python_requirements.py",
+        "sha256": "4dfa57ec31b31c522099b0a097d151b5ba4252d25880b826168f5cce78fcbf29"
+      },
+      {
+        "path": "tools/ci/release_gate.py",
+        "sha256": "e1562e9227354463b3b5de96511d5a7690f83e991134c14ff5b199cb0b4e832e"
+      },
+      {
+        "path": "tools/ci/run_shard.py",
+        "sha256": "a2fab4988b66a759d4832d5262b4c312051df3acfc22c2bbfae5e29b51cc0d8f"
+      },
+      {
+        "path": "tools/ci/secret_scan.py",
+        "sha256": "b88226fc42aae3b74ee36f0a55bf6a1fb9e2bc6072200bf420454412730e20eb"
+      },
+      {
+        "path": "tools/ci/test_summary.py",
+        "sha256": "d73c96ff7d4d11ed6cd95e6026cafbffbe1cfc9ee1fe839d7cae7e196af246a0"
+      },
+      {
+        "path": "tools/ci/verified_review.cjs",
+        "sha256": "8bc8e4c357503e6a5db4cccfb342f1bdb509dedc7c3d8391e7e3c5b6cae06b00"
+      },
+      {
+        "path": "workers/AREA.md",
+        "sha256": "4a72fe30b6404acd551d5a82278fc1f8a75fa1ce6bcfe6708a6e222711eab96d"
+      },
+      {
+        "path": "workers/application_form_review.py",
+        "sha256": "69abb38905dbb69cbca9764ce69eb6a8bc77c9b1f06dc90a226851b245433ab3"
+      },
+      {
+        "path": "workers/company_discovery_worker.py",
+        "sha256": "4e6304418df2f8cd7eeaaf66578dff7a37431006c7236af223cccab2c2559a23"
+      },
+      {
+        "path": "workers/dispatch.py",
+        "sha256": "938da5e0a1b3b45397d98aafcf95be72b3a03634f231c6cbfe45b28219d0881c"
+      },
+      {
+        "path": "workers/main.py",
+        "sha256": "0116d6c279b56d1af78586b8eb60c471092f55c0329812d22b53e62e1c479f43"
+      },
+      {
+        "path": "workers/operation_log_context.py",
+        "sha256": "9a285a9a07008f49ea3db602c44e7f4694a7dfbbb623b190b632390e41844abb"
+      },
+      {
+        "path": "workers/operations.py",
+        "sha256": "49ed098cf3673c2114a80b774f6ceac7e58fdfff10d3ae2e0c4f2c27648228f4"
+      },
+      {
+        "path": "workers/retries.py",
+        "sha256": "e5fc2da7b25f0bab9a136d2dd5fef2574bdd1578c596ca99332f466764cf6694"
+      },
+      {
+        "path": "workers/structured_logging.py",
+        "sha256": "4d934dbb6625f21a281b2c9631962c8a2d095b2aa1d27fc266bdc125fdbfe354"
+      },
+      {
+        "path": "workers/tasks.py",
+        "sha256": "8b83ad2a71af8eb4f47c6509c4abaf94d5fa8baba00f6d69e4177a72be283f4d"
+      },
+      {
+        "path": "workers/transient_retention.py",
+        "sha256": "1a9c7f0d079fba9c251cc8fd1e4ed9a46cf24a8dba762554d80d6473031c3c4c"
+      }
+    ],
+    "claim": "All five acceptance producer/test inputs are unchanged between recording base and final tested source; seven additional verifier inputs receive distinct Windows/Linux evidence. Full Integration/Connected executions on final source reconcile all prior integrated feature changes, not only individual original PR diffs."
+  },
+  "final_source_executions": {
+    "runs": {
+      "integration": {
+        "run_id": 38788781235,
+        "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781235",
+        "head_sha": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+        "result": "PASS",
+        "started_at": "2026-10-15T18:49:16Z",
+        "completed_by": "2026-10-15T18:59:24Z",
+        "artifacts": [
+          {
+            "id": 11999936945,
+            "name": "integration-results-1",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781235/artifacts/11999936945"
+          },
+          {
+            "id": 11999307003,
+            "name": "integration-results-0",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781235/artifacts/11999307003"
+          },
+          {
+            "id": 11999247145,
+            "name": "integration-results-2",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781235/artifacts/11999247145"
+          }
+        ],
+        "checkout": {
+          "checkout_sha": "4b1b4c88edc2cc7d98fa3d5dadb693b4545237c5",
+          "git_tree": "beca4f1e4179cbe5f642d41b93ebf6adbab4f563",
+          "parents": [
+            "564770457b92a72dc537a2f3d47813107fdcdec7",
+            "e17d43bed3ef9e595142a91ebdb89c7b6318375e"
+          ]
+        }
+      },
+      "connected": {
+        "run_id": 38788781436,
+        "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781436",
+        "head_sha": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+        "result": "PASS",
+        "started_at": "2026-10-15T18:49:16Z",
+        "completed_by": "2026-10-15T18:57:19Z",
+        "artifacts": [
+          {
+            "id": 12000355301,
+            "name": "synthetic-acceptance-json",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781436/artifacts/12000355301"
+          },
+          {
+            "id": 11999851614,
+            "name": "settings-browser-results",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781436/artifacts/11999851614"
+          }
+        ],
+        "checkout": {
+          "checkout_sha": "4b1b4c88edc2cc7d98fa3d5dadb693b4545237c5",
+          "git_tree": "beca4f1e4179cbe5f642d41b93ebf6adbab4f563",
+          "parents": [
+            "564770457b92a72dc537a2f3d47813107fdcdec7",
+            "e17d43bed3ef9e595142a91ebdb89c7b6318375e"
+          ]
+        }
+      },
+      "fast": {
+        "run_id": 38788781101,
+        "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781101",
+        "head_sha": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+        "result": "PASS",
+        "started_at": "2026-10-15T18:49:16Z",
+        "completed_by": "2026-10-15T18:53:32Z",
+        "artifacts": [
+          {
+            "id": 11999476394,
+            "name": "unit-results",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38788781101/artifacts/11999476394"
+          }
+        ],
+        "checkout": {
+          "checkout_sha": "4b1b4c88edc2cc7d98fa3d5dadb693b4545237c5",
+          "git_tree": "beca4f1e4179cbe5f642d41b93ebf6adbab4f563",
+          "parents": [
+            "564770457b92a72dc537a2f3d47813107fdcdec7",
+            "e17d43bed3ef9e595142a91ebdb89c7b6318375e"
+          ]
+        }
+      }
+    },
+    "integration": {
+      "environment": "Ubuntu24.04, Python3.12, PostgreSQL17/Redis7 services, cached workflow dependencies, headless Chromium; RQ case uses test-private SQLite across real worker; separate PostgreSQL cases remain separate",
+      "command": "python -m tools.ci.run_shard --suite integration --index \"$SHARD\" --count 3; each shard invokes pytest -q selected files --junitxml outputs/ci/integration-N.xml",
+      "suite_summaries": [
+        {
+          "path": "integration-0.xml",
+          "sha256": "2da815cffce5d43089558eac859bb714a0932610dd8b532c8e60e38c26dd8589",
+          "testcases": 516,
+          "passed": 516,
+          "skipped": 0,
+          "failed": 0
+        },
+        {
+          "path": "integration-1.xml",
+          "sha256": "a71c3a7a004b8174ecc55c44b610308717a4e5a10fb8f97bf4686588a23c84cd",
+          "testcases": 667,
+          "passed": 642,
+          "skipped": 25,
+          "failed": 0
+        },
+        {
+          "path": "integration-2.xml",
+          "sha256": "f27520788e34a1bd6b5e6723c7b7fe9c5a0eb4c0391cd77623db005a029fcdbd",
+          "testcases": 608,
+          "passed": 605,
+          "skipped": 3,
+          "failed": 0
+        }
+      ],
+      "selected_cases": [
+        {
+          "nodeid": "tests.integration.test_company_discovery_rq_acceptance.CompanyDiscoveryRQAdmissionTests::test_redis_target_admission_rejects_non_disposable_urls_before_io",
+          "result": "PASS",
+          "duration_seconds": 0.002,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_rq_acceptance.CompanyDiscoveryRQAdmissionTests::test_source_import_finishes_without_company_consumer_or_employer_egress",
+          "result": "PASS",
+          "duration_seconds": 1.287,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_rq_acceptance.CompanyDiscoveryRealRQTests::test_real_dispatch_wrong_queue_import_outage_and_fresh_company_worker",
+          "result": "PASS",
+          "duration_seconds": 4.33,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_export_restores_into_empty_separate_database_and_reloads",
+          "result": "PASS",
+          "duration_seconds": 1.133,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_exported_all_unsafe_routes_preserve_profile_but_no_job_descendants",
+          "result": "PASS",
+          "duration_seconds": 1.583,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_exported_capability_routes_omit_only_dependent_history_on_fresh_restore",
+          "result": "PASS",
+          "duration_seconds": 1.226,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_exported_unsafe_application_route_preserves_safe_job_and_sibling",
+          "result": "PASS",
+          "duration_seconds": 1.195,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_import_keeps_terminal_unknown_and_ambiguous_states_inert",
+          "result": "PASS",
+          "duration_seconds": 2.138,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_metadata_only_backup_import_filters_revisions_for_missing_upload_bytes",
+          "result": "PASS",
+          "duration_seconds": 0.873,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_preview_explicit_import_readback_and_request_idempotency",
+          "result": "PASS",
+          "duration_seconds": 0.835,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_profile_only_restore_does_not_require_missing_output_directory",
+          "result": "PASS",
+          "duration_seconds": 0.853,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_restored_application_can_regenerate_documents_after_review",
+          "result": "PASS",
+          "duration_seconds": 1.027,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_unconfirmed_and_stale_imports_do_not_create_profiles",
+          "result": "PASS",
+          "duration_seconds": 1.296,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_profile_restore.ProfileRestoreIntegrationTests::test_upload_file_failure_rolls_back_profile_and_preserves_unowned_files",
+          "result": "PASS",
+          "duration_seconds": 0.777,
+          "artifact_file": "integration-0.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_prompt_provenance.PromptProvenanceTests::test_actual_parser_keeps_historical_candidates_after_source_change_and_reopen",
+          "result": "PASS",
+          "duration_seconds": 0.465,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_prompt_provenance.PromptProvenanceTests::test_denied_answers_and_unapproved_facts_do_not_gain_provenance_records",
+          "result": "PASS",
+          "duration_seconds": 1.323,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_prompt_provenance.PromptProvenanceTests::test_documents_and_reviewed_answers_survive_current_definition_change_and_reopen",
+          "result": "PASS",
+          "duration_seconds": 0.537,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_prompt_provenance.PromptProvenanceTests::test_resolver_rejects_tampering_malformed_versions_and_cross_target_bindings",
+          "result": "PASS",
+          "duration_seconds": 0.519,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_capabilities_and_unsupported_features",
+          "result": "PASS",
+          "duration_seconds": 0.092,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_collect_source_persists_multi_company_jobs",
+          "result": "PASS",
+          "duration_seconds": 0.142,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_error_handling_and_health_states",
+          "result": "PASS",
+          "duration_seconds": 3.093,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_fetch_job_by_id",
+          "result": "PASS",
+          "duration_seconds": 1.096,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_link_boundary_survives_collection_reopen_and_api_readback",
+          "result": "PASS",
+          "duration_seconds": 0.958,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_normalize_maps_to_canonical_job_fields",
+          "result": "PASS",
+          "duration_seconds": 0.108,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_registry_integration",
+          "result": "PASS",
+          "duration_seconds": 0.097,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_remotive.RemotiveTests::test_search_contract_and_multi_company_attribution",
+          "result": "PASS",
+          "duration_seconds": 0.098,
+          "artifact_file": "integration-1.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyTests::test_form_review_ignores_private_payload_and_forged_context",
+          "result": "PASS",
+          "duration_seconds": 1.143,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyTests::test_lookup_failure_preserves_terminal_outcomes_without_diagnostic_values",
+          "result": "PASS",
+          "duration_seconds": 2.069,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyTests::test_missing_malformed_and_nonapplication_entities_never_become_log_context",
+          "result": "PASS",
+          "duration_seconds": 0.905,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests::test_form_review_ignores_private_payload_and_forged_context",
+          "result": "PASS",
+          "duration_seconds": 1.389,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests::test_lookup_failure_preserves_terminal_outcomes_without_diagnostic_values",
+          "result": "PASS",
+          "duration_seconds": 2.299,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_log_privacy.ApplicationLogPrivacyPostgresTests::test_missing_malformed_and_nonapplication_entities_never_become_log_context",
+          "result": "PASS",
+          "duration_seconds": 1.484,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_operation_logs.ApplicationOperationLogTests::test_dry_run_blocked_then_fresh_intent_logs_persisted_context_and_receipt",
+          "result": "PASS",
+          "duration_seconds": 2.013,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_operation_logs.ApplicationOperationLogTests::test_form_review_logs_after_persisted_result_and_survives_reopen",
+          "result": "PASS",
+          "duration_seconds": 1.059,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_operation_logs.ApplicationOperationLogTests::test_process_crash_receipt_recovery_logs_once_without_browser_replay",
+          "result": "PASS",
+          "duration_seconds": 4.1,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests::test_dry_run_blocked_then_fresh_intent_logs_persisted_context_and_receipt",
+          "result": "PASS",
+          "duration_seconds": 2.652,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests::test_form_review_logs_after_persisted_result_and_survives_reopen",
+          "result": "PASS",
+          "duration_seconds": 1.347,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_application_operation_logs.ApplicationOperationLogPostgresTests::test_process_crash_receipt_recovery_logs_once_without_browser_replay",
+          "result": "PASS",
+          "duration_seconds": 4.612,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_api_new_tab_retry_returns_original_operation_and_conflict_is_409",
+          "result": "PASS",
+          "duration_seconds": 0.347,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_candidate_mapping_order_does_not_change_intent_identity",
+          "result": "PASS",
+          "duration_seconds": 0.12,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_changed_profile_requires_new_scoring_snapshot_original_intent_replays",
+          "result": "PASS",
+          "duration_seconds": 0.125,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_concurrent_intents_share_one_operation",
+          "result": "PASS",
+          "duration_seconds": 0.219,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_different_profile_candidate_and_trigger_authority_are_separate",
+          "result": "PASS",
+          "duration_seconds": 0.136,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_disposable_postgres_guard_rejects_connection_overrides",
+          "result": "PASS",
+          "duration_seconds": 0.116,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_new_tab_intents_share_one_active_operation_and_survive_reopen",
+          "result": "PASS",
+          "duration_seconds": 0.122,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_new_verified_company_identity_cannot_reuse_previous_company_operation",
+          "result": "PASS",
+          "duration_seconds": 0.123,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_profile_activity_and_dead_letters_retain_company_operation_without_cross_profile_leak",
+          "result": "PASS",
+          "duration_seconds": 0.346,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_receipt_failure_rolls_back_outbox_then_intent_can_recover",
+          "result": "PASS",
+          "duration_seconds": 0.436,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_request_payload_conflict_never_coalesces_or_enqueues",
+          "result": "PASS",
+          "duration_seconds": 0.115,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_review_and_monitoring_authority_never_share_direct_add_operation",
+          "result": "PASS",
+          "duration_seconds": 0.127,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_running_operation_is_coalesced",
+          "result": "PASS",
+          "duration_seconds": 0.119,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyTests::test_terminal_failure_allows_fresh_intent_but_replays_both_original_intents",
+          "result": "PASS",
+          "duration_seconds": 0.125,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyPostgreSQLTests::test_concurrent_postgresql_intents",
+          "result": "PASS",
+          "duration_seconds": 0.305,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyPostgreSQLTests::test_postgresql_profile_and_candidate_isolation",
+          "result": "PASS",
+          "duration_seconds": 0.298,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_company_discovery_idempotency.CompanyDiscoveryIdempotencyPostgreSQLTests::test_postgresql_terminal_replay_and_fresh_retry",
+          "result": "PASS",
+          "duration_seconds": 0.274,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_ambiguous_posting_never_selects_an_arbitrary_row",
+          "result": "PASS",
+          "duration_seconds": 0.616,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_application_profile_and_route_mismatch_fail_closed",
+          "result": "PASS",
+          "duration_seconds": 0.618,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_application_worker_logs_persisted_posting_after_real_browser_outcome",
+          "result": "PASS",
+          "duration_seconds": 1.728,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_company_discovery_uses_durable_operation_link_not_candidate",
+          "result": "PASS",
+          "duration_seconds": 0.519,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_comparison_context_respects_application_owner_and_ai_extraction_have_no_job",
+          "result": "PASS",
+          "duration_seconds": 0.617,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_enrichment_database_failure_preserves_completed_and_failed_outcomes",
+          "result": "PASS",
+          "duration_seconds": 0.734,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_failed_and_cancelled_prepare_keep_context_without_raw_exception",
+          "result": "PASS",
+          "duration_seconds": 0.86,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_invalid_source_worker_omits_nonexistent_source_and_forged_company",
+          "result": "PASS",
+          "duration_seconds": 0.517,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_missing_application_does_not_log_entity_or_params",
+          "result": "PASS",
+          "duration_seconds": 0.518,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_multiple_companies_on_one_collector_do_not_choose_a_company",
+          "result": "PASS",
+          "duration_seconds": 0.515,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_prepare_worker_emits_real_persisted_posting_and_relationships",
+          "result": "PASS",
+          "duration_seconds": 0.623,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_resolver_reloads_durable_hints_and_rejects_identity_mismatch",
+          "result": "PASS",
+          "duration_seconds": 0.519,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_source_and_company_refresh_context_are_from_persisted_association",
+          "result": "PASS",
+          "duration_seconds": 0.518,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_source_collection_worker_logs_durable_source_company_not_batch_job",
+          "result": "PASS",
+          "duration_seconds": 0.734,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_operation_log_context.OperationLogContextTests::test_unpersisted_invalid_and_cross_profile_prepare_references_fail_closed",
+          "result": "PASS",
+          "duration_seconds": 0.519,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_application_worker_exposes_its_remaining_monotonic_budget",
+          "result": "PASS",
+          "duration_seconds": 0.692,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_apply_mock_context_lookup_failure_does_not_change_outcome_or_log_diagnostics",
+          "result": "PASS",
+          "duration_seconds": 0.123,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_apply_mock_logs_persisted_ats_provider_after_terminal_persistence",
+          "result": "PASS",
+          "duration_seconds": 0.698,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_cancel_before_claim_and_running_cancellation_are_durable",
+          "result": "PASS",
+          "duration_seconds": 0.125,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_cancelled_running_browser_never_reserves_submission",
+          "result": "PASS",
+          "duration_seconds": 1.23,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_capacity_is_independent_and_a_duplicate_cannot_claim",
+          "result": "PASS",
+          "duration_seconds": 0.131,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_company_discovery_kinds_share_one_category_capacity",
+          "result": "PASS",
+          "duration_seconds": 0.13,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_company_source_refresh_context_lookup_failure_preserves_result_and_omits_diagnostics",
+          "result": "PASS",
+          "duration_seconds": 0.612,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_company_source_refresh_logs_persisted_company_fk_after_terminal_persistence",
+          "result": "PASS",
+          "duration_seconds": 0.25,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_concurrent_application_workers_share_capacity_across_store_instances",
+          "result": "PASS",
+          "duration_seconds": 0.131,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_discovery_expiry_retries_at_most_three_claims",
+          "result": "PASS",
+          "duration_seconds": 0.132,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_over_budget_worker_is_not_recorded_completed",
+          "result": "PASS",
+          "duration_seconds": 0.139,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_personal_worker_blocks_stale_fixture_discovery",
+          "result": "PASS",
+          "duration_seconds": 0.109,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_personal_worker_blocks_stale_fixture_preparation",
+          "result": "PASS",
+          "duration_seconds": 0.524,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_personal_worker_blocks_stale_fixture_submission_before_browser",
+          "result": "PASS",
+          "duration_seconds": 0.619,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_pre_submit_crash_stops_for_review",
+          "result": "PASS",
+          "duration_seconds": 0.684,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_prepare_retry_limit_adds_one_profile_scoped_failure_event",
+          "result": "PASS",
+          "duration_seconds": 0.557,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_product_worker_process_crash_recovers_from_durable_lease",
+          "result": "PASS",
+          "duration_seconds": 2.025,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_reclaimed_attempt_fences_original_worker_before_side_effect",
+          "result": "PASS",
+          "duration_seconds": 0.134,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_recovered_application_without_receipt_is_explicitly_blocked",
+          "result": "PASS",
+          "duration_seconds": 0.719,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_reserved_submission_only_reconciles_and_cannot_cancel",
+          "result": "PASS",
+          "duration_seconds": 0.678,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_terminal_prepare_failure_is_recorded_without_rewrite_payload",
+          "result": "PASS",
+          "duration_seconds": 0.549,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.WorkerLifecycleTests::test_worker_logs_successful_operation_as_structured_record",
+          "result": "PASS",
+          "duration_seconds": 0.132,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.PostgreSQLWorkerCrashRecoveryTests::test_postgresql_reclaimed_attempt_fences_original_worker_side_effect",
+          "result": "PASS",
+          "duration_seconds": 0.761,
+          "artifact_file": "integration-2.xml"
+        },
+        {
+          "nodeid": "tests.integration.test_worker_lifecycle.PostgreSQLWorkerCrashRecoveryTests::test_postgresql_worker_process_crash_recovers_and_reclaims_durable_operation",
+          "result": "PASS",
+          "duration_seconds": 2.106,
+          "artifact_file": "integration-2.xml"
+        }
+      ]
+    },
+    "unit": {
+      "file": {
+        "path": "unit.xml",
+        "sha256": "2fa09f70024259955afc1fa250848abeb856d08d89888b9a0a263acdb2e93594"
+      },
+      "selected_cases": [
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.AIPromptVersioningTests::test_all_four_authoritative_targets_supported_with_defaults",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.AIPromptVersioningTests::test_duplicate_version_registration_is_rejected",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.AIPromptVersioningTests::test_invalid_target_and_version_format_fail_closed",
+          "result": "PASS",
+          "duration_seconds": 0.0
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.AIPromptVersioningTests::test_register_new_version_updates_active_and_hashes_cryptographically",
+          "result": "PASS",
+          "duration_seconds": 0.0
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.AIPromptVersioningTests::test_registry_serialization_and_roundtrip",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.AIPromptVersioningTests::test_render_missing_variable_fails_closed",
+          "result": "PASS",
+          "duration_seconds": 0.0
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.AIPromptVersioningTests::test_render_prompt_traces_exact_version_used",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.PersistedPromptProvenanceTests::test_nested_static_definition_shape_is_checked",
+          "result": "PASS",
+          "duration_seconds": 0.004
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.PersistedPromptProvenanceTests::test_stored_manifest_never_resolves_imports_paths_or_current_source",
+          "result": "PASS",
+          "duration_seconds": 0.005
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.PersistedPromptProvenanceTests::test_tampered_helper_paths_producers_shapes_and_oversize_are_rejected",
+          "result": "PASS",
+          "duration_seconds": 0.009
+        },
+        {
+          "nodeid": "tests.unit.test_ai_prompt_versioning.PersistedPromptProvenanceTests::test_unknown_parser_is_explicitly_unsupported_without_fabricated_version",
+          "result": "PASS",
+          "duration_seconds": 0.003
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_configured_worker_output_is_one_json_line",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_every_kind_and_terminal_outcome_retains_fixed_fields",
+          "result": "PASS",
+          "duration_seconds": 0.013
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_exact_context_fields_by_kind",
+          "result": "PASS",
+          "duration_seconds": 0.003
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_identifiers_reject_malformed_secret_and_non_scalar_values",
+          "result": "PASS",
+          "duration_seconds": 0.014
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_missing_or_malformed_projection_ignores_all_untrusted_hints",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_operation_id_and_error_filter_retained",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_provider_and_source_are_exact_enums",
+          "result": "PASS",
+          "duration_seconds": 0.002
+        },
+        {
+          "nodeid": "tests.unit.test_structured_logging.StructuredOperationLoggingTests::test_unsupported_kind_or_nonterminal_result_does_not_emit",
+          "result": "PASS",
+          "duration_seconds": 0.001
+        }
+      ],
+      "command": "python -m pytest -q tests/unit --junitxml=outputs/ci/unit.xml"
+    },
+    "connected": {
+      "environment": {
+        "os": "Ubuntu 24.04 hosted disposable runner",
+        "python": "3.12.15",
+        "mode": "FIXTURE",
+        "browser": "headless Chromium",
+        "storage": "owned PostgreSQL/Redis and fresh Compose volumes"
+      },
+      "files": [
+        {
+          "path": "ci-backup-recovery.json",
+          "sha256": "d9813cf20f73480aab6acc3fe4a5724750ab0bf7a7c526f2f5f3098155629b47"
+        },
+        {
+          "path": "ci-backup.json",
+          "sha256": "a696090c9b29007a1599d15b4042785c431467ca004e870d003d38a93b623da8"
+        },
+        {
+          "path": "ci-mock-e2e.json",
+          "sha256": "d9c359d580cc81a6038bb25b9a0ab6a1964a312160fd682c4ad586354ebd55f5"
+        },
+        {
+          "path": "ci-recovery.json",
+          "sha256": "757b520813e3a5293c44cd22232b42c02b7a7ceafcd718d68c2943218dccb940"
+        },
+        {
+          "path": "ci-ui.json",
+          "sha256": "4ba4eb3959b02d8caf677d133108d721b0157096348d42673dfcde6a4fc102fd"
+        }
+      ],
+      "commands": [
+        "python -m cli.init_env",
+        "bash .devcontainer/mjobs.sh fixture",
+        "python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json",
+        "python -m cli.ui_e2e --evidence outputs/ci-ui.json",
+        "python -m cli.compose_recovery --baseline outputs/ci-ui.json --evidence outputs/ci-recovery.json --project-name \"$COMPOSE_PROJECT_NAME\" --port \"$MJOBS_PORT\"",
+        "python -m cli.backup_acceptance --baseline outputs/ci-ui.json --evidence outputs/ci-backup.json --archive \"$RUNNER_TEMP/mjobs-fixture-backup\" --source-project \"$COMPOSE_PROJECT_NAME\" --target-project \"$BACKUP_TARGET_PROJECT\" --port \"$MJOBS_PORT\""
+      ],
+      "public_cli": [
+        {
+          "subcommand": "backup",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+            "-m",
+            "cli.local_backup",
+            "backup",
+            "--project",
+            "mjobs-fixture-808612e8a20c",
+            "--archive",
+            "/home/runner/work/_temp/mjobs-fixture-backup"
+          ],
+          "exit_code": 0,
+          "result": "PASS",
+          "file_count": 42
+        },
+        {
+          "subcommand": "verify",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+            "-m",
+            "cli.local_backup",
+            "verify",
+            "--archive",
+            "/home/runner/work/_temp/mjobs-fixture-backup"
+          ],
+          "exit_code": 0,
+          "result": "PASS",
+          "file_count": 42
+        },
+        {
+          "subcommand": "restore",
+          "argv": [
+            "/opt/hostedtoolcache/Python/3.12.15/x64/bin/python",
+            "-m",
+            "cli.local_backup",
+            "restore",
+            "--archive",
+            "/home/runner/work/_temp/mjobs-fixture-backup",
+            "--target-project",
+            "mjobs-fixture-eafd224f6185",
+            "--port",
+            "18700"
+          ],
+          "exit_code": 0,
+          "result": "PASS"
+        }
+      ],
+      "observations": {
+        "all_five_json_results": "PASS",
+        "domains": [
+          {
+            "name": "postgresql",
+            "count": 1
+          },
+          {
+            "name": "uploaded_resumes",
+            "count": 1
+          },
+          {
+            "name": "generated_resumes",
+            "count": 5
+          },
+          {
+            "name": "cover_letters",
+            "count": 5
+          },
+          {
+            "name": "application_history",
+            "count": 1
+          },
+          {
+            "name": "company_source_catalog",
+            "count": 1
+          },
+          {
+            "name": "configuration",
+            "count": 1
+          }
+        ],
+        "comparisons": [
+          {
+            "phase": "source_restart",
+            "result": "PASS",
+            "domains": [
+              "postgresql",
+              "uploaded_resumes",
+              "generated_resumes",
+              "cover_letters",
+              "application_history",
+              "company_source_catalog",
+              "configuration"
+            ]
+          },
+          {
+            "phase": "source_after_capture",
+            "result": "PASS",
+            "domains": [
+              "postgresql",
+              "uploaded_resumes",
+              "generated_resumes",
+              "cover_letters",
+              "application_history",
+              "company_source_catalog",
+              "configuration"
+            ]
+          },
+          {
+            "phase": "fresh_target_restore",
+            "result": "PASS",
+            "domains": [
+              "postgresql",
+              "uploaded_resumes",
+              "generated_resumes",
+              "cover_letters",
+              "application_history",
+              "company_source_catalog",
+              "configuration"
+            ]
+          },
+          {
+            "phase": "target_restart",
+            "result": "PASS",
+            "domains": [
+              "postgresql",
+              "uploaded_resumes",
+              "generated_resumes",
+              "cover_letters",
+              "application_history",
+              "company_source_catalog",
+              "configuration"
+            ]
+          }
+        ],
+        "negative_controls": {
+          "running_writers": "PASS",
+          "corrupt_archive": "PASS",
+          "occupied_target": "PASS"
+        },
+        "archive_schema": 3,
+        "distinct_fresh_target": true,
+        "backup_verify_file_count": 42,
+        "receipt_and_request_replay": "Fresh volumes retain original confirmed application and request; independent receipt submission_count stays one",
+        "container_health": "Source and restored project each ten services healthy; Redis outage leaves API running/unhealthy; readiness and all health recover",
+        "configuration": "Operator-managed local configuration retained; archive settings not applied",
+        "documented_stop_services": [
+          "api",
+          "worker",
+          "source-worker",
+          "document-worker",
+          "ai-worker",
+          "migrate",
+          "scheduler",
+          "company-discovery-worker"
+        ],
+        "external_submission_enabled": false,
+        "observer_scope_note": "Inventory helper conservatively labels complete startup acceptance NOT_RUN; whole-parent decision additionally uses actual startup/commands/health/browser evidence, not that helper alone."
+      },
+      "timestamps": [
+        {
+          "path": "ci-backup-recovery.json",
+          "utc": "2026-10-15T18:57:12.371572+00:00"
+        },
+        {
+          "path": "ci-backup.json",
+          "utc": "2026-10-15T18:57:12.372900+00:00"
+        },
+        {
+          "path": "ci-mock-e2e.json",
+          "utc": "2026-10-15T18:53:06.257215+00:00"
+        },
+        {
+          "path": "ci-recovery.json",
+          "utc": "2026-10-15T18:55:18.459892+00:00"
+        },
+        {
+          "path": "ci-ui.json",
+          "utc": "2026-10-15T18:53:41.714685+00:00"
+        }
+      ]
+    }
+  },
+  "literal_criterion_mapping": {
+    "MJ-REQ-013": [
+      {
+        "criterion": "Primary deployment self-hostable; no required proprietary hosted backend; core data under user control",
+        "assertion": "Real owned local Compose images, PostgreSQL/Redis, API, workers and headless UI operate with synthetic fixtures; fresh local backup/restore retains data without proprietary backend.",
+        "witness": "connected commands and five JSON results",
+        "result": "PASS"
+      },
+      {
+        "criterion": "postgresql persists locally",
+        "assertion": "Nonempty source inventory survives source restart, capture readback, fresh local-volume restore and target restart.",
+        "witness": "connected.observations.domains and comparisons",
+        "result": "PASS"
+      },
+      {
+        "criterion": "uploaded_resumes persists locally",
+        "assertion": "Nonempty source inventory survives source restart, capture readback, fresh local-volume restore and target restart.",
+        "witness": "connected.observations.domains and comparisons",
+        "result": "PASS"
+      },
+      {
+        "criterion": "generated_resumes persists locally",
+        "assertion": "Nonempty source inventory survives source restart, capture readback, fresh local-volume restore and target restart.",
+        "witness": "connected.observations.domains and comparisons",
+        "result": "PASS"
+      },
+      {
+        "criterion": "cover_letters persists locally",
+        "assertion": "Nonempty source inventory survives source restart, capture readback, fresh local-volume restore and target restart.",
+        "witness": "connected.observations.domains and comparisons",
+        "result": "PASS"
+      },
+      {
+        "criterion": "application_history persists locally",
+        "assertion": "Nonempty source inventory survives source restart, capture readback, fresh local-volume restore and target restart.",
+        "witness": "connected.observations.domains and comparisons",
+        "result": "PASS"
+      },
+      {
+        "criterion": "company_source_catalog persists locally",
+        "assertion": "Nonempty source inventory survives source restart, capture readback, fresh local-volume restore and target restart.",
+        "witness": "connected.observations.domains and comparisons",
+        "result": "PASS"
+      },
+      {
+        "criterion": "configuration persists locally",
+        "assertion": "Nonempty source inventory survives source restart, capture readback, fresh local-volume restore and target restart.",
+        "witness": "connected.observations.domains and comparisons",
+        "result": "PASS"
+      }
+    ],
+    "MJ-REQ-014": [
+      {
+        "criterion": "Approximate Compose startup followed by functioning application",
+        "assertion": "Linux launcher actually starts disposable Compose stack; real API/browser/document/mock application flows pass.",
+        "witness": "connected commands; ci-ui.json; ci-mock-e2e.json",
+        "result": "PASS"
+      },
+      {
+        "criterion": ".env.example and Docker Compose",
+        "assertion": "Tracked template/config provided; actual private initializer and Compose startup executed; existing configuration preserved.",
+        "witness": "tracked source closure; connected startup; current fast unit results",
+        "result": "PASS"
+      },
+      {
+        "criterion": "Database migrations, health checks, first-run bootstrap",
+        "assertion": "Fresh migrations/provisioned runtime login, configuration/database/workspace and actual fictional profile bootstrap; ten healthy services with Redis outage negative and recovery.",
+        "witness": "connected startup/UI/recovery/backup",
+        "result": "PASS"
+      },
+      {
+        "criterion": "README, development commands, testing commands",
+        "assertion": "Tracked documentation validated; actual dependency installation, unit/integration, npm build/test, repository checks, headless browser and CLI commands executed by current fast/integration/connected workflows. Optional skips remain skips.",
+        "witness": "workflow source plus current run results; unit and Integration XML",
+        "result": "PASS"
+      },
+      {
+        "criterion": "Backup commands and restore documentation; validate commands",
+        "assertion": "Public parser subprocess backup/verify/restore each exit0/PASS on same42-file archive and distinct fresh target. Documented writer stop set executed; running writers/corruption/occupied target refused; receipt/readback preserved.",
+        "witness": "connected.public_cli and negative_controls",
+        "result": "PASS"
+      }
+    ],
+    "MJ-REQ-177": [
+      {
+        "criterion": "Appropriate context: timestamp, operation_id, job_id, posting_id, company_id, application_id, source, ATS, worker, duration, result, error_code",
+        "assertion": "Structured JSON terminal logging retains fixed fields and per-kind persisted safe entity/source/ATS projection; absent/ambiguous/inapplicable fields omitted; error_code emitted when applicable. Durable result precedes logging, enrichment failures cannot change outcomes or replay work.",
+        "witness": "19 selected units plus OperationLogContext/ApplicationOperationLog/Privacy and worker lifecycle JUnit",
+        "result": "PASS"
+      },
+      {
+        "criterion": "Never log secret values",
+        "assertion": "Exact scalar/enum allowlists reject forged/private/non-scalar context and raw exceptions; malformed/cross-profile identities and DB-enrichment failures preserve outcomes without diagnostic values.",
+        "witness": "test_structured_logging; test_application_log_privacy; test_operation_log_context",
+        "result": "PASS"
+      }
+    ],
+    "MJ-REQ-263": [
+      {
+        "criterion": "Use separate company discovery queue",
+        "assertion": "Production dispatcher publishes real RQ job to COMPANY_QUEUE; source-only worker cannot consume held company job; dedicated fresh consumer later completes actual synthetic employer discovery.",
+        "witness": "CompanyDiscoveryRealRQTests::test_real_dispatch_wrong_queue_import_outage_and_fresh_company_worker",
+        "result": "PASS"
+      },
+      {
+        "criterion": "Do not synchronously delay every import",
+        "assertion": "Bounded fresh child imports two sources without employer egress/consumer; jobs/review requests persist while company job remains queued/attempt0; later actual company worker completes, reopened store and replay have no duplicates.",
+        "witness": "CompanyDiscoveryRQAdmissionTests::test_source_import_finishes_without_company_consumer_or_employer_egress and real RQ case",
+        "result": "PASS"
+      }
+    ],
+    "MJ-REQ-270": [
+      {
+        "criterion": "Version resume, cover letter, screening answers",
+        "assertion": "Actual deterministic resume/cover and reviewed screening export persist selected template/model and immutable implementation manifest. Old definitions/output bytes survive changes and reopen with profile isolation; screening export ai_executed=false.",
+        "witness": "PromptProvenanceTests::test_documents_and_reviewed_answers_survive_current_definition_change_and_reopen",
+        "result": "PASS"
+      },
+      {
+        "criterion": "Version job parsing; reproducible generated output identity",
+        "assertion": "Actual supported normalize callable captured before invocation; changed implementation yields distinct candidate while old normalized output/version resolves unchanged after reopen.",
+        "witness": "PromptProvenanceTests::test_actual_parser_keeps_historical_candidates_after_source_change_and_reopen",
+        "result": "PASS"
+      },
+      {
+        "criterion": "Integrity and truthful boundaries",
+        "assertion": "Inert stored-definition resolver rejects malformed/tampered/cross-target/provider/profile bindings, no import from stored names; denied sensitive/unapproved answers/facts create no new provenance; legacy missing provenance explicit. Hash integrity is not DB-writer authentication or executable runtime archiving.",
+        "witness": "Remaining two PromptProvenanceTests plus eleven versioning units",
+        "result": "PASS"
+      }
+    ]
+  },
+  "independent_reviews": [
+    {
+      "artifact": "pr668-0c473e6e-parent-acceptance-review.md",
+      "sha256": "bf4bbf87a2d29e259bb8c3c2976b5629cd6b8ce79adced1ecba3c13ff358cb7f",
+      "kind": "independent static original-criterion advisory",
+      "requirements": [
+        "MJ-REQ-013",
+        "MJ-REQ-014"
+      ],
+      "recommendation": "acceptance-ready within literal criteria",
+      "reviewer_runtime_tests_browser_build_database": "NOT_RUN",
+      "boundary": "Historical reviewed source; final-source artifacts and closure above are distinct fresh execution, not reviewer execution."
+    },
+    {
+      "artifact": "pr669-d76cbdb8-parent-acceptance-review.md",
+      "sha256": "d912d5c460dfdbec2312eb6f4b953cc4d4ea7cb6d71de853696ac0bdbd181ee2",
+      "kind": "independent static original-criterion advisory",
+      "requirements": [
+        "MJ-REQ-177"
+      ],
+      "recommendation": "acceptance-ready within literal criteria",
+      "reviewer_runtime_tests_browser_build_database": "NOT_RUN",
+      "boundary": "Historical reviewed source; final-source artifacts and closure above are distinct fresh execution, not reviewer execution."
+    },
+    {
+      "artifact": "pr667-192e0901-parent-acceptance-review.md",
+      "sha256": "e0873fb396ed585a16e9d510da31db2043e121abf1a487d4fba3a09163f2ab49",
+      "kind": "independent static original-criterion advisory",
+      "requirements": [
+        "MJ-REQ-263"
+      ],
+      "recommendation": "acceptance-ready within literal criteria",
+      "reviewer_runtime_tests_browser_build_database": "NOT_RUN",
+      "boundary": "Historical reviewed source; final-source artifacts and closure above are distinct fresh execution, not reviewer execution."
+    },
+    {
+      "artifact": "pr666-4d6f56ce-parent-acceptance-review.md",
+      "sha256": "901aee30a5b71862959de6d2ee8f56d401155c1ca4ae287ce363876e1384f11d",
+      "kind": "independent static original-criterion advisory",
+      "requirements": [
+        "MJ-REQ-270"
+      ],
+      "recommendation": "acceptance-ready within literal criteria",
+      "reviewer_runtime_tests_browser_build_database": "NOT_RUN",
+      "boundary": "Historical reviewed source; final-source artifacts and closure above are distinct fresh execution, not reviewer execution."
+    }
+  ],
+  "protected_source_history": [
+    {
+      "pr": 666,
+      "source_head": "3d0500ac27a7ea39529959ef8e1ace4f9d0e52df",
+      "merge": "844502928ed6af9349962549df581659c4ae275f",
+      "tree": "7dbaa57fb5668dfbb101e761bb14d07575c7c22d",
+      "role": "Protected original source integration; older runtime proofs not relabeled as final source execution"
+    },
+    {
+      "pr": 667,
+      "source_head": "c70547ee208ab71a030b55a041af6eb639371765",
+      "merge": "fb6069208b494298b8cd0d8b2c0d93a63ca052ec",
+      "tree": "ed7b4b295216f692874eacdfb7160ce14daa7016",
+      "role": "Protected original source integration; older runtime proofs not relabeled as final source execution"
+    },
+    {
+      "pr": 668,
+      "source_head": "706e5ad69e30a5eac7c484e94c030e5c464209c6",
+      "merge": "d147b0a1fff398d4affa9f5079ecf07713eab986",
+      "tree": "ac541699be2a4ea9d0a2677ce4c5f395d5dd5b22",
+      "role": "Protected original source integration; older runtime proofs not relabeled as final source execution"
+    },
+    {
+      "pr": 669,
+      "source_head": "6c38c34130d126ae4d005d2ee7467040f5078314",
+      "merge": "564770457b92a72dc537a2f3d47813107fdcdec7",
+      "tree": "632c90b723842318950f3fe4df7d3f78b4b77555",
+      "role": "Protected original source integration; older runtime proofs not relabeled as final source execution"
+    }
+  ],
+  "historical_limits_preserved": [
+    "Original003/005 executions on06ff remain their historical evidence; not new-source execution claims.",
+    "Early shared secret-scan failures were76 independently verified public-source digest false positives; immutable ignore repair6f775473 preserved; no new scanner suppression.",
+    "Earlier013/014 proof lacked positive public backup/restore CLI invocation; repaired at1b14 and actually executed on706 and final source, not silently relabeled.",
+    "Earlier author local logging52pass/120subtests/8PGskips, RQ Windows local skip and provenance159pass/105subtests/7PGskips/4live deselections remain local chronology; fresh named hosted results above are distinct.",
+    "Independent reviewer project/runtime/build/browser/DB/RQ tests NOT_RUN; public hosted execution is not reviewer execution."
+  ],
+  "partial_updates": {
+    "MJ-REQ-004": {
+      "result": "PARTIAL",
+      "pr": 662,
+      "source_head": "2949ce6cacce42eba53b26cf58bfed372afc522e",
+      "merge": "b26719e879c629c66fbc3a31d6a2e85c154c4256",
+      "scope": "Bounded DNS/TCP/TLS establishment and stream/header/body deadline/cancellation via synthetic loopback transport plus durable terminal-state readback. Prior connection-establishment note superseded; no whole-parent approval.",
+      "local": "121 tests/197 subtests reported by root at reviewed source; live provider/paid inference NOT_RUN"
+    },
+    "MJ-REQ-018": {
+      "result": "PARTIAL",
+      "pr": 665,
+      "source_head": "36523e8b4f6044b7ffa7727f90da83761b797b66",
+      "merge": "17f514262f87eb757d1dde8a773ccd72dd0b06f8",
+      "scope": "Canonical HTTPS Remotive origin/default port, malformed/lookalike/userinfo refusal; unavailable invalid link preserves raw job; PUBLIC_JSON/MANUAL_ONLY. Collection, SQLite reopen/API and real rendered link safety exercised. No whole strategy-ladder promotion.",
+      "local": "40 focused tests PASS at36523e8b; synthetic fixture/provider transport; live provider NOT_RUN"
+    },
+    "MJ-REQ-169": {
+      "result": "PARTIAL",
+      "pr": 661,
+      "source_head": "3f554e27771491ccb2b19f9aad644d20e5faca12",
+      "merge": "65f5054e86475afd1fd372c6f87f812237a53f3e",
+      "scope": "Profile-scoped safe backup/restore, historical snapshots/reload/isolation and PostgreSQL migration. Current named integration statuses listed above; dedicated archive-history browser LOCAL PASS, HOSTED NOT_RUN (three settings/theme/document cases are distinct). No whole-parent approval.",
+      "migration": "20261014rh01_profile_recovery_history_snapshots.py"
+    },
+    "MJ-REQ-288": {
+      "result": "PARTIAL",
+      "pr": 671,
+      "source_head": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+      "local_environment": "Windows/Python3.12.10/Playwright1.63.0; owned synthetic SQLite/API/inline durable executor and headless Chromium",
+      "command": "python -m cli.verify_readiness --connected --fixture",
+      "observed": "12/12 synthetic checks PASS plus retained unnamed Job zero active members/original host reaped/workspace removed; post-confirmation failure keeps prior real proof; not deployed PostgreSQL/Redis/RQ/scheduler/worker readiness",
+      "invocation": "d2711a99bc5c4a05a24acd935c41f273",
+      "source_digest": "4b415e56cc19f981dba9567a078bc176623eb8af0f6bd8bb422d6e894ac7e349",
+      "started_at": "2026-10-15T18:48:37.484491+00:00",
+      "completed_at": "2026-10-15T18:48:43.611681+00:00",
+      "local_tests": "45passed/5subtests,1non-Windows-only NOT_RUN; affected harness/provenance51passed/16subtests",
+      "historical": "1693passed/11skipped/1193subtests plus one TEMP-environment failure; isolated normal-TEMP control1pass/5subtests; not historical global PASS",
+      "linux_connected_functional": "NOT_RUN; fail-closed unsupported contract only; no whole-parent approval"
+    }
+  },
+  "counts": {
+    "original_before": {
+      "PASS": 115,
+      "PARTIAL": 107,
+      "NOT_RUN": 144
+    },
+    "original_after": {
+      "PASS": 120,
+      "PARTIAL": 103,
+      "NOT_RUN": 143
+    },
+    "P0_after": {
+      "PASS": 11,
+      "PARTIAL": 5,
+      "NOT_RUN": 10
+    },
+    "P1_after": {
+      "PASS": 48,
+      "PARTIAL": 28,
+      "NOT_RUN": 40
+    },
+    "supplementary_unchanged": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    }
+  },
+  "not_run_or_unclaimed": [
+    "Physical host reboot, separate PERSONAL/all-platform runtime, real ATS/accounts, paid inference and external employer submissions NOT_RUN; not new literal acceptance barriers.",
+    "Full strategy-ladder018, broad external-operation004, whole backup/recovery169 and whole verifier288 not promoted.",
+    "Final recording PR native/hosted/protected integration and official Project readback are separate future gates; this record does not certify them."
+  ],
+  "safe_recovery": "Evidence-only scoped revert preserves executable source, existing evidence/refs/data and external-submission OFF. Primary alone controls protected integration, Project and issue readback. No automatic continuation.",
+  "author_evidence_inputs": [
+    {
+      "artifact": "pr668-706e5ad6-public-cli-proof.md",
+      "sha256": "2e99b64f1dd69953865ad05ca099c2f8f7c4c9591518c9e1fe8b311105238449",
+      "role": "Author proof; actual execution distinctions retained"
+    },
+    {
+      "artifact": "operation-context-delivery.md",
+      "sha256": "4b0f24c13eb50f81298f3d89b0690b9c8f5ee89b993e8662f5c687e1cf2d2927",
+      "role": "Author proof; actual execution distinctions retained"
+    },
+    {
+      "artifact": "MJ-REQ-263-rq-acceptance.md",
+      "sha256": "48bfcfaa07909c574febe5961702264b397c05168a326ee3c9005645a7013904",
+      "role": "Author proof; actual execution distinctions retained"
+    },
+    {
+      "artifact": "verification-final-serial-e17d43be.md",
+      "sha256": "3b336e32c4bea7c0da3f7f1f83660f33e7da2bd1e5917730db556c333e7b56c6",
+      "role": "Author proof; actual execution distinctions retained"
+    }
+  ],
+  "protected_final_source": {
+    "pr": 671,
+    "head": "e17d43bed3ef9e595142a91ebdb89c7b6318375e",
+    "merge": "d29ab971e0123aebe7b4cfc92ae495bb60b95cbb",
+    "tree": "beca4f1e4179cbe5f642d41b93ebf6adbab4f563",
+    "verification": "Provider commit and fetched raw Git tree equal actual current Integration/Connected checkout and tested source tree. Root confirms all15 current checks/native approval before protected merge; reviewer runtime NOT_RUN."
+  },
+  "recording_validation": {
+    "utc": "2026-10-15T19:03:57.065804+00:00",
+    "environment": "Windows, existing project Python3.12.10 .venv; dependencies/environment unchanged; no product/browser rerun",
+    "commands": [
+      {
+        "command": "python tools/mjobs_reconcile_planning.py --apply",
+        "result": "PASS;425 indexed; only authorized derived output changes, map/labels bytes preserved"
+      },
+      {
+        "command": "python -m tools.verification.catalogue",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.progress validate",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m tools.verification.progress_dashboard --write; --check",
+        "result": "UPDATED then CURRENT"
+      },
+      {
+        "command": "python -m tools.verification.agent_skills",
+        "result": "PASS"
+      },
+      {
+        "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_p0_evidence_secret_fingerprints.py tests/unit/test_catalogue.py tests/unit/test_progress_journal.py tests/unit/test_progress_dashboard.py tests/unit/test_progress_card.py tests/unit/test_commit_provenance.py tests/unit/test_pr_queue.py tests/unit/test_agent_skills.py tests/unit/test_mission_progress_history.py",
+        "result": "99 passed,5 subtests passed in2.31s"
+      },
+      {
+        "command": "Read-only semantic/sanitization guard and raw Git source-hash verification",
+        "result": "PASS: five result transitions; four unchanged partial statuses; eight queue-note suffixes; unchanged003/005/other original rows/supplementary/policy/scanner;694 raw public digests verified"
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS"
+      }
+    ]
+  }
+}

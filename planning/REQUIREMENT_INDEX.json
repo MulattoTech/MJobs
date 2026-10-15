@@ -626,7 +626,7 @@
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-014",
@@ -634,7 +634,7 @@
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-015",
@@ -2418,7 +2418,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-178",
@@ -3146,7 +3146,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-264",
@@ -3202,7 +3202,7 @@
       "priority": "P1",
       "area": "operations_ux_ci",
       "category": "major-feature",
-      "status": "NOT_RUN"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-271",
@@ -3446,9 +3446,9 @@
     }
   ],
   "summary": {
-    "PARTIAL": 111,
-    "PASS": 134,
-    "NOT_RUN": 180
+    "PARTIAL": 107,
+    "PASS": 139,
+    "NOT_RUN": 179
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
 }

@@ -2,12 +2,12 @@
   "schema_version": 1,
   "source": "MJobs canonical acceptance matrices; verified checkpoints, not real-time coding activity",
   "original": {
-    "pass": 115,
-    "partial": 107,
-    "not_run": 144,
+    "pass": 120,
+    "partial": 103,
+    "not_run": 143,
     "total": 366,
-    "accepted_percent": 31.4,
-    "as_of": "2026-10-15T16:18:57.790761+00:00"
+    "accepted_percent": 32.8,
+    "as_of": "2026-10-15T19:01:21.652133+00:00"
   },
   "reference": {
     "pass": 19,
@@ -17,6 +17,6 @@
     "accepted_percent": 32.2,
     "as_of": "2026-10-09T15:07:39Z"
   },
-  "milestone": "ORIGINAL-P0-003-005-ACCEPTANCE-RECORDING-20261015",
+  "milestone": "ORIGINAL-VERIFIED-DELIVERY-CLOSEOUT-20261015",
   "release_readiness": "UNKNOWN"
 }
