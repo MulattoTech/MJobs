@@ -11,7 +11,7 @@ from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
-from sqlalchemy import select
+from sqlalchemy import select, update
 from packages.persistence import models as m
 from tests.integration import test_profile_restore as restore_fixture
 
@@ -41,9 +41,13 @@ class ProfileRestoreHistoryReadbackBrowserTests(unittest.TestCase):
             producer = restore_fixture.ProfileRestoreIntegrationTests()
             self.addCleanup(producer.doCleanups)
             producer.setUp()
-            backup = producer.backup
-            source_before = export_profile_backup(producer.store, producer.source_profile_id,
-                                                  output_dir=producer.root)
+            unsafe_job_id = producer.store.application(producer.application_id)['job_id']
+            with producer.store.engine.begin() as connection:
+                connection.execute(update(m.routes).where(m.routes.c.job_id == unsafe_job_id).values(
+                    url='https://synthetic.example/session/PRIVATE_CAPABILITY'))
+            backup = export_profile_backup(producer.store, producer.source_profile_id,
+                                           output_dir=producer.root)
+            source_before = copy.deepcopy(backup)
             target_before = store.profile(source['id'])
             app = create_app(
                 store, 'http://127.0.0.1:1', root,
@@ -102,6 +106,8 @@ class ProfileRestoreHistoryReadbackBrowserTests(unittest.TestCase):
                     preview = page.get_by_role(
                         'region', name='Restore a profile backup', exact=True)
                     expect(preview).to_contain_text('Synthetic Source')
+                    expect(preview).to_contain_text('Dependent matches, documents, attempts and preparation history without safe routes')
+                    expect(preview).not_to_contain_text('PRIVATE_CAPABILITY')
                     confirm = page.get_by_label(
                         'I understand this creates a new profile and imported information must be reviewed.',
                         exact=True,

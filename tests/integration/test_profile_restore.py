@@ -444,6 +444,117 @@ class ProfileRestoreIntegrationTests(unittest.TestCase):
         self.assertEqual(conflict.status_code, 409, conflict.text)
         self.assertEqual(len(self.store.profiles()), 2)
 
+    def test_exported_capability_routes_omit_only_dependent_history_on_fresh_restore(self):
+        self._assert_exported_route_filtering('job')
+
+    def test_exported_unsafe_application_route_preserves_safe_job_and_sibling(self):
+        self._assert_exported_route_filtering('application')
+
+    def test_exported_all_unsafe_routes_preserve_profile_but_no_job_descendants(self):
+        self._assert_exported_route_filtering('all')
+
+    def _assert_exported_route_filtering(self, mode):
+        original_app = self.store.application(self.application_id)
+        sibling_job = next(row for row in self.store.jobs(self.source_profile_id)
+                           if row['id'] != original_app['job_id'] and row['requisition'] != 'history-req')
+        sibling_app = prepare(self.store, sibling_job['id'], self.source_profile_id, self.root)
+        with self.store.engine.begin() as connection:
+            statement = update(m.routes)
+            if mode == 'job':
+                statement = statement.where(m.routes.c.job_id == original_app['job_id'])
+            elif mode == 'application':
+                statement = statement.where(m.routes.c.id == original_app['route_id'])
+            connection.execute(statement.values(url='https://synthetic.example/session/PRIVATE_CAPABILITY'))
+        backup = export_profile_backup(self.store, self.source_profile_id, output_dir=self.root)
+        self.assertNotIn('PRIVATE_CAPABILITY', str(backup))
+        self.assertTrue(any(row['url'] is None for row in backup['application_routes']))
+        expected_jobs = 0 if mode == 'all' else len(backup['jobs']) - (mode == 'job')
+        expected_apps = 0 if mode == 'all' else 1
+        target_root = self.root / 'filtered-target'
+        target_root.mkdir()
+        target_db = target_root / 'target.db'
+        target = Store(f"sqlite:///{target_db.as_posix()}")
+        self.addCleanup(target.engine.dispose)
+        target.migrate()
+        target.bind_workspace_mode('FIXTURE')
+        api = FastAPI()
+        api.include_router(create_profile_restore_router(target, target_root))
+        with TestClient(api) as client:
+            preview = client.post('/profile-restores/preview', json={'backup': backup})
+            self.assertEqual(preview.status_code, 200, preview.text)
+            body = preview.json()
+            self.assertEqual(body['counts']['jobs'], expected_jobs)
+            self.assertEqual(body['counts']['applications'], expected_apps)
+            safe_docs = [row for row in backup['documents'] if row['application_id'] == sibling_app and mode != 'all']
+            self.assertEqual(body['counts']['generated_documents'], len(safe_docs))
+            self.assertIn('dependent_history_without_safe_routes', body['omitted_sections'])
+            request = dict(backup=backup, request_id='filtered-fresh-target',
+                           expected_fingerprint=body['fingerprint'], confirmed=True)
+            for section, field in (('applications', 'job_id'), ('documents', 'application_id'),
+                                   ('job_matches', 'job_id')):
+                forged = copy.deepcopy(backup)
+                forged[section][0][field] = 'forged-missing-reference'
+                rejected_preview = client.post('/profile-restores/preview', json={'backup': forged})
+                self.assertEqual(rejected_preview.status_code, 422, rejected_preview.text)
+                rejected_import = client.post('/profile-restores', json={**request, 'backup': forged})
+                self.assertEqual(rejected_import.status_code, 422, rejected_import.text)
+                self.assertEqual(target.profiles(), [])
+            # Filtered recovery retains transactional file rollback and request retry.
+            if mode == 'job':
+                before_files = {path for path in target_root.rglob('*') if path.is_file()}
+                from os import link as real_link
+                calls = []
+                def fail_second_link(source, destination):
+                    calls.append(destination)
+                    if len(calls) == 2:
+                        raise OSError('PRIVATE_SYNTHETIC_FILE_FAILURE')
+                    return real_link(source, destination)
+                with patch('packages.persistence.profile_restore.os.link', side_effect=fail_second_link):
+                    failed = client.post('/profile-restores', json=request)
+                self.assertEqual(failed.status_code, 500, failed.text)
+                self.assertNotIn('PRIVATE_SYNTHETIC_FILE_FAILURE', failed.text)
+                self.assertEqual(target.profiles(), [])
+                self.assertEqual({path for path in target_root.rglob('*') if path.is_file()}, before_files)
+            restored = client.post('/profile-restores', json=request)
+            self.assertEqual(restored.status_code, 201, restored.text)
+            profile_id = restored.json()['profile_id']
+            replay = client.post('/profile-restores', json=request)
+            self.assertEqual(replay.status_code, 200, replay.text)
+            self.assertEqual(replay.json()['profile_id'], profile_id)
+        target.engine.dispose()
+        reloaded = Store(f"sqlite:///{target_db.as_posix()}")
+        self.addCleanup(reloaded.engine.dispose)
+        reloaded.migrate()
+        self.assertEqual(len(reloaded.profiles()), 1)
+        self.assertEqual(len(reloaded.jobs(profile_id)), expected_jobs)
+        apps = reloaded.applications(profile_id)
+        self.assertEqual(len(apps), expected_apps)
+        self.assertTrue(all(app['state'] == 'REVIEW_REQUIRED' for app in apps))
+        recovered = export_profile_backup(reloaded, profile_id, output_dir=target_root)
+        self.assertEqual(len(recovered['documents']), len(safe_docs))
+        safe_doc_ids = {row['id'] for row in safe_docs}
+        expected_bytes = sorted((row['format'], row['sha256'], row['content_base64'])
+                                for row in backup['document_files'] if row['id'] in safe_doc_ids)
+        recovered_doc_ids = {row['id'] for row in recovered['documents']}
+        self.assertEqual(sorted((row['format'], row['sha256'], row['content_base64'])
+                                for row in recovered['document_files'] if row['id'] in recovered_doc_ids),
+                         expected_bytes)
+        self.assertEqual(recovered['attempts'], [])
+        self.assertEqual(len(recovered['application_route_choices']), expected_apps)
+        self.assertTrue(all(row['application_id'] == apps[0]['id']
+                            for row in recovered['application_route_choices']))
+        for section in ('resume_workspace_revisions', 'interview_prep_packs', 'ai_job_evaluations'):
+            self.assertEqual(len(recovered[section]), len(backup[section]) if mode == 'application' else 0)
+        self.assertEqual(len(recovered['job_matches']),
+                         sum(row['job_id'] != original_app['job_id'] for row in backup['job_matches'])
+                         if mode == 'job' else len(backup['job_matches']) if mode == 'application' else 0)
+        self.assertEqual(len([path for path in target_root.rglob('*') if path.is_file() and path.suffix != '.db']),
+                         len(recovered['document_files']))
+        with reloaded.engine.connect() as connection:
+            for table in (m.company_sources, m.company_discovery_requests, m.operations):
+                self.assertEqual(connection.execute(select(table)).all(), [])
+        self.assertEqual(export_profile_backup(self.store, self.source_profile_id, output_dir=self.root), backup)
+
     def test_export_restores_into_empty_separate_database_and_reloads(self):
         target_root = self.root / 'isolated-target'
         target_root.mkdir()

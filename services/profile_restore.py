@@ -603,11 +603,74 @@ def _history_rows(payload, name, source_id):
     return output
 
 
+def _validate_original_history_links(rows, versions):
+    """Reject forged links before any valid records are omitted for safety."""
+    jobs = {row['id']: row for row in rows['jobs']}
+    apps = {row['id']: row for row in rows['applications']}
+    routes = {row['id']: row for row in rows['application_routes']}
+    routes_by_job = {}
+    companies = {}
+    company_for_job = {}
+    for row in routes.values():
+        job_id = _identifier(row.get('job_id'))
+        company_id = _identifier(row.get('company_id'))
+        if job_id not in jobs:
+            _fail('RESTORE_LINKAGE_INVALID')
+        if (company_id in companies and companies[company_id] != jobs[job_id].get('company')
+                or job_id in company_for_job and company_for_job[job_id] != company_id):
+            _fail('RESTORE_LINKAGE_INVALID')
+        companies[company_id] = jobs[job_id].get('company')
+        company_for_job[job_id] = company_id
+        if row.get('url') is not None and not isinstance(row['url'], str):
+            _fail('RESTORE_LINKAGE_INVALID')
+        routes_by_job.setdefault(job_id, []).append(row)
+    for row in apps.values():
+        job_id = _identifier(row.get('job_id'))
+        if job_id not in jobs:
+            _fail('RESTORE_LINKAGE_INVALID')
+        for field, maximum in (('provider', 32), ('state', 64), ('target', 32), ('created_at', 64)):
+            _string(row.get(field), max_length=maximum, allow_empty=field == 'provider')
+        if row.get('submitted_at') is not None:
+            _string(row['submitted_at'], max_length=64)
+        if (row.get('application_url') is not None and not isinstance(row['application_url'], str)
+                or not any(route.get('provider') == row['provider']
+                           and route.get('url') == row.get('application_url')
+                           for route in routes_by_job.get(job_id, []))):
+            _fail('RESTORE_LINKAGE_INVALID')
+    for section in ('job_matches', 'resume_workspace_revisions', 'interview_prep_packs'):
+        for row in rows[section]:
+            if (_identifier(row.get('job_id')) not in jobs
+                    or _string(row.get('profile_version'), max_length=64) not in versions):
+                _fail('RESTORE_LINKAGE_INVALID')
+    story_ids = {row['id'] for row in rows['career_stories']}
+    for row in rows['interview_prep_packs']:
+        selected = row.get('selected_story_revision_ids', [])
+        if (not isinstance(selected, list)
+                or any(not isinstance(identifier, str) or identifier not in story_ids for identifier in selected)):
+            _fail('RESTORE_LINKAGE_INVALID')
+    for section in ('application_route_choices', 'documents', 'attempts'):
+        for row in rows[section]:
+            app_id = _identifier(row.get('application_id'))
+            if app_id not in apps:
+                _fail('RESTORE_LINKAGE_INVALID')
+            if section == 'application_route_choices':
+                route = routes.get(_identifier(row.get('route_id')))
+                if route is None or route['job_id'] != apps[app_id]['job_id']:
+                    _fail('RESTORE_LINKAGE_INVALID')
+            elif section == 'documents':
+                if _string(row.get('profile_version'), max_length=64) not in versions:
+                    _fail('RESTORE_LINKAGE_INVALID')
+            else:
+                _string(row.get('state'), max_length=64)
+                _string(row.get('started_at'), max_length=64)
+
+
 def _restore_history(payload, source_id, versions, generated_documents):
     """Validate and retain the sanitized job/application/document graph only."""
     from services.data_export import _safe_url
 
     rows = {name: _history_rows(payload, name, source_id) for name in _HISTORY_FIELDS}
+    _validate_original_history_links(rows, versions)
     jobs_by_id = {}
     for row in rows["jobs"]:
         for field, maximum in (("company", 200), ("title", 500), ("description", 50_000),
@@ -655,19 +718,14 @@ def _restore_history(payload, source_id, versions, generated_documents):
     app_ids = set()
     for row in rows["applications"]:
         job_id = _identifier(row.get("job_id"))
-        if job_id not in jobs_by_id:
-            _fail("RESTORE_LINKAGE_INVALID")
+        if job_id not in safe_job_ids:
+            continue
         provider = _string(row.get("provider"), max_length=32, allow_empty=True)
         app_url = _safe_url(row.get("application_url"))
         route = next((item for item in routes_by_job[job_id]
                       if item["provider"] == provider and item["url"] == app_url), None)
         if route is None:
             continue
-        _string(row.get("state"), max_length=64)
-        _string(row.get("target"), max_length=32)
-        _string(row.get("created_at"), max_length=64)
-        if row.get("submitted_at") is not None:
-            _string(row["submitted_at"], max_length=64)
         row["route_id"] = route["id"]
         apps.append(row)
         app_ids.add(row["id"])
@@ -675,15 +733,13 @@ def _restore_history(payload, source_id, versions, generated_documents):
     matches = []
     for row in rows["job_matches"]:
         if row.get("job_id") not in safe_job_ids:
-            _fail("RESTORE_LINKAGE_INVALID")
-        if row.get("profile_version") not in versions:
-            _fail("RESTORE_LINKAGE_INVALID")
+            continue
         matches.append(row)
 
     choices = []
     for row in rows["application_route_choices"]:
-        if row.get("application_id") not in {item["id"] for item in apps}:
-            _fail("RESTORE_LINKAGE_INVALID")
+        if row["application_id"] not in app_ids:
+            continue
         if row.get("route_id") not in routes_by_id:
             continue
         choices.append(row)
@@ -692,8 +748,8 @@ def _restore_history(payload, source_id, versions, generated_documents):
     documents = []
     docs_omitted = False
     for row in rows["documents"]:
-        if row.get("application_id") not in {item["id"] for item in apps}:
-            _fail("RESTORE_LINKAGE_INVALID")
+        if row["application_id"] not in app_ids:
+            continue
         generated = generated_by_id.get(row["id"])
         if generated is None:
             docs_omitted = True
@@ -703,10 +759,8 @@ def _restore_history(payload, source_id, versions, generated_documents):
 
     attempts = []
     for row in rows["attempts"]:
-        if row.get("application_id") not in {item["id"] for item in apps}:
-            _fail("RESTORE_LINKAGE_INVALID")
-        _string(row.get("state"), max_length=64)
-        _string(row.get("started_at"), max_length=64)
+        if row["application_id"] not in app_ids:
+            continue
         attempts.append(row)
 
     stories = rows["career_stories"]
@@ -718,18 +772,8 @@ def _restore_history(payload, source_id, versions, generated_documents):
             _fail("RESTORE_LINKAGE_INVALID")
         if row.get("profile_version") not in versions:
             _fail("RESTORE_LINKAGE_INVALID")
-    workspace = rows["resume_workspace_revisions"]
-    for row in workspace:
-        if row.get("job_id") not in safe_job_ids or row.get("profile_version") not in versions:
-            _fail("RESTORE_LINKAGE_INVALID")
-    interview = rows["interview_prep_packs"]
-    story_ids = {row["id"] for row in stories}
-    for row in interview:
-        if row.get("job_id") not in safe_job_ids or row.get("profile_version") not in versions:
-            _fail("RESTORE_LINKAGE_INVALID")
-        selected = row.get("selected_story_revision_ids", [])
-        if not isinstance(selected, list) or any(identifier not in story_ids for identifier in selected):
-            _fail("RESTORE_LINKAGE_INVALID")
+    workspace = [row for row in rows["resume_workspace_revisions"] if row["job_id"] in safe_job_ids]
+    interview = [row for row in rows["interview_prep_packs"] if row["job_id"] in safe_job_ids]
 
     run_ids = {row["id"] for row in rows["ai_evaluation_runs"]}
     runs = []
@@ -777,6 +821,12 @@ def _restore_history(payload, source_id, versions, generated_documents):
         omitted_sections.append("applications_without_safe_routes")
     if len(choices) != len(rows["application_route_choices"]):
         omitted_sections.append("route_choices_without_safe_routes")
+    if any(len(kept) != len(rows[name]) for name, kept in (
+            ('job_matches', matches), ('attempts', attempts),
+            ('resume_workspace_revisions', workspace), ('interview_prep_packs', interview))):
+        omitted_sections.append('dependent_history_without_safe_routes')
+    elif any(row['application_id'] not in app_ids for row in rows['documents']):
+        omitted_sections.append('dependent_history_without_safe_routes')
     if docs_omitted:
         omitted_sections.append("generated_documents_without_verified_bytes")
     if (len(evaluations) != len(rows["ai_job_evaluations"])

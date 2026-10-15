@@ -59,6 +59,7 @@ const OMITTED_SECTION_LABELS: Record<string, string> = {
   application_submission_traces_and_confirmations: 'Application submission traces and confirmation receipts (not portable)',
   document_generation_context: 'Private document generation context',
   unsafe_application_routes: 'Application routes rejected because their URLs were unsafe',
+  dependent_history_without_safe_routes: 'Dependent matches, documents, attempts and preparation history without safe routes',
   jobs_without_safe_routes: 'Jobs without a safe application route',
   applications_without_safe_routes: 'Applications without a safe route',
   route_choices_without_safe_routes: 'Route choices without a safe route',

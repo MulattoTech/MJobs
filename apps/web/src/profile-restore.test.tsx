@@ -74,7 +74,7 @@ describe('profile restore', () => {
         'document_generation_context',
         'unsafe_application_routes',
         'route_choices_without_safe_routes',
-        'generated_documents_without_verified_bytes',
+        'generated_documents_without_verified_bytes', 'dependent_history_without_safe_routes',
       ],
     };
     const request = vi.fn()
@@ -95,6 +95,7 @@ describe('profile restore', () => {
     expect(markup).toContain('Application routes rejected because their URLs were unsafe');
     expect(markup).toContain('Route choices without a safe route');
     expect(markup).toContain('Generated document records without verified file bytes');
+    expect(markup).toContain('Dependent matches, documents, attempts and preparation history without safe routes');
     expect(await submitProfileRestore(request, backup, 'restore-metadata-only', projected.fingerprint, true))
       .toEqual({ ok: true, profileId: 'restored-profile' });
     expect(request).toHaveBeenCalledTimes(2);

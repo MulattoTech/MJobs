@@ -351,6 +351,64 @@ class ProfileRestoreTests(unittest.TestCase):
         self.assertIn("ai_job_evaluation_history_without_safe_jobs", preview["omitted_sections"])
         self.assertNotIn("Private unrelated job", json.dumps(preview))
 
+    def test_all_safety_filtered_jobs_omit_their_valid_descendants_and_bytes(self):
+        payload = _payload()
+        payload['application_routes'][0]['url'] = None
+        payload['applications'][0]['application_url'] = None
+        payload['job_matches'] = [{'id': 'match-1', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+        payload['attempts'] = [{'id': 'attempt-1', 'application_id': 'application-1',
+                                'state': 'UNKNOWN', 'started_at': '2026-10-11T12:00:00Z'}]
+        preview = preview_profile_restore(payload)
+        self.assertEqual(preview['counts']['jobs'], 0)
+        self.assertEqual(preview['counts']['applications'], 0)
+        self.assertEqual(preview['counts']['generated_documents'], 0)
+        self.assertIn('dependent_history_without_safe_routes', preview['omitted_sections'])
+        plan = build_restore_plan(payload, 'fresh-target')
+        for name in ('jobs', 'applications', 'job_matches', 'documents', 'attempts'):
+            self.assertEqual(plan['history'][name], [])
+        self.assertEqual(plan['generated_documents'], [])
+        self.assertEqual(len(plan['uploaded_files']), 1)
+
+    def test_safety_filtering_still_rejects_invalid_original_descendant_links(self):
+        mutations = [
+            ('applications', 'job_id'), ('documents', 'application_id'), ('documents', 'profile_version'),
+            ('job_matches', 'job_id'), ('job_matches', 'profile_version'),
+            ('application_route_choices', 'application_id'), ('application_route_choices', 'route_id'),
+            ('attempts', 'application_id'), ('resume_workspace_revisions', 'job_id'),
+            ('resume_workspace_revisions', 'profile_version'), ('interview_prep_packs', 'job_id'),
+            ('interview_prep_packs', 'profile_version'),
+        ]
+        for section, field in mutations:
+            with self.subTest(section=section, field=field):
+                payload = _payload()
+                payload['application_routes'][0]['url'] = None
+                payload['applications'][0]['application_url'] = None
+                payload['job_matches'] = [{'id': 'match', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+                payload['application_route_choices'] = [{'id': 'choice', 'application_id': 'application-1', 'route_id': 'route-1'}]
+                payload['attempts'] = [{'id': 'attempt', 'application_id': 'application-1', 'state': 'UNKNOWN', 'started_at': '2026-10-11'}]
+                payload['resume_workspace_revisions'] = [{'id': 'workspace', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+                payload['interview_prep_packs'] = [{'id': 'interview', 'job_id': 'private-job', 'profile_version': 'v-current'}]
+                payload[section][0][field] = 'forged-missing-reference'
+                with self.assertRaises(ProfileRestoreError):
+                    build_restore_plan(payload, 'fresh-target')
+
+    def test_filtered_graph_rejects_cross_job_choices_and_invalid_interview_story(self):
+        payload = _payload()
+        payload['jobs'].append({**payload['jobs'][0], 'id': 'other-job'})
+        payload['application_routes'].append({**payload['application_routes'][0],
+                                             'id': 'other-route', 'job_id': 'other-job'})
+        payload['application_routes'][0]['url'] = None
+        payload['applications'][0]['application_url'] = None
+        payload['application_route_choices'] = [{'id': 'forged-choice',
+            'application_id': 'application-1', 'route_id': 'other-route'}]
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(payload)
+        payload['application_route_choices'] = []
+        payload['interview_prep_packs'] = [{'id': 'pack', 'job_id': 'private-job',
+            'profile_version': 'v-current', 'selected_story_revision_ids': ['missing-story']}]
+        with self.assertRaises(ProfileRestoreError):
+            preview_profile_restore(payload)
+
     def test_rejects_unsupported_version_export_and_malformed_current_snapshot(self):
         for update in (
             {"schema_version": 2},
