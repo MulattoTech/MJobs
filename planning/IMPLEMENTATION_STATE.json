@@ -12,7 +12,7 @@
     "current_verified_at": "2026-10-11T22:16:11.988980+00:00"
   },
   "current_milestone": "CONTROLLED-DRY-RUN-RECOVERY-20261013",
-  "current_objective": "Complete original P1 #277 / MJ-REQ-276 settings versioning with safe v1 migration and connected recovery proof",
+  "current_objective": "Deliver original P1 #273 document renderer failure recovery; record fully verified #277 acceptance",
   "status": "PARTIAL",
   "completed_capabilities": [
     "Control plane reconciled with existing GitHub history",
@@ -191,7 +191,6 @@
   ],
   "blocked_capabilities": [],
   "active_requirements": [
-    "MJ-REQ-276",
     "MJ-REQ-272"
   ],
   "active_prs": [],
@@ -2791,9 +2790,9 @@
   ],
   "ownership": {
     "integration_owner": "Codex campaign 20261014-193432",
-    "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-193432",
-    "branch": "codex/p0p1-round3-20261014-193432",
-    "workers": "One isolated Luna High frontend writer; root backend/testing/integration",
+    "root": "C:\\Tools\\Dev\\MJobs\\.mjobs-recovery\\active\\MJobs-Round3-20261014-193432\\.worktrees\\document-failure",
+    "branch": "feat/document-render-failure-20261014",
+    "workers": "One Luna writer completed isolated code; one local Luna reviewer; root sole integration owner",
     "active": true
   },
   "delivery_policy": {
@@ -3475,7 +3474,7 @@
   "settings_versioning_campaign": {
     "issue": 277,
     "base_sha": "0397e8c8714bcf55d2fc718ca6bfa67ca1277e30",
-    "status": "LOCAL_VERIFIED_PENDING_HOSTED",
+    "status": "PASS",
     "acceptance": [
       "v2 canonical single-source scheduler settings",
       "safely migrate actual v1 files without mutating input",
@@ -3492,13 +3491,21 @@
       "chromium": "1PASS",
       "review": "local Luna no blockers",
       "hosted": "NOT_RUN"
+    },
+    "source_commit": "eab2349c1c9b695b9bbdcc9c136479a47a968545",
+    "merge_commit": "6ef4add0821e51465bd3b9569a1e05031b97f2af",
+    "pr": 657,
+    "hosted": "Five required gates PASS;10PostgreSQL settings casesPASS;Chromium2PASS/0skip",
+    "original_pass_delta": {
+      "P0": 0,
+      "P1": 1
     }
   },
   "document_failure_campaign": {
     "issue": 273,
     "requirement": "MJ-REQ-272",
     "base_sha": "0397e8c8714bcf55d2fc718ca6bfa67ca1277e30",
-    "status": "IN_PROGRESS",
+    "status": "LOCAL_VERIFIED_PENDING_HOSTED",
     "owned_paths": [
       "services/documents/generate.py",
       "tests/integration/test_document_generation_failure_flow.py",
@@ -3511,6 +3518,18 @@
       "explicit retry and connected UI recovery",
       "cancel/timeout retain their semantics"
     ],
-    "rollback": "Scoped source revert; no schema changes"
+    "rollback": "Scoped source revert; no schema changes",
+    "source_commits": [
+      "7d3ebed448cc1bd4176e2c3351c25b6aedd1929c",
+      "244ae4fcb4416b690b2da3d1f4d8edf9372a4016"
+    ],
+    "evidence": "docs/evidence/2026-10-14-document-render-failure.json",
+    "local_review": "Local Luna preview classification finding fixed and re-reviewed; no blockers",
+    "validation": {
+      "combined": "57PASS/7PGskips/27subtests",
+      "browser": "settings migration and document-failure recovery bothPASS",
+      "review": "local Luna preview classification fix re-reviewed; no blockers",
+      "hosted": "NOT_RUN"
+    }
   }
 }

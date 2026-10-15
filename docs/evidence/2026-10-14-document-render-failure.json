@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "requirement": "MJ-REQ-272",
+  "issue": 273,
+  "result": "PARTIAL",
+  "utc": "2026-10-15T00:57:57.788432+00:00",
+  "source_commits": [
+    "7d3ebed448cc1bd4176e2c3351c25b6aedd1929c",
+    "244ae4fcb4416b690b2da3d1f4d8edf9372a4016"
+  ],
+  "behavior": [
+    "Renderer/write failures receive stable sanitized DOCUMENT_GENERATION_FAILED",
+    "Atomic output cleanup and existing artifact preservation",
+    "Existing PreparationError business codes, cancellation and timeout retain semantics",
+    "Page-fit renderer failures remain sanitized503; invalid business inputs remain422",
+    "Explicit durable Activity retry creates complete documents; failure/profile isolation/reload/reopen proven; no application attempt"
+  ],
+  "red": [
+    "Real Chromium partial PDF thenOSError displayed genericOSError and lacked document recovery guidance",
+    "API renderer failure reproduced422 instead of503 before fix"
+  ],
+  "local": {
+    "document_worker": "27passed/7unconfiguredPostgreSQLskips/23subtests",
+    "preview_api": "15passed/4subtests",
+    "additional_document_validation_and_page_fit": "13passed",
+    "connected_browser_and_preview_api": "16passed/4subtests",
+    "review": "Local Luna review finding fixed; final review no blockers",
+    "combined_tree": "57 passed,7 PostgreSQL-only skipped,27 subtests passed in62.79s; both connected browsers PASS",
+    "integrity": "catalogue,progress,dashboard,agent_skills,reference_provenance,repository_policy,diff PASS"
+  },
+  "commands": [
+    "python -m pytest -q -rs tests/unit/test_document_failure_status.py tests/unit/test_document_artifacts.py tests/unit/test_document_validation.py tests/integration/test_document_generation_failure_flow.py tests/integration/test_document_artifact_recovery.py tests/integration/test_operation_retries.py",
+    "python -m pytest -q tests/integration/test_resume_page_fit_api.py tests/browser/test_document_generation_failure.py",
+    "python -m pytest -q tests/integration/test_document_validation.py tests/integration/test_resume_page_fit.py tests/integration/test_resume_page_fit_render_contract.py"
+  ],
+  "pending": [
+    "exact-head required hosted gates"
+  ],
+  "privacy": "Synthetic fixture profiles and loopback mock only. No credentials/private profiles read. No real external submission.",
+  "rollback": "Scoped source revert; no schema migration or data rewrite.",
+  "input_sha256": {
+    "services/documents/generate.py": "52bb7a2844ccf02ac262c385b88f84bb2b9364de59d79923f8fca1ef8b2fb1ed",
+    "apps/api/resume_page_fit.py": "ec207f1cbfb09ea580f307018bb2038b2a24712cf95e76fd8473e6a094feb8ce",
+    "tests/unit/test_document_failure_status.py": "ac41bc04a70cfe4ab8a894015c8ad1d2fba0b510c436198a2b8fda72875e73eb",
+    "tests/integration/test_document_generation_failure_flow.py": "29095e1ea1df17af7ca4b3d1c364c8cfa5affee5188603fcd8a011487d27df28",
+    "tests/integration/test_resume_page_fit_api.py": "7ff77c34a81e181d8434a9374e196dfcea4ced125fd541577f465ea9a21858dc",
+    "tests/browser/test_document_generation_failure.py": "552b1fb1f84f4e239f2f785e2b73cc97ccc2a6230617f3c4f2775ad5d8cfbce1",
+    ".github/workflows/connected-acceptance.yml": "3d2edd87cb6812ee60fcda53bf9cec1f6653952954201f617795f9e2e40cdda1"
+  }
+}
