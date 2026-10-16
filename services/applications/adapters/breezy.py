@@ -60,7 +60,12 @@ class BreezyApplicationAdapter:
                 or parsed.username is not None or parsed.password is not None
                 or parsed.fragment):
             return None
-        host = (parsed.hostname or "").casefold()
+        if not parsed.netloc.isascii():
+            return None
+        raw_host = parsed.hostname or ""
+        if not raw_host.isascii():
+            return None
+        host = raw_host.lower()
         suffix = ".breezy.hr"
         if not host.endswith(suffix):
             return None
@@ -80,7 +85,9 @@ class BreezyApplicationAdapter:
         supplied_requisition = route.get("requisition")
         if supplied_tenant is not None and (
                 not isinstance(supplied_tenant, str)
-                or supplied_tenant.casefold() != tenant):
+                or not supplied_tenant.isascii()
+                or not _TENANT.fullmatch(supplied_tenant)
+                or supplied_tenant.lower() != tenant):
             return None
         if supplied_requisition is not None and (
                 not isinstance(supplied_requisition, str)

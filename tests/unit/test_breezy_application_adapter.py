@@ -20,6 +20,19 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             "url": "https://acme.breezy.hr/p/123e4567-e89b-12d3-a456-426614174000-software-engineer",
         })
 
+    def test_tenant_metadata_is_ascii_and_keeps_ascii_case_variants(self):
+        url = "https://k.breezy.hr/p/123e4567-e89b-12d3-a456-426614174000-job"
+        self.assertEqual(self.adapter.normalize_route({
+            "provider": "breezy", "url": url, "tenant": "K",
+        })["tenant"], "k")
+        self.assertIsNone(self.adapter.normalize_route({
+            "provider": "breezy", "url": url, "tenant": "K",
+        }))
+        self.assertIsNone(self.adapter.normalize_route({
+            "provider": "breezy",
+            "url": "https://K.breezy.hr/p/123e4567-e89b-12d3-a456-426614174000-job",
+        }))
+
     def test_rejects_foreign_malformed_and_ambiguous_routes(self):
         invalid = (
             None,
