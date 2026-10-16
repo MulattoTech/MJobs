@@ -112,14 +112,29 @@ def insert_recovery_history(connection, profile_id: str, rows: list[dict]) -> No
 
 def read_recovery_history(connection, profile_id: str) -> list[dict]:
     """Read only the fixed, inert recovery history projection for one profile."""
-    profile_job_ids = union(
+    job_queries = [
         select(m.matches.c.job_id).where(m.matches.c.profile_id == profile_id),
         select(m.applications.c.job_id).where(m.applications.c.profile_id == profile_id),
-    ).subquery("recovery_history_profile_jobs")
+        select(m.interview_prep_packs.c.job_id).where(m.interview_prep_packs.c.profile_id == profile_id),
+        select(m.ai_job_evaluations.c.job_id).where(m.ai_job_evaluations.c.profile_id == profile_id),
+        select(m.ai_document_reviews.c.job_id).where(m.ai_document_reviews.c.profile_id == profile_id),
+        select(m.source_candidate_observations.c.job_id).where(m.source_candidate_observations.c.profile_id == profile_id),
+        select(m.company_discovery_requests.c.trigger_job_id).where(m.company_discovery_requests.c.profile_id == profile_id),
+    ]
+    profile_job_ids = union(*job_queries).subquery("recovery_history_profile_jobs")
     owned_jobs = {row[0] for row in connection.execute(
         select(profile_job_ids.c.job_id)).all()}
-    owned_companies = ({row[0] for row in connection.execute(select(m.routes.c.company_id).where(
-        m.routes.c.job_id.in_(owned_jobs))).all()} if owned_jobs else set())
+    company_queries = [
+        select(m.company_discovery_requests.c.company_id).where(m.company_discovery_requests.c.profile_id == profile_id),
+    ]
+    if owned_jobs:
+        company_queries.append(select(m.routes.c.company_id).where(m.routes.c.job_id.in_(owned_jobs)))
+        company_queries.append(select(m.jobs.c.company_id).where(m.jobs.c.id.in_(owned_jobs)))
+    profile_company_ids = union(*company_queries).subquery("recovery_history_profile_companies")
+    owned_companies = {row[0] for row in connection.execute(
+        select(profile_company_ids.c.company_id)).all()}
+    existing_companies = {row[0] for row in connection.execute(
+        select(m.companies.c.id)).all()}
     rows = connection.execute(select(
         m.profile_recovery_history_snapshots.c.kind,
         m.profile_recovery_history_snapshots.c.source_identity,
@@ -144,9 +159,13 @@ def read_recovery_history(connection, profile_id: str) -> list[dict]:
         if (payload.get("target_job_id") is not None
                 and payload["target_job_id"] not in owned_jobs):
             raise ValueError("corrupt recovery history job reference")
-        if (payload.get("target_company_id") is not None
-                and payload["target_company_id"] not in owned_companies):
-            raise ValueError("corrupt recovery history company reference")
+        if payload.get("target_company_id") is not None:
+            if payload.get("target_job_id") is not None:
+                if payload["target_company_id"] not in owned_companies:
+                    raise ValueError("corrupt recovery history company reference")
+            elif (payload["target_company_id"] not in owned_companies
+                  and payload["target_company_id"] not in existing_companies):
+                raise ValueError("corrupt recovery history company reference")
         total += len(json.dumps(payload, ensure_ascii=False).encode("utf-8"))
         if total > MAX_HISTORY_BYTES:
             raise ValueError("recovery history exceeds read limit")

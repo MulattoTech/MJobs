@@ -303,6 +303,33 @@ def healthy_containers(targets):
                            for row in snapshot.values()) else False
 
 
+def validate_implementation_progress(progress):
+    """Validate that implementation progress contains required authoritative checkpoint fields."""
+    if isinstance(progress, (str, Path)):
+        progress_path = Path(progress)
+        if not progress_path.is_file():
+            raise ValueError(f"Implementation progress file does not exist: {progress}")
+        try:
+            progress = json.loads(progress_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise ValueError(f"Implementation progress file is corrupt: {progress}") from exc
+    if not isinstance(progress, dict):
+        raise ValueError("Implementation progress must be a dictionary")
+    from tools.verification.progress import AUTHORITATIVE_FIELDS
+    for field in AUTHORITATIVE_FIELDS:
+        if field not in progress:
+            raise ValueError(f"Implementation progress missing authoritative field: {field}")
+        if field in ("completed_steps", "files_added", "files_modified", "tests_completed",
+                     "tests_remaining", "migrations_applied", "live_integrations_tested",
+                     "known_errors", "known_limitations"):
+            if not isinstance(progress[field], (list, tuple)):
+                raise ValueError(f"Implementation progress field {field} must be a list")
+        elif field in ("current_phase", "last_safe_checkpoint"):
+            if not isinstance(progress[field], (str, dict)) or (isinstance(progress[field], str) and not progress[field].strip()):
+                raise ValueError(f"Implementation progress field {field} must be a valid checkpoint value")
+    return progress
+
+
 def validate_baseline(baseline):
     """Require the exact connected UI evidence needed for receipt-only replay."""
     if not isinstance(baseline, dict):
@@ -310,6 +337,8 @@ def validate_baseline(baseline):
     if 'local_persistence' in baseline:
         from cli.local_persistence_acceptance import validate
         validate(baseline['local_persistence'])
+    if 'implementation_progress' in baseline:
+        validate_implementation_progress(baseline['implementation_progress'])
     for key in ("profile_id", "application_id", "operation_id", "request_id"):
         value = baseline.get(key)
         if not isinstance(value, str) or REQUEST_ID_PATTERN.fullmatch(value) is None:
@@ -431,6 +460,13 @@ def run(baseline_path, evidence_path, project_name, port):
             persistence_result = persistence.compare_baseline(
                 baseline, persistence.observe_http(client, baseline)
                 if 'local_persistence' in baseline else None)
+            if 'implementation_progress' in baseline:
+                progress_result = validate_implementation_progress(baseline['implementation_progress'])
+                actions.append({
+                    "action": "Implementation progress journal and authoritative checkpoint survived restart",
+                    "result": "PASS",
+                    "checkpoint": progress_result.get("last_safe_checkpoint"),
+                })
             actions.append({"action": "All services restarted; original application, operation and independent receipt survived without another submission", "result": "PASS"})
         finally:
             compose(project_name, port, "start", *services_to_restore, config_files=config_files)
@@ -446,6 +482,10 @@ def run(baseline_path, evidence_path, project_name, port):
         "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery", "actions": actions,
         "application_id": baseline["application_id"], "external_submission_enabled": False,
         "local_persistence": persistence_result,
+        "implementation_progress": (
+            validate_implementation_progress(baseline["implementation_progress"])
+            if "implementation_progress" in baseline else None
+        ),
         "container_health": {"before": health_before, "redis_outage": {"api": health_during_outage},
                              "after": health_after}}
     Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
