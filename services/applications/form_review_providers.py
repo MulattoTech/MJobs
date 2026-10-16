@@ -5,9 +5,7 @@ from collections.abc import Mapping
 import re
 
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
-from services.applications.adapters.lever import (
-    LeverApplicationAdapter, _known_contact_field,
-)
+from services.applications.adapters.lever import LeverApplicationAdapter
 from services.applications.adapters.recruitee import RecruiteeApplicationAdapter
 from services.applications.adapters.workday import WorkdayApplicationAdapter
 from services.applications.adapters.workday_forms import analyze_workday_form_html
@@ -57,8 +55,8 @@ def _safe_identifier(value):
     return normalized
 
 
-def _lever_report(analysis) -> dict:
-    """Project Lever analyzer output into the same safe report as Greenhouse."""
+def _contact_provider_report(analysis, adapter_type) -> dict:
+    """Project static contact-form analysis using the selected provider policy."""
     if not isinstance(analysis, Mapping):
         return {"status": "REVIEW_REQUIRED", "reason": "ANALYSIS_FAILED", "fields": []}
     raw_fields = analysis.get("fields")
@@ -90,7 +88,7 @@ def _lever_report(analysis) -> dict:
             review_reason = "UNIDENTIFIABLE_FIELD"
         elif normalized_type == "other":
             review_reason = "UNSUPPORTED_FIELD_TYPE"
-        elif not _known_contact_field(field):
+        elif adapter_type.requires_human_review({"status": "PASS", "fields": [field]}):
             review_reason = "UNKNOWN_QUESTION"
         else:
             review_reason = None
@@ -113,6 +111,16 @@ def _lever_report(analysis) -> dict:
         return {"status": "REVIEW_REQUIRED", "reason": "FORM_REQUIRES_HUMAN_REVIEW",
                 "fields": fields}
     return {"status": "ANALYZED", "reason": None, "fields": fields}
+
+
+def _lever_report(analysis) -> dict:
+    """Project Lever analyzer output using Lever's prompt allowlist."""
+    return _contact_provider_report(analysis, LeverApplicationAdapter)
+
+
+def _recruitee_report(analysis) -> dict:
+    """Project Recruitee analyzer output using Recruitee's stricter prompt policy."""
+    return _contact_provider_report(analysis, RecruiteeApplicationAdapter)
 
 
 def _workday_report(analysis) -> dict:
@@ -204,7 +212,10 @@ def analyze_application_form(provider, html, *, route_url) -> dict:
         # The durable worker supplies bounded response bytes. Lever's static
         # markup parser accepts text, so decode locally and fail closed on malformed text.
         markup = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
-        return _lever_report(analyze_lever_markup(markup))
+        analysis = analyze_lever_markup(markup)
+        if normalized_provider == "recruitee":
+            return _recruitee_report(analysis)
+        return _lever_report(analysis)
     except Exception:
         # Parser exception text is untrusted and may contain supplied markup.
         return {"status": "REVIEW_REQUIRED", "reason": "ANALYSIS_FAILED", "fields": []}

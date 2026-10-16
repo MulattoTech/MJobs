@@ -63,6 +63,23 @@ class ApplicationFormReviewProvidersTests(unittest.TestCase):
         self.assertEqual(review_required["fields"][0]["review_reason"], "UNKNOWN_QUESTION")
         self.assertNotIn("PRIVATE_ANSWER", json.dumps(review_required))
 
+    def test_recruitee_dispatch_requires_review_for_prompt_not_in_its_allowlist(self):
+        report = analyze_application_form(
+            "recruitee",
+            '<form><label for="phone_type">Phone type</label>'
+            '<input id="phone_type" name="phone_type" type="text"></form>',
+            route_url=self.recruitee_route,
+        )
+
+        self.assertEqual(report, {
+            "status": "REVIEW_REQUIRED",
+            "reason": "FORM_REQUIRES_HUMAN_REVIEW",
+            "fields": [{
+                "id": "phone_type", "name": "phone_type", "type": "text",
+                "required": False, "review_reason": "UNKNOWN_QUESTION",
+            }],
+        })
+
     def test_analyzes_greenhouse_html_without_returning_values_or_page_text(self):
         html = (
             '<form><label for="email">Email address</label>'
