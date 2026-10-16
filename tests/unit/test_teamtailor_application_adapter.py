@@ -68,7 +68,7 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                 return Locator()
 
         page = Page()
-        expected = {"status": "PASS", "reason": None, "fields": []}
+        expected = {"status": "UNKNOWN", "reason": "NO_FORM", "fields": []}
         with patch("services.applications.adapters.teamtailor.analyze_form_page",
                    return_value=expected) as analyzer:
             self.assertEqual(self.adapter.analyze_page(page), expected)
@@ -115,6 +115,7 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
         analysis = {"status": "PASS", "fields": [{
             "ambiguous": False, "sensitivity": "STANDARD", "tag": "input",
             "input_type": "email", "name": "email", "labels": [],
+            "user_visible": True, "user_editable": True,
         }]}
         self.assertFalse(self.adapter.requires_human_review(analysis))
         report = json.dumps(analysis)
@@ -143,9 +144,97 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
             with self.subTest(field=field):
                 self.assertTrue(self.adapter.requires_human_review({
                     "status": "PASS", "fields": [{
-                        "ambiguous": False, "sensitivity": "STANDARD", **field,
+                        "ambiguous": False, "sensitivity": "STANDARD",
+                        "user_visible": True, "user_editable": True, **field,
                     }],
                 }))
+
+    def test_review_gate_requires_explicit_positive_visibility_and_editability(self):
+        known_contact = {
+            "ambiguous": False, "sensitivity": "STANDARD", "tag": "input",
+            "input_type": "email", "name": "email", "labels": ["Email"],
+        }
+        cases = (
+            known_contact,
+            {**known_contact, "user_visible": False, "user_editable": True},
+            {**known_contact, "user_visible": True, "user_editable": False},
+            {**known_contact, "user_visible": True},
+            {**known_contact, "user_editable": True},
+        )
+        for field in cases:
+            with self.subTest(field=field):
+                self.assertTrue(self.adapter.requires_human_review({
+                    "status": "PASS", "fields": [field],
+                }))
+
+    def test_analyze_page_attaches_value_free_control_visibility_evidence(self):
+        class Locator:
+            def __init__(self, selector):
+                self.selector = selector
+
+            def count(self):
+                return 0
+
+            def evaluate_all(self, script, **kwargs):
+                return [{"user_visible": True, "user_editable": True}]
+
+        class Page:
+            def locator(self, selector):
+                return Locator(selector)
+
+        analysis = {"status": "PASS", "reason": None, "fields": [{
+            "ambiguous": False, "sensitivity": "STANDARD", "tag": "input",
+            "input_type": "email", "name": "email", "labels": ["Email"],
+        }]}
+        with patch("services.applications.adapters.teamtailor.analyze_form_page",
+                   return_value=analysis):
+            result = self.adapter.analyze_page(Page())
+        self.assertEqual(result["fields"][0]["user_visible"], True)
+        self.assertEqual(result["fields"][0]["user_editable"], True)
+        self.assertFalse(self.adapter.requires_human_review(result))
+
+    def test_analyze_page_css_hidden_disabled_readonly_and_select_controls_require_review(self):
+        unsafe_cases = (
+            ({"tag": "input", "input_type": "email", "name": "email",
+              "labels": ["Email"]},
+             {"user_visible": False, "user_editable": False}),  # CSS-hidden
+            ({"tag": "input", "input_type": "email", "name": "email",
+              "labels": ["Email"]},
+             {"user_visible": True, "user_editable": False}),  # disabled
+            ({"tag": "input", "input_type": "email", "name": "email",
+              "labels": ["Email"]},
+             {"user_visible": True, "user_editable": False}),  # readonly
+            ({"tag": "select", "input_type": None, "name": "country",
+              "labels": ["Country"]},
+             {"user_visible": False, "user_editable": False}),  # hidden select
+            ({"tag": "select", "input_type": None, "name": "country",
+              "labels": ["Country"]},
+             {"user_visible": True, "user_editable": False}),  # disabled select
+        )
+
+        for field, state in unsafe_cases:
+            with self.subTest(field=field, state=state):
+                class Locator:
+                    def __init__(self, selector):
+                        self.selector = selector
+
+                    def count(self):
+                        return 0
+
+                    def evaluate_all(self, script, **kwargs):
+                        return [state]
+
+                class Page:
+                    def locator(self, selector):
+                        return Locator(selector)
+
+                analysis = {"status": "PASS", "reason": None, "fields": [{
+                    "ambiguous": False, "sensitivity": "STANDARD", **field,
+                }]}
+                with patch("services.applications.adapters.teamtailor.analyze_form_page",
+                           return_value=analysis):
+                    result = self.adapter.analyze_page(Page())
+                self.assertTrue(self.adapter.requires_human_review(result))
 
 
 if __name__ == "__main__":
