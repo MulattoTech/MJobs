@@ -184,16 +184,45 @@ class ApplicationFormReviewWorkerTests(unittest.TestCase):
             "https://acme.wd5.myworkdayjobs.com/en-US/Acme/job/"
             "San-Francisco/Software_Engineer_R12345"
         )
-        self.configure_provider_route("workday", route_url, "other", "R999")
+        invalid_metadata = (("other", "R12345"), ("acme", "R999"))
+        for index, (tenant, requisition) in enumerate(invalid_metadata):
+            with self.subTest(tenant=tenant, requisition=requisition):
+                self.configure_provider_route("workday", route_url, tenant, requisition)
+                operation = self.make_operation(
+                    route_url=route_url, provider="workday",
+                    request_id=f"mismatch-{index}",
+                    input_fingerprint=str(index + 7) * 64,
+                )
+                fetch_html = Mock(
+                    side_effect=AssertionError("mismatched metadata must not fetch")
+                )
+                with self.assertRaises(FormReviewError) as raised:
+                    handle_form_review(
+                        self.store, operation, fetch_html=fetch_html, check=lambda: None,
+                    )
+                self.assertEqual(raised.exception.code, "FORM_REVIEW_ROUTE_UNSUPPORTED")
+                fetch_html.assert_not_called()
+                self.assertEqual(self.audit_events(operation["id"]), [])
+
+    def test_workday_metadata_case_is_canonicalized_like_adapter(self):
+        route_url = (
+            "https://acme.wd5.myworkdayjobs.com/en-US/Acme/job/"
+            "San-Francisco/Software_Engineer_R12345"
+        )
+        self.configure_provider_route("workday", route_url, "ACME", "r12345")
         operation = self.make_operation(route_url=route_url, provider="workday")
-        fetch_html = Mock(side_effect=AssertionError("mismatched metadata must not fetch"))
-        with self.assertRaises(FormReviewError) as raised:
-            handle_form_review(
-                self.store, operation, fetch_html=fetch_html, check=lambda: None,
-            )
-        self.assertEqual(raised.exception.code, "FORM_REVIEW_ROUTE_UNSUPPORTED")
-        fetch_html.assert_not_called()
-        self.assertEqual(self.audit_events(operation["id"]), [])
+        fetch_html = Mock(return_value=(
+            '<form><label for="email">Email address</label>'
+            '<input id="email" name="email" type="email"></form>'
+        ))
+
+        result = handle_form_review(
+            self.store, operation, fetch_html=fetch_html, check=lambda: None,
+        )
+
+        self.assertEqual(result["status"], "REVIEW_REQUIRED")
+        self.assertEqual(result["analysis"]["reason"], "MANUAL_REVIEW_REQUIRED")
+        fetch_html.assert_called_once_with(route_url)
 
     def test_review_persists_only_safe_report_and_replay_does_not_fetch_again(self):
         operation = self.make_operation()

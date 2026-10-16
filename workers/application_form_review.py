@@ -177,8 +177,10 @@ def _validate_application(connection, operation, params):
     if normalized is None:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     if (row["provider"] == "workday"
-            and (row["tenant"] != normalized["tenant"]
-                 or row["requisition"] != normalized["requisition"])):
+            and (not isinstance(row["tenant"], str)
+                 or row["tenant"].casefold() != normalized["tenant"]
+                 or not isinstance(row["requisition"], str)
+                 or row["requisition"].upper() != normalized["requisition"])):
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     if normalized["url"] != params["route_url"]:
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")
