@@ -55,6 +55,13 @@ def _known_contact_field(field) -> bool:
         return bool(visible) and all(label in _KNOWN_CONTACT_FIELDS for label in visible)
     if field.get("tag") == "textarea":
         return False
+    for key in ("placeholder", "aria_label"):
+        prompts = field.get(key)
+        if isinstance(prompts, str):
+            prompts = [prompts]
+        if isinstance(prompts, list) and any(
+                isinstance(prompt, str) and not prompt.isascii() for prompt in prompts):
+            return False
     for key in ("name", "id", "placeholder", "aria_label"):
         values = field.get(key)
         if isinstance(values, str):
