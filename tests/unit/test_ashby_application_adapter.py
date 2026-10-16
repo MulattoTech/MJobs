@@ -29,6 +29,12 @@ class AshbyApplicationAdapterTests(unittest.TestCase):
             "tenant": "example",
             "requisition": "engineering-123",
         })
+        ascii_case_variant = self.adapter.normalize_route({
+            "provider": "ashby",
+            "url": self.route,
+            "tenant": "EXAMPLE",
+            "requisition": "ENGINEERING-123",
+        })
 
         self.assertEqual(normalized, {
             "provider": "ashby",
@@ -36,6 +42,23 @@ class AshbyApplicationAdapterTests(unittest.TestCase):
             "requisition": "engineering-123",
             "url": self.route,
         })
+        self.assertEqual(ascii_case_variant, normalized)
+
+    def test_rejects_unicode_casefold_aliases_in_supplied_route_metadata(self):
+        invalid_metadata = [
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/k/job", "tenant": "K"},
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/longs/job", "tenant": "longſ"},
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/example/k", "requisition": "K"},
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/example/longs", "requisition": "longſ"},
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/i/job", "tenant": "İ"},
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/i/job", "tenant": "ı"},
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/example/i", "requisition": "İ"},
+            {"provider": "ashby", "url": "https://jobs.ashbyhq.com/example/i", "requisition": "ı"},
+        ]
+
+        for route in invalid_metadata:
+            with self.subTest(route=route):
+                self.assertIsNone(self.adapter.normalize_route(route))
 
     def test_rejects_unsafe_origins_route_shapes_and_mismatched_identity(self):
         invalid = [

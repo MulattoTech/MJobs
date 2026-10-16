@@ -165,10 +165,13 @@ class AshbyApplicationAdapter:
         supplied_tenant = route.get("tenant")
         supplied_requisition = route.get("requisition")
         if (supplied_tenant is not None and
-                (not isinstance(supplied_tenant, str) or supplied_tenant.casefold() != tenant)):
+                (not isinstance(supplied_tenant, str)
+                 or not _IDENTIFIER.fullmatch(supplied_tenant)
+                 or supplied_tenant.casefold() != tenant)):
             return None
         if (supplied_requisition is not None and
                 (not isinstance(supplied_requisition, str)
+                 or not _IDENTIFIER.fullmatch(supplied_requisition)
                  or supplied_requisition.casefold() != requisition)):
             return None
         return {
