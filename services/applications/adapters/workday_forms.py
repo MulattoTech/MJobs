@@ -42,7 +42,7 @@ _CHALLENGE_MARKERS = (
     "captcha", "recaptcha", "hcaptcha", "turnstile", "cloudflare",
     "cf-chl-", "datadome", "perimeterx", "arkose", "funcaptcha", "geetest",
 )
-_IGNORED_CONTENT = {"script", "style", "noscript", "template"}
+_IGNORED_CONTENT = {"script", "style", "noscript", "template", "option", "optgroup"}
 _INTERACTIVE_ROLES = {
     "button", "checkbox", "combobox", "listbox", "option", "radio", "searchbox",
     "slider", "spinbutton", "switch", "textbox",

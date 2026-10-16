@@ -187,6 +187,19 @@ class WorkdayFormAnalyzerTests(unittest.TestCase):
         self.assertIsNone(result["fields"][0]["conditional"])
         self.assertIsNone(result["fields"][0]["repeatable"])
 
+    def test_wrapping_select_label_excludes_option_and_optgroup_text(self):
+        result = analyze_workday_form_html(
+            '<form><label>Country<select id="country" name="country">'
+            '<optgroup>PRIVATE_GROUP_TEXT<option selected>PRIVATE_DEFAULT</option>'
+            '</optgroup>'
+            '</select></label></form>'
+        )
+
+        self.assertEqual(result["fields"][0]["label"], "Country")
+        serialized = json.dumps(result)
+        self.assertNotIn("PRIVATE_GROUP_TEXT", serialized)
+        self.assertNotIn("PRIVATE_DEFAULT", serialized)
+
     def test_workday_html_analyzer_fails_closed_on_deeply_nested_labels(self):
         markup = (
             "<form>" + "<label>" * 33 + "Email" + "</label>" * 33 + "</form>"
