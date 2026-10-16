@@ -191,6 +191,60 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
                     ])
                 run.assert_called_once_with("baseline.json", "evidence.json", VALID_PROJECT, port)
 
+    def test_validate_implementation_progress_accepts_valid_dict_and_file(self):
+        import json
+        valid_progress = {
+            "current_phase": "M3_VERIFIED",
+            "completed_steps": ["Step 1"],
+            "files_added": ["file1.txt"],
+            "files_modified": ["file2.txt"],
+            "tests_completed": ["test 1"],
+            "tests_remaining": ["test 2"],
+            "migrations_applied": [],
+            "live_integrations_tested": [],
+            "known_errors": [],
+            "known_limitations": [],
+            "last_safe_checkpoint": "git:abc1234",
+        }
+        validated = compose_recovery.validate_implementation_progress(valid_progress)
+        self.assertEqual(validated, valid_progress)
+
+        with tempfile.TemporaryDirectory() as temporary:
+            progress_file = Path(temporary) / "progress.json"
+            progress_file.write_text(json.dumps(valid_progress), encoding="utf-8")
+            from_file = compose_recovery.validate_implementation_progress(str(progress_file))
+            self.assertEqual(from_file, valid_progress)
+
+    def test_validate_implementation_progress_rejects_invalid_values(self):
+        valid_progress = {
+            "current_phase": "M3_VERIFIED",
+            "completed_steps": ["Step 1"],
+            "files_added": ["file1.txt"],
+            "files_modified": ["file2.txt"],
+            "tests_completed": ["test 1"],
+            "tests_remaining": ["test 2"],
+            "migrations_applied": [],
+            "live_integrations_tested": [],
+            "known_errors": [],
+            "known_limitations": [],
+            "last_safe_checkpoint": "git:abc1234",
+        }
+        with self.assertRaisesRegex(ValueError, "Implementation progress must be a dictionary"):
+            compose_recovery.validate_implementation_progress(12345)
+
+        for missing in ("current_phase", "completed_steps", "last_safe_checkpoint"):
+            corrupt = dict(valid_progress)
+            del corrupt[missing]
+            with self.subTest(missing=missing):
+                with self.assertRaisesRegex(ValueError, f"missing authoritative field: {missing}"):
+                    compose_recovery.validate_implementation_progress(corrupt)
+
+        for invalid_list in ("completed_steps", "files_added", "tests_completed"):
+            corrupt = dict(valid_progress, **{invalid_list: "not-a-list"})
+            with self.subTest(invalid_list=invalid_list):
+                with self.assertRaisesRegex(ValueError, f"field {invalid_list} must be a list"):
+                    compose_recovery.validate_implementation_progress(corrupt)
+
 
 if __name__ == "__main__":
     unittest.main()
