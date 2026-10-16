@@ -251,15 +251,28 @@ def analyze_questionnaire(questionnaire) -> dict:
     return analyze_controls(controls)
 
 
-def analyze_form_page(page) -> dict:
+def analyze_form_page(page, *, check=None) -> dict:
     """Extract metadata from one already-loaded DOM form without interacting with controls."""
+    if check is not None:
+        check()
+    timeout_kwargs = {}
+    if check is not None:
+        remaining = getattr(check, "remaining_seconds", None)
+        if callable(remaining):
+            timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
     try:
         forms = page.locator("form")
         form_count = forms.count()
+        if check is not None:
+            check()
         if form_count != 1:
             return _unknown("NO_FORM" if form_count == 0 else "AMBIGUOUS_FORM")
-        controls = forms.first.evaluate(_DOM_METADATA_SCRIPT)
+        controls = forms.first.evaluate(_DOM_METADATA_SCRIPT, **timeout_kwargs)
+        if check is not None:
+            check()
         return analyze_controls(controls)
     except Exception:
+        if check is not None:
+            check()
         # Do not persist exception text: browser errors can contain page data.
         return _unknown("DOM_ANALYSIS_FAILED")

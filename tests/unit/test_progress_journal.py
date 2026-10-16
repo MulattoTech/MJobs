@@ -7,7 +7,14 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from tools.verification.progress import append_milestone, resume_snapshot, validate_journal
+from tools.verification.progress import (
+    AUTHORITATIVE_FIELDS,
+    DEFAULT_OUTPUT_JOURNAL,
+    append_milestone,
+    resume_snapshot,
+    sync_implementation_state,
+    validate_journal,
+)
 
 
 class ProgressJournalTests(unittest.TestCase):
@@ -148,6 +155,50 @@ append_milestone(state_path, entry)
         with self.assertRaisesRegex(ValueError, "Existing milestone journal is invalid"):
             append_milestone(self.state_path, next_entry)
         self.assertEqual(self.state_path.read_bytes(), before)
+
+    def test_append_maintains_machine_readable_output_state(self):
+        output_journal = self.root / DEFAULT_OUTPUT_JOURNAL
+        append_milestone(self.state_path, self.entry, output_state_path=output_journal)
+        self.assertTrue(output_journal.is_file())
+        output_data = json.loads(output_journal.read_text(encoding="utf-8"))
+        for field in AUTHORITATIVE_FIELDS:
+            self.assertIn(field, output_data)
+        self.assertEqual(output_data["current_phase"], "M3_VERIFIED")
+        self.assertEqual(output_data["completed_steps"], ["Mock journey verified"])
+        self.assertEqual(output_data["files_added"], ["docs/evidence/checkpoint.json"])
+        self.assertEqual(output_data["files_modified"], ["planning/IMPLEMENTATION_STATE.json"])
+        self.assertEqual(output_data["last_safe_checkpoint"], self.entry["last_safe_checkpoint"])
+
+    def test_resume_from_outputs_journal(self):
+        output_journal = self.root / DEFAULT_OUTPUT_JOURNAL
+        append_milestone(self.state_path, self.entry, output_state_path=output_journal)
+        self.state_path.unlink()
+        snapshot = resume_snapshot(self.root, source_path=output_journal)
+        self.assertEqual(snapshot["current_phase"], "M3_VERIFIED")
+        self.assertEqual(snapshot["completed_steps"], ["Mock journey verified"])
+        self.assertEqual(snapshot["last_safe_checkpoint"], self.entry["last_safe_checkpoint"])
+
+    def test_sync_implementation_state(self):
+        output_journal = self.root / "outputs/custom-state.json"
+        append_milestone(self.state_path, self.entry)
+        self.assertFalse(output_journal.is_file())
+        synced_path = sync_implementation_state(self.root, output_path=output_journal)
+        self.assertTrue(output_journal.is_file())
+        self.assertEqual(synced_path, output_journal)
+        synced_data = json.loads(output_journal.read_text(encoding="utf-8"))
+        self.assertEqual(synced_data["current_phase"], "M3_VERIFIED")
+        for field in AUTHORITATIVE_FIELDS:
+            self.assertIn(field, synced_data)
+
+    def test_validate_journal_verifies_outputs_consistency(self):
+        output_journal = self.root / DEFAULT_OUTPUT_JOURNAL
+        append_milestone(self.state_path, self.entry, output_state_path=output_journal)
+        self.assertEqual(validate_journal(self.root), [])
+        output_data = json.loads(output_journal.read_text(encoding="utf-8"))
+        output_data["current_phase"] = "MISMATCHED"
+        output_journal.write_text(json.dumps(output_data), encoding="utf-8")
+        errors = validate_journal(self.root)
+        self.assertTrue(any("disagrees with latest milestone" in err for err in errors))
 
 
 if __name__ == "__main__":

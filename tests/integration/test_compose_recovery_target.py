@@ -257,6 +257,8 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
             {"confirmation": {"receipt_id": "receipt-fixture-1", "submission_count": 2}},
             {"profile_id": "fixture/profile?admin=true"},
             {"application_id": "../other-application"},
+            {"implementation_progress": 1234},
+            {"implementation_progress": {"current_phase": "INCOMPLETE"}},
         ):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as temporary:
                 baseline = dict(BASELINE)
@@ -396,6 +398,109 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 compose_recovery.main(["--baseline", "baseline.json", "--evidence", "evidence.json"])
         run.assert_not_called()
+
+    def test_recovery_records_implementation_progress_checkpoint_action(self):
+        from cli import compose_recovery
+
+        valid_progress = {
+            "current_phase": "M3_VERIFIED",
+            "completed_steps": ["Step 1"],
+            "files_added": ["file1.txt"],
+            "files_modified": ["file2.txt"],
+            "tests_completed": ["test 1"],
+            "tests_remaining": ["test 2"],
+            "migrations_applied": [],
+            "live_integrations_tested": [],
+            "known_errors": [],
+            "known_limitations": [],
+            "last_safe_checkpoint": "git:abc1234",
+        }
+        baseline = dict(BASELINE, implementation_progress=valid_progress)
+
+        ready_responses = iter((
+            _Response({"checks": {"queue": False}}, status_code=503),
+            _Response({"checks": {"queue": True}}),
+            _Response({"checks": {"queue": True}}),
+        ))
+
+        def request(method, path, **kwargs):
+            if method == "POST" and path == "/discovery":
+                return _Response({"state": "QUEUED", "operation_id": "operation-recovery-1"})
+            if method == "GET" and path == "/operations/operation-recovery-1":
+                return _Response({"state": "COMPLETED"})
+            if method == "GET" and path == "/profiles/profile-fixture-1/applications/application-fixture-1":
+                return _Response({"state": "CONFIRMED", "confirmation": BASELINE["confirmation"]})
+            if method == "GET" and path == "/operations/operation-baseline-1":
+                return _Response({"state": "COMPLETED"})
+            if method == "GET" and path.endswith("/mock-runs/" + BASELINE["request_id"]):
+                return _Response({"operation_id": BASELINE["operation_id"], "state": "COMPLETED",
+                                  "external_submission_enabled": False})
+            if method == "POST" and path.endswith("/mock-run"):
+                return _Response({"operation_id": BASELINE["operation_id"], "state": "COMPLETED",
+                                  "replayed": True, "external_submission_enabled": False})
+            return _Response({})
+
+        client = unittest.mock.MagicMock()
+        client.__enter__.return_value = client
+        client.request.side_effect = request
+        client.get.side_effect = lambda path, **kwargs: next(ready_responses)
+        worker_counts = iter((1, 1, 2))
+        redis_available = True
+        worker_recreated = False
+
+        def run_bounded(command, *, timeout, action, environment=None):
+            nonlocal redis_available, worker_recreated
+            if command[:2] == ["docker", "compose"]:
+                if "stop" in command and "redis" in command:
+                    redis_available = False
+                if "start" in command and "redis" in command:
+                    redis_available = True
+                if "up" in command and command[-1] == "worker":
+                    worker_recreated = True
+                if "ps" in command:
+                    service = command[-1]
+                    if service == "worker" and worker_recreated:
+                        return "replacement-fixture-worker\n"
+                    return "container-fixture-" + service + "\n"
+                if "exec" in command:
+                    return json.dumps(BASELINE["confirmation"])
+                return ""
+            if command[:2] == ["docker", "inspect"]:
+                service = command[-1].removeprefix("container-fixture-")
+                if command[-1] == "replacement-fixture-worker":
+                    service = "worker"
+                if ".State.Health" in command[3]:
+                    health = "unhealthy" if service == "api" and not redis_available else "healthy"
+                    return f"running|{health}\n"
+                labels = {
+                    "com.docker.compose.project": PROJECT,
+                    "com.docker.compose.service": service,
+                    "com.docker.compose.project.config_files": compose_recovery.expected_config_files_label(
+                        compose_recovery.resolve_compose_files()),
+                    "com.docker.compose.project.working_dir": str(compose_recovery.REPOSITORY_ROOT),
+                }
+                return json.dumps(labels) + "|1|running\n"
+            self.fail(f"unexpected subprocess target: {command!r}")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            baseline_path = Path(temporary) / "baseline.json"
+            evidence_path = Path(temporary) / "evidence.json"
+            baseline_path.write_text(json.dumps(baseline), encoding="utf-8")
+
+            with patch.object(compose_recovery.httpx, "Client", return_value=client), \
+                    patch.object(compose_recovery, "_run_bounded", side_effect=run_bounded), \
+                    patch.object(compose_recovery, "worker_restart_count", side_effect=lambda *args, **kwargs: next(worker_counts)):
+                compose_recovery.run(baseline_path, evidence_path, project_name=PROJECT, port=PORT)
+
+            evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+            self.assertEqual(evidence["result"], "PASS")
+            self.assertEqual(evidence["implementation_progress"], valid_progress)
+            self.assertTrue(any(
+                item["action"] == "Implementation progress journal and authoritative checkpoint survived restart"
+                and item["result"] == "PASS"
+                and item["checkpoint"] == "git:abc1234"
+                for item in evidence["actions"]
+            ))
 
 
 if __name__ == "__main__":
