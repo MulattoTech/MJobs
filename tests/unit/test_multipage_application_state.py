@@ -296,6 +296,7 @@ class MultipageApplicationStateTests(unittest.TestCase):
         self.assertEqual(explicit_refresh, {
             "decision": "REFRESH_AND_RECLASSIFY",
             "reason": "REFRESH_REQUIRES_NEW_OBSERVATION",
+            "execute": False,
             "state": None,
         })
 
