@@ -30,6 +30,8 @@ _SUPPORTED_TYPES = {
     "checkbox", "radio", "file",
 }
 MAX_WORKDAY_MARKUP_LENGTH = 2 * 1024 * 1024
+MAX_WORKDAY_MARKUP_EVENTS = 4096
+MAX_WORKDAY_LABEL_DEPTH = 32
 _HTML_ATTRIBUTES = {
     "id", "name", "type", "placeholder", "aria-label", "aria-required",
     "for", "class", "role", "contenteditable", "data-automation-id",
@@ -227,6 +229,7 @@ class _WorkdayMarkupParser(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.form_count = 0
         self.active_form = False
+        self.markup_events = 0
         self.controls = []
         self.labels_by_id = {}
         self.label_stack = []
@@ -236,6 +239,15 @@ class _WorkdayMarkupParser(HTMLParser):
         self.unsupported_interactive = False
         self.outside_form_controls = False
         self.invalid = False
+
+    def _record_event(self):
+        if self.invalid:
+            return False
+        self.markup_events += 1
+        if self.markup_events > MAX_WORKDAY_MARKUP_EVENTS:
+            self.invalid = True
+            return False
+        return True
 
     def _attrs(self, attrs):
         names = [str(name).casefold() for name, _ in attrs]
@@ -260,6 +272,8 @@ class _WorkdayMarkupParser(HTMLParser):
                 self.challenge_protected = True
 
     def handle_starttag(self, tag, attrs):
+        if not self._record_event():
+            return
         tag = tag.casefold()
         values = self._attrs(attrs)
         self._check_challenge_metadata(values)
@@ -273,6 +287,9 @@ class _WorkdayMarkupParser(HTMLParser):
             self.active_form = self.form_count == 1
             return
         if tag == "label":
+            if len(self.label_stack) >= MAX_WORKDAY_LABEL_DEPTH:
+                self.invalid = True
+                return
             self.label_stack.append({"for": values.get("for"), "parts": [], "index": None})
             return
         if tag == "textarea":
@@ -337,6 +354,8 @@ class _WorkdayMarkupParser(HTMLParser):
         self.handle_endtag(tag)
 
     def handle_endtag(self, tag):
+        if not self._record_event():
+            return
         tag = tag.casefold()
         if self.ignored_stack:
             if tag == self.ignored_stack[-1]:
@@ -360,13 +379,25 @@ class _WorkdayMarkupParser(HTMLParser):
                 self.labels_by_id.setdefault(field_id, []).append(text)
 
     def handle_data(self, data):
-        if self.ignored_stack or self.value_text_depth:
+        if not self._record_event() or self.ignored_stack or self.value_text_depth:
             return
         for label in self.label_stack:
             if sum(map(len, label["parts"])) + len(data) > 500:
                 self.invalid = True
             else:
                 label["parts"].append(data)
+
+    def handle_comment(self, data):
+        self._record_event()
+
+    def handle_decl(self, decl):
+        self._record_event()
+
+    def handle_pi(self, data):
+        self._record_event()
+
+    def unknown_decl(self, data):
+        self._record_event()
 
     def finish(self):
         if (self.invalid or self.label_stack or self.ignored_stack or self.value_text_depth

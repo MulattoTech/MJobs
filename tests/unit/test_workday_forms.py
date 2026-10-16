@@ -187,6 +187,27 @@ class WorkdayFormAnalyzerTests(unittest.TestCase):
         self.assertIsNone(result["fields"][0]["conditional"])
         self.assertIsNone(result["fields"][0]["repeatable"])
 
+    def test_workday_html_analyzer_fails_closed_on_deeply_nested_labels(self):
+        markup = (
+            "<form>" + "<label>" * 33 + "Email" + "</label>" * 33 + "</form>"
+        )
+
+        result = analyze_workday_form_html(markup)
+
+        self.assertEqual(result["status"], "UNKNOWN")
+        self.assertEqual(result["reason"], "INVALID_WORKDAY_MARKUP")
+        self.assertEqual(result["fields"], [])
+
+    def test_workday_html_analyzer_fails_closed_on_excessive_markup_events(self):
+        text_fragment = "<span>" * 8 + "x" + "</span>" * 8
+        markup = "<form><label>" + text_fragment * 250 + "</label></form>"
+
+        result = analyze_workday_form_html(markup)
+
+        self.assertEqual(result["status"], "UNKNOWN")
+        self.assertEqual(result["reason"], "INVALID_WORKDAY_MARKUP")
+        self.assertEqual(result["fields"], [])
+
 
 if __name__ == "__main__":
     unittest.main()
