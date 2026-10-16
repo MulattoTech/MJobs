@@ -8,6 +8,12 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
+from services.applications.adapters.workday_navigation import (
+    WORKDAY_STEP_ORDER,
+    classify_step,
+    decide_transition,
+    workday_origin,
+)
 
 
 MAX_PAGES = 100
@@ -18,6 +24,8 @@ _SECRET_KEY = re.compile(r"password|passcode|credential|cookie|session|token|sec
 _ACTIONS = {"SAVE_PROGRESS", "NEXT", "PREVIOUS", "REVIEW"}
 _ENTITY_KIND = "multipage-application-state"
 _EVENT_ACTION = "MULTIPAGE_STATE_SNAPSHOT"
+_WORKDAY_PAGE_ORDER = tuple(step for step in WORKDAY_STEP_ORDER if step != "review")
+_FINGERPRINT = re.compile(r"^[0-9a-f]{64}$")
 
 
 class MultipageStateError(ValueError):
@@ -79,11 +87,38 @@ def _safe_progress(progress, page_order):
     return normalized
 
 
+def _normalize_workday_navigation(value):
+    if value is None:
+        return None
+    if not isinstance(value, dict) or set(value) != {
+            "expected_fingerprint", "current_fingerprint", "visited_fingerprints",
+            "application_origin"}:
+        raise MultipageStateError("INVALID_WORKDAY_STATE", "Workday navigation evidence is invalid")
+    expected = value["expected_fingerprint"]
+    current = value["current_fingerprint"]
+    visited = value["visited_fingerprints"]
+    application_origin = value["application_origin"]
+    if (expected is not None and (not isinstance(expected, str) or not _FINGERPRINT.fullmatch(expected))
+            or not isinstance(current, str) or not _FINGERPRINT.fullmatch(current)
+            or not isinstance(application_origin, str)
+            or workday_origin(application_origin) != application_origin
+            or not isinstance(visited, list) or not 1 <= len(visited) <= MAX_PAGES
+            or any(not isinstance(item, str) or not _FINGERPRINT.fullmatch(item) for item in visited)
+            or len(set(visited)) != len(visited) or visited[-1] != current):
+        raise MultipageStateError("INVALID_WORKDAY_STATE", "Workday navigation evidence is invalid")
+    return {
+        "expected_fingerprint": expected,
+        "current_fingerprint": current,
+        "visited_fingerprints": list(visited),
+        "application_origin": application_origin,
+    }
+
+
 def _normalize_request(payload):
     if not isinstance(payload, dict):
         raise MultipageStateError("INVALID_REQUEST", "Application page action must be an object")
     allowed = {"request_id", "action", "expected_version", "page_id", "page_order",
-               "next_page_id", "previous_page_id", "progress"}
+               "next_page_id", "previous_page_id", "progress", "workday_navigation"}
     if set(payload) - allowed:
         raise MultipageStateError("INVALID_REQUEST", "Application page action contains unsupported fields")
     request_id = payload.get("request_id")
@@ -128,6 +163,7 @@ def _normalize_request(payload):
         "next_page_id": next_page_id,
         "previous_page_id": previous_page_id,
         "progress": progress,
+        "workday_navigation": _normalize_workday_navigation(payload.get("workday_navigation")),
     }
 
 
@@ -167,7 +203,7 @@ def _response(profile_id, application_id, snapshot):
             "manual_intervention_required": True,
         }
     state = snapshot["payload"]["state"]
-    return {
+    response = {
         "profile_id": profile_id,
         "application_id": application_id,
         "page_order": list(state["page_order"]),
@@ -178,6 +214,9 @@ def _response(profile_id, application_id, snapshot):
         "updated_at": state["updated_at"],
         "manual_intervention_required": True,
     }
+    if "workday_navigation" in state:
+        response["workday_navigation"] = state["workday_navigation"]
+    return response
 
 
 def load_multipage_state(store, profile_id: str, application_id: str) -> dict:
@@ -199,6 +238,7 @@ def _validate_transition(current, request):
     page = request["page_id"]
     version = request["expected_version"]
     page_order = request["page_order"]
+    workday_navigation = request["workday_navigation"]
     if current is None:
         if action != "SAVE_PROGRESS" or version != 0 or page_order is None:
             raise MultipageStateError("INVALID_TRANSITION", "The first page must be saved before navigation")
@@ -207,6 +247,13 @@ def _validate_transition(current, request):
         order = page_order
         status = "IN_PROGRESS"
         current_page = page
+        if workday_navigation is not None and (
+                workday_navigation["expected_fingerprint"] is not None
+                or not workday_navigation["application_origin"]
+                or order != list(_WORKDAY_PAGE_ORDER)
+                or page != _WORKDAY_PAGE_ORDER[0]
+                or workday_navigation["visited_fingerprints"] != [workday_navigation["current_fingerprint"]]):
+            raise MultipageStateError("INVALID_WORKDAY_STATE", "Workday navigation must start at its first observed page")
     else:
         state = current["payload"]["state"]
         if version != state["version"]:
@@ -216,6 +263,23 @@ def _validate_transition(current, request):
         order = state["page_order"]
         status = state["status"]
         current_page = state["current_page_id"]
+        stored_workday_navigation = state.get("workday_navigation")
+        if stored_workday_navigation is not None:
+            if workday_navigation is None:
+                raise MultipageStateError("WORKDAY_OBSERVATION_REQUIRED", "Workday navigation requires confirmed observation evidence")
+            if action not in {"NEXT", "PREVIOUS", "REVIEW"}:
+                raise MultipageStateError("WORKDAY_CONFIRMATION_REQUIRED", "Workday state accepts only confirmed page transitions")
+            if (workday_navigation["expected_fingerprint"]
+                    != stored_workday_navigation["current_fingerprint"]
+                    or workday_navigation["application_origin"]
+                    != stored_workday_navigation.get("application_origin")
+                    or workday_navigation["visited_fingerprints"][:-1]
+                    != stored_workday_navigation["visited_fingerprints"]
+                    or workday_navigation["current_fingerprint"]
+                    in stored_workday_navigation["visited_fingerprints"]):
+                raise MultipageStateConflict("WORKDAY_OBSERVATION_STALE")
+        elif workday_navigation is not None:
+            raise MultipageStateError("WORKDAY_STATE_NOT_INITIALIZED", "Workday navigation baseline is missing")
         if page != current_page:
             raise MultipageStateError("INVALID_TRANSITION", "page_id does not match the current application page")
         if action == "SAVE_PROGRESS":
@@ -256,17 +320,36 @@ def _validate_transition(current, request):
         current_page = current["payload"]["state"]["current_page_id"]
     if action == "SAVE_PROGRESS" and current is None:
         current_page = request["page_id"]
-    return {
+    next_state = {
         "page_order": list(order),
         "current_page_id": current_page,
         "status": status,
         "progress": progress,
     }
+    if workday_navigation is not None:
+        next_state["workday_navigation"] = {
+            "current_fingerprint": workday_navigation["current_fingerprint"],
+            "visited_fingerprints": workday_navigation["visited_fingerprints"],
+            "application_origin": workday_navigation["application_origin"],
+        }
+    elif current is not None and "workday_navigation" in current["payload"]["state"]:
+        next_state["workday_navigation"] = current["payload"]["state"]["workday_navigation"]
+    return next_state
 
 
 def transition_multipage_state(store, profile_id: str, application_id: str, payload: dict) -> dict:
     """Apply one versioned local page action and durably record its full snapshot."""
     request = _normalize_request(payload)
+    if request["workday_navigation"] is not None:
+        raise MultipageStateError(
+            "WORKDAY_CONFIRMATION_REQUIRED",
+            "Workday navigation evidence can be persisted only after adapter confirmation",
+        )
+    return _persist_multipage_request(store, profile_id, application_id, request)
+
+
+def _persist_multipage_request(store, profile_id: str, application_id: str, request: dict) -> dict:
+    """Persist a normalized request; Workday callers reach this only after confirmation."""
     entity_id = _entity_id(profile_id, application_id)
     request_event_id = _event_id(profile_id, application_id, request["request_id"])
     with store.engine.begin() as connection:
@@ -275,6 +358,22 @@ def transition_multipage_state(store, profile_id: str, application_id: str, payl
         application = _lock_and_load(connection, profile_id, application_id)
         if application["state"] in {"SUBMITTING", "CONFIRMED", "SUBMISSION_UNCONFIRMED"}:
             raise MultipageStateError("APPLICATION_NOT_EDITABLE", "Application page state is no longer editable")
+
+        route = connection.execute(select(m.routes.c.provider, m.routes.c.url).where(
+            m.routes.c.id == application["route_id"])).mappings().one_or_none()
+        route_provider = route["provider"] if route is not None else None
+        is_workday_route = isinstance(route_provider, str) and route_provider.casefold() == "workday"
+        workday_navigation = request["workday_navigation"]
+        if is_workday_route and workday_navigation is None:
+            raise MultipageStateError(
+                "WORKDAY_OBSERVATION_REQUIRED",
+                "Workday page transitions require confirmed observation evidence",
+            )
+        if workday_navigation is not None and not is_workday_route:
+            raise MultipageStateError("WORKDAY_ROUTE_REQUIRED", "Workday state requires a Workday application route")
+        if (workday_navigation is not None
+                and workday_origin(route["url"]) != workday_navigation["application_origin"]):
+            raise MultipageStateError("WORKDAY_ROUTE_MISMATCH", "Workday observation does not match the application route")
 
         retry = connection.execute(select(m.audit).where(
             m.audit.c.id == request_event_id)).mappings().one_or_none()
@@ -297,3 +396,135 @@ def transition_multipage_state(store, profile_id: str, application_id: str, payl
             timestamp=next_state["updated_at"],
         ))
         return _response(profile_id, application_id, {"payload": {"state": next_state}})
+
+
+def _workday_manual_review(reason):
+    return {"decision": "MANUAL_REVIEW", "reason": reason, "state": None}
+
+
+def _workday_application_origin(store, profile_id, application_id):
+    with store.engine.connect() as connection:
+        route = connection.execute(select(m.routes.c.provider, m.routes.c.url).select_from(
+            m.applications.join(m.routes, m.applications.c.route_id == m.routes.c.id)).where(
+                m.applications.c.id == application_id,
+                m.applications.c.profile_id == profile_id,
+            )).mappings().one_or_none()
+    if route is None or str(route["provider"] or "").casefold() != "workday":
+        return None
+    return workday_origin(route["url"])
+
+
+def initialize_workday_multipage_state(store, profile_id: str, application_id: str,
+                                       observation: dict, *, request_id: str) -> dict:
+    """Persist a known initial Workday page as a versioned navigation baseline."""
+    classified = classify_step(observation)
+    if (classified["status"] != "KNOWN" or classified["stale"]
+            or classified["step"] != _WORKDAY_PAGE_ORDER[0]):
+        return _workday_manual_review("INITIAL_PAGE_NOT_CONFIRMED")
+    request = {
+        "request_id": request_id,
+        "action": "SAVE_PROGRESS",
+        "expected_version": 0,
+        "page_id": _WORKDAY_PAGE_ORDER[0],
+        "page_order": list(_WORKDAY_PAGE_ORDER),
+        "progress": {},
+        "workday_navigation": {
+            "expected_fingerprint": None,
+            "current_fingerprint": classified["fingerprint"],
+            "visited_fingerprints": [classified["fingerprint"]],
+            "application_origin": classified["origin"],
+        },
+    }
+    try:
+        normalized_request = _normalize_request(request)
+        state = _persist_multipage_request(store, profile_id, application_id, normalized_request)
+    except MultipageStateError as error:
+        return _workday_manual_review(error.code)
+    return {"decision": "INITIALIZED", "reason": "KNOWN_INITIAL_PAGE", "state": state}
+
+
+def transition_workday_multipage_state(store, profile_id: str, application_id: str,
+                                        prior_state: dict, previous_observation: dict | None,
+                                        current_observation: dict, intended_action: str, *,
+                                        request_id: str) -> dict:
+    """Persist only confirmed Workday observations through versioned multipage state."""
+    if (not isinstance(prior_state, dict)
+            or prior_state.get("profile_id") != profile_id
+            or prior_state.get("application_id") != application_id
+            or type(prior_state.get("version")) is not int
+            or prior_state.get("version", 0) < 1
+            or prior_state.get("page_order") != list(_WORKDAY_PAGE_ORDER)
+            or not isinstance(prior_state.get("workday_navigation"), dict)):
+        return _workday_manual_review("WORKDAY_STATE_NOT_INITIALIZED")
+
+    navigation = prior_state["workday_navigation"]
+    current = classify_step(current_observation)
+    application_origin = navigation.get("application_origin")
+    if (workday_origin(application_origin) != application_origin
+            or _workday_application_origin(store, profile_id, application_id) != application_origin
+            or current.get("origin") != application_origin):
+        return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
+    confirmed_state = {
+        "status": "KNOWN",
+        "step": prior_state.get("current_page_id"),
+        "fingerprint": navigation.get("current_fingerprint"),
+        "stale": False,
+    }
+    if intended_action == "RESUME":
+        decision = decide_transition(
+            previous_observation, current, intended_action,
+            interrupted=True, confirmed_state=confirmed_state,
+        )
+        if decision["decision"] != "RESUME_FROM_CONFIRMED_STEP":
+            return _workday_manual_review(decision["reason"])
+        persisted = load_multipage_state(store, profile_id, application_id)
+        if (persisted["version"] != prior_state["version"]
+                or persisted.get("workday_navigation") != navigation
+                or persisted["current_page_id"] != prior_state["current_page_id"]):
+            return _workday_manual_review("MULTIPAGE_VERSION_CONFLICT")
+        return {"decision": decision["decision"], "reason": decision["reason"], "state": persisted}
+
+    previous = classify_step(previous_observation)
+    if intended_action != "REFRESH" and previous.get("origin") != application_origin:
+        return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
+    decision = decide_transition(
+        previous, current, intended_action,
+        visited_fingerprints=navigation.get("visited_fingerprints", ()),
+    )
+    if decision["decision"] == "REFRESH_AND_RECLASSIFY":
+        return {**decision, "state": None}
+    if decision["decision"] != "CONFIRMED":
+        return _workday_manual_review(decision["decision"])
+    previous_page = "review" if previous["step"] == "review" else previous["step"]
+    if (navigation.get("current_fingerprint") != previous["fingerprint"]
+            or prior_state.get("current_page_id") != previous_page):
+        return _workday_manual_review("DURABLE_STATE_MISMATCH")
+
+    action = intended_action
+    request = {
+        "request_id": request_id,
+        "action": action,
+        "expected_version": prior_state["version"],
+        "page_id": prior_state["current_page_id"],
+        "progress": prior_state.get("progress", {}),
+        "workday_navigation": {
+            "expected_fingerprint": previous["fingerprint"],
+            "current_fingerprint": current["fingerprint"],
+            "visited_fingerprints": [*navigation.get("visited_fingerprints", []), current["fingerprint"]],
+            "application_origin": application_origin,
+        },
+    }
+    if intended_action == "NEXT":
+        if current["step"] == "review":
+            request["action"] = "REVIEW"
+        else:
+            request["next_page_id"] = current["step"]
+    else:
+        request["previous_page_id"] = current["step"]
+    try:
+        normalized_request = _normalize_request(request)
+        state = _persist_multipage_request(store, profile_id, application_id, normalized_request)
+    except MultipageStateError as error:
+        return _workday_manual_review(error.code)
+    return {"decision": "CONFIRMED", "reason": decision["reason"],
+            "fingerprint": current["fingerprint"], "state": state}
