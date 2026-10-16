@@ -18,6 +18,9 @@ from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills
 from services.discovery.requirement_parsers import parse_job_requirements
 from services.discovery.negative_filters import parse_negative_conditions
 from services.company_discovery.sources import register_ats_tenant, upsert_company_job_source
+from services.company_discovery.flywheel import directly_monitored, discover_company_source
+from services.company_discovery.resolution import resolve_company
+from services.company_discovery.domains import record_company_domain
 from services.discovery.lifecycle import capture_revision, observe_fixture_posting, resolve_lifecycle
 from services.discovery.matching import build_explanation
 from services.audit_history import record_job_discovered, record_match_scored
@@ -159,41 +162,66 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
         sources = {}
         all_rows = [("mock-board", row) for row in aggregator]
         for row in aggregator:
-            homepage = client.get(row["company_website"])
-            link = BeautifulSoup(homepage.text, "html.parser").find("a", attrs={"rel": "careers"})
-            if link is None:
-                raise ValueError("No proven employer careers link")
-            careers_url = urljoin(str(homepage.url), link["href"])
-            careers = client.get(careers_url)
-            board = BeautifulSoup(careers.text, "html.parser").find("a", attrs={"data-provider": "mock-ats"})
-            if board is None:
-                raise ValueError("Unsupported ATS requires review")
-            endpoint = urljoin(str(careers.url), board["href"])
-            tenant = board["data-tenant"]
-            company_id = identity(row["company_website"])
-            sources[company_id] = {
-                "company": row["company"], "domain": row["company_website"],
-                "tenant": tenant, "endpoint": endpoint, "career_url": careers_url,
+            company_website = row.get("company_website") or ""
+            company_name = row.get("company") or ""
+            candidate = {
+                "company_name": company_name,
+                "company_website": company_website,
+                "application_url": row.get("application_url") or "",
+                "trigger_evidence": ["DISCOVERED_VIA_AGGREGATOR_BOARD"],
             }
-            if not any(source == endpoint for source, _ in all_rows):
-                all_rows.extend((endpoint, employer) for employer in client.get(endpoint).json()["jobs"])
+            if row.get("company_domain"):
+                candidate["company_domain"] = row["company_domain"]
+            resolved = resolve_company(store, candidate)
+            company_id = resolved["company_id"]
+            if not directly_monitored(store, company_id):
+                discovery_result = discover_company_source(
+                    store,
+                    candidate,
+                    client,
+                    check=check,
+                    profile_id=profile_id,
+                    profile_version=profile["version"] if profile else None,
+                )
+                endpoint = discovery_result["endpoint"]
+                employer_jobs = discovery_result.get("jobs") or []
+                sources[company_id] = {
+                    "company": company_name, "domain": company_website,
+                    "tenant": discovery_result["tenant"], "endpoint": endpoint,
+                    "career_url": discovery_result["careers_url"],
+                }
+            else:
+                with store.engine.connect() as connection:
+                    source_row = connection.execute(
+                        select(m.company_sources).where(
+                            m.company_sources.c.company_id == company_id,
+                            m.company_sources.c.enabled.is_(True),
+                        ).order_by(m.company_sources.c.id)
+                    ).mappings().first()
+                if source_row:
+                    endpoint = source_row["endpoint"]
+                    payload = client.get(endpoint).json()
+                    employer_jobs = payload.get("jobs", []) if isinstance(payload, dict) else []
+                    sources[company_id] = {
+                        "company": company_name, "domain": company_website,
+                        "tenant": source_row["tenant"], "endpoint": endpoint,
+                        "career_url": source_row["career_url"],
+                    }
+                else:
+                    endpoint = None
+                    employer_jobs = []
+            if row.get("company_domain"):
+                record_company_domain(
+                    store, company_id, row["company_domain"],
+                    "FIRST_PARTY_JOB_LINK", ["fixture company domain"],
+                )
+            if endpoint and not any(source == endpoint for source, _ in all_rows):
+                all_rows.extend((endpoint, employer) for employer in employer_jobs)
         captured_job_ids = set()
         with store.engine.begin() as connection:
             client.check()
             for company_id, source in sources.items():
                 upsert(connection, m.companies, {"id": company_id, "name": source["company"], "domain": source["domain"]})
-                tenant_record = register_ats_tenant(
-                    connection, company_id, provider="mock-ats", tenant_identifier=source["tenant"],
-                    confidence=0.95, evidence=["fixture ATS tenant metadata"],
-                )
-                timestamp = now()
-                upsert_company_job_source(
-                    connection, company_id=company_id, provider="mock-ats", tenant_identifier=source["tenant"],
-                    career_url=source["career_url"], public_api_url=source["endpoint"],
-                    collection_strategy="FIXTURE", confidence=0.95, enabled=True, priority="NORMAL",
-                    discovered_automatically=True, ats_tenant_id=tenant_record["id"],
-                    last_validation=timestamp, last_success=timestamp,
-                )
             for source, row in all_rows:
                 company_id = identity(row["company_website"])
                 if not client.allowed(row["application_url"]):
@@ -247,8 +275,19 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
                 upsert(connection, m.jobs, job, replace=source != "mock-board")
                 persisted = connection.execute(select(m.jobs).where(m.jobs.c.id == job_id)).mappings().one()
                 capture_revision(connection, persisted, recorded_at=now(), observed_at=persisted['attributes'].get('last_seen_at'))
-                upsert(connection, m.routes, {"id": job_id, "job_id": job_id, "company_id": company_id, "provider": "mock-ats",
-                    "tenant": row["tenant"], "requisition": row["requisition"], "url": row["application_url"]}, replace=source != "mock-board")
+                if source == "mock-board":
+                    board_route_id = "z" + identity("route", "mock-board", job_id)[1:]
+                    upsert(connection, m.routes, {
+                        "id": board_route_id, "job_id": job_id, "company_id": company_id,
+                        "provider": "mock-board", "tenant": "board",
+                        "requisition": row["requisition"], "url": row["application_url"],
+                    }, replace=True)
+                else:
+                    upsert(connection, m.routes, {
+                        "id": job_id, "job_id": job_id, "company_id": company_id,
+                        "provider": "mock-ats", "tenant": row["tenant"],
+                        "requisition": row["requisition"], "url": row["application_url"],
+                    }, replace=True)
                 persist_posting(connection, {"id": identity(source, row["source_job_id"]), "job_id": job_id,
                     "source": source, "source_job_id": row["source_job_id"], "source_url": source,
                     "application_url": row["application_url"], "raw": row, "fetched_at": now()})
