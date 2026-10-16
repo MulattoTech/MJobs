@@ -59,8 +59,210 @@ class WorkableApplicationAdapterTests(unittest.TestCase):
         analysis = {"status": "PASS", "fields": [{
             "tag": "input", "input_type": "email", "name": "email",
             "labels": ["Email"], "sensitivity": "STANDARD", "ambiguous": False,
+            "visible": True, "editable": True, "interactive": True,
         }]}
         self.assertFalse(self.adapter.requires_human_review(analysis))
+
+    def test_hidden_email_input_requires_human_review(self):
+        analysis = {"status": "PASS", "fields": [{
+            "tag": "input", "input_type": "hidden", "name": "email",
+            "labels": ["Email"], "sensitivity": "STANDARD", "ambiguous": False,
+            "visible": False, "editable": False, "interactive": False,
+        }]}
+        self.assertTrue(self.adapter.requires_human_review(analysis))
+
+    def test_contact_field_without_proven_interactive_state_requires_review(self):
+        states = (
+            {},
+            {"visible": False, "editable": True, "interactive": True},
+            {"visible": True, "editable": False, "interactive": True},
+            {"visible": True, "editable": True, "interactive": False},
+        )
+        for state in states:
+            with self.subTest(state=state):
+                field = {
+                    "tag": "input", "input_type": "email", "name": "email",
+                    "labels": ["Email"], "sensitivity": "STANDARD", "ambiguous": False,
+                    **state,
+                }
+                self.assertTrue(self.adapter.requires_human_review({
+                    "status": "PASS", "fields": [field],
+                }))
+
+    @patch("services.applications.adapters.workable.analyze_form_page")
+    def test_analyze_page_adds_value_free_control_interactivity(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": [{
+            "index": 0, "tag": "input", "input_type": "email", "name": "email",
+            "id": "email", "labels": ["Email"], "sensitivity": "STANDARD",
+            "ambiguous": False,
+        }]}
+
+        class ChallengeLocator:
+            def count(self):
+                return 0
+
+        class ControlsLocator:
+            def evaluate_all(self, script, **kwargs):
+                return [{
+                    "tag": "input", "input_type": "email", "name": "email", "id": "email",
+                    "visible": True, "editable": True, "interactive": True,
+                }]
+
+        class Page:
+            def locator(self, selector):
+                if "captcha" in selector:
+                    return ChallengeLocator()
+                return ControlsLocator()
+
+        result = self.adapter.analyze_page(Page())
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(result["fields"][0]["visible"], True)
+        self.assertEqual(result["fields"][0]["editable"], True)
+        self.assertEqual(result["fields"][0]["interactive"], True)
+
+    @patch("services.applications.adapters.workable.analyze_form_page")
+    def test_inert_ancestor_makes_contact_control_require_review(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": [{
+            "index": 0, "tag": "input", "input_type": "email", "name": "email",
+            "id": "email", "labels": ["Email"], "sensitivity": "STANDARD",
+            "ambiguous": False,
+        }]}
+
+        class ChallengeLocator:
+            def count(self):
+                return 0
+
+        class ControlsLocator:
+            def evaluate_all(self, script):
+                self.script = script
+                return [{
+                    "tag": "input", "input_type": "email", "name": "email", "id": "email",
+                    "visible": True, "editable": False, "interactive": False,
+                }]
+
+        class Page:
+            def __init__(self):
+                self.controls = ControlsLocator()
+
+            def locator(self, selector):
+                if "captcha" in selector:
+                    return ChallengeLocator()
+                return self.controls
+
+        page = Page()
+        result = self.adapter.analyze_page(page)
+        self.assertIn("closest('[inert]')", page.controls.script)
+        self.assertEqual(result["status"], "PASS")
+        self.assertFalse(result["fields"][0]["editable"])
+        self.assertFalse(result["fields"][0]["interactive"])
+        self.assertTrue(self.adapter.requires_human_review(result))
+
+    @patch("services.applications.adapters.workable.analyze_form_page")
+    def test_clipped_and_offscreen_contact_controls_require_review(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": [{
+            "index": 0, "tag": "input", "input_type": "email", "name": "email",
+            "id": "email", "labels": ["Email"], "sensitivity": "STANDARD",
+            "ambiguous": False,
+        }]}
+
+        class ChallengeLocator:
+            def count(self):
+                return 0
+
+        class ControlsLocator:
+            def evaluate_all(self, script):
+                self.script = script
+                return [{
+                    "tag": "input", "input_type": "email", "name": "email", "id": "email",
+                    "visible": False, "editable": True, "interactive": True,
+                }]
+
+        class Page:
+            def __init__(self):
+                self.controls = ControlsLocator()
+
+            def locator(self, selector):
+                if "captcha" in selector:
+                    return ChallengeLocator()
+                return self.controls
+
+        visibility_guards = (
+            "rect.left >= viewportLeft",
+            "rect.right <= viewportRight",
+            "style.clipPath !== 'none'",
+            "style.overflowX",
+            "style.overflowY",
+        )
+        page = Page()
+        result = self.adapter.analyze_page(page)
+        for guard in visibility_guards:
+            with self.subTest(guard=guard):
+                self.assertIn(guard, page.controls.script)
+        self.assertFalse(result["fields"][0]["visible"])
+        self.assertTrue(self.adapter.requires_human_review(result))
+
+    @patch("services.applications.adapters.workable.analyze_form_page")
+    def test_occluded_contact_control_requires_review(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": [{
+            "index": 0, "tag": "input", "input_type": "email", "name": "email",
+            "id": "email", "labels": ["Email"], "sensitivity": "STANDARD",
+            "ambiguous": False,
+        }]}
+
+        class ChallengeLocator:
+            def count(self):
+                return 0
+
+        class ControlsLocator:
+            def evaluate_all(self, script):
+                self.script = script
+                return [{
+                    "tag": "input", "input_type": "email", "name": "email", "id": "email",
+                    "visible": False, "editable": True, "interactive": True,
+                }]
+
+        class Page:
+            def __init__(self):
+                self.controls = ControlsLocator()
+
+            def locator(self, selector):
+                if "captcha" in selector:
+                    return ChallengeLocator()
+                return self.controls
+
+        page = Page()
+        result = self.adapter.analyze_page(page)
+        self.assertIn("document.elementFromPoint", page.controls.script)
+        self.assertIn("node.contains(hit)", page.controls.script)
+        self.assertIn("const samplePoints = [0.25, 0.5, 0.75]", page.controls.script)
+        self.assertFalse(result["fields"][0]["visible"])
+        self.assertTrue(self.adapter.requires_human_review(result))
+
+    @patch("services.applications.adapters.workable.analyze_form_page")
+    def test_analyze_page_fails_closed_when_interactivity_cannot_be_verified(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": [{
+            "index": 0, "tag": "input", "input_type": "email", "name": "email",
+            "id": "email", "labels": ["Email"], "sensitivity": "STANDARD",
+            "ambiguous": False,
+        }]}
+
+        class ChallengeLocator:
+            def count(self):
+                return 0
+
+        class FailedControlsLocator:
+            def evaluate_all(self, script, **kwargs):
+                raise RuntimeError("synthetic read failure")
+
+        class Page:
+            def locator(self, selector):
+                if "captcha" in selector:
+                    return ChallengeLocator()
+                return FailedControlsLocator()
+
+        self.assertEqual(self.adapter.analyze_page(Page()), {
+            "status": "UNKNOWN", "reason": "CONTROL_INTERACTIVITY_UNAVAILABLE", "fields": [],
+        })
 
     def test_unknown_sensitive_ambiguous_and_challenge_fields_fail_closed(self):
         cases = (
