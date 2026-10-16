@@ -15,7 +15,7 @@ from services.applications.form_analysis import analyze_form_page
 _TENANT = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\Z", re.I)
 _POSITION = re.compile(
     r"(?P<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})-"
-    r"(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\Z", re.I,
+    r"(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\Z", re.I | re.ASCII,
 )
 _CONTACT_PROMPTS = {
     "address", "city", "country", "email", "email address", "first name",

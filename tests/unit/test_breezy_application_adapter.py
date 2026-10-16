@@ -33,6 +33,12 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             "url": "https://K.breezy.hr/p/123e4567-e89b-12d3-a456-426614174000-job",
         }))
 
+    def test_job_slug_rejects_unicode_casefold_lookalikes(self):
+        self.assertIsNone(self.adapter.normalize_route({
+            "provider": "breezy",
+            "url": "https://acme.breezy.hr/p/123e4567-e89b-12d3-a456-426614174000-ſoftware-engineer",
+        }))
+
     def test_rejects_foreign_malformed_and_ambiguous_routes(self):
         invalid = (
             None,
