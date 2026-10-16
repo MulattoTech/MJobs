@@ -9,7 +9,7 @@ from services.applications.adapters.lever_markup import analyze_lever_markup
 
 
 _ASHBY_HOST = "jobs.ashbyhq.com"
-_IDENTIFIER = re.compile(r"[a-z0-9][a-z0-9_-]{0,127}\Z", re.I)
+_IDENTIFIER = re.compile(r"[a-zA-Z0-9][a-zA-Z0-9_-]{0,127}\Z")
 _SAFE_IDENTIFIER = re.compile(r"[a-zA-Z0-9_][a-zA-Z0-9_.:\-\[\]]{0,99}\Z")
 _PHONE_LIKE = re.compile(r"\+?\d[\d .()\-]{6,}\d\Z")
 _SAFE_TYPES = {
