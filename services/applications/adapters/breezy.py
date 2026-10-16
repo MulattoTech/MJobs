@@ -110,6 +110,8 @@ class BreezyApplicationAdapter:
         for field in analysis["fields"]:
             if not isinstance(field, Mapping):
                 return True
+            if field.get("tag") != "input":
+                return True
             input_type = field.get("input_type") or "text"
             if (field.get("ambiguous") is not False
                     or field.get("sensitivity") != "STANDARD"

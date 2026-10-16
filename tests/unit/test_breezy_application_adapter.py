@@ -52,10 +52,19 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
 
     def test_known_basic_contact_fixture_needs_no_extra_review(self):
         analysis = {"status": "PASS", "fields": [{
-            "input_type": "email", "sensitivity": "STANDARD", "ambiguous": False,
+            "tag": "input", "input_type": "email", "sensitivity": "STANDARD", "ambiguous": False,
             "labels": ["Email address"],
         }]}
         self.assertFalse(self.adapter.requires_human_review(analysis))
+
+    def test_select_and_textarea_controls_require_review_even_with_contact_labels(self):
+        for tag in ("select", "textarea"):
+            with self.subTest(tag=tag):
+                analysis = {"status": "PASS", "fields": [{
+                    "tag": tag, "input_type": None, "sensitivity": "STANDARD",
+                    "ambiguous": False, "labels": ["Email address"],
+                }]}
+                self.assertTrue(self.adapter.requires_human_review(analysis))
 
     def test_unknown_sensitive_ambiguous_and_unsupported_controls_fail_closed(self):
         analyses = (
