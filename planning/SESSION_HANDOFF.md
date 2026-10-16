@@ -7,17 +7,24 @@
 - Whole product PARTIAL; release UNKNOWN; external employer submission OFF. No real accounts/providers, paid inference, physical reboot or personal data used. Four partial parents have no whole-parent promotion. Historical failures/skips stay in evidence.
 - Focused record validation PASS:99 tests/5subtests; catalogue/journal/dashboard/skills and semantic/sanitization/source guards PASS. Root released ordinary final-base integration and one acceptance PR; exact recording native/hosted gates remain pending, with commit provenance checked before publication. Root alone controls protected integration, Project/issue field write/readback and integration-lock release. Safe rollback is a scoped record revert; no source/data cleanup, force or history rewrite. No automatic next assignment.
 
-# Autonomous Gemini Campaign Checkpoint (2026-10-16)
+# Autonomous Integration & P0 Completion Checkpoint (2026-10-16)
 
-- Development Harness: Antigravity CLI (`agy`), Gemini 3.8 Flash (High), autonomous tool execution under authorized Bypass Permissions.
-- Phase 1 Baseline: Workspace fast-forwarded to `origin/main` (`de8ca85f`); all local checks passed (1834 unit tests passed, 1272 subtests, catalogue PASS, progress validate PASS, dashboard CURRENT, web build PASS).
-- Phase 2 Governance PR #673 (`ao/unattended-agent-governance-policy`): Permanently established unattended agent development policy in `AGENTS.md` and `docs/UNATTENDED_AGENT_DEVELOPMENT.md`. Accepted operator-selected execution and permission modes (`Auto`, `Accept Edits`, `Bypass Permissions`), preauthorized routine scoped development operations, updated `tools/verification/commit_provenance.py` and `AGENTS.md` with `AI-Agent: Antigravity` support, and added regression tests in `tests/unit/test_unattended_agent_governance.py`. Pushed and published PR #673; all 15 hosted CI jobs completed with 100% SUCCESS (`CI / required` pass, CodeQL pass, Compose pass, all 3 Integration shards pass).
-- Phase 3/4 P0 Implementation PR #674 (`ao/p0-primary-product-architecture`): Delivered comprehensive acceptance for **[MJ-REQ-010] Primary Product Architecture** (#11). Added `tests/integration/test_primary_product_architecture.py` (4 tests PASS in 7.69s) verifying full vertical pipeline: Web Dashboard/API surface, Search Service (Global/Company Sources, Normalization, Company Resolution, Deduplication, Job Scoring), Profile/Doc Service (Truthful Tailoring, Document Engine, Prompt Provenance), Application Service (Route Selection, Automation Engine, Dry-Run), and durable persistence across store restart. Produced evidence `docs/evidence/2026-10-16-primary-product-architecture.json`, promoted `MJ-REQ-010` to `PASS` in `planning/CAPABILITY_MATRIX.json`, reconciled planning index and progress dashboard. Pushed and opened PR #674; all 15 hosted CI jobs completed with 100% SUCCESS.
-- Independent Reviews Submitted:
-  - PR #673: Governance review submitted to GitHub recommending approval.
-  - PR #674: Architectural review submitted to GitHub detailing why four synthetic SQLite integration tests require live multi-service Compose/PostgreSQL + Redis RQ worker queue evidence before whole-parent `PASS` can be legitimately claimed, and advising maintaining `PARTIAL` in the matrix.
-- Orchestrator Multi-Worker Implementation (Live Execution):
-  - Worker A (`mjobs-28`, PID 8176, branch `ao/worker-a-mj-req004-bounded-ops`): Active on Issue #5 ([MJ-REQ-004] Bound External Operations). Implemented streaming response limits, cancellation threads, socket interruption, deadline budgets, and error classifications across `services/discovery/sources/remotive.py` and `services/discovery/sources/remoteok.py`.
-  - Worker B (`mjobs-29`, PID 10112, branch `ao/worker-b-mj-req008-durable-progress`): Active on Issue #9 ([MJ-REQ-008] Save Implementation Progress & Recovery). Inspecting profile restore, milestone journaling, and crash recovery mechanics.
-  - Worker C (`mjobs-30`, PID 39768, branch `ao/worker-c-mj-req292-e2e-workflow`): Active on Issue #293 ([MJ-REQ-292] End-to-End Product Workflow Slice). Implementing saved-search consumption in discovery pipeline and route resolution.
-- Queue & Safety Status: 2 open development PRs (#673, #674); capacity OK (2/32); real external job application submission remains strictly OFF; no credentials exposed, no destructive operations performed.
+- Integration Authority: Antigravity CLI (`agy`), Gemini 3.8 High, authorized unattended development & auto-merge.
+- Main Baseline SHA: `464a773b2f479e2212fed876cb8d683dbb569782`
+- Priority 1 Integration Complete:
+  - PR #673 (`ao/unattended-agent-governance-policy`, commit `2b823f54`): MERGED. Established 8 unattended agent development rules, `docs/UNATTENDED_AGENT_DEVELOPMENT.md`, and multi-harness compatibility.
+  - PR #678 (`ai/portable-agent-handoff-20261016`, commit `b7ec4720`): MERGED. Implemented canonical AI continuity contract, portable entrypoints (`CLAUDE.md`, `GEMINI.md`), `tools/agent_context.py` (intake normalization, 9 routing states, atomic checkpoints, ownership transfer, freshness check, crash recovery), and unit tests.
+  - PR #675 (`ao/worker-b-mj-req008-durable-progress`, commit `0158cb22`): MERGED. Implemented atomic persistence `write_atomic_json`, `outputs/job-platform-implementation-state.json` synchronization, dual resume semantics, and compose outage recovery for `MJ-REQ-008`.
+  - PR #676 (`ao/worker-a-mj-req004-bounded-ops`, commit `e4c059f2`): MERGED. Implemented monotonic budget capping, 5MB chunked payload limits, wall-clock transfer deadlines, in-flight cancellation watcher threads, and error classification across `remotive.py`, `remoteok.py`, `wwr.py`, and `greenhouse.py` for `MJ-REQ-004`.
+  - PR #677 (`ao/worker-c-mj-req292-e2e-workflow`, commit `464a773b`): MERGED. Implemented vertical slice (steps 23-31) of the 60-step workflow: unknown employer discovery flywheel, direct ATS identification, direct job enumeration, deduplication, and route planning for `MJ-REQ-292`.
+  - PR #674 (`ao/p0-primary-product-architecture`): Kept in DRAFT per user instruction (`MJ-REQ-010` remains `PARTIAL`).
+- Queue and Open PRs:
+  - Only 1 development PR open: PR #674 (DRAFT).
+  - 7 Dependabot PRs open.
+  - Capacity: 1/32 (OK).
+- Verification & Safety:
+  - All 15 required GitHub Actions checks passed on every single merged PR before integration.
+  - Local catalogue, progress validation, and dashboards CURRENT.
+  - External employer application submission remains strictly OFF.
+  - Workstation safeguards preserved.
+

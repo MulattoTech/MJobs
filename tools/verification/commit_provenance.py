@@ -16,7 +16,7 @@ import sys
 EXTENSIONS={".py",".ps1",".go",".js",".jsx",".ts",".tsx",".java",
             ".rb",".php",".cs",".sh",".sql",".css",".html"}
 KEYS=("AI-Agent","AI-Model","Requirement","Validation","UTC-Date")
-AGENT_NAMES={"chatgpt", "codex", "openai", "claude", "agent", "copilot"}
+AGENT_NAMES={"chatgpt", "codex", "openai", "claude", "agent", "copilot", "antigravity", "gemini", "agy"}
 
 def git(root:Path,*args:str)->str:
     p=subprocess.run(["git","-C",str(root),*args],capture_output=True,
