@@ -20,6 +20,36 @@ _CHALLENGE_SELECTORS = (
     '[class*="turnstile" i]', '[id*="turnstile" i]', '[data-sitekey]',
     '[data-cf-chl]', 'iframe[src*="challenge" i]',
 )
+_CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
+  const ancestors = [];
+  for (let current = node; current && current.nodeType === 1;
+       current = current.parentElement) ancestors.push(current);
+  const styles = ancestors.map(current => getComputedStyle(current));
+  const rect = node.getBoundingClientRect();
+  const userVisible = !ancestors.some((current, index) => {
+    const style = styles[index];
+    return current.hidden || current.inert ||
+      current.getAttribute('aria-hidden') === 'true' ||
+      style.display === 'none' || style.visibility === 'hidden' ||
+      style.visibility === 'collapse' || Number(style.opacity) === 0 ||
+      style.contentVisibility === 'hidden' || style.pointerEvents === 'none';
+  }) && node.getClientRects().length > 0 && rect.width > 1 && rect.height > 1 &&
+    rect.right > 0 && rect.bottom > 0 && rect.left < window.innerWidth &&
+    rect.top < window.innerHeight;
+  const ariaDisabled = node.closest('[aria-disabled="true"]');
+  const ariaReadonly = node.closest('[aria-readonly="true"]');
+  const inputType = node.tagName.toLowerCase() === 'input'
+    ? (node.getAttribute('type') || 'text').toLowerCase() : null;
+  const supportedControl = ['input', 'select', 'textarea'].includes(
+    node.tagName.toLowerCase()
+  );
+  return {
+    user_visible: userVisible,
+    user_editable: userVisible && supportedControl &&
+      !node.matches(':disabled') && node.readOnly !== true &&
+      !ariaDisabled && !ariaReadonly && inputType !== 'hidden'
+  };
+})"""
 _KNOWN_CONTACT_IDENTIFIERS = {
     "address", "city", "country", "cover letter", "cv", "email",
     "email address", "family name", "first name", "full name", "github",
@@ -111,7 +141,43 @@ class TeamtailorApplicationAdapter:
             if check is not None:
                 check()
             return {"status": "UNKNOWN", "reason": "CHALLENGE_DETECTION_UNAVAILABLE", "fields": []}
-        return analyze_form_page(page, check=check) if check is not None else analyze_form_page(page)
+        analysis = (analyze_form_page(page, check=check) if check is not None
+                    else analyze_form_page(page))
+        if not isinstance(analysis, Mapping) or analysis.get("status") != "PASS":
+            return analysis
+        fields = analysis.get("fields")
+        if not isinstance(fields, list) or not fields:
+            return {"status": "UNKNOWN", "reason": "CONTROL_STATE_UNAVAILABLE", "fields": []}
+
+        try:
+            if check is not None:
+                check()
+            timeout_kwargs = {}
+            if check is not None:
+                remaining = getattr(check, "remaining_seconds", None)
+                if callable(remaining):
+                    timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
+            control_states = page.locator(
+                "form input, form select, form textarea"
+            ).evaluate_all(_CONTROL_STATE_SCRIPT, **timeout_kwargs)
+            if check is not None:
+                check()
+        except Exception:
+            if check is not None:
+                check()
+            return {"status": "UNKNOWN", "reason": "CONTROL_STATE_UNAVAILABLE", "fields": []}
+        if (not isinstance(control_states, list) or len(control_states) != len(fields)
+                or any(not isinstance(state, Mapping)
+                       or type(state.get("user_visible")) is not bool
+                       or type(state.get("user_editable")) is not bool
+                       for state in control_states)):
+            return {"status": "UNKNOWN", "reason": "CONTROL_STATE_UNAVAILABLE", "fields": []}
+        for field, state in zip(fields, control_states):
+            if not isinstance(field, dict):
+                return {"status": "UNKNOWN", "reason": "CONTROL_STATE_UNAVAILABLE", "fields": []}
+            field["user_visible"] = state["user_visible"]
+            field["user_editable"] = state["user_editable"]
+        return analysis
 
     @staticmethod
     def requires_human_review(analysis) -> bool:
@@ -123,6 +189,8 @@ class TeamtailorApplicationAdapter:
         for field in analysis["fields"]:
             if (not isinstance(field, Mapping) or field.get("ambiguous") is not False
                     or field.get("sensitivity") != "STANDARD"
+                    or field.get("user_visible") is not True
+                    or field.get("user_editable") is not True
                     or not _known_contact_field(field)):
                 return True
         return False
