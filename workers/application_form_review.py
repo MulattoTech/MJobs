@@ -171,10 +171,14 @@ def _validate_application(connection, operation, params):
             or row["route_id"] != params["route_id"]
             or row["provider"] != params["provider"]):
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")
-    if params["provider"] not in {"greenhouse", "lever"}:
+    if params["provider"] not in {"greenhouse", "lever", "workday"}:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     normalized = normalize_application_route(row["provider"], row["url"])
     if normalized is None:
+        raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
+    if (row["provider"] == "workday"
+            and (row["tenant"] != normalized["tenant"]
+                 or row["requisition"] != normalized["requisition"])):
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     if normalized["url"] != params["route_url"]:
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")

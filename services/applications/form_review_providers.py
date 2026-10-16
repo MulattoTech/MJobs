@@ -134,7 +134,13 @@ def analyze_application_form(provider, html, *, route_url) -> dict:
         # Greenhouse path. Lever's static markup parser accepts text, so decode
         # locally while preserving fail-closed human review for malformed text.
         markup = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
-        return _lever_report(analyze_lever_markup(markup))
+        report = _lever_report(analyze_lever_markup(markup))
+        if normalized_provider == "workday" and report["status"] == "ANALYZED":
+            # Workday is review-only in this slice: even recognized synthetic
+            # metadata must remain explicitly gated for a human decision.
+            return {**report, "status": "REVIEW_REQUIRED",
+                    "reason": "MANUAL_REVIEW_REQUIRED"}
+        return report
     except Exception:
         # Parser exception text is untrusted and may contain supplied markup.
         return {"status": "REVIEW_REQUIRED", "reason": "ANALYSIS_FAILED", "fields": []}

@@ -93,7 +93,7 @@ class WorkdayApplicationAdapterTests(unittest.TestCase):
         )
         report = analyze_application_form("WORKDAY", html, route_url=self.route_url)
         self.assertEqual(report, {
-            "status": "ANALYZED", "reason": None,
+            "status": "REVIEW_REQUIRED", "reason": "MANUAL_REVIEW_REQUIRED",
             "fields": [{"id": "email", "name": "email", "type": "email",
                         "required": True, "review_reason": None}],
         })
