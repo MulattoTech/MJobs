@@ -5,6 +5,7 @@ import unittest
 from services.applications.adapters.workday_forms import (
     WORKDAY_FORM_CAPABILITIES,
     analyze_workday_form,
+    analyze_workday_form_html,
     requires_workday_human_review,
     validate_workday_form,
 )
@@ -158,6 +159,33 @@ class WorkdayFormAnalyzerTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "UNKNOWN")
         self.assertNotIn("PRIVATE_ANSWER", json.dumps(result))
+
+    def test_unobserved_dynamic_semantics_are_not_normalized_to_false(self):
+        result = analyze_workday_form(form([field(
+            "email", conditional=None, repeatable=None,
+        )]))
+
+        self.assertEqual(result["status"], "REVIEW_REQUIRED")
+        self.assertIsNone(result["fields"][0]["conditional"])
+        self.assertIsNone(result["fields"][0]["repeatable"])
+        self.assertTrue(result["fields"][0]["requires_human_review"])
+
+    def test_workday_html_analyzer_ignores_input_option_and_textarea_values(self):
+        result = analyze_workday_form_html(
+            '<form><label for="email">Email</label>'
+            '<input id="email" name="email" type="email" value="PRIVATE_INPUT">'
+            '<label for="choice">Choice</label><select id="choice" name="choice">'
+            '<option value="PRIVATE_OPTION" selected>PRIVATE_OPTION_LABEL</option></select>'
+            '<label for="note">Note</label><textarea id="note" name="note">PRIVATE_ANSWER</textarea>'
+            '</form>'
+        )
+
+        self.assertEqual(result["status"], "REVIEW_REQUIRED")
+        serialized = json.dumps(result)
+        for secret in ("PRIVATE_INPUT", "PRIVATE_OPTION", "PRIVATE_OPTION_LABEL", "PRIVATE_ANSWER"):
+            self.assertNotIn(secret, serialized)
+        self.assertIsNone(result["fields"][0]["conditional"])
+        self.assertIsNone(result["fields"][0]["repeatable"])
 
 
 if __name__ == "__main__":

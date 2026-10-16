@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Mapping
+from html.parser import HTMLParser
 
 from services.applications.form_analysis import analyze_controls
 
@@ -28,6 +29,22 @@ _SUPPORTED_TYPES = {
     "text", "email", "tel", "url", "number", "date", "select", "textarea",
     "checkbox", "radio", "file",
 }
+MAX_WORKDAY_MARKUP_LENGTH = 2 * 1024 * 1024
+_HTML_ATTRIBUTES = {
+    "id", "name", "type", "placeholder", "aria-label", "aria-required",
+    "for", "class", "role", "contenteditable", "data-automation-id",
+    "data-workday-conditional", "data-workday-conditional-on",
+    "data-workday-repeatable", "data-workday-repeatable-group",
+}
+_CHALLENGE_MARKERS = (
+    "captcha", "recaptcha", "hcaptcha", "turnstile", "cloudflare",
+    "cf-chl-", "datadome", "perimeterx", "arkose", "funcaptcha", "geetest",
+)
+_IGNORED_CONTENT = {"script", "style", "noscript", "template"}
+_INTERACTIVE_ROLES = {
+    "button", "checkbox", "combobox", "listbox", "option", "radio", "searchbox",
+    "slider", "spinbutton", "switch", "textbox",
+}
 WORKDAY_FORM_CAPABILITIES = {
     "metadata_analysis": True,
     "human_review_for_uncertainty": True,
@@ -44,6 +61,8 @@ def _unknown(reason: str) -> dict:
 
 
 def _normalized_text(value, *, required: bool) -> str | None:
+    if value is None and not required:
+        return None
     if not isinstance(value, str) or len(value) > 500:
         raise ValueError("INVALID_FIELD_METADATA")
     value = " ".join(value.split())
@@ -63,7 +82,7 @@ def _sensitivity(field_id: str, label: str, field_type: str) -> str:
     result = analyze_controls([{
         "tag": tag,
         "id": field_id,
-        "label": label,
+        "label": label or "",
         "input_type": field_type,
     }])
     if result.get("status") != "PASS" or len(result.get("fields", [])) != 1:
@@ -110,7 +129,7 @@ def analyze_workday_form(metadata: Mapping) -> dict:
                 raise ValueError("UNSUPPORTED_FIELD_METADATA")
 
             field_id = _normalized_text(raw.get("id"), required=True)
-            label = _normalized_text(raw.get("label"), required=True)
+            label = _normalized_text(raw.get("label"), required=False)
             field_type = _normalized_text(raw.get("type"), required=True)
             if not _IDENTIFIER.fullmatch(field_id):
                 raise ValueError("INVALID_FIELD_ID")
@@ -121,12 +140,18 @@ def analyze_workday_form(metadata: Mapping) -> dict:
             if field_type.casefold() != field_type:
                 raise ValueError("UNSUPPORTED_FIELD_TYPE")
             field_type = field_type.casefold()
-            for flag in ("required", "conditional", "repeatable"):
-                if type(raw.get(flag)) is not bool:
+            if type(raw.get("required")) is not bool:
+                raise ValueError("INVALID_FIELD_FLAGS")
+            for flag in ("conditional", "repeatable"):
+                if raw.get(flag) is not None and type(raw.get(flag)) is not bool:
                     raise ValueError("INVALID_FIELD_FLAGS")
 
             conditional_on = raw.get("conditional_on")
-            if raw["conditional"]:
+            if raw["conditional"] is None:
+                if conditional_on is not None:
+                    raise ValueError("INVALID_CONDITIONAL_METADATA")
+                review_reasons.add("CONDITIONAL_SEMANTICS_UNOBSERVED")
+            elif raw["conditional"]:
                 if (not isinstance(conditional_on, str)
                         or not _IDENTIFIER.fullmatch(conditional_on)):
                     raise ValueError("INVALID_CONDITIONAL_METADATA")
@@ -135,7 +160,11 @@ def analyze_workday_form(metadata: Mapping) -> dict:
                 raise ValueError("UNEXPECTED_CONDITIONAL_METADATA")
 
             repeatable_group = raw.get("repeatable_group")
-            if raw["repeatable"]:
+            if raw["repeatable"] is None:
+                if repeatable_group is not None:
+                    raise ValueError("INVALID_REPEATABLE_METADATA")
+                review_reasons.add("REPEATABLE_SEMANTICS_UNOBSERVED")
+            elif raw["repeatable"]:
                 if (not isinstance(repeatable_group, str)
                         or not _IDENTIFIER.fullmatch(repeatable_group)):
                     raise ValueError("INVALID_REPEATABLE_METADATA")
@@ -161,7 +190,8 @@ def analyze_workday_form(metadata: Mapping) -> dict:
                 "sensitivity": sensitivity,
                 "supported": supported,
                 "requires_human_review": (
-                    raw["conditional"] or raw["repeatable"] or sensitivity != "STANDARD"
+                    raw["conditional"] is not False or raw["repeatable"] is not False
+                    or sensitivity != "STANDARD"
                     or not supported
                 ),
             })
@@ -188,6 +218,248 @@ def analyze_workday_form(metadata: Mapping) -> dict:
         "revision": revision,
         "fields": parsed,
     }
+
+
+class _WorkdayMarkupParser(HTMLParser):
+    """Collect only static Workday control metadata and visible label text."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.form_count = 0
+        self.active_form = False
+        self.controls = []
+        self.labels_by_id = {}
+        self.label_stack = []
+        self.ignored_stack = []
+        self.value_text_depth = 0
+        self.challenge_protected = False
+        self.unsupported_interactive = False
+        self.outside_form_controls = False
+        self.invalid = False
+
+    def _attrs(self, attrs):
+        names = [str(name).casefold() for name, _ in attrs]
+        if len(names) != len(set(names)):
+            self.invalid = True
+            return {}
+        # Values for answer-bearing attributes (value, checked, selected, etc.)
+        # are intentionally not copied or inspected.
+        return {
+            str(name).casefold(): value
+            for name, value in attrs
+            if str(name).casefold() in _HTML_ATTRIBUTES
+        }
+
+    def _check_challenge_metadata(self, attrs):
+        for name in ("class", "id", "role", "data-automation-id"):
+            value = attrs.get(name)
+            if not isinstance(value, str):
+                continue
+            normalized = value.casefold()
+            if any(marker in normalized for marker in _CHALLENGE_MARKERS):
+                self.challenge_protected = True
+
+    def handle_starttag(self, tag, attrs):
+        tag = tag.casefold()
+        values = self._attrs(attrs)
+        self._check_challenge_metadata(values)
+        if tag in _IGNORED_CONTENT:
+            self.ignored_stack.append(tag)
+            return
+        if self.ignored_stack:
+            return
+        if tag == "form":
+            self.form_count += 1
+            self.active_form = self.form_count == 1
+            return
+        if tag == "label":
+            self.label_stack.append({"for": values.get("for"), "parts": [], "index": None})
+            return
+        if tag == "textarea":
+            self.value_text_depth += 1
+        if not self.active_form:
+            if tag in {"input", "select", "textarea"}:
+                input_type = values.get("type", "text") if tag == "input" else tag
+                if input_type != "hidden":
+                    self.outside_form_controls = True
+            return
+
+        role = values.get("role", "")
+        if isinstance(role, str) and role.casefold() in _INTERACTIVE_ROLES:
+            self.unsupported_interactive = True
+        contenteditable = values.get("contenteditable")
+        if isinstance(contenteditable, str) and contenteditable.casefold() != "false":
+            self.unsupported_interactive = True
+
+        if tag not in {"input", "select", "textarea"}:
+            return
+        input_type = values.get("type", "text") if tag == "input" else tag
+        if tag == "input" and input_type.casefold() in {"hidden", "submit", "button", "reset", "image"}:
+            return
+        if len(self.controls) >= 101:
+            self.invalid = True
+            return
+        conditional = values.get("data-workday-conditional")
+        repeatable = values.get("data-workday-repeatable")
+        self.controls.append({
+            "id": values.get("id"),
+            "name": values.get("name"),
+            "placeholder": values.get("placeholder"),
+            "aria_label": values.get("aria-label"),
+            "type": input_type.casefold() if isinstance(input_type, str) else "",
+            "required": (
+                any(str(name).casefold() == "required" for name, _ in attrs)
+                or (isinstance(values.get("aria-required"), str)
+                    and values["aria-required"].casefold() == "true")
+            ),
+            "conditional": self._semantic_flag(conditional),
+            "conditional_on": values.get("data-workday-conditional-on"),
+            "repeatable": self._semantic_flag(repeatable),
+            "repeatable_group": values.get("data-workday-repeatable-group"),
+            "labels": [],
+        })
+        for label in self.label_stack:
+            label["index"] = len(self.controls) - 1
+
+    @staticmethod
+    def _semantic_flag(value):
+        if not isinstance(value, str):
+            return None
+        normalized = value.casefold()
+        if normalized == "true":
+            return True
+        if normalized == "false":
+            return False
+        return "invalid"
+
+    def handle_startendtag(self, tag, attrs):
+        self.handle_starttag(tag, attrs)
+        self.handle_endtag(tag)
+
+    def handle_endtag(self, tag):
+        tag = tag.casefold()
+        if self.ignored_stack:
+            if tag == self.ignored_stack[-1]:
+                self.ignored_stack.pop()
+            return
+        if tag == "form":
+            self.active_form = False
+        elif tag == "textarea" and self.value_text_depth:
+            self.value_text_depth -= 1
+        elif tag == "label" and self.label_stack:
+            label = self.label_stack.pop()
+            text = " ".join(" ".join(label["parts"]).split())
+            if len(text) > 500:
+                self.invalid = True
+                return
+            index = label["index"]
+            if text and index is not None and index < len(self.controls):
+                self.controls[index]["labels"].append(text)
+            field_id = label["for"]
+            if text and isinstance(field_id, str):
+                self.labels_by_id.setdefault(field_id, []).append(text)
+
+    def handle_data(self, data):
+        if self.ignored_stack or self.value_text_depth:
+            return
+        for label in self.label_stack:
+            if sum(map(len, label["parts"])) + len(data) > 500:
+                self.invalid = True
+            else:
+                label["parts"].append(data)
+
+    def finish(self):
+        if (self.invalid or self.label_stack or self.ignored_stack or self.value_text_depth
+                or self.active_form):
+            return _unknown("INVALID_WORKDAY_MARKUP")
+        if self.form_count == 0:
+            return _unknown("NO_FORM")
+        if self.form_count != 1 or self.outside_form_controls:
+            return _unknown("AMBIGUOUS_FORM")
+        if self.challenge_protected:
+            return _unknown("CHALLENGE_PROTECTED")
+        if self.unsupported_interactive:
+            return _unknown("UNSUPPORTED_INTERACTIVE_CONTROL")
+        if not self.controls:
+            return _unknown("NO_FORM_CONTROLS")
+
+        for control in self.controls:
+            field_id = control.get("id")
+            if isinstance(field_id, str):
+                control["labels"].extend(self.labels_by_id.get(field_id, []))
+        fields = []
+        projections = []
+        for index, control in enumerate(self.controls):
+            source_id = control.get("id")
+            name = control.get("name")
+            internal_id = source_id or name or f"field-{index}"
+            labels = control["labels"]
+            label = " ".join(labels)
+            if not label:
+                label = control.get("aria_label") or control.get("placeholder")
+            fields.append({
+                "id": internal_id,
+                "label": label,
+                "type": control["type"],
+                "required": control["required"],
+                "conditional": control["conditional"],
+                "conditional_on": control.get("conditional_on"),
+                "repeatable": control["repeatable"],
+                "repeatable_group": control.get("repeatable_group"),
+            })
+            projections.append({"id": source_id, "name": name})
+
+        analysis = analyze_workday_form({
+            "provider": "workday",
+            "schema_version": 1,
+            "form_id": "workday-static-form",
+            "revision": "static-markup-v1",
+            "fields": fields,
+        })
+        if analysis.get("status") != "UNKNOWN":
+            for analyzed, source in zip(analysis["fields"], projections):
+                analyzed["id"] = source["id"]
+                analyzed["name"] = source["name"]
+        return analysis
+
+
+def analyze_workday_form_html(source) -> dict:
+    """Extract Workday control metadata from supplied static HTML only.
+
+    Dynamic semantics are unknown unless explicitly stated with
+    ``data-workday-conditional`` and ``data-workday-repeatable`` metadata.
+    Input, selected, default, and textarea answer values are discarded.
+    """
+    if isinstance(source, bytes):
+        if len(source) > MAX_WORKDAY_MARKUP_LENGTH:
+            return _unknown("MARKUP_LIMIT_EXCEEDED")
+        try:
+            markup = source.decode("utf-8")
+        except UnicodeDecodeError:
+            return _unknown("INVALID_WORKDAY_MARKUP")
+    elif isinstance(source, str):
+        try:
+            encoded = source.encode("utf-8")
+        except UnicodeEncodeError:
+            return _unknown("INVALID_WORKDAY_MARKUP")
+        if len(encoded) > MAX_WORKDAY_MARKUP_LENGTH:
+            return _unknown("MARKUP_LIMIT_EXCEEDED")
+        markup = source
+    else:
+        return _unknown("INVALID_WORKDAY_MARKUP")
+    parser = _WorkdayMarkupParser()
+    try:
+        parser.feed(markup)
+        parser.close()
+    except Exception:
+        return _unknown("MARKUP_PARSE_FAILED")
+    if any(
+        field[key] == "invalid"
+        for field in parser.controls
+        for key in ("conditional", "repeatable")
+    ):
+        return _unknown("INVALID_DYNAMIC_METADATA")
+    return parser.finish()
 
 
 def requires_workday_human_review(analysis) -> bool:
