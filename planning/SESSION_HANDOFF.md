@@ -27,4 +27,3 @@
   - Local catalogue, progress validation, and dashboards CURRENT.
   - External employer application submission remains strictly OFF.
   - Workstation safeguards preserved.
-
