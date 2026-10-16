@@ -42,15 +42,39 @@ _CONTROL_INTERACTIVITY_SCRIPT = r"""nodes => nodes.map(node => {
     const result = String(value).replace(/\s+/g, ' ').trim();
     return result || null;
   };
-  let visible = node.getClientRects().length > 0;
+  const rect = node.getBoundingClientRect();
+  const viewport = window.visualViewport;
+  const viewportLeft = viewport ? viewport.offsetLeft : 0;
+  const viewportTop = viewport ? viewport.offsetTop : 0;
+  const viewportRight = viewportLeft + (viewport ? viewport.width : document.documentElement.clientWidth);
+  const viewportBottom = viewportTop + (viewport ? viewport.height : document.documentElement.clientHeight);
+  let visible = node.getClientRects().length > 0
+    && rect.width > 0 && rect.height > 0
+    && rect.left >= viewportLeft && rect.top >= viewportTop
+    && rect.right <= viewportRight && rect.bottom <= viewportBottom;
   for (let ancestor = node; visible && ancestor; ancestor = ancestor.parentElement) {
     const style = getComputedStyle(ancestor);
     if (ancestor.hidden || ancestor.getAttribute('aria-hidden') === 'true'
         || ancestor.getAttribute('aria-disabled') === 'true'
         || style.display === 'none' || style.visibility === 'hidden'
         || style.visibility === 'collapse' || style.contentVisibility === 'hidden'
-        || Number(style.opacity) === 0 || style.pointerEvents === 'none') {
+        || Number(style.opacity) === 0 || style.pointerEvents === 'none'
+        || style.clipPath !== 'none' || style.clip !== 'auto'
+        || style.maskImage !== 'none' || style.filter !== 'none') {
       visible = false;
+    }
+    if (ancestor !== node) {
+      const ancestorRect = ancestor.getBoundingClientRect();
+      const clipLeft = ancestorRect.left + ancestor.clientLeft;
+      const clipTop = ancestorRect.top + ancestor.clientTop;
+      const clipRight = clipLeft + ancestor.clientWidth;
+      const clipBottom = clipTop + ancestor.clientHeight;
+      if ((['hidden', 'clip', 'scroll', 'auto'].includes(style.overflowX)
+           && (rect.left < clipLeft || rect.right > clipRight))
+          || (['hidden', 'clip', 'scroll', 'auto'].includes(style.overflowY)
+              && (rect.top < clipTop || rect.bottom > clipBottom))) {
+        visible = false;
+      }
     }
   }
   const interactiveTypes = new Set([

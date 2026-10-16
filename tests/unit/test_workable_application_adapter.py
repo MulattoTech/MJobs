@@ -158,6 +158,50 @@ class WorkableApplicationAdapterTests(unittest.TestCase):
         self.assertTrue(self.adapter.requires_human_review(result))
 
     @patch("services.applications.adapters.workable.analyze_form_page")
+    def test_clipped_and_offscreen_contact_controls_require_review(self, analyzer):
+        analyzer.return_value = {"status": "PASS", "fields": [{
+            "index": 0, "tag": "input", "input_type": "email", "name": "email",
+            "id": "email", "labels": ["Email"], "sensitivity": "STANDARD",
+            "ambiguous": False,
+        }]}
+
+        class ChallengeLocator:
+            def count(self):
+                return 0
+
+        class ControlsLocator:
+            def evaluate_all(self, script):
+                self.script = script
+                return [{
+                    "tag": "input", "input_type": "email", "name": "email", "id": "email",
+                    "visible": False, "editable": True, "interactive": True,
+                }]
+
+        class Page:
+            def __init__(self):
+                self.controls = ControlsLocator()
+
+            def locator(self, selector):
+                if "captcha" in selector:
+                    return ChallengeLocator()
+                return self.controls
+
+        visibility_guards = (
+            "rect.left >= viewportLeft",
+            "rect.right <= viewportRight",
+            "style.clipPath !== 'none'",
+            "style.overflowX",
+            "style.overflowY",
+        )
+        page = Page()
+        result = self.adapter.analyze_page(page)
+        for guard in visibility_guards:
+            with self.subTest(guard=guard):
+                self.assertIn(guard, page.controls.script)
+        self.assertFalse(result["fields"][0]["visible"])
+        self.assertTrue(self.adapter.requires_human_review(result))
+
+    @patch("services.applications.adapters.workable.analyze_form_page")
     def test_analyze_page_fails_closed_when_interactivity_cannot_be_verified(self, analyzer):
         analyzer.return_value = {"status": "PASS", "fields": [{
             "index": 0, "tag": "input", "input_type": "email", "name": "email",
