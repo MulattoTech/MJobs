@@ -19,6 +19,7 @@ _STEP_ORDER = (
     "voluntary_disclosures",
     "review",
 )
+WORKDAY_STEP_ORDER = _STEP_ORDER
 _HEADING_STEPS = {
     "my information": "my_information",
     "my experience": "my_experience",
