@@ -93,9 +93,9 @@ class WorkdayApplicationAdapterTests(unittest.TestCase):
         )
         report = analyze_application_form("WORKDAY", html, route_url=self.route_url)
         self.assertEqual(report, {
-            "status": "REVIEW_REQUIRED", "reason": "MANUAL_REVIEW_REQUIRED",
+            "status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
             "fields": [{"id": "email", "name": "email", "type": "email",
-                        "required": True, "review_reason": None}],
+                        "required": True, "review_reason": "UNKNOWN_QUESTION"}],
         })
         self.assertNotIn("PRIVATE_VALUE", json.dumps(report))
         self.assertNotIn("Email address", json.dumps(report))
