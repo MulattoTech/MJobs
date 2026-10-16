@@ -53,10 +53,18 @@ The bootstrap utility is intentionally limited: read-only Git and requirement co
 ## Switching models, restarting agents, and continuing
 
 1. Prior owner records current branch, full SHA, precise next action, meaningful test results and blockers.
-2. Incoming model reads this contract and runs bootstrap for the assigned task in an independent/owned worktree.
-3. Reconfirm current Git state, active worker ownership, PR head, and relevant tests. If the checkpoint's head is an ancestor, inspect subsequent changes; if unrelated/diverged, coordinate before writing this task.
-4. Continue the first incomplete permitted action. Record another small checkpoint after implementation/test/PR milestone.
-5. Do not treat a long analysis or an agent's final response as feature completion.
+2. Safe model ownership transfer:
+       python -m tools.agent_context transfer --task MJ-REQ-004 --from-owner "Gemini" --to-owner "Opus" --reason "Opus takeover" --next-action "Implement tests"
+3. Incoming model reads this contract and runs bootstrap for the assigned task in an independent/owned worktree:
+       python -m tools.agent_context bootstrap --task MJ-REQ-004
+4. Inspect freshness and interruption recovery if a session disconnected:
+       python -m tools.agent_context freshness --task MJ-REQ-004
+       python -m tools.agent_context recover --task MJ-REQ-004
+5. Deterministically normalize broad or unaligned user requests into safe execution paths:
+       python -m tools.agent_context normalize --request "Please push changes to main branch"
+6. Reconfirm current Git state, active worker ownership, PR head, and relevant tests. If the checkpoint's head is an ancestor, inspect subsequent changes; if unrelated/diverged, coordinate before writing this task.
+7. Continue the first incomplete permitted action. Record another small checkpoint after implementation/test/PR milestone.
+8. Do not treat a long analysis or an agent's final response as feature completion.
 
 GitHub cannot force arbitrary third-party models to read these instructions. AGENTS.md, CLAUDE.md, GEMINI.md and .github/copilot-instructions.md offer discoverable entrypoints. The active harness must load them. No checkpoint can override platform approval requirements.
 
