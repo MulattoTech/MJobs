@@ -29,6 +29,10 @@ _KNOWN_CONTACT_IDENTIFIERS = {
     "portfolio", "postal code", "preferred name", "resume", "state",
     "surname", "website", "zip code",
 }
+_USER_EDITABLE_INPUT_TYPES = {
+    "text", "email", "tel", "url", "number", "date", "datetime-local",
+    "time", "month", "week", "search", "checkbox", "radio",
+}
 
 
 class TeamtailorApplicationAdapter:
@@ -126,6 +130,19 @@ class TeamtailorApplicationAdapter:
 
 def _known_contact_field(field: Mapping) -> bool:
     """Recognize a narrow set of contact/document prompts, never custom questions."""
+    tag = field.get("tag")
+    if tag == "input":
+        input_type = field.get("input_type")
+        if (not isinstance(input_type, str)
+                or input_type.casefold() not in _USER_EDITABLE_INPUT_TYPES):
+            return False
+    elif tag == "select":
+        if field.get("input_type") is not None:
+            return False
+    else:
+        # Free-form text areas and unknown controls always need a person.
+        return False
+
     labels = field.get("labels")
     visible_labels = []
     if isinstance(labels, list):
@@ -135,8 +152,6 @@ def _known_contact_field(field: Mapping) -> bool:
         ]
     if visible_labels:
         return all(label in _KNOWN_CONTACT_IDENTIFIERS for label in visible_labels)
-    if field.get("tag") == "textarea":
-        return False
     for key in ("name", "id", "placeholder", "aria_label"):
         values = field.get(key)
         if isinstance(values, str):

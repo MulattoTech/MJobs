@@ -121,6 +121,32 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
         self.assertNotIn("value", report)
         self.assertNotIn("PRIVATE", report)
 
+    def test_hidden_or_noninteractive_inputs_cannot_bypass_manual_review(self):
+        unsafe_controls = (
+            {"tag": "input", "input_type": "hidden", "name": "email",
+             "labels": ["Email"]},
+            {"tag": "input", "input_type": "hidden", "name": "resume",
+             "labels": ["Resume"]},
+            {"tag": "input", "input_type": "submit", "name": "email",
+             "labels": ["Email"]},
+            {"tag": "input", "input_type": "button", "name": "email",
+             "labels": ["Email"]},
+            {"tag": "input", "input_type": "image", "name": "email",
+             "labels": ["Email"]},
+            {"tag": "input", "input_type": "file", "name": "resume",
+             "labels": ["Resume"]},
+            {"tag": "input", "name": "email", "labels": ["Email"]},
+            {"tag": "textarea", "input_type": "textarea", "name": "email",
+             "labels": ["Email"]},
+        )
+        for field in unsafe_controls:
+            with self.subTest(field=field):
+                self.assertTrue(self.adapter.requires_human_review({
+                    "status": "PASS", "fields": [{
+                        "ambiguous": False, "sensitivity": "STANDARD", **field,
+                    }],
+                }))
+
 
 if __name__ == "__main__":
     unittest.main()
