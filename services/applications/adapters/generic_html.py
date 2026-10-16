@@ -57,8 +57,11 @@ class GenericHTMLApplicationAdapter:
                 or port not in (None, 443) or parsed.fragment
                 or any(ord(char) < 32 for char in url)):
             return None
-        # Avoid path traversal and encoded separators that can change route meaning.
-        if re.search(r"%(?:2f|5c|2e)", parsed.path, re.I):
+        # Reject path spellings that an HTTP client or intermediary may normalize
+        # differently, including literal traversal and Windows-style separators.
+        if ("\\" in parsed.path
+                or any(segment in {".", ".."} for segment in parsed.path.split("/"))
+                or re.search(r"%(?:2f|5c|2e)", parsed.path, re.I)):
             return None
         normalized = urlunsplit(("https", host.casefold(), parsed.path or "/", parsed.query, ""))
         supplied_host = route.get("host")
