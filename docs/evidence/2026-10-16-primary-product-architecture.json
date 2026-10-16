@@ -3,7 +3,7 @@
   "requirement_id": "MJ-REQ-010",
   "github_issue": 11,
   "slice_result": "PASS",
-  "requirement_result": "PASS",
+  "requirement_result": "PARTIAL",
   "base_commit": "de8ca85fbc5aa089ea49d7936a5a0d335602a806",
   "recorded_at_utc": "2026-10-16T01:49:00Z",
   "scope": "Verify all connected product architecture layers from the primary specification diagram: Web Dashboard, Application API, Search Service (Global/Company Sources, Normalization, Company Resolution, Deduplication, Job Scoring), Application Service (Route Selection, Automation Engine, Dry-Run, ATS Detection), Profile/Doc Service (Truthful Tailoring, Document Engine, Prompt Provenance), and durable PostgreSQL/store restart persistence.",
@@ -51,6 +51,7 @@
   ],
   "limitations": [
     "External application submission remains strictly OFF; all application testing uses mock endpoints and dry-run boundaries.",
-    "Connected verification uses isolated synthetic fixture server without paid external AI API calls."
+    "Connected verification uses isolated synthetic fixture server without paid external AI API calls.",
+    "Integration tests in test_primary_product_architecture.py exercise in-process SQLite storage; live multi-process PostgreSQL 17 and Redis/RQ worker queue isolation remain covered under Compose/CI fixtures. Whole-parent MJ-REQ-010 remains PARTIAL pending full PostgreSQL multi-service evidence; issue #11 remains open."
   ]
 }

@@ -166,12 +166,12 @@
     },
     {
       "requirement_id": "MJ-REQ-010",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-architecture-stack-reconciliation.json",
         "docs/evidence/2026-10-16-primary-product-architecture.json"
       ],
-      "note": "All primary product architecture diagram components verified end-to-end: Web Dashboard and FastAPI application surface mount complete operational/tracking endpoints; Search Service ingests global (Remotive) and company (Greenhouse/Lever) sources through normalization, company resolution, deduplication, and profile match scoring into PostgreSQL/Store; Profile/Doc Service drives truthful document tailoring with prompt provenance; Application Service coordinates route selection, ATS detection, and dry-run execution; durable background operations and state survive store restart. Verified by tests/integration/test_primary_product_architecture.py (4 tests PASS) and synthetic connected harness cli.verify_readiness --connected --fixture (12 checks PASS); external application submission remains strictly OFF.",
+      "note": "Primary product architecture verification: Web Dashboard/FastAPI surface, Search Service pipeline (normalization, deduplication, scoring), and Profile/Doc Service truthful tailoring verified by tests/integration/test_primary_product_architecture.py (4 tests PASS) under SQLite. Whole-parent requirement remains PARTIAL pending live multi-service Compose PostgreSQL/Redis/RQ durable worker process isolation and global source breadth; issue #11 remains open.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
