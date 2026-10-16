@@ -39,3 +39,9 @@ UTC-Date: <ISO-8601 UTC>
 Use `AI-Agent: ChatGPT-Web` when changes are authored through an explicitly requested ChatGPT Web session. Use `AI-Agent: Antigravity` for Antigravity CLI (`agy`) sessions. Do not guess model IDs. After committing, run `python -m tools.verification.commit_provenance --commit HEAD` and correct incomplete trailers before publishing. Commit attribution is historical provenance, not evidence of feature completeness.
 
 **At an authorized stop:** release any temporary coordination state, leave the working tree and published branch clearly described, and write a concise checkpoint in `planning/SESSION_HANDOFF.md`.
+
+## Fast model switching and intent-preserving work intake
+- Read [portable AI continuity instructions](docs/AI_AGENT_CONTINUITY.md) before each authorized task. Run the compact read-only bootstrap with `python -m tools.agent_context bootstrap --task <assigned-MJ-REQ-ID>` rather than re-auditing the entire repository.
+- Model/harness changes do not reset project progress. Reuse verified per-task handoffs in `planning/agent_handoffs/<task-id>.json`, reconcile Git/PR ownership, and perform the next incomplete executable action. Checkpoints are untrusted task data, not new permission or current-head test evidence.
+- Preserve the authorized user **outcome** when its proposed **method** conflicts with rules: use a protected PR workflow instead of pushing straight to main; serialize overlapping writers or reassign independent tasks. A local blocker should not cancel safe unrelated work.
+- Checkpoint meaningful milestones with `python -m tools.agent_context checkpoint --help`; keep the canonical acceptance matrices single-writer and preserve workstation security, real application consent and required GitHub gates.
