@@ -272,21 +272,41 @@ class MultipageApplicationStateTests(unittest.TestCase):
         stale = workday_observation("My Experience", labels=["Resume"], stale=True)
         resume_mismatch = workday_observation("My Experience", labels=["Resume"])
         cases = (
-            (unknown, "NEXT", "wd-unknown"),
-            (loop, "NEXT", "wd-loop"),
-            (changed_mismatch, "NEXT", "wd-changed-mismatch"),
-            (stale, "NEXT", "wd-stale-observation"),
-            (resume_mismatch, "RESUME", "wd-resume-mismatch"),
-            (resume_mismatch, "FINAL_SUBMIT", "wd-final-submit"),
+            (unknown, "NEXT", "wd-unknown", "MANUAL_REVIEW"),
+            (loop, "NEXT", "wd-loop", "MANUAL_REVIEW"),
+            (changed_mismatch, "NEXT", "wd-changed-mismatch", "MANUAL_REVIEW"),
+            (stale, "NEXT", "wd-stale-observation", "REFRESH_AND_RECLASSIFY"),
+            (resume_mismatch, "RESUME", "wd-resume-mismatch", "MANUAL_REVIEW"),
+            (resume_mismatch, "FINAL_SUBMIT", "wd-final-submit", "MANUAL_REVIEW"),
         )
-        for observed, action, request_id in cases:
+        for observed, action, request_id, expected_decision in cases:
             with self.subTest(action=action):
                 result = self.workday_transition(
                     first_state, first_observation, observed, action, request_id)
-                self.assertEqual(result["decision"], "MANUAL_REVIEW")
+                self.assertEqual(result["decision"], expected_decision)
                 self.assertIsNone(result.get("state"))
         self.assertEqual(self.store.count("audit_events"), before_count)
         self.assertEqual(load_multipage_state(self.store, "profile", "application"), first_state)
+
+    def test_workday_refresh_decisions_are_preserved_without_advancing(self):
+        state, observation = self.start_workday()
+        before_count = self.store.count("audit_events")
+        explicit_refresh = self.workday_transition(
+            state, observation, observation, "REFRESH", "wd-refresh-explicit")
+        self.assertEqual(explicit_refresh, {
+            "decision": "REFRESH_AND_RECLASSIFY",
+            "reason": "REFRESH_REQUIRES_NEW_OBSERVATION",
+            "state": None,
+        })
+
+        stale = workday_observation("My Information", stale=True)
+        stale_refresh = self.workday_transition(
+            state, observation, stale, "NEXT", "wd-refresh-stale")
+        self.assertEqual(stale_refresh["decision"], "REFRESH_AND_RECLASSIFY")
+        self.assertEqual(stale_refresh["reason"], "STALE_OBSERVATION")
+        self.assertIsNone(stale_refresh["state"])
+        self.assertEqual(self.store.count("audit_events"), before_count)
+        self.assertEqual(load_multipage_state(self.store, "profile", "application"), state)
 
     def test_workday_final_page_confirmation_uses_review_action(self):
         state, observation = self.start_workday()

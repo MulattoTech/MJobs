@@ -456,6 +456,8 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
         previous, current, intended_action,
         visited_fingerprints=navigation.get("visited_fingerprints", ()),
     )
+    if decision["decision"] == "REFRESH_AND_RECLASSIFY":
+        return {"decision": decision["decision"], "reason": decision["reason"], "state": None}
     if decision["decision"] != "CONFIRMED":
         return _workday_manual_review(decision["decision"])
     previous_page = "review" if previous["step"] == "review" else previous["step"]
