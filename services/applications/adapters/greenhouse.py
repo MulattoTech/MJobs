@@ -84,7 +84,9 @@ class GreenhouseApplicationAdapter:
 
     def analyze_page(self, page, *, check=None) -> dict:
         """Read one loaded form using the shared value-free DOM analyzer."""
-        return analyze_form_page(page, check=check)
+        if check is not None:
+            return analyze_form_page(page, check=check)
+        return analyze_form_page(page)
 
     def validate_page(self, page, analysis=None, *, check=None) -> dict:
         """Check native form validity without reading or returning applicant values."""
