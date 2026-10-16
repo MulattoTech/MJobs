@@ -52,7 +52,10 @@ def _text_list(value):
     return [re.sub(r"\s+", " ", item).strip().casefold() for item in value]
 
 
-def _fingerprint(url, headings, labels, actions):
+def workday_origin(url):
+    """Return a canonical HTTPS Workday origin for route binding, or None."""
+    if not isinstance(url, str) or len(url) > 2048:
+        return None
     try:
         parsed = urlsplit(url)
         if (parsed.scheme.casefold() != "https" or not parsed.hostname
@@ -61,10 +64,22 @@ def _fingerprint(url, headings, labels, actions):
         host = parsed.hostname.casefold().rstrip(".")
         if not (host.endswith(".myworkdayjobs.com") or host.endswith(".myworkday.com")):
             return None
+        port = parsed.port
+        return f"https://{host}" + (f":{port}" if port is not None and port != 443 else "")
+    except (TypeError, ValueError):
+        return None
+
+
+def _fingerprint(url, headings, labels, actions):
+    try:
+        parsed = urlsplit(url)
+        origin = workday_origin(url)
+        if origin is None:
+            return None
         # Query strings and fragments can contain session and user data. They
         # are deliberately excluded from this structural page fingerprint.
         path = re.sub(r"/\d+(?=/|$)", "/:id", parsed.path.casefold())
-        structure = {"host": host, "path": path,
+        structure = {"origin": origin, "path": path,
                      "headings": headings, "field_labels": labels, "actions": actions}
         encoded = json.dumps(structure, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
@@ -79,7 +94,8 @@ def classify_step(observation: Mapping) -> dict:
     optional boolean ``stale``. Unknown or malformed observations stay UNKNOWN.
     Fingerprints omit URL query strings and fragments.
     """
-    unknown = {"status": "UNKNOWN", "step": None, "fingerprint": None, "stale": False}
+    unknown = {"status": "UNKNOWN", "step": None, "fingerprint": None,
+               "origin": None, "stale": False}
     if not isinstance(observation, Mapping):
         return unknown
     url = observation.get("url")
@@ -93,13 +109,15 @@ def classify_step(observation: Mapping) -> dict:
     fingerprint = _fingerprint(url, headings, labels, actions)
     if fingerprint is None:
         return unknown
+    origin = workday_origin(url)
 
     matched = {_HEADING_STEPS[heading] for heading in headings if heading in _HEADING_STEPS}
     # A page with multiple known step headings, or no known heading, is
     # ambiguous even if its form fields look familiar.
     if len(matched) != 1:
-        return {**unknown, "stale": stale, "fingerprint": fingerprint}
-    return {"status": "KNOWN", "step": matched.pop(), "fingerprint": fingerprint, "stale": stale}
+        return {**unknown, "stale": stale, "fingerprint": fingerprint, "origin": origin}
+    return {"status": "KNOWN", "step": matched.pop(), "fingerprint": fingerprint,
+            "origin": origin, "stale": stale}
 
 
 def _valid_classification(value):

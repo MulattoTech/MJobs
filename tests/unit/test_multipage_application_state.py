@@ -17,7 +17,7 @@ from services.applications.multipage_state import (
 def workday_observation(heading, *, path="apply", labels=None,
                        actions=("Save and Continue",), stale=False):
     return {
-        "url": f"https://wd5.myworkdayjobs.com/acme/job/REQ-1/{path}?session=discarded",
+        "url": f"https://acme.wd5.myworkdayjobs.com/en-US/Acme/job/REQ-1/{path}?session=discarded",
         "headings": [heading],
         "field_labels": labels if labels is not None else [heading],
         "actions": list(actions),
@@ -71,7 +71,8 @@ class MultipageApplicationStateTests(unittest.TestCase):
     def enable_workday_route(self):
         with self.store.engine.begin() as connection:
             connection.execute(m.routes.update().where(m.routes.c.id == "route").values(
-                provider="workday", url="https://acme.wd5.myworkdayjobs.com/REQ-1/apply"))
+                provider="workday",
+                url="https://acme.wd5.myworkdayjobs.com/en-US/Acme/job/REQ-1/apply"))
 
     def start_workday(self):
         self.enable_workday_route()
@@ -258,6 +259,38 @@ class MultipageApplicationStateTests(unittest.TestCase):
         self.assertEqual(stale_retry["reason"], "MULTIPAGE_VERSION_CONFLICT")
         self.assertEqual(load_multipage_state(self.store, "profile", "application"), before)
 
+    def test_workday_cross_tenant_observation_does_not_persist(self):
+        first_state, first_observation = self.start_workday()
+        before_count = self.store.count("audit_events")
+        other_tenant = workday_observation("My Experience", labels=["Resume"])
+        other_tenant["url"] = (
+            "https://another.wd5.myworkdayjobs.com/en-US/Acme/job/REQ-1/apply?session=discarded"
+        )
+
+        result = self.workday_transition(
+            first_state, first_observation, other_tenant, "NEXT", "wd-cross-tenant")
+
+        self.assertEqual(result["decision"], "MANUAL_REVIEW")
+        self.assertEqual(result["reason"], "WORKDAY_ROUTE_MISMATCH")
+        self.assertIsNone(result["state"])
+        self.assertEqual(self.store.count("audit_events"), before_count)
+        self.assertEqual(load_multipage_state(self.store, "profile", "application"), first_state)
+
+    def test_workday_initial_observation_must_match_application_route(self):
+        self.enable_workday_route()
+        other_tenant = workday_observation("My Information")
+        other_tenant["url"] = (
+            "https://another.wd5.myworkdayjobs.com/en-US/Acme/job/REQ-1/apply?session=discarded"
+        )
+
+        result = initialize_workday_multipage_state(
+            self.store, "profile", "application", other_tenant, request_id="wd-init-other-tenant")
+
+        self.assertEqual(result["decision"], "MANUAL_REVIEW")
+        self.assertEqual(result["reason"], "WORKDAY_ROUTE_MISMATCH")
+        self.assertIsNone(result["state"])
+        self.assertEqual(self.store.count("audit_events"), 0)
+
     def test_workday_unknown_loop_interruption_mismatch_and_submit_do_not_advance(self):
         first_state, first_observation = self.start_workday()
         before_count = self.store.count("audit_events")
@@ -364,6 +397,7 @@ class MultipageApplicationStateTests(unittest.TestCase):
                     "expected_fingerprint": None,
                     "current_fingerprint": "a" * 64,
                     "visited_fingerprints": ["a" * 64],
+                    "application_origin": "https://acme.wd5.myworkdayjobs.com",
                 },
             })
         self.assertEqual(error.exception.code, "WORKDAY_CONFIRMATION_REQUIRED")
