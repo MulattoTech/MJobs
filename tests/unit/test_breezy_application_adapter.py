@@ -72,13 +72,16 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
              "ambiguous": False, "labels": [], "name": "first_name"},
             {"tag": "input", "input_type": "text", "sensitivity": "STANDARD",
              "ambiguous": False, "labels": [], "name": "first_name",
-             "placeholder": "Why do you want to work here?"},
+             "placeholder": "Why do you want this job?"},
             {"tag": "input", "input_type": "email", "sensitivity": "STANDARD",
              "ambiguous": False, "labels": [], "id": "email",
              "aria_label": "Tell us about yourself"},
             {"tag": "input", "input_type": "email", "sensitivity": "STANDARD",
              "ambiguous": False, "labels": ["Email address"],
              "placeholder": "Why do you want to work here?"},
+            {"tag": "input", "input_type": "email", "sensitivity": "STANDARD",
+             "ambiguous": False, "labels": ["Email address"],
+             "aria_label": "Why do you want this job?"},
         )
         for field in fields:
             with self.subTest(field=field):
