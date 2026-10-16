@@ -57,9 +57,10 @@ _CONTROL_INTERACTIVITY_SCRIPT = r"""nodes => nodes.map(node => {
     'text', 'email', 'tel', 'url', 'search', 'number', 'date',
     'datetime-local', 'time', 'month', 'week', 'checkbox', 'radio', 'password'
   ]);
-  const interactive = tag === 'select' || tag === 'textarea'
-    || (tag === 'input' && interactiveTypes.has(inputType));
-  const editable = !node.matches(':disabled')
+  const inert = node.closest('[inert]') !== null;
+  const interactive = !inert && (tag === 'select' || tag === 'textarea'
+    || (tag === 'input' && interactiveTypes.has(inputType)));
+  const editable = !inert && !node.matches(':disabled')
     && !((tag === 'input' || tag === 'textarea') && node.readOnly);
   return {
     tag,
