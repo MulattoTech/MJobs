@@ -7,24 +7,23 @@
 - Whole product PARTIAL; release UNKNOWN; external employer submission OFF. No real accounts/providers, paid inference, physical reboot or personal data used. Four partial parents have no whole-parent promotion. Historical failures/skips stay in evidence.
 - Focused record validation PASS:99 tests/5subtests; catalogue/journal/dashboard/skills and semantic/sanitization/source guards PASS. Root released ordinary final-base integration and one acceptance PR; exact recording native/hosted gates remain pending, with commit provenance checked before publication. Root alone controls protected integration, Project/issue field write/readback and integration-lock release. Safe rollback is a scoped record revert; no source/data cleanup, force or history rewrite. No automatic next assignment.
 
-# Opus Production Takeover and Continuity Checkpoint (2026-10-16)
+# Autonomous Integration & P0 Completion Checkpoint (2026-10-16)
 
-- Development Harness: Claude Code / Claude Opus context, Antigravity CLI (`agy`), authorized unattended execution under Bypass Permissions.
-- Main Baseline SHA: `de8ca85fc97bcbaadc0de893072f38a241d13fc6`
-- PR Reconciliations and Independent Reviews:
-  - PR #673 (`ao/unattended-agent-governance-policy`, HEAD `6a45bc4d`): 15/15 hosted CI jobs SUCCESS. Formally reviewed on GitHub; confirms compliance with 8 unattended rules, multi-harness compatibility, and all inviolable safety boundaries. Recommended for approval and merge.
-  - PR #674 (`ao/p0-primary-product-architecture`, HEAD `998be294`): Retained in DRAFT. Honestly restored `MJ-REQ-010` to `PARTIAL` per Option B, preserving 4 comprehensive SQLite integration tests while keeping issue #11 open until full PostgreSQL/Redis/RQ multi-process worker evidence is established.
-  - PR #675 (`ao/worker-b-mj-req008-durable-progress`, HEAD `13f885da`): 15/15 hosted CI jobs SUCCESS. Formally reviewed on GitHub; implements progress checkpoint validation across Compose restarts and expands recovery history projections. Recommended for approval and merge.
-  - PR #676 (`ao/worker-a-mj-req004-bounded-ops`, HEAD `f2af1fe6`): 15/15 hosted CI jobs SUCCESS. Formally reviewed on GitHub; implements 5MB body limits, wall-clock streaming deadlines, cancellation watcher threads, and error classifications across `remotive.py`, `remoteok.py`, `wwr.py`, and `greenhouse.py`. Recommended for approval and merge.
-  - PR #677 (`ao/worker-c-mj-req292-e2e-workflow`, HEAD `457c3e39`): 15/15 hosted CI jobs SUCCESS. Formally reviewed on GitHub; integrates employer discovery flywheel and distinct provider routing in `services/discovery/pipeline.py`. Recommended for approval and merge.
-  - PR #678 (`ai/portable-agent-handoff-20261016`, HEAD `e5c51c81`): 15/15 initial CI jobs SUCCESS; completed Phase 3 extensions (deterministic intake normalization, 9 recoverable task routing states, safe model ownership transfer with audit history, exact PR/commit freshness validation, and clean session recovery). 14 synthetic unit tests pass locally in 5.28s; fast CI Python checks PASS on GitHub.
-- Live Cross-Model Continuation Executed:
-  - Demonstrated on real unmerged worker branches (`mjobs-28` for `MJ-REQ-004`, `mjobs-29` for `MJ-REQ-008`, `mjobs-30` for `MJ-REQ-292`).
-  - Successfully generated initial Gemini checkpoints on disk, wiped active in-memory context, performed clean disk-based bootstrap, executed safe ownership transfer to Claude Opus, verified exact PR head freshness, and confirmed clean `RESUME` state without private memory.
-- Authoritative Acceptance Matrix:
-  - MJ-REQ: 120/366 PASS, 103 PARTIAL, 143 NOT_RUN. MJ-REF: 19/59 PASS. Release: UNKNOWN.
-  - P0 Requirements: 11 PASS, 5 PARTIAL (`MJ-REQ-000`, `MJ-REQ-004`, `MJ-REQ-008`, `MJ-REQ-010`, `MJ-REQ-292`), 10 NOT_RUN (`MJ-REQ-290..300`).
-- Queue and Workstation Safety:
-  - 6 open PRs (#673, #674, #675, #676, #677, #678); well within 32 capacity limit (OK).
+- Integration Authority: Antigravity CLI (`agy`), Gemini 3.8 High, authorized unattended development & auto-merge.
+- Main Baseline SHA: `464a773b2f479e2212fed876cb8d683dbb569782`
+- Priority 1 Integration Complete:
+  - PR #673 (`ao/unattended-agent-governance-policy`, commit `2b823f54`): MERGED. Established 8 unattended agent development rules, `docs/UNATTENDED_AGENT_DEVELOPMENT.md`, and multi-harness compatibility.
+  - PR #678 (`ai/portable-agent-handoff-20261016`, commit `b7ec4720`): MERGED. Implemented canonical AI continuity contract, portable entrypoints (`CLAUDE.md`, `GEMINI.md`), `tools/agent_context.py` (intake normalization, 9 routing states, atomic checkpoints, ownership transfer, freshness check, crash recovery), and unit tests.
+  - PR #675 (`ao/worker-b-mj-req008-durable-progress`, commit `0158cb22`): MERGED. Implemented atomic persistence `write_atomic_json`, `outputs/job-platform-implementation-state.json` synchronization, dual resume semantics, and compose outage recovery for `MJ-REQ-008`.
+  - PR #676 (`ao/worker-a-mj-req004-bounded-ops`, commit `e4c059f2`): MERGED. Implemented monotonic budget capping, 5MB chunked payload limits, wall-clock transfer deadlines, in-flight cancellation watcher threads, and error classification across `remotive.py`, `remoteok.py`, `wwr.py`, and `greenhouse.py` for `MJ-REQ-004`.
+  - PR #677 (`ao/worker-c-mj-req292-e2e-workflow`, commit `464a773b`): MERGED. Implemented vertical slice (steps 23-31) of the 60-step workflow: unknown employer discovery flywheel, direct ATS identification, direct job enumeration, deduplication, and route planning for `MJ-REQ-292`.
+  - PR #674 (`ao/p0-primary-product-architecture`): Kept in DRAFT per user instruction (`MJ-REQ-010` remains `PARTIAL`).
+- Queue and Open PRs:
+  - Only 1 development PR open: PR #674 (DRAFT).
+  - 7 Dependabot PRs open.
+  - Capacity: 1/32 (OK).
+- Verification & Safety:
+  - All 15 required GitHub Actions checks passed on every single merged PR before integration.
+  - Local catalogue, progress validation, and dashboards CURRENT.
   - External employer application submission remains strictly OFF.
-  - No workstation configuration modified, zero process leaks.
+  - Workstation safeguards preserved.

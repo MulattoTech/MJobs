@@ -168,9 +168,10 @@
       "requirement_id": "MJ-REQ-010",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json",
+        "docs/evidence/2026-10-16-primary-product-architecture.json"
       ],
-      "note": "Deployed dashboard/API, PostgreSQL, durable RQ workers, company-board source, matching, factual documents and controlled browser mock path verified. Global sources, automatic company discovery, broad resolution/dedupe, AI and real ATS application branches remain",
+      "note": "Primary product architecture verification: Web Dashboard/FastAPI surface, Search Service pipeline (normalization, deduplication, scoring), and Profile/Doc Service truthful tailoring verified by tests/integration/test_primary_product_architecture.py (4 tests PASS) under SQLite. Whole-parent requirement remains PARTIAL pending live multi-service Compose PostgreSQL/Redis/RQ durable worker process isolation and global source breadth; issue #11 remains open.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
