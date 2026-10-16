@@ -602,7 +602,7 @@
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-011",
@@ -3446,8 +3446,8 @@
     }
   ],
   "summary": {
-    "PARTIAL": 107,
-    "PASS": 139,
+    "PARTIAL": 106,
+    "PASS": 140,
     "NOT_RUN": 179
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."

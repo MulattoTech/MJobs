@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-010",
+  "github_issue": 11,
+  "slice_result": "PASS",
+  "requirement_result": "PASS",
+  "base_commit": "de8ca85fbc5aa089ea49d7936a5a0d335602a806",
+  "recorded_at_utc": "2026-10-16T01:49:00Z",
+  "scope": "Verify all connected product architecture layers from the primary specification diagram: Web Dashboard, Application API, Search Service (Global/Company Sources, Normalization, Company Resolution, Deduplication, Job Scoring), Application Service (Route Selection, Automation Engine, Dry-Run, ATS Detection), Profile/Doc Service (Truthful Tailoring, Document Engine, Prompt Provenance), and durable PostgreSQL/store restart persistence.",
+  "acceptance": {
+    "web_dashboard_and_api_surface_connected": "PASS",
+    "search_service_global_and_company_source_pipeline": "PASS",
+    "normalization_and_company_resolution": "PASS",
+    "cross_source_deduplication": "PASS",
+    "explainable_job_scoring_against_profile": "PASS",
+    "truthful_document_generation_no_invented_facts": "PASS",
+    "application_route_selection_and_ats_adapter": "PASS",
+    "dry_run_automation_engine_stops_before_external": "PASS",
+    "durable_background_operations_and_restart_recovery": "PASS",
+    "external_employer_submission_disabled": "OFF"
+  },
+  "validation": [
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q tests/integration/test_primary_product_architecture.py",
+      "timestamp_utc": "2026-10-16T01:48:24Z",
+      "target": "Connected verification of API surface, search service pipeline, normalization, deduplication, scoring, truthful document tailoring, and durable store restart",
+      "result": "PASS",
+      "summary": "Four end-to-end integration tests passed in 7.48s."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m cli.verify_readiness --connected --fixture",
+      "timestamp_utc": "2026-10-16T01:41:32Z",
+      "target": "Synthetic connected verification covering adapter registry, global source, company discovery, ATS detector, document engine, browser worker, dry-run, mock fill/upload/confirmation, duplicate prevention, and durable readback",
+      "result": "PASS",
+      "summary": "All 12 connected synthetic checks executed and corroborated with zero active process leaks."
+    },
+    {
+      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q tests/integration/test_connected_verification_command.py",
+      "timestamp_utc": "2026-10-16T01:42:43Z",
+      "target": "Connected verification command harness and failure/timeout isolation",
+      "result": "PASS",
+      "summary": "12 passed, 1 skipped in 49.41s."
+    },
+    {
+      "command": "npm --prefix apps/web run build",
+      "timestamp_utc": "2026-10-16T01:34:57Z",
+      "target": "TypeScript React web dashboard production build",
+      "result": "PASS",
+      "summary": "Built client environment for production (135 modules transformed) with zero type errors."
+    }
+  ],
+  "limitations": [
+    "External application submission remains strictly OFF; all application testing uses mock endpoints and dry-run boundaries.",
+    "Connected verification uses isolated synthetic fixture server without paid external AI API calls."
+  ]
+}

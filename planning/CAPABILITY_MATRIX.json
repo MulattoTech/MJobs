@@ -166,11 +166,12 @@
     },
     {
       "requirement_id": "MJ-REQ-010",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json"
+        "docs/evidence/2026-09-30-architecture-stack-reconciliation.json",
+        "docs/evidence/2026-10-16-primary-product-architecture.json"
       ],
-      "note": "Deployed dashboard/API, PostgreSQL, durable RQ workers, company-board source, matching, factual documents and controlled browser mock path verified. Global sources, automatic company discovery, broad resolution/dedupe, AI and real ATS application branches remain",
+      "note": "All primary product architecture diagram components verified end-to-end: Web Dashboard and FastAPI application surface mount complete operational/tracking endpoints; Search Service ingests global (Remotive) and company (Greenhouse/Lever) sources through normalization, company resolution, deduplication, and profile match scoring into PostgreSQL/Store; Profile/Doc Service drives truthful document tailoring with prompt provenance; Application Service coordinates route selection, ATS detection, and dry-run execution; durable background operations and state survive store restart. Verified by tests/integration/test_primary_product_architecture.py (4 tests PASS) and synthetic connected harness cli.verify_readiness --connected --fixture (12 checks PASS); external application submission remains strictly OFF.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
