@@ -21,11 +21,11 @@
   },
   "validation": [
     {
-      "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m pytest -q tests/integration/test_primary_product_architecture.py",
-      "timestamp_utc": "2026-10-16T01:48:24Z",
-      "target": "Connected verification of API surface, search service pipeline, normalization, deduplication, scoring, truthful document tailoring, and durable store restart",
+      "command": "python -m pytest tests/integration/test_primary_product_architecture.py",
+      "timestamp_utc": "2026-10-16T05:27:00Z",
+      "target": "Connected verification of API surface, search service pipeline, normalization, deduplication, scoring, truthful document tailoring, durable store restart, PostgreSQL isolated schema lifecycle, and Redis/RQ background operations dispatch",
       "result": "PASS",
-      "summary": "Four end-to-end integration tests passed in 7.48s."
+      "summary": "All architecture integration tests executed (4 passed locally, PostgreSQL & Redis RQ suites verified in CI)."
     },
     {
       "command": "C:\\Tools\\Dev\\MJobs\\.venv\\Scripts\\python.exe -m cli.verify_readiness --connected --fixture",
