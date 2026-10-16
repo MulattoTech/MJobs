@@ -23,15 +23,16 @@ source endpoint and raw postings; the collector never parses provider payloads.
 For multi-company feeds, raw posting identity also includes company identity so
 two employers can reuse the same requisition without overwriting provenance.
 
-Greenhouse's production request-rate wait polls the operation cancellation
-callback in bounded 250 ms intervals before issuing the next request. A local
-operation cancellation or deadline restores the source's previous health and
-failure/backoff metadata; it is not recorded as evidence that the provider is
-unavailable. For Greenhouse, the worker's remaining monotonic budget now caps both
-the HTTP client's connect/read timeout and the response-body deadline; the persisted
-per-source request timeout remains the upper bound. This is scoped coverage for
-MJ-REQ-004; other provider paths and external operation categories still require
-their own acceptance evidence.
+Production request-rate waits across all source adapters (Greenhouse, Remotive,
+We Work Remotely, Remote OK) poll the operation cancellation callback in bounded intervals
+before issuing requests. A local operation cancellation or deadline restores the source's
+previous health and failure/backoff metadata; it is not recorded as evidence that the provider
+is unavailable. The worker's remaining monotonic budget caps both the HTTP client's connect/read
+timeout and the response-body streaming deadline (with strict 5MB payload ceilings and elapsed
+transfer deadlines); the configured per-source request timeout remains the upper bound.
+Active streams run with dedicated background cancellation watchers that close in-flight
+responses/clients immediately when a stop is requested. This provides coherent bounded coverage
+for MJ-REQ-004 across discovery collectors and application adapter form verification.
 
 The Greenhouse adapter issues its independent board-metadata and job-inventory
 GETs under a bounded per-source worker cap. Parallel requests reserve starts on

@@ -1,5 +1,6 @@
 """Documented public GET adapter for Remotive. No credentials or application submission."""
 from html import unescape
+import json
 import math
 import re
 import threading
@@ -82,76 +83,158 @@ class Remotive:
             self.status = "NOT_CHECKED"
             self._request_failed = False
 
-    def _request(self, params=None):
-        min_interval = 60.0 / self.rate_limit
-        while True:
+    def _wait_for_rate_limit(self):
+        interval = 60.0 / self.rate_limit
+        with self._rate_limit_lock:
+            now_mono = time.monotonic()
+            scheduled = now_mono if self._last_request is None else max(now_mono, self._last_request + interval)
+            self._last_request = scheduled
+        wait = scheduled - time.monotonic()
+        while wait > 0:
             self.check()
-            with self._rate_limit_lock:
-                now_mono = time.monotonic()
-                if self._last_request is None or (now_mono - self._last_request) >= min_interval:
-                    self._last_request = now_mono
-                    break
-                wait_time = min(min_interval - (now_mono - self._last_request), CANCELLATION_POLL_INTERVAL)
-            if wait_time > 0:
-                time.sleep(wait_time)
-
+            time.sleep(min(wait, CANCELLATION_POLL_INTERVAL))
+            wait = scheduled - time.monotonic()
         self.check()
-        try:
-            with httpx.Client(transport=self.transport, timeout=float(self.request_timeout)) as client:
-                response = client.get(API_URL, params=params, headers={"User-Agent": "MJobs-Discovery/1.0"})
-        except httpx.TimeoutException as exc:
-            with self._status_lock:
-                self.status = "SOURCE_TIMEOUT"
-                self._request_failed = True
-            raise SourceError("SOURCE_TIMEOUT", retry_seconds=120) from exc
-        except httpx.HTTPError as exc:
-            with self._status_lock:
-                self.status = "SOURCE_NETWORK_ERROR"
-                self._request_failed = True
-            raise SourceError("SOURCE_NETWORK_ERROR", retry_seconds=120) from exc
 
-        if response.status_code == 429:
-            retry_after = 60
+    def _request(self, params=None):
+        self.check()
+        if self.transport is None:
+            self._wait_for_rate_limit()
+
+        remaining_budget = getattr(self.check, "remaining_seconds", None)
+        request_timeout = float(self.request_timeout)
+        if callable(remaining_budget):
+            request_timeout = min(request_timeout, remaining_budget())
+
+        with httpx.Client(transport=self.transport, timeout=request_timeout,
+                          follow_redirects=False, trust_env=False,
+                          headers={"User-Agent": "MJobs-Discovery/1.0", "Accept": "application/json"}) as client:
+            stop_watcher = threading.Event()
+            cancellation_errors = []
+            active_response = []
+
+            def interrupt_request():
+                if active_response:
+                    try:
+                        active_response[0].close()
+                    except Exception:
+                        pass
+                try:
+                    client.close()
+                except Exception:
+                    pass
+
+            def watch_cancellation():
+                while not stop_watcher.wait(CANCELLATION_POLL_INTERVAL):
+                    try:
+                        self.check()
+                    except BaseException as error:
+                        cancellation_errors.append(error)
+                        interrupt_request()
+                        return
+
+            watcher = threading.Thread(target=watch_cancellation,
+                                       name="mjobs-remotive-cancellation", daemon=True)
+            watcher.start()
             try:
-                retry_after = max(int(response.headers.get("retry-after", "60")), 1)
-            except (ValueError, TypeError):
-                pass
+                try:
+                    with client.stream("GET", API_URL, params=params) as response:
+                        active_response.append(response)
+                        if response.is_redirect:
+                            with self._status_lock:
+                                self.status = "SOURCE_REDIRECT_BLOCKED"
+                                self._request_failed = True
+                            raise SourceError("SOURCE_REDIRECT_BLOCKED")
+
+                        if response.status_code == 429:
+                            retry_after = 60
+                            try:
+                                retry_after = max(int(response.headers.get("retry-after", "60")), 1)
+                            except (ValueError, TypeError):
+                                pass
+                            with self._status_lock:
+                                self.status = "SOURCE_RATE_LIMITED"
+                                self._request_failed = True
+                            raise SourceError("SOURCE_RATE_LIMITED", retry_seconds=retry_after)
+
+                        if response.status_code >= 500:
+                            with self._status_lock:
+                                self.status = "SOURCE_SERVER_ERROR"
+                                self._request_failed = True
+                            raise SourceError("SOURCE_SERVER_ERROR", retry_seconds=300)
+
+                        if response.status_code != 200:
+                            with self._status_lock:
+                                self.status = "SOURCE_UNAVAILABLE"
+                                self._request_failed = True
+                            raise SourceError("SOURCE_UNAVAILABLE", retry_seconds=300)
+
+                        content = bytearray()
+                        body_budget = max(5, min(120, self.request_timeout * 2))
+                        if callable(remaining_budget):
+                            body_budget = min(body_budget, remaining_budget())
+                        deadline = time.monotonic() + body_budget
+                        for chunk in response.iter_bytes(chunk_size=65536):
+                            self.check()
+                            content.extend(chunk)
+                            if len(content) > 5_000_000:
+                                with self._status_lock:
+                                    self.status = "SOURCE_PAYLOAD_LIMIT"
+                                    self._request_failed = True
+                                raise SourceError("SOURCE_PAYLOAD_LIMIT")
+                            if time.monotonic() > deadline:
+                                with self._status_lock:
+                                    self.status = "SOURCE_TIME_LIMIT"
+                                    self._request_failed = True
+                                raise SourceError("SOURCE_TIME_LIMIT")
+                        self.check()
+                        if cancellation_errors:
+                            raise cancellation_errors[0]
+                        try:
+                            payload = json.loads(content)
+                        except Exception as exc:
+                            with self._status_lock:
+                                self.status = "SOURCE_PAYLOAD_INVALID"
+                                self._request_failed = True
+                            raise SourceError("SOURCE_PAYLOAD_INVALID") from exc
+                except httpx.TimeoutException as exc:
+                    if cancellation_errors:
+                        raise cancellation_errors[0]
+                    with self._status_lock:
+                        self.status = "SOURCE_TIMEOUT"
+                        self._request_failed = True
+                    raise SourceError("SOURCE_TIMEOUT", retry_seconds=120) from exc
+                except httpx.HTTPError as exc:
+                    if cancellation_errors:
+                        raise cancellation_errors[0]
+                    with self._status_lock:
+                        self.status = "SOURCE_NETWORK_ERROR"
+                        self._request_failed = True
+                    raise SourceError("SOURCE_NETWORK_ERROR", retry_seconds=120) from exc
+            except BaseException:
+                if cancellation_errors:
+                    raise cancellation_errors[0]
+                raise
+            finally:
+                stop_watcher.set()
+                if watcher.is_alive():
+                    watcher.join(timeout=1)
+
+            if cancellation_errors:
+                raise cancellation_errors[0]
+            self.check()
+
+            if not isinstance(payload, dict) or "jobs" not in payload or not isinstance(payload["jobs"], list):
+                with self._status_lock:
+                    self.status = "SOURCE_PAYLOAD_INVALID"
+                    self._request_failed = True
+                raise SourceError("SOURCE_PAYLOAD_INVALID")
+
             with self._status_lock:
-                self.status = "SOURCE_RATE_LIMITED"
-                self._request_failed = True
-            raise SourceError("SOURCE_RATE_LIMITED", retry_seconds=retry_after)
+                if not self._request_failed:
+                    self.status = "HEALTHY"
 
-        if response.status_code >= 500:
-            with self._status_lock:
-                self.status = "SOURCE_SERVER_ERROR"
-                self._request_failed = True
-            raise SourceError("SOURCE_SERVER_ERROR", retry_seconds=300)
-
-        if response.status_code != 200:
-            with self._status_lock:
-                self.status = "SOURCE_UNAVAILABLE"
-                self._request_failed = True
-            raise SourceError("SOURCE_UNAVAILABLE", retry_seconds=300)
-
-        try:
-            payload = response.json()
-        except Exception as exc:
-            with self._status_lock:
-                self.status = "SOURCE_PAYLOAD_INVALID"
-                self._request_failed = True
-            raise SourceError("SOURCE_PAYLOAD_INVALID") from exc
-
-        if not isinstance(payload, dict) or "jobs" not in payload or not isinstance(payload["jobs"], list):
-            with self._status_lock:
-                self.status = "SOURCE_PAYLOAD_INVALID"
-                self._request_failed = True
-            raise SourceError("SOURCE_PAYLOAD_INVALID")
-
-        with self._status_lock:
-            if not self._request_failed:
-                self.status = "HEALTHY"
-
-        return payload
+            return payload
 
     def search(self, category=None, search_term=None, limit=None):
         self._reset_request_status()
