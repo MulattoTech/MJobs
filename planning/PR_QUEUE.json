@@ -5841,6 +5841,21 @@
       "pr_number": 653,
       "verified_source_head": "680e63cb09143c7a44c6582be6ad51e79ee33fa3",
       "scope_complete": true
+    },
+    {
+      "id": "MJ-PR-676",
+      "title": "[MJ-REQ-004] Bound External Operations across Source Collectors and Application Adapter",
+      "requirements": [
+        "MJ-REQ-004"
+      ],
+      "issue_ids": [
+        5
+      ],
+      "status": "OPEN",
+      "branch": "ao/worker-a-mj-req004-bounded-ops",
+      "depends_on": [],
+      "pr_number": 676,
+      "notes": "Bounded execution across Remotive, RemoteOK, and WeWorkRemotely source adapters as well as GreenhouseApplicationAdapter form verification and DOM analysis: dynamic monotonic budget capping, 5MB chunked payload limits, elapsed body transfer deadlines, in-flight cancellation watcher threads, non-poisoning health preservation, and locator timeout bounding."
     }
   ],
   "generated_at": "2026-10-15T01:46:08.317894+00:00"

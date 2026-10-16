@@ -82,15 +82,15 @@ class GreenhouseApplicationAdapter:
             "url": f"https://boards.greenhouse.io/{tenant}/jobs/{requisition}",
         }
 
-    def analyze_page(self, page) -> dict:
+    def analyze_page(self, page, *, check=None) -> dict:
         """Read one loaded form using the shared value-free DOM analyzer."""
-        return analyze_form_page(page)
+        return analyze_form_page(page, check=check)
 
     def validate_page(self, page, analysis=None, *, check=None) -> dict:
         """Check native form validity without reading or returning applicant values."""
         if check is not None:
             check()
-        current = self.analyze_page(page)
+        current = self.analyze_page(page, check=check)
         if analysis is not None and current != analysis:
             return {"status": "UNKNOWN", "reason": "FORM_CHANGED"}
         if self.requires_human_review(current):
@@ -155,7 +155,7 @@ class GreenhouseApplicationAdapter:
                 or parsed.username is not None or parsed.password is not None):
             raise ValueError("GREENHOUSE_FIXTURE_ORIGIN_REQUIRED")
 
-        current = self.analyze_page(page)
+        current = self.analyze_page(page, check=check)
         if current != analysis or self.requires_human_review(current):
             raise ValueError("GREENHOUSE_FORM_REQUIRES_HUMAN_REVIEW")
         validation = self.validate_page(page, current, check=check)

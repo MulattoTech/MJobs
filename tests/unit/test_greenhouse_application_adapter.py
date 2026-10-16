@@ -131,6 +131,72 @@ class GreenhouseApplicationAdapterTests(unittest.TestCase):
         with self.assertRaises(OperationCancelled):
             self.adapter.upload_mock_fixture_documents(None, None, None, check=check)
 
+    def test_analyze_page_observes_cancellation_immediately(self):
+        def check():
+            raise OperationCancelled("synthetic cancellation before DOM analysis")
+        with self.assertRaises(OperationCancelled):
+            self.adapter.analyze_page(None, check=check)
+
+    def test_analyze_page_bounds_eval_timeout_to_remaining_budget(self):
+        class MockForm:
+            def __init__(self):
+                self.calls = []
+
+            def evaluate(self, script, **kwargs):
+                self.calls.append(kwargs)
+                return [{"tag": "input", "name": "email", "input_type": "email", "labels": ["Email"], "options": []}]
+
+        class MockFormsLocator:
+            def __init__(self, form):
+                self.first = form
+
+            def count(self):
+                return 1
+
+        mock_form = MockForm()
+
+        class MockPage:
+            def locator(self, selector):
+                return MockFormsLocator(mock_form)
+
+        class BudgetCheck:
+            def __call__(self):
+                pass
+
+            def remaining_seconds(self):
+                return 4.2
+
+        result = self.adapter.analyze_page(MockPage(), check=BudgetCheck())
+        self.assertEqual(result["status"], "PASS")
+        self.assertEqual(len(mock_form.calls), 1)
+        self.assertEqual(mock_form.calls[0], {"timeout": 4200})
+
+    def test_analyze_page_re_raises_cancellation_on_dom_eval_failure(self):
+        cancelled = [False]
+
+        def check():
+            if cancelled[0]:
+                raise OperationCancelled("cancelled during DOM eval")
+
+        class FailingForm:
+            def evaluate(self, script, **kwargs):
+                cancelled[0] = True
+                raise RuntimeError("Evaluation error")
+
+        class MockFormsLocator:
+            def __init__(self):
+                self.first = FailingForm()
+
+            def count(self):
+                return 1
+
+        class MockPage:
+            def locator(self, selector):
+                return MockFormsLocator()
+
+        with self.assertRaises(OperationCancelled):
+            self.adapter.analyze_page(MockPage(), check=check)
+
 
 if __name__ == "__main__":
     unittest.main()
