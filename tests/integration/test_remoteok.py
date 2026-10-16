@@ -1,9 +1,12 @@
 """Integration and contract tests for the Remote OK global job-source adapter (MJ-REQ-017.S07)."""
 from pathlib import Path
 import tempfile
+import threading
+import time
 import unittest
 
 import httpx
+from workers.operations import OperationCancelled
 from sqlalchemy import select
 
 from packages.persistence import models as m
@@ -309,6 +312,84 @@ class RemoteOKTests(unittest.TestCase):
             self.assertEqual(norm["remote_type"], "REMOTE")
             self.assertEqual(norm["attributes"]["provider"], "remoteok")
             self.assertEqual(norm["attributes"]["lifecycle_claim"], "ACTIVE")
+
+    def test_payload_limit_rejected(self):
+        class LargeStream(httpx.SyncByteStream):
+            def __iter__(self):
+                for _ in range(80):
+                    yield b"x" * 65536
+
+        adapter = RemoteOK(transport=httpx.MockTransport(lambda _: httpx.Response(200, stream=LargeStream())))
+        with self.assertRaises(SourceError) as cm:
+            adapter.search()
+        self.assertEqual(cm.exception.code, "SOURCE_PAYLOAD_LIMIT")
+        self.assertEqual(adapter.health(), "SOURCE_PAYLOAD_LIMIT")
+
+    def test_budget_timeout_and_time_limit(self):
+        class SlowStream(httpx.SyncByteStream):
+            def __iter__(self):
+                yield b'[{"legal": "notice"}, '
+                time.sleep(0.1)
+                yield b']'
+
+        class BudgetCheck:
+            def __call__(self):
+                pass
+
+            def remaining_seconds(self):
+                return 0.05
+
+        adapter = RemoteOK(
+            transport=httpx.MockTransport(lambda _: httpx.Response(200, stream=SlowStream())),
+            check=BudgetCheck(),
+        )
+        with self.assertRaises(SourceError) as cm:
+            adapter.search()
+        self.assertEqual(cm.exception.code, "SOURCE_TIME_LIMIT")
+        self.assertEqual(adapter.health(), "SOURCE_TIME_LIMIT")
+
+    def test_cancellation_during_stream_preserves_error_and_source_health(self):
+        source_id = configure_source(self.store, "default", provider="remoteok")
+        cancelled = threading.Event()
+        stream_started = threading.Event()
+        release_stream = threading.Event()
+        cancellation = OperationCancelled("synthetic stream cancel")
+        errors = []
+
+        class StalledStream(httpx.SyncByteStream):
+            def __iter__(self):
+                stream_started.set()
+                release_stream.wait(timeout=2)
+                yield b'[{"legal": "notice"}]'
+
+            def close(self):
+                release_stream.set()
+
+        def check():
+            if cancelled.is_set():
+                raise cancellation
+
+        transport = httpx.MockTransport(lambda _: httpx.Response(200, stream=StalledStream()))
+
+        def collect():
+            try:
+                collect_source(self.store, source_id, "fixture", check=check, transport=transport)
+            except Exception as exc:
+                errors.append(exc)
+
+        thread = threading.Thread(target=collect)
+        thread.start()
+        self.assertTrue(stream_started.wait(timeout=1))
+        cancelled.set()
+        thread.join(timeout=0.5)
+        self.assertFalse(thread.is_alive())
+        self.assertEqual(errors, [cancellation])
+
+        with self.store.engine.connect() as conn:
+            source = conn.execute(select(m.job_sources).where(m.job_sources.c.id == source_id)).mappings().one()
+            self.assertEqual(source["health_status"], "NOT_CHECKED")
+            self.assertEqual(source["consecutive_failures"], 0)
+            self.assertIsNone(source["last_error"])
 
 
 if __name__ == "__main__":

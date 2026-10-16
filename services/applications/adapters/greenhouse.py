@@ -86,13 +86,22 @@ class GreenhouseApplicationAdapter:
         """Read one loaded form using the shared value-free DOM analyzer."""
         return analyze_form_page(page)
 
-    def validate_page(self, page, analysis=None) -> dict:
+    def validate_page(self, page, analysis=None, *, check=None) -> dict:
         """Check native form validity without reading or returning applicant values."""
+        if check is not None:
+            check()
         current = self.analyze_page(page)
         if analysis is not None and current != analysis:
             return {"status": "UNKNOWN", "reason": "FORM_CHANGED"}
         if self.requires_human_review(current):
             return {"status": "REVIEW_REQUIRED", "reason": "FORM_REQUIRES_HUMAN_REVIEW"}
+        if check is not None:
+            check()
+        timeout_kwargs = {}
+        if check is not None:
+            remaining = getattr(check, "remaining_seconds", None)
+            if callable(remaining):
+                timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
         try:
             validity = page.locator(
                 'form input:not([type="file"]), form select, form textarea'
@@ -100,11 +109,16 @@ class GreenhouseApplicationAdapter:
                 "nodes => nodes.map(node => ({"
                 "validates: Boolean(node.willValidate), "
                 "valid: Boolean(node.validity && node.validity.valid)"
-                "}))"
+                "}))",
+                **timeout_kwargs,
             )
         except Exception:
+            if check is not None:
+                check()
             # Browser failures can include page data; return only a fixed reason.
             return {"status": "UNKNOWN", "reason": "FORM_VALIDATION_UNAVAILABLE"}
+        if check is not None:
+            check()
         non_file_fields = [field for field in current["fields"]
                            if (field.get("input_type") or "").casefold() != "file"]
         if not isinstance(validity, list) or len(validity) != len(non_file_fields):
@@ -115,7 +129,7 @@ class GreenhouseApplicationAdapter:
             return {"status": "REVIEW_REQUIRED", "reason": "FORM_FIELDS_INVALID"}
         return {"status": "PASS", "reason": None}
 
-    def upload_mock_fixture_documents(self, page, analysis, snapshots):
+    def upload_mock_fixture_documents(self, page, analysis, snapshots, *, check=None):
         """Select verified resume and letter bytes only on a loopback fixture page.
 
         This helper never uploads to a public ATS. It rejects uncertain forms,
@@ -123,6 +137,8 @@ class GreenhouseApplicationAdapter:
         prepared resume/cover-letter contract. Selection is verified by reading
         the browser File objects back and hashing their exact bytes.
         """
+        if check is not None:
+            check()
         parsed = None
         try:
             parsed = urlsplit(page.url)
@@ -142,7 +158,7 @@ class GreenhouseApplicationAdapter:
         current = self.analyze_page(page)
         if current != analysis or self.requires_human_review(current):
             raise ValueError("GREENHOUSE_FORM_REQUIRES_HUMAN_REVIEW")
-        validation = self.validate_page(page, current)
+        validation = self.validate_page(page, current, check=check)
         if validation["status"] != "PASS":
             raise ValueError("GREENHOUSE_REQUIRED_FIELDS_INVALID")
         if not isinstance(snapshots, (list, tuple)) or len(snapshots) != 2:
@@ -163,6 +179,8 @@ class GreenhouseApplicationAdapter:
         if set(by_kind) != {"resume", "cover-letter"}:
             raise ValueError("GREENHOUSE_FIXTURE_DOCUMENT_SET_INVALID")
 
+        if check is not None:
+            check()
         fields = current["fields"]
         file_fields = [field for field in fields
                        if (field.get("input_type") or "").casefold() == "file"]
@@ -189,9 +207,13 @@ class GreenhouseApplicationAdapter:
 
         manifest = []
         for kind in ("resume", "cover-letter"):
+            if check is not None:
+                check()
             manifest.extend(attach_verified_files(
-                locator.nth(targets[kind]), [by_kind[kind]],
+                locator.nth(targets[kind]), [by_kind[kind]], check=check or (lambda: None),
             ))
+        if check is not None:
+            check()
         return manifest
 
     @staticmethod
