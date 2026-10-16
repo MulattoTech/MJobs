@@ -124,16 +124,22 @@ class BreezyApplicationAdapter:
     @staticmethod
     def _known_contact_prompt(field: Mapping) -> bool:
         labels = field.get("labels")
-        if isinstance(labels, list) and labels:
-            normalized = [re.sub(r"[^a-z0-9]+", " ", label.casefold()).strip()
-                          for label in labels if isinstance(label, str)]
-            return bool(normalized) and all(label in _CONTACT_PROMPTS for label in normalized)
-        for key in ("name", "id", "placeholder", "aria_label"):
+        if not isinstance(labels, list) or not labels:
+            return False
+
+        prompts = []
+        for label in labels:
+            if not isinstance(label, str) or not label.strip():
+                return False
+            prompts.append(label)
+        for key in ("placeholder", "aria_label"):
             value = field.get(key)
-            values = value if isinstance(value, list) else [value]
-            for item in values:
-                if isinstance(item, str):
-                    normalized = re.sub(r"[^a-z0-9]+", " ", item.casefold()).strip()
-                    if normalized in _CONTACT_PROMPTS:
-                        return True
-        return False
+            if value is not None:
+                if not isinstance(value, str):
+                    return False
+                if value.strip():
+                    prompts.append(value)
+
+        normalized = [re.sub(r"[^a-z0-9]+", " ", prompt.casefold()).strip()
+                      for prompt in prompts]
+        return bool(normalized) and all(prompt in _CONTACT_PROMPTS for prompt in normalized)

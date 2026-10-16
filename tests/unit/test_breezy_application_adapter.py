@@ -66,6 +66,26 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 }]}
                 self.assertTrue(self.adapter.requires_human_review(analysis))
 
+    def test_missing_or_conflicting_prompt_metadata_requires_review(self):
+        fields = (
+            {"tag": "input", "input_type": "text", "sensitivity": "STANDARD",
+             "ambiguous": False, "labels": [], "name": "first_name"},
+            {"tag": "input", "input_type": "text", "sensitivity": "STANDARD",
+             "ambiguous": False, "labels": [], "name": "first_name",
+             "placeholder": "Why do you want to work here?"},
+            {"tag": "input", "input_type": "email", "sensitivity": "STANDARD",
+             "ambiguous": False, "labels": [], "id": "email",
+             "aria_label": "Tell us about yourself"},
+            {"tag": "input", "input_type": "email", "sensitivity": "STANDARD",
+             "ambiguous": False, "labels": ["Email address"],
+             "placeholder": "Why do you want to work here?"},
+        )
+        for field in fields:
+            with self.subTest(field=field):
+                self.assertTrue(self.adapter.requires_human_review({
+                    "status": "PASS", "fields": [field],
+                }))
+
     def test_unknown_sensitive_ambiguous_and_unsupported_controls_fail_closed(self):
         analyses = (
             None,
