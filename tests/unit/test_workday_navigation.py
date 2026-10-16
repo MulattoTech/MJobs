@@ -46,6 +46,9 @@ class WorkdayNavigationTests(unittest.TestCase):
         after = classify_step(observation("apply", "My Experience", labels=["Resume"]))
         self.assertEqual(decide_transition(before, after, "NEXT")["decision"], "CONFIRMED")
         self.assertEqual(decide_transition(before, before, "NEXT")["decision"], "WAIT_FOR_OBSERVED_CHANGE")
+        self.assertEqual(decide_transition(
+            before, before, "NEXT", visited_fingerprints=[before["fingerprint"]]
+        )["decision"], "WAIT_FOR_OBSERVED_CHANGE")
         wrong_direction = decide_transition(after, before, "NEXT")
         self.assertEqual(wrong_direction["decision"], "MANUAL_REVIEW")
         self.assertEqual(wrong_direction["reason"], "DESTINATION_NOT_COHERENT")

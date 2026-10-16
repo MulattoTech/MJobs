@@ -148,10 +148,10 @@ def decide_transition(previous_observation: Mapping, current_observation: Mappin
             or any(not isinstance(item, str) or re.fullmatch(r"[0-9a-f]{64}", item) is None
                    for item in visited_fingerprints)):
         return _decision("MANUAL_REVIEW", "INVALID_VISITED_STATE")
-    if current_observation["fingerprint"] in visited_fingerprints:
-        return _decision("LOOP_DETECTED", "OBSERVED_PAGE_REPEATED")
     if current_observation["fingerprint"] == previous_observation["fingerprint"]:
         return _decision("WAIT_FOR_OBSERVED_CHANGE", "PAGE_HAS_NOT_CHANGED")
+    if current_observation["fingerprint"] in visited_fingerprints:
+        return _decision("LOOP_DETECTED", "OBSERVED_PAGE_REPEATED")
 
     old_index = _STEP_ORDER.index(previous_observation["step"])
     new_index = _STEP_ORDER.index(current_observation["step"])
