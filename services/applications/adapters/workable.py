@@ -28,6 +28,49 @@ _CHALLENGE_SELECTOR = (
     '[class*="turnstile" i], [id*="turnstile" i], '
     '[class*="cf-chl-" i], [id*="cf-chl-" i], [data-sitekey]'
 )
+_INTERACTIVE_INPUT_TYPES = {
+    "text", "email", "tel", "url", "search", "number", "date",
+    "datetime-local", "time", "month", "week", "checkbox", "radio", "password",
+}
+_CONTROL_INTERACTIVITY_SCRIPT = r"""nodes => nodes.map(node => {
+  const tag = node.tagName.toLowerCase();
+  const inputType = tag === 'input'
+    ? (node.getAttribute('type') || 'text').toLowerCase()
+    : null;
+  const normalized = value => {
+    if (value === null) return null;
+    const result = String(value).replace(/\s+/g, ' ').trim();
+    return result || null;
+  };
+  let visible = node.getClientRects().length > 0;
+  for (let ancestor = node; visible && ancestor; ancestor = ancestor.parentElement) {
+    const style = getComputedStyle(ancestor);
+    if (ancestor.hidden || ancestor.getAttribute('aria-hidden') === 'true'
+        || ancestor.getAttribute('aria-disabled') === 'true'
+        || style.display === 'none' || style.visibility === 'hidden'
+        || style.visibility === 'collapse' || style.contentVisibility === 'hidden'
+        || Number(style.opacity) === 0 || style.pointerEvents === 'none') {
+      visible = false;
+    }
+  }
+  const interactiveTypes = new Set([
+    'text', 'email', 'tel', 'url', 'search', 'number', 'date',
+    'datetime-local', 'time', 'month', 'week', 'checkbox', 'radio', 'password'
+  ]);
+  const interactive = tag === 'select' || tag === 'textarea'
+    || (tag === 'input' && interactiveTypes.has(inputType));
+  const editable = !node.matches(':disabled')
+    && !((tag === 'input' || tag === 'textarea') && node.readOnly);
+  return {
+    tag,
+    input_type: inputType,
+    name: normalized(node.getAttribute('name')),
+    id: normalized(node.getAttribute('id')),
+    visible,
+    editable,
+    interactive
+  };
+})"""
 
 
 class WorkableApplicationAdapter:
@@ -67,7 +110,46 @@ class WorkableApplicationAdapter:
             check()
         if challenge_count:
             return {"status": "UNKNOWN", "reason": "CHALLENGE_PROTECTED_FORM", "fields": []}
-        return analysis
+        if check is not None:
+            check()
+        try:
+            control_states = page.locator(
+                "form input, form select, form textarea"
+            ).evaluate_all(_CONTROL_INTERACTIVITY_SCRIPT)
+        except Exception:
+            if check is not None:
+                check()
+            return {"status": "UNKNOWN", "reason": "CONTROL_INTERACTIVITY_UNAVAILABLE", "fields": []}
+        if check is not None:
+            check()
+        fields = analysis.get("fields")
+        if not isinstance(fields, list) or not isinstance(control_states, list) \
+                or len(fields) != len(control_states):
+            return {"status": "UNKNOWN", "reason": "CONTROL_INTERACTIVITY_COUNT_CHANGED", "fields": []}
+        enriched_fields = []
+        for field, state in zip(fields, control_states):
+            if not isinstance(field, Mapping) or not isinstance(state, Mapping):
+                return {"status": "UNKNOWN", "reason": "CONTROL_INTERACTIVITY_METADATA_INVALID", "fields": []}
+            field_type = field.get("input_type")
+            if isinstance(field_type, str):
+                field_type = field_type.casefold()
+            identity = (
+                field.get("tag") == state.get("tag")
+                and field_type == state.get("input_type")
+                and field.get("name") == state.get("name")
+                and field.get("id") == state.get("id")
+            )
+            if not identity:
+                return {"status": "UNKNOWN", "reason": "FORM_CONTROL_METADATA_CHANGED", "fields": []}
+            if any(type(state.get(key)) is not bool
+                   for key in ("visible", "editable", "interactive")):
+                return {"status": "UNKNOWN", "reason": "CONTROL_INTERACTIVITY_METADATA_INVALID", "fields": []}
+            enriched = dict(field)
+            enriched.update({key: state[key] for key in ("visible", "editable", "interactive")})
+            enriched_fields.append(enriched)
+        result = dict(analysis)
+        result["fields"] = enriched_fields
+        return result
 
     def normalize_route(self, route: Mapping) -> dict | None:
         """Normalize an allowlisted Workable posting URL or reject it."""
@@ -127,7 +209,17 @@ class WorkableApplicationAdapter:
             if (not isinstance(field, Mapping)
                     or field.get("ambiguous") is not False
                     or field.get("sensitivity") != "STANDARD"
+                    or field.get("visible") is not True
+                    or field.get("editable") is not True
+                    or field.get("interactive") is not True
                     or not _known_contact_field(field)):
+                return True
+            tag = field.get("tag")
+            input_type = field.get("input_type")
+            if tag == "input":
+                if not isinstance(input_type, str) or input_type.casefold() not in _INTERACTIVE_INPUT_TYPES:
+                    return True
+            elif tag not in {"select", "textarea"} or input_type is not None:
                 return True
             metadata = " ".join(
                 value for key, value in field.items()
