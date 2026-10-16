@@ -108,6 +108,18 @@ class AshbyApplicationAdapterTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_VALUE", json.dumps(report))
         self.assertNotIn("Email address", json.dumps(report))
 
+    def test_unicode_casefold_alias_in_visible_label_requires_human_review(self):
+        markup = (
+            '<form><label for="email">email addreſs</label>'
+            '<input id="email" name="email" type="email"></form>'
+        )
+
+        report = self.adapter.analyze_form(markup, route_url=self.route)
+
+        self.assertEqual(report["status"], "REVIEW_REQUIRED")
+        self.assertEqual(report["fields"][0]["review_reason"], "UNKNOWN_QUESTION")
+        self.assertNotIn("email addreſs", json.dumps(report))
+
     def test_unknown_sensitive_challenge_and_malformed_forms_fail_closed(self):
         cases = [
             ('<form><label for="q">Describe your work authorization</label>'

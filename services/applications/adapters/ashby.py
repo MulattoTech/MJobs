@@ -43,9 +43,14 @@ def _known_contact_field(field) -> bool:
         return False
     labels = field.get("labels")
     if isinstance(labels, list) and labels:
+        visible_labels = [
+            label for label in labels if isinstance(label, str) and label.strip()
+        ]
+        if any(not label.isascii() for label in visible_labels):
+            return False
         visible = [
             re.sub(r"[^a-z0-9]+", " ", label.casefold()).strip()
-            for label in labels if isinstance(label, str) and label.strip()
+            for label in visible_labels
         ]
         return bool(visible) and all(label in _KNOWN_CONTACT_FIELDS for label in visible)
     if field.get("tag") == "textarea":
