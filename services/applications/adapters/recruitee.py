@@ -110,6 +110,10 @@ class RecruiteeApplicationAdapter(GreenhouseApplicationAdapter):
             "url": f"https://{tenant}.recruitee.com/o/{slug}",
         }
 
+    def upload_mock_fixture_documents(self, page, analysis, snapshots, *, check=None):
+        """Reject fixture upload because this provider adapter exposes no upload."""
+        raise ValueError("RECRUITEE_DOCUMENT_UPLOAD_UNSUPPORTED")
+
     @staticmethod
     def requires_human_review(analysis) -> bool:
         """Require review for unknown, sensitive, ambiguous, custom or challenge fields."""
