@@ -57,6 +57,11 @@ class RecruiteeApplicationAdapterTests(unittest.TestCase):
             "submission": False,
         })
 
+    def test_fixture_upload_is_unavailable_even_on_the_inherited_interface(self):
+        with self.assertRaisesRegex(
+                ValueError, "^RECRUITEE_DOCUMENT_UPLOAD_UNSUPPORTED$"):
+            self.adapter.upload_mock_fixture_documents(None, None, None)
+
     def test_known_standard_contact_fields_pass_review_gate(self):
         analysis = {"status": "PASS", "fields": [
             {"tag": "input", "name": "first_name", "labels": ["First Name"],
