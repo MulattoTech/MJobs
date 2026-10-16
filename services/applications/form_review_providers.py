@@ -8,6 +8,7 @@ from services.applications.adapters.greenhouse import GreenhouseApplicationAdapt
 from services.applications.adapters.lever import (
     LeverApplicationAdapter, _known_contact_field,
 )
+from services.applications.adapters.recruitee import RecruiteeApplicationAdapter
 from services.applications.adapters.workday import WorkdayApplicationAdapter
 from services.applications.adapters.lever_markup import analyze_lever_markup
 from services.applications.form_review import analyze_form_html
@@ -16,6 +17,7 @@ from services.applications.form_review import analyze_form_html
 _ADAPTERS = {
     "greenhouse": GreenhouseApplicationAdapter,
     "lever": LeverApplicationAdapter,
+    "recruitee": RecruiteeApplicationAdapter,
     "workday": WorkdayApplicationAdapter,
 }
 _SAFE_IDENTIFIER = re.compile(r"[a-zA-Z0-9_][a-zA-Z0-9_.:\-\[\]]{0,99}\Z")
