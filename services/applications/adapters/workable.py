@@ -77,6 +77,22 @@ _CONTROL_INTERACTIVITY_SCRIPT = r"""nodes => nodes.map(node => {
       }
     }
   }
+  if (visible) {
+    const samplePoints = [0.25, 0.5, 0.75];
+    for (const xFraction of samplePoints) {
+      for (const yFraction of samplePoints) {
+        const hit = document.elementFromPoint(
+          rect.left + rect.width * xFraction,
+          rect.top + rect.height * yFraction
+        );
+        if (!hit || (hit !== node && !node.contains(hit))) {
+          visible = false;
+          break;
+        }
+      }
+      if (!visible) break;
+    }
+  }
   const interactiveTypes = new Set([
     'text', 'email', 'tel', 'url', 'search', 'number', 'date',
     'datetime-local', 'time', 'month', 'week', 'checkbox', 'radio', 'password'
