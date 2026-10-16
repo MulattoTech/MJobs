@@ -70,6 +70,39 @@ class SmartRecruitersApplicationAdapterTests(unittest.TestCase):
             {"sensitivity": "STANDARD", "ambiguous": False},
         ]}))
 
+    def test_datadome_marker_blocks_an_otherwise_standard_email_form(self):
+        class Form:
+            def evaluate(self, script, **kwargs):
+                return [{"tag": "input", "name": "email", "input_type": "email"}]
+
+        class FormCollection:
+            first = Form()
+
+            def count(self):
+                return 1
+
+        class Locator:
+            def __init__(self, count):
+                self._count = count
+
+            def count(self):
+                return self._count
+
+        class Page:
+            url = "https://jobs.smartrecruiters.com/example/743999123456789-role"
+
+            def locator(self, selector):
+                if selector == "form":
+                    return FormCollection()
+                return Locator(1 if "[data-datadome]" in selector else 0)
+
+        page = Page()
+        result = self.adapter.analyze_page(page)
+
+        self.assertEqual(result["status"], "UNKNOWN")
+        self.assertEqual(result["reason"], "CHALLENGE_PROTECTED_FORM")
+        self.assertTrue(self.adapter.requires_human_review(result))
+
     @patch("services.applications.adapters.smartrecruiters.analyze_form_page")
     def test_analyzes_only_allowlisted_origin_and_detects_challenge_markers(self, analyze):
         class Locator:

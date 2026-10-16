@@ -18,9 +18,14 @@ _TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I)
 _JOB_PATH = re.compile(r"([0-9]{8,20})(?:-([a-z0-9][a-z0-9_-]{0,159}))?\Z", re.I)
 _CHALLENGE_SELECTOR = (
     'iframe[src*="captcha" i], iframe[src*="challenges.cloudflare.com" i], '
+    'iframe[src*="arkoselabs.com" i], iframe[src*="funcaptcha" i], '
     '[class*="captcha" i], [id*="captcha" i], [name*="captcha" i], [data-sitekey], '
     '[class*="hcaptcha" i], [id*="hcaptcha" i], '
-    '[class*="turnstile" i], [id*="turnstile" i]'
+    '[class*="turnstile" i], [id*="turnstile" i], '
+    '[data-datadome], [class*="datadome" i], [id*="datadome" i], '
+    '[id*="geetest" i], [class*="geetest" i], '
+    '[id*="arkose-container" i], [class*="arkose-container" i], '
+    '[id*="cf-chl-" i], [class*="cf-chl-" i], [data-cf-chl]'
 )
 
 
