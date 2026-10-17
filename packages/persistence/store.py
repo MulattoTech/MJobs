@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -55,6 +55,28 @@ class Store:
             @event.listens_for(self.engine, "connect")
             def foreign_keys(dbapi_connection, _):
                 dbapi_connection.execute("PRAGMA foreign_keys=ON")
+
+    @contextmanager
+    def read_snapshot(self):
+        """Yield an owned consistent read connection, rolled back on every exit.
+
+        Nested scopes acquire independent snapshots rather than joining a caller's
+        transaction. SQLite pools sharing an already active DBAPI transaction
+        are rejected before any SQL; no caller-owned transaction is ended here.
+        PostgreSQL isolation is set only on this checkout and reset by the pool.
+        """
+        with self.engine.connect() as connection:
+            if connection.dialect.name == "sqlite":
+                # In-memory pools may share a DBAPI connection with another
+                # scope. Never begin or roll back that scope's transaction.
+                if connection.connection.driver_connection.in_transaction:
+                    raise RuntimeError("Snapshot requires an independent SQLite connection")
+                connection.exec_driver_sql("BEGIN")
+            elif connection.dialect.name == "postgresql":
+                connection = connection.execution_options(isolation_level="REPEATABLE READ")
+            else:
+                raise ValueError("Unsupported persistence backend")
+            yield connection
 
     def migrate(self):
         """Test-only schema setup; deployment uses versioned Alembic migrations."""
