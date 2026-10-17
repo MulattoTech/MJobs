@@ -22,6 +22,8 @@ ROUTES = (
     ("teamtailor", "https://acme.teamtailor.com/jobs/123-job", {}),
     ("bamboohr", "https://acme.bamboohr.com/careers/123", {}),
     ("generic_html", "https://careers.example.test/job/123", {}),
+    ("breezy", "https://acme.breezy.hr/p/389eb1b8c3ef-job",
+     {"tenant": "acme", "requisition": "389eb1b8c3ef"}),
 )
 EXPECTED_PROVIDERS = tuple(provider for provider, _, _ in ROUTES)
 
@@ -65,6 +67,7 @@ def test_registry_capabilities_do_not_claim_submission_or_real_upload(provider, 
     ("workable", True),
     ("teamtailor", True),
     ("workday", True),
+    ("breezy", True),
     ("bamboohr", False),
     ("generic_html", False),
 ])
