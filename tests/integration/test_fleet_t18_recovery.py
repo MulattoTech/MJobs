@@ -11,72 +11,75 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from apps.api.data_export import create_data_export_router
+from apps.api.main import create_app
 from apps.api.profile_restore import create_profile_restore_router
 from fixtures.mock_server import fixture_server
-from packages.persistence.store import ProfileVersionConflict, Store
+from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
 
 
 class FleetT18RecoveryTests(unittest.TestCase):
-    def test_stale_first_profile_creation_cannot_overwrite_committed_creator(self):
+    def test_concurrent_public_profile_create_rejects_stale_creator_and_preserves_winner(self):
         with tempfile.TemporaryDirectory(prefix="mjobs-fleet-t18-race-") as directory:
-            store = Store(f"sqlite:///{(Path(directory) / 'race.db').as_posix()}")
+            database_url = f"sqlite:///{(Path(directory) / 'race.db').as_posix()}"
+            store = Store(database_url)
+            competing_store = Store(database_url)
             try:
                 store.migrate()
                 store.bind_workspace_mode("FIXTURE")
-                delayed_profile = copy.deepcopy(PROFILE)
-                delayed_profile.update(id="t18-race", name="Delayed Creator", email="delayed@example.test")
+                request_profile = copy.deepcopy(PROFILE)
+                request_profile.update(id="t18-race", name="Delayed Creator", email="delayed@example.test")
                 winner_profile = copy.deepcopy(PROFILE)
                 winner_profile.update(id="t18-race", name="Committed Winner", email="winner@example.test")
 
                 delayed_at_insert = threading.Event()
                 release_delayed = threading.Event()
                 original_begin = store.engine.begin
-                outcomes = []
+                original_save = store.save_profile
+                request_save = threading.local()
 
                 def gate_delayed_creator():
-                    if threading.current_thread().name == "t18-delayed-creator":
+                    if getattr(request_save, "active", False):
+                        request_save.active = False
                         delayed_at_insert.set()
                         if not release_delayed.wait(timeout=5):
                             raise TimeoutError("timed out waiting for the competing creator")
                     return original_begin()
 
-                def delayed_save():
-                    try:
-                        outcomes.append(store.save_profile(delayed_profile))
-                    except Exception as error:  # captured for assertion on the main test thread
-                        outcomes.append(error)
+                def mark_api_save(*args, **kwargs):
+                    request_save.active = True
+                    return original_save(*args, **kwargs)
 
-                with patch.object(store.engine, "begin", side_effect=gate_delayed_creator):
-                    worker = threading.Thread(target=delayed_save, name="t18-delayed-creator")
-                    worker.start()
-                    self.assertTrue(delayed_at_insert.wait(timeout=5), "delayed creator did not reach insert")
-                    winner_version = store.save_profile(winner_profile)
-                    release_delayed.set()
-                    worker.join(timeout=5)
-                    self.assertFalse(worker.is_alive(), "delayed creator remained blocked")
+                app = create_app(store, "http://127.0.0.1:8090", Path(directory),
+                                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+                with TestClient(app) as client:
+                    response_holder = []
 
-                self.assertEqual(len(outcomes), 1)
-                self.assertIsInstance(outcomes[0], ProfileVersionConflict)
-                reopened = Store(store.engine.url)
-                try:
-                    actual = reopened.profile("t18-race")
-                    self.assertEqual(actual["name"], "Committed Winner")
-                    self.assertEqual(actual["email"], "winner@example.test")
-                    self.assertEqual(actual["version"], winner_version)
-                    from packages.persistence import models as m
-                    from sqlalchemy import select
+                    def create_from_api():
+                        response_holder.append(client.put("/profiles", json=request_profile))
 
-                    with reopened.engine.connect() as connection:
-                        versions = connection.execute(select(m.profile_versions.c.id).where(
-                            m.profile_versions.c.profile_id == "t18-race"
-                        )).all()
-                    self.assertEqual(len(versions), 1)
-                finally:
-                    reopened.engine.dispose()
+                    with (patch.object(store.engine, "begin", side_effect=gate_delayed_creator),
+                          patch.object(store, "save_profile", side_effect=mark_api_save)):
+                        worker = threading.Thread(target=create_from_api, name="t18-delayed-api-create")
+                        worker.start()
+                        self.assertTrue(delayed_at_insert.wait(timeout=5), "API create did not reach insert")
+                        winner_version = competing_store.save_profile(winner_profile)
+                        release_delayed.set()
+                        worker.join(timeout=5)
+                        self.assertFalse(worker.is_alive(), "delayed API request remained blocked")
+
+                    self.assertEqual(len(response_holder), 1)
+                    self.assertEqual(response_holder[0].status_code, 409, response_holder[0].text)
+                    actual = client.get("/profiles/t18-race")
+                    self.assertEqual(actual.status_code, 200, actual.text)
+                    self.assertEqual(actual.json()["name"], "Committed Winner")
+                    self.assertEqual(actual.json()["email"], "winner@example.test")
+                    self.assertEqual(actual.json()["version"], winner_version)
             finally:
+                release_delayed.set()
+                competing_store.engine.dispose()
                 store.engine.dispose()
 
     def test_public_backup_survives_interrupted_restore_retry_and_database_reopen(self):
