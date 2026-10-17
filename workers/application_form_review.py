@@ -90,6 +90,15 @@ def _existing_result(connection, application_id, operation_id, request_id,
                 or payload.get("input_fingerprint") != input_fingerprint
                 or not isinstance(payload.get("analysis"), dict)):
             raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
+        frozen = connection.execute(select(m.operations.c.params).where(
+            m.operations.c.id == operation_id,
+            m.operations.c.kind == _KIND,
+            m.operations.c.entity_id == application_id,
+        )).scalar_one_or_none()
+        if (not isinstance(frozen, dict)
+                or any(payload.get(key) != frozen.get(key)
+                       for key in ("profile_id", "route_id", "provider"))):
+            raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
         analysis = _safe_report(payload["analysis"])
         return {
             "operation_id": operation_id,

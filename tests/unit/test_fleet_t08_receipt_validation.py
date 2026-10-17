@@ -93,3 +93,18 @@ def test_recovery_receipt_probe_accepts_only_valid_saved_result(review, corrupt)
             connection.execute(update(m.audit).where(m.audit.c.id == event["id"]).values(payload=payload))
     with review.store.engine.connect() as connection:
         assert worker.form_review_saved(connection, operation) is (not corrupt)
+
+
+@pytest.mark.parametrize("key", ["profile_id", "route_id", "provider"])
+def test_replay_rejects_receipt_from_wrong_frozen_scope(review, key):
+    operation = review.make_operation()
+    service, _ = review.with_analysis_service()
+    with service:
+        handle_form_review(review.store, operation, fetch_html=lambda _: "<form/>", check=lambda: None)
+    receipt = review.audit_events(operation["id"])[0]
+    payload = receipt["payload"]
+    payload[key] = "wrong-synthetic-scope"
+    with review.store.engine.begin() as connection:
+        connection.execute(update(m.audit).where(m.audit.c.id == receipt["id"]).values(payload=payload))
+    with pytest.raises(FormReviewError, match="FORM_REVIEW_IDEMPOTENCY_CONFLICT"):
+        handle_form_review(review.store, operation, fetch_html=lambda _: pytest.fail("must not fetch"), check=lambda: None)
