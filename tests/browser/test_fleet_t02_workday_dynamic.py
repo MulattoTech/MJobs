@@ -49,11 +49,11 @@ class FleetT02WorkdayDynamicDOMTests(unittest.TestCase):
                 adapter = WorkdayApplicationAdapter()
                 initial = adapter.analyze_page(page)
                 first = project_workday_dynamic_review(initial)
-                self.assertIsNotNone(first)
+                self.assertIsNotNone(first, f"Initial observation: {initial.get('status')} / {initial.get('reason')}")
                 page.locator("#country").select_option(label="Canada")
                 conditional = adapter.analyze_page(page)
                 second = project_workday_dynamic_review(conditional)
-                self.assertIsNotNone(second)
+                self.assertIsNotNone(second, f"Conditional observation: {conditional.get('status')} / {conditional.get('reason')}")
                 self.assertNotEqual(first["fingerprint"], second["fingerprint"])
                 self.assertEqual(adapter.validate_page(page, initial).get("reason"), "FORM_CHANGED")
                 fields = {field["id"]: field for field in second["fields"]}
