@@ -161,6 +161,76 @@ def test_midphase_cancellation_returns_none_without_replacing_primary_error(tmp_
     assert not (root / ("d" * 32)).exists()
 
 
+def test_initial_one_shot_cancellation_is_terminal(tmp_path):
+    root = tmp_path / "initial-one-shot-cancel"
+    page = _Page()
+
+    class CancelOnce:
+        calls = 0
+
+        def __call__(self):
+            self.calls += 1
+            if self.calls == 1:
+                raise OperationCancelled("initial cancellation")
+
+        def remaining_seconds(self):
+            return 1.5
+
+    check = CancelOnce()
+    result = _capture(page, root, "7" * 32, RuntimeError("primary failure"), check)
+
+    assert result is None
+    assert check.calls == 1
+    assert page.locators == []
+    assert page.screenshots == []
+    assert not root.exists()
+
+
+def test_post_screenshot_one_shot_cancellation_is_not_screenshot_failure(
+        tmp_path, monkeypatch):
+    root = tmp_path / "post-screenshot-one-shot-cancel"
+    page = _Page()
+    primary = ValueError("original primary browser error")
+
+    class CancelAfterScreenshot:
+        def __init__(self):
+            self.calls = 0
+            self.cancel_next = False
+
+        def __call__(self):
+            self.calls += 1
+            if self.cancel_next:
+                self.cancel_next = False
+                raise OperationCancelled("post-screenshot cancellation")
+
+        def remaining_seconds(self):
+            return 1.5
+
+    check = CancelAfterScreenshot()
+    written = []
+
+    def write_masked_screenshot(_page, path, **_kwargs):
+        path.write_bytes(b"synthetic-masked-png")
+        written.append(path)
+        check.cancel_next = True
+
+    monkeypatch.setattr(
+        "services.applications.debug_capture.capture_redacted_screenshot",
+        write_masked_screenshot,
+    )
+    original_args = primary.args
+
+    result = _capture(page, root, "8" * 32, primary, check)
+
+    assert result is None
+    assert len(written) == 1
+    assert check.calls == 3  # initial, before screenshot, and after screenshot
+    assert primary.args == original_args
+    assert primary.args == ("original primary browser error",)
+    assert not (root / ("8" * 32) / "metadata.json").exists()
+    assert page.evaluate_calls == 0
+
+
 def test_omitted_dom_primary_error_metadata_and_healthy_next_capture_readback(tmp_path):
     root = tmp_path / "readback"
     primary = ValueError("ORIGINAL_BROWSER_FAILURE")
