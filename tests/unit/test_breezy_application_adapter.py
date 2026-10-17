@@ -6,6 +6,7 @@ from unittest.mock import patch
 from services.applications.adapters.breezy import (
     BreezyApplicationAdapter,
     _CONTACT_PROMPTS,
+    _CONTROL_STATE_SCRIPT,
     _SAFE_LABEL_METADATA_SCRIPT,
 )
 
@@ -416,8 +417,34 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     '<input class="field" id="email" type="email">'
                     '<div class="cover"></div></form>'
                 )
+                covered_label_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    covered_label_projection[0]["rendered_labels"],
+                    [{"canonical_label": None, "has_text": False, "visible": False}],
+                )
+                covered_label_state = page.locator("form").locator(
+                    "input, select, textarea"
+                ).evaluate_all(_CONTROL_STATE_SCRIPT)
+                self.assertIs(covered_label_state[0]["user_visible"], True)
+                self.assertIs(covered_label_state[0]["user_editable"], True)
+                self.assertEqual(
+                    page.evaluate(
+                        """() => {
+                          const rect = document.querySelector('label').getBoundingClientRect();
+                          const target = document.elementFromPoint(
+                            rect.left + rect.width / 2, rect.top + rect.height / 2
+                          );
+                          return target && target.className;
+                        }"""
+                    ),
+                    "cover",
+                )
                 covered_label = self.adapter.analyze_page(page)
                 self.assertEqual(covered_label["status"], "UNKNOWN")
+                self.assertEqual(covered_label["reason"], "NO_VISIBLE_ASSOCIATED_LABEL")
+                self.assertEqual(covered_label["fields"], [])
                 self.assertTrue(self.adapter.requires_human_review(covered_label))
                 page.set_content(
                     '<style>form{position:relative;height:100px}.prompt{position:absolute;'
