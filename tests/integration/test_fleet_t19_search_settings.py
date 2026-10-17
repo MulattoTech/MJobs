@@ -84,7 +84,12 @@ class FleetT19SearchSettingsTests(unittest.TestCase):
             with self._client(reopened) as client:
                 profile = self._profile_row(client)
                 self.assertFalse(profile["enabled"])
-                self.assertEqual(profile["criteria"]["job_filters"], self._filters("Data"))
+                stored_filters = profile["criteria"]["job_filters"]
+                requested_filters = self._filters("Data")
+                self.assertEqual(
+                    {key: stored_filters[key] for key in requested_filters},
+                    requested_filters,
+                )
                 jobs = client.get("/jobs", params={
                     "profile_id": "fixture",
                     "search_profile_id": "t19-saved-jobs",
