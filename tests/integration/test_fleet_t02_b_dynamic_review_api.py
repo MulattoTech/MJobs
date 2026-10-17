@@ -33,6 +33,16 @@ def envelope(question_fingerprint="1" * 64):
     return {**body, "fingerprint": fingerprint}
 
 
+def base_field_projection(dynamic_review):
+    return [{
+        "id": item["id"],
+        "name": item["name"],
+        "type": item["type"],
+        "required": item["required"],
+        "review_reason": "UNKNOWN_QUESTION",
+    } for item in dynamic_review["fields"]]
+
+
 class FleetT02BDynamicReviewApiTests(unittest.TestCase):
     def _client(self):
         return DynamicApplicationFieldsApiTests._client(self)
@@ -76,12 +86,15 @@ class FleetT02BDynamicReviewApiTests(unittest.TestCase):
             if state == "COMPLETED":
                 receipt = {
                     "operation_id": operation_id,
+                    "profile_id": params["profile_id"],
+                    "route_id": params["route_id"],
+                    "provider": params["provider"],
                     "request_id": receipt_request_id or request_id,
                     "input_fingerprint": receipt_input_fingerprint or params["input_fingerprint"],
                     "analysis": analysis or {
                         "status": "REVIEW_REQUIRED",
                         "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
-                        "fields": [],
+                        "fields": base_field_projection(dynamic_review),
                         "dynamic_review": dynamic_review,
                     },
                 }
@@ -147,7 +160,10 @@ class FleetT02BDynamicReviewApiTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             connection.execute(update(m.routes).where(
                 m.routes.c.id == self.store.application(self.application_id)["route_id"],
-            ).values(url="https://fixture.wd5.myworkdayjobs.com/en-US/Careers/job/Other_R124"))
+            ).values(
+                url="https://fixture.wd5.myworkdayjobs.com/en-US/Careers/job/Other_R124",
+                requisition="R124",
+            ))
         route_stale = self.client.get(self.url, params={
             "expected_fingerprint": first["fingerprint"],
         })
@@ -170,7 +186,10 @@ class FleetT02BDynamicReviewApiTests(unittest.TestCase):
             ("duplicate", {"duplicate_receipt": True}),
             ("envelope", {"analysis": {
                 "status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
-                "fields": [], "dynamic_review": {"PRIVATE_RECEIPT_CANARY": "secret"},
+                "fields": base_field_projection(envelope()),
+                "dynamic_review": {
+                    **envelope(), "PRIVATE_RECEIPT_CANARY": "secret",
+                },
             }}),
         ):
             with self.subTest(receipt=suffix):
