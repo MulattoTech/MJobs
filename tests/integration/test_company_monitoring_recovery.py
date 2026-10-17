@@ -155,6 +155,14 @@ class CompanyMonitoringRecoveryTests(unittest.TestCase):
                 return execute_operation(operation_id)
 
 
+    @unittest.skipUnless(os.environ.get("MJOBS_RUN_COMPANY_MONITORING_STACK") == "1",
+                         "STK01 requires frozen static audit and explicit disposable-stack resource grant")
+    def test_owned_stack_restart_preserves_data_and_resumes_company_monitoring(self):
+        from fixtures.company_monitoring_stack import run_stack
+        result = run_stack(Path(os.environ["MJOBS_STK01_ARTIFACTS"]))
+        self.assertEqual(result["result"], "PASS")
+        self.assertTrue(all(not ids for ids in result["residual_resources"].values()))
+
     def test_company_monitoring_resumes_across_fresh_scheduler_and_refresh_workers(self):
         """A scheduler-process restart, not a full-stack/container restart."""
         from apps.api.main import create_app

@@ -1,0 +1,134 @@
+"""Fail-closed guards for the opt-in synthetic company-monitoring stack."""
+import copy
+import io
+import json
+import tarfile
+from pathlib import Path
+import time
+import unittest
+from unittest.mock import patch
+
+from fixtures.company_monitoring_stack import (
+    FixtureError, IMAGE_PINS, origin_path, remaining, resource_owned,
+    validate_configuration, validate_fixture_mode, source_files,
+)
+
+PROJECT = 'mjobs-fixture-012345abcdef'
+
+
+class CompanyMonitoringStackGuardTests(unittest.TestCase):
+    def test_only_exact_synthetic_origin_and_known_paths_are_transportable(self):
+        self.assertEqual(origin_path('https://employer.example/jobs/one'), '/jobs/one')
+        for url in ['http://employer.example/jobs/one', 'https://other.example/jobs/one',
+                    'https://employer.example:443/jobs/one', 'https://user@employer.example/jobs/one',
+                    'https://employer.example/jobs/one?q=secret', 'https://employer.example/jobs/one#x',
+                    'https://employer.example/jobs/one?', 'https://employer.example/jobs/one#',
+                    'https://employer.example/%2e%2e/private', 'https://127.0.0.1/jobs/one']:
+            with self.subTest(url=url), self.assertRaises(FixtureError):
+                origin_path(url)
+
+    def test_deadline_keeps_cleanup_reserve_and_never_increases_command_bound(self):
+        self.assertEqual(remaining(200, now=100, reserve=30, ceiling=15), 15)
+        self.assertEqual(remaining(150, now=100, reserve=30, ceiling=90), 20)
+        for deadline in [99, 100, 129, float('nan'), float('inf')]:
+            with self.subTest(deadline=deadline), self.assertRaises(FixtureError):
+                remaining(deadline, now=100, reserve=30)
+
+    def test_fixture_mode_requires_personal_synthetic_gate_and_project(self):
+        env = {'MJOBS_STK01_ENABLE': '1', 'MJOBS_STK01_PROJECT': PROJECT,
+               'MJOBS_OPERATION_MODE': 'PERSONAL', 'MJOBS_COMPOSE_MOCK': '0'}
+        validate_fixture_mode(env)
+        for key, value in [('MJOBS_STK01_ENABLE', '0'), ('MJOBS_STK01_PROJECT', 'mjobs-personal'),
+                           ('MJOBS_OPERATION_MODE', 'FIXTURE'), ('MJOBS_COMPOSE_MOCK', '1')]:
+            with self.subTest(key=key), self.assertRaises(FixtureError):
+                validate_fixture_mode(dict(env, **{key: value}))
+
+    def test_resource_ownership_rejects_missing_or_foreign_labels(self):
+        labels = {'ao.session': 'mjobs-85', 'ao.run': PROJECT,
+                  'com.docker.compose.project': PROJECT}
+        resource_owned(labels, PROJECT)
+        for key in labels:
+            bad = dict(labels); bad[key] = 'foreign'
+            with self.subTest(key=key), self.assertRaises(FixtureError):
+                resource_owned(bad, PROJECT)
+
+    def test_source_manifest_is_committed_content_not_ambient_files(self):
+        files = source_files(Path(__file__).resolve().parents[2])
+        self.assertIn('services/company_discovery/monitoring.py', files)
+        self.assertFalse(any('.env' == Path(name).name or name.startswith('.git/') for name in files))
+        self.assertTrue(all(len(value) == 64 for value in files.values()))
+
+    def test_source_archive_rejects_traversal_symlinks_and_ambient_env(self):
+        for name, symbolic in [('../outside', False), ('.env', False), ('safe-link', True)]:
+            stream = io.BytesIO()
+            with tarfile.open(fileobj=stream, mode='w') as archive:
+                entry = tarfile.TarInfo(name)
+                if symbolic:
+                    entry.type = tarfile.SYMTYPE
+                    entry.linkname = '/private'
+                archive.addfile(entry)
+            with self.subTest(name=name), patch('fixtures.company_monitoring_stack.subprocess.check_output',
+                    return_value=stream.getvalue()), self.assertRaises(FixtureError):
+                source_files(Path.cwd())
+
+    def test_foreign_resource_prevents_cleanup_down_command(self):
+        from fixtures.company_monitoring_stack import cleanup_stack
+        calls = []
+        def command(args, **kwargs):
+            calls.append(args)
+            if args[:2] == ['docker', 'ps']:
+                return 'foreign-container'
+            if args[:2] == ['docker', 'inspect']:
+                return json.dumps([{'Config': {'Labels': {'ao.session': 'someone-else'}}}])
+            self.fail('No teardown command may follow a failed ownership check')
+        with patch('fixtures.company_monitoring_stack.recovery._run_bounded', side_effect=command), \
+                self.assertRaises(FixtureError):
+            cleanup_stack(PROJECT, 23456, (), time.monotonic()+60)
+        self.assertFalse(any('down' in call for call in calls))
+
+    def config(self):
+        labels = {'ao.session': 'mjobs-85', 'ao.run': PROJECT}
+        services = {}
+        from cli.compose_recovery import RECOVERY_RESTART_SERVICES
+        for name in (*RECOVERY_RESTART_SERVICES, 'source-init', 'migrate'):
+            image = IMAGE_PINS['postgres' if name == 'postgres' else 'redis' if name == 'redis' else 'runtime']
+            services[name] = {'image': image, 'pull_policy': 'never', 'cpus': .125,
+                'mem_limit': 128 * 1024**2, 'labels': labels,
+                'environment': {'MJOBS_OPERATION_MODE': 'PERSONAL', 'MJOBS_COMPOSE_MOCK': '0'},
+                'networks': {'private': {}}, 'volumes': [{'type': 'volume', 'source': 'documents',
+                    'target': '/data/documents'}]}
+        for name, service in services.items():
+            if name not in {'postgres','redis','source-init'}:
+                service['working_dir']='/workspace'
+                service['volumes'].append({'type':'volume','source':'stk-source',
+                                          'target':'/workspace','read_only':True})
+        services['api']['ports'] = [{'host_ip': '127.0.0.1', 'published': '23456', 'target': 8000}]
+        return {'services': services, 'networks': {'private': {'internal': True, 'labels': labels}},
+                'volumes': {'documents': {'labels': labels},'stk-source': {'labels': labels}}}
+
+    def test_configuration_accepts_only_pinned_private_capped_owned_scenario(self):
+        validate_configuration(self.config(), PROJECT, 23456)
+
+    def test_configuration_rejects_egress_binds_builds_caps_and_foreign_images(self):
+        mutations = [lambda c: c['services']['api'].update(image='unreviewed:latest'),
+                     lambda c: c['services']['api'].update(build={'context': '.'}),
+                     lambda c: c['services']['api'].update(pull_policy='always'),
+                     lambda c: c['services']['api'].update(cpus=4),
+                     lambda c: c['services']['api'].update(privileged=True),
+                     lambda c: c['services']['api'].update(network_mode='host'),
+                     lambda c: c['services']['api']['volumes'][1].update(read_only=False),
+                     lambda c: c['services']['api'].update(mem_limit=8*1024**3),
+                     lambda c: c['services']['api']['ports'][0].update(host_ip='0.0.0.0'),
+                     lambda c: c['services']['api']['volumes'][0].update(type='bind'),
+                     lambda c: c['networks']['private'].update(internal=False),
+                     lambda c: c['volumes']['documents'].update(external=True),
+                     lambda c: c['services']['scheduler']['environment'].update(MJOBS_OPERATION_MODE='FIXTURE'),
+                     lambda c: c['services']['migrate']['environment'].update(MJOBS_COMPOSE_MOCK='1')]
+        for mutate in mutations:
+            c = copy.deepcopy(self.config()); mutate(c)
+            with self.subTest(mutation=mutate), self.assertRaises(FixtureError):
+                validate_configuration(c, PROJECT, 23456)
+
+
+if __name__ == '__main__':
+    unittest.main()
