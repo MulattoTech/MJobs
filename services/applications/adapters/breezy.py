@@ -26,6 +26,72 @@ _CONTACT_PROMPTS = {
 _SUPPORTED_INPUT_TYPES = {"text", "email", "tel"}
 _SAFE_LABEL_METADATA_SCRIPT = r"""form => {
   const hasRenderedText = node => Boolean(node && String(node.textContent || '').trim());
+  const labelIsVisible = label => {
+    const ancestors = [];
+    for (let node = label; node && node.nodeType === 1; node = node.parentElement) {
+      ancestors.push(node);
+    }
+    const styles = ancestors.map(node => window.getComputedStyle(node));
+    let visible = label.getClientRects().length > 0;
+    let opacity = 1;
+    const rect = label.getBoundingClientRect();
+    const visibleBounds = {left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom};
+    let transformedClip = false;
+    for (let index = 0; index < ancestors.length; index += 1) {
+      const node = ancestors[index];
+      const style = styles[index];
+      opacity *= Number(style.opacity);
+      if (node.hidden || node.inert || node.getAttribute('aria-hidden') === 'true' ||
+          style.display === 'none' || style.visibility === 'hidden' ||
+          style.visibility === 'collapse' || style.contentVisibility === 'hidden' ||
+          Number(style.opacity) < 0.1 || style.clipPath !== 'none' || style.clip !== 'auto' ||
+          ['paint', 'content', 'strict'].some(value => style.contain.split(/\s+/).includes(value))) {
+        visible = false;
+      }
+      const clipsX = ['hidden', 'clip', 'scroll', 'auto'].includes(style.overflowX);
+      const clipsY = ['hidden', 'clip', 'scroll', 'auto'].includes(style.overflowY);
+      if (index > 0 && (clipsX || clipsY)) {
+        const ancestorRect = node.getBoundingClientRect();
+        for (let transformIndex = index; transformIndex < styles.length; transformIndex += 1) {
+          const candidate = styles[transformIndex];
+          if (candidate.transform !== 'none' ||
+              !['none', '1'].includes(candidate.scale) ||
+              !['none', '0deg'].includes(candidate.rotate) ||
+              !['none', '0px'].includes(candidate.translate) ||
+              !['1', 'normal'].includes(candidate.zoom)) transformedClip = true;
+        }
+        const left = ancestorRect.left + node.clientLeft;
+        const top = ancestorRect.top + node.clientTop;
+        if (clipsX) {
+          visibleBounds.left = Math.max(visibleBounds.left, left);
+          visibleBounds.right = Math.min(visibleBounds.right, left + node.clientWidth);
+        }
+        if (clipsY) {
+          visibleBounds.top = Math.max(visibleBounds.top, top);
+          visibleBounds.bottom = Math.min(visibleBounds.bottom, top + node.clientHeight);
+        }
+      }
+    }
+    const centerX = (visibleBounds.left + visibleBounds.right) / 2;
+    const centerY = (visibleBounds.top + visibleBounds.bottom) / 2;
+    const nodes = document.querySelectorAll('*');
+    if (nodes.length > 5000) return false;
+    const pointerNoneOverlap = Array.from(nodes).some(node => {
+      if (node === label || node.contains(label) || label.contains(node)) return false;
+      const style = window.getComputedStyle(node);
+      if (style.pointerEvents !== 'none' || node.hidden || style.display === 'none' ||
+          style.visibility === 'hidden' || style.visibility === 'collapse' ||
+          Number(style.opacity) < 0.1) return false;
+      const box = node.getBoundingClientRect();
+      return box.left <= centerX && box.right >= centerX &&
+        box.top <= centerY && box.bottom >= centerY;
+    });
+    return visible && !transformedClip && !pointerNoneOverlap && opacity >= 0.1 &&
+      visibleBounds.right - visibleBounds.left > 1 &&
+      visibleBounds.bottom - visibleBounds.top > 1 &&
+      visibleBounds.right > 0 && visibleBounds.bottom > 0 &&
+      visibleBounds.left < window.innerWidth && visibleBounds.top < window.innerHeight;
+  };
   const controls = Array.from(form.querySelectorAll('input, select, textarea')).slice(0, 101);
   return controls.map(element => {
     const tag = element.tagName.toLowerCase();
@@ -42,8 +108,10 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""form => {
     const legend = fieldset && fieldset.querySelector('legend');
     return {
       tag,
-      rendered_labels: Array.from(element.labels || []).slice(0, 21)
-        .map(label => String(label.textContent || '')),
+      rendered_labels: Array.from(element.labels || []).slice(0, 21).map(label => ({
+        text: String(label.textContent || ''),
+        visible: labelIsVisible(label)
+      })),
       name: element.getAttribute('name'),
       id: element.getAttribute('id'),
       placeholder: element.getAttribute('placeholder'),
@@ -119,7 +187,20 @@ _CONTROL_STATE_SCRIPT = r"""controls => controls.map(element => {
   const hitTarget = document.elementFromPoint(
     rect.left + rect.width / 2, rect.top + rect.height / 2
   );
-  const hitTestVisible = hitTarget === element || element.contains(hitTarget);
+  const hitX = rect.left + rect.width / 2;
+  const hitY = rect.top + rect.height / 2;
+  const allNodes = document.querySelectorAll('*');
+  const pointerNoneOverlap = allNodes.length > 5000 || Array.from(allNodes).some(node => {
+    if (node === element || node.contains(element) || element.contains(node)) return false;
+    const style = window.getComputedStyle(node);
+    if (style.pointerEvents !== 'none' || node.hidden || style.display === 'none' ||
+        style.visibility === 'hidden' || style.visibility === 'collapse' ||
+        Number(style.opacity) < 0.1) return false;
+    const box = node.getBoundingClientRect();
+    return box.left <= hitX && box.right >= hitX && box.top <= hitY && box.bottom >= hitY;
+  });
+  const hitTestVisible = (hitTarget === element || element.contains(hitTarget)) &&
+    !pointerNoneOverlap;
   const disabled = element.matches(':disabled') || element.readOnly === true ||
     Boolean(element.closest('[aria-disabled="true"], [aria-readonly="true"]'));
   const inputType = element.tagName.toLowerCase() === 'input'
@@ -300,9 +381,15 @@ class BreezyApplicationAdapter:
                 return unknown("INVALID_LABEL_METADATA")
             safe_labels = []
             for rendered in rendered_labels:
-                if not isinstance(rendered, str):
+                if (not isinstance(rendered, dict)
+                        or not isinstance(rendered.get("text"), str)
+                        or type(rendered.get("visible")) is not bool):
                     return unknown("INVALID_LABEL_METADATA")
-                normalized = re.sub(r"[^a-z0-9]+", " ", rendered.casefold()).strip()
+                if not rendered["visible"]:
+                    continue
+                normalized = re.sub(
+                    r"[^a-z0-9]+", " ", rendered["text"].casefold(),
+                ).strip()
                 if not normalized:
                     continue
                 if normalized not in _CONTACT_PROMPTS:
@@ -310,6 +397,8 @@ class BreezyApplicationAdapter:
                     return unknown("UNRECOGNIZED_RENDERED_LABEL")
                 if normalized not in safe_labels:
                     safe_labels.append(normalized)
+            if rendered_labels and not safe_labels:
+                return unknown("NO_VISIBLE_ASSOCIATED_LABEL")
             control["labels"] = safe_labels
         return analyze_controls(controls)
 
@@ -371,6 +460,7 @@ class BreezyApplicationAdapter:
                        for key in ("left", "top", "right", "bottom")}
         if any(value is None for value in coordinates.values()):
             return None
+        visible_bounds = coordinates.copy()
         if state["clip_geometry_transformed"] and regions:
             visible = False
         for region in regions:
@@ -382,13 +472,14 @@ class BreezyApplicationAdapter:
                       for key in ("left", "top", "right", "bottom")}
             if any(value is None for value in bounds.values()):
                 return None
-            if (region["clips_horizontally"]
-                    and (coordinates["right"] <= bounds["left"]
-                         or coordinates["left"] >= bounds["right"])):
-                visible = False
-            if (region["clips_vertically"]
-                    and (coordinates["bottom"] <= bounds["top"]
-                         or coordinates["top"] >= bounds["bottom"])):
+            if region["clips_horizontally"]:
+                visible_bounds["left"] = max(visible_bounds["left"], bounds["left"])
+                visible_bounds["right"] = min(visible_bounds["right"], bounds["right"])
+            if region["clips_vertically"]:
+                visible_bounds["top"] = max(visible_bounds["top"], bounds["top"])
+                visible_bounds["bottom"] = min(visible_bounds["bottom"], bounds["bottom"])
+            if (visible_bounds["right"] <= visible_bounds["left"]
+                    or visible_bounds["bottom"] <= visible_bounds["top"]):
                 visible = False
         return visible, visible and state["user_editable"]
 

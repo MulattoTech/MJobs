@@ -149,6 +149,16 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 }],
                 "clip_geometry_transformed": True,
             }),
+            ("disjoint nested overflow clips", {
+                **base_state,
+                "control_rect": {"left": 20, "top": 10, "right": 80, "bottom": 20},
+                "overflow_clip_regions": [
+                    {"clips_horizontally": True, "clips_vertically": False,
+                     "left": 0, "top": 0, "right": 30, "bottom": 30},
+                    {"clips_horizontally": True, "clips_vertically": False,
+                     "left": 50, "top": 0, "right": 100, "bottom": 30},
+                ],
+            }),
             ("near-zero opacity", {**base_state, "paint_styles": [{
                 **base_state["paint_styles"][0], "opacity": "0.001",
             }]}),
@@ -217,6 +227,9 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             ("overlay", '<input type="email" aria-label="Email address">'
              '<div class="overlay"></div>',
              ".overlay{position:fixed;inset:0;background:white;z-index:9999}", True),
+            ("pointer-events-none-overlay", '<input type="email" aria-label="Email address">'
+             '<div class="overlay"></div>',
+             ".overlay{position:fixed;inset:0;background:white;z-index:9999;pointer-events:none}", True),
         )
 
         with sync_playwright() as playwright:
@@ -261,6 +274,13 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 self.assertEqual(unknown_label["status"], "UNKNOWN")
                 self.assertEqual(unknown_label["fields"], [])
                 self.assertNotIn("Why do you want to work here?", repr(unknown_label))
+                page.set_content(
+                    '<form><label for="email" style="display:none">Email address</label>'
+                    '<input id="email" type="email"></form>'
+                )
+                hidden_label = self.adapter.analyze_page(page)
+                self.assertEqual(hidden_label["status"], "UNKNOWN")
+                self.assertTrue(self.adapter.requires_human_review(hidden_label))
             finally:
                 browser.close()
 
