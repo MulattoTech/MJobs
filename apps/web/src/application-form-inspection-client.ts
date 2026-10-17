@@ -13,6 +13,9 @@ const empty = (status: ApplicationFormReviewSnapshot['status']): ApplicationForm
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 const nonempty = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0;
+// Match the durable worker's nullable identifier schema without accepting a trailing newline.
+const safeFieldId = (value: unknown): value is string => typeof value === 'string'
+  && value.match(/^[A-Za-z0-9_][A-Za-z0-9_.:\-\[\]]{0,99}$/)?.[0] === value;
 const terminal = new Set(['COMPLETED', 'FAILED', 'DEAD_LETTERED', 'BLOCKED', 'CANCELLED', 'DISCARDED']);
 const pending = new Set(['QUEUED', 'RUNNING', 'RETRY_PENDING', 'RETRYING', 'PENDING']);
 
@@ -44,11 +47,14 @@ export function parseApplicationFormReviewSnapshot(
   if (!Array.isArray(analysis.fields) || analysis.fields.length > 200) return empty('error');
   const fields: ApplicationFormReviewField[] = [];
   for (const field of analysis.fields) {
-    if (!record(field) || typeof field.name !== 'string' || field.name.length > 500
+    if (!record(field) || field.name !== null && (typeof field.name !== 'string' || field.name.length > 500)
+        || field.name === null && field.id === undefined
+        || field.id !== undefined && field.id !== null && !safeFieldId(field.id)
         || typeof field.type !== 'string' || field.type.length > 80
         || typeof field.required !== 'boolean'
         || field.review_reason !== null && typeof field.review_reason !== 'string') return empty('error');
-    fields.push({ name: field.name, type: field.type, required: field.required,
+    const name = nonempty(field.name) ? field.name : safeFieldId(field.id) ? field.id : 'Unnamed field';
+    fields.push({ name, type: field.type, required: field.required,
       reviewRequired: typeof field.review_reason === 'string' && field.review_reason.trim().length > 0 });
   }
   return { status: 'completed', fields };
