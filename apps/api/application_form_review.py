@@ -11,7 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from packages.persistence import models as m
-from packages.persistence.store import identity
+from packages.persistence.store import now
 from services.applications.form_review_providers import normalize_application_route
 from workers.dispatch import enqueue_operation
 from workers.application_form_review import FormReviewError, _existing_result
@@ -92,7 +92,10 @@ def create_application_form_review_router(store) -> APIRouter:
         with store.engine.connect() as connection:
             rows = list(connection.execute(select(m.operations).where(
                 *filters,
-            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc())
+            ).order_by(
+                m.operations.c.params["admitted_at"].as_string().desc().nullslast(),
+                m.operations.c.updated_at.desc(), m.operations.c.id.desc(),
+            )
                 .limit(2 if request_id is not None else 1)).mappings())
             if request_id is not None and len(rows) > 1:
                 raise HTTPException(409, {"code": "FORM_REVIEW_IDEMPOTENCY_CONFLICT"})
@@ -165,10 +168,15 @@ def create_application_form_review_router(store) -> APIRouter:
                 m.operations.c.params["request_id"].as_string() == value.request_id,
             )).mappings())
             if existing:
-                if len(existing) != 1 or existing[0]["params"] != params:
+                saved = {key: item for key, item in existing[0]["params"].items()
+                         if key != "admitted_at"}
+                if len(existing) != 1 or saved != params:
                     raise HTTPException(409, {"code": "FORM_REVIEW_IDEMPOTENCY_CONFLICT"})
                 operation_id, state = existing[0]["id"], existing[0]["state"]
             else:
+                # This metadata survives progress updates, retries and recovery.
+                # Legacy rows retain their old ordering behind new admissions.
+                params["admitted_at"] = now()
                 operation_id = enqueue_operation(store, _KIND, application_id, params,
                                                  connection=connection)
                 state = "QUEUED"

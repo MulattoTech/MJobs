@@ -183,6 +183,14 @@ def _validate_application(connection, operation, params):
             or row["route_id"] != params["route_id"]
             or row["provider"] != params["provider"]):
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")
+    # Older metadata-only operations did not freeze a profile version. Preserve
+    # their replay contract; every current API admission includes this version.
+    if "profile_version" in params:
+        version = connection.execute(select(m.profiles.c.version).where(
+            m.profiles.c.id == params["profile_id"],
+        ).with_for_update()).scalar_one_or_none()
+        if version is None or str(version) != params["profile_version"]:
+            raise FormReviewError("FORM_REVIEW_INPUT_STALE")
     if params["provider"] not in {"ashby", "greenhouse", "lever", "workday"}:
         raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     normalized = normalize_application_route(
