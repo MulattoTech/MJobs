@@ -13,6 +13,16 @@ def application_adapter_knowledge(connection, route_id, *, operation_mode=None):
     and no provider string is used as an import path or execution instruction.
     """
     route = connection.execute(select(m.routes).where(m.routes.c.id == route_id)).mappings().one()
+    canonical_company_id = connection.execute(select(m.jobs.c.company_id).where(
+        m.jobs.c.id == route["job_id"],
+    )).scalar_one_or_none()
+    if canonical_company_id is None or canonical_company_id != route["company_id"]:
+        return {
+            "route_id": route["id"], "company_id": route["company_id"],
+            "basis": "UNKNOWN", "provider": None, "ats_tenant_id": None,
+            "tenant_identifier": None, "candidates": [], "adapter_key": None,
+            "adapter_status": "UNKNOWN", "external_submission_enabled": False,
+        }
     known_providers = KNOWN_ATS_PROVIDERS | {"mock-ats"}
     rows = connection.execute(select(m.company_ats_tenants).where(
         m.company_ats_tenants.c.company_id == route["company_id"]
