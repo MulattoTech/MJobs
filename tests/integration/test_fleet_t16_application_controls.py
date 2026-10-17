@@ -7,10 +7,14 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
+from apps.api import controlled_application_dry_run as controls_api
 from apps.api.controlled_application_dry_run import create_controlled_application_dry_run_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.applications.rehearsal_store import RehearsalStoreError
 from tests.integration.test_spine import PROFILE
+from apps.api.controlled_application_dry_run import ControlsRequest
+from pydantic import ValidationError
 
 
 class T16ApplicationControlsTests(unittest.TestCase):
@@ -43,6 +47,76 @@ class T16ApplicationControlsTests(unittest.TestCase):
         self.client.close()
         self.store.engine.dispose()
         self.temp.cleanup()
+
+    def test_controls_request_is_strict_and_bounded(self):
+        request = ControlsRequest.model_validate({
+            "request_id": "t16-controls", "paused": True, "daily_limit": 100,
+        })
+        self.assertEqual(request.daily_limit, 100)
+        for invalid in (
+            {"request_id": "t16-controls", "paused": "true", "daily_limit": 10},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": True},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": -1},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": 101},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": 10,
+             "submission_enabled": True},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": 10,
+             "password": "PRIVATE_SENTINEL"},
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(ValidationError):
+                ControlsRequest.model_validate(invalid)
+
+    def test_controls_routes_validate_scope_and_delegate_fixed_contract(self):
+        controls_path = self.path() + "/controls"
+        for payload in (
+            {"request_id": "t16-controls", "paused": "true", "daily_limit": 10},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": True},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": -1},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": 101},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": 10,
+             "submission_enabled": True},
+            {"request_id": "t16-controls", "paused": True, "daily_limit": 10,
+             "password": "PRIVATE_SENTINEL"},
+        ):
+            response = self.client.put(controls_path, json=payload)
+            self.assertEqual(response.status_code, 422, response.text)
+            self.assertNotIn("PRIVATE_SENTINEL", response.text)
+
+        controls = {
+            "profile_id": "fixture", "application_id": self.application_id,
+            "request_id": "t16-controls", "paused": True, "daily_limit": 2,
+            "submission_enabled": False,
+        }
+        with patch.object(controls_api.rehearsal_store, "set_controlled_controls",
+                          return_value={"controls": controls, "replayed": False},
+                          create=True) as setter:
+            updated = self.client.put(controls_path, json={
+                "request_id": "t16-controls", "paused": True, "daily_limit": 2,
+            })
+        self.assertEqual(updated.status_code, 200, updated.text)
+        setter.assert_called_once_with(
+            self.store, "fixture", self.application_id,
+            request_id="t16-controls", paused=True, daily_limit=2,
+        )
+
+        with patch.object(controls_api.rehearsal_store, "get_controlled_controls",
+                          return_value=controls, create=True) as getter:
+            saved = self.client.get(controls_path)
+        self.assertEqual(saved.status_code, 200, saved.text)
+        self.assertEqual(saved.json(), controls)
+        getter.assert_called_once_with(self.store, "fixture", self.application_id)
+
+        other = controls_path.replace("/profiles/fixture/", "/profiles/other/")
+        with patch.object(controls_api.rehearsal_store, "get_controlled_controls",
+                          side_effect=RehearsalStoreError("APPLICATION_NOT_FOUND"),
+                          create=True):
+            self.assertEqual(self.client.get(other).status_code, 404)
+        with patch.object(controls_api.rehearsal_store, "set_controlled_controls",
+                          side_effect=RehearsalStoreError("APPLICATION_NOT_FOUND"),
+                          create=True):
+            self.assertEqual(self.client.put(other, json={
+                "request_id": "t16-controls", "paused": True, "daily_limit": 2,
+            }).status_code, 404)
 
     def test_cancel_then_explicit_retry_persists_safe_state_across_reload(self):
         _, body, queued = self.review_and_queue("t16-interrupted-run")
