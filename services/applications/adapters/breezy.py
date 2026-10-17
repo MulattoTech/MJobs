@@ -192,10 +192,17 @@ class BreezyApplicationAdapter:
     @staticmethod
     def _known_contact_prompt(field: Mapping) -> bool:
         labels = field.get("labels")
-        if not isinstance(labels, list) or not labels:
+        if not isinstance(labels, list):
             return False
 
         prompts = []
+        if not labels:
+            # The shared value-free projection suppresses rendered label text;
+            # an explicit accessible label is the only safe fallback.
+            aria_label = field.get("aria_label")
+            if not isinstance(aria_label, str) or not aria_label.strip():
+                return False
+            prompts.append(aria_label)
         for label in labels:
             if not isinstance(label, str) or not label.strip():
                 return False

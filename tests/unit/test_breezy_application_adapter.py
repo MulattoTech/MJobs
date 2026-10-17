@@ -77,12 +77,13 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
         }]}
         self.assertFalse(self.adapter.requires_human_review(analysis))
 
-    def test_analyze_page_attaches_dom_visibility_and_editability_evidence(self):
-        analysis = {"status": "PASS", "fields": [{
-            "index": 0,
-            "tag": "input", "input_type": "email", "sensitivity": "STANDARD",
-            "ambiguous": False, "labels": ["Email address"],
-        }]}
+    def test_analyze_page_uses_shared_accessible_label_and_attaches_dom_state(self):
+        controls = [{
+            "tag": "input", "labels": [], "name": "email", "id": "email",
+            "placeholder": None, "aria_label": "Email address", "input_type": "email",
+            "nearby_text": None, "section_heading": None, "fieldset_legend": None,
+            "unsafe_text_context": False, "options": [],
+        }]
 
         class Controls:
             def evaluate_all(self, script):
@@ -96,6 +97,9 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             def count(self):
                 return 1
 
+            def evaluate(self, script, **kwargs):
+                return controls
+
             def locator(self, selector):
                 return Controls()
 
@@ -103,10 +107,10 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             def locator(self, selector):
                 return Form()
 
-        with patch("services.applications.adapters.breezy.analyze_form_page",
-                   return_value=analysis):
-            result = self.adapter.analyze_page(Page())
+        result = self.adapter.analyze_page(Page())
 
+        self.assertEqual(result["fields"][0]["labels"], [])
+        self.assertEqual(result["fields"][0]["aria_label"], "Email address")
         self.assertIs(result["fields"][0]["user_visible"], True)
         self.assertIs(result["fields"][0]["user_editable"], True)
         self.assertFalse(self.adapter.requires_human_review(result))
