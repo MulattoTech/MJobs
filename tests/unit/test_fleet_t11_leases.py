@@ -11,7 +11,10 @@ from sqlalchemy import select, update
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from workers.dispatch import enqueue_operation
-from workers.operations import MAX_ATTEMPTS, claim, recover_expired, request_cancel, timeout
+from workers.operations import (
+    MAX_ATTEMPTS, OperationCancelled, check_cancelled, claim, recover_expired,
+    request_cancel, timeout,
+)
 from workers.tasks import execute_operation
 
 
@@ -51,6 +54,35 @@ class FleetT11LeaseTests(unittest.TestCase):
             with self.subTest(value=value), patch.dict("os.environ", MJOBS_OPERATION_TIMEOUT=value):
                 with self.assertRaises(ValueError):
                     timeout()
+
+    def test_check_cancelled_rejects_expired_lease(self):
+        operation_id = self.enqueue_rescore()
+        claimed = claim(self.store, operation_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == operation_id).values(
+                    lease_expires_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()))
+        with self.assertRaises(OperationCancelled):
+            check_cancelled(self.store, operation_id, claimed["attempt_count"])
+
+    def test_check_cancelled_rejects_missing_lease(self):
+        operation_id = self.enqueue_rescore()
+        claimed = claim(self.store, operation_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == operation_id).values(lease_expires_at=None))
+        with self.assertRaises(OperationCancelled):
+            check_cancelled(self.store, operation_id, claimed["attempt_count"])
+
+    def test_check_cancelled_rejects_stale_attempt_and_accepts_live_owner(self):
+        operation_id = self.enqueue_rescore()
+        claimed = claim(self.store, operation_id)
+        check_cancelled(self.store, operation_id, claimed["attempt_count"])
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == operation_id).values(attempt_count=claimed["attempt_count"] + 1))
+        with self.assertRaises(OperationCancelled):
+            check_cancelled(self.store, operation_id, claimed["attempt_count"])
 
     def test_worker_rejects_expired_lease_before_acknowledging_side_effect(self):
         operation_id = self.enqueue_rescore()
