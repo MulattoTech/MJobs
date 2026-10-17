@@ -140,7 +140,8 @@ class DiscoveryRequestTests(unittest.TestCase):
         endpoint = 'https://new.example/jobs.json'
         with self.store.engine.begin() as c:
             source = dict(c.execute(select(m.company_sources)).mappings().one())
-            c.execute(update(m.company_sources).where(m.company_sources.c.id == source['id']).values(endpoint=endpoint))
+            c.execute(update(m.company_sources).where(m.company_sources.c.id == source['id']).values(
+                endpoint=endpoint, collection_strategy='PUBLIC_JSON'))
         # A changed source alone cannot authorize historical posting evidence.
         recalculate(self.store, 'fixture')
         self.assertEqual(self.request()['operation_id'], queued['operation_id'])
