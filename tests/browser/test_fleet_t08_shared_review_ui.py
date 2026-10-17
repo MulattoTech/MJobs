@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PRIVATE_VALUE = "PRIVATE_T08_BROWSER_FORM_VALUE"
 FORM_HTML = (
     "<form><label for='email'>Email address</label>"
-    f"<input id='email' name='email' type='email' required value='{PRIVATE_VALUE}'>"
+    f"<input id='email' type='email' required value='{PRIVATE_VALUE}'>"
     "</form>"
 ).encode()
 
