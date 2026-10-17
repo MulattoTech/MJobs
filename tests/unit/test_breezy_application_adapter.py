@@ -72,9 +72,29 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
     def test_known_basic_contact_fixture_needs_no_extra_review(self):
         analysis = {"status": "PASS", "fields": [{
             "tag": "input", "input_type": "email", "sensitivity": "STANDARD", "ambiguous": False,
-            "labels": ["Email address"],
+            "labels": ["Email address"], "user_visible": True, "user_editable": True,
         }]}
         self.assertFalse(self.adapter.requires_human_review(analysis))
+
+    def test_controls_without_positive_visible_editable_evidence_require_review(self):
+        known_contact = {
+            "tag": "input", "input_type": "email", "sensitivity": "STANDARD",
+            "ambiguous": False, "labels": ["Email address"],
+        }
+        fields = (
+            ("missing evidence", known_contact),
+            ("hidden", {**known_contact, "user_visible": False,
+                         "user_editable": False, "hidden": True}),
+            ("disabled", {**known_contact, "user_visible": True,
+                           "user_editable": False, "disabled": True}),
+            ("readonly", {**known_contact, "user_visible": True,
+                           "user_editable": False, "readonly": True}),
+        )
+        for state, field in fields:
+            with self.subTest(state=state):
+                self.assertTrue(self.adapter.requires_human_review({
+                    "status": "PASS", "fields": [field],
+                }))
 
     def test_select_and_textarea_controls_require_review_even_with_contact_labels(self):
         for tag in ("select", "textarea"):

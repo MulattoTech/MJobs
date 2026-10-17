@@ -122,6 +122,8 @@ class BreezyApplicationAdapter:
             input_type = field.get("input_type") or "text"
             if (field.get("ambiguous") is not False
                     or field.get("sensitivity") != "STANDARD"
+                    or field.get("user_visible") is not True
+                    or field.get("user_editable") is not True
                     or not isinstance(input_type, str)
                     or input_type.casefold() not in _SUPPORTED_INPUT_TYPES
                     or not BreezyApplicationAdapter._known_contact_prompt(field)):
