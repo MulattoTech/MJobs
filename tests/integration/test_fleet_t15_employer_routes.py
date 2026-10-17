@@ -57,12 +57,14 @@ class FleetT15FeedStrategyIdentityTests(unittest.TestCase):
         )
 
     def counts(self):
-        tables = (m.jobs, m.routes, m.postings, m.posting_snapshots)
+        tables = (m.jobs, m.routes, m.postings, m.posting_snapshots,
+                  m.posting_value_candidates, m.job_lifecycle_observations,
+                  m.job_description_revisions)
         with self.store.engine.connect() as connection:
             return tuple(connection.execute(
                 select(func.count()).select_from(table)).scalar_one() for table in tables)
 
-    def test_caller_strategy_mismatch_is_rejected_before_any_job_or_snapshot_write(self):
+    def test_caller_strategy_mismatch_is_rejected_before_job_or_provenance_writes(self):
         source = self.source(strategy="RSS")
         before = self.counts()
 
@@ -120,7 +122,7 @@ class FleetT15FeedStrategyIdentityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "COMPANY_FEED_SOURCE_CHANGED"):
                 self.import_feed(source)
 
-        self.assertEqual(self.counts(), (0, 0, 0, 0))
+        self.assertEqual(self.counts(), (0,) * 7)
 
     def test_interruption_after_posting_write_rolls_back_jobs_routes_and_snapshots(self):
         source = self.source(strategy="RSS")
@@ -136,4 +138,4 @@ class FleetT15FeedStrategyIdentityTests(unittest.TestCase):
             with self.assertRaises(OperationCancelled):
                 self.import_feed(source)
 
-        self.assertEqual(self.counts(), (0, 0, 0, 0))
+        self.assertEqual(self.counts(), (0,) * 7)
