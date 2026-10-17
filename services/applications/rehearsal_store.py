@@ -58,20 +58,25 @@ def _latest_control_payload(connection, application_id: str) -> dict | None:
     if not rows:
         return None
 
-    # Timestamps can tie at storage precision. Writers serialize on the owner
-    # row and increment revision, which gives those events a stable order.
-    latest_timestamp = max(row["timestamp"] for row in rows)
-    tied = [row for row in rows if row["timestamp"] == latest_timestamp]
+    # Revision is the authority even when the system clock moves backward.
+    # Legacy rows without a revision are revision zero and use timestamps only
+    # to order that legacy history. Malformed or duplicate explicit revisions
+    # make the current state ambiguous, so readers fail closed.
     revisions = []
-    for row in tied:
+    seen_revisions = set()
+    for row in rows:
         payload = row["payload"]
         if not isinstance(payload, dict):
             raise RehearsalStoreError("CONTROLLED_CONTROLS_INVALID")
-        revision = payload.get("revision", 0)
-        if type(revision) is not int or revision < 0:
-            raise RehearsalStoreError("CONTROLLED_CONTROLS_INVALID")
-        revisions.append((revision, row["id"], payload))
-    payload = max(revisions, key=lambda value: (value[0], value[1]))[2]
+        if "revision" in payload:
+            revision = payload["revision"]
+            if type(revision) is not int or revision < 1 or revision in seen_revisions:
+                raise RehearsalStoreError("CONTROLLED_CONTROLS_INVALID")
+            seen_revisions.add(revision)
+        else:
+            revision = 0
+        revisions.append((revision, row["timestamp"], row["id"], payload))
+    payload = max(revisions, key=lambda value: value[:3])[3]
     return payload
 
 
