@@ -32,6 +32,7 @@ _CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
     clip: styles[index].clip
   }));
   const overflowClipRegions = [];
+  let clipGeometryTransformed = false;
   for (let index = 1; index < ancestors.length; index += 1) {
     const current = ancestors[index];
     const style = styles[index];
@@ -42,6 +43,19 @@ _CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
     if (!clipsHorizontally && !clipsVertically) continue;
 
     const ancestorRect = current.getBoundingClientRect();
+    // clientWidth/clientHeight are CSS-pixel dimensions while rect coordinates
+    // are viewport-space. A transform anywhere from this clipping ancestor to
+    // the root can make those coordinate systems differ, so defer to a person.
+    for (let transformIndex = index; transformIndex < styles.length;
+         transformIndex += 1) {
+      const transformStyle = styles[transformIndex];
+      const hasNonIdentityTransform = transformStyle.transform !== 'none' ||
+        !['none', '1'].includes(transformStyle.scale) ||
+        !['none', '0deg'].includes(transformStyle.rotate) ||
+        !['none', '0px'].includes(transformStyle.translate) ||
+        !['1', 'normal'].includes(transformStyle.zoom);
+      if (hasNonIdentityTransform) clipGeometryTransformed = true;
+    }
     const clipLeft = ancestorRect.left + current.clientLeft;
     const clipTop = ancestorRect.top + current.clientTop;
     overflowClipRegions.push({
@@ -79,7 +93,8 @@ _CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
     control_rect: {
       left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom
     },
-    overflow_clip_regions: overflowClipRegions
+    overflow_clip_regions: overflowClipRegions,
+    clip_geometry_transformed: clipGeometryTransformed
   };
 })"""
 _KNOWN_CONTACT_IDENTIFIERS = {
@@ -202,6 +217,7 @@ class TeamtailorApplicationAdapter:
                 or any(not isinstance(state, Mapping)
                        or type(state.get("user_visible")) is not bool
                        or type(state.get("user_editable")) is not bool
+                       or type(state.get("clip_geometry_transformed")) is not bool
                        for state in control_states)):
             return {"status": "UNKNOWN", "reason": "CONTROL_STATE_UNAVAILABLE", "fields": []}
         for field, state in zip(fields, control_states):
@@ -239,7 +255,10 @@ def _is_effectively_user_visible(state: Mapping) -> bool:
     clip_regions = state.get("overflow_clip_regions")
     if (not isinstance(paint_styles, list) or not paint_styles
             or not isinstance(control_rect, Mapping)
-            or not isinstance(clip_regions, list)):
+            or not isinstance(clip_regions, list)
+            or type(state.get("clip_geometry_transformed")) is not bool):
+        return False
+    if clip_regions and state["clip_geometry_transformed"]:
         return False
 
     for style in paint_styles:

@@ -182,6 +182,7 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                     "paint_styles": [{"clip_path": "none", "clip": "auto"}],
                     "control_rect": {"left": 10, "top": 10, "right": 20, "bottom": 20},
                     "overflow_clip_regions": [],
+                    "clip_geometry_transformed": False,
                 }]
 
         class Page:
@@ -249,29 +250,39 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
             "clips_horizontally": True, "clips_vertically": True,
         }
         cases = (
-            ("clip-path on control", [{"clip_path": "inset(50%)", "clip": "auto"}], [], True),
+            ("clip-path on control", [{
+                "clip_path": "inset(50%)", "clip": "auto",
+            }], [], False, True),
             ("clip-path on ancestor", [
                 {"clip_path": "none", "clip": "auto"},
                 {"clip_path": "inset(50%)", "clip": "auto"},
-            ], [], True),
+            ], [], False, True),
             ("clip property on control", [{
                 "clip_path": "none", "clip": "rect(0px, 0px, 0px, 0px)",
-            }], [], True),
+            }], [], False, True),
             ("overflow-x clips the control", [{
                 "clip_path": "none", "clip": "auto",
             }], [{
                 **clip_region, "clips_vertically": False,
-            }], True),
+            }], False, True),
             ("overflow-y clips the control", [{
                 "clip_path": "none", "clip": "auto",
             }], [{
                 **clip_region, "clips_horizontally": False,
-            }], True),
+            }], False, True),
             ("control inside overflow clip", [{
                 "clip_path": "none", "clip": "auto",
             }], [{
                 **clip_region, "right": 50, "bottom": 50,
-            }], False),
+            }], False, False),
+            # A 100px CSS clip box scaled to 50 viewport px cannot be
+            # compared directly with this child's viewport x=60..70 bounds.
+            ("transformed overflow clip fails closed", [{
+                "clip_path": "none", "clip": "auto",
+            }], [{
+                "left": 0, "top": 0, "right": 100, "bottom": 100,
+                "clips_horizontally": True, "clips_vertically": True,
+            }], True, True),
         )
         required_visibility_checks = (
             "clip_path: styles[index].clipPath",
@@ -283,10 +294,17 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
             "overflow_clip_regions: overflowClipRegions",
             "current.clientWidth",
             "current.clientHeight",
+            "clip_geometry_transformed: clipGeometryTransformed",
+            "transformStyle.transform",
+            "transformStyle.scale",
+            "transformStyle.rotate",
+            "transformStyle.translate",
+            "transformStyle.zoom",
         )
 
         last_script = None
-        for label, paint_styles, overflow_clip_regions, expected_review in cases:
+        for (label, paint_styles, overflow_clip_regions,
+             clip_geometry_transformed, expected_review) in cases:
             with self.subTest(clipped_case=label):
                 state = {
                     "user_visible": True,
@@ -294,7 +312,12 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                     "paint_styles": paint_styles,
                     "control_rect": control_rect,
                     "overflow_clip_regions": overflow_clip_regions,
+                    "clip_geometry_transformed": clip_geometry_transformed,
                 }
+                if label == "transformed overflow clip fails closed":
+                    state["control_rect"] = {
+                        "left": 60, "top": 20, "right": 70, "bottom": 30,
+                    }
 
                 class Locator:
                     def __init__(self, selector):
