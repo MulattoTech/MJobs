@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RUN_ROOT = Path('/var/lib/mjobs-migration-backups')
 HEX = re.compile(r'^[0-9a-f]{64}$')
 RUN = re.compile(r'^[0-9a-f]{32}$')
+TRUSTED_INSTALLER_OWNER = 'S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464'
 
 
 class MigrationRefused(ValueError):
@@ -284,7 +285,9 @@ $rows=@(); while($null -ne $p) {
  $a=Get-Acl -LiteralPath $p.FullName;
  $raw=[Security.AccessControl.RawSecurityDescriptor]::new($a.GetSecurityDescriptorBinaryForm(),0);
  if($null -eq $raw.DiscretionaryAcl){throw 'null dacl'};
- $rules=@($a.Access | ForEach-Object {@{sid=$_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value;allow=($_.AccessControlType -eq 'Allow');rights=[int64]$_.FileSystemRights}});
+ $rules=@($a.Access | ForEach-Object {@{sid=$_.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value;
+ allow=($_.AccessControlType -eq 'Allow');rights=[int64]$_.FileSystemRights;
+ inherited=$_.IsInherited;inheritance=[int]$_.InheritanceFlags;propagation=[int]$_.PropagationFlags}});
  $rows+=@{owner=$a.GetOwner([Security.Principal.SecurityIdentifier]).Value;rules=$rules};
  if($p -is [IO.FileInfo]){$p=$p.Directory}else{$p=$p.Parent}
 }; @{user=$u;rows=$rows}|ConvertTo-Json -Depth 6 -Compress'''
@@ -295,12 +298,16 @@ $rows=@(); while($null -ne $p) {
                                  env=environment, capture_output=True, timeout=10, check=True)
         if len(process.stdout)>65536: raise ValueError()
         data=json.loads(process.stdout); trusted={data['user'],'S-1-5-18','S-1-5-32-544'}
+        ancestor_owners=trusted | {TRUSTED_INSTALLER_OWNER}
         if data['rows'][0]['owner'] != data['user']: raise ValueError()
         # DELETE_CHILD, DELETE, WRITE_DAC, WRITE_OWNER protect ancestor replacement.
         replacement = 0x40 | 0x10000 | 0x40000 | 0x80000
         for index, row in enumerate(data['rows']):
-            if row['owner'] not in trusted: raise ValueError()
+            if row['owner'] not in (trusted if index==0 else ancestor_owners): raise ValueError()
             for ace in row['rules']:
+                # Child-only grants do not apply to the ancestor itself. This
+                # does not trust CREATOR OWNER or ignore applicable inherited ACEs.
+                if index>0 and ace['propagation']&2: continue
                 if ace['allow'] and ace['sid'] not in trusted and (index==0 or ace['rights']&replacement):
                     raise ValueError()
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError):

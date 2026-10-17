@@ -141,14 +141,52 @@ class MigrationPolicyTests(unittest.TestCase):
 
     def test_windows_acl_unknown_allow_or_owner_is_refused_without_changes(self):
         safe={'user':'S-1-5-21-synthetic','rows':[{'owner':'S-1-5-21-synthetic','rules':[
-            {'sid':'S-1-5-18','allow':True,'rights':0x1f01ff}]}]}
+            {'sid':'S-1-5-18','allow':True,'rights':0x1f01ff,'inherited':False,'inheritance':0,'propagation':0}]}]}
         with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(safe).encode())):
             guard._check_windows_parent(Path('synthetic'))
         for changed in ('owner','allow'):
             value=copy.deepcopy(safe)
             if changed=='owner': value['rows'][0]['owner']='unknown'
-            else: value['rows'][0]['rules'].append({'sid':'unknown','allow':True,'rights':1})
+            else: value['rows'][0]['rules'].append({'sid':'unknown','allow':True,'rights':1,
+                                                  'inherited':True,'inheritance':0,'propagation':0})
             with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(value).encode())), \
+                    self.assertRaises(guard.MigrationRefused):
+                guard._check_windows_parent(Path('synthetic'))
+
+    def test_ancestor_inherit_only_is_not_direct_but_applicable_inherited_delete_child_refuses(self):
+        data={'user':'S-1-5-21-synthetic','rows':[
+            {'owner':'S-1-5-21-synthetic','rules':[]},
+            {'owner':'S-1-5-18','rules':[{'sid':'S-1-3-0','allow':True,'rights':0x1f01ff,
+                                       'inherited':False,'inheritance':3,'propagation':2}]}]}
+        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())):
+            guard._check_windows_parent(Path('synthetic'))
+
+        data['rows'][1]['rules'][0].update(sid='unknown',inherited=True,propagation=0,rights=0x40)
+        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())), \
+                self.assertRaises(guard.MigrationRefused):
+            guard._check_windows_parent(Path('synthetic'))
+        # The actual private parent stays strict, including child-only grants.
+        data['rows'][0]['rules']=[{'sid':'S-1-3-0','allow':True,'rights':1,
+                                  'inherited':False,'inheritance':3,'propagation':2}]
+        data['rows'][1]['rules']=[]
+        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())), \
+                self.assertRaises(guard.MigrationRefused):
+            guard._check_windows_parent(Path('synthetic'))
+
+    def test_exact_trustedinstaller_is_ancestor_owner_only_never_private_leaf_allow(self):
+        ti='S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464'
+        data={'user':'S-1-5-21-synthetic','rows':[
+            {'owner':'S-1-5-21-synthetic','rules':[]},{'owner':ti,'rules':[]}]}
+        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())):
+            guard._check_windows_parent(Path('synthetic'))
+        for change in ('arbitrary_service_owner','ti_leaf_owner','ti_leaf_allow'):
+            changed=copy.deepcopy(data)
+            if change=='arbitrary_service_owner': changed['rows'][1]['owner']='S-1-5-80-1-2-3-4-5'
+            elif change=='ti_leaf_owner': changed['rows'][0]['owner']=ti
+            else: changed['rows'][0]['rules']=[{'sid':ti,'allow':True,'rights':1,
+                                              'inherited':False,'inheritance':0,'propagation':0}]
+            with self.subTest(change=change), \
+                    patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(changed).encode())), \
                     self.assertRaises(guard.MigrationRefused):
                 guard._check_windows_parent(Path('synthetic'))
 
