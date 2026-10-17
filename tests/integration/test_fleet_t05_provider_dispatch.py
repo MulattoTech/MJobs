@@ -11,6 +11,7 @@ from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
 from packages.persistence.store import Store
+from services.applications.form_review_providers import normalize_application_route
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -20,17 +21,17 @@ from workers.tasks import execute_operation
 class FleetT05ProviderDispatchTests(unittest.TestCase):
     ROUTES = (
         ("recruitee", "https://example.recruitee.com/o/software-engineer",
-         "example", "software-engineer", "ANALYZED", None),
+         "ANALYZED", None),
         ("smartrecruiters", "https://jobs.smartrecruiters.com/acme/123456789012-job",
-         "acme", "123456789012", "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
-        ("workable", "https://apply.workable.com/acme/j/abc123",
-         "acme", "abc123", "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
+         "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
+        ("workable", "https://apply.workable.com/acme/j/ABC123/",
+         "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
         ("teamtailor", "https://acme.teamtailor.com/jobs/123-job",
-         "acme", "123-job", "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
+         "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
         ("bamboohr", "https://acme.bamboohr.com/careers/123",
-         "acme", "123", "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
+         "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
         ("generic_html", "https://careers.example.test/job/123",
-         "careers.example.test", "123", "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
+         "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
     )
 
     def setUp(self):
@@ -59,9 +60,14 @@ class FleetT05ProviderDispatchTests(unittest.TestCase):
         markup = b"<form><input id='email' name='email' type='email'></form>"
         path = f"/profiles/fixture/applications/{self.application_id}/form-reviews"
 
-        for (provider, route_url, tenant, requisition,
-             expected_status, expected_reason) in self.ROUTES:
+        for provider, route_url, expected_status, expected_reason in self.ROUTES:
             with self.subTest(provider=provider):
+                normalized_route = normalize_application_route(provider, route_url)
+                self.assertIsNotNone(normalized_route)
+                tenant = normalized_route.get("tenant") or "fixture"
+                # Generic HTML has no provider requisition contract; store only a
+                # harmless synthetic marker in the non-null database column.
+                requisition = normalized_route.get("requisition") or "fleet-t05"
                 with self.store.engine.begin() as connection:
                     connection.execute(update(m.routes).where(
                         m.routes.c.id == self.store.application(self.application_id)["route_id"],
@@ -124,7 +130,7 @@ class FleetT05ProviderDispatchTests(unittest.TestCase):
                         m.operations.select().where(m.operations.c.id == operation_id),
                     ).mappings().one()
                 self.assertEqual(operation["params"]["provider"], provider)
-                self.assertEqual(operation["params"]["route_url"], route_url)
+                self.assertEqual(operation["params"]["route_url"], normalized_route["url"])
 
     def test_provider_route_mismatch_is_rejected_before_durable_queueing(self):
         application = self.store.application(self.application_id)
