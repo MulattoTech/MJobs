@@ -144,7 +144,7 @@ def test_main_review_click_reaches_worker_and_survives_reload_without_values():
                 assert flow._review_audits() == audits
                 assert PRIVATE_VALUE not in page.locator("body").inner_text()
 
-                # A current raw route rejection removes the affordance without
+                # A current raw route rejection disables the affordance without
                 # fetching or discarding the historical durable receipt.
                 flow._set_route(url=" " + flow.normalized_route["url"])
                 before = (flow.store.count("worker_operations"), flow._audit_count(), flow._attempt_count())
@@ -152,7 +152,12 @@ def test_main_review_click_reaches_worker_and_survives_reload_without_values():
                 assert capability.status == 200
                 assert capability.json()["review_supported"] is False
                 open_application()
-                expect(page.get_by_role("region", name="Application form review", exact=True)).to_have_count(0)
+                unavailable = page.get_by_role("region", name="Application form review", exact=True)
+                expect(unavailable).to_contain_text("Form inspection is unavailable for this application.")
+                expect(unavailable.get_by_role(
+                    "button", name="Inspect form fields (read-only)", exact=True,
+                )).to_be_disabled()
+                expect(unavailable.locator('[aria-label="Inspected form fields"]')).to_have_count(0)
                 assert (flow.store.count("worker_operations"), flow._audit_count(), flow._attempt_count()) == before
                 historical = page.request.get(origin + review_path + "/requests/" + request_id)
                 assert historical.status == 200 and historical.json() == exact
