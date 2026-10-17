@@ -27,6 +27,17 @@ _SUPPORTED_INPUT_TYPES = {"text", "email", "tel"}
 _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
   const approved = new Set(approvedLabels);
   const hasRenderedText = node => Boolean(node && String(node.textContent || '').trim());
+  const hasVisibleColor = value => {
+    const color = String(value || '').trim().toLowerCase();
+    if (!color || color === 'transparent') return false;
+    const alphaMatch = color.match(/(?:rgba|hsla)\([^)]*,\s*([\d.]+%?)\s*\)$/) ||
+      color.match(/\/\s*([\d.]+%?)\s*\)$/);
+    if (!alphaMatch) return true;
+    const alphaText = alphaMatch[1];
+    const alpha = alphaText.endsWith('%')
+      ? Number(alphaText.slice(0, -1)) / 100 : Number(alphaText);
+    return Number.isFinite(alpha) && alpha >= 0.1;
+  };
   const labelIsVisible = label => {
     const ancestors = [];
     for (let node = label; node && node.nodeType === 1; node = node.parentElement) {
@@ -42,6 +53,8 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
       const node = ancestors[index];
       const style = styles[index];
       opacity *= Number(style.opacity);
+      if (!hasVisibleColor(style.color) ||
+          !hasVisibleColor(style.webkitTextFillColor || style.color)) visible = false;
       if (node.hidden || node.inert || node.getAttribute('aria-hidden') === 'true' ||
           style.display === 'none' || style.visibility === 'hidden' ||
           style.visibility === 'collapse' || style.contentVisibility === 'hidden' ||

@@ -367,6 +367,21 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 hidden_label = self.adapter.analyze_page(page)
                 self.assertEqual(hidden_label["status"], "UNKNOWN")
                 self.assertTrue(self.adapter.requires_human_review(hidden_label))
+                for name, css in (
+                    ("transparent color", "color:transparent"),
+                    ("transparent text fill", "-webkit-text-fill-color:transparent"),
+                ):
+                    with self.subTest(label_paint=name):
+                        page.set_content(
+                            f"<style>label{{{css}}}</style><form>"
+                            '<label for="email">Email address</label>'
+                            '<input id="email" type="email"></form>'
+                        )
+                        transparent_label = self.adapter.analyze_page(page)
+                        self.assertEqual(transparent_label["status"], "UNKNOWN")
+                        self.assertTrue(
+                            self.adapter.requires_human_review(transparent_label)
+                        )
                 page.set_content(
                     '<style>form{position:relative;height:100px}.prompt{position:absolute;'
                     'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
