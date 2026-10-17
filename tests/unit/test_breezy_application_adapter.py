@@ -76,6 +76,34 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             "submission": False,
         })
 
+    def test_normalizes_short_public_position_ids_with_matching_metadata(self):
+        for position in ("389eb1b8c3ef", "af584dbc3699"):
+            for suffix in ("", "/apply?source=fixture"):
+                with self.subTest(position=position, suffix=suffix):
+                    route = self.adapter.normalize_route({
+                        "provider": "BREEZY", "tenant": "ACME",
+                        "requisition": position.upper(),
+                        "url": f"https://acme.breezy.hr/p/{position.upper()}-Software-Engineer{suffix}",
+                    })
+                    self.assertEqual(route, {
+                        "provider": "breezy", "tenant": "acme",
+                        "requisition": position,
+                        "url": f"https://acme.breezy.hr/p/{position}-software-engineer",
+                    })
+
+    def test_short_position_routes_reject_bad_ids_and_conflicting_metadata(self):
+        prefix = "https://acme.breezy.hr/p/"
+        for position in ("389eb1b8c3e", "389eb1b8c3eff", "g89eb1b8c3ef", "389eb1b8c3e\u212a"):
+            with self.subTest(position=position):
+                self.assertIsNone(self.adapter.normalize_route({
+                    "provider": "breezy", "url": f"{prefix}{position}-job",
+                }))
+        for metadata in ({"tenant": "foreign"}, {"requisition": "af584dbc3699"}):
+            with self.subTest(metadata=metadata):
+                self.assertIsNone(self.adapter.normalize_route({
+                    "provider": "breezy", "url": prefix + "389eb1b8c3ef-job", **metadata,
+                }))
+
     def test_known_basic_contact_fixture_needs_no_extra_review(self):
         analysis = {"status": "PASS", "fields": [{
             "tag": "input", "input_type": "email", "sensitivity": "STANDARD", "ambiguous": False,
