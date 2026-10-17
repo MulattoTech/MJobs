@@ -163,6 +163,96 @@ class CompanyMonitoringRecoveryTests(unittest.TestCase):
         self.assertEqual(result["result"], "PASS")
         self.assertTrue(all(not ids for ids in result["residual_resources"].values()))
 
+    def test_public_discovery_enable_natural_due_and_safe_prepare_prerequisites(self):
+        """Small API preflight; this does not claim an actual stack restart."""
+        from apps.api.main import create_app
+        store = Store(f"sqlite:///{(self.fixture.root / 'preflight.db').as_posix()}")
+        store.migrate()
+        store.bind_workspace_mode('PERSONAL')
+        from fixtures.company_monitoring_stack import SYNTHETIC_JOB_DESCRIPTION
+        pages = dict(self.fixture.pages)
+        feed=json.loads(pages['/jobs.json'])
+        feed['items'][0]['content_text']=SYNTHETIC_JOB_DESCRIPTION
+        pages['/jobs.json']=json.dumps(feed)
+        pages['/jobs/one'] = '<script type="application/ld+json">' + json.dumps({
+            '@context':'https://schema.org','@type':'JobPosting','title':'Python Engineer',
+            'identifier':{'name':'Synthetic Monitoring Employer','value':'one'},
+            'hiringOrganization':{'@type':'Organization','name':'Synthetic Monitoring Employer',
+                                  'sameAs':'https://employer.example/'},
+            'url':'https://employer.example/jobs/one','description':SYNTHETIC_JOB_DESCRIPTION}) + '</script>'
+        def transport(client, url, deadline):
+            request=httpx.Request('GET',url)
+            return httpx.Response(200,text=pages[request.url.path],request=request)
+        env={**self.fixture.env,'MJOBS_DATABASE_URL':store.url,
+             'MJOBS_OUTPUT_DIR':str(self.fixture.root/'preflight')}
+        try:
+            with patch.dict(os.environ,env), patch.object(PublicCompanyClient,'_request_once',transport), \
+                    TestClient(create_app(store,'http://127.0.0.1:8090',self.fixture.root/'preflight',
+                               'redis://127.0.0.1:1/0',operation_mode='PERSONAL')) as client:
+                self.assertEqual(client.put('/profiles',json=PROFILE).status_code,200)
+                self.assertEqual(client.put('/search-profiles',json={'id':'preflight-all','profile_id':'fixture',
+                    'name':'Synthetic monitor','enabled':True,'source_ids':[]}).status_code,200)
+                admitted=client.post('/companies/discovery',json={'company_name':'Synthetic Monitoring Employer',
+                    'company_website':'https://employer.example/','reason':'USER_ADDED_COMPANY',
+                    'profile_id':'fixture','request_id':'preflight'})
+                self.assertEqual(admitted.status_code,202,admitted.text)
+                result=execute_operation(admitted.json()['operation_id'])
+                self.assertEqual(result['status'],'COMPLETED',result)
+                def view():
+                    return client.get('/company-sources/view',params={'profile_id':'fixture'}).json()['company_sources'][0]
+                source=view();source_id=source['id']
+                self.assertEqual(source['provider'],'json_feed')
+                self.assertEqual(source['collection_strategy'],'PUBLIC_JSON')
+                self.assertFalse(source['enabled'])
+                rejected=client.put(f'/company-sources/{source_id}/monitoring',json={
+                    'source_version':source['source_version'],'revision':0,'poll_interval':300})
+                self.assertEqual(rejected.status_code,409)
+                self.assertIn('MONITOR_SOURCE_DISABLED',rejected.text)
+                self.assertEqual(client.put(f'/company-sources/{source_id}/enabled',json={'enabled':True}).status_code,200)
+                fresh=view();self.assertTrue(fresh['enabled'])
+                self.assertEqual(fresh['id'],source_id)
+                configured=client.put(f'/company-sources/{source_id}/monitoring',json={
+                    'source_version':fresh['source_version'],
+                    'revision':(fresh['monitoring'] or {}).get('revision',0),'poll_interval':300})
+                self.assertEqual(configured.status_code,200,configured.text)
+                monitor=configured.json()
+                self.assertEqual(monitor['authorization'],'USER_REVIEWED')
+                due=datetime.fromisoformat(monitor['next_due'])
+                self.assertEqual(due,datetime.fromisoformat(fresh['last_success'])+timedelta(seconds=300))
+                self.assertEqual(schedule_company_sources(store)['scheduled'],[])
+                job=client.get('/jobs',params={'profile_id':'fixture'}).json()['jobs'][0]
+                prepared=client.post('/applications',json={'profile_id':'fixture','job_id':job['id']})
+                self.assertEqual(prepared.status_code,202,prepared.text)
+                result=execute_operation(prepared.json()['operation_id'])
+                self.assertEqual(result['status'],'COMPLETED',result)
+                docs=client.get('/profiles/fixture/applications/'+prepared.json()['application_id']+'/documents')
+                self.assertEqual(docs.status_code,200,docs.text)
+                saved_docs=docs.json()['documents']
+                self.assertTrue(saved_docs)
+            reopened=Store(store.url)
+            try:
+                with TestClient(create_app(reopened,'http://127.0.0.1:8090',self.fixture.root/'preflight',
+                                    'redis://127.0.0.1:1/0',operation_mode='PERSONAL')) as fresh_client:
+                    application_id=prepared.json()['application_id']
+                    application=fresh_client.get('/profiles/fixture/applications/'+application_id)
+                    self.assertEqual(application.status_code,200,application.text)
+                    self.assertEqual(application.json()['id'],application_id)
+                    for key in ['id','profile_id','job_id','state','route_id']:
+                        self.assertIn(key,application.json())
+                    documents=fresh_client.get('/profiles/fixture/applications/'+application_id+'/documents').json()['documents']
+                    self.assertEqual(documents,saved_docs)
+                    import hashlib
+                    for document in documents:
+                        for extension in ['txt','docx','pdf']:
+                            response=fresh_client.get('/profiles/fixture/documents/'+document['id']+'/'+extension)
+                            self.assertEqual(response.status_code,200)
+                            self.assertTrue(response.content)
+                            self.assertEqual(hashlib.sha256(response.content).hexdigest(),document['sha256'][extension])
+            finally:
+                reopened.engine.dispose()
+        finally:
+            store.engine.dispose()
+
     def test_company_monitoring_resumes_across_fresh_scheduler_and_refresh_workers(self):
         """A scheduler-process restart, not a full-stack/container restart."""
         from apps.api.main import create_app

@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import base64
 from contextlib import contextmanager
+from datetime import datetime
 import hashlib
 import io
 import json
@@ -37,6 +38,8 @@ IMAGE_PINS = {
 }
 RUNTIME = set(recovery.RECOVERY_RESTART_SERVICES) - {'postgres', 'redis'}
 SESSION = 'mjobs-85'
+SYNTHETIC_JOB_DESCRIPTION = ('Responsibilities: Build Python services for reporting. '
+                             'Maintain SQL data pipelines. Requirements: Python and SQL.')
 ALLOWED_PATHS = {'/', '/robots.txt', '/careers', '/jobs.json', '/jobs/one', '/jobs/two'}
 
 
@@ -205,7 +208,7 @@ def mock_main():
             state['feed_gets'] += 1
             state_path.write_text(json.dumps(state), encoding='utf-8')
         return {'version': 'https://jsonfeed.org/version/1.1', 'items': [
-            {'id': key, 'title': title, 'content_text': 'Python SQL synthetic fixture role',
+            {'id': key, 'title': title, 'content_text': SYNTHETIC_JOB_DESCRIPTION,
              'url': 'https://employer.example/jobs/' + key}
             for key, title in [('one', 'Python Engineer'), ('two', 'Python Reliability Engineer')][:state['revision']]]}
 
@@ -218,7 +221,7 @@ def mock_main():
                  'identifier': {'name': 'Synthetic Monitoring Employer', 'value': key},
                  'hiringOrganization': {'@type': 'Organization', 'name': 'Synthetic Monitoring Employer',
                                         'sameAs': 'https://employer.example/'},
-                 'url': 'https://employer.example/jobs/' + key, 'description': 'Python SQL synthetic fixture role'}
+                 'url': 'https://employer.example/jobs/' + key, 'description': SYNTHETIC_JOB_DESCRIPTION}
         return '<script type="application/ld+json">' + json.dumps(value) + '</script>'
 
     @app.get('/_test/monitoring')
@@ -360,7 +363,7 @@ def run_stack(artifacts):
     project = recovery.validate_project_name(os.environ['MJOBS_STK01_PROJECT'])
     port = recovery.validate_port(int(os.environ['MJOBS_STK01_PORT']))
     deadline = float(os.environ['MJOBS_STK01_COMMON_DEADLINE'])
-    if remaining(deadline, reserve=0, ceiling=1000) > 720:
+    if remaining(deadline, reserve=0, ceiling=1100) > 1020:
         raise FixtureError('STK01_DEADLINE_TOO_LONG')
     head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
     if head != os.environ['MJOBS_STK01_APPROVED_HEAD'] or subprocess.check_output(
@@ -535,14 +538,27 @@ def run_stack(artifacts):
             if source['collection_strategy'] != 'PUBLIC_JSON' or source['provider'] != 'json_feed':
                 raise FixtureError('STK01_PUBLIC_SOURCE_NOT_DISCOVERED')
             source_id = source['id']
-            request('PUT', '/company-sources/' + source_id + '/monitoring', json={
-                'source_version': source['source_version'], 'revision': 0, 'poll_interval': 300})
-            # Configuration makes the source due now; only the real scheduler
-            # admits the initial refresh, avoiding a competing manual enqueue.
+            expected_identity = {key: source[key] for key in ['id', 'company_id', 'provider', 'collection_strategy', 'career_url']}
+            if source['career_url'] != 'https://employer.example/careers':
+                raise FixtureError('STK03_SOURCE_ORIGIN_CHANGED')
+            request('PUT', '/company-sources/' + source_id + '/enabled', json={'enabled': True})
+            source = view()  # enabled is versioned; review only the current public snapshot
+            if (not source['enabled'] or any(source[key] != value for key, value in expected_identity.items())):
+                raise FixtureError('STK03_ENABLED_SOURCE_IDENTITY_CHANGED')
+            monitor = request('PUT', '/company-sources/' + source_id + '/monitoring', json={
+                'source_version': source['source_version'],
+                'revision': (source['monitoring'] or {}).get('revision', 0), 'poll_interval': 300})
+            due = datetime.fromisoformat(monitor['next_due'].replace('Z', '+00:00'))
+            if due.tzinfo is None:
+                raise FixtureError('STK03_NATURAL_DUE_INVALID')
+            report['initial_source_last_success'] = source['last_success']
+            report['initial_monitor_next_due'] = monitor['next_due']
+            checkpoint('public-source-enabled-reviewed-waiting-natural-initial-nextdue')
+            # Only the scheduler admits the first refresh, at the persisted due time.
             def scheduled_refresh():
                 operation_id = view()['monitoring']['operation_id']
                 return completed(operation_id) if operation_id else False
-            refresh = wait(scheduled_refresh)
+            refresh = wait(scheduled_refresh, seconds=max(30, due.timestamp() - time.time() + 45))
             first = view()
             checkpoint('first-real-monitor-refresh-completed')
             if first['monitoring']['status'] != 'HEALTHY' or not first['next_check']:
