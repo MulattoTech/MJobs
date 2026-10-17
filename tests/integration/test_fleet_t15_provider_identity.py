@@ -1,13 +1,16 @@
 """Team 15 connected checks for employer-bound ATS route identity."""
+import copy
 import tempfile
 import unittest
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from sqlalchemy import func, select
 
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
+from tests.integration.test_spine import PROFILE
 
 
 class FleetT15ProviderIdentityTests(unittest.TestCase):
@@ -18,6 +21,11 @@ class FleetT15ProviderIdentityTests(unittest.TestCase):
         self.store = Store(f"sqlite:///{self.database.as_posix()}")
         self.store.migrate()
         self.store.bind_workspace_mode("PERSONAL")
+        self.profile = copy.deepcopy(PROFILE)
+        self.foreign_profile = copy.deepcopy(PROFILE)
+        self.foreign_profile["id"] = "other-profile"
+        self.store.save_profile(self.profile)
+        self.store.save_profile(self.foreign_profile)
         with self.store.engine.begin() as connection:
             upsert(connection, m.companies, {
                 "id": "canonical-employer", "name": "Canonical Employer",
@@ -71,9 +79,42 @@ class FleetT15ProviderIdentityTests(unittest.TestCase):
             if alias["id"] == "misbound-route"
         )
         with self.subTest("foreign employer evidence cannot verify the route"):
-            self.assertNotEqual(route["authority"], "VERIFIED_ATS")
+            self.assertEqual(route["authority"], "UNKNOWN")
         with self.subTest("foreign employer evidence cannot establish route capability"):
-            self.assertNotEqual(route["adapter_knowledge"]["basis"], "ROUTE_AND_DISCOVERY")
+            self.assertEqual(route["adapter_knowledge"]["basis"], "UNKNOWN")
+            self.assertIsNone(route["adapter_knowledge"]["provider"])
+            self.assertIsNone(route["adapter_knowledge"]["ats_tenant_id"])
+            self.assertEqual(route["adapter_knowledge"]["candidates"], [])
+
+        for profile in (self.profile, self.foreign_profile):
+            with self.subTest(profile=profile["id"]):
+                scoped = client.get(
+                    f"/jobs/canonical-job/routes?profile_id={profile['id']}"
+                )
+                self.assertEqual(scoped.status_code, 200, scoped.text)
+                scoped_route = next(
+                    alias
+                    for option in scoped.json()["all_options"]
+                    for alias in option["aliases"]
+                    if alias["id"] == "misbound-route"
+                )
+                self.assertFalse(scoped_route["preferred_by_profile"])
+                rejected = client.put(
+                    f"/profiles/{profile['id']}/companies/canonical-employer/"
+                    "preferred-application-route",
+                    json={
+                        "route_id": "misbound-route",
+                        "preferred": True,
+                        "request_id": f"foreign-route-{profile['id']}",
+                    },
+                )
+                self.assertEqual(rejected.status_code, 404, rejected.text)
+
+        with self.store.engine.connect() as connection:
+            writes = connection.execute(select(func.count()).select_from(m.audit).where(
+                m.audit.c.action == "APPLICATION_ROUTE_PREFERENCE",
+            )).scalar_one()
+        self.assertEqual(writes, 0)
 
 
 if __name__ == "__main__":

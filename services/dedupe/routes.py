@@ -186,6 +186,12 @@ def qualify_route_authority(connection, routes):
     result = [dict(route) for route in routes]
     for route in result:
         route["authority"] = route_authority(route)
+        canonical_company_id = connection.execute(select(m.jobs.c.company_id).where(
+            m.jobs.c.id == route.get("job_id"),
+        )).scalar_one_or_none()
+        if canonical_company_id is None or canonical_company_id != route.get("company_id"):
+            route["authority"] = "UNKNOWN"
+            continue
         parsed = urlsplit(str(route.get("url") or ""))
         host = (parsed.hostname or "").casefold().rstrip(".")
         domains = connection.execute(select(m.company_domains.c.domain).where(
