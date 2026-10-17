@@ -146,9 +146,10 @@
         "docs/evidence/2026-10-07-product-worker-crash-recovery.json",
         "docs/evidence/2026-10-07-browser-crash-recovery.json",
         "docs/evidence/2026-10-07-browser-process-crash-recovery.json",
-        "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json"
+        "docs/evidence/2026-10-07-postgres-worker-crash-recovery.json",
+        "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json"
       ],
-      "note": "The durable implementation journal and recovery behavior have been partially exercised across interruption surfaces: terminal/session checkpoints, container recovery, SQLite product-worker process crash and stale-attempt fencing, Chromium renderer/browser-process crashes, and now current-schema disposable PostgreSQL process-crash lease recovery, audit readback, replacement completion and stale-attempt fencing (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json). Requirement remains PARTIAL because physical host restart and broader release acceptance are NOT_RUN.",
+      "note": "The durable implementation journal and recovery behavior have been partially exercised across interruption surfaces: terminal/session checkpoints, container recovery, SQLite product-worker process crash and stale-attempt fencing, Chromium renderer/browser-process crashes, and now current-schema disposable PostgreSQL process-crash lease recovery, audit readback, replacement completion and stale-attempt fencing (docs/evidence/2026-10-07-postgres-worker-crash-recovery.json). Requirement remains PARTIAL because physical host restart and broader release acceptance are NOT_RUN. Protected merged PR715 (248eb34f -> 9efaaab9) and PR716 (19e5a83b -> 41d51974) add scoped lease-loss/NULL-lease fencing, attempt/receipt recovery and consistent backup snapshots; exact-head hosted gates and qualified local evidence are recorded in docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json. Physical host restart, actual RQ maintenance redelivery, named Redis interruption opt-in and whole six-interruption/journal acceptance remain incomplete; PARTIAL unchanged.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
@@ -2053,9 +2054,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-11-connected-four-feature-acceptance.json",
-        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json",
+        "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json"
       ],
-      "note": "Historical checkpoint: Profile-scoped jobs/applications CSV, JSON, and document-byte backup routes are mounted and connected to the Profile UI. Connected browser acceptance downloads and parses all four formats, checks profile isolation and empty CSV states; full backup/recovery requirement remains PARTIAL. Current verified campaign closeout: Current campaign PR661 adds safe profile-scoped backup/restore, immutable history/readback/isolation and actual PostgreSQL migration proof; current final-source named profile-restore integration results retained. Dedicated archive-history browser proof LOCAL PASS/HOSTED NOT_RUN; generic hosted settings/theme/document flows are separate. Whole backup/recovery parent remains PARTIAL; no whole-parent approval.",
+      "note": "Historical checkpoint: Profile-scoped jobs/applications CSV, JSON, and document-byte backup routes are mounted and connected to the Profile UI. Connected browser acceptance downloads and parses all four formats, checks profile isolation and empty CSV states; full backup/recovery requirement remains PARTIAL. Current verified campaign closeout: Current campaign PR661 adds safe profile-scoped backup/restore, immutable history/readback/isolation and actual PostgreSQL migration proof; current final-source named profile-restore integration results retained. Dedicated archive-history browser proof LOCAL PASS/HOSTED NOT_RUN; generic hosted settings/theme/document flows are separate. Whole backup/recovery parent remains PARTIAL; no whole-parent approval. Protected merged PR716 (19e5a83b -> 41d51974) adds one-scope consistent database backup reads and verified uploaded bytes, with 63 local passes/8 PostgreSQL skips/37 subtests and exact-head hosted gates. Earlier PostgreSQL results remain explicitly identical-input scoped. See docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json; filesystem atomicity, migrations and whole backup/recovery are not certified. PARTIAL unchanged.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"

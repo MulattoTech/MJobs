@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T06:49:18.714546+00:00",
+  "requirement_ids": [
+    "MJ-REQ-008",
+    "MJ-REQ-169"
+  ],
+  "requirement_results": {
+    "MJ-REQ-008": "PARTIAL",
+    "MJ-REQ-169": "PARTIAL"
+  },
+  "recording_status": "BRANCH_EVIDENCE_UPDATE_FOR_ALREADY_PROTECTED_MERGED_SOURCE",
+  "scope": "Merged lease/attempt/receipt recovery and consistent profile-backup database snapshots only. No whole-requirement promotion, migration certification, filesystem atomicity, or MJ-REQ-001 credit.",
+  "deliveries": [
+    {
+      "pr": 715,
+      "url": "https://github.com/MulattoTech/MJobs/pull/715",
+      "head": "248eb34fc6bba0be6496f60ea153aadc47cb6dfb",
+      "protected_merge": "9efaaab9e7aa575789afc932f3f1747e8766e818",
+      "head_tree": "d59cfdc4710258dd8803d051bf8334c6ecf98404",
+      "merge_tree_equals_head": true,
+      "executed": [
+        {
+          "revision": "248eb34fc6bba0be6496f60ea153aadc47cb6dfb",
+          "command": "python -m pytest -q tests/unit/test_commit_provenance.py tests/unit/test_fleet_t20_commit_provenance.py tests/integration/test_fleet_t20_connected_acceptance.py --tb=short",
+          "result": "17 passed"
+        },
+        {
+          "revision": "248eb34fc6bba0be6496f60ea153aadc47cb6dfb",
+          "command": "python -m pytest -q tests/browser/test_fleet_t20_product_journey.py --tb=short",
+          "result": "2 passed in 9.86s; canonical cached Chromium, synthetic fixtures"
+        },
+        {
+          "revision": "248eb34fc6bba0be6496f60ea153aadc47cb6dfb",
+          "command": "independent frozen canonical commit_provenance --strict over 7574131c..248eb34f",
+          "result": "39 passed; 35 source and 4 no-source commits"
+        },
+        {
+          "revision": "248eb34fc6bba0be6496f60ea153aadc47cb6dfb",
+          "command": "latest exact-head hosted CI/Integration/Compose checks",
+          "result": "15/15 SUCCESS",
+          "workflow_runs": [
+            39009062857,
+            39009062814,
+            39009062883
+          ]
+        }
+      ],
+      "prior_input_scoped_evidence": {
+        "revision": "ed6cccb436ac31ed6d334be6e9f620fc8b40631d",
+        "scope": "Lifecycle source/test inputs unchanged by metadata repair and four provenance tool/test additions; these runs were not re-executed at 248.",
+        "python": "86 passed, 1 Redis opt-in skipped, 29 subtests; initial missing-build failure retained separately",
+        "browser_command": "python -m pytest -q tests/browser/test_worker_attempt_recovery.py tests/integration/test_route_attempt_concurrency.py::RouteAttemptConcurrencyTests::test_receipt_recovery_releases_only_proven_fenced_confirmed_owner tests/integration/test_route_attempt_concurrency.py::RouteAttemptConcurrencyTests::test_two_real_workers_only_one_submits_then_explicit_retry_is_safe tests/browser/test_fleet_t10_confirmation_reload.py tests/browser/test_application_confirmation_recovery.py --tb=short",
+        "browser_result": "7 passed in 40.36s"
+      },
+      "native_static_review": 5556593965
+    },
+    {
+      "pr": 716,
+      "url": "https://github.com/MulattoTech/MJobs/pull/716",
+      "head": "19e5a83b3d9d084285fba245daf78a71b00b363e",
+      "protected_merge": "41d51974bfb27b6f6141d638f1ecc8e7561d3d72",
+      "scope": "One owned consistent read connection for profile backup; verified uploaded bytes bound to the same DB snapshot; SQLite transaction isolation/fencing and recovery. No schema or migration change.",
+      "executed": [
+        {
+          "revision": "19e5a83b3d9d084285fba245daf78a71b00b363e",
+          "command": "python -m pytest -q tests/integration/test_fleet_t18_snapshot_recovery.py tests/integration/test_fleet_t18_snapshot_fencing.py tests/unit/test_data_export.py tests/unit/test_data_export_bounds.py tests/integration/test_data_export_flow.py tests/integration/test_resume_upload.py tests/unit/test_profile_restore.py tests/integration/test_profile_restore.py --tb=short",
+          "result": "63 passed, 8 PostgreSQL skips, 37 subtests passed in 46.32s"
+        },
+        {
+          "revision": "19e5a83b3d9d084285fba245daf78a71b00b363e",
+          "command": "commit_provenance --strict over 9efaaab9..19e5a83b",
+          "result": "11 passed"
+        },
+        {
+          "revision": "19e5a83b3d9d084285fba245daf78a71b00b363e",
+          "command": "latest exact-head hosted CI/Integration/Compose checks",
+          "result": "15/15 SUCCESS; root protected-merge guard verified"
+        }
+      ],
+      "prior_input_scoped_evidence": {
+        "revision": "b11db024316776b09d4533fe8d4e054c018f1500",
+        "result": "16 PostgreSQL passed, 1 SQLite-only skip on identical five snapshot input blobs; not fresh local PostgreSQL execution at 19e5",
+        "replacement_original": "c98b8f89be1573161dfa3d19c7997484cf3f04c1"
+      },
+      "native_static_review": 5556652572
+    }
+  ],
+  "not_run_or_remaining": [
+    "Physical host restart NOT_RUN; whole MJ-REQ-008 journal/six-interruption acceptance remains incomplete.",
+    "Named Redis enqueue-write/interruption opt-in was skipped locally because MJOBS_T11_REDIS_URL was unset; no named-test PASS claimed.",
+    "Actual RQ maintenance-driven stale STARTED cleanup followed by redelivery NOT_RUN; focused tests simulate terminal maintenance status, with safe no-delete behavior while STARTED.",
+    "Whole backup/recovery release acceptance, filesystem/database atomicity and migration certification are not established by the snapshot slice.",
+    "Live providers, employer authentication and real submissions NOT_RUN/OFF."
+  ],
+  "provenance_note": "Original PR712/705/698 heads were not merged; equivalent canonicalized lifecycle content integrated via715. Original713 b11 was not merged; identical snapshot source integrated via canonical716. Original branches preserved."
+}
