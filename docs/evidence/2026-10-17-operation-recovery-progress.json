@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-17T08:18:31.059640+00:00",
+  "recorded_at_utc": "2026-10-17T08:27:38.665620+00:00",
   "requirement_ids": [
     "MJ-REQ-156"
   ],
   "issue": 157,
-  "requirement_result": "PARTIAL",
+  "requirement_result": "PASS",
   "priority": "P1",
-  "scope": "Bounded frontend compatibility with existing durable recovery vocabulary. Intent is distinct from actual execution/completion; no backend/schema/API change or full requirement promotion.",
+  "scope": "Candidate acceptance of MJ-REQ-156/#157 persistent operations: twelve persisted operation fields, safe public progress projection, durable public admission independent of an open HTTP request, worker execution and reopened Store/API readback, and meaningful privacy-bounded recovery intent after mounted UI reload. Protected-main acceptance remains unchanged until merge. No backend/schema/API changes in this feature.",
   "source_commit": "66b8bd7d1be176111a450cfda5592ac03965b8d5",
   "tested_source_revision": "fadea2dbc96f8a1549d8eff8d5108a0029f19206",
   "tested_source_tree": "9f7f2966863abdd1bdb6549963ed8c4ca163622c",
@@ -38,6 +38,12 @@
       "source_revision": "66b8bd7d1be176111a450cfda5592ac03965b8d5",
       "command": "tsc --noEmit; vite build with isolated runner config/cache/output",
       "result": "PASS; cached dependencies, no installs; typecheck on identical working source bytes, build at66b8; existing large-chunk warning retained"
+    },
+    {
+      "revision": "5931c4a1e28b346094de734bb461c79b9cfcd7d2",
+      "command": "python -m pytest -v --tb=short tests/integration/test_durable_ai_evaluation.py::DurableAIEvaluationTests::test_real_api_connection_close_does_not_cancel_admitted_evaluation tests/integration/test_durable_uploaded_comparison.py::DurableUploadedComparisonTests::test_admit_disconnect_execute_reopen_and_replay_preserves_result",
+      "result": "2 passed, no skips in4.73s; wall5.34s; inspected eight test/source hashes unchanged; disposable synthetic fixtures only",
+      "scope": "Existing AI queued evaluation after actual HTTP connection close/API server stop uses a synthetic router and publishes once. Existing uploaded comparison closes its API client before actual worker execution, then fresh Store/API readback and idempotent replay preserve result/profile. No real AI/external/employer calls or new services; this is HTTP lifetime independence, not an OS process restart."
     }
   ],
   "negative_controls": [
@@ -53,10 +59,26 @@
     "assets/index-CvWXjyhO.css": "fcbd205add183a256920abf83e828aee55694a15cbf2b83c6503ca4a924f11a2"
   },
   "remaining_not_run": [
-    "Physical worker-process/container/host restart is not demonstrated by deterministic lease expiry or Store/API reopen",
+    "Physical worker-process/container/host restart is NOT_RUN in this acceptance slice; deterministic lease expiry and Store/API reopen do not prove it. These are outside the literal #157 criteria; no MJ-REQ-158 or MJ-REQ-008 credit.",
     "Real employer authentication/submission and live Workday DOM inspection",
-    "Fresh exact-final-head hosted checks/native review pending publication",
-    "Full MJ-REQ-156 acceptance remains independently unestablished by this bounded UI fix"
+    "Fresh exact-final-head hosted checks/native review pending publication"
   ],
-  "status_priority_unchanged": true
+  "additional_http_lifetime_source_hashes": {
+    "tests/integration/test_durable_ai_evaluation.py": "273050beca9d3954afae96dc9c222b2425dae57d178c32ffdd7d7654c962bbd2",
+    "tests/integration/test_durable_uploaded_comparison.py": "09aa8bb03460aac8ac94ec4a2528f9daa6cf7b4b0ed792bfe10bdbb4f55e2c33",
+    "services/ai/durable_evaluation.py": "540748c23019bbae9f0a119808189c32297d3a68de6d5c926632c791d2638580",
+    "services/documents/durable_comparison.py": "37d7cf3efd1076472df17fc9361129e5e167c4840457e9ea2568ee572e56be10",
+    "workers/tasks.py": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+    "workers/operations.py": "5452d690c72c640ed027be38f30aeba7e720f1f3d738d5a8fa708c651ec13ed7",
+    "apps/api/main.py": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00",
+    "packages/persistence/store.py": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78"
+  },
+  "additional_acceptance_review": "Verifier83 independently analyzed all twelve persisted fields and public long-running routes. Exact5931 AI and uploaded-comparison HTTP-close controls passed2/0skip, complementing DISCOVER/API/mounted recovery proof. Root48 explicitly authorized candidate-only MJ-REQ-156 PASS; no promotion inferred from test names and no other requirement credited.",
+  "acceptance_transition": {
+    "previous_result": "PARTIAL",
+    "candidate_result": "PASS",
+    "priority_unchanged": "P1",
+    "protected_main_result": "PARTIAL until protected merge",
+    "authority": "Explicit root48 acceptance decision after independent verifier83 twelve-field/all-public-long-running-route analysis and executed current-head HTTP-lifetime controls"
+  }
 }
