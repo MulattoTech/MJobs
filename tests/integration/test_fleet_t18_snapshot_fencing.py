@@ -4,7 +4,10 @@ from pathlib import Path
 import tempfile
 import unittest
 
+from sqlalchemy import event, select, update
+
 from tests.integration.test_spine import PROFILE
+from packages.persistence import models as m
 from packages.persistence.store import Store
 
 
@@ -92,6 +95,93 @@ class ProfileReadSnapshotTests(unittest.TestCase):
                              ["after-interruption-fact"])
         finally:
             reopened.engine.dispose()
+
+    def test_nested_snapshot_exception_does_not_end_outer_read_scope(self):
+        writer_profile = self.updated_profile("Synthetic nested snapshot v2",
+                                              "nested-snapshot-v2-fact")
+
+        with self.store.read_snapshot() as outer_connection:
+            outer_before = self.profile_at(self.store, outer_connection)
+            writer_version = self.writer.save_profile(
+                writer_profile, expected_version=self.initial_version)
+
+            with self.assertRaisesRegex(RuntimeError, "injected nested snapshot interruption"):
+                with self.store.read_snapshot() as inner_connection:
+                    inner = self.profile_at(self.store, inner_connection)
+                    self.assertEqual(inner["version"], writer_version)
+                    self.assertEqual([fact["fact_id"] for fact in inner["facts"]],
+                                     ["nested-snapshot-v2-fact"])
+                    raise RuntimeError("injected nested snapshot interruption")
+
+            outer_after = self.profile_at(self.store, outer_connection)
+
+        self.assertEqual(outer_before["version"], self.initial_version)
+        self.assertEqual(outer_after, outer_before)
+        self.assertEqual([fact["fact_id"] for fact in outer_after["facts"]], ["python", "sql"])
+
+    def test_snapshot_exception_does_not_commit_or_rollback_independent_writer(self):
+        with self.writer.engine.connect() as write_connection:
+            write_transaction = write_connection.begin()
+            write_connection.execute(update(m.profiles).where(
+                m.profiles.c.id == "t18-snapshot-profile").values(name="Uncommitted writer value"))
+
+            with self.assertRaisesRegex(RuntimeError, "injected snapshot interruption"):
+                with self.store.read_snapshot() as snapshot_connection:
+                    self.profile_at(self.store, snapshot_connection)
+                    raise RuntimeError("injected snapshot interruption")
+
+            self.assertTrue(write_transaction.is_active)
+            self.assertEqual(write_connection.execute(select(m.profiles.c.name).where(
+                m.profiles.c.id == "t18-snapshot-profile")).scalar_one(),
+                "Uncommitted writer value")
+            with self.store.engine.connect() as outside_connection:
+                self.assertEqual(outside_connection.execute(select(m.profiles.c.name).where(
+                    m.profiles.c.id == "t18-snapshot-profile")).scalar_one(),
+                    "Synthetic snapshot v1")
+
+            write_transaction.rollback()
+
+        self.assertEqual(self.store.profile("t18-snapshot-profile")["name"],
+                         "Synthetic snapshot v1")
+
+    def test_in_memory_shared_transaction_fails_closed_before_begin(self):
+        memory_store = Store("sqlite:///:memory:")
+        self.addCleanup(memory_store.engine.dispose)
+        memory_store.migrate()
+        profile = copy.deepcopy(self.profile)
+        profile.update(id="t18-memory-snapshot-profile", name="Synthetic memory profile",
+                       email="memory@example.test")
+        memory_store.save_profile(profile)
+
+        with memory_store.engine.connect() as outer_connection:
+            outer_transaction = outer_connection.begin()
+            outer_connection.execute(update(m.profiles).where(
+                m.profiles.c.id == profile["id"]).values(name="Uncommitted outer value"))
+            dbapi_connection = outer_connection.connection.driver_connection
+            self.assertTrue(dbapi_connection.in_transaction)
+            explicit_begins = []
+
+            def record_explicit_begin(_conn, _cursor, statement, _parameters,
+                                      _context, _executemany):
+                if statement.strip().upper() == "BEGIN":
+                    explicit_begins.append(statement)
+
+            event.listen(memory_store.engine, "before_cursor_execute", record_explicit_begin)
+            try:
+                with self.assertRaises(RuntimeError):
+                    with memory_store.read_snapshot():
+                        self.fail("snapshot should reject the active shared DBAPI transaction")
+            finally:
+                event.remove(memory_store.engine, "before_cursor_execute", record_explicit_begin)
+
+            self.assertEqual(explicit_begins, [])
+            self.assertTrue(outer_transaction.is_active)
+            self.assertTrue(dbapi_connection.in_transaction)
+            self.assertEqual(outer_connection.execute(select(m.profiles.c.name).where(
+                m.profiles.c.id == profile["id"])).scalar_one(), "Uncommitted outer value")
+            outer_transaction.commit()
+
+        self.assertEqual(memory_store.profile(profile["id"])["name"], "Uncommitted outer value")
 
 
 if __name__ == "__main__":
