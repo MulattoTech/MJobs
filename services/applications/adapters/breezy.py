@@ -23,6 +23,32 @@ _CONTACT_PROMPTS = {
     "phone number", "postal code", "state", "website", "zip code",
 }
 _SUPPORTED_INPUT_TYPES = {"text", "email", "tel"}
+_CONTROL_STATE_SCRIPT = r"""controls => controls.map(element => {
+  const ancestors = [];
+  for (let node = element; node && node.nodeType === 1; node = node.parentElement) {
+    ancestors.push(node);
+  }
+  const styles = ancestors.map(node => window.getComputedStyle(node));
+  const hidden = ancestors.some((node, index) => {
+    const style = styles[index];
+    return node.hidden || node.inert || node.getAttribute('aria-hidden') === 'true' ||
+      style.display === 'none' || style.visibility === 'hidden' ||
+      style.visibility === 'collapse' || Number(style.opacity) === 0 ||
+      style.contentVisibility === 'hidden' || style.pointerEvents === 'none';
+  });
+  const rect = element.getBoundingClientRect();
+  const visible = !hidden && element.getClientRects().length > 0 &&
+    rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.bottom > 0 &&
+    rect.left < window.innerWidth && rect.top < window.innerHeight;
+  const disabled = element.matches(':disabled') || element.readOnly === true ||
+    Boolean(element.closest('[aria-disabled="true"], [aria-readonly="true"]'));
+  const inputType = element.tagName.toLowerCase() === 'input'
+    ? (element.getAttribute('type') || 'text').toLowerCase() : null;
+  return {
+    user_visible: visible,
+    user_editable: visible && !disabled && inputType !== 'hidden'
+  };
+})"""
 
 
 class BreezyApplicationAdapter:
@@ -104,8 +130,41 @@ class BreezyApplicationAdapter:
     def analyze_page(self, page, *, check=None) -> dict:
         """Read form metadata only; no controls are filled, clicked, or submitted."""
         if check is not None:
-            return analyze_form_page(page, check=check)
-        return analyze_form_page(page)
+            analysis = analyze_form_page(page, check=check)
+        else:
+            analysis = analyze_form_page(page)
+        if (not isinstance(analysis, dict) or analysis.get("status") != "PASS"
+                or not isinstance(analysis.get("fields"), list)
+                or not analysis["fields"]):
+            return analysis
+        try:
+            if check is not None:
+                check()
+            forms = page.locator("form")
+            if forms.count() != 1:
+                return analysis
+            states = forms.first.locator("input, select, textarea").evaluate_all(
+                _CONTROL_STATE_SCRIPT
+            )
+            if check is not None:
+                check()
+        except Exception:
+            if check is not None:
+                check()
+            return analysis
+        fields = analysis["fields"]
+        if not isinstance(states, list) or len(states) != len(fields):
+            return analysis
+        for index, (field, state) in enumerate(zip(fields, states)):
+            if (not isinstance(field, dict) or field.get("index") != index
+                    or not isinstance(state, dict)
+                    or type(state.get("user_visible")) is not bool
+                    or type(state.get("user_editable")) is not bool):
+                return analysis
+        for field, state in zip(fields, states):
+            field["user_visible"] = state["user_visible"]
+            field["user_editable"] = state["user_editable"]
+        return analysis
 
     @staticmethod
     def requires_human_review(analysis) -> bool:

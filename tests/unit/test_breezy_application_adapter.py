@@ -1,5 +1,6 @@
 """Synthetic contract tests for the inspection-only Breezy adapter."""
 import unittest
+from unittest.mock import patch
 
 from services.applications.adapters.breezy import BreezyApplicationAdapter
 
@@ -75,6 +76,71 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             "labels": ["Email address"], "user_visible": True, "user_editable": True,
         }]}
         self.assertFalse(self.adapter.requires_human_review(analysis))
+
+    def test_analyze_page_attaches_dom_visibility_and_editability_evidence(self):
+        analysis = {"status": "PASS", "fields": [{
+            "index": 0,
+            "tag": "input", "input_type": "email", "sensitivity": "STANDARD",
+            "ambiguous": False, "labels": ["Email address"],
+        }]}
+
+        class Controls:
+            def evaluate_all(self, script):
+                return [{"user_visible": True, "user_editable": True}]
+
+        class Form:
+            @property
+            def first(self):
+                return self
+
+            def count(self):
+                return 1
+
+            def locator(self, selector):
+                return Controls()
+
+        class Page:
+            def locator(self, selector):
+                return Form()
+
+        with patch("services.applications.adapters.breezy.analyze_form_page",
+                   return_value=analysis):
+            result = self.adapter.analyze_page(Page())
+
+        self.assertIs(result["fields"][0]["user_visible"], True)
+        self.assertIs(result["fields"][0]["user_editable"], True)
+        self.assertFalse(self.adapter.requires_human_review(result))
+
+    def test_analyze_page_missing_dom_evidence_requires_review(self):
+        analysis = {"status": "PASS", "fields": [{
+            "tag": "input", "input_type": "email", "sensitivity": "STANDARD",
+            "ambiguous": False, "labels": ["Email address"],
+        }]}
+
+        class Controls:
+            def evaluate_all(self, script):
+                return []
+
+        class Form:
+            @property
+            def first(self):
+                return self
+
+            def count(self):
+                return 1
+
+            def locator(self, selector):
+                return Controls()
+
+        class Page:
+            def locator(self, selector):
+                return Form()
+
+        with patch("services.applications.adapters.breezy.analyze_form_page",
+                   return_value=analysis):
+            result = self.adapter.analyze_page(Page())
+
+        self.assertTrue(self.adapter.requires_human_review(result))
 
     def test_controls_without_positive_visible_editable_evidence_require_review(self):
         known_contact = {
