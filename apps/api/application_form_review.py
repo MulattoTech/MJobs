@@ -13,6 +13,9 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import now
 from services.applications.form_review_providers import normalize_application_route
+from services.applications.manual_auth import (
+    ManualAuthCompletionError, current_user_auth_completion,
+)
 from workers.dispatch import enqueue_operation
 from workers.application_form_review import FormReviewError, _existing_result
 
@@ -126,12 +129,36 @@ def create_application_form_review_router(store) -> APIRouter:
                 "analysis": None,
             }
         error = row["error"] if isinstance(row["error"], str) and _SAFE_ERROR.fullmatch(row["error"]) else None
-        return {
+        response = {
             "request_id": params.get("request_id"),
             "state": row["state"],
             "error_code": error,
             "analysis": report,
         }
+        if params.get("provider") == "workday":
+            # Resolve revocation/expiry after closing the receipt connection:
+            # the service owns its transaction. This declaration never supplies
+            # a session or changes the persisted review/worker outcome.
+            response["user_auth_declaration"] = None
+            try:
+                declaration = current_user_auth_completion(
+                    store, profile_id, application_id, row["id"],
+                )
+            except ManualAuthCompletionError:
+                declaration = None
+            if (isinstance(declaration, dict)
+                    and declaration.get("status") == "USER_DECLARED"
+                    and declaration.get("review_operation_id") == row["id"]
+                    and declaration.get("authenticated_session_available") is False
+                    and all(isinstance(declaration.get(key), str)
+                            for key in ("declared_at", "expires_at"))):
+                response["user_auth_declaration"] = {
+                    key: declaration[key] for key in (
+                        "status", "review_operation_id", "declared_at", "expires_at",
+                        "authenticated_session_available",
+                    )
+                }
+        return response
 
     @router.post(
         "/profiles/{profile_id}/applications/{application_id}/form-reviews",
