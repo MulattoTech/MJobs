@@ -313,6 +313,17 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
                 self.assertEqual(response.status_code, 409, response.text)
                 self.assertEqual(response.json()["detail"]["code"],
                                  "FORM_REVIEW_ROUTE_UNSUPPORTED")
+                with self.store.engine.connect() as connection:
+                    queued = connection.execute(select(m.operations.c.id).where(
+                        m.operations.c.kind == "APPLICATION_FORM_REVIEW",
+                        m.operations.c.entity_id == self.application_id,
+                    )).all()
+                    audits = connection.execute(select(m.audit.c.payload).where(
+                        m.audit.c.entity_id == self.application_id,
+                        m.audit.c.action == "APPLICATION_FORM_REVIEW",
+                    )).all()
+                self.assertEqual(queued, [])
+                self.assertEqual(audits, [])
 
     def test_ashby_worker_rejects_route_identity_changed_after_queue(self):
         route_url = "https://jobs.ashbyhq.com/fixture/engineering-123"
@@ -363,6 +374,16 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
 
                 self.assertEqual(result["status"], "DEAD_LETTERED")
                 self.assertEqual(fetched, [])
+                with self.store.engine.connect() as connection:
+                    operation = connection.execute(select(m.operations).where(
+                        m.operations.c.id == operation_id,
+                    )).mappings().one()
+                    audits = connection.execute(select(m.audit.c.payload).where(
+                        m.audit.c.entity_id == self.application_id,
+                        m.audit.c.action == "APPLICATION_FORM_REVIEW",
+                    )).all()
+                self.assertEqual(operation["state"], "DEAD_LETTERED")
+                self.assertEqual(audits, [])
 
     def test_ashby_public_route_queues_worker_and_reads_value_free_review(self):
         route_url = "https://jobs.ashbyhq.com/fixture/engineering-123"
