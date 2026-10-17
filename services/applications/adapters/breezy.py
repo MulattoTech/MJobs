@@ -399,6 +399,7 @@ class BreezyApplicationAdapter:
         if (isinstance(analysis, dict) and analysis.get("status") == "UNKNOWN"
                 and analysis.get("reason") == "UNSAFE_TEXT_CONTEXT"):
             analysis = self._reanalyze_recognized_labels(page, check=check)
+        analysis = self._sanitize_prompt_metadata(analysis)
         if (not isinstance(analysis, dict) or analysis.get("status") != "PASS"
                 or not isinstance(analysis.get("fields"), list)
                 or not analysis["fields"]):
@@ -440,6 +441,50 @@ class BreezyApplicationAdapter:
             field["user_visible"] = user_visible
             field["user_editable"] = user_editable
         return analysis
+
+    @staticmethod
+    def _sanitize_prompt_metadata(analysis):
+        """Keep raw prompt text out of returned analysis while preserving review signals."""
+        if not isinstance(analysis, dict) or not isinstance(analysis.get("fields"), list):
+            return analysis
+        for field in analysis["fields"]:
+            if not isinstance(field, dict):
+                return {"status": "UNKNOWN", "reason": "INVALID_FIELD_METADATA", "fields": []}
+            has_unrecognized_prompt = False
+            labels = field.get("labels", [])
+            if not isinstance(labels, list):
+                labels = []
+                has_unrecognized_prompt = True
+            safe_labels = []
+            for label in labels:
+                canonical = BreezyApplicationAdapter._canonical_contact_prompt(label)
+                if canonical is None:
+                    if label is not None and (not isinstance(label, str) or label.strip()):
+                        has_unrecognized_prompt = True
+                    continue
+                if canonical not in safe_labels:
+                    safe_labels.append(canonical)
+            field["labels"] = safe_labels
+            for key in ("placeholder", "aria_label"):
+                value = field.get(key)
+                if value is None:
+                    continue
+                canonical = BreezyApplicationAdapter._canonical_contact_prompt(value)
+                if canonical is None:
+                    if not isinstance(value, str) or value.strip():
+                        has_unrecognized_prompt = True
+                    field[key] = None
+                else:
+                    field[key] = canonical
+            field["unrecognized_prompt_metadata"] = has_unrecognized_prompt
+        return analysis
+
+    @staticmethod
+    def _canonical_contact_prompt(value):
+        if not isinstance(value, str) or not value.isascii():
+            return None
+        normalized = re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+        return normalized if normalized in _CONTACT_PROMPTS else None
 
     @staticmethod
     def _reanalyze_recognized_labels(page, *, check=None) -> dict:
@@ -598,6 +643,7 @@ class BreezyApplicationAdapter:
                     or field.get("sensitivity") != "STANDARD"
                     or field.get("user_visible") is not True
                     or field.get("user_editable") is not True
+                    or field.get("unrecognized_prompt_metadata") is True
                     or not isinstance(input_type, str)
                     or input_type.casefold() not in _SUPPORTED_INPUT_TYPES
                     or not BreezyApplicationAdapter._known_contact_prompt(field)):

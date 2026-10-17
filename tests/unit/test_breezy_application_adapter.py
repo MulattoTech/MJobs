@@ -124,7 +124,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
         result = self.adapter.analyze_page(Page())
 
         self.assertEqual(result["fields"][0]["labels"], [])
-        self.assertEqual(result["fields"][0]["aria_label"], "Email address")
+        self.assertEqual(result["fields"][0]["aria_label"], "email address")
         self.assertIs(result["fields"][0]["user_visible"], True)
         self.assertIs(result["fields"][0]["user_editable"], True)
         self.assertFalse(self.adapter.requires_human_review(result))
@@ -332,6 +332,29 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                         self.assertEqual(
                             self.adapter.requires_human_review(analysis), expected_review,
                         )
+                for attribute, prompt in (
+                    ("aria-label", "Why do you want this job?"),
+                    ("placeholder", "Tell us about your background"),
+                ):
+                    with self.subTest(custom_prompt_attribute=attribute):
+                        aria_attribute = (
+                            f'aria-label="{prompt}"' if attribute == "aria-label"
+                            else 'aria-label="Email address"'
+                        )
+                        prompt_attribute = (
+                            "" if attribute == "aria-label"
+                            else f'{attribute}="{prompt}"'
+                        )
+                        page.set_content(
+                            f'<form><input type="email" {aria_attribute} '
+                            f'{prompt_attribute}></form>'
+                        )
+                        custom_prompt = self.adapter.analyze_page(page)
+                        self.assertEqual(custom_prompt["status"], "PASS")
+                        self.assertTrue(
+                            self.adapter.requires_human_review(custom_prompt)
+                        )
+                        self.assertNotIn(prompt, repr(custom_prompt))
                 page.set_content(
                     '<form><label for="why">Why do you want to work here?</label>'
                     '<input id="why" type="text"></form>'
