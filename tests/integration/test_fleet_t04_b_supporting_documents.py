@@ -2,14 +2,15 @@
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity, now
 from services.applications.supporting_documents import (
     SupportingDocumentError, read_selected_files, select_documents,
 )
@@ -143,6 +144,152 @@ class FleetT04SupportingDocumentTests(unittest.TestCase):
                 personal_client.close()
         finally:
             personal_store.engine.dispose()
+
+    def test_selected_bytes_use_one_event_when_a_new_selection_arrives_mid_read(self):
+        first_content = b"First immutable Workday selection"
+        first_revision = self._upload(first_content).json()["revision_id"]
+        second_content = b"Second Workday selection"
+        second_revision = self._upload(second_content).json()["revision_id"]
+        first = select_documents(
+            self.store, "fixture", self.application_id, [first_revision], "t04-race-first",
+            _controlled_fixture=True,
+        )
+        self.assertEqual(first["selected_revision_ids"], [first_revision])
+
+        from services.applications import supporting_documents as service
+        original_events = service._selection_events
+        swapped = False
+
+        def events_then_new_selection(connection, application_id, *, _controlled_fixture=False):
+            nonlocal swapped
+            events = original_events(connection, application_id,
+                                     _controlled_fixture=_controlled_fixture)
+            if not swapped:
+                swapped = True
+                second = connection.execute(select(
+                    m.resume_revisions.c.upload_id,
+                    m.resume_revisions.c.document_kind,
+                    m.uploaded_resumes.c.sha256,
+                ).join(m.uploaded_resumes,
+                       m.uploaded_resumes.c.id == m.resume_revisions.c.upload_id).where(
+                    m.resume_revisions.c.id == second_revision,
+                )).mappings().one()
+                payload = {
+                    "profile_id": "fixture", "application_id": self.application_id,
+                    "job_id": self.job_id,
+                    "items": [{
+                        "revision_id": second_revision,
+                        "upload_id": second["upload_id"],
+                        "document_kind": second["document_kind"],
+                        "sha256": second["sha256"],
+                        "size_bytes": len(second_content),
+                    }],
+                    "context": "CONTROLLED_FIXTURE", "request_id": "t04-race-second",
+                    "sequence": max((item["payload"].get("sequence", 0) for item in events), default=0) + 1,
+                }
+                connection.execute(m.audit.insert().values(
+                    id=identity("application-fixture-supporting-documents",
+                                self.application_id, "t04-race-second"),
+                    entity_id=self.application_id,
+                    action="APPLICATION_FIXTURE_SUPPORTING_DOCUMENTS_SELECTED",
+                    payload=payload, timestamp=now(),
+                ))
+                connection.commit()
+            return events
+
+        with patch.object(service, "_selection_events", events_then_new_selection):
+            selected = read_selected_files(
+                self.store, self.root, "fixture", self.application_id,
+                _controlled_fixture=True,
+            )
+        self.assertTrue(swapped)
+        self.assertEqual([item["revision_id"] for item in selected], [first_revision])
+        self.assertEqual(selected[0]["content"], first_content)
+
+    def test_new_selection_records_size_and_changed_size_metadata_fails_closed(self):
+        content = b"Size-bound synthetic Workday document"
+        revision_id = self._upload(content).json()["revision_id"]
+        self.client.put(self.selection_url, json={
+            "revision_ids": [revision_id], "request_id": "t04-size-metadata",
+        })
+        with self.store.engine.connect() as connection:
+            event = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "APPLICATION_FIXTURE_SUPPORTING_DOCUMENTS_SELECTED",
+            )).mappings().one()
+        original_payload = event["payload"]
+        self.assertEqual(original_payload["items"][0].get("size_bytes"), len(content))
+
+        for size_bytes in (len(content) + 1, "malformed", None):
+            changed = {**original_payload, "items": [
+                {**original_payload["items"][0], "size_bytes": size_bytes},
+            ]}
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.audit).where(m.audit.c.id == event["id"]).values(
+                    payload=changed,
+                ))
+            with self.subTest(size_bytes=size_bytes), self.assertRaisesRegex(
+                    SupportingDocumentError, "SUPPORTING_DOCUMENT_CHANGED"):
+                read_selected_files(
+                    self.store, self.root, "fixture", self.application_id,
+                    _controlled_fixture=True,
+                )
+
+        malformed = {**original_payload, "items": [None]}
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.audit).where(m.audit.c.id == event["id"]).values(
+                payload=malformed,
+            ))
+        with self.assertRaisesRegex(SupportingDocumentError, "SUPPORTING_DOCUMENT_CHANGED"):
+            read_selected_files(
+                self.store, self.root, "fixture", self.application_id,
+                _controlled_fixture=True,
+            )
+
+        legacy = {**original_payload, "items": [
+            {key: value for key, value in original_payload["items"][0].items()
+             if key != "size_bytes"},
+        ]}
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.audit).where(m.audit.c.id == event["id"]).values(
+                payload=legacy,
+            ))
+        self.assertEqual(read_selected_files(
+            self.store, self.root, "fixture", self.application_id,
+            _controlled_fixture=True,
+        )[0]["content"], content)
+
+        from services.applications import supporting_documents as service
+        expected_record = {"sha256": original_payload["items"][0]["sha256"],
+                           "size_bytes": len(content), "filename": "fixture-evidence.txt",
+                           "media_type": "text/plain"}
+        for record, returned_content in (
+            ({**expected_record, "size_bytes": len(content) + 1}, content),
+            (expected_record, content[:-1]),
+        ):
+            with patch.object(service, "read_resume", return_value=(record, returned_content)):
+                with self.assertRaisesRegex(SupportingDocumentError, "SUPPORTING_DOCUMENT_CHANGED"):
+                    read_selected_files(
+                        self.store, self.root, "fixture", self.application_id,
+                        _controlled_fixture=True,
+                    )
+
+    def test_workday_route_can_select_and_read_documents_without_preflight_hook(self):
+        with self.store.engine.begin() as connection:
+            route_id = self.store.application(self.application_id)["route_id"]
+            connection.execute(update(m.routes).where(m.routes.c.id == route_id).values(
+                provider="workday", url="https://acme.wd5.myworkdayjobs.com/en-US/jobs",
+            ))
+        revision_id = self._upload(b"Synthetic Workday selection-only document").json()["revision_id"]
+        selection_url = self.prefix + "/supporting-documents"
+        saved = self.client.put(selection_url, json={
+            "revision_ids": [revision_id], "request_id": "t04-workday-selection-only",
+        })
+        self.assertEqual(saved.status_code, 200, saved.text)
+        self.assertEqual(self.client.get(selection_url).json()["selected_revision_ids"], [revision_id])
+        self.assertEqual(read_selected_files(
+            self.store, self.root, "fixture", self.application_id,
+        )[0]["content"], b"Synthetic Workday selection-only document")
 
 
 if __name__ == "__main__":
