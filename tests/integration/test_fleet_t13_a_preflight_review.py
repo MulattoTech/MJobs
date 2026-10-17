@@ -68,6 +68,95 @@ def test_question_bearing_approved_answer_is_gated_and_legacy_id_only_still_work
     legacy = build_preflight_result(legacy_profile, ROUTE, questionnaire(), {"resume"})
     assert legacy["result"] == "PASS"
     assert "answer_review" not in legacy
+    legacy_with_expected_gate = build_preflight_result(
+        legacy_profile, ROUTE, questionnaire(), {"resume"},
+        expected_answer_review_fingerprints={},
+    )
+    assert legacy_with_expected_gate["result"] == "UNKNOWN"
+    assert legacy_with_expected_gate["answer_review"][0]["reason"] == "CHANGED_ANSWER"
+
+
+def test_raw_review_source_survives_normalization_and_binds_conflicts_changes_and_policy():
+    raw_answers = [saved()]
+    normalized = saved()
+    normalized.pop("question")
+    profile = {"version": 1, "answers": [normalized]}
+    baseline = build_preflight_result(
+        profile, ROUTE, questionnaire(), {"resume"},
+        review_profile_answers=raw_answers,
+    )
+    assert baseline["result"] == "PASS"
+
+    conflict = build_preflight_result(
+        profile, ROUTE, questionnaire(), {"resume"},
+        review_profile_answers=[*raw_answers, saved("other", "No, I cannot work weekends.")],
+    )
+    assert conflict["result"] == "UNKNOWN"
+    assert conflict["answer_review"][0]["reason"] == "CONFLICTING_ANSWERS"
+
+    changed_raw = [saved(text="No, I cannot work weekends.")]
+    changed_normalized = [{**changed_raw[0]}]
+    changed_normalized[0].pop("question")
+    changed = build_preflight_result(
+        {"version": 1, "answers": changed_normalized}, ROUTE, questionnaire(), {"resume"},
+        expected_answer_review_fingerprints={
+            "weekends": baseline["answer_review"][0]["fingerprint"],
+        },
+        review_profile_answers=changed_raw,
+    )
+    assert changed["result"] == "UNKNOWN"
+    assert changed["answer_review"][0]["reason"] == "CHANGED_ANSWER"
+
+    strict_policy = build_preflight_result(
+        profile, ROUTE, questionnaire(), {"resume"},
+        answer_confidence_policy={
+            "minimum_saved_answer_confidence": 100,
+            "minimum_question_match_confidence": 1.0,
+        },
+        review_profile_answers=raw_answers,
+    )
+    assert strict_policy["result"] == "UNKNOWN"
+    assert strict_policy["answer_review"][0]["reason"] == "UNKNOWN_ANSWER"
+
+    low_confidence_raw = [saved()]
+    low_confidence_raw[0]["confidence"] = 90
+    low_confidence_normalized = [{key: value for key, value in low_confidence_raw[0].items()
+                                  if key != "question"}]
+    saved_threshold_policy = {
+        "minimum_saved_answer_confidence": 95,
+        "minimum_question_match_confidence": 0.75,
+    }
+    low_question_answer = build_preflight_result(
+        {"version": 1, "answers": low_confidence_normalized},
+        ROUTE, questionnaire(), {"resume"},
+        answer_confidence_policy=saved_threshold_policy,
+        review_profile_answers=low_confidence_raw,
+    )
+    assert low_question_answer["result"] == "UNKNOWN"
+    assert low_question_answer["answer_review"][0]["reason"] == "UNKNOWN_ANSWER"
+
+    low_legacy_answer = build_preflight_result(
+        {"version": 1, "answers": low_confidence_normalized},
+        ROUTE, questionnaire(), {"resume"},
+        answer_confidence_policy=saved_threshold_policy,
+        review_profile_answers=low_confidence_normalized,
+    )
+    assert low_legacy_answer["result"] == "FAIL"
+    assert low_legacy_answer["missing"][0]["answer_ids"] == ["weekends"]
+
+    malformed = build_preflight_result(
+        profile, ROUTE, questionnaire(), {"resume"},
+        review_profile_answers=[*raw_answers, "malformed row"],
+    )
+    assert malformed["result"] == "UNKNOWN"
+    assert malformed["answer_review"][0]["reason"] == "UNKNOWN_ANSWER"
+
+    raw_legacy = [{key: value for key, value in raw_answers[0].items() if key != "question"}]
+    legacy = build_preflight_result(
+        profile, ROUTE, questionnaire(), {"resume"}, review_profile_answers=raw_legacy,
+    )
+    assert legacy["result"] == "PASS"
+    assert "answer_review" not in legacy
 
 
 def test_conflict_sensitive_and_changed_answers_require_review():
@@ -124,7 +213,12 @@ def test_optional_review_gate_is_recorded_without_changing_missing_answer_semant
 
     unapproved = saved()
     unapproved["user_approved"] = False
-    missing = evaluate([unapproved])
+    question_bearing = evaluate([unapproved])
+    assert question_bearing["result"] == "UNKNOWN"
+    assert question_bearing["answer_review"][0]["reason"] == "UNKNOWN_ANSWER"
+
+    legacy_unapproved = {key: value for key, value in unapproved.items() if key != "question"}
+    missing = evaluate([legacy_unapproved])
     assert missing["result"] == "FAIL"
     assert missing["missing"][0]["answer_ids"] == ["weekends"]
     assert "answer_review" not in missing
