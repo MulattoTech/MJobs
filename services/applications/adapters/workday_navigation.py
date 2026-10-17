@@ -70,16 +70,39 @@ def workday_origin(url):
         return None
 
 
-def _fingerprint(url, headings, labels, actions):
+def workday_route_digest(url):
+    """Return an opaque stable digest for a Workday origin and exact path.
+
+    Query strings and fragments are excluded because they can contain
+    session-specific or user data. URL paths remain case-sensitive and
+    numeric segments are not normalized: those segments may identify distinct
+    employer tenants or requisitions that must not share durable state.
+    """
+    if not isinstance(url, str) or len(url) > 2048:
+        return None
     try:
         parsed = urlsplit(url)
         origin = workday_origin(url)
         if origin is None:
             return None
+        identity = json.dumps(
+            ["workday-route-v1", origin, parsed.path],
+            separators=(",", ":"), ensure_ascii=True,
+        )
+        return hashlib.sha256(identity.encode("utf-8")).hexdigest()
+    except (TypeError, ValueError):
+        return None
+
+
+def _fingerprint(url, headings, labels, actions):
+    try:
+        origin = workday_origin(url)
+        route_digest = workday_route_digest(url)
+        if origin is None or route_digest is None:
+            return None
         # Query strings and fragments can contain session and user data. They
         # are deliberately excluded from this structural page fingerprint.
-        path = re.sub(r"/\d+(?=/|$)", "/:id", parsed.path.casefold())
-        structure = {"origin": origin, "path": path,
+        structure = {"origin": origin, "route_digest": route_digest,
                      "headings": headings, "field_labels": labels, "actions": actions}
         encoded = json.dumps(structure, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
@@ -138,9 +161,11 @@ def decide_transition(previous_observation: Mapping, current_observation: Mappin
     """Return a safe decision from two observed classifications; perform no action.
 
     NEXT/PREVIOUS are confirmed only after a changed, known, adjacent page is
-    observed. REFRESH asks the caller to refresh and classify again. RESUME is
-    accepted only when an interrupted observation exactly matches its supplied
-    confirmed state. Final submission actions are always ambiguous and inert.
+    observed. NEXT rejects a destination already on the active route stack;
+    PREVIOUS may return to an already-visited adjacent page. REFRESH asks the
+    caller to refresh and classify again. RESUME is accepted only when an
+    interrupted observation exactly matches its supplied confirmed state.
+    Final submission actions are always ambiguous and inert.
     """
     if not isinstance(intended_action, str) or intended_action not in _ALLOWED_ACTIONS:
         return _decision("MANUAL_REVIEW", "UNSUPPORTED_ACTION")
@@ -168,7 +193,8 @@ def decide_transition(previous_observation: Mapping, current_observation: Mappin
         return _decision("MANUAL_REVIEW", "INVALID_VISITED_STATE")
     if current_observation["fingerprint"] == previous_observation["fingerprint"]:
         return _decision("WAIT_FOR_OBSERVED_CHANGE", "PAGE_HAS_NOT_CHANGED")
-    if current_observation["fingerprint"] in visited_fingerprints:
+    if (intended_action == "NEXT"
+            and current_observation["fingerprint"] in visited_fingerprints):
         return _decision("LOOP_DETECTED", "OBSERVED_PAGE_REPEATED")
 
     old_index = _STEP_ORDER.index(previous_observation["step"])
