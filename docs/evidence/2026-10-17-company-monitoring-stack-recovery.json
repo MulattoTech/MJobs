@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T10:11:58.031015+00:00",
+  "requirement_ids": [
+    "MJ-REQ-292"
+  ],
+  "issue": 293,
+  "requirement_result": "PARTIAL",
+  "priority": "P0",
+  "recording_status": "SCOPED_SYNTHETIC_RUNTIME_EVIDENCE_PENDING_PROTECTED_MERGE",
+  "scope": "Synthetic restart, persistence, scheduler and company-monitoring observations corresponding to steps54-60 only; not the full60-step acceptance.",
+  "tested_revision": "c8e53ab6f7f5121f0b0a758e272dc6aca4bb5435",
+  "tested_tree": "6251233f8c67467fa7255912947efa8445e16ba4",
+  "protected_base": "e548da75f724409e1acf660de211e73902c52ec3",
+  "source_archive_sha256": "a7f69b2430f64d457775a178b368fd391f22813cea896c51d87c67cb2a51becf",
+  "source_integrity": {
+    "committed_regular_files": 2499,
+    "container_import_paths": "Frozen /workspace source, not cached application bytes",
+    "all_exported_source_hashes_match": true,
+    "host_tracked_before_after_hashes_match": true
+  },
+  "command": "python -m pytest -v --tb=short tests/integration/test_company_monitoring_recovery.py::CompanyMonitoringRecoveryTests::test_owned_stack_restart_preserves_data_and_resumes_company_monitoring",
+  "runtime": {
+    "result": "PASS",
+    "passed": 1,
+    "skipped": 0,
+    "pytest_seconds": 776.77,
+    "outer_exit": 0,
+    "outer_seconds": 780.28,
+    "watchdog_triggered": false,
+    "child_budget_seconds": 900,
+    "common_budget_seconds": 1020,
+    "cleanup_reserve_seconds": 120,
+    "host_python": "3.12.10",
+    "cached_container_python": "3.12.15"
+  },
+  "observations": [
+    {
+      "steps": [
+        54
+      ],
+      "result": "PASS",
+      "scope": "Existing production recovery primitive actually restarted all ten runtime services; container IDs and owned volumes retained, PIDs and StartedAt changed, all returned healthy."
+    },
+    {
+      "steps": [
+        55,
+        56,
+        57,
+        58
+      ],
+      "result": "PASS",
+      "scope": "Public jobs/source/application readback and document TXT/DOCX/PDF exact hashes matched the baseline after restart. Safe PREPARE completed using only previously approved fictional facts."
+    },
+    {
+      "steps": [
+        59,
+        60
+      ],
+      "result": "PASS",
+      "scope": "Actual scheduler and Redis/RQ worker resumed a naturally due reviewed company monitor; imported new feed posting; exactly two COMPLETED attempt1 refreshes with predecessor identity, no duplicate after another actual scheduler tick, feed requests2->3."
+    }
+  ],
+  "public_setup": {
+    "workspace": "PERSONAL",
+    "external_submission_enabled": false,
+    "transport": "Bounded fixed client in owned mock container uses real uvicorn HTTP routes over private service DNS; no TestClient/direct service substitute in the stack scenario.",
+    "sequence": [
+      "Public company discovery admission and queued worker completion",
+      "Read expected canonical company/json_feed/PUBLIC_JSON/exact synthetic origin",
+      "Explicit public source enable; fresh source_version and monitoring revision readback",
+      "One public monitoring configuration with interval300 and USER_REVIEWED authority",
+      "Scheduler-only initial enqueue at persisted last_success+300; no manual enqueue, clock edit, DB flag or cooldown override"
+    ],
+    "initial_last_success": "2026-10-17T09:58:12.689600+00:00",
+    "initial_due": "2026-10-17T10:03:12.689600+00:00",
+    "next_due_before_restart": "2026-10-17T10:08:15.473839+00:00",
+    "next_due_after_restart": "2026-10-17T10:13:19.395225+00:00"
+  },
+  "safety": {
+    "aggregate_configuration_cpu": 3,
+    "aggregate_configuration_memory_gib": 5.125,
+    "images": "Already cached pinned runtime/PG17/Redis; no pull/build/install",
+    "networks": "Only new owned internal networks; no host port publication or host binds",
+    "environment": "Only sanitized generated synthetic credentials; no personal env/data/volumes",
+    "employer_transport": "Exact synthetic https://employer.example origin mapped at the low-level fixture transport to owned mock; no production business/security guard changes or real HTTPS/DNS claim",
+    "postgres_effective_settings": {
+      "max_connections": 40,
+      "lock_timeout": "3s",
+      "statement_timeout": "15s",
+      "idle_in_transaction_session_timeout": "20s"
+    },
+    "migrations_and_provisioning_exit": 0,
+    "cleanup": {
+      "owned_containers": 0,
+      "owned_volumes": 0,
+      "owned_networks": 0,
+      "owned_descendant_processes": 0
+    }
+  },
+  "focused_preflight": {
+    "result": "30PASS / 49subtests / 1 opt-in-stack NOT_RUN skip in19.32s",
+    "scope": "Public discovery/disabled409/explicitenable/freshreview/natural due/safePREPARE/freshStoreAPI application and three-format exact document readback; separate small tests, not an additional stack run."
+  },
+  "preserved_failures": [
+    {
+      "attempt": "STK01",
+      "revision": "1627f79b7e05a2db5b0c55420157610dc93909df",
+      "result": "FAIL",
+      "observation": "First host-loopback API connection refused despite internally healthy services; workload/restart NOT_RUN; owned cleanup0."
+    },
+    {
+      "attempt": "DNET01",
+      "result": "DIAGNOSTIC_ONLY",
+      "observation": "One isolated cached stdlib HTTP server returned internal200 but no effective host publication/listener; owned cleanup0. No app defect claim."
+    },
+    {
+      "attempt": "STK02",
+      "revision": "65b1aab23b38ecb12f58a0cbe1770dfa23ffb2ca",
+      "result": "FAIL",
+      "observation": "Public monitor configuration rejected409 MONITOR_SOURCE_DISABLED; later steps NOT_RUN; owned cleanup0. Public explicit-enable prerequisite added without bypass."
+    },
+    {
+      "attempt": "Small API prerequisite",
+      "result": "INITIAL_FAIL_THEN_PASS",
+      "observation": "Strict PREPARE rejected fictional posting lacking responsibility context. Synthetic posting content corrected; no applicant facts or production guard changed. A test-only worker/API output-root mismatch also rejected document readback409 before fixture paths were aligned."
+    }
+  ],
+  "independent_audit": "Verifier83 independently audited frozen source/archive/configuration and final scoped runtime artifacts; did not execute tests/services. Final metadata append is separately reviewed.",
+  "remaining_limits": [
+    "Host-loopback/UI access NOT_RUN in this isolated scenario",
+    "Host reboot and full workstation/container-runtime restart NOT_RUN; this is actual Compose service restart",
+    "Live employers, real DNS/HTTPS, external submissions and real AI/provider calls NOT_RUN/OFF",
+    "Current saved-filter consumer exists; this record does not claim it absent or newly certify it",
+    "Full automatic employer flywheel, steps24-28 and cross-source deduplication step31, and the complete60-step contract remain unproven",
+    "MJ-REQ-292 remains PARTIAL/P0; no other requirement credit"
+  ],
+  "artifact_retention": "Prior freezes, failed runs, manifests and raw diagnostics are preserved privately by the owner; no raw private diagnostics are committed."
+}

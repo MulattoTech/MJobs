@@ -2,11 +2,19 @@
 import copy
 import json
 import os
+import subprocess
+import sys
+import threading
+import time
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
+from urllib.parse import urlsplit
+
+from fastapi.testclient import TestClient
 
 import httpx
 from sqlalchemy import select, update
@@ -67,6 +75,66 @@ class MonitoringFixture:
             return dict(connection.execute(select(m.company_source_monitoring)).mappings().one())
 
 
+# Only the heartbeat and network transport are fixtures. Scheduling, durable
+# admission, refresh validation/import and acknowledgements stay production code.
+_MONITOR_SCHEDULER_CHILD = r"""
+import json, os
+from datetime import datetime
+from pathlib import Path
+from types import SimpleNamespace
+from services.discovery import scheduler
+report = Path(os.environ["MJOBS_TEST_PROCESS_REPORT"])
+class HeartbeatRecorder:
+    def set(self, key, value, ex):
+        report.with_suffix(".heartbeat.json").write_text(json.dumps({
+            "key": key, "value": json.loads(value), "ttl": ex}), encoding="utf-8")
+    def close(self):
+        pass
+scheduler.Redis = SimpleNamespace(from_url=lambda *a, **k: HeartbeatRecorder())
+original = scheduler.schedule_due_sources
+def capture(store, at=None):
+    fixture_at = os.environ.get("MJOBS_TEST_SCHEDULER_AT")
+    result = original(store, at=datetime.fromisoformat(fixture_at) if fixture_at else at)
+    report.write_text(json.dumps({"pid": os.getpid(), "tick": result}), encoding="utf-8")
+    return result
+scheduler.schedule_due_sources = capture
+def exit_after_tick(_seconds):
+    raise SystemExit(0)
+scheduler.time.sleep = exit_after_tick
+scheduler.run_forever()
+"""
+
+_MONITOR_WORKER_CHILD = r"""
+import json, os, time
+from pathlib import Path
+from urllib.parse import urlsplit
+from unittest.mock import patch
+import httpx
+from services.company_discovery.public_client import PublicCompanyClient
+from workers.tasks import execute_operation
+origin = os.environ["MJOBS_TEST_FEED_ORIGIN"]
+assert urlsplit(origin).hostname == "127.0.0.1"
+seen = []
+def loopback_transport(client, url, deadline):
+    parsed = urlsplit(url)
+    assert (parsed.scheme, parsed.netloc) == ("https", "employer.example"), "unexpected egress"
+    assert not parsed.query and not parsed.fragment
+    client._check()
+    client._budget()
+    remaining = deadline - time.monotonic()
+    assert remaining > 0
+    response = httpx.get(origin + parsed.path, timeout=min(5, remaining), trust_env=False,
+                         follow_redirects=False)
+    seen.append(parsed.path)
+    return httpx.Response(response.status_code, content=response.content,
+                          headers=response.headers, request=httpx.Request("GET", url))
+with patch.object(PublicCompanyClient, "_request_once", loopback_transport):
+    result = execute_operation(os.environ["MJOBS_TEST_OPERATION_ID"])
+Path(os.environ["MJOBS_TEST_PROCESS_REPORT"]).write_text(json.dumps({
+    "pid": os.getpid(), "result": result, "requests": seen}), encoding="utf-8")
+"""
+
+
 class CompanyMonitoringRecoveryTests(unittest.TestCase):
     def setUp(self):
         self.fixture = MonitoringFixture()
@@ -85,6 +153,242 @@ class CompanyMonitoringRecoveryTests(unittest.TestCase):
                     return execute_operation(operation_id)
             with patch.object(PublicCompanyClient, "get", side_effect=AssertionError("unexpected egress")):
                 return execute_operation(operation_id)
+
+
+    @unittest.skipUnless(os.environ.get("MJOBS_RUN_COMPANY_MONITORING_STACK") == "1",
+                         "STK01 requires frozen static audit and explicit disposable-stack resource grant")
+    def test_owned_stack_restart_preserves_data_and_resumes_company_monitoring(self):
+        from fixtures.company_monitoring_stack import run_stack
+        result = run_stack(Path(os.environ["MJOBS_STK01_ARTIFACTS"]))
+        self.assertEqual(result["result"], "PASS")
+        self.assertTrue(all(not ids for ids in result["residual_resources"].values()))
+
+    def test_public_discovery_enable_natural_due_and_safe_prepare_prerequisites(self):
+        """Small API preflight; this does not claim an actual stack restart."""
+        from apps.api.main import create_app
+        store = Store(f"sqlite:///{(self.fixture.root / 'preflight.db').as_posix()}")
+        store.migrate()
+        store.bind_workspace_mode('PERSONAL')
+        from fixtures.company_monitoring_stack import SYNTHETIC_JOB_DESCRIPTION
+        pages = dict(self.fixture.pages)
+        feed=json.loads(pages['/jobs.json'])
+        feed['items'][0]['content_text']=SYNTHETIC_JOB_DESCRIPTION
+        pages['/jobs.json']=json.dumps(feed)
+        pages['/jobs/one'] = '<script type="application/ld+json">' + json.dumps({
+            '@context':'https://schema.org','@type':'JobPosting','title':'Python Engineer',
+            'identifier':{'name':'Synthetic Monitoring Employer','value':'one'},
+            'hiringOrganization':{'@type':'Organization','name':'Synthetic Monitoring Employer',
+                                  'sameAs':'https://employer.example/'},
+            'url':'https://employer.example/jobs/one','description':SYNTHETIC_JOB_DESCRIPTION}) + '</script>'
+        def transport(client, url, deadline):
+            request=httpx.Request('GET',url)
+            return httpx.Response(200,text=pages[request.url.path],request=request)
+        env={**self.fixture.env,'MJOBS_DATABASE_URL':store.url,
+             'MJOBS_OUTPUT_DIR':str(self.fixture.root/'preflight')}
+        try:
+            with patch.dict(os.environ,env), patch.object(PublicCompanyClient,'_request_once',transport), \
+                    TestClient(create_app(store,'http://127.0.0.1:8090',self.fixture.root/'preflight',
+                               'redis://127.0.0.1:1/0',operation_mode='PERSONAL')) as client:
+                self.assertEqual(client.put('/profiles',json=PROFILE).status_code,200)
+                self.assertEqual(client.put('/search-profiles',json={'id':'preflight-all','profile_id':'fixture',
+                    'name':'Synthetic monitor','enabled':True,'source_ids':[]}).status_code,200)
+                admitted=client.post('/companies/discovery',json={'company_name':'Synthetic Monitoring Employer',
+                    'company_website':'https://employer.example/','reason':'USER_ADDED_COMPANY',
+                    'profile_id':'fixture','request_id':'preflight'})
+                self.assertEqual(admitted.status_code,202,admitted.text)
+                result=execute_operation(admitted.json()['operation_id'])
+                self.assertEqual(result['status'],'COMPLETED',result)
+                def view():
+                    return client.get('/company-sources/view',params={'profile_id':'fixture'}).json()['company_sources'][0]
+                source=view();source_id=source['id']
+                self.assertEqual(source['provider'],'json_feed')
+                self.assertEqual(source['collection_strategy'],'PUBLIC_JSON')
+                self.assertFalse(source['enabled'])
+                rejected=client.put(f'/company-sources/{source_id}/monitoring',json={
+                    'source_version':source['source_version'],'revision':0,'poll_interval':300})
+                self.assertEqual(rejected.status_code,409)
+                self.assertIn('MONITOR_SOURCE_DISABLED',rejected.text)
+                self.assertEqual(client.put(f'/company-sources/{source_id}/enabled',json={'enabled':True}).status_code,200)
+                fresh=view();self.assertTrue(fresh['enabled'])
+                self.assertEqual(fresh['id'],source_id)
+                configured=client.put(f'/company-sources/{source_id}/monitoring',json={
+                    'source_version':fresh['source_version'],
+                    'revision':(fresh['monitoring'] or {}).get('revision',0),'poll_interval':300})
+                self.assertEqual(configured.status_code,200,configured.text)
+                monitor=configured.json()
+                self.assertEqual(monitor['authorization'],'USER_REVIEWED')
+                due=datetime.fromisoformat(monitor['next_due'])
+                self.assertEqual(due,datetime.fromisoformat(fresh['last_success'])+timedelta(seconds=300))
+                self.assertEqual(schedule_company_sources(store)['scheduled'],[])
+                job=client.get('/jobs',params={'profile_id':'fixture'}).json()['jobs'][0]
+                prepared=client.post('/applications',json={'profile_id':'fixture','job_id':job['id']})
+                self.assertEqual(prepared.status_code,202,prepared.text)
+                result=execute_operation(prepared.json()['operation_id'])
+                self.assertEqual(result['status'],'COMPLETED',result)
+                docs=client.get('/profiles/fixture/applications/'+prepared.json()['application_id']+'/documents')
+                self.assertEqual(docs.status_code,200,docs.text)
+                saved_docs=docs.json()['documents']
+                self.assertTrue(saved_docs)
+            reopened=Store(store.url)
+            try:
+                with TestClient(create_app(reopened,'http://127.0.0.1:8090',self.fixture.root/'preflight',
+                                    'redis://127.0.0.1:1/0',operation_mode='PERSONAL')) as fresh_client:
+                    application_id=prepared.json()['application_id']
+                    application=fresh_client.get('/profiles/fixture/applications/'+application_id)
+                    self.assertEqual(application.status_code,200,application.text)
+                    self.assertEqual(application.json()['id'],application_id)
+                    for key in ['id','profile_id','job_id','state','route_id']:
+                        self.assertIn(key,application.json())
+                    documents=fresh_client.get('/profiles/fixture/applications/'+application_id+'/documents').json()['documents']
+                    self.assertEqual(documents,saved_docs)
+                    import hashlib
+                    for document in documents:
+                        for extension in ['txt','docx','pdf']:
+                            response=fresh_client.get('/profiles/fixture/documents/'+document['id']+'/'+extension)
+                            self.assertEqual(response.status_code,200)
+                            self.assertTrue(response.content)
+                            self.assertEqual(hashlib.sha256(response.content).hexdigest(),document['sha256'][extension])
+            finally:
+                reopened.engine.dispose()
+        finally:
+            store.engine.dispose()
+
+    def test_company_monitoring_resumes_across_fresh_scheduler_and_refresh_workers(self):
+        """A scheduler-process restart, not a full-stack/container restart."""
+        from apps.api.main import create_app
+
+        deadline = time.monotonic() + 180
+        reports, requested_paths = [], []
+        fixture = self.fixture
+
+        class FeedHandler(BaseHTTPRequestHandler):
+            def do_GET(self):
+                requested_paths.append(self.path)
+                content = fixture.pages.get(self.path)
+                self.send_response(200 if content is not None else 404)
+                self.send_header("Content-Type", "application/json" if self.path == "/jobs.json" else "text/html")
+                self.end_headers()
+                self.wfile.write((content or "Not found").encode())
+
+            def log_message(self, *_args):
+                pass
+
+        feed = ThreadingHTTPServer(("127.0.0.1", 0), FeedHandler)
+        thread = threading.Thread(target=feed.serve_forever, daemon=True)
+        thread.start()
+        self.addCleanup(feed.server_close)
+        self.addCleanup(thread.join, 5)
+        self.addCleanup(feed.shutdown)
+        origin = f"http://127.0.0.1:{feed.server_port}"
+        environment = {key: os.environ[key] for key in (
+            "PATH", "SYSTEMROOT", "SystemDrive", "WINDIR", "TEMP", "TMP", "LOCALAPPDATA", "APPDATA")
+            if key in os.environ}
+        environment.update(fixture.env, MJOBS_SCHEDULER_TICK_SECONDS="5", PYTHONUTF8="1",
+                           MJOBS_TEST_FEED_ORIGIN=origin)
+
+        def child(name, operation_id=None, at=None):
+            self.assertLess(time.monotonic(), deadline, "owned case exceeded180s")
+            report = fixture.root / (name + ".json")
+            env = dict(environment, MJOBS_TEST_PROCESS_REPORT=str(report))
+            if at is not None:
+                env["MJOBS_TEST_SCHEDULER_AT"] = at.isoformat()
+            if operation_id:
+                env["MJOBS_TEST_OPERATION_ID"] = operation_id
+            completed = subprocess.run(
+                [sys.executable, "-c", _MONITOR_WORKER_CHILD if operation_id else _MONITOR_SCHEDULER_CHILD],
+                cwd=Path(__file__).resolve().parents[2], env=env, capture_output=True,
+                text=True, timeout=min(45, max(1, deadline-time.monotonic())))
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(report.is_file(), "owned child must execute production work before exit")
+            result = json.loads(report.read_text(encoding="utf-8"))
+            reports.append(result)
+            if not operation_id:
+                heartbeat = json.loads(report.with_suffix(".heartbeat.json").read_text(encoding="utf-8"))
+                self.assertEqual(heartbeat["key"], "mjobs:runtime:scheduler:last_success")
+                self.assertEqual(heartbeat["value"]["interval_seconds"], 5)
+                self.assertGreater(heartbeat["ttl"], 5)
+            return result
+
+        def public_readback():
+            reopened = Store(self.store.url)
+            try:
+                with TestClient(create_app(reopened, origin, fixture.root,
+                                           "redis://127.0.0.1:1/0", operation_mode="PERSONAL")) as client:
+                    response = client.get("/company-sources/view", params={"profile_id": "fixture"})
+                    self.assertEqual(response.status_code, 200, response.text)
+                    rows = response.json()["company_sources"]
+                    source = next(row for row in rows if row["id"] == fixture.source["id"])
+                    jobs = client.get("/jobs", params={"profile_id": "fixture"})
+                    self.assertEqual(jobs.status_code, 200, jobs.text)
+                    return source, jobs.json()
+            finally:
+                reopened.engine.dispose()
+
+        with TestClient(create_app(self.store, origin, fixture.root,
+                                   "redis://127.0.0.1:1/0", operation_mode="PERSONAL")) as client:
+            response = client.put(f"/company-sources/{fixture.source['id']}/monitoring", json={
+                "source_version": source_version(fixture.source), "revision": 0, "poll_interval": 3600})
+            self.assertEqual(response.status_code, 200, response.text)
+        self.store.engine.dispose()
+        first = child("scheduler-first")["tick"]["company_sources"]["scheduled"]
+        self.assertEqual(len(first), 1)
+        first_id = first[0]["operation_id"]
+        self.assertEqual(child("scheduler-reopened-while-queued")["tick"]["company_sources"]["scheduled"], [])
+        self.assertEqual(self.store.count(m.operations.name), 1)
+        first_worker = child("worker-first", first_id)
+        self.assertEqual(first_worker["result"]["status"], "COMPLETED", first_worker)
+        first_monitor = fixture.monitor()
+        self.assertEqual(first_monitor["status"], "HEALTHY")
+        self.assertEqual(first_monitor["completed_operation_id"], first_id)
+        first_due = datetime.fromisoformat(first_monitor["next_due"])
+        self.assertGreater(first_due, datetime.fromisoformat(first_monitor["last_attempt"]))
+        view, jobs = public_readback()
+        self.assertEqual(view["monitoring"]["status"], "HEALTHY")
+        self.assertEqual(view["next_check"], first_monitor["next_due"])
+        self.assertEqual(view["jobs_found"], 1)
+        self.assertIn("Python Engineer", json.dumps(jobs))
+        self.assertEqual(child("scheduler-restarted-not-due")["tick"]["company_sources"]["scheduled"], [])
+
+        fixture.pages["/jobs.json"] = json.dumps({"version": "https://jsonfeed.org/version/1.1", "items": [
+            {"id": "one", "title": "Python Engineer", "content_text": "Python SQL",
+             "url": "https://employer.example/jobs/one"},
+            {"id": "two", "title": "Python Reliability Engineer", "content_text": "Python SQL",
+             "url": "https://employer.example/jobs/two"}]})
+        fixture.pages["/jobs/two"] = "<html>New synthetic posting</html>"
+        # Only the fixture's tick input advances; host time and saved completion are untouched.
+        due_at = first_due + timedelta(seconds=1)
+        second = child("scheduler-restarted-due", at=due_at)["tick"]["company_sources"]["scheduled"]
+        self.assertEqual(len(second), 1)
+        second_id = second[0]["operation_id"]
+        self.assertNotEqual(second_id, first_id)
+        self.assertEqual(child("scheduler-duplicate-due", at=due_at)["tick"]["company_sources"]["scheduled"], [])
+        self.assertEqual(self.store.count(m.operations.name), 2)
+        self.assertEqual(child("worker-after-restart", second_id)["result"]["status"], "COMPLETED")
+        self.store.engine.dispose()
+        final_monitor = fixture.monitor()
+        self.assertEqual(final_monitor["status"], "HEALTHY")
+        self.assertEqual(final_monitor["completed_operation_id"], second_id)
+        self.assertGreater(datetime.fromisoformat(final_monitor["next_due"]), first_due)
+        self.assertEqual(final_monitor["failure_count"], 0)
+        view, jobs = public_readback()
+        self.assertEqual(view["monitoring"]["status"], "HEALTHY")
+        self.assertEqual(view["jobs_found"], 2)
+        self.assertEqual(view["next_check"], final_monitor["next_due"])
+        self.assertIn("Python Reliability Engineer", json.dumps(jobs))
+        self.assertEqual(self.store.count("source_quality_observations"), 2)
+        with self.store.engine.connect() as connection:
+            operations = list(connection.execute(select(m.operations)).mappings())
+            self.assertEqual({row["id"] for row in operations}, {first_id, second_id})
+            self.assertTrue(all(row["state"] == "COMPLETED" and row["attempt_count"] == 1 for row in operations))
+            self.assertEqual(next(row for row in operations if row["id"] == second_id)["params"]["predecessor_operation_id"], first_id)
+        self.assertEqual(child("scheduler-final-readback")["tick"]["company_sources"]["scheduled"], [])
+        self.assertEqual(self.store.count(m.operations.name), 2)
+        self.assertEqual(requested_paths.count("/jobs.json"), 2, "one actual feed request per refresh")
+        self.assertIn("/jobs/two", requested_paths)
+        self.assertEqual(len({row["pid"] for row in reports}), len(reports), "all children must be fresh processes")
+        feed.shutdown()
+        thread.join(5)
+        self.assertFalse(thread.is_alive(), "owned loopback feed must close")
 
     def test_cancelled_queued_operation_is_not_reused_or_reopened(self):
         self.fixture.configure()

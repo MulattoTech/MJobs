@@ -1,0 +1,143 @@
+# Test-only STK01 overlay. Root compose.yml is always the first config file.
+# No image builds, host mounts, external networks or personal credentials.
+x-stk-labels: &stk-labels
+  ao.session: mjobs-85
+  ao.run: ${MJOBS_STK01_PROJECT:?owned project required}
+x-stk-environment: &stk-environment
+  MJOBS_STK01_ENABLE: '1'
+  MJOBS_STK01_PROJECT: ${MJOBS_STK01_PROJECT:?owned project required}
+  MJOBS_OPERATION_MODE: PERSONAL
+  MJOBS_COMPOSE_MOCK: '0'
+  MJOBS_DATABASE_URL_FILE: /run/mjobs-database/runtime-url
+  MJOBS_REDIS_URL: redis://redis:6379/0
+  MJOBS_MOCK_ORIGIN: http://mock:8090
+  MJOBS_OUTPUT_DIR: /data/documents
+  MJOBS_SCHEDULER_TICK_SECONDS: '5'
+  MJOBS_COMPANY_DISCOVERY_CONCURRENCY: '1'
+  PYTHONPATH: /workspace
+x-stk-runtime: &stk-runtime
+  image: sha256:af02cdeaa62f8fd3a8ba079ea4616a0e7912887d283ae58908cf69298157de98
+  build: !reset null
+  pull_policy: never
+  working_dir: /workspace
+  cpus: 0.25
+  mem_limit: 512m
+  labels: *stk-labels
+  environment: *stk-environment
+  networks: !override [private]
+  volumes:
+    - stk-source:/workspace:ro
+services:
+  postgres:
+    image: sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f
+    pull_policy: never
+    cpus: 0.5
+    mem_limit: 512m
+    labels: *stk-labels
+    environment:
+      POSTGRES_DB: ${MJOBS_STK01_DB:?synthetic database required}
+    command: [postgres, -c, max_connections=40, -c, lock_timeout=3s, -c, statement_timeout=15s, -c, idle_in_transaction_session_timeout=20s]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U mjobs -d ${MJOBS_STK01_DB:?synthetic database required}']
+  redis:
+    image: sha256:c6eabf748fc7a61dbb5a705c78bcf3d6377b1127a97d0ce965c11c44ba46896f
+    pull_policy: never
+    cpus: 0.125
+    mem_limit: 128m
+    labels: *stk-labels
+  source-init:
+    image: sha256:af02cdeaa62f8fd3a8ba079ea4616a0e7912887d283ae58908cf69298157de98
+    pull_policy: never
+    user: '0'
+    cpus: 0.125
+    mem_limit: 256m
+    labels: *stk-labels
+    networks: [private]
+    volumes: [stk-source:/workspace]
+    environment:
+      MJOBS_STK01_ENABLE: '1'
+      MJOBS_STK01_PROJECT: ${MJOBS_STK01_PROJECT:?owned project required}
+      MJOBS_OPERATION_MODE: PERSONAL
+      MJOBS_COMPOSE_MOCK: '0'
+      MJOBS_STK01_SOURCE_HEAD: ${MJOBS_STK01_SOURCE_HEAD:?frozen head required}
+      MJOBS_STK01_SOURCE_SHA256: ${MJOBS_STK01_SOURCE_SHA256:?archive hash required}
+    entrypoint: [python, -c]
+    command:
+      - |
+        import hashlib, importlib, json, os, pathlib, sys, tarfile
+        archive=pathlib.Path('/tmp/source.tar')
+        assert hashlib.sha256(archive.read_bytes()).hexdigest()==os.environ['MJOBS_STK01_SOURCE_SHA256']
+        manifest=json.loads(pathlib.Path('/tmp/source-manifest.json').read_text())
+        assert manifest['head']==os.environ['MJOBS_STK01_SOURCE_HEAD']
+        with tarfile.open(archive) as bundle:
+            for member in bundle:
+                p=pathlib.PurePosixPath(member.name)
+                assert not p.is_absolute() and '..' not in p.parts and not member.issym() and not member.islnk()
+            bundle.extractall('/workspace', filter='data')
+        for name,digest in manifest['files'].items():
+            assert hashlib.sha256((pathlib.Path('/workspace')/name).read_bytes()).hexdigest()==digest
+        sys.path.insert(0,'/workspace')
+        modules={}
+        for name in ['apps.api.main','services.discovery.scheduler','services.company_discovery.monitoring','workers.tasks','workers.main','packages.persistence.store','fixtures.company_monitoring_stack']:
+            p=pathlib.Path(importlib.import_module(name).__file__).resolve()
+            assert p.is_relative_to('/workspace')
+            modules[name]=str(p)
+        pathlib.Path('/workspace/.stk01-imports.json').write_text(json.dumps({'head':manifest['head'],'modules':modules,'all_file_hashes_match':True}))
+  migrate:
+    <<: *stk-runtime
+    mem_limit: 256m
+    volumes:
+      - runtime-database:/run/mjobs-database
+      - stk-source:/workspace:ro
+    environment:
+      <<: *stk-environment
+      MJOBS_DATABASE_URL: postgresql+psycopg://mjobs:${POSTGRES_PASSWORD:?synthetic password required}@postgres/${MJOBS_STK01_DB:?synthetic database required}
+    depends_on:
+      source-init: {condition: service_completed_successfully}
+  api:
+    <<: *stk-runtime
+    ports: !reset []
+    networks: !override [private, ui]
+  scheduler:
+    <<: *stk-runtime
+  worker:
+    <<: *stk-runtime
+  source-worker:
+    <<: *stk-runtime
+  company-discovery-worker:
+    <<: *stk-runtime
+    command: [python, -m, fixtures.company_monitoring_stack, worker]
+  document-worker:
+    <<: *stk-runtime
+  ai-worker:
+    <<: *stk-runtime
+  mock:
+    <<: *stk-runtime
+    volumes:
+      - mock-receipts:/data
+      - runtime-database:/run/mjobs-database:ro
+      - stk-source:/workspace:ro
+    command: [python, -m, fixtures.company_monitoring_stack, mock]
+networks:
+  private:
+    internal: true
+    labels: *stk-labels
+  ui:
+    internal: true
+    labels: *stk-labels
+  source-egress:
+    internal: true
+    labels: *stk-labels
+volumes:
+  database:
+    labels: *stk-labels
+  queue:
+    labels: *stk-labels
+  documents:
+    labels: *stk-labels
+  mock-receipts:
+    labels: *stk-labels
+  runtime-database:
+    labels: *stk-labels
+  stk-source:
+    labels: *stk-labels
