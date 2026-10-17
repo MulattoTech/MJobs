@@ -4,14 +4,15 @@ import threading
 
 from fastapi.testclient import TestClient
 import pytest
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.applications.attempt_history import AttemptConflict, start_attempt
+from services.applications.attempt_history import AttemptConflict, finish_attempt, start_attempt
 from tests.integration import test_application_run_requests as fixtures
-from workers.operations import claim, request_cancel
+from workers.operations import admit_inline, claim, request_cancel
+from workers.dispatch import enqueue_operation
 
 
 @pytest.fixture
@@ -128,3 +129,58 @@ def test_concurrent_distinct_public_intents_have_one_owner(prepared):
     assert rejected["detail"]["code"] == "APPLICATION_RUN_IN_PROGRESS"
     assert case.store.count("worker_operations") == 1
     assert case.store.count("application_attempts") == 0
+
+
+@pytest.mark.parametrize("params", [{}, {"submit": False}])
+def test_existing_legacy_worker_operation_can_still_reserve_its_own_attempt(prepared, params):
+    case = prepared
+    operation_id = enqueue_operation(case.store, "APPLY_MOCK", case.app_id, params)
+    assert claim(case.store, operation_id) is not None
+    assert reserve(case, operation_id)["replayed"] is False
+    assert case.store.count("application_attempts") == 1
+
+
+def test_unknown_frozen_contract_version_cannot_open_a_physical_attempt(prepared):
+    case = prepared
+    operation_id = case.queue("unsupported-contract")["operation_id"]
+    assert claim(case.store, operation_id) is not None
+    operation = case.operation(operation_id)
+    with case.store.engine.begin() as connection:
+        connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+            params={**operation["params"], "run_contract_version": 2}))
+    with pytest.raises(AttemptConflict, match="APPLICATION_RUN_CONTRACT_UNSUPPORTED"):
+        reserve(case, operation_id)
+    assert case.store.count("application_attempts") == 0
+
+
+@pytest.mark.parametrize("state,error", [
+    ("RUNNING", None),
+    ("BLOCKED", "BROWSER_RELEASE_UNCONFIRMED"),
+])
+def test_manual_browser_owner_must_be_released_before_physical_attempt(prepared, state, error):
+    case = prepared
+    operation_id = admit_inline(case.store, "MANUAL_AUTH", case.app_id)
+    with case.store.engine.begin() as connection:
+        connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+            state=state, error=error))
+    with pytest.raises(AttemptConflict, match="APPLICATION_RUN_IN_PROGRESS"):
+        reserve(case, "competing-browser")
+    assert case.store.count("application_attempts") == 0
+    assert case.operation(operation_id)["state"] == state
+
+
+@pytest.mark.parametrize("state", ["COMPLETED", "CANCELLED"])
+def test_completed_attempt_replay_is_read_only_after_operation_terminates(prepared, state):
+    case = prepared
+    operation_id = case.queue("completed-before-worker-ack")["operation_id"]
+    assert claim(case.store, operation_id) is not None
+    attempt = reserve(case, operation_id)
+    case.store.transition(case.app_id, ["PREPARED"], "DRY_RUN_COMPLETE")
+    finish_attempt(case.store, attempt["id"], case.store.application(case.app_id))
+    with case.store.engine.begin() as connection:
+        connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+            state=state, cancel_requested=True))
+    counts = case.store.count("application_attempts"), case.store.count("audit_events")
+    assert reserve(case, operation_id) == {"id": attempt["id"], "replayed": True}
+    assert (case.store.count("application_attempts"), case.store.count("audit_events")) == counts
+    assert case.operation(operation_id)["state"] == state
