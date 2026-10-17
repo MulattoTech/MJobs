@@ -133,11 +133,34 @@ class FleetT17ProviderAdversarialBrowserTests(unittest.TestCase):
                         serialized = json.dumps(report, sort_keys=True)
 
                         self.assertEqual(report["status"], "UNKNOWN", report)
+                        self.assertEqual(report["reason"], "UNSAFE_TEXT_CONTEXT", report)
                         self.assertEqual(after, before, "DOM analysis must not mutate controls or submit")
                         self.assertEqual(after["events"]["submit"], 0)
                         self.assertNotIn("SYNTHETIC-HIDDEN-DECOY", serialized)
                         self.assertNotIn("SYNTHETIC-OVERLAY-ANSWER", serialized)
                         self.assertNotIn("SYNTHETIC-DYNAMIC-", serialized)
+            finally:
+                browser.close()
+
+    def test_chromium_dom_projection_accepts_unlabelled_control_without_value_or_mutation(self):
+        markup = """<!doctype html><form>
+          <input id="contact-email" name="email" type="email" value="PRIVATE-CURRENT-VALUE">
+        </form>"""
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.set_content(markup, wait_until="load")
+                _watch_form_events(page)
+                before = _snapshot(page)
+
+                report = analyze_form_page(page)
+
+                self.assertEqual(report["status"], "PASS", report)
+                self.assertEqual(report["fields"][0]["name"], "email")
+                self.assertNotIn("PRIVATE-CURRENT-VALUE", json.dumps(report, sort_keys=True))
+                self.assertEqual(_snapshot(page), before,
+                                 "Positive DOM analysis must not change values or fire events")
             finally:
                 browser.close()
 
