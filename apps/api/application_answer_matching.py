@@ -1,6 +1,7 @@
 """Read-only API for profile-scoped reusable-answer suggestions."""
 from __future__ import annotations
 
+import math
 import re
 
 from fastapi import APIRouter, Body, HTTPException
@@ -44,7 +45,10 @@ def _candidate_matches(question, profile_answers, policy):
                 or not isinstance(source, str) or not source.strip()
                 or answer.get("verified") is not True
                 or answer.get("user_approved") is not True
-                or type(confidence) is not int or not 0 <= confidence <= 100
+                or isinstance(confidence, bool)
+                or not isinstance(confidence, (int, float))
+                or not 0 <= confidence <= 100
+                or not math.isfinite(confidence)
                 or confidence < policy["minimum_saved_answer_confidence"]
                 or _SENSITIVE_QUESTION.search(saved_question)
                 or is_review_sensitive_question(saved_question)):
