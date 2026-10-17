@@ -119,13 +119,13 @@ class WorkdayDynamicFormSnapshotTests(unittest.TestCase):
                 self.metadata = metadata
 
             def locator(self, selector):
-                if selector != "form":
-                    raise AssertionError("Expected Workday form locator")
+                if selector != "html":
+                    raise AssertionError("Expected Workday document root locator")
                 return self
 
-            def evaluate_all(self, script, *, timeout):
-                self.script = script
-                if "outerHTML" in script or ".value" in script or timeout <= 0:
+            def evaluate(self, expression, arg=None, *, timeout=None):
+                self.script = expression
+                if "outerHTML" in expression or ".value" in expression or timeout is None or timeout <= 0:
                     raise AssertionError("Expected bounded value-free DOM metadata projection")
                 return self.metadata
 

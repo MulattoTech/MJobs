@@ -60,8 +60,12 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
             remaining = getattr(check, "remaining_seconds", None)
             if callable(remaining):
                 timeout = max(1, min(10000, int(remaining() * 1000)))
-            metadata = page.locator("form").evaluate_all(
-                WORKDAY_DOM_METADATA_SCRIPT,
+            projection = (
+                "root => (" + WORKDAY_DOM_METADATA_SCRIPT + ")"
+                "(Array.from(root.ownerDocument.querySelectorAll('form')))"
+            )
+            metadata = page.locator("html").evaluate(
+                projection,
                 timeout=timeout,
             )
         except Exception:

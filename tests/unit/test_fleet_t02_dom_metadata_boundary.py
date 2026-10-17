@@ -21,11 +21,12 @@ class WorkdayDomMetadataBoundaryTests(unittest.TestCase):
 
         class Page:
             def locator(self, selector):
-                if selector != "form":
-                    raise AssertionError("Only the form locator is expected")
+                if selector != "html":
+                    raise AssertionError("Only the document root locator is expected")
                 return self
 
-            def evaluate_all(self, script, *, timeout):
+            def evaluate(self, expression, arg=None, *, timeout=None):
+                script = expression
                 self.script = script
                 self.timeout = timeout
                 return payload
@@ -38,6 +39,7 @@ class WorkdayDomMetadataBoundaryTests(unittest.TestCase):
         self.assertNotIn(".value", page.script)
         self.assertNotIn("selected", page.script.casefold())
         self.assertNotIn("checked", page.script.casefold())
+        self.assertIn("ownerDocument.querySelectorAll('form')", page.script)
         self.assertIn("MAX_WORKDAY_MARKUP_EVENTS", page.script)
         self.assertIn("MAX_WORKDAY_DOM_FIELDS", page.script)
         self.assertIn("getClientRects", page.script)
@@ -62,9 +64,12 @@ class WorkdayDomMetadataBoundaryTests(unittest.TestCase):
                 self.data = data
 
             def locator(self, selector):
+                if selector != "html":
+                    raise AssertionError("Expected the document root locator")
                 return self
 
-            def evaluate_all(self, script, *, timeout):
+            def evaluate(self, expression, arg=None, *, timeout=None):
+                script = expression
                 return self.data
 
         adapter = WorkdayApplicationAdapter()
@@ -94,9 +99,11 @@ class WorkdayDomMetadataBoundaryTests(unittest.TestCase):
             timeout = None
 
             def locator(self, selector):
+                if selector != "html":
+                    raise AssertionError("Expected the document root locator")
                 return self
 
-            def evaluate_all(self, script, *, timeout):
+            def evaluate(self, expression, arg=None, *, timeout=None):
                 self.timeout = timeout
                 return payload
 
