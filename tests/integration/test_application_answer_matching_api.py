@@ -169,6 +169,51 @@ class ApplicationAnswerMatchingApiTests(unittest.TestCase):
         self.assertNotIn("export", body)
         self.assertEqual(self._state_digest(), before)
 
+    def test_public_profile_put_float_confidence_is_read_back_and_matchable(self):
+        profile = dict(
+            PROFILE,
+            id="float-confidence",
+            name="Float confidence fixture",
+            email="float-confidence@example.test",
+            facts=PROFILE["facts"],
+            answers=[{
+                "id": "float-confidence-answer",
+                "question": "How many years of professional experience have you had?",
+                "text": "A synthetic answer saved through the public profile API.",
+                "source": "Synthetic user-authored example",
+                "verified": True,
+                "user_approved": True,
+                "confidence": 100.0,
+            }],
+        )
+
+        saved = self.client.put("/profiles", json=profile)
+
+        self.assertEqual(saved.status_code, 200, saved.text)
+        readback = self.client.get("/profiles/float-confidence")
+        self.assertEqual(readback.status_code, 200, readback.text)
+        self.assertIs(type(readback.json()["answers"][0]["confidence"]), float)
+        self.assertEqual(readback.json()["answers"][0]["confidence"], 100.0)
+        job = self.store.jobs("fixture")[0]
+        application_id = prepare(
+            self.store, job["id"], "float-confidence", self.root,
+        )
+
+        matched = self.client.post(
+            self._url("float-confidence", application_id),
+            json={"question": "How many years of professional experience have you had?"},
+        )
+
+        self.assertEqual(matched.status_code, 200, matched.text)
+        body = matched.json()
+        self.assertFalse(body["review_gate"]["review_required"])
+        self.assertEqual(
+            [candidate["answer_id"] for candidate in body["candidates"]],
+            ["float-confidence-answer"],
+        )
+        self.assertIs(type(body["candidates"][0]["confidence"]), float)
+        self.assertEqual(body["candidates"][0]["confidence"], 100.0)
+
     def test_conflicting_answer_values_are_review_gated_and_not_returned(self):
         before = self._state_digest()
 
