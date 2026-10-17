@@ -41,7 +41,9 @@ class GenericHTMLApplicationAdapter:
 
     def normalize_route(self, route: Mapping) -> dict | None:
         """Canonicalize a syntactically safe HTTPS route without fetching it."""
-        if not isinstance(route, Mapping) or route.get("provider") != self.provider:
+        if (not isinstance(route, Mapping)
+                or not isinstance(route.get("provider"), str)
+                or route["provider"].casefold() != self.provider):
             return None
         url = route.get("url")
         if not isinstance(url, str) or not url or len(url) > _MAX_URL_LENGTH:
