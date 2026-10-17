@@ -11,7 +11,7 @@ import json
 import re
 from uuid import NAMESPACE_URL, uuid4, uuid5
 
-from sqlalchemy import select, update
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.orm.exc import NoResultFound
 
 from packages.persistence import models as m
@@ -161,7 +161,10 @@ def start_attempt(store, application, route, documents, *, submit=False, request
         raise AttemptConflict("APPLICATION_ATTEMPT_SUPPORTING_SCOPE_MISMATCH")
     attempt_id = attempt_id_for_request(application["id"], request_id)
     with store.engine.begin() as connection:
-        _lock(connection)
+        # Share the existing worker/manual admission lock before application and
+        # route locks, so neither admission can miss a concurrently saved owner.
+        from workers.operations import _lock as lock_operation_category
+        lock_operation_category(connection, "application_automation")
         current = connection.execute(select(m.applications).where(
             m.applications.c.id == application["id"]).with_for_update()).mappings().one()
         for key in ("route_id", "profile_id", "profile_version", "document_version", "target"):
@@ -198,6 +201,55 @@ def start_attempt(store, application, route, documents, *, submit=False, request
             if saved not in {"CONFIRMED", "DRY_RUN_COMPLETE"}:
                 raise AttemptConflict("APPLICATION_ATTEMPT_REVIEW_REQUIRED")
             return {"id": attempt_id, "replayed": True}
+        operation = connection.execute(select(m.operations).where(
+            m.operations.c.id == request_id)).mappings().one_or_none()
+        if operation is not None:
+            if (operation["kind"] != "APPLY_MOCK"
+                    or operation["entity_id"] != current["id"]
+                    or operation["state"] != "RUNNING"
+                    or operation["cancel_requested"]):
+                raise AttemptConflict("APPLICATION_RUN_IN_PROGRESS")
+            params = operation["params"]
+            if not isinstance(params, dict):
+                raise AttemptConflict("APPLICATION_RUN_INPUT_CHANGED")
+            # The existing worker defaults an omitted legacy mode to dry-run.
+            # Versioned intents must continue to carry an explicit boolean.
+            operation_submit = (params.get("submit", False)
+                                if "run_contract_version" not in params else params.get("submit"))
+            if type(operation_submit) is not bool or operation_submit != submit:
+                raise AttemptConflict("APPLICATION_RUN_INPUT_CHANGED")
+            if "run_contract_version" not in params:
+                # Older APPLY_MOCK rows carry only the mode. Keep their existing
+                # worker admission path; a partial frozen contract cannot downgrade.
+                if "input_snapshot" in params or "input_fingerprint" in params:
+                    raise AttemptConflict("APPLICATION_RUN_CONTRACT_UNSUPPORTED")
+            else:
+                if (type(params["run_contract_version"]) is not int
+                        or params["run_contract_version"] != 1):
+                    raise AttemptConflict("APPLICATION_RUN_CONTRACT_UNSUPPORTED")
+                operation_snapshot = params.get("input_snapshot")
+                operation_fingerprint = params.get("input_fingerprint")
+                if (not isinstance(operation_snapshot, dict)
+                        or operation_snapshot != snapshot
+                        or not isinstance(operation_fingerprint, str)
+                        or operation_fingerprint != fingerprint
+                        or input_fingerprint(operation_snapshot) != operation_fingerprint):
+                    raise AttemptConflict("APPLICATION_RUN_INPUT_CHANGED")
+        competing_operation = connection.execute(select(m.operations.c.id).where(
+            m.operations.c.entity_id == current["id"],
+            or_(
+                and_(m.operations.c.kind == "APPLY_MOCK",
+                     m.operations.c.state.in_(("QUEUED", "RUNNING"))),
+                and_(m.operations.c.kind.in_(
+                         ("APPLICATION_FORM_REVIEW", "APPLICATION_DRY_RUN", "MANUAL_AUTH")),
+                     m.operations.c.state == "RUNNING"),
+                and_(m.operations.c.kind == "MANUAL_AUTH",
+                     m.operations.c.state == "BLOCKED",
+                     m.operations.c.error == "BROWSER_RELEASE_UNCONFIRMED"),
+            ),
+            m.operations.c.id != request_id).limit(1)).first()
+        if competing_operation is not None:
+            raise AttemptConflict("APPLICATION_RUN_IN_PROGRESS")
         if current["state"] not in _EDITABLE:
             raise AttemptConflict("APPLICATION_ATTEMPT_STATE_CHANGED")
         active = connection.execute(select(m.attempts.c.id).where(
