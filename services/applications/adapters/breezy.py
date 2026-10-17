@@ -75,6 +75,7 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""form => {
     const centerX = (visibleBounds.left + visibleBounds.right) / 2;
     const centerY = (visibleBounds.top + visibleBounds.bottom) / 2;
     const nodes = document.querySelectorAll('*');
+    // An incomplete bounded scan is not evidence that the label is visible.
     if (nodes.length > 5000) return false;
     const pointerNoneOverlap = Array.from(nodes).some(node => {
       if (node === label || node.contains(label) || label.contains(node)) return false;

@@ -319,6 +319,35 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 self.assertNotIn(
                     "synthetic-private-value", repr(pointer_none_covered_label),
                 )
+                page.set_content(
+                    '<style>form{position:relative;height:100px}.prompt{position:absolute;'
+                    'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
+                    'left:10px;top:40px}.cover{position:absolute;left:10px;top:10px;'
+                    'width:80px;height:20px;background:white;z-index:10;'
+                    'pointer-events:none}</style>'
+                    '<form><label class="prompt" for="email">Email address</label>'
+                    '<input class="field" id="email" type="email" '
+                    'value="synthetic-private-value">'
+                    '<div class="cover"></div></form>'
+                )
+                page.evaluate(
+                    """() => {
+                      const nodes = document.createDocumentFragment();
+                      for (let index = 0; index < 5001; index += 1) {
+                        nodes.appendChild(document.createElement('span'));
+                      }
+                      document.body.appendChild(nodes);
+                    }"""
+                )
+                large_dom_covered_label = self.adapter.analyze_page(page)
+                self.assertEqual(large_dom_covered_label["status"], "UNKNOWN")
+                self.assertEqual(large_dom_covered_label["fields"], [])
+                self.assertTrue(
+                    self.adapter.requires_human_review(large_dom_covered_label)
+                )
+                self.assertNotIn(
+                    "synthetic-private-value", repr(large_dom_covered_label),
+                )
             finally:
                 browser.close()
 
