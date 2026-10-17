@@ -17,6 +17,79 @@ const emptySnapshot = (status: ApplicationFormReviewSnapshot['status']): Applica
   fields: [],
 });
 
+type ReviewCapability = { status: 'supported' | 'unsupported' | 'error'; provider: string | null };
+const capabilityError = (): ReviewCapability => ({ status: 'error', provider: null });
+
+/** The server derives support from this application's current registry-normalized route. */
+export function createApplicationFormReviewCapabilityClient(
+  profileId: string,
+  applicationId: string,
+  fetcher: typeof fetch = globalThis.fetch,
+  isScopeCurrent: () => boolean = () => true,
+  signal?: AbortSignal,
+) {
+  const current = () => !signal?.aborted && isScopeCurrent();
+  return {
+    async load(): Promise<ReviewCapability> {
+      if (!profileId.trim() || !applicationId.trim() || !current()) return capabilityError();
+      try {
+        const response = await fetcher(
+          `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-review-capabilities`,
+          { method: 'GET', cache: 'no-store', credentials: 'same-origin', signal },
+        );
+        if (!current() || !response.ok) return capabilityError();
+        const body: unknown = await response.json();
+        if (!current() || typeof body !== 'object' || body === null || Array.isArray(body)) return capabilityError();
+        const value = body as Record<string, unknown>;
+        if (value.schema_version !== 1 || value.profile_id !== profileId || value.application_id !== applicationId
+            || value.read_only !== true || value.submission_supported !== false
+            || typeof value.review_supported !== 'boolean') return capabilityError();
+        if (!value.review_supported) {
+          return value.provider === null ? { status: 'unsupported', provider: null } : capabilityError();
+        }
+        if (typeof value.provider !== 'string' || !/^[a-z][a-z0-9_]{0,63}$/.test(value.provider)) return capabilityError();
+        return { status: 'supported', provider: value.provider };
+      } catch {
+        return capabilityError();
+      }
+    },
+  };
+}
+
+/** Gate the existing read-only workspace without granting authentication or submission authority. */
+export function ApplicationFormReviewCapabilityConnected({ profileId, applicationId, fetcher }: {
+  profileId: string | null;
+  applicationId: string | null;
+  fetcher?: typeof fetch;
+}) {
+  const scopeKey = JSON.stringify([profileId, applicationId]);
+  const selectedScope = useRef(scopeKey);
+  selectedScope.current = scopeKey;
+  const [capability, setCapability] = useState<(ReviewCapability & { scopeKey: string }) | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    setCapability(null);
+    if (profileId && applicationId) {
+      const client = createApplicationFormReviewCapabilityClient(profileId, applicationId, fetcher,
+        () => active && selectedScope.current === scopeKey, controller.signal);
+      void client.load().then(result => {
+        if (active && selectedScope.current === scopeKey) setCapability({ ...result, scopeKey });
+      });
+    }
+    return () => { active = false; controller.abort(); };
+  }, [profileId, applicationId, scopeKey, fetcher]);
+
+  if (!profileId || !applicationId) return <ApplicationFormReview status="unavailable" fields={[]} onInspect={() => {}} />;
+  if (!capability || capability.scopeKey !== scopeKey) return <section className="panel" aria-label="Application form review">
+    <h2>Application form review</h2>
+    <p role="status">Checking read-only form review availability…</p>
+  </section>;
+  if (capability.status !== 'supported') return <ApplicationFormReview status="unavailable" fields={[]} onInspect={() => {}} />;
+  return <ApplicationFormReviewConnected key={scopeKey} profileId={profileId} applicationId={applicationId} fetcher={fetcher} />;
+}
+
 /** Creates a read-only client for the latest durable inspection result in one selected scope. */
 export function createApplicationFormReviewClient(
   profileId: string,
