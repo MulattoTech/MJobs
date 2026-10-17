@@ -7,6 +7,7 @@ its explicit resource grant, frozen source and a common outer watchdog.
 from __future__ import annotations
 
 import argparse
+import base64
 from contextlib import contextmanager
 import hashlib
 import io
@@ -123,12 +124,8 @@ def validate_configuration(config, project, port):
             if any(value for key, value in env.items() if key.endswith('_API_KEY')):
                 raise FixtureError('STK01_PROVIDER_CREDENTIAL_REJECTED')
         ports = service.get('ports', [])
-        if name == 'api':
-            if (len(ports) != 1 or ports[0].get('host_ip') != '127.0.0.1'
-                    or str(ports[0].get('published')) != str(port) or ports[0].get('target') != 8000):
-                raise FixtureError('STK01_API_PORT_UNSAFE')
-        elif ports:
-            raise FixtureError('STK01_UNEXPECTED_HOST_PORT')
+        if ports:
+            raise FixtureError('STK02_HOST_PUBLICATION_REJECTED')
         if name in RUNTIME | {'migrate'}:
             source = [v for v in service.get('volumes', []) if v.get('target') == '/workspace']
             if (len(source) != 1 or source[0].get('source') != 'stk-source'
@@ -310,6 +307,48 @@ def cleanup_stack(project, port, config_files, deadline):
     return {kind: [obj.get('Id', obj.get('Name')) for obj in rows] for kind, rows in residual.items()}
 
 
+
+def private_http_client():
+    """Fixed synthetic client: structured stdin to real uvicorn over private HTTP."""
+    import httpx
+    validate_fixture_mode()
+    raw = sys.stdin.buffer.read(131073)
+    if len(raw) > 131072:
+        raise FixtureError('STK02_REQUEST_TOO_LARGE')
+    value = json.loads(raw)
+    if not isinstance(value, dict) or set(value) - {'method', 'path', 'params', 'json', 'timeout'}:
+        raise FixtureError('STK02_REQUEST_SHAPE')
+    method, path, timeout = value.get('method'), value.get('path'), value.get('timeout')
+    if (method not in {'GET', 'POST', 'PUT'} or not isinstance(path, str)
+            or not re.fullmatch(r'/[A-Za-z0-9_/-]*', path) or len(path) > 512
+            or path.startswith('//') or '..' in path or not isinstance(timeout, (int, float)) or isinstance(timeout, bool)
+            or not math.isfinite(timeout) or not 0 < timeout <= 5):
+        raise FixtureError('STK02_REQUEST_REJECTED')
+    import signal
+    if not hasattr(signal, 'setitimer'):
+        raise FixtureError('STK02_NATIVE_CLIENT_DEADLINE_UNAVAILABLE')
+    def expired(signum, frame):
+        raise FixtureError('STK02_CLIENT_DEADLINE')
+    previous = signal.signal(signal.SIGALRM, expired)
+    signal.setitimer(signal.ITIMER_REAL, timeout)
+    try:
+        with httpx.Client(base_url='http://api:8000', trust_env=False, follow_redirects=False,
+                          timeout=timeout) as client:
+            with client.stream(method, path, params=value.get('params'), json=value.get('json')) as response:
+                chunks, size = [], 0
+                for chunk in response.iter_bytes():
+                    size += len(chunk)
+                    if size > 8 * 1024**2:
+                        raise FixtureError('STK02_RESPONSE_TOO_LARGE')
+                    chunks.append(chunk)
+                print(json.dumps({'status': response.status_code,
+                                  'body': base64.b64encode(b''.join(chunks)).decode('ascii')}))
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
+
+
+
 def run_stack(artifacts):
     """One fixed monitoring/persistence scenario; outer owned watchdog is mandatory."""
     import httpx
@@ -436,141 +475,159 @@ def run_stack(artifacts):
             before_services = service_snapshot(targets)
             checkpoint('all-ten-services-healthy')
 
-            with httpx.Client(base_url=f'http://127.0.0.1:{port}', timeout=10, trust_env=False) as client:
-                def request(method, path, **kwargs):
-                    budget()
-                    response = client.request(method, path, **kwargs)
-                    if response.status_code >= 400:
-                        detail = response.json().get('detail', '')
-                        code = detail.get('code', '') if isinstance(detail, dict) else detail
-                        safe_code = code if isinstance(code, str) and re.fullmatch('[A-Z][A-Z0-9_]{0,127}', code) else 'UNCLASSIFIED'
-                        raise FixtureError('STK01_PUBLIC_REQUEST_REJECTED:' + method + ':' + path + ':' + str(response.status_code) + ':' + safe_code)
-                    return response.json()
+            def private_request(method, path, **kwargs):
+                obj = inspect_service('mock')  # ownership/project/source checked before every exec
+                timeout = remaining(deadline, reserve=125, ceiling=5)
+                body = json.dumps(dict(method=method, path=path, timeout=timeout, **kwargs))
+                if len(body.encode()) > 131072:
+                    raise FixtureError('STK02_REQUEST_TOO_LARGE')
+                command = ['docker', 'compose', *[part for file in files for part in ('--file', str(file))],
+                           '--project-directory', str(ROOT), '--profile', 'fixture', '--project-name', project,
+                           'exec', '-T', 'mock', 'python', '-m', 'fixtures.company_monitoring_stack', 'client']
+                result = subprocess.run(command, input=body, capture_output=True, text=True,
+                    timeout=remaining(deadline, reserve=120, ceiling=10), check=True)
+                if len(result.stdout) > 12 * 1024**2:
+                    raise FixtureError('STK02_RESPONSE_TOO_LARGE')
+                value = json.loads(result.stdout)
+                return httpx.Response(value['status'], content=base64.b64decode(value['body'], validate=True),
+                                      request=httpx.Request(method, 'http://api:8000' + path))
 
-                health = request('GET', '/health')
-                settings = request('GET', '/settings')
-                if (health['operation_mode'] != 'PERSONAL' or settings['operation_mode'] != 'PERSONAL'
-                        or settings['external_submission_enabled'] is not False):
-                    raise FixtureError('STK01_PERSISTED_PERSONAL_MODE_REQUIRED')
-                profile_id = 'stk01-' + project.rsplit('-', 1)[1]
-                request('PUT', '/profiles', json=dict(PROFILE, id=profile_id, email='synthetic@example.invalid'))
-                request('PUT', '/search-profiles', json={'id': 'stk01-all', 'profile_id': profile_id,
-                        'name': 'Synthetic monitor only', 'enabled': True, 'source_ids': []})
-                queued = request('POST', '/companies/discovery', json={
-                    'company_name': 'Synthetic Monitoring Employer', 'company_website': 'https://employer.example/',
-                    'reason': 'USER_ADDED_COMPANY', 'profile_id': profile_id, 'request_id': 'stk01-source'})
-                def completed(operation_id):
-                    row = request('GET', '/operations/' + operation_id)
-                    if row['state'] in {'BLOCKED', 'FAILED', 'CANCELLED', 'DEAD_LETTERED'}:
-                        raise FixtureError('STK01_OPERATION_NOT_COMPLETED:' + row['state'])
-                    return row if row['state'] == 'COMPLETED' else False
-                wait(lambda: completed(queued['operation_id']))
-                def view():
-                    rows = request('GET', '/company-sources/view', params={'profile_id': profile_id})['company_sources']
-                    return next(row for row in rows if row['company_id'] == queued['company_id'])
-                source = view()
-                if source['collection_strategy'] != 'PUBLIC_JSON' or source['provider'] != 'json_feed':
-                    raise FixtureError('STK01_PUBLIC_SOURCE_NOT_DISCOVERED')
-                source_id = source['id']
-                request('PUT', '/company-sources/' + source_id + '/monitoring', json={
-                    'source_version': source['source_version'], 'revision': 0, 'poll_interval': 300})
-                # Configuration makes the source due now; only the real scheduler
-                # admits the initial refresh, avoiding a competing manual enqueue.
-                def scheduled_refresh():
-                    operation_id = view()['monitoring']['operation_id']
-                    return completed(operation_id) if operation_id else False
-                refresh = wait(scheduled_refresh)
-                first = view()
-                checkpoint('first-real-monitor-refresh-completed')
-                if first['monitoring']['status'] != 'HEALTHY' or not first['next_check']:
-                    raise FixtureError('STK01_HEALTHY_NEXT_DUE_MISSING')
-                job = request('GET', '/jobs', params={'profile_id': profile_id})['jobs'][0]
-                prepared = request('POST', '/applications', json={'profile_id': profile_id, 'job_id': job['id']})
-                wait(lambda: completed(prepared['operation_id']))
-                app_path = '/profiles/' + profile_id + '/applications/' + prepared['application_id']
-
-                def inventory():
-                    application = request('GET', app_path)
-                    docs = request('GET', app_path + '/documents')['documents']
-                    if not docs:
-                        raise FixtureError('STK01_PREPARED_DOCUMENTS_MISSING')
-                    document_rows = []
-                    for doc in docs:
-                        values = {}
-                        for extension in ['txt', 'docx', 'pdf']:
-                            response = client.get('/profiles/' + profile_id + '/documents/' + doc['id'] + '/' + extension)
-                            response.raise_for_status()
-                            values[extension] = hashlib.sha256(response.content).hexdigest()
-                            if not response.content or values[extension] != doc['sha256'][extension]:
-                                raise FixtureError('STK01_DOCUMENT_BYTES_CHANGED')
-                        document_rows.append({'id': doc['id'], 'version': doc['version'], 'sha256': values})
-                    company = view()
-                    return {'job_ids': sorted(row['id'] for row in request('GET', '/jobs', params={'profile_id': profile_id})['jobs']),
-                            'source': {k: company[k] for k in ['id', 'company_id', 'provider', 'tenant', 'collection_strategy',
-                                                               'enabled', 'career_url', 'last_success', 'next_check']},
-                            'application': {k: application[k] for k in ['id', 'profile_id', 'job_id', 'state', 'route_id']},
-                            'documents': sorted(document_rows, key=lambda row: row['id'])}
-
-                baseline = inventory()
-                checkpoint('public-jobs-source-documents-application-baseline-saved')
-                feed_before = exec_python('mock', "import httpx,json;print(json.dumps(httpx.get('http://127.0.0.1:8090/_test/monitoring',trust_env=False).json()))")
-                exec_python('mock', "import httpx,json;print(json.dumps(httpx.post('http://127.0.0.1:8090/_test/monitoring/revision-two',trust_env=False).json()))")
-                # Existing targeting and restart primitives remain unmodified.
-                owned_resources(project, deadline)
+            report['http_boundary'] = 'real uvicorn/public routes via owned mock client and private service DNS'
+            report['host_loopback_ui'] = 'NOT_RUN; no host publication in this isolated scenario'
+            def request(method, path, **kwargs):
                 budget()
-                recovery.preflight_recovery_targets(project, port, config_files=files)
-                checkpoint('restarting-all-ten-owned-services')
-                recovery.restart_recovery_services(project, port, config_files=files)
-                after_targets = wait(lambda: recovery.preflight_recovery_targets(project, port, config_files=files))
-                wait(lambda: recovery.healthy_containers(after_targets))
-                after_services = service_snapshot(after_targets)
-                for name in before_services:
-                    old, new = before_services[name], after_services[name]
-                    if (old['id'] != new['id'] or old['started_at'] == new['started_at']
-                            or not new['pid'] or old['pid'] == new['pid'] or old['volumes'] != new['volumes']):
-                        raise FixtureError('STK01_ALL_SERVICE_RESTART_UNPROVEN:' + name)
-                wait(lambda: request('GET', '/readiness')['status'] == 'ready')
-                if inventory() != baseline:
-                    raise FixtureError('STK01_RESTART_PERSISTENCE_MISMATCH')
-                report['persistence_domains'] = ['jobs', 'company source', 'documents', 'application']
-                report['services_before'] = before_services
-                report['services_after'] = after_services
-                report['baseline_sha256'] = hashlib.sha256(json.dumps(baseline, sort_keys=True).encode()).hexdigest()
-                report['first_refresh_operation'] = refresh['id']
-                report['next_due_before_restart'] = first['next_check']
-                # The real 300-second due time is not edited or mocked.
-                def new_posting():
-                    rows = request('GET', '/jobs', params={'profile_id': profile_id})['jobs']
-                    return rows if any(row['title'] == 'Python Reliability Engineer' for row in rows) else False
-                checkpoint('restart-persistence-verified-waiting-real-300-second-nextdue')
-                wait(new_posting, seconds=340)
-                final = view()
-                if final['monitoring']['status'] != 'HEALTHY' or final['next_check'] <= first['next_check']:
-                    raise FixtureError('STK01_MONITOR_NOT_RESUMED')
-                operation = wait(lambda: completed(final['monitoring']['operation_id']))
-                if operation['state'] != 'COMPLETED' or operation['attempt_count'] != 1:
-                    raise FixtureError('STK01_SECOND_REFRESH_NOT_COMPLETED')
-                query = ("import json,os;from sqlalchemy import select;from packages.persistence.store import Store;"
-                         "from packages.persistence import models as m;s=Store(os.environ['MJOBS_DATABASE_URL']);"
-                         "c=s.engine.connect();rows=[dict(r) for r in c.execute(select(m.operations).where("
-                         "m.operations.c.kind=='COMPANY_SOURCE_REFRESH')).mappings()];"
-                         "print(json.dumps([{'id':r['id'],'state':r['state'],'attempt_count':r['attempt_count'],"
-                         "'predecessor':r['params'].get('predecessor_operation_id')} for r in rows]));c.close();s.engine.dispose()")
-                rows = exec_python('api', query)
-                if (len(rows) != 2 or any(row['state'] != 'COMPLETED' or row['attempt_count'] != 1 for row in rows)
-                        or next(row for row in rows if row['id'] != refresh['id'])['predecessor'] != refresh['id']):
-                    raise FixtureError('STK01_REFRESH_DUPLICATE_OR_IDENTITY_CHANGED')
-                time.sleep(6)  # one actual production scheduler pass, still within the new interval
-                if exec_python('api', query) != rows:
-                    raise FixtureError('STK01_DUPLICATE_AFTER_NEXT_TICK')
-                feed_after = exec_python('mock', "import httpx,json;print(json.dumps(httpx.get('http://127.0.0.1:8090/_test/monitoring',trust_env=False).json()))")
-                if feed_after['feed_gets'] != feed_before['feed_gets'] + 1:
-                    raise FixtureError('STK01_UNEXPECTED_EXTRA_FEED_FETCH')
-                checkpoint('second-scheduler-rq-refresh-and-no-duplicate-verified')
-                report.update(result='PASS', second_refresh_operation=operation['id'],
-                              next_due_after_restart=final['next_check'], refresh_operations=rows,
-                              feed_gets_before=feed_before['feed_gets'], feed_gets_after=feed_after['feed_gets'],
-                              external_submission_enabled=False)
+                response = private_request(method, path, **kwargs)
+                if response.status_code >= 400:
+                    detail = response.json().get('detail', '')
+                    code = detail.get('code', '') if isinstance(detail, dict) else detail
+                    safe_code = code if isinstance(code, str) and re.fullmatch('[A-Z][A-Z0-9_]{0,127}', code) else 'UNCLASSIFIED'
+                    raise FixtureError('STK01_PUBLIC_REQUEST_REJECTED:' + method + ':' + path + ':' + str(response.status_code) + ':' + safe_code)
+                return response.json()
+
+            health = request('GET', '/health')
+            settings = request('GET', '/settings')
+            if (health['operation_mode'] != 'PERSONAL' or settings['operation_mode'] != 'PERSONAL'
+                    or settings['external_submission_enabled'] is not False):
+                raise FixtureError('STK01_PERSISTED_PERSONAL_MODE_REQUIRED')
+            profile_id = 'stk01-' + project.rsplit('-', 1)[1]
+            request('PUT', '/profiles', json=dict(PROFILE, id=profile_id, email='synthetic@example.invalid'))
+            request('PUT', '/search-profiles', json={'id': 'stk01-all', 'profile_id': profile_id,
+                    'name': 'Synthetic monitor only', 'enabled': True, 'source_ids': []})
+            queued = request('POST', '/companies/discovery', json={
+                'company_name': 'Synthetic Monitoring Employer', 'company_website': 'https://employer.example/',
+                'reason': 'USER_ADDED_COMPANY', 'profile_id': profile_id, 'request_id': 'stk01-source'})
+            def completed(operation_id):
+                row = request('GET', '/operations/' + operation_id)
+                if row['state'] in {'BLOCKED', 'FAILED', 'CANCELLED', 'DEAD_LETTERED'}:
+                    raise FixtureError('STK01_OPERATION_NOT_COMPLETED:' + row['state'])
+                return row if row['state'] == 'COMPLETED' else False
+            wait(lambda: completed(queued['operation_id']))
+            def view():
+                rows = request('GET', '/company-sources/view', params={'profile_id': profile_id})['company_sources']
+                return next(row for row in rows if row['company_id'] == queued['company_id'])
+            source = view()
+            if source['collection_strategy'] != 'PUBLIC_JSON' or source['provider'] != 'json_feed':
+                raise FixtureError('STK01_PUBLIC_SOURCE_NOT_DISCOVERED')
+            source_id = source['id']
+            request('PUT', '/company-sources/' + source_id + '/monitoring', json={
+                'source_version': source['source_version'], 'revision': 0, 'poll_interval': 300})
+            # Configuration makes the source due now; only the real scheduler
+            # admits the initial refresh, avoiding a competing manual enqueue.
+            def scheduled_refresh():
+                operation_id = view()['monitoring']['operation_id']
+                return completed(operation_id) if operation_id else False
+            refresh = wait(scheduled_refresh)
+            first = view()
+            checkpoint('first-real-monitor-refresh-completed')
+            if first['monitoring']['status'] != 'HEALTHY' or not first['next_check']:
+                raise FixtureError('STK01_HEALTHY_NEXT_DUE_MISSING')
+            job = request('GET', '/jobs', params={'profile_id': profile_id})['jobs'][0]
+            prepared = request('POST', '/applications', json={'profile_id': profile_id, 'job_id': job['id']})
+            wait(lambda: completed(prepared['operation_id']))
+            app_path = '/profiles/' + profile_id + '/applications/' + prepared['application_id']
+
+            def inventory():
+                application = request('GET', app_path)
+                docs = request('GET', app_path + '/documents')['documents']
+                if not docs:
+                    raise FixtureError('STK01_PREPARED_DOCUMENTS_MISSING')
+                document_rows = []
+                for doc in docs:
+                    values = {}
+                    for extension in ['txt', 'docx', 'pdf']:
+                        response = private_request('GET', '/profiles/' + profile_id + '/documents/' + doc['id'] + '/' + extension)
+                        response.raise_for_status()
+                        values[extension] = hashlib.sha256(response.content).hexdigest()
+                        if not response.content or values[extension] != doc['sha256'][extension]:
+                            raise FixtureError('STK01_DOCUMENT_BYTES_CHANGED')
+                    document_rows.append({'id': doc['id'], 'version': doc['version'], 'sha256': values})
+                company = view()
+                return {'job_ids': sorted(row['id'] for row in request('GET', '/jobs', params={'profile_id': profile_id})['jobs']),
+                        'source': {k: company[k] for k in ['id', 'company_id', 'provider', 'tenant', 'collection_strategy',
+                                                           'enabled', 'career_url', 'last_success', 'next_check']},
+                        'application': {k: application[k] for k in ['id', 'profile_id', 'job_id', 'state', 'route_id']},
+                        'documents': sorted(document_rows, key=lambda row: row['id'])}
+
+            baseline = inventory()
+            checkpoint('public-jobs-source-documents-application-baseline-saved')
+            feed_before = exec_python('mock', "import httpx,json;print(json.dumps(httpx.get('http://127.0.0.1:8090/_test/monitoring',trust_env=False).json()))")
+            exec_python('mock', "import httpx,json;print(json.dumps(httpx.post('http://127.0.0.1:8090/_test/monitoring/revision-two',trust_env=False).json()))")
+            # Existing targeting and restart primitives remain unmodified.
+            owned_resources(project, deadline)
+            budget()
+            recovery.preflight_recovery_targets(project, port, config_files=files)
+            checkpoint('restarting-all-ten-owned-services')
+            recovery.restart_recovery_services(project, port, config_files=files)
+            after_targets = wait(lambda: recovery.preflight_recovery_targets(project, port, config_files=files))
+            wait(lambda: recovery.healthy_containers(after_targets))
+            after_services = service_snapshot(after_targets)
+            for name in before_services:
+                old, new = before_services[name], after_services[name]
+                if (old['id'] != new['id'] or old['started_at'] == new['started_at']
+                        or not new['pid'] or old['pid'] == new['pid'] or old['volumes'] != new['volumes']):
+                    raise FixtureError('STK01_ALL_SERVICE_RESTART_UNPROVEN:' + name)
+            wait(lambda: request('GET', '/readiness')['status'] == 'ready')
+            if inventory() != baseline:
+                raise FixtureError('STK01_RESTART_PERSISTENCE_MISMATCH')
+            report['persistence_domains'] = ['jobs', 'company source', 'documents', 'application']
+            report['services_before'] = before_services
+            report['services_after'] = after_services
+            report['baseline_sha256'] = hashlib.sha256(json.dumps(baseline, sort_keys=True).encode()).hexdigest()
+            report['first_refresh_operation'] = refresh['id']
+            report['next_due_before_restart'] = first['next_check']
+            # The real 300-second due time is not edited or mocked.
+            def new_posting():
+                rows = request('GET', '/jobs', params={'profile_id': profile_id})['jobs']
+                return rows if any(row['title'] == 'Python Reliability Engineer' for row in rows) else False
+            checkpoint('restart-persistence-verified-waiting-real-300-second-nextdue')
+            wait(new_posting, seconds=340)
+            final = view()
+            if final['monitoring']['status'] != 'HEALTHY' or final['next_check'] <= first['next_check']:
+                raise FixtureError('STK01_MONITOR_NOT_RESUMED')
+            operation = wait(lambda: completed(final['monitoring']['operation_id']))
+            if operation['state'] != 'COMPLETED' or operation['attempt_count'] != 1:
+                raise FixtureError('STK01_SECOND_REFRESH_NOT_COMPLETED')
+            query = ("import json,os;from sqlalchemy import select;from packages.persistence.store import Store;"
+                     "from packages.persistence import models as m;s=Store(os.environ['MJOBS_DATABASE_URL']);"
+                     "c=s.engine.connect();rows=[dict(r) for r in c.execute(select(m.operations).where("
+                     "m.operations.c.kind=='COMPANY_SOURCE_REFRESH')).mappings()];"
+                     "print(json.dumps([{'id':r['id'],'state':r['state'],'attempt_count':r['attempt_count'],"
+                     "'predecessor':r['params'].get('predecessor_operation_id')} for r in rows]));c.close();s.engine.dispose()")
+            rows = exec_python('api', query)
+            if (len(rows) != 2 or any(row['state'] != 'COMPLETED' or row['attempt_count'] != 1 for row in rows)
+                    or next(row for row in rows if row['id'] != refresh['id'])['predecessor'] != refresh['id']):
+                raise FixtureError('STK01_REFRESH_DUPLICATE_OR_IDENTITY_CHANGED')
+            time.sleep(6)  # one actual production scheduler pass, still within the new interval
+            if exec_python('api', query) != rows:
+                raise FixtureError('STK01_DUPLICATE_AFTER_NEXT_TICK')
+            feed_after = exec_python('mock', "import httpx,json;print(json.dumps(httpx.get('http://127.0.0.1:8090/_test/monitoring',trust_env=False).json()))")
+            if feed_after['feed_gets'] != feed_before['feed_gets'] + 1:
+                raise FixtureError('STK01_UNEXPECTED_EXTRA_FEED_FETCH')
+            checkpoint('second-scheduler-rq-refresh-and-no-duplicate-verified')
+            report.update(result='PASS', second_refresh_operation=operation['id'],
+                          next_due_after_restart=final['next_check'], refresh_operations=rows,
+                          feed_gets_before=feed_before['feed_gets'], feed_gets_after=feed_after['feed_gets'],
+                          external_submission_enabled=False)
         except BaseException as error:
             # Never retain exception values which might contain generated credentials.
             report['result'] = 'NOT_PASS'
@@ -602,9 +659,9 @@ def run_stack(artifacts):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('action', choices=['mock', 'worker'])
+    parser.add_argument('action', choices=['mock', 'worker', 'client'])
     args = parser.parse_args()
-    (mock_main if args.action == 'mock' else worker_main)()
+    {'mock': mock_main, 'worker': worker_main, 'client': private_http_client}[args.action]()
 
 
 if __name__ == '__main__':

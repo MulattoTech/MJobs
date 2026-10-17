@@ -96,6 +96,7 @@ services:
       source-init: {condition: service_completed_successfully}
   api:
     <<: *stk-runtime
+    ports: !reset []
     networks: !override [private, ui]
   scheduler:
     <<: *stk-runtime

@@ -124,6 +124,44 @@ class CompanyMonitoringStackGuardTests(unittest.TestCase):
             cleanup_stack(PROJECT, 23456, (), time.monotonic()+60)
         self.assertFalse(any('down' in call for call in calls))
 
+    def test_private_client_rejects_absolute_urls_and_unbounded_inputs_without_http(self):
+        from fixtures.company_monitoring_stack import private_http_client
+        gate = {'MJOBS_STK01_PROJECT': PROJECT, 'MJOBS_STK01_ENABLE': '1',
+                'MJOBS_OPERATION_MODE': 'PERSONAL', 'MJOBS_COMPOSE_MOCK': '0'}
+        for payload in [{'method':'GET','path':'http://other/','timeout':1},
+                        {'method':'GET','path':'//other','timeout':1},
+                        {'method':'GET','path':'/health','timeout':float('inf')},
+                        {'method':'GET','path':'/health','timeout':6},
+                        {'method':'DELETE','path':'/health','timeout':1},
+                        {'method':'GET','path':'/health','timeout':1,'code':'private'}]:
+            with self.subTest(payload=payload), patch.dict('os.environ',gate,clear=True), \
+                    patch('sys.stdin', buffer=io.BytesIO(json.dumps(payload).encode())), \
+                    patch('httpx.Client') as client, self.assertRaises(FixtureError):
+                private_http_client()
+            client.assert_not_called()
+
+    def test_private_client_uses_fixed_real_http_endpoint_and_bounded_stream(self):
+        from fixtures.company_monitoring_stack import private_http_client
+        from unittest.mock import MagicMock
+        gate = {'MJOBS_STK01_PROJECT': PROJECT, 'MJOBS_STK01_ENABLE': '1',
+                'MJOBS_OPERATION_MODE': 'PERSONAL', 'MJOBS_COMPOSE_MOCK': '0'}
+        response=MagicMock(status_code=200);response.iter_bytes.return_value=[b'{"status":"ok"}']
+        with patch.dict('os.environ',gate,clear=True), \
+                patch('sys.stdin',buffer=io.BytesIO(b'{"method":"GET","path":"/health","timeout":2}')), \
+                patch('httpx.Client') as factory, patch('builtins.print') as output, \
+                patch('signal.setitimer',create=True) as timer, patch('signal.signal'), \
+                patch('signal.SIGALRM',14,create=True), patch('signal.ITIMER_REAL',0,create=True):
+            factory.return_value.__enter__.return_value.stream.return_value.__enter__.return_value=response
+            private_http_client()
+            factory.assert_called_once_with(base_url='http://api:8000',trust_env=False,follow_redirects=False,timeout=2)
+            value=json.loads(output.call_args.args[0]);self.assertEqual(value['status'],200)
+            self.assertEqual(timer.call_args_list[0].args,(0,2))
+            self.assertEqual(timer.call_args_list[-1].args,(0,0))
+        source=inspect.getsource(__import__('fixtures.company_monitoring_stack',fromlist=['run_stack']).run_stack)
+        self.assertIn("inspect_service('mock')",source)
+        self.assertIn("'exec', '-T', 'mock'",source)
+        self.assertNotIn("base_url=f'http://127.0.0.1",source)
+
     def config(self):
         labels = {'ao.session': 'mjobs-85', 'ao.run': PROJECT}
         services = {}
@@ -140,7 +178,6 @@ class CompanyMonitoringStackGuardTests(unittest.TestCase):
                 service['working_dir']='/workspace'
                 service['volumes'].append({'type':'volume','source':'stk-source',
                                           'target':'/workspace','read_only':True})
-        services['api']['ports'] = [{'host_ip': '127.0.0.1', 'published': '23456', 'target': 8000}]
         return {'services': services, 'networks': {'private': {'internal': True, 'labels': labels}},
                 'volumes': {'documents': {'labels': labels},'stk-source': {'labels': labels}}}
 
@@ -156,7 +193,7 @@ class CompanyMonitoringStackGuardTests(unittest.TestCase):
                      lambda c: c['services']['api'].update(network_mode='host'),
                      lambda c: c['services']['api']['volumes'][1].update(read_only=False),
                      lambda c: c['services']['api'].update(mem_limit=8*1024**3),
-                     lambda c: c['services']['api']['ports'][0].update(host_ip='0.0.0.0'),
+                     lambda c: c['services']['api'].update(ports=[{'host_ip':'127.0.0.1','published':'23456','target':8000}]),
                      lambda c: c['services']['api']['volumes'][0].update(type='bind'),
                      lambda c: c['networks']['private'].update(internal=False),
                      lambda c: c['volumes']['documents'].update(external=True),
