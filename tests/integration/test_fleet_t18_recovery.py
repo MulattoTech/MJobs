@@ -2,6 +2,7 @@
 import copy
 import hashlib
 import tempfile
+import threading
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -12,13 +13,72 @@ from fastapi.testclient import TestClient
 from apps.api.data_export import create_data_export_router
 from apps.api.profile_restore import create_profile_restore_router
 from fixtures.mock_server import fixture_server
-from packages.persistence.store import Store
+from packages.persistence.store import ProfileVersionConflict, Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
 
 
 class FleetT18RecoveryTests(unittest.TestCase):
+    def test_stale_first_profile_creation_cannot_overwrite_committed_creator(self):
+        with tempfile.TemporaryDirectory(prefix="mjobs-fleet-t18-race-") as directory:
+            store = Store(f"sqlite:///{(Path(directory) / 'race.db').as_posix()}")
+            try:
+                store.migrate()
+                store.bind_workspace_mode("FIXTURE")
+                delayed_profile = copy.deepcopy(PROFILE)
+                delayed_profile.update(id="t18-race", name="Delayed Creator", email="delayed@example.test")
+                winner_profile = copy.deepcopy(PROFILE)
+                winner_profile.update(id="t18-race", name="Committed Winner", email="winner@example.test")
+
+                delayed_at_insert = threading.Event()
+                release_delayed = threading.Event()
+                original_begin = store.engine.begin
+                outcomes = []
+
+                def gate_delayed_creator():
+                    if threading.current_thread().name == "t18-delayed-creator":
+                        delayed_at_insert.set()
+                        if not release_delayed.wait(timeout=5):
+                            raise TimeoutError("timed out waiting for the competing creator")
+                    return original_begin()
+
+                def delayed_save():
+                    try:
+                        outcomes.append(store.save_profile(delayed_profile))
+                    except Exception as error:  # captured for assertion on the main test thread
+                        outcomes.append(error)
+
+                with patch.object(store.engine, "begin", side_effect=gate_delayed_creator):
+                    worker = threading.Thread(target=delayed_save, name="t18-delayed-creator")
+                    worker.start()
+                    self.assertTrue(delayed_at_insert.wait(timeout=5), "delayed creator did not reach insert")
+                    winner_version = store.save_profile(winner_profile)
+                    release_delayed.set()
+                    worker.join(timeout=5)
+                    self.assertFalse(worker.is_alive(), "delayed creator remained blocked")
+
+                self.assertEqual(len(outcomes), 1)
+                self.assertIsInstance(outcomes[0], ProfileVersionConflict)
+                reopened = Store(store.engine.url)
+                try:
+                    actual = reopened.profile("t18-race")
+                    self.assertEqual(actual["name"], "Committed Winner")
+                    self.assertEqual(actual["email"], "winner@example.test")
+                    self.assertEqual(actual["version"], winner_version)
+                    from packages.persistence import models as m
+                    from sqlalchemy import select
+
+                    with reopened.engine.connect() as connection:
+                        versions = connection.execute(select(m.profile_versions.c.id).where(
+                            m.profile_versions.c.profile_id == "t18-race"
+                        )).all()
+                    self.assertEqual(len(versions), 1)
+                finally:
+                    reopened.engine.dispose()
+            finally:
+                store.engine.dispose()
+
     def test_public_backup_survives_interrupted_restore_retry_and_database_reopen(self):
         directory = tempfile.TemporaryDirectory(prefix="mjobs-fleet-t18-")
         self.addCleanup(directory.cleanup)
