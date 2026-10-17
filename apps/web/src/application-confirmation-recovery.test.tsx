@@ -1,6 +1,6 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {ConfirmationCheckResult, type ConfirmationCheck} from './application-confirmation-recovery';
+import {checkApplicationConfirmation, ConfirmationCheckResult, type ConfirmationCheck} from './application-confirmation-recovery';
 
 const result: ConfirmationCheck = {
   profile_id:'fixture', application_id:'app', check_id:'check', status:'CONFIRMED',
@@ -35,5 +35,50 @@ describe('explicit confirmation reconciliation', () => {
     expect(html).toContain('saved result replayed');
     expect(html).toContain('&lt;script&gt;');
     expect(html).not.toContain('<script>');
+  });
+
+  it('reads only the scoped receipt-check endpoint and preserves a missing-confirmation result', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
+      ...result, status:'NO_VERIFIED_RECEIPT', application_state:'SUBMISSION_UNCONFIRMED',
+      confirmation:null, provider_receipt_verified:false, confirmation_source:'NONE',
+    }));
+
+    await expect(checkApplicationConfirmation('profile/a', 'application&b', 'stable-check-1', fetcher))
+      .resolves.toMatchObject({status:'NO_VERIFIED_RECEIPT', application_state:'SUBMISSION_UNCONFIRMED'});
+    expect(fetcher).toHaveBeenCalledWith(
+      '/profiles/profile%2Fa/applications/application%26b/confirmation-check',
+      expect.objectContaining({method:'POST', cache:'no-store', credentials:'same-origin',
+        body:JSON.stringify({request_id:'stable-check-1'})}),
+    );
+  });
+
+  it('refuses to reconcile while the application execution remains reserved', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json(
+      {detail:{code:'CONFIRMATION_EXECUTION_STILL_RESERVED'}}, {status:409},
+    ));
+
+    await expect(checkApplicationConfirmation('fixture', 'app', 'stable-check-2', fetcher))
+      .rejects.toThrow('A worker or unfinished browser attempt still owns this run. Its reservation was not changed.');
+  });
+
+  it('keeps transport interruption explicitly uncertain without retrying or submitting', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new Error('private transport detail'));
+
+    await expect(checkApplicationConfirmation('fixture', 'app', 'stable-check-3', fetcher))
+      .rejects.toThrow('The receipt check could not complete. Submission remains uncertain; do not resubmit.');
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(fetcher.mock.calls[0][1]).toMatchObject({method:'POST', body:'{"request_id":"stable-check-3"}'});
+  });
+
+  it('rejects mismatched or side-effecting responses before rendering them', async () => {
+    for (const invalid of [
+      {...result, application_id:'another-application'},
+      {...result, submission_attempted:true},
+      {...result, browser_started:true},
+    ]) {
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json(invalid));
+      await expect(checkApplicationConfirmation('fixture', 'app', 'stable-check-4', fetcher))
+        .rejects.toThrow('The receipt check returned an unexpected result. Reload the application before proceeding.');
+    }
   });
 });
