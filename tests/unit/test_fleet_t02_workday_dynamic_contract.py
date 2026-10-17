@@ -92,3 +92,17 @@ def test_cyclic_observation_has_no_usable_review_identity():
     analysis = analyze_workday_form_html(MARKUP)
     analysis["fields"][0].update(conditional=True, conditional_on="region")
     assert project_workday_dynamic_review(analysis) is None
+
+
+def test_changed_available_choices_invalidate_same_question():
+    from services.applications.workday_dynamic_review import project_workday_dynamic_review
+    analysis = analyze_workday_form_html(MARKUP)
+    analysis["fields"][0]["options_fingerprint"] = hashlib.sha256(b"Canada,USA").hexdigest()
+    initial = project_workday_dynamic_review(analysis)
+    assert initial is not None
+    analysis["fields"][0]["options_fingerprint"] = hashlib.sha256(b"Canada,France").hexdigest()
+    changed = project_workday_dynamic_review(analysis)
+    assert changed is not None
+    assert changed["fingerprint"] != initial["fingerprint"]
+    analysis["fields"][0]["options_fingerprint"] = "PRIVATE_OPTION_LABEL"
+    assert project_workday_dynamic_review(analysis) is None

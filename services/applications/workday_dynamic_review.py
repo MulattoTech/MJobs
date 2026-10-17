@@ -25,6 +25,7 @@ _FIELDS = {
 _ANALYSIS_FIELDS = {
     "id", "name", "label", "type", "required", "conditional", "conditional_on",
     "repeatable", "repeatable_group", "sensitivity", "supported", "requires_human_review",
+    "options_fingerprint",
 }
 
 
@@ -118,7 +119,7 @@ def project_workday_dynamic_review(analysis) -> dict | None:
     fields = []
     for source in analysis["fields"]:
         if (not isinstance(source, Mapping) or not set(source).issubset(_ANALYSIS_FIELDS)
-                or not (_ANALYSIS_FIELDS - {"name"}).issubset(source)
+                or not (_ANALYSIS_FIELDS - {"name", "options_fingerprint"}).issubset(source)
                 or not isinstance(source["sensitivity"], str)
                 or source["sensitivity"] not in {"STANDARD", "SENSITIVE", "CREDENTIAL", "UNKNOWN"}
                 or type(source["supported"]) is not bool
@@ -126,6 +127,10 @@ def project_workday_dynamic_review(analysis) -> dict | None:
             return None
         label = source["label"]
         if label is not None and (not isinstance(label, str) or len(label) > 500):
+            return None
+        options_fingerprint = source.get("options_fingerprint")
+        if options_fingerprint is not None and (
+                not isinstance(options_fingerprint, str) or not _HASH.fullmatch(options_fingerprint)):
             return None
         field = {key: source.get(key) for key in _FIELDS - {"question_fingerprint"}}
         if (not isinstance(field["type"], str) or field["type"] not in _TYPES
@@ -140,6 +145,7 @@ def project_workday_dynamic_review(analysis) -> dict | None:
             "field": field, "label": " ".join(label.split()) if label else None,
             "sensitivity": source["sensitivity"], "supported": source["supported"],
             "requires_human_review": source["requires_human_review"],
+            "options_fingerprint": options_fingerprint,
         })
         fields.append(field)
     body = {"schema_version": 1, "fields": fields}
