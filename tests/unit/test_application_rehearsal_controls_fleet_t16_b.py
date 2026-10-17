@@ -129,6 +129,52 @@ class ControlledRehearsalControlsFleetT16BTests(unittest.TestCase):
             ).order_by(m.audit.c.id)).scalars())
         self.assertEqual(sorted(revisions), [1, 2])
 
+    def test_revision_order_beats_a_later_write_with_an_earlier_clock(self):
+        with patch("services.applications.rehearsal_store.now", side_effect=[
+            "2030-01-01T00:00:00+00:00", "2020-01-01T00:00:00+00:00",
+        ]):
+            self._set(request_id="clock-forward", paused=False, daily_limit=4)
+            self._set(request_id="clock-backward", paused=True, daily_limit=6)
+
+        current = get_controlled_controls(self.store, "fixture", self.application_id)
+        self.assertEqual(current["request_id"], "clock-backward")
+        self.assertTrue(current["paused"])
+        self.assertEqual(current["daily_limit"], 6)
+
+    def test_duplicate_revision_authority_fails_closed(self):
+        self._set(request_id="revision-one-a", paused=False, daily_limit=4)
+        self._set(request_id="revision-one-b", paused=True, daily_limit=6)
+        with self.store.engine.begin() as connection:
+            events = list(connection.execute(select(m.audit.c.id, m.audit.c.payload).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "CONTROLLED_APPLICATION_CONTROLS_CHANGED",
+            )).mappings())
+            event = next(row for row in events if row["payload"]["revision"] == 2)
+            connection.execute(m.audit.update().where(m.audit.c.id == event["id"]).values(
+                payload={"profile_id": "fixture", "application_id": self.application_id,
+                         "request_id": "revision-one-b", "paused": True,
+                         "daily_limit": 6, "submission_enabled": False, "revision": 1},
+            ))
+
+        with self.assertRaises(RehearsalStoreError) as raised:
+            get_controlled_controls(self.store, "fixture", self.application_id)
+        self.assertEqual(raised.exception.code, "CONTROLLED_CONTROLS_INVALID")
+
+    def test_malformed_revision_authority_fails_closed(self):
+        self._set(request_id="malformed-revision", paused=True, daily_limit=5)
+        with self.store.engine.begin() as connection:
+            event = connection.execute(select(m.audit.c.id, m.audit.c.payload).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "CONTROLLED_APPLICATION_CONTROLS_CHANGED",
+            )).mappings().one()
+            connection.execute(m.audit.update().where(m.audit.c.id == event["id"]).values(
+                payload={**event["payload"], "revision": "1"},
+            ))
+
+        with self.assertRaises(RehearsalStoreError) as raised:
+            get_controlled_controls(self.store, "fixture", self.application_id)
+        self.assertEqual(raised.exception.code, "CONTROLLED_CONTROLS_INVALID")
+
     def test_setting_changed_profile_audit_is_atomic_and_idempotent(self):
         response = self._set(request_id="audited-pause", paused=True, daily_limit=4)
         setting_id = identity(
