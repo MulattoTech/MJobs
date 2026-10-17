@@ -1,13 +1,16 @@
 """Consumed provider identity controls through public durable form review."""
 from contextlib import contextmanager
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from services.applications.provider_registry import get_provider
+from services.applications.form_review_providers import normalize_application_route
 from tests.integration import test_application_form_review_flow as flow_fixture
+from workers.application_form_review import FormReviewError, handle_form_review
+from workers.operations import claim
 
 
 PROVIDERS = ("smartrecruiters", "workable", "teamtailor", "bamboohr")
@@ -117,12 +120,53 @@ def test_raw_unicode_and_space_are_rejected_before_enqueue_without_mutation(prov
             before = tuple(fixture.store.count(table) for table in (
                 "worker_operations", "audit_events", "application_attempts",
             ))
-            with patch.object(adapter_class, "normalize_route", autospec=True, side_effect=normalize) as selected:
+            with patch("apps.api.application_form_review.normalize_application_route",
+                       wraps=normalize_application_route) as boundary, patch.object(
+                           adapter_class, "normalize_route", autospec=True,
+                           side_effect=normalize) as selected:
                 response = fixture.client.post(path, json={"request_id": f"t08-invalid-{number}"})
-            assert selected.called, "a hardcoded API rejection is not adapter verification"
+            boundary.assert_called_once()
+            args, kwargs = boundary.call_args
+            assert args == (provider, raw_url)
+            assert kwargs["route_metadata"]["tenant"] == tenant
+            assert kwargs["route_metadata"]["requisition"] == requisition
             assert response.status_code == 409, (provider, number, response.text)
+            selected.assert_not_called()  # reject raw aliases before adapter canonicalization
             assert response.json()["detail"]["code"] == "FORM_REVIEW_ROUTE_UNSUPPORTED"
             assert tuple(fixture.store.count(table) for table in (
                 "worker_operations", "audit_events", "application_attempts",
             )) == before
             assert stored_route(fixture, route_id) == original
+
+
+@pytest.mark.parametrize("provider", PROVIDERS)
+@pytest.mark.parametrize("mutation", ["unicode", "space", "control"])
+def test_worker_revalidates_raw_identity_before_fetch_or_receipt(provider, mutation):
+    with fixture_for(provider) as fixture:
+        canonical, requisition = route(provider, "steam")
+        route_id = set_route(fixture, canonical, "steam", requisition)
+        path = f"/profiles/fixture/applications/{fixture.application_id}/form-reviews"
+        response = fixture.client.post(path, json={"request_id": "t08-worker-raw-identity"})
+        assert response.status_code == 202, response.text
+        operation = claim(fixture.store, response.json()["operation_id"])
+        assert operation is not None
+        raw = {"unicode": canonical.replace("steam", "\u017fteam"),
+               "space": " " + canonical,
+               "control": canonical.replace("steam", "\tsteam")}[mutation]
+        set_route(fixture, raw, "steam", requisition)
+        original = stored_route(fixture, route_id)
+        before = tuple(fixture.store.count(table) for table in (
+            "worker_operations", "audit_events", "application_attempts",
+        ))
+        fetch = Mock(return_value=b"<form/>")
+        with patch("workers.application_form_review.normalize_application_route",
+                   wraps=normalize_application_route) as boundary:
+            with pytest.raises(FormReviewError, match="FORM_REVIEW_ROUTE_UNSUPPORTED"):
+                handle_form_review(fixture.store, operation, fetch_html=fetch, check=lambda: None)
+        assert boundary.called
+        assert boundary.call_args.args == (provider, raw)
+        fetch.assert_not_called()
+        assert tuple(fixture.store.count(table) for table in (
+            "worker_operations", "audit_events", "application_attempts",
+        )) == before
+        assert stored_route(fixture, route_id) == original
