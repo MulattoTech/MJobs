@@ -539,16 +539,50 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                         self.assertTrue(
                             self.adapter.requires_human_review(transparent_label)
                         )
-                page.set_content(
-                    '<form><label for="email">'
-                    '<span style="color:transparent">Email address</span>'
-                    '</label><input id="email" type="email"></form>'
-                )
-                transparent_descendant = self.adapter.analyze_page(page)
-                self.assertEqual(transparent_descendant["status"], "UNKNOWN")
-                self.assertTrue(
-                    self.adapter.requires_human_review(transparent_descendant)
-                )
+                for name, css in (
+                    ("descendant transparent color", "color:transparent"),
+                    ("descendant transparent text fill",
+                     "-webkit-text-fill-color:transparent"),
+                ):
+                    with self.subTest(label_paint=name):
+                        page.set_content(
+                            f"<style>label span{{{css}}}</style><form>"
+                            '<label for="email"><span>Email address</span></label>'
+                            '<input id="email" type="email"></form>'
+                        )
+                        descendant_projection = page.locator("form").first.evaluate(
+                            _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                        )
+                        self.assertEqual(
+                            descendant_projection[0]["rendered_labels"],
+                            [{"canonical_label": None, "has_text": False,
+                              "visible": False}],
+                        )
+                        self.assertNotIn("Email address", repr(descendant_projection))
+                        input_state = page.locator("form").locator(
+                            "input, select, textarea"
+                        ).evaluate_all(_CONTROL_STATE_SCRIPT)
+                        self.assertIs(input_state[0]["user_visible"], True)
+                        self.assertIs(input_state[0]["hit_test_visible"], True)
+                        self.assertIs(input_state[0]["user_editable"], True)
+                        self.assertEqual(
+                            page.evaluate(
+                                """() => {
+                                  const rect = document.querySelector('input')
+                                    .getBoundingClientRect();
+                                  return document.elementFromPoint(
+                                    rect.left + rect.width / 2,
+                                    rect.top + rect.height / 2
+                                  )?.tagName;
+                                }"""
+                            ),
+                            "INPUT",
+                        )
+                        transparent_descendant = self.adapter.analyze_page(page)
+                        self.assertEqual(transparent_descendant["status"], "UNKNOWN")
+                        self.assertTrue(
+                            self.adapter.requires_human_review(transparent_descendant)
+                        )
                 page.set_content(
                     '<style>.prompt{display:inline-block;width:120px;height:24px}'
                     '.prompt span{font-size:0}</style><form>'
