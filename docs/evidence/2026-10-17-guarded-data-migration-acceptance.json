@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T15:56:19.187540+00:00",
+  "requirement_ids": [
+    "MJ-REQ-166"
+  ],
+  "issue": 167,
+  "priority": "P1",
+  "requirement_result": "PASS",
+  "recording_status": "CANDIDATE_ACCEPTANCE_PENDING_PROTECTED_MERGE",
+  "acceptance_authority": "Root48 accepted verifier83 independent Native10 runtime and literal all-criteria recommendation; protected main remains PARTIAL until this candidate merges.",
+  "literal_criteria": [
+    {
+      "criterion": "Use Alembic or equivalent",
+      "result": "PASS",
+      "proof": "Reviewed single Alembic target; PG17 empty bootstrap and actual pending synthetic revision upgrade."
+    },
+    {
+      "criterion": "Before destructive migrations: back up, migrate, validate",
+      "result": "PASS",
+      "proof": "Real unmodified host CLI creates a fresh full private backup, checks native dump/list and source identity, stages one-use authorization, upgrades, validates fresh schema/workspace, then provisions. Reviewed literal obsolete-column drop preserves business/encrypted/workspace sentinel; native restore into a NEW DB reproduces pre-upgrade data."
+    },
+    {
+      "criterion": "Do not delete/recreate database to simplify schema changes",
+      "result": "PASS",
+      "proof": "Original synthetic source database retained through ALTER migration; native restore targets a separate newly created synthetic database only. No source restore/drop/recreation."
+    }
+  ],
+  "native": {
+    "tested_revision": "e067e7315406d8bf42f69ea1d80fbca95970bb2b",
+    "tested_tree": "33b6ebfa4b24bc48bf25cdec010ffc0bdf0347d5",
+    "source_archive_sha256": "f4dac5b81f0a05d103b9185819a0aec05c677233c586532606f44c164287b673",
+    "runner_sha256": "2ca1643eb4cd325f9eaafb7587ca6f827f2fd999c16a1e866bdec6bccf35bd28",
+    "runner_manifest_sha256": "e2d7a834d0232500927d140674e7de8c110723f8dabd3cf8a5de92474566a8e6",
+    "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe <private-artifacts>/run-migration166-native-acceptance.py",
+    "entrypoint_under_test": "python -m cli.guarded_migration --project <owned synthetic project> --archive <NEW private archive>",
+    "result": "PASS",
+    "worker_exit": 0,
+    "outer_exit": 0,
+    "outer_seconds": 286.95,
+    "checks_passed": 14,
+    "skipped": 0,
+    "work_deadline_seconds": 480,
+    "common_deadline_seconds": 600,
+    "cleanup_reserve_seconds": 120,
+    "effective_pg_settings": {
+      "max_connections": 12,
+      "lock_timeout": "3s",
+      "statement_timeout": "15s",
+      "idle_in_transaction_session_timeout": "20s"
+    },
+    "default_languages": "c,internal,plpgsql,sql",
+    "worker_direct_commands": {
+      "launched": 794,
+      "joined": 794,
+      "active": 0,
+      "failed": false
+    },
+    "outer_direct_commands": {
+      "launched": 1,
+      "joined": 1,
+      "active": 0,
+      "failed": false
+    },
+    "oracle_map": [
+      {
+        "name": "actual_pg17_default_bootstrap_full_schema_and_unbound_anchor",
+        "result": "PASS"
+      },
+      {
+        "name": "unversioned_populated_database_is_not_bootstrap",
+        "result": "PASS"
+      },
+      {
+        "name": "stopped_migrate_source_switch_preserves_pg_volumes_and_credential",
+        "result": "PASS"
+      },
+      {
+        "name": "populated_pending_without_authorization_refuses",
+        "result": "PASS"
+      },
+      {
+        "name": "expected_native_receipt_refusal_wrong_target",
+        "result": "PASS"
+      },
+      {
+        "name": "expected_native_receipt_refusal_expired",
+        "result": "PASS"
+      },
+      {
+        "name": "expected_native_receipt_refusal_corrupt",
+        "result": "PASS"
+      },
+      {
+        "name": "expected_native_receipt_refusal_missing",
+        "result": "PASS"
+      },
+      {
+        "name": "expected_native_receipt_refusal_consumed",
+        "result": "PASS"
+      },
+      {
+        "name": "actual_unmodified_host_cli_full_backup_volume_receipt_upgrade_validation_provision",
+        "result": "PASS"
+      },
+      {
+        "name": "native_full_dump_restores_preupgrade_sentinel_cipher_anchor_only_new_db",
+        "result": "PASS"
+      },
+      {
+        "name": "native_actual_validator_rejects_schema_not_full_cli_failure_claim",
+        "result": "PASS"
+      },
+      {
+        "name": "native_actual_validator_rejects_workspace_not_full_cli_failure_claim",
+        "result": "PASS"
+      },
+      {
+        "name": "native_actual_validator_rejects_fk_not_full_cli_failure_claim",
+        "result": "PASS"
+      }
+    ],
+    "fresh_exact_project_cleanup": {
+      "containers": 0,
+      "volumes": 0,
+      "networks": 0
+    },
+    "private_backup_retained": true,
+    "archive_manifest_sha256": "e68ad93e786c3fa87c6601c6caf6ef431e89d226651a74566297462cf3b36b7a",
+    "database_dump_sha256": "f9c52f8676f9edc01a9b866ca4bbed51ba79c679dbbff49d420f4b6deca311af",
+    "no_process_tree_clearance_claim": true
+  },
+  "source_qualification": {
+    "owned_blob_ids_at_tested_revision": {
+      "cli/guarded_migration.py": "958ac43dc082b669f657c2016cba6274b83ca231",
+      "cli/migration_precondition.py": "57e6f5cb300b49b30f4fd8ca12d900b913267e64",
+      "cli/provision_database.py": "6613459c88a90d2ae24f96734554a4885ddd4f76",
+      "compose.yml": "c93a7e2b7bc5b3e794300cc3fa6725ffec72556a",
+      "tests/unit/test_database_provisioning.py": "5cb3384519ddefd8759db3a26a8c3c1543181b41",
+      "tests/unit/test_fleet_t11_guarded_migration.py": "3ba6229c9fe45ebff9f1344e6032770a88d8d197",
+      "tests/integration/test_fleet_t11_guarded_migration.py": "f8fbc862cb827374a9ac7a0be9e8eaf290cfe708"
+    },
+    "archive_tracked_files": 2506,
+    "archive_and_runtime_source_hashes_match": true,
+    "reviewed_variant_only_extra": "migrations/versions/fleet_t11_drop_obsolete.py",
+    "variant_revision_sha256": "19f9dfa3f9496601398a2f417f7208d7f7f3d34cdf64234beb25bcab722f4c45",
+    "variant_delta": "Only reviewed synthetic Alembic revision; no whole-tree equality claim for variant. Controller is private test artifact, not shipped product code. Final records/docs append changes no tested executable inputs.",
+    "local_unit_qualification": "47 local PASS/46 subtests on e067; CRLF-only raw unit-test variation disclosed separately from canonical Git archive; native proof binds Git archive bytes. No local/native rerun for record-only finalization."
+  },
+  "policy_scope": [
+    "Fail closed on missing/stale/wrong-target/consumed/corrupt backup authorization; one-use receipt target/source/code/schema/anchor bound.",
+    "Required public schema signature is derived from reviewed metadata, including resume_workspace, with precise type-family/nullability/ordered PK/validated FK rules; only data anchor is workspace_identity absence or exact singleton tuple. Not arbitrary migration semantic verification.",
+    "Stopped cooperating writers/trusted operator boundary; no automatic production stop, restore or unsafe override.",
+    "Native schema/workspace/FK refusal oracles invoke actual production validator, not full-host-CLI injected-failure coverage.",
+    "Migration advisory lock spans upgrade and fresh validation; credential provisioning uses its separate role transaction afterward.",
+    "PG connection bounds derive from serial callgraph plus samples; not a hard global SQLAlchemy pool cap."
+  ],
+  "prior_attempts_preserved": [
+    {
+      "attempt": "Native01",
+      "outcome": "ABORTED_PREPARATION",
+      "scope": "Read-only ACL preparation; native PG/CLI NOT_RUN."
+    },
+    {
+      "attempt": "Native02",
+      "outcome": "NOT_PASS",
+      "scope": "Compose CLI option setup failure; PG/CLI NOT_RUN."
+    },
+    {
+      "attempt": "Native03",
+      "outcome": "NOT_PASS",
+      "scope": "Fixture project-prefix setup refusal; manually verified owned cleanup0/0/0."
+    },
+    {
+      "attempt": "Native04",
+      "outcome": "NOT_PASS",
+      "scope": "Nine old-ce602 scoped native checks; later archive OWNER_RIGHTS refusal. Not transferred wholesale to e067."
+    },
+    {
+      "attempt": "Native05",
+      "outcome": "NOT_PASS",
+      "scope": "Process-ownership uncertainty; no unknown kill; native PG/CLI NOT_RUN."
+    },
+    {
+      "attempt": "Native06",
+      "outcome": "NOT_PASS",
+      "scope": "Process-ownership uncertainty; owned manual cleanup corroborated; historical unknown unresolved."
+    },
+    {
+      "attempt": "Native07",
+      "outcome": "NOT_PASS",
+      "scope": "Process-ownership uncertainty before native acceptance; no retroactive identity attribution."
+    },
+    {
+      "attempt": "Native08",
+      "outcome": "NOT_PASS",
+      "scope": "Git NUL-framing preflight failure; actual protocol RED->GREEN retained; native PG/CLI NOT_RUN."
+    },
+    {
+      "attempt": "Native09",
+      "outcome": "NOT_PASS",
+      "scope": "Sampling-lineage veto during ACL preparation; no unknown kill, no native acceptance; exact residue0/0/0. New normal-completion proof model does not relabel this outcome."
+    }
+  ],
+  "not_claimed": [
+    "Production/personal database migration",
+    "MJ-REQ-162 or any other requirement credit",
+    "Automatic disaster recovery/source database restore",
+    "Host/container restart or live employer submission",
+    "Global process-tree clearance or historical unknown-process ownership",
+    "Current-head hosted/native-review/protected-merge success before those execute"
+  ]
+}

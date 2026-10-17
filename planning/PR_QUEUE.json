@@ -1845,7 +1845,7 @@
       "status": "QUEUED",
       "branch": "codex/mj-pr-045-orchestration-data-security",
       "draft_until_verified": true,
-      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped issue #167 fix merged at 0a7400d2bf7f8f449d69a81fde84a4f107faf06f: Alembic duplicate heads now resolve through a no-op merge revision; normal fresh SQLite upgrade-to-head and 7 migration/resume integration tests PASS. Evidence docs/evidence/2026-10-08-alembic-merge-heads.json. MJ-PR-044 and MJ-PR-034 dependencies and remaining migration acceptance are unchanged; this does not mark the PR or MJ-REQ-166 complete."
+      "notes": "Keep this PR coherent; split further if the diff becomes broad or cross-cutting. Scoped issue #167 fix merged at 0a7400d2bf7f8f449d69a81fde84a4f107faf06f: Alembic duplicate heads now resolve through a no-op merge revision; normal fresh SQLite upgrade-to-head and 7 migration/resume integration tests PASS. Evidence docs/evidence/2026-10-08-alembic-merge-heads.json. MJ-PR-044 and MJ-PR-034 dependencies and remaining migration acceptance are unchanged; this does not mark the PR or MJ-REQ-166 complete. 2026-10-17 MJ-REQ-166-only candidate acceptance: guarded backup/migrate/validate and native synthetic restore verified at e067; evidence docs/evidence/2026-10-17-guarded-data-migration-acceptance.json. Requirement candidate PASS; this queue item remains QUEUED with other requirements/dependencies unchanged. Protected integration pending; no whole MJ-PR-045 completion."
     },
     {
       "id": "MJ-PR-046",
