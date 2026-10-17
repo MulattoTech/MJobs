@@ -383,7 +383,8 @@ def _document_file_records(store, connection, profile_id, output_dir):
                                 "content_base64": base64.b64encode(content).decode("ascii")})
 
     with connection.execute(
-        select(m.uploaded_resumes.c.id, m.uploaded_resumes.c.format, m.uploaded_resumes.c.size_bytes)
+        select(m.uploaded_resumes.c.id, m.uploaded_resumes.c.format,
+               m.uploaded_resumes.c.size_bytes, m.uploaded_resumes.c.sha256)
         .where(m.uploaded_resumes.c.profile_id == profile_id)
         .order_by(m.uploaded_resumes.c.id).limit(MAX_EXPORT_ROWS + 1)
     ).mappings() as uploads:
@@ -399,7 +400,12 @@ def _document_file_records(store, connection, profile_id, output_dir):
                 raise DataExportError("EXPORT_TOO_LARGE")
             try:
                 metadata, content = read_resume(store, output_dir=output_dir,
-                                               profile_id=profile_id, identifier=upload["id"])
+                                               profile_id=profile_id, identifier=upload["id"],
+                                               connection=connection)
+                # Include only verified bytes matching this export's DB snapshot.
+                if any(metadata[key] != upload[key]
+                       for key in ("id", "format", "size_bytes", "sha256")):
+                    raise DataExportError("EXPORT_FILE_UNAVAILABLE")
             except Exception:
                 # Do not expose filesystem or persistence details in the API error.
                 raise DataExportError("EXPORT_FILE_UNAVAILABLE") from None
@@ -418,7 +424,7 @@ def export_profile_backup(store, profile_id: str, *, output_dir=None) -> dict:
     and uploaded profile document bytes are included only after path and digest
     verification. A caller omitting it gets a metadata-only relational snapshot.
     """
-    with store.engine.connect() as connection:
+    with store.read_snapshot() as connection:
         profile = _profile(connection, profile_id)
         jobs = _jobs(connection, profile, profile_id)
         applications = _applications(connection, profile_id)
