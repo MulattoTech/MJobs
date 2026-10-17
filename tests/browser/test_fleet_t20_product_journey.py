@@ -162,6 +162,7 @@ class FleetT20ProductJourneyTests(unittest.TestCase):
             worker_result = {}
             browser = None
             context = None
+            cleanup_failures = []
             try:
                 with patch.dict(os.environ, env), patch.object(
                     PublicCompanyClient, "_request_once", fetch_synthetic_employer
@@ -174,64 +175,76 @@ class FleetT20ProductJourneyTests(unittest.TestCase):
                         time.sleep(0.02)
 
                     with sync_playwright() as playwright:
-                        browser = playwright.chromium.launch(headless=True)
-                        context = browser.new_context(viewport={"width": 1365, "height": 1000})
-                        external_requests = []
-                        app_netloc = urlsplit(origin).netloc
+                        try:
+                            browser = playwright.chromium.launch(headless=True)
+                            context = browser.new_context(viewport={"width": 1365, "height": 1000})
+                            external_requests = []
+                            app_netloc = urlsplit(origin).netloc
 
-                        def local_only(route):
-                            if urlsplit(route.request.url).netloc != app_netloc:
-                                external_requests.append(route.request.url)
-                                route.abort()
-                            else:
-                                route.continue_()
+                            def local_only(route):
+                                if urlsplit(route.request.url).netloc != app_netloc:
+                                    external_requests.append(route.request.url)
+                                    route.abort()
+                                else:
+                                    route.continue_()
 
-                        context.route("**/*", local_only)
-                        page = context.new_page()
-                        page_errors = []
-                        page.on("pageerror", lambda error: page_errors.append(str(error)))
-                        page.goto(origin, wait_until="domcontentloaded")
-                        page.locator("#active-profile").select_option("fixture")
-                        page.get_by_role("button", name="Sources", exact=True).click()
-                        form = page.get_by_role(
-                            "heading", name="Add a company to look for jobs", exact=True
-                        ).locator("..")
-                        form.get_by_label("Company name").fill("Example Systems")
-                        form.get_by_label("Company website (HTTPS)").fill("https://employer.example/")
-                        with page.expect_response(
-                            lambda response: response.request.method == "POST"
-                            and response.url.endswith("/companies/discovery")
-                        ) as queued_response:
-                            form.get_by_role("button", name="Discover company jobs", exact=True).click()
-                        operation_id = queued_response.value.json()["operation_id"]
-                        self.assertTrue(operation_id)
+                            context.route("**/*", local_only)
+                            page = context.new_page()
+                            page_errors = []
+                            page.on("pageerror", lambda error: page_errors.append(str(error)))
+                            page.goto(origin, wait_until="domcontentloaded")
+                            page.locator("#active-profile").select_option("fixture")
+                            page.get_by_role("button", name="Sources", exact=True).click()
+                            form = page.get_by_role(
+                                "heading", name="Add a company to look for jobs", exact=True
+                            ).locator("..")
+                            form.get_by_label("Company name").fill("Example Systems")
+                            form.get_by_label("Company website (HTTPS)").fill("https://employer.example/")
+                            with page.expect_response(
+                                lambda response: response.request.method == "POST"
+                                and response.url.endswith("/companies/discovery")
+                            ) as queued_response:
+                                form.get_by_role("button", name="Discover company jobs", exact=True).click()
+                            operation_id = queued_response.value.json()["operation_id"]
+                            self.assertTrue(operation_id)
 
-                        def run_worker():
-                            worker_result["value"] = execute_operation(operation_id)
+                            def run_worker():
+                                worker_result["value"] = execute_operation(operation_id)
 
-                        worker_thread = threading.Thread(target=run_worker, daemon=True)
-                        worker_thread.start()
-                        expect(page.get_by_role("status").filter(has_text="Completed")).to_be_visible(timeout=15000)
-                        expect(page.get_by_role("status").filter(
-                            has_text="Public company jobs and source information have been updated."
-                        )).to_be_visible()
+                            worker_thread = threading.Thread(target=run_worker, daemon=True)
+                            worker_thread.start()
+                            expect(page.get_by_role("status").filter(has_text="Completed")).to_be_visible(timeout=15000)
+                            expect(page.get_by_role("status").filter(
+                                has_text="Public company jobs and source information have been updated."
+                            )).to_be_visible()
 
-                        page.get_by_role("button", name="Jobs", exact=False).first.click()
-                        card = page.locator(".job-card").filter(has_text="Example Systems").first
-                        expect(card).to_be_visible()
-                        expect(card).to_contain_text("Python Engineer")
-                        page.reload(wait_until="domcontentloaded")
-                        page.get_by_role("button", name="Jobs", exact=False).first.click()
-                        reloaded_card = page.locator(".job-card").filter(has_text="Example Systems").first
-                        expect(reloaded_card).to_be_visible()
-                        expect(reloaded_card).to_contain_text("Python Engineer")
-                        self.assertEqual(page_errors, [])
-                        self.assertEqual(external_requests, [])
-                        settings = page.request.get(origin + "/settings").json()
-                        self.assertFalse(settings["external_submission_enabled"])
+                            page.get_by_role("button", name="Jobs", exact=False).first.click()
+                            card = page.locator(".job-card").filter(has_text="Example Systems").first
+                            expect(card).to_be_visible()
+                            expect(card).to_contain_text("Python Engineer")
+                            page.reload(wait_until="domcontentloaded")
+                            page.get_by_role("button", name="Jobs", exact=False).first.click()
+                            reloaded_card = page.locator(".job-card").filter(has_text="Example Systems").first
+                            expect(reloaded_card).to_be_visible()
+                            expect(reloaded_card).to_contain_text("Python Engineer")
+                            self.assertEqual(page_errors, [])
+                            self.assertEqual(external_requests, [])
+                            settings = page.request.get(origin + "/settings").json()
+                            self.assertFalse(settings["external_submission_enabled"])
+                        finally:
+                            for label, resource, close in (
+                                ("browser context", context, "close"),
+                                ("browser", browser, "close"),
+                            ):
+                                if resource is not None:
+                                    try:
+                                        getattr(resource, close)()
+                                    except Exception as error:
+                                        cleanup_failures.append(f"Could not close {label}: {error}")
 
                     worker_thread.join(timeout=10)
-                    self.assertFalse(worker_thread.is_alive(), "T20 company worker did not finish")
+                    if worker_thread.is_alive():
+                        cleanup_failures.append("T20 company worker did not finish within 10 seconds")
                     self.assertEqual(worker_result.get("value", {}).get("status"), "COMPLETED", worker_result)
 
                     with httpx.Client(base_url=origin, timeout=3, trust_env=False) as api_client:
@@ -251,19 +264,39 @@ class FleetT20ProductJourneyTests(unittest.TestCase):
                     set(urlsplit(url).path for url in employer_fetches), set(pages)
                 )
             finally:
-                if context is not None:
-                    context.close()
-                if browser is not None:
-                    browser.close()
-                app_server.should_exit = True
-                app_thread.join(timeout=10)
-                api_socket.close()
-                employer_server.shutdown()
-                employer_server.server_close()
-                employer_thread.join(timeout=5)
-                store.engine.dispose()
-                self.assertFalse(app_thread.is_alive(), "T20 isolated API did not stop")
-                self.assertFalse(employer_thread.is_alive(), "T20 synthetic employer did not stop")
+                if worker_thread is not None:
+                    try:
+                        worker_thread.join(timeout=10)
+                        if worker_thread.is_alive():
+                            cleanup_failures.append("T20 company worker remained alive during teardown")
+                    except Exception as error:
+                        cleanup_failures.append(f"Could not join T20 company worker: {error}")
+                try:
+                    app_server.should_exit = True
+                    if app_thread.ident is not None:
+                        app_thread.join(timeout=10)
+                        if app_thread.is_alive():
+                            cleanup_failures.append("T20 isolated API did not stop")
+                except Exception as error:
+                    cleanup_failures.append(f"Could not stop T20 isolated API: {error}")
+                try:
+                    api_socket.close()
+                except OSError as error:
+                    cleanup_failures.append(f"Could not close T20 API socket: {error}")
+                try:
+                    employer_server.shutdown()
+                    employer_server.server_close()
+                    employer_thread.join(timeout=5)
+                    if employer_thread.is_alive():
+                        cleanup_failures.append("T20 synthetic employer did not stop")
+                except Exception as error:
+                    cleanup_failures.append(f"Could not stop T20 synthetic employer: {error}")
+                try:
+                    store.engine.dispose()
+                except Exception as error:
+                    cleanup_failures.append(f"Could not dispose T20 test store: {error}")
+                if cleanup_failures:
+                    self.fail("; ".join(cleanup_failures))
 
 
 if __name__ == "__main__":
