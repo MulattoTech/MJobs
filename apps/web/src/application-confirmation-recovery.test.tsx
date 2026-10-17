@@ -63,7 +63,7 @@ describe('explicit confirmation reconciliation', () => {
 
   it('loads durable latest evidence with a read-only GET and accepts an empty history', async () => {
     const fetcher = vi.fn<typeof fetch>()
-      .mockResolvedValueOnce(Response.json({result:{...result, application_id:'application&b'}}))
+      .mockResolvedValueOnce(Response.json({result:{...result, profile_id:'profile/a', application_id:'application&b'}}))
       .mockResolvedValueOnce(Response.json({result:null}));
 
     await expect(loadLatestApplicationConfirmation('profile/a', 'application&b', fetcher))
@@ -105,7 +105,8 @@ describe('explicit confirmation reconciliation', () => {
 
   it('reads only the scoped receipt-check endpoint and preserves a missing-confirmation result', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
-      ...result, status:'NO_VERIFIED_RECEIPT', application_state:'SUBMISSION_UNCONFIRMED',
+      ...result, profile_id:'profile/a', application_id:'application&b',
+      status:'NO_VERIFIED_RECEIPT', application_state:'SUBMISSION_UNCONFIRMED',
       confirmation:null, provider_receipt_verified:false, confirmation_source:'NONE',
     }));
 
