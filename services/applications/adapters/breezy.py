@@ -10,7 +10,7 @@ import re
 from collections.abc import Mapping
 from urllib.parse import urlsplit
 
-from services.applications.form_analysis import analyze_form_page
+from services.applications.form_analysis import analyze_controls, analyze_form_page
 
 
 _TENANT = re.compile(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\Z", re.I)
@@ -24,6 +24,41 @@ _CONTACT_PROMPTS = {
     "phone number", "postal code", "state", "website", "zip code",
 }
 _SUPPORTED_INPUT_TYPES = {"text", "email", "tel"}
+_SAFE_LABEL_METADATA_SCRIPT = r"""form => {
+  const hasRenderedText = node => Boolean(node && String(node.textContent || '').trim());
+  const controls = Array.from(form.querySelectorAll('input, select, textarea')).slice(0, 101);
+  return controls.map(element => {
+    const tag = element.tagName.toLowerCase();
+    const fieldset = element.closest('fieldset');
+    let section = element.parentElement;
+    let heading = null;
+    while (section && section !== form.parentElement) {
+      if (section.matches('section,article,main,form')) {
+        heading = section.querySelector('h1,h2,h3,h4,h5,h6');
+        if (heading) break;
+      }
+      section = section.parentElement;
+    }
+    const legend = fieldset && fieldset.querySelector('legend');
+    return {
+      tag,
+      rendered_labels: Array.from(element.labels || []).slice(0, 21)
+        .map(label => String(label.textContent || '')),
+      name: element.getAttribute('name'),
+      id: element.getAttribute('id'),
+      placeholder: element.getAttribute('placeholder'),
+      aria_label: element.getAttribute('aria-label'),
+      input_type: tag === 'input' ? (element.getAttribute('type') || 'text') : null,
+      nearby_text: null,
+      section_heading: null,
+      fieldset_legend: null,
+      unsafe_text_context: hasRenderedText(heading) || hasRenderedText(legend),
+      options: tag === 'select'
+        ? Array.from(element.options).slice(0, 101).map(option => option.label)
+        : []
+    };
+  });
+}"""
 _CONTROL_STATE_SCRIPT = r"""controls => controls.map(element => {
   const ancestors = [];
   for (let node = element; node && node.nodeType === 1; node = node.parentElement) {
@@ -185,6 +220,9 @@ class BreezyApplicationAdapter:
             analysis = analyze_form_page(page, check=check)
         else:
             analysis = analyze_form_page(page)
+        if (isinstance(analysis, dict) and analysis.get("status") == "UNKNOWN"
+                and analysis.get("reason") == "UNSAFE_TEXT_CONTEXT"):
+            analysis = self._reanalyze_recognized_labels(page, check=check)
         if (not isinstance(analysis, dict) or analysis.get("status") != "PASS"
                 or not isinstance(analysis.get("fields"), list)
                 or not analysis["fields"]):
@@ -226,6 +264,54 @@ class BreezyApplicationAdapter:
             field["user_visible"] = user_visible
             field["user_editable"] = user_editable
         return analysis
+
+    @staticmethod
+    def _reanalyze_recognized_labels(page, *, check=None) -> dict:
+        """Keep only whitelisted associated prompt labels; never read control values."""
+        def unknown(reason):
+            return {"status": "UNKNOWN", "reason": reason, "fields": []}
+
+        try:
+            if check is not None:
+                check()
+            forms = page.locator("form")
+            if forms.count() != 1:
+                return unknown("AMBIGUOUS_FORM")
+            timeout_kwargs = {}
+            if check is not None:
+                remaining = getattr(check, "remaining_seconds", None)
+                if callable(remaining):
+                    timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
+            controls = forms.first.evaluate(_SAFE_LABEL_METADATA_SCRIPT, **timeout_kwargs)
+            if check is not None:
+                check()
+        except Exception:
+            if check is not None:
+                check()
+            return unknown("DOM_ANALYSIS_FAILED")
+
+        if not isinstance(controls, list):
+            return unknown("INVALID_CONTROL_LIST")
+        for control in controls:
+            if not isinstance(control, dict):
+                return unknown("INVALID_CONTROL_METADATA")
+            rendered_labels = control.pop("rendered_labels", None)
+            if not isinstance(rendered_labels, list) or len(rendered_labels) > 20:
+                return unknown("INVALID_LABEL_METADATA")
+            safe_labels = []
+            for rendered in rendered_labels:
+                if not isinstance(rendered, str):
+                    return unknown("INVALID_LABEL_METADATA")
+                normalized = re.sub(r"[^a-z0-9]+", " ", rendered.casefold()).strip()
+                if not normalized:
+                    continue
+                if normalized not in _CONTACT_PROMPTS:
+                    # Do not return or persist arbitrary rendered page text.
+                    return unknown("UNRECOGNIZED_RENDERED_LABEL")
+                if normalized not in safe_labels:
+                    safe_labels.append(normalized)
+            control["labels"] = safe_labels
+        return analyze_controls(controls)
 
     @staticmethod
     def _visible_editable_evidence(state):

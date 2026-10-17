@@ -204,6 +204,8 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
 
         fixtures = (
             ("visible", '<input type="email" aria-label="Email address">', "", False),
+            ("associated-label", '<label for="email">Email address</label>'
+             '<input id="email" type="email">', "", False),
             ("hidden", '<input type="email" aria-label="Email address" style="display:none">', "", True),
             ("disabled", '<input type="email" aria-label="Email address" disabled>', "", True),
             ("readonly", '<input type="email" aria-label="Email address" readonly>', "", True),
@@ -242,9 +244,23 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                         )
                         analysis = self.adapter.analyze_page(page)
                         self.assertEqual(analysis["status"], "PASS")
+                        if name == "associated-label":
+                            self.assertEqual(
+                                analysis["fields"][0]["labels"], ["email address"],
+                            )
+                            self.assertIs(analysis["fields"][0]["user_visible"], True)
+                            self.assertIs(analysis["fields"][0]["user_editable"], True)
                         self.assertEqual(
                             self.adapter.requires_human_review(analysis), expected_review,
                         )
+                page.set_content(
+                    '<form><label for="why">Why do you want to work here?</label>'
+                    '<input id="why" type="text"></form>'
+                )
+                unknown_label = self.adapter.analyze_page(page)
+                self.assertEqual(unknown_label["status"], "UNKNOWN")
+                self.assertEqual(unknown_label["fields"], [])
+                self.assertNotIn("Why do you want to work here?", repr(unknown_label))
             finally:
                 browser.close()
 
