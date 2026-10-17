@@ -9,6 +9,30 @@ from services.applications.browser_tree_certificate import _identity
 from services.applications.browser_tree_ipc import _status, validate_binding
 
 
+def restore_user_auth_completion(store, profile_id, application_id, review_operation_id):
+    """Restore only the current, unexpired Workday user declaration metadata.
+
+    The durable declaration is re-read against its review, route, and profile
+    bindings. It is not a browser session, authenticated fetch capability, or
+    permission to resume application work.
+    """
+    from services.applications.manual_auth import (
+        ManualAuthCompletionError, current_user_auth_completion,
+    )
+
+    declaration = current_user_auth_completion(
+        store, profile_id, application_id, review_operation_id,
+    )
+    if (not isinstance(declaration, dict)
+            or declaration.get("status") != "USER_DECLARED"
+            or declaration.get("profile_id") != profile_id
+            or declaration.get("application_id") != application_id
+            or declaration.get("review_operation_id") != review_operation_id
+            or declaration.get("authenticated_session_available") is not False):
+        raise ManualAuthCompletionError("AUTH_COMPLETION_STALE")
+    return dict(declaration)
+
+
 def confirmed_tree_closure(row):
     """Validate stored authority; no public wire proof or PID-derived closure."""
     try:
