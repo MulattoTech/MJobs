@@ -18,6 +18,17 @@ const operation: OperationProgressRecord = {
 };
 
 describe('persistent operation progress', () => {
+  it('explains recovered queued intent and the worker retry vocabulary without reporting completion', () => {
+    const queued = { ...operation, state: 'QUEUED', current_step: 'RECOVERING',
+      progress: 1, completed_at: null, recovery_summary: 'RESUME' };
+    const html = renderToStaticMarkup(<OperationProgress operations={[queued,
+      { ...queued, operation_id: 'retry-operation', recovery_summary: 'RETRY: NETWORK_ERROR' }]} />);
+    expect(html).toContain('Recovery requests continuation from saved progress.');
+    expect(html).toContain('A retry is planned.');
+    expect(html).not.toContain('NETWORK_ERROR');
+    expect(html).not.toContain('<dt>Completed</dt>');
+    expect(html).not.toContain('resumed after');
+  });
   it('explains saved preparation priority and bounded aging without exposing internal snapshots', () => {
     const waiting = { ...operation, operation_type: 'PREPARE', state: 'QUEUED', preparation_priority: {
       tier: 4, effective_tier: 0, queue_priority: 'STALE', enqueued_at: '2026-10-11T00:00:00Z',

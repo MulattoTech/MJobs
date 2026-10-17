@@ -49,6 +49,10 @@ const STATES: Record<string, { label: string; tone: 'normal' | 'success' | 'atte
 };
 
 const RECOVERY_SUMMARIES: Record<string, string> = {
+  RESUME: 'Recovery requests continuation from saved progress.',
+  RETRY: 'A retry is planned.',
+  RECONCILE: 'Outcome reconciliation is required before continuing.',
+  MANUAL_REVIEW: 'Manual review is required before continuing.',
   MANUAL_ACTION_REQUIRED: 'Manual recovery is required.',
   NONE: 'No recovery action is available.',
   RESUMED_AFTER_RESTART: 'The operation resumed after an interruption.',
@@ -108,8 +112,12 @@ function progressValue(value: unknown): number | null {
 
 function recoverySummary(value: unknown): string | null {
   if (typeof value !== 'string' || !value) return null;
-  const safeCode = code(value);
-  return (safeCode && RECOVERY_SUMMARIES[safeCode]) || 'Recovery details are available.';
+  // The public producer emits ACTION or ACTION: REASON_CODE. Validate the
+  // entire bounded value; reasons are opaque and must never become UI copy.
+  const match = value.length <= 130
+    ? /^([A-Z][A-Z0-9_]{0,63})(?:: [A-Z][A-Z0-9_]{0,63})?$/.exec(value) : null;
+  const action = match?.[0] === value ? match[1] : null;
+  return (action && RECOVERY_SUMMARIES[action]) || 'Recovery details are available.';
 }
 
 function retryCount(value: unknown): number | null {

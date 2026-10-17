@@ -130,7 +130,7 @@ class OperationProgressBrowserTests(unittest.TestCase):
                     expect(card).to_contain_text("47%")
                     retry_count = card.locator("dl div").filter(has_text="Retry attempts")
                     expect(retry_count.locator("dd")).to_have_text("2")
-                    expect(card).to_contain_text("Recovery details are available.")
+                    expect(card).to_contain_text("A retry is planned.")
                     visible_text = panel.inner_text()
                     self.assertNotIn(private_params, visible_text)
                     self.assertNotIn(private_error, visible_text)
