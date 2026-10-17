@@ -345,12 +345,14 @@ def inline_cancel_requested(store, operation_id):
 
 
 def check_cancelled(store, operation_id, attempt_count=None):
+    """Stop a worker whose durable authority ended, even before recovery runs."""
     with store.engine.connect() as connection:
         row = connection.execute(select(
             m.operations.c.cancel_requested, m.operations.c.state,
-            m.operations.c.attempt_count,
+            m.operations.c.attempt_count, m.operations.c.lease_expires_at,
         ).where(m.operations.c.id == operation_id)).one()
     if (row.cancel_requested or row.state != "RUNNING"
+            or not row.lease_expires_at or row.lease_expires_at <= now()
             or (attempt_count is not None and row.attempt_count != attempt_count)):
         raise OperationCancelled("Operation no longer authorized to continue")
 

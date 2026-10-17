@@ -446,8 +446,7 @@ def execute_operation(operation_id):
                 m.operations.c.id == operation_id).with_for_update()).mappings().one()
             if current["state"] != "RUNNING" or current["attempt_count"] != operation["attempt_count"]:
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
-            if (operation["kind"] in (COMPARISON_KIND, AI_EVALUATION_KIND)
-                    and (not current["lease_expires_at"] or current["lease_expires_at"] <= now())):
+            if not current["lease_expires_at"] or current["lease_expires_at"] <= now():
                 return {"operation_id": operation_id, "status": "OWNERSHIP_EXPIRED"}
             if current["cancel_requested"] and operation["kind"] != "APPLY_MOCK":
                 state, error, retry_failure = "CANCELLED", "CANCEL_REQUESTED", None
