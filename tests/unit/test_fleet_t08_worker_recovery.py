@@ -16,6 +16,7 @@ from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
 from workers.application_form_review import handle_form_review
+from workers.operations import claim, recover_expired
 
 
 SAFE_ANALYSIS = {
@@ -30,7 +31,8 @@ class T08WorkerRecoveryTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="mjobs-t08-worker-recovery-")
         self.root = Path(self.temp.name)
-        self.store = Store(f"sqlite:///{(self.root / 't08-worker.db').as_posix()}")
+        self.database_url = f"sqlite:///{(self.root / 't08-worker.db').as_posix()}"
+        self.store = Store(self.database_url)
         self.store.migrate()
         self.store.bind_workspace_mode("FIXTURE")
         self.store.save_profile(deepcopy(PROFILE))
@@ -99,9 +101,19 @@ class T08WorkerRecoveryTests(unittest.TestCase):
             ).values(lease_expires_at=(datetime.now(timezone.utc)
                                        - timedelta(minutes=1)).isoformat()))
 
+        # Recovery must reopen durable state, requeue the expired attempt, and
+        # claim it as a new attempt before consulting the already committed receipt.
+        self.store.engine.dispose()
+        self.store = Store(self.database_url)
+        self.store.bind_workspace_mode("FIXTURE")
+        self.assertEqual(recover_expired(self.store), 1)
+        claimed = claim(self.store, operation["id"])
+        self.assertIsNotNone(claimed)
+        self.assertEqual(claimed["attempt_count"], 2)
+
         replay_fetch = Mock(side_effect=AssertionError("recovery must use the receipt"))
         recovered = handle_form_review(
-            self.store, operation, fetch_html=replay_fetch, check=lambda: None,
+            self.store, claimed, fetch_html=replay_fetch, check=lambda: None,
         )
 
         self.assertEqual(recovered, committed)
