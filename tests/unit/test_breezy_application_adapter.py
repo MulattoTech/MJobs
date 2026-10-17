@@ -297,9 +297,16 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     unknown_label_projection[0]["rendered_labels"],
                     [{"canonical_label": None, "has_text": True, "visible": True}],
                 )
+                self.assertEqual(
+                    set(unknown_label_projection[0]["rendered_labels"][0]),
+                    {"canonical_label", "has_text", "visible"},
+                )
                 self.assertNotIn(
                     "Why do you want to work here? synthetic-secret-prompt",
                     repr(unknown_label_projection),
+                )
+                self.assertNotIn(
+                    "synthetic-secret-prompt", repr(unknown_label_projection),
                 )
                 for name, control, css, expected_review in fixtures:
                     with self.subTest(dom_state=name):
