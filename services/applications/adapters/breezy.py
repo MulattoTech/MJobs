@@ -480,6 +480,12 @@ class BreezyApplicationAdapter:
                 if canonical not in safe_labels:
                     safe_labels.append(canonical)
             field["labels"] = safe_labels
+            options = field.get("options", [])
+            if options:
+                has_unrecognized_prompt = True
+            elif not isinstance(options, list):
+                has_unrecognized_prompt = True
+            field["options"] = []
             for key in ("placeholder", "aria_label"):
                 value = field.get(key)
                 if value is None:

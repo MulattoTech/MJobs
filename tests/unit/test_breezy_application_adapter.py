@@ -358,6 +358,15 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                             self.adapter.requires_human_review(custom_prompt)
                         )
                 page.set_content(
+                    '<form><select name="reason"><option>'
+                    'Why do you want this job? synthetic-private-option</option>'
+                    '</select></form>'
+                )
+                custom_option = self.adapter.analyze_page(page)
+                self.assertEqual(custom_option["status"], "PASS")
+                self.assertNotIn("synthetic-private-option", repr(custom_option))
+                self.assertTrue(self.adapter.requires_human_review(custom_option))
+                page.set_content(
                     '<form><label for="why">Why do you want to work here?</label>'
                     '<input id="why" type="text"></form>'
                 )
