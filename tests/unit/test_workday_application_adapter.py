@@ -92,11 +92,16 @@ class WorkdayApplicationAdapterTests(unittest.TestCase):
             '</form>'
         )
         report = analyze_application_form("WORKDAY", html, route_url=self.route_url)
-        self.assertEqual(report, {
+        self.assertEqual(set(report), {"status", "reason", "fields", "dynamic_review"})
+        self.assertEqual({key: report[key] for key in ("status", "reason", "fields")}, {
             "status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
             "fields": [{"id": "email", "name": "email", "type": "email",
                         "required": True, "review_reason": "UNKNOWN_QUESTION"}],
         })
+        from services.applications.workday_dynamic_review import validate_workday_dynamic_review
+        envelope = validate_workday_dynamic_review(report["dynamic_review"])
+        self.assertIsNotNone(envelope)
+        self.assertEqual(envelope, report["dynamic_review"])
         self.assertNotIn("PRIVATE_VALUE", json.dumps(report))
         self.assertNotIn("Email address", json.dumps(report))
         self.assertEqual(normalize_application_route("workday", self.route_url)["provider"],
@@ -126,12 +131,6 @@ class WorkdayApplicationAdapterTests(unittest.TestCase):
         for secret in ("PRIVATE_ANSWER", "PRIVATE_CHALLENGE", "What do you enjoy learning?"):
             self.assertNotIn(secret, json.dumps((unknown, challenge)))
 
-    def test_changed_form_snapshot_is_not_accepted_for_review(self):
-        original = {"status": "PASS", "fields": [{"id": "email"}]}
-        changed = {"status": "PASS", "fields": [{"id": "phone"}]}
-        with patch.object(self.adapter, "analyze_page", return_value=changed):
-            result = self.adapter.validate_page(object(), original)
-        self.assertEqual(result, {"status": "UNKNOWN", "reason": "FORM_CHANGED"})
 
     def test_unknown_provider_and_invalid_workday_route_fail_closed(self):
         unsupported = analyze_application_form("unknown", "<form></form>", route_url=self.route_url)

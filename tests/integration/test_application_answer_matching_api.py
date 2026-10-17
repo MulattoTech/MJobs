@@ -109,15 +109,49 @@ class ApplicationAnswerMatchingApiTests(unittest.TestCase):
 
     def test_exact_and_fuzzy_candidates_are_ranked_reviewed_and_advisory(self):
         question = "How many years of professional experience have you had?"
+        aligned_profile = dict(
+            PROFILE,
+            id="aligned",
+            name="Aligned answer fixture",
+            email="aligned@example.test",
+            answers=[
+                {
+                    "id": "exact-experience",
+                    "question": "How many years of professional experience have you had?",
+                    "text": "A shared synthetic answer for comparison.",
+                    "source": "Synthetic user-authored example",
+                    "verified": True,
+                    "user_approved": True,
+                    "confidence": 95,
+                }, {
+                    "id": "fuzzy-experience",
+                    "question": "How many years of professional experience do you have?",
+                    "text": "A shared synthetic answer for comparison.",
+                    "source": "Synthetic user-authored example",
+                    "verified": True,
+                    "user_approved": True,
+                    "confidence": 94,
+                },
+            ],
+        )
+        self.store.save_profile(aligned_profile)
+        job = self.store.jobs("fixture")[0]
+        aligned_application_id = prepare(
+            self.store, job["id"], "aligned", self.root,
+        )
         before = self._state_digest()
 
-        response = self.client.post(self._url(), json={"question": question})
+        response = self.client.post(
+            self._url("aligned", aligned_application_id), json={"question": question},
+        )
 
         self.assertEqual(response.status_code, 200, response.text)
         body = response.json()
-        self.assertEqual(body["profile_id"], "fixture")
-        self.assertEqual(body["application_id"], self.application_id)
+        self.assertEqual(body["profile_id"], "aligned")
+        self.assertEqual(body["application_id"], aligned_application_id)
         self.assertEqual(body["question"], question)
+        self.assertFalse(body["review_gate"]["review_required"])
+        self.assertIsNone(body["review_gate"]["reason"])
         candidates = body["candidates"]
         self.assertEqual([item["answer_id"] for item in candidates],
                          ["exact-experience", "fuzzy-experience"])
@@ -133,6 +167,67 @@ class ApplicationAnswerMatchingApiTests(unittest.TestCase):
         self.assertNotIn("selected", body)
         self.assertNotIn("approved", body)
         self.assertNotIn("export", body)
+        self.assertEqual(self._state_digest(), before)
+
+    def test_public_profile_put_float_confidence_is_read_back_and_matchable(self):
+        profile = dict(
+            PROFILE,
+            id="float-confidence",
+            name="Float confidence fixture",
+            email="float-confidence@example.test",
+            facts=PROFILE["facts"],
+            answers=[{
+                "id": "float-confidence-answer",
+                "question": "How many years of professional experience have you had?",
+                "text": "A synthetic answer saved through the public profile API.",
+                "source": "Synthetic user-authored example",
+                "verified": True,
+                "user_approved": True,
+                "confidence": 100.0,
+            }],
+        )
+
+        saved = self.client.put("/profiles", json=profile)
+
+        self.assertEqual(saved.status_code, 200, saved.text)
+        readback = self.client.get("/profiles/float-confidence")
+        self.assertEqual(readback.status_code, 200, readback.text)
+        self.assertIs(type(readback.json()["answers"][0]["confidence"]), float)
+        self.assertEqual(readback.json()["answers"][0]["confidence"], 100.0)
+        job = self.store.jobs("fixture")[0]
+        application_id = prepare(
+            self.store, job["id"], "float-confidence", self.root,
+        )
+
+        matched = self.client.post(
+            self._url("float-confidence", application_id),
+            json={"question": "How many years of professional experience have you had?"},
+        )
+
+        self.assertEqual(matched.status_code, 200, matched.text)
+        body = matched.json()
+        self.assertFalse(body["review_gate"]["review_required"])
+        self.assertEqual(
+            [candidate["answer_id"] for candidate in body["candidates"]],
+            ["float-confidence-answer"],
+        )
+        self.assertIs(type(body["candidates"][0]["confidence"]), float)
+        self.assertEqual(body["candidates"][0]["confidence"], 100.0)
+
+    def test_conflicting_answer_values_are_review_gated_and_not_returned(self):
+        before = self._state_digest()
+
+        response = self.client.post(self._url(), json={
+            "question": "How many years of professional experience have you had?",
+        })
+
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body["review_gate"]["reason"], "CONFLICTING_ANSWERS")
+        self.assertTrue(body["review_gate"]["review_required"])
+        self.assertEqual(body["candidates"], [])
+        self.assertNotIn("five years of synthetic", response.text)
+        self.assertNotIn("fuzzy wording match", response.text)
         self.assertEqual(self._state_digest(), before)
 
     def test_curated_semantic_match_has_fixed_safe_explanation(self):

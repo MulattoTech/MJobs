@@ -11,9 +11,14 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import select
 
 from packages.persistence import models as m
-from packages.persistence.store import identity
+from packages.persistence.store import now
 from services.applications.form_review_providers import normalize_application_route
+from services.applications.provider_registry import providers
+from services.applications.manual_auth import (
+    ManualAuthCompletionError, current_user_auth_completion,
+)
 from workers.dispatch import enqueue_operation
+from workers.application_form_review import FormReviewError, _existing_result
 
 
 _KIND = "APPLICATION_FORM_REVIEW"
@@ -42,7 +47,7 @@ def _application_route(store, profile_id: str, application_id: str, *, connectio
         )).where(m.applications.c.id == application_id)).mappings().one_or_none()
     if row is None or row["profile_id"] != profile_id:
         raise HTTPException(404, "Application not found for this profile")
-    if row["provider"] not in {"ashby", "greenhouse", "lever", "workday"} or row["target"] == "MOCK":
+    if row["target"] == "MOCK":
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
     normalized = normalize_application_route(
         row["provider"], row["url"], route_metadata=row,
@@ -75,6 +80,29 @@ def _input_fingerprint(frozen):
 def create_application_form_review_router(store) -> APIRouter:
     router = APIRouter()
 
+    @router.get(
+        "/profiles/{profile_id}/applications/{application_id}/form-review-capabilities",
+    )
+    def read_form_review_capabilities(profile_id: str, application_id: str):
+        provider = None
+        try:
+            row, route = _application_route(store, profile_id, application_id)
+            if row["target"] == "REAL" and route["provider"] in providers():
+                provider = route["provider"]
+        except HTTPException as error:
+            if error.status_code != 409:
+                raise
+        # Rendering inspection controls never grants live interaction or submission.
+        return {
+            "schema_version": 1,
+            "profile_id": profile_id,
+            "application_id": application_id,
+            "provider": provider,
+            "review_supported": provider is not None,
+            "read_only": True,
+            "submission_supported": False,
+        }
+
     def review_response(
         profile_id: str,
         application_id: str,
@@ -91,7 +119,10 @@ def create_application_form_review_router(store) -> APIRouter:
         with store.engine.connect() as connection:
             rows = list(connection.execute(select(m.operations).where(
                 *filters,
-            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc())
+            ).order_by(
+                m.operations.c.params["admitted_at"].as_string().desc().nullslast(),
+                m.operations.c.updated_at.desc(), m.operations.c.id.desc(),
+            )
                 .limit(2 if request_id is not None else 1)).mappings())
             if request_id is not None and len(rows) > 1:
                 raise HTTPException(409, {"code": "FORM_REVIEW_IDEMPOTENCY_CONFLICT"})
@@ -103,13 +134,15 @@ def create_application_form_review_router(store) -> APIRouter:
                     "error_code": None,
                     "analysis": None,
                 }
-            event_rows = connection.execute(select(m.audit.c.payload).where(
-                m.audit.c.entity_id == application_id,
-                m.audit.c.action == _KIND,
-            )).mappings()
-            report = next((event["payload"].get("analysis") for event in event_rows
-                           if isinstance(event["payload"], dict)
-                           and event["payload"].get("operation_id") == row["id"]), None)
+            params = row["params"] if isinstance(row["params"], dict) else {}
+            try:
+                receipt = _existing_result(
+                    connection, application_id, row["id"],
+                    params.get("request_id"), params.get("input_fingerprint"),
+                )
+            except FormReviewError as error:
+                raise HTTPException(409, {"code": error.code}) from None
+            report = receipt["analysis"] if receipt else None
         params = row["params"] if isinstance(row["params"], dict) else {}
         if (current_input_fingerprint is not None
                 and params.get("input_fingerprint") != current_input_fingerprint):
@@ -120,12 +153,36 @@ def create_application_form_review_router(store) -> APIRouter:
                 "analysis": None,
             }
         error = row["error"] if isinstance(row["error"], str) and _SAFE_ERROR.fullmatch(row["error"]) else None
-        return {
+        response = {
             "request_id": params.get("request_id"),
             "state": row["state"],
             "error_code": error,
             "analysis": report,
         }
+        if params.get("provider") == "workday":
+            # Resolve revocation/expiry after closing the receipt connection:
+            # the service owns its transaction. This declaration never supplies
+            # a session or changes the persisted review/worker outcome.
+            response["user_auth_declaration"] = None
+            try:
+                declaration = current_user_auth_completion(
+                    store, profile_id, application_id, row["id"],
+                )
+            except ManualAuthCompletionError:
+                declaration = None
+            if (isinstance(declaration, dict)
+                    and declaration.get("status") == "USER_DECLARED"
+                    and declaration.get("review_operation_id") == row["id"]
+                    and declaration.get("authenticated_session_available") is False
+                    and all(isinstance(declaration.get(key), str)
+                            for key in ("declared_at", "expires_at"))):
+                response["user_auth_declaration"] = {
+                    key: declaration[key] for key in (
+                        "status", "review_operation_id", "declared_at", "expires_at",
+                        "authenticated_session_available",
+                    )
+                }
+        return response
 
     @router.post(
         "/profiles/{profile_id}/applications/{application_id}/form-reviews",
@@ -162,10 +219,15 @@ def create_application_form_review_router(store) -> APIRouter:
                 m.operations.c.params["request_id"].as_string() == value.request_id,
             )).mappings())
             if existing:
-                if len(existing) != 1 or existing[0]["params"] != params:
+                saved = {key: item for key, item in existing[0]["params"].items()
+                         if key != "admitted_at"}
+                if len(existing) != 1 or saved != params:
                     raise HTTPException(409, {"code": "FORM_REVIEW_IDEMPOTENCY_CONFLICT"})
                 operation_id, state = existing[0]["id"], existing[0]["state"]
             else:
+                # This metadata survives progress updates, retries and recovery.
+                # Legacy rows retain their old ordering behind new admissions.
+                params["admitted_at"] = now()
                 operation_id = enqueue_operation(store, _KIND, application_id, params,
                                                  connection=connection)
                 state = "QUEUED"
@@ -184,6 +246,9 @@ def create_application_form_review_router(store) -> APIRouter:
             current_input_fingerprint=_input_fingerprint(frozen),
         )
 
+    @router.get(
+        "/profiles/{profile_id}/applications/{application_id}/form-reviews/requests/{request_id}",
+    )
     @router.get(
         "/profiles/{profile_id}/applications/{application_id}/form-reviews/{request_id}",
     )

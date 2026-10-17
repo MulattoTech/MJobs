@@ -7,8 +7,16 @@ import re
 from collections.abc import Mapping
 
 from fastapi import APIRouter, HTTPException
+from sqlalchemy import func, select
 from sqlalchemy.exc import NoResultFound
 
+from apps.api.application_form_review import (
+    _KIND as _FORM_REVIEW_KIND,
+    _application_route,
+    _frozen_review_input,
+    _input_fingerprint,
+)
+from packages.persistence import models as m
 from services.applications.preflight import latest_preflight
 
 
@@ -44,6 +52,13 @@ def _field_type(value) -> str | None:
     }
     normalized = aliases.get(normalized, normalized)
     return normalized if normalized in _FIELD_KINDS else None
+
+
+def _workday_field_type(value) -> str | None:
+    """Normalize Workday envelope controls without changing generic mappings."""
+    if isinstance(value, str) and value.casefold() in {"tel", "url", "password"}:
+        return "text"
+    return _field_type(value)
 
 
 def _fields(report: Mapping) -> list[dict] | None:
@@ -280,6 +295,94 @@ def _field_fingerprint(profile_id: str, application_id: str,
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _latest_workday_dynamic_review(store, profile_id: str, application_id: str,
+                                   application: Mapping):
+    """Read only the newest durable review; never fall back past a refresh."""
+    row, route = _application_route(store, profile_id, application_id)
+    if route.get("provider") != "workday":
+        return None
+    frozen = _frozen_review_input(store, profile_id, application_id, row, route)
+    current_input_fingerprint = _input_fingerprint(frozen)
+    from workers.application_form_review import FormReviewError, _existing_result
+
+    with store.engine.connect() as connection:
+        latest_order = [
+            m.operations.c.params["admitted_at"].as_string().desc().nullslast(),
+            m.operations.c.updated_at.desc(),
+            m.operations.c.id.desc(),
+        ]
+        operations = list(connection.execute(select(m.operations).where(
+            m.operations.c.kind == _FORM_REVIEW_KIND,
+            m.operations.c.entity_id == application_id,
+            m.operations.c.params["profile_id"].as_string() == profile_id,
+        ).order_by(*latest_order).limit(1)).mappings())
+        if not operations:
+            return {"state": "IDLE", "analysis": None, "input_current": True}
+        operation = operations[0]
+        params = operation["params"] if isinstance(operation["params"], Mapping) else {}
+        receipt_count = connection.execute(select(func.count()).select_from(m.audit).where(
+            m.audit.c.entity_id == application_id,
+            m.audit.c.action == _FORM_REVIEW_KIND,
+            m.audit.c.payload["operation_id"].as_string() == operation["id"],
+        )).scalar_one()
+        if receipt_count > 1:
+            raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"})
+        try:
+            receipt = _existing_result(
+                connection, application_id, operation["id"],
+                params.get("request_id"), params.get("input_fingerprint"),
+            )
+        except FormReviewError:
+            raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"}) from None
+        analysis = receipt.get("analysis") if receipt is not None else None
+    return {
+        "state": operation["state"],
+        "analysis": analysis,
+        "input_current": params.get("input_fingerprint") == current_input_fingerprint,
+    }
+
+
+def _workday_dynamic_fields(envelope: Mapping) -> list[dict] | None:
+    """Adapt the validated value-free envelope to the existing public DTO."""
+    fields = envelope.get("fields")
+    if not isinstance(fields, list) or not fields or len(fields) > _MAX_FIELDS:
+        return None
+    projected = []
+    for item in fields:
+        if not isinstance(item, Mapping):
+            return None
+        field_id = item.get("id") or item.get("name")
+        field_type = _workday_field_type(item.get("type"))
+        required = item.get("required")
+        conditional = item.get("conditional")
+        conditional_on = item.get("conditional_on")
+        repeatable = item.get("repeatable")
+        # The strict envelope contains structural identity only. It carries no
+        # answer values, labels, options, or authorization to fill a field.
+        if (not isinstance(field_id, str) or not _IDENTIFIER.fullmatch(field_id)
+                or field_type is None or type(required) is not bool
+                or (conditional is not None and type(conditional) is not bool)
+                or (conditional_on is not None and (
+                    not isinstance(conditional_on, str)
+                    or not _IDENTIFIER.fullmatch(conditional_on)))
+                or (repeatable is not None and type(repeatable) is not bool)):
+            return None
+        projected.append({
+            "id": field_id,
+            "label": "Workday question requires manual review",
+            "type": field_type,
+            "required": required,
+            "visible": True,
+            "depends_on": conditional_on,
+            "options": [],
+            "repeatable": repeatable is True,
+            "supported": False,
+            "sensitive": True,
+            "manual_review_required": True,
+        })
+    return projected
+
+
 def create_dynamic_application_fields_router(store) -> APIRouter:
     """Expose current field metadata only; this router has no write operations."""
     router = APIRouter()
@@ -296,6 +399,54 @@ def create_dynamic_application_fields_router(store) -> APIRouter:
             current_profile = store.profile(profile_id)
         except NoResultFound:
             raise HTTPException(404, {"code": "APPLICATION_NOT_FOUND"}) from None
+
+        with store.engine.connect() as connection:
+            provider = connection.execute(select(m.routes.c.provider).where(
+                m.routes.c.id == application.get("route_id"),
+            )).scalar_one_or_none()
+        if provider == "workday":
+            current = _latest_workday_dynamic_review(
+                store, profile_id, application_id, application)
+            if not current["input_current"]:
+                raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"})
+            if current["state"] != "COMPLETED" or not isinstance(current["analysis"], Mapping):
+                if expected_fingerprint is not None:
+                    raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"})
+                return {
+                    "profile_id": profile_id,
+                    "application_id": application_id,
+                    "fingerprint": None,
+                    "status": "REVIEW_REQUIRED",
+                    "fields": [],
+                }
+            dynamic_review = current["analysis"].get("dynamic_review")
+            from services.applications.workday_dynamic_review import (
+                validate_workday_dynamic_review,
+            )
+            envelope = validate_workday_dynamic_review(dynamic_review)
+            fields = _workday_dynamic_fields(envelope) if envelope is not None else None
+            if fields is None:
+                if expected_fingerprint is not None:
+                    raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"})
+                return {
+                    "profile_id": profile_id,
+                    "application_id": application_id,
+                    "fingerprint": None,
+                    "status": "REVIEW_REQUIRED",
+                    "fields": [],
+                }
+            fingerprint = envelope["fingerprint"]
+            if expected_fingerprint is not None and expected_fingerprint != fingerprint:
+                raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"})
+            return {
+                "profile_id": profile_id,
+                "application_id": application_id,
+                "fingerprint": fingerprint,
+                "status": "REVIEW_REQUIRED",
+                "fields": fields,
+                "optional_sections": [],
+                "repeatable_groups": [],
+            }
 
         report = latest_preflight(store, application_id)
         if not isinstance(report, Mapping):

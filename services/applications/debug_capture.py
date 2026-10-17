@@ -3,11 +3,13 @@ from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
 import json
+import math
 import os
 from pathlib import Path
 import re
 import secrets
 import shutil
+import time
 from urllib.parse import urlsplit, urlunsplit
 
 from services.applications.browser_capture import capture_redacted_screenshot
@@ -29,39 +31,6 @@ _ALLOWED_STEPS = {
     "RECONCILE_CONFIRMATION", "CHALLENGE_DETECTED", "UNKNOWN",
 }
 _ALLOWED_SOURCES = {"console", "pageerror", "requestfailed"}
-_ALLOWED_TAGS = {
-    "a", "article", "button", "canvas", "dialog", "div", "embed", "fieldset",
-    "form", "h1", "h2", "h3", "h4", "h5", "h6", "html", "iframe", "img",
-    "input", "label", "legend", "li", "main", "nav", "ol", "option", "p",
-    "picture", "section", "select", "span", "svg", "table", "tbody", "td",
-    "textarea", "tfoot", "th", "thead", "tr", "ul", "video",
-}
-_ALLOWED_ROLES = {
-    "alert", "button", "checkbox", "combobox", "dialog", "form", "heading",
-    "img", "link", "list", "listbox", "main", "navigation", "option", "radio",
-    "search", "textbox",
-}
-_DOM_SUMMARY_SCRIPT = r"""
-() => {
-  const elementCounts = {};
-  const roleCounts = {};
-  const stack = document.documentElement ? [document.documentElement] : [];
-  let visited = 0;
-  while (stack.length && visited < 2000) {
-    const node = stack.pop();
-    if (!node || node.nodeType !== Node.ELEMENT_NODE) continue;
-    visited += 1;
-    const tag = node.tagName.toLowerCase();
-    elementCounts[tag] = (elementCounts[tag] || 0) + 1;
-    const role = node.getAttribute('role');
-    if (role) roleCounts[role.toLowerCase()] = (roleCounts[role.toLowerCase()] || 0) + 1;
-    for (let index = node.children.length - 1; index >= 0; index -= 1) stack.push(node.children[index]);
-  }
-  return {element_counts: elementCounts, role_counts: roleCounts, nodes_visited: visited,
-          truncated: stack.length > 0, text_omitted: true, attributes_omitted: true,
-          control_values_omitted: true};
-}
-"""
 
 
 def sanitize_debug_url(value):
@@ -114,33 +83,22 @@ def _atomic_json(path, value):
 
 
 def _dom_snapshot(page):
-    if page is None:
-        return {"status": "UNAVAILABLE", "element_counts": {}, "role_counts": {}}
-    raw = page.evaluate(_DOM_SUMMARY_SCRIPT)
-    if not isinstance(raw, dict):
-        return {"status": "UNAVAILABLE", "element_counts": {}, "role_counts": {}}
-    elements = raw.get("element_counts") if isinstance(raw.get("element_counts"), dict) else {}
-    roles = raw.get("role_counts") if isinstance(raw.get("role_counts"), dict) else {}
-    safe_elements = {name: max(0, min(int(count), 2000)) for name, count in elements.items()
-                     if name in _ALLOWED_TAGS and type(count) is int}
-    safe_roles = {name: max(0, min(int(count), 2000)) for name, count in roles.items()
-                  if name in _ALLOWED_ROLES and type(count) is int}
+    """Keep the package schema without an unbounded renderer evaluation."""
     return {
-        "status": "CAPTURED",
-        "element_counts": safe_elements,
-        "role_counts": safe_roles,
-        "nodes_visited": max(0, min(int(raw.get("nodes_visited", 0)), 2000))
-        if type(raw.get("nodes_visited", 0)) is int else 0,
-        "truncated": raw.get("truncated") is True,
+        "status": "OMITTED_UNBOUNDED_EVALUATION" if page is not None else "UNAVAILABLE",
+        "element_counts": {},
+        "role_counts": {},
         "text_omitted": True,
         "attributes_omitted": True,
         "control_values_omitted": True,
     }
 
 
-def prune_debug_captures(capture_root, *, now=None):
+def prune_debug_captures(capture_root, *, now=None, checkpoint=None):
     """Delete only owned attempt directories by age/count; preserve unknown paths."""
     root = Path(capture_root)
+    if checkpoint is not None:
+        checkpoint()
     if root.is_symlink() or (root.exists() and not root.is_dir()):
         return []
     root.mkdir(parents=True, exist_ok=True)
@@ -153,6 +111,8 @@ def prune_debug_captures(capture_root, *, now=None):
         raise ValueError("Debug capture retention clock must include a timezone")
     managed = []
     for child in root.iterdir():
+        if checkpoint is not None:
+            checkpoint()
         if not _ATTEMPT_RE.fullmatch(child.name) or child.is_symlink() or not child.is_dir():
             continue
         try:
@@ -166,6 +126,8 @@ def prune_debug_captures(capture_root, *, now=None):
     cutoff = current.astimezone(timezone.utc) - timedelta(days=CAPTURE_RETENTION_DAYS)
     keep = []
     for modified, child in managed:
+        if checkpoint is not None:
+            checkpoint()
         if modified < cutoff:
             shutil.rmtree(child)
             removed.append(child.name)
@@ -173,24 +135,57 @@ def prune_debug_captures(capture_root, *, now=None):
             keep.append((modified, child))
     keep.sort(key=lambda item: item[0], reverse=True)
     for _, child in keep[MAX_CAPTURES_PER_APPLICATION:]:
+        if checkpoint is not None:
+            checkpoint()
         shutil.rmtree(child)
         removed.append(child.name)
     return removed
 
 
 def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_url, error,
-                            events=(), now=None):
-    """Write one bounded failure package without page text or raw error content."""
+                            events=(), now=None, check=None):
+    """Capture diagnostics under one caller-derived, capped monotonic budget.
+
+    Optional DOM evaluation is omitted because synchronous evaluate has no
+    timeout. Native screenshot work shares this deadline. Phase checkpoints
+    preserve caller cancellation; existing local OS I/O remains synchronous.
+    Diagnostics are best-effort and never replace the primary browser error.
+    """
     if not isinstance(attempt_id, str) or not _ATTEMPT_RE.fullmatch(attempt_id):
         return None
     root = Path(capture_root)
+    published_metadata = None
     try:
-        prune_debug_captures(root, now=now)
+        started = time.monotonic()
+        budget = SCREENSHOT_TIMEOUT_MS / 1000
+        if check is not None:
+            check()
+            remaining_seconds = getattr(check, "remaining_seconds", None)
+            if callable(remaining_seconds):
+                remaining = remaining_seconds()
+                if (type(remaining) not in (int, float) or not math.isfinite(remaining)
+                        or remaining < .001):
+                    return None
+                budget = min(budget, remaining)
+        deadline = started + budget
+
+        def checkpoint():
+            if check is not None:
+                check()
+            remaining_ms = (deadline - time.monotonic()) * 1000
+            if remaining_ms < 1:
+                raise TimeoutError("Diagnostic capture budget exhausted")
+            return remaining_ms
+
+        checkpoint()
+        prune_debug_captures(root, now=now, checkpoint=checkpoint)
+        checkpoint()
         if root.is_symlink() or not root.is_dir():
             return None
         resolved_root = root.resolve(strict=True)
         target = root / attempt_id
         target.mkdir(exist_ok=False)
+        checkpoint()
         if target.resolve(strict=True).parent != resolved_root:
             shutil.rmtree(target)
             return None
@@ -205,6 +200,7 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
         safe_step = step if step in _ALLOWED_STEPS else "UNKNOWN"
         safe_events = []
         for item in list(events)[-MAX_DIAGNOSTIC_EVENTS:]:
+            checkpoint()
             if not isinstance(item, dict):
                 continue
             digest = item.get("message_fingerprint")
@@ -219,19 +215,16 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
                 "message_length": max(0, min(length, 1_000_000)) if type(length) is int else 0,
             })
 
-        dom = {"status": "UNAVAILABLE", "element_counts": {}, "role_counts": {}}
+        checkpoint()
+        dom = _dom_snapshot(page)
         screenshot_status = "UNAVAILABLE"
         if page is not None:
+            screenshot = target / "screenshot.png"
+            screenshot_timeout_ms = checkpoint()
             try:
-                dom = _dom_snapshot(page)
-            except Exception:
-                dom = {"status": "FAILED", "element_counts": {}, "role_counts": {}}
-            try:
-                from services.applications.browser_capture import capture_redacted_screenshot
-
-                screenshot = target / "screenshot.png"
                 capture_redacted_screenshot(
-                    page, screenshot, timeout_ms=SCREENSHOT_TIMEOUT_MS, full_page=False,
+                    page, screenshot, timeout_ms=screenshot_timeout_ms, full_page=False,
+                    deadline=deadline,
                 )
                 if screenshot.stat().st_size > MAX_SCREENSHOT_BYTES:
                     screenshot.unlink()
@@ -244,11 +237,16 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
                     (target / "screenshot.png").unlink(missing_ok=True)
                 except OSError:
                     pass
+            # Caller control signals are terminal, not screenshot failures.
+            # Keep checkpoints outside the best-effort native-error boundary.
+            checkpoint()
 
+        checkpoint()
         try:
             current_url = sanitize_debug_url(page.url if page is not None else configured_url)
         except Exception:
             current_url = sanitize_debug_url(configured_url)
+        checkpoint()
         _atomic_json(target / "dom.json", dom)
         metadata = {
             "schema_version": 1,
@@ -270,10 +268,23 @@ def capture_browser_failure(page, capture_root, *, attempt_id, step, configured_
             "retention_days": CAPTURE_RETENTION_DAYS,
             "max_captures_per_application": MAX_CAPTURES_PER_APPLICATION,
         }
+        # Retention precedes the metadata publication marker. Expiry during
+        # earlier work must never leave a successful, discoverable package.
+        checkpoint()
+        prune_debug_captures(root, now=occurred_at, checkpoint=checkpoint)
+        checkpoint()
+        if not target.is_dir():
+            return None
         _atomic_json(target / "metadata.json", metadata)
-        prune_debug_captures(root, now=occurred_at)
-        return target if target.is_dir() else None
+        published_metadata = target / "metadata.json"
+        checkpoint()
+        return target
     except Exception:
         # Diagnostics are best-effort. They must never replace the browser error
         # or interrupt the application state transition that follows it.
+        if published_metadata is not None:
+            try:
+                published_metadata.unlink(missing_ok=True)
+            except OSError:
+                pass
         return None

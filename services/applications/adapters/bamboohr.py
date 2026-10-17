@@ -13,7 +13,7 @@ from urllib.parse import parse_qsl, urlsplit
 
 _HOST = re.compile(
     r"(?P<tenant>[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)\.bamboohr\.com\Z",
-    re.I,
+    re.ASCII | re.IGNORECASE,
 )
 _JOB_ID = re.compile(r"[0-9]{1,20}\Z")
 _ROUTE_QUERY_KEYS = {"id", "job", "jobid", "job_id", "posting", "requisition"}
@@ -42,13 +42,18 @@ class BambooHRApplicationAdapter:
             return None
         provider = route.get("provider")
         url = route.get("url")
-        if (not isinstance(provider, str) or provider.casefold() != self.provider
+        if (not isinstance(provider, str) or not provider.isascii()
+                or provider.casefold() != self.provider
                 or not isinstance(url, str) or not url or len(url) > 2048
                 or url != url.strip() or "\\" in url
                 or any(ord(char) < 32 for char in url)):
             return None
         try:
             parsed = urlsplit(url)
+            # Check the original authority before accessing hostname, whose
+            # normalization can case-fold Unicode characters into ASCII.
+            if not parsed.netloc.isascii():
+                return None
             port = parsed.port
         except ValueError:
             return None
@@ -83,6 +88,7 @@ class BambooHRApplicationAdapter:
         supplied_requisition = route.get("requisition")
         if supplied_tenant is not None and (
                 not isinstance(supplied_tenant, str)
+                or not supplied_tenant.isascii()
                 or supplied_tenant.casefold() != tenant):
             return None
         if supplied_requisition is not None and (
