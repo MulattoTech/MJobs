@@ -7,7 +7,7 @@ from sqlalchemy import update
 from packages.persistence import models as m
 from tests.unit import test_application_form_review_worker as worker_fixture
 from tests.integration import test_application_form_review_flow as flow_fixture
-from workers.application_form_review import FormReviewError, handle_form_review
+from workers.application_form_review import FormReviewError, handle_form_review, _safe_report
 
 
 @pytest.fixture
@@ -55,3 +55,12 @@ def test_exact_readback_rejects_corrupt_receipt_without_exposing_values():
         assert "SYNTHETIC_PRIVATE_VALUE" not in response.text
     finally:
         fixture.tearDown()
+
+
+def test_safe_report_preserves_only_valid_dynamic_observation():
+    from tests.unit.test_fleet_t02_workday_dynamic_contract import project
+    report = {**worker_fixture.SAFE_ANALYSIS, "dynamic_review": project()}
+    assert _safe_report(report) == report
+    report["dynamic_review"]["fields"][0]["value"] = "SYNTHETIC_PRIVATE_VALUE"
+    with pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
+        _safe_report(report)

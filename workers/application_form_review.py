@@ -13,6 +13,7 @@ from services.applications.form_review_providers import (
     analyze_application_form,
     normalize_application_route,
 )
+from services.applications.workday_dynamic_review import validate_workday_dynamic_review
 from workers.operations import OperationCancelled, OperationTimedOut
 
 
@@ -99,7 +100,8 @@ def _existing_result(connection, application_id, operation_id, request_id,
 
 def _safe_report(report):
     if (not isinstance(report, dict)
-            or set(report) != {"status", "reason", "fields"}
+            or set(report) not in ({"status", "reason", "fields"},
+                                   {"status", "reason", "fields", "dynamic_review"})
             or report.get("status") not in {"ANALYZED", "REVIEW_REQUIRED", "UNKNOWN"}
             or not isinstance(report.get("fields"), list)
             or len(report["fields"]) > 100):
@@ -128,7 +130,13 @@ def _safe_report(report):
             "type": field["type"], "required": field["required"],
             "review_reason": review_reason,
         })
-    return {"status": report["status"], "reason": reason, "fields": safe_fields}
+    safe = {"status": report["status"], "reason": reason, "fields": safe_fields}
+    if "dynamic_review" in report:
+        dynamic = validate_workday_dynamic_review(report["dynamic_review"])
+        if dynamic is None:
+            raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
+        safe["dynamic_review"] = dynamic
+    return safe
 
 
 def _validate_claimed(connection, operation):
