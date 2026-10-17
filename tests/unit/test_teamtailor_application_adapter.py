@@ -179,7 +179,9 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                 return [{
                     "user_visible": True,
                     "user_editable": True,
-                    "paint_styles": [{"clip_path": "none", "clip": "auto"}],
+                    "paint_styles": [{
+                        "clip_path": "none", "clip": "auto", "contain": "none",
+                    }],
                     "control_rect": {"left": 10, "top": 10, "right": 20, "bottom": 20},
                     "overflow_clip_regions": [],
                     "clip_geometry_transformed": False,
@@ -257,6 +259,10 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                 {"clip_path": "none", "clip": "auto"},
                 {"clip_path": "inset(50%)", "clip": "auto"},
             ], [], False, True),
+            ("paint containment clips off-ancestor control", [
+                {"clip_path": "none", "clip": "auto"},
+                {"clip_path": "none", "clip": "auto", "contain": "paint"},
+            ], [], False, True),
             ("clip property on control", [{
                 "clip_path": "none", "clip": "rect(0px, 0px, 0px, 0px)",
             }], [], False, True),
@@ -287,6 +293,7 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
         required_visibility_checks = (
             "clip_path: styles[index].clipPath",
             "clip: styles[index].clip",
+            "contain: styles[index].contain",
             "style.overflowX",
             "style.overflowY",
             "paint_styles: paintStyles",
@@ -306,6 +313,9 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
         for (label, paint_styles, overflow_clip_regions,
              clip_geometry_transformed, expected_review) in cases:
             with self.subTest(clipped_case=label):
+                paint_styles = [
+                    {"contain": "none", **style} for style in paint_styles
+                ]
                 state = {
                     "user_visible": True,
                     "user_editable": True,
@@ -314,6 +324,12 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                     "overflow_clip_regions": overflow_clip_regions,
                     "clip_geometry_transformed": clip_geometry_transformed,
                 }
+                if label == "paint containment clips off-ancestor control":
+                    # The control still intersects the viewport, but lies
+                    # outside its paint-containing ancestor's bounds.
+                    state["control_rect"] = {
+                        "left": 60, "top": 20, "right": 70, "bottom": 30,
+                    }
                 if label == "transformed overflow clip fails closed":
                     state["control_rect"] = {
                         "left": 60, "top": 20, "right": 70, "bottom": 30,

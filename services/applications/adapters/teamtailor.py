@@ -29,7 +29,8 @@ _CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
   const rect = node.getBoundingClientRect();
   const paintStyles = ancestors.map((current, index) => ({
     clip_path: styles[index].clipPath,
-    clip: styles[index].clip
+    clip: styles[index].clip,
+    contain: styles[index].contain
   }));
   const overflowClipRegions = [];
   let clipGeometryTransformed = false;
@@ -265,8 +266,12 @@ def _is_effectively_user_visible(state: Mapping) -> bool:
         if (not isinstance(style, Mapping)
                 or not isinstance(style.get("clip_path"), str)
                 or not isinstance(style.get("clip"), str)
+                or not isinstance(style.get("contain"), str)
                 or style["clip_path"].casefold() != "none"
-                or style["clip"].casefold() != "auto"):
+                or style["clip"].casefold() != "auto"
+                or {"paint", "strict", "content"}.intersection(
+                    style["contain"].casefold().split()
+                )):
             return False
 
     def coordinates(rect: Mapping):
