@@ -158,7 +158,6 @@ class FleetT20ProductJourneyTests(unittest.TestCase):
             app_server = uvicorn.Server(uvicorn.Config(app, log_level="error", access_log=False))
             app_thread = threading.Thread(target=app_server.run,
                                           kwargs={"sockets": [api_socket]}, daemon=True)
-            worker_thread = None
             worker_result = {}
             browser = None
             context = None
@@ -208,11 +207,9 @@ class FleetT20ProductJourneyTests(unittest.TestCase):
                             operation_id = queued_response.value.json()["operation_id"]
                             self.assertTrue(operation_id)
 
-                            def run_worker():
-                                worker_result["value"] = execute_operation(operation_id)
-
-                            worker_thread = threading.Thread(target=run_worker, daemon=True)
-                            worker_thread.start()
+                            # Run the production worker entry point synchronously while
+                            # the test-only environment and employer transport are active.
+                            worker_result["value"] = execute_operation(operation_id)
                             expect(page.get_by_role("status").filter(has_text="Completed")).to_be_visible(timeout=15000)
                             expect(page.get_by_role("status").filter(
                                 has_text="Public company jobs and source information have been updated."
@@ -242,9 +239,6 @@ class FleetT20ProductJourneyTests(unittest.TestCase):
                                     except Exception as error:
                                         cleanup_failures.append(f"Could not close {label}: {error}")
 
-                    worker_thread.join(timeout=10)
-                    if worker_thread.is_alive():
-                        cleanup_failures.append("T20 company worker did not finish within 10 seconds")
                     self.assertEqual(worker_result.get("value", {}).get("status"), "COMPLETED", worker_result)
 
                     with httpx.Client(base_url=origin, timeout=3, trust_env=False) as api_client:
@@ -264,13 +258,6 @@ class FleetT20ProductJourneyTests(unittest.TestCase):
                     set(urlsplit(url).path for url in employer_fetches), set(pages)
                 )
             finally:
-                if worker_thread is not None:
-                    try:
-                        worker_thread.join(timeout=10)
-                        if worker_thread.is_alive():
-                            cleanup_failures.append("T20 company worker remained alive during teardown")
-                    except Exception as error:
-                        cleanup_failures.append(f"Could not join T20 company worker: {error}")
                 try:
                     app_server.should_exit = True
                     if app_thread.ident is not None:
