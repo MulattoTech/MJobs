@@ -182,8 +182,6 @@ def save_search_profile(store, data):
     if type(data.get("enabled", True)) is not bool:
         raise ValueError("Search profile enabled must be boolean")
     job_filters = _clean_job_filters(data.get("job_filters"))
-    if job_filters is not None and data.get("enabled", True):
-        raise ValueError("Saved Jobs filters must be disabled for provider scheduling")
 
     remote = data.get("remote", "ANY")
     if remote not in REMOTE_PREFERENCES:
@@ -320,6 +318,10 @@ def save_search_profile(store, data):
             criteria["scheduler"] = scheduler
         if enabled is None:
             enabled = existing["enabled"] if existing else True
+        # Partial updates must validate the state that will actually be saved,
+        # including filters and enablement inherited from the locked profile.
+        if criteria.get("job_filters") is not None and enabled:
+            raise ValueError("Saved Jobs filters must be disabled for provider scheduling")
         if source_ids is None:
             source_ids = existing["source_ids"] if existing else []
         created_at = existing["created_at"] if existing else timestamp
