@@ -14,9 +14,17 @@ from workers.operations import claim
 
 
 PROVIDERS = ("smartrecruiters", "workable", "teamtailor", "bamboohr")
+AUTHORITY_PROVIDERS = ("greenhouse", "lever", "ashby")
 
 
 def route(provider, tenant="kteam"):
+    if provider == "greenhouse":
+        return f"https://boards.greenhouse.io/{tenant}/jobs/12345", "12345"
+    if provider == "lever":
+        requisition = "123e4567-e89b-12d3-a456-426614174000"
+        return f"https://jobs.lever.co/{tenant}/{requisition}", requisition
+    if provider == "ashby":
+        return f"https://jobs.ashbyhq.com/{tenant}/abc12s", "abc12s"
     if provider == "smartrecruiters":
         return f"https://jobs.smartrecruiters.com/{tenant}/123456789012-special", "123456789012"
     if provider == "workable":
@@ -53,7 +61,7 @@ def stored_route(fixture, route_id):
         )).mappings().one())
 
 
-@pytest.mark.parametrize("provider", PROVIDERS)
+@pytest.mark.parametrize("provider", PROVIDERS + AUTHORITY_PROVIDERS)
 def test_ascii_identity_reaches_selected_adapter_worker_and_durable_readback(provider):
     with fixture_for(provider) as fixture:
         canonical, requisition = route(provider)
@@ -71,10 +79,14 @@ def test_ascii_identity_reaches_selected_adapter_worker_and_durable_readback(pro
         assert exact.status_code == latest.status_code == 200
         assert exact.json() == latest.json()
         assert exact.json()["state"] == "COMPLETED"
-        assert exact.json()["analysis"]["status"] == "REVIEW_REQUIRED"
-        assert exact.json()["analysis"]["reason"] in {
-            "DOM_INSPECTION_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED",
-        }
+        if provider in PROVIDERS:
+            assert exact.json()["analysis"]["status"] == "REVIEW_REQUIRED"
+            assert exact.json()["analysis"]["reason"] in {
+                "DOM_INSPECTION_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED",
+            }
+        else:
+            assert exact.json()["analysis"]["status"] in {"ANALYZED", "REVIEW_REQUIRED"}
+            assert exact.json()["analysis"]["fields"][0]["id"] == "email"
         assert fixture.store.count("application_attempts") == 0
         assert stored_route(fixture, route_id) == original
         with fixture.store.engine.connect() as connection:
@@ -92,7 +104,7 @@ def test_ascii_identity_reaches_selected_adapter_worker_and_durable_readback(pro
         assert receipts[0]["analysis"] == exact.json()["analysis"]
 
 
-@pytest.mark.parametrize("provider", PROVIDERS)
+@pytest.mark.parametrize("provider", PROVIDERS + AUTHORITY_PROVIDERS)
 def test_raw_unicode_and_space_are_rejected_before_enqueue_without_mutation(provider):
     with fixture_for(provider) as fixture:
         cases = []
@@ -103,6 +115,9 @@ def test_raw_unicode_and_space_are_rejected_before_enqueue_without_mutation(prov
                 (url, raw_tenant, requisition),
             ))
         url, requisition = route(provider)
+        if provider in AUTHORITY_PROVIDERS:
+            cases.insert(0, (url.replace("boards.", "board\u017f.").replace("jobs.", "job\u017f."),
+                             "kteam", requisition))
         cases.extend(((" " + url, "kteam", requisition),
                       (url.replace("kteam", "\tkteam"), "kteam", requisition)))
         if provider == "smartrecruiters":
@@ -139,8 +154,10 @@ def test_raw_unicode_and_space_are_rejected_before_enqueue_without_mutation(prov
             assert stored_route(fixture, route_id) == original
 
 
-@pytest.mark.parametrize("provider", PROVIDERS)
-@pytest.mark.parametrize("mutation", ["unicode", "space", "control"])
+@pytest.mark.parametrize(("provider", "mutation"), [
+    (provider, mutation) for provider in PROVIDERS
+    for mutation in ("unicode", "space", "control")
+] + [(provider, "unicode_host") for provider in AUTHORITY_PROVIDERS])
 def test_worker_revalidates_raw_identity_before_fetch_or_receipt(provider, mutation):
     with fixture_for(provider) as fixture:
         canonical, requisition = route(provider, "steam")
@@ -151,6 +168,7 @@ def test_worker_revalidates_raw_identity_before_fetch_or_receipt(provider, mutat
         operation = claim(fixture.store, response.json()["operation_id"])
         assert operation is not None
         raw = {"unicode": canonical.replace("steam", "\u017fteam"),
+               "unicode_host": canonical.replace("boards.", "board\u017f.").replace("jobs.", "job\u017f."),
                "space": " " + canonical,
                "control": canonical.replace("steam", "\tsteam")}[mutation]
         set_route(fixture, raw, "steam", requisition)
