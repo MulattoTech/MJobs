@@ -231,6 +231,43 @@ def _validate_persistence(value, binding):
     return dict(value)
 
 
+def _await_durable_closure(query, store, persist):
+    """Keep the retained native query until closure evidence is recorded."""
+    deadline = time.monotonic() + 900
+    retry_delay = .05
+    while time.monotonic() < deadline:
+        if query.status() == "EXITED":
+            # Each attempt rechecks scope/owner and native accounting; a failed
+            # write or deadline never turns into closure evidence.
+            if store is None or persist():
+                return
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return
+            time.sleep(min(retry_delay, remaining))
+            retry_delay = min(retry_delay * 2, 2)
+        else:
+            time.sleep(min(.05, max(0, deadline - time.monotonic())))
+
+
+def _respond(stream, nonce, binding, identity, query, store, persist):
+    """Send one observation, retaining query authority if its channel is lost."""
+    accounting = query.accounting()
+    status = _status(accounting)
+    if status == "EXITED":
+        persist()
+    try:
+        _write(stream, {"nonce": nonce, "binding": binding, "identity": identity,
+                        "status": status, "accounting": accounting})
+    except (OSError, _ChannelLost):
+        # A prelaunch channel loss is safe to compensate in finally; otherwise
+        # keep the native query until closure can be durably recorded.
+        if accounting != {"total": 0, "active": 0, "terminated": 0}:
+            _await_durable_closure(query, store, persist)
+        return False
+    return True
+
+
 def _serve():
     # Bootstrap import is an absolute repository-owned script, not PYTHONPATH
     # received from the API environment or any wire-provided module name.
@@ -269,34 +306,9 @@ def _serve():
                     owner_token=persistence["owner_token"])
             return False
 
-        def respond(nonce):
-            accounting = query.accounting()
-            if _status(accounting) == "EXITED":
-                persist()
-            _write(sys.stdout.buffer, {"nonce": nonce, "binding": binding, "identity": identity,
-                                      "status": _status(accounting), "accounting": accounting})
-
-        def await_durable_closure():
-            # Both channel loss and explicit close surrender the creator's
-            # channel, not the observer's original native authority. A failed
-            # write must retain that query until commit or bounded expiry.
-            deadline = time.monotonic() + 900
-            retry_delay = .05
-            while time.monotonic() < deadline:
-                if query.status() == "EXITED":
-                    # Each attempt rechecks scope/owner and native accounting;
-                    # no failed write or expired deadline releases capacity.
-                    if store is None or persist():
-                        break
-                    remaining = deadline - time.monotonic()
-                    if remaining <= 0:
-                        break
-                    time.sleep(min(retry_delay, remaining))
-                    retry_delay = min(retry_delay * 2, 2)
-                else:
-                    time.sleep(min(.05, max(0, deadline - time.monotonic())))
-
-        respond(initial["nonce"])
+        if not _respond(sys.stdout.buffer, initial["nonce"], binding, identity,
+                        query, store, persist):
+            return
         while True:
             # Finite lifetime, including an abandoned creator. No certification
             # is inferred from reaching the deadline or losing the pipe.
@@ -306,21 +318,23 @@ def _serve():
                 # Retain authority outside the departed creator until bounded
                 # cooperative tree exit. No transient reply/certificate can be
                 # recovered over a lost channel; capacity must stay held.
-                await_durable_closure()
+                _await_durable_closure(query, store, persist)
                 return
             if request == {"action": "close"}:
                 # A never-launched Job has no browser tree to retain. Let the
                 # existing exact-owner/zero-accounting rollback run in finally;
                 # missing accounting remains UNKNOWN and must keep authority.
                 if query.accounting() != {"total": 0, "active": 0, "terminated": 0}:
-                    await_durable_closure()
+                    _await_durable_closure(query, store, persist)
                 return
             if (not isinstance(request, dict) or set(request) != {"action", "nonce", "binding"}
                     or request["action"] != "observe" or request["binding"] != binding
                     or not isinstance(request["nonce"], str) or len(request["nonce"]) != 64
                     or any(v not in "0123456789abcdef" for v in request["nonce"])):
                 raise ValueError
-            respond(request["nonce"])
+            if not _respond(sys.stdout.buffer, request["nonce"], binding, identity,
+                            query, store, persist):
+                return
     except Exception:
         # Value-free exit; neither paths nor bootstrap challenges are logged.
         return
