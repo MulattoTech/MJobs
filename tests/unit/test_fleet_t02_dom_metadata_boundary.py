@@ -154,6 +154,32 @@ class WorkdayDomMetadataBoundaryTests(unittest.TestCase):
         self.assertNotIn("option_labels", json.dumps(result))
         self.assertNotIn("options_fingerprint", json.dumps({"fields": [field]}))
 
+    def test_native_option_label_attribute_participates_in_static_html_fingerprint(self):
+        from services.applications.adapters.workday_forms import (
+            analyze_workday_form_html, validate_workday_form_html,
+        )
+
+        before_html = (
+            '<form><label for="country">Country</label><select id="country">'
+            '<option label="Preferred country">Choose here</option>'
+            '<option>Canada</option></select></form>'
+        )
+        after_html = (
+            '<form><label for="country">Country</label><select id="country">'
+            '<option label="Country of residence">Choose here</option>'
+            '<option>Canada</option></select></form>'
+        )
+        expected = analyze_workday_form_html(before_html)
+        self.assertNotEqual(expected["status"], "UNKNOWN")
+        self.assertEqual(
+            expected["fields"][0]["options_fingerprint"],
+            hashlib.sha256(b'["Preferred country","Canada"]').hexdigest(),
+        )
+        self.assertEqual(
+            validate_workday_form_html(after_html, expected),
+            {"provider": "workday", "status": "UNKNOWN", "reason": "FORM_CHANGED", "fields": []},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

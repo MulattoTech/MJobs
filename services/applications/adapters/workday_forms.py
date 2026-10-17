@@ -38,7 +38,7 @@ MAX_WORKDAY_MARKUP_EVENTS = 4096
 MAX_WORKDAY_DOM_FIELDS = 100
 MAX_WORKDAY_LABEL_DEPTH = 32
 _HTML_ATTRIBUTES = {
-    "id", "name", "type", "placeholder", "aria-label", "aria-required",
+    "id", "name", "type", "label", "placeholder", "aria-label", "aria-required",
     "for", "class", "role", "contenteditable", "data-automation-id",
     "aria-controls",
     "data-workday-conditional", "data-workday-conditional-on",
@@ -504,7 +504,15 @@ class _WorkdayMarkupParser(HTMLParser):
                        "link", "meta", "param", "source", "track", "wbr"}:
             self.element_stack.append((tag, controlled_by))
         if tag == "option" and self.active_form and self.controls and self.controls[-1].get("type") == "select":
-            self.option_capture = {"control": len(self.controls) - 1, "parts": []}
+            option_label = values.get("label")
+            if isinstance(option_label, str) and len(option_label) > 500:
+                self.invalid = True
+                return
+            self.option_capture = {
+                "control": len(self.controls) - 1,
+                "parts": [],
+                "label": option_label,
+            }
             return
         if tag in _IGNORED_CONTENT:
             self.ignored_stack.append(tag)
@@ -602,7 +610,8 @@ class _WorkdayMarkupParser(HTMLParser):
             return
         if tag == "option" and self.option_capture is not None:
             capture = self.option_capture
-            label = " ".join(" ".join(capture["parts"]).split())
+            source_label = capture["label"] or " ".join(capture["parts"])
+            label = " ".join(source_label.split())
             if len(label) > 500:
                 self.invalid = True
             elif capture["control"] < len(self.controls):
@@ -634,6 +643,8 @@ class _WorkdayMarkupParser(HTMLParser):
         if not self._record_event() or self.value_text_depth:
             return
         if self.option_capture is not None:
+            if self.option_capture["label"]:
+                return
             if sum(map(len, self.option_capture["parts"])) + len(data) > 500:
                 self.invalid = True
             else:
