@@ -35,16 +35,25 @@ def _provider_name(provider):
     return provider.casefold() if isinstance(provider, str) else None
 
 
-def normalize_application_route(provider, route_url) -> dict | None:
+def normalize_application_route(provider, route_url, *, route_metadata=None) -> dict | None:
     """Normalize only routes accepted by the selected ATS adapter."""
     normalized_provider = _provider_name(provider)
     adapter_type = _ADAPTERS.get(normalized_provider)
     if adapter_type is None:
         return None
-    return adapter_type().normalize_route({
+    route = {
         "provider": normalized_provider,
         "url": route_url,
-    })
+    }
+    if normalized_provider == "ashby" and route_metadata is not None:
+        if not isinstance(route_metadata, Mapping):
+            return None
+        tenant = route_metadata.get("tenant")
+        requisition = route_metadata.get("requisition")
+        if not isinstance(tenant, str) or not isinstance(requisition, str):
+            return None
+        route.update(tenant=tenant, requisition=requisition)
+    return adapter_type().normalize_route(route)
 
 
 def _safe_identifier(value):

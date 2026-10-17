@@ -44,7 +44,9 @@ def _application_route(store, profile_id: str, application_id: str, *, connectio
         raise HTTPException(404, "Application not found for this profile")
     if row["provider"] not in {"ashby", "greenhouse", "lever", "workday"} or row["target"] == "MOCK":
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
-    normalized = normalize_application_route(row["provider"], row["url"])
+    normalized = normalize_application_route(
+        row["provider"], row["url"], route_metadata=row,
+    )
     if normalized is None:
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
     return dict(row), normalized

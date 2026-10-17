@@ -291,6 +291,79 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
             f"/profiles/other-profile/applications/{self.application_id}/form-reviews/{request_id}"
         ).status_code, 404)
 
+    def test_ashby_request_rejects_mismatched_route_identity(self):
+        route_url = "https://jobs.ashbyhq.com/fixture/engineering-123"
+        path = f"/profiles/fixture/applications/{self.application_id}/form-reviews"
+        for field, value in (("tenant", "other-tenant"),
+                             ("requisition", "other-requisition")):
+            with self.subTest(field=field):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.routes).where(
+                        m.routes.c.id == self.store.application(self.application_id)["route_id"],
+                    ).values(
+                        provider="ashby", tenant="fixture", requisition="engineering-123",
+                        url=route_url,
+                    ))
+                    connection.execute(update(m.routes).where(
+                        m.routes.c.id == self.store.application(self.application_id)["route_id"],
+                    ).values({field: value}))
+
+                response = self.client.post(path, json={"request_id": f"mismatch-{field}"})
+
+                self.assertEqual(response.status_code, 409, response.text)
+                self.assertEqual(response.json()["detail"]["code"],
+                                 "FORM_REVIEW_ROUTE_UNSUPPORTED")
+
+    def test_ashby_worker_rejects_route_identity_changed_after_queue(self):
+        route_url = "https://jobs.ashbyhq.com/fixture/engineering-123"
+        path = f"/profiles/fixture/applications/{self.application_id}/form-reviews"
+        for field, value in (("tenant", "other-tenant"),
+                             ("requisition", "other-requisition")):
+            with self.subTest(field=field):
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.routes).where(
+                        m.routes.c.id == self.store.application(self.application_id)["route_id"],
+                    ).values(
+                        provider="ashby", tenant="fixture", requisition="engineering-123",
+                        url=route_url,
+                    ))
+                request_id = f"worker-mismatch-{field}"
+                queued = self.client.post(path, json={"request_id": request_id})
+                self.assertEqual(queued.status_code, 202, queued.text)
+                operation_id = queued.json()["operation_id"]
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.routes).where(
+                        m.routes.c.id == self.store.application(self.application_id)["route_id"],
+                    ).values({field: value}))
+
+                fetched = []
+
+                class FakePublicClient:
+                    def __init__(self, website, check=None, total_timeout=None):
+                        self.website = website
+
+                    def get(self, url):
+                        fetched.append(url)
+                        raise AssertionError("Mismatched route must not be fetched")
+
+                    def allowed(self, url):
+                        return url == route_url
+
+                    def close(self):
+                        pass
+
+                with patch.dict("os.environ", {
+                    "MJOBS_OPERATION_MODE": "FIXTURE",
+                    "MJOBS_DATABASE_URL": self.database_url,
+                    "MJOBS_REDIS_URL": "redis://127.0.0.1:1/0",
+                    "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
+                    "MJOBS_OUTPUT_DIR": str(self.root / "documents"),
+                }), patch("workers.tasks.PublicCompanyClient", FakePublicClient):
+                    result = execute_operation(operation_id)
+
+                self.assertEqual(result["status"], "DEAD_LETTERED")
+                self.assertEqual(fetched, [])
+
     def test_ashby_public_route_queues_worker_and_reads_value_free_review(self):
         route_url = "https://jobs.ashbyhq.com/fixture/engineering-123"
         with self.store.engine.begin() as connection:
