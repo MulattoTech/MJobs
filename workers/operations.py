@@ -476,7 +476,14 @@ def recover_expired(store):
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
-        rows = list(connection.execute(select(m.operations).where(m.operations.c.state == "RUNNING", m.operations.c.lease_expires_at <= timestamp).with_for_update(skip_locked=True)).mappings())
+        # Queued workers without a lease have no execution authority. Inline
+        # browser ownership retains its separate proof-of-closure policy.
+        rows = list(connection.execute(select(m.operations).where(
+            m.operations.c.state == "RUNNING",
+            or_(m.operations.c.lease_expires_at <= timestamp,
+                (m.operations.c.kind.in_(tuple(QUEUES)) &
+                 m.operations.c.lease_expires_at.is_(None))),
+        ).with_for_update(skip_locked=True)).mappings())
         for row in rows:
             if row["kind"] == "MANUAL_AUTH":
                 # Cleanup by the original owning call is the only automatic
