@@ -74,8 +74,10 @@ export async function inspectApplicationForm(
     if (!current() || !record(acknowledgement)
         || !matchesScope(acknowledgement, profileId, applicationId, { ...options, requestId })
         || !nonempty(acknowledgement.operation_id) || !nonempty(acknowledgement.state)
+        || acknowledgement.route_id !== undefined && !nonempty(acknowledgement.route_id)
         || !pending.has(acknowledgement.state) && !terminal.has(acknowledgement.state)) return empty('error');
-    const expected = { ...options, requestId, operationId: acknowledgement.operation_id };
+    const expected = { ...options, requestId, operationId: acknowledgement.operation_id,
+      routeId: options.routeId ?? (typeof acknowledgement.route_id === 'string' ? acknowledgement.route_id : undefined) };
     for (let attempt = 0; attempt < 30; attempt += 1) {
       if (!current()) return empty('error');
       const result = await request<unknown>(`${path}/${encodeURIComponent(requestId)}`, { signal: options.signal });

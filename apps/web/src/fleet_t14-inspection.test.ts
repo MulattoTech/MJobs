@@ -103,4 +103,12 @@ describe('fleet_t14 inspection identity and fail-closed metadata', () => {
         .toEqual({ status: 'error', fields: [] });
     }
   });
+
+  it('binds later route echoes to the acknowledged route when supplied by the API', async () => {
+    const request = vi.fn().mockResolvedValueOnce({
+      request_id: 'review-1', operation_id: 'op', route_id: 'route-a', state: 'QUEUED',
+    }).mockResolvedValue({ ...completed, route_id: 'route-b' });
+    await expect(inspectApplicationForm(request, 'profile', 'application', 'review-1', async () => {}))
+      .resolves.toEqual({ status: 'error', fields: [] });
+  });
 });
