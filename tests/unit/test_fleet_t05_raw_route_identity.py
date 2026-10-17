@@ -14,6 +14,7 @@ ROUTES = (
     ("greenhouse", "https://boards.greenhouse.io/steam/jobs/123", "123"),
     ("lever", "https://jobs.lever.co/steam/123e4567-e89b-12d3-a456-426614174000", "123e4567-e89b-12d3-a456-426614174000"),
     ("ashby", "https://jobs.ashbyhq.com/steam/engineering-123", "engineering-123"),
+    ("breezy", "https://steam.breezy.hr/p/389eb1b8c3ef-job", "389eb1b8c3ef"),
 )
 
 

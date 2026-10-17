@@ -24,7 +24,7 @@ _SAFE_TYPES = {
 _SAFE_REASON = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
 _ASCII_ROUTE_PROVIDERS = frozenset({
     "smartrecruiters", "workable", "teamtailor", "bamboohr",
-    "greenhouse", "lever", "ashby",
+    "greenhouse", "lever", "ashby", "breezy",
 })
 _RAW_ROUTE_IDENTITY = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://([^/?#]*)([^?#]*)")
 
@@ -263,6 +263,8 @@ def analyze_application_form(provider, html, *, route_url) -> dict:
             return AshbyApplicationAdapter().analyze_form(html, route_url=route["url"])
         if normalized_provider == "workday":
             return _workday_report(analyze_workday_form_html(html))
+        if normalized_provider == "breezy":
+            return adapter.analyze_form(html, route_url=route["url"])
         if normalized_provider in {"smartrecruiters", "workable", "teamtailor"}:
             # These adapters require computed DOM visibility/interactivity and
             # challenge observations. Static HTML cannot establish those facts.
