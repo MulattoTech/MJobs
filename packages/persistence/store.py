@@ -216,8 +216,11 @@ class Store:
                 # unversioned overwrite of that newly durable profile.
                 insert = {"postgresql": postgres_insert, "sqlite": sqlite_insert}[connection.dialect.name]
                 created = connection.execute(insert(m.profiles).values(**profile_row)
-                    .on_conflict_do_nothing(index_elements=[m.profiles.c.id]))
-                if created.rowcount != 1:
+                    .on_conflict_do_nothing(index_elements=[m.profiles.c.id])
+                    .returning(m.profiles.c.id)).scalar_one_or_none()
+                # INSERT rowcount can be unavailable (-1) with psycopg.
+                # A returned identity distinguishes creation from a conflict.
+                if created is None:
                     raise ProfileVersionConflict("Profile was created while this save was being prepared; reload before saving")
             else:
                 upsert(connection, m.profiles, profile_row, replace=True)
