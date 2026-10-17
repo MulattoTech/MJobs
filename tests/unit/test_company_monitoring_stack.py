@@ -160,6 +160,7 @@ class CompanyMonitoringStackGuardTests(unittest.TestCase):
         source=inspect.getsource(__import__('fixtures.company_monitoring_stack',fromlist=['run_stack']).run_stack)
         self.assertIn("inspect_service('mock')",source)
         self.assertIn("'exec', '-T', 'mock'",source)
+        self.assertIn("get('com.docker.compose.service') != 'mock'",source)
         self.assertNotIn("base_url=f'http://127.0.0.1",source)
 
     def config(self):

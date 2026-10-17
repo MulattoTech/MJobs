@@ -477,6 +477,8 @@ def run_stack(artifacts):
 
             def private_request(method, path, **kwargs):
                 obj = inspect_service('mock')  # ownership/project/source checked before every exec
+                if obj['Config']['Labels'].get('com.docker.compose.service') != 'mock':
+                    raise FixtureError('STK02_MOCK_IDENTITY_CHANGED')
                 timeout = remaining(deadline, reserve=125, ceiling=5)
                 body = json.dumps(dict(method=method, path=path, timeout=timeout, **kwargs))
                 if len(body.encode()) > 131072:
