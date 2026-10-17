@@ -1,30 +1,41 @@
 """Team 2 connected Workday DOM review and durable readback coverage."""
+import unittest
 from unittest.mock import patch
 
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from services.applications.workday_dynamic_review import validate_workday_dynamic_review
-from tests.integration.test_application_form_review_flow import ApplicationFormReviewFlowTests
+from tests.integration import test_application_form_review_flow as form_review_flow
 from workers.tasks import execute_operation
 
 
-class FleetT02WorkdayDynamicReviewTests(ApplicationFormReviewFlowTests):
+class FleetT02WorkdayDynamicReviewTests(unittest.TestCase):
+    """Compose the shared flow fixture without collecting its test methods."""
+
+    def setUp(self):
+        self.flow = form_review_flow.ApplicationFormReviewFlowTests(methodName="setUp")
+        self.flow.setUp()
+
+    def tearDown(self):
+        self.flow.tearDown()
+
     def test_t02_aria_dependent_questions_reach_durable_value_free_review(self):
+        flow = self.flow
         route_url = (
             "https://fixture.wd5.myworkdayjobs.com/en-US/Careers/job/"
             "Software_Engineer_R123"
         )
-        with self.store.engine.begin() as connection:
+        with flow.store.engine.begin() as connection:
             connection.execute(update(m.routes).where(
-                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+                m.routes.c.id == flow.store.application(flow.application_id)["route_id"],
             ).values(
                 provider="workday", tenant="fixture", requisition="R123", url=route_url,
             ))
 
-        path = f"/profiles/fixture/applications/{self.application_id}/form-reviews"
+        path = f"/profiles/fixture/applications/{flow.application_id}/form-reviews"
         request_id = "t02-workday-dynamic-review"
-        queued = self.client.post(path, json={"request_id": request_id})
+        queued = flow.client.post(path, json={"request_id": request_id})
         self.assertEqual(queued.status_code, 202, queued.text)
         operation_id = queued.json()["operation_id"]
         html = (
@@ -58,16 +69,16 @@ class FleetT02WorkdayDynamicReviewTests(ApplicationFormReviewFlowTests):
 
         with patch.dict("os.environ", {
             "MJOBS_OPERATION_MODE": "FIXTURE",
-            "MJOBS_DATABASE_URL": self.database_url,
+            "MJOBS_DATABASE_URL": flow.database_url,
             "MJOBS_REDIS_URL": "redis://127.0.0.1:1/0",
             "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
-            "MJOBS_OUTPUT_DIR": str(self.root / "documents"),
+            "MJOBS_OUTPUT_DIR": str(flow.root / "documents"),
         }), patch("workers.tasks.PublicCompanyClient", FakePublicClient):
             result = execute_operation(operation_id)
 
         self.assertEqual(result["status"], "COMPLETED")
-        exact = self.client.get(path + "/" + request_id)
-        latest = self.client.get(path + "/latest")
+        exact = flow.client.get(path + "/" + request_id)
+        latest = flow.client.get(path + "/latest")
         self.assertEqual(exact.status_code, 200, exact.text)
         self.assertEqual(latest.status_code, 200, latest.text)
         expected = {
@@ -94,8 +105,8 @@ class FleetT02WorkdayDynamicReviewTests(ApplicationFormReviewFlowTests):
         self.assertEqual(analysis, expected)
         self.assertEqual(latest.json()["analysis"], expected)
 
-        fields = self.client.get(
-            f"/profiles/fixture/applications/{self.application_id}/dynamic-fields",
+        fields = flow.client.get(
+            f"/profiles/fixture/applications/{flow.application_id}/dynamic-fields",
             params={"expected_fingerprint": envelope["fingerprint"]},
         )
         self.assertEqual(fields.status_code, 200, fields.text)
@@ -107,12 +118,12 @@ class FleetT02WorkdayDynamicReviewTests(ApplicationFormReviewFlowTests):
         self.assertTrue(all(field["manual_review_required"] for field in public_by_id.values()))
         self.assertTrue(all(field["supported"] is False for field in public_by_id.values()))
 
-        with self.store.engine.connect() as connection:
+        with flow.store.engine.connect() as connection:
             operation = connection.execute(select(m.operations).where(
                 m.operations.c.id == operation_id,
             )).mappings().one()
             audits = list(connection.execute(select(m.audit.c.payload).where(
-                m.audit.c.entity_id == self.application_id,
+                m.audit.c.entity_id == flow.application_id,
                 m.audit.c.action == "APPLICATION_FORM_REVIEW",
             )).mappings())
         audit = next(row["payload"] for row in audits
