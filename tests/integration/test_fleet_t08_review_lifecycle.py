@@ -1,29 +1,77 @@
-"""T08 exact and latest readback behavior across changed review inputs."""
+"""T08 connected lifecycle regressions for durable application form review."""
+from pathlib import Path
+import tempfile
 from unittest.mock import patch
 import unittest
 
-from tests.integration.test_lever_form_review_flow import (
-    LEVER_URL,
-    LeverFormReviewFlowTests,
-)
+from fastapi.testclient import TestClient
+from sqlalchemy import select, update
+
+from apps.api.main import create_app
+from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
+from packages.persistence.store import Store
+from services.discovery.pipeline import discover
+from services.documents.generate import prepare
+from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
+
+
+LEVER_URL = "https://jobs.lever.co/example/01234567-89ab-cdef-0123-456789abcdef"
 
 
 class T08ReviewLifecycleTests(unittest.TestCase):
     def setUp(self):
-        self.fixture = LeverFormReviewFlowTests(
-            "test_lever_route_persists_safe_review_metadata_by_request_id",
-        )
-        self.fixture.setUp()
+        self.temp = tempfile.TemporaryDirectory(prefix="mjobs-t08-review-lifecycle-")
+        self.root = Path(self.temp.name)
+        self.database_url = f"sqlite:///{(self.root / 't08-review.db').as_posix()}"
+        self.store = Store(self.database_url)
+        self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
+        self.store.save_profile(dict(PROFILE))
+        with fixture_server() as origin:
+            discover(self.store, origin, "fixture")
+            job = next(row for row in self.store.jobs("fixture")
+                       if row["requisition"] == "B")
+            self.application_id = prepare(self.store, job["id"], "fixture", self.root)
+        application = self.store.application(self.application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == application["route_id"],
+            ).values(provider="lever", tenant="example",
+                     requisition="01234567-89ab-cdef-0123-456789abcdef",
+                     url=LEVER_URL))
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == self.application_id,
+            ).values(target="REAL"))
+        self.client = TestClient(create_app(
+            self.store, "http://127.0.0.1:1", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="FIXTURE",
+        ))
 
     def tearDown(self):
-        self.fixture.tearDown()
+        self.client.close()
+        self.store.engine.dispose()
+        self.temp.cleanup()
 
-    def _run_review(self, operation_id, request_id):
-        fixture = self.fixture
+    def _path(self):
+        return f"/profiles/fixture/applications/{self.application_id}/form-reviews"
+
+    def _queue(self, request_id):
+        response = self.client.post(self._path(), json={"request_id": request_id})
+        self.assertEqual(response.status_code, 202, response.text)
+        return response.json()
+
+    def _profile_revision(self, name):
+        profile = self.store.profile("fixture")
+        profile["name"] = name
+        self.store.save_profile(profile)
+
+    def _run_review(self, operation_id, *, on_fetch=None):
+        store, route_url = self.store, LEVER_URL
 
         class FakeResponse:
-            url = LEVER_URL
+            url = route_url
             headers = {"content-type": "text/html; charset=utf-8"}
             content = b"<form><label for='email'>Email</label><input id='email' name='email' type='email' required></form>"
 
@@ -36,6 +84,8 @@ class T08ReviewLifecycleTests(unittest.TestCase):
                 self.check()
                 if url != self.website:
                     raise AssertionError("unexpected public route")
+                if on_fetch is not None:
+                    on_fetch()
                 return FakeResponse()
 
             def allowed(self, url):
@@ -46,46 +96,65 @@ class T08ReviewLifecycleTests(unittest.TestCase):
 
         with patch.dict("os.environ", {
             "MJOBS_OPERATION_MODE": "FIXTURE",
-            "MJOBS_DATABASE_URL": fixture.database_url,
+            "MJOBS_DATABASE_URL": self.database_url,
             "MJOBS_REDIS_URL": "redis://127.0.0.1:1/0",
             "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
-            "MJOBS_OUTPUT_DIR": str(fixture.root / "documents"),
+            "MJOBS_OUTPUT_DIR": str(self.root / "documents"),
         }), patch("workers.tasks.PublicCompanyClient", FakePublicClient):
             return execute_operation(operation_id)
 
-    def test_latest_hides_stale_result_while_exact_readback_recovers_it(self):
-        fixture = self.fixture
-        path = fixture._path()
-        first_id = "t08-profile-version-one"
-        first = fixture.client.post(path, json={"request_id": first_id})
-        self.assertEqual(first.status_code, 202, first.text)
-        self.assertEqual(self._run_review(first.json()["operation_id"], first_id)["status"], "COMPLETED")
+    def _operation(self, operation_id):
+        with self.store.engine.connect() as connection:
+            return dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id,
+            )).mappings().one())
 
-        exact_before = fixture.client.get(path + "/" + first_id)
-        self.assertEqual(exact_before.status_code, 200, exact_before.text)
-        self.assertEqual(fixture.client.get(path + "/latest").json(), exact_before.json())
+    def test_latest_uses_newest_admission_when_older_operation_updates_later(self):
+        older = self._queue("t08-admission-order-older")
+        newer = self._queue("t08-admission-order-newer")
 
-        profile = fixture.store.profile("fixture")
-        profile["name"] = "Synthetic T08 Profile Revision"
-        fixture.store.save_profile(profile)
+        # Worker progress can update an older row after a newer request has been
+        # admitted. Readback ordering must use immutable admission identity.
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == older["operation_id"],
+            ).values(updated_at="9999-12-31T23:59:59.999999+00:00"))
 
-        latest_stale = fixture.client.get(path + "/latest")
-        self.assertEqual(latest_stale.status_code, 200, latest_stale.text)
-        self.assertEqual(latest_stale.json(), {
-            "request_id": None, "state": "UNKNOWN", "error_code": None,
-            "analysis": None,
-        })
-        self.assertEqual(fixture.client.get(path + "/" + first_id).json(), exact_before.json())
+        latest = self.client.get(self._path() + "/latest")
+        self.assertEqual(latest.status_code, 200, latest.text)
+        self.assertEqual(latest.json()["request_id"], "t08-admission-order-newer")
+        self.assertEqual(latest.json()["state"], "QUEUED")
+        self.assertEqual(newer["state"], "QUEUED")
 
-        second_id = "t08-profile-version-two"
-        second = fixture.client.post(path, json={"request_id": second_id})
-        self.assertEqual(second.status_code, 202, second.text)
-        self.assertNotEqual(second.json()["operation_id"], first.json()["operation_id"])
-        self.assertEqual(self._run_review(second.json()["operation_id"], second_id)["status"], "COMPLETED")
-        latest_current = fixture.client.get(path + "/latest")
-        self.assertEqual(latest_current.status_code, 200, latest_current.text)
-        self.assertEqual(latest_current.json()["request_id"], second_id)
-        self.assertEqual(fixture.client.get(path + "/" + first_id).json(), exact_before.json())
+    def test_profile_revision_before_fetch_blocks_review_with_stale_code(self):
+        queued = self._queue("t08-profile-change-before-fetch")
+        self._profile_revision("Synthetic profile changed before fetch")
+
+        result = self._run_review(queued["operation_id"])
+
+        self.assertEqual(result["status"], "DEAD_LETTERED")
+        self.assertEqual(self._operation(queued["operation_id"])["error"],
+                         "FORM_REVIEW_INPUT_STALE")
+        exact = self.client.get(self._path() + "/t08-profile-change-before-fetch")
+        self.assertEqual(exact.status_code, 200, exact.text)
+        self.assertEqual(exact.json()["error_code"], "FORM_REVIEW_INPUT_STALE")
+        self.assertIsNone(exact.json()["analysis"])
+
+    def test_profile_revision_during_fetch_blocks_result_persistence(self):
+        queued = self._queue("t08-profile-change-during-fetch")
+
+        result = self._run_review(
+            queued["operation_id"],
+            on_fetch=lambda: self._profile_revision("Synthetic profile changed during fetch"),
+        )
+
+        self.assertEqual(result["status"], "DEAD_LETTERED")
+        self.assertEqual(self._operation(queued["operation_id"])["error"],
+                         "FORM_REVIEW_INPUT_STALE")
+        exact = self.client.get(self._path() + "/t08-profile-change-during-fetch")
+        self.assertEqual(exact.status_code, 200, exact.text)
+        self.assertEqual(exact.json()["error_code"], "FORM_REVIEW_INPUT_STALE")
+        self.assertIsNone(exact.json()["analysis"])
 
 
 if __name__ == "__main__":
