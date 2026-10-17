@@ -12,6 +12,9 @@ FIXTURE = """<!doctype html><form>
  data-workday-conditional="false" data-workday-repeatable="false">
  <option>Choose</option><option>Canada</option></select>
 <div id="dependent"></div><div id="rows"></div>
+<div id="optional" style="display:none"><label for="note">Optional note</label>
+<input id="note" name="note" data-workday-conditional="false"
+ data-workday-repeatable="false"></div>
 <button type="button" id="add">Add experience</button>
 </form><script>
 document.querySelector('#country').addEventListener('change', () => {
@@ -59,7 +62,21 @@ class FleetT02WorkdayDynamicDOMTests(unittest.TestCase):
                 answered = project_workday_dynamic_review(adapter.analyze_page(page))
                 self.assertEqual(answered, repeated)
                 self.assertNotIn("PRIVATE_BROWSER_APPLICANT", str(answered))
+                page.locator("#region").evaluate(
+                    "field => field.replaceChildren(new Option('Texas'), new Option('Utah'))")
+                choices_changed = project_workday_dynamic_review(adapter.analyze_page(page))
+                self.assertNotEqual(choices_changed["fingerprint"], answered["fingerprint"])
+                self.assertNotIn("note", {field["id"] for field in choices_changed["fields"]})
+                page.locator("#optional").evaluate("node => node.style.display = 'block'")
+                revealed = project_workday_dynamic_review(adapter.analyze_page(page))
+                self.assertIn("note", {field["id"] for field in revealed["fields"]})
+                self.assertNotEqual(revealed["fingerprint"], choices_changed["fingerprint"])
                 self.assertFalse(adapter.capabilities()["submission"])
                 self.assertFalse(adapter.capabilities()["live_form_interaction"])
+                page.locator("body").evaluate(
+                    "body => body.insertAdjacentHTML('beforeend', '<div id=recaptcha></div>')")
+                challenged = adapter.analyze_page(page)
+                self.assertIsNone(project_workday_dynamic_review(challenged))
+                self.assertEqual(challenged["status"], "UNKNOWN")
             finally:
                 browser.close()
