@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T07:53:39.263226+00:00",
+  "requirement_ids": [
+    "MJ-REQ-015",
+    "MJ-REQ-018",
+    "MJ-REQ-084"
+  ],
+  "requirement_results": {
+    "MJ-REQ-015": "PARTIAL",
+    "MJ-REQ-018": "PARTIAL",
+    "MJ-REQ-084": "PARTIAL"
+  },
+  "recording_status": "BRANCH_EVIDENCE_UPDATE_FOR_ALREADY_PROTECTED_MERGED_SOURCE",
+  "scope": "Merged-state saved-filter validation, persisted source-strategy binding, and canonical-employer route/ATS knowledge evidence only. No whole-parent promotion, full detector/strategy breadth, P0 relabel, or MJ-REQ-001 credit.",
+  "delivery": {
+    "pr": 718,
+    "url": "https://github.com/MulattoTech/MJobs/pull/718",
+    "head": "c794d70c7234566f832834fb99f0e29246d51abb",
+    "protected_merge": "a7b337536a6251a055b722f883f8b0e515e7f134",
+    "merged_at_utc": "2026-10-17T07:52:06Z",
+    "head_tree": "924a4fce740fed2d4e683a1965292ede2012144e",
+    "merge_tree_equals_head": true,
+    "native_static_review": 5556875711,
+    "hosted": {
+      "revision": "c794d70c7234566f832834fb99f0e29246d51abb",
+      "result": "15/15 SUCCESS",
+      "workflow_runs": [
+        39014557967,
+        39014559627,
+        39014559763,
+        39014559777,
+        39014559848,
+        39014559855
+      ]
+    }
+  },
+  "executed": [
+    {
+      "revision": "c794d70c7234566f832834fb99f0e29246d51abb",
+      "command": "python -m pytest -q --tb=short tests/browser/test_saved_search_filters.py::SavedSearchFiltersBrowserTests::test_saved_filters_restore_controls_results_and_clear_with_profile_isolation",
+      "result": "1 passed in 10.54s; synthetic saved-filter UI, persistence/reload/profile-isolation; source/build hash equality and owned cleanup verified"
+    },
+    {
+      "revision": "c794d70c7234566f832834fb99f0e29246d51abb",
+      "command": "independent reviewed commit_provenance --strict over 753b9028..c794d70c, source/base/build and append-scope audit",
+      "result": "16/16 PASS; all original browser assertions retained; fixture-only dates append"
+    }
+  ],
+  "prior_input_scoped_evidence": [
+    {
+      "revision": "cfe61638c43b849ea6f250f0c32a5af550c31aef",
+      "command": "python -m pytest -q --tb=short tests/integration/test_fleet_t19_search_recovery.py tests/integration/test_fleet_t19_search_settings.py tests/integration/test_fleet_t15_employer_routes.py tests/integration/test_fleet_t15_provider_identity.py tests/integration/test_scoring_profiles_api.py tests/integration/test_source_policy_scheduler.py tests/integration/test_prefilter_search_profile_contract.py tests/integration/test_application_route_trust.py tests/integration/test_job_route_provenance.py tests/integration/test_application_knowledge.py tests/integration/test_company_feed_quality.py tests/integration/test_application_link_evidence.py tests/integration/test_job_lifecycle.py tests/integration/test_discovery_requests.py tests/integration/test_reviewed_employer_identity_continuity.py tests/unit/test_application_routes.py tests/integration/test_source_value_integrity.py tests/integration/test_source_value_resolution.py tests/integration/test_application_capability_filter.py",
+      "result": "122 passed, 26 subtests passed in 79.73s",
+      "scope": "Four approved production blobs unchanged in final head; prior protected-base callers differ, not final-head re-execution."
+    },
+    {
+      "revision": "ca65d74a9f8f2d2e46fff34a5fdf90f4c73e0808",
+      "command": "python -m pytest -q --tb=short tests/integration/test_fleet_t19_search_recovery.py tests/integration/test_fleet_t19_search_settings.py tests/integration/test_fleet_t15_employer_routes.py tests/integration/test_fleet_t15_provider_identity.py tests/integration/test_application_knowledge.py tests/integration/test_application_capability_filter.py tests/integration/test_fleet_t08_provider_identity.py tests/integration/test_fleet_t08_review_capabilities.py",
+      "result": "61 passed, 4 subtests passed in 70.70s",
+      "scope": "Production/API/build inputs unchanged by final fixture-only append; not final-head Python re-execution."
+    }
+  ],
+  "browser_failure_and_retained_controls": {
+    "revision": "ca65d74a9f8f2d2e46fff34a5fdf90f4c73e0808",
+    "command": "python -m pytest -q --tb=short tests/browser/test_saved_search_filters.py tests/browser/test_application_capability_filter.py tests/browser/test_application_knowledge_display.py",
+    "result": "1 failed, 2 passed in 17.76s",
+    "failure": "Saved-filter positive fixture hardcoded October7, correctly excluded by seven-day window on October17. One UTC anchor with recent -1 day and old -60 days repairs fixture; no production guard change or assertion weakening.",
+    "qualified_passes": "Capability-filter and persisted-knowledge browser cases passed at ca65 on unchanged relevant source/build inputs; not rerun or claimed as final-head browser executions."
+  },
+  "remaining_not_run": [
+    "Full MJ-REQ-015 domain-model acceptance",
+    "Full MJ-REQ-018 source-strategy ordering and live provider breadth",
+    "Full MJ-REQ-084 ATS knowledge/application acceptance",
+    "Live employer authentication/submission; external submission remains OFF"
+  ],
+  "priorities_unchanged": {
+    "MJ-REQ-015": "P1",
+    "MJ-REQ-018": "P1",
+    "MJ-REQ-084": "P2"
+  }
+}

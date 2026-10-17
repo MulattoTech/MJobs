@@ -241,9 +241,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
-        "docs/evidence/2026-10-05-core-workflow-trial-combined.json"
+        "docs/evidence/2026-10-05-core-workflow-trial-combined.json",
+        "docs/evidence/2026-10-17-merged-saved-filter-employer-identity.json"
       ],
-      "note": "Connected synthetic resume import/review, deliberate approval and persisted workflow journey pass locally; exact final-head hosted reports remain pending. Broader acceptance remains PARTIAL.",
+      "note": "Connected synthetic resume import/review, deliberate approval and persisted workflow journey pass locally; exact final-head hosted reports remain pending. Broader acceptance remains PARTIAL. Protected merged PR718 (c794d70c -> a7b33753) adds locked merged-state saved-filter partial-update validation with explicit null clearing, owner isolation and rollback; scoped public/UI/reopen evidence is recorded in docs/evidence/2026-10-17-merged-saved-filter-employer-identity.json. Full domain-model acceptance remains PARTIAL.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -284,9 +285,10 @@
         "docs/evidence/2026-09-30-source-adapter-foundation.json",
         "docs/evidence/2026-09-30-ci-429.json",
         "docs/evidence/2026-10-11-six-team-integration.json",
-        "docs/evidence/2026-10-15-verified-delivery-closeout.json"
+        "docs/evidence/2026-10-15-verified-delivery-closeout.json",
+        "docs/evidence/2026-10-17-merged-saved-filter-employer-identity.json"
       ],
-      "note": "Historical checkpoint: Four supported adapters expose bounded collection policies through the API/UI. HTML source structure and raw provenance survive document preparation. Greenhouse live read-only collection/preparation verified; other provider live evidence and broader strategy ladder remain incomplete. Current verified campaign closeout: Current campaign PR665 verifies strict canonical Remotive HTTPS origin/default port, invalid/lookalike/userinfo refusal, raw job preservation, durable collection/API/readback and rendered link safety. PUBLIC_JSON and MANUAL_ONLY preserved; broader strategy-ladder parent remains PARTIAL, no whole-parent approval or live-provider run claimed.",
+      "note": "Historical checkpoint: Four supported adapters expose bounded collection policies through the API/UI. HTML source structure and raw provenance survive document preparation. Greenhouse live read-only collection/preparation verified; other provider live evidence and broader strategy ladder remain incomplete. Current verified campaign closeout: Current campaign PR665 verifies strict canonical Remotive HTTPS origin/default port, invalid/lookalike/userinfo refusal, raw job preservation, durable collection/API/readback and rendered link safety. PUBLIC_JSON and MANUAL_ONLY preserved; broader strategy-ladder parent remains PARTIAL, no whole-parent approval or live-provider run claimed. Protected merged PR718 (c794d70c -> a7b33753) binds feed imports to persisted collection strategy initially and under lock, preserving disabled-source deliberate one-time import; exact employer-bound route evidence and qualified local/hosted checks are recorded in docs/evidence/2026-10-17-merged-saved-filter-employer-identity.json. Full source-strategy ladder and live provider breadth remain PARTIAL.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -1028,9 +1030,10 @@
       "requirement_id": "MJ-REQ-084",
       "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-09-application-ats-knowledge-ui.json"
+        "docs/evidence/2026-10-09-application-ats-knowledge-ui.json",
+        "docs/evidence/2026-10-17-merged-saved-filter-employer-identity.json"
       ],
-      "note": "Prepared application details reuse persisted company ATS discovery and exact route identity to show provider, tenant, evidence basis, and actual application-adapter capability. Company-level evidence is explicitly distinguished from a verified application URL; ambiguous identities do not select an adapter. No network rediscovery occurs. Evidence: docs/evidence/2026-10-09-application-ats-knowledge-ui.json. Greenhouse is correctly classified as unsupported for application automation, so manual preparation remains necessary; external submission, hosted checks, PostgreSQL, and live ATS verification are NOT_RUN. Full MJ-REQ-084 remains PARTIAL.",
+      "note": "Prepared application details reuse persisted company ATS discovery and exact route identity to show provider, tenant, evidence basis, and actual application-adapter capability. Company-level evidence is explicitly distinguished from a verified application URL; ambiguous identities do not select an adapter. No network rediscovery occurs. Evidence: docs/evidence/2026-10-09-application-ats-knowledge-ui.json. Greenhouse is correctly classified as unsupported for application automation, so manual preparation remains necessary; external submission, hosted checks, PostgreSQL, and live ATS verification are NOT_RUN. Full MJ-REQ-084 remains PARTIAL. Protected merged PR718 (c794d70c -> a7b33753) rejects route/ATS knowledge from a different canonical job employer; persisted same-employer knowledge UI/readback and unchanged-input evidence are recorded in docs/evidence/2026-10-17-merged-saved-filter-employer-identity.json. No broader detector or application automation acceptance is inferred; PARTIAL unchanged.",
       "priority": "P2",
       "area": "company_ats_discovery",
       "category": "major-feature"

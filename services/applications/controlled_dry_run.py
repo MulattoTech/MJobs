@@ -11,11 +11,15 @@ from pathlib import Path
 
 from sqlalchemy import select
 
+from packages.domain.operation_mode import WorkspaceModeError
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.applications.form_review_providers import normalize_application_route
 from services.applications.rehearsal import build_rehearsal, RehearsalError
-from services.applications.rehearsal_store import get_application_rehearsal
+from services.applications.rehearsal_store import (
+    RehearsalStoreError, get_application_rehearsal,
+    record_controlled_admission, require_controlled_execution,
+)
 from services.applications.supporting_documents import read_selected_files, list_selection
 from services.applications.upload_integrity import (
     attach_verified_files, snapshot_prepared, snapshot_supporting, MAX_TOTAL_BYTES,
@@ -35,7 +39,7 @@ class ControlledDryRunError(ValueError):
 
 
 def template(provider):
-    if provider not in {"greenhouse", "lever"}:
+    if provider not in {"greenhouse", "lever", "workday"}:
         raise ControlledDryRunError("CONTROLLED_DRY_RUN_ROUTE_UNSUPPORTED")
     # No scripts, external resources, form action, or submit control. This is a
     # versioned product fixture, not a reconstruction of a public ATS form.
@@ -76,6 +80,12 @@ def preview(store, profile_id, application_id):
         raise ControlledDryRunError("APPLICATION_NOT_FOUND")
     if normalize_application_route(route["provider"], route["url"]) is None:
         raise ControlledDryRunError("CONTROLLED_DRY_RUN_ROUTE_UNSUPPORTED")
+    if route["provider"] == "workday":
+        # Workday support here is only the versioned local product fixture.
+        try:
+            store.assert_workspace_mode("FIXTURE")
+        except (ValueError, WorkspaceModeError):
+            raise ControlledDryRunError("CONTROLLED_DRY_RUN_FIXTURE_ONLY") from None
     fixture = template(route["provider"])
     result = build_rehearsal(store, profile_id, application_id, _controlled=fixture)
     selection = list_selection(store, profile_id, application_id, _controlled_fixture=True)
@@ -127,6 +137,27 @@ def _run_filters(profile_id, application_id):
             m.operations.c.params['profile_id'].as_string() == profile_id)
 
 
+def _controlled_store_error(error):
+    codes = {
+        "CONTROLLED_REHEARSAL_PAUSED": "CONTROLLED_DRY_RUN_PAUSED",
+        "CONTROLLED_DAILY_LIMIT_REACHED": "CONTROLLED_DRY_RUN_DAILY_LIMIT_REACHED",
+        "CONTROLLED_ADMISSION_REQUIRED": "CONTROLLED_DRY_RUN_ADMISSION_REQUIRED",
+    }
+    return ControlledDryRunError(codes.get(error.code, error.code))
+
+
+def _execution_check(store, profile_id, application_id, operation_id, check):
+    """Fence each execution checkpoint against durable pause/admission controls."""
+    check()
+    try:
+        with store.engine.begin() as connection:
+            require_controlled_execution(
+                connection, profile_id, application_id, operation_id,
+            )
+    except RehearsalStoreError as error:
+        raise _controlled_store_error(error) from None
+
+
 def queue(store, profile_id, application_id, request_id, fingerprint, *, retry_of=None):
     with store.engine.begin() as connection:
         lock_scope(connection, profile_id, application_id)
@@ -162,6 +193,12 @@ def queue(store, profile_id, application_id, request_id, fingerprint, *, retry_o
             elif any(row['params'].get('fingerprint') == fingerprint for row in prior_runs):
                 raise ControlledDryRunError('CONTROLLED_DRY_RUN_RETRY_REVIEW_REQUIRED')
             operation_id = enqueue_operation(store, KIND, application_id, params, connection=connection)
+            try:
+                record_controlled_admission(
+                    connection, profile_id, application_id, operation_id,
+                )
+            except RehearsalStoreError as error:
+                raise _controlled_store_error(error) from None
             state = "QUEUED"
     return {"operation_id": operation_id, "request_id": request_id, "state": state}
 
@@ -201,7 +238,8 @@ def read_run(store, profile_id, application_id, request_id=None):
             "receipt": receipt, "error_code": row["error"] if row["error"] in {
                 "CONTROLLED_DRY_RUN_STALE", "CONTROLLED_DRY_RUN_REVIEW_REQUIRED",
                 "CONTROLLED_DRY_RUN_DOCUMENT_CHANGED", "CONTROLLED_DRY_RUN_BROWSER_FAILED",
-                "CANCEL_REQUESTED", "OPERATION_TIMEOUT",
+                "CONTROLLED_DRY_RUN_PAUSED", "CONTROLLED_DRY_RUN_DAILY_LIMIT_REACHED",
+                "CONTROLLED_DRY_RUN_ADMISSION_REQUIRED", "CANCEL_REQUESTED", "OPERATION_TIMEOUT",
             } else None}
 
 
@@ -345,13 +383,34 @@ def execute(store, output_dir, operation, *, check):
     if receipt is not None:
         return receipt
     try:
+        execution_check = lambda: _execution_check(
+            store, params["profile_id"], params["application_id"],
+            operation["id"], check,
+        )
+        if hasattr(check, "remaining_seconds"):
+            execution_check.remaining_seconds = check.remaining_seconds
+        execution_check()
         current = _current(store, params["profile_id"], params["application_id"], params["fingerprint"])
         if any(params.get(key) != current.get(key) for key in (
                 "profile_version", "route_id", "provider", "template_id", "template_sha256",
                 "documents", "supporting_documents", "pages")):
             raise ControlledDryRunError("CONTROLLED_DRY_RUN_STALE")
         prepared, supporting = _snapshots(store, output_dir, current)
-        browser_result = run_browser(current, prepared, supporting, check=check)
+        execution_check()
+        preflight_manifest = None
+        if current["provider"] == "workday":
+            from services.applications.adapters.workday_uploads import preflight_workday_uploads
+            preflight_manifest = preflight_workday_uploads([
+                {"kind": field["key"].replace("_", "-"),
+                 "required": field["required"], "ambiguous": False}
+                for field in current["fields"]
+                if field["type"] == "file" and field["key"] != "supporting_documents"
+            ], prepared)
+        execution_check()
+        browser_result = run_browser(current, prepared, supporting, check=execution_check)
+        if (preflight_manifest is not None
+                and browser_result["documents"][:len(preflight_manifest)] != preflight_manifest):
+            raise ControlledDryRunError("CONTROLLED_DRY_RUN_DOCUMENT_CHANGED")
     except (ControlledDryRunError, OperationCancelled, OperationTimedOut):
         raise
     except RehearsalError:
@@ -361,7 +420,7 @@ def execute(store, output_dir, operation, *, check):
     except Exception:
         check()
         raise ControlledDryRunError("CONTROLLED_DRY_RUN_BROWSER_FAILED") from None
-    check()
+    execution_check()
     payload = {"operation_id": operation["id"], "profile_id": params["profile_id"],
                "application_id": params["application_id"], "fingerprint": params["fingerprint"],
                "context": CONTEXT, "template_id": current["template_id"],
@@ -372,6 +431,13 @@ def execute(store, output_dir, operation, *, check):
     with store.engine.begin() as connection:
         lock_scope(connection, params["profile_id"], params["application_id"])
         _current(store, params["profile_id"], params["application_id"], params["fingerprint"])
+        try:
+            require_controlled_execution(
+                connection, params["profile_id"], params["application_id"],
+                operation["id"],
+            )
+        except RehearsalStoreError as error:
+            raise _controlled_store_error(error) from None
         row = connection.execute(select(m.operations).where(m.operations.c.id == operation["id"])
                                  .with_for_update()).mappings().one()
         if (row["state"] != "RUNNING" or row["kind"] != KIND or row["params"] != params
