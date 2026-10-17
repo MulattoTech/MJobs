@@ -42,6 +42,13 @@ def is_admitted_disposable_redis_target(url):
         database = parsed.path.strip("/")
         if parsed.scheme not in {"redis", "rediss"} or not host or not database.isdigit():
             return False
+        if (parsed.username is not None or parsed.password is not None
+                or parsed.query or parsed.fragment):
+            return False
+        if parsed.netloc.rsplit("@", 1)[-1].endswith(":"):
+            return False
+        if parsed.port is not None and not 1 <= parsed.port <= 65535:
+            return False
         if int(database) < 1:
             return False
         if host.lower() == "localhost":
@@ -60,7 +67,11 @@ class FleetT11SqliteDispatcherRecoveryTests(unittest.TestCase):
         for unsafe in (
                 "redis://example.com:6379/1", "redis://192.0.2.8:6379/1",
                 "redis://127.0.0.1:6379/0", "redis://127.0.0.1:6379/",
-                "http://127.0.0.1:6379/1"):
+                "http://127.0.0.1:6379/1", "redis://user@127.0.0.1:6379/1",
+                "redis://:secret@127.0.0.1:6379/1", "redis://127.0.0.1:6379/1?ssl=true",
+                "redis://127.0.0.1:6379/1#fragment", "redis://127.0.0.1:bad/1",
+                "redis://127.0.0.1:/1", "redis://127.0.0.1:0/1",
+                "redis://127.0.0.1:65536/1"):
             with self.subTest(url=unsafe):
                 self.assertFalse(is_admitted_disposable_redis_target(unsafe))
 
@@ -207,38 +218,29 @@ class FleetT11SqlitePublicFlowTests(unittest.TestCase):
                 patch("workers.tasks.discover", side_effect=synthetic_discover):
             interrupted = execute_operation(operation_id)
             first_readback = client.get(f"/operations/{operation_id}").json()
-            observed_status = interrupted["status"]
-            observed_state = first_readback["state"]
-
-            # Keep exercising restart recovery on the current red source by
-            # restoring the lease-expired RUNNING checkpoint this worker
-            # should have left behind. Assertions below retain the original
-            # observation, so this setup cannot hide the failing guard.
-            if observed_status != "OWNERSHIP_EXPIRED":
-                with self.store.engine.begin() as connection:
-                    connection.execute(update(m.operations).where(
-                        m.operations.c.id == operation_id).values(
-                            state="RUNNING", completed_at=None,
-                            lease_expires_at="2000-01-01T00:00:00+00:00"))
+            self.assertEqual(interrupted["status"], "OWNERSHIP_EXPIRED")
+            self.assertEqual(first_readback["state"], "RUNNING")
 
             # A new Store simulates API/worker process restart. Recovery leaves
             # the durable operation retryable, and the second synthetic worker
             # completes it without Redis, PostgreSQL, or provider traffic.
-            self.store.engine.dispose()
             reopened = Store(self.database_url)
+            reopened_app = create_app(
+                reopened, "http://127.0.0.1:8090", self.directory.name,
+                operation_mode="FIXTURE")
             try:
-                self.assertEqual(recover_expired(reopened), 1)
-                self.assertEqual(client.get(f"/operations/{operation_id}").json()["state"], "QUEUED")
-                resumed = execute_operation(operation_id)
-                self.assertEqual(resumed["status"], "COMPLETED")
-                final = client.get(f"/operations/{operation_id}").json()
-                self.assertEqual(final["state"], "COMPLETED")
-                self.assertEqual(final["attempt_count"], 2)
-                self.assertEqual(reopened.count("worker_operations"), 1)
+                with TestClient(reopened_app) as restarted_client:
+                    self.assertEqual(recover_expired(reopened), 1)
+                    self.assertEqual(restarted_client.get(
+                        f"/operations/{operation_id}").json()["state"], "QUEUED")
+                    resumed = execute_operation(operation_id)
+                    self.assertEqual(resumed["status"], "COMPLETED")
+                    final = restarted_client.get(f"/operations/{operation_id}").json()
+                    self.assertEqual(final["state"], "COMPLETED")
+                    self.assertEqual(final["attempt_count"], 2)
+                    self.assertEqual(reopened.count("worker_operations"), 1)
             finally:
                 reopened.engine.dispose()
-        self.assertEqual(observed_status, "OWNERSHIP_EXPIRED")
-        self.assertEqual(observed_state, "RUNNING")
 
     def test_public_cancel_control_prevents_worker_execution(self):
         client = self.client()
