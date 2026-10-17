@@ -2,7 +2,8 @@
 
 Usage: python -m tools.verification.commit_provenance [--commit HEAD] [--strict]
 Human commits without AI-Agent are exempt by default; --strict checks all
-source commits and is appropriate for AI-only PRs.
+source commits and is appropriate for AI-only PRs. AI markers anywhere in the
+body require validation, but only Git's final trailer block supplies metadata.
 """
 from __future__ import annotations
 
@@ -36,14 +37,22 @@ def validate(root:Path,commit:str,*,strict:bool=False)->tuple[bool,str]:
         return True,"PASS: no source-code changes in this commit"
     body=git(root,"show","-s","--format=%B",commit)
     author=git(root,"show","-s","--format=%an",commit).strip()
-    trailers={}
-    for key in KEYS:
-        match=re.findall(rf"(?im)^{re.escape(key)}:\s*(\S.*?)\s*$",body)
-        if match: trailers[key]=match[-1].strip()
-    is_ai=bool("AI-Agent" in trailers or
+    # A misplaced body marker must not turn an AI change into a human exemption.
+    is_ai=bool(re.search(r"(?im)^AI-Agent:",body) or
                any(word in author.lower() for word in AGENT_NAMES))
     if not is_ai and not strict:
         return True,"SKIP: human-authored source commit; AI trailers not required"
+    # Git owns trailer boundaries and continuation semantics. Searching the whole
+    # message incorrectly accepts separated paragraphs in squash commit bodies.
+    parsed=subprocess.run(["git","-C",str(root),"interpret-trailers","--parse"],
+                          input=body,capture_output=True,text=True,encoding="utf-8",
+                          errors="replace",check=False)
+    if parsed.returncode:
+        raise RuntimeError("Git could not parse commit trailers")
+    trailers={}
+    for key in KEYS:
+        match=re.findall(rf"(?im)^{re.escape(key)}:[ \t]*(.*)$",parsed.stdout)
+        if match: trailers[key]=match[-1].strip()
     missing=[key for key in KEYS if not trailers.get(key)]
     if missing:
         return False,"FAIL: missing commit trailers: "+", ".join(missing)
