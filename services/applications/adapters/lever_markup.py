@@ -167,6 +167,8 @@ class _StaticFormParser(HTMLParser):
             self.option_index = None
         elif tag == "select":
             self.select_index = None
+            # HTML permits the final option end tag to be omitted.
+            self.option_index = None
         elif tag == "label" and self.label_stack:
             label = self.label_stack.pop()
             text = " ".join("".join(label["text"]).split())
@@ -218,7 +220,11 @@ def analyze_lever_markup(source) -> dict:
             controls = parser.finish()
         except Exception:
             return _unknown("MARKUP_PARSE_FAILED")
-        if parser.invalid_attributes:
+        # HTMLParser tolerates end-of-input inside a form or prompt. Such a
+        # partial response cannot establish that every question was inspected.
+        if (parser.invalid_attributes or parser.active_form or parser.label_stack
+                or parser.ignored_stack or parser.select_index is not None
+                or parser.option_index is not None):
             return _unknown("MARKUP_PARSE_FAILED")
         if parser.form_count == 0:
             return _unknown("NO_FORM")
