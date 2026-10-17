@@ -3,12 +3,16 @@ from copy import deepcopy
 from unittest.mock import patch
 
 import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.applications import mock_adapter
 from services.applications.preflight import latest_preflight
-from services.discovery.pipeline import discover
+from services.discovery.pipeline import MockClient, discover
 from services.documents.answers import save_answer_confidence_policy
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -125,3 +129,34 @@ def test_policy_failure_or_change_blocks_browser_admission(worker_workspace, fai
     assert "SYNTHETIC_PRIVATE_ERROR" not in str(stored)
     if "before_browser" not in failure:
         assert store.count("application_attempts") == 0
+
+
+def test_public_profile_api_numeric_confidence_reaches_passed_worker_preflight(worker_workspace):
+    store, origin, root, profile = worker_workspace
+    with TestClient(create_app(store, origin, root, operation_mode="FIXTURE")) as client:
+        saved = client.put("/profiles", json=profile)
+        assert saved.status_code == 200, saved.text
+        persisted = client.get("/profiles/fixture").json()
+        assert type(persisted["answers"][0]["confidence"]) is float
+        assert persisted["answers"][0]["confidence"] == 100.0
+        assert persisted["answers"][0]["user_approved"] is True
+
+        discover(store, origin, "fixture")
+        job = next(row for row in store.jobs() if row["requisition"] == "B")
+        application_id = prepare(store, job["id"], "fixture", root)
+        application = store.application(application_id)
+        with store.engine.connect() as connection:
+            route = dict(connection.execute(select(m.routes).where(
+                m.routes.c.id == application["route_id"])).mappings().one())
+        source = store.profile("fixture")
+        mock_client = MockClient(origin)
+        try:
+            with patch.object(mock_adapter, "_read_questionnaire", return_value=metadata()):
+                result = mock_adapter._preflight(
+                    store, application, route, source, {"resume", "cover-letter"}, mock_client)
+            assert result["result"] == "PASS"
+            readback = latest_preflight(store, application_id)
+            assert readback["answer_review"][0]["review_required"] is False
+            assert readback["answer_review"][0]["reason"] is None
+        finally:
+            mock_client.close()

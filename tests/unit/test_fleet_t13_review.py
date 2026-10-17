@@ -99,3 +99,25 @@ def test_invalid_or_unrelated_resume_binding_requires_review(fingerprint):
     result = assess_answer_review(QUESTION, [saved()], expected_fingerprint=fingerprint)
     assert result["reason"] == "CHANGED_ANSWER"
     assert result["matches"] == []
+
+
+@pytest.mark.parametrize("confidence", [100.0, 99.5, 80.0])
+def test_finite_public_api_confidence_is_reusable(confidence):
+    result = assess_answer_review(QUESTION, [{**saved(), "confidence": confidence}])
+    assert result["review_required"] is False
+    assert [match["answer_id"] for match in result["matches"]] == ["weekends"]
+
+
+@pytest.mark.parametrize("confidence", [True, False, float("nan"), float("inf"), -float("inf")])
+def test_boolean_and_nonfinite_confidence_cannot_supply_answers(confidence):
+    result = assess_answer_review(QUESTION, [{**saved(), "confidence": confidence}])
+    assert result["review_required"] is True
+    assert result["matches"] == []
+
+
+def test_changed_finite_float_confidence_invalidates_review_binding():
+    pending = assess_answer_review(QUESTION, [{**saved(), "confidence": 99.5}])
+    resumed = assess_answer_review(QUESTION, [{**saved(), "confidence": 98.5}],
+                                   expected_fingerprint=pending["fingerprint"])
+    assert resumed["reason"] == "CHANGED_ANSWER"
+    assert resumed["matches"] == []
