@@ -143,7 +143,7 @@ def test_public_company_discovery_intent_survives_queue_outage_and_replay():
                 store.engine.dispose()
 
 
-def test_form_review_survives_full_restart_with_safe_exact_and_latest_readback(tmp_path, request):
+def test_form_review_survives_store_and_app_reopen_with_safe_exact_and_latest_readback(tmp_path, request):
     root = tmp_path
     database_url, store, application_id, route_url = _form_review_fixture(root)
     request.addfinalizer(store.engine.dispose)
