@@ -102,6 +102,7 @@ class ProfileReadSnapshotTests(unittest.TestCase):
 
         with self.store.read_snapshot() as outer_connection:
             outer_before = self.profile_at(self.store, outer_connection)
+            outer_isolation = outer_connection.get_isolation_level()
             writer_version = self.writer.save_profile(
                 writer_profile, expected_version=self.initial_version)
 
@@ -114,6 +115,7 @@ class ProfileReadSnapshotTests(unittest.TestCase):
                     raise RuntimeError("injected nested snapshot interruption")
 
             outer_after = self.profile_at(self.store, outer_connection)
+            self.assertEqual(outer_connection.get_isolation_level(), outer_isolation)
 
         self.assertEqual(outer_before["version"], self.initial_version)
         self.assertEqual(outer_after, outer_before)
@@ -151,7 +153,10 @@ class ProfileReadSnapshotTests(unittest.TestCase):
         profile = copy.deepcopy(self.profile)
         profile.update(id="t18-memory-snapshot-profile", name="Synthetic memory profile",
                        email="memory@example.test")
-        memory_store.save_profile(profile)
+        version = memory_store.save_profile(profile)
+        # Model the usual profile/access-check read before a later snapshot
+        # request. In-memory SQLite may hand both scopes the same DBAPI handle.
+        self.assertEqual(memory_store.profile(profile["id"])["version"], version)
 
         with memory_store.engine.connect() as outer_connection:
             outer_transaction = outer_connection.begin()
@@ -181,7 +186,10 @@ class ProfileReadSnapshotTests(unittest.TestCase):
                 m.profiles.c.id == profile["id"])).scalar_one(), "Uncommitted outer value")
             outer_transaction.commit()
 
-        self.assertEqual(memory_store.profile(profile["id"])["name"], "Uncommitted outer value")
+        with memory_store.engine.connect() as fresh_connection:
+            persisted_name = fresh_connection.execute(select(m.profiles.c.name).where(
+                m.profiles.c.id == profile["id"])).scalar_one()
+        self.assertEqual(persisted_name, "Uncommitted outer value")
 
 
 if __name__ == "__main__":
