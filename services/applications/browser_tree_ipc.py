@@ -186,15 +186,27 @@ class BrowserTreeObserver:
             except (OSError, ValueError):
                 pass
             finally:
-                for stream in (process.stdin, process.stdout):
-                    if stream is not None:
-                        stream.close()
+                # Keep the read side alive while the observer drains a reply
+                # already in flight. Closing stdout here can turn that reply
+                # into BrokenPipeError before the child consumes our close
+                # request, dropping its retained query before closure persists.
+                if process.stdin is not None:
+                    try:
+                        process.stdin.close()
+                    except OSError:
+                        pass
             try:
                 process.wait(timeout=2)
             except subprocess.TimeoutExpired:
                 # No termination: closing query authority must never kill a
                 # browser, and a lost/blocked observer stays UNKNOWN.
                 pass
+            finally:
+                if process.stdout is not None:
+                    try:
+                        process.stdout.close()
+                    except OSError:
+                        pass
 
 
 def _validate_persistence(value, binding):
