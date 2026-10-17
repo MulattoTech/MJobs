@@ -207,8 +207,13 @@ def start_attempt(store, application, route, documents, *, submit=False, request
                     or operation["cancel_requested"]):
                 raise AttemptConflict("APPLICATION_RUN_IN_PROGRESS")
             params = operation["params"]
-            if (not isinstance(params, dict) or type(params.get("submit")) is not bool
-                    or params["submit"] != submit):
+            if not isinstance(params, dict):
+                raise AttemptConflict("APPLICATION_RUN_INPUT_CHANGED")
+            # The existing worker defaults an omitted legacy mode to dry-run.
+            # Versioned intents must continue to carry an explicit boolean.
+            operation_submit = (params.get("submit", False)
+                                if "run_contract_version" not in params else params.get("submit"))
+            if type(operation_submit) is not bool or operation_submit != submit:
                 raise AttemptConflict("APPLICATION_RUN_INPUT_CHANGED")
             if "run_contract_version" not in params:
                 # Older APPLY_MOCK rows carry only the mode. Keep their existing
