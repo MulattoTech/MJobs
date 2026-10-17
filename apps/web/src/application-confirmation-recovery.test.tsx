@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {checkApplicationConfirmation, ConfirmationCheckResult, type ConfirmationCheck} from './application-confirmation-recovery';
+import {checkApplicationConfirmation, loadLatestApplicationConfirmation, ConfirmationCheckResult, type ConfirmationCheck} from './application-confirmation-recovery';
 
 const result: ConfirmationCheck = {
   profile_id:'fixture', application_id:'app', check_id:'check', status:'CONFIRMED',
@@ -35,6 +35,48 @@ describe('explicit confirmation reconciliation', () => {
     expect(html).toContain('saved result replayed');
     expect(html).toContain('&lt;script&gt;');
     expect(html).not.toContain('<script>');
+  });
+
+  it('shows a read-only unavailable lookup as uncertainty, never as a failed submission', () => {
+    const html = render({status:'CHECK_UNAVAILABLE', lookup_failure_code:'RECEIPT_LOOKUP_TIMEOUT'});
+    expect(html).toContain('Receipt lookup is unavailable');
+    expect(html).toContain('This check did not submit an application');
+    expect(html).toContain('earlier submission remains uncertain');
+    expect(html).not.toContain('Do not blindly resubmit');
+    expect(html).not.toContain('RECEIPT_LOOKUP_TIMEOUT');
+  });
+
+  it('loads durable latest evidence with a read-only GET and accepts an empty history', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json({result:{...result, application_id:'application&b'}}))
+      .mockResolvedValueOnce(Response.json({result:null}));
+
+    await expect(loadLatestApplicationConfirmation('profile/a', 'application&b', fetcher))
+      .resolves.toMatchObject({status:'CONFIRMED'});
+    await expect(loadLatestApplicationConfirmation('profile/a', 'application&b', fetcher)).resolves.toBeNull();
+    expect(fetcher.mock.calls.map(([url, options]) => [url, options?.method, options?.cache])).toEqual([
+      ['/profiles/profile%2Fa/applications/application%26b/confirmation-check/latest', 'GET', 'no-store'],
+      ['/profiles/profile%2Fa/applications/application%26b/confirmation-check/latest', 'GET', 'no-store'],
+    ]);
+  });
+
+  it('rejects latest evidence scoped to another profile or application', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
+      result:{...result, application_id:'another-application'},
+    }));
+
+    await expect(loadLatestApplicationConfirmation('fixture', 'app', fetcher))
+      .rejects.toThrow('Saved receipt evidence could not be loaded. Submission remains uncertain; do not resubmit.');
+  });
+
+  it('accepts a durable unavailable check without exposing its safe failure code', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
+      ...result, status:'CHECK_UNAVAILABLE', lookup_failure_code:'RECEIPT_LOOKUP_TIMEOUT',
+      provider_receipt_verified:false, confirmation_source:'NONE', confirmation:null,
+    }));
+
+    await expect(checkApplicationConfirmation('fixture', 'app', 'stable-check-5', fetcher))
+      .resolves.toMatchObject({status:'CHECK_UNAVAILABLE', lookup_failure_code:'RECEIPT_LOOKUP_TIMEOUT'});
   });
 
   it('reads only the scoped receipt-check endpoint and preserves a missing-confirmation result', async () => {
