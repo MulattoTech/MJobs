@@ -240,6 +240,15 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             ("pointer-events-none-overlay", '<input type="email" aria-label="Email address">'
              '<div class="overlay"></div>',
              ".overlay{position:fixed;inset:0;background:white;z-index:9999;pointer-events:none}", True),
+            ("pointer-none-label-overlay-over-scan-limit",
+             '<label class="prompt" for="email">Email address</label>'
+             '<input class="field" id="email" type="email" '
+             'value="synthetic-private-value"><div class="cover"></div>'
+             + "<i></i>" * 5001,
+             "form{position:relative;height:100px}.prompt{position:absolute;left:10px;"
+             "top:10px;width:300px;height:20px}.field{position:absolute;left:10px;top:40px}"
+             ".cover{position:absolute;left:145px;top:10px;width:30px;height:20px;"
+             "background:white;z-index:10;pointer-events:none}", True),
         )
 
         with sync_playwright() as playwright:
@@ -298,6 +307,72 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                             f"<style>{css}</style><form>{control}</form>"
                         )
                         analysis = self.adapter.analyze_page(page)
+                        if name == "pointer-none-label-overlay-over-scan-limit":
+                            self.assertGreater(
+                                page.locator("*").count(), 5000,
+                            )
+                            self.assertEqual(
+                                page.evaluate(
+                                    """() => {
+                                      const target = selector => {
+                                        const rect = document.querySelector(selector)
+                                          .getBoundingClientRect();
+                                        return document.elementFromPoint(
+                                          rect.left + rect.width / 2,
+                                          rect.top + rect.height / 2
+                                        )?.tagName;
+                                      };
+                                      const label = document.querySelector('label');
+                                      const range = document.createRange();
+                                      range.selectNodeContents(label);
+                                      const textRect = range.getBoundingClientRect();
+                                      const coverRect = document.querySelector('.cover')
+                                        .getBoundingClientRect();
+                                      const textTarget = document.elementFromPoint(
+                                        textRect.left + textRect.width / 2,
+                                        textRect.top + textRect.height / 2
+                                      );
+                                      return {
+                                        label: target('label'),
+                                        input: target('input'),
+                                        text: textTarget?.tagName,
+                                        textCovered: textRect.left < coverRect.right &&
+                                          textRect.right > coverRect.left &&
+                                          textRect.top < coverRect.bottom &&
+                                          textRect.bottom > coverRect.top,
+                                        pointerEvents: getComputedStyle(
+                                          document.querySelector('.cover')
+                                        ).pointerEvents
+                                      };
+                                    }"""
+                                ),
+                                {"label": "LABEL", "input": "INPUT",
+                                 "text": "LABEL", "textCovered": False,
+                                 "pointerEvents": "none"},
+                            )
+                            label_projection = page.locator("form").first.evaluate(
+                                _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                            )
+                            self.assertEqual(
+                                label_projection[0]["rendered_labels"],
+                                [{"canonical_label": None, "has_text": False,
+                                  "visible": False}],
+                            )
+                            control_state = page.locator("form").locator(
+                                "input, select, textarea"
+                            ).evaluate_all(_CONTROL_STATE_SCRIPT)
+                            self.assertIs(control_state[0]["user_visible"], True)
+                            self.assertIs(control_state[0]["hit_test_visible"], False)
+                            self.assertIs(control_state[0]["user_editable"], False)
+                            self.assertEqual(analysis["status"], "UNKNOWN")
+                            self.assertEqual(analysis["fields"], [])
+                            self.assertTrue(
+                                self.adapter.requires_human_review(analysis)
+                            )
+                            self.assertNotIn(
+                                "synthetic-private-value", repr(analysis),
+                            )
+                            continue
                         self.assertEqual(analysis["status"], "PASS")
                         if name == "associated-label":
                             self.assertEqual(
