@@ -12,6 +12,7 @@ from services.applications.adapters.workday_navigation import (
     WORKDAY_STEP_ORDER,
     classify_step,
     decide_transition,
+    workday_route_digest,
     workday_origin,
 )
 
@@ -90,28 +91,55 @@ def _safe_progress(progress, page_order):
 def _normalize_workday_navigation(value):
     if value is None:
         return None
-    if not isinstance(value, dict) or set(value) != {
+    if not isinstance(value, dict) or set(value) - {
             "expected_fingerprint", "current_fingerprint", "visited_fingerprints",
-            "application_origin"}:
+            "application_origin", "route_digest", "workspace_mode", "route_id"} or not {
+                "expected_fingerprint", "current_fingerprint", "visited_fingerprints",
+                "application_origin"}.issubset(value):
         raise MultipageStateError("INVALID_WORKDAY_STATE", "Workday navigation evidence is invalid")
     expected = value["expected_fingerprint"]
     current = value["current_fingerprint"]
     visited = value["visited_fingerprints"]
     application_origin = value["application_origin"]
+    route_digest = value.get("route_digest")
+    workspace_mode = value.get("workspace_mode")
+    route_id = value.get("route_id")
     if (expected is not None and (not isinstance(expected, str) or not _FINGERPRINT.fullmatch(expected))
             or not isinstance(current, str) or not _FINGERPRINT.fullmatch(current)
             or not isinstance(application_origin, str)
             or workday_origin(application_origin) != application_origin
+            or (route_digest is not None and (not isinstance(route_digest, str)
+                                              or not _FINGERPRINT.fullmatch(route_digest)))
+            or (workspace_mode is not None and workspace_mode not in {"FIXTURE", "PERSONAL"})
+            or (workspace_mode is not None and route_digest is None)
+            or (route_id is not None and (not isinstance(route_id, str) or not _PAGE_ID.fullmatch(route_id)))
             or not isinstance(visited, list) or not 1 <= len(visited) <= MAX_PAGES
             or any(not isinstance(item, str) or not _FINGERPRINT.fullmatch(item) for item in visited)
             or len(set(visited)) != len(visited) or visited[-1] != current):
         raise MultipageStateError("INVALID_WORKDAY_STATE", "Workday navigation evidence is invalid")
-    return {
+    normalized = {
         "expected_fingerprint": expected,
         "current_fingerprint": current,
         "visited_fingerprints": list(visited),
         "application_origin": application_origin,
     }
+    if route_digest is not None:
+        normalized["route_digest"] = route_digest
+    if workspace_mode is not None:
+        normalized["workspace_mode"] = workspace_mode
+    if route_id is not None:
+        normalized["route_id"] = route_id
+    return normalized
+
+
+def _workspace_mode(connection):
+    return connection.execute(select(m.workspace_identity.c.operation_mode).where(
+        m.workspace_identity.c.id == "workspace",
+    )).scalar_one_or_none()
+
+
+def _route_digest(url):
+    return workday_route_digest(url)
 
 
 def _normalize_request(payload):
@@ -267,12 +295,34 @@ def _validate_transition(current, request):
         if stored_workday_navigation is not None:
             if workday_navigation is None:
                 raise MultipageStateError("WORKDAY_OBSERVATION_REQUIRED", "Workday navigation requires confirmed observation evidence")
-            if action not in {"NEXT", "PREVIOUS", "REVIEW"}:
+            if action == "SAVE_PROGRESS":
+                if (workday_navigation["expected_fingerprint"]
+                        != stored_workday_navigation["current_fingerprint"]
+                        or workday_navigation["current_fingerprint"]
+                        != stored_workday_navigation["current_fingerprint"]
+                        or workday_navigation["application_origin"]
+                        != stored_workday_navigation.get("application_origin")
+                        or workday_navigation["visited_fingerprints"]
+                        != stored_workday_navigation["visited_fingerprints"]
+                        or workday_navigation.get("route_digest")
+                        != stored_workday_navigation.get("route_digest")
+                        or workday_navigation.get("workspace_mode")
+                        != stored_workday_navigation.get("workspace_mode")
+                        or workday_navigation.get("route_id")
+                        != stored_workday_navigation.get("route_id")):
+                    raise MultipageStateConflict("WORKDAY_OBSERVATION_STALE")
+            elif action not in {"NEXT", "PREVIOUS", "REVIEW"}:
                 raise MultipageStateError("WORKDAY_CONFIRMATION_REQUIRED", "Workday state accepts only confirmed page transitions")
-            if (workday_navigation["expected_fingerprint"]
+            elif (workday_navigation["expected_fingerprint"]
                     != stored_workday_navigation["current_fingerprint"]
                     or workday_navigation["application_origin"]
                     != stored_workday_navigation.get("application_origin")
+                    or workday_navigation.get("route_digest")
+                    != stored_workday_navigation.get("route_digest")
+                    or workday_navigation.get("workspace_mode")
+                    != stored_workday_navigation.get("workspace_mode")
+                    or workday_navigation.get("route_id")
+                    != stored_workday_navigation.get("route_id")
                     or workday_navigation["visited_fingerprints"][:-1]
                     != stored_workday_navigation["visited_fingerprints"]
                     or workday_navigation["current_fingerprint"]
@@ -332,6 +382,9 @@ def _validate_transition(current, request):
             "visited_fingerprints": workday_navigation["visited_fingerprints"],
             "application_origin": workday_navigation["application_origin"],
         }
+        for key in ("route_digest", "workspace_mode", "route_id"):
+            if key in workday_navigation:
+                next_state["workday_navigation"][key] = workday_navigation[key]
     elif current is not None and "workday_navigation" in current["payload"]["state"]:
         next_state["workday_navigation"] = current["payload"]["state"]["workday_navigation"]
     return next_state
@@ -359,8 +412,8 @@ def _persist_multipage_request(store, profile_id: str, application_id: str, requ
         if application["state"] in {"SUBMITTING", "CONFIRMED", "SUBMISSION_UNCONFIRMED"}:
             raise MultipageStateError("APPLICATION_NOT_EDITABLE", "Application page state is no longer editable")
 
-        route = connection.execute(select(m.routes.c.provider, m.routes.c.url).where(
-            m.routes.c.id == application["route_id"])).mappings().one_or_none()
+        route = connection.execute(select(m.routes.c.id, m.routes.c.provider, m.routes.c.url).where(
+            m.routes.c.id == application["route_id"]).with_for_update()).mappings().one_or_none()
         route_provider = route["provider"] if route is not None else None
         is_workday_route = isinstance(route_provider, str) and route_provider.casefold() == "workday"
         workday_navigation = request["workday_navigation"]
@@ -374,6 +427,19 @@ def _persist_multipage_request(store, profile_id: str, application_id: str, requ
         if (workday_navigation is not None
                 and workday_origin(route["url"]) != workday_navigation["application_origin"]):
             raise MultipageStateError("WORKDAY_ROUTE_MISMATCH", "Workday observation does not match the application route")
+        if workday_navigation is not None:
+            if workday_navigation.get("route_id") != route["id"]:
+                raise MultipageStateError("WORKDAY_ROUTE_MISMATCH", "Application route identity changed")
+            database_mode = _workspace_mode(connection)
+            if database_mode != workday_navigation.get("workspace_mode"):
+                code = "WORKSPACE_MODE_UNBOUND" if database_mode is None else "WORKSPACE_MODE_MISMATCH"
+                raise MultipageStateError(code, "Workday checkpoint workspace mode changed")
+            persisted_route_digest = workday_navigation.get("route_digest")
+            current_route_digest = _route_digest(route["url"])
+            if (persisted_route_digest is not None and current_route_digest != persisted_route_digest
+                    or database_mode is not None and (persisted_route_digest is None
+                                                       or current_route_digest is None)):
+                raise MultipageStateError("WORKDAY_ROUTE_MISMATCH", "Workday route identity changed")
 
         retry = connection.execute(select(m.audit).where(
             m.audit.c.id == request_event_id)).mappings().one_or_none()
@@ -402,37 +468,52 @@ def _workday_manual_review(reason):
     return {"decision": "MANUAL_REVIEW", "reason": reason, "state": None}
 
 
-def _workday_application_origin(store, profile_id, application_id):
+def _workday_application_route(store, profile_id, application_id):
     with store.engine.connect() as connection:
-        route = connection.execute(select(m.routes.c.provider, m.routes.c.url).select_from(
+        route = connection.execute(select(m.routes.c.id, m.routes.c.provider, m.routes.c.url).select_from(
             m.applications.join(m.routes, m.applications.c.route_id == m.routes.c.id)).where(
                 m.applications.c.id == application_id,
                 m.applications.c.profile_id == profile_id,
             )).mappings().one_or_none()
     if route is None or str(route["provider"] or "").casefold() != "workday":
         return None
-    return workday_origin(route["url"])
+    return {"route_id": route["id"], "origin": workday_origin(route["url"]),
+            "route_digest": _route_digest(route["url"])}
 
 
 def initialize_workday_multipage_state(store, profile_id: str, application_id: str,
-                                       observation: dict, *, request_id: str) -> dict:
+                                       observation: dict, *, request_id: str,
+                                       progress: dict | None = None) -> dict:
     """Persist a known initial Workday page as a versioned navigation baseline."""
     classified = classify_step(observation)
     if (classified["status"] != "KNOWN" or classified["stale"]
             or classified["step"] != _WORKDAY_PAGE_ORDER[0]):
         return _workday_manual_review("INITIAL_PAGE_NOT_CONFIRMED")
+    with store.engine.connect() as connection:
+        workspace_mode = _workspace_mode(connection)
+    route_digest = _route_digest(observation.get("url") if isinstance(observation, dict) else None)
+    route = _workday_application_route(store, profile_id, application_id)
+    if workspace_mode is not None and route_digest is None:
+        return _workday_manual_review("WORKDAY_ROUTE_IDENTITY_UNAVAILABLE")
+    if route is None or route["origin"] != classified["origin"]:
+        return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
+    if route_digest is not None and route_digest != route["route_digest"]:
+        return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
     request = {
         "request_id": request_id,
         "action": "SAVE_PROGRESS",
         "expected_version": 0,
         "page_id": _WORKDAY_PAGE_ORDER[0],
         "page_order": list(_WORKDAY_PAGE_ORDER),
-        "progress": {},
+        "progress": progress if progress is not None else {},
         "workday_navigation": {
             "expected_fingerprint": None,
             "current_fingerprint": classified["fingerprint"],
             "visited_fingerprints": [classified["fingerprint"]],
             "application_origin": classified["origin"],
+            **({"route_digest": route_digest, "workspace_mode": workspace_mode}
+               if workspace_mode is not None else {}),
+            "route_id": route["route_id"],
         },
     }
     try:
@@ -446,7 +527,7 @@ def initialize_workday_multipage_state(store, profile_id: str, application_id: s
 def transition_workday_multipage_state(store, profile_id: str, application_id: str,
                                         prior_state: dict, previous_observation: dict | None,
                                         current_observation: dict, intended_action: str, *,
-                                        request_id: str) -> dict:
+                                        request_id: str, progress: dict | None = None) -> dict:
     """Persist only confirmed Workday observations through versioned multipage state."""
     if (not isinstance(prior_state, dict)
             or prior_state.get("profile_id") != profile_id
@@ -460,8 +541,22 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
     navigation = prior_state["workday_navigation"]
     current = classify_step(current_observation)
     application_origin = navigation.get("application_origin")
+    with store.engine.connect() as connection:
+        database_mode = _workspace_mode(connection)
+    if database_mode != navigation.get("workspace_mode"):
+        return _workday_manual_review(
+            "WORKSPACE_MODE_UNBOUND" if database_mode is None else "WORKSPACE_MODE_MISMATCH",
+        )
+    route = _workday_application_route(store, profile_id, application_id)
+    current_route_digest = _route_digest(current_observation.get("url")
+                                         if isinstance(current_observation, dict) else None)
+    if (route is None or route["route_id"] != navigation.get("route_id")
+            or route["origin"] != application_origin
+            or (navigation.get("route_digest") is not None
+                and (current_route_digest != navigation.get("route_digest")
+                     or route["route_digest"] != navigation.get("route_digest")))):
+        return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
     if (workday_origin(application_origin) != application_origin
-            or _workday_application_origin(store, profile_id, application_id) != application_origin
             or current.get("origin") != application_origin):
         return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
     confirmed_state = {
@@ -470,6 +565,34 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
         "fingerprint": navigation.get("current_fingerprint"),
         "stale": False,
     }
+    if intended_action == "SAVE_PROGRESS":
+        if current.get("stale"):
+            return {"decision": "REFRESH_AND_RECLASSIFY", "reason": "STALE_OBSERVATION", "state": None}
+        if (current.get("status") != "KNOWN"
+                or current.get("step") != prior_state.get("current_page_id")
+                or current.get("fingerprint") != navigation.get("current_fingerprint")):
+            return _workday_manual_review("DURABLE_STATE_MISMATCH")
+        request = {
+            "request_id": request_id,
+            "action": "SAVE_PROGRESS",
+            "expected_version": prior_state["version"],
+            "page_id": prior_state["current_page_id"],
+            "progress": progress if progress is not None else prior_state.get("progress", {}),
+            "workday_navigation": {
+                "expected_fingerprint": navigation["current_fingerprint"],
+                "current_fingerprint": navigation["current_fingerprint"],
+                "visited_fingerprints": list(navigation["visited_fingerprints"]),
+                "application_origin": application_origin,
+                **({key: navigation[key] for key in ("route_digest", "workspace_mode", "route_id")
+                   if key in navigation}),
+            },
+        }
+        try:
+            state = _persist_multipage_request(store, profile_id, application_id,
+                                               _normalize_request(request))
+        except MultipageStateError as error:
+            return _workday_manual_review(error.code)
+        return {"decision": "CONFIRMED", "reason": "CURRENT_PAGE_CONFIRMED", "state": state}
     if intended_action == "RESUME":
         decision = decide_transition(
             previous_observation, current, intended_action,
@@ -506,12 +629,14 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
         "action": action,
         "expected_version": prior_state["version"],
         "page_id": prior_state["current_page_id"],
-        "progress": prior_state.get("progress", {}),
+        "progress": progress if progress is not None else prior_state.get("progress", {}),
         "workday_navigation": {
             "expected_fingerprint": previous["fingerprint"],
             "current_fingerprint": current["fingerprint"],
             "visited_fingerprints": [*navigation.get("visited_fingerprints", []), current["fingerprint"]],
             "application_origin": application_origin,
+            **({key: navigation[key] for key in ("route_digest", "workspace_mode", "route_id")
+               if key in navigation}),
         },
     }
     if intended_action == "NEXT":
