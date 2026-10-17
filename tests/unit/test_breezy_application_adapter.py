@@ -357,6 +357,17 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                         self.assertTrue(
                             self.adapter.requires_human_review(custom_prompt)
                         )
+                custom_type_text = "Why do you want this job?"
+                page.set_content(
+                    f'<form><input type="{custom_type_text}" '
+                    'aria-label="Email address"></form>'
+                )
+                custom_type = self.adapter.analyze_page(page)
+                self.assertEqual(custom_type["status"], "PASS")
+                self.assertNotIn(custom_type_text, repr(custom_type))
+                self.assertEqual(custom_type["fields"][0]["input_type"], "other")
+                self.assertIs(custom_type["fields"][0]["unrecognized_metadata"], True)
+                self.assertTrue(self.adapter.requires_human_review(custom_type))
                 page.set_content(
                     '<form><select name="reason"><option>'
                     'Why do you want this job? synthetic-private-option</option>'
@@ -365,6 +376,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 custom_option = self.adapter.analyze_page(page)
                 self.assertEqual(custom_option["status"], "PASS")
                 self.assertNotIn("synthetic-private-option", repr(custom_option))
+                self.assertEqual(custom_option["fields"][0]["options"], [])
                 self.assertTrue(self.adapter.requires_human_review(custom_option))
                 page.set_content(
                     '<form><label for="why">Why do you want to work here?</label>'

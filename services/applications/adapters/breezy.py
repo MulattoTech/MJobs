@@ -39,6 +39,26 @@ _CONTACT_IDENTIFIER_ALIASES = {
     "website": "website",
 }
 _SUPPORTED_INPUT_TYPES = {"text", "email", "tel"}
+_SAFE_CONTROL_TAGS = {"input", "select", "textarea"}
+_FORM_ANALYSIS_FIELD_KEYS = {
+    "index", "tag", "labels", "name", "id", "placeholder", "aria_label",
+    "input_type", "nearby_text", "section_heading", "fieldset_legend", "options",
+    "ambiguous", "sensitivity", "user_visible", "user_editable",
+    "unrecognized_metadata",
+}
+_FORM_ANALYSIS_KEYS = {"status", "reason", "fields"}
+_SAFE_ANALYSIS_REASONS = {
+    "AMBIGUOUS_CONTROL_IDENTITY", "INVALID_CONTROL_LIST", "NO_FORM_CONTROLS",
+    "CONTROL_LIMIT_EXCEEDED", "FORBIDDEN_VALUE_METADATA", "INVALID_CONTROL_METADATA",
+    "INVALID_TEXT_METADATA", "INVALID_LABEL_METADATA", "INVALID_OPTION_METADATA",
+    "UNIDENTIFIABLE_CONTROL", "INVALID_QUESTIONNAIRE_METADATA",
+    "QUESTION_LIMIT_EXCEEDED", "NO_QUESTION_METADATA", "INVALID_QUESTION_METADATA",
+    "NO_FORM", "AMBIGUOUS_FORM", "DOM_ANALYSIS_FAILED", "UNSAFE_TEXT_CONTEXT",
+    "INVALID_FIELD_METADATA", "UNRECOGNIZED_RENDERED_LABEL",
+    "NO_VISIBLE_ASSOCIATED_LABEL", "INVALID_FORM_ANALYSIS",
+    "UNSUPPORTED_ANALYSIS_METADATA", "INVALID_ANALYSIS_STATUS",
+    "UNSAFE_ANALYSIS_REASON",
+}
 _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
   const approved = new Set(approvedLabels);
   const hasRenderedText = node => Boolean(node && String(node.textContent || '').trim());
@@ -414,7 +434,7 @@ class BreezyApplicationAdapter:
         if (isinstance(analysis, dict) and analysis.get("status") == "UNKNOWN"
                 and analysis.get("reason") == "UNSAFE_TEXT_CONTEXT"):
             analysis = self._reanalyze_recognized_labels(page, check=check)
-        analysis = self._sanitize_prompt_metadata(analysis)
+        analysis = self._sanitize_analysis_metadata(analysis)
         if (not isinstance(analysis, dict) or analysis.get("status") != "PASS"
                 or not isinstance(analysis.get("fields"), list)
                 or not analysis["fields"]):
@@ -458,33 +478,85 @@ class BreezyApplicationAdapter:
         return analysis
 
     @staticmethod
-    def _sanitize_prompt_metadata(analysis):
-        """Keep raw prompt text out of returned analysis while preserving review signals."""
-        if not isinstance(analysis, dict) or not isinstance(analysis.get("fields"), list):
+    def _sanitize_analysis_metadata(analysis):
+        """Return only canonical field metadata, preserving uncertainty as a flag."""
+        if not isinstance(analysis, dict):
+            return analysis
+        if not isinstance(analysis.get("fields"), list):
+            return {"status": "UNKNOWN", "reason": "INVALID_FORM_ANALYSIS", "fields": []}
+        if any(key not in _FORM_ANALYSIS_KEYS for key in analysis):
+            for key in list(analysis):
+                if key not in _FORM_ANALYSIS_KEYS:
+                    analysis.pop(key)
+            analysis["status"] = "UNKNOWN"
+            analysis["reason"] = "UNSUPPORTED_ANALYSIS_METADATA"
+            analysis["fields"] = []
+            return analysis
+        if analysis.get("status") not in {"PASS", "UNKNOWN"}:
+            analysis["status"] = "UNKNOWN"
+            analysis["reason"] = "INVALID_ANALYSIS_STATUS"
+            analysis["fields"] = []
+            return analysis
+        reason = analysis.get("reason")
+        if reason is not None and reason not in _SAFE_ANALYSIS_REASONS:
+            analysis["status"] = "UNKNOWN"
+            analysis["reason"] = "UNSAFE_ANALYSIS_REASON"
+            analysis["fields"] = []
             return analysis
         for field in analysis["fields"]:
             if not isinstance(field, dict):
                 return {"status": "UNKNOWN", "reason": "INVALID_FIELD_METADATA", "fields": []}
-            has_unrecognized_prompt = False
+            prior_uncertainty = field.get("unrecognized_metadata", False)
+            has_unrecognized_metadata = (
+                any(key not in _FORM_ANALYSIS_FIELD_KEYS for key in field)
+                or type(prior_uncertainty) is not bool
+                or prior_uncertainty
+            )
+            for key in list(field):
+                if key not in _FORM_ANALYSIS_FIELD_KEYS:
+                    field.pop(key)
+            index = field.get("index")
+            if isinstance(index, bool) or not isinstance(index, int) or index < 0:
+                field["index"] = None
+                has_unrecognized_metadata = True
+            tag = field.get("tag")
+            if isinstance(tag, str) and tag.casefold() in _SAFE_CONTROL_TAGS:
+                field["tag"] = tag.casefold()
+            else:
+                field["tag"] = "other"
+                has_unrecognized_metadata = True
+            input_type = field.get("input_type")
+            if isinstance(input_type, str) and input_type.isascii() and (
+                    input_type.casefold() in _SUPPORTED_INPUT_TYPES):
+                field["input_type"] = input_type.casefold()
+            else:
+                field["input_type"] = "other"
+                has_unrecognized_metadata = True
+            if type(field.get("ambiguous")) is not bool:
+                field["ambiguous"] = True
+                has_unrecognized_metadata = True
+            if field.get("sensitivity") not in {"STANDARD", "SENSITIVE", "CREDENTIAL"}:
+                field["sensitivity"] = "UNKNOWN"
+                has_unrecognized_metadata = True
             labels = field.get("labels", [])
             if not isinstance(labels, list):
                 labels = []
-                has_unrecognized_prompt = True
+                has_unrecognized_metadata = True
             safe_labels = []
             for label in labels:
                 canonical = BreezyApplicationAdapter._canonical_contact_prompt(label)
                 if canonical is None:
                     if label is not None and (not isinstance(label, str) or label.strip()):
-                        has_unrecognized_prompt = True
+                        has_unrecognized_metadata = True
                     continue
                 if canonical not in safe_labels:
                     safe_labels.append(canonical)
             field["labels"] = safe_labels
             options = field.get("options", [])
             if options:
-                has_unrecognized_prompt = True
+                has_unrecognized_metadata = True
             elif not isinstance(options, list):
-                has_unrecognized_prompt = True
+                has_unrecognized_metadata = True
             field["options"] = []
             for key in ("placeholder", "aria_label"):
                 value = field.get(key)
@@ -493,7 +565,7 @@ class BreezyApplicationAdapter:
                 canonical = BreezyApplicationAdapter._canonical_contact_prompt(value)
                 if canonical is None:
                     if not isinstance(value, str) or value.strip():
-                        has_unrecognized_prompt = True
+                        has_unrecognized_metadata = True
                     field[key] = None
                 else:
                     field[key] = canonical
@@ -504,11 +576,20 @@ class BreezyApplicationAdapter:
                 canonical = BreezyApplicationAdapter._canonical_contact_identifier(value)
                 if canonical is None:
                     if not isinstance(value, str) or value.strip():
-                        has_unrecognized_prompt = True
+                        has_unrecognized_metadata = True
                     field[key] = None
                 else:
                     field[key] = canonical
-            field["unrecognized_prompt_metadata"] = has_unrecognized_prompt
+            for key in ("nearby_text", "section_heading", "fieldset_legend"):
+                value = field.get(key)
+                if value is not None and (not isinstance(value, str) or value.strip()):
+                    has_unrecognized_metadata = True
+                field[key] = None
+            for key in ("user_visible", "user_editable"):
+                if key in field and type(field[key]) is not bool:
+                    field[key] = False
+                    has_unrecognized_metadata = True
+            field["unrecognized_metadata"] = has_unrecognized_metadata
         return analysis
 
     @staticmethod
@@ -682,7 +763,7 @@ class BreezyApplicationAdapter:
                     or field.get("sensitivity") != "STANDARD"
                     or field.get("user_visible") is not True
                     or field.get("user_editable") is not True
-                    or field.get("unrecognized_prompt_metadata") is True
+                    or field.get("unrecognized_metadata") is True
                     or not isinstance(input_type, str)
                     or input_type.casefold() not in _SUPPORTED_INPUT_TYPES
                     or not BreezyApplicationAdapter._known_contact_prompt(field)):
