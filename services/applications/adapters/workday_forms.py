@@ -458,6 +458,7 @@ class _WorkdayMarkupParser(HTMLParser):
         self.element_stack = []
         self.invalid = False
         self.option_capture = None
+        self.select_control = None
 
     def _record_event(self):
         if self.invalid:
@@ -496,6 +497,17 @@ class _WorkdayMarkupParser(HTMLParser):
         tag = tag.casefold()
         values = self._attrs(attrs)
         self._check_challenge_metadata(values)
+        # HTML permits omitted option/optgroup end tags. Only the active
+        # select's option context can finalize captures; inert content cannot.
+        if (tag in {"option", "optgroup"} and self.select_control is not None
+                and all(item == "optgroup" for item in self.ignored_stack)):
+            self._finish_option()
+            if tag == "optgroup" and self.ignored_stack:
+                self.ignored_stack.pop()
+            for index in range(len(self.element_stack) - 1, -1, -1):
+                if self.element_stack[index][0] in ({"option", "optgroup"} if tag == "optgroup" else {"option"}):
+                    del self.element_stack[index:]
+                    break
         controlled_by = self.element_stack[-1][1] if self.element_stack else None
         element_id = values.get("id")
         if isinstance(element_id, str) and element_id in self.controlled_targets:
@@ -503,13 +515,14 @@ class _WorkdayMarkupParser(HTMLParser):
         if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input",
                        "link", "meta", "param", "source", "track", "wbr"}:
             self.element_stack.append((tag, controlled_by))
-        if tag == "option" and self.active_form and self.controls and self.controls[-1].get("type") == "select":
+        if (tag == "option" and self.active_form and self.select_control is not None
+                and all(item == "optgroup" for item in self.ignored_stack)):
             option_label = values.get("label")
             if isinstance(option_label, str) and len(option_label) > 500:
                 self.invalid = True
                 return
             self.option_capture = {
-                "control": len(self.controls) - 1,
+                "control": self.select_control,
                 "parts": [],
                 "label": option_label,
             }
@@ -578,6 +591,10 @@ class _WorkdayMarkupParser(HTMLParser):
             "labels": [],
             "option_labels": [] if input_type.casefold() == "select" else None,
         })
+        if tag == "select":
+            if self.select_control is not None:
+                self.invalid = True
+            self.select_control = len(self.controls) - 1
         for label in self.label_stack:
             label["index"] = len(self.controls) - 1
 
@@ -596,33 +613,45 @@ class _WorkdayMarkupParser(HTMLParser):
         self.handle_starttag(tag, attrs)
         self.handle_endtag(tag)
 
+    def _finish_option(self):
+        if self.option_capture is None:
+            return
+        capture = self.option_capture
+        source_label = capture["label"] or " ".join(capture["parts"])
+        label = " ".join(source_label.split())
+        option_labels = self.controls[capture["control"]]["option_labels"]
+        if len(label) > 500 or len(option_labels) >= 100:
+            self.invalid = True
+        else:
+            option_labels.append(label)
+        self.option_capture = None
+
     def handle_endtag(self, tag):
         if not self._record_event():
             return
         tag = tag.casefold()
+        option_closed = False
+        if (tag in {"option", "optgroup", "select"} and self.select_control is not None
+                and all(item == "optgroup" for item in self.ignored_stack)):
+            self._finish_option()
+            if tag == "select":
+                self.ignored_stack.clear()
+                self.select_control = None
+            elif tag == "option":
+                option_closed = True
         for index in range(len(self.element_stack) - 1, -1, -1):
             if self.element_stack[index][0] == tag:
                 del self.element_stack[index:]
                 break
+        if option_closed:
+            return
         if self.ignored_stack:
             if tag == self.ignored_stack[-1]:
                 self.ignored_stack.pop()
             return
-        if tag == "option" and self.option_capture is not None:
-            capture = self.option_capture
-            source_label = capture["label"] or " ".join(capture["parts"])
-            label = " ".join(source_label.split())
-            if len(label) > 500:
-                self.invalid = True
-            elif capture["control"] < len(self.controls):
-                option_labels = self.controls[capture["control"]]["option_labels"]
-                if len(option_labels) >= 100:
-                    self.invalid = True
-                else:
-                    option_labels.append(label)
-            self.option_capture = None
-            return
         if tag == "form":
+            if self.select_control is not None:
+                self.invalid = True
             self.active_form = False
         elif tag == "textarea" and self.value_text_depth:
             self.value_text_depth -= 1
@@ -641,6 +670,8 @@ class _WorkdayMarkupParser(HTMLParser):
 
     def handle_data(self, data):
         if not self._record_event() or self.value_text_depth:
+            return
+        if any(item != "optgroup" for item in self.ignored_stack):
             return
         if self.option_capture is not None:
             if self.option_capture["label"]:
@@ -672,7 +703,7 @@ class _WorkdayMarkupParser(HTMLParser):
 
     def finish(self):
         if (self.invalid or self.label_stack or self.ignored_stack or self.value_text_depth
-                or self.active_form):
+                or self.active_form or self.select_control is not None or self.option_capture is not None):
             return _unknown("INVALID_WORKDAY_MARKUP")
         if self.form_count == 0:
             return _unknown("NO_FORM")
