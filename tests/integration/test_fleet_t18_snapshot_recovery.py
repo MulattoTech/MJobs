@@ -179,6 +179,17 @@ class FleetT18SnapshotRecoveryTests(unittest.TestCase):
                     })
                     self.assertEqual(restored.status_code, 201, restored.text)
 
+            reopened_source = Store(source.url)
+            try:
+                writer_readback = reopened_source.profile("fixture")
+                self.assertEqual(writer_readback["version"], updated.json()["version"])
+                self.assertEqual(
+                    {fact["text"] for fact in writer_readback["facts"]},
+                    {fact["text"] for fact in update_payload["facts"]},
+                )
+            finally:
+                reopened_source.engine.dispose()
+
             restored_id = restored.json()["profile_id"]
             self.assertEqual(target.profile(restored_id)["name"], PROFILE["name"])
             reopened = Store(target.url)
