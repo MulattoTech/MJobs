@@ -13,6 +13,7 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import now
 from services.applications.form_review_providers import normalize_application_route
+from services.applications.provider_registry import providers
 from services.applications.manual_auth import (
     ManualAuthCompletionError, current_user_auth_completion,
 )
@@ -78,6 +79,29 @@ def _input_fingerprint(frozen):
 
 def create_application_form_review_router(store) -> APIRouter:
     router = APIRouter()
+
+    @router.get(
+        "/profiles/{profile_id}/applications/{application_id}/form-review-capabilities",
+    )
+    def read_form_review_capabilities(profile_id: str, application_id: str):
+        provider = None
+        try:
+            row, route = _application_route(store, profile_id, application_id)
+            if row["target"] == "REAL" and route["provider"] in providers():
+                provider = route["provider"]
+        except HTTPException as error:
+            if error.status_code != 409:
+                raise
+        # Rendering inspection controls never grants live interaction or submission.
+        return {
+            "schema_version": 1,
+            "profile_id": profile_id,
+            "application_id": application_id,
+            "provider": provider,
+            "review_supported": provider is not None,
+            "read_only": True,
+            "submission_supported": False,
+        }
 
     def review_response(
         profile_id: str,
