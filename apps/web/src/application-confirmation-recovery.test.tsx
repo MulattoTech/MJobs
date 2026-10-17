@@ -1,6 +1,12 @@
 import {describe, expect, it, vi} from 'vitest';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {checkApplicationConfirmation, loadLatestApplicationConfirmation, ConfirmationCheckResult, type ConfirmationCheck} from './application-confirmation-recovery';
+import {
+  checkApplicationConfirmation,
+  loadLatestApplicationConfirmation,
+  shouldLoadConfirmationRecovery,
+  ConfirmationCheckResult,
+  type ConfirmationCheck,
+} from './application-confirmation-recovery';
 
 const result: ConfirmationCheck = {
   profile_id:'fixture', application_id:'app', check_id:'check', status:'CONFIRMED',
@@ -13,6 +19,15 @@ const render = (changes: Partial<ConfirmationCheck> = {}) => renderToStaticMarku
   <ConfirmationCheckResult result={{...result,...changes}}/>);
 
 describe('explicit confirmation reconciliation', () => {
+  it('limits saved receipt hydration to ambiguous or confirmed application states', () => {
+    for (const state of ['SUBMITTING', 'SUBMISSION_UNCONFIRMED', 'CONFIRMED']) {
+      expect(shouldLoadConfirmationRecovery(state)).toBe(true);
+    }
+    for (const state of ['PREPARED', 'REVIEW_REQUIRED', 'CANCELLED', 'DRAFT']) {
+      expect(shouldLoadConfirmationRecovery(state)).toBe(false);
+    }
+  });
+
   it('shows verified fixture receipt and preserves original history meaning', () => {
     const html = render();
     expect(html).toContain('Fixture receipt verified');
@@ -69,9 +84,18 @@ describe('explicit confirmation reconciliation', () => {
       .rejects.toThrow('Saved receipt evidence could not be loaded. Submission remains uncertain; do not resubmit.');
   });
 
+  it('rejects durable evidence whose captured state no longer matches its receipt outcome', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
+      result:{...result, application_state:'SUBMISSION_UNCONFIRMED'},
+    }));
+
+    await expect(loadLatestApplicationConfirmation('fixture', 'app', fetcher))
+      .rejects.toThrow('Saved receipt evidence could not be loaded. Submission remains uncertain; do not resubmit.');
+  });
+
   it('accepts a durable unavailable check without exposing its safe failure code', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(Response.json({
-      ...result, status:'CHECK_UNAVAILABLE', lookup_failure_code:'RECEIPT_LOOKUP_TIMEOUT',
+      ...result, status:'CHECK_UNAVAILABLE', application_state:'SUBMISSION_UNCONFIRMED', lookup_failure_code:'RECEIPT_LOOKUP_TIMEOUT',
       provider_receipt_verified:false, confirmation_source:'NONE', confirmation:null,
     }));
 

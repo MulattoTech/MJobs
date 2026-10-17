@@ -12,12 +12,18 @@ export type ConfirmationCheck = {
 const confirmationStatuses = ['CONFIRMED','NO_VERIFIED_RECEIPT','CHECK_UNAVAILABLE'];
 const invalidSavedEvidence = () => new Error('Saved receipt evidence could not be loaded. Submission remains uncertain; do not resubmit.');
 
+export function shouldLoadConfirmationRecovery(state: string): boolean {
+  return ['SUBMITTING', 'SUBMISSION_UNCONFIRMED', 'CONFIRMED'].includes(state);
+}
+
 function isConfirmationCheck(value: unknown, profileId: string, applicationId: string): value is ConfirmationCheck {
   if (typeof value !== 'object' || value === null) return false;
   const check = value as Record<string, unknown>;
   return check.profile_id === profileId && check.application_id === applicationId &&
     confirmationStatuses.includes(String(check.status)) && check.browser_started === false &&
-    check.submission_attempted === false;
+    check.submission_attempted === false &&
+    (check.status === 'CONFIRMED' ? check.application_state === 'CONFIRMED'
+      : check.application_state === 'SUBMISSION_UNCONFIRMED');
 }
 
 export async function loadLatestApplicationConfirmation(profileId: string, applicationId: string,
@@ -63,9 +69,7 @@ export async function checkApplicationConfirmation(profileId: string, applicatio
     throw new Error('The receipt check returned an unexpected result. Reload the application before proceeding.');
   }
   const check = value as Record<string, unknown>;
-  if (check.profile_id !== profileId || check.application_id !== applicationId ||
-      !confirmationStatuses.includes(String(check.status)) ||
-      check.browser_started !== false || check.submission_attempted !== false) {
+  if (!isConfirmationCheck(check, profileId, applicationId)) {
     throw new Error('The receipt check returned an unexpected result. Reload the application before proceeding.');
   }
   return check as unknown as ConfirmationCheck;
@@ -92,21 +96,37 @@ export function ApplicationConfirmationRecovery({profileId, applicationId, state
   const [loading, setLoading] = useState(true);
   const pending = useRef<AbortController | null>(null);
   const request = useRef<{profile: string; application: string; id: string} | null>(null);
+  const loadedScope = useRef<string | null>(null);
+  const shouldLoad = shouldLoadConfirmationRecovery(state);
+  const readbackScope = JSON.stringify([profileId, applicationId, state]);
   useEffect(() => {
+    if (!shouldLoad) {
+      pending.current?.abort(); pending.current = null;
+      loadedScope.current = null;
+      setResult(null); setError(''); setBusy(false); setLoading(false); request.current = null;
+      return;
+    }
     const controller = new AbortController();
     pending.current?.abort(); pending.current = controller;
+    loadedScope.current = null;
     setResult(null); setError(''); setBusy(false); setLoading(true); request.current = null;
     void loadLatestApplicationConfirmation(profileId, applicationId, fetch, controller.signal)
       .then(value => {if (!controller.signal.aborted) setResult(value);})
-      .catch(problem => {if (!controller.signal.aborted) setError(problem instanceof Error ? problem.message : invalidSavedEvidence().message);})
-      .finally(() => {if (!controller.signal.aborted) setLoading(false);});
+      .catch(problem => {if (!controller.signal.aborted) setError(state === 'CONFIRMED'
+        ? 'Saved receipt evidence could not be loaded. The application remains confirmed; no new receipt lookup was performed.'
+        : problem instanceof Error ? problem.message : invalidSavedEvidence().message);})
+      .finally(() => {if (!controller.signal.aborted) {loadedScope.current = readbackScope; setLoading(false);}});
     return () => {controller.abort(); pending.current?.abort();};
-  }, [profileId, applicationId]);
+  }, [profileId, applicationId, state, shouldLoad, readbackScope]);
   const eligible = ['SUBMITTING', 'SUBMISSION_UNCONFIRMED'].includes(state);
-  const visible = result?.profile_id === profileId && result.application_id === applicationId ? result : null;
-  if (!eligible && !visible && !loading && !error) return null;
+  const waitingForReadback = shouldLoad && (loading || loadedScope.current !== readbackScope);
+  const resultMatchesState = result?.status === 'CONFIRMED' ? state === 'CONFIRMED'
+    : result?.application_state === 'SUBMISSION_UNCONFIRMED' && state === 'SUBMISSION_UNCONFIRMED';
+  const visible = shouldLoad && resultMatchesState && result?.profile_id === profileId && result.application_id === applicationId ? result : null;
+  if (!shouldLoad) return null;
+  if (!eligible && !visible && !waitingForReadback && !error) return null;
   async function checkReceipt() {
-    if (busy || loading || !eligible) return;
+    if (busy || waitingForReadback || !eligible) return;
     const controller = new AbortController(); pending.current = controller;
     setBusy(true); setError('');
     if (request.current?.profile !== profileId || request.current.application !== applicationId) {
@@ -127,8 +147,8 @@ export function ApplicationConfirmationRecovery({profileId, applicationId, state
   return <section className="panel" aria-label="Verify uncertain mock submission">
     <h3>Verify an uncertain mock submission</h3>
     <p>Ask only the configured fictional provider for its receipt. This cannot submit, retry an application, or open a browser.</p>
-    <button type="button" disabled={busy || loading || !eligible} onClick={() => void checkReceipt()}>Check receipt only</button>
-    {loading && <p role="status">Loading saved receipt check…</p>}
+    <button type="button" disabled={busy || waitingForReadback || !eligible} onClick={() => void checkReceipt()}>Check receipt only</button>
+    {waitingForReadback && <p role="status">Loading saved receipt check…</p>}
     {busy && <p role="status">Checking the local provider receipt?</p>}
     {error && <p role="alert">{error}</p>}
     {visible && <ConfirmationCheckResult result={visible}/>}
