@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T08:42:39.616447+00:00",
+  "requirement_ids": [
+    "MJ-REQ-158"
+  ],
+  "issue": 159,
+  "requirement_result": "PASS",
+  "priority": "P1",
+  "recording_status": "CANDIDATE_ACCEPTANCE_AFTER_PROTECTED_BASE_RECONCILIATION",
+  "acceptance_authority": "Root48 accepted verifier83 independent literal-five-criteria PASS recommendation; no other requirement credit",
+  "literal_criteria": [
+    {
+      "criterion": "inspect persisted state",
+      "evidence": "T11-SVC-03 public API/outbox -> PostgreSQL -> Redis -> fresh Linux RQ worker -> new Store/API readback. Separately source-qualified PG9 real child death and reopened Store observe RUNNING/attempt and durable recovery; current PG05 app tests physically exit worker73 then reopen persisted state."
+    },
+    {
+      "criterion": "determine whether operation completed",
+      "evidence": "Historical source-qualified T11 same-ID DISCOVER resumes to COMPLETED attempt2. Current PG05 first application selector recovers verified receipt into COMPLETED; ambiguous second path stays blocked until receipt is verified."
+    },
+    {
+      "criterion": "reconcile external state",
+      "evidence": "Current exact app tests reconcile actual loopback fixture receipt. Actual503 preserves BLOCKED/SUBMISSION_UNCONFIRMED; a later public receipt-only check confirms, without browser or resubmit."
+    },
+    {
+      "criterion": "resume safe operations",
+      "evidence": "Source-qualified PG9 generic DISCOVER requeue and T11 real fresh RQ redispatch retain same job ID and complete a new worker attempt2. Uncertain external submission is never replayed, only receipt-checked. AI CALL_STARTED ambiguity intentionally blocks as AI_PROVIDER_OUTCOME_UNKNOWN/no replay; provider-result reconciliation is not claimed."
+    },
+    {
+      "criterion": "avoid duplicate submission",
+      "evidence": "Current physical post-submit crash and ambiguous receipt tests require review1/submit1, unchanged attempt history, idempotent replay, rejected conflicting requests and explicit no-browser/no-submission public readback."
+    }
+  ],
+  "current_application_postgres": {
+    "revision": "0770573fea6fc8ac553d9c530d52e87d58bbef38",
+    "tree": "3a27621b05774d39e0ea36cb26a797f6c5c4c88b",
+    "command": "python -m pytest -v --tb=short tests/integration/test_application_worker_crash_postgres.py::PostgreSQLApplicationWorkerCrashTests::test_post_submit_worker_crash_recovers_from_receipt_without_second_browser_or_submit tests/integration/test_application_worker_crash_postgres.py::PostgreSQLApplicationWorkerCrashTests::test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+    "result": "2 passed, no skips in20.81s",
+    "migration_heads": [
+      "20261014rh01"
+    ],
+    "input_hashes": {
+      "tests/integration/test_application_worker_crash_postgres.py": "b5bc631c78683d12f4a2e9cbfd7ee13a7bf934fb8c4e7e6572b7cd311671c94b",
+      "workers/operations.py": "5452d690c72c640ed027be38f30aeba7e720f1f3d738d5a8fa708c651ec13ed7",
+      "workers/tasks.py": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+      "services/applications/mock_adapter.py": "5400a1acc0d69108f0a721830dcca3113d5603a644ded91c1c94b0f83bd99853",
+      "services/applications/attempt_history.py": "ef352502a27b9b220908d167f3f7ce3da48dbffc679ebade9f2f09dd7a9f0868",
+      "services/applications/run_requests.py": "f3ddd3c192444c2e4b3e9dc9cf1a4c321ccb3d4b97dc8a81e2b58ae2610ae776",
+      "services/applications/confirmation_recovery.py": "1c681a69ecb81512ed738241f06b4dfe9a238f0580aa09eadbe64d3b00c500eb",
+      "packages/persistence/store.py": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78",
+      "migrations/env.py": "b0e2bf861bb0e279140a0bf4db1a5afa5e169d77541e564796caf9b5b87da48b",
+      "fixtures/mock_server.py": "01f324fd616e0e02b95c93c4cbec874a78bdb0ea361df76324d50675df6995ec"
+    },
+    "tracked_input_count": 1234,
+    "actual_import_count": 218,
+    "before_after_equal": true,
+    "execution_method": "Canonical Python artifact child runner calls pytest.main with exactly the displayed selectors and flags; no test patches. Local raw invocation retained in private execution record."
+  },
+  "prior_source_qualified_proof": {
+    "revision": "c31a42dbd11ec7d628efbe00e94bc6803d1b98b9",
+    "command": "python -m pytest -q tests/integration/test_worker_lifecycle.py::PostgreSQLWorkerCrashRecoveryTests tests/integration/test_operation_retries.py::PostgreSQLOperationRetryTests --tb=short",
+    "result": "9 passed, 6 subtests in8.29s; historical execution, not a new run at077",
+    "fresh_rq_command": "cached Linux runtime Python executes t11-service-proof.py from Git archive c31",
+    "fresh_rq_result": "Public API -> PostgreSQL outbox -> Redis -> fresh RQ worker -> PostgreSQL/API/fresh Store readback; same-ID duplicate suppressed, NULL-lease recovery completes attempt2, queued cancellation absent from Redis. Fresh worker PIDs10/24/27; two synthetic persisted jobs. Historical c31 scope only.",
+    "proof_script_sha256": "462521d1b3140432f57de291a53b852b82e453664072b258cf9626a6bb7c917b",
+    "historical_to_current_inputs": {
+      "workers/operations.py": {
+        "historical_sha256": "a5aa23c6a42d2ab129fdde31f93505e6b98c7f773ac311f0e880b7a67c75f435",
+        "current_sha256": "5452d690c72c640ed027be38f30aeba7e720f1f3d738d5a8fa708c651ec13ed7",
+        "byte_identical": false
+      },
+      "workers/tasks.py": {
+        "historical_sha256": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+        "current_sha256": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+        "byte_identical": true
+      },
+      "workers/dispatch.py": {
+        "historical_sha256": "938da5e0a1b3b45397d98aafcf95be72b3a03634f231c6cbfe45b28219d0881c",
+        "current_sha256": "938da5e0a1b3b45397d98aafcf95be72b3a03634f231c6cbfe45b28219d0881c",
+        "byte_identical": true
+      },
+      "tests/integration/test_worker_lifecycle.py": {
+        "historical_sha256": "e5ccc992bc2688b09e2e5bfb7c7260cfe21d6921bab1592458fece30cacd352d",
+        "current_sha256": "e5ccc992bc2688b09e2e5bfb7c7260cfe21d6921bab1592458fece30cacd352d",
+        "byte_identical": true
+      },
+      "tests/integration/test_operation_retries.py": {
+        "historical_sha256": "1e32a182e8853851c47ecd1bcc14d5b6abd9a11b9b96dc97923cdc7a824f58b0",
+        "current_sha256": "1e32a182e8853851c47ecd1bcc14d5b6abd9a11b9b96dc97923cdc7a824f58b0",
+        "byte_identical": true
+      },
+      "workers/retries.py": {
+        "historical_sha256": "e5fc2da7b25f0bab9a136d2dd5fef2574bdd1578c596ca99332f466764cf6694",
+        "current_sha256": "e5fc2da7b25f0bab9a136d2dd5fef2574bdd1578c596ca99332f466764cf6694",
+        "byte_identical": true
+      },
+      "services/discovery/pipeline.py": {
+        "historical_sha256": "22824eacf1904a4bccea690fc7990af41196b4891105ff902b113eb294c076b2",
+        "current_sha256": "22824eacf1904a4bccea690fc7990af41196b4891105ff902b113eb294c076b2",
+        "byte_identical": true
+      }
+    },
+    "qualification": "Independent verifier83 confirms current077 tasks/retries/dispatch/discovery pipeline/selected generic PG tests byte-identical to c31; operations.py differs only by manual-auth physical-browser reservation and form_review_saved recovery. Generic DISCOVER/APPLY_MOCK branches unchanged. Historical PG9/fresh RQ execution remains c31-only; no current PG9 runtime or whole-file operations equality claimed.",
+    "historical_operations_git_blob": "b11eb9ce49e15a2cc6f0a9196ccbe137917bc868",
+    "historical_tasks_git_blob": "e5aef48846f1dce5d062c03eb70285829ee0fd82",
+    "current_operations_git_blob": "8f5694a117bfccce1e5f279881dea1dc09731559"
+  },
+  "setup_attempts": [
+    {
+      "result": "NOT_PASS setup / tests NOT_RUN",
+      "reason": "Harness omitted synthetic child env forwarding; own container exited1 before port publication; no pytest/worker/browser/migration/GUC execution. Failed script/result/events preserved; cleanup0/0."
+    },
+    {
+      "result": "PASS after one explicitly authorized artifact-only env handoff correction",
+      "harness_sha256": "567fe81352d9ad6a89e87ae6cfa8e15bc360b2163e14edb88a81e72a750ae7cf",
+      "source_test_oracles_unchanged": true
+    }
+  ],
+  "runtime": {
+    "python": "3.12.10",
+    "playwright": "1.63.0",
+    "chromium_cache": "1243",
+    "postgres_image": "sha256:d74eeac9a635390a49bc21bd49fccd973de707e2a53a76ac49b552b8712ec46f",
+    "one_cpu": true,
+    "memory_mib": 512,
+    "tmpfs_no_host_mounts": true,
+    "loopback_ephemeral": true,
+    "synthetic_credentials_only": true,
+    "effective_admin_gucs": {
+      "max_connections": "12",
+      "lock_timeout": "3s",
+      "statement_timeout": "15s",
+      "idle_in_transaction_session_timeout": "20s"
+    },
+    "effective_scoped_gucs": {
+      "max_connections": "12",
+      "lock_timeout": "3s",
+      "statement_timeout": "15s",
+      "idle_in_transaction_session_timeout": "20s"
+    },
+    "pytest_wall_seconds": 22.3,
+    "fixture_wall_seconds": 25.38
+  },
+  "cleanup": {
+    "owned_schemas_remaining": 0,
+    "owned_descendants_remaining": 0,
+    "owned_containers_remaining": 0,
+    "owned_volumes_remaining": 0,
+    "ownership_checked_removal_exit": 0
+  },
+  "not_run_or_not_claimed": [
+    "Physical host/container restart; live employer authentication/submission; real AI/provider calls.",
+    "Actual RQ work-horse death plus maintenance-driven stale STARTED redelivery is not executed by the historical fresh-worker proof.",
+    "No MJ-REQ-008 or MJ-REQ-156 credit; no whole-product recovery/release certification.",
+    "Fresh exact-final-head hosted/native review pending publication; MJ-REQ-158 main acceptance unchanged until protected merge of this record. MJ-REQ-156 already accepted separately by protected PR720; no new credit here."
+  ],
+  "independent_criteria_mapping": "Verifier83 compact literal-five-criteria analysis received; maps only MJ-REQ-158/#159 and preserves source-qualified historical execution plus current protected077 PG05 proof. Final repository/base/records/generated-count audit pending future authorized acceptance commit.",
+  "protected_base": "095b15bd547816296eecb0cd1e917f6421d70207",
+  "protected_base_tree": "abffb0b93cd3e95b15fcf9454b2cb82e3c64df7f",
+  "source_equivalence": {
+    "runtime_proof_revision": "0770573fea6fc8ac553d9c530d52e87d58bbef38",
+    "base_revision": "095b15bd547816296eecb0cd1e917f6421d70207",
+    "actual_imported_source_hashes_compared": 218,
+    "mismatches": [],
+    "qualification": "All218 imported PG05 source files unchanged from executed077; no duplicate PostgreSQL/browser run. Historical genericPG9/freshRQ retains its separately stated c31 scope."
+  }
+}

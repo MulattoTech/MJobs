@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T08:48:44.858207+00:00",
+  "requirement_ids": [
+    "MJ-REQ-169"
+  ],
+  "issue": 170,
+  "requirement_result": "PASS",
+  "priority": "P1",
+  "recording_status": "CANDIDATE_ACCEPTANCE; protected-main MJ-REQ-169 unchanged until this record merges",
+  "acceptance_authority": "Explicit root48 decision after independent verifier83 literal-four-output recommendation and current Browser25 execution",
+  "protected_base": "095b15bd547816296eecb0cd1e917f6421d70207",
+  "literal_criteria": [
+    {
+      "criterion": "CSV jobs",
+      "proof": "Current browser downloads and parses jobs.csv; expected synthetic job ID exists and private route token is absent."
+    },
+    {
+      "criterion": "CSV applications",
+      "proof": "Current browser downloads and parses applications.csv; exact expected application ID and no private route token."
+    },
+    {
+      "criterion": "JSON export",
+      "proof": "Current browser downloads and parses profile.json; correct selected profile/name/facts, other-profile canaries absent, credentials sanitized while employment answer retained."
+    },
+    {
+      "criterion": "complete backup",
+      "proof": "Current browser downloads and parses backup.json; correct profile backup type, synthetic jobs/applications included, credentials/private URL token omitted without mutating persisted route. Second-profile backup excludes first-profile data."
+    }
+  ],
+  "executed_browser": {
+    "revision": "5cb233eb159d355ed4667b6ae9ad2c26c6266659",
+    "tree": "e3e8ba81052d6c10e7da4cbc05a23be5ffea19f2",
+    "command": "python -m pytest -v --tb=short tests/browser/test_data_export.py::DataExportBrowserTests::test_all_exports_download_readably_and_remain_profile_scoped",
+    "result": "1 passed, no skips in7.54s; owned outer8.84s",
+    "runtime": "Canonical Python3.12.10/Playwright1.63.0/cached Chromium1243; oneprocess/no-xdist/freshsyntheticSQLite/ownedloopbackfixture",
+    "assertions_preserved": [
+      "All four downloads parsed readably",
+      "Selected-profile isolation and private credential/route-token canaries",
+      "Empty jobs/applications export no-download states",
+      "Exactly six downloads and eight profile-scoped GET export requests",
+      "No external requests or browser page errors; contexts/browser/API closed"
+    ],
+    "source_input_count": 1528,
+    "before_after_hashes_equal": true,
+    "owned_descendants_remaining": 0
+  },
+  "build": {
+    "frontend_git_tree": "f3d533269a9be5e7dc5ecd946f3fddca5350b811",
+    "execution": "Fresh owned cached build after raw unit-test checkout EOL mismatch prevented full-manifest reuse; no install or shared cache writes",
+    "typecheck": "PASS",
+    "build_result": "136modules177ms PASS; pre-existing large-chunk warning retained",
+    "output_hashes": {
+      "apps/web/dist/index.html": "1a2589b7f5e11565af769accd802bd7d3ca8c0a77523da42f16091738cdf58f8",
+      "apps/web/dist/assets/index-CRLyhEXO.js": "c43cf502d21bdd99d0d35549dfc144e84b7b9c8c0a808a6819bf259ce25fb9b7",
+      "apps/web/dist/assets/index-CvWXjyhO.css": "fcbd205add183a256920abf83e828aee55694a15cbf2b83c6503ca4a924f11a2"
+    },
+    "qualification": "Three output hashes equal the prior owned720 build; current Browser25 uses the freshly built own outputs, not historical assets."
+  },
+  "prior_consistent_backup_proof": {
+    "pr": 716,
+    "revision": "19e5a83b3d9d084285fba245daf78a71b00b363e",
+    "protected_merge": "41d51974bfb27b6f6141d638f1ecc8e7561d3d72",
+    "command": "python -m pytest -q tests/integration/test_fleet_t18_snapshot_recovery.py tests/integration/test_fleet_t18_snapshot_fencing.py tests/unit/test_data_export.py tests/unit/test_data_export_bounds.py tests/integration/test_data_export_flow.py tests/integration/test_resume_upload.py tests/unit/test_profile_restore.py tests/integration/test_profile_restore.py --tb=short",
+    "result": "63 passed, 8 PostgreSQL skips, 37 subtests passed in 46.32s",
+    "qualification": "Historical63PASS/8PostgreSQLSKIP/37subtests at19e5; not repeated as a new PostgreSQL/browser execution here. Eight skips remain skips. Five snapshot source/test Git blobs match current source; literal export acceptance does not require added disaster/migration criteria.",
+    "input_comparison": {
+      "packages/persistence/store.py": {
+        "historical_git_blob": "8579c488be0f6ff27cd4660c751fdf5d8ab28375",
+        "current_git_blob": "8579c488be0f6ff27cd4660c751fdf5d8ab28375",
+        "current_sha256": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78",
+        "git_source_bytes_equal": true
+      },
+      "services/data_export.py": {
+        "historical_git_blob": "1e5136462952dc23be4d7efb4a86b52eaa334147",
+        "current_git_blob": "1e5136462952dc23be4d7efb4a86b52eaa334147",
+        "current_sha256": "d26e5b5284a3ad194041f7c79a16f9fa4db7ef29b871e51a2008ff6fc2f02958",
+        "git_source_bytes_equal": true
+      },
+      "services/documents/uploads.py": {
+        "historical_git_blob": "7c6fc9ade3fd22b1bbd465ff3e5485a0b3bbf7df",
+        "current_git_blob": "7c6fc9ade3fd22b1bbd465ff3e5485a0b3bbf7df",
+        "current_sha256": "54b142fefb49dddcb3b6c80dcde3d80deb82f4cf0586a6987299af91e8d8680e",
+        "git_source_bytes_equal": true
+      },
+      "tests/integration/test_fleet_t18_snapshot_fencing.py": {
+        "historical_git_blob": "a29be9d3f351547b1a3a6bc4c079af0c0dab7d20",
+        "current_git_blob": "a29be9d3f351547b1a3a6bc4c079af0c0dab7d20",
+        "current_sha256": "9910305bab43642bbc30416350da9281b8d79859546e61d01f1c778123d84880",
+        "git_source_bytes_equal": true
+      },
+      "tests/integration/test_fleet_t18_snapshot_recovery.py": {
+        "historical_git_blob": "4d725e874c9601ab27d93e10d35d30052228ca45",
+        "current_git_blob": "4d725e874c9601ab27d93e10d35d30052228ca45",
+        "current_sha256": "34e6e3a86a3b2e887ddb9d1941199c74ba8d4db85b994196027683d3ea9efe41",
+        "git_source_bytes_equal": true
+      }
+    }
+  },
+  "current_source_hashes": {
+    "tests/browser/test_data_export.py": "f06717cf7c9b4bc1fea6c37b33c3994e38fad2d92f14de703d67ab8d2c737cf8",
+    "apps/api/main.py": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00",
+    "services/data_export.py": "d26e5b5284a3ad194041f7c79a16f9fa4db7ef29b871e51a2008ff6fc2f02958",
+    "packages/persistence/store.py": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78",
+    "services/documents/uploads.py": "54b142fefb49dddcb3b6c80dcde3d80deb82f4cf0586a6987299af91e8d8680e",
+    "fixtures/mock_server.py": "01f324fd616e0e02b95c93c4cbec874a78bdb0ea361df76324d50675df6995ec",
+    "fixtures/browser_ports.py": "d9173c06b82d35069c99bb11d6fe80d7f75de196dc4e48db7cb983bc568748a7"
+  },
+  "not_run_or_not_claimed": [
+    "No new PostgreSQL execution or migration certification; prior PostgreSQL skips are not PASS.",
+    "Physical host/container restart, disaster recovery/filesystem atomicity, live employer/provider submission and real AI are NOT_RUN/outside this literal four-output record.",
+    "No MJ-REQ-008 or MJ-REQ-156 credit; MJ-REQ-156 already accepted separately by protected720 and unchanged here.",
+    "Fresh exact-final-head hosted/native review pending publication; no whole-product release claim."
+  ]
+}
