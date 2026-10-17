@@ -45,8 +45,13 @@ def _selection_view(connection, profile_id: str, application_id: str, *, _contro
     application = _application(connection, profile_id, application_id)
     revisions, archived = _revisions(connection, profile_id)
     events = _selection_events(connection, application_id, _controlled_fixture=_controlled_fixture)
-    latest = _latest(events)
-    selected = list(((latest or {}).get("payload") or {}).get("items", []))
+    return _selection_state(profile_id, application_id, application, revisions, archived,
+                            _latest(events))
+
+
+def _selection_state(profile_id: str, application_id: str, application: dict,
+                     revisions: list[dict], archived: set[str], event: dict | None) -> dict:
+    selected = _selection_items(event)
     available = [
         _public_revision(row) for row in revisions
         if row["revision_id"] not in archived
@@ -100,6 +105,7 @@ def select_documents(store, profile_id: str, application_id: str,
                 "upload_id": row["upload_id"],
                 "document_kind": row["document_kind"],
                 "sha256": row["sha256"],
+                "size_bytes": row["size_bytes"],
             })
         if total_bytes > _MAX_TOTAL_BYTES:
             raise SupportingDocumentError("SUPPORTING_DOCUMENT_SET_TOO_LARGE")
@@ -107,7 +113,8 @@ def select_documents(store, profile_id: str, application_id: str,
         events = _selection_events(connection, application_id, _controlled_fixture=_controlled_fixture)
         previous_request = next((
             event for event in events
-            if event["payload"].get("request_id") == request_id
+            if isinstance(event.get("payload"), dict)
+            and event["payload"].get("request_id") == request_id
         ), None)
         expected = {
             "profile_id": profile_id,
@@ -118,13 +125,31 @@ def select_documents(store, profile_id: str, application_id: str,
         if _controlled_fixture:
             expected["context"] = "CONTROLLED_FIXTURE"
         if previous_request is not None:
-            saved = previous_request["payload"]
+            saved = dict(previous_request["payload"])
+            saved_items = saved.get("items")
+            if isinstance(saved_items, list):
+                compatible_items = []
+                for item in saved_items:
+                    if not isinstance(item, dict):
+                        compatible_items = None
+                        break
+                    compatible = dict(item)
+                    if "size_bytes" not in compatible:
+                        row = by_id.get(compatible.get("revision_id"))
+                        if row is not None:
+                            compatible["size_bytes"] = row["size_bytes"]
+                    compatible_items.append(compatible)
+                if compatible_items is not None:
+                    saved["items"] = compatible_items
             if any(saved.get(key) != value for key, value in expected.items()):
                 raise SupportingDocumentConflict("SUPPORTING_DOCUMENT_REQUEST_ID_REUSED")
             return {**_selection_view(connection, profile_id, application_id, _controlled_fixture=_controlled_fixture),
                     "replayed": True}
 
-        sequence = max((event["payload"].get("sequence", 0) for event in events), default=0) + 1
+        sequence = max((event["payload"].get("sequence", 0) for event in events
+                        if isinstance(event.get("payload"), dict)
+                        and type(event["payload"].get("sequence", 0)) is int
+                        and event["payload"].get("sequence", 0) >= 0), default=0) + 1
         payload = {
             **expected,
             "request_id": request_id,
@@ -144,41 +169,50 @@ def select_documents(store, profile_id: str, application_id: str,
 
 
 def read_selected_files(store, output_dir, profile_id: str, application_id: str, *, _controlled_fixture=False) -> list[dict]:
-    state = list_selection(store, profile_id, application_id, _controlled_fixture=_controlled_fixture)
-    if state["unavailable_revision_ids"]:
-        raise SupportingDocumentError("SUPPORTING_DOCUMENT_UNAVAILABLE")
+    if _controlled_fixture:
+        _ensure_fixture_workspace(store)
     with store.engine.connect() as connection:
         application = _application(connection, profile_id, application_id)
         revisions, archived = _revisions(connection, profile_id)
         by_id = {row["revision_id"]: row for row in revisions}
         event = _latest(_selection_events(connection, application_id, _controlled_fixture=_controlled_fixture))
+        state = _selection_state(profile_id, application_id, application, revisions, archived, event)
+    if state["unavailable_revision_ids"]:
+        raise SupportingDocumentError("SUPPORTING_DOCUMENT_UNAVAILABLE")
     payload = (event or {}).get("payload") or {}
+    selected = _selection_items(event)
     if (payload.get("profile_id") != profile_id
             or payload.get("application_id") != application_id
             or payload.get("job_id") != application["job_id"]):
-        if state["selected_revision_ids"]:
+        if selected:
             raise SupportingDocumentError("SUPPORTING_DOCUMENT_SCOPE_MISMATCH")
-    snapshots = {
-        item.get("revision_id"): item for item in payload.get("items", [])
-        if isinstance(item, dict)
-    }
     result = []
-    for revision_id in state["selected_revision_ids"]:
+    for snapshot in selected:
+        revision_id = snapshot["revision_id"]
         row = by_id.get(revision_id)
         if row is None or revision_id in archived:
             raise SupportingDocumentError("SUPPORTING_DOCUMENT_UNAVAILABLE")
         if row["document_kind"] not in _KINDS:
             raise SupportingDocumentError("SUPPORTING_DOCUMENT_KIND_UNSUPPORTED")
-        snapshot = snapshots.get(revision_id)
         if (snapshot is None or snapshot.get("upload_id") != row["upload_id"]
                 or snapshot.get("document_kind") != row["document_kind"]
                 or snapshot.get("sha256") != row["sha256"]):
             raise SupportingDocumentError("SUPPORTING_DOCUMENT_CHANGED")
-        record, content = read_resume(
-            store, output_dir, profile_id, row["upload_id"],
-            document_kind=row["document_kind"],
-        )
-        if record["sha256"] != row["sha256"]:
+        expected_size = row["size_bytes"]
+        if ("size_bytes" in snapshot
+                and (type(snapshot["size_bytes"]) is not int
+                     or snapshot["size_bytes"] != expected_size)):
+            raise SupportingDocumentError("SUPPORTING_DOCUMENT_CHANGED")
+        try:
+            record, content = read_resume(
+                store, output_dir, profile_id, row["upload_id"],
+                document_kind=row["document_kind"],
+            )
+        except ValueError:
+            raise SupportingDocumentError("SUPPORTING_DOCUMENT_CHANGED") from None
+        if (record["sha256"] != row["sha256"]
+                or record["size_bytes"] != expected_size
+                or len(content) != expected_size):
             raise SupportingDocumentError("SUPPORTING_DOCUMENT_CHANGED")
         result.append({
             "revision_id": revision_id,
@@ -242,7 +276,30 @@ def _selection_events(connection, application_id: str, *, _controlled_fixture=Fa
 
 
 def _latest(events: list[dict]) -> dict | None:
-    return max(events, key=lambda event: event["payload"].get("sequence", 0), default=None)
+    def sequence(event):
+        payload = event.get("payload")
+        value = payload.get("sequence", 0) if isinstance(payload, dict) else 0
+        return value if type(value) is int and value >= 0 else 0
+
+    return max(events, key=sequence, default=None)
+
+
+def _selection_items(event: dict | None) -> list[dict]:
+    if event is None:
+        return []
+    payload = event.get("payload")
+    if not isinstance(payload, dict) or not isinstance(payload.get("items"), list):
+        raise SupportingDocumentError("SUPPORTING_DOCUMENT_CHANGED")
+    items = payload["items"]
+    seen = set()
+    for item in items:
+        if (not isinstance(item, dict)
+                or not isinstance(item.get("revision_id"), str)
+                or not _ID.fullmatch(item["revision_id"])
+                or item["revision_id"] in seen):
+            raise SupportingDocumentError("SUPPORTING_DOCUMENT_CHANGED")
+        seen.add(item["revision_id"])
+    return items
 
 
 def _public_revision(row: dict) -> dict:
