@@ -81,4 +81,3 @@ def test_registry_fails_closed_for_unknown_or_cross_provider_routes():
         "provider": "workable",
         "url": "https://apply.workable.com/acme/j/ABC123/",
     }) is None
-

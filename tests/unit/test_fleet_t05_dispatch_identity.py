@@ -45,5 +45,3 @@ def test_merged_routes_are_reachable_without_fabricating_html_support(provider, 
     assert analyze_application_form(provider, b"PRIVATE_MARKUP", route_url=url) == {
         "status": "REVIEW_REQUIRED", "reason": reason, "fields": [],
     }
-
-
