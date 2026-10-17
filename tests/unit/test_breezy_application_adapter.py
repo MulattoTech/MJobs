@@ -506,6 +506,15 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                             '<label for="email">Email address</label>'
                             '<input id="email" type="email"></form>'
                         )
+                        paint_projection = page.locator("form").first.evaluate(
+                            _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                        )
+                        self.assertEqual(
+                            paint_projection[0]["rendered_labels"],
+                            [{"canonical_label": None, "has_text": False,
+                              "visible": False}],
+                        )
+                        self.assertNotIn("Email address", repr(paint_projection))
                         transparent_label = self.adapter.analyze_page(page)
                         self.assertEqual(transparent_label["status"], "UNKNOWN")
                         self.assertTrue(
