@@ -1,5 +1,7 @@
 """Synthetic public checkpoint recovery without employer traffic or credentials."""
 import json
+import subprocess
+import sys
 
 import pytest
 from fastapi.testclient import TestClient
@@ -76,6 +78,21 @@ def test_lost_response_restart_readback_and_resume_do_not_repeat_navigation(reco
         state = advanced.json()["state"]
         assert (state["current_page_id"], state["version"]) == ("my_experience", 2)
     store.engine.dispose()
+    # A fresh interpreter must recover the checkpoint solely from the file.
+    child = subprocess.run([
+        sys.executable, "-c",
+        "import json,sys; from pathlib import Path; "
+        "from fastapi.testclient import TestClient; "
+        "from apps.api.main import create_app; "
+        "from packages.persistence.store import Store; "
+        "store=Store(sys.argv[1]); "
+        "app=create_app(store,'http://127.0.0.1:1',Path(sys.argv[2]),operation_mode='FIXTURE'); "
+        "client=TestClient(app); response=client.get(sys.argv[3]); "
+        "response.raise_for_status(); print(json.dumps(response.json())); "
+        "client.close(); store.engine.dispose()",
+        database_url, str(root), URL,
+    ], check=True, capture_output=True, text=True, timeout=60)
+    assert json.loads(child.stdout) == state
     reopened = Store(database_url)
     try:
         before = audit_rows(reopened)
