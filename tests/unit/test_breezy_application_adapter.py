@@ -335,6 +335,8 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 for attribute, prompt in (
                     ("aria-label", "Why do you want this job?"),
                     ("placeholder", "Tell us about your background"),
+                    ("name", "Why do you want this job?"),
+                    ("id", "Tell us about your background"),
                 ):
                     with self.subTest(custom_prompt_attribute=attribute):
                         aria_attribute = (
@@ -351,10 +353,10 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                         )
                         custom_prompt = self.adapter.analyze_page(page)
                         self.assertEqual(custom_prompt["status"], "PASS")
+                        self.assertNotIn(prompt, repr(custom_prompt))
                         self.assertTrue(
                             self.adapter.requires_human_review(custom_prompt)
                         )
-                        self.assertNotIn(prompt, repr(custom_prompt))
                 page.set_content(
                     '<form><label for="why">Why do you want to work here?</label>'
                     '<input id="why" type="text"></form>'

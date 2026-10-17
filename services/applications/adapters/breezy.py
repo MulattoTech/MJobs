@@ -23,6 +23,21 @@ _CONTACT_PROMPTS = {
     "full name", "last name", "location", "mobile", "name", "phone",
     "phone number", "postal code", "state", "website", "zip code",
 }
+_CONTACT_IDENTIFIER_ALIASES = {
+    "address": "address", "street address": "address",
+    "city": "city", "country": "country", "email": "email",
+    "email address": "email", "emailaddress": "email",
+    "first name": "first name", "firstname": "first name",
+    "given name": "first name", "givenname": "first name",
+    "full name": "full name", "fullname": "full name", "name": "name",
+    "last name": "last name", "lastname": "last name",
+    "family name": "last name", "familyname": "last name",
+    "surname": "last name", "location": "location", "mobile": "mobile",
+    "phone": "phone", "phone number": "phone", "phonenumber": "phone",
+    "postal code": "postal code", "postalcode": "postal code",
+    "zip code": "zip code", "zipcode": "zip code", "state": "state",
+    "website": "website",
+}
 _SUPPORTED_INPUT_TYPES = {"text", "email", "tel"}
 _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
   const approved = new Set(approvedLabels);
@@ -476,6 +491,17 @@ class BreezyApplicationAdapter:
                     field[key] = None
                 else:
                     field[key] = canonical
+            for key in ("name", "id"):
+                value = field.get(key)
+                if value is None:
+                    continue
+                canonical = BreezyApplicationAdapter._canonical_contact_identifier(value)
+                if canonical is None:
+                    if not isinstance(value, str) or value.strip():
+                        has_unrecognized_prompt = True
+                    field[key] = None
+                else:
+                    field[key] = canonical
             field["unrecognized_prompt_metadata"] = has_unrecognized_prompt
         return analysis
 
@@ -485,6 +511,13 @@ class BreezyApplicationAdapter:
             return None
         normalized = re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
         return normalized if normalized in _CONTACT_PROMPTS else None
+
+    @staticmethod
+    def _canonical_contact_identifier(value):
+        if not isinstance(value, str) or not value.isascii():
+            return None
+        normalized = re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+        return _CONTACT_IDENTIFIER_ALIASES.get(normalized)
 
     @staticmethod
     def _reanalyze_recognized_labels(page, *, check=None) -> dict:
