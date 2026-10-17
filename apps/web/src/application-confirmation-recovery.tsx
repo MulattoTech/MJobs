@@ -136,7 +136,7 @@ export function ApplicationConfirmationRecovery({profileId, applicationId, state
       const value = await checkApplicationConfirmation(profileId, applicationId, request.current.id, fetch, controller.signal);
       if (!controller.signal.aborted) {
         setResult(value); request.current = null;
-        if (value.status === 'CONFIRMED') onReconciled?.();
+        onReconciled?.();
       }
     } catch (problem) {
       if (!controller.signal.aborted) setError(problem instanceof Error ? problem.message : 'Receipt check unavailable.');
