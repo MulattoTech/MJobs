@@ -1,4 +1,5 @@
 """Connected FIXTURE browser acceptance for saved Jobs filters."""
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import tempfile
 import threading
@@ -71,6 +72,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                 tenant_identifier="ambiguous-board",
                                 organization_identifier="second-organization",
                                 confidence=0.95, evidence=["SECOND_TEST_EVIDENCE"])
+            fixture_now = datetime.now(timezone.utc)
             with store.engine.begin() as connection:
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
                                    .values(location="Boston, MA", attributes={
@@ -81,7 +83,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                        "education_requirement": "BACHELORS_REQUIRED",
                                        "clearance": {"level": "PUBLIC_TRUST"},
                                        "source_id": source_a,
-                                       "reported_posted_at": "2026-10-07T00:00:00+00:00"}))
+                                       "reported_posted_at": (fixture_now - timedelta(days=1)).isoformat()}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")
                                    .values(location="Berlin", attributes={
                                        "salary_min": 150000, "salary_max": 180000,
@@ -91,7 +93,7 @@ class SavedSearchFiltersBrowserTests(unittest.TestCase):
                                        "education_requirement": "ASSOCIATE_REQUIRED",
                                        "clearance": {"level": "SECRET"},
                                        "source_id": source_b,
-                                       "reported_posted_at": "2026-09-01T00:00:00+00:00"}))
+                                       "reported_posted_at": (fixture_now - timedelta(days=60)).isoformat()}))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Python Developer")
                                    .values(skills=["Python"]))
                 connection.execute(update(m.jobs).where(m.jobs.c.title == "Data Engineer")

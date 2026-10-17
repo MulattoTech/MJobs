@@ -102,7 +102,7 @@ class ReviewedEmployerIdentityContinuityTests(unittest.TestCase):
         with self.assertRaisesRegex(Exception, 'DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED'):
             import_company_feed_jobs(self.store, company_id=self.company_id, source_id=source['id'],
                 provider=source['provider'], tenant=source['tenant'], endpoint=source['endpoint'],
-                strategy='PUBLIC_JSON', items=[{'id': 'revoked-job', 'title': 'Engineer',
+                strategy=source['collection_strategy'], items=[{'id': 'revoked-job', 'title': 'Engineer',
                     'content_text': 'Python', 'url': 'https://employer.example/jobs/revoked'}],
                 import_guard=lambda connection: authorize_discovery_request(
                     self.store, operation, connection=connection))
