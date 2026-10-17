@@ -103,12 +103,42 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
     });
     const hitTarget = document.elementFromPoint(centerX, centerY);
     const hitVisible = hitTarget === label || label.contains(hitTarget);
-    return visible && !transformedClip && !pointerNoneOverlap && opacity >= 0.1 &&
+    const baseVisible = visible && !transformedClip && !pointerNoneOverlap && opacity >= 0.1 &&
       hitVisible &&
       visibleBounds.right - visibleBounds.left > 1 &&
       visibleBounds.bottom - visibleBounds.top > 1 &&
       visibleBounds.right > 0 && visibleBounds.bottom > 0 &&
       visibleBounds.left < window.innerWidth && visibleBounds.top < window.innerHeight;
+    if (!baseVisible) return false;
+
+    if (label.querySelectorAll('*').length > 100) return false;
+    const textWalker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
+    let inspectedTextNodes = 0;
+    while (textWalker.nextNode()) {
+      const textNode = textWalker.currentNode;
+      if (!String(textNode.nodeValue || '').trim()) continue;
+      inspectedTextNodes += 1;
+      if (inspectedTextNodes > 100) return false;
+      let textOpacity = 1;
+      let node = textNode.parentElement;
+      while (node) {
+        const style = window.getComputedStyle(node);
+        textOpacity *= Number(style.opacity);
+        if (!hasVisibleColor(style.color) ||
+            !hasVisibleColor(style.webkitTextFillColor || style.color) ||
+            node.hidden || node.inert || node.getAttribute('aria-hidden') === 'true' ||
+            style.display === 'none' || style.visibility === 'hidden' ||
+            style.visibility === 'collapse' || style.contentVisibility === 'hidden' ||
+            Number(style.opacity) < 0.1 || style.clipPath !== 'none' || style.clip !== 'auto' ||
+            ['paint', 'content', 'strict'].some(value => style.contain.split(/\s+/).includes(value)) ||
+            ['hidden', 'clip', 'scroll', 'auto'].includes(style.overflowX) ||
+            ['hidden', 'clip', 'scroll', 'auto'].includes(style.overflowY)) return false;
+        if (node === label) break;
+        node = node.parentElement;
+      }
+      if (node !== label || textOpacity < 0.1) return false;
+    }
+    return true;
   };
   const controls = Array.from(form.querySelectorAll('input, select, textarea')).slice(0, 101);
   return controls.map(element => {

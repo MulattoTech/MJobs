@@ -260,7 +260,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             try:
                 page = browser.new_page(viewport={"width": 640, "height": 480})
                 page.set_content(
-                    '<form><label for="email">Email address</label>'
+                    '<form><label for="email"><span>Email address</span></label>'
                     '<input id="email" type="email" '
                     'value="synthetic-private-value"></form>'
                 )
@@ -382,6 +382,16 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                         self.assertTrue(
                             self.adapter.requires_human_review(transparent_label)
                         )
+                page.set_content(
+                    '<form><label for="email">'
+                    '<span style="color:transparent">Email address</span>'
+                    '</label><input id="email" type="email"></form>'
+                )
+                transparent_descendant = self.adapter.analyze_page(page)
+                self.assertEqual(transparent_descendant["status"], "UNKNOWN")
+                self.assertTrue(
+                    self.adapter.requires_human_review(transparent_descendant)
+                )
                 page.set_content(
                     '<style>form{position:relative;height:100px}.prompt{position:absolute;'
                     'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
