@@ -5,6 +5,7 @@ value-free analyzer; uploads, live interaction, and submission are unsupported.
 """
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Mapping
 from urllib.parse import urlsplit
@@ -29,16 +30,56 @@ _CONTROL_STATE_SCRIPT = r"""controls => controls.map(element => {
     ancestors.push(node);
   }
   const styles = ancestors.map(node => window.getComputedStyle(node));
+  const rect = element.getBoundingClientRect();
+  const paintStyles = ancestors.map((node, index) => ({
+    clip_path: styles[index].clipPath,
+    clip: styles[index].clip,
+    contain: styles[index].contain,
+    opacity: styles[index].opacity
+  }));
+  const overflowClipRegions = [];
+  let clipGeometryTransformed = false;
+  for (let index = 1; index < ancestors.length; index += 1) {
+    const current = ancestors[index];
+    const style = styles[index];
+    const clipsHorizontally = ['hidden', 'clip', 'scroll', 'auto']
+      .includes(style.overflowX);
+    const clipsVertically = ['hidden', 'clip', 'scroll', 'auto']
+      .includes(style.overflowY);
+    if (!clipsHorizontally && !clipsVertically) continue;
+
+    const ancestorRect = current.getBoundingClientRect();
+    for (let transformIndex = index; transformIndex < styles.length;
+         transformIndex += 1) {
+      const transformStyle = styles[transformIndex];
+      if (transformStyle.transform !== 'none' ||
+          !['none', '1'].includes(transformStyle.scale) ||
+          !['none', '0deg'].includes(transformStyle.rotate) ||
+          !['none', '0px'].includes(transformStyle.translate) ||
+          !['1', 'normal'].includes(transformStyle.zoom)) {
+        clipGeometryTransformed = true;
+      }
+    }
+    const clipLeft = ancestorRect.left + current.clientLeft;
+    const clipTop = ancestorRect.top + current.clientTop;
+    overflowClipRegions.push({
+      clips_horizontally: clipsHorizontally,
+      clips_vertically: clipsVertically,
+      left: clipLeft,
+      top: clipTop,
+      right: clipLeft + current.clientWidth,
+      bottom: clipTop + current.clientHeight
+    });
+  }
   const hidden = ancestors.some((node, index) => {
     const style = styles[index];
     return node.hidden || node.inert || node.getAttribute('aria-hidden') === 'true' ||
       style.display === 'none' || style.visibility === 'hidden' ||
-      style.visibility === 'collapse' || Number(style.opacity) === 0 ||
+      style.visibility === 'collapse' || Number(style.opacity) < 0.1 ||
       style.contentVisibility === 'hidden' || style.pointerEvents === 'none';
   });
-  const rect = element.getBoundingClientRect();
   const visible = !hidden && element.getClientRects().length > 0 &&
-    rect.width > 0 && rect.height > 0 && rect.right > 0 && rect.bottom > 0 &&
+    rect.width > 1 && rect.height > 1 && rect.right > 0 && rect.bottom > 0 &&
     rect.left < window.innerWidth && rect.top < window.innerHeight;
   const disabled = element.matches(':disabled') || element.readOnly === true ||
     Boolean(element.closest('[aria-disabled="true"], [aria-readonly="true"]'));
@@ -46,7 +87,13 @@ _CONTROL_STATE_SCRIPT = r"""controls => controls.map(element => {
     ? (element.getAttribute('type') || 'text').toLowerCase() : null;
   return {
     user_visible: visible,
-    user_editable: visible && !disabled && inputType !== 'hidden'
+    user_editable: visible && !disabled && inputType !== 'hidden',
+    paint_styles: paintStyles,
+    control_rect: {
+      left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom
+    },
+    overflow_clip_regions: overflowClipRegions,
+    clip_geometry_transformed: clipGeometryTransformed
   };
 })"""
 
@@ -143,8 +190,15 @@ class BreezyApplicationAdapter:
             forms = page.locator("form")
             if forms.count() != 1:
                 return analysis
+            timeout_kwargs = {}
+            if check is not None:
+                remaining = getattr(check, "remaining_seconds", None)
+                if callable(remaining):
+                    timeout_kwargs["timeout"] = max(
+                        1, min(10000, int(remaining() * 1000))
+                    )
             states = forms.first.locator("input, select, textarea").evaluate_all(
-                _CONTROL_STATE_SCRIPT
+                _CONTROL_STATE_SCRIPT, **timeout_kwargs
             )
             if check is not None:
                 check()
@@ -155,16 +209,96 @@ class BreezyApplicationAdapter:
         fields = analysis["fields"]
         if not isinstance(states, list) or len(states) != len(fields):
             return analysis
+        evidence = []
         for index, (field, state) in enumerate(zip(fields, states)):
-            if (not isinstance(field, dict) or field.get("index") != index
-                    or not isinstance(state, dict)
-                    or type(state.get("user_visible")) is not bool
-                    or type(state.get("user_editable")) is not bool):
+            if not isinstance(field, dict) or field.get("index") != index:
                 return analysis
-        for field, state in zip(fields, states):
-            field["user_visible"] = state["user_visible"]
-            field["user_editable"] = state["user_editable"]
+            state_evidence = self._visible_editable_evidence(state)
+            if state_evidence is None:
+                return analysis
+            evidence.append(state_evidence)
+        for field, (user_visible, user_editable) in zip(fields, evidence):
+            field["user_visible"] = user_visible
+            field["user_editable"] = user_editable
         return analysis
+
+    @staticmethod
+    def _visible_editable_evidence(state):
+        """Validate geometry and paint evidence before trusting DOM visibility."""
+        if (not isinstance(state, dict)
+                or type(state.get("user_visible")) is not bool
+                or type(state.get("user_editable")) is not bool
+                or type(state.get("clip_geometry_transformed")) is not bool):
+            return None
+        paint_styles = state.get("paint_styles")
+        if not isinstance(paint_styles, list) or not paint_styles:
+            return None
+        visible = state["user_visible"]
+        effective_opacity = 1.0
+        for style in paint_styles:
+            if not isinstance(style, dict):
+                return None
+            clip_path, clip, contain = (
+                style.get("clip_path"), style.get("clip"), style.get("contain")
+            )
+            if (not isinstance(clip_path, str) or not isinstance(clip, str)
+                    or not isinstance(contain, str)):
+                return None
+            if clip_path != "none" or clip != "auto":
+                visible = False
+            containment = set(contain.casefold().split())
+            if containment & {"paint", "content", "strict"}:
+                visible = False
+            try:
+                opacity = float(style.get("opacity"))
+            except (OverflowError, TypeError, ValueError):
+                return None
+            if not math.isfinite(opacity):
+                return None
+            if opacity < 0 or opacity > 1:
+                return None
+            effective_opacity *= opacity
+        if effective_opacity < 0.1:
+            visible = False
+
+        rect = state.get("control_rect")
+        regions = state.get("overflow_clip_regions")
+        if not isinstance(rect, dict) or not isinstance(regions, list):
+            return None
+
+        def finite_number(value):
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                return None
+            try:
+                number = float(value)
+            except OverflowError:
+                return None
+            return number if math.isfinite(number) else None
+
+        coordinates = {key: finite_number(rect.get(key))
+                       for key in ("left", "top", "right", "bottom")}
+        if any(value is None for value in coordinates.values()):
+            return None
+        if state["clip_geometry_transformed"] and regions:
+            visible = False
+        for region in regions:
+            if (not isinstance(region, dict)
+                    or type(region.get("clips_horizontally")) is not bool
+                    or type(region.get("clips_vertically")) is not bool):
+                return None
+            bounds = {key: finite_number(region.get(key))
+                      for key in ("left", "top", "right", "bottom")}
+            if any(value is None for value in bounds.values()):
+                return None
+            if (region["clips_horizontally"]
+                    and (coordinates["right"] <= bounds["left"]
+                         or coordinates["left"] >= bounds["right"])):
+                visible = False
+            if (region["clips_vertically"]
+                    and (coordinates["bottom"] <= bounds["top"]
+                         or coordinates["top"] >= bounds["bottom"])):
+                visible = False
+        return visible, visible and state["user_editable"]
 
     @staticmethod
     def requires_human_review(analysis) -> bool:

@@ -87,7 +87,15 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
 
         class Controls:
             def evaluate_all(self, script):
-                return [{"user_visible": True, "user_editable": True}]
+                return [{
+                    "user_visible": True, "user_editable": True,
+                    "paint_styles": [{
+                        "clip_path": "none", "clip": "auto", "contain": "none",
+                        "opacity": "1",
+                    }],
+                    "control_rect": {"left": 10, "top": 10, "right": 20, "bottom": 20},
+                    "overflow_clip_regions": [], "clip_geometry_transformed": False,
+                }]
 
         class Form:
             @property
@@ -114,6 +122,78 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
         self.assertIs(result["fields"][0]["user_visible"], True)
         self.assertIs(result["fields"][0]["user_editable"], True)
         self.assertFalse(self.adapter.requires_human_review(result))
+
+    def test_analyze_page_rejects_clipped_and_nearly_transparent_controls(self):
+        base_state = {
+            "user_visible": True, "user_editable": True,
+            "paint_styles": [{
+                "clip_path": "none", "clip": "auto", "contain": "none", "opacity": "1",
+            }],
+            "control_rect": {"left": 10, "top": 10, "right": 20, "bottom": 20},
+            "overflow_clip_regions": [], "clip_geometry_transformed": False,
+        }
+        states = (
+            ("clip-path", {**base_state, "paint_styles": [{
+                **base_state["paint_styles"][0], "clip_path": "inset(50%)",
+            }]}),
+            ("overflow clip", {**base_state, "overflow_clip_regions": [{
+                "clips_horizontally": True, "clips_vertically": False,
+                "left": 30, "top": 0, "right": 40, "bottom": 30,
+            }]}),
+            ("transformed overflow geometry", {
+                **base_state,
+                "overflow_clip_regions": [{
+                    "clips_horizontally": True, "clips_vertically": False,
+                    "left": 0, "top": 0, "right": 30, "bottom": 30,
+                }],
+                "clip_geometry_transformed": True,
+            }),
+            ("near-zero opacity", {**base_state, "paint_styles": [{
+                **base_state["paint_styles"][0], "opacity": "0.001",
+            }]}),
+            ("near-zero ancestor opacity", {**base_state, "paint_styles": [
+                base_state["paint_styles"][0],
+                {**base_state["paint_styles"][0], "opacity": "0.001"},
+            ]}),
+            ("cumulative ancestor opacity", {**base_state, "paint_styles": [
+                {**base_state["paint_styles"][0], "opacity": "0.2"},
+                {**base_state["paint_styles"][0], "opacity": "0.2"},
+            ]}),
+        )
+
+        for name, state in states:
+            with self.subTest(hidden_state=name):
+                controls = [{
+                    "tag": "input", "labels": [], "name": "email", "id": "email",
+                    "placeholder": None, "aria_label": "Email address", "input_type": "email",
+                    "nearby_text": None, "section_heading": None, "fieldset_legend": None,
+                    "unsafe_text_context": False, "options": [],
+                }]
+
+                class ControlLocator:
+                    def evaluate_all(self, script):
+                        return [state]
+
+                class Form:
+                    @property
+                    def first(self):
+                        return self
+
+                    def count(self):
+                        return 1
+
+                    def evaluate(self, script, **kwargs):
+                        return controls
+
+                    def locator(self, selector):
+                        return ControlLocator()
+
+                class Page:
+                    def locator(self, selector):
+                        return Form()
+
+                result = self.adapter.analyze_page(Page())
+                self.assertTrue(self.adapter.requires_human_review(result))
 
     def test_analyze_page_missing_dom_evidence_requires_review(self):
         analysis = {"status": "PASS", "fields": [{
