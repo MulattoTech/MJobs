@@ -114,6 +114,7 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
     if (label.querySelectorAll('*').length > 100) return false;
     const textWalker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
     let inspectedTextNodes = 0;
+    let inspectedTextRects = 0;
     while (textWalker.nextNode()) {
       const textNode = textWalker.currentNode;
       if (!String(textNode.nodeValue || '').trim()) continue;
@@ -145,6 +146,21 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
           rect.left >= window.innerWidth || rect.top >= window.innerHeight ||
           rect.right <= visibleBounds.left || rect.left >= visibleBounds.right ||
           rect.bottom <= visibleBounds.top || rect.top >= visibleBounds.bottom)) return false;
+      const textAncestors = new Set();
+      for (let ancestor = textNode.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        textAncestors.add(ancestor);
+        if (ancestor === label) break;
+      }
+      if (!textAncestors.has(label)) return false;
+      for (const textRect of textRects) {
+        inspectedTextRects += 1;
+        if (inspectedTextRects > 100) return false;
+        const textTarget = document.elementFromPoint(
+          textRect.left + textRect.width / 2,
+          textRect.top + textRect.height / 2
+        );
+        if (!textAncestors.has(textTarget)) return false;
+      }
     }
     return true;
   };

@@ -447,6 +447,51 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 self.assertEqual(covered_label["fields"], [])
                 self.assertTrue(self.adapter.requires_human_review(covered_label))
                 page.set_content(
+                    '<style>form{position:relative;height:130px}.prompt{position:absolute;'
+                    'left:10px;top:10px;display:block;width:240px;height:60px}.field{'
+                    'position:absolute;left:10px;top:90px}.cover{position:absolute;left:10px;'
+                    'top:10px;width:105px;height:22px;background:white;z-index:10}</style>'
+                    '<form><label class="prompt" for="email">Email address</label>'
+                    '<input class="field" id="email" type="email">'
+                    '<div class="cover"></div></form>'
+                )
+                label_and_text_targets = page.evaluate(
+                    """() => {
+                      const label = document.querySelector('label');
+                      const labelRect = label.getBoundingClientRect();
+                      const range = document.createRange();
+                      range.selectNodeContents(label);
+                      const textRect = range.getBoundingClientRect();
+                      const targetClass = (x, y) => {
+                        const target = document.elementFromPoint(x, y);
+                        return target && target.className;
+                      };
+                      return {
+                        labelCenter: targetClass(
+                          labelRect.left + labelRect.width / 2,
+                          labelRect.top + labelRect.height / 2
+                        ),
+                        textCenter: targetClass(
+                          textRect.left + textRect.width / 2,
+                          textRect.top + textRect.height / 2
+                        )
+                      };
+                    }"""
+                )
+                self.assertEqual(label_and_text_targets["labelCenter"], "prompt")
+                self.assertEqual(label_and_text_targets["textCenter"], "cover")
+                text_covered_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    text_covered_projection[0]["rendered_labels"],
+                    [{"canonical_label": None, "has_text": False, "visible": False}],
+                )
+                text_covered = self.adapter.analyze_page(page)
+                self.assertEqual(text_covered["status"], "UNKNOWN")
+                self.assertEqual(text_covered["reason"], "NO_VISIBLE_ASSOCIATED_LABEL")
+                self.assertTrue(self.adapter.requires_human_review(text_covered))
+                page.set_content(
                     '<style>form{position:relative;height:100px}.prompt{position:absolute;'
                     'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
                     'left:10px;top:40px}.cover{position:absolute;left:10px;top:10px;'
