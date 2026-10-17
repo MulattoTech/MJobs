@@ -11,6 +11,7 @@ from pathlib import Path
 
 from sqlalchemy import select
 
+from packages.domain.operation_mode import WorkspaceModeError
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.applications.form_review_providers import normalize_application_route
@@ -35,7 +36,7 @@ class ControlledDryRunError(ValueError):
 
 
 def template(provider):
-    if provider not in {"greenhouse", "lever"}:
+    if provider not in {"greenhouse", "lever", "workday"}:
         raise ControlledDryRunError("CONTROLLED_DRY_RUN_ROUTE_UNSUPPORTED")
     # No scripts, external resources, form action, or submit control. This is a
     # versioned product fixture, not a reconstruction of a public ATS form.
@@ -76,6 +77,12 @@ def preview(store, profile_id, application_id):
         raise ControlledDryRunError("APPLICATION_NOT_FOUND")
     if normalize_application_route(route["provider"], route["url"]) is None:
         raise ControlledDryRunError("CONTROLLED_DRY_RUN_ROUTE_UNSUPPORTED")
+    if route["provider"] == "workday":
+        # Workday support here is only the versioned local product fixture.
+        try:
+            store.assert_workspace_mode("FIXTURE")
+        except (ValueError, WorkspaceModeError):
+            raise ControlledDryRunError("CONTROLLED_DRY_RUN_FIXTURE_ONLY") from None
     fixture = template(route["provider"])
     result = build_rehearsal(store, profile_id, application_id, _controlled=fixture)
     selection = list_selection(store, profile_id, application_id, _controlled_fixture=True)
@@ -351,7 +358,19 @@ def execute(store, output_dir, operation, *, check):
                 "documents", "supporting_documents", "pages")):
             raise ControlledDryRunError("CONTROLLED_DRY_RUN_STALE")
         prepared, supporting = _snapshots(store, output_dir, current)
+        preflight_manifest = None
+        if current["provider"] == "workday":
+            from services.applications.adapters.workday_uploads import preflight_workday_uploads
+            preflight_manifest = preflight_workday_uploads([
+                {"kind": field["key"].replace("_", "-"),
+                 "required": field["required"], "ambiguous": False}
+                for field in current["fields"]
+                if field["type"] == "file" and field["key"] != "supporting_documents"
+            ], prepared)
         browser_result = run_browser(current, prepared, supporting, check=check)
+        if (preflight_manifest is not None
+                and browser_result["documents"][:len(preflight_manifest)] != preflight_manifest):
+            raise ControlledDryRunError("CONTROLLED_DRY_RUN_DOCUMENT_CHANGED")
     except (ControlledDryRunError, OperationCancelled, OperationTimedOut):
         raise
     except RehearsalError:
