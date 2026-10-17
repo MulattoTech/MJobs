@@ -236,6 +236,64 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                     result = self.adapter.analyze_page(Page())
                 self.assertTrue(self.adapter.requires_human_review(result))
 
+    def test_analyze_page_css_clipping_and_overflow_clipping_require_review(self):
+        clipped_states = (
+            ("clip-path on control", {"user_visible": False, "user_editable": False}),
+            ("clip-path on ancestor", {"user_visible": False, "user_editable": False}),
+            ("overflow-x clipping", {"user_visible": False, "user_editable": False}),
+            ("overflow-y clipping", {"user_visible": False, "user_editable": False}),
+        )
+        required_visibility_checks = (
+            "style.clipPath !== 'none'",
+            "style.clip !== 'auto'",
+            "style.overflowX",
+            "style.overflowY",
+            "clipLeft",
+            "clipRight",
+            "clipTop",
+            "clipBottom",
+        )
+
+        for label, state in clipped_states:
+            with self.subTest(clipped_case=label):
+                class Locator:
+                    def __init__(self, selector):
+                        self.selector = selector
+                        self.script = None
+
+                    def count(self):
+                        return 0
+
+                    def evaluate_all(self, script, **kwargs):
+                        self.script = script
+                        return [state]
+
+                class Page:
+                    def __init__(self):
+                        self.controls = None
+
+                    def locator(self, selector):
+                        locator = Locator(selector)
+                        if "captcha" not in selector and "turnstile" not in selector:
+                            self.controls = locator
+                        return locator
+
+                analysis = {"status": "PASS", "reason": None, "fields": [{
+                    "ambiguous": False, "sensitivity": "STANDARD", "tag": "input",
+                    "input_type": "email", "name": "email", "labels": ["Email"],
+                }]}
+                page = Page()
+                with patch("services.applications.adapters.teamtailor.analyze_form_page",
+                           return_value=analysis):
+                    result = self.adapter.analyze_page(page)
+
+                self.assertTrue(self.adapter.requires_human_review(result))
+                self.assertIsNotNone(page.controls.script)
+
+        for guard in required_visibility_checks:
+            with self.subTest(guard=guard):
+                self.assertIn(guard, page.controls.script)
+
 
 if __name__ == "__main__":
     unittest.main()

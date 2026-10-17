@@ -28,11 +28,29 @@ _CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
   const rect = node.getBoundingClientRect();
   const userVisible = !ancestors.some((current, index) => {
     const style = styles[index];
-    return current.hidden || current.inert ||
+    if (current.hidden || current.inert ||
       current.getAttribute('aria-hidden') === 'true' ||
       style.display === 'none' || style.visibility === 'hidden' ||
       style.visibility === 'collapse' || Number(style.opacity) === 0 ||
-      style.contentVisibility === 'hidden' || style.pointerEvents === 'none';
+      style.contentVisibility === 'hidden' || style.pointerEvents === 'none' ||
+      style.clipPath !== 'none' || style.clip !== 'auto') return true;
+    if (current === node) return false;
+
+    const clipsHorizontally = ['hidden', 'clip', 'scroll', 'auto']
+      .includes(style.overflowX);
+    const clipsVertically = ['hidden', 'clip', 'scroll', 'auto']
+      .includes(style.overflowY);
+    if (!clipsHorizontally && !clipsVertically) return false;
+
+    const ancestorRect = current.getBoundingClientRect();
+    const clipLeft = ancestorRect.left + current.clientLeft;
+    const clipTop = ancestorRect.top + current.clientTop;
+    const clipRight = clipLeft + current.clientWidth;
+    const clipBottom = clipTop + current.clientHeight;
+    return (clipsHorizontally &&
+        (rect.left < clipLeft || rect.right > clipRight)) ||
+      (clipsVertically &&
+        (rect.top < clipTop || rect.bottom > clipBottom));
   }) && node.getClientRects().length > 0 && rect.width > 1 && rect.height > 1 &&
     rect.right > 0 && rect.bottom > 0 && rect.left < window.innerWidth &&
     rect.top < window.innerHeight;
