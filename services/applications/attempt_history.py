@@ -161,7 +161,10 @@ def start_attempt(store, application, route, documents, *, submit=False, request
         raise AttemptConflict("APPLICATION_ATTEMPT_SUPPORTING_SCOPE_MISMATCH")
     attempt_id = attempt_id_for_request(application["id"], request_id)
     with store.engine.begin() as connection:
-        _lock(connection)
+        # Share the existing worker/manual admission lock before application and
+        # route locks, so neither admission can miss a concurrently saved owner.
+        from workers.operations import _lock as lock_operation_category
+        lock_operation_category(connection, "application_automation")
         current = connection.execute(select(m.applications).where(
             m.applications.c.id == application["id"]).with_for_update()).mappings().one()
         for key in ("route_id", "profile_id", "profile_version", "document_version", "target"):
