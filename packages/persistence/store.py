@@ -58,7 +58,13 @@ class Store:
 
     @contextmanager
     def read_snapshot(self):
-        """Yield an owned, consistent relational read scope; roll it back on exit."""
+        """Yield an owned consistent read connection, rolled back on every exit.
+
+        Nested scopes acquire independent snapshots rather than joining a caller's
+        transaction. SQLite pools sharing an already active DBAPI transaction
+        are rejected before any SQL; no caller-owned transaction is ended here.
+        PostgreSQL isolation is set only on this checkout and reset by the pool.
+        """
         with self.engine.connect() as connection:
             if connection.dialect.name == "sqlite":
                 # In-memory pools may share a DBAPI connection with another

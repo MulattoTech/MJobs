@@ -400,9 +400,9 @@ def _document_file_records(store, connection, profile_id, output_dir):
                 raise DataExportError("EXPORT_TOO_LARGE")
             try:
                 metadata, content = read_resume(store, output_dir=output_dir,
-                                               profile_id=profile_id, identifier=upload["id"])
-                # File verification may re-read metadata using another connection.
-                # Only include bytes that still match this export's DB snapshot.
+                                               profile_id=profile_id, identifier=upload["id"],
+                                               connection=connection)
+                # Include only verified bytes matching this export's DB snapshot.
                 if any(metadata[key] != upload[key]
                        for key in ("id", "format", "size_bytes", "sha256")):
                     raise DataExportError("EXPORT_FILE_UNAVAILABLE")
