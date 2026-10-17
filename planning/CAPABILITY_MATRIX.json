@@ -1932,13 +1932,14 @@
     },
     {
       "requirement_id": "MJ-REQ-158",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-10-13-controlled-dry-run-recovery.json",
-        "docs/evidence/2026-10-14-company-refresh-recovery.json"
+        "docs/evidence/2026-10-14-company-refresh-recovery.json",
+        "docs/evidence/2026-10-17-operation-recovery-acceptance.json"
       ],
-      "note": "Initial scoped behavior only; full requirement remains open Controlled DRY_RUN now has scoped cancellation, serialized active admission and acknowledged fresh retry with prior-attempt UI readback. Separate-process receipt/crash recovery avoids browser replay. SQLite/PostgreSQL/browser/Linux queue/full Compose restart/fresh restore PASS; full umbrella remains PARTIAL. 2026-10-14: #634 preserves committed company refresh results across late cancellation, acknowledgement failure and real worker process death; exact receipt and ownership checks verified on SQLite/PostgreSQL. Parent remains PARTIAL; historical terminal repair and other operation classes remain outside this slice.",
+      "note": "Literal five-criterion operation recovery accepted: persisted state is inspected, completed outcomes determined, external receipts reconciled, safe operations resumed and duplicate submission avoided. Current protected077 application PostgreSQL worker-crash/ambiguous receipt controls pass2/0skip; all218 imported sources unchanged at protected095. Historicalc31 generic PostgreSQL9 and freshRQ transport evidence remains explicitly source-qualified; unknown AI provider outcome and uncertain submission fail closed without replay. See dated evidence for commands, hashes, effective timeout settings, initial setup NOT_PASS and verified owned cleanup. Candidate MJ-REQ-158 PASS/P1 only; protected-main acceptance awaits this record merge. No host/container/live-employer or MJ-REQ-008/MJ-REQ-156 credit.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
