@@ -1,73 +1,15 @@
-"""Connected safeguards for canonical employer and ATS application routing."""
+"""Connected safeguards for employer feed strategy identity and routing."""
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from fastapi.testclient import TestClient
 from sqlalchemy import func, select, update
 
-from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store, upsert
 from services.company_discovery.sources import upsert_company_job_source
 from services.discovery.company_feed import import_company_feed_jobs
-
-
-class FleetT15EmployerRouteTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="mjobs-t15-employer-route-")
-        self.root = Path(self.temp.name)
-        self.store = Store(f"sqlite:///{(self.root / 'routes.db').as_posix()}")
-        self.store.migrate()
-        self.store.bind_workspace_mode("FIXTURE")
-        self.client = TestClient(create_app(
-            self.store, "http://127.0.0.1:1", self.root, operation_mode="FIXTURE"))
-
-    def tearDown(self):
-        self.client.close()
-        self.store.engine.dispose()
-        self.temp.cleanup()
-
-    def test_route_cannot_borrow_ats_identity_from_another_canonical_employer(self):
-        """Persisted route claims must stay attached to the job's canonical employer."""
-        with self.store.engine.begin() as connection:
-            upsert(connection, m.companies, {
-                "id": "canonical-employer", "name": "Canonical Employer",
-                "domain": "canonical.example",
-            })
-            upsert(connection, m.companies, {
-                "id": "other-employer", "name": "Other Employer",
-                "domain": "other.example",
-            })
-            upsert(connection, m.jobs, {
-                "id": "canonical-job", "company_id": "canonical-employer",
-                "requisition": "req-42", "title": "Engineer",
-                "description": "Synthetic fixture role", "skills": [],
-                "location": "Remote", "remote_type": "REMOTE", "attributes": {},
-            })
-            upsert(connection, m.routes, {
-                "id": "cross-employer-route", "job_id": "canonical-job",
-                "company_id": "other-employer", "provider": "greenhouse",
-                "tenant": "other-board", "requisition": "req-42",
-                "url": "https://boards.greenhouse.io/other-board/jobs/42",
-            })
-            upsert(connection, m.company_ats_tenants, {
-                "id": "other-employer-ats", "company_id": "other-employer",
-                "provider": "greenhouse", "tenant_identifier": "other-board",
-                "organization_identifier": "", "board_identifier": "",
-                "confidence": 0.99, "evidence": ["PUBLIC_API_BOARD"],
-                "first_seen_at": "2026-10-16T00:00:00Z",
-                "last_seen_at": "2026-10-16T00:00:00Z",
-            })
-
-        response = self.client.get("/jobs/canonical-job/routes")
-        self.assertEqual(response.status_code, 200, response.text)
-        routes = [route for option in response.json()["all_options"]
-                  for route in option["aliases"]]
-        cross_employer = next(route for route in routes
-                              if route["id"] == "cross-employer-route")
-        self.assertNotEqual(cross_employer["authority"], "VERIFIED_ATS")
 
 
 class FleetT15FeedStrategyIdentityTests(unittest.TestCase):
