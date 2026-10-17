@@ -1,5 +1,6 @@
 """Team 11 regression evidence for durable outbox recovery."""
 from datetime import datetime, timedelta, timezone
+import os
 from pathlib import Path
 import tempfile
 import unittest
@@ -21,6 +22,10 @@ from workers.operations import (
 
 class FleetT11OutboxTests(unittest.TestCase):
     def setUp(self):
+        self.operation_timeout_patch = patch.dict(
+            os.environ, {"MJOBS_OPERATION_TIMEOUT": "180"})
+        self.operation_timeout_patch.start()
+        self.addCleanup(self.operation_timeout_patch.stop)
         self.directory = tempfile.TemporaryDirectory(prefix="mjobs-fleet-t11-outbox-")
         database = Path(self.directory.name) / "outbox.db"
         self.store = Store(f"sqlite:///{database.as_posix()}")
