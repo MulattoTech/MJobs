@@ -131,12 +131,6 @@ class WorkdayApplicationAdapterTests(unittest.TestCase):
         for secret in ("PRIVATE_ANSWER", "PRIVATE_CHALLENGE", "What do you enjoy learning?"):
             self.assertNotIn(secret, json.dumps((unknown, challenge)))
 
-    def test_changed_form_snapshot_is_not_accepted_for_review(self):
-        original = {"status": "PASS", "fields": [{"id": "email"}]}
-        changed = {"status": "PASS", "fields": [{"id": "phone"}]}
-        with patch.object(self.adapter, "analyze_page", return_value=changed):
-            result = self.adapter.validate_page(object(), original)
-        self.assertEqual(result, {"status": "UNKNOWN", "reason": "FORM_CHANGED"})
 
     def test_unknown_provider_and_invalid_workday_route_fail_closed(self):
         unsupported = analyze_application_form("unknown", "<form></form>", route_url=self.route_url)

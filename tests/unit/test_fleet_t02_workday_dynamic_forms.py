@@ -6,7 +6,6 @@ from services.applications.adapters.workday_forms import (
     analyze_workday_form_html,
     validate_workday_form_html,
 )
-from services.applications.adapters.workday import WorkdayApplicationAdapter
 from services.applications.form_review_providers import analyze_application_form
 
 
@@ -101,38 +100,6 @@ class WorkdayDynamicFormSnapshotTests(unittest.TestCase):
         self.assertEqual(current, expected)
         self.assertNotIn("PRIVATE", json.dumps(current))
 
-    def test_adapter_page_validation_invalidates_changed_real_dom_questions(self):
-        adapter = WorkdayApplicationAdapter()
-        original = {"fields": [{
-            "id": "email", "name": "email", "label": "Email", "type": "email",
-            "required": False, "conditional": None, "conditional_on": None,
-            "repeatable": None, "repeatable_group": None,
-        }]}
-        changed = {"fields": [{
-            "id": "phone", "name": "phone", "label": "Phone", "type": "tel",
-            "required": False, "conditional": None, "conditional_on": None,
-            "repeatable": None, "repeatable_group": None,
-        }]}
-
-        class Page:
-            def __init__(self, metadata):
-                self.metadata = metadata
-
-            def locator(self, selector):
-                if selector != "html":
-                    raise AssertionError("Expected Workday document root locator")
-                return self
-
-            def evaluate(self, expression, arg=None, *, timeout=None):
-                self.script = expression
-                if "outerHTML" in expression or ".value" in expression or timeout is None or timeout <= 0:
-                    raise AssertionError("Expected bounded value-free DOM metadata projection")
-                return self.metadata
-
-        reviewed = adapter.analyze_page(Page(original))
-        validation = adapter.validate_page(Page(changed), reviewed)
-
-        self.assertEqual(validation, {"status": "UNKNOWN", "reason": "FORM_CHANGED"})
 
 
 if __name__ == "__main__":

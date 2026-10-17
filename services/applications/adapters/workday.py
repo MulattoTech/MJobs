@@ -1,8 +1,8 @@
 """Review-first boundary for public Workday application routes.
 
-Only Workday's public career-host route shape is recognized. Form inspection
-reuses the existing value-free Lever analyzer; uncertain prompts stay gated for
-human review. Live public form interaction and submission remain unsupported.
+Only Workday's public career-host route shape is recognized. Static form review
+remains value-free; uncertain prompts stay gated for human review. Live DOM
+inspection, public form interaction and submission remain unavailable.
 """
 from __future__ import annotations
 
@@ -11,11 +11,6 @@ from collections.abc import Mapping
 from urllib.parse import urlsplit
 
 from services.applications.adapters.lever import LeverApplicationAdapter
-from services.applications.adapters.workday_forms import (
-    WORKDAY_DOM_METADATA_SCRIPT,
-    analyze_workday_dom_metadata,
-    requires_workday_human_review,
-)
 
 
 _HOST = re.compile(
@@ -52,43 +47,17 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
         }
 
     def analyze_page(self, page, *, check=None) -> dict:
-        """Analyze current rendered markup without projecting answer values."""
+        """Fail closed without accessing Page until DOM inspection is bounded."""
         if check is not None:
             check()
-        try:
-            timeout = 10000
-            remaining = getattr(check, "remaining_seconds", None)
-            if callable(remaining):
-                timeout = max(1, min(10000, int(remaining() * 1000)))
-            projection = (
-                "root => (" + WORKDAY_DOM_METADATA_SCRIPT + ")"
-                "(Array.from(root.ownerDocument.querySelectorAll('form')))"
-            )
-            metadata = page.locator("html").evaluate(
-                projection,
-                timeout=timeout,
-            )
-        except Exception:
-            if check is not None:
-                check()
-            return {"provider": self.provider, "status": "UNKNOWN",
-                    "reason": "PAGE_CONTENT_UNAVAILABLE", "fields": []}
-        if check is not None:
-            check()
-        return analyze_workday_dom_metadata(metadata)
+        return {"provider": self.provider, "status": "UNKNOWN",
+                "reason": "WORKDAY_DOM_INSPECTION_UNAVAILABLE", "fields": []}
 
     def validate_page(self, page, analysis=None, *, check=None) -> dict:
-        """Invalidate a reviewed question snapshot when rendered markup changes."""
+        """Override inherited DOM inspection without reading a caller's Page."""
         if check is not None:
             check()
-        current = self.analyze_page(page, check=check)
-        if current.get("status") == "UNKNOWN":
-            return {"status": "UNKNOWN", "reason": current.get("reason", "FORM_UNKNOWN")}
-        if analysis is not None and current != analysis:
-            return {"status": "UNKNOWN", "reason": "FORM_CHANGED"}
-        if requires_workday_human_review(current):
-            return {"status": "REVIEW_REQUIRED", "reason": "FORM_REQUIRES_HUMAN_REVIEW"}
-        return current
+        return {"status": "UNKNOWN", "reason": "WORKDAY_DOM_INSPECTION_UNAVAILABLE"}
 
     def normalize_route(self, route: Mapping) -> dict | None:
         """Accept only strict tenant.wdN.myworkdayjobs.com job routes."""

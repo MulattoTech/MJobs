@@ -1,8 +1,8 @@
 """Strict, value-free analyzer for Workday form metadata.
 
-Static HTML analysis and the browser-side DOM projection both discard applicant
-answers. The normalized analyzer fails closed whenever field semantics are
-unknown or unsupported.
+Static HTML analysis discards applicant answers. The normalized analyzer fails
+closed whenever field semantics are unknown or unsupported. Live DOM inspection
+is deferred until its evaluation can be bounded independently of the renderer.
 """
 from __future__ import annotations
 
@@ -53,150 +53,6 @@ _INTERACTIVE_ROLES = {
     "button", "checkbox", "combobox", "listbox", "option", "radio", "searchbox",
     "slider", "spinbutton", "switch", "textbox",
 }
-WORKDAY_DOM_METADATA_SCRIPT = r"""
-async forms => {
-  const MAX_WORKDAY_MARKUP_EVENTS = 4096;
-  const MAX_WORKDAY_DOM_FIELDS = 100;
-  const MAX_WORKDAY_OPTIONS = 100;
-  const fail = reason => ({status: "UNKNOWN", reason, fields: []});
-  const nodes = Array.from(document.querySelectorAll("*"));
-  if (nodes.length > MAX_WORKDAY_MARKUP_EVENTS) return fail("MARKUP_LIMIT_EXCEEDED");
-  const challengeMarkers = [
-    "captcha", "recaptcha", "hcaptcha", "turnstile", "cloudflare", "cf-chl-",
-    "datadome", "perimeterx", "arkose", "funcaptcha", "geetest"
-  ];
-  for (const node of nodes) {
-    for (const name of ["class", "id", "role", "data-automation-id"]) {
-      const text = (node.getAttribute(name) || "").toLowerCase();
-      if (challengeMarkers.some(marker => text.includes(marker))) {
-        return fail("CHALLENGE_PROTECTED");
-      }
-    }
-  }
-  if (forms.length !== 1) return fail(forms.length ? "AMBIGUOUS_FORM" : "NO_FORM");
-  const form = forms[0];
-  const controls = Array.from(form.querySelectorAll("input,select,textarea"));
-  const isRendered = node => {
-    for (let current = node; current && current !== form.parentElement; current = current.parentElement) {
-      if (current.hidden || current.getAttribute("aria-hidden") === "true") return false;
-      const style = getComputedStyle(current);
-      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) === 0) return false;
-    }
-    return node.getClientRects().length > 0;
-  };
-  const visibleControls = controls.filter(node =>
-    !(node.tagName.toLowerCase() === "input" &&
-      ["hidden", "submit", "button", "reset", "image"].includes(
-        (node.getAttribute("type") || "text").toLowerCase()
-      )) && isRendered(node)
-  );
-  if (visibleControls.length > MAX_WORKDAY_DOM_FIELDS) return fail("FIELD_LIMIT_EXCEEDED");
-  const outsideControls = Array.from(document.querySelectorAll("input,select,textarea"))
-    .some(node => !form.contains(node) &&
-      !(node.tagName.toLowerCase() === "input" &&
-        (node.getAttribute("type") || "text").toLowerCase() === "hidden"));
-  if (outsideControls) return fail("AMBIGUOUS_FORM");
-  for (const node of form.querySelectorAll("[role],[contenteditable]")) {
-    const role = (node.getAttribute("role") || "").toLowerCase();
-    if (["button", "checkbox", "combobox", "listbox", "option", "radio",
-         "searchbox", "slider", "spinbutton", "switch", "textbox"].includes(role)) {
-      return fail("UNSUPPORTED_INTERACTIVE_CONTROL");
-    }
-    const editable = node.getAttribute("contenteditable");
-    if (editable !== null && editable.toLowerCase() !== "false") {
-      return fail("UNSUPPORTED_INTERACTIVE_CONTROL");
-    }
-  }
-  const controllerByTarget = new Map();
-  for (const node of visibleControls) {
-    const id = node.getAttribute("id");
-    const targets = node.getAttribute("aria-controls");
-    if (id && targets) for (const target of targets.trim().split(/\s+/)) {
-      if (target) controllerByTarget.set(target, id);
-    }
-  }
-  const semanticFlag = value => {
-    if (value === null) return null;
-    const normalized = value.toLowerCase();
-    if (normalized === "true") return true;
-    if (normalized === "false") return false;
-    return "invalid";
-  };
-  const normalizeLabel = text => text.replace(/\s+/gu, " ").trim();
-  const fingerprint = async labels => {
-    const canonical = Array.from(JSON.stringify(labels), char => {
-      const code = char.codePointAt(0);
-      if (code <= 0x7f) return char;
-      if (code <= 0xffff) return `\\u${code.toString(16).padStart(4, "0")}`;
-      const high = Math.floor((code - 0x10000) / 0x400) + 0xd800;
-      const low = ((code - 0x10000) % 0x400) + 0xdc00;
-      return `\\u${high.toString(16)}\\u${low.toString(16)}`;
-    }).join("");
-    const bytes = new TextEncoder().encode(canonical);
-    const digest = await crypto.subtle.digest("SHA-256", bytes);
-    return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
-  };
-  const fields = [];
-  for (const node of visibleControls) {
-    const tag = node.tagName.toLowerCase();
-    const type = tag === "input" ? (node.getAttribute("type") || "text").toLowerCase() : tag;
-    let id = node.getAttribute("id");
-    const name = node.getAttribute("name");
-    if (!id) id = name || `field-${fields.length}`;
-    const labels = [];
-    if (node.labels) for (const label of node.labels) {
-      const walker = document.createTreeWalker(label, NodeFilter.SHOW_TEXT);
-      let text = "";
-      let part;
-      while ((part = walker.nextNode())) {
-        const parent = part.parentElement;
-        if (parent && parent.closest("option,optgroup,textarea,script,style,noscript,template")) continue;
-        text += part.nodeValue || "";
-        if (text.length > 500) return fail("INVALID_FIELD_METADATA");
-      }
-      const normalized = normalizeLabel(text);
-      if (normalized) labels.push(normalized);
-    }
-    const label = labels.join(" ") || node.getAttribute("aria-label") ||
-      node.getAttribute("placeholder") || "";
-    if (label.length > 500) return fail("INVALID_FIELD_METADATA");
-    const explicitConditional = semanticFlag(node.getAttribute("data-workday-conditional"));
-    const explicitRepeatable = semanticFlag(node.getAttribute("data-workday-repeatable"));
-    if (explicitConditional === "invalid" || explicitRepeatable === "invalid") {
-      return fail("INVALID_DYNAMIC_METADATA");
-    }
-    let conditionalOn = node.getAttribute("data-workday-conditional-on");
-    for (let ancestor = node; ancestor && ancestor !== form; ancestor = ancestor.parentElement) {
-      const controller = controllerByTarget.get(ancestor.getAttribute("id"));
-      if (controller) { conditionalOn = controller; break; }
-    }
-    const conditional = conditionalOn ? true : explicitConditional;
-    const repeatable = explicitRepeatable;
-    const repeatableGroup = node.getAttribute("data-workday-repeatable-group");
-    const field = {
-      id, name, label, type,
-      required: node.hasAttribute("required") ||
-        (node.getAttribute("aria-required") || "").toLowerCase() === "true",
-      conditional, conditional_on: conditionalOn,
-      repeatable, repeatable_group: repeatableGroup
-    };
-    if (tag === "select") {
-      const options = Array.from(node.options);
-      if (options.length > MAX_WORKDAY_OPTIONS) return fail("OPTION_LIMIT_EXCEEDED");
-      const labels = options.map(option => {
-        const text = normalizeLabel(option.label || option.textContent || "");
-        if (text.length > 500) return null;
-        return text;
-      });
-      if (labels.some(label => label === null)) return fail("INVALID_FIELD_METADATA");
-      field.options_fingerprint = await fingerprint(labels);
-    }
-    fields.push(field);
-  }
-  if (!fields.length) return fail("NO_FORM_CONTROLS");
-  return {fields};
-}
-"""
 WORKDAY_FORM_CAPABILITIES = {
     "metadata_analysis": True,
     "human_review_for_uncertainty": True,
@@ -385,57 +241,6 @@ def analyze_workday_form(metadata: Mapping) -> dict:
     }
 
 
-def analyze_workday_dom_metadata(metadata: Mapping) -> dict:
-    """Normalize the browser's bounded, allowlisted Workday field projection."""
-    if not isinstance(metadata, Mapping):
-        return _unknown("INVALID_DOM_METADATA")
-    if metadata.get("status") == "UNKNOWN":
-        reason = metadata.get("reason")
-        if isinstance(reason, str) and re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", reason):
-            return _unknown(reason)
-        return _unknown("INVALID_DOM_METADATA")
-    if set(metadata) != {"fields"}:
-        return _unknown("INVALID_DOM_METADATA")
-    fields = metadata.get("fields")
-    if not isinstance(fields, list) or not fields or len(fields) > MAX_WORKDAY_DOM_FIELDS:
-        return _unknown("INVALID_FIELD_LIST")
-    for field in fields:
-        if not isinstance(field, Mapping) or not set(field).issubset(_FIELD_KEYS | {"option_labels"}):
-            return _unknown("UNSUPPORTED_FIELD_METADATA")
-    normalized_fields = []
-    for source in fields:
-        field = dict(source)
-        option_labels = field.pop("option_labels", None)
-        if option_labels is not None:
-            if (field.get("type") != "select" or not isinstance(option_labels, list)
-                    or len(option_labels) > 100
-                    or any(not isinstance(label, str) or len(label) > 500 for label in option_labels)):
-                return _unknown("INVALID_OPTIONS_METADATA")
-            normalized_labels = [" ".join(label.split()) for label in option_labels]
-            field["options_fingerprint"] = hashlib.sha256(
-                json.dumps(normalized_labels, ensure_ascii=True, separators=(",", ":")).encode("utf-8")
-            ).hexdigest()
-        normalized_fields.append(field)
-    repeated = {}
-    repeatable_types = {"text", "email", "tel", "url", "number", "date", "select", "textarea"}
-    for field in normalized_fields:
-        name = field.get("name")
-        field_type = field.get("type")
-        if isinstance(name, str) and field_type in repeatable_types:
-            group = _REPEAT_INDEX.sub("", name)
-            repeated.setdefault(group, []).append(field)
-    for group, group_fields in repeated.items():
-        if len(group_fields) > 1:
-            for field in group_fields:
-                field["repeatable"] = True
-                field["repeatable_group"] = group
-    return analyze_workday_form({
-        "provider": "workday",
-        "schema_version": 1,
-        "form_id": "workday-static-form",
-        "revision": "static-markup-v1",
-        "fields": normalized_fields,
-    })
 
 
 class _WorkdayMarkupParser(HTMLParser):
