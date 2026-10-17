@@ -305,6 +305,29 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                             self.assertIs(analysis["fields"][0]["user_visible"], True)
                             self.assertIs(analysis["fields"][0]["user_editable"], True)
                             self.assertNotIn("synthetic-private-value", repr(analysis))
+                        if name == "pointer-events-none-overlay":
+                            self.assertEqual(
+                                page.evaluate(
+                                    """() => document.elementFromPoint(
+                                      (() => {
+                                        const rect = document.querySelector('input')
+                                          .getBoundingClientRect();
+                                        return rect.left + rect.width / 2;
+                                      })(),
+                                      (() => {
+                                        const rect = document.querySelector('input')
+                                          .getBoundingClientRect();
+                                        return rect.top + rect.height / 2;
+                                      })()
+                                    )?.tagName"""
+                                ),
+                                "INPUT",
+                            )
+                            self.assertIs(analysis["fields"][0]["user_visible"], False)
+                            self.assertIs(analysis["fields"][0]["user_editable"], False)
+                            self.assertNotIn(
+                                "synthetic-private-value", repr(analysis),
+                            )
                         self.assertEqual(
                             self.adapter.requires_human_review(analysis), expected_review,
                         )
