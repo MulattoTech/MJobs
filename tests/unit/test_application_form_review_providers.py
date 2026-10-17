@@ -1,6 +1,8 @@
 import json
 import unittest
+from unittest.mock import patch
 
+from services.applications import form_review_providers
 from services.applications.form_review_providers import (
     analyze_application_form,
     normalize_application_route,
@@ -10,6 +12,10 @@ from services.applications.form_review_providers import (
 class ApplicationFormReviewProvidersTests(unittest.TestCase):
     greenhouse_route = "https://job-boards.greenhouse.io/example/jobs/1234"
     lever_route = "https://jobs.lever.co/example/123e4567-e89b-12d3-a456-426614174000"
+    recruitee_route = "https://example.recruitee.com/o/software-engineer"
+    workday_route = (
+        "https://example.wd5.myworkdayjobs.com/en-US/Careers/job/Engineer_R123"
+    )
 
     def test_normalizes_supported_routes_with_existing_adapters(self):
         self.assertEqual(normalize_application_route("GREENHOUSE", self.greenhouse_route), {
@@ -23,6 +29,55 @@ class ApplicationFormReviewProvidersTests(unittest.TestCase):
             "tenant": "example",
             "requisition": "123e4567-e89b-12d3-a456-426614174000",
             "url": self.lever_route,
+        })
+
+    def test_normalizes_recruitee_route_through_provider_registry(self):
+        self.assertEqual(normalize_application_route("Recruitee", self.recruitee_route), {
+            "provider": "recruitee",
+            "tenant": "example",
+            "requisition": "software-engineer",
+            "url": self.recruitee_route,
+        })
+
+    def test_dispatches_recruitee_form_review_and_fails_closed_for_custom_fields(self):
+        analyzed = analyze_application_form(
+            "recruitee",
+            '<form><label for="email">Email address</label>'
+            '<input id="email" name="email" type="email" value="PRIVATE_VALUE"></form>',
+            route_url=self.recruitee_route,
+        )
+        review_required = analyze_application_form(
+            "recruitee",
+            '<form><label for="q">Describe your experience</label>'
+            '<textarea id="q" name="custom_question">PRIVATE_ANSWER</textarea></form>',
+            route_url=self.recruitee_route,
+        )
+
+        self.assertEqual(analyzed, {
+            "status": "ANALYZED", "reason": None,
+            "fields": [{"id": "email", "name": "email", "type": "email",
+                        "required": False, "review_reason": None}],
+        })
+        self.assertNotIn("PRIVATE_VALUE", json.dumps(analyzed))
+        self.assertEqual(review_required["status"], "REVIEW_REQUIRED")
+        self.assertEqual(review_required["fields"][0]["review_reason"], "UNKNOWN_QUESTION")
+        self.assertNotIn("PRIVATE_ANSWER", json.dumps(review_required))
+
+    def test_recruitee_dispatch_requires_review_for_prompt_not_in_its_allowlist(self):
+        report = analyze_application_form(
+            "recruitee",
+            '<form><label for="phone_type">Phone type</label>'
+            '<input id="phone_type" name="phone_type" type="text"></form>',
+            route_url=self.recruitee_route,
+        )
+
+        self.assertEqual(report, {
+            "status": "REVIEW_REQUIRED",
+            "reason": "FORM_REQUIRES_HUMAN_REVIEW",
+            "fields": [{
+                "id": "phone_type", "name": "phone_type", "type": "text",
+                "required": False, "review_reason": "UNKNOWN_QUESTION",
+            }],
         })
 
     def test_analyzes_greenhouse_html_without_returning_values_or_page_text(self):
@@ -58,6 +113,84 @@ class ApplicationFormReviewProvidersTests(unittest.TestCase):
         })
         self.assertNotIn("PRIVATE_VALUE", json.dumps(report))
         self.assertNotIn("Full name", json.dumps(report))
+
+    def test_workday_dispatch_calls_its_own_local_html_analyzer(self):
+        html = '<form><input id="email" name="email" type="email" required></form>'
+        with patch.object(
+                form_review_providers, "analyze_workday_form_html",
+                wraps=form_review_providers.analyze_workday_form_html) as analyzer:
+            report = analyze_application_form("workday", html, route_url=self.workday_route)
+
+        analyzer.assert_called_once_with(html)
+        self.assertEqual(report["status"], "REVIEW_REQUIRED")
+        self.assertEqual(report["reason"], "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED")
+
+    def test_workday_projects_visible_metadata_and_never_returns_control_values(self):
+        html = (
+            '<form><label for="email">Email address</label>'
+            '<input id="email" name="email" type="email" required value="PRIVATE_INPUT">'
+            '<label for="country">Country</label><select id="country" name="country">'
+            '<option value="private-option" selected>PRIVATE_SELECTED</option></select>'
+            '<label for="note">Additional details</label>'
+            '<textarea id="note" name="note">PRIVATE_ANSWER</textarea></form>'
+        )
+
+        report = analyze_application_form("workday", html, route_url=self.workday_route)
+
+        self.assertEqual(report, {
+            "status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
+            "fields": [
+                {"id": "email", "name": "email", "type": "email", "required": True,
+                 "review_reason": "UNKNOWN_QUESTION"},
+                {"id": "country", "name": "country", "type": "select", "required": False,
+                 "review_reason": "UNKNOWN_QUESTION"},
+                {"id": "note", "name": "note", "type": "textarea", "required": False,
+                 "review_reason": "UNKNOWN_QUESTION"},
+            ],
+        })
+        serialized = json.dumps(report)
+        for secret in ("PRIVATE_INPUT", "private-option", "PRIVATE_SELECTED", "PRIVATE_ANSWER",
+                       "Email address", "Additional details"):
+            self.assertNotIn(secret, serialized)
+
+    def test_workday_conditional_repeated_sensitive_and_unknown_semantics_fail_closed(self):
+        html = (
+            '<form><label for="country">Country</label>'
+            '<select id="country" name="country" data-workday-conditional="false" '
+            'data-workday-repeatable="false"></select>'
+            '<label for="region">Region</label><input id="region" name="region" '
+            'data-workday-conditional="true" data-workday-conditional-on="country" '
+            'data-workday-repeatable="false">'
+            '<label for="employer">Employer</label><input id="employer" name="employer" '
+            'data-workday-conditional="false" data-workday-repeatable="true" '
+            'data-workday-repeatable-group="experience">'
+            '<label for="ssn">Social Security number</label><input id="ssn" name="ssn">'
+            '<label for="custom">Custom item</label><input id="custom" name="custom" '
+            'type="workday-widget"></form>'
+        )
+
+        report = analyze_application_form("workday", html, route_url=self.workday_route)
+
+        self.assertEqual(report["status"], "REVIEW_REQUIRED")
+        reasons = {field["id"]: field["review_reason"] for field in report["fields"]}
+        self.assertEqual(reasons["region"], "UNKNOWN_QUESTION")
+        self.assertEqual(reasons["employer"], "UNKNOWN_QUESTION")
+        self.assertEqual(reasons["ssn"], "SENSITIVE_FIELD")
+        self.assertEqual(reasons["custom"], "UNSUPPORTED_FIELD_TYPE")
+        self.assertNotIn("Social Security number", json.dumps(report))
+
+    def test_workday_unobserved_dynamic_semantics_and_malformed_markup_review(self):
+        no_dynamic_evidence = analyze_application_form(
+            "workday", '<form><input id="email" name="email" type="email"></form>',
+            route_url=self.workday_route,
+        )
+        malformed = analyze_application_form("workday", "<form><input", route_url=self.workday_route)
+        missing = analyze_application_form("workday", "<div>not a form</div>",
+                                           route_url=self.workday_route)
+        self.assertEqual(no_dynamic_evidence["fields"][0]["review_reason"], "UNKNOWN_QUESTION")
+        self.assertEqual(malformed["status"], "REVIEW_REQUIRED")
+        self.assertEqual(missing["reason"], "NO_FORM")
+        self.assertEqual(missing["fields"], [])
 
     def test_lever_requiredness_is_known_only_when_static_markup_states_it(self):
         report = analyze_application_form(
