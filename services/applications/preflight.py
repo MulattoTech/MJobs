@@ -9,6 +9,7 @@ from sqlalchemy import select
 
 from packages.persistence import models as m
 from packages.persistence.store import now
+from services.answers.review import assess_answer_review, is_review_sensitive_question
 
 
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
@@ -136,7 +137,9 @@ def _approved(rows):
 
 
 def build_preflight_result(profile: dict, route: dict, questionnaire: dict | None,
-                           document_kinds: set[str], application_id: str | None = None) -> dict:
+                           document_kinds: set[str], application_id: str | None = None,
+                           expected_answer_review_fingerprints: dict | None = None,
+                           answer_confidence_policy: dict | None = None) -> dict:
     """Evaluate supported structured questions against one immutable profile snapshot."""
     if route.get("provider") != "mock-ats" or route.get("tenant") != "example":
         return _unknown(profile, route, questionnaire, document_kinds, "UNSUPPORTED_ATS")
@@ -159,6 +162,12 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
 
     fact_ids = _approved(profile.get("facts", []))
     answer_ids = _approved(profile.get("answers", []))
+    answers_by_id = {
+        row.get("fact_id", row.get("id")): row
+        for row in profile.get("answers", [])
+        if isinstance(row, dict)
+        and isinstance(row.get("fact_id", row.get("id")), str)
+    }
     missing = []
     seen = set()
     for question in questionnaire["questions"]:
@@ -174,6 +183,60 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
         seen.add(question["id"])
         mapping = _valid_mapping(question)
         legal_path = _legal_profile_mapping(question, mapping)
+        mapped_question_answer_ids = set() if mapping is None else {
+            answer_id for answer_id in mapping["answer_ids"]
+            if answer_id in answer_ids and answer_id in answers_by_id
+            and isinstance(answers_by_id[answer_id].get("question"), str)
+            and answers_by_id[answer_id]["question"].strip()
+        }
+        review_answers = profile.get("answers", [])
+        sensitive_question = (
+            question["required"]
+            and legal_path is None
+            and is_review_sensitive_question(question["label"])
+        )
+        if mapped_question_answer_ids or sensitive_question:
+            if expected_answer_review_fingerprints is None:
+                expected = None
+            elif (isinstance(expected_answer_review_fingerprints, dict)
+                  and question["id"] in expected_answer_review_fingerprints):
+                expected = expected_answer_review_fingerprints[question["id"]]
+                if expected is None:
+                    expected = ""
+            else:
+                # A supplied but incomplete/malformed expectation cannot silently
+                # disable the stale-answer check.
+                expected = ""
+            assessment = assess_answer_review(
+                question["label"], review_answers, answer_confidence_policy,
+                expected_fingerprint=expected,
+            )
+            matched_ids = {match["answer_id"] for match in assessment["matches"]}
+            missing_mapped_match = bool(mapped_question_answer_ids - matched_ids)
+            review_required = (assessment["review_required"] or missing_mapped_match)
+            review_reason = assessment["reason"] or (
+                "UNKNOWN_ANSWER" if missing_mapped_match else None
+            )
+            gate = {
+                "question_id": question["id"],
+                "fingerprint": assessment["fingerprint"],
+                "reason": review_reason,
+                "review_required": review_required,
+            }
+            result.setdefault("answer_review", []).append(gate)
+            if review_required and question["required"]:
+                reason = ("UNEXPECTED_SENSITIVE_REQUIRED_QUESTION"
+                          if review_reason == "SENSITIVE_QUESTION"
+                          and _is_unexpected_sensitive_question(question)
+                          else "ANSWER_REVIEW_" + review_reason)
+                blocked = _unknown(
+                    profile, route, questionnaire, document_kinds, reason,
+                )
+                blocked["answer_review"] = result["answer_review"]
+                blocked["missing"] = [{
+                    "question_id": question["id"], "question": question["label"],
+                }]
+                return blocked
         if (question["required"] and _is_unexpected_sensitive_question(question)
                 and legal_path is None):
             sensitive = _unknown(profile, route, questionnaire, document_kinds,
@@ -181,6 +244,8 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
             sensitive["missing"] = [{
                 "question_id": question["id"], "question": question["label"],
             }]
+            if result.get("answer_review"):
+                sensitive["answer_review"] = result["answer_review"]
             return sensitive
         if (question["required"] and mapping is not None
                 and any(path in _LEGAL_PROFILE_PATHS for path in mapping["profile_paths"])
@@ -533,6 +598,34 @@ def _safe_preflight_rows(rows):
     return safe
 
 
+def _safe_answer_review_metadata(rows):
+    """Keep only value-free answer-review gate evidence in the audit record."""
+    allowed_reasons = {
+        None, "CHANGED_ANSWER", "UNKNOWN_ANSWER", "SENSITIVE_QUESTION",
+        "CONFLICTING_ANSWERS",
+    }
+    if not isinstance(rows, list) or len(rows) > MAX_QUESTIONS:
+        return []
+    safe = []
+    seen = set()
+    for row in rows:
+        if (not isinstance(row, dict)
+                or set(row) != {"question_id", "fingerprint", "reason", "review_required"}
+                or not isinstance(row.get("question_id"), str)
+                or not _IDENTIFIER.fullmatch(row["question_id"])
+                or row["question_id"] in seen
+                or not isinstance(row.get("fingerprint"), str)
+                or not re.fullmatch(r"[0-9a-f]{64}", row["fingerprint"])
+                or type(row.get("review_required")) is not bool
+                or row.get("reason") not in allowed_reasons):
+            continue
+        seen.add(row["question_id"])
+        safe.append({"question_id": row["question_id"],
+                     "fingerprint": row["fingerprint"], "reason": row["reason"],
+                     "review_required": row["review_required"]})
+    return safe
+
+
 def persist_preflight(store, application_id: str, result: dict) -> None:
     if result.get("result") not in ("PASS", "FAIL", "UNKNOWN"):
         raise ValueError("Unsupported question preflight result")
@@ -552,6 +645,9 @@ def persist_preflight(store, application_id: str, result: dict) -> None:
             "mappings": mappings,
             "missing": missing,
         }
+    answer_review = _safe_answer_review_metadata(result.get("answer_review"))
+    if answer_review:
+        payload["answer_review"] = answer_review
     snapshot = build_dynamic_form_snapshot(result)
     if snapshot is not None:
         payload.update({
