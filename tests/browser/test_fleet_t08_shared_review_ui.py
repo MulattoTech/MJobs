@@ -93,7 +93,8 @@ def test_main_review_click_reaches_worker_and_survives_reload_without_values():
                     page.goto(origin, wait_until="domcontentloaded")
                     page.get_by_label("Active profile", exact=True).select_option("fixture")
                     page.get_by_role("button", name="Applications", exact=False).click()
-                    page.locator(".job-card").filter(has_text=job["title"]).click()
+                    pipeline = page.get_by_role("region", name="Application pipeline", exact=True)
+                    pipeline.get_by_role("button", name=job["title"], exact=False).click()
                     expect(page.get_by_role("heading", name="Application details", exact=True)).to_be_visible()
 
                 open_application()
