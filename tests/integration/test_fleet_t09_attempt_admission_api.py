@@ -18,6 +18,7 @@ from services.applications.attempt_history import (
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
+from workers.operations import claim
 
 
 class FleetT09AttemptAdmissionApiTests(unittest.TestCase):
@@ -61,6 +62,10 @@ class FleetT09AttemptAdmissionApiTests(unittest.TestCase):
             self.assertEqual(operation_readback.status_code, 200, operation_readback.text)
             self.assertEqual(operation_readback.json()["operation_id"], operation_id)
             self.assertEqual(operation_readback.json()["state"], "QUEUED")
+            claimed = claim(self.store, operation_id)
+            self.assertIsNotNone(claimed)
+            self.assertEqual(claimed["state"], "RUNNING")
+            self.assertEqual(claimed["attempt_count"], 1)
 
             application = self.store.application(self.application_id)
             with self.store.engine.connect() as connection:
@@ -85,6 +90,12 @@ class FleetT09AttemptAdmissionApiTests(unittest.TestCase):
             reopened_app = create_app(reopened, self.origin, self.root, operation_mode="FIXTURE")
             history_url = self.endpoint + "/attempt-history"
             with TestClient(reopened_app) as client:
+                operation = client.get(url + "s/fleet-t09-replay")
+                self.assertEqual(operation.status_code, 200, operation.text)
+                self.assertEqual(operation.json()["operation_id"], operation_id)
+                self.assertEqual(operation.json()["state"], "RUNNING")
+                self.assertTrue(operation.json()["replayed"])
+                self.assertFalse(operation.json()["external_submission_enabled"])
                 history = client.get(history_url)
                 self.assertEqual(history.status_code, 200, history.text)
                 self.assertEqual(len(history.json()["attempts"]), 1)
@@ -94,9 +105,13 @@ class FleetT09AttemptAdmissionApiTests(unittest.TestCase):
                 self.assertEqual(attempt["input_fingerprint"], operation_readback.json()["input_fingerprint"])
                 self.assertFalse(attempt["legacy_metadata"])
                 self.assertEqual(client.get(history_url.replace("/fixture/", "/other/")).status_code, 404)
+                self.assertEqual(client.get((url + "s/fleet-t09-replay").replace("/fixture/", "/other/")).status_code, 404)
                 self.assertEqual(client.post(history_url).status_code, 405)
+                for secret in (PROFILE["email"], PROFILE["name"], str(self.root)):
+                    self.assertNotIn(secret, history.text)
             with self.assertRaisesRegex(AttemptConflict, "APPLICATION_ATTEMPT_IN_PROGRESS"):
                 start_attempt(reopened, application, route, documents, request_id=operation_id)
+            self.assertIsNone(claim(reopened, operation_id))
             self.assertEqual(reopened.count("application_attempts"), 1)
         finally:
             reopened.engine.dispose()
