@@ -492,6 +492,62 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 self.assertEqual(text_covered["reason"], "NO_VISIBLE_ASSOCIATED_LABEL")
                 self.assertTrue(self.adapter.requires_human_review(text_covered))
                 page.set_content(
+                    '<style>form{position:relative;height:130px}.prompt{position:absolute;'
+                    'left:10px;top:10px;display:block;width:240px;height:60px}.field{'
+                    'position:absolute;left:10px;top:90px}.cover{position:absolute;left:10px;'
+                    'top:10px;width:32px;height:22px;background:white;z-index:10}</style>'
+                    '<form><label class="prompt" for="email">Email address</label>'
+                    '<input class="field" id="email" type="email">'
+                    '<div class="cover"></div></form>'
+                )
+                partial_text_targets = page.evaluate(
+                    """() => {
+                      const label = document.querySelector('label');
+                      const labelRect = label.getBoundingClientRect();
+                      const range = document.createRange();
+                      range.selectNodeContents(label);
+                      const textRect = range.getBoundingClientRect();
+                      const targetClass = (x, y) => {
+                        const target = document.elementFromPoint(x, y);
+                        return target && target.className;
+                      };
+                      return {
+                        labelCenter: targetClass(
+                          labelRect.left + labelRect.width / 2,
+                          labelRect.top + labelRect.height / 2
+                        ),
+                        textCenter: targetClass(
+                          textRect.left + textRect.width / 2,
+                          textRect.top + textRect.height / 2
+                        ),
+                        coveredGlyph: targetClass(
+                          textRect.left + 5, textRect.top + textRect.height / 2
+                        )
+                      };
+                    }"""
+                )
+                self.assertEqual(partial_text_targets["labelCenter"], "prompt")
+                self.assertEqual(partial_text_targets["textCenter"], "prompt")
+                self.assertEqual(partial_text_targets["coveredGlyph"], "cover")
+                partial_text_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    partial_text_projection[0]["rendered_labels"],
+                    [{"canonical_label": None, "has_text": False, "visible": False}],
+                )
+                partial_text_control_state = page.locator("form").locator(
+                    "input, select, textarea"
+                ).evaluate_all(_CONTROL_STATE_SCRIPT)
+                self.assertIs(partial_text_control_state[0]["user_visible"], True)
+                self.assertIs(partial_text_control_state[0]["user_editable"], True)
+                partially_covered = self.adapter.analyze_page(page)
+                self.assertEqual(partially_covered["status"], "UNKNOWN")
+                self.assertEqual(
+                    partially_covered["reason"], "NO_VISIBLE_ASSOCIATED_LABEL",
+                )
+                self.assertTrue(self.adapter.requires_human_review(partially_covered))
+                page.set_content(
                     '<style>form{position:relative;height:100px}.prompt{position:absolute;'
                     'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
                     'left:10px;top:40px}.cover{position:absolute;left:10px;top:10px;'

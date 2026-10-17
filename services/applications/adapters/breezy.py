@@ -101,6 +101,15 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
       return box.left <= centerX && box.right >= centerX &&
         box.top <= centerY && box.bottom >= centerY;
     });
+    const possibleTextOccluders = Array.from(nodes).flatMap(node => {
+      if (node === label || node.contains(label)) return [];
+      const style = window.getComputedStyle(node);
+      if (node.hidden || style.display === 'none' || style.visibility === 'hidden' ||
+          style.visibility === 'collapse' || Number(style.opacity) < 0.1) return [];
+      const box = node.getBoundingClientRect();
+      if (box.width <= 1 || box.height <= 1) return [];
+      return [{node, left: box.left, top: box.top, right: box.right, bottom: box.bottom}];
+    });
     const hitTarget = document.elementFromPoint(centerX, centerY);
     const hitVisible = hitTarget === label || label.contains(hitTarget);
     const baseVisible = visible && !transformedClip && !pointerNoneOverlap && opacity >= 0.1 &&
@@ -155,6 +164,11 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
       for (const textRect of textRects) {
         inspectedTextRects += 1;
         if (inspectedTextRects > 100) return false;
+        const possibleOverlay = possibleTextOccluders.some(candidate =>
+          !textAncestors.has(candidate.node) &&
+          candidate.left < textRect.right && candidate.right > textRect.left &&
+          candidate.top < textRect.bottom && candidate.bottom > textRect.top);
+        if (possibleOverlay) return false;
         const textTarget = document.elementFromPoint(
           textRect.left + textRect.width / 2,
           textRect.top + textRect.height / 2
