@@ -1,11 +1,46 @@
-"""T11 lease configuration rejects unbounded worker execution windows."""
+"""T11 lease bounds, ownership, expiry, attempts, and cancellation."""
+from datetime import datetime, timedelta, timezone
+import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
-from workers.operations import timeout
+from sqlalchemy import select, update
+
+from packages.persistence import models as m
+from packages.persistence.store import Store
+from workers.dispatch import enqueue_operation
+from workers.operations import MAX_ATTEMPTS, claim, recover_expired, request_cancel, timeout
+from workers.tasks import execute_operation
 
 
 class FleetT11LeaseTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory(prefix="mjobs-t11-lease-")
+        self.addCleanup(self.directory.cleanup)
+        self.database_url = f"sqlite:///{(Path(self.directory.name) / 'operations.db').as_posix()}"
+        self.store = Store(self.database_url)
+        self.store.migrate()
+        self.store.bind_workspace_mode("FIXTURE")
+        self.addCleanup(self.store.engine.dispose)
+        self.environment = patch.dict(os.environ, {
+            "MJOBS_DATABASE_URL": self.database_url,
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+            "MJOBS_OUTPUT_DIR": self.directory.name,
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:8090",
+        })
+        self.environment.start()
+        self.addCleanup(self.environment.stop)
+
+    def enqueue_rescore(self):
+        return enqueue_operation(self.store, "DISCOVER", "t11-lease-fixture", {"rescore_only": True})
+
+    def row(self, operation_id):
+        with self.store.engine.connect() as connection:
+            return dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id)).mappings().one())
+
     def test_timeout_accepts_inclusive_safe_bounds(self):
         for value in ("30", "180", "600"):
             with self.subTest(value=value), patch.dict("os.environ", MJOBS_OPERATION_TIMEOUT=value):
@@ -16,6 +51,73 @@ class FleetT11LeaseTests(unittest.TestCase):
             with self.subTest(value=value), patch.dict("os.environ", MJOBS_OPERATION_TIMEOUT=value):
                 with self.assertRaises(ValueError):
                     timeout()
+
+    def test_worker_rejects_expired_lease_before_acknowledging_side_effect(self):
+        operation_id = self.enqueue_rescore()
+
+        def expire_during_work(*_args, **_kwargs):
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == operation_id).values(
+                        lease_expires_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()))
+
+        with patch("workers.tasks.recalculate", side_effect=expire_during_work):
+            result = execute_operation(operation_id)
+
+        self.assertEqual(result["status"], "OWNERSHIP_EXPIRED")
+        row = self.row(operation_id)
+        self.assertEqual(row["state"], "RUNNING")
+        self.assertEqual(row["attempt_count"], 1)
+
+    def test_worker_rejects_missing_lease_before_acknowledging_side_effect(self):
+        operation_id = self.enqueue_rescore()
+
+        def remove_lease_during_work(*_args, **_kwargs):
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == operation_id).values(lease_expires_at=None))
+
+        with patch("workers.tasks.recalculate", side_effect=remove_lease_during_work):
+            result = execute_operation(operation_id)
+
+        self.assertEqual(result["status"], "OWNERSHIP_EXPIRED")
+        self.assertEqual(self.row(operation_id)["state"], "RUNNING")
+
+    def test_cancelled_expired_attempt_is_terminal_after_restart(self):
+        operation_id = enqueue_operation(self.store, "DISCOVER", "t11-cancel-fixture", {})
+        self.assertIsNotNone(claim(self.store, operation_id))
+        request_cancel(self.store, operation_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == operation_id).values(
+                    lease_expires_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()))
+        self.assertEqual(recover_expired(self.store), 1)
+        self.assertEqual(self.row(operation_id)["state"], "CANCELLED")
+
+        reopened = Store(self.database_url)
+        try:
+            saved = self.row(operation_id)
+            self.assertEqual(saved["error"], "CANCEL_REQUESTED")
+            self.assertEqual(saved["attempt_count"], 1)
+            self.assertIsNone(claim(reopened, operation_id))
+        finally:
+            reopened.engine.dispose()
+
+    def test_uncancelled_crashed_attempts_are_bounded(self):
+        operation_id = enqueue_operation(self.store, "DISCOVER", "t11-bounded-fixture", {})
+        for index in range(MAX_ATTEMPTS):
+            self.assertIsNotNone(claim(self.store, operation_id))
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == operation_id).values(
+                        lease_expires_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()))
+            self.assertEqual(recover_expired(self.store), 1)
+            self.assertEqual(self.row(operation_id)["state"],
+                             "QUEUED" if index < MAX_ATTEMPTS - 1 else "DEAD_LETTERED")
+        saved = self.row(operation_id)
+        self.assertEqual(saved["attempt_count"], MAX_ATTEMPTS)
+        self.assertEqual(saved["error"], "RETRY_LIMIT")
+        self.assertIsNone(claim(self.store, operation_id))
 
 
 if __name__ == "__main__":

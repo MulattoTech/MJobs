@@ -26,6 +26,89 @@ from workers.operations import QUEUES
 REDIS_URL = os.environ.get("MJOBS_T11_REDIS_URL")
 
 
+class FleetT11SqliteDispatcherRecoveryTests(unittest.TestCase):
+    """Exercise the public outbox/dispatcher recovery flow without services."""
+
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory(prefix="mjobs-t11-outbox-")
+        self.addCleanup(self.directory.cleanup)
+        self.database_url = f"sqlite:///{(Path(self.directory.name) / 'operations.db').as_posix()}"
+        self.store = Store(self.database_url)
+        self.store.migrate()
+        self.addCleanup(self.store.engine.dispose)
+
+    def test_enqueue_survives_dispatch_interrupt_restart_and_readback(self):
+        jobs = {}
+        redis = type("SyntheticRedis", (), {
+            "ping": lambda _self: True,
+            "close": lambda _self: None,
+        })()
+
+        class SyntheticJob:
+            def __init__(self, identifier, origin, function, args):
+                self.id = identifier
+                self.origin = origin
+                self.func_name = function
+                self.args = args
+
+            def get_status(self):
+                return "queued"
+
+            def delete(self):
+                jobs.pop(self.id, None)
+
+            @classmethod
+            def fetch(cls, identifier, connection=None):
+                if identifier not in jobs:
+                    raise NoSuchJobError(identifier)
+                return jobs[identifier]
+
+        class SyntheticQueue:
+            def __init__(self, name, connection=None):
+                self.name = name
+
+            def enqueue(self, function, operation_id, *, job_id, **_kwargs):
+                job = SyntheticJob(job_id, self.name, function, (operation_id,))
+                jobs[job_id] = job
+                if not interrupted["value"]:
+                    interrupted["value"] = True
+                    raise RuntimeError("synthetic dispatcher interruption")
+                return job
+
+        interrupted = {"value": False}
+        operation_id = enqueue_operation(
+            self.store, "DISCOVER", "t11-sqlite-recovery-" + uuid4().hex, {})
+
+        with patch("workers.dispatch.Redis.from_url", return_value=redis), \
+                patch("workers.dispatch.Queue", SyntheticQueue), \
+                patch("workers.dispatch.Job", SyntheticJob):
+            with self.assertRaisesRegex(RuntimeError, "synthetic dispatcher interruption"):
+                dispatch_pending(self.store, "redis://synthetic/0")
+
+            # Read the committed outbox row from a newly opened Store after
+            # the dispatch transaction rolled back around the synthetic crash.
+            reopened = Store(self.database_url)
+            try:
+                with reopened.engine.connect() as connection:
+                    row = connection.execute(select(m.operations).where(
+                        m.operations.c.id == operation_id)).mappings().one()
+                self.assertEqual(row["state"], "QUEUED")
+                self.assertEqual(row["attempt_count"], 0)
+
+                result = dispatch_pending(reopened, "redis://synthetic/0")
+                self.assertEqual(result, {"status": "DISPATCHED", "count": 0})
+                self.assertEqual(len(jobs), 1)
+                job = jobs[operation_id]
+                self.assertEqual(job.origin, QUEUES["DISCOVER"])
+                self.assertEqual(job.func_name, "workers.tasks.execute_operation")
+                self.assertEqual(job.args, (operation_id,))
+                self.assertEqual(enqueue_operation(
+                    reopened, "DISCOVER", row["entity_id"], {}), operation_id)
+                self.assertEqual(reopened.count("worker_operations"), 1)
+            finally:
+                reopened.engine.dispose()
+
+
 @unittest.skipUnless(REDIS_URL, "Set MJOBS_T11_REDIS_URL to an isolated Redis database")
 class FleetT11RqRecoveryTests(unittest.TestCase):
     def setUp(self):
