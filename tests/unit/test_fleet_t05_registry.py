@@ -40,6 +40,8 @@ def test_registry_dispatches_only_matching_provider_route(provider, url, metadat
     assert normalized is not None
     assert normalized["provider"] == provider
     expected_url = url.rstrip("/") if provider == "workable" else url
+    if provider == "workable":
+        expected_url = expected_url.replace("ABC123", "abc123")
     assert normalized["url"] == expected_url
 
     assert normalize_route("greenhouse", {"provider": "lever", "url": url}) is None

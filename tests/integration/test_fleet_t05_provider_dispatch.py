@@ -20,17 +20,17 @@ from workers.tasks import execute_operation
 class FleetT05ProviderDispatchTests(unittest.TestCase):
     ROUTES = (
         ("recruitee", "https://example.recruitee.com/o/software-engineer",
-         "ANALYZED", None),
+         "example", "software-engineer", "ANALYZED", None),
         ("smartrecruiters", "https://jobs.smartrecruiters.com/acme/123456789012-job",
-         "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
-        ("workable", "https://apply.workable.com/acme/j/ABC123/",
-         "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
+         "acme", "123456789012", "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
+        ("workable", "https://apply.workable.com/acme/j/abc123",
+         "acme", "abc123", "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
         ("teamtailor", "https://acme.teamtailor.com/jobs/123-job",
-         "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
+         "acme", "123-job", "REVIEW_REQUIRED", "DOM_INSPECTION_REQUIRED"),
         ("bamboohr", "https://acme.bamboohr.com/careers/123",
-         "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
+         "acme", "123", "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
         ("generic_html", "https://careers.example.test/job/123",
-         "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
+         "careers.example.test", "123", "REVIEW_REQUIRED", "FORM_SEMANTICS_UNSUPPORTED"),
     )
 
     def setUp(self):
@@ -59,12 +59,14 @@ class FleetT05ProviderDispatchTests(unittest.TestCase):
         markup = b"<form><input id='email' name='email' type='email'></form>"
         path = f"/profiles/fixture/applications/{self.application_id}/form-reviews"
 
-        for provider, route_url, expected_status, expected_reason in self.ROUTES:
+        for (provider, route_url, tenant, requisition,
+             expected_status, expected_reason) in self.ROUTES:
             with self.subTest(provider=provider):
                 with self.store.engine.begin() as connection:
                     connection.execute(update(m.routes).where(
                         m.routes.c.id == self.store.application(self.application_id)["route_id"],
-                    ).values(provider=provider, tenant=None, requisition=None, url=route_url))
+                    ).values(provider=provider, tenant=tenant,
+                             requisition=requisition, url=route_url))
                     connection.execute(update(m.applications).where(
                         m.applications.c.id == self.application_id,
                     ).values(target="REAL"))
@@ -149,6 +151,60 @@ class FleetT05ProviderDispatchTests(unittest.TestCase):
                 m.operations.c.entity_id == self.application_id,
             )).all()
         self.assertEqual(queued, [])
+
+    def test_provider_change_after_queue_fails_closed_before_public_fetch(self):
+        application = self.store.application(self.application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == application["route_id"],
+            ).values(
+                provider="recruitee", tenant="example", requisition="software-engineer",
+                url="https://example.recruitee.com/o/software-engineer",
+            ))
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == self.application_id,
+            ).values(target="REAL"))
+
+        path = f"/profiles/fixture/applications/{self.application_id}/form-reviews"
+        request_id = "t05-route-interrupted"
+        queued = self.client.post(path, json={"request_id": request_id})
+        self.assertEqual(queued.status_code, 202, queued.text)
+        operation_id = queued.json()["operation_id"]
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == application["route_id"],
+            ).values(
+                provider="workable", tenant="acme", requisition="abc123",
+                url="https://apply.workable.com/acme/j/abc123",
+            ))
+
+        class NoFetchClient:
+            def __init__(self, website, check=None, total_timeout=None):
+                pass
+
+            def get(self, url):
+                raise AssertionError("Stale provider identity must be rejected before fetch")
+
+            def allowed(self, url):
+                return True
+
+            def close(self):
+                pass
+
+        with patch.dict("os.environ", {
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+            "MJOBS_DATABASE_URL": self.database_url,
+            "MJOBS_REDIS_URL": "redis://127.0.0.1:1/0",
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
+            "MJOBS_OUTPUT_DIR": str(self.root / "documents"),
+        }), patch("workers.tasks.PublicCompanyClient", NoFetchClient):
+            result = execute_operation(operation_id)
+
+        self.assertEqual(result["status"], "DEAD_LETTERED")
+        exact = self.client.get(f"{path}/{request_id}")
+        self.assertEqual(exact.status_code, 200, exact.text)
+        self.assertEqual(exact.json()["state"], "DEAD_LETTERED")
+        self.assertEqual(exact.json()["error_code"], "FORM_REVIEW_INPUT_STALE")
 
 
 if __name__ == "__main__":
