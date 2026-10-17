@@ -60,13 +60,14 @@ def _params(operation):
     return params
 
 
-def _read_operation(connection, operation):
+def _read_operation(connection, operation, *, lock=True):
     operation_id = operation.get("id") if isinstance(operation, Mapping) else None
     if not isinstance(operation_id, str) or not operation_id:
         raise FormReviewError("FORM_REVIEW_OPERATION_INVALID")
-    row = connection.execute(select(m.operations).where(
+    query = select(m.operations).where(
         m.operations.c.id == operation_id,
-    ).with_for_update()).mappings().one_or_none()
+    )
+    row = connection.execute(query.with_for_update() if lock else query).mappings().one_or_none()
     if (row is None or row["kind"] != _KIND
             or row["entity_id"] != operation.get("entity_id")
             or row["params"] != operation.get("params")
@@ -142,8 +143,8 @@ def _safe_report(report):
     return safe
 
 
-def _validate_claimed(connection, operation):
-    row = _read_operation(connection, operation)
+def _validate_claimed(connection, operation, *, lock=True):
+    row = _read_operation(connection, operation, lock=lock)
     if row["state"] != "RUNNING" or row["cancel_requested"]:
         raise OperationCancelled("Form review operation is no longer active")
     lease = row.get("lease_expires_at")
@@ -158,6 +159,24 @@ def _validate_claimed(connection, operation):
     if lease_at <= datetime.now(timezone.utc):
         raise OperationTimedOut("Form review operation lease expired")
     return row
+
+
+def _lock_review_identity(connection, application_id):
+    """Match admission/declaration's application -> profile -> route order.
+
+    The operation lock follows these locks, so a declaration cannot hold the
+    profile while waiting for an operation held by this worker.
+    """
+    application = connection.execute(select(
+        m.applications.c.profile_id, m.applications.c.route_id,
+    ).where(m.applications.c.id == application_id).with_for_update()).first()
+    if application is not None:
+        connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == application.profile_id,
+        ).with_for_update()).first()
+        connection.execute(select(m.routes.c.id).where(
+            m.routes.c.id == application.route_id,
+        ).with_for_update()).first()
 
 
 def _validate_application(connection, operation, params):
@@ -188,7 +207,7 @@ def _validate_application(connection, operation, params):
     if "profile_version" in params:
         version = connection.execute(select(m.profiles.c.version).where(
             m.profiles.c.id == params["profile_id"],
-        ).with_for_update()).scalar_one_or_none()
+        )).scalar_one_or_none()
         if version is None or str(version) != params["profile_version"]:
             raise FormReviewError("FORM_REVIEW_INPUT_STALE")
     normalized = normalize_application_route(
@@ -224,14 +243,14 @@ def handle_form_review(store, operation, *, fetch_html, check):
     # A completed audit receipt survives a worker crash after commit and avoids
     # repeating the public read on operation replay.
     with store.engine.connect() as connection:
-        _read_operation(connection, operation)
+        _read_operation(connection, operation, lock=False)
         replay = _existing_result(
             connection, application_id, operation_id,
             params["request_id"], params["input_fingerprint"],
         )
         if replay is not None:
             return replay
-        _validate_claimed(connection, operation)
+        _validate_claimed(connection, operation, lock=False)
         normalized = _validate_application(connection, operation, params)
 
     check()
@@ -272,6 +291,7 @@ def handle_form_review(store, operation, *, fetch_html, check):
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
+        _lock_review_identity(connection, application_id)
         _validate_claimed(connection, operation)
         replay = _existing_result(
             connection, application_id, operation_id,
