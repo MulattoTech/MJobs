@@ -40,9 +40,12 @@ class FleetT02WorkdayDynamicDOMTests(unittest.TestCase):
             browser = playwright.chromium.launch(headless=True)
             try:
                 context = browser.new_context()
-                context.route("**/*", lambda route: route.abort())
+                fixture_url = "https://fixture.invalid/t02-workday"
+                context.route("**/*", lambda route: route.fulfill(
+                    body=FIXTURE, content_type="text/html",
+                ) if route.request.url == fixture_url else route.abort())
                 page = context.new_page()
-                page.set_content(FIXTURE)
+                page.goto(fixture_url)
                 adapter = WorkdayApplicationAdapter()
                 initial = adapter.analyze_page(page)
                 first = project_workday_dynamic_review(initial)
