@@ -88,10 +88,11 @@ def _existing_result(connection, application_id, operation_id, request_id,
                 or payload.get("input_fingerprint") != input_fingerprint
                 or not isinstance(payload.get("analysis"), dict)):
             raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
+        analysis = _safe_report(payload["analysis"])
         return {
             "operation_id": operation_id,
-            "status": payload["analysis"]["status"],
-            "analysis": payload["analysis"],
+            "status": analysis["status"],
+            "analysis": analysis,
         }
     return None
 

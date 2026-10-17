@@ -14,6 +14,7 @@ from packages.persistence import models as m
 from packages.persistence.store import identity
 from services.applications.form_review_providers import normalize_application_route
 from workers.dispatch import enqueue_operation
+from workers.application_form_review import FormReviewError, _existing_result
 
 
 _KIND = "APPLICATION_FORM_REVIEW"
@@ -103,13 +104,15 @@ def create_application_form_review_router(store) -> APIRouter:
                     "error_code": None,
                     "analysis": None,
                 }
-            event_rows = connection.execute(select(m.audit.c.payload).where(
-                m.audit.c.entity_id == application_id,
-                m.audit.c.action == _KIND,
-            )).mappings()
-            report = next((event["payload"].get("analysis") for event in event_rows
-                           if isinstance(event["payload"], dict)
-                           and event["payload"].get("operation_id") == row["id"]), None)
+            params = row["params"] if isinstance(row["params"], dict) else {}
+            try:
+                receipt = _existing_result(
+                    connection, application_id, row["id"],
+                    params.get("request_id"), params.get("input_fingerprint"),
+                )
+            except FormReviewError as error:
+                raise HTTPException(409, {"code": error.code}) from None
+            report = receipt["analysis"] if receipt else None
         params = row["params"] if isinstance(row["params"], dict) else {}
         if (current_input_fingerprint is not None
                 and params.get("input_fingerprint") != current_input_fingerprint):
