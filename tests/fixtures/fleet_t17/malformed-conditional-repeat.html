@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Team 17 malformed dynamic form</title></head>
+<body>
+  <main>
+    <h1>Example Systems application</h1>
+    <form id="application" action="#" method="post">
+      <label for="candidate-name">Full name</label>
+      <input id="candidate-name" name="name" required>
+      <label for="sponsorship">Will you now or in the future require sponsorship?</label>
+      <select id="sponsorship" name="sponsorship" required>
+        <option value="">Choose</option><option value="no">No</option><option value="yes">Yes</option>
+      </select>
+      <div id="conditional-fields" hidden></div>
+      <button id="continue" type="button">Continue</button>
+    </form>
+    <label for="orphan-control">Additional information</label>
+    <input id="orphan-control" name="outside_form_control">
+  </main>
+  <script>
+    const sponsorship = document.querySelector('#sponsorship');
+    const conditional = document.querySelector('#conditional-fields');
+    sponsorship.addEventListener('change', () => {
+      conditional.replaceChildren();
+      if (sponsorship.value === 'yes') {
+        conditional.hidden = false;
+        conditional.innerHTML = '<label for="duplicate-id">Visa type</label>' +
+          '<input id="duplicate-id" name="visa_type" required>' +
+          '<label for="duplicate-id">Expected end date</label>' +
+          '<input id="duplicate-id" name="visa_end_date" type="date" required>';
+      } else {
+        conditional.hidden = true;
+      }
+    });
+  </script>
+</body>
+</html>
