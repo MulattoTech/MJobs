@@ -11,6 +11,7 @@ from services.applications.adapters.workday_forms import analyze_workday_form_ht
 from services.applications.adapters.lever_markup import analyze_lever_markup
 from services.applications.form_review import analyze_form_html
 from services.applications.provider_registry import get_provider, normalize_route
+from services.applications.workday_dynamic_review import project_workday_dynamic_review
 
 
 _SAFE_IDENTIFIER = re.compile(r"[a-zA-Z0-9_][a-zA-Z0-9_.:\-\[\]]{0,99}\Z")
@@ -198,7 +199,11 @@ def _workday_report(analysis) -> dict:
     else:
         reason = "MANUAL_REVIEW_REQUIRED"
     # This provider is deliberately review-only even when static metadata is clear.
-    return {"status": "REVIEW_REQUIRED", "reason": reason, "fields": fields}
+    report = {"status": "REVIEW_REQUIRED", "reason": reason, "fields": fields}
+    dynamic_review = project_workday_dynamic_review(analysis)
+    if dynamic_review is not None:
+        report["dynamic_review"] = dynamic_review
+    return report
 
 
 def analyze_application_form(provider, html, *, route_url) -> dict:
