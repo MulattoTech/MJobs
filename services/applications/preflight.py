@@ -10,6 +10,10 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import now
 from services.answers.review import assess_answer_review, is_review_sensitive_question
+from services.documents.answers import (
+    DEFAULT_ANSWER_CONFIDENCE_POLICY,
+    validate_answer_confidence_policy,
+)
 
 
 _IDENTIFIER = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
@@ -122,7 +126,7 @@ def _valid_mapping(question):
     return clean
 
 
-def _approved(rows):
+def _approved(rows, minimum_confidence=80):
     return {
         row.get("fact_id", row.get("id"))
         for row in rows
@@ -130,7 +134,7 @@ def _approved(rows):
         and row.get("verified") is True
         and row.get("user_approved") is True
         and type(row.get("confidence")) in (int, float)
-        and row["confidence"] >= 80
+        and row["confidence"] >= minimum_confidence
         and isinstance(row.get("source"), str) and row["source"].strip()
         and isinstance(row.get("text"), str) and row["text"].strip()
     }
@@ -139,7 +143,8 @@ def _approved(rows):
 def build_preflight_result(profile: dict, route: dict, questionnaire: dict | None,
                            document_kinds: set[str], application_id: str | None = None,
                            expected_answer_review_fingerprints: dict | None = None,
-                           answer_confidence_policy: dict | None = None) -> dict:
+                           answer_confidence_policy: dict | None = None,
+                           review_profile_answers=None) -> dict:
     """Evaluate supported structured questions against one immutable profile snapshot."""
     if route.get("provider") != "mock-ats" or route.get("tenant") != "example":
         return _unknown(profile, route, questionnaire, document_kinds, "UNSUPPORTED_ATS")
@@ -160,14 +165,40 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
     except (TypeError, ValueError):
         return _unknown(profile, route, questionnaire, document_kinds, "INVALID_QUESTION_METADATA")
 
+    try:
+        effective_answer_policy = validate_answer_confidence_policy(
+            dict(DEFAULT_ANSWER_CONFIDENCE_POLICY)
+            if answer_confidence_policy is None else answer_confidence_policy,
+        )
+    except ValueError:
+        return _unknown(profile, route, questionnaire, document_kinds,
+                        "INVALID_ANSWER_REVIEW_POLICY")
     fact_ids = _approved(profile.get("facts", []))
-    answer_ids = _approved(profile.get("answers", []))
-    answers_by_id = {
+    answer_ids = _approved(
+        profile.get("answers", []),
+        effective_answer_policy["minimum_saved_answer_confidence"],
+    )
+    normalized_answers_by_id = {
         row.get("fact_id", row.get("id")): row
         for row in profile.get("answers", [])
         if isinstance(row, dict)
         and isinstance(row.get("fact_id", row.get("id")), str)
     }
+    # The caller can supply the untouched source snapshot when its availability
+    # projection intentionally drops question text.
+    review_source_supplied = review_profile_answers is not None
+    review_answers = (profile.get("answers", []) if review_profile_answers is None
+                      else review_profile_answers)
+    review_input_invalid = (review_source_supplied and (
+        not isinstance(review_answers, (list, tuple))
+        or len(review_answers) > 1000
+        or any(not isinstance(answer, dict) for answer in review_answers)
+    ))
+    review_answers_by_id = {
+        row.get("fact_id", row.get("id")): row
+        for row in review_answers if isinstance(row, dict)
+        and isinstance(row.get("fact_id", row.get("id")), str)
+    } if isinstance(review_answers, (list, tuple)) else {}
     missing = []
     seen = set()
     for question in questionnaire["questions"]:
@@ -185,17 +216,28 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
         legal_path = _legal_profile_mapping(question, mapping)
         mapped_question_answer_ids = set() if mapping is None else {
             answer_id for answer_id in mapping["answer_ids"]
-            if answer_id in answer_ids and answer_id in answers_by_id
-            and isinstance(answers_by_id[answer_id].get("question"), str)
-            and answers_by_id[answer_id]["question"].strip()
+            if answer_id in review_answers_by_id
+            and isinstance(review_answers_by_id[answer_id].get("question"), str)
+            and review_answers_by_id[answer_id]["question"].strip()
         }
-        review_answers = profile.get("answers", [])
+        mapped_profile_ids = (set() if mapping is None else
+                              set(mapping["answer_ids"]) & set(normalized_answers_by_id))
+        incomplete_mapped_review = bool(
+            review_source_supplied and mapped_profile_ids
+            and (review_input_invalid
+                 or mapped_profile_ids - set(review_answers_by_id))
+        )
         sensitive_question = (
             question["required"]
             and legal_path is None
             and is_review_sensitive_question(question["label"])
         )
-        if mapped_question_answer_ids or sensitive_question:
+        expected_review_requested = (
+            expected_answer_review_fingerprints is not None
+            and mapping is not None and bool(mapping["answer_ids"])
+        )
+        if (mapped_question_answer_ids or sensitive_question or incomplete_mapped_review
+                or expected_review_requested):
             if expected_answer_review_fingerprints is None:
                 expected = None
             elif (isinstance(expected_answer_review_fingerprints, dict)
@@ -208,15 +250,21 @@ def build_preflight_result(profile: dict, route: dict, questionnaire: dict | Non
                 # disable the stale-answer check.
                 expected = ""
             assessment = assess_answer_review(
-                question["label"], review_answers, answer_confidence_policy,
+                question["label"], review_answers, effective_answer_policy,
                 expected_fingerprint=expected,
             )
             matched_ids = {match["answer_id"] for match in assessment["matches"]}
             missing_mapped_match = bool(mapped_question_answer_ids - matched_ids)
-            review_required = (assessment["review_required"] or missing_mapped_match)
-            review_reason = assessment["reason"] or (
-                "UNKNOWN_ANSWER" if missing_mapped_match else None
-            )
+            review_required = (assessment["review_required"] or missing_mapped_match
+                               or incomplete_mapped_review)
+            if incomplete_mapped_review:
+                review_reason = "UNKNOWN_ANSWER"
+            elif assessment["reason"] is not None:
+                review_reason = assessment["reason"]
+            elif missing_mapped_match:
+                review_reason = "UNKNOWN_ANSWER"
+            else:
+                review_reason = None
             gate = {
                 "question_id": question["id"],
                 "fingerprint": assessment["fingerprint"],
