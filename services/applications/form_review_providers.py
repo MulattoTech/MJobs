@@ -22,15 +22,49 @@ _SAFE_TYPES = {
     "textarea",
 }
 _SAFE_REASON = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
+_ASCII_ROUTE_PROVIDERS = frozenset({
+    "smartrecruiters", "workable", "teamtailor", "bamboohr",
+    "greenhouse", "lever", "ashby",
+})
+_RAW_ROUTE_IDENTITY = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*://([^/?#]*)([^?#]*)")
 
 
 def _provider_name(provider):
     return provider.casefold() if isinstance(provider, str) and provider.isascii() else None
 
 
+def _raw_route_identity_valid(provider, route_url, route_metadata):
+    """Check declared ASCII identities before URL parsing can erase raw bytes.
+
+    Tracking query text is outside provider identity and may contain Unicode.
+    Provider adapters remain authoritative for URL shape and canonicalization.
+    """
+    if provider not in _ASCII_ROUTE_PROVIDERS:
+        return True
+    if (not isinstance(route_url, str) or not route_url or len(route_url) > 2048
+            or route_url[0].isspace()
+            or any(ord(character) < 32 for character in route_url)):
+        return False
+    raw_identity = _RAW_ROUTE_IDENTITY.match(route_url)
+    if raw_identity is None or any(not part.isascii() for part in raw_identity.groups()):
+        return False
+    if route_metadata is not None:
+        if not isinstance(route_metadata, Mapping):
+            return False
+        for key in ("tenant", "requisition", "host"):
+            if key in route_metadata:
+                value = route_metadata[key]
+                if (not isinstance(value, str) or len(value) > 2048 or not value.isascii()
+                        or any(ord(character) < 32 for character in value)):
+                    return False
+    return True
+
+
 def normalize_application_route(provider, route_url, *, route_metadata=None) -> dict | None:
     """Normalize only routes accepted by the selected ATS adapter."""
     normalized_provider = _provider_name(provider)
+    if not _raw_route_identity_valid(normalized_provider, route_url, route_metadata):
+        return None
     if get_provider(normalized_provider) is None:
         return None
     route = {
