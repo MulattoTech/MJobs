@@ -64,3 +64,15 @@ def test_safe_report_preserves_only_valid_dynamic_observation():
     report["dynamic_review"]["fields"][0]["value"] = "SYNTHETIC_PRIVATE_VALUE"
     with pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
         _safe_report(report)
+
+
+@pytest.mark.parametrize("key,value", [("status", []), ("type", []), ("review_reason", {})])
+def test_corrupt_receipt_scalar_types_use_safe_error(key, value):
+    from copy import deepcopy
+    report = deepcopy(worker_fixture.SAFE_ANALYSIS)
+    if key == "status":
+        report[key] = value
+    else:
+        report["fields"][0][key] = value
+    with pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
+        _safe_report(report)

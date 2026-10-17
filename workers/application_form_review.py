@@ -102,7 +102,8 @@ def _safe_report(report):
     if (not isinstance(report, dict)
             or set(report) not in ({"status", "reason", "fields"},
                                    {"status", "reason", "fields", "dynamic_review"})
-            or report.get("status") not in {"ANALYZED", "REVIEW_REQUIRED", "UNKNOWN"}
+            or not isinstance(report.get("status"), str)
+            or report["status"] not in {"ANALYZED", "REVIEW_REQUIRED", "UNKNOWN"}
             or not isinstance(report.get("fields"), list)
             or len(report["fields"]) > 100):
         raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
@@ -120,10 +121,12 @@ def _safe_report(report):
             if (value is not None and
                     (not isinstance(value, str) or not _SAFE_IDENTIFIER.fullmatch(value))):
                 raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
-        if field["type"] not in _FIELD_TYPES or type(field["required"]) is not bool:
+        if (not isinstance(field["type"], str) or field["type"] not in _FIELD_TYPES
+                or type(field["required"]) is not bool):
             raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
         review_reason = field["review_reason"]
-        if review_reason is not None and review_reason not in _REVIEW_REASONS:
+        if review_reason is not None and (not isinstance(review_reason, str)
+                                           or review_reason not in _REVIEW_REASONS):
             raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
         safe_fields.append({
             "id": field["id"], "name": field["name"],
