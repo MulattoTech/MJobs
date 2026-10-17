@@ -5,6 +5,7 @@ import re
 
 from sqlalchemy import select
 
+from packages.domain.operation_mode import WorkspaceModeError
 from packages.persistence import models as m
 from packages.persistence.store import identity, now
 from services.documents.uploads import read_resume
@@ -34,6 +35,8 @@ class SupportingDocumentConflict(SupportingDocumentError):
 
 
 def list_selection(store, profile_id: str, application_id: str, *, _controlled_fixture=False) -> dict:
+    if _controlled_fixture:
+        _ensure_fixture_workspace(store)
     with store.engine.connect() as connection:
         return _selection_view(connection, profile_id, application_id, _controlled_fixture=_controlled_fixture)
 
@@ -65,6 +68,8 @@ def _selection_view(connection, profile_id: str, application_id: str, *, _contro
 def select_documents(store, profile_id: str, application_id: str,
                      revision_ids: list[str], request_id: str, *,
                      _controlled_fixture: bool = False) -> dict:
+    if _controlled_fixture:
+        _ensure_fixture_workspace(store)
     requested = _validate_request(revision_ids, request_id)
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
@@ -268,3 +273,10 @@ def _ensure_editable(application: dict) -> None:
         raise SupportingDocumentError("EXTERNAL_APPLICATION_DOCUMENTS_DISABLED")
     if application["state"] not in _EDITABLE_STATES:
         raise SupportingDocumentError("APPLICATION_NOT_EDITABLE")
+
+
+def _ensure_fixture_workspace(store) -> None:
+    try:
+        store.assert_workspace_mode("FIXTURE")
+    except WorkspaceModeError:
+        raise SupportingDocumentError("CONTROLLED_FIXTURE_WORKSPACE_REQUIRED") from None
