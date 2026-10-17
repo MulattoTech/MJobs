@@ -274,7 +274,7 @@ class ConsumedDebugCaptureCallTests(unittest.TestCase):
 
                 store.engine.dispose()
                 store = Store(database_url)
-                history = read_attempt_history(store, "fixture", application_id)
+                history = read_attempt_history(store, "fixture", application_id)["attempts"]
                 self.assertEqual(len(history), 1)
                 self.assertEqual(history[0]["state"], "REVIEW_REQUIRED")
                 self.assertIsNotNone(history[0]["finished_at"])
