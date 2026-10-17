@@ -7,10 +7,19 @@ import time
 import unittest
 from unittest.mock import patch
 
+import httpx
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
+from fixtures.mock_server import fixture_server
+from packages.persistence.store import Store
+from services.applications import mock_adapter
+from services.applications.mock_adapter import apply_mock
 from services.applications.debug_capture import capture_browser_failure
+from services.applications.attempt_history import read_attempt_history
+from services.discovery.pipeline import discover
+from services.documents.generate import prepare
+from tests.integration.test_spine import PROFILE
 
 
 _HTML = """<!doctype html><html><body><main><h1>Synthetic fixture</h1>
@@ -144,6 +153,7 @@ class DebugCaptureBudgetTests(unittest.TestCase):
             finally:
                 healthy_context.close()
 
+
     def test_expired_and_precancelled_checks_do_no_browser_work(self):
         cases = (("expired", _BudgetCheck(0)),
                  ("cancelled", _BudgetCheck(5, cancelled=True)))
@@ -196,6 +206,83 @@ class DebugCaptureBudgetTests(unittest.TestCase):
             self.assertEqual(str(original_error), "SYNTHETIC_ORIGINAL_PRIVATE_VALUE")
             self.assertGreaterEqual(check.calls, 3)
             self.assertEqual(check.remaining_calls, 1)
+
+class ConsumedDebugCaptureCallTests(unittest.TestCase):
+    def test_apply_mock_forwards_budget_and_finishes_cancelled_diagnostics(self):
+        original_error = RuntimeError("SYNTHETIC_CONTROL_FAILURE_PRIVATE")
+        with tempfile.TemporaryDirectory(prefix="mjobs-t12-consumed-capture-") as directory, \
+                fixture_server() as origin:
+            root = Path(directory)
+            database_url = f"sqlite:///{(root / 'fixture.db').as_posix()}"
+            store = Store(database_url)
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            profile = dict(PROFILE, id="fixture", name="SYNTHETIC_NAME",
+                           email="SYNTHETIC_EMAIL@example.invalid")
+            store.save_profile(profile)
+            try:
+                discover(store, origin, "fixture")
+                job = next(row for row in store.jobs()
+                           if row["requisition"] == "B")
+                application_id = prepare(store, job["id"], "fixture", root)
+                budget = _BudgetCheck(30.0)
+                observed_checks = []
+                original_capture = mock_adapter.capture_browser_failure
+
+                def fail_email_fill(locator, value, *args, **kwargs):
+                    if locator.get_attribute("name") == "email":
+                        raise original_error
+                    return original_fill(locator, value, *args, **kwargs)
+
+                def capture_with_cancellation(page, *args, **kwargs):
+                    observed_checks.append(kwargs.get("check"))
+                    # Interrupt at the diagnostic boundary, after the actual
+                    # browser failure, then delegate through the real helper.
+                    budget.cancelled = True
+                    with patch.object(page, "evaluate", side_effect=AssertionError(
+                            "cancelled diagnostics must not evaluate")) as evaluate, \
+                            patch.object(page, "locator", side_effect=AssertionError(
+                                "cancelled diagnostics must not inspect locators")) as locator, \
+                            patch.object(page, "screenshot", side_effect=AssertionError(
+                                "cancelled diagnostics must not screenshot")) as screenshot:
+                        result = original_capture(page, *args, **kwargs)
+                    evaluate.assert_not_called()
+                    locator.assert_not_called()
+                    screenshot.assert_not_called()
+                    return result
+
+                from playwright.sync_api import Locator
+                original_fill = Locator.fill
+                with patch.object(Locator, "fill", fail_email_fill), \
+                        patch.object(mock_adapter, "capture_browser_failure",
+                                     capture_with_cancellation):
+                    with self.assertRaises(RuntimeError) as raised:
+                        apply_mock(store, application_id, origin, root, submit=False,
+                                   debug_capture=True, check=budget)
+
+                self.assertIs(raised.exception, original_error)
+                self.assertEqual(len(observed_checks), 1)
+                self.assertIs(observed_checks[0], budget)
+                self.assertGreater(budget.calls, 0)
+                self.assertEqual(list((root / application_id / "debug-captures").glob(
+                    "*/metadata.json")), [])
+                self.assertEqual(store.application(application_id)["state"],
+                                 "REVIEW_REQUIRED")
+                self.assertEqual(httpx.get(
+                    origin + "/ats/receipts/" + application_id).json(),
+                    {"status": "not_found"})
+
+                store.engine.dispose()
+                store = Store(database_url)
+                history = read_attempt_history(store, "fixture", application_id)
+                self.assertEqual(len(history), 1)
+                self.assertEqual(history[0]["state"], "REVIEW_REQUIRED")
+                self.assertIsNotNone(history[0]["finished_at"])
+                self.assertIsNone(history[0]["confirmation"])
+                self.assertEqual(history[0]["error_code"],
+                                 "APPLICATION_EXECUTION_FAILED")
+            finally:
+                store.engine.dispose()
 
 
 if __name__ == "__main__":
