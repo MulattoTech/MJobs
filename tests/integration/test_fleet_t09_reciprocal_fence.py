@@ -5,7 +5,7 @@ import threading
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy import event, select
+from sqlalchemy import event, select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -21,10 +21,18 @@ def require_manual_review(case):
     finish_attempt(case.store, attempt["id"], case.store.application(case.app_id))
 
 
+def admission_lock_statement(statement):
+    normalized = statement.strip().upper()
+    return normalized == "BEGIN IMMEDIATE" or "PG_ADVISORY_XACT_LOCK(" in normalized
+
+
 def test_running_physical_attempt_blocks_manual_admission_after_reopen(prepared):
     case = prepared
     require_manual_review(case)
     attempt = reserve(case, "physical-owner")
+    with case.store.engine.begin() as connection:
+        connection.execute(update(m.attempts).where(m.attempts.c.id == attempt["id"]).values(
+            started_at="2000-01-01T00:00:00+00:00"))
     case.store.engine.dispose()
     reopened = Store(case.store.url)
     try:
@@ -55,13 +63,14 @@ def test_concurrent_physical_and_manual_admission_has_exactly_one_owner(prepared
             # orders without replacing the lock or relying on scheduler timing.
             @event.listens_for(store.engine, "after_cursor_execute")
             def acquired(connection, cursor, statement, parameters, context, executemany):
-                if actor == first_actor and statement.strip().upper() == "BEGIN IMMEDIATE":
+                if actor == first_actor and admission_lock_statement(statement):
                     first_locked.set()
                     assert other_attempting.wait(timeout=10)
 
             @event.listens_for(store.engine, "before_cursor_execute")
             def contending(connection, cursor, statement, parameters, context, executemany):
-                if first_actor and actor != first_actor and statement.strip().upper() == "BEGIN IMMEDIATE":
+                if (first_actor and actor != first_actor
+                        and admission_lock_statement(statement)):
                     other_attempting.set()
 
             barrier.wait(timeout=10)
