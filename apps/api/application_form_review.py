@@ -42,7 +42,7 @@ def _application_route(store, profile_id: str, application_id: str, *, connectio
         )).where(m.applications.c.id == application_id)).mappings().one_or_none()
     if row is None or row["profile_id"] != profile_id:
         raise HTTPException(404, "Application not found for this profile")
-    if row["provider"] not in {"greenhouse", "lever", "workday"} or row["target"] == "MOCK":
+    if row["provider"] not in {"ashby", "greenhouse", "lever", "workday"} or row["target"] == "MOCK":
         raise HTTPException(409, {"code": "FORM_REVIEW_ROUTE_UNSUPPORTED"})
     normalized = normalize_application_route(row["provider"], row["url"])
     if normalized is None:

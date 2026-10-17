@@ -291,6 +291,108 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
             f"/profiles/other-profile/applications/{self.application_id}/form-reviews/{request_id}"
         ).status_code, 404)
 
+    def test_ashby_public_route_queues_worker_and_reads_value_free_review(self):
+        route_url = "https://jobs.ashbyhq.com/fixture/engineering-123"
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+            ).values(
+                provider="ashby", tenant="fixture", requisition="engineering-123",
+                url=route_url,
+            ))
+
+        path = f"/profiles/fixture/applications/{self.application_id}/form-reviews"
+        request_id = "ashby-durable-review"
+        queued = self.client.post(path, json={"request_id": request_id})
+        self.assertEqual(queued.status_code, 202, queued.text)
+        operation_id = queued.json()["operation_id"]
+        html = (
+            "<form>"
+            "<label for='email'>Email address</label>"
+            "<input id='email' name='email' type='email' required "
+            "value='PRIVATE_ASHBY_EMAIL'>"
+            "<label for='custom'>Describe your work authorization details</label>"
+            "<input id='custom' name='custom' type='text' "
+            "value='PRIVATE_ASHBY_ANSWER'>"
+            "</form>"
+        ).encode()
+        fetched = []
+
+        class FakeResponse:
+            headers = {"content-type": "text/html; charset=utf-8"}
+            content = html
+            url = route_url
+
+        class FakePublicClient:
+            def __init__(self, website, check=None, total_timeout=None):
+                self.website = website
+                self.check = check
+
+            def get(self, url):
+                self.check()
+                fetched.append(url)
+                if url != route_url:
+                    raise AssertionError("Worker requested a different URL")
+                return FakeResponse()
+
+            def allowed(self, url):
+                return url == route_url
+
+            def close(self):
+                pass
+
+        with patch.dict("os.environ", {
+            "MJOBS_OPERATION_MODE": "FIXTURE",
+            "MJOBS_DATABASE_URL": self.database_url,
+            "MJOBS_REDIS_URL": "redis://127.0.0.1:1/0",
+            "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
+            "MJOBS_OUTPUT_DIR": str(self.root / "documents"),
+        }), patch("workers.tasks.PublicCompanyClient", FakePublicClient):
+            result = execute_operation(operation_id)
+
+        self.assertEqual(result["status"], "COMPLETED")
+        self.assertEqual(fetched, [route_url])
+        exact = self.client.get(path + "/" + request_id)
+        latest = self.client.get(path + "/latest")
+        self.assertEqual(exact.status_code, 200, exact.text)
+        self.assertEqual(latest.status_code, 200, latest.text)
+        expected_analysis = {
+            "status": "REVIEW_REQUIRED",
+            "reason": "FORM_REQUIRES_HUMAN_REVIEW",
+            "fields": [
+                {"id": "email", "name": "email", "type": "email", "required": True,
+                 "review_reason": None},
+                {"id": "custom", "name": "custom", "type": "text", "required": False,
+                 "review_reason": "SENSITIVE_FIELD"},
+            ],
+        }
+        self.assertEqual(exact.json()["state"], "COMPLETED")
+        self.assertEqual(exact.json()["request_id"], request_id)
+        self.assertEqual(exact.json()["analysis"], expected_analysis)
+        self.assertEqual(latest.json()["state"], "COMPLETED")
+        self.assertEqual(latest.json()["request_id"], request_id)
+        self.assertEqual(latest.json()["analysis"], expected_analysis)
+
+        with self.store.engine.connect() as connection:
+            operation = connection.execute(select(m.operations).where(
+                m.operations.c.id == operation_id,
+            )).mappings().one()
+            audits = list(connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "APPLICATION_FORM_REVIEW",
+            )).mappings())
+        self.assertEqual(operation["state"], "COMPLETED")
+        self.assertEqual(operation["params"]["provider"], "ashby")
+        self.assertEqual(operation["params"]["route_url"], route_url)
+        audit = next(row["payload"] for row in audits
+                     if row["payload"].get("operation_id") == operation_id)
+        self.assertEqual(audit["analysis"], expected_analysis)
+        for private_value in ("PRIVATE_ASHBY_EMAIL", "PRIVATE_ASHBY_ANSWER"):
+            self.assertNotIn(private_value, exact.text)
+            self.assertNotIn(private_value, latest.text)
+            self.assertNotIn(private_value, str(operation["params"]))
+            self.assertNotIn(private_value, str(audit))
+
     def test_workday_public_route_queues_worker_and_reads_value_free_review(self):
         route_url = (
             "https://fixture.wd5.myworkdayjobs.com/en-US/Careers/job/"

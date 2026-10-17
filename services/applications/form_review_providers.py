@@ -4,6 +4,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 import re
 
+from services.applications.adapters.ashby import AshbyApplicationAdapter
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
 from services.applications.adapters.lever import LeverApplicationAdapter
 from services.applications.adapters.recruitee import RecruiteeApplicationAdapter
@@ -14,6 +15,7 @@ from services.applications.form_review import analyze_form_html
 
 
 _ADAPTERS = {
+    "ashby": AshbyApplicationAdapter,
     "greenhouse": GreenhouseApplicationAdapter,
     "lever": LeverApplicationAdapter,
     "recruitee": RecruiteeApplicationAdapter,
@@ -207,6 +209,8 @@ def analyze_application_form(provider, html, *, route_url) -> dict:
             return analyze_form_html(
                 normalized_provider, html, route_url=route["url"],
             )
+        if normalized_provider == "ashby":
+            return AshbyApplicationAdapter().analyze_form(html, route_url=route["url"])
         if normalized_provider == "workday":
             return _workday_report(analyze_workday_form_html(html))
         # The durable worker supplies bounded response bytes. Lever's static
