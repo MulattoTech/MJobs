@@ -112,12 +112,13 @@ class ApplicationFormReviewWorkerTests(unittest.TestCase):
         forms = (
             ('<form><label for="email">Email address</label>'
              '<input id="email" name="email" type="email" required '
-             'value="PRIVATE_VALUE"></form>', "MANUAL_REVIEW_REQUIRED", None),
+             'value="PRIVATE_VALUE"></form>',
+            "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED", "UNKNOWN_QUESTION"),
             ('<form><label for="question">What do you enjoy learning?</label>'
              '<textarea id="question" name="question">PRIVATE_ANSWER</textarea></form>',
-             "FORM_REQUIRES_HUMAN_REVIEW", "UNKNOWN_QUESTION"),
+             "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED", "UNKNOWN_QUESTION"),
             ('<form><input id="ssn" name="ssn" value="PRIVATE_SSN"></form>',
-             "FORM_REQUIRES_HUMAN_REVIEW", "SENSITIVE_FIELD"),
+             "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED", "SENSITIVE_FIELD"),
             ('<form><div class="cf-turnstile">PRIVATE_CHALLENGE</div>'
              '<input id="email" name="email" type="email"></form>',
              "CHALLENGE_PROTECTED", None),
@@ -221,7 +222,7 @@ class ApplicationFormReviewWorkerTests(unittest.TestCase):
         )
 
         self.assertEqual(result["status"], "REVIEW_REQUIRED")
-        self.assertEqual(result["analysis"]["reason"], "MANUAL_REVIEW_REQUIRED")
+        self.assertEqual(result["analysis"]["reason"], "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED")
         fetch_html.assert_called_once_with(route_url)
 
     def test_review_persists_only_safe_report_and_replay_does_not_fetch_again(self):
