@@ -80,7 +80,7 @@ async forms => {
     for (let current = node; current && current !== form.parentElement; current = current.parentElement) {
       if (current.hidden || current.getAttribute("aria-hidden") === "true") return false;
       const style = getComputedStyle(current);
-      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse") return false;
+      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) === 0) return false;
     }
     return node.getClientRects().length > 0;
   };
@@ -103,7 +103,7 @@ async forms => {
       return fail("UNSUPPORTED_INTERACTIVE_CONTROL");
     }
     const editable = node.getAttribute("contenteditable");
-    if (editable && editable.toLowerCase() !== "false") {
+    if (editable !== null && editable.toLowerCase() !== "false") {
       return fail("UNSUPPORTED_INTERACTIVE_CONTROL");
     }
   }

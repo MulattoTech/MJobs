@@ -107,6 +107,23 @@ class FleetT02WorkdayDomMetadataPrivacyTests(unittest.TestCase):
             finally:
                 browser.close()
 
+    def test_empty_contenteditable_gate_is_rejected(self):
+        markup = (
+            '<form><label for="email">Email</label>'
+            '<input id="email" name="email" type="email">'
+            '<div contenteditable=""></div></form>'
+        )
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            try:
+                with _https_fixture_page(browser, markup) as page:
+                    payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
+                    self.assertEqual(payload["status"], "UNKNOWN")
+                    self.assertEqual(payload["reason"], "UNSUPPORTED_INTERACTIVE_CONTROL")
+                    self.assertEqual(payload["fields"], [])
+            finally:
+                browser.close()
+
 
 if __name__ == "__main__":
     unittest.main()
