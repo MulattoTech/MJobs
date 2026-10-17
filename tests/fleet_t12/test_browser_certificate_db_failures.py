@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from sqlalchemy import select
+from sqlalchemy import event, select
 
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -99,6 +99,44 @@ class BrowserCertificateDatabaseFailureTests(unittest.TestCase):
         self.assertTrue(self.record())
         self.assertIn("tree_closure", self.row()["recovery_metadata"]["manual_auth_owner"])
         self.assert_capacity_held()
+
+    def test_commit_failure_rolls_back_and_fresh_store_retry_reads_certificate(self):
+        self.assertTrue(self.enroll())
+        baseline = self.row()
+
+        def fail_before_dbapi_commit(_connection):
+            raise RuntimeError("private synthetic commit failure")
+
+        event.listen(self.store.engine, "commit", fail_before_dbapi_commit, once=True)
+        self.assertFalse(self.record())
+
+        fresh = Store(self.url)
+        try:
+            with fresh.engine.connect() as connection:
+                failed = dict(connection.execute(select(m.operations).where(
+                    m.operations.c.id == self.operation)).mappings().one())
+            self.assertEqual(failed, baseline)
+            self.assertNotIn("tree_closure", failed["recovery_metadata"]["manual_auth_owner"])
+            self.assertEqual(failed["state"], "RUNNING")
+            with self.assertRaises(OperationConcurrencyLimit):
+                admit_inline(fresh, "MANUAL_AUTH", "other-app")
+
+            with patch.object(self.observer, "observe", return_value=deepcopy(self.reply)):
+                self.assertTrue(self.certificate.record_closure(
+                    fresh, self.operation, self.observer, owner_token=self.token))
+            with fresh.engine.connect() as connection:
+                persisted = connection.execute(select(m.operations).where(
+                    m.operations.c.id == self.operation)).mappings().one()
+            certificate = persisted["recovery_metadata"]["manual_auth_owner"]["tree_closure"]
+            self.assertEqual(certificate["binding"], self.binding)
+            self.assertEqual(certificate["observer"], self.observer.identity)
+            self.assertEqual(certificate["accounting"], self.reply["accounting"])
+            self.assertTrue(certificate["observed_at"])
+            self.assertEqual(persisted["state"], "RUNNING")
+            with self.assertRaises(OperationConcurrencyLimit):
+                admit_inline(fresh, "MANUAL_AUTH", "another-app")
+        finally:
+            fresh.engine.dispose()
 
     def test_enrollment_connection_failure_returns_false_without_partial_owner_binding(self):
         baseline = self.row()
