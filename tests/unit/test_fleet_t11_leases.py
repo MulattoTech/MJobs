@@ -12,8 +12,8 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from workers.dispatch import enqueue_operation
 from workers.operations import (
-    MAX_ATTEMPTS, OperationCancelled, check_cancelled, claim, recover_expired,
-    request_cancel, timeout,
+    MAX_ATTEMPTS, OperationCancelled, admit_inline, check_cancelled, claim,
+    recover_expired, request_cancel, timeout,
 )
 from workers.tasks import execute_operation
 
@@ -115,6 +115,27 @@ class FleetT11LeaseTests(unittest.TestCase):
         self.assertEqual(result["status"], "OWNERSHIP_EXPIRED")
         self.assertEqual(self.row(operation_id)["state"], "RUNNING")
 
+        # A durable queued operation with a NULL lease must be reclaimed on
+        # restart. The public QUEUES kinds are recoverable; the worker receives
+        # a fresh bounded lease and can complete the same operation identity.
+        self.store.engine.dispose()
+        reopened = Store(self.database_url)
+        try:
+            self.assertEqual(recover_expired(reopened), 1)
+            recovered = self.row(operation_id)
+            self.assertEqual(recovered["state"], "QUEUED")
+            self.assertEqual(recovered["error"], "LEASE_EXPIRED")
+            self.assertEqual(recovered["attempt_count"], 1)
+            with patch("workers.tasks.recalculate") as recalculate:
+                retried = execute_operation(operation_id)
+            self.assertEqual(retried["status"], "COMPLETED")
+            recalculate.assert_called_once()
+            completed = self.row(operation_id)
+            self.assertEqual(completed["state"], "COMPLETED")
+            self.assertEqual(completed["attempt_count"], 2)
+        finally:
+            reopened.engine.dispose()
+
     def test_cancelled_expired_attempt_is_terminal_after_restart(self):
         operation_id = enqueue_operation(self.store, "DISCOVER", "t11-cancel-fixture", {})
         self.assertIsNotNone(claim(self.store, operation_id))
@@ -149,6 +170,50 @@ class FleetT11LeaseTests(unittest.TestCase):
         saved = self.row(operation_id)
         self.assertEqual(saved["attempt_count"], MAX_ATTEMPTS)
         self.assertEqual(saved["error"], "RETRY_LIMIT")
+        self.assertIsNone(claim(self.store, operation_id))
+
+    def test_null_manual_auth_lease_remains_reserved_and_holds_browser_capacity(self):
+        manual_auth = admit_inline(self.store, "MANUAL_AUTH", "t11-manual-browser")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == manual_auth).values(lease_expires_at=None))
+
+        # NULL lease does not imply that a headed browser owner has exited.
+        self.assertEqual(recover_expired(self.store), 0)
+        saved = self.row(manual_auth)
+        self.assertEqual(saved["state"], "RUNNING")
+        self.assertEqual(saved["error"], None)
+        self.assertIsNone(saved["lease_expires_at"])
+
+        competing = enqueue_operation(
+            self.store, "APPLICATION_DRY_RUN", "t11-manual-browser", {})
+        self.assertIsNone(claim(self.store, competing))
+
+    def test_null_queued_worker_lease_at_attempt_limit_honors_cancel(self):
+        operation_id = enqueue_operation(self.store, "DISCOVER", "t11-null-limit-cancel", {})
+        for attempt in range(MAX_ATTEMPTS):
+            claimed = claim(self.store, operation_id)
+            self.assertIsNotNone(claimed)
+            self.assertEqual(claimed["attempt_count"], attempt + 1)
+            if attempt < MAX_ATTEMPTS - 1:
+                with self.store.engine.begin() as connection:
+                    connection.execute(update(m.operations).where(
+                        m.operations.c.id == operation_id).values(
+                            lease_expires_at=(datetime.now(timezone.utc) - timedelta(seconds=1)).isoformat()))
+                self.assertEqual(recover_expired(self.store), 1)
+                self.assertEqual(self.row(operation_id)["state"], "QUEUED")
+                continue
+
+            self.assertTrue(request_cancel(self.store, operation_id)["cancel_requested"])
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.operations).where(
+                    m.operations.c.id == operation_id).values(lease_expires_at=None))
+            self.assertEqual(recover_expired(self.store), 1)
+
+        saved = self.row(operation_id)
+        self.assertEqual(saved["state"], "CANCELLED")
+        self.assertEqual(saved["error"], "CANCEL_REQUESTED")
+        self.assertEqual(saved["attempt_count"], MAX_ATTEMPTS)
         self.assertIsNone(claim(self.store, operation_id))
 
 
