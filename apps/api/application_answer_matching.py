@@ -6,6 +6,7 @@ import re
 from fastapi import APIRouter, Body, HTTPException
 from sqlalchemy.exc import NoResultFound
 
+from services.answers.review import assess_answer_review, is_review_sensitive_question
 from services.career_profile.story_bank import StoryBankError, list_stories
 from services.documents import answers as answer_service
 from services.documents.tailor import target_fingerprint
@@ -45,7 +46,8 @@ def _candidate_matches(question, profile_answers, policy):
                 or answer.get("user_approved") is not True
                 or type(confidence) is not int or not 0 <= confidence <= 100
                 or confidence < policy["minimum_saved_answer_confidence"]
-                or _SENSITIVE_QUESTION.search(saved_question)):
+                or _SENSITIVE_QUESTION.search(saved_question)
+                or is_review_sensitive_question(saved_question)):
             continue
         match = answer_service.match_answer_question(
             question,
@@ -159,13 +161,25 @@ def create_application_answer_matching_router(store) -> APIRouter:
     @router.post("/profiles/{profile_id}/applications/{application_id}/answers/match")
     def match_application_answers(profile_id: str, application_id: str,
                                   payload: object = Body(...)):
-        if (not isinstance(payload, dict) or set(payload) != {"question"}
+        if (not isinstance(payload, dict)
+                or set(payload) not in ({"question"}, {"question", "expected_fingerprint"})
                 or not isinstance(payload.get("question"), str)
                 or not payload["question"].strip() or len(payload["question"]) > 2000):
             raise HTTPException(422, {"code": "ANSWER_MATCH_INVALID_REQUEST"})
+        if ("expected_fingerprint" in payload
+                and (not isinstance(payload["expected_fingerprint"], str)
+                     or re.fullmatch(r"[0-9a-f]{64}", payload["expected_fingerprint"]) is None)):
+            raise HTTPException(422, {"code": "ANSWER_MATCH_INVALID_REVIEW_FINGERPRINT"})
         question = payload["question"].strip()
-        if _SENSITIVE_QUESTION.search(question):
-            raise HTTPException(422, {"code": "ANSWER_MATCH_SENSITIVE_QUESTION"})
+        if (_SENSITIVE_QUESTION.search(question)
+                or is_review_sensitive_question(question)):
+            raise HTTPException(422, {
+                "code": "ANSWER_MATCH_SENSITIVE_QUESTION",
+                "review_gate": {
+                    "review_required": True,
+                    "reason": "SENSITIVE_QUESTION",
+                },
+            })
 
         try:
             profile = store.profile(profile_id)
@@ -188,7 +202,21 @@ def create_application_answer_matching_router(store) -> APIRouter:
         job_fingerprint = target_fingerprint(job)
 
         policy = answer_service.get_answer_confidence_policy(store, profile_id)
+        answer_review = assess_answer_review(
+            question,
+            profile.get("answers", []),
+            policy,
+            expected_fingerprint=payload.get("expected_fingerprint"),
+        )
+        matching_answer_ids = {
+            match["answer_id"] for match in answer_review["matches"]
+        }
         candidates = _candidate_matches(question, profile.get("answers", []), policy)
+        if answer_review["review_required"]:
+            candidates = []
+        else:
+            candidates = [candidate for candidate in candidates
+                          if candidate["answer_id"] in matching_answer_ids]
         story_references = _story_reference_rows(store, profile_id)
 
         try:
@@ -203,6 +231,18 @@ def create_application_answer_matching_router(store) -> APIRouter:
                 or current_application.get("job_id") != job["id"]
                 or current_profile.get("version") != profile.get("version")
                 or target_fingerprint(current_job) != job_fingerprint):
+            raise HTTPException(
+                409, {"code": "ANSWER_MATCH_CONTEXT_STALE"},
+            )
+
+        current_policy = answer_service.get_answer_confidence_policy(store, profile_id)
+        current_answer_review = assess_answer_review(
+            question,
+            current_profile.get("answers", []),
+            current_policy,
+            expected_fingerprint=answer_review["fingerprint"],
+        )
+        if current_answer_review["reason"] == "CHANGED_ANSWER":
             raise HTTPException(
                 409, {"code": "ANSWER_MATCH_CONTEXT_STALE"},
             )
@@ -224,6 +264,11 @@ def create_application_answer_matching_router(store) -> APIRouter:
             "application_id": application_id,
             "question": question,
             "candidates": candidates,
+            "review_gate": {
+                "review_required": answer_review["review_required"],
+                "reason": answer_review["reason"],
+                "fingerprint": answer_review["fingerprint"],
+            },
             "story_references": story_references,
         }
 
