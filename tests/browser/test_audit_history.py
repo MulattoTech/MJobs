@@ -4,6 +4,8 @@ import tempfile
 import threading
 import time
 import unittest
+
+import httpx
 from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
@@ -24,6 +26,9 @@ from services.tracking.applications import add_application_note, set_application
 from workers.dispatch import enqueue_operation
 from workers.operations import claim
 from tests.integration.test_spine import PROFILE
+from tests.integration.test_fleet_t11_audit_failure_recovery import (
+    PRIVATE_ERROR_CANARY, exercise_public_prepare_failure_recovery,
+)
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -54,7 +59,6 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                 self.assertEqual(submitted["state"], "CONFIRMED")
             preparation = enqueue_operation(store, "PREPARE", "fixture", {
                 "job_id": store.jobs("fixture")[0]["id"]})
-            claim(store, preparation)
             set_application_pipeline_status(store, "fixture", application_id,
                                             "APPLIED", "browser-audit-status")
             add_application_note(store, "fixture", application_id,
@@ -93,7 +97,7 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     id="other-history", entity_id="other", action="PROFILE_SAVED",
                     payload={"value": "other-private-setting"},
                     timestamp="2026-10-07T10:01:00+00:00"))
-            app = create_app(store, "http://127.0.0.1:1", ROOT,
+            app = create_app(store, "http://127.0.0.1:1", root,
                              "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
             sock = bound_browser_socket()
             origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
@@ -105,6 +109,32 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                 while not server.started:
                     if not thread.is_alive() or time.monotonic() > deadline:
                         self.fail("Isolated audit-history API did not start")
+                    time.sleep(0.02)
+                # Produce real failure/success events through this uvicorn API,
+                # then recreate Store+API before the mounted Activity proof.
+                failure_job = next(row for row in store.jobs("fixture")
+                                   if row["id"] != store.application(application_id)["job_id"])
+                with httpx.Client(base_url=origin, trust_env=False, timeout=10) as api_client:
+                    recovery = exercise_public_prepare_failure_recovery(
+                        api_client, store, root, failure_job["id"])
+                claim(store, preparation)
+                server.should_exit = True
+                thread.join(timeout=5)
+                self.assertFalse(thread.is_alive(), "owned pre-reopen API must stop")
+                saved_url = store.url
+                store.engine.dispose()
+                store = Store(saved_url)
+                app = create_app(store, "http://127.0.0.1:1", root,
+                                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+                sock = bound_browser_socket()
+                origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
+                server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
+                thread = threading.Thread(target=server.run, kwargs={"sockets": [sock]}, daemon=True)
+                thread.start()
+                deadline = time.monotonic() + 10
+                while not server.started:
+                    if not thread.is_alive() or time.monotonic() > deadline:
+                        self.fail("Reopened audit-history API did not start")
                     time.sleep(0.02)
                 with sync_playwright() as pw:
                     browser = pw.chromium.launch(headless=True)
@@ -175,6 +205,15 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(history).to_contain_text("Application note added")
                     expect(history).to_contain_text("Application preparation queued")
                     expect(history).to_contain_text("Application preparation started")
+                    expect(history).to_contain_text("Application preparation failed")
+                    expect(history).to_contain_text("Resume prepared")
+                    expect(history).to_contain_text("Cover letter prepared")
+                    self.assertEqual(history.locator("li").filter(
+                        has_text="Application preparation failed").count(), 1)
+                    expect(history).not_to_contain_text(PRIVATE_ERROR_CANARY)
+                    expect(history).not_to_contain_text("audit-private-retry-request")
+                    expect(history).not_to_contain_text("NotADirectoryError")
+                    expect(history).not_to_contain_text("FileExistsError")
                     expect(history).to_contain_text("Application submitted to the local mock ATS")
                     expect(history).to_contain_text("Fictional mock application outcome confirmed")
                     expect(history).to_contain_text(
@@ -265,6 +304,18 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                         len(before_source_setting_ids) + 4)
                     expect(reloaded_history).not_to_contain_text("other-private-setting")
                     expect(reloaded_history).to_contain_text("Application status reported by you")
+                    expect(reloaded_history).to_contain_text("Application preparation failed")
+                    expect(reloaded_history).to_contain_text("Resume prepared")
+                    expect(reloaded_history).to_contain_text("Cover letter prepared")
+                    expect(reloaded_history).not_to_contain_text(PRIVATE_ERROR_CANARY)
+                    reloaded_events = page.evaluate("""async () => {
+                        const response = await fetch('/profiles/fixture/audit-history');
+                        return (await response.json()).events;
+                    }""")
+                    self.assertEqual([event["id"] for event in reloaded_events
+                                      if event["type"] == "APPLICATION_FAILED"], recovery["failure_ids"])
+                    self.assertTrue(set(recovery["generated_ids"]).issubset(
+                        {event["id"] for event in reloaded_events}))
                     expect(reloaded_history).to_contain_text(
                         "Application submitted to the local mock ATS")
                     expect(reloaded_history).to_contain_text(
@@ -276,6 +327,10 @@ class AuditHistoryBrowserTests(unittest.TestCase):
                     expect(other_history).to_contain_text("Profile details updated")
                     expect(other_history).not_to_contain_text("A profile setting changed")
                     expect(other_history).not_to_contain_text("Application status reported by you")
+                    expect(other_history).not_to_contain_text("Application preparation failed")
+                    expect(other_history).not_to_contain_text("Resume prepared")
+                    expect(other_history).not_to_contain_text("Cover letter prepared")
+                    expect(other_history).not_to_contain_text(PRIVATE_ERROR_CANARY)
                     expect(other_history).not_to_contain_text(
                         "Application submitted to the local mock ATS")
                     expect(other_history).not_to_contain_text(
