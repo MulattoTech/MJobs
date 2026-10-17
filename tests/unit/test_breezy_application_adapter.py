@@ -1,5 +1,6 @@
 """Synthetic contract tests for the inspection-only Breezy adapter."""
 import unittest
+from pathlib import Path
 from unittest.mock import patch
 
 from services.applications.adapters.breezy import BreezyApplicationAdapter
@@ -88,7 +89,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
         class Controls:
             def evaluate_all(self, script):
                 return [{
-                    "user_visible": True, "user_editable": True,
+                    "user_visible": True, "hit_test_visible": True, "user_editable": True,
                     "paint_styles": [{
                         "clip_path": "none", "clip": "auto", "contain": "none",
                         "opacity": "1",
@@ -125,7 +126,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
 
     def test_analyze_page_rejects_clipped_and_nearly_transparent_controls(self):
         base_state = {
-            "user_visible": True, "user_editable": True,
+            "user_visible": True, "hit_test_visible": True, "user_editable": True,
             "paint_styles": [{
                 "clip_path": "none", "clip": "auto", "contain": "none", "opacity": "1",
             }],
@@ -194,6 +195,58 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
 
                 result = self.adapter.analyze_page(Page())
                 self.assertTrue(self.adapter.requires_human_review(result))
+
+    def test_real_dom_projection_rejects_hidden_clipped_and_occluded_controls(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except ImportError:
+            self.skipTest("Playwright is unavailable")
+
+        fixtures = (
+            ("visible", '<input type="email" aria-label="Email address">', "", False),
+            ("hidden", '<input type="email" aria-label="Email address" style="display:none">', "", True),
+            ("disabled", '<input type="email" aria-label="Email address" disabled>', "", True),
+            ("readonly", '<input type="email" aria-label="Email address" readonly>', "", True),
+            ("clip-path", '<input type="email" aria-label="Email address" style="clip-path:inset(50%)">', "", True),
+            ("near-transparent", '<input type="email" aria-label="Email address" style="opacity:0.001">', "", True),
+            ("overflow-clipped", '<div class="clip"><input type="email" aria-label="Email address"></div>',
+             ".clip{position:absolute;left:20px;top:20px;width:30px;height:30px;overflow:hidden}"
+             ".clip input{position:absolute;left:40px;top:0;width:120px;height:30px}", True),
+            ("overlay", '<input type="email" aria-label="Email address">'
+             '<div class="overlay"></div>',
+             ".overlay{position:fixed;inset:0;background:white;z-index:9999}", True),
+        )
+
+        with sync_playwright() as playwright:
+            executable = Path(playwright.chromium.executable_path)
+            if not executable.is_file():
+                candidates = (
+                    Path("C:/Program Files/Google/Chrome/Application/chrome.exe"),
+                    Path("C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"),
+                    Path("/usr/bin/chromium"), Path("/usr/bin/chromium-browser"),
+                    Path("/usr/bin/google-chrome"),
+                )
+                executable = next((candidate for candidate in candidates
+                                   if candidate.is_file()), None)
+            if executable is None or not executable.is_file():
+                self.skipTest("No local Chromium-compatible browser is installed")
+            browser = playwright.chromium.launch(
+                headless=True, executable_path=str(executable),
+            )
+            try:
+                page = browser.new_page(viewport={"width": 640, "height": 480})
+                for name, control, css, expected_review in fixtures:
+                    with self.subTest(dom_state=name):
+                        page.set_content(
+                            f"<style>{css}</style><form>{control}</form>"
+                        )
+                        analysis = self.adapter.analyze_page(page)
+                        self.assertEqual(analysis["status"], "PASS")
+                        self.assertEqual(
+                            self.adapter.requires_human_review(analysis), expected_review,
+                        )
+            finally:
+                browser.close()
 
     def test_analyze_page_missing_dom_evidence_requires_review(self):
         analysis = {"status": "PASS", "fields": [{

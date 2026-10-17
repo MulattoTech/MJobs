@@ -81,13 +81,18 @@ _CONTROL_STATE_SCRIPT = r"""controls => controls.map(element => {
   const visible = !hidden && element.getClientRects().length > 0 &&
     rect.width > 1 && rect.height > 1 && rect.right > 0 && rect.bottom > 0 &&
     rect.left < window.innerWidth && rect.top < window.innerHeight;
+  const hitTarget = document.elementFromPoint(
+    rect.left + rect.width / 2, rect.top + rect.height / 2
+  );
+  const hitTestVisible = hitTarget === element || element.contains(hitTarget);
   const disabled = element.matches(':disabled') || element.readOnly === true ||
     Boolean(element.closest('[aria-disabled="true"], [aria-readonly="true"]'));
   const inputType = element.tagName.toLowerCase() === 'input'
     ? (element.getAttribute('type') || 'text').toLowerCase() : null;
   return {
     user_visible: visible,
-    user_editable: visible && !disabled && inputType !== 'hidden',
+    hit_test_visible: hitTestVisible,
+    user_editable: visible && hitTestVisible && !disabled && inputType !== 'hidden',
     paint_styles: paintStyles,
     control_rect: {
       left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom
@@ -227,13 +232,14 @@ class BreezyApplicationAdapter:
         """Validate geometry and paint evidence before trusting DOM visibility."""
         if (not isinstance(state, dict)
                 or type(state.get("user_visible")) is not bool
+                or type(state.get("hit_test_visible")) is not bool
                 or type(state.get("user_editable")) is not bool
                 or type(state.get("clip_geometry_transformed")) is not bool):
             return None
         paint_styles = state.get("paint_styles")
         if not isinstance(paint_styles, list) or not paint_styles:
             return None
-        visible = state["user_visible"]
+        visible = state["user_visible"] and state["hit_test_visible"]
         effective_opacity = 1.0
         for style in paint_styles:
             if not isinstance(style, dict):
