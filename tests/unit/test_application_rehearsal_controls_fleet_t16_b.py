@@ -3,12 +3,13 @@ from copy import deepcopy
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from sqlalchemy import func, select
 
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
-from packages.persistence.store import Store
+from packages.persistence.store import Store, identity
 from services.applications.rehearsal_store import (
     RehearsalStoreError,
     get_controlled_controls,
@@ -83,7 +84,7 @@ class ControlledRehearsalControlsFleetT16BTests(unittest.TestCase):
         self.assertEqual(len(events), 1)
         self.assertEqual(set(events[0]), {
             "profile_id", "application_id", "request_id", "paused",
-            "daily_limit", "submission_enabled",
+            "daily_limit", "submission_enabled", "revision",
         })
 
         self.store.engine.dispose()
@@ -95,6 +96,61 @@ class ControlledRehearsalControlsFleetT16BTests(unittest.TestCase):
         with self.assertRaises(RehearsalStoreError) as raised:
             self._set(paused=False, daily_limit=3)
         self.assertEqual(raised.exception.code, "CONTROLLED_CONTROLS_REQUEST_ID_REUSED")
+
+    def test_corrupt_latest_controls_fail_closed_instead_of_restoring_defaults(self):
+        self._set(paused=True, daily_limit=3)
+        with self.store.engine.begin() as connection:
+            event = connection.execute(select(m.audit.c.id, m.audit.c.payload).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "CONTROLLED_APPLICATION_CONTROLS_CHANGED",
+            )).mappings().one()
+            connection.execute(m.audit.update().where(m.audit.c.id == event["id"]).values(
+                payload={**event["payload"], "paused": "false"},
+            ))
+
+        with self.assertRaises(RehearsalStoreError) as raised:
+            get_controlled_controls(self.store, "fixture", self.application_id)
+        self.assertEqual(raised.exception.code, "CONTROLLED_CONTROLS_INVALID")
+
+    def test_revisions_order_settings_when_timestamps_are_equal(self):
+        timestamp = "2026-10-17T12:00:00+00:00"
+        with patch("services.applications.rehearsal_store.now", return_value=timestamp):
+            self._set(request_id="same-time-pause", paused=True, daily_limit=5)
+            self._set(request_id="same-time-resume", paused=False, daily_limit=7)
+
+        current = get_controlled_controls(self.store, "fixture", self.application_id)
+        self.assertEqual(current["request_id"], "same-time-resume")
+        self.assertFalse(current["paused"])
+        self.assertEqual(current["daily_limit"], 7)
+        with self.store.engine.connect() as connection:
+            revisions = list(connection.execute(select(m.audit.c.payload["revision"]).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "CONTROLLED_APPLICATION_CONTROLS_CHANGED",
+            ).order_by(m.audit.c.id)).scalars())
+        self.assertEqual(sorted(revisions), [1, 2])
+
+    def test_setting_changed_profile_audit_is_atomic_and_idempotent(self):
+        response = self._set(request_id="audited-pause", paused=True, daily_limit=4)
+        setting_id = identity(
+            "controlled-application-setting-changed-v1", "fixture",
+            self.application_id, "audited-pause",
+        )
+        with self.store.engine.connect() as connection:
+            event = connection.execute(select(m.audit).where(
+                m.audit.c.id == setting_id,
+            )).mappings().one()
+        self.assertEqual(event["entity_id"], "fixture")
+        self.assertEqual(event["action"], "SETTING_CHANGED")
+        self.assertEqual(event["payload"], {})
+        self.assertFalse(response["replayed"])
+
+        replay = self._set(request_id="audited-pause", paused=True, daily_limit=4)
+        self.assertTrue(replay["replayed"])
+        with self.store.engine.connect() as connection:
+            count = connection.execute(select(func.count()).select_from(m.audit).where(
+                m.audit.c.id == setting_id,
+            )).scalar_one()
+        self.assertEqual(count, 1)
 
     def test_invalid_control_types_ranges_and_request_ids_are_rejected(self):
         invalid = [
@@ -193,6 +249,32 @@ class ControlledRehearsalControlsFleetT16BTests(unittest.TestCase):
             with self.assertRaises(RehearsalStoreError) as raised:
                 require_controlled_execution(
                     connection, "fixture", self.application_id, "missing-operation",
+                )
+        self.assertEqual(raised.exception.code, "CONTROLLED_ADMISSION_REQUIRED")
+
+    def test_execution_rejects_admission_payload_with_extra_or_changed_fields(self):
+        self._set(paused=False, daily_limit=10)
+        self._insert_operation("tampered-admission")
+        with self.store.engine.begin() as connection:
+            record_controlled_admission(
+                connection, "fixture", self.application_id, "tampered-admission",
+            )
+        event_id = identity(
+            "controlled-application-admission-v1", "fixture",
+            self.application_id, "tampered-admission",
+        )
+        with self.store.engine.begin() as connection:
+            event = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.id == event_id,
+            )).scalar_one()
+            connection.execute(m.audit.update().where(m.audit.c.id == event_id).values(
+                payload={**event, "unexpected": True},
+            ))
+
+        with self.store.engine.begin() as connection:
+            with self.assertRaises(RehearsalStoreError) as raised:
+                require_controlled_execution(
+                    connection, "fixture", self.application_id, "tampered-admission",
                 )
         self.assertEqual(raised.exception.code, "CONTROLLED_ADMISSION_REQUIRED")
 

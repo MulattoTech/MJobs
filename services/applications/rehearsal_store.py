@@ -18,6 +18,7 @@ _PROFILE_VERSION = re.compile(r"[0-9a-f]{64}\Z")
 _RECEIPT_VERSION = 1
 _CONTROL_ACTION = "CONTROLLED_APPLICATION_CONTROLS_CHANGED"
 _ADMISSION_ACTION = "CONTROLLED_APPLICATION_ADMITTED"
+_SETTING_ACTION = "SETTING_CHANGED"
 _CONTROL_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
 _DAILY_LIMIT_MIN = 0
 _DAILY_LIMIT_MAX = 100
@@ -47,26 +48,58 @@ def _control_scope(connection, profile_id: str, application_id: str, *, lock=Fal
         raise RehearsalStoreError("PROFILE_NOT_FOUND")
 
 
-def _controls_from_connection(connection, profile_id: str, application_id: str) -> dict:
-    _control_scope(connection, profile_id, application_id)
+def _latest_control_payload(connection, application_id: str) -> dict | None:
     rows = list(connection.execute(select(
-        m.audit.c.payload,
+        m.audit.c.payload, m.audit.c.timestamp, m.audit.c.id,
     ).where(
         m.audit.c.entity_id == application_id,
         m.audit.c.action == _CONTROL_ACTION,
-    ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).scalars())
-    for payload in rows:
-        if (not isinstance(payload, dict)
-                or payload.get("profile_id") != profile_id
-                or payload.get("application_id") != application_id
-                or not isinstance(payload.get("request_id"), str)
-                or not _CONTROL_REQUEST_ID.fullmatch(payload["request_id"])
-                or type(payload.get("paused")) is not bool
-                or type(payload.get("daily_limit")) is not int
-                or not _DAILY_LIMIT_MIN <= payload["daily_limit"] <= _DAILY_LIMIT_MAX
-                or payload.get("submission_enabled") is not False):
-            continue
-        return _control_view(payload)
+    )).mappings())
+    if not rows:
+        return None
+
+    # Timestamps can tie at storage precision. Writers serialize on the owner
+    # row and increment revision, which gives those events a stable order.
+    latest_timestamp = max(row["timestamp"] for row in rows)
+    tied = [row for row in rows if row["timestamp"] == latest_timestamp]
+    revisions = []
+    for row in tied:
+        payload = row["payload"]
+        if not isinstance(payload, dict):
+            raise RehearsalStoreError("CONTROLLED_CONTROLS_INVALID")
+        revision = payload.get("revision", 0)
+        if type(revision) is not int or revision < 0:
+            raise RehearsalStoreError("CONTROLLED_CONTROLS_INVALID")
+        revisions.append((revision, row["id"], payload))
+    payload = max(revisions, key=lambda value: (value[0], value[1]))[2]
+    return payload
+
+
+def _validated_control_payload(payload, profile_id: str, application_id: str) -> dict:
+    if (not isinstance(payload, dict)
+            or payload.get("profile_id") != profile_id
+            or payload.get("application_id") != application_id
+            or not isinstance(payload.get("request_id"), str)
+            or not _CONTROL_REQUEST_ID.fullmatch(payload["request_id"])
+            or type(payload.get("paused")) is not bool
+            or type(payload.get("daily_limit")) is not int
+            or not _DAILY_LIMIT_MIN <= payload["daily_limit"] <= _DAILY_LIMIT_MAX
+            or payload.get("submission_enabled") is not False
+            or ("revision" in payload
+                and (type(payload["revision"]) is not int or payload["revision"] < 1))
+            or set(payload) not in ({"profile_id", "application_id", "request_id", "paused",
+                                     "daily_limit", "submission_enabled"},
+                                    {"profile_id", "application_id", "request_id", "paused",
+                                     "daily_limit", "submission_enabled", "revision"})):
+        raise RehearsalStoreError("CONTROLLED_CONTROLS_INVALID")
+    return payload
+
+
+def _controls_from_connection(connection, profile_id: str, application_id: str) -> dict:
+    _control_scope(connection, profile_id, application_id)
+    payload = _latest_control_payload(connection, application_id)
+    if payload is not None:
+        return _control_view(_validated_control_payload(payload, profile_id, application_id))
     return {
         "profile_id": profile_id,
         "application_id": application_id,
@@ -101,7 +134,13 @@ def set_controlled_controls(store, profile_id: str, application_id: str, *,
             or type(paused) is not bool or type(daily_limit) is not int
             or not _DAILY_LIMIT_MIN <= daily_limit <= _DAILY_LIMIT_MAX):
         raise RehearsalStoreError("CONTROLLED_CONTROLS_INVALID_REQUEST")
-    payload = {
+    event_id = identity("controlled-application-controls-v1", profile_id,
+                        application_id, request_id)
+    setting_event_id = identity(
+        "controlled-application-setting-changed-v1", profile_id,
+        application_id, request_id,
+    )
+    requested = {
         "profile_id": profile_id,
         "application_id": application_id,
         "request_id": request_id,
@@ -109,8 +148,17 @@ def set_controlled_controls(store, profile_id: str, application_id: str, *,
         "daily_limit": daily_limit,
         "submission_enabled": False,
     }
-    event_id = identity("controlled-application-controls-v1", profile_id,
-                        application_id, request_id)
+
+    def ensure_setting_event(connection, timestamp):
+        existing = connection.execute(select(m.audit.c.id).where(
+            m.audit.c.id == setting_event_id,
+        )).first()
+        if existing is None:
+            connection.execute(m.audit.insert().values(
+                id=setting_event_id, entity_id=profile_id, action=_SETTING_ACTION,
+                payload={}, timestamp=timestamp,
+            ))
+
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
@@ -119,13 +167,23 @@ def set_controlled_controls(store, profile_id: str, application_id: str, *,
             m.audit.c.payload,
         ).where(m.audit.c.id == event_id, m.audit.c.action == _CONTROL_ACTION)).scalar_one_or_none()
         if prior is not None:
-            if prior != payload:
+            if (not isinstance(prior, dict)
+                    or any(prior.get(key) != value for key, value in requested.items())
+                    or not _validated_control_payload(prior, profile_id, application_id)):
                 raise RehearsalStoreError("CONTROLLED_CONTROLS_REQUEST_ID_REUSED")
+            ensure_setting_event(connection, now())
             return {"controls": _control_view(prior), "replayed": True}
+        current = _latest_control_payload(connection, application_id)
+        revision = 1 if current is None else _validated_control_payload(
+            current, profile_id, application_id,
+        ).get("revision", 0) + 1
+        payload = {**requested, "revision": revision}
+        timestamp = now()
         connection.execute(m.audit.insert().values(
             id=event_id, entity_id=application_id, action=_CONTROL_ACTION,
-            payload=payload, timestamp=now(),
+            payload=payload, timestamp=timestamp,
         ))
+        ensure_setting_event(connection, timestamp)
         return {"controls": _control_view(payload), "replayed": False}
 
 
@@ -180,12 +238,7 @@ def record_controlled_admission(connection, profile_id: str, application_id: str
         m.audit.c.payload, m.audit.c.timestamp,
     ).where(m.audit.c.id == event_id, m.audit.c.action == _ADMISSION_ACTION)
         .with_for_update()).mappings().one_or_none()
-    expected = {
-        "profile_id": profile_id,
-        "application_id": application_id,
-        "operation_id": operation_id,
-        "submission_enabled": False,
-    }
+    expected = _controlled_admission_payload(profile_id, application_id, operation_id)
     if prior is not None:
         if prior["payload"] != expected:
             raise RehearsalStoreError("CONTROLLED_ADMISSION_CONFLICT")
@@ -200,6 +253,16 @@ def record_controlled_admission(connection, profile_id: str, application_id: str
     return {"operation_id": operation_id, "admitted_at": admitted_at, "replayed": False}
 
 
+def _controlled_admission_payload(profile_id: str, application_id: str,
+                                  operation_id: str) -> dict:
+    return {
+        "profile_id": profile_id,
+        "application_id": application_id,
+        "operation_id": operation_id,
+        "submission_enabled": False,
+    }
+
+
 def require_controlled_execution(connection, profile_id: str, application_id: str,
                                   operation_id: str) -> dict:
     """Require a current, owner-scoped admission and reject execution while paused."""
@@ -212,7 +275,8 @@ def require_controlled_execution(connection, profile_id: str, application_id: st
         m.audit.c.payload, m.audit.c.timestamp,
     ).where(m.audit.c.id == event_id, m.audit.c.action == _ADMISSION_ACTION)
         .with_for_update()).mappings().one_or_none()
-    if event is None or event["payload"].get("profile_id") != profile_id:
+    expected = _controlled_admission_payload(profile_id, application_id, operation_id)
+    if event is None or event["payload"] != expected:
         raise RehearsalStoreError("CONTROLLED_ADMISSION_REQUIRED")
     return {"operation_id": operation_id, "admitted_at": event["timestamp"],
             "submission_enabled": False}
