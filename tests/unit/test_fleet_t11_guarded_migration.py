@@ -5,12 +5,30 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+import re
+import sqlite3
 from unittest.mock import patch, MagicMock
 from contextlib import ExitStack
 from cli import migration_precondition as guard
 
 
 class MigrationPolicyTests(unittest.TestCase):
+    def test_pg17_builtin_language_catalog_passes_actual_predicate_but_unknown_language_fails(self):
+        # REL_17_STABLE/src/include/catalog/pg_language.dat: internal/c/sql;
+        # the default plpgsql extension adds the fourth language. This tests
+        # only the actual portable language predicate, NOT the full PG bootstrap.
+        predicate=re.search(r'NOT EXISTS \(SELECT 1 FROM pg_language WHERE lanname NOT IN \([^)]*\)\)',
+                            guard.EMPTY_SQL).group(0)
+        connection=sqlite3.connect(':memory:')
+        try:
+            connection.execute('CREATE TABLE pg_language(lanname TEXT)')
+            connection.executemany('INSERT INTO pg_language VALUES (?)',
+                                   [(name,) for name in ('internal','c','sql','plpgsql')])
+            self.assertEqual(connection.execute('SELECT '+predicate).fetchone(),(1,))
+            connection.execute("INSERT INTO pg_language VALUES ('plpythonu')")
+            self.assertEqual(connection.execute('SELECT '+predicate).fetchone(),(0,))
+        finally: connection.close()
+
     def test_populated_pending_without_receipt_never_enters_upgrade(self):
         config=MagicMock(); script=MagicMock(); script.get_heads.return_value=['new']
         script.walk_revisions.return_value=[type('Revision',(),{'revision':'old'})()]

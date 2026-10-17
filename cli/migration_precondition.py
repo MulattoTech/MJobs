@@ -161,7 +161,7 @@ EMPTY_SQL = """SELECT
  AND (SELECT count(*) FROM pg_extension)=1
  AND EXISTS (SELECT 1 FROM pg_extension e JOIN pg_namespace n ON n.oid=e.extnamespace
  WHERE e.extname='plpgsql' AND e.extversion='1.0' AND n.nspname='pg_catalog' AND NOT e.extrelocatable)
- AND NOT EXISTS (SELECT 1 FROM pg_language WHERE lanname NOT IN ('internal','c','plpgsql'))
+ AND NOT EXISTS (SELECT 1 FROM pg_language WHERE lanname NOT IN ('internal','c','sql','plpgsql'))
  AND NOT EXISTS (SELECT 1 FROM pg_event_trigger)
  AND NOT EXISTS (SELECT 1 FROM pg_foreign_data_wrapper)
  AND NOT EXISTS (SELECT 1 FROM pg_foreign_server)
