@@ -133,6 +133,12 @@ def _browser_capacity_held():
 def _application_browser_busy(connection, category, kind, entity_id):
     if category != "application_automation":
         return False
+    if kind == "MANUAL_AUTH" and connection.execute(select(m.attempts.c.id).where(
+            m.attempts.c.application_id == entity_id,
+            m.attempts.c.state == "RUNNING").limit(1)).first() is not None:
+        # Physical attempts reserve the same browser before opening Chromium.
+        # Their age or an expired worker lease cannot prove browser closure.
+        return True
     # A saved browser profile cannot be opened by a worker and a manual
     # window simultaneously, even when the global ceiling is greater than one.
     return bool(connection.execute(select(func.count()).select_from(m.operations).where(
