@@ -2056,13 +2056,14 @@
     },
     {
       "requirement_id": "MJ-REQ-169",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-10-11-connected-four-feature-acceptance.json",
         "docs/evidence/2026-10-15-verified-delivery-closeout.json",
-        "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json"
+        "docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json",
+        "docs/evidence/2026-10-17-data-export-acceptance.json"
       ],
-      "note": "Historical checkpoint: Profile-scoped jobs/applications CSV, JSON, and document-byte backup routes are mounted and connected to the Profile UI. Connected browser acceptance downloads and parses all four formats, checks profile isolation and empty CSV states; full backup/recovery requirement remains PARTIAL. Current verified campaign closeout: Current campaign PR661 adds safe profile-scoped backup/restore, immutable history/readback/isolation and actual PostgreSQL migration proof; current final-source named profile-restore integration results retained. Dedicated archive-history browser proof LOCAL PASS/HOSTED NOT_RUN; generic hosted settings/theme/document flows are separate. Whole backup/recovery parent remains PARTIAL; no whole-parent approval. Protected merged PR716 (19e5a83b -> 41d51974) adds one-scope consistent database backup reads and verified uploaded bytes, with 63 local passes/8 PostgreSQL skips/37 subtests and exact-head hosted gates. Earlier PostgreSQL results remain explicitly identical-input scoped. See docs/evidence/2026-10-17-merged-lifecycle-snapshot-recovery.json; filesystem atomicity, migrations and whole backup/recovery are not certified. PARTIAL unchanged.",
+      "note": "Literal four-output data export accepted: profile-scoped jobs CSV, applications CSV, profile JSON and complete profile backup are downloaded and parsed through the current mounted UI. Browser25 at5cb233e passes1/0skip with fresh own current build, privacy/profile isolation/empty-state controls and unchanged inputs. Prior716 consistent-backup63PASS/8PostgreSQLSKIP/37subtests remains explicitly source-qualified; five snapshot blobs match current source. Candidate MJ-REQ-169 PASS/P1 only; protected-main acceptance awaits this record merge. No new PostgreSQL/migration/disaster/filesystem-atomicity/live-provider certification or MJ-REQ-008/MJ-REQ-156 credit.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
