@@ -4,6 +4,7 @@ from unittest.mock import patch
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
+from services.applications.workday_dynamic_review import validate_workday_dynamic_review
 from tests.integration.test_application_form_review_flow import ApplicationFormReviewFlowTests
 from workers.tasks import execute_operation
 
@@ -79,8 +80,32 @@ class FleetT02WorkdayDynamicReviewTests(ApplicationFormReviewFlowTests):
                  "required": False, "review_reason": "UNKNOWN_QUESTION"},
             ],
         }
-        self.assertEqual(exact.json()["analysis"], expected)
+        analysis = exact.json()["analysis"]
+        self.assertEqual(set(analysis), {"status", "reason", "fields", "dynamic_review"})
+        self.assertEqual({key: analysis[key] for key in ("status", "reason", "fields")}, expected)
+        envelope = validate_workday_dynamic_review(analysis["dynamic_review"])
+        self.assertIsNotNone(envelope)
+        self.assertEqual(envelope, analysis["dynamic_review"])
+        by_id = {field["id"]: field for field in envelope["fields"]}
+        self.assertEqual(set(by_id), {"country", "region"})
+        self.assertIs(by_id["region"]["conditional"], True)
+        self.assertEqual(by_id["region"]["conditional_on"], "country")
+        expected["dynamic_review"] = envelope
+        self.assertEqual(analysis, expected)
         self.assertEqual(latest.json()["analysis"], expected)
+
+        fields = self.client.get(
+            f"/profiles/fixture/applications/{self.application_id}/dynamic-fields",
+            params={"expected_fingerprint": envelope["fingerprint"]},
+        )
+        self.assertEqual(fields.status_code, 200, fields.text)
+        self.assertEqual(fields.json()["status"], "REVIEW_REQUIRED")
+        self.assertEqual(fields.json()["fingerprint"], envelope["fingerprint"])
+        public_by_id = {field["id"]: field for field in fields.json()["fields"]}
+        self.assertEqual(set(public_by_id), {"country", "region"})
+        self.assertEqual(public_by_id["region"]["depends_on"], "country")
+        self.assertTrue(all(field["manual_review_required"] for field in public_by_id.values()))
+        self.assertTrue(all(field["supported"] is False for field in public_by_id.values()))
 
         with self.store.engine.connect() as connection:
             operation = connection.execute(select(m.operations).where(
@@ -94,5 +119,5 @@ class FleetT02WorkdayDynamicReviewTests(ApplicationFormReviewFlowTests):
                      if row["payload"].get("operation_id") == operation_id)
         self.assertEqual(operation["state"], "COMPLETED")
         self.assertEqual(audit["analysis"], expected)
-        for payload in (exact.text, latest.text, str(operation["params"]), str(audit)):
+        for payload in (exact.text, latest.text, fields.text, str(operation["params"]), str(audit)):
             self.assertNotIn("PRIVATE_REGION", payload)
