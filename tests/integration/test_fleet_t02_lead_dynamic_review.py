@@ -151,3 +151,22 @@ class FleetT02WorkdayDynamicReviewTests(unittest.TestCase):
         self.assertEqual(self.client.get(fields, params={
             "expected_fingerprint": expected,
         }).status_code, 409)
+
+    def test_corrupt_receipt_lineage_cannot_be_exposed_as_current_fields(self):
+        first = self._review("t02-receipt-lineage", form())
+        expected = first["dynamic_review"]["fingerprint"]
+        with self.store.engine.begin() as connection:
+            event = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "APPLICATION_FORM_REVIEW",
+            )).mappings().one()
+            payload = dict(event["payload"])
+            payload["input_fingerprint"] = "0" * 64
+            connection.execute(update(m.audit).where(
+                m.audit.c.id == event["id"],
+            ).values(payload=payload))
+        path = f"/profiles/fixture/applications/{self.application_id}/dynamic-fields"
+        response = self.client.get(path, params={"expected_fingerprint": expected})
+        self.assertEqual(response.status_code, 409, response.text)
+        for marker in ("PRIVATE_CHOICE", "PRIVATE_ANSWER", "PRIVATE_EMPLOYER"):
+            self.assertNotIn(marker, response.text)
