@@ -23,8 +23,24 @@ _MEDICAL = re.compile(
     r"\b(?:medical\w*|health(?:care)?\s+(?:condition|status|history)|"
     r"diagnos\w*|illness\w*|disease\w*|medication\w*|treatment\w*)\b", re.IGNORECASE,
 )
+_LEGAL_OR_PRIVATE = re.compile(
+    r"\b(?:social security(?: number)?|ssn|national id|arrest\w*|"
+    r"expected salary|expected compensation|salary requirements?|"
+    r"restrictive covenants?|legal certifications?|"
+    r"(?:at least |over |under )?\d{1,3}\s*(?:years?\s*(?:of age|old|or older)|\+\s*years?)|"
+    r"permi(?:tted|ssion) to work|allow\w* to work)\b", re.IGNORECASE,
+)
 _BINDING_FIELDS = ("id", "question", "text", "source", "confidence", "verified",
                    "user_approved", "requires_review", "allowed_for_auto_use")
+
+
+def is_review_sensitive_question(question):
+    """Recognize known private, demographic and legal wording without inference."""
+    return isinstance(question, str) and bool(
+        _SENSITIVE_TERMS.search(question) or _MEDICAL.search(question)
+        or _LEGAL_OR_PRIVATE.search(question)
+        or classify_sensitive_category(question) is not None
+    )
 
 
 def _snapshot_value(value):
@@ -68,8 +84,7 @@ def assess_answer_review(question, profile_answers, policy=None, *, expected_fin
         return decision("CHANGED_ANSWER")
     if not valid_question or not valid_rows:
         return decision("UNKNOWN_ANSWER")
-    if (_SENSITIVE_TERMS.search(question) or _MEDICAL.search(question)
-            or classify_sensitive_category(question) is not None):
+    if is_review_sensitive_question(question):
         return decision("SENSITIVE_QUESTION")
 
     matches = []
@@ -82,8 +97,7 @@ def assess_answer_review(question, profile_answers, policy=None, *, expected_fin
                 or type(row.get("confidence")) is not int
                 or not policy["minimum_saved_answer_confidence"] <= row["confidence"] <= 100):
             continue
-        if (_MEDICAL.search(row["question"])
-                or classify_sensitive_category(row["question"]) is not None):
+        if is_review_sensitive_question(row["question"]):
             continue
         match = match_answer_question(question, row["question"], policy["minimum_question_match_confidence"])
         if match is None:

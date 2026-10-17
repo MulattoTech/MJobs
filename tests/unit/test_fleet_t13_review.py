@@ -31,7 +31,9 @@ def test_conflicting_approved_answers_are_not_selectable():
 
 
 @pytest.mark.parametrize("question", ["What is your military service?", "What is your national origin?",
-                                      "Are you legally authorized to work?", "Do you have a medical condition?"])
+                                      "Are you legally authorized to work?", "Do you have a medical condition?",
+                                      "What is your social security number?", "Have you been arrested?",
+                                      "Are you 18 years or older?", "What is your expected salary?"])
 def test_sensitive_and_legal_answers_cannot_be_reused(question):
     answer = {**saved(), "question": question}
     result = assess_answer_review(question, [answer])
@@ -73,3 +75,11 @@ def test_policy_change_invalidates_prior_snapshot():
         "minimum_saved_answer_confidence": 100, "minimum_question_match_confidence": 1.0,
     }, expected_fingerprint=before["fingerprint"])
     assert result["reason"] == "CHANGED_ANSWER"
+
+
+def test_saved_sensitive_wording_cannot_enter_ordinary_fuzzy_matches():
+    question = "Please provide your current social number for this position"
+    answer = {**saved(), "question": "Please provide your current social security number for this position"}
+    result = assess_answer_review(question, [answer])
+    assert result["matches"] == []
+    assert result["review_required"] is True
