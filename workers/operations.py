@@ -345,12 +345,14 @@ def inline_cancel_requested(store, operation_id):
 
 
 def check_cancelled(store, operation_id, attempt_count=None):
+    """Stop a worker whose durable authority ended, even before recovery runs."""
     with store.engine.connect() as connection:
         row = connection.execute(select(
             m.operations.c.cancel_requested, m.operations.c.state,
-            m.operations.c.attempt_count,
+            m.operations.c.attempt_count, m.operations.c.lease_expires_at,
         ).where(m.operations.c.id == operation_id)).one()
     if (row.cancel_requested or row.state != "RUNNING"
+            or not row.lease_expires_at or row.lease_expires_at <= now()
             or (attempt_count is not None and row.attempt_count != attempt_count)):
         raise OperationCancelled("Operation no longer authorized to continue")
 
@@ -474,7 +476,14 @@ def recover_expired(store):
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
-        rows = list(connection.execute(select(m.operations).where(m.operations.c.state == "RUNNING", m.operations.c.lease_expires_at <= timestamp).with_for_update(skip_locked=True)).mappings())
+        # Queued workers without a lease have no execution authority. Inline
+        # browser ownership retains its separate proof-of-closure policy.
+        rows = list(connection.execute(select(m.operations).where(
+            m.operations.c.state == "RUNNING",
+            or_(m.operations.c.lease_expires_at <= timestamp,
+                (m.operations.c.kind.in_(tuple(QUEUES)) &
+                 m.operations.c.lease_expires_at.is_(None))),
+        ).with_for_update(skip_locked=True)).mappings())
         for row in rows:
             if row["kind"] == "MANUAL_AUTH":
                 # Cleanup by the original owning call is the only automatic
