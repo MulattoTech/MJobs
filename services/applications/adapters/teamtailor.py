@@ -139,6 +139,8 @@ class TeamtailorApplicationAdapter:
         if (not isinstance(provider, str) or provider.casefold() != self.provider
                 or not isinstance(url, str) or not url or len(url) > 2048):
             return None
+        if any(ord(character) <= 0x20 or ord(character) == 0x7f for character in url):
+            return None
         try:
             parsed = urlsplit(url)
             port = parsed.port

@@ -50,6 +50,34 @@ class FleetT07ProviderContractTests(unittest.TestCase):
                 self.assertEqual(normalized["provider"], adapter.provider)
                 self.assertEqual(normalized["url"].split("?", 1)[0], normalized["url"])
 
+    def test_teamtailor_and_workable_reject_raw_whitespace_and_controls(self):
+        invalid_urls = {
+            "teamtailor": (
+                " https://acme.teamtailor.com/jobs/role?source=fixture",
+                "https://acme.teamtailor.com/jobs/role?source=fixture\n",
+                "https://acme\n.teamtailor.com/jobs/role?source=fixture",
+                "https://acme.teamtailor.com/jobs/role?source=fixture\x00",
+            ),
+            "workable": (
+                " https://apply.workable.com/acme/j/role123?source=fixture",
+                "https://apply.workable.com/acme/j/role123?source=fixture\n",
+                "https://apply.workable.com/acme\t/j/role123?source=fixture",
+                "https://apply.workable.com/acme/j/role123?source=fixture\x00",
+            ),
+        }
+        adapters = {
+            "teamtailor": TeamtailorApplicationAdapter(),
+            "workable": WorkableApplicationAdapter(),
+        }
+
+        for provider, urls in invalid_urls.items():
+            for url in urls:
+                with self.subTest(provider=provider, url=repr(url)):
+                    self.assertIsNone(adapters[provider].normalize_route({
+                        "provider": provider,
+                        "url": url,
+                    }))
+
 
 if __name__ == "__main__":
     unittest.main()
