@@ -65,25 +65,30 @@ def enroll_observer(store, operation_id, observer, *, owner_token):
     if type(observer) is not BrowserTreeObserver or not _identity(observer.identity):
         return False
     identity = deepcopy(observer.identity)
-    with store.engine.begin() as connection:
-        _lock(connection)
-        row = _row(connection, operation_id)
-        scope = _scope(row, owner_token)
-        if scope is None or scope != observer._binding:
-            return False
-        metadata = deepcopy(row["recovery_metadata"])
-        owner = metadata["manual_auth_owner"]
-        if not _same_host(owner, identity):
-            return False
-        if "tree_retention" in owner:
-            return False
-        if "tree_observer" in owner:
-            return owner["tree_observer"] == identity
-        owner["tree_observer"] = identity
-        connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
-            recovery_metadata=metadata, updated_at=now()))
-        store._audit(connection, operation_id, "MANUAL_AUTH_TREE_OBSERVER_ENROLLED", {})
-        return True
+    try:
+        with store.engine.begin() as connection:
+            _lock(connection)
+            row = _row(connection, operation_id)
+            scope = _scope(row, owner_token)
+            if scope is None or scope != observer._binding:
+                return False
+            metadata = deepcopy(row["recovery_metadata"])
+            owner = metadata["manual_auth_owner"]
+            if not _same_host(owner, identity):
+                return False
+            if "tree_retention" in owner:
+                return False
+            if "tree_observer" in owner:
+                return owner["tree_observer"] == identity
+            owner["tree_observer"] = identity
+            connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                recovery_metadata=metadata, updated_at=now()))
+            store._audit(connection, operation_id, "MANUAL_AUTH_TREE_OBSERVER_ENROLLED", {})
+            return True
+    except Exception:
+        # Enrollment is a private cleanup aid; database details must not
+        # escape into a browser session when storage is unavailable.
+        return False
 
 
 def record_closure(store, operation_id, observer, *, owner_token):
@@ -95,8 +100,13 @@ def record_closure(store, operation_id, observer, *, owner_token):
     if type(observer) is not BrowserTreeObserver or not _identity(observer.identity):
         return False
     identity = deepcopy(observer.identity)
-    return _record_closure(store, operation_id, identity, observer._binding,
-        observer.observe, lambda: observer.identity == identity, owner_token)
+    try:
+        return _record_closure(store, operation_id, identity, observer._binding,
+            observer.observe, lambda: observer.identity == identity, owner_token)
+    except Exception:
+        # Do not leak private store failures or abort independent cleanup.
+        # Failure to persist evidence is not proof of tree closure.
+        return False
 
 
 def record_retained_closure(store, operation_id, query, binding, *, owner_token):
