@@ -224,6 +224,11 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             ("overflow-clipped", '<div class="clip"><input type="email" aria-label="Email address"></div>',
              ".clip{position:absolute;left:20px;top:20px;width:30px;height:30px;overflow:hidden}"
              ".clip input{position:absolute;left:40px;top:0;width:120px;height:30px}", True),
+            ("nested-disjoint-overflow-clips", '<div class="outer"><div class="inner">'
+             '<input type="email" aria-label="Email address"></div></div>',
+             ".outer{position:absolute;left:0;top:20px;width:30px;height:30px;overflow:hidden}"
+             ".inner{position:absolute;left:50px;top:0;width:50px;height:30px;overflow:hidden}"
+             ".inner input{position:absolute;left:-30px;top:0;width:60px;height:20px}", True),
             ("overlay", '<input type="email" aria-label="Email address">'
              '<div class="overlay"></div>',
              ".overlay{position:fixed;inset:0;background:white;z-index:9999}", True),
@@ -282,6 +287,18 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 hidden_label = self.adapter.analyze_page(page)
                 self.assertEqual(hidden_label["status"], "UNKNOWN")
                 self.assertTrue(self.adapter.requires_human_review(hidden_label))
+                page.set_content(
+                    '<style>form{position:relative;height:100px}.prompt{position:absolute;'
+                    'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
+                    'left:10px;top:40px}.cover{position:absolute;left:10px;top:10px;'
+                    'width:80px;height:20px;background:white;z-index:10}</style>'
+                    '<form><label class="prompt" for="email">Email address</label>'
+                    '<input class="field" id="email" type="email">'
+                    '<div class="cover"></div></form>'
+                )
+                covered_label = self.adapter.analyze_page(page)
+                self.assertEqual(covered_label["status"], "UNKNOWN")
+                self.assertTrue(self.adapter.requires_human_review(covered_label))
             finally:
                 browser.close()
 

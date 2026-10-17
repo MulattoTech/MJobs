@@ -86,7 +86,10 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""form => {
       return box.left <= centerX && box.right >= centerX &&
         box.top <= centerY && box.bottom >= centerY;
     });
+    const hitTarget = document.elementFromPoint(centerX, centerY);
+    const hitVisible = hitTarget === label || label.contains(hitTarget);
     return visible && !transformedClip && !pointerNoneOverlap && opacity >= 0.1 &&
+      hitVisible &&
       visibleBounds.right - visibleBounds.left > 1 &&
       visibleBounds.bottom - visibleBounds.top > 1 &&
       visibleBounds.right > 0 && visibleBounds.bottom > 0 &&
