@@ -515,6 +515,25 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                               "visible": False}],
                         )
                         self.assertNotIn("Email address", repr(paint_projection))
+                        input_state = page.locator("form").locator(
+                            "input, select, textarea"
+                        ).evaluate_all(_CONTROL_STATE_SCRIPT)
+                        self.assertIs(input_state[0]["user_visible"], True)
+                        self.assertIs(input_state[0]["hit_test_visible"], True)
+                        self.assertIs(input_state[0]["user_editable"], True)
+                        self.assertEqual(
+                            page.evaluate(
+                                """() => {
+                                  const rect = document.querySelector('input')
+                                    .getBoundingClientRect();
+                                  return document.elementFromPoint(
+                                    rect.left + rect.width / 2,
+                                    rect.top + rect.height / 2
+                                  )?.tagName;
+                                }"""
+                            ),
+                            "INPUT",
+                        )
                         transparent_label = self.adapter.analyze_page(page)
                         self.assertEqual(transparent_label["status"], "UNKNOWN")
                         self.assertTrue(
