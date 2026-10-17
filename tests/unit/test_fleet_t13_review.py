@@ -42,6 +42,7 @@ def test_sensitive_and_legal_answers_cannot_be_reused(question):
 
 
 @pytest.mark.parametrize("change", [{"text": "No"}, {"source": "Changed source"},
+                                    {"question": "Are you available to work weekends?"},
                                     {"user_approved": False}, {"requires_review": True}])
 def test_changed_review_snapshot_cannot_resume(change):
     answer = saved()
@@ -83,3 +84,18 @@ def test_saved_sensitive_wording_cannot_enter_ordinary_fuzzy_matches():
     result = assess_answer_review(question, [answer])
     assert result["matches"] == []
     assert result["review_required"] is True
+
+
+@pytest.mark.parametrize("question, rows", [(None, []), ("", []), (QUESTION, None),
+                                          (QUESTION, [None]), ("x" * 2001, [saved()])])
+def test_malformed_snapshots_never_supply_matches(question, rows):
+    result = assess_answer_review(question, rows)
+    assert result["reason"] == "UNKNOWN_ANSWER"
+    assert result["matches"] == []
+
+
+@pytest.mark.parametrize("fingerprint", ["", "invalid", 123, "f" * 64])
+def test_invalid_or_unrelated_resume_binding_requires_review(fingerprint):
+    result = assess_answer_review(QUESTION, [saved()], expected_fingerprint=fingerprint)
+    assert result["reason"] == "CHANGED_ANSWER"
+    assert result["matches"] == []
