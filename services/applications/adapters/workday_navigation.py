@@ -70,16 +70,39 @@ def workday_origin(url):
         return None
 
 
-def _fingerprint(url, headings, labels, actions):
+def workday_route_digest(url):
+    """Return an opaque stable digest for a Workday origin and exact path.
+
+    Query strings and fragments are excluded because they can contain
+    session-specific or user data. URL paths remain case-sensitive and
+    numeric segments are not normalized: those segments may identify distinct
+    employer tenants or requisitions that must not share durable state.
+    """
+    if not isinstance(url, str) or len(url) > 2048:
+        return None
     try:
         parsed = urlsplit(url)
         origin = workday_origin(url)
         if origin is None:
             return None
+        identity = json.dumps(
+            ["workday-route-v1", origin, parsed.path],
+            separators=(",", ":"), ensure_ascii=True,
+        )
+        return hashlib.sha256(identity.encode("utf-8")).hexdigest()
+    except (TypeError, ValueError):
+        return None
+
+
+def _fingerprint(url, headings, labels, actions):
+    try:
+        origin = workday_origin(url)
+        route_digest = workday_route_digest(url)
+        if origin is None or route_digest is None:
+            return None
         # Query strings and fragments can contain session and user data. They
         # are deliberately excluded from this structural page fingerprint.
-        path = re.sub(r"/\d+(?=/|$)", "/:id", parsed.path.casefold())
-        structure = {"origin": origin, "path": path,
+        structure = {"origin": origin, "route_digest": route_digest,
                      "headings": headings, "field_labels": labels, "actions": actions}
         encoded = json.dumps(structure, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
