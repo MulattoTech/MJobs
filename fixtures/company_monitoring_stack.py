@@ -79,6 +79,21 @@ def resource_owned(labels, project):
         raise FixtureError('STK01_RESOURCE_NOT_OWNED')
 
 
+
+def validate_runtime_container(obj, name, project):
+    resource_owned(obj['Config']['Labels'], project)
+    expected = IMAGE_PINS['postgres' if name == 'postgres' else 'redis' if name == 'redis' else 'runtime']
+    if obj['Config']['Image'] != expected or any(m['Type'] != 'volume' for m in obj['Mounts']):
+        raise FixtureError('STK01_RUNTIME_IMAGE_OR_MOUNT_CHANGED')
+    if name not in {'postgres', 'redis'}:
+        env = dict(item.split('=', 1) for item in obj['Config']['Env'])
+        validate_fixture_mode(env)
+    if name in RUNTIME | {'migrate'}:
+        sources = [m for m in obj['Mounts'] if m['Destination'] == '/workspace']
+        if (obj['Config']['WorkingDir'] != '/workspace' or len(sources) != 1
+                or sources[0]['Name'] != project+'_stk-source' or sources[0]['RW']):
+            raise FixtureError('STK01_RUNTIME_SOURCE_CHANGED')
+
 def validate_configuration(config, project, port):
     recovery.validate_project_name(project)
     recovery.validate_port(port)
@@ -355,7 +370,7 @@ def run_stack(artifacts):
             raise FixtureError('STK01_SERVICE_ID_AMBIGUOUS')
         obj = json.loads(recovery._run_bounded(['docker', 'inspect', ids[0]],
             timeout=remaining(deadline, reserve=120, ceiling=10), action='Inspect STK01 service'))[0]
-        resource_owned(obj['Config']['Labels'], project)
+        validate_runtime_container(obj, name, project)
         return obj
 
     def exec_python(service, program):

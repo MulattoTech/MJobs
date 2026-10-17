@@ -52,6 +52,22 @@ class CompanyMonitoringStackGuardTests(unittest.TestCase):
             with self.subTest(key=key), self.assertRaises(FixtureError):
                 resource_owned(bad, PROJECT)
 
+    def test_actual_container_requires_exact_frozen_read_only_source_and_mode(self):
+        from fixtures.company_monitoring_stack import validate_runtime_container
+        obj = {'Config': {'Image': IMAGE_PINS['runtime'], 'WorkingDir': '/workspace',
+            'Labels': {'ao.session': 'mjobs-85', 'ao.run': PROJECT, 'com.docker.compose.project': PROJECT},
+            'Env': ['MJOBS_STK01_ENABLE=1', 'MJOBS_STK01_PROJECT='+PROJECT,
+                    'MJOBS_OPERATION_MODE=PERSONAL', 'MJOBS_COMPOSE_MOCK=0']},
+            'Mounts': [{'Type': 'volume', 'Name': PROJECT+'_stk-source', 'Destination': '/workspace', 'RW': False}]}
+        validate_runtime_container(obj, 'api', PROJECT)
+        for mutate in [lambda o: o['Config'].update(WorkingDir='/app'),
+                       lambda o: o['Mounts'][0].update(RW=True),
+                       lambda o: o['Mounts'][0].update(Name='foreign-source'),
+                       lambda o: o['Config'].update(Image='old:source')]:
+            bad = copy.deepcopy(obj); mutate(bad)
+            with self.subTest(mutate=mutate), self.assertRaises(FixtureError):
+                validate_runtime_container(bad, 'api', PROJECT)
+
     def test_source_manifest_is_committed_content_not_ambient_files(self):
         files = source_files(Path(__file__).resolve().parents[2])
         self.assertIn('services/company_discovery/monitoring.py', files)
