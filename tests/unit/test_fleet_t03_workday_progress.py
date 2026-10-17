@@ -103,6 +103,49 @@ class TestFleetT03WorkdayProgress(unittest.TestCase):
         self.store.migrate()
         self.assertEqual(load_multipage_state(self.store, "profile", "application"), checkpoint)
 
+    def test_previous_pops_active_fingerprint_path_and_resume_allows_next(self):
+        information = observation("My Information")
+        experience = observation("My Experience")
+        initialized = initialize_workday_multipage_state(
+            self.store, "profile", "application", information, request_id="wd-init-roundtrip",
+        )
+        self.assertEqual(initialized["decision"], "INITIALIZED")
+        moved_forward = transition_workday_multipage_state(
+            self.store, "profile", "application", initialized["state"], information,
+            experience, "NEXT", request_id="wd-next-experience",
+        )
+        self.assertEqual(moved_forward["decision"], "CONFIRMED")
+
+        returned = transition_workday_multipage_state(
+            self.store, "profile", "application", moved_forward["state"], experience,
+            information, "PREVIOUS", request_id="wd-previous-information",
+        )
+        self.assertEqual(returned["decision"], "CONFIRMED")
+        self.assertEqual(returned["state"]["current_page_id"], "my_information")
+        self.assertEqual(returned["state"]["workday_navigation"]["visited_fingerprints"],
+                         [initialized["state"]["workday_navigation"]["current_fingerprint"]])
+
+        audit_count = self.store.count("audit_events")
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{self.database.as_posix()}")
+        self.store.migrate()
+        durable = load_multipage_state(self.store, "profile", "application")
+        self.assertEqual(durable, returned["state"])
+        resumed = transition_workday_multipage_state(
+            self.store, "profile", "application", durable, None, information,
+            "RESUME", request_id="wd-resume-information",
+        )
+        self.assertEqual(resumed["decision"], "RESUME_FROM_CONFIRMED_STEP")
+        self.assertEqual(self.store.count("audit_events"), audit_count)
+
+        forward_again = transition_workday_multipage_state(
+            self.store, "profile", "application", resumed["state"], information,
+            experience, "NEXT", request_id="wd-next-experience-again",
+        )
+        self.assertEqual(forward_again["decision"], "CONFIRMED")
+        self.assertEqual(forward_again["state"]["current_page_id"], "my_experience")
+        self.assertEqual(len(forward_again["state"]["workday_navigation"]["visited_fingerprints"]), 2)
+
     def test_bound_checkpoint_pins_route_id_and_workspace_mode_through_resume(self):
         def route_digest(url):
             parsed = urlsplit(url)

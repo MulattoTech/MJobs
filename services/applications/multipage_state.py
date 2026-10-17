@@ -313,7 +313,11 @@ def _validate_transition(current, request):
                     raise MultipageStateConflict("WORKDAY_OBSERVATION_STALE")
             elif action not in {"NEXT", "PREVIOUS", "REVIEW"}:
                 raise MultipageStateError("WORKDAY_CONFIRMATION_REQUIRED", "Workday state accepts only confirmed page transitions")
-            elif (workday_navigation["expected_fingerprint"]
+            else:
+                stored_path = stored_workday_navigation["visited_fingerprints"]
+                next_path = workday_navigation["visited_fingerprints"]
+                common_mismatch = (
+                    workday_navigation["expected_fingerprint"]
                     != stored_workday_navigation["current_fingerprint"]
                     or workday_navigation["application_origin"]
                     != stored_workday_navigation.get("application_origin")
@@ -323,11 +327,20 @@ def _validate_transition(current, request):
                     != stored_workday_navigation.get("workspace_mode")
                     or workday_navigation.get("route_id")
                     != stored_workday_navigation.get("route_id")
-                    or workday_navigation["visited_fingerprints"][:-1]
-                    != stored_workday_navigation["visited_fingerprints"]
-                    or workday_navigation["current_fingerprint"]
-                    in stored_workday_navigation["visited_fingerprints"]):
-                raise MultipageStateConflict("WORKDAY_OBSERVATION_STALE")
+                )
+                if action == "PREVIOUS":
+                    valid_path = (
+                        len(stored_path) >= 2
+                        and next_path == [*stored_path[:-2], workday_navigation["current_fingerprint"]]
+                        and workday_navigation["current_fingerprint"] not in stored_path[:-2]
+                    )
+                else:
+                    valid_path = (
+                        next_path == [*stored_path, workday_navigation["current_fingerprint"]]
+                        and workday_navigation["current_fingerprint"] not in stored_path
+                    )
+                if common_mismatch or not valid_path:
+                    raise MultipageStateConflict("WORKDAY_OBSERVATION_STALE")
         elif workday_navigation is not None:
             raise MultipageStateError("WORKDAY_STATE_NOT_INITIALIZED", "Workday navigation baseline is missing")
         if page != current_page:
@@ -610,9 +623,12 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
     previous = classify_step(previous_observation)
     if intended_action != "REFRESH" and previous.get("origin") != application_origin:
         return _workday_manual_review("WORKDAY_ROUTE_MISMATCH")
+    visited_path = navigation.get("visited_fingerprints", ())
+    if intended_action == "PREVIOUS":
+        visited_path = visited_path[:-2]
     decision = decide_transition(
         previous, current, intended_action,
-        visited_fingerprints=navigation.get("visited_fingerprints", ()),
+        visited_fingerprints=visited_path,
     )
     if decision["decision"] == "REFRESH_AND_RECLASSIFY":
         return {**decision, "state": None}
@@ -633,7 +649,11 @@ def transition_workday_multipage_state(store, profile_id: str, application_id: s
         "workday_navigation": {
             "expected_fingerprint": previous["fingerprint"],
             "current_fingerprint": current["fingerprint"],
-            "visited_fingerprints": [*navigation.get("visited_fingerprints", []), current["fingerprint"]],
+            "visited_fingerprints": (
+                [*navigation.get("visited_fingerprints", [])[:-2], current["fingerprint"]]
+                if intended_action == "PREVIOUS"
+                else [*navigation.get("visited_fingerprints", []), current["fingerprint"]]
+            ),
             "application_origin": application_origin,
             **({key: navigation[key] for key in ("route_digest", "workspace_mode", "route_id")
                if key in navigation}),
