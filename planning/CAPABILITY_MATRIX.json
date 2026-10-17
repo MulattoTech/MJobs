@@ -1913,7 +1913,8 @@
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-10-07-dead-letter-queue.json",
         "docs/evidence/2026-10-11-connected-four-feature-acceptance.json",
-        "docs/evidence/2026-10-11-durable-onboarding.json"
+        "docs/evidence/2026-10-11-durable-onboarding.json",
+        "docs/evidence/2026-10-17-operation-recovery-progress.json"
       ],
       "note": "Durable queued resume extraction now survives HTTP disconnect/process crash and restores pending-only suggestions after full-stack restart; actual PostgreSQL replay/atomicity/fencing and existing-data migration verified. AI_EVALUATE and UPLOADED_RESUME_COMPARE remain HTTP-bound; full requirement stays PARTIAL.",
       "priority": "P1",
