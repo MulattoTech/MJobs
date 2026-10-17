@@ -116,6 +116,117 @@ class FleetT15ProviderIdentityTests(unittest.TestCase):
             )).scalar_one()
         self.assertEqual(writes, 0)
 
+    def test_same_company_route_and_ats_identity_survive_api_readback(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.routes, {
+                "id": "same-company-route", "job_id": "canonical-job",
+                "company_id": "canonical-employer", "provider": "workday",
+                "tenant": "canonical-board", "requisition": "canonical-req",
+                "url": "https://canonical-board.myworkdayjobs.com/External/job/42",
+            })
+            upsert(connection, m.company_ats_tenants, {
+                "id": "canonical-employer-ats", "company_id": "canonical-employer",
+                "provider": "workday", "tenant_identifier": "canonical-board",
+                "organization_identifier": "", "board_identifier": "",
+                "confidence": 0.97, "evidence": ["synthetic canonical employer board"],
+                "first_seen_at": "2026-10-16T00:00:00Z",
+                "last_seen_at": "2026-10-16T00:00:00Z",
+            })
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{self.database.as_posix()}")
+        client = TestClient(create_app(
+            self.store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+        ))
+        with client:
+            response = client.get("/jobs/canonical-job/routes")
+        self.assertEqual(response.status_code, 200, response.text)
+        route = next(
+            alias
+            for option in response.json()["all_options"]
+            for alias in option["aliases"]
+            if alias["id"] == "same-company-route"
+        )
+        self.assertEqual(route["authority"], "VERIFIED_ATS")
+        self.assertEqual(route["adapter_knowledge"]["basis"], "ROUTE_AND_DISCOVERY")
+        self.assertEqual(route["adapter_knowledge"]["ats_tenant_id"], "canonical-employer-ats")
+        self.assertIsNone(route["adapter_knowledge"]["adapter_key"])
+        self.assertFalse(route["adapter_knowledge"]["external_submission_enabled"])
+
+    def test_foreign_verified_employer_domain_does_not_verify_same_company_route(self):
+        with self.store.engine.begin() as connection:
+            for domain_id, company_id, domain in (
+                ("canonical-domain", "canonical-employer", "canonical.example"),
+                ("foreign-domain", "evidence-employer", "different.example"),
+            ):
+                upsert(connection, m.company_domains, {
+                    "id": domain_id,
+                    "company_id": company_id, "domain": domain, "confidence": 1.0,
+                    "verified": True, "verification_method": "synthetic-test",
+                    "first_seen_at": "2026-10-16T00:00:00Z",
+                    "last_verified_at": "2026-10-16T00:00:00Z",
+                    "evidence": ["synthetic verified domain"],
+                })
+            upsert(connection, m.routes, {
+                "id": "foreign-domain-route", "job_id": "canonical-job",
+                "company_id": "canonical-employer", "provider": "employer",
+                "tenant": "", "requisition": "canonical-req",
+                "url": "https://different.example/jobs/42",
+            })
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{self.database.as_posix()}")
+        client = TestClient(create_app(
+            self.store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+        ))
+        with client:
+            response = client.get("/jobs/canonical-job/routes")
+        self.assertEqual(response.status_code, 200, response.text)
+        route = next(
+            alias
+            for option in response.json()["all_options"]
+            for alias in option["aliases"]
+            if alias["id"] == "foreign-domain-route"
+        )
+        self.assertNotEqual(route["authority"], "VERIFIED_EMPLOYER")
+
+    def test_personal_workspace_does_not_grant_fixture_adapter_for_matching_route(self):
+        with self.store.engine.begin() as connection:
+            upsert(connection, m.routes, {
+                "id": "personal-mock-route", "job_id": "canonical-job",
+                "company_id": "canonical-employer", "provider": "mock-ats",
+                "tenant": "canonical-fixture", "requisition": "canonical-req",
+                "url": "https://fixtures.example/jobs/42",
+            })
+            upsert(connection, m.company_ats_tenants, {
+                "id": "canonical-mock-ats", "company_id": "canonical-employer",
+                "provider": "mock-ats", "tenant_identifier": "canonical-fixture",
+                "organization_identifier": "", "board_identifier": "",
+                "confidence": 0.97, "evidence": ["synthetic fixture identity"],
+                "first_seen_at": "2026-10-16T00:00:00Z",
+                "last_seen_at": "2026-10-16T00:00:00Z",
+            })
+        self.store.engine.dispose()
+        self.store = Store(f"sqlite:///{self.database.as_posix()}")
+        client = TestClient(create_app(
+            self.store, "http://127.0.0.1:8090", self.root,
+            "redis://127.0.0.1:1/0", operation_mode="PERSONAL",
+        ))
+        with client:
+            response = client.get("/jobs/canonical-job/routes")
+        self.assertEqual(response.status_code, 200, response.text)
+        route = next(
+            alias
+            for option in response.json()["all_options"]
+            for alias in option["aliases"]
+            if alias["id"] == "personal-mock-route"
+        )
+        self.assertEqual(route["adapter_knowledge"]["basis"], "ROUTE_AND_DISCOVERY")
+        self.assertEqual(route["adapter_knowledge"]["provider"], "mock-ats")
+        self.assertIsNone(route["adapter_knowledge"]["adapter_key"])
+        self.assertNotEqual(route["adapter_knowledge"]["adapter_status"], "FIXTURE_ONLY")
+        self.assertFalse(route["adapter_knowledge"]["external_submission_enabled"])
+
 
 if __name__ == "__main__":
     unittest.main()
