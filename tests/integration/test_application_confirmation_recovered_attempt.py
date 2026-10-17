@@ -44,6 +44,7 @@ class RecoveredApplicationAttemptProofTests(unittest.TestCase):
             self.store, self.profile_id, self.application_id,
             submit=True, request_id=self.operation_id)["operation_id"]
         self.attempt_id = attempt_id_for_request(self.application_id, self.operation_id)
+        self.assertEqual(claim(self.store, self.operation_id)["attempt_count"], 1)
         self._start_physical_attempt()
         self._simulate_crash_recovery_and_receipt_retry()
 
@@ -62,7 +63,6 @@ class RecoveredApplicationAttemptProofTests(unittest.TestCase):
         self.store.transition(self.application_id, ["PREPARED"], "SUBMITTING")
 
     def _simulate_crash_recovery_and_receipt_retry(self):
-        self.assertEqual(claim(self.store, self.operation_id)["attempt_count"], 1)
         with self.store.engine.begin() as connection:
             connection.execute(update(m.operations).where(
                 m.operations.c.id == self.operation_id).values(
