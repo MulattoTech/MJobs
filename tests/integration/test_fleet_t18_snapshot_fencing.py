@@ -1,4 +1,5 @@
 """Consistent read-scope contracts for profile backup snapshots."""
+import asyncio
 import copy
 from pathlib import Path
 import tempfile
@@ -93,6 +94,27 @@ class ProfileReadSnapshotTests(unittest.TestCase):
             self.assertEqual(saved["name"], "Synthetic saved after interruption")
             self.assertEqual([fact["fact_id"] for fact in saved["facts"]],
                              ["after-interruption-fact"])
+        finally:
+            reopened.engine.dispose()
+
+    def test_cancelled_error_releases_snapshot_before_next_save_and_readback(self):
+        with self.assertRaisesRegex(asyncio.CancelledError, "injected snapshot cancellation"):
+            with self.store.read_snapshot() as connection:
+                profile = self.profile_at(self.store, connection)
+                self.assertEqual(profile["version"], self.initial_version)
+                raise asyncio.CancelledError("injected snapshot cancellation")
+
+        updated = self.updated_profile("Synthetic saved after cancellation",
+                                       "after-cancellation-fact")
+        version = self.store.save_profile(updated, expected_version=self.initial_version)
+
+        reopened = Store(self.url)
+        try:
+            saved = reopened.profile("t18-snapshot-profile")
+            self.assertEqual(saved["version"], version)
+            self.assertEqual(saved["name"], "Synthetic saved after cancellation")
+            self.assertEqual([fact["fact_id"] for fact in saved["facts"]],
+                             ["after-cancellation-fact"])
         finally:
             reopened.engine.dispose()
 
