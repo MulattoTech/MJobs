@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T08:27:38.665620+00:00",
+  "requirement_ids": [
+    "MJ-REQ-156"
+  ],
+  "issue": 157,
+  "requirement_result": "PASS",
+  "priority": "P1",
+  "scope": "Candidate acceptance of MJ-REQ-156/#157 persistent operations: twelve persisted operation fields, safe public progress projection, durable public admission independent of an open HTTP request, worker execution and reopened Store/API readback, and meaningful privacy-bounded recovery intent after mounted UI reload. Protected-main acceptance remains unchanged until merge. No backend/schema/API changes in this feature.",
+  "source_commit": "66b8bd7d1be176111a450cfda5592ac03965b8d5",
+  "tested_source_revision": "fadea2dbc96f8a1549d8eff8d5108a0029f19206",
+  "tested_source_tree": "9f7f2966863abdd1bdb6549963ed8c4ca163622c",
+  "protected_base": "0770573fea6fc8ac553d9c530d52e87d58bbef38",
+  "producer_contract": {
+    "lease_recovery": "Public DISCOVER admission followed by claim, deterministic expired durable lease and real recover_expired yields queued RESUME; original HTTP client is closed before recovery.",
+    "retry": "Actual DISCOVER handler with a typed local transport-timeout boundary runs the real retry classifier/finalization and persists RETRY: NETWORK_ERROR.",
+    "readback": "Fresh Store and API read persisted progress. Current action or optional bounded reason is mapped to allowlisted static action copy; reason/params/error/owner are not rendered.",
+    "completion": "A later real local-fixture DISCOVER execution alone yields COMPLETED/100%/completion timestamp; requeue intent does not certify it."
+  },
+  "executed": [
+    {
+      "revision": "fadea2dbc96f8a1549d8eff8d5108a0029f19206",
+      "command": "python -m pytest -q --tb=short tests/unit/test_operation_progress.py tests/integration/test_persistent_operation_progress.py tests/integration/test_operation_progress_lifecycle.py tests/integration/test_fleet_t11_operation_recovery_progress.py",
+      "result": "16 passed, 15 subtests passed in 14.59s; affected API startup revalidated after protected-base merge"
+    },
+    {
+      "revision": "fadea2dbc96f8a1549d8eff8d5108a0029f19206",
+      "command": "python -m pytest -v --tb=short tests/browser/test_fleet_t11_operation_recovery_progress.py::FleetT11OperationRecoveryProgressBrowserTests::test_actual_recovery_reload_privacy_stale_profile_and_later_completion tests/browser/test_operation_progress.py::OperationProgressBrowserTests::test_saved_progress_is_safe_profile_scoped_and_survives_reload",
+      "result": "2 passed, no skips in 13.41s; wall14.02s; 28 source/test/backend/build hashes equal before/after; owned process exited and no owned descendants remain"
+    },
+    {
+      "source_revision": "66b8bd7d1be176111a450cfda5592ac03965b8d5",
+      "command": "node apps/web/node_modules/vitest/vitest.mjs run operation-progress.test.tsx fleet_t11_operation_recovery.test.tsx --root apps/web --config <isolated-owned-vite-config> --configLoader runner --no-cache",
+      "result": "35 passed after RED8failed/27passed; run against working source bytes committed unchanged as66b8, frontend inputs unchanged at tested source head"
+    },
+    {
+      "source_revision": "66b8bd7d1be176111a450cfda5592ac03965b8d5",
+      "command": "tsc --noEmit; vite build with isolated runner config/cache/output",
+      "result": "PASS; cached dependencies, no installs; typecheck on identical working source bytes, build at66b8; existing large-chunk warning retained"
+    },
+    {
+      "revision": "5931c4a1e28b346094de734bb461c79b9cfcd7d2",
+      "command": "python -m pytest -v --tb=short tests/integration/test_durable_ai_evaluation.py::DurableAIEvaluationTests::test_real_api_connection_close_does_not_cancel_admitted_evaluation tests/integration/test_durable_uploaded_comparison.py::DurableUploadedComparisonTests::test_admit_disconnect_execute_reopen_and_replay_preserves_result",
+      "result": "2 passed, no skips in4.73s; wall5.34s; inspected eight test/source hashes unchanged; disposable synthetic fixtures only",
+      "scope": "Existing AI queued evaluation after actual HTTP connection close/API server stop uses a synthetic router and publishes once. Existing uploaded comparison closes its API client before actual worker execution, then fresh Store/API readback and idempotent replay preserve result/profile. No real AI/external/employer calls or new services; this is HTTP lifetime independence, not an OS process restart."
+    }
+  ],
+  "negative_controls": [
+    "Five current actions in bare/composite form, preserved legacy labels, whole-value bounds and malformed/unknown fallback",
+    "Opaque reason/private params/error/owner canaries never rendered; actual public projection withholds internal fields",
+    "Expired worker ownership cannot continue queued recovery; profile-scoped readback",
+    "Mounted reload reads durable state without UI write requests; delayed prior-profile response cannot replace current profile",
+    "Pending recovery has no completion timestamp/100%/resumed claim; later actual worker completion is separately demonstrated"
+  ],
+  "build_hashes": {
+    "index.html": "1a2589b7f5e11565af769accd802bd7d3ca8c0a77523da42f16091738cdf58f8",
+    "assets/index-CRLyhEXO.js": "c43cf502d21bdd99d0d35549dfc144e84b7b9c8c0a808a6819bf259ce25fb9b7",
+    "assets/index-CvWXjyhO.css": "fcbd205add183a256920abf83e828aee55694a15cbf2b83c6503ca4a924f11a2"
+  },
+  "remaining_not_run": [
+    "Physical worker-process/container/host restart is NOT_RUN in this acceptance slice; deterministic lease expiry and Store/API reopen do not prove it. These are outside the literal #157 criteria; no MJ-REQ-158 or MJ-REQ-008 credit.",
+    "Real employer authentication/submission and live Workday DOM inspection",
+    "Fresh exact-final-head hosted checks/native review pending publication"
+  ],
+  "additional_http_lifetime_source_hashes": {
+    "tests/integration/test_durable_ai_evaluation.py": "273050beca9d3954afae96dc9c222b2425dae57d178c32ffdd7d7654c962bbd2",
+    "tests/integration/test_durable_uploaded_comparison.py": "09aa8bb03460aac8ac94ec4a2528f9daa6cf7b4b0ed792bfe10bdbb4f55e2c33",
+    "services/ai/durable_evaluation.py": "540748c23019bbae9f0a119808189c32297d3a68de6d5c926632c791d2638580",
+    "services/documents/durable_comparison.py": "37d7cf3efd1076472df17fc9361129e5e167c4840457e9ea2568ee572e56be10",
+    "workers/tasks.py": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+    "workers/operations.py": "5452d690c72c640ed027be38f30aeba7e720f1f3d738d5a8fa708c651ec13ed7",
+    "apps/api/main.py": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00",
+    "packages/persistence/store.py": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78"
+  },
+  "additional_acceptance_review": "Verifier83 independently analyzed all twelve persisted fields and public long-running routes. Exact5931 AI and uploaded-comparison HTTP-close controls passed2/0skip, complementing DISCOVER/API/mounted recovery proof. Root48 explicitly authorized candidate-only MJ-REQ-156 PASS; no promotion inferred from test names and no other requirement credited.",
+  "acceptance_transition": {
+    "previous_result": "PARTIAL",
+    "candidate_result": "PASS",
+    "priority_unchanged": "P1",
+    "protected_main_result": "PARTIAL until protected merge",
+    "authority": "Explicit root48 acceptance decision after independent verifier83 twelve-field/all-public-long-running-route analysis and executed current-head HTTP-lifetime controls"
+  }
+}

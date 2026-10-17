@@ -1908,14 +1908,15 @@
     },
     {
       "requirement_id": "MJ-REQ-156",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-29-mock-spine.md",
         "docs/evidence/2026-10-07-dead-letter-queue.json",
         "docs/evidence/2026-10-11-connected-four-feature-acceptance.json",
-        "docs/evidence/2026-10-11-durable-onboarding.json"
+        "docs/evidence/2026-10-11-durable-onboarding.json",
+        "docs/evidence/2026-10-17-operation-recovery-progress.json"
       ],
-      "note": "Durable queued resume extraction now survives HTTP disconnect/process crash and restores pending-only suggestions after full-stack restart; actual PostgreSQL replay/atomicity/fencing and existing-data migration verified. AI_EVALUATE and UPLOADED_RESUME_COMPARE remain HTTP-bound; full requirement stays PARTIAL.",
+      "note": "Persistent operation fields and safe progress projection are verified. Current public DISCOVER, AI_EVALUATE and UPLOADED_RESUME_COMPARE durable admission survives HTTP closure, executes through queued workers, and supports fresh Store/API readback; comparison replay preserves the saved result. Mounted recovery reload shows static continuation/retry intent with privacy and stale-profile controls, separately from later completion. MJ-REQ-156 candidate acceptance is PASS after independent criteria analysis and explicit root decision; protected-main acceptance awaits merge. Physical worker/container/host restart is not claimed here; no MJ-REQ-158 or MJ-REQ-008 credit.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"
