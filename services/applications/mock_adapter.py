@@ -669,7 +669,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     capture_browser_failure(
                         page, root / "debug-captures", attempt_id=attempt_id,
                         step=failed_step, configured_url=route.get("url"),
-                        error=error, events=browser_events,
+                        error=error, events=browser_events, check=check,
                     )
                 except Exception:
                     # Diagnostics must never alter application state or shadow

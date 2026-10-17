@@ -196,11 +196,13 @@ def test_post_screenshot_one_shot_cancellation_is_not_screenshot_failure(
         def __init__(self):
             self.calls = 0
             self.cancel_next = False
+            self.cancel_at = None
 
         def __call__(self):
             self.calls += 1
             if self.cancel_next:
                 self.cancel_next = False
+                self.cancel_at = self.calls
                 raise OperationCancelled("post-screenshot cancellation")
 
         def remaining_seconds(self):
@@ -224,7 +226,8 @@ def test_post_screenshot_one_shot_cancellation_is_not_screenshot_failure(
 
     assert result is None
     assert len(written) == 1
-    assert check.calls == 3  # initial, before screenshot, and after screenshot
+    assert check.cancel_at is not None
+    assert check.calls == check.cancel_at  # No continuation after control signal.
     assert primary.args == original_args
     assert primary.args == ("original primary browser error",)
     assert not (root / ("8" * 32) / "metadata.json").exists()
