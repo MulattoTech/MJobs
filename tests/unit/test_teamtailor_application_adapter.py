@@ -14,6 +14,7 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
             "route_normalization": True,
             "form_metadata_extraction": True,
             "human_review_for_uncertainty": True,
+            "mock_fixture_upload": False,
             "document_upload": False,
             "live_form_interaction": False,
             "submission": False,

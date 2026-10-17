@@ -14,7 +14,7 @@ from services.applications.adapters.greenhouse import GreenhouseApplicationAdapt
 
 
 _LEVER_HOSTS = {"jobs.lever.co", "jobs.eu.lever.co"}
-_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I)
+_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I | re.ASCII)
 _REQUISITION = re.compile(
     r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\Z",
     re.I,
@@ -36,6 +36,8 @@ def _known_contact_field(field) -> bool:
     labels = field.get("labels")
     visible_labels = []
     if isinstance(labels, list):
+        if any(isinstance(label, str) and not label.isascii() for label in labels):
+            return False
         visible_labels = [
             re.sub(r"[^a-z0-9]+", " ", label.casefold()).strip()
             for label in labels if isinstance(label, str) and label.strip()
@@ -47,12 +49,21 @@ def _known_contact_field(field) -> bool:
     if isinstance(tag, str) and tag.casefold() == "textarea":
         # Free-form fields are custom questions even when their id looks familiar.
         return False
+    for key in ("placeholder", "aria_label"):
+        prompts = field.get(key)
+        if isinstance(prompts, str):
+            prompts = [prompts]
+        if isinstance(prompts, list) and any(
+                isinstance(prompt, str) and not prompt.isascii() for prompt in prompts):
+            return False
     for key in ("name", "id", "placeholder", "aria_label"):
         values = field.get(key)
         if isinstance(values, str):
             values = [values]
         if not isinstance(values, list):
             continue
+        if any(isinstance(value, str) and not value.isascii() for value in values):
+            return False
         for value in values:
             if isinstance(value, str):
                 normalized = re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
@@ -86,7 +97,9 @@ class LeverApplicationAdapter(GreenhouseApplicationAdapter):
         url = route.get("url")
         if not isinstance(provider, str) or provider.casefold() != self.provider:
             return None
-        if not isinstance(url, str) or not url or len(url) > 2048:
+        if (not isinstance(url, str) or not url or len(url) > 2048
+                or url != url.strip() or "\\" in url
+                or any(ord(char) < 32 for char in url)):
             return None
         try:
             parsed = urlsplit(url)
@@ -117,6 +130,7 @@ class LeverApplicationAdapter(GreenhouseApplicationAdapter):
         regional_tenant = ('eu' if host == 'jobs.eu.lever.co' else 'global') + ':' + tenant
         if supplied_tenant is not None and (
                 not isinstance(supplied_tenant, str)
+                or not supplied_tenant.isascii()
                 or supplied_tenant.casefold() not in {tenant, regional_tenant}):
             return None
         if supplied_requisition is not None and (

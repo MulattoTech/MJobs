@@ -19,7 +19,7 @@ from services.applications.upload_integrity import (
 
 
 _GREENHOUSE_HOSTS = {"boards.greenhouse.io", "job-boards.greenhouse.io"}
-_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I)
+_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I | re.ASCII)
 _REQUISITION = re.compile(r"[0-9]{1,20}\Z")
 
 
@@ -48,7 +48,9 @@ class GreenhouseApplicationAdapter:
         url = route.get("url")
         if not isinstance(provider, str) or provider.casefold() != self.provider:
             return None
-        if not isinstance(url, str) or not url or len(url) > 2048:
+        if (not isinstance(url, str) or not url or len(url) > 2048
+                or url != url.strip() or "\\" in url
+                or any(ord(char) < 32 for char in url)):
             return None
         try:
             parsed = urlsplit(url)
@@ -71,6 +73,7 @@ class GreenhouseApplicationAdapter:
         supplied_requisition = route.get("requisition")
         if supplied_tenant is not None and (
                 not isinstance(supplied_tenant, str)
+                or not _TENANT.fullmatch(supplied_tenant)
                 or supplied_tenant.casefold() != tenant):
             return None
         if supplied_requisition is not None and str(supplied_requisition) != requisition:
