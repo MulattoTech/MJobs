@@ -243,6 +243,15 @@ def test_form_review_route_change_during_interruption_dead_letters_without_fetch
         connection.execute(update(m.routes).where(
             m.routes.c.id == route_id,
         ).values(url=changed_url))
+    # A URL-only edit is an incoherent provider identity, not a new route.
+    unsupported = client.get(path + "/latest")
+    assert unsupported.status_code == 409
+    assert unsupported.json()["detail"]["code"] == "FORM_REVIEW_ROUTE_UNSUPPORTED"
+    # Model a valid changed route while preserving the original frozen intent.
+    with store.engine.begin() as connection:
+        connection.execute(update(m.routes).where(
+            m.routes.c.id == route_id,
+        ).values(requisition="54321"))
     fetched = []
     private_value = "PRIVATE_T20_UNFETCHED_VALUE"
 

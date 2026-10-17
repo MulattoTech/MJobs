@@ -13,6 +13,7 @@ from services.applications.form_review_providers import (
     analyze_application_form,
     normalize_application_route,
 )
+from services.applications.workday_dynamic_review import validate_workday_dynamic_review
 from workers.operations import OperationCancelled, OperationTimedOut
 
 
@@ -59,13 +60,14 @@ def _params(operation):
     return params
 
 
-def _read_operation(connection, operation):
+def _read_operation(connection, operation, *, lock=True):
     operation_id = operation.get("id") if isinstance(operation, Mapping) else None
     if not isinstance(operation_id, str) or not operation_id:
         raise FormReviewError("FORM_REVIEW_OPERATION_INVALID")
-    row = connection.execute(select(m.operations).where(
+    query = select(m.operations).where(
         m.operations.c.id == operation_id,
-    ).with_for_update()).mappings().one_or_none()
+    )
+    row = connection.execute(query.with_for_update() if lock else query).mappings().one_or_none()
     if (row is None or row["kind"] != _KIND
             or row["entity_id"] != operation.get("entity_id")
             or row["params"] != operation.get("params")
@@ -76,10 +78,13 @@ def _read_operation(connection, operation):
 
 def _existing_result(connection, application_id, operation_id, request_id,
                      input_fingerprint):
-    rows = connection.execute(select(m.audit.c.payload).where(
+    rows = list(connection.execute(select(m.audit.c.payload).where(
         m.audit.c.entity_id == application_id,
         m.audit.c.action == _AUDIT_ACTION,
-    )).mappings()
+        m.audit.c.payload["operation_id"].as_string() == operation_id,
+    ).limit(2)).mappings())
+    if len(rows) > 1:
+        raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
     for row in rows:
         payload = row["payload"]
         if not isinstance(payload, dict) or payload.get("operation_id") != operation_id:
@@ -88,18 +93,30 @@ def _existing_result(connection, application_id, operation_id, request_id,
                 or payload.get("input_fingerprint") != input_fingerprint
                 or not isinstance(payload.get("analysis"), dict)):
             raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
+        frozen = connection.execute(select(m.operations.c.params).where(
+            m.operations.c.id == operation_id,
+            m.operations.c.kind == _KIND,
+            m.operations.c.entity_id == application_id,
+        )).scalar_one_or_none()
+        if (not isinstance(frozen, dict)
+                or any(payload.get(key) != frozen.get(key)
+                       for key in ("profile_id", "route_id", "provider"))):
+            raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
+        analysis = _safe_report(payload["analysis"], provider=frozen.get("provider"))
         return {
             "operation_id": operation_id,
-            "status": payload["analysis"]["status"],
-            "analysis": payload["analysis"],
+            "status": analysis["status"],
+            "analysis": analysis,
         }
     return None
 
 
-def _safe_report(report):
+def _safe_report(report, *, provider=None):
     if (not isinstance(report, dict)
-            or set(report) != {"status", "reason", "fields"}
-            or report.get("status") not in {"ANALYZED", "REVIEW_REQUIRED", "UNKNOWN"}
+            or set(report) not in ({"status", "reason", "fields"},
+                                   {"status", "reason", "fields", "dynamic_review"})
+            or not isinstance(report.get("status"), str)
+            or report["status"] not in {"ANALYZED", "REVIEW_REQUIRED", "UNKNOWN"}
             or not isinstance(report.get("fields"), list)
             or len(report["fields"]) > 100):
         raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
@@ -117,21 +134,56 @@ def _safe_report(report):
             if (value is not None and
                     (not isinstance(value, str) or not _SAFE_IDENTIFIER.fullmatch(value))):
                 raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
-        if field["type"] not in _FIELD_TYPES or type(field["required"]) is not bool:
+        if (not isinstance(field["type"], str) or field["type"] not in _FIELD_TYPES
+                or type(field["required"]) is not bool):
             raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
         review_reason = field["review_reason"]
-        if review_reason is not None and review_reason not in _REVIEW_REASONS:
+        if review_reason is not None and (not isinstance(review_reason, str)
+                                           or review_reason not in _REVIEW_REASONS):
             raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
         safe_fields.append({
             "id": field["id"], "name": field["name"],
             "type": field["type"], "required": field["required"],
             "review_reason": review_reason,
         })
-    return {"status": report["status"], "reason": reason, "fields": safe_fields}
+    safe = {"status": report["status"], "reason": reason, "fields": safe_fields}
+    if "dynamic_review" in report:
+        if provider != "workday" or report["status"] != "REVIEW_REQUIRED":
+            raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
+        dynamic = validate_workday_dynamic_review(report["dynamic_review"])
+        if dynamic is None:
+            raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
+        identity_keys = ("id", "name", "type", "required")
+        outer = [{key: field[key] for key in identity_keys} for field in safe_fields]
+        inner = [{key: field[key] for key in identity_keys} for field in dynamic["fields"]]
+        if inner != outer:
+            raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
+        safe["dynamic_review"] = dynamic
+    return safe
 
 
-def _validate_claimed(connection, operation):
-    row = _read_operation(connection, operation)
+def form_review_saved(connection, operation):
+    """Probe a durable safe receipt for queue recovery without another fetch.
+
+    Callers own recovery locks and state transitions. Invalid receipts never
+    authorize completion, including on the final permitted worker attempt.
+    """
+    if not isinstance(operation, Mapping) or operation.get("kind") != _KIND:
+        return False
+    try:
+        params = _params(operation)
+        if operation.get("entity_id") != params["application_id"]:
+            return False
+        return _existing_result(
+            connection, params["application_id"], operation.get("id"),
+            params["request_id"], params["input_fingerprint"],
+        ) is not None
+    except FormReviewError:
+        return False
+
+
+def _validate_claimed(connection, operation, *, lock=True):
+    row = _read_operation(connection, operation, lock=lock)
     if row["state"] != "RUNNING" or row["cancel_requested"]:
         raise OperationCancelled("Form review operation is no longer active")
     lease = row.get("lease_expires_at")
@@ -146,6 +198,24 @@ def _validate_claimed(connection, operation):
     if lease_at <= datetime.now(timezone.utc):
         raise OperationTimedOut("Form review operation lease expired")
     return row
+
+
+def _lock_review_identity(connection, application_id):
+    """Match admission/declaration's application -> profile -> route order.
+
+    The operation lock follows these locks, so a declaration cannot hold the
+    profile while waiting for an operation held by this worker.
+    """
+    application = connection.execute(select(
+        m.applications.c.profile_id, m.applications.c.route_id,
+    ).where(m.applications.c.id == application_id).with_for_update()).first()
+    if application is not None:
+        connection.execute(select(m.profiles.c.id).where(
+            m.profiles.c.id == application.profile_id,
+        ).with_for_update()).first()
+        connection.execute(select(m.routes.c.id).where(
+            m.routes.c.id == application.route_id,
+        ).with_for_update()).first()
 
 
 def _validate_application(connection, operation, params):
@@ -171,8 +241,14 @@ def _validate_application(connection, operation, params):
             or row["route_id"] != params["route_id"]
             or row["provider"] != params["provider"]):
         raise FormReviewError("FORM_REVIEW_INPUT_STALE")
-    if params["provider"] not in {"ashby", "greenhouse", "lever", "workday"}:
-        raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
+    # Older metadata-only operations did not freeze a profile version. Preserve
+    # their replay contract; every current API admission includes this version.
+    if "profile_version" in params:
+        version = connection.execute(select(m.profiles.c.version).where(
+            m.profiles.c.id == params["profile_id"],
+        )).scalar_one_or_none()
+        if version is None or str(version) != params["profile_version"]:
+            raise FormReviewError("FORM_REVIEW_INPUT_STALE")
     normalized = normalize_application_route(
         row["provider"], row["url"], route_metadata=row,
     )
@@ -206,14 +282,14 @@ def handle_form_review(store, operation, *, fetch_html, check):
     # A completed audit receipt survives a worker crash after commit and avoids
     # repeating the public read on operation replay.
     with store.engine.connect() as connection:
-        _read_operation(connection, operation)
+        _read_operation(connection, operation, lock=False)
         replay = _existing_result(
             connection, application_id, operation_id,
             params["request_id"], params["input_fingerprint"],
         )
         if replay is not None:
             return replay
-        _validate_claimed(connection, operation)
+        _validate_claimed(connection, operation, lock=False)
         normalized = _validate_application(connection, operation, params)
 
     check()
@@ -235,7 +311,7 @@ def handle_form_review(store, operation, *, fetch_html, check):
     try:
         analysis = _safe_report(analyze_application_form(
             params["provider"], html, route_url=normalized["url"],
-        ))
+        ), provider=params["provider"])
     except FormReviewError:
         raise
     except Exception:
@@ -254,6 +330,7 @@ def handle_form_review(store, operation, *, fetch_html, check):
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
+        _lock_review_identity(connection, application_id)
         _validate_claimed(connection, operation)
         replay = _existing_result(
             connection, application_id, operation_id,

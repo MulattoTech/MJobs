@@ -1,8 +1,8 @@
 """Review-first boundary for public Workday application routes.
 
-Only Workday's public career-host route shape is recognized. Form inspection
-reuses the existing value-free Lever analyzer; uncertain prompts stay gated for
-human review. Live public form interaction and submission remain unsupported.
+Only Workday's public career-host route shape is recognized. Static form review
+remains value-free; uncertain prompts stay gated for human review. Live DOM
+inspection, public form interaction and submission remain unavailable.
 """
 from __future__ import annotations
 
@@ -45,6 +45,19 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
             "live_form_interaction": False,
             "submission": False,
         }
+
+    def analyze_page(self, page, *, check=None) -> dict:
+        """Fail closed without accessing Page until DOM inspection is bounded."""
+        if check is not None:
+            check()
+        return {"provider": self.provider, "status": "UNKNOWN",
+                "reason": "WORKDAY_DOM_INSPECTION_UNAVAILABLE", "fields": []}
+
+    def validate_page(self, page, analysis=None, *, check=None) -> dict:
+        """Override inherited DOM inspection without reading a caller's Page."""
+        if check is not None:
+            check()
+        return {"status": "UNKNOWN", "reason": "WORKDAY_DOM_INSPECTION_UNAVAILABLE"}
 
     def normalize_route(self, route: Mapping) -> dict | None:
         """Accept only strict tenant.wdN.myworkdayjobs.com job routes."""

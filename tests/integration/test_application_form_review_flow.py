@@ -566,6 +566,15 @@ class ApplicationFormReviewFlowTests(unittest.TestCase):
             ],
         }
         self.assertEqual(exact.json()["state"], "COMPLETED")
+        actual_analysis = exact.json()["analysis"]
+        self.assertEqual(set(actual_analysis), {"status", "reason", "fields", "dynamic_review"})
+        self.assertEqual({key: actual_analysis[key] for key in ("status", "reason", "fields")},
+                         expected_analysis)
+        from services.applications.workday_dynamic_review import validate_workday_dynamic_review
+        envelope = validate_workday_dynamic_review(actual_analysis["dynamic_review"])
+        self.assertIsNotNone(envelope)
+        self.assertEqual(envelope, actual_analysis["dynamic_review"])
+        expected_analysis["dynamic_review"] = envelope
         self.assertEqual(exact.json()["analysis"], expected_analysis)
         self.assertEqual(latest.json()["analysis"], expected_analysis)
 

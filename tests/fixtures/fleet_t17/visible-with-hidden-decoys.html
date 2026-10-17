@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Team 17 visible form with hidden decoys</title></head>
+<body>
+  <main>
+    <h1>Example Systems application</h1>
+    <form id="application" action="#" method="post" novalidate>
+      <label for="candidate-name">Full name</label>
+      <input id="candidate-name" name="name" type="text" autocomplete="name" required>
+      <label for="candidate-email">Email</label>
+      <input id="candidate-email" name="email" type="email" autocomplete="email" required>
+      <input id="csrf-token" name="csrf_token" type="hidden" value="SYNTHETIC-HIDDEN-DECOY">
+      <input id="collapsed-question" name="work_authorization" type="text"
+             aria-label="Work authorization hidden decoy"
+             style="display:none" value="SYNTHETIC-HIDDEN-DECOY">
+      <section hidden aria-hidden="true" inert>
+        <label for="hidden-ssn">Social Security number</label>
+        <input id="hidden-ssn" name="ssn" type="text" value="SYNTHETIC-HIDDEN-DECOY">
+      </section>
+      <label for="resume">Resume</label>
+      <input id="resume" name="resume" type="file" accept=".pdf,.doc,.docx" required>
+      <button type="button" id="continue">Continue</button>
+    </form>
+  </main>
+</body>
+</html>

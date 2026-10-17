@@ -1,11 +1,13 @@
-"""Strict, metadata-only analyzer for synthetic Workday form descriptions.
+"""Strict, value-free analyzer for Workday form metadata.
 
-This module does not inspect a page or accept applicant answers. It consumes a
-versioned metadata envelope supplied by a caller and fails closed whenever the
-envelope or a field's semantics are not understood.
+Static HTML analysis discards applicant answers. The normalized analyzer fails
+closed whenever field semantics are unknown or unsupported. Live DOM inspection
+is deferred until its evaluation can be bounded independently of the renderer.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 from collections.abc import Mapping
 from html.parser import HTMLParser
@@ -15,10 +17,12 @@ from services.applications.form_analysis import analyze_controls
 
 _FORM_KEYS = {"provider", "schema_version", "form_id", "revision", "fields"}
 _FIELD_KEYS = {
-    "id", "label", "type", "required", "conditional", "conditional_on",
+    "id", "name", "label", "type", "required", "conditional", "conditional_on",
     "repeatable", "repeatable_group",
+    "options_fingerprint",
 }
 _REQUIRED_FIELD_KEYS = {"id", "label", "type", "required", "conditional", "repeatable"}
+_REPEAT_INDEX = re.compile(r"(?:\[\d+\]|\.\d+)(?=\.|$)")
 _FORBIDDEN_KEYS = {
     "value", "current_value", "selected_value", "checked", "answer", "answers",
     "default_value", "defaultvalue", "input_value", "text_content",
@@ -31,10 +35,12 @@ _SUPPORTED_TYPES = {
 }
 MAX_WORKDAY_MARKUP_LENGTH = 2 * 1024 * 1024
 MAX_WORKDAY_MARKUP_EVENTS = 4096
+MAX_WORKDAY_DOM_FIELDS = 100
 MAX_WORKDAY_LABEL_DEPTH = 32
 _HTML_ATTRIBUTES = {
-    "id", "name", "type", "placeholder", "aria-label", "aria-required",
+    "id", "name", "type", "label", "placeholder", "aria-label", "aria-required",
     "for", "class", "role", "contenteditable", "data-automation-id",
+    "aria-controls",
     "data-workday-conditional", "data-workday-conditional-on",
     "data-workday-repeatable", "data-workday-repeatable-group",
 }
@@ -131,6 +137,7 @@ def analyze_workday_form(metadata: Mapping) -> dict:
                 raise ValueError("UNSUPPORTED_FIELD_METADATA")
 
             field_id = _normalized_text(raw.get("id"), required=True)
+            field_name = _normalized_text(raw.get("name"), required=False)
             label = _normalized_text(raw.get("label"), required=False)
             field_type = _normalized_text(raw.get("type"), required=True)
             if not _IDENTIFIER.fullmatch(field_id):
@@ -174,13 +181,20 @@ def analyze_workday_form(metadata: Mapping) -> dict:
             elif repeatable_group is not None:
                 raise ValueError("UNEXPECTED_REPEATABLE_METADATA")
 
+            options_fingerprint = raw.get("options_fingerprint")
+            if options_fingerprint is not None and (
+                    field_type != "select"
+                    or not isinstance(options_fingerprint, str)
+                    or not re.fullmatch(r"[0-9a-f]{64}", options_fingerprint)):
+                raise ValueError("INVALID_OPTIONS_FINGERPRINT")
+
             sensitivity = _sensitivity(field_id, label, field_type)
             supported = field_type in _SUPPORTED_TYPES
             if not supported:
                 review_reasons.add("UNSUPPORTED_FIELD_TYPE")
             if sensitivity != "STANDARD":
                 review_reasons.add("SENSITIVE_FIELD")
-            parsed.append({
+            parsed_field = {
                 "id": field_id,
                 "label": label,
                 "type": field_type,
@@ -196,7 +210,12 @@ def analyze_workday_form(metadata: Mapping) -> dict:
                     or sensitivity != "STANDARD"
                     or not supported
                 ),
-            })
+            }
+            if "name" in raw:
+                parsed_field["name"] = field_name
+            if options_fingerprint is not None:
+                parsed_field["options_fingerprint"] = options_fingerprint
+            parsed.append(parsed_field)
     except ValueError as error:
         return _unknown(str(error))
 
@@ -222,6 +241,8 @@ def analyze_workday_form(metadata: Mapping) -> dict:
     }
 
 
+
+
 class _WorkdayMarkupParser(HTMLParser):
     """Collect only static Workday control metadata and visible label text."""
 
@@ -238,7 +259,11 @@ class _WorkdayMarkupParser(HTMLParser):
         self.challenge_protected = False
         self.unsupported_interactive = False
         self.outside_form_controls = False
+        self.controlled_targets = {}
+        self.element_stack = []
         self.invalid = False
+        self.option_capture = None
+        self.select_control = None
 
     def _record_event(self):
         if self.invalid:
@@ -277,6 +302,36 @@ class _WorkdayMarkupParser(HTMLParser):
         tag = tag.casefold()
         values = self._attrs(attrs)
         self._check_challenge_metadata(values)
+        # HTML permits omitted option/optgroup end tags. Only the active
+        # select's option context can finalize captures; inert content cannot.
+        if (tag in {"option", "optgroup"} and self.select_control is not None
+                and all(item == "optgroup" for item in self.ignored_stack)):
+            self._finish_option()
+            if tag == "optgroup" and self.ignored_stack:
+                self.ignored_stack.pop()
+            for index in range(len(self.element_stack) - 1, -1, -1):
+                if self.element_stack[index][0] in ({"option", "optgroup"} if tag == "optgroup" else {"option"}):
+                    del self.element_stack[index:]
+                    break
+        controlled_by = self.element_stack[-1][1] if self.element_stack else None
+        element_id = values.get("id")
+        if isinstance(element_id, str) and element_id in self.controlled_targets:
+            controlled_by = self.controlled_targets[element_id]
+        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input",
+                       "link", "meta", "param", "source", "track", "wbr"}:
+            self.element_stack.append((tag, controlled_by))
+        if (tag == "option" and self.active_form and self.select_control is not None
+                and all(item == "optgroup" for item in self.ignored_stack)):
+            option_label = values.get("label")
+            if isinstance(option_label, str) and len(option_label) > 500:
+                self.invalid = True
+                return
+            self.option_capture = {
+                "control": self.select_control,
+                "parts": [],
+                "label": option_label,
+            }
+            return
         if tag in _IGNORED_CONTENT:
             self.ignored_stack.append(tag)
             return
@@ -318,8 +373,13 @@ class _WorkdayMarkupParser(HTMLParser):
             return
         conditional = values.get("data-workday-conditional")
         repeatable = values.get("data-workday-repeatable")
+        control_id = values.get("id")
+        aria_controls = values.get("aria-controls")
+        if isinstance(control_id, str) and isinstance(aria_controls, str):
+            for target in aria_controls.split():
+                self.controlled_targets[target] = control_id
         self.controls.append({
-            "id": values.get("id"),
+            "id": control_id,
             "name": values.get("name"),
             "placeholder": values.get("placeholder"),
             "aria_label": values.get("aria-label"),
@@ -329,12 +389,17 @@ class _WorkdayMarkupParser(HTMLParser):
                 or (isinstance(values.get("aria-required"), str)
                     and values["aria-required"].casefold() == "true")
             ),
-            "conditional": self._semantic_flag(conditional),
-            "conditional_on": values.get("data-workday-conditional-on"),
+            "conditional": True if controlled_by else self._semantic_flag(conditional),
+            "conditional_on": controlled_by or values.get("data-workday-conditional-on"),
             "repeatable": self._semantic_flag(repeatable),
             "repeatable_group": values.get("data-workday-repeatable-group"),
             "labels": [],
+            "option_labels": [] if input_type.casefold() == "select" else None,
         })
+        if tag == "select":
+            if self.select_control is not None:
+                self.invalid = True
+            self.select_control = len(self.controls) - 1
         for label in self.label_stack:
             label["index"] = len(self.controls) - 1
 
@@ -353,15 +418,45 @@ class _WorkdayMarkupParser(HTMLParser):
         self.handle_starttag(tag, attrs)
         self.handle_endtag(tag)
 
+    def _finish_option(self):
+        if self.option_capture is None:
+            return
+        capture = self.option_capture
+        source_label = capture["label"] or " ".join(capture["parts"])
+        label = " ".join(source_label.split())
+        option_labels = self.controls[capture["control"]]["option_labels"]
+        if len(label) > 500 or len(option_labels) >= 100:
+            self.invalid = True
+        else:
+            option_labels.append(label)
+        self.option_capture = None
+
     def handle_endtag(self, tag):
         if not self._record_event():
             return
         tag = tag.casefold()
+        option_closed = False
+        if (tag in {"option", "optgroup", "select"} and self.select_control is not None
+                and all(item == "optgroup" for item in self.ignored_stack)):
+            self._finish_option()
+            if tag == "select":
+                self.ignored_stack.clear()
+                self.select_control = None
+            elif tag == "option":
+                option_closed = True
+        for index in range(len(self.element_stack) - 1, -1, -1):
+            if self.element_stack[index][0] == tag:
+                del self.element_stack[index:]
+                break
+        if option_closed:
+            return
         if self.ignored_stack:
             if tag == self.ignored_stack[-1]:
                 self.ignored_stack.pop()
             return
         if tag == "form":
+            if self.select_control is not None:
+                self.invalid = True
             self.active_form = False
         elif tag == "textarea" and self.value_text_depth:
             self.value_text_depth -= 1
@@ -379,7 +474,19 @@ class _WorkdayMarkupParser(HTMLParser):
                 self.labels_by_id.setdefault(field_id, []).append(text)
 
     def handle_data(self, data):
-        if not self._record_event() or self.ignored_stack or self.value_text_depth:
+        if not self._record_event() or self.value_text_depth:
+            return
+        if any(item != "optgroup" for item in self.ignored_stack):
+            return
+        if self.option_capture is not None:
+            if self.option_capture["label"]:
+                return
+            if sum(map(len, self.option_capture["parts"])) + len(data) > 500:
+                self.invalid = True
+            else:
+                self.option_capture["parts"].append(data)
+            return
+        if self.ignored_stack:
             return
         for label in self.label_stack:
             if sum(map(len, label["parts"])) + len(data) > 500:
@@ -401,7 +508,7 @@ class _WorkdayMarkupParser(HTMLParser):
 
     def finish(self):
         if (self.invalid or self.label_stack or self.ignored_stack or self.value_text_depth
-                or self.active_form):
+                or self.active_form or self.select_control is not None or self.option_capture is not None):
             return _unknown("INVALID_WORKDAY_MARKUP")
         if self.form_count == 0:
             return _unknown("NO_FORM")
@@ -413,6 +520,19 @@ class _WorkdayMarkupParser(HTMLParser):
             return _unknown("UNSUPPORTED_INTERACTIVE_CONTROL")
         if not self.controls:
             return _unknown("NO_FORM_CONTROLS")
+
+        repeatable_names = {}
+        repeatable_types = {"text", "email", "tel", "url", "number", "date", "select", "textarea"}
+        for control in self.controls:
+            name = control.get("name")
+            if isinstance(name, str) and control["type"] in repeatable_types:
+                group = _REPEAT_INDEX.sub("", name)
+                repeatable_names.setdefault(group, []).append(control)
+        for group, controls in repeatable_names.items():
+            if len(controls) > 1:
+                for control in controls:
+                    control["repeatable"] = True
+                    control["repeatable_group"] = group
 
         for control in self.controls:
             field_id = control.get("id")
@@ -428,7 +548,7 @@ class _WorkdayMarkupParser(HTMLParser):
             label = " ".join(labels)
             if not label:
                 label = control.get("aria_label") or control.get("placeholder")
-            fields.append({
+            field = {
                 "id": internal_id,
                 "label": label,
                 "type": control["type"],
@@ -437,7 +557,13 @@ class _WorkdayMarkupParser(HTMLParser):
                 "conditional_on": control.get("conditional_on"),
                 "repeatable": control["repeatable"],
                 "repeatable_group": control.get("repeatable_group"),
-            })
+            }
+            if control["type"] == "select":
+                labels = [" ".join(value.split()) for value in control["option_labels"]]
+                field["options_fingerprint"] = hashlib.sha256(
+                    json.dumps(labels, ensure_ascii=True, separators=(",", ":")).encode("utf-8")
+                ).hexdigest()
+            fields.append(field)
             projections.append({"id": source_id, "name": name})
 
         analysis = analyze_workday_form({
@@ -524,6 +650,26 @@ def validate_workday_form(metadata: Mapping, expected_analysis: Mapping) -> dict
             or not expected_analysis.get("fields")):
         return _unknown("INVALID_EXPECTED_ANALYSIS")
     current = analyze_workday_form(metadata)
+    if current.get("status") == "UNKNOWN":
+        return current
+    if current != expected_analysis:
+        return _unknown("FORM_CHANGED")
+    return current
+
+
+def validate_workday_form_html(source, expected_analysis: Mapping) -> dict:
+    """Reanalyze current static HTML and invalidate a changed question snapshot.
+
+    The comparison uses only the analyzer's value-free field projection. Answer
+    values, selected options, and textarea contents are never observed.
+    """
+    if (not isinstance(expected_analysis, Mapping)
+            or expected_analysis.get("provider") != "workday"
+            or expected_analysis.get("status") not in {"PASS", "REVIEW_REQUIRED"}
+            or not isinstance(expected_analysis.get("fields"), list)
+            or not expected_analysis.get("fields")):
+        return _unknown("INVALID_EXPECTED_ANALYSIS")
+    current = analyze_workday_form_html(source)
     if current.get("status") == "UNKNOWN":
         return current
     if current != expected_analysis:

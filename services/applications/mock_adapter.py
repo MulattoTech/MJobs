@@ -35,6 +35,7 @@ from services.applications.debug_capture import (
 from services.documents.errors import PreparationError
 from services.documents.validation import validate_stored_resume, VALIDATOR
 from services.documents.avoid_list import validate_content as validate_avoid_list
+from services.documents.answers import get_answer_confidence_policy, validate_answer_confidence_policy
 
 
 _DYNAMIC_QUESTION_ID = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
@@ -245,6 +246,26 @@ def _read_questionnaire(client, route):
         return None
 
 
+def _answer_policy_problem(store, profile_id, expected, expected_answers):
+    try:
+        current = validate_answer_confidence_policy(get_answer_confidence_policy(store, profile_id))
+        current_answers = store.profile(profile_id).get("answers", [])
+    except Exception:
+        # Database failures and malformed persisted policies must never admit a
+        # browser, nor place raw exception text in the application's audit trail.
+        return "ANSWER_POLICY_UNAVAILABLE"
+    if current != expected:
+        return "STALE_ANSWER_POLICY"
+    return None if current_answers == expected_answers else "CHANGED_ANSWER"
+
+
+def _stop_for_answer_policy(store, application, preflight, reason):
+    blocked = {**preflight, "result": "UNKNOWN", "reason": reason}
+    persist_preflight(store, application["id"], blocked)
+    store.transition(application["id"], [application["state"]], "REVIEW_REQUIRED", reason)
+    return blocked
+
+
 def _preflight(store, application, route, profile, document_kinds, client,
                answer_bindings=None):
     questionnaire = _read_questionnaire(client, route)
@@ -257,8 +278,21 @@ def _preflight(store, application, route, profile, document_kinds, client,
                 else bind_mock_answer_slots(profile.get("answers", [])))
     preflight_questionnaire = _questionnaire_with_mock_answer_bindings(questionnaire, bindings)
     preflight_profile = preflight_profile_answers(profile, bindings)
-    result = build_preflight_result(preflight_profile, route, preflight_questionnaire, document_kinds,
-                                    application_id=application["id"])
+    try:
+        policy = validate_answer_confidence_policy(
+            get_answer_confidence_policy(store, application["profile_id"]))
+    except Exception:
+        policy = None
+    if policy is None:
+        result = build_preflight_result(preflight_profile, route, None, document_kinds,
+                                        application_id=application["id"])
+        result["reason"] = "ANSWER_POLICY_UNAVAILABLE"
+    else:
+        result = build_preflight_result(
+            preflight_profile, route, preflight_questionnaire, document_kinds,
+            application_id=application["id"], answer_confidence_policy=policy,
+            review_profile_answers=profile.get("answers", []),
+        )
     if isinstance(questionnaire, dict):
         try:
             result["metadata_fingerprint"] = questionnaire_fingerprint(questionnaire)
@@ -281,7 +315,9 @@ def _preflight(store, application, route, profile, document_kinds, client,
     latest = _read_questionnaire(client, route)
     if (latest is None or questionnaire_fingerprint(latest) != result["metadata_fingerprint"]):
         stale = build_preflight_result(profile, route, latest, document_kinds,
-                                       application_id=application["id"])
+                                       application_id=application["id"],
+                                       answer_confidence_policy=policy,
+                                       review_profile_answers=profile.get("answers", []))
         _include_question_shape(stale, latest, analyze_questionnaire(latest))
         stale.update({"reason": "STALE_PREFLIGHT", "result": "UNKNOWN",
                       "document_version": application["document_version"]})
@@ -289,6 +325,14 @@ def _preflight(store, application, route, profile, document_kinds, client,
         store.transition(application["id"], [application["state"]], "REVIEW_REQUIRED",
                          "QUESTION_PREFLIGHT_STALE")
         return stale
+    policy_problem = _answer_policy_problem(
+        store, application["profile_id"], policy, profile.get("answers", []),
+    )
+    if policy_problem is not None:
+        return _stop_for_answer_policy(store, application, result, policy_problem)
+    # Internal admission snapshot only: persist_preflight allowlists audit fields
+    # and does not store this transient value or any answer values.
+    result["_answer_confidence_policy"] = policy
     return result
 
 
@@ -669,7 +713,7 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
                     capture_browser_failure(
                         page, root / "debug-captures", attempt_id=attempt_id,
                         step=failed_step, configured_url=route.get("url"),
-                        error=error, events=browser_events,
+                        error=error, events=browser_events, check=check,
                     )
                 except Exception:
                     # Diagnostics must never alter application state or shadow
@@ -678,6 +722,13 @@ def apply_mock(store, application_id, mock_origin, output_dir, submit=False, che
             browser_failure_handled = True
 
         try:
+            policy_problem = _answer_policy_problem(
+                store, application["profile_id"], preflight["_answer_confidence_policy"],
+                profile.get("answers", []),
+            )
+            if policy_problem is not None:
+                _stop_for_answer_policy(store, application, preflight, policy_problem)
+                return store.application(application_id)
             with sync_playwright() as playwright:
                 context = playwright.chromium.launch_persistent_context(str(root / "browser-profile"), headless=True,
                     args=["--disable-gpu"], timeout=_playwright_action_timeout_ms(check, 15000))

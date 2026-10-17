@@ -15,8 +15,8 @@ from services.applications.form_analysis import analyze_form_page
 
 
 _WORKABLE_HOST = "apply.workable.com"
-_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I)
-_REQUISITION = re.compile(r"[a-z0-9][a-z0-9_-]{4,39}\Z", re.I)
+_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I | re.ASCII)
+_REQUISITION = re.compile(r"[a-z0-9][a-z0-9_-]{4,39}\Z", re.I | re.ASCII)
 _CHALLENGE_MARKERS = re.compile(
     r"\b(captcha|recaptcha|hcaptcha|turnstile|challenge|cloudflare|bot verification|human verification)\b",
     re.I,
@@ -198,7 +198,8 @@ class WorkableApplicationAdapter:
             return None
         provider = route.get("provider")
         url = route.get("url")
-        if not isinstance(provider, str) or provider.casefold() != self.provider:
+        if (not isinstance(provider, str) or not provider.isascii()
+                or provider.casefold() != self.provider):
             return None
         if not isinstance(url, str) or not url or len(url) > 2048:
             return None
@@ -206,6 +207,8 @@ class WorkableApplicationAdapter:
             return None
         try:
             parsed = urlsplit(url)
+            if not parsed.netloc.isascii() or not parsed.path.isascii():
+                return None
             port = parsed.port
         except ValueError:
             return None
@@ -228,10 +231,12 @@ class WorkableApplicationAdapter:
         supplied_requisition = route.get("requisition")
         if supplied_tenant is not None and (
                 not isinstance(supplied_tenant, str)
+                or not supplied_tenant.isascii()
                 or supplied_tenant.casefold() != tenant):
             return None
         if supplied_requisition is not None and (
                 not isinstance(supplied_requisition, str)
+                or not supplied_requisition.isascii()
                 or supplied_requisition.casefold() != requisition):
             return None
         return {

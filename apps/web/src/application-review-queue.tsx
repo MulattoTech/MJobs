@@ -32,10 +32,14 @@ function unresolvedDetails(question:MissingQuestion):string {
 
 export function ApplicationReviewQueue({applications,profileId,onReview,loading=false,loadError=false}:{applications:ReviewQueueApplication[];profileId:string;onReview:(applicationId:string)=>void;loading?:boolean;loadError?:boolean}) {
   const pending=profileId?applications.filter(application=>application.profile_id===profileId&&(application.question_preflight?.result==='UNKNOWN'||application.question_preflight?.result==='FAIL')):[];
+  const emptyMessage=loading?null:loadError?<p>No successfully read applications currently need question review; the queue is incomplete, and unread applications may still need review.</p>:<p>No saved applications currently need question review.</p>;
   return <section className="panel" aria-label="Application review queue">
-    <div className="toolbar"><div><h2>Applications needing question review</h2><p>Persisted question preflight is UNKNOWN or FAIL. Select an item to inspect its existing application review.</p></div><span className="tag">{pending.length} pending</span></div>
+    <div className="toolbar"><div><h2>Applications needing question review</h2><p>Persisted question preflight is UNKNOWN or FAIL. Select an item to inspect its existing application review.</p></div><span className="tag">{pending.length} known blocker{pending.length===1?'':'s'}</span></div>
     <p className="muted">This queue only opens saved application details. It does not answer questions, change application state, start browser automation, or submit anything. CAPTCHA, login, sensitive questions, unsupported ATS, document validation, and ambiguous submissions are not yet listed here.</p>
-    {!profileId?<p>Select a profile to view its applications needing review.</p>:loadError?<p role="alert">Some saved application details could not be read. Refresh the workspace and reopen this queue to check again.</p>:loading?<p role="status">Loading saved application preflight details…</p>:pending.length===0?<p>No saved applications currently need question review.</p>:<ul className="review-queue-items">{pending.map(application=>{
+    {!profileId?<p>Select a profile to view its applications needing review.</p>:<>
+      {loading&&<p role="status">Loading saved application preflight details…</p>}
+      {loadError&&<p role="alert">Some saved application details could not be read. Only successfully read blockers are shown and counted below; refresh the workspace and reopen this queue to check for the unread applications.</p>}
+      {pending.length===0?emptyMessage:<ul className="review-queue-items">{pending.map(application=>{
       const preflight=application.question_preflight;
       if(!preflight||preflight.result==='PASS')return null;
       const result=preflight.result;
@@ -51,7 +55,8 @@ export function ApplicationReviewQueue({applications,profileId,onReview,loading=
         </li>)}</ul>:<p><strong>What needs review:</strong> Inspect the saved application’s question-preflight details; no unresolved question mapping was recorded.</p>}
         <button type="button" aria-label={`Review application: ${application.title} at ${application.company}`} onClick={()=>onReview(application.id)}>Review application</button>
       </li>;
-    })}</ul>}
+      })}</ul>}
+    </>}
     <p className="muted">External submission remains OFF.</p>
   </section>;
 }

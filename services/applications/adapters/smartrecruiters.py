@@ -14,8 +14,10 @@ from services.applications.form_analysis import analyze_form_page
 
 
 _HOST = "jobs.smartrecruiters.com"
-_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I)
-_JOB_PATH = re.compile(r"([0-9]{8,20})(?:-([a-z0-9][a-z0-9_-]{0,159}))?\Z", re.I)
+_TENANT = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}\Z", re.I | re.ASCII)
+_JOB_PATH = re.compile(
+    r"([0-9]{8,20})(?:-([a-z0-9][a-z0-9_-]{0,159}))?\Z", re.I | re.ASCII
+)
 _CHALLENGE_SELECTOR = (
     'iframe[src*="captcha" i], iframe[src*="challenges.cloudflare.com" i], '
     'iframe[src*="arkoselabs.com" i], iframe[src*="funcaptcha" i], '
@@ -51,12 +53,17 @@ class SmartRecruitersApplicationAdapter:
         if not isinstance(route, Mapping):
             return None
         provider, url = route.get("provider"), route.get("url")
-        if not isinstance(provider, str) or provider.casefold() != self.provider:
+        if (not isinstance(provider, str) or not provider.isascii()
+                or provider.casefold() != self.provider):
             return None
         if not isinstance(url, str) or not url or len(url) > 2048:
             return None
+        if any(ord(character) <= 0x20 or ord(character) == 0x7f for character in url):
+            return None
         try:
             parsed = urlsplit(url)
+            if not parsed.netloc.isascii() or not parsed.path.isascii():
+                return None
             port = parsed.port
         except ValueError:
             return None
@@ -78,10 +85,12 @@ class SmartRecruitersApplicationAdapter:
         supplied_requisition = route.get("requisition")
         if supplied_tenant is not None and (
                 not isinstance(supplied_tenant, str)
+                or not supplied_tenant.isascii()
                 or supplied_tenant.casefold() != tenant):
             return None
         if supplied_requisition is not None and (
                 not isinstance(supplied_requisition, str)
+                or not supplied_requisition.isascii()
                 or supplied_requisition != requisition):
             return None
         canonical_path = requisition + (f"-{slug}" if slug else "")

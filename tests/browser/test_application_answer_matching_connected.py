@@ -43,7 +43,7 @@ class ConnectedApplicationAnswerMatchingBrowserTests(unittest.TestCase):
                 {
                     "id": "cloud-semantic",
                     "question": "What cloud providers have you used?",
-                    "text": "Synthetic semantic candidate answer.",
+                    "text": "Synthetic exact candidate answer.",
                     "source": "Synthetic semantic profile evidence",
                     "verified": True,
                     "user_approved": True,
@@ -52,7 +52,7 @@ class ConnectedApplicationAnswerMatchingBrowserTests(unittest.TestCase):
                 {
                     "id": "cloud-fuzzy",
                     "question": "Which public cloud platforms have you used?",
-                    "text": "Synthetic fuzzy candidate answer.",
+                    "text": "Synthetic exact candidate answer.",
                     "source": "Synthetic fuzzy profile evidence",
                     "verified": True,
                     "user_approved": True,
@@ -176,7 +176,7 @@ class ConnectedApplicationAnswerMatchingBrowserTests(unittest.TestCase):
                     # leaves per-application approval false.
                     first_question.get_by_role(
                         "button", name="Use saved answer (review required)", exact=True).nth(1).click()
-                    expect(first_answer).to_have_value("Synthetic semantic candidate answer.")
+                    expect(first_answer).to_have_value("Synthetic exact candidate answer.")
                     expect(first_review).not_to_be_checked()
                     expect(first_export).to_be_disabled()
 

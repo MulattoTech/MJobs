@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Team 17 overlaid form</title>
+  <style>
+    #consent-shade { position: fixed; inset: 0; z-index: 999999; background: #000b; }
+    #consent-dialog { position: fixed; inset: 25% 15%; z-index: 1000000; background: white; padding: 2rem; }
+  </style>
+</head>
+<body>
+  <form id="application" action="#" method="post">
+    <label for="candidate-name">Full name</label>
+    <input id="candidate-name" name="name" required>
+    <label for="candidate-email">Email</label>
+    <input id="candidate-email" name="email" type="email" required>
+    <label for="question">Why are you interested in this role?</label>
+    <textarea id="question" name="custom_question"></textarea>
+    <button id="continue" type="button">Continue</button>
+    <button id="submit-application" type="submit">Submit application</button>
+  </form>
+  <div id="consent-shade" aria-hidden="true"></div>
+  <section id="consent-dialog" role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+    <h2 id="dialog-title">Review privacy notice</h2>
+    <p>This synthetic consent dialog covers the form until acknowledged.</p>
+    <button id="accept-notice" type="button">Review notice</button>
+  </section>
+  <script>
+    window.team17Fixture = { submitEvents: 0 };
+    document.querySelector('#application').addEventListener('submit', event => {
+      event.preventDefault();
+      window.team17Fixture.submitEvents++;
+    });
+  </script>
+</body>
+</html>
