@@ -57,13 +57,58 @@ def test_exact_readback_rejects_corrupt_receipt_without_exposing_values():
         fixture.tearDown()
 
 
-def test_safe_report_preserves_only_valid_dynamic_observation():
+def dynamic_report():
     from tests.unit.test_fleet_t02_workday_dynamic_contract import project
-    report = {**worker_fixture.SAFE_ANALYSIS, "dynamic_review": project()}
-    assert _safe_report(report) == report
+    envelope = project()
+    return {"status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_FIELD_PRESENT",
+            "fields": [{**{key: field[key] for key in ("id", "name", "type", "required")},
+                        "review_reason": "UNKNOWN_QUESTION"} for field in envelope["fields"]],
+            "dynamic_review": envelope}
+
+
+def test_safe_report_preserves_only_valid_dynamic_observation():
+    report = dynamic_report()
+    assert _safe_report(report, provider="workday") == report
     report["dynamic_review"]["fields"][0]["value"] = "SYNTHETIC_PRIVATE_VALUE"
     with pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
-        _safe_report(report)
+        _safe_report(report, provider="workday")
+
+
+@pytest.mark.parametrize("change", ["order", "id", "name", "type", "required", "status"])
+def test_dynamic_envelope_cannot_describe_different_outer_observation(change):
+    report = dynamic_report()
+    if change == "status":
+        report["status"] = "ANALYZED"
+    elif change == "order":
+        report["fields"].reverse()
+    elif change == "required":
+        report["fields"][0]["required"] = not report["fields"][0]["required"]
+    else:
+        report["fields"][0][change] = "text" if change == "type" else "changed"
+    with pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
+        _safe_report(report, provider="workday")
+
+
+def test_non_workday_worker_cannot_persist_workday_dynamic_observation(review):
+    operation = review.make_operation()
+    service, _ = review.with_analysis_service(dynamic_report())
+    with service, pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
+        handle_form_review(review.store, operation, fetch_html=lambda _: "<form/>", check=lambda: None)
+    assert review.audit_events(operation["id"]) == []
+
+
+def test_non_workday_receipt_cannot_replay_workday_dynamic_observation(review):
+    operation = review.make_operation()
+    service, _ = review.with_analysis_service()
+    with service:
+        handle_form_review(review.store, operation, fetch_html=lambda _: "<form/>", check=lambda: None)
+    receipt = review.audit_events(operation["id"])[0]
+    payload = receipt["payload"]
+    payload["analysis"] = dynamic_report()
+    with review.store.engine.begin() as connection:
+        connection.execute(update(m.audit).where(m.audit.c.id == receipt["id"]).values(payload=payload))
+    with pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
+        handle_form_review(review.store, operation, fetch_html=lambda _: pytest.fail("must not fetch"), check=lambda: None)
 
 
 @pytest.mark.parametrize("key,value", [("status", []), ("type", []), ("review_reason", {})])

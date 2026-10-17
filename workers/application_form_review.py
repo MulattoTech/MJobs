@@ -99,7 +99,7 @@ def _existing_result(connection, application_id, operation_id, request_id,
                 or any(payload.get(key) != frozen.get(key)
                        for key in ("profile_id", "route_id", "provider"))):
             raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
-        analysis = _safe_report(payload["analysis"])
+        analysis = _safe_report(payload["analysis"], provider=frozen.get("provider"))
         return {
             "operation_id": operation_id,
             "status": analysis["status"],
@@ -108,7 +108,7 @@ def _existing_result(connection, application_id, operation_id, request_id,
     return None
 
 
-def _safe_report(report):
+def _safe_report(report, *, provider=None):
     if (not isinstance(report, dict)
             or set(report) not in ({"status", "reason", "fields"},
                                    {"status", "reason", "fields", "dynamic_review"})
@@ -145,8 +145,15 @@ def _safe_report(report):
         })
     safe = {"status": report["status"], "reason": reason, "fields": safe_fields}
     if "dynamic_review" in report:
+        if provider != "workday" or report["status"] != "REVIEW_REQUIRED":
+            raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
         dynamic = validate_workday_dynamic_review(report["dynamic_review"])
         if dynamic is None:
+            raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
+        identity_keys = ("id", "name", "type", "required")
+        outer = [{key: field[key] for key in identity_keys} for field in safe_fields]
+        inner = [{key: field[key] for key in identity_keys} for field in dynamic["fields"]]
+        if inner != outer:
             raise FormReviewError("FORM_REVIEW_ANALYSIS_INVALID")
         safe["dynamic_review"] = dynamic
     return safe
@@ -301,7 +308,7 @@ def handle_form_review(store, operation, *, fetch_html, check):
     try:
         analysis = _safe_report(analyze_application_form(
             params["provider"], html, route_url=normalized["url"],
-        ))
+        ), provider=params["provider"])
     except FormReviewError:
         raise
     except Exception:
