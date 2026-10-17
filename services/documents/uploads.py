@@ -1,6 +1,7 @@
 """Store unreviewed base resumes locally; never turn file contents into facts."""
 from __future__ import annotations
 
+from contextlib import nullcontext
 from io import BytesIO
 import hashlib
 import os
@@ -166,8 +167,8 @@ def save_resume(store, output_dir: str | Path, profile_id: str, filename: str,
         staged_path.unlink(missing_ok=True)
 
 
-def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str, *, document_kind: str = 'BASE_RESUME') -> tuple[dict, bytes]:
-    with store.engine.connect() as connection:
+def read_resume(store, output_dir: str | Path, profile_id: str, identifier: str, *, document_kind: str = 'BASE_RESUME', connection=None) -> tuple[dict, bytes]:
+    with (nullcontext(connection) if connection is not None else store.engine.connect()) as connection:
         connection.execute(select(m.resume_revisions.c.id).where(
             m.resume_revisions.c.profile_id == profile_id, m.resume_revisions.c.upload_id == identifier,
             m.resume_revisions.c.document_kind == document_kind).limit(1)).one()
