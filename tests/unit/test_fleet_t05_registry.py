@@ -1,7 +1,12 @@
 """The shared registry keeps provider routing and advertised behavior aligned."""
 import pytest
 
-from services.applications.provider_registry import get_provider, normalize_route
+from services.applications.provider_registry import (
+    capabilities,
+    get_provider,
+    normalize_route,
+    providers,
+)
 
 
 ROUTES = (
@@ -18,6 +23,11 @@ ROUTES = (
     ("bamboohr", "https://acme.bamboohr.com/careers/123", {}),
     ("generic_html", "https://careers.example.test/job/123", {}),
 )
+EXPECTED_PROVIDERS = tuple(provider for provider, _, _ in ROUTES)
+
+
+def test_registry_exposes_the_complete_current_provider_set():
+    assert set(providers()) == set(EXPECTED_PROVIDERS)
 
 
 @pytest.mark.parametrize("provider,url,metadata", ROUTES)
@@ -37,11 +47,12 @@ def test_registry_dispatches_only_matching_provider_route(provider, url, metadat
 
 @pytest.mark.parametrize("provider,url,metadata", ROUTES)
 def test_registry_capabilities_do_not_claim_submission_or_real_upload(provider, url, metadata):
-    capabilities = get_provider(provider).capabilities()
-    assert capabilities["route_normalization"] is True
-    assert capabilities.get("document_upload") is False
-    assert capabilities.get("submission") is False
-    assert capabilities.get("live_form_interaction") is False
+    declared = capabilities(provider)
+    assert declared == get_provider(provider).capabilities()
+    assert declared["route_normalization"] is True
+    assert declared.get("document_upload") is False
+    assert declared.get("submission") is False
+    assert declared.get("live_form_interaction") is False
 
 
 @pytest.mark.parametrize("provider,expected", [
@@ -56,7 +67,7 @@ def test_registry_capabilities_do_not_claim_submission_or_real_upload(provider, 
     ("generic_html", False),
 ])
 def test_registry_distinguishes_form_metadata_extraction_from_route_support(provider, expected):
-    assert get_provider(provider).capabilities()["form_metadata_extraction"] is expected
+    assert capabilities(provider)["form_metadata_extraction"] is expected
 
 
 def test_registry_fails_closed_for_unknown_or_cross_provider_routes():
