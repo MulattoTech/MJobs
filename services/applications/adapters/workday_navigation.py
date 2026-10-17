@@ -161,9 +161,11 @@ def decide_transition(previous_observation: Mapping, current_observation: Mappin
     """Return a safe decision from two observed classifications; perform no action.
 
     NEXT/PREVIOUS are confirmed only after a changed, known, adjacent page is
-    observed. REFRESH asks the caller to refresh and classify again. RESUME is
-    accepted only when an interrupted observation exactly matches its supplied
-    confirmed state. Final submission actions are always ambiguous and inert.
+    observed. NEXT rejects a destination already on the active route stack;
+    PREVIOUS may return to an already-visited adjacent page. REFRESH asks the
+    caller to refresh and classify again. RESUME is accepted only when an
+    interrupted observation exactly matches its supplied confirmed state.
+    Final submission actions are always ambiguous and inert.
     """
     if not isinstance(intended_action, str) or intended_action not in _ALLOWED_ACTIONS:
         return _decision("MANUAL_REVIEW", "UNSUPPORTED_ACTION")
@@ -191,7 +193,8 @@ def decide_transition(previous_observation: Mapping, current_observation: Mappin
         return _decision("MANUAL_REVIEW", "INVALID_VISITED_STATE")
     if current_observation["fingerprint"] == previous_observation["fingerprint"]:
         return _decision("WAIT_FOR_OBSERVED_CHANGE", "PAGE_HAS_NOT_CHANGED")
-    if current_observation["fingerprint"] in visited_fingerprints:
+    if (intended_action == "NEXT"
+            and current_observation["fingerprint"] in visited_fingerprints):
         return _decision("LOOP_DETECTED", "OBSERVED_PAGE_REPEATED")
 
     old_index = _STEP_ORDER.index(previous_observation["step"])
