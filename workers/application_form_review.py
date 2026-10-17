@@ -143,6 +143,26 @@ def _safe_report(report):
     return safe
 
 
+def form_review_saved(connection, operation):
+    """Probe a durable safe receipt for queue recovery without another fetch.
+
+    Callers own recovery locks and state transitions. Invalid receipts never
+    authorize completion, including on the final permitted worker attempt.
+    """
+    if not isinstance(operation, Mapping) or operation.get("kind") != _KIND:
+        return False
+    try:
+        params = _params(operation)
+        if operation.get("entity_id") != params["application_id"]:
+            return False
+        return _existing_result(
+            connection, params["application_id"], operation.get("id"),
+            params["request_id"], params["input_fingerprint"],
+        ) is not None
+    except FormReviewError:
+        return False
+
+
 def _validate_claimed(connection, operation, *, lock=True):
     row = _read_operation(connection, operation, lock=lock)
     if row["state"] != "RUNNING" or row["cancel_requested"]:

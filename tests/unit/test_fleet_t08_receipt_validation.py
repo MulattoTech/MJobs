@@ -76,3 +76,20 @@ def test_corrupt_receipt_scalar_types_use_safe_error(key, value):
         report["fields"][0][key] = value
     with pytest.raises(FormReviewError, match="FORM_REVIEW_ANALYSIS_INVALID"):
         _safe_report(report)
+
+
+@pytest.mark.parametrize("corrupt", [False, True])
+def test_recovery_receipt_probe_accepts_only_valid_saved_result(review, corrupt):
+    from workers import application_form_review as worker
+    operation = review.make_operation()
+    service, _ = review.with_analysis_service()
+    with service:
+        handle_form_review(review.store, operation, fetch_html=lambda _: "<form/>", check=lambda: None)
+    if corrupt:
+        event = review.audit_events(operation["id"])[0]
+        payload = event["payload"]
+        payload["analysis"]["private_answer"] = "SYNTHETIC_PRIVATE_VALUE"
+        with review.store.engine.begin() as connection:
+            connection.execute(update(m.audit).where(m.audit.c.id == event["id"]).values(payload=payload))
+    with review.store.engine.connect() as connection:
+        assert worker.form_review_saved(connection, operation) is (not corrupt)
