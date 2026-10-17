@@ -43,11 +43,29 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                 {
                     "id": "fuzzy-experience",
                     "question": "How many years of professional experience do you have?",
-                    "text": "Synthetic answer for a fuzzy wording match.",
+                    "text": "I have five years of synthetic professional experience.",
                     "source": "Synthetic user-authored fuzzy evidence",
                     "verified": True,
                     "user_approved": True,
                     "confidence": 94,
+                },
+                {
+                    "id": "weekend-positive",
+                    "question": "Can you work weekends?",
+                    "text": "Available on synthetic weekends.",
+                    "source": "Synthetic explicit weekend answer",
+                    "verified": True,
+                    "user_approved": True,
+                    "confidence": 100,
+                },
+                {
+                    "id": "weekend-negative",
+                    "question": "Can you work weekends?",
+                    "text": "Unavailable on synthetic weekends.",
+                    "source": "Synthetic conflicting weekend answer",
+                    "verified": True,
+                    "user_approved": True,
+                    "confidence": 100,
                 },
                 {
                     "id": "sensitive-authorization",
@@ -190,6 +208,37 @@ class ApplicationAnswerMatchingReviewFlowBrowserTests(unittest.TestCase):
                                       if method not in {"GET", "HEAD"}
                                       and not path.endswith("/answers/match")], all_requests)
 
+                    # Both the API picker and the legacy local picker must
+                    # withhold contradictory approved answers from selection.
+                    question_group.locator("#application-answer-question-0").fill(
+                        "Can you work weekends?")
+                    with page.expect_response(lambda response:
+                            response.url.endswith(
+                                f"/profiles/fixture/applications/{first_application}/answers/match")) as conflict:
+                        lookup.click()
+                    self.assertEqual(conflict.value.status, 200, conflict.value.text())
+                    self.assertEqual(conflict.value.json()["review_gate"]["reason"],
+                                     "CONFLICTING_ANSWERS")
+                    self.assertEqual(conflict.value.json()["candidates"], [])
+                    expect(question_group.get_by_role(
+                        "button", name="Use saved answer (review required)", exact=True)).to_have_count(0)
+                    expect(question_group.get_by_role(
+                        "button", name="Select answer as draft:", exact=False)).to_have_count(0)
+                    expect(answer).to_have_value("")
+                    expect(review).not_to_be_checked()
+                    expect(export).to_be_disabled()
+                    for private_answer in ("Available on synthetic weekends.",
+                                           "Unavailable on synthetic weekends."):
+                        self.assertNotIn(private_answer, conflict.value.text())
+
+                    question_group.locator("#application-answer-question-0").fill(question)
+                    with page.expect_response(lambda response:
+                            response.url.endswith(
+                                f"/profiles/fixture/applications/{first_application}/answers/match")) as aligned:
+                        lookup.click()
+                    self.assertEqual(aligned.value.status, 200, aligned.value.text())
+                    self.assertFalse(aligned.value.json()["review_gate"]["review_required"])
+                    self.assertEqual(len(aligned.value.json()["candidates"]), 2)
                     exact.get_by_role(
                         "button", name=("Select answer as draft: "
                                         "I have five years of synthetic professional experience.")).click()
