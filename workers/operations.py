@@ -525,15 +525,19 @@ def recover_expired(store):
                             error = "PRE_SUBMIT_REVIEW_REQUIRED"
                             connection.execute(update(m.applications).where(
                                 m.applications.c.id == application["id"]).values(state="REVIEW_REQUIRED"))
-            refresh_saved = company_refresh_saved(connection, row)
-            if refresh_saved:
+            result_saved = company_refresh_saved(connection, row)
+            if row["kind"] == "APPLICATION_FORM_REVIEW":
+                from workers.application_form_review import form_review_saved
+
+                result_saved = form_review_saved(connection, row)
+            if result_saved:
                 state, error = "COMPLETED", None
             values = {"state": state, "error": error, "lease_expires_at": None,
                       "updated_at": timestamp,
                       "current_step": "RECOVERING",
                       "retry_count": row["retry_count"] + (1 if state == "QUEUED" else 0),
                       "recovery_metadata": {"action": "RESUME" if state == "QUEUED" else "MANUAL_REVIEW"}}
-            if refresh_saved:
+            if result_saved:
                 values.update(cancel_requested=False, recovery_metadata={"action": "NONE"})
             if state in {"COMPLETED", "CANCELLED", "FAILED", "BLOCKED", "DEAD_LETTERED"}:
                 values["completed_at"] = timestamp

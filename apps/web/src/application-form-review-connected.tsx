@@ -2,122 +2,92 @@ import React, { useEffect, useRef, useState } from 'react';
 import { api } from './api';
 import {
   ApplicationFormReview,
-  type ApplicationFormReviewField,
 } from './application-form-review';
+import {
+  inspectApplicationForm,
+  parseApplicationFormReviewSnapshot,
+  type ApplicationFormReviewSnapshot,
+} from './application-form-inspection-client';
 
-export type ApplicationFormReviewSnapshot = {
-  status: 'idle' | 'unavailable' | 'completed' | 'error';
-  fields: ApplicationFormReviewField[];
-};
+export { inspectApplicationForm, parseApplicationFormReviewSnapshot } from './application-form-inspection-client';
+export type { ApplicationFormReviewSnapshot } from './application-form-inspection-client';
 
 const emptySnapshot = (status: ApplicationFormReviewSnapshot['status']): ApplicationFormReviewSnapshot => ({
   status,
   fields: [],
 });
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
+type ReviewCapability = { status: 'supported' | 'unsupported' | 'error'; provider: string | null };
+const capabilityError = (): ReviewCapability => ({ status: 'error', provider: null });
 
-const terminalStates = new Set(['COMPLETED', 'FAILED', 'DEAD_LETTERED', 'BLOCKED', 'CANCELLED', 'DISCARDED']);
-
-type FormReviewApi = <T>(path: string, options?: RequestInit) => Promise<T>;
-
-type FormReviewInspection = {
-  status: 'completed' | 'unavailable' | 'error';
-  fields: ApplicationFormReviewField[];
-};
-
-/** Queue an explicit read-only inspection and return only sanitized metadata. */
-export async function inspectApplicationForm(
-  request: FormReviewApi,
+/** The server derives support from this application's current registry-normalized route. */
+export function createApplicationFormReviewCapabilityClient(
   profileId: string,
   applicationId: string,
-  requestId: string = crypto.randomUUID(),
-  delay: (milliseconds: number) => Promise<void> = milliseconds => new Promise(resolve => window.setTimeout(resolve, milliseconds)),
-): Promise<FormReviewInspection> {
-  try {
-    await request<{ request_id: string; state: string; operation_id: string }>(
-      `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-reviews`,
-      { method: 'POST', body: JSON.stringify({ request_id: requestId }) },
-    );
-    for (let attempt = 0; attempt < 30; attempt += 1) {
-      const result = await request<Record<string, unknown>>(
-        `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-reviews/${encodeURIComponent(requestId)}`,
-      );
-      if (typeof result.state === 'string' && terminalStates.has(result.state)) {
-        const analysis = isRecord(result.analysis) ? result.analysis : null;
-        if (result.state !== 'COMPLETED' || !analysis || !Array.isArray(analysis.fields)) {
-          return { status: 'error', fields: [] };
+  fetcher: typeof fetch = globalThis.fetch,
+  isScopeCurrent: () => boolean = () => true,
+  signal?: AbortSignal,
+) {
+  const current = () => !signal?.aborted && isScopeCurrent();
+  return {
+    async load(): Promise<ReviewCapability> {
+      if (!profileId.trim() || !applicationId.trim() || !current()) return capabilityError();
+      try {
+        const response = await fetcher(
+          `/profiles/${encodeURIComponent(profileId)}/applications/${encodeURIComponent(applicationId)}/form-review-capabilities`,
+          { method: 'GET', cache: 'no-store', credentials: 'same-origin', signal },
+        );
+        if (!current() || !response.ok) return capabilityError();
+        const body: unknown = await response.json();
+        if (!current() || typeof body !== 'object' || body === null || Array.isArray(body)) return capabilityError();
+        const value = body as Record<string, unknown>;
+        if (value.schema_version !== 1 || value.profile_id !== profileId || value.application_id !== applicationId
+            || value.read_only !== true || value.submission_supported !== false
+            || typeof value.review_supported !== 'boolean') return capabilityError();
+        if (!value.review_supported) {
+          return value.provider === null ? { status: 'unsupported', provider: null } : capabilityError();
         }
-        if (analysis.status === 'UNKNOWN') return { status: 'unavailable', fields: [] };
-        if (analysis.status !== 'ANALYZED' && analysis.status !== 'REVIEW_REQUIRED') {
-          return { status: 'unavailable', fields: [] };
-        }
-        return {
-          status: 'completed',
-          fields: analysis.fields.filter(isRecord).map(field => ({
-            name: typeof field.name === 'string' ? field.name : typeof field.id === 'string' ? field.id : 'Unnamed field',
-            type: typeof field.type === 'string' ? field.type : 'other',
-            required: field.required === true,
-            reviewRequired: typeof field.review_reason === 'string' && field.review_reason.length > 0,
-          })),
-        };
+        if (typeof value.provider !== 'string' || !/^[a-z][a-z0-9_]{0,63}$/.test(value.provider)) return capabilityError();
+        return { status: 'supported', provider: value.provider };
+      } catch {
+        return capabilityError();
       }
-      if (attempt < 29) await delay(1000);
-    }
-    return { status: 'error', fields: [] };
-  } catch {
-    return { status: 'error', fields: [] };
-  }
+    },
+  };
 }
 
-function parseLatestResponse(
-  value: unknown,
-  profileId: string,
-  applicationId: string,
-): ApplicationFormReviewSnapshot {
-  if (!isRecord(value)) return emptySnapshot('error');
-  if ((value.profile_id !== undefined && value.profile_id !== profileId)
-      || (value.application_id !== undefined && value.application_id !== applicationId)) {
-    return emptySnapshot('error');
-  }
-  if (typeof value.state !== 'string'
-      || value.error_code !== null && typeof value.error_code !== 'string') {
-    return emptySnapshot('error');
-  }
+/** Gate the existing read-only workspace without granting authentication or submission authority. */
+export function ApplicationFormReviewCapabilityConnected({ profileId, applicationId, fetcher }: {
+  profileId: string | null;
+  applicationId: string | null;
+  fetcher?: typeof fetch;
+}) {
+  const scopeKey = JSON.stringify([profileId, applicationId]);
+  const selectedScope = useRef(scopeKey);
+  selectedScope.current = scopeKey;
+  const [capability, setCapability] = useState<(ReviewCapability & { scopeKey: string }) | null>(null);
 
-  if (value.error_code !== null || value.state === 'ERROR' || value.state === 'FAILED') {
-    return emptySnapshot('error');
-  }
-  if (value.state === 'IDLE') return emptySnapshot('idle');
-  if (value.state === 'UNKNOWN') return emptySnapshot('unavailable');
-  if (value.state !== 'COMPLETED') return emptySnapshot('unavailable');
-
-  const analysis = value.analysis;
-  if (!isRecord(analysis) || typeof analysis.status !== 'string') return emptySnapshot('error');
-  if (analysis.status === 'UNKNOWN') return emptySnapshot('unavailable');
-  if (analysis.status === 'ERROR' || analysis.status === 'FAILED') return emptySnapshot('error');
-  if (analysis.status !== 'ANALYZED' && analysis.status !== 'REVIEW_REQUIRED') {
-    return emptySnapshot('unavailable');
-  }
-  if (!Array.isArray(analysis.fields) || analysis.fields.length > 200) return emptySnapshot('error');
-
-  const fields: ApplicationFormReviewField[] = [];
-  for (const field of analysis.fields) {
-    if (!isRecord(field) || typeof field.name !== 'string' || field.name.length > 500
-        || typeof field.type !== 'string' || field.type.length > 80
-        || typeof field.required !== 'boolean'
-        || field.review_reason !== null && typeof field.review_reason !== 'string') {
-      return emptySnapshot('error');
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    setCapability(null);
+    if (profileId && applicationId) {
+      const client = createApplicationFormReviewCapabilityClient(profileId, applicationId, fetcher,
+        () => active && selectedScope.current === scopeKey, controller.signal);
+      void client.load().then(result => {
+        if (active && selectedScope.current === scopeKey) setCapability({ ...result, scopeKey });
+      });
     }
-    fields.push({
-      name: field.name,
-      type: field.type,
-      required: field.required,
-      reviewRequired: typeof field.review_reason === 'string' && field.review_reason.trim().length > 0,
-    });
-  }
-  return { status: 'completed', fields };
+    return () => { active = false; controller.abort(); };
+  }, [profileId, applicationId, scopeKey, fetcher]);
+
+  if (!profileId || !applicationId) return <ApplicationFormReview status="unavailable" fields={[]} onInspect={() => {}} />;
+  if (!capability || capability.scopeKey !== scopeKey) return <section className="panel" aria-label="Application form review">
+    <h2>Application form review</h2>
+    <p role="status">Checking read-only form review availability…</p>
+  </section>;
+  if (capability.status !== 'supported') return <ApplicationFormReview status="unavailable" fields={[]} onInspect={() => {}} />;
+  return <ApplicationFormReviewConnected key={scopeKey} profileId={profileId} applicationId={applicationId} fetcher={fetcher} />;
 }
 
 /** Creates a read-only client for the latest durable inspection result in one selected scope. */
@@ -150,7 +120,7 @@ export function createApplicationFormReviewClient(
         return emptySnapshot('error');
       }
       if (signal?.aborted || !isScopeCurrent()) return emptySnapshot('error');
-      return parseLatestResponse(body, profileId, applicationId);
+      return parseApplicationFormReviewSnapshot(body, profileId, applicationId);
     },
   };
 }
@@ -173,6 +143,7 @@ export function ApplicationFormReviewConnected({
   const scopeKey = JSON.stringify([profileId, applicationId]);
   const selectedScope = useRef(scopeKey);
   selectedScope.current = scopeKey;
+  const effectInstance = useRef<{ scopeKey: string; controller: AbortController } | null>(null);
   const [load, setLoad] = useState<ScopedLoad | null>(null);
   const [pendingScope, setPendingScope] = useState<string | null>(null);
 
@@ -181,18 +152,25 @@ export function ApplicationFormReviewConnected({
       onInspect();
       return;
     }
-    if (!profileId || !applicationId) return;
+    const instance = effectInstance.current;
+    if (!profileId || !applicationId || !instance || instance.scopeKey !== scopeKey) return;
     setPendingScope(scopeKey);
-    void inspectApplicationForm(api, profileId, applicationId).then((snapshot) => {
-      if (selectedScope.current === scopeKey) setLoad({ ...snapshot, scopeKey });
+    void inspectApplicationForm(api, profileId, applicationId, undefined, undefined, {
+      signal: instance.controller.signal,
+      isScopeCurrent: () => effectInstance.current === instance && selectedScope.current === scopeKey,
+    }).then((snapshot) => {
+      if (effectInstance.current === instance && selectedScope.current === scopeKey) setLoad({ ...snapshot, scopeKey });
     }).finally(() => {
-      if (selectedScope.current === scopeKey) setPendingScope(null);
+      if (effectInstance.current === instance && selectedScope.current === scopeKey) setPendingScope(null);
     });
   };
 
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
+    const instance = { scopeKey, controller };
+    effectInstance.current = instance;
+    setPendingScope(null);
     setLoad({ scopeKey, status: 'loading' });
 
     if (!profileId || !applicationId) {
@@ -204,14 +182,18 @@ export function ApplicationFormReviewConnected({
       profileId,
       applicationId,
       fetcher,
-      () => active && selectedScope.current === scopeKey,
+      () => active && effectInstance.current === instance && selectedScope.current === scopeKey,
       controller.signal,
     );
     void client.load().then((snapshot) => {
       if (active && selectedScope.current === scopeKey) setLoad({ ...snapshot, scopeKey });
     });
 
-    return () => { active = false; controller.abort(); };
+    return () => {
+      active = false;
+      controller.abort();
+      if (effectInstance.current === instance) effectInstance.current = null;
+    };
   }, [scopeKey, profileId, applicationId, fetcher]);
 
   if (!profileId || !applicationId) {

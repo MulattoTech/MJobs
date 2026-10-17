@@ -92,11 +92,16 @@ class WorkdayApplicationAdapterTests(unittest.TestCase):
             '</form>'
         )
         report = analyze_application_form("WORKDAY", html, route_url=self.route_url)
-        self.assertEqual(report, {
+        self.assertEqual(set(report), {"status", "reason", "fields", "dynamic_review"})
+        self.assertEqual({key: report[key] for key in ("status", "reason", "fields")}, {
             "status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
             "fields": [{"id": "email", "name": "email", "type": "email",
                         "required": True, "review_reason": "UNKNOWN_QUESTION"}],
         })
+        from services.applications.workday_dynamic_review import validate_workday_dynamic_review
+        envelope = validate_workday_dynamic_review(report["dynamic_review"])
+        self.assertIsNotNone(envelope)
+        self.assertEqual(envelope, report["dynamic_review"])
         self.assertNotIn("PRIVATE_VALUE", json.dumps(report))
         self.assertNotIn("Email address", json.dumps(report))
         self.assertEqual(normalize_application_route("workday", self.route_url)["provider"],

@@ -14,8 +14,10 @@ from urllib.parse import urlsplit
 from services.applications.form_analysis import analyze_form_page
 
 
-_TEAMTAILOR_HOST = re.compile(r"(?P<tenant>[a-z0-9][a-z0-9-]{0,62})\.teamtailor\.com\Z", re.I)
-_JOB_SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,119}\Z", re.I)
+_TEAMTAILOR_HOST = re.compile(
+    r"(?P<tenant>[a-z0-9][a-z0-9-]{0,62})\.teamtailor\.com\Z", re.I | re.ASCII
+)
+_JOB_SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,119}\Z", re.I | re.ASCII)
 _CHALLENGE_SELECTORS = (
     '[class*="captcha" i]', '[id*="captcha" i]', 'iframe[src*="captcha" i]',
     '[class*="turnstile" i]', '[id*="turnstile" i]', '[data-sitekey]',
@@ -136,13 +138,16 @@ class TeamtailorApplicationAdapter:
             return None
         provider = route.get("provider")
         url = route.get("url")
-        if (not isinstance(provider, str) or provider.casefold() != self.provider
+        if (not isinstance(provider, str) or not provider.isascii()
+                or provider.casefold() != self.provider
                 or not isinstance(url, str) or not url or len(url) > 2048):
             return None
         if any(ord(character) <= 0x20 or ord(character) == 0x7f for character in url):
             return None
         try:
             parsed = urlsplit(url)
+            if not parsed.netloc.isascii() or not parsed.path.isascii():
+                return None
             port = parsed.port
         except ValueError:
             return None
@@ -165,10 +170,12 @@ class TeamtailorApplicationAdapter:
         supplied_requisition = route.get("requisition")
         if (supplied_tenant is not None
                 and (not isinstance(supplied_tenant, str)
+                     or not supplied_tenant.isascii()
                      or supplied_tenant.casefold() != tenant)):
             return None
         if (supplied_requisition is not None
                 and (not isinstance(supplied_requisition, str)
+                     or not supplied_requisition.isascii()
                      or supplied_requisition.casefold() != slug)):
             return None
         return {

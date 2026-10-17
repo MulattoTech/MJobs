@@ -7,6 +7,7 @@ from services.applications.form_review_providers import (
     analyze_application_form,
     normalize_application_route,
 )
+from services.applications.workday_dynamic_review import validate_workday_dynamic_review
 
 
 class ApplicationFormReviewProvidersTests(unittest.TestCase):
@@ -137,7 +138,7 @@ class ApplicationFormReviewProvidersTests(unittest.TestCase):
 
         report = analyze_application_form("workday", html, route_url=self.workday_route)
 
-        self.assertEqual(report, {
+        self.assertEqual({key: report[key] for key in ("status", "reason", "fields")}, {
             "status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
             "fields": [
                 {"id": "email", "name": "email", "type": "email", "required": True,
@@ -148,6 +149,9 @@ class ApplicationFormReviewProvidersTests(unittest.TestCase):
                  "review_reason": "UNKNOWN_QUESTION"},
             ],
         })
+        self.assertEqual(set(report), {"status", "reason", "fields", "dynamic_review"})
+        self.assertEqual(validate_workday_dynamic_review(report["dynamic_review"]),
+                         report["dynamic_review"])
         serialized = json.dumps(report)
         for secret in ("PRIVATE_INPUT", "private-option", "PRIVATE_SELECTED", "PRIVATE_ANSWER",
                        "Email address", "Additional details"):
