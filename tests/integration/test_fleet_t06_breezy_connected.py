@@ -8,6 +8,7 @@ from sqlalchemy import func, select, update
 from apps.api.main import create_app
 from packages.persistence import models as m
 from services.applications.adapters.breezy import BreezyApplicationAdapter
+from services.applications.form_review_providers import normalize_application_route
 from tests.integration import test_application_form_review_flow as base_flow
 from workers.tasks import execute_operation
 
@@ -56,6 +57,15 @@ class FleetT06BreezyConnectedTests(TestCase):
         self.database_url = self.flow.database_url
         self.application_id = self.flow.application_id
         self._set_route()
+        self.normalized_route = normalize_application_route(
+            "breezy", _ROUTE_URL, route_metadata={
+                "provider": "breezy",
+                "tenant": _TENANT,
+                "requisition": _REQUISITION,
+                "url": _ROUTE_URL,
+            },
+        )
+        self.assertIsNotNone(self.normalized_route)
 
     def _set_route(self, **values):
         route_id = self.store.application(self.application_id)["route_id"]
@@ -100,10 +110,11 @@ class FleetT06BreezyConnectedTests(TestCase):
 
     def _execute(self, operation_id, *, html=_FORM_HTML):
         fetched = []
+        normalized_url = self.normalized_route["url"]
 
         class FakeResponse:
             def __init__(self):
-                self.url = _ROUTE_URL
+                self.url = normalized_url
                 self.headers = {"content-type": "text/html; charset=utf-8"}
                 self.content = html
 
@@ -117,12 +128,12 @@ class FleetT06BreezyConnectedTests(TestCase):
                 if self.check is not None:
                     self.check()
                 fetched.append(url)
-                if url != self.website or url != _ROUTE_URL:
+                if url != self.website or url != normalized_url:
                     raise AssertionError("Worker requested a route outside the synthetic fixture")
                 return FakeResponse()
 
             def allowed(self, url):
-                return url == _ROUTE_URL
+                return url == normalized_url
 
             def close(self):
                 pass
@@ -147,7 +158,7 @@ class FleetT06BreezyConnectedTests(TestCase):
         operation_id = self._admit(request_id)
         operation = self._operation(operation_id)
         self.assertEqual(operation["params"]["provider"], "breezy")
-        self.assertEqual(operation["params"]["route_url"], _ROUTE_URL)
+        self.assertEqual(operation["params"]["route_url"], self.normalized_route["url"])
         analyze = BreezyApplicationAdapter.analyze_form
         calls = []
 
@@ -160,9 +171,9 @@ class FleetT06BreezyConnectedTests(TestCase):
             result, fetched = self._execute(operation_id)
 
         self.assertEqual(result["status"], "COMPLETED")
-        self.assertEqual(fetched, [_ROUTE_URL])
+        self.assertEqual(fetched, [self.normalized_route["url"]])
         analyzer.assert_called_once()
-        self.assertEqual(calls, [_ROUTE_URL])
+        self.assertEqual(calls, [self.normalized_route["url"]])
 
         # Reopen the actual SQLite file with a fresh Store and API application.
         self.flow.client.close()
@@ -200,7 +211,8 @@ class FleetT06BreezyConnectedTests(TestCase):
         self.assertEqual(audits[0]["payload"]["analysis"], exact.json()["analysis"])
         persisted_operation = self._operation(operation_id, reopened)
         self.assertEqual(persisted_operation["params"]["provider"], "breezy")
-        self.assertEqual(persisted_operation["params"]["route_url"], _ROUTE_URL)
+        self.assertEqual(persisted_operation["params"]["route_url"],
+                         self.normalized_route["url"])
         self.assertEqual(self._attempt_count(reopened), 0)
         for secret in _PRIVATE_VALUES:
             for response in (exact, latest, explicit):
@@ -211,7 +223,7 @@ class FleetT06BreezyConnectedTests(TestCase):
         operation_id = self._admit("latest")
         result, fetched = self._execute(operation_id)
         self.assertEqual(result["status"], "COMPLETED")
-        self.assertEqual(fetched, [_ROUTE_URL])
+        self.assertEqual(fetched, [self.normalized_route["url"]])
 
         explicit = self.flow.client.get(self._path() + "/requests/latest")
         current = self.flow.client.get(self._path() + "/latest")
