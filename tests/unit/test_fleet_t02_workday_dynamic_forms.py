@@ -103,18 +103,20 @@ class WorkdayDynamicFormSnapshotTests(unittest.TestCase):
 
     def test_adapter_page_validation_invalidates_changed_real_dom_questions(self):
         adapter = WorkdayApplicationAdapter()
-        original = (
-            '<form><label for="email">Email</label>'
-            '<input id="email" name="email" type="email" value="PRIVATE_OLD"></form>'
-        )
-        changed = (
-            '<form><label for="phone">Phone</label>'
-            '<input id="phone" name="phone" type="tel" value="PRIVATE_NEW"></form>'
-        )
+        original = {"fields": [{
+            "id": "email", "name": "email", "label": "Email", "type": "email",
+            "required": False, "conditional": None, "conditional_on": None,
+            "repeatable": None, "repeatable_group": None,
+        }]}
+        changed = {"fields": [{
+            "id": "phone", "name": "phone", "label": "Phone", "type": "tel",
+            "required": False, "conditional": None, "conditional_on": None,
+            "repeatable": None, "repeatable_group": None,
+        }]}
 
         class Page:
-            def __init__(self, markup):
-                self.markup = markup
+            def __init__(self, metadata):
+                self.metadata = metadata
 
             def locator(self, selector):
                 if selector != "form":
@@ -122,9 +124,10 @@ class WorkdayDynamicFormSnapshotTests(unittest.TestCase):
                 return self
 
             def evaluate_all(self, script, *, timeout):
-                if "outerHTML" not in script or timeout <= 0:
-                    raise AssertionError("Expected bounded outerHTML metadata projection")
-                return self.markup
+                self.script = script
+                if "outerHTML" in script or ".value" in script or timeout <= 0:
+                    raise AssertionError("Expected bounded value-free DOM metadata projection")
+                return self.metadata
 
         reviewed = adapter.analyze_page(Page(original))
         validation = adapter.validate_page(Page(changed), reviewed)

@@ -12,7 +12,8 @@ from urllib.parse import urlsplit
 
 from services.applications.adapters.lever import LeverApplicationAdapter
 from services.applications.adapters.workday_forms import (
-    analyze_workday_form_html,
+    WORKDAY_DOM_METADATA_SCRIPT,
+    analyze_workday_dom_metadata,
     requires_workday_human_review,
 )
 
@@ -59,8 +60,8 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
             remaining = getattr(check, "remaining_seconds", None)
             if callable(remaining):
                 timeout = max(1, min(10000, int(remaining() * 1000)))
-            markup = page.locator("form").evaluate_all(
-                "forms => forms.length === 1 ? forms[0].outerHTML : ''",
+            metadata = page.locator("form").evaluate_all(
+                WORKDAY_DOM_METADATA_SCRIPT,
                 timeout=timeout,
             )
         except Exception:
@@ -70,7 +71,7 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
                     "reason": "PAGE_CONTENT_UNAVAILABLE", "fields": []}
         if check is not None:
             check()
-        return analyze_workday_form_html(markup)
+        return analyze_workday_dom_metadata(metadata)
 
     def validate_page(self, page, analysis=None, *, check=None) -> dict:
         """Invalidate a reviewed question snapshot when rendered markup changes."""
