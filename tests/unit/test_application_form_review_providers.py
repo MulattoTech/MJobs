@@ -12,6 +12,7 @@ from services.applications.form_review_providers import (
 class ApplicationFormReviewProvidersTests(unittest.TestCase):
     greenhouse_route = "https://job-boards.greenhouse.io/example/jobs/1234"
     lever_route = "https://jobs.lever.co/example/123e4567-e89b-12d3-a456-426614174000"
+    recruitee_route = "https://example.recruitee.com/o/software-engineer"
     workday_route = (
         "https://example.wd5.myworkdayjobs.com/en-US/Careers/job/Engineer_R123"
     )
@@ -28,6 +29,55 @@ class ApplicationFormReviewProvidersTests(unittest.TestCase):
             "tenant": "example",
             "requisition": "123e4567-e89b-12d3-a456-426614174000",
             "url": self.lever_route,
+        })
+
+    def test_normalizes_recruitee_route_through_provider_registry(self):
+        self.assertEqual(normalize_application_route("Recruitee", self.recruitee_route), {
+            "provider": "recruitee",
+            "tenant": "example",
+            "requisition": "software-engineer",
+            "url": self.recruitee_route,
+        })
+
+    def test_dispatches_recruitee_form_review_and_fails_closed_for_custom_fields(self):
+        analyzed = analyze_application_form(
+            "recruitee",
+            '<form><label for="email">Email address</label>'
+            '<input id="email" name="email" type="email" value="PRIVATE_VALUE"></form>',
+            route_url=self.recruitee_route,
+        )
+        review_required = analyze_application_form(
+            "recruitee",
+            '<form><label for="q">Describe your experience</label>'
+            '<textarea id="q" name="custom_question">PRIVATE_ANSWER</textarea></form>',
+            route_url=self.recruitee_route,
+        )
+
+        self.assertEqual(analyzed, {
+            "status": "ANALYZED", "reason": None,
+            "fields": [{"id": "email", "name": "email", "type": "email",
+                        "required": False, "review_reason": None}],
+        })
+        self.assertNotIn("PRIVATE_VALUE", json.dumps(analyzed))
+        self.assertEqual(review_required["status"], "REVIEW_REQUIRED")
+        self.assertEqual(review_required["fields"][0]["review_reason"], "UNKNOWN_QUESTION")
+        self.assertNotIn("PRIVATE_ANSWER", json.dumps(review_required))
+
+    def test_recruitee_dispatch_requires_review_for_prompt_not_in_its_allowlist(self):
+        report = analyze_application_form(
+            "recruitee",
+            '<form><label for="phone_type">Phone type</label>'
+            '<input id="phone_type" name="phone_type" type="text"></form>',
+            route_url=self.recruitee_route,
+        )
+
+        self.assertEqual(report, {
+            "status": "REVIEW_REQUIRED",
+            "reason": "FORM_REQUIRES_HUMAN_REVIEW",
+            "fields": [{
+                "id": "phone_type", "name": "phone_type", "type": "text",
+                "required": False, "review_reason": "UNKNOWN_QUESTION",
+            }],
         })
 
     def test_analyzes_greenhouse_html_without_returning_values_or_page_text(self):
