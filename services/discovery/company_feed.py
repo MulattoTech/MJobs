@@ -26,7 +26,7 @@ from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_com
 from services.audit_history import record_job_merged
 
 
-def _validate_source_identity(store, *, source_id, company_id, provider, tenant, endpoint):
+def _validate_source_identity(store, *, source_id, company_id, provider, tenant, endpoint, strategy):
     with store.engine.connect() as connection:
         source = connection.execute(select(m.company_sources).where(
             m.company_sources.c.id == source_id
@@ -36,10 +36,12 @@ def _validate_source_identity(store, *, source_id, company_id, provider, tenant,
         caller_provider = _token(provider, "PROVIDER", 32, fold=True)
         caller_tenant = _token(tenant, "TENANT", 128)
         caller_endpoint = _url(endpoint, "ENDPOINT", required=True)
+        caller_strategy = _token(strategy, "COLLECTION_STRATEGY", 32, fold=True).upper()
     except ValueError:
         raise ValueError("COMPANY_FEED_SOURCE_MISMATCH")
     if (source is None or source["company_id"] != caller_company or source["provider"] != caller_provider
-            or source["tenant"] != caller_tenant or source["endpoint"] != caller_endpoint):
+            or source["tenant"] != caller_tenant or source["endpoint"] != caller_endpoint
+            or source["collection_strategy"] != caller_strategy):
         raise ValueError("COMPANY_FEED_SOURCE_MISMATCH")
     return source
 
@@ -53,10 +55,12 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
         raise ValueError("COMPANY_FEED_FETCH_AVAILABILITY_INVALID")
     check = check or (lambda: None)
     source = _validate_source_identity(store, source_id=source_id, company_id=company_id,
-                                       provider=provider, tenant=tenant, endpoint=endpoint)
+                                       provider=provider, tenant=tenant, endpoint=endpoint,
+                                       strategy=strategy)
     # Keep the caller's endpoint for urljoin: its trailing slash carries relative
     # path semantics even when canonical identity comparison removes it.
     company_id, provider, tenant = source["company_id"], source["provider"], source["tenant"]
+    strategy = source["collection_strategy"]
     items = list(items or [])
     profile = store.profile(profile_id, profile_version) if profile_id else None
     extra_profiles = [store.profile(identifier) for identifier in sorted(set(extra_profile_ids)) if identifier != profile_id]
@@ -90,7 +94,8 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                     raise
             current_source = connection.execute(select(m.company_sources).where(
                 m.company_sources.c.id == source_id).with_for_update()).mappings().one()
-            if any(current_source[key] != source[key] for key in ('company_id', 'provider', 'tenant', 'endpoint')):
+            if any(current_source[key] != source[key] for key in (
+                    'company_id', 'provider', 'tenant', 'endpoint', 'collection_strategy')):
                 raise ValueError('COMPANY_FEED_SOURCE_CHANGED')
             check()
             # Lock jobs in stable source-key order across overlapping feed refreshes.
