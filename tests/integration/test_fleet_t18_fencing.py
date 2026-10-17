@@ -5,8 +5,10 @@ from pathlib import Path
 import tempfile
 import threading
 import unittest
+from unittest.mock import PropertyMock, patch
 
 from sqlalchemy import event, select
+from sqlalchemy.engine.cursor import CursorResult
 
 from packages.persistence import models as m
 from packages.persistence.store import ProfileVersionConflict, Store
@@ -110,6 +112,35 @@ class ProfileWriteFencingTests(unittest.TestCase):
             self.assertEqual([row["fact_id"] for row in facts], ["winner-fact"])
             self.assertEqual(len(audits), 1)
             self.assertEqual(audits[0]["payload"]["version"], winner_version)
+        finally:
+            reopened.engine.dispose()
+
+    def test_initial_profile_save_does_not_depend_on_insert_rowcount(self):
+        profile = self.competing_profile("Synthetic rowcount profile", "rowcount-fact")
+
+        # Some supported INSERT/RETURNING drivers report -1 even when their
+        # insert succeeded. Patch only SQLAlchemy's result metadata; SQLite,
+        # Store, and every persistence operation remain real.
+        with patch.object(CursorResult, "rowcount", new_callable=PropertyMock, return_value=-1):
+            version = self.store.save_profile(profile)
+
+        reopened = Store(self.url)
+        try:
+            saved = reopened.profile("t18-synthetic-profile")
+            with reopened.engine.connect() as connection:
+                snapshots = connection.execute(select(m.profile_versions).where(
+                    m.profile_versions.c.profile_id == "t18-synthetic-profile")).mappings().all()
+                facts = connection.execute(select(m.facts).where(
+                    m.facts.c.profile_id == "t18-synthetic-profile")).mappings().all()
+                audits = connection.execute(select(m.audit).where(
+                    m.audit.c.entity_id == "t18-synthetic-profile",
+                    m.audit.c.action == "PROFILE_SAVED")).mappings().all()
+            self.assertEqual(saved["name"], "Synthetic rowcount profile")
+            self.assertEqual(saved["version"], version)
+            self.assertEqual([row["version"] for row in snapshots], [version])
+            self.assertEqual([row["fact_id"] for row in facts], ["rowcount-fact"])
+            self.assertEqual(len(audits), 1)
+            self.assertEqual(audits[0]["payload"]["version"], version)
         finally:
             reopened.engine.dispose()
 
