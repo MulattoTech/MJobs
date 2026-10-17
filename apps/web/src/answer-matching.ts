@@ -17,10 +17,16 @@ export type SuggestedAnswer = {
   match:AnswerQuestionMatch;
 };
 
+export type AnswerSuggestionPolicy = {
+  minimum_saved_answer_confidence:number;
+  minimum_question_match_confidence:number;
+};
+
 const sensitiveQuestion = /\b(race|ethnic\w*|gender|sex|sexual orientation|disabilit\w*|veteran\w*|relig\w*|date of birth|birth date|age|marital|citizenship|citizen|authoriz\w*|work authorization|eligible to work|work eligibility|right to work|visa|sponsorship|criminal|convict\w*|felon\w*|background check|salary expectation\w*|salary range|desired compensation|compensation expectation\w*|non[ -]?compete|conflict\w* of interest|minimum age|attest\w*|certif\w* under penalty)\b/i;
 const questionNegation = /\b(?:no|not|never|without|neither|nor|unavailable|cannot|can['’]t|won['’]t|wouldn['’]t|shouldn['’]t|couldn['’]t|didn['’]t|doesn['’]t|don['’]t|isn['’]t|aren['’]t|wasn['’]t|weren['’]t|haven['’]t|hasn['’]t|hadn['’]t|mustn['’]t)\b/i;
+const privateOrLegalQuestion = /\b(?:national origin|military service|served in the armed forces|social security(?: number)?|ssn|national id|arrest\w*|expected salary|expected compensation|salary requirements?|restrictive covenants?|legal certifications?|(?:at least |over |under )?\d{1,3}\s*(?:years?\s*(?:of age|old|or older)|\+\s*years?)|permi(?:tted|ssion) to work|allow\w* to work|medical\w*|health(?:care)?\s+(?:condition|status|history)|diagnos\w*|illness\w*|disease\w*|medication\w*|treatment\w*)\b/i;
 
-export const isSensitiveAnswerQuestion = (value:string) => sensitiveQuestion.test(value);
+export const isSensitiveAnswerQuestion = (value:string) => sensitiveQuestion.test(value)||privateOrLegalQuestion.test(value);
 const isNegatedQuestion = (value:string) => questionNegation.test(value);
 
 export const normalizeAnswerQuestion = (value:string) => value.toLowerCase().match(/[a-z0-9]+/g)?.join(' ')||'';
@@ -80,13 +86,23 @@ export function matchAnswerQuestion(question:string,savedQuestion:string):Answer
   return {method:'FUZZY',score:Number(score.toFixed(3))};
 }
 
-export function suggestAnswers(question:string,answers:ReusableAnswerCandidate[]):SuggestedAnswer[] {
+export function suggestAnswers(question:string,answers:ReusableAnswerCandidate[],policy:AnswerSuggestionPolicy={
+  minimum_saved_answer_confidence:80,minimum_question_match_confidence:0.75,
+}):SuggestedAnswer[] {
   if(isSensitiveAnswerQuestion(question))return [];
-  return answers.flatMap(answer=>{
+  const minimumConfidence=policy.minimum_saved_answer_confidence;
+  const minimumMatch=policy.minimum_question_match_confidence;
+  if(!Number.isInteger(minimumConfidence)||minimumConfidence<80||minimumConfidence>100||
+     !Number.isFinite(minimumMatch)||minimumMatch<0.75||minimumMatch>1)return [];
+  const matches=answers.flatMap(answer=>{
     if(!answer.question?.trim()||!answer.text.trim()||!answer.source.trim()||
        answer.verified!==true||answer.user_approved!==true||
-       !Number.isFinite(answer.confidence)||answer.confidence<80)return [];
+       !Number.isFinite(answer.confidence)||answer.confidence<minimumConfidence||answer.confidence>100)return [];
     const match=matchAnswerQuestion(question,answer.question);
-    return match?[{answer,match}]:[];
-  }).sort((left,right)=>right.match.score-left.match.score||left.answer.id.localeCompare(right.answer.id)).slice(0,3);
+    return match&&match.score>=minimumMatch?[{answer,match}]:[];
+  });
+  // Different approved values require review even when the conflicting match
+  // would fall outside the three suggestions shown by the legacy picker.
+  if(new Set(matches.map(({answer})=>answer.text.trim().replace(/\s+/g,' '))).size>1)return [];
+  return matches.sort((left,right)=>right.match.score-left.match.score||left.answer.id.localeCompare(right.answer.id)).slice(0,3);
 }
