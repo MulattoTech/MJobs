@@ -129,3 +129,28 @@ class CompletionFlowTests(unittest.TestCase):
         response = self.client.get(self.path)
         self.assertEqual(response.status_code, 409, response.text)
         self.assertEqual(self.client.put(self.path, json=self.body).status_code, 409)
+
+    def test_supported_raw_route_uses_the_same_canonical_review_identity(self):
+        raw_url = ("https://ACME.WD5.MYWORKDAYJOBS.COM/en-us/Acme/job/US/Engineer_R1"
+                   "?source=PRIVATE_TRACKING")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(
+                m.routes.c.id == self.store.application(self.application_id)["route_id"],
+            ).values(url=raw_url))
+        admitted = self.client.post(
+            f"/profiles/fixture/applications/{self.application_id}/form-reviews",
+            json={"request_id": "fleet-t01-normalized-route"},
+        )
+        self.assertEqual(admitted.status_code, 202, admitted.text)
+        self.operation_id = admitted.json()["operation_id"]
+        self.path = (f"/profiles/fixture/applications/{self.application_id}"
+                     f"/manual-auth/reviews/{self.operation_id}/completion")
+        declared = self.declare()
+        self.assertEqual(self.client.get(self.path).json(), declared)
+        self.assertNotIn("PRIVATE_TRACKING", json.dumps(declared))
+        with self.store.engine.connect() as connection:
+            events = list(connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "USER_AUTH_COMPLETION_DECLARED",
+            )).scalars())
+        self.assertNotIn("PRIVATE_TRACKING", json.dumps(events))

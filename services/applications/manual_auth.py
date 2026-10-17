@@ -76,7 +76,10 @@ def _completion_identity(connection, profile_id: str, application_id: str,
         })
     except Exception:
         route = None
-    if route is None or route["url"] != route_row["url"]:
+    # Admission freezes the normalized URL; stored URLs may retain tracking
+    # queries or canonicalizable casing. Validate against that frozen identity
+    # below rather than requiring the raw stored string to be canonical.
+    if route is None:
         _completion_error("AUTH_COMPLETION_STALE")
     parsed_route = urlsplit(route["url"])
     if expected_route_url is not None and (
