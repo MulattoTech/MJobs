@@ -89,3 +89,16 @@ def test_complete_form_stays_analyzed_and_value_free(provider, url):
         "fields": [{"id": "email", "name": "email", "type": "email",
                     "required": True, "review_reason": None}],
     }
+
+
+def test_html_optional_option_end_tag_is_not_an_interrupted_form():
+    report = analyze_application_form(
+        "ashby", '<form><label for="country">Country</label>'
+        '<select id="country" name="country"><option>Canada</select></form>',
+        route_url="https://jobs.ashbyhq.com/example/job",
+    )
+    assert report["status"] == "ANALYZED"
+    assert report["fields"] == [{
+        "id": "country", "name": "country", "type": "select",
+        "required": False, "review_reason": None,
+    }]

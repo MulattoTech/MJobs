@@ -167,6 +167,8 @@ class _StaticFormParser(HTMLParser):
             self.option_index = None
         elif tag == "select":
             self.select_index = None
+            # HTML permits the final option end tag to be omitted.
+            self.option_index = None
         elif tag == "label" and self.label_stack:
             label = self.label_stack.pop()
             text = " ".join("".join(label["text"]).split())
