@@ -258,6 +258,11 @@ class FleetT04SupportingDocumentTests(unittest.TestCase):
             self.store, self.root, "fixture", self.application_id,
             _controlled_fixture=True,
         )[0]["content"], content)
+        replay = self.client.put(self.selection_url, json={
+            "revision_ids": [revision_id], "request_id": "t04-size-metadata",
+        })
+        self.assertEqual(replay.status_code, 200, replay.text)
+        self.assertTrue(replay.json()["replayed"])
 
         from services.applications import supporting_documents as service
         expected_record = {"sha256": original_payload["items"][0]["sha256"],
@@ -278,17 +283,31 @@ class FleetT04SupportingDocumentTests(unittest.TestCase):
         with self.store.engine.begin() as connection:
             route_id = self.store.application(self.application_id)["route_id"]
             connection.execute(update(m.routes).where(m.routes.c.id == route_id).values(
-                provider="workday", url="https://acme.wd5.myworkdayjobs.com/en-US/jobs",
+                provider="workday",
+                url="https://acme.wd5.myworkdayjobs.com/en-US/Careers/job/Engineer_R12345",
             ))
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == self.application_id,
+            ).values(target="REAL"))
         revision_id = self._upload(b"Synthetic Workday selection-only document").json()["revision_id"]
-        selection_url = self.prefix + "/supporting-documents"
-        saved = self.client.put(selection_url, json={
+        payload = {
             "revision_ids": [revision_id], "request_id": "t04-workday-selection-only",
-        })
+        }
+        ordinary_url = self.prefix + "/supporting-documents"
+        denied = self.client.put(ordinary_url, json=payload)
+        self.assertEqual(denied.status_code, 422, denied.text)
+        self.assertEqual(denied.json()["detail"]["code"],
+                         "EXTERNAL_APPLICATION_DOCUMENTS_DISABLED")
+
+        saved = self.client.put(self.selection_url, json=payload)
         self.assertEqual(saved.status_code, 200, saved.text)
-        self.assertEqual(self.client.get(selection_url).json()["selected_revision_ids"], [revision_id])
+        self.assertEqual(saved.json()["selected_revision_ids"], [revision_id])
+        self.assertEqual(self.client.get(self.selection_url).json()["selected_revision_ids"],
+                         [revision_id])
+        self.assertEqual(self.client.get(ordinary_url).json()["selected_revision_ids"], [])
         self.assertEqual(read_selected_files(
             self.store, self.root, "fixture", self.application_id,
+            _controlled_fixture=True,
         )[0]["content"], b"Synthetic Workday selection-only document")
 
 
