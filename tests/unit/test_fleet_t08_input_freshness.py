@@ -59,3 +59,23 @@ def test_profile_change_prevents_new_receipt(during_fetch):
         assert fixture.audit_events(operation["id"]) == []
     finally:
         fixture.tearDown()
+
+
+def test_registered_provider_reaches_public_admission_worker_and_readback():
+    fixture = flow_fixture.ApplicationFormReviewFlowTests()
+    fixture.setUp()
+    try:
+        route_id = fixture.store.application(fixture.application_id)["route_id"]
+        fixture.route_url = "https://example.recruitee.com/o/engineer"
+        with fixture.store.engine.begin() as connection:
+            connection.execute(update(m.routes).where(m.routes.c.id == route_id).values(
+                provider="recruitee", tenant="example", requisition="engineer", url=fixture.route_url,
+            ))
+        path = fixture._complete_review("registered-provider")
+        exact = fixture.client.get(path + "/registered-provider")
+        assert exact.status_code == 200
+        assert exact.json()["state"] == "COMPLETED"
+        assert exact.json()["analysis"] is not None
+        assert fixture.client.get(path + "/latest").json() == exact.json()
+    finally:
+        fixture.tearDown()

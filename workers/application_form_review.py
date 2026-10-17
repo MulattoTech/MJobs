@@ -191,8 +191,6 @@ def _validate_application(connection, operation, params):
         ).with_for_update()).scalar_one_or_none()
         if version is None or str(version) != params["profile_version"]:
             raise FormReviewError("FORM_REVIEW_INPUT_STALE")
-    if params["provider"] not in {"ashby", "greenhouse", "lever", "workday"}:
-        raise FormReviewError("FORM_REVIEW_ROUTE_UNSUPPORTED")
     normalized = normalize_application_route(
         row["provider"], row["url"], route_metadata=row,
     )
