@@ -300,8 +300,8 @@ $rows=@(); while($null -ne $p) {
         data=json.loads(process.stdout); trusted={data['user'],'S-1-5-18','S-1-5-32-544'}
         ancestor_owners=trusted | {TRUSTED_INSTALLER_OWNER}
         if data['rows'][0]['owner'] != data['user']: raise ValueError()
-        # DELETE_CHILD, DELETE, WRITE_DAC, WRITE_OWNER protect ancestor replacement.
-        replacement = 0x40 | 0x10000 | 0x40000 | 0x80000
+        # Include unmapped GENERIC_ALL as well as concrete replacement rights.
+        replacement = 0x40 | 0x10000 | 0x40000 | 0x80000 | 0x10000000
         for index, row in enumerate(data['rows']):
             if row['owner'] not in (trusted if index==0 else ancestor_owners): raise ValueError()
             for ace in row['rules']:

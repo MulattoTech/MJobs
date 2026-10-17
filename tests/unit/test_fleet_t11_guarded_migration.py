@@ -161,10 +161,12 @@ class MigrationPolicyTests(unittest.TestCase):
         with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())):
             guard._check_windows_parent(Path('synthetic'))
 
-        data['rows'][1]['rules'][0].update(sid='unknown',inherited=True,propagation=0,rights=0x40)
-        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())), \
-                self.assertRaises(guard.MigrationRefused):
-            guard._check_windows_parent(Path('synthetic'))
+        for replacement in (0x40,0x10000000):  # DELETE_CHILD and an unmapped GENERIC_ALL ACE
+            data['rows'][1]['rules'][0].update(sid='unknown',inherited=True,propagation=0,rights=replacement)
+            with self.subTest(replacement=replacement), \
+                    patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())), \
+                    self.assertRaises(guard.MigrationRefused):
+                guard._check_windows_parent(Path('synthetic'))
         # The actual private parent stays strict, including child-only grants.
         data['rows'][0]['rules']=[{'sid':'S-1-3-0','allow':True,'rights':1,
                                   'inherited':False,'inheritance':3,'propagation':2}]
