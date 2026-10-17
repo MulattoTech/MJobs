@@ -39,15 +39,11 @@ class BrowserDebugCaptureTests(unittest.TestCase):
 
             def __init__(self):
                 self.screenshots = []
+                self.evaluations = 0
 
             def evaluate(self, script):
-                if "document.documentElement" in script:
-                    return {
-                        "element_counts": {"form": 1, "input": 3, "PRIVATE@example.test": 99},
-                        "role_counts": {"textbox": 2},
-                        "text": "PRIVATE_PAGE_TEXT",
-                    }
-                return None
+                self.evaluations += 1
+                raise AssertionError("Unbounded diagnostic evaluation is forbidden")
 
             def locator(self, selector):
                 return selector
@@ -83,8 +79,13 @@ class BrowserDebugCaptureTests(unittest.TestCase):
             self.assertEqual(len(metadata["diagnostics"]), 2)
             self.assertTrue(all("message_fingerprint" in event for event in metadata["diagnostics"]))
             self.assertTrue(all("message_sha256" not in event for event in metadata["diagnostics"]))
-            self.assertEqual(dom["element_counts"], {"form": 1, "input": 3})
-            self.assertEqual(dom["role_counts"], {"textbox": 2})
+            self.assertEqual(page.evaluations, 0)
+            self.assertEqual(dom["element_counts"], {})
+            self.assertEqual(dom["role_counts"], {})
+            self.assertEqual(dom["status"], "OMITTED_UNBOUNDED_EVALUATION")
+            self.assertEqual(metadata["dom_snapshot"]["status"], dom["status"])
+            for flag in ("text_omitted", "attributes_omitted", "control_values_omitted"):
+                self.assertTrue(dom[flag])
             self.assertFalse((capture / "screenshot.png").read_bytes().find(b"PRIVATE") >= 0)
             serialized = (capture / "metadata.json").read_text(encoding="utf-8")
             serialized += (capture / "dom.json").read_text(encoding="utf-8")

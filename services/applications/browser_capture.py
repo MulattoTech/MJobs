@@ -1,5 +1,24 @@
 """Privacy-preserving screenshot helper shared by application and CLI flows."""
 
+from concurrent.futures import CancelledError
+import json
+import math
+import time
+
+
+DEFAULT_CAPTURE_TIMEOUT_MS = 5000
+MAX_CAPTURE_TIMEOUT_MS = 30000
+
+# Lazy Playwright selectors run within the screenshot's timeout. Separate
+# page.evaluate calls have no timeout and may block on an unresponsive renderer.
+_SENSITIVE_TEXT = r"\b(?:password|passwd|cookie|token|api\s+key|access\s+key|gender|sex|race|ethnicity|veteran|disability|sexual\s+orientation|marital\s+status|religion|pronouns?|date\s+of\s+birth|birth\s+date|social\s+security|ssn|national\s+id|work\s+authorization|citizenship|visa\s+status)\b"
+_PRIVATE_VALUE = r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b|\b(?:bearer\s+)?(?:gh[pousr]_[A-Z0-9_]{12,}|sk-[A-Z0-9_-]{12,}|xox[baprs]-[A-Z0-9-]{12,})\b|\beyJ[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\.[A-Z0-9_-]{5,}\b|\b(?:password|passwd|token|api[_ -]?key|access[_ -]?token|auth[_ -]?token|client[_ -]?secret|cookie)\s*[:=]\s*[^\s,;]+|(?<!\w)(?:\+?1[ .-]?)?(?:\(?\d{3}\)?[ .-]?)\d{3}[ .-]?\d{4}(?!\w)"
+PRIVATE_VALUE_SELECTOR = f':text-matches({json.dumps(_PRIVATE_VALUE)}, "i"):not(body):not(html)'
+SENSITIVE_REGION_SELECTOR = (
+    f':text-matches({json.dumps(_SENSITIVE_TEXT)}, "i")'
+    ' >> xpath=parent::*[not(self::body or self::html)]'
+)
+
 SCREENSHOT_REDACTION_SCRIPT = r"""
 (() => {
   const sensitive = /\b(?:password|passwd|cookie|token|api\s+key|access\s+key|gender|sex|race|ethnicity|veteran|disability|sexual\s+orientation|marital\s+status|religion|pronouns?|date\s+of\s+birth|birth\s+date|social\s+security|ssn|national\s+id|work\s+authorization|citizenship|visa\s+status)\b/i;
@@ -34,9 +53,34 @@ img, picture, canvas, svg, video, iframe, object, embed {
 """
 
 
-def capture_redacted_screenshot(page, path, *, timeout_ms=None, full_page=True):
-    """Capture layout while hiding page text, controls, and embedded media."""
-    page.evaluate(SCREENSHOT_REDACTION_SCRIPT)
+def capture_redacted_screenshot(page, path, *, timeout_ms=None, full_page=True,
+                                deadline=None, cancel_event=None):
+    """Capture private layout with a finite timeout and no DOM mutations.
+
+    ``deadline`` uses time.monotonic(). Cancellation is cooperative before the
+    single screenshot call; in-flight capture is bounded by its timeout. The
+    owning browser supervisor remains responsible for process interruption.
+    Capture is attempted once; native browser failures propagate unchanged.
+    """
+    timeout = DEFAULT_CAPTURE_TIMEOUT_MS if timeout_ms is None else timeout_ms
+    if (isinstance(timeout, bool) or not isinstance(timeout, (int, float))
+            or not math.isfinite(timeout) or timeout <= 0):
+        raise ValueError("Screenshot timeout must be finite and positive")
+    if (deadline is not None and (isinstance(deadline, bool)
+            or not isinstance(deadline, (int, float)) or not math.isfinite(deadline))):
+        raise ValueError("Screenshot deadline must be finite")
+
+    def remaining_timeout():
+        if cancel_event is not None and cancel_event.is_set():
+            raise CancelledError("Screenshot cancelled")
+        remaining = min(timeout, MAX_CAPTURE_TIMEOUT_MS)
+        if deadline is not None:
+            remaining = min(remaining, (deadline - time.monotonic()) * 1000)
+        if remaining <= 0:
+            raise TimeoutError("Screenshot deadline exceeded")
+        return remaining
+
+    remaining_timeout()
     masks = [
         page.locator("input"),
         page.locator("textarea"),
@@ -46,17 +90,10 @@ def capture_redacted_screenshot(page, path, *, timeout_ms=None, full_page=True):
         page.locator("[role='combobox']"),
         page.locator("[data-sensitive]"),
         page.locator("[data-mjobs-sensitive-mask]"),
+        page.locator(PRIVATE_VALUE_SELECTOR),
+        page.locator(SENSITIVE_REGION_SELECTOR),
     ]
-    try:
-        options = {
-            "path": str(path), "full_page": full_page, "mask": masks,
-            "mask_color": "#000000", "style": SCREENSHOT_PRIVACY_STYLE,
-        }
-        if timeout_ms is not None:
-            options["timeout"] = timeout_ms
-        page.screenshot(**options)
-    finally:
-        page.evaluate(
-            "document.querySelectorAll('[data-mjobs-sensitive-mask]')"
-            ".forEach(node => node.removeAttribute('data-mjobs-sensitive-mask'))"
-        )
+    page.screenshot(
+        path=str(path), full_page=full_page, mask=masks, mask_color="#000000",
+        style=SCREENSHOT_PRIVACY_STYLE, timeout=remaining_timeout(),
+    )
