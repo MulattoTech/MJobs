@@ -1,11 +1,32 @@
 """Synthetic Chromium check for Workday's value-free DOM metadata boundary."""
 import json
 import unittest
+from contextlib import contextmanager
 
 from playwright.sync_api import sync_playwright
 
 from services.applications.adapters.workday import WorkdayApplicationAdapter
 from services.applications.adapters.workday_forms import WORKDAY_DOM_METADATA_SCRIPT
+
+
+@contextmanager
+def _https_fixture_page(browser, markup):
+    """Serve one synthetic HTTPS document and abort every other request."""
+    context = browser.new_context()
+
+    def intercept(route):
+        if route.request.url == "https://fixture.invalid/":
+            route.fulfill(status=200, content_type="text/html; charset=utf-8", body=markup)
+        else:
+            route.abort()
+
+    context.route("**/*", intercept)
+    page = context.new_page()
+    page.goto("https://fixture.invalid/")
+    try:
+        yield page
+    finally:
+        context.close()
 
 
 class FleetT02WorkdayDomMetadataPrivacyTests(unittest.TestCase):
@@ -31,17 +52,16 @@ class FleetT02WorkdayDomMetadataPrivacyTests(unittest.TestCase):
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
             try:
-                page = browser.new_page()
-                page.set_content(markup)
-                payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
-                report = WorkdayApplicationAdapter().analyze_page(page)
+                with _https_fixture_page(browser, markup) as page:
+                    payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
+                    report = WorkdayApplicationAdapter().analyze_page(page)
 
-                for marker in private_markers:
-                    self.assertNotIn(marker, json.dumps(payload))
-                    self.assertNotIn(marker, json.dumps(report))
-                self.assertEqual(len(payload["fields"]), 3)
-                self.assertEqual(report["status"], "REVIEW_REQUIRED")
-                self.assertEqual(report["fields"][1]["conditional_on"], "country")
+                    for marker in private_markers:
+                        self.assertNotIn(marker, json.dumps(payload))
+                        self.assertNotIn(marker, json.dumps(report))
+                    self.assertEqual(len(payload["fields"]), 3)
+                    self.assertEqual(report["status"], "REVIEW_REQUIRED")
+                    self.assertEqual(report["fields"][1]["conditional_on"], "country")
             finally:
                 browser.close()
 
@@ -49,16 +69,16 @@ class FleetT02WorkdayDomMetadataPrivacyTests(unittest.TestCase):
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
             try:
-                page = browser.new_page()
-                page.set_content(
+                markup = (
                     '<div class="cf-turnstile"></div>'
                     '<form><label for="email">Email</label>'
                     '<input id="email" name="email" type="email"></form>'
                 )
-                payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
-                self.assertEqual(payload["status"], "UNKNOWN")
-                self.assertEqual(payload["reason"], "CHALLENGE_PROTECTED")
-                self.assertEqual(payload["fields"], [])
+                with _https_fixture_page(browser, markup) as page:
+                    payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
+                    self.assertEqual(payload["status"], "UNKNOWN")
+                    self.assertEqual(payload["reason"], "CHALLENGE_PROTECTED")
+                    self.assertEqual(payload["fields"], [])
             finally:
                 browser.close()
 
@@ -66,24 +86,24 @@ class FleetT02WorkdayDomMetadataPrivacyTests(unittest.TestCase):
         with sync_playwright() as playwright:
             browser = playwright.chromium.launch(headless=True)
             try:
-                page = browser.new_page()
-                page.set_content(
+                markup = (
                     '<form><label for="state">State</label><select id="state" name="state">'
                     '<option value="sensitive-a">Ontario</option>'
                     '<option value="sensitive-b">Quebec</option></select>'
                     '<div id="dependent" hidden><label for="region">Region</label>'
                     '<input id="region" name="region" value="PRIVATE"></div></form>'
                 )
-                adapter = WorkdayApplicationAdapter()
-                before_payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
-                before = adapter.analyze_page(page)
-                self.assertEqual([field["id"] for field in before_payload["fields"]], ["state"])
-                page.locator("#dependent").evaluate("node => node.hidden = false")
-                after_payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
-                result = adapter.validate_page(page, before)
-                self.assertEqual([field["id"] for field in after_payload["fields"]], ["state", "region"])
-                self.assertEqual(result, {"status": "UNKNOWN", "reason": "FORM_CHANGED"})
-                self.assertEqual(len(before["fields"][0]["options_fingerprint"]), 64)
+                with _https_fixture_page(browser, markup) as page:
+                    adapter = WorkdayApplicationAdapter()
+                    before_payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
+                    before = adapter.analyze_page(page)
+                    self.assertEqual([field["id"] for field in before_payload["fields"]], ["state"])
+                    page.locator("#dependent").evaluate("node => node.hidden = false")
+                    after_payload = page.locator("form").evaluate_all(WORKDAY_DOM_METADATA_SCRIPT)
+                    result = adapter.validate_page(page, before)
+                    self.assertEqual([field["id"] for field in after_payload["fields"]], ["state", "region"])
+                    self.assertEqual(result, {"status": "UNKNOWN", "reason": "FORM_CHANGED"})
+                    self.assertEqual(len(before["fields"][0]["options_fingerprint"]), 64)
             finally:
                 browser.close()
 
