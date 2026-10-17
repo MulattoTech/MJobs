@@ -410,9 +410,12 @@ def run_stack(artifacts):
         obj = json.loads(recovery._run_bounded(['docker', 'inspect', ids[0]],
             timeout=remaining(deadline, reserve=120, ceiling=10), action='Inspect STK01 service'))[0]
         validate_runtime_container(obj, name, project)
+        if obj['Config']['Labels'].get('com.docker.compose.service') != name:
+            raise FixtureError('STK02_SERVICE_IDENTITY_CHANGED')
         return obj
 
     def exec_python(service, program):
+        inspect_service(service)
         return json.loads(compose('exec', '-T', service, 'python', '-m', 'cli.runtime_database', 'python', '-c', program))
 
     def service_snapshot(targets):
@@ -459,6 +462,7 @@ def run_stack(artifacts):
             compose('start', 'postgres', 'redis')
             wait(lambda: all(inspect_service(n)['State'].get('Health', {}).get('Status') == 'healthy'
                              for n in ['postgres', 'redis']))
+            inspect_service('postgres')
             gucs = compose('exec', '-T', 'postgres', 'psql', '-U', 'mjobs', '-d', env['MJOBS_STK01_DB'],
                            '-Atc', "SELECT current_setting('max_connections'),current_setting('lock_timeout'),"
                            "current_setting('statement_timeout'),current_setting('idle_in_transaction_session_timeout')").strip()

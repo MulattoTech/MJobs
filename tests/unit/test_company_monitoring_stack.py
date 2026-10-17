@@ -163,6 +163,24 @@ class CompanyMonitoringStackGuardTests(unittest.TestCase):
         self.assertIn("get('com.docker.compose.service') != 'mock'",source)
         self.assertNotIn("base_url=f'http://127.0.0.1",source)
 
+    def test_support_execs_recheck_owned_service_immediately_before_execution(self):
+        from fixtures.company_monitoring_stack import run_stack
+        tree=ast.parse(inspect.getsource(run_stack))
+        helper=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name=='exec_python')
+        self.assertEqual(ast.unparse(helper.body[0]),'inspect_service(service)')
+        inspected=next(n for n in ast.walk(tree) if isinstance(n,ast.FunctionDef) and n.name=='inspect_service')
+        self.assertIn("get('com.docker.compose.service') != name",ast.unparse(inspected))
+        previous=[]
+        for n in ast.walk(tree):
+            for field in ('body','orelse','finalbody'):
+                statements=getattr(n,field,[])
+                if not isinstance(statements,list):
+                    continue
+                for index,statement in enumerate(statements):
+                    if isinstance(statement,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='gucs' for t in statement.targets):
+                        previous.append(ast.unparse(statements[index-1]))
+        self.assertEqual(previous,["inspect_service('postgres')"])
+
     def config(self):
         labels = {'ao.session': 'mjobs-85', 'ao.run': PROJECT}
         services = {}
