@@ -299,6 +299,26 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 covered_label = self.adapter.analyze_page(page)
                 self.assertEqual(covered_label["status"], "UNKNOWN")
                 self.assertTrue(self.adapter.requires_human_review(covered_label))
+                page.set_content(
+                    '<style>form{position:relative;height:100px}.prompt{position:absolute;'
+                    'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
+                    'left:10px;top:40px}.cover{position:absolute;left:10px;top:10px;'
+                    'width:80px;height:20px;background:white;z-index:10;'
+                    'pointer-events:none}</style>'
+                    '<form><label class="prompt" for="email">Email address</label>'
+                    '<input class="field" id="email" type="email" '
+                    'value="synthetic-private-value">'
+                    '<div class="cover"></div></form>'
+                )
+                pointer_none_covered_label = self.adapter.analyze_page(page)
+                self.assertEqual(pointer_none_covered_label["status"], "UNKNOWN")
+                self.assertEqual(pointer_none_covered_label["fields"], [])
+                self.assertTrue(
+                    self.adapter.requires_human_review(pointer_none_covered_label)
+                )
+                self.assertNotIn(
+                    "synthetic-private-value", repr(pointer_none_covered_label),
+                )
             finally:
                 browser.close()
 
