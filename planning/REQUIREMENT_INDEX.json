@@ -2410,7 +2410,7 @@
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-177",
@@ -3446,8 +3446,8 @@
     }
   ],
   "summary": {
-    "PARTIAL": 104,
-    "PASS": 142,
+    "PARTIAL": 103,
+    "PASS": 143,
     "NOT_RUN": 179
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
