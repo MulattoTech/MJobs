@@ -308,7 +308,12 @@ $rows=@(); while($null -ne $p) {
                 # Child-only grants do not apply to the ancestor itself. This
                 # does not trust CREATOR OWNER or ignore applicable inherited ACEs.
                 if index>0 and ace['propagation']&2: continue
-                if ace['allow'] and ace['sid'] not in trusted and (index==0 or ace['rights']&replacement):
+                principal = ace['sid']
+                # OWNER RIGHTS applies to this object's independently read owner,
+                # including an archive root checked as a child's ancestor.
+                if principal=='S-1-3-4' and row['owner']==data['user']:
+                    principal=data['user']
+                if ace['allow'] and principal not in trusted and (index==0 or ace['rights']&replacement):
                     raise ValueError()
     except (OSError, subprocess.SubprocessError, ValueError, KeyError, TypeError):
         raise MigrationRefused('Private NTFS owner/DACL could not be verified') from None

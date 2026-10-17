@@ -175,6 +175,45 @@ class MigrationPolicyTests(unittest.TestCase):
                 self.assertRaises(guard.MigrationRefused):
             guard._check_windows_parent(Path('synthetic'))
 
+    def test_windows_owner_rights_current_owned_leaf_is_private(self):
+        # Windows tempfile creates a protected OWNER RIGHTS + SYSTEM/Admin DACL.
+        data={'user':'S-1-5-21-synthetic','rows':[{'owner':'S-1-5-21-synthetic','rules':[
+            {'sid':sid,'allow':True,'rights':0x1f01ff,'inherited':False,'inheritance':3,'propagation':0}
+            for sid in ('S-1-3-4','S-1-5-18','S-1-5-32-544')]}]}
+        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())):
+            guard._check_windows_parent(Path('synthetic'))
+
+    def test_windows_owner_rights_on_current_owned_archive_ancestor_is_private(self):
+        # A descendant check must resolve the archive root's owner alias too.
+        data={'user':'S-1-5-21-synthetic','rows':[
+            {'owner':'S-1-5-21-synthetic','rules':[]},
+            {'owner':'S-1-5-21-synthetic','rules':[
+                {'sid':'S-1-3-4','allow':True,'rights':0x1f01ff,
+                 'inherited':False,'inheritance':3,'propagation':0}]}]}
+        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())):
+            guard._check_windows_parent(Path('synthetic'))
+
+    def test_windows_inherited_owner_rights_resolves_only_current_node_owner(self):
+        data={'user':'S-1-5-21-synthetic','rows':[
+            {'owner':'S-1-5-21-synthetic','rules':[
+                {'sid':'S-1-3-4','allow':True,'rights':0x1f01ff,
+                 'inherited':True,'inheritance':3,'propagation':0}]},
+            {'owner':'S-1-5-21-synthetic','rules':[]}]}
+        with patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(data).encode())):
+            guard._check_windows_parent(Path('synthetic'))
+        for change in ('noncurrent_leaf_owner','noncurrent_ancestor_owner','creator_owner','unrelated_allow'):
+            changed=copy.deepcopy(data)
+            if change=='noncurrent_leaf_owner': changed['rows'][0]['owner']='S-1-5-18'
+            elif change=='noncurrent_ancestor_owner':
+                changed['rows'][1]={'owner':'S-1-5-18','rules':copy.deepcopy(data['rows'][0]['rules'])}
+            elif change=='creator_owner': changed['rows'][0]['rules'][0]['sid']='S-1-3-0'
+            else: changed['rows'][0]['rules'].append({'sid':'unrelated','allow':True,'rights':1,
+                                                     'inherited':False,'inheritance':0,'propagation':0})
+            with self.subTest(change=change), \
+                    patch.object(guard.subprocess,'run',return_value=MagicMock(stdout=json.dumps(changed).encode())), \
+                    self.assertRaises(guard.MigrationRefused):
+                guard._check_windows_parent(Path('synthetic'))
+
     def test_exact_trustedinstaller_is_ancestor_owner_only_never_private_leaf_allow(self):
         ti='S-1-5-80-956008885-3418522649-1831038044-1853292631-2271478464'
         data={'user':'S-1-5-21-synthetic','rows':[
