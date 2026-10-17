@@ -31,7 +31,7 @@ _ADAPTERS = {
 
 def _provider_id(provider: object) -> str | None:
     """Return a canonical identifier without hashing untrusted values."""
-    return provider.casefold() if isinstance(provider, str) else None
+    return provider.casefold() if isinstance(provider, str) and provider.isascii() else None
 
 
 def providers() -> tuple[str, ...]:
@@ -68,7 +68,15 @@ def normalize_route(provider: object, route: object) -> dict | None:
     # Some adapters require the canonical spelling; the case-insensitive
     # identity comparison above still ensures it matches the selected adapter.
     adapter_route["provider"] = provider_id
-    return adapter.normalize_route(adapter_route)
+    normalized = adapter.normalize_route(adapter_route)
+    if not isinstance(normalized, Mapping) or normalized.get("provider") != provider_id:
+        return None
+    if provider_id == "generic_html" and "tenant" in adapter_route:
+        supplied_tenant = adapter_route["tenant"]
+        if (not isinstance(supplied_tenant, str)
+                or supplied_tenant != normalized.get("tenant")):
+            return None
+    return dict(normalized)
 
 
 def capabilities(provider: object) -> dict[str, bool] | None:
