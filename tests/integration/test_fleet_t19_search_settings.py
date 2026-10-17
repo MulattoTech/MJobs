@@ -93,6 +93,7 @@ class FleetT19SearchSettingsTests(unittest.TestCase):
                 jobs = client.get("/jobs", params={
                     "profile_id": "fixture",
                     "search_profile_id": "t19-saved-jobs",
+                    "title": stored_filters["title"],
                     "sort": "title",
                 })
                 self.assertEqual(jobs.status_code, 200, jobs.text)
