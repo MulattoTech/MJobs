@@ -3383,9 +3383,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-11-six-team-integration.json",
-        "docs/evidence/2026-10-11-durable-onboarding.json"
+        "docs/evidence/2026-10-11-durable-onboarding.json",
+        "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json"
       ],
-      "note": "Same newly created profile now completes PDF import, explicit fact/answer review, saved search, fixture discovery, truthful document review, dry-run/mock confirmation and full-stack restart with one receipt. Saved-search filters are not consumed by fixture discovery; live employer flywheel/deduplication and the full 60-step original contract remain unverified. PARTIAL.",
+      "note": "Historical same-profile onboarding/dry-run/mock evidence remains scope-qualified. The current saved-search filter consumer exists. Scoped synthetic c8e53ab6 evidence verifies actual ten-service restart, jobs/source/documents/application persistence, scheduler and company-monitoring recovery at natural due times with no duplicate refresh (steps54-60). Host-loopback/UI and host restart are NOT_RUN; full automatic employer flywheel, steps24-28/31 and the complete60-step contract remain unproven. PARTIAL.",
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping"
