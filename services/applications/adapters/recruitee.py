@@ -74,7 +74,9 @@ class RecruiteeApplicationAdapter(GreenhouseApplicationAdapter):
         provider, url = route.get("provider"), route.get("url")
         if not isinstance(provider, str) or provider.casefold() != self.provider:
             return None
-        if not isinstance(url, str) or not url or len(url) > 2048:
+        if (not isinstance(url, str) or not url or len(url) > 2048
+                or url != url.strip() or "\\" in url
+                or any(ord(char) < 32 for char in url)):
             return None
         try:
             parsed = urlsplit(url)
