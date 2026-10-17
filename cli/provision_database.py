@@ -14,11 +14,12 @@ from pathlib import Path
 import sys
 import tempfile
 
-from alembic import command
 from alembic.config import Config
 from psycopg import sql
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
+
+from cli.migration_precondition import migrate_guarded, strict_json
 
 
 RUNTIME_ROLE = "mjobs_runtime"
@@ -135,15 +136,28 @@ def provision(admin_url: str, destination: Path, *, role: str = RUNTIME_ROLE) ->
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--provision-only", action="store_true", help="Provision a restored database without migrating it")
+    parser.add_argument("--migration-run", help="One-use authorization created by cli.guarded_migration")
     arguments = parser.parse_args()
     try:
         admin_url = os.environ["MJOBS_DATABASE_URL"]
+        runtime_url(admin_url)  # validate before any database/migration side effect
+        if arguments.provision_only and arguments.migration_run is not None:
+            raise ProvisionError("Ambiguous provisioning action")
         if not arguments.provision_only:
-            command.upgrade(Config("alembic.ini"), "head")
+            nonce = None
+            if arguments.migration_run is not None:
+                raw = sys.stdin.buffer.read(4097)
+                if len(raw) > 4096:
+                    raise ProvisionError("Migration authorization input exceeds its bound")
+                request = strict_json(raw)
+                if not isinstance(request, dict) or set(request) != {"nonce"}:
+                    raise ProvisionError("Invalid migration authorization input")
+                nonce = request["nonce"]
+            migrate_guarded(admin_url, Config("alembic.ini"), run_id=arguments.migration_run, nonce=nonce)
         provision(admin_url, Path(os.environ["MJOBS_DATABASE_URL_FILE"]))
     except Exception:
         # Driver exceptions may contain connection URLs or SQL literals. Keep them private.
-        print("Database migration/provision failed; original credentials and data were retained", file=sys.stderr)
+        print("Database migration/provision failed; preserve existing data, credentials and backup for recovery", file=sys.stderr)
         return 1
     print("Database migration and restricted runtime login ready")
     return 0

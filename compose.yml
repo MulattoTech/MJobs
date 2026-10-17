@@ -41,7 +41,11 @@ services:
       POSTGRES_USER: mjobs
       POSTGRES_DB: mjobs
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run python cli/init_env.py}
-    volumes: [database:/var/lib/postgresql/data]
+    # Only postgres and the offline migration process can access authorization copies.
+    # The host's separately verified full archive remains the durable recovery copy.
+    volumes:
+      - database:/var/lib/postgresql/data
+      - migration-backups:/var/lib/mjobs-migration-backups
     healthcheck:
       test: [CMD-SHELL, 'pg_isready -U mjobs -d mjobs']
       interval: 3s
@@ -71,6 +75,7 @@ services:
       MJOBS_DATABASE_URL_FILE: /run/mjobs-database/runtime-url
     volumes:
       - runtime-database:/run/mjobs-database
+      - migration-backups:/var/lib/mjobs-migration-backups
     depends_on:
       postgres: {condition: service_healthy}
   api:
@@ -228,3 +233,4 @@ volumes:
   documents:
   mock-receipts:
   runtime-database:
+  migration-backups:

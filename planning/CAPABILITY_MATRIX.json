@@ -2018,11 +2018,12 @@
     },
     {
       "requirement_id": "MJ-REQ-166",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
-        "docs/evidence/2026-10-08-alembic-merge-heads.json"
+        "docs/evidence/2026-10-08-alembic-merge-heads.json",
+        "docs/evidence/2026-10-17-guarded-data-migration-acceptance.json"
       ],
-      "note": "The duplicate Alembic heads were merged and the normal fresh SQLite upgrade-to-head path plus resume-comparison integration setup pass. Broader data migration safety/recovery, PostgreSQL execution, and the existing PR dependencies remain incomplete. Issue #167 remains OPEN/PARTIAL.",
+      "note": "Candidate acceptance: guarded offline Alembic migration creates a fresh verified full backup before a populated pending upgrade, uses target-bound one-use authorization, validates required schema/workspace before credential publication, and never recreates the source DB. Exact e067 Native10 passes all14 native oracles including reviewed destructive revision and NEW-target restore; private backup retained/owned resources0/0/0. Prior failed attempts remain qualified. Synthetic/operator-stopped scope only; no production DB or MJ-REQ-162 credit. Protected integration pending.",
       "priority": "P1",
       "area": "orchestration_data_security",
       "category": "major-feature"

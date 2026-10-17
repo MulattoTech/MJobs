@@ -132,6 +132,32 @@ and a tested fresh-project restore,
 follow the [local backup runbook](runbooks/LOCAL_BACKUP.md). It preserves the
 original project and refuses an occupied restore target.
 
+## Guarded offline database migration
+
+For a populated database with a pending reviewed Alembic upgrade, use the matching
+reviewed checkout and migrate image. Keep PostgreSQL running; explicitly stop the
+API, scheduler, every worker and migrate service first (also mock in fixture mode),
+as described in the [backup runbook](runbooks/LOCAL_BACKUP.md). Retain exclusive
+operator control: do not start writers until validation succeeds.
+
+Choose a **new** archive beneath an existing private, current-user-owned directory
+outside this checkout; the command refuses unsafe permissions or an occupied path.
+From the repository root, using the actual project name, run:
+
+```powershell
+.venv\Scripts\python.exe -m cli.guarded_migration --project <project> --archive <new-private-archive>
+```
+
+The command creates and verifies a full backup with PostgreSQL17 native tools,
+then internally passes a fresh target-bound, one-use receipt to migrate. Do not
+copy/reuse receipts or supply secrets on the command line. Required schema and
+workspace identity are checked before runtime credentials are published. A failed
+command preserves the archive and leaves writers stopped for inspection; it never
+automatically restores, deletes or recreates the source database. Keep the backup
+and private configuration; recovery is a separate reviewed operator action. Fresh
+catalog-proven empty bootstrap and validated already-current provisioning remain
+supported; a populated pending upgrade cannot bypass this guarded path.
+
 ## Executable verification
 
 Development checks use the pinned Python environment and installed Playwright

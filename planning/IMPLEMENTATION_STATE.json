@@ -2771,6 +2771,14 @@
       ],
       "result": "PASS",
       "note": "No fabricated monitoring history; populated downgrade refuses evidence loss; user database untouched."
+    },
+    {
+      "requirement": "MJ-REQ-166",
+      "source_commit": "e067e7315406d8bf42f69ea1d80fbca95970bb2b",
+      "result": "PASS",
+      "recording_status": "CANDIDATE_PENDING_PROTECTED_MERGE",
+      "evidence": "docs/evidence/2026-10-17-guarded-data-migration-acceptance.json",
+      "note": "Native10 real host backup/migrate/validate/provision plus new-DB native restore;14 checks,286.95s,synthetic only. Other requirements and release readiness unchanged."
     }
   ],
   "company_discovery_requests_ci": {

@@ -2,6 +2,8 @@
 import unittest
 from pathlib import Path
 import tempfile
+import os
+import sys
 from unittest.mock import MagicMock, patch
 
 from sqlalchemy.engine import make_url
@@ -10,6 +12,29 @@ from cli.provision_database import provision, runtime_url, ProvisionError
 
 
 class DatabaseProvisioningTests(unittest.TestCase):
+    def test_failed_migration_validation_cannot_publish_runtime_credentials(self):
+        from cli import provision_database
+        with tempfile.TemporaryDirectory() as directory:
+            destination=Path(directory)/'runtime-url'
+            destination.write_bytes(b'original synthetic credential')
+            with patch.dict(os.environ, {'MJOBS_DATABASE_URL':'postgresql+psycopg://admin:synthetic@invalid/mjobs_test',
+                    'MJOBS_DATABASE_URL_FILE':str(destination)}, clear=True), patch.object(sys,'argv',['provision']), \
+                    patch.object(provision_database,'migrate_guarded',side_effect=ValueError('private synthetic failure')), \
+                    patch.object(provision_database,'provision') as publish:
+                self.assertEqual(provision_database.main(),1)
+                publish.assert_not_called()
+            self.assertEqual(destination.read_bytes(),b'original synthetic credential')
+
+    def test_provision_only_restore_path_never_migrates(self):
+        from cli import provision_database
+        with patch.dict(os.environ, {'MJOBS_DATABASE_URL':'postgresql+psycopg://admin:synthetic@invalid/mjobs_test',
+                'MJOBS_DATABASE_URL_FILE':'synthetic-runtime-file'}, clear=True), \
+                patch.object(sys,'argv',['provision','--provision-only']), \
+                patch.object(provision_database,'migrate_guarded') as migrate, \
+                patch.object(provision_database,'provision') as provision:
+            self.assertEqual(provision_database.main(),0)
+            migrate.assert_not_called(); provision.assert_called_once()
+
     def test_fresh_role_inheriting_public_authority_cannot_publish_credentials(self):
         connection = MagicMock()
 
