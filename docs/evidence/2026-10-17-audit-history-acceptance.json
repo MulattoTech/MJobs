@@ -1,0 +1,154 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-17T10:29:09.210398+00:00",
+  "requirement_ids": [
+    "MJ-REQ-176"
+  ],
+  "issue": 177,
+  "requirement_result": "PASS",
+  "priority": "P1",
+  "recording_status": "CANDIDATE_ACCEPTANCE_PENDING_PROTECTED_MERGE",
+  "acceptance_authority": "Root48 accepted verifier83 independent literal13-event assessment; current protected main remains PARTIAL until this candidate merges.",
+  "literal_criteria": [
+    {
+      "event": "JOB_DISCOVERED",
+      "displayed_summary": "Job added to this profile's search",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "COMPANY_DISCOVERED",
+      "displayed_summary": "Discovered Acme Systems",
+      "selector": "tests/browser/test_company_discovery_activity.py::CompanyDiscoveryActivityBrowserTests::test_activity_is_visible_after_refresh_and_reload_and_is_profile_scoped",
+      "result": "PASS"
+    },
+    {
+      "event": "COMPANY_SOURCE_ENROLLED",
+      "displayed_summary": "Added direct employer source",
+      "selector": "tests/browser/test_company_discovery_activity.py::CompanyDiscoveryActivityBrowserTests::test_activity_is_visible_after_refresh_and_reload_and_is_profile_scoped",
+      "result": "PASS"
+    },
+    {
+      "event": "JOB_MERGED",
+      "displayed_summary": "New source posting attached to an existing job",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "MATCH_SCORED",
+      "displayed_summary": "Job match scored",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "RESUME_GENERATED",
+      "displayed_summary": "Resume prepared",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "COVER_LETTER_GENERATED",
+      "displayed_summary": "Cover letter prepared",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "APPLICATION_QUEUED",
+      "displayed_summary": "Application preparation queued",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "APPLICATION_STARTED",
+      "displayed_summary": "Application preparation started",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "APPLICATION_SUBMITTED",
+      "displayed_summary": "Application submitted to the local mock ATS",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "APPLICATION_CONFIRMED",
+      "displayed_summary": "Fictional mock application outcome confirmed",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "APPLICATION_FAILED",
+      "displayed_summary": "Application preparation failed",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    },
+    {
+      "event": "SETTING_CHANGED",
+      "displayed_summary": "A profile setting changed",
+      "selector": "tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload",
+      "result": "PASS"
+    }
+  ],
+  "browser": {
+    "tested_revision": "b931425e58ab3a0b3679a41eb340ab76be000e6d",
+    "tested_tree": "f958c3dc7eaea3049a18cd58d59e1e4ae7683959",
+    "command": "-m pytest -q --tb=short tests/browser/test_audit_history.py::AuditHistoryBrowserTests::test_activity_history_is_profile_scoped_and_survives_reload tests/browser/test_company_discovery_activity.py::CompanyDiscoveryActivityBrowserTests::test_activity_is_visible_after_refresh_and_reload_and_is_profile_scoped",
+    "result": "PASS",
+    "passed": 2,
+    "skipped": 0,
+    "pytest_seconds": 15.12,
+    "outer_seconds": 17.31,
+    "exit": 0,
+    "watchdog_triggered": false,
+    "python": "3.12.10",
+    "playwright": "1.63.0",
+    "cached_chromium": "1243",
+    "input_hash_count": 306,
+    "before_after_hashes_equal": true,
+    "remaining_owned_descendants": 0
+  },
+  "protected_base_reconciliation": {
+    "base": "6594890f6d088db30c69d911f688813b1d00519d",
+    "ordinary_merge_revision": "0c9d29e90403a188e2393ff0636be9b8a6e94698",
+    "browser_input_hashes_unchanged": 306,
+    "frontend_source_config_lock_hashes_unchanged": 291,
+    "build_assets_unchanged": 3,
+    "qualification": "B26 executed only at b931; ordinary merged source preserves every measured runtime/build input. No browser rerun at record-only final head is claimed."
+  },
+  "api_revalidation": {
+    "revision": "0c9d29e90403a188e2393ff0636be9b8a6e94698",
+    "command": "python -m pytest -q tests/integration/test_fleet_t11_audit_failure_recovery.py tests/integration/test_audit_history.py tests/integration/test_document_generation_audit.py",
+    "passed": 17,
+    "skipped": 5,
+    "seconds": 27.42,
+    "skip_reason": "Five inherited PostgreSQL document-audit cases require an isolated disposable PostgreSQL URL; no DB service was started and these are NOT_RUN.",
+    "scope": "Actual public PREPARE admission and production execute_operation terminal filesystem failure; duplicate delivery/re-admission; same-ID explicit public retry; real successful document generation; new Store/API reopen; safe history/profile isolation; exact TXT/DOCX/PDF document hashes."
+  },
+  "connected_browser_details": [
+    "Existing Activity case retains queued/started/local mock submitted/fictional confirmed, settings, job/match/merge, reload and profile/privacy assertions.",
+    "New flow calls actual uvicorn public API over owned loopback, runs real PREPARE with an owned invalid output path, and records one APPLICATION_FAILED through the production finalization transaction. No audit rows or projection are injected for this proof.",
+    "Explicit same-ID retry with a valid owned output directory completes real PREPARE and yields one new RESUME_GENERATED and COVER_LETTER_GENERATED event; repeat delivery/readback does not duplicate them.",
+    "Store and API are recreated before mounted Activity reads and reloads; failed and generated document summaries persist and are absent from the other profile.",
+    "Credential-like output-path/request markers, private notes/search values, raw URLs, and underlying error classes are excluded from the displayed audit history.",
+    "The unchanged company activity case supplies COMPANY_DISCOVERED and COMPANY_SOURCE_ENROLLED mounted/reload/profile-isolation assertions."
+  ],
+  "build": {
+    "frontend_git_tree": "f3d533269a9be5e7dc5ecd946f3fddca5350b811",
+    "qualified_own_build_reused": true,
+    "tracked_frontend_config_lock_inputs": 291,
+    "dist_sha256": {
+      "index.html": "1a2589b7f5e11565af769accd802bd7d3ca8c0a77523da42f16091738cdf58f8",
+      "assets/index-CRLyhEXO.js": "c43cf502d21bdd99d0d35549dfc144e84b7b9c8c0a808a6819bf259ce25fb9b7",
+      "assets/index-CvWXjyhO.css": "fcbd205add183a256920abf83e828aee55694a15cbf2b83c6503ca4a924f11a2"
+    },
+    "rebuild": "NOT_RUN; full source/config/lock and three built asset hashes match the previously qualified owned build."
+  },
+  "independent_review": "Verifier83 reviewed test/source/privacy scope and independently mapped all13 literal event labels to the executed B26 bundle; final base/records/provenance audit is separate.",
+  "limits": [
+    "Submission and confirmation evidence is explicitly local MOCK/fictional, not a real employer or successful live application.",
+    "No live employer/authentication, external submission, real AI/provider calls, fresh PostgreSQL, or host/container restart is claimed.",
+    "Only MJ-REQ-176/#177 is accepted here; no other requirement or whole-release promotion.",
+    "No all-settings-fields or every possible setting-family criterion is invented beyond the literal SETTING_CHANGED event.",
+    "Native review and hosted checks on the eventual final PR head are pending; protected acceptance is not claimed before merge."
+  ]
+}
