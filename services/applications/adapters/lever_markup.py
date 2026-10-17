@@ -218,7 +218,11 @@ def analyze_lever_markup(source) -> dict:
             controls = parser.finish()
         except Exception:
             return _unknown("MARKUP_PARSE_FAILED")
-        if parser.invalid_attributes:
+        # HTMLParser tolerates end-of-input inside a form or prompt. Such a
+        # partial response cannot establish that every question was inspected.
+        if (parser.invalid_attributes or parser.active_form or parser.label_stack
+                or parser.ignored_stack or parser.select_index is not None
+                or parser.option_index is not None):
             return _unknown("MARKUP_PARSE_FAILED")
         if parser.form_count == 0:
             return _unknown("NO_FORM")
