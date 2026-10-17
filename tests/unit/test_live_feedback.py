@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
+from services.applications.browser_capture import PRIVATE_VALUE_SELECTOR, SENSITIVE_REGION_SELECTOR
+
 from cli.live_feedback import (
     Recorder,
     SCREENSHOT_PRIVACY_STYLE,
@@ -91,6 +93,7 @@ class LiveFeedbackTests(unittest.TestCase):
             "[contenteditable]:not([contenteditable='false'])",
             "[role='textbox']", "[role='combobox']", "[data-sensitive]",
             "[data-mjobs-sensitive-mask]",
+            PRIVATE_VALUE_SELECTOR, SENSITIVE_REGION_SELECTOR,
         ])
         self.assertEqual(page.capture["path"], "synthetic.png")
         self.assertTrue(page.capture["full_page"])
@@ -101,6 +104,8 @@ class LiveFeedbackTests(unittest.TestCase):
             ("locator", "[role='textbox']"), ("locator", "[role='combobox']"),
             ("locator", "[data-sensitive]"),
             ("locator", "[data-mjobs-sensitive-mask]"),
+            ("locator", PRIVATE_VALUE_SELECTOR),
+            ("locator", SENSITIVE_REGION_SELECTOR),
         ])
         self.assertEqual(page.capture["mask_color"], "#000000")
         self.assertEqual(page.capture["style"], SCREENSHOT_PRIVACY_STYLE)
