@@ -604,6 +604,42 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     'value="synthetic-private-value">'
                     '<div class="cover"></div></form>'
                 )
+                pointer_none_label_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    pointer_none_label_projection[0]["rendered_labels"],
+                    [{"canonical_label": None, "has_text": False, "visible": False}],
+                )
+                pointer_none_label_control_state = page.locator("form").locator(
+                    "input, select, textarea"
+                ).evaluate_all(_CONTROL_STATE_SCRIPT)
+                self.assertIs(
+                    pointer_none_label_control_state[0]["user_visible"], True,
+                )
+                self.assertIs(
+                    pointer_none_label_control_state[0]["user_editable"], True,
+                )
+                self.assertEqual(
+                    page.evaluate(
+                        """() => {
+                          const centerTarget = selector => {
+                            const rect = document.querySelector(selector).getBoundingClientRect();
+                            return document.elementFromPoint(
+                              rect.left + rect.width / 2, rect.top + rect.height / 2
+                            )?.tagName;
+                          };
+                          return {
+                            label: centerTarget('label'),
+                            input: centerTarget('input'),
+                            pointerEvents: getComputedStyle(
+                              document.querySelector('.cover')
+                            ).pointerEvents
+                          };
+                        }"""
+                    ),
+                    {"label": "LABEL", "input": "INPUT", "pointerEvents": "none"},
+                )
                 pointer_none_covered_label = self.adapter.analyze_page(page)
                 self.assertEqual(pointer_none_covered_label["status"], "UNKNOWN")
                 self.assertEqual(pointer_none_covered_label["fields"], [])
