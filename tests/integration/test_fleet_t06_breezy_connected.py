@@ -101,6 +101,11 @@ class FleetT06BreezyConnectedTests(TestCase):
                 m.attempts,
             ).where(m.attempts.c.application_id == self.application_id)).scalar_one()
 
+    def _audit_count(self, store=None):
+        store = store or self.store
+        with store.engine.connect() as connection:
+            return connection.execute(select(func.count()).select_from(m.audit)).scalar_one()
+
     def _operation(self, operation_id, store=None):
         store = store or self.store
         with store.engine.connect() as connection:
@@ -110,6 +115,7 @@ class FleetT06BreezyConnectedTests(TestCase):
 
     def _execute(self, operation_id, *, html=_FORM_HTML):
         fetched = []
+        constructed = []
         normalized_url = self.normalized_route["url"]
 
         class FakeResponse:
@@ -120,6 +126,7 @@ class FleetT06BreezyConnectedTests(TestCase):
 
         class FakePublicClient:
             def __init__(self, website, check=None, total_timeout=None):
+                constructed.append(website)
                 self.website = website
                 self.check = check
                 self.total_timeout = total_timeout
@@ -146,12 +153,29 @@ class FleetT06BreezyConnectedTests(TestCase):
             "MJOBS_OUTPUT_DIR": str(self.root / "documents"),
         }), patch("workers.tasks.PublicCompanyClient", FakePublicClient):
             result = execute_operation(operation_id)
-        return result, fetched
+        return result, fetched, constructed
 
     def _admit(self, request_id):
         response = self.flow.client.post(self._path(), json={"request_id": request_id})
         self.assertEqual(response.status_code, 202, response.text)
         return response.json()["operation_id"]
+
+    def test_acme_12_hex_route_is_a_supported_normalization_control(self):
+        route_url = "https://acme.breezy.hr/p/012345abcdef-engineer"
+        normalized = normalize_application_route(
+            "breezy", route_url, route_metadata={
+                "provider": "breezy",
+                "tenant": "acme",
+                "requisition": "012345abcdef",
+                "url": route_url,
+            },
+        )
+        self.assertEqual(normalized, {
+            "provider": "breezy",
+            "tenant": "acme",
+            "requisition": "012345abcdef",
+            "url": route_url,
+        })
 
     def test_breezy_review_runs_real_adapter_and_survives_sqlite_reopen(self):
         request_id = "t06-breezy-durable-review"
@@ -168,10 +192,11 @@ class FleetT06BreezyConnectedTests(TestCase):
 
         with patch.object(BreezyApplicationAdapter, "analyze_form", autospec=True,
                           side_effect=analyze_and_record) as analyzer:
-            result, fetched = self._execute(operation_id)
+            result, fetched, constructed = self._execute(operation_id)
 
         self.assertEqual(result["status"], "COMPLETED")
         self.assertEqual(fetched, [self.normalized_route["url"]])
+        self.assertEqual(constructed, [self.normalized_route["url"]])
         analyzer.assert_called_once()
         self.assertEqual(calls, [self.normalized_route["url"]])
 
@@ -221,9 +246,10 @@ class FleetT06BreezyConnectedTests(TestCase):
 
     def test_reserved_latest_request_id_has_explicit_historical_readback(self):
         operation_id = self._admit("latest")
-        result, fetched = self._execute(operation_id)
+        result, fetched, constructed = self._execute(operation_id)
         self.assertEqual(result["status"], "COMPLETED")
         self.assertEqual(fetched, [self.normalized_route["url"]])
+        self.assertEqual(constructed, [self.normalized_route["url"]])
 
         explicit = self.flow.client.get(self._path() + "/requests/latest")
         current = self.flow.client.get(self._path() + "/latest")
@@ -284,9 +310,10 @@ class FleetT06BreezyConnectedTests(TestCase):
                         ).values(url="https://fixture.breezy.hr/p/fedcba987654-engineer",
                                  requisition="fedcba987654"))
 
-                result, fetched = self._execute(operation_id)
+                result, fetched, constructed = self._execute(operation_id)
                 self.assertEqual(result["status"], "DEAD_LETTERED")
                 self.assertEqual(fetched, [])
+                self.assertEqual(constructed, [])
                 self.assertEqual(self._review_audits(), [])
                 operation = self._operation(operation_id)
                 self.assertEqual(operation["state"], "DEAD_LETTERED")
@@ -316,10 +343,13 @@ class FleetT06BreezyConnectedTests(TestCase):
         persisted = self._operation(operation_id)
         self.assertEqual(persisted["state"], "CANCELLED")
         self.assertTrue(persisted["cancel_requested"])
-        result, fetched = self._execute(operation_id)
+        audit_count_after_cancel = self._audit_count()
+        result, fetched, constructed = self._execute(operation_id)
         self.assertEqual(result["status"], "ALREADY_CLAIMED_OR_CAPACITY")
         self.assertEqual(fetched, [])
+        self.assertEqual(constructed, [])
         self.assertEqual(self._review_audits(), [])
+        self.assertEqual(self._audit_count(), audit_count_after_cancel)
         latest = self.flow.client.get(self._path() + "/latest")
         exact = self.flow.client.get(self._path() + "/t06-breezy-cancel-before-run")
         self.assertEqual(latest.status_code, 200, latest.text)
