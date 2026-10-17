@@ -74,6 +74,13 @@ class FleetT02WorkdayDynamicDOMTests(unittest.TestCase):
                 revealed = project_workday_dynamic_review(adapter.analyze_page(page))
                 self.assertIn("note", {field["id"] for field in revealed["fields"]})
                 self.assertNotEqual(revealed["fingerprint"], choices_changed["fingerprint"])
+                page.locator("#optional").evaluate("node => node.style.opacity = '0'")
+                transparent = project_workday_dynamic_review(adapter.analyze_page(page))
+                self.assertNotIn("note", {field["id"] for field in transparent["fields"]})
+                page.locator("form").evaluate(
+                    "form => form.insertAdjacentHTML('beforeend', '<div id=editable contenteditable></div>')")
+                self.assertIsNone(project_workday_dynamic_review(adapter.analyze_page(page)))
+                page.locator("#editable").evaluate("node => node.remove()")
                 self.assertFalse(adapter.capabilities()["submission"])
                 self.assertFalse(adapter.capabilities()["live_form_interaction"])
                 page.locator("body").evaluate(
