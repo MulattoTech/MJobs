@@ -1,16 +1,34 @@
-"""API routes for explicit user-started MOCK authentication windows."""
+"""Explicit auth declarations and user-started MOCK authentication windows."""
 from pathlib import Path
 from secrets import token_hex
 from time import monotonic
 import sys
+from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Body, HTTPException
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 from sqlalchemy import select
 
 from packages.persistence import models as m
 from workers.operations import (OperationConcurrencyLimit, OperationCancelled,
                                 OperationTimedOut, admit_inline, check_cancelled,
                                 finish_inline, record_manual_auth_process, timeout)
+
+
+class UserAuthCompletionRequest(BaseModel):
+    """A declaration carries no session material and cannot authorize submission."""
+
+    model_config = ConfigDict(strict=True, extra="forbid")
+    user_completed_authentication: bool
+    expected_route_url: str = Field(min_length=1, max_length=2048)
+    expires_in_seconds: int = Field(default=900, ge=1, le=900)
+
+    @field_validator("user_completed_authentication")
+    @classmethod
+    def require_explicit_completion(cls, value):
+        if value is not True:
+            raise ValueError("Explicit user completion is required")
+        return value
 
 
 def open_mock_authentication(*args, **kwargs):
@@ -27,8 +45,61 @@ def open_mock_authentication(*args, **kwargs):
 
 def create_manual_auth_router(store, mock_origin: str, output_dir: str | Path,
                               operation_mode: str) -> APIRouter:
-    """Create the narrowly scoped MOCK manual-auth route for ``create_app``."""
+    """Create metadata-only completion routes and the confined MOCK browser route."""
     router = APIRouter()
+
+    def completion_action(action, profile_id, application_id, review_operation_id, **kwargs):
+        from services.applications.manual_auth import ManualAuthCompletionError
+
+        try:
+            return action(store, profile_id, application_id, review_operation_id, **kwargs)
+        except ManualAuthCompletionError as error:
+            status = 404 if error.code == "AUTH_COMPLETION_NOT_FOUND" else 409
+            raise HTTPException(status, {"code": error.code}) from None
+
+    completion_path = (
+        "/profiles/{profile_id}/applications/{application_id}"
+        "/manual-auth/reviews/{review_operation_id}/completion"
+    )
+
+    @router.put(completion_path, openapi_extra={
+        "requestBody": {"required": True, "content": {"application/json": {
+            "schema": UserAuthCompletionRequest.model_json_schema(),
+        }}},
+    })
+    def declare_auth_completion(profile_id: str, application_id: str,
+                                review_operation_id: str, body: Any = Body(...)):
+        """Persist the user's declaration, never proof of an authenticated fetch."""
+        # Validate locally to avoid echoing rejected credential/session payloads
+        # through FastAPI's default validation response.
+        try:
+            request = UserAuthCompletionRequest.model_validate(body)
+        except ValidationError:
+            raise HTTPException(422, {"code": "AUTH_COMPLETION_REQUEST_INVALID"}) from None
+        from services.applications.manual_auth import record_user_auth_completion
+
+        return completion_action(
+            record_user_auth_completion, profile_id, application_id, review_operation_id,
+            expected_route_url=request.expected_route_url,
+            expires_in_seconds=request.expires_in_seconds,
+        )
+
+    @router.get(completion_path)
+    def read_auth_completion(profile_id: str, application_id: str, review_operation_id: str):
+        """Restore metadata only after checking current identity and expiry."""
+        from services.applications.manual_auth_recovery import restore_user_auth_completion
+
+        return completion_action(
+            restore_user_auth_completion, profile_id, application_id, review_operation_id,
+        )
+
+    @router.delete(completion_path)
+    def revoke_auth_completion(profile_id: str, application_id: str, review_operation_id: str):
+        from services.applications.manual_auth import revoke_user_auth_completion
+
+        return completion_action(
+            revoke_user_auth_completion, profile_id, application_id, review_operation_id,
+        )
 
     @router.post('/profiles/{profile_id}/applications/{application_id}/manual-auth/{operation_id}/recover')
     def recover_manual_browser(profile_id: str, application_id: str, operation_id: str):
