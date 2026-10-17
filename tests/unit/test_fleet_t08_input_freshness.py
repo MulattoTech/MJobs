@@ -32,6 +32,26 @@ def test_latest_uses_admission_order_even_after_older_operation_changes():
         fixture.tearDown()
 
 
+def test_explicit_exact_readback_supports_request_id_named_latest():
+    fixture = flow_fixture.ApplicationFormReviewFlowTests()
+    fixture.setUp()
+    try:
+        path = fixture._complete_review("latest", "historical_field")
+        historical = fixture.client.get(path + "/latest").json()
+        fixture._complete_review("newer-request", "current_field")
+        current = fixture.client.get(path + "/latest")
+        exact = fixture.client.get(path + "/requests/latest")
+        assert current.status_code == exact.status_code == 200
+        assert current.json()["request_id"] == "newer-request"
+        assert exact.json() == historical
+        assert exact.json()["analysis"]["fields"][0]["name"] == "historical_field"
+        assert fixture.client.get(path + "/requests/newer-request").json() == current.json()
+        assert fixture.client.get(path + "/newer-request").json() == current.json()
+        assert fixture.client.get(path + "/requests/missing-request").status_code == 404
+    finally:
+        fixture.tearDown()
+
+
 @pytest.mark.parametrize("during_fetch", [False, True])
 def test_profile_change_prevents_new_receipt(during_fetch):
     fixture = worker_fixture.ApplicationFormReviewWorkerTests()

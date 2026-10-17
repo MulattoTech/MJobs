@@ -223,6 +223,9 @@ def create_application_form_review_router(store) -> APIRouter:
         )
 
     @router.get(
+        "/profiles/{profile_id}/applications/{application_id}/form-reviews/requests/{request_id}",
+    )
+    @router.get(
         "/profiles/{profile_id}/applications/{application_id}/form-reviews/{request_id}",
     )
     def read_form_review(profile_id: str, application_id: str, request_id: str):
