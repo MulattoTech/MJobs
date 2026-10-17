@@ -38,7 +38,14 @@ describe('T14 connected application form review acceptance', () => {
         expect(path).toBe(operationPath);
         expect(JSON.parse(String(options.body))).toEqual({ request_id: 't14-request' });
         durableResult = sanitizedResult;
-        return { request_id: 't14-request', state: 'QUEUED', operation_id: 'fixture-operation' } as T;
+        return {
+          profile_id: profileId,
+          application_id: applicationId,
+          request_id: 't14-request',
+          state: 'QUEUED',
+          operation_id: 'fixture-operation',
+          route_id: 'fixture-route',
+        } as T;
       }
       expect(path).toBe(`${operationPath}/t14-request`);
       return durableResult as T;
@@ -70,7 +77,13 @@ describe('T14 connected application form review acceptance', () => {
     const request: ReviewRequest = async <T,>(_path: string, options?: RequestInit): Promise<T> => {
       calls.push([_path, options]);
       if (options?.method === 'POST') {
-        return { request_id: 't14-interrupted', state: 'QUEUED', operation_id: 'fixture-operation' } as T;
+        return {
+          profile_id: profileId,
+          application_id: applicationId,
+          request_id: 't14-interrupted',
+          state: 'QUEUED',
+          operation_id: 'fixture-operation',
+        } as T;
       }
       return { request_id: 't14-interrupted', state: 'RUNNING', error_code: null } as T;
     };
