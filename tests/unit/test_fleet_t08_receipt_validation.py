@@ -153,3 +153,18 @@ def test_replay_rejects_receipt_from_wrong_frozen_scope(review, key):
         connection.execute(update(m.audit).where(m.audit.c.id == receipt["id"]).values(payload=payload))
     with pytest.raises(FormReviewError, match="FORM_REVIEW_IDEMPOTENCY_CONFLICT"):
         handle_form_review(review.store, operation, fetch_html=lambda _: pytest.fail("must not fetch"), check=lambda: None)
+
+
+def test_duplicate_saved_receipts_never_choose_an_arbitrary_result(review):
+    from workers.application_form_review import form_review_saved
+    operation = review.make_operation()
+    service, _ = review.with_analysis_service()
+    with service:
+        handle_form_review(review.store, operation, fetch_html=lambda _: "<form/>", check=lambda: None)
+    payload = review.audit_events(operation["id"])[0]["payload"]
+    with review.store.engine.begin() as connection:
+        review.store._audit(connection, review.application_id, "APPLICATION_FORM_REVIEW", payload)
+    with pytest.raises(FormReviewError, match="FORM_REVIEW_IDEMPOTENCY_CONFLICT"):
+        handle_form_review(review.store, operation, fetch_html=lambda _: pytest.fail("must not fetch"), check=lambda: None)
+    with review.store.engine.connect() as connection:
+        assert form_review_saved(connection, operation) is False

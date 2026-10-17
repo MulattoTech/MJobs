@@ -78,10 +78,13 @@ def _read_operation(connection, operation, *, lock=True):
 
 def _existing_result(connection, application_id, operation_id, request_id,
                      input_fingerprint):
-    rows = connection.execute(select(m.audit.c.payload).where(
+    rows = list(connection.execute(select(m.audit.c.payload).where(
         m.audit.c.entity_id == application_id,
         m.audit.c.action == _AUDIT_ACTION,
-    )).mappings()
+        m.audit.c.payload["operation_id"].as_string() == operation_id,
+    ).limit(2)).mappings())
+    if len(rows) > 1:
+        raise FormReviewError("FORM_REVIEW_IDEMPOTENCY_CONFLICT")
     for row in rows:
         payload = row["payload"]
         if not isinstance(payload, dict) or payload.get("operation_id") != operation_id:
