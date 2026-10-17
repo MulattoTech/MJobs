@@ -101,19 +101,24 @@ class T08WorkerRecoveryTests(unittest.TestCase):
             ).values(lease_expires_at=(datetime.now(timezone.utc)
                                        - timedelta(minutes=1)).isoformat()))
 
-        # Recovery must reopen durable state, requeue the expired attempt, and
-        # claim it as a new attempt before consulting the already committed receipt.
+        # Recovery must reopen durable state and reconcile the committed receipt
+        # before retrying the expired attempt, regardless of the retry cap.
         self.store.engine.dispose()
         self.store = Store(self.database_url)
         self.store.bind_workspace_mode("FIXTURE")
         self.assertEqual(recover_expired(self.store), 1)
-        claimed = claim(self.store, operation["id"])
-        self.assertIsNotNone(claimed)
-        self.assertEqual(claimed["attempt_count"], 2)
+        with self.store.engine.connect() as connection:
+            recovered_operation = dict(connection.execute(select(m.operations).where(
+                m.operations.c.id == operation["id"],
+            )).mappings().one())
+        self.assertEqual(recovered_operation["state"], "COMPLETED")
+        self.assertIsNone(recovered_operation["error"])
+        self.assertEqual(recovered_operation["attempt_count"], 1)
+        self.assertIsNone(claim(self.store, operation["id"]))
 
         replay_fetch = Mock(side_effect=AssertionError("recovery must use the receipt"))
         recovered = handle_form_review(
-            self.store, claimed, fetch_html=replay_fetch, check=lambda: None,
+            self.store, operation, fetch_html=replay_fetch, check=lambda: None,
         )
 
         self.assertEqual(recovered, committed)
