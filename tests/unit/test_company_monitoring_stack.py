@@ -1,5 +1,7 @@
 """Fail-closed guards for the opt-in synthetic company-monitoring stack."""
+import ast
 import copy
+import inspect
 import io
 import json
 import tarfile
@@ -17,6 +19,26 @@ PROJECT = 'mjobs-fixture-012345abcdef'
 
 
 class CompanyMonitoringStackGuardTests(unittest.TestCase):
+    def test_initial_refresh_is_observed_from_public_scheduler_pointer_without_manual_enqueue(self):
+        from fixtures.company_monitoring_stack import run_stack
+        tree = ast.parse(inspect.getsource(run_stack))
+        requests = [node for node in ast.walk(tree) if isinstance(node, ast.Call)
+                    and isinstance(node.func, ast.Name) and node.func.id == 'request']
+        self.assertFalse(any(node.args and isinstance(node.args[0], ast.Constant)
+                             and node.args[0].value == 'POST'
+                             and '/refresh' in ast.unparse(node) for node in requests))
+        probe = next(node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+                     and node.name == 'scheduled_refresh')
+        observed = []
+        state = {'monitoring': {'operation_id': None}}
+        namespace = {'view': lambda: state, 'completed': lambda identity: observed.append(identity) or {'id': identity}}
+        exec(compile(ast.fix_missing_locations(ast.Module(body=[probe], type_ignores=[])), '<scheduler-probe>', 'exec'), namespace)
+        self.assertFalse(namespace['scheduled_refresh']())
+        self.assertEqual(observed, [])
+        state['monitoring']['operation_id'] = 'scheduler-owned-operation'
+        self.assertEqual(namespace['scheduled_refresh'](), {'id': 'scheduler-owned-operation'})
+        self.assertEqual(observed, ['scheduler-owned-operation'])
+
     def test_only_exact_synthetic_origin_and_known_paths_are_transportable(self):
         self.assertEqual(origin_path('https://employer.example/jobs/one'), '/jobs/one')
         for url in ['http://employer.example/jobs/one', 'https://other.example/jobs/one',

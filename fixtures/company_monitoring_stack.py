@@ -474,8 +474,12 @@ def run_stack(artifacts):
                 source_id = source['id']
                 request('PUT', '/company-sources/' + source_id + '/monitoring', json={
                     'source_version': source['source_version'], 'revision': 0, 'poll_interval': 300})
-                refresh = request('POST', '/company-sources/' + source_id + '/refresh', json={'profile_id': profile_id})
-                wait(lambda: completed(refresh['operation_id']))
+                # Configuration makes the source due now; only the real scheduler
+                # admits the initial refresh, avoiding a competing manual enqueue.
+                def scheduled_refresh():
+                    operation_id = view()['monitoring']['operation_id']
+                    return completed(operation_id) if operation_id else False
+                refresh = wait(scheduled_refresh)
                 first = view()
                 checkpoint('first-real-monitor-refresh-completed')
                 if first['monitoring']['status'] != 'HEALTHY' or not first['next_check']:
@@ -532,7 +536,7 @@ def run_stack(artifacts):
                 report['services_before'] = before_services
                 report['services_after'] = after_services
                 report['baseline_sha256'] = hashlib.sha256(json.dumps(baseline, sort_keys=True).encode()).hexdigest()
-                report['first_refresh_operation'] = refresh['operation_id']
+                report['first_refresh_operation'] = refresh['id']
                 report['next_due_before_restart'] = first['next_check']
                 # The real 300-second due time is not edited or mocked.
                 def new_posting():
@@ -554,7 +558,7 @@ def run_stack(artifacts):
                          "'predecessor':r['params'].get('predecessor_operation_id')} for r in rows]));c.close();s.engine.dispose()")
                 rows = exec_python('api', query)
                 if (len(rows) != 2 or any(row['state'] != 'COMPLETED' or row['attempt_count'] != 1 for row in rows)
-                        or next(row for row in rows if row['id'] != refresh['operation_id'])['predecessor'] != refresh['operation_id']):
+                        or next(row for row in rows if row['id'] != refresh['id'])['predecessor'] != refresh['id']):
                     raise FixtureError('STK01_REFRESH_DUPLICATE_OR_IDENTITY_CHANGED')
                 time.sleep(6)  # one actual production scheduler pass, still within the new interval
                 if exec_python('api', query) != rows:
