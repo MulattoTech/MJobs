@@ -11,6 +11,10 @@ from collections.abc import Mapping
 from urllib.parse import urlsplit
 
 from services.applications.adapters.lever import LeverApplicationAdapter
+from services.applications.adapters.workday_forms import (
+    analyze_workday_form_html,
+    requires_workday_human_review,
+)
 
 
 _HOST = re.compile(
@@ -45,6 +49,41 @@ class WorkdayApplicationAdapter(LeverApplicationAdapter):
             "live_form_interaction": False,
             "submission": False,
         }
+
+    def analyze_page(self, page, *, check=None) -> dict:
+        """Analyze current rendered markup without projecting answer values."""
+        if check is not None:
+            check()
+        try:
+            timeout = 10000
+            remaining = getattr(check, "remaining_seconds", None)
+            if callable(remaining):
+                timeout = max(1, min(10000, int(remaining() * 1000)))
+            markup = page.locator("form").evaluate_all(
+                "forms => forms.length === 1 ? forms[0].outerHTML : ''",
+                timeout=timeout,
+            )
+        except Exception:
+            if check is not None:
+                check()
+            return {"provider": self.provider, "status": "UNKNOWN",
+                    "reason": "PAGE_CONTENT_UNAVAILABLE", "fields": []}
+        if check is not None:
+            check()
+        return analyze_workday_form_html(markup)
+
+    def validate_page(self, page, analysis=None, *, check=None) -> dict:
+        """Invalidate a reviewed question snapshot when rendered markup changes."""
+        if check is not None:
+            check()
+        current = self.analyze_page(page, check=check)
+        if current.get("status") == "UNKNOWN":
+            return {"status": "UNKNOWN", "reason": current.get("reason", "FORM_UNKNOWN")}
+        if analysis is not None and current != analysis:
+            return {"status": "UNKNOWN", "reason": "FORM_CHANGED"}
+        if requires_workday_human_review(current):
+            return {"status": "REVIEW_REQUIRED", "reason": "FORM_REQUIRES_HUMAN_REVIEW"}
+        return current
 
     def normalize_route(self, route: Mapping) -> dict | None:
         """Accept only strict tenant.wdN.myworkdayjobs.com job routes."""

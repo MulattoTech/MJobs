@@ -19,6 +19,7 @@ _FIELD_KEYS = {
     "repeatable", "repeatable_group",
 }
 _REQUIRED_FIELD_KEYS = {"id", "label", "type", "required", "conditional", "repeatable"}
+_REPEAT_INDEX = re.compile(r"(?:\[\d+\]|\.\d+)(?=\.|$)")
 _FORBIDDEN_KEYS = {
     "value", "current_value", "selected_value", "checked", "answer", "answers",
     "default_value", "defaultvalue", "input_value", "text_content",
@@ -35,6 +36,7 @@ MAX_WORKDAY_LABEL_DEPTH = 32
 _HTML_ATTRIBUTES = {
     "id", "name", "type", "placeholder", "aria-label", "aria-required",
     "for", "class", "role", "contenteditable", "data-automation-id",
+    "aria-controls",
     "data-workday-conditional", "data-workday-conditional-on",
     "data-workday-repeatable", "data-workday-repeatable-group",
 }
@@ -238,6 +240,8 @@ class _WorkdayMarkupParser(HTMLParser):
         self.challenge_protected = False
         self.unsupported_interactive = False
         self.outside_form_controls = False
+        self.controlled_targets = {}
+        self.element_stack = []
         self.invalid = False
 
     def _record_event(self):
@@ -277,6 +281,13 @@ class _WorkdayMarkupParser(HTMLParser):
         tag = tag.casefold()
         values = self._attrs(attrs)
         self._check_challenge_metadata(values)
+        controlled_by = self.element_stack[-1][1] if self.element_stack else None
+        element_id = values.get("id")
+        if isinstance(element_id, str) and element_id in self.controlled_targets:
+            controlled_by = self.controlled_targets[element_id]
+        if tag not in {"area", "base", "br", "col", "embed", "hr", "img", "input",
+                       "link", "meta", "param", "source", "track", "wbr"}:
+            self.element_stack.append((tag, controlled_by))
         if tag in _IGNORED_CONTENT:
             self.ignored_stack.append(tag)
             return
@@ -318,8 +329,13 @@ class _WorkdayMarkupParser(HTMLParser):
             return
         conditional = values.get("data-workday-conditional")
         repeatable = values.get("data-workday-repeatable")
+        control_id = values.get("id")
+        aria_controls = values.get("aria-controls")
+        if isinstance(control_id, str) and isinstance(aria_controls, str):
+            for target in aria_controls.split():
+                self.controlled_targets[target] = control_id
         self.controls.append({
-            "id": values.get("id"),
+            "id": control_id,
             "name": values.get("name"),
             "placeholder": values.get("placeholder"),
             "aria_label": values.get("aria-label"),
@@ -329,8 +345,8 @@ class _WorkdayMarkupParser(HTMLParser):
                 or (isinstance(values.get("aria-required"), str)
                     and values["aria-required"].casefold() == "true")
             ),
-            "conditional": self._semantic_flag(conditional),
-            "conditional_on": values.get("data-workday-conditional-on"),
+            "conditional": True if controlled_by else self._semantic_flag(conditional),
+            "conditional_on": controlled_by or values.get("data-workday-conditional-on"),
             "repeatable": self._semantic_flag(repeatable),
             "repeatable_group": values.get("data-workday-repeatable-group"),
             "labels": [],
@@ -357,6 +373,10 @@ class _WorkdayMarkupParser(HTMLParser):
         if not self._record_event():
             return
         tag = tag.casefold()
+        for index in range(len(self.element_stack) - 1, -1, -1):
+            if self.element_stack[index][0] == tag:
+                del self.element_stack[index:]
+                break
         if self.ignored_stack:
             if tag == self.ignored_stack[-1]:
                 self.ignored_stack.pop()
@@ -413,6 +433,19 @@ class _WorkdayMarkupParser(HTMLParser):
             return _unknown("UNSUPPORTED_INTERACTIVE_CONTROL")
         if not self.controls:
             return _unknown("NO_FORM_CONTROLS")
+
+        repeatable_names = {}
+        repeatable_types = {"text", "email", "tel", "url", "number", "date", "select", "textarea"}
+        for control in self.controls:
+            name = control.get("name")
+            if isinstance(name, str) and control["type"] in repeatable_types:
+                group = _REPEAT_INDEX.sub("", name)
+                repeatable_names.setdefault(group, []).append(control)
+        for group, controls in repeatable_names.items():
+            if len(controls) > 1:
+                for control in controls:
+                    control["repeatable"] = True
+                    control["repeatable_group"] = group
 
         for control in self.controls:
             field_id = control.get("id")
@@ -524,6 +557,26 @@ def validate_workday_form(metadata: Mapping, expected_analysis: Mapping) -> dict
             or not expected_analysis.get("fields")):
         return _unknown("INVALID_EXPECTED_ANALYSIS")
     current = analyze_workday_form(metadata)
+    if current.get("status") == "UNKNOWN":
+        return current
+    if current != expected_analysis:
+        return _unknown("FORM_CHANGED")
+    return current
+
+
+def validate_workday_form_html(source, expected_analysis: Mapping) -> dict:
+    """Reanalyze current static HTML and invalidate a changed question snapshot.
+
+    The comparison uses only the analyzer's value-free field projection. Answer
+    values, selected options, and textarea contents are never observed.
+    """
+    if (not isinstance(expected_analysis, Mapping)
+            or expected_analysis.get("provider") != "workday"
+            or expected_analysis.get("status") not in {"PASS", "REVIEW_REQUIRED"}
+            or not isinstance(expected_analysis.get("fields"), list)
+            or not expected_analysis.get("fields")):
+        return _unknown("INVALID_EXPECTED_ANALYSIS")
+    current = analyze_workday_form_html(source)
     if current.get("status") == "UNKNOWN":
         return current
     if current != expected_analysis:
