@@ -595,6 +595,26 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                 )
                 self.assertGreater(label_box["width"], 1)
                 self.assertGreater(label_box["height"], 1)
+                text_box = page.locator("label span").evaluate(
+                    "span => { const range = document.createRange(); "
+                    "range.selectNodeContents(span); const rect = range.getBoundingClientRect(); "
+                    "return {width: rect.width, height: rect.height}; }"
+                )
+                self.assertTrue(text_box["width"] <= 1 or text_box["height"] <= 1)
+                zero_size_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    zero_size_projection[0]["rendered_labels"],
+                    [{"canonical_label": None, "has_text": False, "visible": False}],
+                )
+                self.assertNotIn("Email address", repr(zero_size_projection))
+                input_state = page.locator("form").locator(
+                    "input, select, textarea"
+                ).evaluate_all(_CONTROL_STATE_SCRIPT)
+                self.assertIs(input_state[0]["user_visible"], True)
+                self.assertIs(input_state[0]["hit_test_visible"], True)
+                self.assertIs(input_state[0]["user_editable"], True)
                 zero_size_text = self.adapter.analyze_page(page)
                 self.assertEqual(zero_size_text["status"], "UNKNOWN")
                 self.assertTrue(self.adapter.requires_human_review(zero_size_text))
