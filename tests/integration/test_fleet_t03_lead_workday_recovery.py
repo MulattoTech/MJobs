@@ -228,3 +228,33 @@ def test_repointed_route_with_same_url_cannot_reuse_a_checkpoint(recovery):
         assert rejected.json()["decision"] == "MANUAL_REVIEW"
         assert rejected.json()["state"] is None
         assert audit_rows(store) == before
+
+
+def test_explicit_backward_round_trip_resumes_and_can_go_forward_again(recovery):
+    store, root, _ = recovery
+    first = observation("My Information")
+    second = observation("My Experience")
+    with client_for(store, root) as client:
+        initialized = client.post(URL + "/workday", json=request("INITIALIZE", 0, first))
+        assert initialized.status_code == 200, initialized.text
+        advanced = client.post(URL + "/workday", json=request("NEXT", 1, second, previous=first))
+        assert advanced.status_code == 200, advanced.text
+        assert advanced.json()["decision"] == "CONFIRMED"
+        returned = client.post(URL + "/workday", json=request("PREVIOUS", 2, first, previous=second))
+        assert returned.status_code == 200, returned.text
+        assert returned.json()["decision"] == "CONFIRMED"
+        state = returned.json()["state"]
+        assert (state["current_page_id"], state["version"]) == ("my_information", 3)
+        assert client.get(URL).json() == state
+        before_resume = audit_rows(store)
+        resumed = client.post(URL + "/workday", json=request("RESUME", 3, first))
+        assert resumed.status_code == 200, resumed.text
+        assert resumed.json()["decision"] == "RESUME_FROM_CONFIRMED_STEP"
+        assert resumed.json()["state"] == state
+        assert audit_rows(store) == before_resume
+        forward_again = client.post(URL + "/workday", json=request("NEXT", 3, second, previous=first))
+        assert forward_again.status_code == 200, forward_again.text
+        assert forward_again.json()["decision"] == "CONFIRMED"
+        assert forward_again.json()["state"]["version"] == 4
+        assert client.get(URL).json()["current_page_id"] == "my_experience"
+        assert len(audit_rows(store)) == len(before_resume) + 1
