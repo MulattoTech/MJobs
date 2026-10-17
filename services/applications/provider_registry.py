@@ -5,6 +5,7 @@ from collections.abc import Mapping
 
 from services.applications.adapters.ashby import AshbyApplicationAdapter
 from services.applications.adapters.bamboohr import BambooHRApplicationAdapter
+from services.applications.adapters.breezy import BreezyApplicationAdapter
 from services.applications.adapters.generic_html import GenericHTMLApplicationAdapter
 from services.applications.adapters.greenhouse import GreenhouseApplicationAdapter
 from services.applications.adapters.lever import LeverApplicationAdapter
@@ -18,6 +19,7 @@ from services.applications.adapters.workday import WorkdayApplicationAdapter
 _ADAPTERS = {
     "ashby": AshbyApplicationAdapter,
     "bamboohr": BambooHRApplicationAdapter,
+    "breezy": BreezyApplicationAdapter,
     "generic_html": GenericHTMLApplicationAdapter,
     "greenhouse": GreenhouseApplicationAdapter,
     "lever": LeverApplicationAdapter,
