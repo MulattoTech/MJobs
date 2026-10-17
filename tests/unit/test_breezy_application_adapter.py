@@ -343,6 +343,27 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     '<form><label for="email" style="display:none">Email address</label>'
                     '<input id="email" type="email"></form>'
                 )
+                page.evaluate(
+                    """() => {
+                      const label = document.querySelector('label');
+                      window.hiddenLabelTextReads = 0;
+                      Object.defineProperty(label, 'textContent', {
+                        configurable: true,
+                        get() {
+                          window.hiddenLabelTextReads += 1;
+                          return 'Email address';
+                        }
+                      });
+                    }"""
+                )
+                hidden_label_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    hidden_label_projection[0]["rendered_labels"],
+                    [{"canonical_label": None, "has_text": False, "visible": False}],
+                )
+                self.assertEqual(page.evaluate("() => window.hiddenLabelTextReads"), 0)
                 hidden_label = self.adapter.analyze_page(page)
                 self.assertEqual(hidden_label["status"], "UNKNOWN")
                 self.assertTrue(self.adapter.requires_human_review(hidden_label))

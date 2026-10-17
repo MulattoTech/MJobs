@@ -114,9 +114,9 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
     return {
       tag,
       rendered_labels: Array.from(element.labels || []).slice(0, 21).map(label => {
-        const text = String(label.textContent || '');
-        const hasText = Boolean(text.trim());
         const visible = labelIsVisible(label);
+        const text = visible ? String(label.textContent || '') : '';
+        const hasText = Boolean(text.trim());
         let canonicalLabel = null;
         if (hasText && visible && /^[\x00-\x7F]*$/.test(text)) {
           const normalized = text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
