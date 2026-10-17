@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import re
 import time
+
+import httpx
 from sqlalchemy import select, update
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -20,6 +22,31 @@ _ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$")
 
 class ConfirmationConflict(ValueError):
     pass
+
+
+class _TimeoutAwareReceiptClient:
+    """Keep provider read timeouts distinct from a valid empty receipt lookup."""
+
+    def __init__(self, client):
+        self.client = client
+        self.timed_out = False
+
+    @property
+    def origin(self):
+        return self.client.origin
+
+    def check(self):
+        return self.client.check()
+
+    def allowed(self, url):
+        return self.client.allowed(url)
+
+    def get(self, url):
+        try:
+            return self.client.get(url)
+        except (httpx.TimeoutException, TimeoutError) as error:
+            self.timed_out = True
+            raise TimeoutError("CONFIRMATION_READ_TIMEOUT") from error
 
 
 def _application(connection, profile_id, application_id, *, lock=False):
@@ -157,7 +184,47 @@ def _previous(connection, event_id, application):
         return None
     if event.get("route_id") != application["route_id"]:
         raise ConfirmationConflict("CONFIRMATION_ROUTE_CHANGED")
+    route_identity = event.get("route_identity")
+    if route_identity != _route_identity(_route(connection, application)):
+        raise ConfirmationConflict("CONFIRMATION_ROUTE_CHANGED")
     return {**event["result"], "replayed": True}
+
+
+def _route_identity(route):
+    return {key: route.get(key) for key in ("provider", "tenant", "requisition", "url")}
+
+
+def latest_confirmation_check(store, profile_id, application_id, *, operation_mode):
+    """Read the latest saved check without contacting the provider or changing state."""
+    if operation_mode != "FIXTURE":
+        raise ConfirmationConflict("CONFIRMATION_FIXTURE_ONLY")
+    try:
+        store.assert_workspace_mode("FIXTURE")
+    except ValueError:
+        raise ConfirmationConflict("CONFIRMATION_FIXTURE_ONLY") from None
+    with store.engine.connect() as connection:
+        application = _application(connection, profile_id, application_id)
+        event = connection.execute(select(
+            m.audit.c.id, m.audit.c.payload,
+        ).where(
+            m.audit.c.entity_id == application_id,
+            m.audit.c.action == ACTION,
+        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1)).mappings().one_or_none()
+        if event is None:
+            return None
+        payload = event["payload"]
+        if (not isinstance(payload, dict)
+                or payload.get("schema_version") != 1
+                or payload.get("route_id") != application["route_id"]
+                or payload.get("route_identity") != _route_identity(_route(connection, application))):
+            raise ConfirmationConflict("CONFIRMATION_ROUTE_CHANGED")
+        result = payload.get("result")
+        if (not isinstance(result, dict)
+                or result.get("check_id") != event["id"]
+                or result.get("profile_id") != profile_id
+                or result.get("application_id") != application_id):
+            raise ConfirmationConflict("CONFIRMATION_CHECK_INVALID")
+        return {**result, "replayed": True}
 
 
 def reconcile_confirmation(store, profile_id, application_id, mock_origin,
@@ -186,10 +253,18 @@ def reconcile_confirmation(store, profile_id, application_id, mock_origin,
     # No POST, browser, authentication bypass, or retry of the submit step exists.
     from services.applications.mock_adapter import _receipt
     client = MockClient(mock_origin, check=check)
+    receipt_client = _TimeoutAwareReceiptClient(client)
+    check_unavailable = False
     try:
         if not client.allowed(route["url"]):
             raise ConfirmationConflict("CONFIRMATION_ORIGIN_MISMATCH")
-        receipt = _receipt(client, application, route["requisition"])
+        receipt = _receipt(receipt_client, application, route["requisition"])
+        check_unavailable = receipt_client.timed_out
+    except TimeoutError:
+        # A timeout says nothing about whether the earlier submit was received.
+        # Persist the failed read as evidence without changing application state.
+        receipt = None
+        check_unavailable = True
     finally:
         client.close()
     with store.engine.begin() as connection:
@@ -208,8 +283,15 @@ def reconcile_confirmation(store, profile_id, application_id, mock_origin,
         # Do not downgrade an already confirmed application on a later outage.
         already_confirmed = current["state"] == "CONFIRMED"
         resolved_receipt = current.get("confirmation") if already_confirmed else receipt
-        confirmed = already_confirmed or receipt is not None
-        state = "CONFIRMED" if confirmed else "SUBMISSION_UNCONFIRMED"
+        if already_confirmed:
+            state = "CONFIRMED"
+            status = "CONFIRMED"
+        elif check_unavailable:
+            state = "SUBMISSION_UNCONFIRMED"
+            status = "CHECK_UNAVAILABLE"
+        else:
+            state = "CONFIRMED" if receipt is not None else "SUBMISSION_UNCONFIRMED"
+            status = "CONFIRMED" if receipt is not None else "NO_VERIFIED_RECEIPT"
         timestamp = now()
         public_receipt = None
         if isinstance(resolved_receipt, dict):
@@ -217,7 +299,8 @@ def reconcile_confirmation(store, profile_id, application_id, mock_origin,
                               for key in ("reference_number", "timestamp")}
         result = {"check_id": event_id, "profile_id": profile_id,
                   "application_id": application_id,
-                  "status": "CONFIRMED" if confirmed else "NO_VERIFIED_RECEIPT",
+                  "status": status,
+                  "lookup_failure_code": "CONFIRMATION_READ_TIMEOUT" if check_unavailable else None,
                   "application_state": state, "checked_at": timestamp,
                   "confirmation": public_receipt,
                   "provider_receipt_verified": receipt is not None,
@@ -237,5 +320,6 @@ def reconcile_confirmation(store, profile_id, application_id, mock_origin,
                 raise ConfirmationConflict("CONFIRMATION_STATE_CHANGED")
         connection.execute(m.audit.insert().values(
             id=event_id, entity_id=application_id, action=ACTION, timestamp=timestamp,
-            payload={"schema_version": 1, "route_id": current["route_id"], "result": result}))
+            payload={"schema_version": 1, "route_id": current["route_id"],
+                     "route_identity": _route_identity(current_route), "result": result}))
     return result
