@@ -209,7 +209,21 @@ class Store:
                 ).values(version=current))
                 if claimed.rowcount != 1:
                     raise ProfileVersionConflict("Profile changed while this save was being prepared; reload before saving")
-            upsert(connection, m.profiles, {"id": profile["id"], "name": profile["name"], "email": profile["email"], "version": version}, replace=True)
+            profile_row = {"id": profile["id"], "name": profile["name"], "email": profile["email"], "version": version}
+            if current is None:
+                # Absence was observed before this transaction. Another creator
+                # may have committed since then; never turn creation into an
+                # unversioned overwrite of that newly durable profile.
+                insert = {"postgresql": postgres_insert, "sqlite": sqlite_insert}[connection.dialect.name]
+                created = connection.execute(insert(m.profiles).values(**profile_row)
+                    .on_conflict_do_nothing(index_elements=[m.profiles.c.id])
+                    .returning(m.profiles.c.id)).scalar_one_or_none()
+                # INSERT rowcount can be unavailable (-1) with psycopg.
+                # A returned identity distinguishes creation from a conflict.
+                if created is None:
+                    raise ProfileVersionConflict("Profile was created while this save was being prepared; reload before saving")
+            else:
+                upsert(connection, m.profiles, profile_row, replace=True)
             if len({answer["id"] for answer in answers}) != len(answers):
                 raise ValueError("Duplicate approved answer identity")
             upsert(connection, m.profile_versions, {"id": identity(profile["id"], version), "profile_id": profile["id"], "version": version,
