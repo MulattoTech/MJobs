@@ -104,6 +104,23 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     "provider": "breezy", "url": prefix + "389eb1b8c3ef-job", **metadata,
                 }))
 
+    def test_static_review_entry_point_preserves_route_and_manual_boundary(self):
+        route = "https://acme.breezy.hr/p/389eb1b8c3ef-job"
+        markup = b'<form><input name="email" type="email" value="private@example.test"></form>'
+        report = self.adapter.analyze_form(markup, route_url=route)
+        self.assertEqual(report["status"], "REVIEW_REQUIRED")
+        self.assertTrue(self.adapter.requires_human_review(report))
+        self.assertNotIn("private@example.test", str(report))
+        from workers.application_form_review import _safe_report
+
+        self.assertEqual(_safe_report(report), report)
+        rejected = self.adapter.analyze_form(
+            markup, route_url=route.replace("acme.breezy.hr", "example.test"),
+        )
+        self.assertEqual(rejected, {
+            "status": "REVIEW_REQUIRED", "reason": "ROUTE_UNSUPPORTED", "fields": [],
+        })
+
     def test_known_basic_contact_fixture_needs_no_extra_review(self):
         analysis = {"status": "PASS", "fields": [{
             "tag": "input", "input_type": "email", "sensitivity": "STANDARD", "ambiguous": False,

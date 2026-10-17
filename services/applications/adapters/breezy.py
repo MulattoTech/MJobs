@@ -426,6 +426,16 @@ class BreezyApplicationAdapter:
             "url": f"https://{tenant}.breezy.hr/p/{requisition}-{slug}",
         }
 
+    def analyze_form(self, html, *, route_url) -> dict:
+        """Inspect bounded static markup for the durable review worker.
+
+        Static inspection cannot prove rendered visibility. Its value-free
+        report always requires manual review and never authorizes interaction.
+        """
+        from services.applications.breezy_projection import analyze_breezy_form_html
+
+        return analyze_breezy_form_html(html, route_url=route_url)
+
     def analyze_page(self, page, *, check=None) -> dict:
         """Read form metadata only; no controls are filled, clicked, or submitted."""
         if check is not None:
