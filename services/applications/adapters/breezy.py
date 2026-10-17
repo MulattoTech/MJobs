@@ -137,6 +137,14 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
         node = node.parentElement;
       }
       if (node !== label || textOpacity < 0.1) return false;
+      const range = document.createRange();
+      range.selectNode(textNode);
+      const textRects = Array.from(range.getClientRects());
+      if (!textRects.length || textRects.some(rect =>
+          rect.width <= 1 || rect.height <= 1 || rect.right <= 0 || rect.bottom <= 0 ||
+          rect.left >= window.innerWidth || rect.top >= window.innerHeight ||
+          rect.right <= visibleBounds.left || rect.left >= visibleBounds.right ||
+          rect.bottom <= visibleBounds.top || rect.top >= visibleBounds.bottom)) return false;
     }
     return true;
   };

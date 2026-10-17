@@ -393,6 +393,21 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     self.adapter.requires_human_review(transparent_descendant)
                 )
                 page.set_content(
+                    '<style>.prompt{display:inline-block;width:120px;height:24px}'
+                    '.prompt span{font-size:0}</style><form>'
+                    '<label class="prompt" for="email"><span>Email address</span></label>'
+                    '<input id="email" type="email"></form>'
+                )
+                label_box = page.locator("label").evaluate(
+                    "label => { const rect = label.getBoundingClientRect(); "
+                    "return {width: rect.width, height: rect.height}; }"
+                )
+                self.assertGreater(label_box["width"], 1)
+                self.assertGreater(label_box["height"], 1)
+                zero_size_text = self.adapter.analyze_page(page)
+                self.assertEqual(zero_size_text["status"], "UNKNOWN")
+                self.assertTrue(self.adapter.requires_human_review(zero_size_text))
+                page.set_content(
                     '<style>form{position:relative;height:100px}.prompt{position:absolute;'
                     'left:10px;top:10px;width:80px;height:20px}.field{position:absolute;'
                     'left:10px;top:40px}.cover{position:absolute;left:10px;top:10px;'
