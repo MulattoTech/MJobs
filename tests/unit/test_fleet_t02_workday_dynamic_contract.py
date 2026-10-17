@@ -1,5 +1,6 @@
 """Strict, value-free Workday review envelope boundary."""
 from copy import deepcopy
+import hashlib
 import json
 
 import pytest
@@ -50,6 +51,11 @@ def test_forged_durable_envelope_is_rejected(change):
         envelope["fields"][1]["conditional_on"] = "missing"
     else:
         envelope["fields"][1]["conditional"] = 1
+    if change != "hash":
+        envelope["fingerprint"] = hashlib.sha256(json.dumps(
+            {"schema_version": envelope["schema_version"], "fields": envelope["fields"]},
+            sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+        ).encode()).hexdigest()
     assert validate_workday_dynamic_review(envelope) is None
 
 
@@ -70,4 +76,19 @@ def test_malformed_analyzer_scalars_fail_closed(key, value):
     from services.applications.workday_dynamic_review import project_workday_dynamic_review
     analysis = analyze_workday_form_html(MARKUP)
     analysis["fields"][0][key] = value
+    assert project_workday_dynamic_review(analysis) is None
+
+
+def test_form_revision_changes_question_identity():
+    from services.applications.workday_dynamic_review import project_workday_dynamic_review
+    analysis = analyze_workday_form_html(MARKUP)
+    original = project_workday_dynamic_review(analysis)
+    analysis["revision"] = "changed-questionnaire-v2"
+    assert project_workday_dynamic_review(analysis)["fingerprint"] != original["fingerprint"]
+
+
+def test_cyclic_observation_has_no_usable_review_identity():
+    from services.applications.workday_dynamic_review import project_workday_dynamic_review
+    analysis = analyze_workday_form_html(MARKUP)
+    analysis["fields"][0].update(conditional=True, conditional_on="region")
     assert project_workday_dynamic_review(analysis) is None
