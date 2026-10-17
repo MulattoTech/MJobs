@@ -13,10 +13,11 @@ from unittest.mock import patch
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, select, text
 from sqlalchemy.pool import NullPool
 
 from apps.api.main import create_app
+from apps.api.data_export import create_data_export_router
 from apps.api.profile_restore import create_profile_restore_router
 from packages.persistence import models as m
 from packages.persistence.store import Store
@@ -81,6 +82,64 @@ class FleetT18SnapshotRecoveryTests(unittest.TestCase):
                 source.engine.dispose()
                 target.engine.dispose()
 
+    def test_backup_upload_read_reuses_live_snapshot_connection(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            store = Store(f"sqlite:///{(root / 'source.db').as_posix()}")
+            store.migrate()
+            store.bind_workspace_mode("FIXTURE")
+            store.save_profile(copy.deepcopy(PROFILE))
+            output = root / "output"
+            output.mkdir()
+            upload = save_resume(
+                store, output, "fixture", "snapshot.txt", "text/plain",
+                b"Synthetic snapshot-bound resume",
+            )
+            app = FastAPI()
+            app.include_router(create_data_export_router(store, output_dir=output))
+
+            from services.documents import uploads
+
+            real_profile_rows = data_export._profile_rows
+            real_read_resume = uploads.read_resume
+            snapshot_connections = []
+            read_connections = []
+            post_read_queries = []
+
+            def remember_snapshot(connection, table, profile_id, columns):
+                rows = real_profile_rows(connection, table, profile_id, columns)
+                if table is m.profile_versions:
+                    snapshot_connections.append(connection)
+                return rows
+
+            def inspect_upload_read(*args, **kwargs):
+                connection = kwargs.get("connection")
+                read_connections.append(connection)
+                metadata, contents = real_read_resume(*args, **kwargs)
+                self.assertIsNotNone(connection)
+                self.assertFalse(connection.closed)
+                post_read_queries.append(connection.execute(
+                    select(m.uploaded_resumes.c.id).where(
+                        m.uploaded_resumes.c.id == upload["id"],
+                        m.uploaded_resumes.c.profile_id == "fixture",
+                    ),
+                ).scalar_one())
+                return metadata, contents
+
+            try:
+                with (patch.object(data_export, "_profile_rows", side_effect=remember_snapshot),
+                      patch.object(uploads, "read_resume", side_effect=inspect_upload_read),
+                      TestClient(app) as client):
+                    response = client.get("/profiles/fixture/exports/backup.json")
+                self.assertEqual(response.status_code, 200, response.text)
+                self.assertEqual(len(snapshot_connections), 1)
+                self.assertTrue(read_connections)
+                self.assertTrue(all(connection is snapshot_connections[0]
+                                    for connection in read_connections))
+                self.assertEqual(post_read_queries, [upload["id"]])
+            finally:
+                store.engine.dispose()
+
     @unittest.skipUnless(POSTGRES_URL, "Requires disposable loopback MJOBS_TEST_POSTGRES_URL")
     def test_postgres_public_backup_is_consistent_during_concurrent_profile_update(self):
         base_url = _disposable_postgres_url(POSTGRES_URL)
@@ -90,7 +149,7 @@ class FleetT18SnapshotRecoveryTests(unittest.TestCase):
             connection.execute(text('CREATE SCHEMA "' + schema + '"'))
         try:
             url = base_url.update_query_dict({"options": "-csearch_path=" + schema
-                + " -clock_timeout=5000 -cstatement_timeout=30000 -capplication_name=" + schema
+                + " -clock_timeout=3000 -cstatement_timeout=15000 -capplication_name=" + schema
             }).render_as_string(hide_password=False)
             from packages.persistence import resume_workspace  # noqa: F401
 
