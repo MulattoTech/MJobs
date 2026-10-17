@@ -7,7 +7,7 @@ import re
 from collections.abc import Mapping
 
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import NoResultFound
 
 from apps.api.application_form_review import (
@@ -45,9 +45,6 @@ def _field_type(value) -> str | None:
     normalized = value.casefold()
     aliases = {
         "textarea": "text",
-        "tel": "text",
-        "url": "text",
-        "password": "text",
         "select-one": "select",
         "select-multiple": "select",
         "radio": "choice",
@@ -55,6 +52,13 @@ def _field_type(value) -> str | None:
     }
     normalized = aliases.get(normalized, normalized)
     return normalized if normalized in _FIELD_KINDS else None
+
+
+def _workday_field_type(value) -> str | None:
+    """Normalize Workday envelope controls without changing generic mappings."""
+    if isinstance(value, str) and value.casefold() in {"tel", "url", "password"}:
+        return "text"
+    return _field_type(value)
 
 
 def _fields(report: Mapping) -> list[dict] | None:
@@ -299,6 +303,8 @@ def _latest_workday_dynamic_review(store, profile_id: str, application_id: str,
         return None
     frozen = _frozen_review_input(store, profile_id, application_id, row, route)
     current_input_fingerprint = _input_fingerprint(frozen)
+    from workers.application_form_review import FormReviewError, _existing_result
+
     with store.engine.connect() as connection:
         latest_order = [
             m.operations.c.params["admitted_at"].as_string().desc().nullslast(),
@@ -314,14 +320,21 @@ def _latest_workday_dynamic_review(store, profile_id: str, application_id: str,
             return {"state": "IDLE", "analysis": None, "input_current": True}
         operation = operations[0]
         params = operation["params"] if isinstance(operation["params"], Mapping) else {}
-        audit = connection.execute(select(m.audit.c.payload).where(
+        receipt_count = connection.execute(select(func.count()).select_from(m.audit).where(
             m.audit.c.entity_id == application_id,
             m.audit.c.action == _FORM_REVIEW_KIND,
-        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings()
-        analysis = next((event["payload"].get("analysis") for event in audit
-                         if isinstance(event["payload"], Mapping)
-                         and event["payload"].get("operation_id") == operation["id"]
-                         and isinstance(event["payload"].get("analysis"), Mapping)), None)
+            m.audit.c.payload["operation_id"].as_string() == operation["id"],
+        )).scalar_one()
+        if receipt_count > 1:
+            raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"})
+        try:
+            receipt = _existing_result(
+                connection, application_id, operation["id"],
+                params.get("request_id"), params.get("input_fingerprint"),
+            )
+        except FormReviewError:
+            raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"}) from None
+        analysis = receipt.get("analysis") if receipt is not None else None
     return {
         "state": operation["state"],
         "analysis": analysis,
@@ -339,7 +352,7 @@ def _workday_dynamic_fields(envelope: Mapping) -> list[dict] | None:
         if not isinstance(item, Mapping):
             return None
         field_id = item.get("id") or item.get("name")
-        field_type = _field_type(item.get("type"))
+        field_type = _workday_field_type(item.get("type"))
         required = item.get("required")
         conditional = item.get("conditional")
         conditional_on = item.get("conditional_on")

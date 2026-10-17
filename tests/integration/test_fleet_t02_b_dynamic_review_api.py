@@ -59,7 +59,9 @@ class FleetT02BDynamicReviewApiTests(unittest.TestCase):
         DynamicApplicationFieldsApiTests.tearDown(self)
 
     def _save_review(self, request_id, dynamic_review, state="COMPLETED",
-                     admitted_at=None, updated_at=None):
+                     admitted_at=None, updated_at=None, receipt_request_id=None,
+                     receipt_input_fingerprint=None, analysis=None,
+                     duplicate_receipt=False):
         row, route = _application_route(self.store, "fixture", self.application_id)
         frozen = _frozen_review_input(self.store, "fixture", self.application_id, row, route)
         params = {**frozen, "request_id": request_id}
@@ -72,10 +74,21 @@ class FleetT02BDynamicReviewApiTests(unittest.TestCase):
                 m.operations.c.id == operation_id,
             ).values(state=state, updated_at=updated_at or datetime.now(timezone.utc)))
             if state == "COMPLETED":
-                self.store._audit(connection, self.application_id, "APPLICATION_FORM_REVIEW", {
+                receipt = {
                     "operation_id": operation_id,
-                    "analysis": {"status": "REVIEW_REQUIRED", "dynamic_review": dynamic_review},
-                })
+                    "request_id": receipt_request_id or request_id,
+                    "input_fingerprint": receipt_input_fingerprint or params["input_fingerprint"],
+                    "analysis": analysis or {
+                        "status": "REVIEW_REQUIRED",
+                        "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
+                        "fields": [],
+                        "dynamic_review": dynamic_review,
+                    },
+                }
+                self.store._audit(connection, self.application_id, "APPLICATION_FORM_REVIEW", receipt)
+                if duplicate_receipt:
+                    self.store._audit(connection, self.application_id,
+                                      "APPLICATION_FORM_REVIEW", receipt)
         return operation_id
 
     def test_latest_review_fingerprint_survives_store_restart_and_question_change_stales_it(self):
@@ -148,6 +161,27 @@ class FleetT02BDynamicReviewApiTests(unittest.TestCase):
             "expected_fingerprint": second["fingerprint"],
         })
         self.assertEqual(profile_stale.status_code, 409, profile_stale.text)
+
+    def test_invalid_or_transplanted_review_receipt_fails_closed_without_echo(self):
+        request_fingerprint = envelope()["fingerprint"]
+        for suffix, receipt_options in (
+            ("request", {"receipt_request_id": "other-request"}),
+            ("input", {"receipt_input_fingerprint": "f" * 64}),
+            ("duplicate", {"duplicate_receipt": True}),
+            ("envelope", {"analysis": {
+                "status": "REVIEW_REQUIRED", "reason": "WORKDAY_DYNAMIC_SEMANTICS_UNOBSERVED",
+                "fields": [], "dynamic_review": {"PRIVATE_RECEIPT_CANARY": "secret"},
+            }}),
+        ):
+            with self.subTest(receipt=suffix):
+                self._save_review(f"t02-b-invalid-receipt-{suffix}", envelope(),
+                                  **receipt_options)
+                response = self.client.get(self.url, params={
+                    "expected_fingerprint": request_fingerprint,
+                })
+                self.assertEqual(response.status_code, 409, response.text)
+                self.assertEqual(response.json()["detail"]["code"], "DYNAMIC_FIELDS_STALE")
+                self.assertNotIn("PRIVATE_RECEIPT_CANARY", response.text)
 
 
 if __name__ == "__main__":
