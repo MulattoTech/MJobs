@@ -6,7 +6,8 @@ import sys
 import tempfile
 import time
 import unittest
-from unittest.mock import patch
+from threading import RLock
+from unittest.mock import Mock, patch
 
 from sqlalchemy import select
 
@@ -112,3 +113,90 @@ class FleetT12BrowserLifecycleTests(unittest.TestCase):
                 query.close()
             for job in jobs:
                 job.close()
+
+
+class _Pipe:
+    def __init__(self):
+        self.closed = False
+
+    def write(self, frame):
+        if self.closed:
+            raise BrokenPipeError("synthetic delayed observer reply")
+        return len(frame)
+
+    def flush(self):
+        if self.closed:
+            raise BrokenPipeError("synthetic delayed observer reply")
+
+    def close(self):
+        self.closed = True
+
+
+class _LateObserverProcess:
+    def __init__(self):
+        self.stdin = _Pipe()
+        self.stdout = _Pipe()
+        self.wait_timeout = None
+
+    def poll(self):
+        return None
+
+    def wait(self, timeout):
+        self.wait_timeout = timeout
+        if self.stdout.closed:
+            raise AssertionError("stdout closed before the bounded wait")
+        raise subprocess.TimeoutExpired("synthetic-observer", timeout)
+
+
+class FleetT12ObserverPipeOrderingTests(unittest.TestCase):
+    def observer(self, process):
+        observer = object.__new__(BrowserTreeObserver)
+        observer._lock = RLock()
+        observer._process = process
+        observer._closed = False
+        observer._binding = {"operation_id": "late-op", "application_id": "late-app",
+            "attempt_id": "late-attempt", "profile_id": "late-profile", "owner_digest": "d" * 64}
+        observer.identity = {"pid": 1, "created": "1", "host": "e" * 64}
+        return observer
+
+    def test_delayed_response_after_close_wait_enters_retained_closure_path(self):
+        from services.applications import browser_tree_ipc as ipc
+
+        process = _LateObserverProcess()
+        observer = self.observer(process)
+        observer.close()
+        self.assertEqual(process.wait_timeout, 2)
+        self.assertTrue(process.stdout.closed)
+
+        class Query:
+            def accounting(self):
+                return {"total": 2, "active": 1, "terminated": 0}
+
+            def status(self):
+                return "EXITED"
+
+        persist = Mock(return_value=True)
+        result = ipc._respond(process.stdout, "a" * 64, observer._binding,
+            observer.identity, Query(), object(), persist)
+        self.assertFalse(result)
+        persist.assert_called_once_with()
+
+    def test_unlaunched_response_loss_does_not_wait_or_persist(self):
+        from services.applications import browser_tree_ipc as ipc
+
+        process = _LateObserverProcess()
+        observer = self.observer(process)
+        observer.close()
+
+        class Query:
+            def accounting(self):
+                return {"total": 0, "active": 0, "terminated": 0}
+
+            def status(self):
+                raise AssertionError("unlaunched trees must not enter retained wait")
+
+        persist = Mock()
+        result = ipc._respond(process.stdout, "a" * 64, observer._binding,
+            observer.identity, Query(), object(), persist)
+        self.assertFalse(result)
+        persist.assert_not_called()
