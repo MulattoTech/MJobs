@@ -24,7 +24,8 @@ _CONTACT_PROMPTS = {
     "phone number", "postal code", "state", "website", "zip code",
 }
 _SUPPORTED_INPUT_TYPES = {"text", "email", "tel"}
-_SAFE_LABEL_METADATA_SCRIPT = r"""form => {
+_SAFE_LABEL_METADATA_SCRIPT = r"""(form, approvedLabels) => {
+  const approved = new Set(approvedLabels);
   const hasRenderedText = node => Boolean(node && String(node.textContent || '').trim());
   const labelIsVisible = label => {
     const ancestors = [];
@@ -112,10 +113,21 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""form => {
     const legend = fieldset && fieldset.querySelector('legend');
     return {
       tag,
-      rendered_labels: Array.from(element.labels || []).slice(0, 21).map(label => ({
-        text: String(label.textContent || ''),
-        visible: labelIsVisible(label)
-      })),
+      rendered_labels: Array.from(element.labels || []).slice(0, 21).map(label => {
+        const text = String(label.textContent || '');
+        const hasText = Boolean(text.trim());
+        const visible = labelIsVisible(label);
+        let canonicalLabel = null;
+        if (hasText && visible && /^[\x00-\x7F]*$/.test(text)) {
+          const normalized = text.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+          if (approved.has(normalized)) canonicalLabel = normalized;
+        }
+        return {
+          canonical_label: canonicalLabel,
+          has_text: hasText,
+          visible
+        };
+      }),
       name: element.getAttribute('name'),
       id: element.getAttribute('id'),
       placeholder: element.getAttribute('placeholder'),
@@ -125,9 +137,7 @@ _SAFE_LABEL_METADATA_SCRIPT = r"""form => {
       section_heading: null,
       fieldset_legend: null,
       unsafe_text_context: hasRenderedText(heading) || hasRenderedText(legend),
-      options: tag === 'select'
-        ? Array.from(element.options).slice(0, 101).map(option => option.label)
-        : []
+      options: []
     };
   });
 }"""
@@ -367,7 +377,9 @@ class BreezyApplicationAdapter:
                 remaining = getattr(check, "remaining_seconds", None)
                 if callable(remaining):
                     timeout_kwargs["timeout"] = max(1, min(10000, int(remaining() * 1000)))
-            controls = forms.first.evaluate(_SAFE_LABEL_METADATA_SCRIPT, **timeout_kwargs)
+            controls = forms.first.evaluate(
+                _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS), **timeout_kwargs
+            )
             if check is not None:
                 check()
         except Exception:
@@ -386,18 +398,19 @@ class BreezyApplicationAdapter:
             safe_labels = []
             for rendered in rendered_labels:
                 if (not isinstance(rendered, dict)
-                        or not isinstance(rendered.get("text"), str)
+                        or type(rendered.get("has_text")) is not bool
                         or type(rendered.get("visible")) is not bool):
                     return unknown("INVALID_LABEL_METADATA")
+                normalized = rendered.get("canonical_label")
+                if normalized is not None and (
+                        not isinstance(normalized, str)
+                        or normalized not in _CONTACT_PROMPTS):
+                    return unknown("INVALID_LABEL_METADATA")
+                if not rendered["has_text"]:
+                    continue
                 if not rendered["visible"]:
-                    continue
-                normalized = re.sub(
-                    r"[^a-z0-9]+", " ", rendered["text"].casefold(),
-                ).strip()
-                if not normalized:
-                    continue
-                if normalized not in _CONTACT_PROMPTS:
-                    # Do not return or persist arbitrary rendered page text.
+                    return unknown("NO_VISIBLE_ASSOCIATED_LABEL")
+                if normalized is None:
                     return unknown("UNRECOGNIZED_RENDERED_LABEL")
                 if normalized not in safe_labels:
                     safe_labels.append(normalized)

@@ -3,7 +3,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from services.applications.adapters.breezy import BreezyApplicationAdapter
+from services.applications.adapters.breezy import (
+    BreezyApplicationAdapter,
+    _CONTACT_PROMPTS,
+    _SAFE_LABEL_METADATA_SCRIPT,
+)
 
 
 class BreezyApplicationAdapterTests(unittest.TestCase):
@@ -106,7 +110,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             def count(self):
                 return 1
 
-            def evaluate(self, script, **kwargs):
+            def evaluate(self, script, arg=None, **kwargs):
                 return controls
 
             def locator(self, selector):
@@ -193,7 +197,7 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
                     def count(self):
                         return 1
 
-                    def evaluate(self, script, **kwargs):
+                    def evaluate(self, script, arg=None, **kwargs):
                         return controls
 
                     def locator(self, selector):
@@ -255,6 +259,38 @@ class BreezyApplicationAdapterTests(unittest.TestCase):
             )
             try:
                 page = browser.new_page(viewport={"width": 640, "height": 480})
+                page.set_content(
+                    '<form><label for="email">Email address</label>'
+                    '<input id="email" type="email" '
+                    'value="synthetic-private-value"></form>'
+                )
+                approved_label_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    approved_label_projection[0]["rendered_labels"],
+                    [{"canonical_label": "email address", "has_text": True,
+                      "visible": True}],
+                )
+                self.assertNotIn(
+                    "synthetic-private-value", repr(approved_label_projection),
+                )
+                page.set_content(
+                    '<form><label for="custom">Why do you want to work here? '
+                    'synthetic-secret-prompt</label>'
+                    '<input id="custom" type="text"></form>'
+                )
+                unknown_label_projection = page.locator("form").first.evaluate(
+                    _SAFE_LABEL_METADATA_SCRIPT, sorted(_CONTACT_PROMPTS),
+                )
+                self.assertEqual(
+                    unknown_label_projection[0]["rendered_labels"],
+                    [{"canonical_label": None, "has_text": True, "visible": True}],
+                )
+                self.assertNotIn(
+                    "Why do you want to work here? synthetic-secret-prompt",
+                    repr(unknown_label_projection),
+                )
                 for name, control, css, expected_review in fixtures:
                     with self.subTest(dom_state=name):
                         page.set_content(
