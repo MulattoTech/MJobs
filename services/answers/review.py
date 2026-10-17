@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import math
 import re
 
 from services.documents.answers import (
@@ -47,6 +48,8 @@ def _snapshot_value(value):
     # Only profile scalar fields participate. Unexpected values cannot introduce
     # executable serialization or leak arbitrary profile objects into a result.
     if value is None or type(value) in (str, bool, int):
+        return value
+    if type(value) is float and math.isfinite(value):
         return value
     return {"invalid_type": type(value).__name__}
 
@@ -94,7 +97,8 @@ def assess_answer_review(question, profile_answers, policy=None, *, expected_fin
         if (any(not isinstance(row.get(key), str) or not row[key].strip()
                 for key in ("id", "question", "text", "source"))
                 or row.get("verified") is not True or row.get("user_approved") is not True
-                or type(row.get("confidence")) is not int
+                or type(row.get("confidence")) not in (int, float)
+                or not math.isfinite(row["confidence"])
                 or not policy["minimum_saved_answer_confidence"] <= row["confidence"] <= 100):
             continue
         if is_review_sensitive_question(row["question"]):
