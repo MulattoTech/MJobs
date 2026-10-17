@@ -6,6 +6,7 @@ applications. Unsupported or challenge-protected forms require manual review.
 """
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Mapping
 from urllib.parse import urlsplit
@@ -26,31 +27,39 @@ _CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
        current = current.parentElement) ancestors.push(current);
   const styles = ancestors.map(current => getComputedStyle(current));
   const rect = node.getBoundingClientRect();
-  const userVisible = !ancestors.some((current, index) => {
+  const paintStyles = ancestors.map((current, index) => ({
+    clip_path: styles[index].clipPath,
+    clip: styles[index].clip
+  }));
+  const overflowClipRegions = [];
+  for (let index = 1; index < ancestors.length; index += 1) {
+    const current = ancestors[index];
     const style = styles[index];
-    if (current.hidden || current.inert ||
-      current.getAttribute('aria-hidden') === 'true' ||
-      style.display === 'none' || style.visibility === 'hidden' ||
-      style.visibility === 'collapse' || Number(style.opacity) === 0 ||
-      style.contentVisibility === 'hidden' || style.pointerEvents === 'none' ||
-      style.clipPath !== 'none' || style.clip !== 'auto') return true;
-    if (current === node) return false;
-
     const clipsHorizontally = ['hidden', 'clip', 'scroll', 'auto']
       .includes(style.overflowX);
     const clipsVertically = ['hidden', 'clip', 'scroll', 'auto']
       .includes(style.overflowY);
-    if (!clipsHorizontally && !clipsVertically) return false;
+    if (!clipsHorizontally && !clipsVertically) continue;
 
     const ancestorRect = current.getBoundingClientRect();
     const clipLeft = ancestorRect.left + current.clientLeft;
     const clipTop = ancestorRect.top + current.clientTop;
-    const clipRight = clipLeft + current.clientWidth;
-    const clipBottom = clipTop + current.clientHeight;
-    return (clipsHorizontally &&
-        (rect.left < clipLeft || rect.right > clipRight)) ||
-      (clipsVertically &&
-        (rect.top < clipTop || rect.bottom > clipBottom));
+    overflowClipRegions.push({
+      clips_horizontally: clipsHorizontally,
+      clips_vertically: clipsVertically,
+      left: clipLeft,
+      top: clipTop,
+      right: clipLeft + current.clientWidth,
+      bottom: clipTop + current.clientHeight
+    });
+  }
+  const userVisible = !ancestors.some((current, index) => {
+    const style = styles[index];
+    return current.hidden || current.inert ||
+      current.getAttribute('aria-hidden') === 'true' ||
+      style.display === 'none' || style.visibility === 'hidden' ||
+      style.visibility === 'collapse' || Number(style.opacity) === 0 ||
+      style.contentVisibility === 'hidden' || style.pointerEvents === 'none';
   }) && node.getClientRects().length > 0 && rect.width > 1 && rect.height > 1 &&
     rect.right > 0 && rect.bottom > 0 && rect.left < window.innerWidth &&
     rect.top < window.innerHeight;
@@ -65,7 +74,12 @@ _CONTROL_STATE_SCRIPT = r"""nodes => nodes.map(node => {
     user_visible: userVisible,
     user_editable: userVisible && supportedControl &&
       !node.matches(':disabled') && node.readOnly !== true &&
-      !ariaDisabled && !ariaReadonly && inputType !== 'hidden'
+      !ariaDisabled && !ariaReadonly && inputType !== 'hidden',
+    paint_styles: paintStyles,
+    control_rect: {
+      left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom
+    },
+    overflow_clip_regions: overflowClipRegions
   };
 })"""
 _KNOWN_CONTACT_IDENTIFIERS = {
@@ -193,8 +207,9 @@ class TeamtailorApplicationAdapter:
         for field, state in zip(fields, control_states):
             if not isinstance(field, dict):
                 return {"status": "UNKNOWN", "reason": "CONTROL_STATE_UNAVAILABLE", "fields": []}
-            field["user_visible"] = state["user_visible"]
-            field["user_editable"] = state["user_editable"]
+            user_visible = _is_effectively_user_visible(state)
+            field["user_visible"] = user_visible
+            field["user_editable"] = state["user_editable"] and user_visible
         return analysis
 
     @staticmethod
@@ -212,6 +227,65 @@ class TeamtailorApplicationAdapter:
                     or not _known_contact_field(field)):
                 return True
         return False
+
+
+def _is_effectively_user_visible(state: Mapping) -> bool:
+    """Fail closed unless DOM visibility and every paint clip are measurable."""
+    if state.get("user_visible") is not True:
+        return False
+
+    paint_styles = state.get("paint_styles")
+    control_rect = state.get("control_rect")
+    clip_regions = state.get("overflow_clip_regions")
+    if (not isinstance(paint_styles, list) or not paint_styles
+            or not isinstance(control_rect, Mapping)
+            or not isinstance(clip_regions, list)):
+        return False
+
+    for style in paint_styles:
+        if (not isinstance(style, Mapping)
+                or not isinstance(style.get("clip_path"), str)
+                or not isinstance(style.get("clip"), str)
+                or style["clip_path"].casefold() != "none"
+                or style["clip"].casefold() != "auto"):
+            return False
+
+    def coordinates(rect: Mapping):
+        values = tuple(rect.get(key) for key in ("left", "top", "right", "bottom"))
+        for value in values:
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                return None
+            try:
+                if not math.isfinite(value):
+                    return None
+            except (OverflowError, TypeError):
+                return None
+        left, top, right, bottom = values
+        if right <= left or bottom <= top:
+            return None
+        return left, top, right, bottom
+
+    control_bounds = coordinates(control_rect)
+    if control_bounds is None:
+        return False
+    control_left, control_top, control_right, control_bottom = control_bounds
+
+    for clip_region in clip_regions:
+        if (not isinstance(clip_region, Mapping)
+                or type(clip_region.get("clips_horizontally")) is not bool
+                or type(clip_region.get("clips_vertically")) is not bool):
+            return False
+        clip_bounds = coordinates(clip_region)
+        if clip_bounds is None:
+            return False
+        clip_left, clip_top, clip_right, clip_bottom = clip_bounds
+        if (clip_region["clips_horizontally"]
+                and (control_left < clip_left or control_right > clip_right)):
+            return False
+        if (clip_region["clips_vertically"]
+                and (control_top < clip_top or control_bottom > clip_bottom)):
+            return False
+    return True
 
 
 def _known_contact_field(field: Mapping) -> bool:

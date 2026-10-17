@@ -176,7 +176,13 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                 return 0
 
             def evaluate_all(self, script, **kwargs):
-                return [{"user_visible": True, "user_editable": True}]
+                return [{
+                    "user_visible": True,
+                    "user_editable": True,
+                    "paint_styles": [{"clip_path": "none", "clip": "auto"}],
+                    "control_rect": {"left": 10, "top": 10, "right": 20, "bottom": 20},
+                    "overflow_clip_regions": [],
+                }]
 
         class Page:
             def locator(self, selector):
@@ -236,26 +242,60 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                     result = self.adapter.analyze_page(Page())
                 self.assertTrue(self.adapter.requires_human_review(result))
 
-    def test_analyze_page_css_clipping_and_overflow_clipping_require_review(self):
-        clipped_states = (
-            ("clip-path on control", {"user_visible": False, "user_editable": False}),
-            ("clip-path on ancestor", {"user_visible": False, "user_editable": False}),
-            ("overflow-x clipping", {"user_visible": False, "user_editable": False}),
-            ("overflow-y clipping", {"user_visible": False, "user_editable": False}),
+    def test_analyze_page_uses_paint_and_overflow_clip_geometry(self):
+        control_rect = {"left": 20, "top": 20, "right": 40, "bottom": 40}
+        clip_region = {
+            "left": 0, "top": 0, "right": 30, "bottom": 30,
+            "clips_horizontally": True, "clips_vertically": True,
+        }
+        cases = (
+            ("clip-path on control", [{"clip_path": "inset(50%)", "clip": "auto"}], [], True),
+            ("clip-path on ancestor", [
+                {"clip_path": "none", "clip": "auto"},
+                {"clip_path": "inset(50%)", "clip": "auto"},
+            ], [], True),
+            ("clip property on control", [{
+                "clip_path": "none", "clip": "rect(0px, 0px, 0px, 0px)",
+            }], [], True),
+            ("overflow-x clips the control", [{
+                "clip_path": "none", "clip": "auto",
+            }], [{
+                **clip_region, "clips_vertically": False,
+            }], True),
+            ("overflow-y clips the control", [{
+                "clip_path": "none", "clip": "auto",
+            }], [{
+                **clip_region, "clips_horizontally": False,
+            }], True),
+            ("control inside overflow clip", [{
+                "clip_path": "none", "clip": "auto",
+            }], [{
+                **clip_region, "right": 50, "bottom": 50,
+            }], False),
         )
         required_visibility_checks = (
-            "style.clipPath !== 'none'",
-            "style.clip !== 'auto'",
+            "clip_path: styles[index].clipPath",
+            "clip: styles[index].clip",
             "style.overflowX",
             "style.overflowY",
-            "clipLeft",
-            "clipRight",
-            "clipTop",
-            "clipBottom",
+            "paint_styles: paintStyles",
+            "control_rect: {",
+            "overflow_clip_regions: overflowClipRegions",
+            "current.clientWidth",
+            "current.clientHeight",
         )
 
-        for label, state in clipped_states:
+        last_script = None
+        for label, paint_styles, overflow_clip_regions, expected_review in cases:
             with self.subTest(clipped_case=label):
+                state = {
+                    "user_visible": True,
+                    "user_editable": True,
+                    "paint_styles": paint_styles,
+                    "control_rect": control_rect,
+                    "overflow_clip_regions": overflow_clip_regions,
+                }
+
                 class Locator:
                     def __init__(self, selector):
                         self.selector = selector
@@ -287,12 +327,13 @@ class TeamtailorApplicationAdapterTests(unittest.TestCase):
                            return_value=analysis):
                     result = self.adapter.analyze_page(page)
 
-                self.assertTrue(self.adapter.requires_human_review(result))
+                self.assertEqual(self.adapter.requires_human_review(result), expected_review)
                 self.assertIsNotNone(page.controls.script)
+                last_script = page.controls.script
 
         for guard in required_visibility_checks:
             with self.subTest(guard=guard):
-                self.assertIn(guard, page.controls.script)
+                self.assertIn(guard, last_script)
 
 
 if __name__ == "__main__":
