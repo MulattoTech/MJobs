@@ -15,7 +15,7 @@ from services.company_discovery.public_client import PublicCompanyClient
 from tests.integration.test_company_monitoring_recovery import MonitoringFixture
 
 
-POLICY = {"request_timeout": 5, "rate_limit": 12, "concurrency": 2, "jitter_seconds": 17}
+POLICY = {"request_timeout": 5, "rate_limit": 30, "concurrency": 2, "jitter_seconds": 17}
 
 
 class CompanyMonitoringPolicyTests(unittest.TestCase):
@@ -61,13 +61,22 @@ class CompanyMonitoringPolicyTests(unittest.TestCase):
                                   "poll_interval": 900, **POLICY})
             self.assertEqual(response.status_code, 200, response.text)
 
+    def test_global_source_retains_one_rpm_admission_without_company_bounds(self):
+        with self.client(self.fixture.store) as client:
+            response = client.put('/sources', json=dict(provider='remotive', tenant='default',
+                                 poll_interval=900, rate_limit=1))
+            self.assertEqual(response.status_code, 200, response.text)
+            sources = client.get('/sources').json()['sources']
+            source = next(row for row in sources if row['provider'] == 'remotive' and row['tenant'] == 'default')
+            self.assertEqual(source['rate_limit'], 1)
+
     def test_strict_policy_rejection_and_partial_legacy_update_preserves_review(self):
         self.review(POLICY)
         with self.client(self.fixture.store) as client:
             path = f"/company-sources/{self.fixture.source['id']}/monitoring"
             base = dict(source_version=source_version(self.fixture.source), revision=1, poll_interval=900)
             for key, value in [('request_timeout', 1), ('request_timeout', 11), ('request_timeout', True),
-                               ('request_timeout', None), ('rate_limit', 0), ('rate_limit', 61),
+                               ('request_timeout', None), ('rate_limit', 0), ('rate_limit', 1), ('rate_limit', 2), ('rate_limit', 14), ('rate_limit', 61),
                                ('concurrency', 9), ('jitter_seconds', -1), ('jitter_seconds', 301)]:
                 with self.subTest(key=key, value=value):
                     self.assertEqual(client.put(path, json={**base, key: value}).status_code, 422)

@@ -21,7 +21,7 @@ from sqlalchemy import select
 from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.company_discovery.monitoring import source_version
+from services.company_discovery.monitoring import source_version, schedule_company_sources
 from services.company_discovery.monitoring_policy import MonitoringPolicy
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 from tests.integration.test_company_monitoring_recovery import MonitoringFixture
@@ -116,7 +116,7 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
                                  return_value=self.context))
         return stack
 
-    def test_real_tls_worker_policy_parallel_sampling_receipt_and_fresh_readback(self):
+    def _real_tls_worker_policy_samples(self, rate, expected_peak):
         rows = [dict(id=str(index), title='Python Engineer', content_text='Python SQL',
                      url=f'https://employer.example/jobs/{index}') for index in range(8)]
         self.fixture.pages['/jobs.json'] = json.dumps(dict(version='https://jsonfeed.org/version/1.1', items=rows))
@@ -128,7 +128,7 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
         with TestClient(app(self.fixture.store)) as api:
             response = api.put(f"/company-sources/{self.fixture.source['id']}/monitoring", json=dict(
                 source_version=source_version(self.fixture.source), revision=0, poll_interval=300,
-                request_timeout=2, concurrency=2, jitter_seconds=17))
+                request_timeout=2, rate_limit=rate, concurrency=2, jitter_seconds=17))
             self.assertEqual(response.status_code, 200, response.text)
             monitor = response.json()
             response = api.post(f"/company-sources/{self.fixture.source['id']}/refresh", json={'profile_id':'fixture'})
@@ -141,9 +141,9 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
             self.assertEqual(execute_operation(operation_id)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
             self.assertEqual(len(self.starts), count, 'receipt replay must not fetch')
         self.assertEqual(count, 8, 'robots, career, feed, exactly five samples')
-        self.assertEqual(self.peak, 2)
+        self.assertEqual(self.peak, expected_peak)
         self.assertEqual(self.active, 0)
-        self.assertTrue(all(b[1] - a[1] >= .90 for a,b in zip(self.starts, self.starts[1:])))
+        self.assertTrue(all(b[1] - a[1] >= 60. / rate - .10 for a,b in zip(self.starts, self.starts[1:])))
         self.assertFalse(any(thread.name.startswith('mjobs-monitor-link') for thread in threading.enumerate()))
         reopened = Store(self.fixture.store.url)
         try:
@@ -154,6 +154,7 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
                               if row['id'] == self.fixture.source['id'])
                 self.assertEqual(source['monitoring']['status'], 'HEALTHY')
                 self.assertEqual(source['monitoring']['concurrency'], 2)
+                self.assertEqual(source['monitoring']['rate_limit'], rate)
                 self.assertNotIn('request_not_before', source['monitoring'])
             with reopened.engine.connect() as connection:
                 saved = connection.execute(select(m.company_source_monitoring)).mappings().one()
@@ -167,6 +168,12 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
             self.assertEqual(reopened.count('source_quality_observations'), 1)
         finally:
             reopened.engine.dispose()
+
+    def test_real_tls_worker_policy_parallel_sampling_receipt_and_fresh_readback(self):
+        self._real_tls_worker_policy_samples(60, 2)
+
+    def test_real_tls_floor_fifteen_rpm_five_samples_save_receipt(self):
+        self._real_tls_worker_policy_samples(15, 1)
 
     def test_actual_tls_header_and_body_stalls_observe_two_second_request_budget(self):
         for path in ('/stall-header', '/stall-body'):
@@ -255,3 +262,61 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
                     self.assertGreaterEqual(self.context.minimum_version, ssl.TLSVersion.TLSv1_2)
                 finally:
                     client.close()
+
+    def _fresh_empty_feed_progress(self, rate):
+        self.fixture.pages['/jobs.json'] = json.dumps(dict(version='https://jsonfeed.org/version/1.1', items=[]))
+        app = create_app(self.fixture.store, 'http://127.0.0.1:1', self.fixture.root,
+                         'redis://127.0.0.1:1/0', operation_mode='PERSONAL')
+        with TestClient(app) as api:
+            response = api.put(f"/company-sources/{self.fixture.source['id']}/monitoring", json=dict(
+                source_version=source_version(self.fixture.source), revision=0, poll_interval=300,
+                request_timeout=2, rate_limit=rate))
+            self.assertEqual(response.status_code, 200, response.text)
+        self.assertIsNone(self.fixture.monitor()['request_not_before'])
+        scheduled = schedule_company_sources(self.fixture.store)['scheduled']
+        self.assertEqual(len(scheduled), 1)
+        with self.transport(), patch.dict(os.environ, self.fixture.env):
+            result = execute_operation(scheduled[0]['operation_id'])
+        print('FRESH_EMPTY_FEED', json.dumps(dict(rate=rate, result=result['status'],
+            error=result.get('error_category'), paths=[path for path, _ in self.starts],
+            monitor_status=self.fixture.monitor()['status'])))
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        self.assertEqual([path for path, _ in self.starts], ['/robots.txt', '/careers', '/jobs.json'])
+        reopened = Store(self.fixture.store.url)
+        try:
+            fresh = create_app(reopened, 'http://127.0.0.1:1', self.fixture.root,
+                               'redis://127.0.0.1:1/0', operation_mode='PERSONAL')
+            with TestClient(fresh) as api:
+                operation = api.get(f"/operations/{scheduled[0]['operation_id']}").json()
+                self.assertEqual(operation['state'], 'COMPLETED')
+                source = next(row for row in api.get('/company-sources/view').json()['company_sources']
+                              if row['id'] == self.fixture.source['id'])
+                self.assertEqual(source['monitoring']['rate_limit'], rate)
+                self.assertEqual(source['monitoring']['status'], 'HEALTHY')
+            with reopened.engine.connect() as connection:
+                self.assertEqual(connection.execute(select(m.company_source_monitoring.c.completed_operation_id)).scalar_one(),
+                                 scheduled[0]['operation_id'])
+            self.assertEqual(reopened.count('canonical_jobs'), 0)
+            self.assertEqual(reopened.count('source_quality_observations'), 1)
+        finally:
+            reopened.engine.dispose()
+
+    def test_fresh_floor_fifteen_rpm_empty_feed_saves_receipt(self):
+        self._fresh_empty_feed_progress(15)
+
+    def test_incompatible_rates_rejected_before_network_or_persistence(self):
+        app = create_app(self.fixture.store, 'http://127.0.0.1:1', self.fixture.root,
+                         'redis://127.0.0.1:1/0', operation_mode='PERSONAL')
+        with TestClient(app) as api:
+            for rate in (1, 2, 14):
+                with self.subTest(rate=rate):
+                    response = api.put(f"/company-sources/{self.fixture.source['id']}/monitoring", json=dict(
+                        source_version=source_version(self.fixture.source), revision=0, poll_interval=300,
+                        request_timeout=2, rate_limit=rate))
+                    self.assertEqual(response.status_code, 422, response.text)
+                    self.assertTrue(any(error['loc'][-1] == 'rate_limit' and error['type'] == 'greater_than_equal'
+                                        and '15' in error['msg']
+                                        for error in response.json()['detail']))
+        self.assertEqual(self.starts, [])
+        self.assertEqual(self.fixture.store.count('company_source_monitoring'), 0)
+        self.assertEqual(self.fixture.store.count('worker_operations'), 0)

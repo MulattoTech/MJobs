@@ -581,7 +581,7 @@ class CompanyMonitoringInput(BaseModel):
     revision: int = Field(ge=0)
     poll_interval: int = Field(ge=300, le=604800)
     request_timeout: int = Field(default=10, ge=2, le=10)
-    rate_limit: int = Field(default=60, ge=1, le=60)
+    rate_limit: int = Field(default=60, ge=15, le=60)
     concurrency: int = Field(default=1, ge=1, le=8)
     jitter_seconds: int = Field(default=0, ge=0, le=300)
 

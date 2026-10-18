@@ -7,7 +7,7 @@ down_revision = '20261014rh01'
 branch_labels = None
 depends_on = None
 
-LIMITS = (('request_timeout', 10, 2, 10), ('rate_limit', 60, 1, 60),
+LIMITS = (('request_timeout', 10, 2, 10), ('rate_limit', 60, 15, 60),
           ('concurrency', 1, 1, 8), ('jitter_seconds', 0, 0, 300))
 
 

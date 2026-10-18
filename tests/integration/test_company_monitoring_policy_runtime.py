@@ -28,7 +28,7 @@ class MonitoringPolicyRuntimeTests(unittest.TestCase):
     def test_defaults_and_strict_bounds(self):
         self.assertEqual(MonitoringPolicy().as_dict(), dict(request_timeout=10, rate_limit=60,
                                                          concurrency=1, jitter_seconds=0))
-        for key, values in dict(request_timeout=[1, 11, True, 2.0], rate_limit=[0, 61, True],
+        for key, values in dict(request_timeout=[1, 11, True, 2.0], rate_limit=[0, 1, 2, 14, 61, True],
                                 concurrency=[0, 9, True], jitter_seconds=[-1, 301, False]).items():
             for value in values:
                 with self.subTest(key=key, value=value), self.assertRaises(ValueError):
@@ -43,6 +43,15 @@ class MonitoringPolicyRuntimeTests(unittest.TestCase):
         self.assertLessEqual(due, stamp + timedelta(seconds=1217))
         monitor['jitter_seconds'] = 0
         self.assertEqual(next_due(monitor, stamp, failures=2), stamp + timedelta(seconds=1200))
+
+    def test_weekly_cadence_is_never_shortened_by_retry_cap(self):
+        stamp = datetime(2026, 10, 18, tzinfo=timezone.utc)
+        monitor = dict(id='weekly', revision=1, poll_interval=604800, jitter_seconds=17)
+        for failures in (0, 1, 3, 8):
+            with self.subTest(failures=failures):
+                delay = (next_due(monitor, stamp, failures=failures) - stamp).total_seconds()
+                self.assertGreaterEqual(delay, 604800)
+                self.assertLessEqual(delay, 604817)
 
 
 class DurableMonitoringPolicyTests(unittest.TestCase):
@@ -59,11 +68,11 @@ class DurableMonitoringPolicyTests(unittest.TestCase):
         return queue_refresh(self.store, self.fixture.source['id'], 'fixture')['operation_id']
 
     def test_durable_rate_cursor_survives_fresh_store_retry_and_stale_owner(self):
-        self.configure(rate_limit=1)
+        self.configure(rate_limit=15)
         operation_id = self.queued()
         with patch.dict(os.environ, self.fixture.env):
             operation = claim(self.store, operation_id)
-        self.assertEqual(reserve_request(self.store, operation, 1, time.monotonic() + 90), 0)
+        self.assertEqual(reserve_request(self.store, operation, 60, time.monotonic() + 90), 0)
         saved = self.fixture.monitor()
         self.assertIsNone(saved['last_attempt'], 'rate reservations are not refresh attempts')
         child = subprocess.run([sys.executable, '-c', """
@@ -78,7 +87,7 @@ try:
     with store.engine.connect() as c:
         operation = dict(c.execute(select(m.operations)).mappings().one())
     try:
-        reserve_request(store, operation, 1, time.monotonic() + 2)
+        reserve_request(store, operation, 60, time.monotonic() + 2)
     except PublicFetchError as error:
         print(json.dumps({'code':error.code,'pid':os.getpid()}))
     else:
@@ -99,24 +108,24 @@ finally:
                 connection.execute(update(m.operations).where(m.operations.c.id == operation_id)
                                    .values(attempt_count=operation['attempt_count'] + 1))
             with self.assertRaisesRegex(ValueError, 'OWNERSHIP_CHANGED'):
-                reserve_request(self.store, operation, 1, time.monotonic() + 90)
+                reserve_request(self.store, operation, 60, time.monotonic() + 90)
             replacement = {**operation, 'attempt_count': operation['attempt_count'] + 1}
             with self.assertRaisesRegex(PublicFetchError, 'MONITOR_RATE_DEFERRED'):
-                reserve_request(reopened, replacement, 1, time.monotonic() + 2)
+                reserve_request(reopened, replacement, 60, time.monotonic() + 2)
             self.assertEqual(self.fixture.monitor()['request_not_before'], saved['request_not_before'])
-            wait = reserve_request(reopened, replacement, 1, time.monotonic() + 90)
+            wait = reserve_request(reopened, replacement, 60, time.monotonic() + 90)
             self.assertGreater(wait, 58)
             self.assertLessEqual(wait, 60)
             self.assertGreater(self.fixture.monitor()['request_not_before'], saved['request_not_before'])
         finally:
             reopened.engine.dispose()
 
-    def test_public_worker_low_rate_defers_without_success_quality_or_retry_storm(self):
-        self.configure(rate_limit=1)
+    def test_public_worker_occupied_cursor_defers_without_success_quality_or_retry_storm(self):
+        self.configure(rate_limit=15)
         first = self.queued()
         with patch.dict(os.environ, self.fixture.env):
             operation = claim(self.store, first)
-        reserve_request(self.store, operation, 1, time.monotonic() + 90)
+        reserve_request(self.store, operation, 60, time.monotonic() + 90)
         # End the prior synthetic attempt without consuming or refunding its slot.
         with self.store.engine.begin() as connection:
             connection.execute(update(m.operations).where(m.operations.c.id == first).values(state='CANCELLED'))
@@ -172,7 +181,7 @@ finally:
         self.assertIsNone(self.fixture.monitor()['completed_operation_id'])
 
     def test_snapshot_active_cas_and_review_preserve_rate_and_due(self):
-        monitor = self.configure(request_timeout=2, rate_limit=12, concurrency=8, jitter_seconds=300)
+        monitor = self.configure(request_timeout=2, rate_limit=30, concurrency=8, jitter_seconds=300)
         due = monitor['next_due']
         cursor = (datetime.now(timezone.utc) + timedelta(seconds=60)).isoformat()
         with self.store.engine.begin() as connection:
@@ -184,14 +193,58 @@ finally:
         operation_id = self.queued()
         with self.store.engine.connect() as connection:
             params = connection.execute(select(m.operations.c.params).where(m.operations.c.id == operation_id)).scalar_one()
-        self.assertEqual(params['monitoring_policy'], dict(request_timeout=2, rate_limit=12,
+        self.assertEqual(params['monitoring_policy'], dict(request_timeout=2, rate_limit=30,
                                                          concurrency=8, jitter_seconds=300))
         with self.assertRaisesRegex(ValueError, 'ACTIVE_OPERATION'):
             configure_monitoring(self.store, self.fixture.source['id'], source_version(self.fixture.source), 2, 300)
 
+    def test_weekly_success_receipt_and_recovered_schedule_keep_public_weekly_due(self):
+        configure_monitoring(self.store, self.fixture.source['id'], source_version(self.fixture.source),
+                             0, 604800, jitter_seconds=17)
+        operation_id = self.queued()
+        with patch.dict(os.environ, self.fixture.env), patch.object(PublicCompanyClient, '_request_once', self.fixture.fetch):
+            result = execute_operation(operation_id)
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        reopened = Store(self.store.url)
+        try:
+            app = create_app(reopened, 'http://127.0.0.1:1', self.fixture.root,
+                             'redis://127.0.0.1:1/0', operation_mode='PERSONAL')
+            with TestClient(app) as client:
+                row = next(row for row in client.get('/company-sources/view').json()['company_sources']
+                           if row['id'] == self.fixture.source['id'])
+                monitor = row['monitoring']
+                self.assertEqual(monitor['status'], 'HEALTHY')
+                self.assertEqual(monitor['poll_interval'], 604800)
+                with reopened.engine.connect() as connection:
+                    receipt = connection.execute(select(m.company_source_monitoring.c.completed_operation_id)).scalar_one()
+                self.assertEqual(receipt, operation_id)
+                delay = (datetime.fromisoformat(monitor['next_due']) -
+                         datetime.fromisoformat(self.fixture.monitor()['updated_at'])).total_seconds()
+                self.assertGreaterEqual(delay, 604800)
+                self.assertLessEqual(delay, 604817)
+        finally:
+            reopened.engine.dispose()
+        # A separate fresh source's terminal queued cancellation exercises the
+        # real recovered-SCHEDULED path without changing clocks or stored times.
+        recovery = MonitoringFixture()
+        try:
+            configure_monitoring(recovery.store, recovery.source['id'], source_version(recovery.source),
+                                 0, 604800, jitter_seconds=17)
+            queued = queue_refresh(recovery.store, recovery.source['id'], 'fixture')['operation_id']
+            request_cancel(recovery.store, queued)
+            before = datetime.now(timezone.utc)
+            self.assertEqual(schedule_company_sources(recovery.store)['scheduled'], [])
+            recovered = recovery.monitor()
+            delay = (datetime.fromisoformat(recovered['next_due']) - before).total_seconds()
+            self.assertGreaterEqual(delay, 604800)
+            self.assertLess(delay, 604818)
+            self.assertEqual(recovered['last_error'], 'OPERATION_CANCELLED')
+        finally:
+            recovery.close()
+
     def test_mixed_source_defer_isolated_and_persisted_due_does_not_redraw_jitter(self):
         from services.company_discovery.sources import upsert_company_job_source
-        self.configure(rate_limit=1, jitter_seconds=30)
+        self.configure(rate_limit=15, jitter_seconds=30)
         other = upsert_company_job_source(self.store, company_id=self.fixture.company, provider='rss',
             tenant_identifier=self.fixture.company, career_url='https://employer.example/careers',
             public_api_url='https://employer.example/feed.xml', collection_strategy='RSS',
