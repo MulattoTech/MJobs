@@ -64,9 +64,13 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
             ("POST", "/applications"),
             ("POST", "/profiles/p1/applications/a1/reprepare"),
             ("POST", "/profiles/p1/applications/a1/mock-run"),
+            ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
+            ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel"),
         )
         blocked = (
             ("PUT", "/profiles/p1/applications/a1/reprepare"),
+            ("GET", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
+            ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel/extra"),
             ("POST", "/profiles/p1/applications/a1/submit"),
             ("POST", "/profiles/p1/applications/a1/mock-run/extra"),
             ("POST", "/profiles/p1/applications/a1/external-application"),
@@ -77,6 +81,22 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
         for method, path in blocked:
             with self.subTest(method=method, path=path):
                 self.assertFalse(ui_e2e.is_allowed_onboarding_application_write(method, path))
+
+    def test_onboarding_request_firewall_keeps_comparison_local_and_submission_blocked(self):
+        origin = "127.0.0.1:18700"
+        comparison = "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/" \
+                    "uploaded-resume-comparison/operations?request_id=private-query"
+        self.assertTrue(ui_e2e.is_allowed_onboarding_request("POST", comparison, origin))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "POST", comparison, "employer.example"))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "POST", "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/submit", origin))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "POST", "http://127.0.0.1:18700/apply", origin))
+        self.assertEqual(ui_e2e.sanitized_onboarding_request("POST", comparison), {
+            "method": "POST",
+            "path": "/profiles/<profile>/applications/<application>/uploaded-resume-comparison/operations",
+        })
 
     def test_discovery_oracle_requires_selected_search_and_exact_filtered_readback(self):
         ui_e2e.assert_discovery_request_operation_pair(

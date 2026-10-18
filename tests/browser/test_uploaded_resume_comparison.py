@@ -11,6 +11,7 @@ from playwright.sync_api import expect, sync_playwright
 from sqlalchemy import update
 import uvicorn
 
+from cli import ui_e2e
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
@@ -89,13 +90,23 @@ class UploadedResumeComparisonBrowserTests(unittest.TestCase):
                     context = browser.new_context(accept_downloads=True)
                     context.set_default_timeout(5000)
                     external = []
+                    blocked_requests = []
+                    allowed_comparison_requests = []
 
                     def local_only(route):
-                        if urlsplit(route.request.url).netloc != urlsplit(origin).netloc:
-                            external.append(route.request.url)
+                        request = route.request
+                        sanitized = ui_e2e.sanitized_onboarding_request(request.method, request.url)
+                        if not ui_e2e.is_allowed_onboarding_request(
+                                request.method, request.url, urlsplit(origin).netloc):
+                            blocked_requests.append(sanitized)
+                            if urlsplit(request.url).netloc != urlsplit(origin).netloc:
+                                external.append(sanitized)
                             route.abort()
-                        else:
-                            route.continue_()
+                            return
+                        if (request.method == 'POST'
+                                and '/uploaded-resume-comparison/operations' in urlsplit(request.url).path):
+                            allowed_comparison_requests.append(sanitized)
+                        route.continue_()
 
                     context.route('**/*', local_only)
                     page = context.new_page()
@@ -227,6 +238,20 @@ class UploadedResumeComparisonBrowserTests(unittest.TestCase):
                     self.assertEqual(replayed.value.json()['operation_id'], lost_operation)
                     self.assertEqual(replayed.value.json()['state'], 'COMPLETED')
                     expect(comparison.get_by_role('region', name='Resume comparison result', exact=True)).to_contain_text('Source summary text.')
+                    negative_submission_results = []
+                    for path in (f'/profiles/fixture/applications/{application_id}/submit', '/apply'):
+                        negative_submission_results.append(page.evaluate('''async path => {
+                          try { const response = await fetch(path, {method:'POST'}); return response.status; }
+                          catch (_) { return 'blocked'; }
+                        }''', path))
+                    self.assertEqual(negative_submission_results, ['blocked', 'blocked'])
+                    self.assertTrue(any(row['method'] == 'POST' and row['path'] ==
+                        '/profiles/<profile>/applications/<application>/uploaded-resume-comparison/operations'
+                        for row in allowed_comparison_requests))
+                    self.assertEqual(blocked_requests[-2:], [
+                        {'method': 'POST', 'path': '/profiles/<profile>/applications/<application>/submit'},
+                        {'method': 'POST', 'path': '/apply'},
+                    ])
                     self.assertFalse(external)
                     context.close()
                     browser.close()

@@ -167,15 +167,59 @@ def assert_reprepared_profile_pins(*, previous_profile_version, old_application_
 
 
 def is_allowed_onboarding_application_write(method, path):
-    """Allow only explicit prepare, version-fenced reprepare, and local mock writes."""
+    """Allow only the explicit local application operations used by onboarding."""
     if method != "POST":
         return False
     if path == "/applications":
         return True
     parts = path.strip("/").split("/")
-    return (len(parts) == 5 and parts[0] == "profiles" and bool(parts[1])
+    if (len(parts) == 5 and parts[0] == "profiles" and bool(parts[1])
             and parts[2] == "applications" and bool(parts[3])
-            and parts[4] in {"reprepare", "mock-run"})
+            and parts[4] in {"reprepare", "mock-run"}):
+        return True
+    comparison_path = (len(parts) == 6 and parts[0] == "profiles" and bool(parts[1])
+                       and parts[2] == "applications" and bool(parts[3])
+                       and parts[4:] == ["uploaded-resume-comparison", "operations"])
+    comparison_cancel_path = (len(parts) == 8 and parts[0] == "profiles" and bool(parts[1])
+                              and parts[2] == "applications" and bool(parts[3])
+                              and parts[4:6] == ["uploaded-resume-comparison", "operations"]
+                              and bool(parts[6]) and parts[7] == "cancel")
+    return comparison_path or comparison_cancel_path
+
+
+def is_allowed_onboarding_request(method, url, allowed_origin):
+    """Enforce same-origin, no employer submission, and exact local write routes."""
+    parsed = urlsplit(url)
+    path = parsed.path.lower()
+    blocked_path = (path.rstrip("/").endswith(("/apply", "/submit"))
+                    or path in {"/apply", "/submit"}
+                    or "/external-application" in path)
+    application_write = method != "GET" and "/applications/" in path
+    return (parsed.netloc == allowed_origin and not blocked_path
+            and (not application_write
+                 or is_allowed_onboarding_application_write(method, path)))
+
+
+def sanitized_onboarding_request(method, url):
+    """Return method and a query-free route path with profile/application IDs hidden."""
+    parts = urlsplit(url).path.strip("/").split("/")
+    if len(parts) >= 4 and parts[0].lower() == "profiles" and parts[2].lower() == "applications":
+        parts[1] = "<profile>"
+        parts[3] = "<application>"
+    path = "/" + "/".join(parts) if parts and parts != [""] else "/"
+    return {"method": method.upper(), "path": path}
+
+
+def expect_visible_with_onboarding_diagnostics(locator, blocked_requests, **kwargs):
+    """Keep local browser failures actionable without recording request payloads."""
+    try:
+        expect(locator).to_be_visible(**kwargs)
+    except AssertionError as error:
+        if blocked_requests:
+            raise AssertionError(
+                f"{error}\nBlocked onboarding requests (method/path only): {blocked_requests}"
+            ) from error
+        raise
 
 
 def answer_bank_confirmation_locator(answer_group, question_number):
@@ -227,17 +271,8 @@ def run(base_url, evidence_path, onboarding=False):
 
             def local_fixture_route(route):
                 current = route.request
-                parsed = urlsplit(current.url)
-                path = parsed.path.lower()
-                blocked_path = (path.rstrip("/").endswith(("/apply", "/submit"))
-                                or path in {"/apply", "/submit"}
-                                or "/external-application" in path)
-                application_write = (current.method != "GET" and "/applications/" in path)
-                allowed_application_write = is_allowed_onboarding_application_write(
-                    current.method, path)
-                if (parsed.netloc != allowed_origin or blocked_path
-                        or application_write and not allowed_application_write):
-                    unsafe_requests.append({"method": current.method, "url": current.url})
+                if not is_allowed_onboarding_request(current.method, current.url, allowed_origin):
+                    unsafe_requests.append(sanitized_onboarding_request(current.method, current.url))
                     route.abort()
                     return
                 route.continue_()
@@ -588,7 +623,8 @@ def run(base_url, evidence_path, onboarding=False):
             comparison.get_by_role('button',name='Refresh base resumes',exact=True).click()
             comparison.get_by_label('Base resume',exact=True).select_option('u:'+uploaded_original['revision_id'])
             comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
-            expect(result.get_by_role('heading',name='Uploaded base · v1',exact=True)).to_be_visible()
+            expect_visible_with_onboarding_diagnostics(
+                result.get_by_role('heading',name='Uploaded base · v1',exact=True), unsafe_requests)
             expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('Original synthetic summary')
             expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('Maintained synthetic servers')
             expect(result.get_by_role('region',name='Original extraction provenance',exact=True)).to_contain_text('Native extracted text')
