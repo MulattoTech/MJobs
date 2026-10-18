@@ -268,10 +268,10 @@ def _status(connection, request):
 def _queue(connection, request, website, authorization, evidence, *, audit_details=None):
     company = connection.execute(select(m.companies).where(m.companies.c.id == request['company_id'])).mappings().one()
     candidate = {'company_name': company['name'], 'company_website': website}
-    if authorization == 'USER_CONFIRMED_DOMAIN':
-        # This request-scoped identity binding is backed by the explicit review
-        # record; it does not promote the domain to shared verified authority.
-        resolved = {'company_id': request['company_id'], 'evidence': ['USER_CONFIRMED_DOMAIN']}
+    if authorization in {'USER_CONFIRMED_DOMAIN', 'ATS_JOB_LINK_CANDIDATE'}:
+        # Candidate reads retain their source employer identity. Neither these
+        # reads nor a user's review grant shared verified domain authority.
+        resolved = {'company_id': request['company_id'], 'evidence': [authorization]}
     else:
         resolved = resolve_public_company(None, candidate, connection=connection)
     if ('VERIFIED_DOMAIN_MATCH' in resolved['evidence'] and resolved['company_id'] != request['company_id']
@@ -288,6 +288,8 @@ def _queue(connection, request, website, authorization, evidence, *, audit_detai
         trigger_reason=trigger_reason,
         dispatch_priority='HIGH' if 'HIGH_MATCH_JOB' in request['reasons'] else 'NORMAL',
         discovery_request_id=request['id'], discovery_request_revision=revision)
+    if authorization == 'ATS_JOB_LINK_CANDIDATE':
+        params['native_job_link'] = evidence[0]
     operation_id = enqueue_operation(None, 'COMPANY_DISCOVER', resolved['company_id'], params, connection=connection)
     connection.execute(update(m.company_discovery_requests).where(m.company_discovery_requests.c.id == request['id'])
         .values(revision=revision, selected_website=website, authorization=authorization,
@@ -411,6 +413,12 @@ def record_discovery_request(connection, job_id, profile=None, *, is_new_company
             except ValueError:
                 return request_id
             _queue(connection, request, website, 'VERIFIED_DOMAIN', evidence)
+        else:
+            from services.company_discovery.domain_acquisition import native_job_link, CANDIDATE
+            proof = native_job_link(connection, request)
+            if proof:
+                _source(connection, request)
+                _queue(connection, request, proof['website'], CANDIDATE, [proof])
     return request_id
 
 
@@ -517,7 +525,8 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
             raise ValueError('DISCOVERY_AUTHORIZATION_CHANGED')
         if lock:
             lock_company_ingestion(connection, [initial['company_id']])
-        if initial['authorization'] in {'VERIFIED_DOMAIN', 'USER_CONFIRMED_DOMAIN'}:
+        if initial['authorization'] in {'VERIFIED_DOMAIN', 'USER_CONFIRMED_DOMAIN',
+                                       'ATS_JOB_LINK_CANDIDATE', 'ATS_JOB_LINK_VERIFIED'}:
             host = normalize_domain(initial['selected_website'])
             _domain_evidence_rows(connection, host, lock=lock)
             if initial['authorization'] == 'USER_CONFIRMED_DOMAIN':
@@ -543,6 +552,20 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
             raise ValueError('DISCOVERY_AUTHORIZATION_CHANGED')
         _source(connection, row)
         _website(row['selected_website'])
+        native_authorization = row['authorization'] in {'ATS_JOB_LINK_CANDIDATE', 'ATS_JOB_LINK_VERIFIED'}
+        native_proof = None
+        if native_authorization:
+            from services.company_discovery.domain_acquisition import native_job_link
+            native_proof = native_job_link(connection, row)
+            if (not native_proof or native_proof != params.get('native_job_link')
+                    or not row['domain_evidence'] or native_proof != row['domain_evidence'][0]
+                    or native_proof['website'] != row['selected_website']):
+                raise ValueError('DISCOVERY_SOURCE_CHANGED')
+            if row['authorization'] == 'ATS_JOB_LINK_VERIFIED':
+                website, evidence = _origin(connection, row['company_id'])
+                if (normalize_domain(website) != normalize_domain(row['selected_website'])
+                        or evidence != row['domain_evidence'][1:]):
+                    raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
         if row['authorization'] == 'VERIFIED_DOMAIN':
             website, evidence = _origin(connection, row['company_id'])
             if website != row['selected_website'] or evidence != row['domain_evidence']:
@@ -551,15 +574,17 @@ def _authorize_discovery_request(store, operation, connection, *, lock):
             evidence = _user_confirmation_proof(connection, row, lock=lock)
             if evidence is None or evidence != row['domain_evidence']:
                 raise ValueError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
-        elif row['authorization'] != 'USER_CANDIDATE':
+        elif row['authorization'] != 'USER_CANDIDATE' and not native_authorization:
             raise ValueError('DISCOVERY_AUTHORIZATION_REQUIRED')
-        if row['authorization'] == 'USER_CONFIRMED_DOMAIN':
+        if row['authorization'] == 'USER_CONFIRMED_DOMAIN' or native_authorization:
             resolved = {'company_id': row['company_id']}
         else:
             resolved = resolve_public_company(None, params['candidate'], connection=connection)
         if resolved['company_id'] != operation['entity_id']:
             raise ValueError('DISCOVERY_COMPANY_IDENTITY_CHANGED')
         result = {'company_id': row['company_id'], 'authorization': row['authorization']}
+        if native_authorization:
+            result.update(request_id=row['id'], native_job_link=native_proof)
         if row['authorization'] == 'USER_CONFIRMED_DOMAIN':
             result['source_authorization'] = _source_authorization(row)
         return result
