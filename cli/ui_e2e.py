@@ -742,11 +742,50 @@ def run(base_url, evidence_path, onboarding=False):
                 assert resumed["question_preflight"]["is_current"] is False
                 actions.append({"action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history", "result": "PASS", "boundary": "Connected React UI → public profile/reprepare APIs → actual document worker"})
 
+            if onboarding:
+                mock_controls = page.get_by_role("region", name="Recoverable mock run", exact=True)
+                run_storage_key = f"mjobs-mock-run-v1:{profile_id}:{identifier}"
+                previous_intent = page.evaluate(
+                    "key => {const saved=localStorage.getItem(key);return saved?JSON.parse(saved):null}",
+                    run_storage_key,
+                )
+                assert previous_intent and previous_intent["submit"] is False, (
+                    "The initial review-blocked dry-run intent was not preserved for explicit resolution")
+                previous_receipt = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
+                    + previous_intent["requestId"])
+                assert previous_receipt["state"] == "BLOCKED"
+                assert previous_receipt["error_code"] == "REVIEW_REQUIRED"
+                previous_operation_id = previous_receipt["operation_id"]
+                previous_operation = request("/operations/" + previous_operation_id)
+                assert previous_operation["operation_type"] == "APPLY_MOCK"
+                assert previous_operation["entity_id"] == identifier
+                assert previous_operation["state"] == "BLOCKED"
+                assert resumed["question_preflight"]["is_current"] is False
+
+                # Reprepare preserves the old terminal intent and durable receipt.
+                # Require the UI's explicit user action before another run can start.
+                new_run = mock_controls.get_by_role(
+                    "button", name="Start a new reviewed run", exact=True)
+                expect(new_run).to_be_enabled()
+                new_run.click()
+                assert page.evaluate("key => localStorage.getItem(key)", run_storage_key) is None
+                assert request("/operations/" + previous_operation_id)["state"] == "BLOCKED"
+                assert request(
+                    f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
+                    + previous_intent["requestId"])["operation_id"] == previous_operation_id
+                expect(mock_controls.get_by_role("button", name="Run dry-run", exact=True)).to_be_enabled()
+                expect(mock_controls.get_by_role("button", name="Submit to local mock", exact=True)).to_be_disabled()
+                actions.append({"action": "Explicit new reviewed run clears only the prior terminal browser intent; blocked operation and stale preflight remain readable", "result": "PASS", "boundary": "Connected React UI → public run receipt/operation APIs"})
+
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
                 "DRY_RUN_COMPLETE", timeout=30000)
             dry = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
+            assert dry["question_preflight"]["result"] == "PASS"
+            assert dry["question_preflight"]["is_current"] is True
+            assert request("/operations/" + previous_operation_id)["state"] == "BLOCKED"
             page.get_by_role("button", name="Start a new reviewed run", exact=True).click()
             page.get_by_label("I approve one fictional mock submission").check()
             mock_run_path = f"/profiles/{profile_id}/applications/{identifier}/mock-run"
