@@ -1,5 +1,6 @@
 """Narrow disposable-fixture admission and Linux process identity fencing."""
 from dataclasses import dataclass
+from itertools import islice
 import os
 from pathlib import Path
 import signal
@@ -41,6 +42,16 @@ def delete_owned_job(job, captured, workers):
                for value in redis.zrange(key, 0, -1)]
     if not set(members) <= captured:
         raise RuntimeError("Unknown owned-job execution reference; preserve fixture")
+    started_key = job.started_job_registry.key
+    composites = {f"{job.id}:{identifier}" for identifier in captured}
+    # The shared started registry may retain a composite after the per-job
+    # registry expires. Inspect only this exact job's members; never broaden
+    # deletion to the queue or another operation. Refuse unknown identities.
+    started = list(islice(redis.zscan_iter(started_key, match=f"{job.id}:*"), 9))
+    if len(started) > 8 or any(
+            (value.decode() if isinstance(value, bytes) else value) not in composites
+            for value, _score in started):
+        raise RuntimeError("Unknown owned-job started reference; preserve fixture")
     expired = []
     for identifier in members:
         ttl = redis.pttl(Execution(identifier, job.id, redis).key)
@@ -50,6 +61,8 @@ def delete_owned_job(job, captured, workers):
             raise RuntimeError("Unexpected owned execution TTL; preserve fixture")
     for identifier in expired:
         redis.zrem(key, identifier)
+    for composite in sorted(composites):
+        redis.zrem(started_key, composite)
     job.delete()
 
 

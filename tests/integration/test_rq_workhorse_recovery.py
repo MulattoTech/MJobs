@@ -66,12 +66,16 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
     def test_cleanup_only_prunes_captured_expired_references_after_complete_tree_death(self):
         redis, worker = Mock(), Mock(spec=OwnedWorker)
         job = SimpleNamespace(id="owned-job", connection=redis,
-                              execution_registry=SimpleNamespace(key="rq:executions:owned-job"), delete=Mock())
+                              execution_registry=SimpleNamespace(key="rq:executions:owned-job"),
+                              started_job_registry=SimpleNamespace(key="rq:wip:mjobs-discovery"), delete=Mock())
         redis.zrange.return_value = [b"captured"]
+        redis.zscan_iter.return_value = [(b"owned-job:captured", 999)]
         redis.pttl.return_value = -2
         workhorse_fixture.delete_owned_job(job, {"captured"}, [worker])
         worker.assert_stopped.assert_called_once()
-        redis.zrem.assert_called_once_with("rq:executions:owned-job", "captured")
+        self.assertEqual(redis.zrem.call_args_list, [
+            unittest.mock.call("rq:executions:owned-job", "captured"),
+            unittest.mock.call("rq:wip:mjobs-discovery", "owned-job:captured")])
         redis.pttl.assert_called_once_with("rq:execution:owned-job:captured")
         job.delete.assert_called_once()
         for members, ttl, stopped in (([b"unknown"], -2, True), ([b"captured"], -1, True),
@@ -89,8 +93,66 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
         redis.zrange.return_value, redis.pttl.return_value = [b"captured"], 123
         redis.reset_mock()
         workhorse_fixture.delete_owned_job(job, {"captured"}, [worker])
-        redis.zrem.assert_not_called()  # Normal Job.delete owns still-live execution hashes.
+        # Normal Job.delete owns still-live hashes; explicit started cleanup is
+        # independent of execution hash/reference expiry.
+        redis.zrem.assert_called_once_with("rq:wip:mjobs-discovery", "owned-job:captured")
         job.delete.assert_called_once()
+
+    def test_pinned_rq_started_job_cleanup_removes_captured_wip_even_without_execution_registry(self):
+        # No compatible local Redis fixture is available. Keep the pinned RQ
+        # Job.delete/registry implementations real; model only Redis commands.
+        for scenario in ("reference_present", "registry_absent", "unknown_started", "live_tree"):
+            with self.subTest(scenario=scenario):
+                redis, worker = Mock(spec=Redis), Mock(spec=OwnedWorker)
+                job = Job("owned-job", connection=redis)
+                job.origin = "mjobs-discovery"
+                reference_key = job.execution_registry.key
+                started_key = job.started_job_registry.key
+                score = time.time() + 60
+                sets = {reference_key: {b"captured": score} if scenario == "reference_present" else {},
+                        started_key: {b"owned-job:captured": score, b"other-job:unrelated": score}}
+                if scenario == "unknown_started":
+                    sets[started_key][b"owned-job:unknown"] = score
+                if scenario == "live_tree":
+                    worker.assert_stopped.side_effect = RuntimeError("live owned tree")
+
+                def zrange(key, start, end):
+                    return sorted(sets.get(key, {}))[start:None if end == -1 else end + 1]
+
+                def zrem(key, *members):
+                    target = sets.setdefault(key, {})
+                    for member in members:
+                        target.pop(member.encode() if isinstance(member, str) else member, None)
+
+                def expire_scores(key, minimum, maximum):
+                    for member, expiry in list(sets.get(key, {}).items()):
+                        if minimum <= expiry <= maximum:
+                            sets[key].pop(member)
+
+                redis.zrange.side_effect = zrange
+                redis.zrem.side_effect = zrem
+                redis.zremrangebyscore.side_effect = expire_scores
+                redis.zscan_iter.side_effect = lambda key, match: (
+                    (member, expiry) for member, expiry in sets[key].items()
+                    if member.startswith(b"owned-job:"))
+                redis.hget.return_value = b"started"
+                redis.hgetall.return_value = {}  # Captured execution hash naturally expired.
+                redis.pttl.return_value = -2
+                redis.delete.side_effect = lambda *keys: [sets.pop(key, None) for key in keys]
+                with patch.object(job, "delete", wraps=job.delete) as delete:
+                    if scenario in {"unknown_started", "live_tree"}:
+                        with self.assertRaises(RuntimeError):
+                            workhorse_fixture.delete_owned_job(job, {"captured"}, [worker])
+                        delete.assert_not_called()
+                        redis.zrem.assert_not_called()
+                        redis.delete.assert_not_called()
+                        self.assertIn(b"owned-job:captured", sets[started_key])
+                        continue
+                    workhorse_fixture.delete_owned_job(job, {"captured"}, [worker])
+                    delete.assert_called_once_with()
+                self.assertEqual(sets[started_key], {b"other-job:unrelated": score},
+                                 "Pinned Job.delete left the captured still-started composite key")
+                worker.assert_stopped.assert_called_once()
 
     def test_recovery_requires_observed_maintenance_before_natural_grace_completion(self):
         case = RqWorkhorseRecoveryTests("test_abandoned_execution_maintenance_redelivers_to_fresh_production_workhorse")
