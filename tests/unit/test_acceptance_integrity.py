@@ -86,6 +86,73 @@ def test_missing_hash_target_remains_missing():
     assert result["source_hashes"]["missing"] == 1
 
 
+def test_retained_ci370_uppercase_digests_match_all_three_git_artifacts():
+    root = Path(__file__).resolve().parents[2]
+    document = audit.read_evidence(root, "docs/evidence/2026-09-30-ci-370.json")
+    before = json.dumps(document, sort_keys=True)
+    sources = {row["path"]: subprocess.check_output(["git", "show", f"HEAD:{row['path']}"], cwd=root)
+               for row in document["artifacts"]}
+    assert len(sources) == 3
+    assert all(hashlib.sha256(sources[row["path"]]).hexdigest() == row["sha256"].lower()
+               for row in document["artifacts"])
+    result = audit.evidence_identity(document, sources)
+    assert result["source_hashes"] == {"matched": 3, "drifted": 0, "missing": 0}
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+    assert json.dumps(document, sort_keys=True) == before
+
+
+@pytest.mark.parametrize("case", ["lower", "upper", "mixed"])
+@pytest.mark.parametrize("shape", ["path_record", "path_mapping"])
+def test_hex_digest_case_is_normalized_without_mutating_evidence(case, shape):
+    path = "tests/unit/test_example.py"
+    digest = hashlib.sha256(b"historical bytes").hexdigest()
+    recorded = digest if case == "lower" else digest.upper() if case == "upper" else "".join(
+        c.upper() if i % 2 else c for i, c in enumerate(digest))
+    document = {"files": [{"path": path, "sha256": recorded}]} if shape == "path_record" else {
+        "source_sha256": {path: recorded}}
+    before = json.dumps(document, sort_keys=True)
+    result = audit.evidence_identity(document, {path: b"historical bytes"})
+    assert result["source_hashes"] == {"matched": 1, "drifted": 0, "missing": 0}
+    assert result["tests"] == [{"path": path, "recorded_sha256": [digest], "current_sha256": digest}]
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+    assert json.dumps(document, sort_keys=True) == before
+
+
+def test_equivalent_digest_cases_deduplicate_but_different_digests_keep_drift():
+    path = "tests/unit/test_example.py"
+    digest = hashlib.sha256(b"test").hexdigest()
+    other = hashlib.sha256(b"other").hexdigest()
+    document = {"files": [{"path": path, "sha256": digest.upper()},
+                          {"path": path, "sha256": other.upper()}],
+                "source_sha256": {path: digest}}
+    result = audit.evidence_identity(document, {path: b"test"})
+    assert result["source_hashes"] == {"matched": 1, "drifted": 1, "missing": 0}
+    assert result["tests"][0]["recorded_sha256"] == sorted([digest, other])
+    assert result["changed_or_missing_paths"] == [path]
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+
+
+@pytest.mark.parametrize("digest", ["a" * 63, "A" * 65, "G" * 64, "A" * 63 + "z",
+    " " + "a" * 64, "a" * 64 + "\n", "0x" + "a" * 64, None, 1, int("1" * 64), ["a" * 64], "\uff21" * 64])
+@pytest.mark.parametrize("shape", ["path_record", "path_mapping"])
+def test_malformed_digest_never_becomes_a_source_identity(digest, shape):
+    path = "services/example.py"
+    document = {"files": [{"path": path, "sha256": digest}]} if shape == "path_record" else {
+        "source_sha256": {path: digest}}
+    result = audit.evidence_identity(document, {path: b"test"})
+    assert result["source_hashes"] == {"matched": 0, "drifted": 0, "missing": 0}
+    assert result["changed_or_missing_paths"] == []
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+
+
+def test_uppercase_digest_missing_target_remains_missing_not_pass():
+    result = audit.evidence_identity({"source_sha256": {"tests/absent.py": "A" * 64}}, {})
+    assert result["source_hashes"] == {"matched": 0, "drifted": 0, "missing": 1}
+    assert result["tests"][0]["recorded_sha256"] == ["a" * 64]
+    assert result["tests"][0]["current_sha256"] is None
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+
+
 def test_markdown_evidence_is_supported_without_claiming_machine_verified_proof(tmp_path):
     (tmp_path / "evidence.md").write_text("Ran tests/unit/test_example.py; PASS", encoding="utf-8")
     document = audit.read_evidence(tmp_path, "evidence.md")

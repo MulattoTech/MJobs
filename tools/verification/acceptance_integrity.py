@@ -23,7 +23,7 @@ repository{nameWithOwner}}} fieldValues(first:100){nodes{
 ... on ProjectV2ItemFieldSingleSelectValue{name field{... on ProjectV2SingleSelectField{name}}}
 ... on ProjectV2ItemFieldTextValue{text field{... on ProjectV2Field{name}}}
 } pageInfo{hasNextPage}}}}}}}'''
-SHA256 = re.compile(r"^[0-9a-f]{64}$")
+SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 TEST_PATH = re.compile(r"\btests/[\w./-]+\.py(?:\:[\w:.[\]-]+)?")
 PUBLIC_URL = re.compile(r"https://github\.com/MulattoTech/MJobs/(?:actions/[^\s\"<>]+|pull/\d+)")
 REQUIREMENT = re.compile(r"\bMJ-(?:REQ|REF)-\d+(?:\.[A-Z]\d+)?\b")
@@ -117,11 +117,13 @@ def evidence_identity(document: dict, sources: dict[str, bytes]) -> dict:
     hashes, tests, revisions, urls = set(), set(), set(), set()
     for value in _walk(document):
         if isinstance(value, dict):
-            if isinstance(value.get("path"), str) and SHA256.fullmatch(str(value.get("sha256", ""))):
-                hashes.add((value["path"], value["sha256"]))
+            digest = value.get("sha256")
+            if (isinstance(value.get("path"), str) and isinstance(digest, str)
+                    and SHA256.fullmatch(digest)):
+                hashes.add((value["path"], digest.lower()))
             for key, child in value.items():
                 if isinstance(child, str) and "/" in key and SHA256.fullmatch(child):
-                    hashes.add((key, child))
+                    hashes.add((key, child.lower()))
                 if isinstance(child, str) and re.fullmatch(r"[0-9a-f]{40}", child):
                     if any(word in key.lower() for word in ("commit", "revision", "head", "candidate", "base", "sha")) and "tree" not in key.lower():
                         revisions.add(child)
