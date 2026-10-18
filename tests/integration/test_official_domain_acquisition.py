@@ -32,6 +32,12 @@ JOB_URL = 'https://employer.example/careers/python?gh_jid=1234'
 
 
 class OfficialDomainAcquisitionTests(unittest.TestCase):
+    def _prepare_schema(self):
+        # PostgreSQL wrappers apply versioned Alembic migrations to their owned
+        # schema before shared setup. Store.migrate is intentionally SQLite-only.
+        if self.store.url.startswith('sqlite:'):
+            self.store.migrate()
+
     def setUp(self):
         temporary = tempfile.TemporaryDirectory(prefix='mjobs-domain-acquisition-')
         self.addCleanup(temporary.cleanup)
@@ -39,7 +45,7 @@ class OfficialDomainAcquisitionTests(unittest.TestCase):
         self.url = getattr(self, 'database_url', 'sqlite:///' + (self.root / 'proof.db').as_posix())
         self.store = Store(self.url)
         self.addCleanup(lambda: self.store.engine.dispose())
-        self.store.migrate()
+        self._prepare_schema()
         self.store.bind_workspace_mode('PERSONAL')
         self.enterContext(patch.dict(os.environ, {
             'MJOBS_DATABASE_URL': self.url, 'MJOBS_OPERATION_MODE': 'PERSONAL',

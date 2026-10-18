@@ -9,10 +9,31 @@ from alembic.config import Config
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 
+from packages.persistence.store import Store
 from tests.integration import test_official_domain_acquisition as contract
 
 
 POSTGRES_URL = os.environ.get('MJOBS_TEST_POSTGRES_URL')
+
+
+class OfficialDomainAcquisitionSchemaBoundaryTests(unittest.TestCase):
+    def test_sqlite_fixture_initializes_its_actual_schema(self):
+        case = contract.OfficialDomainAcquisitionTests()
+        case.store = Store('sqlite://')
+        self.addCleanup(case.store.engine.dispose)
+        case._prepare_schema()
+        self.assertEqual(case.store.count('career_profiles'), 0)
+
+    def test_postgresql_fixture_preserves_external_alembic_boundary(self):
+        # The guard needs only the URL, so exercise the real Store method without
+        # requiring a local PG driver/server or mocking a migration result.
+        case = contract.OfficialDomainAcquisitionTests()
+        case.store = Store.__new__(Store)
+        case.store.url = 'postgresql+psycopg://synthetic@127.0.0.1:1/mjobs_test_boundary'
+        with self.assertRaisesRegex(ValueError, 'Use alembic upgrade head'):
+            case.store.migrate()
+        # Shared setup must leave the PG schema prepared by the wrapper alone.
+        case._prepare_schema()
 
 
 @unittest.skipUnless(POSTGRES_URL, 'NOT_RUN: disposable loopback MJOBS_TEST_POSTGRES_URL absent')
