@@ -65,3 +65,26 @@ class EducationRequirementTests(unittest.TestCase):
         self.assertEqual(parse_education_requirement(text), {
             'classification': 'BACHELORS_PREFERRED', 'raw': text,
         })
+
+    def test_field_lists_retain_qualifiers_without_absorbing_other_requirements(self):
+        cases = (
+            ("Bachelor's degree in Computer Science, Engineering, or a related field required.", 'BACHELORS_REQUIRED'),
+            ("Bachelor’s degree in Computer Science, Engineering, or a related field preferred.", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree in Computer Science, Engineering, or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            ("Bachelor's degree, or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            ("Degree in Computer Science, Engineering, or a related field preferred.", 'DEGREE_PREFERRED'),
+            ("Bachelor's degree in Computer Science and Engineering required.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree in Computer Science, Engineering, and Mathematics preferred.", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree in Computer Science, Engineering, or a related field not required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree in Computer Science, Engineering, or a related field preferred, Python required.", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree in Computer Science, Engineering, or a related field not required, security clearance mandatory.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree in Computer Science, security clearance required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree in Computer Science or security clearance required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree, Python required.", 'NONE_SPECIFIED'),
+        )
+        for text, category in cases:
+            with self.subTest(text=text):
+                result = parse_education_requirement(text)
+                self.assertEqual(result['classification'], category)
+                if category != 'NONE_SPECIFIED':
+                    self.assertEqual(result['raw'], text.rstrip('.'))

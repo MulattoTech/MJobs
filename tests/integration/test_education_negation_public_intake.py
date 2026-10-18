@@ -137,13 +137,28 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
             (4211, "Bachelor's degree required, not preferred.", "BACHELORS_REQUIRED"),
             (4212, "Bachelor's degree required or equivalent experience not accepted.", "BACHELORS_REQUIRED"),
         )
+        self._assert_categories_and_matching(examples)
+
+    def test_field_list_qualifiers_survive_public_intake_filters_matching_and_reopen(self):
+        examples = (
+            (4301, "Bachelor's degree in Computer Science, Engineering, or a related field required.", "BACHELORS_REQUIRED"),
+            (4302, "Bachelor’s degree in Computer Science, Engineering, or a related field preferred.", "BACHELORS_PREFERRED"),
+            (4303, "Bachelor's degree in Computer Science, Engineering, or equivalent experience required.", "BACHELORS_OR_EQUIVALENT_EXPERIENCE"),
+            (4304, "Degree in Computer Science, Engineering, or a related field preferred.", "DEGREE_PREFERRED"),
+            (4305, "Bachelor's degree in Computer Science, Engineering, or a related field not required.", "NONE_SPECIFIED"),
+            (4306, "Bachelor's degree in Computer Science, Engineering, or a related field preferred, Python required.", "BACHELORS_PREFERRED"),
+            (4307, "Bachelor's degree in Computer Science, security clearance required.", "NONE_SPECIFIED"),
+            (4308, "Bachelor's degree, Python required.", "NONE_SPECIFIED"),
+        )
+        self._assert_categories_and_matching(examples)
+
+    def _assert_categories_and_matching(self, examples):
         jobs = self._collect_and_reopen([(identifier, clause) for identifier, clause, _ in examples])
         by_native = {job['attributes']['native_posting_id']: job for job in jobs}
         self.assertEqual(len(by_native), len(examples))
         for identifier, clause, category in examples:
             with self.subTest(clause=clause):
                 job = by_native[identifier]
-                self.assertEqual(job['attributes']['education_requirement'], category)
                 response = self.client.get('/jobs/' + job['id'], params={'profile_id': 'fixture'})
                 self.assertEqual(response.status_code, 200, response.text)
                 detail = response.json()
@@ -151,6 +166,8 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
                 self.assertTrue(any(clause in posting['raw']['content'] for posting in detail['postings']))
                 factors = [factor for factor in detail['match']['components']['fit_factors']
                            if factor['id'].startswith('education:')]
+                self.assertEqual((job['attributes']['education_requirement'], len(factors)),
+                                 (category, 0 if category == 'NONE_SPECIFIED' else 1))
                 if category == 'NONE_SPECIFIED':
                     self.assertEqual(factors, [])
                 else:

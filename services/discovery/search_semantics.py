@@ -342,9 +342,27 @@ def parse_education_requirement(text):
             negated_mention = re.search(r"\b(?:no|without|not)\s+(?:a\s+)?$", prefix, re.I)
             end = mentions[index + 1].start() if index + 1 < len(mentions) else len(clause.group())
             suffix = clause.group()[mention.end():end]
-            pieces = re.split(r",|\b(?:but|while|whereas|however|"
+            # Coordinated fields belong to the degree subject: "in Computer
+            # Science, Engineering, or a related field required". Keep that
+            # subject together, then resume ordinary clause boundaries after it.
+            qualifier = re.search(r"\b(?:required|mandatory|preferred)\b", suffix, re.I)
+            subject_end = qualifier.start() if qualifier else len(suffix)
+            subject = suffix[:subject_end]
+            coordination = list(re.finditer(r"\b(?:or|and(?:/or)?)\b", subject, re.I))
+            field_subject = re.sub(r"\bequivalent\s+(?:experience|combination)\b", '', subject, flags=re.I)
+            if (re.match(r"\s+in\s+", subject, re.I) and coordination
+                    and ',' not in subject[coordination[-1].end():]
+                    and not re.search(r"\b(?:but|while|whereas|however|clearance|"
+                                      r"certifications?|experience|skills?|proficiency)\b", field_subject, re.I)):
+                protected_end = subject_end
+            else:
+                protected_end = 0
+            pieces = re.split(r",(?!\s*(?:or|and/or)\s+equivalent\s+(?:experience|combination)\b)|"
+                              r"\bor(?=\s+(?:security\s+)?(?:clearance|certifications?|experience|skills?|proficiency)\b)|"
+                              r"\b(?:but|while|whereas|however|"
                               r"and(?!/or|\s+(?:not\s+)?(?:required|mandatory|preferred)\b))\b",
-                              suffix, flags=re.I)
+                              suffix[protected_end:], flags=re.I)
+            pieces[0] = suffix[:protected_end] + pieces[0]
             # A short continuation such as ', but preferred' retains its subject.
             # A new subject such as 'and Python required' cannot qualify a degree.
             scopes = [pieces[0]]
