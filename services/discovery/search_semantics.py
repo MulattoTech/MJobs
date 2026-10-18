@@ -249,20 +249,73 @@ def normalize_title(value):
 
 def parse_education_requirement(text):
     value = str(text or "")
-    patterns = (
-        ("BACHELORS_OR_EQUIVALENT_EXPERIENCE",
-         r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\b(?:or|and/or)\b[^.;\n]{0,60}\bequivalent\s+(?:experience|combination)\b"),
-        ("BACHELORS_PREFERRED",
-         r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\bpreferred\b"),
-        ("BACHELORS_REQUIRED",
-         r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\b(?:required|mandatory)\b"),
-        ("DEGREE_PREFERRED",
-         r"\b(?:college\s+|university\s+)?degree\b[^.;\n]{0,60}\bpreferred\b"),
-    )
-    for classification, pattern in patterns:
-        match = re.search(pattern, value, re.I)
-        if match:
-            return {"classification": classification, "raw": " ".join(match.group(0).split())}
+    # Normalize apostrophes only for recognition; offsets and returned evidence
+    # still refer to the original source wording and typography.
+    folded = value.translate(str.maketrans({"’": "'", "‘": "'", "ʼ": "'"}))
+    degree = re.compile(r"\b(bachelor(?:'s|s)?)(?:\s+degree)?\b|"
+                        r"\b(?:college\s+|university\s+)?degree\b", re.I)
+    negation = re.compile(r"(?:\b(?:not|never|no\s+longer)|n't)\s+"
+                          r"(?:(?:strictly|necessarily|always|required|mandatory|preferred|and|or)\s+)*$", re.I)
+    claims = []
+    for clause in re.finditer(r"[^.;\n!?]+", folded):
+        mentions = list(degree.finditer(clause.group()))
+        for index, mention in enumerate(mentions):
+            prefix = clause.group()[:mention.start()]
+            negated_mention = re.search(r"\b(?:no|without|not)\s+(?:a\s+)?$", prefix, re.I)
+            end = mentions[index + 1].start() if index + 1 < len(mentions) else len(clause.group())
+            suffix = clause.group()[mention.end():end]
+            pieces = re.split(r",|\b(?:but|while|whereas|however|"
+                              r"and(?!/or|\s+(?:not\s+)?(?:required|mandatory|preferred)\b))\b",
+                              suffix, flags=re.I)
+            # A short continuation such as ', but preferred' retains its subject.
+            # A new subject such as 'and Python required' cannot qualify a degree.
+            scopes = [pieces[0]]
+            for piece in pieces[1:]:
+                if re.fullmatch(r"\s*(?:(?:is|are|also|still)\s+)*"
+                                r"(?:(?:not|never|no longer)\s+)?"
+                                r"(?:(?:strictly|necessarily|always)\s+)*"
+                                r"(?:required|mandatory|preferred)\s*", piece, re.I):
+                    scopes.append(piece)
+                elif piece.strip():
+                    break
+            strengths = set()
+            for scope_index, scope in enumerate(scopes):
+                if negated_mention and scope_index == 0:
+                    continue
+                for strength in re.finditer(r"\b(required|mandatory|preferred)\b", scope, re.I):
+                    if not negation.search(scope[:strength.start()]):
+                        strengths.add(strength[1].lower())
+            preceding = re.search(r"\b(required|mandatory|preferred|require|requires|prefer|prefers)"
+                                  r"\s*:?\s*(?:a\s+)?$", prefix, re.I)
+            if preceding and not negated_mention and not negation.search(prefix[:preceding.start()]):
+                strengths.add({'require': 'required', 'requires': 'required',
+                               'prefer': 'preferred', 'prefers': 'preferred'}.get(
+                                   preceding[1].lower(), preceding[1].lower()))
+            equivalent = re.search(r"\b(?:or|and/or)\s+(?:an?\s+)?equivalent\s+"
+                                   r"(?:experience|combination)\b", scopes[0], re.I) if not negated_mention else None
+            if equivalent and re.match(r"\s+(?:(?:is|are)\s+)?(?:not|never)\s+"
+                                       r"(?:accepted|considered|allowed)\b",
+                                       scopes[0][equivalent.end():], re.I):
+                equivalent = None
+            classification = None
+            if mention[1]:
+                if equivalent:
+                    classification = 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'
+                elif strengths & {'required', 'mandatory'}:
+                    classification = 'BACHELORS_REQUIRED'
+                elif 'preferred' in strengths:
+                    classification = 'BACHELORS_PREFERRED'
+            elif 'preferred' in strengths:
+                classification = 'DEGREE_PREFERRED'
+            if classification:
+                claims.append((classification, ' '.join(value[clause.start():clause.end()].split())))
+    # An explicit mandatory claim is not erased by a preferred or alternative
+    # claim in another clause. An alternative within the same claim stays distinct.
+    priority = ('BACHELORS_REQUIRED', 'BACHELORS_OR_EQUIVALENT_EXPERIENCE',
+                'BACHELORS_PREFERRED', 'DEGREE_PREFERRED')
+    if claims:
+        classification, raw = min(claims, key=lambda claim: priority.index(claim[0]))
+        return {'classification': classification, 'raw': raw}
     return {"classification": "NONE_SPECIFIED", "raw": None}
 
 

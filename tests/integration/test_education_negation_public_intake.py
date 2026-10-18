@@ -45,7 +45,11 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
     def _app(self):
         return create_app(self.store, "", self.root, operation_mode="PERSONAL")
 
-    def _collect_and_reopen(self):
+    def _collect_and_reopen(self, clauses=None):
+        clauses = clauses or (
+            (4101, "Bachelor's degree required."),
+            (4102, "Bachelor's degree not required."),
+        )
         rows = [{
             "id": identifier,
             "title": "Synthetic Education Control " + str(identifier),
@@ -55,22 +59,20 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
                 "https://job-boards.greenhouse.io/education-fixture/jobs/"
                 + str(identifier)
             ),
-        } for identifier, clause in (
-            (4101, "Bachelor's degree required."),
-            (4102, "Bachelor's degree not required."),
-        )]
+        } for identifier, clause in clauses]
         response = self.client.post("/sources/" + self.source_id + "/collect", json={
             "profile_id": "fixture", "request_id": "education-negation-public",
         })
         self.assertEqual(response.status_code, 202, response.text)
         operation = response.json()["operation_id"]
+        self.operation_id = operation
 
         def boundary(_transport, request):
             self.assertEqual((request.method, request.url.host),
                              ("GET", "boards-api.greenhouse.io"))
             self.requests.append(request.url.path)
             if request.url.path == "/v1/boards/education-fixture/jobs":
-                return httpx.Response(200, json={"jobs": rows, "meta": {"total": 2}})
+                return httpx.Response(200, json={"jobs": rows, "meta": {"total": len(rows)}})
             self.assertEqual(request.url.path, "/v1/boards/education-fixture")
             return httpx.Response(200, json={"name": "Synthetic Education Employer"})
 
@@ -119,3 +121,53 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
         print(json.dumps(observation, sort_keys=True))
         self.assertEqual(identifiers, [4101], observation)
         self.assertNotEqual(negated["attributes"]["education_requirement"], "BACHELORS_REQUIRED")
+
+    def test_categories_typography_conflicts_and_matching_survive_reopen_and_replay(self):
+        examples = (
+            (4201, "Bachelor’s degree required.", "BACHELORS_REQUIRED"),
+            (4202, "Bachelor's degree preferred.", "BACHELORS_PREFERRED"),
+            (4203, "Bachelor's degree or equivalent experience required.", "BACHELORS_OR_EQUIVALENT_EXPERIENCE"),
+            (4204, "College degree preferred.", "DEGREE_PREFERRED"),
+            (4205, "Python experience required.", "NONE_SPECIFIED"),
+            (4206, "Bachelor's degree isn't required.", "NONE_SPECIFIED"),
+            (4207, "No bachelor's degree required.", "NONE_SPECIFIED"),
+            (4208, "Bachelor's degree not required, but preferred.", "BACHELORS_PREFERRED"),
+            (4209, "Bachelor's degree not required; security clearance required.", "NONE_SPECIFIED"),
+            (4210, "Bachelor's degree preferred. Bachelor's degree required.", "BACHELORS_REQUIRED"),
+            (4211, "Bachelor's degree required, not preferred.", "BACHELORS_REQUIRED"),
+            (4212, "Bachelor's degree required or equivalent experience not accepted.", "BACHELORS_REQUIRED"),
+        )
+        jobs = self._collect_and_reopen([(identifier, clause) for identifier, clause, _ in examples])
+        by_native = {job['attributes']['native_posting_id']: job for job in jobs}
+        self.assertEqual(len(by_native), len(examples))
+        for identifier, clause, category in examples:
+            with self.subTest(clause=clause):
+                job = by_native[identifier]
+                self.assertEqual(job['attributes']['education_requirement'], category)
+                response = self.client.get('/jobs/' + job['id'], params={'profile_id': 'fixture'})
+                self.assertEqual(response.status_code, 200, response.text)
+                detail = response.json()
+                self.assertIn(clause, detail['description'])
+                self.assertTrue(any(clause in posting['raw']['content'] for posting in detail['postings']))
+                factors = [factor for factor in detail['match']['components']['fit_factors']
+                           if factor['id'].startswith('education:')]
+                if category == 'NONE_SPECIFIED':
+                    self.assertEqual(factors, [])
+                else:
+                    self.assertEqual(len(factors), 1)
+                    self.assertEqual(factors[0]['status'], 'UNKNOWN')
+                    self.assertEqual(factors[0]['score_effect'], 'NONE')
+        for category in {row[2] for row in examples}:
+            with self.subTest(filter=category):
+                self.assertEqual(
+                    sorted(job['attributes']['native_posting_id'] for job in self._jobs(education_requirement=category)),
+                    sorted(identifier for identifier, _, expected in examples if expected == category))
+        request_count = len(self.requests)
+        with patch('httpx.HTTPTransport.handle_request', side_effect=AssertionError('Replay must not refetch')):
+            replay = execute_operation(self.operation_id)
+        self.assertEqual(replay['status'], 'ALREADY_CLAIMED_OR_CAPACITY', replay)
+        operation = self.client.get('/operations/' + self.operation_id)
+        self.assertEqual(operation.status_code, 200, operation.text)
+        self.assertEqual(operation.json()['state'], 'COMPLETED')
+        self.assertEqual(len(self.requests), request_count)
+        self.assertEqual(len(self._jobs()), len(examples))
