@@ -1,5 +1,9 @@
 """Acceptance census must expose uncertainty instead of manufacturing proof."""
 import hashlib
+import json
+import os
+from pathlib import Path
+import subprocess
 
 import pytest
 
@@ -103,6 +107,88 @@ def test_output_cannot_overwrite_canonical_planning(tmp_path):
     with pytest.raises(ValueError, match="planning"):
         audit.write_report(tmp_path, target, {})
     assert target.read_text(encoding="utf-8") == "original"
+
+
+@pytest.fixture
+def disposable_git_worktree(tmp_path):
+    """All administrative-path reproductions stay inside this disposable tree."""
+    repository, worktree = tmp_path / "repository", tmp_path / "worktree"
+    def git(*args, cwd=repository):
+        return subprocess.check_output(["git", *args], cwd=cwd, stderr=subprocess.PIPE).decode().strip()
+    repository.mkdir()
+    git("init")
+    git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+        "-c", "core.hooksPath=/dev/null", "commit", "--allow-empty", "-m", "fixture")
+    git("worktree", "add", "-b", "fixture-worktree", str(worktree))
+    git_dir = Path(git("rev-parse", "--absolute-git-dir", cwd=worktree)).resolve()
+    common_dir = Path(git("rev-parse", "--path-format=absolute", "--git-common-dir", cwd=worktree)).resolve()
+    assert git_dir.is_relative_to(tmp_path.resolve())
+    assert common_dir.is_relative_to(tmp_path.resolve())
+    return repository, worktree, git_dir, common_dir
+
+
+@pytest.mark.parametrize("destination", ["marker", "git_dir", "common_dir", "ordinary_repo", "new_admin_file"])
+def test_output_rejects_git_administration_before_write(disposable_git_worktree, destination):
+    repository, worktree, git_dir, common_dir = disposable_git_worktree
+    root = repository if destination == "ordinary_repo" else worktree
+    target = {"marker": worktree / ".git", "git_dir": git_dir / "HEAD",
+              "common_dir": common_dir / "config", "ordinary_repo": common_dir / "HEAD",
+              "new_admin_file": git_dir / "unexpected-report.json"}[destination]
+    before = target.read_bytes() if target.exists() else None
+    with pytest.raises(ValueError, match="Git administrative"):
+        audit.write_report(root, target, {"unsafe": True})
+    assert (target.read_bytes() if target.exists() else None) == before
+    subprocess.run(["git", "status", "--porcelain"], cwd=root, check=True, capture_output=True)
+
+
+@pytest.mark.parametrize("destination", ["marker", "git_dir", "common_dir"])
+def test_output_rejects_symlink_alias_to_git_metadata(disposable_git_worktree, tmp_path, destination):
+    _, worktree, git_dir, common_dir = disposable_git_worktree
+    target = {"marker": worktree / ".git", "git_dir": git_dir, "common_dir": common_dir}[destination]
+    alias = tmp_path / "alias"
+    try:
+        alias.symlink_to(target, target_is_directory=target.is_dir())
+    except OSError as exc:
+        pytest.skip(f"Symlink creation unavailable: {exc}")
+    output = alias if destination == "marker" else alias / "HEAD"
+    before = output.read_bytes()
+    with pytest.raises(ValueError, match="Git administrative"):
+        audit.write_report(worktree, output, {})
+    assert output.read_bytes() == before
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows case-insensitive filesystem alias")
+def test_output_rejects_windows_case_alias(disposable_git_worktree):
+    _, worktree, _, _ = disposable_git_worktree
+    marker = worktree / ".GiT"
+    before = marker.read_bytes()
+    with pytest.raises(ValueError, match="Git administrative"):
+        audit.write_report(worktree, marker, {})
+    assert marker.read_bytes() == before
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows directory junction")
+@pytest.mark.parametrize("destination", ["git_dir", "common_dir"])
+def test_output_rejects_windows_junction_alias(disposable_git_worktree, tmp_path, destination):
+    _, worktree, git_dir, common_dir = disposable_git_worktree
+    target = git_dir if destination == "git_dir" else common_dir
+    alias = tmp_path / "junction"
+    subprocess.run(["cmd", "/c", "mklink", "/J", str(alias), str(target)],
+                   check=True, capture_output=True)
+    output = alias / "HEAD"
+    before = output.read_bytes()
+    with pytest.raises(ValueError, match="Git administrative"):
+        audit.write_report(worktree, output, {})
+    assert output.read_bytes() == before
+
+
+def test_output_allows_external_artifact_and_untracked_workspace_report(disposable_git_worktree, tmp_path):
+    _, worktree, _, _ = disposable_git_worktree
+    artifact_directory = tmp_path / "ao-artifacts"
+    artifact_directory.mkdir()
+    for target in (artifact_directory / "report.json", worktree / "report.json"):
+        audit.write_report(worktree, target, {"count": 425})
+        assert json.loads(target.read_text(encoding="utf-8")) == {"count": 425}
 
 
 def test_lineage_does_not_confuse_parent_with_dotted_child_or_infer_acceptance():

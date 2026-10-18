@@ -324,6 +324,17 @@ def write_report(root: Path, output: Path, report: dict) -> None:
     root, output = root.resolve(), output.resolve()
     if output.is_relative_to(root / "planning"):
         raise ValueError("Census output must not overwrite canonical planning")
+    # Linked worktrees have an untracked .git pointer, while their actual
+    # administrative directories live outside the checkout. Resolve aliases
+    # before comparing; WindowsPath also preserves Windows case semantics.
+    if output.is_relative_to((root / ".git").resolve()):
+        raise ValueError("Census output must not overwrite Git administrative paths")
+    admin_paths = _run(["git", "rev-parse", "--path-format=absolute",
+                       "--git-dir", "--git-common-dir"], root).decode("utf-8").splitlines()
+    if len(admin_paths) != 2 or any(not path for path in admin_paths):
+        raise ValueError("Could not identify Git administrative paths")
+    if any(output.is_relative_to(Path(path).resolve()) for path in admin_paths):
+        raise ValueError("Census output must not overwrite Git administrative paths")
     if output.is_relative_to(root):
         tracked = _run(["git", "ls-files", "--", output.relative_to(root).as_posix()], root)
         if tracked.strip():
