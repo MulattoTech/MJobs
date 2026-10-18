@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from sqlalchemy import select
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
@@ -16,6 +16,10 @@ from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.history import application_documents
 from services.applications.preflight import persist_preflight
+from services.applications.attempt_history import AttemptConflict
+from services.applications.run_requests import (
+    queue_mock_run, read_mock_run, validate_run_operation,
+)
 from tests.integration.test_spine import PROFILE
 
 
@@ -149,6 +153,86 @@ class ApplicationReprepareTests(unittest.TestCase):
         self.assertEqual(active.status_code, 409)
         self.assertEqual(self.store.application(self.application_id)["document_version"],
                          app["document_version"])
+
+    def test_completed_old_run_receipt_cannot_certify_reprepared_revision(self):
+        old_app = self.store.application(self.application_id)
+        persist_preflight(self.store, self.application_id, {
+            "result": "PASS", "reason": "SYNTHETIC_OLD_REVISION_PASS",
+            "observed_at": "2026-10-18T00:00:00Z",
+            "profile_version": old_app["profile_version"],
+            "document_version": old_app["document_version"],
+            "route_id": old_app["route_id"], "provider": "mock-ats",
+            "tenant": "fixture", "requisition": "B",
+            "metadata_fingerprint": "c" * 64,
+            "mappings": [], "missing": [],
+        })
+        old_receipt = queue_mock_run(
+            self.store, "fixture", self.application_id, submit=False,
+            request_id="old-completed-dryrun",
+        )
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == old_receipt["operation_id"]
+            ).values(state="RUNNING"))
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == self.application_id
+            ).values(state="DRY_RUN_COMPLETE"))
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == old_receipt["operation_id"]
+            ).values(state="COMPLETED"))
+
+        completed_app = self.store.application(self.application_id)
+        current = self.store.profile("fixture")
+        self.store.save_profile({**current, "answers": [{
+            "id": "new-reviewed-answer", "question": "Synthetic current question?",
+            "text": "Current approved synthetic response.",
+            "source": "User-reviewed fixture", "verified": True,
+            "user_approved": True, "confidence": 90,
+        }]})
+        latest = self.store.profile("fixture")
+        resumed = self.client.post(self.url, json=self._payload(
+            app=completed_app, profile=latest))
+        self.assertEqual(resumed.status_code, 200, resumed.text)
+        current_app = resumed.json()
+        self.assertEqual(current_app["state"], "PREPARED")
+        self.assertGreater(current_app["document_version"], old_app["document_version"])
+        self.assertEqual(current_app["profile_version"], latest["version"])
+        self.assertIsNone(current_app["question_preflight"])
+
+        # The terminal old receipt remains readable with its original fingerprint,
+        # while replaying that identity against new pins is rejected.
+        old_readback = read_mock_run(
+            self.store, "fixture", self.application_id, "old-completed-dryrun",
+        )
+        self.assertEqual(old_readback["state"], "COMPLETED")
+        self.assertEqual(old_readback["input_fingerprint"],
+                         old_receipt["input_fingerprint"])
+        with self.assertRaisesRegex(AttemptConflict, "APPLICATION_RUN_REQUEST_REUSED"):
+            queue_mock_run(
+                self.store, "fixture", self.application_id, submit=False,
+                request_id="old-completed-dryrun",
+            )
+
+        # A new operation freezes the current profile/document pins and must run
+        # to create a replacement preflight; no old receipt is reused.
+        new_run = queue_mock_run(
+            self.store, "fixture", self.application_id, submit=False,
+            request_id="new-revision-dryrun",
+        )
+        self.assertNotEqual(new_run["input_fingerprint"], old_receipt["input_fingerprint"])
+        with self.store.engine.connect() as connection:
+            new_operation = connection.execute(select(m.operations).where(
+                m.operations.c.id == new_run["operation_id"],
+            )).mappings().one()
+        self.assertEqual(new_operation["params"]["input_snapshot"]["profile_version"],
+                         latest["version"])
+        self.assertEqual(new_operation["params"]["input_snapshot"]["document_version"],
+                         current_app["document_version"])
+        validate_run_operation(self.store, dict(new_operation))
+        self.assertIsNone(self.store.application(self.application_id)["confirmation"])
+        self.assertIsNone(self.client.get(
+            f"/profiles/fixture/applications/{self.application_id}"
+        ).json()["question_preflight"])
 
     def test_generation_failure_keeps_old_pins_documents_and_audit(self):
         old_app = self.store.application(self.application_id)

@@ -20,6 +20,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.applications.preflight import latest_preflight, persist_preflight
 from services.applications.mock_adapter import apply_mock
+from services.applications.attempt_history import read_attempt_history
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -106,6 +107,43 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                          "document_kinds": []},
                     ],
                 })
+
+            # Begin from a real completed local dry run on the old pins. Keep its
+            # attempt history, then restore the unresolved-answer review fixture
+            # for the UX action below.
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                old_run = executor.submit(
+                    apply_mock, store, application_ids["fixture"], fixture, root,
+                    request_id="old-revision-completed-dryrun",
+                ).result(timeout=45)
+            self.assertEqual(old_run["state"], "DRY_RUN_COMPLETE")
+            old_attempt = read_attempt_history(
+                store, "fixture", application_ids["fixture"],
+            )["attempts"][0]
+            self.assertEqual(old_attempt["state"], "DRY_RUN_COMPLETE")
+            self.assertEqual(old_attempt["document_version"],
+                             store.application(application_ids["fixture"])["document_version"])
+            old_preflight = latest_preflight(store, application_ids["fixture"])
+            self.assertEqual(old_preflight["result"], "PASS")
+            old_application = store.application(application_ids["fixture"])
+            persist_preflight(store, application_ids["fixture"], {
+                "result": "FAIL", "reason": "UNRESOLVED_REQUIRED_QUESTIONS",
+                "observed_at": "2026-10-18T00:01:00Z",
+                "profile_version": old_application["profile_version"],
+                "document_version": old_application["document_version"],
+                "route_id": old_application["route_id"], "provider": "mock-ats",
+                "tenant": "example", "requisition": "B",
+                "metadata_fingerprint": "b" * 64,
+                "mappings": [], "missing": [
+                    {"question_id": QUESTION_ID, "question": QUESTION,
+                     "fact_ids": [], "answer_ids": [], "profile_paths": [],
+                     "document_kinds": []},
+                    {"question_id": SENSITIVE_QUESTION_ID,
+                     "question": SENSITIVE_QUESTION,
+                     "fact_ids": [], "answer_ids": [], "profile_paths": [],
+                     "document_kinds": []},
+                ],
+            })
 
             applications_before = [store.application(identifier)
                                    for identifier in application_ids.values()]
