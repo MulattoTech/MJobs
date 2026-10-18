@@ -13,7 +13,6 @@ from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration import test_controlled_application_dry_run as flow
-from workers.operations import recover_expired
 from workers.structured_logging import log_operation_finished
 
 
@@ -181,12 +180,19 @@ tasks.execute_operation(sys.argv[1])
         with self.store.engine.begin() as connection:
             connection.execute(update(m.operations).where(m.operations.c.id == queued["operation_id"])
                                .values(lease_expires_at="2000-01-01T00:00:00+00:00"))
-        recover_expired(self.store)
-        resume = """import json,sys
+        resume = """import json,os,sys
 from unittest.mock import patch
+from packages.persistence.store import Store
+from workers.operations import recover_expired
 from workers.tasks import execute_operation
 from workers.structured_logging import configure_operation_logger
 configure_operation_logger()
+store = Store(os.environ['MJOBS_DATABASE_URL'])
+try:
+    assert recover_expired(store) == 1
+    assert recover_expired(store) == 0
+finally:
+    store.engine.dispose()
 with patch('services.applications.controlled_dry_run.run_browser',side_effect=AssertionError('must not replay')):
     print(json.dumps(execute_operation(sys.argv[1])))
     print(json.dumps(execute_operation(sys.argv[1])))
@@ -197,10 +203,18 @@ with patch('services.applications.controlled_dry_run.run_browser',side_effect=As
         records = [json.loads(line) for line in process.stdout.splitlines()]
         self.assertEqual(len(records), 3)
         self.assert_context(records[0], "APPLICATION_DRY_RUN", "COMPLETED")
-        self.assertEqual(records[1]["status"], "COMPLETED")
+        self.assertEqual(records[0]["event"], "operation_finished")
+        self.assertEqual(records[0]["operation_id"], queued["operation_id"])
+        self.assertEqual(records[1]["status"], "ALREADY_CLAIMED_OR_CAPACITY")
         self.assertEqual(records[2]["status"], "ALREADY_CLAIMED_OR_CAPACITY")
+        completed = self.client.get(run_path).json()
+        self.assertEqual(completed["state"], "COMPLETED")
+        self.assertEqual(completed["receipt"], receipt)
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.operations.c.attempt_count).where(
+                m.operations.c.id == queued["operation_id"])).scalar_one(), 1)
         self.reopen()
-        self.assertEqual(self.client.get(run_path).json()["receipt"], receipt)
+        self.assertEqual(self.client.get(run_path).json(), completed)
 
 
 @unittest.skipUnless(os.environ.get("MJOBS_TEST_POSTGRES_URL"), "Requires isolated disposable PostgreSQL")
