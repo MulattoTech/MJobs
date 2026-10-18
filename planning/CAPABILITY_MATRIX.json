@@ -297,35 +297,38 @@
     },
     {
       "requirement_id": "MJ-REQ-019",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-01-source-policy-scheduler.json"
+        "docs/evidence/2026-10-01-source-policy-scheduler.json",
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
       ],
-      "note": "Typed strategy/capability contract is persisted and rendered; Greenhouse live evidence declares exact supported and unsupported capabilities.",
+      "note": "Historical checkpoint (preserved): Typed strategy/capability contract is persisted and rendered; Greenhouse live evidence declares exact supported and unsupported capabilities. Current audit: Current whole-source adjudication: active company RSS/JSON monitoring lacks supported/unsupported capability declarations and has no linked collector; strategy alone is insufficient. Public company-feed readback and global positive control are source-bound in the consolidated evidence. Historical global/Greenhouse proof remains valid at its stated scope; no original closure cause is inferred.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
     },
     {
       "requirement_id": "MJ-REQ-020",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-user-testing.md",
-        "docs/evidence/2026-10-01-source-policy-scheduler.json"
+        "docs/evidence/2026-10-01-source-policy-scheduler.json",
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
       ],
-      "note": "Per-source enablement, cadence, concurrency, timeout, request rate, jitter, health, timestamps, failure/backoff and strategy are persisted/configurable; source failures remain isolated durable operations.",
+      "note": "Historical checkpoint (preserved): Per-source enablement, cadence, concurrency, timeout, request rate, jitter, health, timestamps, failure/backoff and strategy are persisted/configurable; source failures remain isolated durable operations. Current audit: Current whole-source adjudication: company-feed monitoring accepts cadence but rejects configurable request_timeout,rate_limit,concurrency (public422 versus global200 controls). Its fixed client safety budgets do not satisfy the literal per-source configuration contract. Known per-source recovery evidence is retained; no cross-source failure leak is asserted.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "bookkeeping"
     },
     {
       "requirement_id": "MJ-REQ-021",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-01-source-policy-scheduler.json"
+        "docs/evidence/2026-10-01-source-policy-scheduler.json",
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
       ],
-      "note": "A persistent scheduler service independently evaluates source cadence/backoff/jitter and enqueues idempotent durable work. Three successive live read-only scheduler operations completed at the configured five-minute cadence.",
+      "note": "Historical checkpoint (preserved): A persistent scheduler service independently evaluates source cadence/backoff/jitter and enqueues idempotent durable work. Three successive live read-only scheduler operations completed at the configured five-minute cadence. Current audit: Current whole-source adjudication: company-feed monitoring has independent cadence and retry/backoff, but its next_due calculation has no jitter. Global source scheduler proof does not certify this separate producer. Full requirement remainsPARTIAL pending company-path coverage.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -424,9 +427,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-01-experience-salary-date.json",
-        "docs/evidence/2026-10-18-acceptance-status-correction.json"
+        "docs/evidence/2026-10-18-acceptance-status-correction.json",
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
       ],
-      "note": "Corrected unsupported historical PASS: the literal relative-timestamp clause has an independently reproduced public intake counterexample on integrated e6b9e702 source, unchanged by the test-only PR730 merge. A synthetic Remotive posting reported as 2 hours ago persists reported_posted_at=null; the LAST_HOUR saved search incorrectly returns it using recent first_seen. Existing absolute-date/window behavior remains proven within its scope. PR734 is an unmerged fix candidate, not whole-contract acceptance. The original acceptance record and false-PASS interval are preserved; the scoped evidence contains the exact public regression source, execution, failing assertion and source hashes.",
+      "note": "Historical checkpoint (preserved): Corrected unsupported historical PASS: the literal relative-timestamp clause has an independently reproduced public intake counterexample on integrated e6b9e702 source, unchanged by the test-only PR730 merge. A synthetic Remotive posting reported as 2 hours ago persists reported_posted_at=null; the LAST_HOUR saved search incorrectly returns it using recent first_seen. Existing absolute-date/window behavior remains proven within its scope. PR734 is an unmerged fix candidate, not whole-contract acceptance. The original acceptance record and false-PASS interval are preserved; the scoped evidence contains the exact public regression source, execution, failing assertion and source hashes. Current audit: Current adjudication after mergedPR734 on43af (same listed product inputs at955): scoped API/storage proof PASS,20tests+42subtests and seven public date-window boundary/reopen checks. Whole030 remainsPARTIAL because UI lacks last-hour,today,custom date controls. Historical false-PASS and public RED retained; merged fix does not retroactively certify them.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -469,9 +473,9 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-10-01-skill-title-education.json",
-        "docs/evidence/2026-10-18-education-negation-acceptance-correction.json"
+        "docs/evidence/2026-10-18-whole-source-acceptance-corrections.json"
       ],
-      "note": "Historical positive education parsing evidence retained. At integrated source 37ea5e95, independent public Greenhouse ingestion with direct execute_operation, synthetic HTTP and SQLite, followed by database reopen, persisted Bachelor's degree not required as BACHELORS_REQUIRED; the public required-education filter returned the negated job. Test-only commit d25d9482: 1 expected failure, 1 pass, 0 skips. No actual RQ or live-provider claim; repair and independent acceptance remain pending.",
+      "note": "Historical checkpoint (preserved): Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009 Current audit: Current955 product counterexample: public Greenhouse admission/direct execute_operation with synthetic HTTP andSQLite reopen still persists Bachelor's degree not required asBACHELORS_REQUIRED; required filter returns negative4102 with positive4101. Exact retainedd25 oracle:1expectedFAIL/1PASS/0skip. Historical positive education evidence remains; pending product repair is not acceptance.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"

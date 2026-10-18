@@ -802,7 +802,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "PASS"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-020",
@@ -810,7 +810,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "bookkeeping",
-      "status": "PASS"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-021",
@@ -818,7 +818,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "PASS"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-022",
@@ -3446,8 +3446,8 @@
     }
   ],
   "summary": {
-    "PARTIAL": 103,
-    "PASS": 143,
+    "PARTIAL": 106,
+    "PASS": 140,
     "NOT_RUN": 179
   },
   "note": "Acceptance statuses are evidence-based. Branches/commits are not proof of PASS."
