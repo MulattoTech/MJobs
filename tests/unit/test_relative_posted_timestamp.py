@@ -67,7 +67,10 @@ class RelativePostedTimestampTests(unittest.TestCase):
             job, at='2026-10-18T20:30:00Z')['matched'])
 
     def test_invalid_claim_is_unknown_instead_of_falling_back_to_recent_first_seen(self):
-        job = {'attributes': {'reported_posted_at': 'not a date',
-                              'first_seen_at': '2026-10-18T20:00:00Z'}}
-        self.assertIn('DATE_UNKNOWN', evaluate_search({'date_window': 'LAST_HOUR'}, job,
-            at='2026-10-18T20:30:00Z')['reasons'])
+        for value in ('not a date', 0, False, [], {}):
+            with self.subTest(value=value):
+                job = {'attributes': {**normalize_reported_timestamp(value,
+                    reference_at='2026-10-18T20:00:00Z'),
+                    'first_seen_at': '2026-10-18T20:00:00Z'}}
+                self.assertIn('DATE_UNKNOWN', evaluate_search({'date_window': 'LAST_HOUR'}, job,
+                    at='2026-10-18T20:30:00Z')['reasons'])

@@ -179,11 +179,12 @@ def normalize_reported_timestamp(value, *, reference_at, previous=None):
 def effective_job_timestamp(job):
     attrs = dict(job.get("attributes") or {})
     reported = attrs.get('reported_posted_at')
-    if reported:
+    if reported is not None and reported != '':
         return parse_timestamp(reported, reference_at=(
             attrs.get('reported_posted_at_reference_at') or attrs.get('first_seen_at')))
     # An invalid supplied claim is unknown, not evidence of a recent posting.
-    if attrs.get('reported_posted_at_raw'):
+    raw = attrs.get('reported_posted_at_raw')
+    if raw is not None and raw != '':
         return None
     return parse_timestamp(attrs.get('first_seen_at'))
 
