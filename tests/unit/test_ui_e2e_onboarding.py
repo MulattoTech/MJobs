@@ -1,11 +1,44 @@
+import json
 import unittest
 from pathlib import Path
+import tempfile
 from unittest.mock import patch
 
 from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_partial_evidence_keeps_completed_checks_and_sanitizes_injected_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Save synthetic profile")
+            journal.complete({"action": "Synthetic profile saved", "result": "PASS"})
+
+            journal.begin("Save selected Sources search")
+            with self.assertRaisesRegex(ValueError, "private synthetic payload"):
+                try:
+                    raise ValueError("private synthetic payload")
+                except ValueError as error:
+                    journal.fail(error)
+                    raise
+
+            evidence = json.loads(target.read_text(encoding="utf-8"))
+            self.assertEqual(evidence["overall_state"], "FAIL")
+            self.assertEqual(evidence["checks"], [
+                {"action": "Synthetic profile saved", "result": "PASS"},
+                {"action": "Save selected Sources search", "result": "FAIL"},
+            ])
+            self.assertEqual(evidence["failure"], {
+                "type": "ValueError", "stage": "Save selected Sources search"})
+            self.assertEqual(evidence["remaining_state"], "NOT_RUN")
+            serialized = target.read_text(encoding="utf-8")
+            self.assertNotIn("private synthetic payload", serialized)
+            self.assertEqual(list(Path(directory).iterdir()), [target])
+
     def test_default_demo_does_not_require_onboarding_blocked_operation(self):
         def unexpected_request(path):
             self.fail(f"demo run requested onboarding-only operation history: {path}")

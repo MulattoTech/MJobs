@@ -1,4 +1,5 @@
 """Connected, local-fixture acceptance for the first-run search workflow."""
+import asyncio
 import os
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
@@ -15,6 +16,7 @@ from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
 from apps.api.main import create_app
+from cli.ui_e2e import wait_for_ui_action_idle
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
@@ -40,6 +42,13 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                 origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
                 app = create_app(store, source_origin, root,
                                  "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+
+                @app.middleware("http")
+                async def delay_profile_refresh(request, call_next):
+                    if request.method == "GET" and request.url.path == "/applications":
+                        await asyncio.sleep(0.75)
+                    return await call_next(request)
+
                 server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
                 server_thread = threading.Thread(target=server.run,
                                                  kwargs={"sockets": [sock]}, daemon=True)
@@ -144,6 +153,23 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         profile_id = page.get_by_label("Active profile", exact=True).input_value()
                         self.assertTrue(profile_id)
                         self.assertEqual(store.profile(profile_id)["facts"], [])
+
+                        # The success notice precedes action()'s refresh/readback.
+                        # Keep an actual Sources submission from racing that busy window.
+                        page.get_by_role("button", name="Sources", exact=True).click()
+                        save_search = page.get_by_role("button", name="Save search", exact=True)
+                        self.assertFalse(save_search.is_enabled())
+                        wait_for_ui_action_idle(page, "Save search")
+                        page.get_by_label("Search name", exact=True).fill("Busy state readiness probe")
+                        page.get_by_label("Include titles", exact=True).fill("Synthetic Engineer")
+                        with page.expect_response(lambda response:
+                                response.request.method == "PUT"
+                                and response.url == origin + "/search-profiles") as readiness_search:
+                            save_search.click()
+                        self.assertEqual(readiness_search.value.status, 200,
+                                         readiness_search.value.text())
+                        expect(page.get_by_role("status").filter(
+                            has_text="Search saved. Its schedule is off")).to_be_visible()
 
                         wizard.get_by_role("button", name="Open resume library", exact=True).click()
                         page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({

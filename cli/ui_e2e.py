@@ -5,7 +5,11 @@ import hashlib
 import io
 import ipaddress
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import time
 from urllib.parse import urlsplit
 
@@ -17,6 +21,83 @@ from reportlab.pdfgen import canvas
 from cli.live_feedback import capture_redacted_screenshot
 from cli.compose_recovery import collect_public_job_inventory
 from cli import local_persistence_acceptance as persistence
+
+
+class EvidenceJournal:
+    """Atomically checkpoint only bounded, sanitized named UI evidence."""
+
+    MAX_CHECKS = 80
+    MAX_BYTES = 512 * 1024
+
+    def __init__(self, path, binding):
+        self.path = Path(path)
+        self.binding = binding
+        self.checks = []
+        self.attempted = None
+        self.failure = None
+        self.overall_state = "IN_PROGRESS"
+        self.remaining_state = "NOT_RUN"
+
+    def begin(self, name):
+        self.attempted = {"action": str(name)[:200], "result": "IN_PROGRESS"}
+        self.persist()
+
+    def complete(self, check):
+        if len(self.checks) >= self.MAX_CHECKS:
+            raise ValueError("evidence check limit exceeded")
+        safe_check = {"action": str(check.get("action", "unnamed check"))[:300],
+                      "result": "PASS"}
+        if check.get("boundary"):
+            safe_check["boundary"] = str(check["boundary"])[:500]
+        self.checks.append(safe_check)
+        self.attempted = None
+        self.persist()
+
+    def fail(self, error):
+        stage = (self.attempted or {}).get("action", "Connected UI workflow")
+        self.attempted = {"action": stage, "result": "FAIL"}
+        self.failure = {"type": type(error).__name__, "stage": stage}
+        self.overall_state = "FAIL"
+        self.remaining_state = "NOT_RUN"
+        self.persist()
+
+    def finish(self, evidence):
+        self.binding.update(evidence)
+        self.overall_state = evidence.get("result", "PARTIAL")
+        self.remaining_state = "NONE"
+        self.attempted = None
+        self.persist()
+
+    def payload(self):
+        checks = list(self.checks)
+        if self.attempted:
+            checks.append(dict(self.attempted))
+        return {
+            **self.binding,
+            "overall_state": self.overall_state,
+            "checks": checks,
+            "remaining_state": self.remaining_state,
+            **({"failure": self.failure} if self.failure else {}),
+        }
+
+    def persist(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        encoded = json.dumps(self.payload(), indent=2, sort_keys=True) + "\n"
+        if len(encoded.encode("utf-8")) > self.MAX_BYTES:
+            raise ValueError("evidence size limit exceeded")
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                    mode="w", encoding="utf-8", dir=self.path.parent,
+                    prefix=f".{self.path.name}.", suffix=".tmp", delete=False) as stream:
+                temporary = Path(stream.name)
+                stream.write(encoded)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, self.path)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
 
 
 def wait_for_mock_run(request, path, operation_id, *, timeout_seconds=210,
@@ -263,13 +344,52 @@ def _onboarding_preflight(base_url):
     validate_onboarding_preflight(settings.json(), health.json(), readiness.json())
 
 
+def wait_for_ui_action_idle(page, button_name):
+    """Wait for the shared UI busy gate to release a form action."""
+    expect(page.get_by_role("button", name=button_name, exact=True)).to_be_enabled()
+
+
+def _source_binding():
+    def git_value(*args):
+        result = subprocess.run(
+            ["git", *args], capture_output=True, text=True, timeout=5, check=True)
+        return result.stdout.strip()
+
+    try:
+        return {"commit": git_value("rev-parse", "HEAD"),
+                "tree": git_value("rev-parse", "HEAD^{tree}"),
+                "working_tree_diff_sha256": hashlib.sha256(
+                    git_value("diff", "--binary", "HEAD").encode("utf-8")
+                ).hexdigest(),
+                "working_tree_status_sha256": hashlib.sha256(
+                    git_value("status", "--porcelain=v1", "--untracked-files=all").encode("utf-8")
+                ).hexdigest()}
+    except (OSError, subprocess.SubprocessError):
+        return {"commit": None, "tree": None, "state": "UNAVAILABLE"}
+
+
 def run(base_url, evidence_path, onboarding=False):
     if onboarding:
         # This read-only gate runs before output creation, Chromium launch, or any UI write.
         _onboarding_preflight(base_url)
     artifacts = Path("outputs/ui-e2e") / str(urlsplit(base_url).port)
     artifacts.mkdir(parents=True, exist_ok=True)
-    actions = []
+    parsed_target = urlsplit(base_url)
+    journal = EvidenceJournal(evidence_path, {
+        "schema_version": 1,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
+        "target_origin": f"{parsed_target.scheme}://{parsed_target.netloc}",
+        "source": _source_binding(),
+    })
+
+    class CheckpointActions(list):
+        def append(self, value):
+            if value.get("result") == "PASS":
+                journal.complete(value)
+            super().append(value)
+
+    actions = CheckpointActions()
     job_inventory = None
     with sync_playwright() as browser_api:
         browser = browser_api.chromium.launch(headless=True)
@@ -307,8 +427,12 @@ def run(base_url, evidence_path, onboarding=False):
             return response.body()
 
         def save_profile():
-            page.get_by_role("button", name="Save profile", exact=True).click()
+            save_button = page.get_by_role("button", name="Save profile", exact=True)
+            save_button.click()
             expect(page.get_by_role("status").filter(has_text="Profile saved")).to_be_visible()
+            # The notice is set before action() finishes its refresh and jobs readback.
+            # Wait for the actual shared busy gate to clear before continuing to another form.
+            wait_for_ui_action_idle(page, "Save profile")
 
         def fact_editor(text):
             for fieldset in page.locator("fieldset.fact").all():
@@ -440,6 +564,7 @@ def run(base_url, evidence_path, onboarding=False):
                     with page.expect_response(lambda candidate:
                             candidate.request.method == "PUT"
                             and urlsplit(candidate.url).path == "/search-profiles") as saved:
+                        journal.begin("Save selected Sources search")
                         page.get_by_role("button", name="Save search", exact=True).click()
                     assert saved.value.status == 200, saved.value.text()
                     expect(page.get_by_role("status").filter(
@@ -881,10 +1006,24 @@ def run(base_url, evidence_path, onboarding=False):
                 # the Playwright API request context is still open. The connected
                 # recovery workflow compares this exact inventory after restart.
                 job_inventory = collect_public_job_inventory(request, profile_id)
-        except BaseException:
-            capture_redacted_screenshot(page, artifacts / "failure.png")
+        except BaseException as error:
+            try:
+                journal.fail(error)
+            except Exception:
+                # Evidence I/O must not replace the UI failure being diagnosed.
+                pass
+            try:
+                capture_redacted_screenshot(page, artifacts / "failure.png")
+            except Exception:
+                # The primary UI exception remains the failure reported to the caller.
+                pass
             raise
         finally:
+            try:
+                journal.persist()
+            except Exception:
+                if sys.exc_info()[0] is None:
+                    raise
             context.close()
             browser.close()
     evidence = {"result": "PARTIAL" if onboarding else "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -901,7 +1040,7 @@ def run(base_url, evidence_path, onboarding=False):
             "Source identity/deduplication and live public-source proof are outside this local fixture run.",
         ] if onboarding else []),
         "actions": actions, "artifacts": [str(path) for path in artifacts.glob("*") if path.name != "failure.png"]}
-    Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+    journal.finish(evidence)
     print(json.dumps(evidence, indent=2))
 
 
