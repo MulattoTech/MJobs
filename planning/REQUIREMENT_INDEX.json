@@ -602,7 +602,7 @@
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature",
-      "status": "PARTIAL"
+      "status": "PASS"
     },
     {
       "id": "MJ-REQ-011",
@@ -890,7 +890,7 @@
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature",
-      "status": "PASS"
+      "status": "PARTIAL"
     },
     {
       "id": "MJ-REQ-031",
