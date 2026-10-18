@@ -257,6 +257,17 @@ class PrimaryProductAIRealRQTests(unittest.TestCase):
         return self._call('POST', self.ai_path + '/evaluate/queued', expected=202,
                           json={'request_id': request_id})
 
+    def _revise_public_profile(self):
+        current = self._call('GET', self.profile_path)
+        self.profile['name'] = 'Alex Synthetic Revision'
+        saved = self._call('PUT', '/profiles', json=dict(
+            self.profile, expected_version=current['version']))
+        self.assertNotEqual(saved['version'], current['version'])
+        readback = self._call('GET', self.profile_path)
+        self.assertEqual(readback['version'], saved['version'])
+        self.assertEqual(readback['name'], self.profile['name'])
+        return saved
+
     @contextmanager
     def _worker(self, queue, model_url):
         environment = dict(self.environment, MJOBS_WORKER_QUEUE=queue,
@@ -377,8 +388,7 @@ class PrimaryProductAIRealRQTests(unittest.TestCase):
             with self._worker('mjobs-ai', model_url) as (_, registered):
                 self._finished(admitted, 'mjobs-ai', registered)
             self.assertEqual(len(calls), 1, 'Cancelled operation must not call the model')
-            self.profile['name'] = 'Alex Synthetic Revision'
-            self._call('PUT', '/profiles', json=self.profile)
+            self._revise_public_profile()
             self._start_api(model_url)
             self.assertEqual(self._call('GET', cancel_path)['state'], 'CANCELLED')
             rejected = self._call('POST', self.ai_path + '/evaluations/' + admitted + '/review-documents',
@@ -434,7 +444,8 @@ class AIFlowFixtureContractTests(unittest.TestCase):
             self.assertEqual(AIJobEvaluation.model_validate_json(result).category, 'STRONG')
             self.assertEqual(calls, [('/v1/chat/completions', True, 'synthetic-model')])
 
-    def test_public_synthetic_inputs_admit_one_candidate_and_cancel_without_provider_call(self):
+    @contextmanager
+    def _public_fixture(self):
         with tempfile.TemporaryDirectory(prefix='mjobs-ai-admission-') as directory, \
                 _model_endpoint() as (model_url, calls):
             root = Path(directory)
@@ -450,14 +461,39 @@ class AIFlowFixtureContractTests(unittest.TestCase):
                         create_app(store, 'http://127.0.0.1:1', root, operation_mode='PERSONAL')) as client:
                     case.client = client
                     case._seed_public_inputs()
-                    identifier = case._queue_ai('portable-synthetic-admission')['operation_id']
-                    self.assertEqual(case._queue_ai('portable-synthetic-admission')['operation_id'], identifier)
-                    with store.engine.connect() as connection:
-                        batch = connection.execute(select(m.ai_evaluation_batches)).mappings().one()
-                    self.assertEqual(len(batch['snapshot']['candidates']), 1)
-                    self.assertEqual(batch['snapshot']['candidates'][0]['deterministic_score'], 100)
-                    result = case._call('POST', case.ai_path + '/operations/' + identifier + '/cancel')
-                    self.assertEqual(result['state'], 'CANCELLED')
-                    self.assertEqual(calls, [])
+                    yield case, store, calls
             finally:
                 store.engine.dispose()
+
+    def test_public_synthetic_inputs_admit_one_candidate_and_cancel_without_provider_call(self):
+        with self._public_fixture() as (case, store, calls):
+            identifier = case._queue_ai('portable-synthetic-admission')['operation_id']
+            self.assertEqual(case._queue_ai('portable-synthetic-admission')['operation_id'], identifier)
+            with store.engine.connect() as connection:
+                batch = connection.execute(select(m.ai_evaluation_batches)).mappings().one()
+            self.assertEqual(len(batch['snapshot']['candidates']), 1)
+            self.assertEqual(batch['snapshot']['candidates'][0]['deterministic_score'], 100)
+            result = case._call('POST', case.ai_path + '/operations/' + identifier + '/cancel')
+            self.assertEqual(result['state'], 'CANCELLED')
+            self.assertEqual(calls, [])
+
+    def test_public_profile_revision_changes_version_and_rejects_stale_updates(self):
+        with self._public_fixture() as (case, _store, calls):
+            before = case._call('GET', case.profile_path)
+            case._call('PUT', '/profiles', expected=409,
+                       json=dict(case.profile, name='Missing version synthetic edit'))
+            saved = case._revise_public_profile()
+            after = case._call('GET', case.profile_path)
+            self.assertNotEqual(saved['version'], before['version'])
+            self.assertEqual(after['version'], saved['version'])
+            self.assertEqual(after['name'], 'Alex Synthetic Revision')
+            # Revision-owned row IDs/version change; logical facts and approvals do not.
+            def fact_values(profile):
+                return {row['fact_id']: {key: row[key] for key in (
+                    'text', 'kind', 'source', 'verified', 'user_approved', 'confidence')}
+                    for row in profile['facts']}
+            self.assertEqual(fact_values(after), fact_values(before))
+            stale = dict(case.profile, name='Stale synthetic edit', expected_version=before['version'])
+            case._call('PUT', '/profiles', expected=409, json=stale)
+            self.assertEqual(case._call('GET', case.profile_path)['version'], saved['version'])
+            self.assertEqual(calls, [])
