@@ -466,11 +466,12 @@
     },
     {
       "requirement_id": "MJ-REQ-034",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-01-skill-title-education.json"
+        "docs/evidence/2026-10-01-skill-title-education.json",
+        "docs/evidence/2026-10-18-education-negation-acceptance-correction.json"
       ],
-      "note": "Verified normalized skill filtering/taxonomy, conservative title families, and education parsing in MJ-PR-009",
+      "note": "Historical positive education parsing evidence retained. At integrated source 37ea5e95, independent public Greenhouse ingestion with direct execute_operation, synthetic HTTP and SQLite, followed by database reopen, persisted Bachelor's degree not required as BACHELORS_REQUIRED; the public required-education filter returned the negated job. Test-only commit d25d9482: 1 expected failure, 1 pass, 0 skips. No actual RQ or live-provider claim; repair and independent acceptance remain pending.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"

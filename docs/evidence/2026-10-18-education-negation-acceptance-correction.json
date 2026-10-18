@@ -1,0 +1,153 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-18T22:40:03.734956+00:00",
+  "recording_state": "ROOT_ACCEPTED_COUNTEREXAMPLE_PENDING_INDEPENDENT_REVIEW_AND_PROTECTED_MERGE",
+  "base_revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+  "requirement_id": "MJ-REQ-034",
+  "issue": 35,
+  "literal_contract": "Differentiate Bachelor's required, Bachelor's preferred, Bachelor's or equivalent experience, Degree preferred, No degree specified. These are materially different.",
+  "change": {
+    "before": "PASS",
+    "proposed": "PARTIAL",
+    "reason": "Public ingestion persists Bachelor's degree not required as BACHELORS_REQUIRED, and the public required-education filter includes that job after database reopen.",
+    "scope": "Acceptance correction only. No implementation repair, historical snapshot rewrite or provider field mutation."
+  },
+  "populations": {
+    "original": 366,
+    "supplemental": 59,
+    "original_P0": 26
+  },
+  "expected_counts": {
+    "original": {
+      "PASS": 124,
+      "PARTIAL": 99,
+      "NOT_RUN": 143
+    },
+    "supplemental": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    },
+    "original_P0": {
+      "PASS": 12,
+      "PARTIAL": 4,
+      "NOT_RUN": 10
+    }
+  },
+  "historical_record": {
+    "path": "docs/evidence/2026-10-01-skill-title-education.json",
+    "sha256": "6fb1a21f02687fa204d87c06bb1ce38f90cac54dd2ef1d5354080fe3d102a41e",
+    "original_claim": "41 focused /133 full tests PASS for031-034; original record preserved unchanged.",
+    "limitation": "Aggregate record has no exact executed source/JUnit binding. Named education tests cover positive required/preferred/equivalent/unspecified phrases; the current negative clause exposes insufficient whole-contract acceptance. This does not erase earlier positive executions."
+  },
+  "execution": {
+    "tested_product_revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+    "test_only_commit": "d25d94826a6b1cdf0a1ae5c88495aca48978bcde",
+    "test_path": "tests/integration/test_education_negation_public_intake.py",
+    "test_source_sha256": "8249190b09bcb349e7eea2faebb0716f78476e582a224242e8e298c7caacb7fe",
+    "command": "python -m pytest -q -p no:cacheprovider tests/integration/test_education_negation_public_intake.py --junitxml=<temp>/lane-a-034-public-red.xml --basetemp=<temp>/lane-a-034-public-red-temp --tb=short",
+    "result": {
+      "passed": 1,
+      "failed": 1,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 6.19,
+      "exit_code": 1
+    },
+    "failure_expected": "The negative oracle intentionally fails on integrated product37ea; not a green test result or fixed feature.",
+    "named_cases": [
+      {
+        "classname": "tests.integration.test_education_negation_public_intake.EducationNegationPublicIntakeTests",
+        "name": "test_negated_degree_is_not_returned_by_required_education_filter",
+        "seconds": 2.409,
+        "result": "FAIL"
+      },
+      {
+        "classname": "tests.integration.test_education_negation_public_intake.EducationNegationPublicIntakeTests",
+        "name": "test_positive_required_control_survives_public_readback",
+        "seconds": 2.433,
+        "result": "PASS"
+      }
+    ],
+    "junit_sha256": "93f0b775bcc762aab0fc2055c6780c96361db3b03b3ee6bc6ab0de8ec18032a4",
+    "junit_pointer": "AO Lane A consolidated acceptance-integrity-register.html / education034_independent_public_RED; raw local temporary JUnit retained there as sanitized synthetic evidence.",
+    "runtime": "Windows Python; ASGI TestClient, disposable SQLite, production direct execute_operation; HTTPTransport.handle_request replaced with deterministic Greenhouse GET responses.",
+    "test_source": "\"\"\"MJ-REQ-034 public ingestion oracle; only provider HTTP is synthetic.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport tempfile\nimport unittest\nfrom unittest.mock import patch\n\nimport httpx\nfrom fastapi.testclient import TestClient\n\nfrom apps.api.main import create_app\nfrom packages.persistence.store import Store\nfrom tests.integration.test_spine import PROFILE\nfrom workers.tasks import execute_operation\n\n\nclass EducationNegationPublicIntakeTests(unittest.TestCase):\n    def setUp(self):\n        directory = tempfile.TemporaryDirectory(prefix=\"mjobs-education-intake-\")\n        self.addCleanup(directory.cleanup)\n        self.root = Path(directory.name)\n        self.url = \"sqlite:///\" + (self.root / \"education.db\").as_posix()\n        self.store = Store(self.url)\n        self.addCleanup(lambda: self.store.engine.dispose())\n        self.store.migrate()\n        self.store.bind_workspace_mode(\"PERSONAL\")\n        self.enterContext(patch.dict(os.environ, {\n            \"MJOBS_DATABASE_URL\": self.url,\n            \"MJOBS_OPERATION_MODE\": \"PERSONAL\",\n            \"MJOBS_REDIS_URL\": \"redis://127.0.0.1:1/0\",\n            \"MJOBS_OUTPUT_DIR\": str(self.root),\n        }))\n        self.client = self.enterContext(TestClient(self._app()))\n        self.assertEqual(self.client.put(\"/profiles\", json=PROFILE).status_code, 200)\n        response = self.client.put(\"/sources\", json={\n            \"provider\": \"greenhouse\", \"tenant\": \"education-fixture\",\n            \"poll_interval\": 300, \"request_timeout\": 8,\n            \"rate_limit\": 60, \"jitter_seconds\": 0,\n        })\n        self.assertEqual(response.status_code, 200, response.text)\n        self.source_id = response.json()[\"id\"]\n        self.requests = []\n\n    def _app(self):\n        return create_app(self.store, \"\", self.root, operation_mode=\"PERSONAL\")\n\n    def _collect_and_reopen(self):\n        rows = [{\n            \"id\": identifier,\n            \"title\": \"Synthetic Education Control \" + str(identifier),\n            \"location\": {\"name\": \"Remote - United States\"},\n            \"content\": \"<p>\" + clause + \"</p>\",\n            \"absolute_url\": (\n                \"https://job-boards.greenhouse.io/education-fixture/jobs/\"\n                + str(identifier)\n            ),\n        } for identifier, clause in (\n            (4101, \"Bachelor's degree required.\"),\n            (4102, \"Bachelor's degree not required.\"),\n        )]\n        response = self.client.post(\"/sources/\" + self.source_id + \"/collect\", json={\n            \"profile_id\": \"fixture\", \"request_id\": \"education-negation-public\",\n        })\n        self.assertEqual(response.status_code, 202, response.text)\n        operation = response.json()[\"operation_id\"]\n\n        def boundary(_transport, request):\n            self.assertEqual((request.method, request.url.host),\n                             (\"GET\", \"boards-api.greenhouse.io\"))\n            self.requests.append(request.url.path)\n            if request.url.path == \"/v1/boards/education-fixture/jobs\":\n                return httpx.Response(200, json={\"jobs\": rows, \"meta\": {\"total\": 2}})\n            self.assertEqual(request.url.path, \"/v1/boards/education-fixture\")\n            return httpx.Response(200, json={\"name\": \"Synthetic Education Employer\"})\n\n        with patch(\"httpx.HTTPTransport.handle_request\", boundary):\n            result = execute_operation(operation)\n        self.assertEqual(result[\"status\"], \"COMPLETED\", result)\n        self.assertIn(\"/v1/boards/education-fixture/jobs\", self.requests)\n        self.client.close()\n        self.store.engine.dispose()\n        self.store = Store(self.url)\n        self.client = self.enterContext(TestClient(self._app()))\n        return self._jobs()\n\n    def _jobs(self, **filters):\n        response = self.client.get(\"/jobs\", params={\"profile_id\": \"fixture\", **filters})\n        self.assertEqual(response.status_code, 200, response.text)\n        return response.json()[\"jobs\"]\n\n    def test_positive_required_control_survives_public_readback(self):\n        jobs = self._collect_and_reopen()\n        self.assertEqual(len(jobs), 2)\n        positive = next(j for j in jobs if j[\"attributes\"][\"native_posting_id\"] == 4101)\n        self.assertEqual(positive[\"attributes\"][\"education_requirement\"], \"BACHELORS_REQUIRED\")\n        self.assertIn(4101, [j[\"attributes\"][\"native_posting_id\"] for j in\n                            self._jobs(education_requirement=\"BACHELORS_REQUIRED\")])\n\n    def test_negated_degree_is_not_returned_by_required_education_filter(self):\n        jobs = self._collect_and_reopen()\n        self.assertEqual(len(jobs), 2)\n        negated = next(j for j in jobs if j[\"attributes\"][\"native_posting_id\"] == 4102)\n        detail_response = self.client.get(\"/jobs/\" + negated[\"id\"], params={\"profile_id\": \"fixture\"})\n        self.assertEqual(detail_response.status_code, 200, detail_response.text)\n        detail = detail_response.json()\n        self.assertIn(\"not required\", detail[\"description\"])\n        self.assertTrue(any(\"not required\" in p[\"raw\"][\"content\"] for p in detail[\"postings\"]))\n        filtered = self._jobs(education_requirement=\"BACHELORS_REQUIRED\")\n        identifiers = sorted(j[\"attributes\"][\"native_posting_id\"] for j in filtered)\n        observation = {\n            \"source_clause\": \"Bachelor's degree not required.\",\n            \"persisted_classification\": negated[\"attributes\"][\"education_requirement\"],\n            \"public_detail_classification\": detail[\"attributes\"][\"education_requirement\"],\n            \"required_filter_native_ids\": identifiers,\n            \"expected_required_filter_native_ids\": [4101],\n            \"database_reopened\": True,\n        }\n        print(json.dumps(observation, sort_keys=True))\n        self.assertEqual(identifiers, [4101], observation)\n        self.assertNotEqual(negated[\"attributes\"][\"education_requirement\"], \"BACHELORS_REQUIRED\")\n"
+  },
+  "fixture": {
+    "tenant": "education-fixture",
+    "provider": "greenhouse",
+    "positive": {
+      "native_posting_id": 4101,
+      "content": "<p>Bachelor's degree required.</p>"
+    },
+    "negative": {
+      "native_posting_id": 4102,
+      "content": "<p>Bachelor's degree not required.</p>"
+    },
+    "profile": "Existing fictional PROFILE fixture; no personal data or credentials"
+  },
+  "executed_path": [
+    "PUT /profiles",
+    "PUT /sources",
+    "POST /sources/{id}/collect returns202",
+    "direct workers.tasks.execute_operation completes against synthetic provider HTTP",
+    "dispose database Store and close APIclient; reopen same SQLite database/new APIclient",
+    "GET /jobs and /jobs/{id} retain source description and raw posting with not required",
+    "GET /jobs?education_requirement=BACHELORS_REQUIRED returns both4101 and4102"
+  ],
+  "observed": {
+    "persisted_classification": "BACHELORS_REQUIRED",
+    "public_detail_classification": "BACHELORS_REQUIRED",
+    "actual_required_filter_native_ids": [
+      4101,
+      4102
+    ],
+    "expected_required_filter_native_ids": [
+      4101
+    ],
+    "reopened_database": true
+  },
+  "cause": {
+    "path": "services/discovery/search_semantics.py",
+    "symbol": "parse_education_requirement",
+    "description": "Required classification regex permits arbitrary intervening words between bachelor/degree and required, including not. Greenhouse normalization persists this result; public query filtering trusts the canonical attribute."
+  },
+  "source_identities": {
+    "services/discovery/search_semantics.py": {
+      "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+      "git_blob": "7e38d8248e1188c6d38a1edfe2cd2532dfc916ab",
+      "sha256": "68a746d8f7b7d5384d631d12e5a5187ad3aaa01cae7a9ba2df5e7ffbbd674516"
+    },
+    "services/discovery/sources/greenhouse.py": {
+      "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+      "git_blob": "3b002eaa44ffa2fe35549cbcf7e9ca1fa2c576c5",
+      "sha256": "e895f84ef585986f280ab779915dfa523117e48727d3e03b894b281283b1690c"
+    },
+    "services/discovery/sources/collect.py": {
+      "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+      "git_blob": "07ef8ce7a59f5810d339fc34d2b08a74345075cc",
+      "sha256": "0e510b33ae2ca5e2c44c5e8c0056bad186f407686ceec6dbad5d9b927a956cba"
+    },
+    "apps/api/main.py": {
+      "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+      "git_blob": "91f3088665f26b4505c1d621eed5a5725558c45b",
+      "sha256": "dda2aacd78e6bfe13f51d5332414096dac63f3486ddf052dc9231aff890426ee"
+    },
+    "workers/tasks.py": {
+      "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+      "git_blob": "b22ed55b937f0c5a6dbdb1180a31f7afd02af5fe",
+      "sha256": "34cd1197a9aecc0c55b189b9b94146e7c24c8f8fbefd1ab0858175c4d74ed033"
+    }
+  },
+  "limits": [
+    "No adapter/runtime fix in this candidate. Product source remains unchanged from37ea.",
+    "Direct execute_operation is not a separate RQ worker or Redis queue proof.",
+    "SQLite/TestClient is not PostgreSQL, Compose, real network server or browser execution.",
+    "Only provider HTTP is synthetic; no live employer/provider requests or external submissions.",
+    "No paid AI or private credential/environment access.",
+    "Original/reference denominators stay separate;034P1 correction leaves26P0 totals unchanged.",
+    "Later product repair must reuse the reserved test and earn independent acceptance; retain this historical counterexample even if PASS is restored.",
+    "Canonical data is proposed locally only; publication held for Root queue and independent review."
+  ]
+}
