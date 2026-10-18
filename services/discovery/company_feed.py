@@ -10,7 +10,7 @@ from packages.persistence.store import identity, now, upsert
 from services.company_discovery.sources import _token, _url
 from services.discovery.search_semantics import (
     classify_location, normalize_employment_type, normalize_experience_level,
-    normalize_title, parse_education_requirement, parse_salary, parse_timestamp,
+    normalize_title, parse_education_requirement, parse_salary, normalize_reported_timestamp,
 )
 from services.discovery.skill_taxonomy import extract_skills
 from services.discovery.requirement_parsers import parse_job_requirements
@@ -118,7 +118,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 requirements = parse_job_requirements(description)
                 negative = parse_negative_conditions(description, requirements["clearance"])
                 salary = parse_salary(description, "EMPLOYER_PROVIDED")
-                published = parse_timestamp(item.get("date_published") or item.get("published") or item.get("pubdate"))
+                published = item.get("date_published") or item.get("published") or item.get("pubdate")
                 external_key = entry.external_key
                 requisition = external_key if len(external_key) <= 128 else identity(external_key)
                 native_job_id = identity(company_id, provider, tenant, requisition)
@@ -134,11 +134,18 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 batch_identities.setdefault(job_id, []).append((provider, tenant, requisition))
                 previous = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 previous = dict(previous or {})
+                first_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
+                    m.posting_value_candidates.c.posting_id == posting_id).order_by(
+                        m.posting_value_candidates.c.observed_at, m.posting_value_candidates.c.id)
+                    .limit(1)).scalar_one_or_none()
+                previous_dates = (first_values or {}).get('attributes') or (
+                    previous if previous.get('source_id') == source_id else {})
                 attributes = {
                 "lifecycle_claim": status_claim(item.get('status')),
                 "provider": provider, "tenant": tenant, "source_id": source_id,
                 "source_endpoint": endpoint, "collection_strategy": strategy,
-                    "reported_posted_at": published.isoformat() if published else None,
+                    **normalize_reported_timestamp(published,
+                        reference_at=previous_dates.get('first_seen_at') or timestamp, previous=previous_dates),
                 "first_seen_at": previous.get("first_seen_at") or timestamp,
                 "last_seen_at": timestamp, "last_collected_at": timestamp,
                 "employment_type": normalize_employment_type(title + " " + description),

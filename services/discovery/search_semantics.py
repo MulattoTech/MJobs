@@ -123,7 +123,11 @@ def parse_salary(text, source="UNKNOWN"):
             "salary_source": "UNKNOWN", "salary_raw": None}
 
 
-def parse_timestamp(value):
+_RELATIVE_TIMESTAMP = re.compile(r"(\d{1,6})\s+(minute|hour|day)s?\s+ago", re.I)
+
+
+def parse_timestamp(value, *, reference_at=None):
+    """Parse source time; relative claims require an explicit observation UTC."""
     if not value:
         return None
     if isinstance(value, datetime):
@@ -131,16 +135,57 @@ def parse_timestamp(value):
     else:
         try:
             parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        except ValueError:
-            return None
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
+        except (ValueError, TypeError):
+            match = _RELATIVE_TIMESTAMP.fullmatch(str(value).strip())
+            reference = parse_timestamp(reference_at) if reference_at is not None else None
+            if not match or reference is None:
+                return None
+            try:
+                return reference - timedelta(**{match[2].lower() + 's': int(match[1])})
+            except (ValueError, OverflowError):
+                return None
+    try:
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=timezone.utc)
+        return parsed.astimezone(timezone.utc)
+    except (ValueError, OverflowError):
+        return None
+
+
+def normalize_reported_timestamp(value, *, reference_at, previous=None):
+    """Retain the source claim and its first observation, never a moving now()."""
+    previous = previous or {}
+    relative = _RELATIVE_TIMESTAMP.fullmatch(str(value or '').strip())
+    if relative and previous.get('reported_posted_at_precision') in {'MINUTE', 'HOUR', 'DAY'}:
+        # A mutable age label is not proof of republication. Retain the first
+        # normalized claim and its original reference; latest wording remains
+        # available in the immutable source posting snapshots.
+        if parse_timestamp(previous.get('reported_posted_at')):
+            return {key: previous.get(key) for key in (
+                'reported_posted_at', 'reported_posted_at_raw',
+                'reported_posted_at_precision', 'reported_posted_at_reference_at')}
+    reference = (parse_timestamp(previous.get('reported_posted_at_reference_at'))
+                 or parse_timestamp(reference_at)) if relative else None
+    parsed = parse_timestamp(value, reference_at=reference)
+    return {
+        'reported_posted_at': parsed.isoformat() if parsed else None,
+        'reported_posted_at_raw': value,
+        'reported_posted_at_precision': relative[2].upper() if parsed and relative else (
+            'SOURCE' if parsed else 'UNKNOWN'),
+        'reported_posted_at_reference_at': reference.isoformat() if relative and reference else None,
+    }
 
 
 def effective_job_timestamp(job):
     attrs = dict(job.get("attributes") or {})
-    return parse_timestamp(attrs.get("reported_posted_at")) or parse_timestamp(attrs.get("first_seen_at"))
+    reported = attrs.get('reported_posted_at')
+    if reported:
+        return parse_timestamp(reported, reference_at=(
+            attrs.get('reported_posted_at_reference_at') or attrs.get('first_seen_at')))
+    # An invalid supplied claim is unknown, not evidence of a recent posting.
+    if attrs.get('reported_posted_at_raw'):
+        return None
+    return parse_timestamp(attrs.get('first_seen_at'))
 
 
 def _date_window_bounds(criteria, at):

@@ -21,6 +21,7 @@ from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_com
 from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
+from services.discovery.search_semantics import normalize_reported_timestamp
 
 
 def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_interval=300, concurrency=1,
@@ -242,6 +243,18 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 batch_identities.setdefault(job_id, []).append((source['provider'], source['tenant'], job['requisition']))
                 existing_attributes = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 existing_attributes = dict(existing_attributes or {})
+                # The anchor belongs to this posting, not another canonical source
+                # or a later poll. Candidate snapshots retain that first reference.
+                first_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
+                    m.posting_value_candidates.c.posting_id == posting_id).order_by(
+                        m.posting_value_candidates.c.observed_at, m.posting_value_candidates.c.id)
+                    .limit(1)).scalar_one_or_none()
+                previous_dates = (first_values or {}).get('attributes') or (
+                    existing_attributes if existing_attributes.get('source_id') == source_id else {})
+                attrs = job['attributes']
+                attrs.update(normalize_reported_timestamp(
+                    attrs.get('reported_posted_at_raw', attrs.get('reported_posted_at')),
+                    reference_at=previous_dates.get('first_seen_at') or timestamp, previous=previous_dates))
                 job["attributes"].update(
                     provider=source['provider'], tenant=source['tenant'],
                     source_id=source_id,
