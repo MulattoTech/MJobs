@@ -19,10 +19,10 @@ PASS requires evidence for the whole acceptance contract of that ID. PARTIAL is 
 | `application_automation` | 🟨🟨🟨🟨🟨🟨⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ | 0 | 18 | 32 | 50 |
 | `career_profile_documents` | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨🟨🟨 | 14 | 6 | 0 | 20 |
 | `company_ats_discovery` | 🟩🟩🟩🟨🟨🟨🟨🟨🟨⬜⬜⬜⬜⬜⬜⬜ | 10 | 21 | 22 | 53 |
-| `core_search_model` | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟨⬜⬜⬜⬜⬜ | 25 | 3 | 13 | 41 |
+| `core_search_model` | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟨🟨⬜⬜⬜⬜⬜ | 24 | 4 | 13 | 41 |
 | `delivery_control` | 🟨⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ | 0 | 1 | 10 | 11 |
 | `docs_verification` | 🟩🟩🟨🟨⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜ | 1 | 1 | 7 | 9 |
-| `governance_safety` | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨🟨 | 11 | 4 | 0 | 15 |
+| `governance_safety` | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨 | 12 | 3 | 0 | 15 |
 | `job_identity_dedupe` | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩 | 14 | 0 | 0 | 14 |
 | `job_lifecycle` | 🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩🟩 | 3 | 0 | 0 | 3 |
 | `matching_ai` | 🟩🟩🟩🟨🟨🟨🟨🟨🟨🟨🟨⬜⬜⬜⬜⬜ | 3 | 10 | 6 | 19 |
@@ -36,8 +36,8 @@ PASS requires evidence for the whole acceptance contract of that ID. PARTIAL is 
 
 | Priority | Status chart | PASS | PARTIAL | NOT_RUN | Total |
 |---|---|---:|---:|---:|---:|
-| `P0` | 🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨⬜⬜⬜⬜⬜⬜ | 11 | 5 | 10 | 26 |
-| `P1` | 🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨⬜⬜⬜⬜⬜⬜ | 53 | 23 | 40 | 116 |
+| `P0` | 🟩🟩🟩🟩🟩🟩🟩🟨🟨⬜⬜⬜⬜⬜⬜⬜ | 12 | 4 | 10 | 26 |
+| `P1` | 🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨⬜⬜⬜⬜⬜⬜ | 52 | 24 | 40 | 116 |
 | `P2` | 🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨🟨⬜⬜⬜⬜⬜ | 37 | 22 | 28 | 87 |
 | `P3` | 🟩🟩🟩🟩🟩🟩🟩🟨🟨🟨🟨🟨🟨🟨⬜⬜ | 17 | 16 | 6 | 39 |
 | `P4` | 🟨🟨🟨🟨🟨🟨🟨⬜⬜⬜⬜⬜⬜⬜⬜⬜ | 0 | 18 | 26 | 44 |
