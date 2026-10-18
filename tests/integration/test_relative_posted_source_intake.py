@@ -148,3 +148,14 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         self.assertTrue({2001, 2003, 2004, 2005}.isdisjoint(filtered))
         for index, value in enumerate(values):
             self.assertEqual(by_native[2000 + index]['attributes']['reported_posted_at_raw'], value)
+
+    def test_first_valid_date_after_unknown_is_not_reanchored_on_later_polls(self):
+        self.payload['jobs'][0]['publication_date'] = None
+        self._collect()
+        self.payload['jobs'][0]['publication_date'] = '2 hours ago'
+        self._collect(self.collected_at + timedelta(hours=1), 'first-valid-relative')
+        first_valid = self._filtered('LAST_24_HOURS')[0]['attributes']['reported_posted_at']
+        self.assertEqual(first_valid, (self.collected_at - timedelta(hours=1)).isoformat())
+        self._collect(self.collected_at + timedelta(days=2), 'later-stale-relative')
+        self._reopen()
+        self.assertEqual(self._filtered('LAST_24_HOURS')[0]['attributes']['reported_posted_at'], first_valid)

@@ -156,7 +156,7 @@ def normalize_reported_timestamp(value, *, reference_at, previous=None):
     """Retain the source claim and its first observation, never a moving now()."""
     previous = previous or {}
     relative = _RELATIVE_TIMESTAMP.fullmatch(str(value or '').strip())
-    if relative and previous.get('reported_posted_at_precision') in {'MINUTE', 'HOUR', 'DAY'}:
+    if relative and previous.get('reported_posted_at_precision') in {'MINUTE', 'HOUR', 'DAY', 'SOURCE'}:
         # A mutable age label is not proof of republication. Retain the first
         # normalized claim and its original reference; latest wording remains
         # available in the immutable source posting snapshots.

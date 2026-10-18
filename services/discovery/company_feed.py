@@ -135,7 +135,9 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 previous = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 previous = dict(previous or {})
                 first_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
-                    m.posting_value_candidates.c.posting_id == posting_id).order_by(
+                    m.posting_value_candidates.c.posting_id == posting_id,
+                    m.posting_value_candidates.c.normalized['attributes']['reported_posted_at']
+                        .as_string().is_not(None)).order_by(
                         m.posting_value_candidates.c.observed_at, m.posting_value_candidates.c.id)
                     .limit(1)).scalar_one_or_none()
                 previous_dates = (first_values or {}).get('attributes') or (
@@ -145,7 +147,7 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 "provider": provider, "tenant": tenant, "source_id": source_id,
                 "source_endpoint": endpoint, "collection_strategy": strategy,
                     **normalize_reported_timestamp(published,
-                        reference_at=previous_dates.get('first_seen_at') or timestamp, previous=previous_dates),
+                        reference_at=timestamp, previous=previous_dates),
                 "first_seen_at": previous.get("first_seen_at") or timestamp,
                 "last_seen_at": timestamp, "last_collected_at": timestamp,
                 "employment_type": normalize_employment_type(title + " " + description),

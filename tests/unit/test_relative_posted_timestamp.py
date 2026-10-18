@@ -33,6 +33,10 @@ class RelativePostedTimestampTests(unittest.TestCase):
         self.assertEqual(later['reported_posted_at'], '2026-10-18T18:00:00+00:00')
         self.assertEqual(normalize_reported_timestamp('2 hours ago',
             reference_at='2026-10-20T20:00:00Z', previous=later), original)
+        absolute = normalize_reported_timestamp('2026-10-18T18:00:00Z',
+                                                reference_at='2026-10-18T20:00:00Z')
+        self.assertEqual(normalize_reported_timestamp('2 hours ago',
+            reference_at='2026-10-20T20:00:00Z', previous=absolute), absolute)
 
     def test_invalid_overflow_and_future_wording_do_not_become_posting_dates(self):
         for value in ('unknown', 'now', 'in 2 hours', '-2 hours ago', '1.5 hours ago',

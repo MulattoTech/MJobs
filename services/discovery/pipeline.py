@@ -266,7 +266,7 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
                            "salary_source": "SOURCE_PROVIDED" if row.get("salary_min") is not None or row.get("salary_max") is not None else "UNKNOWN",
                            "salary_raw": {key: row.get(key) for key in ("salary_min", "salary_max", "salary_currency", "salary_period")},
                            **normalize_reported_timestamp(row.get('reported_posted_at'),
-                               reference_at=existing_attributes.get('first_seen_at') or now(),
+                               reference_at=now(),
                                previous=existing_attributes),
                            "first_seen_at": existing_attributes.get("first_seen_at") or now(), "last_seen_at": now(),
                            "remote_regions": location_facts["remote_regions"], "remote_indicated": location_facts["remote_indicated"],

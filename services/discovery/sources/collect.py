@@ -246,7 +246,9 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 # The anchor belongs to this posting, not another canonical source
                 # or a later poll. Candidate snapshots retain that first reference.
                 first_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
-                    m.posting_value_candidates.c.posting_id == posting_id).order_by(
+                    m.posting_value_candidates.c.posting_id == posting_id,
+                    m.posting_value_candidates.c.normalized['attributes']['reported_posted_at']
+                        .as_string().is_not(None)).order_by(
                         m.posting_value_candidates.c.observed_at, m.posting_value_candidates.c.id)
                     .limit(1)).scalar_one_or_none()
                 previous_dates = (first_values or {}).get('attributes') or (
@@ -254,7 +256,7 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 attrs = job['attributes']
                 attrs.update(normalize_reported_timestamp(
                     attrs.get('reported_posted_at_raw', attrs.get('reported_posted_at')),
-                    reference_at=previous_dates.get('first_seen_at') or timestamp, previous=previous_dates))
+                    reference_at=timestamp, previous=previous_dates))
                 job["attributes"].update(
                     provider=source['provider'], tenant=source['tenant'],
                     source_id=source_id,
