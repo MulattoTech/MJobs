@@ -10,15 +10,17 @@ import time
 import unittest
 from unittest.mock import patch
 
+from fastapi.testclient import TestClient
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 from sqlalchemy import select
 
+from apps.api.main import create_app
 from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.company_discovery.monitoring import configure_monitoring, queue_refresh, source_version
+from services.company_discovery.monitoring import source_version
 from services.company_discovery.monitoring_policy import MonitoringPolicy
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 from tests.integration.test_company_monitoring_recovery import MonitoringFixture
@@ -117,9 +119,18 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
         self.fixture.pages['/jobs.json'] = json.dumps(dict(version='https://jsonfeed.org/version/1.1', items=rows))
         for index in range(8):
             self.fixture.pages[f'/jobs/{index}'] = '<html>No structured identity</html>'
-        monitor = configure_monitoring(self.fixture.store, self.fixture.source['id'],
-            source_version(self.fixture.source), 0, 300, request_timeout=2, concurrency=2, jitter_seconds=17)
-        operation_id = queue_refresh(self.fixture.store, self.fixture.source['id'], 'fixture')['operation_id']
+        def app(store):
+            return create_app(store, 'http://127.0.0.1:1', self.fixture.root,
+                              'redis://127.0.0.1:1/0', operation_mode='PERSONAL')
+        with TestClient(app(self.fixture.store)) as api:
+            response = api.put(f"/company-sources/{self.fixture.source['id']}/monitoring", json=dict(
+                source_version=source_version(self.fixture.source), revision=0, poll_interval=300,
+                request_timeout=2, concurrency=2, jitter_seconds=17))
+            self.assertEqual(response.status_code, 200, response.text)
+            monitor = response.json()
+            response = api.post(f"/company-sources/{self.fixture.source['id']}/refresh", json={'profile_id':'fixture'})
+            self.assertEqual(response.status_code, 202, response.text)
+            operation_id = response.json()['operation_id']
         with self.transport(), patch.dict(os.environ, self.fixture.env):
             result = execute_operation(operation_id)
             self.assertEqual(result['status'], 'COMPLETED', result)
@@ -133,6 +144,14 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
         self.assertFalse(any(thread.name.startswith('mjobs-monitor-link') for thread in threading.enumerate()))
         reopened = Store(self.fixture.store.url)
         try:
+            with TestClient(app(reopened)) as api:
+                readback = api.get(f'/operations/{operation_id}').json()
+                self.assertEqual(readback['state'], 'COMPLETED')
+                source = next(row for row in api.get('/company-sources/view').json()['company_sources']
+                              if row['id'] == self.fixture.source['id'])
+                self.assertEqual(source['monitoring']['status'], 'HEALTHY')
+                self.assertEqual(source['monitoring']['concurrency'], 2)
+                self.assertNotIn('request_not_before', source['monitoring'])
             with reopened.engine.connect() as connection:
                 saved = connection.execute(select(m.company_source_monitoring)).mappings().one()
                 self.assertEqual(saved['completed_operation_id'], operation_id)
