@@ -3,6 +3,7 @@
 Receipts here are synthetic persistence fixtures, not browser acceptance proof.
 """
 from copy import deepcopy
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -21,6 +22,7 @@ from workers.operations import (
     request_cancel,
 )
 from workers.tasks import execute_operation
+from workers.structured_logging import log_operation_finished
 from tests.integration import test_controlled_application_dry_run as controlled_contract
 
 
@@ -146,6 +148,86 @@ class DryRunReceiptRecoveryTests(unittest.TestCase):
         self.assertEqual(recover_expired(self.store), 0)
         self.assertEqual(self.row()["state"], "RUNNING")
         check_cancelled(self.store, self.operation_id, owner["attempt_count"])
+
+    def test_receipt_recovery_emits_one_terminal_event_and_duplicate_work_is_silent(self):
+        self.assertIsNotNone(claim(self.store, self.operation_id))
+        self.save_receipt()
+        self.expire()
+        with self.assertLogs("mjobs.operations", level="INFO") as captured:
+            self.assertEqual(recover_expired(self.store), 1)
+        self.assertEqual(len(captured.records), 1)
+        record = json.loads(captured.records[0].getMessage())
+        self.assertEqual(record["event"], "operation_finished")
+        self.assertEqual(record["operation_id"], self.operation_id)
+        self.assertEqual(record["operation_kind"], "APPLICATION_DRY_RUN")
+        self.assertEqual(record["result"], "COMPLETED")
+        self.assertGreaterEqual(record["duration_ms"], 0)
+        with self.assertNoLogs("mjobs.operations", level="INFO"):
+            self.assertEqual(recover_expired(self.store), 0)
+            self.assertEqual(execute_operation(self.operation_id)["status"],
+                             "ALREADY_CLAIMED_OR_CAPACITY")
+
+    def test_recovery_terminal_event_observes_committed_state_from_fresh_store(self):
+        self.assertIsNotNone(claim(self.store, self.operation_id))
+        self.save_receipt()
+        self.expire()
+
+        def verify_commit(operation, result, error, duration):
+            reopened = Store(self.store.url)
+            try:
+                self.assertEqual(self.row(reopened)["state"], "COMPLETED")
+                self.assertEqual(self.row(reopened)["recovery_metadata"], {"action": "NONE"})
+            finally:
+                reopened.engine.dispose()
+            log_operation_finished(operation, result, error, duration)
+
+        with patch("workers.operations.log_operation_finished", side_effect=verify_commit) as emit:
+            with self.assertLogs("mjobs.operations", level="INFO"):
+                recover_expired(self.store)
+        emit.assert_called_once()
+
+    def test_rolled_back_recovery_emits_nothing_and_later_commit_logs_once(self):
+        self.assertIsNotNone(claim(self.store, self.operation_id))
+        self.save_receipt()
+        self.expire()
+        with patch.object(self.store, "_audit", side_effect=RuntimeError("synthetic audit failure")):
+            with self.assertNoLogs("mjobs.operations", level="INFO"):
+                with self.assertRaisesRegex(RuntimeError, "synthetic audit failure"):
+                    recover_expired(self.store)
+        self.assertEqual(self.row()["state"], "RUNNING")
+        with self.assertLogs("mjobs.operations", level="INFO") as captured:
+            recover_expired(self.store)
+        self.assertEqual(len(captured.records), 1)
+
+    def test_recovery_context_failure_preserves_result_and_omits_private_diagnostics(self):
+        self.assertIsNotNone(claim(self.store, self.operation_id))
+        self.save_receipt()
+        self.expire()
+        with patch("workers.operations.resolve_operation_log_context",
+                   side_effect=RuntimeError("PRIVATE_RECOVERY_CONTEXT_DIAGNOSTIC")):
+            with self.assertLogs("mjobs.operations", level="INFO") as captured:
+                recover_expired(self.store)
+        self.assertEqual(self.row()["state"], "COMPLETED")
+        self.assertEqual(len(captured.records), 1)
+        encoded = captured.records[0].getMessage()
+        self.assertNotIn("PRIVATE_RECOVERY_CONTEXT_DIAGNOSTIC", encoded)
+        record = json.loads(encoded)
+        self.assertEqual(record["result"], "COMPLETED")
+        self.assertNotIn("application_id", record)
+        self.assertNotIn("params", record)
+
+    def test_logging_failure_cannot_reopen_committed_recovery_or_block_dispatch(self):
+        self.assertIsNotNone(claim(self.store, self.operation_id))
+        self.save_receipt()
+        self.expire()
+        with patch("workers.operations.log_operation_finished",
+                   side_effect=RuntimeError("PRIVATE_LOG_SINK_FAILURE")) as emit:
+            self.assertEqual(recover_expired(self.store), 1)
+            self.assertEqual(self.row()["state"], "COMPLETED")
+            self.assertEqual(recover_expired(self.store), 0)
+            self.assertEqual(execute_operation(self.operation_id)["status"],
+                             "ALREADY_CLAIMED_OR_CAPACITY")
+        emit.assert_called_once()
 
     def test_cancelled_crashed_worker_without_receipt_remains_cancelled(self):
         self.assertIsNotNone(claim(self.store, self.operation_id))

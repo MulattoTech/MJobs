@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from hashlib import sha256
 from hmac import compare_digest
 import os
+import time
 from uuid import uuid4
 
 from sqlalchemy import func, or_, select, text, update
@@ -10,6 +11,8 @@ from sqlalchemy import func, or_, select, text, update
 from packages.persistence import models as m
 from packages.persistence.store import now, identity
 from services.audit_history import record_application_preparation_event
+from workers.operation_log_context import resolve_operation_log_context
+from workers.structured_logging import log_operation_finished
 
 QUEUES = {"DISCOVER": "mjobs-discovery", "COMPANY_DISCOVER": "mjobs-company-discovery",
           "AI_EVALUATE_QUEUED": "mjobs-ai",
@@ -509,6 +512,8 @@ def discard_dead_letter(store, operation_id):
 
 def recover_expired(store):
     timestamp = now()
+    recovery_started_at = time.monotonic()
+    completed_dry_runs = []
     with store.engine.begin() as connection:
         if connection.dialect.name == "sqlite":
             connection.exec_driver_sql("BEGIN IMMEDIATE")
@@ -587,4 +592,27 @@ def recover_expired(store):
                 record_application_preparation_event(
                     connection, "APPLICATION_FAILED", row["entity_id"],
                     row["params"]["job_id"], row["id"])
-        return len(rows)
+            if state == "COMPLETED" and row["kind"] == "APPLICATION_DRY_RUN":
+                completed_dry_runs.append({**row, **values})
+    # A receipt recovery replaces worker finalization, including its terminal
+    # event. Emit only after the durable transaction commits. A repeated sweep
+    # or duplicate worker cannot select the completed operation a second time.
+    # Process death after commit can lose this best-effort sink event; the
+    # committed receipt/state/audit remain the durable recovery authority.
+    for operation in completed_dry_runs:
+        try:
+            context = resolve_operation_log_context(store, operation)
+        except Exception:
+            # Context enrichment is read-only and best effort; never expose
+            # lookup diagnostics or undo/replay already committed verification.
+            context = {}
+        try:
+            log_operation_finished(
+                {**operation, "log_context": context}, "COMPLETED", None,
+                time.monotonic() - recovery_started_at,
+            )
+        except Exception:
+            # The durable receipt/state/audit remain authoritative if a sink
+            # fails. Never reopen work or block dispatch to retry a log write.
+            pass
+    return len(rows)
