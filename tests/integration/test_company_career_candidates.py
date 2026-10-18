@@ -30,6 +30,11 @@ from workers.tasks import execute_operation
 
 ORIGIN = 'https://employer.example'
 BOARD = '<a href="https://job-boards.greenhouse.io/example">Open jobs</a>'
+JOB_FEED = ('<rss><channel><item><guid>employer-role</guid><title>Python Engineer</title>'
+            '<link>https://employer.example/jobs/1</link>'
+            '<description>Python SQL remote role</description></item></channel></rss>')
+BLOG_FEED = ('<rss><channel><item><guid>news</guid><title>Company picnic</title>'
+             '<link>https://employer.example/news/picnic</link></item></channel></rss>')
 
 
 class CompanyCareerCandidateTests(unittest.TestCase):
@@ -126,6 +131,80 @@ class CompanyCareerCandidateTests(unittest.TestCase):
         self.assertEqual(result['status'], 'COMPLETED', result)
         self.assert_enrolled(ORIGIN + '/team/openings')
         self.assertNotIn(ORIGIN + '/sitemap.xml', self.seen)
+
+    def test_generic_homepage_rss_does_not_hide_career_ats_or_import_news(self):
+        self.pages['/'] = ('<link rel="alternate" type="application/rss+xml" href="/feed/">'
+                           '<a href="/careers">Careers</a>')
+        self.pages['/feed/'] = BLOG_FEED
+        self.pages['/careers'] = BOARD
+        _, result = self.run_discovery()
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        self.assert_enrolled(ORIGIN + '/careers')
+        self.assertNotIn(ORIGIN + '/feed/', self.seen)
+        self.assertEqual(self.store.count('company_ats_tenants'), 1)
+
+    def test_generic_homepage_feed_alone_is_not_evidence_of_job_inventory(self):
+        self.pages['/'] = '<link rel="alternate" type="application/rss+xml" href="/feed/">'
+        self.pages['/feed/'] = BLOG_FEED
+        _, result = self.run_discovery()
+        self.assertNotEqual(result['status'], 'COMPLETED', result)
+        self.assertEqual(self.store.count('canonical_jobs'), 0)
+        self.assertEqual(self.store.count('company_job_sources'), 0)
+        self.assertNotIn(ORIGIN + '/feed/', self.seen)
+
+    def test_stale_career_redirect_to_generic_homepage_feed_does_not_hide_later_ats(self):
+        self.pages['/'] += '<link rel="alternate" type="application/rss+xml" href="/feed/">'
+        self.pages['/feed/'] = BLOG_FEED
+        original_page = self.page
+
+        def redirect(transport, url, deadline):
+            if url == ORIGIN + '/culture':
+                return httpx.Response(302, headers={'location': '/'}, request=httpx.Request('GET', url))
+            return original_page(transport, url, deadline)
+
+        with patch.object(self, 'page', side_effect=redirect):
+            _, result = self.run_discovery()
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        self.assert_enrolled(ORIGIN + '/team/openings')
+        self.assertNotIn(ORIGIN + '/feed/', self.seen)
+
+    def assert_job_feed(self, website, endpoint):
+        _, result = self.run_discovery(website)
+        self.assertEqual(result['status'], 'COMPLETED', result)
+        with self.store.engine.connect() as connection:
+            source = connection.execute(select(m.company_sources)).mappings().one()
+            job = connection.execute(select(m.jobs)).mappings().one()
+        self.assertEqual(source['endpoint'], endpoint.rstrip('/'))
+        self.assertEqual(source['provider'], 'rss')
+        self.assertEqual(job['title'], 'Python Engineer')
+        self.assertEqual(self.store.count('application_attempts'), 0)
+
+    def test_homepage_job_feed_wins_over_unrelated_preferred_format_news_feed(self):
+        self.pages['/'] = ('<link rel="alternate" type="application/feed+json" href="/news.json">'
+                           '<link rel="alternate" type="application/rss+xml" href="/jobs.xml">')
+        self.pages['/news.json'] = ('{"version":"https://jsonfeed.org/version/1.1",'
+                                  '"items":[{"id":"news","title":"Company picnic",'
+                                  '"url":"https://employer.example/news/picnic"}]}')
+        self.pages['/jobs.xml'] = JOB_FEED
+        self.assert_job_feed(ORIGIN + '/', ORIGIN + '/jobs.xml')
+        self.assertNotIn(ORIGIN + '/news.json', self.seen)
+
+    def test_supplied_career_page_preserves_its_generic_named_job_feed(self):
+        self.pages['/careers'] = '<link rel="alternate" type="application/rss+xml" href="/feed/">'
+        self.pages['/feed/'] = JOB_FEED
+        self.assert_job_feed(ORIGIN + '/careers', ORIGIN + '/feed/')
+
+    def test_homepage_explicit_job_feed_label_preserves_generic_feed_url(self):
+        self.pages['/'] = ('<link rel="alternate" type="application/rss+xml" '
+                           'title="Current job openings" href="/feed/">')
+        self.pages['/feed/'] = JOB_FEED
+        self.assert_job_feed(ORIGIN + '/', ORIGIN + '/feed/')
+
+    def test_career_homepage_heading_preserves_generic_feed_url(self):
+        self.pages['/'] = ('<h1>Careers at Example Systems</h1>'
+                           '<link rel="alternate" type="application/rss+xml" href="/feed/">')
+        self.pages['/feed/'] = JOB_FEED
+        self.assert_job_feed(ORIGIN + '/', ORIGIN + '/feed/')
 
     def test_missing_first_link_does_not_hide_later_official_openings(self):
         del self.pages['/culture']

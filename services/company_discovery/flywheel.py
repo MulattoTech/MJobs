@@ -33,6 +33,7 @@ _MAX_SITEMAP_FETCHES = 5
 _MAX_CHILD_SITEMAPS = 3
 _MAX_SITEMAP_CAREER_PAGES = 10
 _MAX_LINKED_CAREER_PAGES = 5
+_JOB_CONTEXT = re.compile(r"\b(?:careers?|jobs?|openings?|vacancies|employment)\b", re.IGNORECASE)
 
 
 def _same_origin(left, right):
@@ -97,7 +98,29 @@ def _sitemap_career_candidates(homepage, client, check):
     return candidates
 
 
-def _career_page_is_corroborated(page, fixture):
+def _career_feed_candidates(page, homepage_url=None):
+    """Homepage feeds need job context, including after a redirect back home."""
+    feeds = machine_readable_job_endpoints(str(page.url), page.text)
+    if (not feeds or homepage_url is None or not _same_origin(homepage_url, str(page.url))
+            or urlsplit(str(page.url)).path.rstrip('/') != urlsplit(str(homepage_url)).path.rstrip('/')):
+        return feeds
+    soup = BeautifulSoup(str(page.text or "")[:2_000_000], "html.parser")
+    labelled = {urljoin(str(page.url), link["href"]) for link in soup.find_all("link", href=True)
+                if _JOB_CONTEXT.search(str(link.get("title") or ""))}
+    explicit = [feed for feed in feeds if feed["url"] in labelled
+                or _JOB_CONTEXT.search(urlsplit(feed["url"]).path.replace("_", " "))]
+    if explicit:
+        # Do not let a preferred-format blog/news feed outrank an explicitly
+        # identified jobs feed advertised on the same page.
+        return explicit
+    context = " ".join(node.get_text(" ", strip=True) for node in soup.find_all(["title", "h1"]))
+    if (_JOB_CONTEXT.search(urlsplit(str(page.url)).path.replace("_", " "))
+            or _JOB_CONTEXT.search(context)):
+        return feeds
+    return []
+
+
+def _career_page_is_corroborated(page, fixture, *, homepage_url=None):
     html = page.text
     fixture_ats = BeautifulSoup(html, "html.parser").find(
         "a", attrs={"data-provider": True, "data-tenant": True}
@@ -107,7 +130,7 @@ def _career_page_is_corroborated(page, fixture):
         redirect_chain=[str(response.url) for response in getattr(page, "history", ())],
     )
     return ((fixture and fixture_ats is not None) or detected.status == "MATCH"
-            or bool(machine_readable_job_endpoints(str(page.url), html)))
+            or bool(_career_feed_candidates(page, homepage_url)))
 
 
 def _company_name_appears(company_name, html):
@@ -233,10 +256,10 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     careers_links = internal_career_links(str(homepage.url), homepage.text)
     # A supplied/search-selected URL may already be the recruiting page. Do
     # not discard its proven ATS/feed evidence or replace it with a guessed URL.
-    careers = homepage if _career_page_is_corroborated(homepage, fixture) else None
+    careers = homepage if _career_page_is_corroborated(homepage, fixture, homepage_url=homepage.url) else None
     careers_url = str(homepage.url) if careers is not None else ""
     for linked_url in careers_links[:_MAX_LINKED_CAREER_PAGES]:
-        if careers is not None and _career_page_is_corroborated(careers, fixture):
+        if careers is not None and _career_page_is_corroborated(careers, fixture, homepage_url=homepage.url):
             break
         check()
         try:
@@ -248,12 +271,12 @@ def discover_company_source(store, candidate, client, check=None, search_provide
             continue
         # Keep an uncorroborated linked page for the existing review outcome,
         # but allow a later official navigation link to supply usable evidence.
-        if careers is None or _career_page_is_corroborated(linked_page, fixture):
+        if careers is None or _career_page_is_corroborated(linked_page, fixture, homepage_url=homepage.url):
             careers_url, careers = linked_url, linked_page
     # A linked careers page remains authoritative when its content exposes an ATS or
     # supported public feed. If it is absent or too thin to identify either, inspect
     # a small same-origin sitemap chain before trying low-confidence common routes.
-    if careers is None or not _career_page_is_corroborated(careers, fixture):
+    if careers is None or not _career_page_is_corroborated(careers, fixture, homepage_url=homepage.url):
         sitemap_candidates = _sitemap_career_candidates(homepage, client, check)
         for sitemap_candidate in sitemap_candidates:
             check()
@@ -261,10 +284,10 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 candidate_page = bounded_get(client, sitemap_candidate, str(homepage.url))
             except (httpx.HTTPError, ValueError, PublicFetchError):
                 continue
-            if _career_page_is_corroborated(candidate_page, fixture):
+            if _career_page_is_corroborated(candidate_page, fixture, homepage_url=homepage.url):
                 careers_url, careers = str(candidate_page.url), candidate_page
                 break
-    if careers is None or not _career_page_is_corroborated(careers, fixture):
+    if careers is None or not _career_page_is_corroborated(careers, fixture, homepage_url=homepage.url):
         # Guesses are low-confidence probes only. A guessed route is accepted only
         # after its fetched content exposes a supported ATS integration.
         for guessed_url in common_career_routes(str(homepage.url)):
@@ -276,7 +299,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 if status == 404:
                     continue
                 raise
-            if _career_page_is_corroborated(guessed_page, fixture):
+            if _career_page_is_corroborated(guessed_page, fixture, homepage_url=homepage.url):
                 careers_url, careers = str(guessed_page.url), guessed_page
                 break
     if careers is None:
@@ -315,7 +338,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                 **_search_provenance(candidate, search_provider, search_context,
                                      rejected_search_candidates, attempted=search_attempted),
             })
-        feeds = (machine_readable_job_endpoints(str(careers.url), careers.text)
+        feeds = (_career_feed_candidates(careers, homepage.url)
                  if detected.status != "MATCH" or not detected.provider else [])
         for feed in feeds:
             check()
