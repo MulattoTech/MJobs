@@ -1,34 +1,32 @@
 {
   "schema_version": 1,
   "task_id": "lane-b-employer-flywheel",
-  "objective": "Refs #293 steps23-31 and #11/#294: bounded official career candidates and live-validated Greenhouse canonical provenance; parent requirements remain PARTIAL",
+  "objective": "Refs #293/#11/#294 partial slice; PR725 inline4308545993 homepage RSS/job selection correction",
   "owner": "Lane B / mjobs-rebuilt-4 / gpt-6.1-sol high",
   "branch": "ao/mjobs-rebuilt-4/career-candidates",
-  "head_sha": "91253f79b4808eab8fc3a694706dfac851b520ca",
+  "head_sha": "80102b58577986ed608d81a6d2f3810b5f4f1248",
   "routing_state": "VERIFY",
-  "next_action": "Root schedules native independent review and shared PostgreSQL/Redis/Compose/browser checks; no further lane mutation after PR-ready checkpoint",
-  "created_at": "2026-10-18T20:04:24.989443+00:00",
+  "next_action": "Complete exact-head focused regression, ordinary push, then Root schedules fresh native independent review; leave finding open pending verification",
+  "created_at": "2026-10-18T20:15:21.223188+00:00",
   "requirements": [],
   "tests": [
     {
-      "command": "Focused discovery/source-authority regression: 119 passed and 33 subtests passed on source bytes committed as 91253f79b4808eab8fc3a694706dfac851b520ca; API/worker, RemoteOK producer, Greenhouse enrollment, canonical dedupe, employer-only job, readback and route provenance; external responses synthetic only",
+      "command": "python -m pytest -q tests/integration/test_company_career_candidates.py:26 passed after redirect hardening; external responses synthetic; real PERSONAL API/worker",
       "result": "PASS"
     },
     {
-      "command": "catalogue, progress validate, progress_dashboard --check, agent_skills, git diff --check and commit_provenance --commit HEAD passed",
+      "command": "Seven-file discovery/feed regression:76 passed and3 subtests before final redirect hardening; generic homepage/news cases demonstrated red/green; diff/provenance passed",
       "result": "PASS"
     },
     {
-      "command": "Real provider/employer network and automatic official-domain acquisition; independent domain evidence is preseeded in synthetic positive fixtures",
+      "command": "Final revised-head13-file targeted regression pending; prior-head119 passed/33subtests is historical only",
       "result": "NOT_RUN"
     },
     {
-      "command": "PostgreSQL/Redis/Compose/browser/full suite/hosted CI/native independent review: scheduled by Root",
+      "command": "Broad catalogue/progress/dashboard/full unit checks reserved to Astra; local PG/Redis/Compose/browser/live providers and fresh native review NOT_RUN here",
       "result": "NOT_RUN"
     }
   ],
-  "blockers": [
-    "No implementation blocker; await protected integration and exact-head required gates"
-  ],
-  "milestone_id": "91253f79b4808eab8fc3a694706dfac851b520ca"
+  "blockers": [],
+  "milestone_id": "PR725-inline4308545993"
 }
