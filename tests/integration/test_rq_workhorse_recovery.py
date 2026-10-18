@@ -11,13 +11,15 @@ import json
 import os
 from pathlib import Path
 import signal
+import shutil
+import subprocess
 import sys
 import tempfile
 import threading
 import time
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from uuid import uuid4
 
 from fastapi.responses import Response, StreamingResponse
@@ -147,6 +149,69 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
                     with self.assertRaisesRegex(AssertionError, "ancestry/session"):
                         fixture.capture_horse(job)
 
+    def test_busy_worker_failure_before_horse_capture_stops_all_owned_processes(self):
+        fixture = OwnedWorker(None, None, "redis://127.0.0.1:6379/0", "http://127.0.0.1:1", Path("."), "failure")
+        parent = ProcessIdentity(100, 50, 100, 100, 1000)
+        horse = ProcessIdentity(123, 100, 123, 100, 1001)
+        browser = ProcessIdentity(234, 123, 123, 100, 1002)
+        live = {100: parent, 123: horse, 234: browser}
+        sent = []
+
+        def send(owned, sig):
+            sent.append((owned.pid, sig))
+            if sig == 9:
+                live.pop(owned.pid, None)
+            elif sig == 19:
+                live[owned.pid] = replace(live[owned.pid], state="T")
+            return True
+
+        def wait(**_kwargs):
+            if 100 in live:
+                raise subprocess.TimeoutExpired("synthetic owned worker", 5)
+            return -9
+
+        def identity(pid):
+            if pid not in live:
+                raise FileNotFoundError
+            return live[pid]
+
+        fixture.identity, fixture.log = parent, Mock()
+        fixture.process = SimpleNamespace(pid=100, poll=lambda: None if 100 in live else -9, wait=wait)
+        fixture.worker = Mock()
+        # Simulates either an early assertion failure or a busy replacement:
+        # capture_horse() has never run, so both fields are initially empty.
+        self.assertIsNone(fixture.horse)
+        self.assertEqual(fixture.children, [])
+        with patch("signal.SIGKILL", 9, create=True), patch("signal.SIGSTOP", 19, create=True), patch(
+                "tests.integration.rq_workhorse_fixture.signal_owned", side_effect=send), patch(
+                "tests.integration.rq_workhorse_fixture.descendants", return_value=[horse, browser]), patch(
+                "tests.integration.rq_workhorse_fixture.process_identity", side_effect=identity):
+            fixture.__exit__(AssertionError, AssertionError("synthetic early failure"), None)
+            fixture.assert_stopped()
+        self.assertEqual(live, {}, "Failure cleanup leaked an uncaptured workhorse/browser")
+        self.assertTrue({123, 234}.issubset({pid for pid, sig in sent if sig == 9}))
+        fixture.worker.register_death.assert_called_once()
+        fixture.log.close.assert_called_once()
+
+    def test_unverified_or_live_cleanup_cannot_authorize_fixture_deletion(self):
+        fixture = OwnedWorker(None, None, "redis://127.0.0.1:6379/0", "http://127.0.0.1:1", Path("."), "failure")
+        with self.assertRaisesRegex(RuntimeError, "preserve fixture"):
+            fixture.assert_stopped()
+        case = RqWorkhorseRecoveryTests("test_abandoned_execution_maintenance_redelivers_to_fresh_production_workhorse")
+        case.workers, case.operation_ids, case.root = [fixture], {"owned-job"}, Path("unused-fixture")
+        with patch("rq.job.Job.exists") as exists, patch("shutil.rmtree") as remove:
+            with self.assertRaisesRegex(RuntimeError, "preserve fixture"):
+                case.delete_owned_jobs()
+            with self.assertRaisesRegex(RuntimeError, "preserve fixture"):
+                case.delete_owned_directory()
+            exists.assert_not_called()
+            remove.assert_not_called()
+        fixture.cleanup_verified = True
+        fixture.remember([ProcessIdentity(100, 50, 100, 100, 1000)])
+        with patch("tests.integration.rq_workhorse_fixture.running", return_value=True):
+            with self.assertRaisesRegex(RuntimeError, "preserve fixture"):
+                fixture.assert_stopped()
+
 
 @unittest.skipUnless(sys.platform == "linux", "NOT_RUN: real forking RQ worker requires Linux")
 @unittest.skipUnless(os.environ.get("MJOBS_REDIS_URL"), "NOT_RUN: explicit disposable CI Redis absent")
@@ -167,9 +232,9 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
         self.assertFalse([worker for worker in Worker.all(connection=self.redis)
                           if set(worker.queue_names()) & {"mjobs-discovery", "mjobs-application"}],
                          "Refusing another worker's queue")
-        self.directory = tempfile.TemporaryDirectory(prefix="mjobs-workhorse-")
-        self.addCleanup(self.directory.cleanup)
-        self.root = Path(self.directory.name)
+        self.workers = []
+        self.root = Path(tempfile.mkdtemp(prefix="mjobs-workhorse-"))
+        self.addCleanup(self.delete_owned_directory)
         self.store = Store(f"sqlite:///{(self.root / 'operation.db').as_posix()}")
         self.addCleanup(self.store.engine.dispose)
         self.store.migrate()
@@ -178,9 +243,23 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
         self.addCleanup(self.delete_owned_jobs)
 
     def delete_owned_jobs(self):
+        self.assert_workers_stopped()
         for identifier in self.operation_ids:
             if Job.exists(identifier, connection=self.redis):
                 Job.fetch(identifier, connection=self.redis).delete()
+
+    def assert_workers_stopped(self):
+        for worker in self.workers:
+            worker.assert_stopped()
+
+    def delete_owned_directory(self):
+        self.assert_workers_stopped()
+        shutil.rmtree(self.root)
+
+    def worker(self, origin, suffix, *, queue="mjobs-discovery"):
+        worker = OwnedWorker(self.store, self.redis, self.redis_url, origin, self.root, suffix, queue=queue)
+        self.workers.append(worker)
+        return worker
 
     def read(self, identifier):
         with self.store.engine.connect() as connection:
@@ -238,7 +317,7 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                 job = Job.fetch(identifier, connection=self.redis)
                 self.assertEqual(job.func_name, "workers.tasks.execute_operation")
                 self.assertEqual(job.args, (identifier,))
-                with OwnedWorker(self.store, self.redis, self.redis_url, origin, self.root, "first") as first:
+                with self.worker(origin, "first") as first:
                     until(entered.is_set, "Production workhorse never reached the loopback source")
                     execution = until(lambda: first.capture_horse(job), "Workhorse identity was not established")
                     original = self.read(identifier)
@@ -248,7 +327,7 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                     self.assertLessEqual(registry_score, time.time() + 95, "RQ expiry exceeds the bounded fixture window")
                     # A second actual worker must not turn a live started job
                     # into a second delivery, claim or source request.
-                    with OwnedWorker(self.store, self.redis, self.redis_url, origin, self.root, "live-control") as live:
+                    with self.worker(origin, "live-control") as live:
                         until(live.registered, "Live-owner control worker did not register")
                         self.assertEqual(dispatch_pending(self.store, self.redis_url)["count"], 0)
                         self.assertEqual(self.read(identifier)["attempt_count"], 1)
@@ -271,7 +350,7 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                     until(lambda: time.time() > registry_score + 1,
                           "RQ execution did not naturally expire", seconds=65)
 
-                    with OwnedWorker(self.store, self.redis, self.redis_url, origin, self.root, "replacement") as replacement:
+                    with self.worker(origin, "replacement") as replacement:
                         until(replacement.registered, "Replacement worker never registered")
                         until(lambda: self.read(identifier)["state"] == "COMPLETED"
                               and job.get_status(refresh=True) == "finished",
@@ -356,8 +435,7 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                 self.assertEqual(job.origin, "mjobs-application")
                 self.assertEqual(job.func_name, "workers.tasks.execute_operation")
                 self.assertEqual(job.args, (identifier,))
-                with OwnedWorker(self.store, self.redis, self.redis_url, origin, self.root,
-                                 "submit-first", queue="mjobs-application") as first:
+                with self.worker(origin, "submit-first", queue="mjobs-application") as first:
                     until(accepted.is_set, "Real fixture browser never submitted to the loopback ATS", seconds=25)
                     execution = until(lambda: first.capture_horse(job), "Submission horse identity not established")
                     receipts = json.loads(receipt_file.read_text())
@@ -380,8 +458,7 @@ class RqWorkhorseRecoveryTests(unittest.TestCase):
                     lease = datetime.fromisoformat(original["lease_expires_at"]).timestamp()
                     until(lambda: time.time() > max(lease, score) + 1,
                           "Submission execution did not naturally expire", seconds=100)
-                    with OwnedWorker(self.store, self.redis, self.redis_url, origin, self.root,
-                                     "submit-replacement", queue="mjobs-application") as replacement:
+                    with self.worker(origin, "submit-replacement", queue="mjobs-application") as replacement:
                         until(replacement.registered, "Submission replacement worker did not register")
                         until(lambda: self.read(identifier)["state"] == "BLOCKED"
                               and job.get_status(refresh=True) == "finished",

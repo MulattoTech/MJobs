@@ -29,13 +29,24 @@ class ProcessIdentity:
     group: int
     session: int
     started: int
+    state: str = "S"
 
 
 def process_identity(pid, *, proc=Path("/proc")):
     # comm can contain spaces and parentheses; fields after its final ')' are
     # state (3), ppid (4), pgrp (5), session (6), ... starttime (22).
     fields = (proc / str(pid) / "stat").read_text().rsplit(")", 1)[1].split()
-    return ProcessIdentity(pid, int(fields[1]), int(fields[2]), int(fields[3]), int(fields[19]))
+    return ProcessIdentity(pid, int(fields[1]), int(fields[2]), int(fields[3]), int(fields[19]), fields[0])
+
+
+def running(owned):
+    try:
+        current = process_identity(owned.pid)
+    except FileNotFoundError:
+        return False
+    return ((current.pid, current.group, current.session, current.started)
+            == (owned.pid, owned.group, owned.session, owned.started)
+            and current.state not in {"Z", "X"})
 
 
 def signal_owned(owned, sig):
@@ -71,6 +82,25 @@ def until(predicate, message, *, seconds=20):
             return result
         time.sleep(.05)
     raise AssertionError(message)
+
+
+def freeze_process(owned):
+    if not signal_owned(owned, signal.SIGSTOP):
+        raise RuntimeError("Process exited before tree freeze; cleanup is unverified")
+
+    def stopped():
+        try:
+            current = process_identity(owned.pid)
+        except FileNotFoundError as error:
+            raise RuntimeError("Process vanished during tree freeze") from error
+        if ((current.pid, current.group, current.session, current.started)
+                != (owned.pid, owned.group, owned.session, owned.started)):
+            raise RuntimeError("Process identity changed during tree freeze")
+        if current.state in {"Z", "X"}:
+            raise RuntimeError("Process exited during tree freeze")
+        return current.state in {"T", "t"}
+
+    until(stopped, "Owned process did not stop before tree inventory", seconds=2)
 
 
 def descendants(parent):
@@ -110,6 +140,42 @@ class OwnedWorker:
         self.horse = None
         self.worker = None
         self.children = []
+        self.owned = {}
+        self.tree_sealed = False
+        self.cleanup_verified = False
+
+    def remember(self, identities):
+        for owned in identities:
+            self.owned[(owned.pid, owned.started)] = owned
+
+    def freeze_tree(self):
+        """Stop creation of new descendants before destroying any ancestor."""
+        self.remember([self.identity])
+        if self.horse is not None:
+            self.remember([self.horse, *self.children])
+        if self.tree_sealed:
+            return
+        freeze_process(self.identity)
+        frozen = {(self.identity.pid, self.identity.started)}
+        # The root cannot fork while stopped. Freeze each discovered descendant
+        # and rescan until every descendant is stopped too. Retain identities
+        # before signals, including pre-capture and replacement-worker paths.
+        deadline = time.monotonic() + 3
+        while time.monotonic() < deadline:
+            found = descendants(self.identity.pid)
+            self.remember(found)
+            new = [owned for owned in found if (owned.pid, owned.started) not in frozen]
+            if not new:
+                self.tree_sealed = True
+                return
+            for owned in new:
+                freeze_process(owned)
+                frozen.add((owned.pid, owned.started))
+        raise RuntimeError("Owned process tree did not quiesce within the fixture bound")
+
+    def assert_stopped(self):
+        if not self.cleanup_verified or any(running(owned) for owned in self.owned.values()):
+            raise RuntimeError("Owned worker cleanup unverified; preserve fixture jobs and files")
 
     def __enter__(self):
         environment = {key: os.environ[key] for key in (
@@ -129,6 +195,7 @@ class OwnedWorker:
                 cwd=Path(__file__).resolve().parents[2], env=environment,
                 stdout=self.log, stderr=self.log, start_new_session=True)
             self.identity = process_identity(self.process.pid)
+            self.remember([self.identity])
             if (self.identity.group, self.identity.session) != (self.process.pid, self.process.pid):
                 raise RuntimeError("Fresh worker does not own its process session")
             return self
@@ -139,6 +206,7 @@ class OwnedWorker:
     def registered(self):
         if self.process.poll() is not None:
             raise AssertionError("Owned production worker exited during startup")
+        self.remember(descendants(self.process.pid))
         for worker in Worker.all(connection=self.redis):
             if worker.pid == self.process.pid:
                 if worker.queue_names() != [self.queue]:
@@ -169,34 +237,48 @@ class OwnedWorker:
         # A fixture browser may exist only beneath this verified workhorse.
         # Keep exact starttime-bound PIDs before killing their owning ancestor.
         self.children = descendants(horse.pid)
+        self.remember([horse, *self.children])
         return executions[0]
 
     def abandon(self):
         if self.horse is None:
             raise RuntimeError("Capture and verify the owned RQ workhorse before interruption")
+        self.freeze_tree()
         # Parent must die first, otherwise its normal monitor handles the death
         # and this would not test abandoned-execution maintenance.
         signal_owned(self.identity, signal.SIGKILL)
         self.process.wait(timeout=5)
         signal_owned(self.horse, signal.SIGKILL)
-        for child in reversed(self.children):
-            signal_owned(child, signal.SIGKILL)
+        for child in reversed(list(self.owned.values())):
+            if child.pid not in {self.identity.pid, self.horse.pid}:
+                signal_owned(child, signal.SIGKILL)
 
     def __exit__(self, *_args):
+        errors = []
         try:
-            if self.horse is not None:
-                signal_owned(self.horse, signal.SIGTERM)
-            if self.identity is not None and self.process.poll() is None:
-                signal_owned(self.identity, signal.SIGTERM)
+            if self.identity is None:
+                if self.process is not None:
+                    raise RuntimeError("Worker identity unavailable; cleanup cannot be certified")
+                self.cleanup_verified = True
+                return
+            try:
+                self.freeze_tree()
+            except Exception as error:
+                errors.append(error)
+            # This disposable fixture uses a hard interruption deliberately.
+            # Kill the complete frozen tree, including uncaptured horses and
+            # browser children, instead of RQ's unbounded warm shutdown.
+            for owned in reversed(list(self.owned.values())):
                 try:
-                    self.process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    signal_owned(self.identity, signal.SIGKILL)
-                    self.process.wait(timeout=5)
-            if self.horse is not None:
-                signal_owned(self.horse, signal.SIGKILL)
-            for child in reversed(self.children):
-                signal_owned(child, signal.SIGKILL)
+                    signal_owned(owned, signal.SIGKILL)
+                except Exception as error:
+                    errors.append(error)
+            self.process.wait(timeout=5)
+            until(lambda: not any(running(owned) for owned in self.owned.values()),
+                  "Owned worker descendants survived fixture teardown", seconds=5)
+            if errors:
+                raise RuntimeError("Owned tree cleanup could not be verified") from errors[0]
+            self.cleanup_verified = True
             if self.worker is not None:
                 self.worker.register_death()
         finally:
