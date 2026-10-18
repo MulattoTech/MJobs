@@ -258,6 +258,14 @@ class ApplicationInput(DiscoveryInput):
         return self
 
 
+class ApplicationReprepareInput(BaseModel):
+    model_config = ConfigDict(strict=True, extra="forbid")
+    expected_document_version: int = Field(ge=1, le=2147483647)
+    expected_application_profile_version: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
+    expected_profile_version: str = Field(min_length=64, max_length=64, pattern=r'^[0-9a-f]{64}$')
+    expected_state: Literal["PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"]
+
+
 class PreferredApplicationRouteInput(BaseModel):
     model_config = ConfigDict(strict=True, extra="forbid")
     route_id: str = Field(min_length=1, max_length=128)
@@ -2079,6 +2087,48 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.post("/applications", status_code=202)
     def application(value: ApplicationInput):
         return prepare_application(value)
+
+    @app.post("/profiles/{profile_id}/applications/{application_id}/reprepare")
+    def application_reprepare(profile_id: str, application_id: str,
+                              value: ApplicationReprepareInput):
+        from services.documents.generate import application_preparation_config, prepare
+        from services.documents.errors import PreparationError
+        application_row = store.application(application_id)
+        if application_row["profile_id"] != profile_id:
+            raise NoResultFound("Application is not owned by this profile")
+        if (application_row["id"] != identity(application_row["job_id"], profile_id)
+                or application_row["document_version"] != value.expected_document_version
+                or application_row["profile_version"] != value.expected_application_profile_version
+                or application_row["state"] != value.expected_state):
+            raise HTTPException(409, {"code": "APPLICATION_REPREPARE_STALE"})
+        profile = store.profile(profile_id)
+        if profile["version"] != value.expected_profile_version:
+            raise HTTPException(409, {"code": "APPLICATION_REPREPARE_STALE"})
+        try:
+            config = application_preparation_config(store, application_row)
+            if (application_row["profile_version"] != profile["version"]
+                    and config.get("tailor_fact_rewrites")):
+                raise PreparationError(
+                    "APPLICATION_REPREPARE_REVIEW_REQUIRED",
+                    "Reviewed resume rewrites are tied to the previous profile. Review their wording again before preparing this revision.",
+                )
+            prepare(
+                store, application_row["job_id"], profile_id, output_dir,
+                profile_version=value.expected_profile_version,
+                preserve_fact_ids=config.pop("preserve_fact_ids", None),
+                **config,
+                reprepare_expected={
+                    "application_id": application_id,
+                    "document_version": value.expected_document_version,
+                    "application_profile_version": value.expected_application_profile_version,
+                    "profile_version": value.expected_profile_version,
+                    "state": value.expected_state,
+                },
+            )
+        except PreparationError as error:
+            status = 409 if error.code.startswith("APPLICATION_REPREPARE_") else 422
+            raise HTTPException(status, {"code": error.code, "message": str(error)}) from None
+        return application_read(profile_id, application_id)
 
     @app.get("/profiles/{profile_id}/applications/{application_id}")
     def application_read(profile_id: str, application_id: str):
