@@ -87,6 +87,23 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                                           tailor_resume=True, include_resume_contact=True,
                                           cover_letter_style="warm", cover_letter_length="detailed"),
             }
+            # A later verified employer route must not silently retarget a saved
+            # application when Resume reuses its DEFAULT preparation settings.
+            with store.engine.begin() as connection:
+                connection.execute(m.company_domains.insert().values(
+                    id="browser-verified-employer-domain", company_id=job["company_id"],
+                    domain="browser-verified-employer.example", confidence=1.0,
+                    verified=True, verification_method="USER_REVIEWED_FIXTURE",
+                    first_seen_at="2026-10-18T00:00:00Z",
+                    last_verified_at="2026-10-18T00:00:00Z",
+                    evidence=["synthetic reviewed employer identity"],
+                ))
+                connection.execute(m.routes.insert().values(
+                    id="browser-new-higher-authority-route", job_id=job["id"],
+                    company_id=job["company_id"], provider="employer", tenant="fixture",
+                    requisition=job["requisition"],
+                    url="https://browser-verified-employer.example/apply",
+                ))
             for profile_id, application_id in application_ids.items():
                 application = store.application(application_id)
                 persist_preflight(store, application_id, {
@@ -423,6 +440,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(reprepare.value.status, 200, reprepare.value.text())
                     prepared = reprepare.value.json()
                     self.assertEqual(prepared["id"], application_ids["fixture"])
+                    self.assertEqual(prepared["route_id"], applications_before[0]["route_id"])
                     self.assertEqual(prepared["profile_version"], saved_profile["version"])
                     self.assertEqual(prepared["document_version"],
                                      old_document_version + 1)

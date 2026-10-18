@@ -15,6 +15,8 @@ from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from services.documents.history import application_documents
+from services.documents.tailor import target_fingerprint
+from services.dedupe.routes import plan_application_routes, qualify_route_authority
 from services.applications.preflight import persist_preflight
 from services.applications.attempt_history import AttemptConflict
 from services.applications.run_requests import (
@@ -365,7 +367,7 @@ class ApplicationReprepareTests(unittest.TestCase):
                 m.audit.c.action == "DOCUMENTS_PREPARED",
             ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings().first()
             payload = dict(event["payload"])
-            payload.pop("preparation_config", None)
+            payload["preparation_config"] = {"route_mode": "DEFAULT"}
             connection.execute(update(m.audit).where(
                 m.audit.c.id == event["id"],
             ).values(payload=payload))
@@ -375,6 +377,97 @@ class ApplicationReprepareTests(unittest.TestCase):
                          "APPLICATION_REPREPARE_CONFIG_REQUIRED")
         self.assertEqual(self.store.application(self.application_id)["document_version"],
                          app["document_version"])
+
+    def test_unversioned_completed_prepare_cannot_override_page_fit_revision_recipe(self):
+        profile = self.store.profile("fixture")
+        self._operation("older-completed-prepare", "fixture", self.job["id"], state="COMPLETED")
+        application_id = prepare(
+            self.store, self.job["id"], "fixture", self.root,
+            profile_version=profile["version"], tailor_resume=True,
+            resume_page_target=1,
+            resume_page_fit_job_fingerprint=target_fingerprint(self.job),
+        )
+        app = self.store.application(application_id)
+        fitted_resume = next(row for row in application_documents(
+            self.store, application_id, self.root
+        ) if row["version"] == app["document_version"] and row["kind"] == "resume")
+        self.assertEqual(fitted_resume["generation_context"]["page_fit"]["target_page_count"], 1)
+        with self.store.engine.begin() as connection:
+            event = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == application_id,
+                m.audit.c.action == "DOCUMENTS_PREPARED",
+            ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings().first()
+            payload = dict(event["payload"])
+            payload.pop("preparation_config", None)
+            connection.execute(update(m.audit).where(
+                m.audit.c.id == event["id"],
+            ).values(payload=payload))
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == application_id,
+            ).values(state="REVIEW_REQUIRED"))
+
+        response = self.client.post(
+            self.url, json=self._payload(app=self.store.application(application_id), profile=profile),
+        )
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"],
+                         "APPLICATION_REPREPARE_CONFIG_REQUIRED")
+        self.assertEqual(self.store.application(application_id)["document_version"],
+                         app["document_version"])
+
+    def test_default_route_is_pinned_when_higher_authority_route_appears(self):
+        original = self.store.application(self.application_id)
+        profile = self.store.profile("fixture")
+        with self.store.engine.begin() as connection:
+            connection.execute(m.company_domains.insert().values(
+                id="verified-employer-domain", company_id=self.job["company_id"],
+                domain="verified-employer.example",
+                confidence=1.0, verified=True, verification_method="USER_REVIEWED_FIXTURE",
+                first_seen_at="2026-10-18T00:00:00Z", last_verified_at="2026-10-18T00:00:00Z",
+                evidence=["synthetic reviewed employer identity"],
+            ))
+            connection.execute(m.routes.insert().values(
+                id="new-higher-authority-route", job_id=self.job["id"],
+                company_id=self.job["company_id"], provider="employer", tenant="fixture",
+                requisition=self.job["requisition"],
+                url="https://verified-employer.example/apply",
+            ))
+            candidates = [dict(row) for row in connection.execute(
+                select(m.routes).where(m.routes.c.job_id == self.job["id"])
+            ).mappings()]
+            qualified = qualify_route_authority(connection, candidates)
+        self.assertEqual(next(route["authority"] for route in qualified
+                              if route["id"] == "new-higher-authority-route"),
+                         "VERIFIED_EMPLOYER")
+        self.assertEqual(plan_application_routes(qualified, "DEFAULT")["selected"][0]
+                         ["preferred_route"]["id"], "new-higher-authority-route")
+        latest_profile = {**profile, "answers": [{
+            "id": "reviewed-answer-after-discovery",
+            "question": "What is a synthetic review answer?",
+            "text": "This answer was reviewed after route discovery.",
+            "source": "User-reviewed fixture", "verified": True,
+            "user_approved": True, "confidence": 90,
+        }]}
+        self.store.save_profile(latest_profile)
+        latest_profile = self.store.profile("fixture")
+
+        with TestClient(self.client.app, raise_server_exceptions=True) as client:
+            response = client.post(
+                self.url, json=self._payload(app=original, profile=latest_profile),
+            )
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()["route_id"], original["route_id"])
+        self.assertEqual(self.store.application(self.application_id)["route_id"],
+                         original["route_id"])
+        with self.store.engine.connect() as connection:
+            latest_event = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "DOCUMENTS_PREPARED",
+            ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings().first()
+        saved_config = latest_event["payload"]["preparation_config"]
+        self.assertEqual(saved_config["resolved_route_id"], original["route_id"])
+        self.assertEqual(saved_config["route_mode"], "THIS_ROUTE")
+        self.assertEqual(saved_config["route_id"], original["route_id"])
 
 
 if __name__ == "__main__":
