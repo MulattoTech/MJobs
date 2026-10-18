@@ -8,6 +8,7 @@ import ssl
 import threading
 import time
 import unittest
+import warnings
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -46,8 +47,10 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
         keyfile.write_bytes(key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                                              serialization.NoEncryption()))
         self.context = ssl.create_default_context()
+        self.context.minimum_version = ssl.TLSVersion.TLSv1_2
         self.context.load_verify_locations(cafile=str(certfile))
         server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        server_context.minimum_version = ssl.TLSVersion.TLSv1_2
         server_context.load_cert_chain(str(certfile), str(keyfile))
         self.starts = []
         self.active = 0
@@ -237,3 +240,18 @@ class CompanyMonitoringPolicyTransportTests(unittest.TestCase):
         self.assertFalse(thread.is_alive())
         self.assertFalse(server_thread.is_alive())
         self.assertEqual(client._sockets, set())
+
+    def test_both_client_paths_enforce_explicit_tls12_floor(self):
+        for policy in (None, MonitoringPolicy(request_timeout=2)):
+            with self.subTest(policy=policy):
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore', DeprecationWarning)
+                    self.context.minimum_version = ssl.TLSVersion.TLSv1
+                client = PublicCompanyClient('https://employer.example', policy=policy)
+                try:
+                    with self.transport():
+                        response = client._request_once('https://employer.example/robots.txt', time.monotonic()+5)
+                    self.assertEqual(response.status_code, 200)
+                    self.assertGreaterEqual(self.context.minimum_version, ssl.TLSVersion.TLSv1_2)
+                finally:
+                    client.close()

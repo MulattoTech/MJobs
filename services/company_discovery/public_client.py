@@ -300,6 +300,7 @@ class PublicCompanyClient:
                 cancellation_watcher.start()
                 sock.connect(sockaddr)
                 context = ssl.create_default_context()
+                context.minimum_version = ssl.TLSVersion.TLSv1_2
                 if self._policy is None:
                     tls = context.wrap_socket(sock, server_hostname=host)
                 else:
