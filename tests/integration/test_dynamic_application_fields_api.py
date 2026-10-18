@@ -13,6 +13,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
+from services.applications.preflight import latest_preflight
 from tests.integration.test_spine import PROFILE
 
 
@@ -170,6 +171,9 @@ class DynamicApplicationFieldsApiTests(unittest.TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.json()["detail"]["code"], "DYNAMIC_FIELDS_STALE")
+        historical = latest_preflight(self.store, self.application_id)
+        self.assertEqual(historical["profile_version"], "stale-profile-version")
+        self.assertFalse(historical["is_current"])
 
         self._persist_fields(document_version=application["document_version"] + 1)
         response = self.client.get(self.url)
