@@ -1,0 +1,775 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-18T21:59:03.075752+00:00",
+  "recording_state": "ROOT_ADJUDICATED_PENDING_INDEPENDENT_REVIEW_AND_PROTECTED_MERGE",
+  "base_revision": "df4ca3267de8a1ba698d4316867971c16336bdcf",
+  "authority": "Root authorized exclusive canonical preparation; independent native review and protected merge required. Lane A does not mutate provider fields.",
+  "populations": {
+    "original": 366,
+    "supplemental": 59,
+    "original_P0": 26
+  },
+  "requirements": [
+    {
+      "id": "MJ-REQ-010",
+      "issue": 11,
+      "literal_contract": "The product should conceptually resemble:\n\n```text\n                    WEB DASHBOARD\n                          │\n                          ▼\n                    APPLICATION API\n                          │\n      ┌───────────────────┼────────────────────┐\n      │                   │                    │\n      ▼                   ▼                    ▼\n SEARCH SERVICE     APPLICATION SERVICE   PROFILE/DOC SERVICE\n      │                   │                    │\n      ▼                   ▼                    ▼\n SOURCE SYSTEM       AUTOMATION ENGINE      AI ENGINE\n      │                   │                    │\n      ├─────────┐         │                    │\n      ▼         ▼         ▼                    ▼\n GLOBAL      COMPANY    PLAYWRIGHT        DOCUMENT ENGINE\n SOURCES     SOURCES    WORKERS\n      │         │\n      └────┬────┘\n           ▼\n     NORMALIZATION\n           │\n           ▼\n      COMPANY RESOLUTION\n           │\n           ▼\n      DEDUPLICATION\n           │\n           ▼\n       JOB SCORING\n           │\n           ▼\n        POSTGRES\n```\n\nBackground operations must be durable.\n",
+      "recorded_result": "PASS",
+      "gate": "Root explicitly adjudicated literal MJ-REQ-010 PASS at integrateddf4 after current primary9caseAI/RQ proof; canonical recording still requires independent native review/protected merge.",
+      "edge_proof": [
+        {
+          "edge": "WEB DASHBOARD -> APPLICATION API",
+          "primary": "39166062535 ci-ui.json 14 actions PASS; cli.ui_e2e page.goto, real Chromium Load fictional demo, profile approval changes, Prepare documents, downloads, reload/history.",
+          "source": [
+            "cli/ui_e2e.py",
+            "apps/web/src/main.tsx",
+            "apps/api/main.py"
+          ],
+          "limit": "FICTIONAL_DEMO; no assertion same-profile UI onboarding/discovery ran (discovery IDs null). Not required by conceptual010."
+        },
+        {
+          "edge": "API -> SEARCH SERVICE -> SOURCE SYSTEM -> GLOBAL + COMPANY SOURCES",
+          "primary": "ci-mock-e2e public POST /discovery -> poll completed -> GET /jobs returns2 including employer-only B. Production discover fetches board, resolves company, discovers/fetches ATS endpoint.",
+          "source": [
+            "cli/mock_e2e.py",
+            "workers/tasks.py",
+            "services/discovery/pipeline.py",
+            "services/company_discovery/flywheel.py"
+          ],
+          "limit": "Synthetic fixed board/company/ATS HTTP boundary; no real employer source breadth claim."
+        },
+        {
+          "edge": "SOURCES -> NORMALIZATION -> COMPANY RESOLUTION -> DEDUPLICATION -> JOB SCORING -> POSTGRES",
+          "primary": "Same executed discovery route; production normalization builds attributes, resolve_company binds canonical employer, identity(company,mock-ats,tenant,requisition) merges postings, build_explanation persists versioned matches. Output canonical_jobs2 and employer-only B; UI changes approved facts and observed score100%->50%. Compose runtime database is PostgreSQL.",
+          "source": [
+            "services/discovery/pipeline.py",
+            "services/company_discovery/resolution.py",
+            "packages/persistence/store.py",
+            "compose.yml",
+            "cli/ui_e2e.py"
+          ],
+          "limit": "Conceptual topology, not mandated internal stage order or all normalization semantics. Known030 relative timestamp counterexample remains separate; this proves architecture, not every feature in node."
+        },
+        {
+          "edge": "API -> APPLICATION SERVICE -> AUTOMATION ENGINE -> PLAYWRIGHT WORKERS",
+          "primary": "ci-mock-e2e actual queued mock-run CONFIRMED, trace GENERATE_DOCUMENTS/PREPARE_APPLICATION/NAVIGATE/DETECT_FORM/UPLOAD_RESUME/FILL_CONTACT/VALIDATE/SUBMIT/VERIFY_CONFIRMATION. Repeated request retains operation and receipt submission_count1. Browser dry-run/explicit local mock repeats pass.",
+          "source": [
+            "apps/api/main.py",
+            "workers/tasks.py",
+            "services/applications/mock_adapter.py",
+            "compose.yml",
+            "cli/mock_e2e.py"
+          ],
+          "limit": "Explicit fictional ATS; external submission false. Paid/live submissions not010 prerequisites."
+        },
+        {
+          "edge": "API -> PROFILE/DOC SERVICE -> AI ENGINE -> DOCUMENT ENGINE",
+          "primary": "39168221938 named test_public_ai_review_document_worker_and_restart_readback uses public HTTP profile/manual-job/settings/evaluation admission; actual workers.main mjobs-ai RQ job bound by func_name,args,origin,registered worker; production AITaskRouter/local provider one synthetic HTTP response; review gate rejects409 then explicit review accepts; mjobs-document produces2 documents with checksum/download/fact assertions and preserved AI lineage. Negative test cancellation/stale profile blocks preparation.",
+          "source": [
+            "tests/integration/test_primary_product_ai_rq_flow.py@5ae48174",
+            "apps/api/main.py",
+            "services/ai/durable_evaluation.py",
+            "services/ai/tasks.py",
+            "workers/operations.py",
+            "workers/tasks.py",
+            "services/documents/generate.py"
+          ],
+          "limit": "Synthetic loopback model output through real provider protocol/router; no model quality/live-provider claim. Manual job is public seed for this bounded edge; source edge separately proven by Compose."
+        },
+        {
+          "edge": "BACKGROUND OPERATIONS MUST BE DURABLE",
+          "primary": "ci-recovery POST /discovery while Redis stopped returnsQUEUED, readiness503, supervised worker restart count increases, restore Redis/worker completes sameoperation; restart10services and compare public application/receipt/doc/companysource baselines. AI test restarts API with admitted queued batch then realworker completes, restarts after review/doc production and reads history/documents; idempotent replay and attempt_count1.",
+          "source": [
+            "cli/compose_recovery.py",
+            "cli/local_persistence_acceptance.py",
+            "tests/integration/test_primary_product_ai_rq_flow.py@e987bf59",
+            "workers/operations.py"
+          ],
+          "limit": "No workstation reboot needed by literal010. Jobs inventory not compared by this Compose recovery (292step55PARTIAL), but background operation durability is directly observed."
+        }
+      ],
+      "source_identity": {
+        "compose_actual_checkout": "743979bbca7083aa5adb7373f837500996dc325a",
+        "compose_full_tree": "8e4acbb0864eef09dba5b0aaa4db63f9f16a7ad2",
+        "compose_tree_equal_to": "fe78667a684fcb1dde19ed82f2944c77efcb09b1",
+        "e6_vs_fe_only": [
+          "docs/evidence/2026-10-18-acceptance-adjudication.json",
+          "planning/CAPABILITY_MATRIX.json"
+        ],
+        "ai_actual_checkout": "e51dc095a5f0fed3622fb7dd73d03881389b3704",
+        "ai_full_tree": "57c3d7d774a7b7620a7b3e963c946d6468e025ad",
+        "ai_tree_equal_to": "e987bf5976187c289b653bddd6dfedae8183adf8",
+        "5ae_vs_e987_only": [
+          "docs/evidence/2026-10-18-acceptance-adjudication.json",
+          "planning/CAPABILITY_MATRIX.json"
+        ],
+        "5ae_vs_e6_only": [
+          "tests/integration/test_primary_product_ai_rq_flow.py"
+        ]
+      },
+      "primary_checkout_log_observations": {
+        "e51dc095a5f0fed3622fb7dd73d03881389b3704": {
+          "tree": "57c3d7d774a7b7620a7b3e963c946d6468e025ad",
+          "parents": [
+            "fe78667a684fcb1dde19ed82f2944c77efcb09b1",
+            "e987bf5976187c289b653bddd6dfedae8183adf8"
+          ]
+        },
+        "743979bbca7083aa5adb7373f837500996dc325a": {
+          "tree": "8e4acbb0864eef09dba5b0aaa4db63f9f16a7ad2",
+          "parents": [
+            "4787948c32dce748c29c9698beea1e8a6d9ff446",
+            "045383a827bfe519c9bc1d3d58e6ad91c3817c39"
+          ]
+        },
+        "39167224859": {
+          "checkout_lines": [
+            "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:18:36.7670883Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +e51dc095a5f0fed3622fb7dd73d03881389b3704:refs/remotes/pull/730/merge",
+            "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:18:38.6208999Z  * [new ref]         e51dc095a5f0fed3622fb7dd73d03881389b3704 -> pull/730/merge",
+            "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:18:38.8226031Z HEAD is now at e51dc09 Merge e987bf5976187c289b653bddd6dfedae8183adf8 into fe78667a684fcb1dde19ed82f2944c77efcb09b1",
+            "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:18:38.8294979Z [command]/usr/bin/git log -1 --format=%H",
+            "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:18:38.8326153Z e51dc095a5f0fed3622fb7dd73d03881389b3704"
+          ],
+          "command_lines": []
+        },
+        "39166062535": {
+          "checkout_lines": [
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:02:56.2560574Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +743979bbca7083aa5adb7373f837500996dc325a:refs/remotes/pull/728/merge",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:02:57.2266140Z  * [new ref]         743979bbca7083aa5adb7373f837500996dc325a -> pull/728/merge",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:02:57.4144022Z HEAD is now at 743979b Merge 045383a827bfe519c9bc1d3d58e6ad91c3817c39 into 4787948c32dce748c29c9698beea1e8a6d9ff446",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:02:57.4189571Z [command]/usr/bin/git log -1 --format=%H",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:02:57.4218748Z 743979bbca7083aa5adb7373f837500996dc325a"
+          ],
+          "command_lines": [
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:03:33.9141517Z ##[group]Run echo \"COMPOSE_PROJECT_NAME=mjobs-fixture-$(python -c 'import secrets; print(secrets.token_hex(6))')\" >> \"$GITHUB_ENV\"",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:03:33.9837477Z ##[group]Run bash .devcontainer/mjobs.sh fixture",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:05:05.4674616Z ##[group]Run python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:05:11.3178479Z ##[group]Run python -m cli.ui_e2e --evidence outputs/ci-ui.json",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:06:21.8505068Z ##[group]Run python -m cli.compose_recovery --baseline outputs/ci-ui.json --evidence outputs/ci-recovery.json --project-name \"$COMPOSE_PROJECT_NAME\" --port \"$MJOBS_PORT\"",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:07:22.6721579Z ##[group]Run python -m cli.backup_acceptance --baseline outputs/ci-ui.json --evidence outputs/ci-backup.json --archive \"$RUNNER_TEMP/mjobs-fixture-backup\" --source-project \"$COMPOSE_PROJECT_NAME\" --target-project \"$BACKUP_TARGET_PROJECT\" --port \"$MJOBS_PORT\"",
+            "Disposable Compose / mock end-to-end\tUNKNOWN STEP\t2026-10-18T21:09:27.8792601Z ##[group]Run docker compose --profile fixture down --remove-orphans"
+          ]
+        }
+      },
+      "compose_primary": {
+        "run": 39166062535,
+        "job": 117789134490,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/39166062535/job/117789134490",
+        "artifacts": [
+          {
+            "artifact_name": "settings-browser-results/ci-settings-browser.xml",
+            "bytes": 798,
+            "sha256": "bf9244689fe9e3a5790740d46d3773d07a4814556c9a2799e96b9297a546e12a"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-backup-recovery.json",
+            "bytes": 4081,
+            "sha256": "771846daaf4488dcf6c14b090ce59e5907076f66368e1f998829f1e6ecbc2884"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-backup.json",
+            "bytes": 3325,
+            "sha256": "ee44375000c8a894e3e73801a13ab08b9fc29d275d856a9053024ba69c8bed59"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-mock-e2e.json",
+            "bytes": 1180,
+            "sha256": "9cc0037c6ac9758147ba99fb6778231adb99c9a3a2bdc6282b1f2a9b6d308bc8"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-recovery.json",
+            "bytes": 4074,
+            "sha256": "51672ad1ff0e213821dafd4b285b703db012229e635a61f38ff0fb353511baa7"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-ui.json",
+            "bytes": 4794,
+            "sha256": "776bc98c2277705c95d7dfbbec4900ee7526d2875e08663d7e875d3eb3720122"
+          }
+        ]
+      },
+      "ai_primary": {
+        "run": 39168221938,
+        "job": 117795579710,
+        "url": "https://github.com/MulattoTech/MJobs/actions/runs/39168221938/job/117795579710",
+        "artifact_id": 12151623296,
+        "artifact_name": "integration-results-1/integration-1.xml",
+        "bytes": 153094,
+        "sha256": "31251e55b4e4dccc4290da78240ddb6f2c3ae4488805775a1fd39801bda7b8e9",
+        "named_cases": [
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.PrimaryProductAIRealRQTests",
+            "name": "test_cancelled_admission_and_stale_review_cannot_prepare_documents",
+            "time": "6.194",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.PrimaryProductAIRealRQTests",
+            "name": "test_public_ai_review_document_worker_and_restart_readback",
+            "time": "9.551",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_admits_only_explicit_local_test_targets",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_child_environment_drops_provider_secrets_proxies_and_personal_targets",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_rejects_non_disposable_postgres_and_url_options",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_rejects_remote_authenticated_or_other_database_redis",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowFixtureContractTests",
+            "name": "test_loopback_response_uses_actual_local_provider_contract",
+            "time": "0.071",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowFixtureContractTests",
+            "name": "test_public_profile_revision_changes_version_and_rejects_stale_updates",
+            "time": "0.424",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowFixtureContractTests",
+            "name": "test_public_synthetic_inputs_admit_one_candidate_and_cancel_without_provider_call",
+            "time": "0.424",
+            "result": "PASS"
+          }
+        ],
+        "passed": 9,
+        "skipped": 0,
+        "failed": 0,
+        "errors": 0,
+        "actual_checkout": "86f6b65e3d1504d64adcae1fcf27cfccef901f4c",
+        "reviewed_head": "5ae4817417d25bdea0f718052e00c02164164edd",
+        "protected_merge": "df4ca3267de8a1ba698d4316867971c16336bdcf",
+        "full_tree": "de5522e605210e81801cb27e7fa2c73440d0bc2e",
+        "full_tree_equality": true,
+        "checkout_log_lines": [
+          "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:32:00.1419758Z ##[group]Checking out the ref",
+          "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:32:00.1424204Z [command]/usr/bin/git checkout --progress --force refs/remotes/pull/730/merge",
+          "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:32:00.3218393Z HEAD is now at 86f6b65 Merge 5ae4817417d25bdea0f718052e00c02164164edd into e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+          "Integration / shard 1\tUNKNOWN STEP\t2026-10-18T21:32:00.3275809Z [command]/usr/bin/git log -1 --format=%H"
+        ],
+        "provider_parents": {
+          "actual_checkout": [
+            "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+            "5ae4817417d25bdea0f718052e00c02164164edd"
+          ],
+          "reviewed_head": [
+            "e987bf5976187c289b653bddd6dfedae8183adf8",
+            "e6b9e702e160e035a1a81b99cf37df26cf44ead9"
+          ],
+          "protected_merge": [
+            "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+            "5ae4817417d25bdea0f718052e00c02164164edd"
+          ]
+        },
+        "independent_verification": "B and Root independently retrieved provider checkout/tree metadata; A independently parsed retained rawJUnit/hash and checked localreviewed/mergedtree identity."
+      },
+      "limits": [
+        "full29260criteria",
+        "live employers",
+        "paid AI",
+        "every provider",
+        "host reboot",
+        "same-profile full UI onboarding journey",
+        "Independent artifact/source review only; no new heavy run by Lane A. Historical execution/checkouts remain explicit."
+      ],
+      "previous_recorded_result": "PARTIAL",
+      "historical_ai_primary": {
+        "run": 39167224859,
+        "job": 117792583594,
+        "artifact_id": 12151715648,
+        "artifact_name": "integration-results-1/integration-1.xml",
+        "bytes": 153094,
+        "sha256": "35adac423ca2354411a535820c5943eea2d02b52a1a1a3c307f5f1c4161828a7",
+        "named_cases": [
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.PrimaryProductAIRealRQTests",
+            "name": "test_cancelled_admission_and_stale_review_cannot_prepare_documents",
+            "time": "5.882",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.PrimaryProductAIRealRQTests",
+            "name": "test_public_ai_review_document_worker_and_restart_readback",
+            "time": "9.485",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_admits_only_explicit_local_test_targets",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_child_environment_drops_provider_secrets_proxies_and_personal_targets",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_rejects_non_disposable_postgres_and_url_options",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowAdmissionTests",
+            "name": "test_rejects_remote_authenticated_or_other_database_redis",
+            "time": "0.001",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowFixtureContractTests",
+            "name": "test_loopback_response_uses_actual_local_provider_contract",
+            "time": "0.070",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowFixtureContractTests",
+            "name": "test_public_profile_revision_changes_version_and_rejects_stale_updates",
+            "time": "0.374",
+            "result": "PASS"
+          },
+          {
+            "classname": "tests.integration.test_primary_product_ai_rq_flow.AIFlowFixtureContractTests",
+            "name": "test_public_synthetic_inputs_admit_one_candidate_and_cancel_without_provider_call",
+            "time": "0.373",
+            "result": "PASS"
+          }
+        ],
+        "passed": 9,
+        "skipped": 0
+      },
+      "compose_source_equivalence": {
+        "execution_remains_historical": true,
+        "actual_executed_checkout": "743979bbca7083aa5adb7373f837500996dc325a",
+        "executed_tree": "8e4acbb0864eef09dba5b0aaa4db63f9f16a7ad2",
+        "full_tree_equal_to": "fe78667a684fcb1dde19ed82f2944c77efcb09b1",
+        "integrated_target": "df4ca3267de8a1ba698d4316867971c16336bdcf",
+        "changes_fe_to_target": [
+          "docs/evidence/2026-10-18-acceptance-adjudication.json",
+          "planning/CAPABILITY_MATRIX.json",
+          "tests/integration/test_primary_product_ai_rq_flow.py"
+        ],
+        "conclusion": "Only729evidence/matrix and730newtest differ. All production, Compose, CLI, fixture, dependency, migration and connected-workflow inputs of the cited Compose execution are byte-identical. This is explicit source-input equivalence, not a new runtime execution ondf4."
+      }
+    },
+    {
+      "id": "MJ-REQ-030",
+      "issue": 31,
+      "literal_contract": "Support:\n\n```text\nlast hour\ntoday\n24 hours\n3 days\n7 days\n30 days\ncustom\n```\n\nNormalize relative timestamps.\n\nStore both:\n\n```text\nreported_posted_at\nfirst_seen_at\nlast_seen_at\n```\n",
+      "previous_recorded_result": "PASS",
+      "corrected_result": "PARTIAL",
+      "historical_record_preserved": "docs/evidence/2026-10-01-experience-salary-date.json",
+      "contradicted_clause": "Normalize relative timestamps.",
+      "counterexample": {
+        "reported_public_reproduction_owner": "mjobs-rebuilt-4, independently confirmed to Lane A by Root",
+        "tested_base": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+        "flow": [
+          "PUT source/remotive",
+          "POST collect",
+          "actual production direct worker with synthetic HTTP boundary",
+          "saved search LAST_HOUR",
+          "GET /jobs"
+        ],
+        "input": "publication_date=2 hours ago",
+        "observed": "reported_posted_at persisted null; recent first_seen fallback wrongly returns1job within LAST_HOUR",
+        "expected": "Relative posting normalizes to two hours before explicit collection reference; LAST_HOUR excludes it.",
+        "public_red_primary_pointer": "independent_public_red object in this evidence record",
+        "independent_A_oracle": "Exact PR734 test bytes loaded from Git object and executed against unchanged integrated e6 product source. Expected1assertionfailure;0errors0skips. Earlier parser/filter counterexample retained separately in AO audit register.",
+        "current_unfixed_source_identity": "No PR734 source merged intoe6; source hashes below bind unfixed behavior.",
+        "independently_executed_by": "mjobs-rebuilt-3"
+      },
+      "fix_candidate": {
+        "pr": 734,
+        "head": "dbf3524b7aac3ea9855e76d179b099054110d9b3",
+        "reported_validation": "B125passed66subtests0skips; directproductionworker/SQLite/syntheticHTTP. Independently reviewed fix acceptance pending."
+      },
+      "limits": [
+        "This correction preserves the historical unsupportedPASS interval even if a subsequent merged fix restores wholecontract acceptance.",
+        "No liveprovider or currentwholecontractPASS inferred from fix tests."
+      ],
+      "independent_public_red": {
+        "utc": "2026-10-18T21:41:01.462835+00:00",
+        "product_source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+        "working_changes": "Acceptance data only; product/test modules untouched. Borrowed exact PR734 test source executed from Git object without checkout or source changes.",
+        "test_source_revision": "dbf3524b7aac3ea9855e76d179b099054110d9b3",
+        "test_path": "tests/integration/test_relative_posted_source_intake.py",
+        "test_sha256": "109337c5d4072eaa8f3baa522c9915146e72864dae16e98979e66a53ab1a9d76",
+        "test_name": "lane_a_public_relative_oracle.RelativePostedSourceIntakeTests.test_public_intake_excludes_two_hours_ago_from_last_hour",
+        "tests": 1,
+        "failures": 1,
+        "errors": 0,
+        "skips": 0,
+        "seconds": 1.047,
+        "observed": [
+          {
+            "window": "LAST_HOUR",
+            "count": 1,
+            "dates": [
+              {
+                "reported_posted_at": null,
+                "first_seen_at": "2026-10-18T21:11:00.825282+00:00",
+                "last_seen_at": "2026-10-18T21:11:00.825282+00:00"
+              }
+            ]
+          }
+        ],
+        "assertion": "expected LAST_HOUR count0; actual1",
+        "result": "EXPECTED_RED",
+        "limits": "TestClient public HTTP routes; tempSQLite; actual directproductionexecute_operation; only sourceHTTP and collectionclock synthetic. No actual Redis/RQ/browser/liveprovider."
+      },
+      "reproduction_oracle": {
+        "source": "import hashlib,io,json,os,pathlib,subprocess,time,types,unittest,datetime\nrev='dbf3524b7aac3ea9855e76d179b099054110d9b3';path='tests/integration/test_relative_posted_source_intake.py'\nb=subprocess.check_output(['git','show',rev+':'+path]);module=types.ModuleType('lane_a_public_relative_oracle');exec(compile(b,rev+':'+path,'exec'),module.__dict__)\ncase=module.RelativePostedSourceIntakeTests('test_public_intake_excludes_two_hours_ago_from_last_hour');observed=[];original=case._filtered\n\ndef capture(window):\n rows=original(window);observed.append({'window':window,'count':len(rows),'dates':[{k:r.get('attributes',{}).get(k) for k in ['reported_posted_at','first_seen_at','last_seen_at']} for r in rows]});return rows\ncase._filtered=capture;stream=io.StringIO();started=time.monotonic();result=unittest.TextTestRunner(stream=stream,verbosity=1).run(unittest.TestSuite([case]));out={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'product_source_revision':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'working_changes':'Acceptance data only; product/test modules untouched. Borrowed exact PR734 test source executed from Git object without checkout or source changes.','test_source_revision':rev,'test_path':path,'test_sha256':hashlib.sha256(b).hexdigest(),'test_name':case.id(),'tests':result.testsRun,'failures':len(result.failures),'errors':len(result.errors),'skips':len(result.skipped),'seconds':round(time.monotonic()-started,3),'observed':observed,'assertion':'expected LAST_HOUR count0; actual1','result':'EXPECTED_RED' if result.testsRun==1 and len(result.failures)==1 and not result.errors and observed and observed[0]['count']==1 else 'UNEXPECTED','limits':'TestClient public HTTP routes; tempSQLite; actual directproductionexecute_operation; only sourceHTTP and collectionclock synthetic. No actual Redis/RQ/browser/liveprovider.'};(pathlib.Path(os.environ['TEMP'])/'lane-a-030-public-red.json').write_text(json.dumps(out,indent=2),encoding='utf-8');print(json.dumps(out));raise SystemExit(0 if out['result']=='EXPECTED_RED' else 1)\n",
+        "sha256": "57326c3d3956167d345eb2e200f8096dd208b3a8b4adeb66abda557d010f2550",
+        "invocation": "From exact product checkout e6b9e702, run this Python source with repository venv. It loads the explicitly named PR734 test blob and executes only the public intake counterexample; no Git changes."
+      },
+      "historical_false_PASS_cause": "The2026-10-01record named datewindows, absolute reported timestamps and fallbackfirst_seen, but omitted literal relative-timestamp normalization. Aggregate29/126green was recorded as whole030PASS. Current publiccounterexample exposes that uncoveredclause; neither oldrecord nor fixhistory is rewritten.",
+      "unfixed_source_equivalence_to_base": {
+        "tested_red_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+        "integrated_base": "df4ca3267de8a1ba698d4316867971c16336bdcf",
+        "only_incoming_path": "tests/integration/test_primary_product_ai_rq_flow.py",
+        "product_source_unchanged": true
+      }
+    },
+    {
+      "id": "MJ-REQ-292",
+      "issue": 293,
+      "result": "PARTIAL",
+      "literal_scope": "Complete numbered60-step workflow; scoped criterion evidence below does not establish the whole contract.",
+      "current_tree_fixture_proof": {
+        "tested_revision": "743979bbca7083aa5adb7373f837500996dc325a",
+        "tree": "8e4acbb0864eef09dba5b0aaa4db63f9f16a7ad2",
+        "tree_equal_merge": "fe78667a684fcb1dde19ed82f2944c77efcb09b1",
+        "run": 39166062535,
+        "PASS_criteria": [
+          1,
+          2,
+          54,
+          56,
+          57,
+          58
+        ],
+        "PARTIAL_criteria": [
+          55
+        ],
+        "criterion55_gap": "Generic Compose recovery compared profile, company source, document bytes and application history; it did not compare canonical same-profile jobs/source-copy inventory through public GET/jobs. New inventory proof execution pending.",
+        "proof_names": [
+          "cli.ui_e2e",
+          "cli.compose_recovery",
+          "cli.local_persistence_acceptance"
+        ],
+        "artifact_hashes": [
+          {
+            "artifact_name": "settings-browser-results/ci-settings-browser.xml",
+            "bytes": 798,
+            "sha256": "bf9244689fe9e3a5790740d46d3773d07a4814556c9a2799e96b9297a546e12a"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-backup-recovery.json",
+            "bytes": 4081,
+            "sha256": "771846daaf4488dcf6c14b090ce59e5907076f66368e1f998829f1e6ecbc2884"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-backup.json",
+            "bytes": 3325,
+            "sha256": "ee44375000c8a894e3e73801a13ab08b9fc29d275d856a9053024ba69c8bed59"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-mock-e2e.json",
+            "bytes": 1180,
+            "sha256": "9cc0037c6ac9758147ba99fb6778231adb99c9a3a2bdc6282b1f2a9b6d308bc8"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-recovery.json",
+            "bytes": 4074,
+            "sha256": "51672ad1ff0e213821dafd4b285b703db012229e635a61f38ff0fb353511baa7"
+          },
+          {
+            "artifact_name": "synthetic-acceptance-json/ci-ui.json",
+            "bytes": 4794,
+            "sha256": "776bc98c2277705c95d7dfbbec4900ee7526d2875e08663d7e875d3eb3720122"
+          }
+        ]
+      },
+      "historical_steps54_60": {
+        "evidence": "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+        "tested_revision": "c8e53ab6f7f5121f0b0a758e272dc6aca4bb5435",
+        "tree": "6251233f8c67467fa7255912947efa8445e16ba4",
+        "command": "python -m pytest -v --tb=short tests/integration/test_company_monitoring_recovery.py::CompanyMonitoringRecoveryTests::test_owned_stack_restart_preserves_data_and_resumes_company_monitoring",
+        "reported_execution": "1passed0skipped776.77s",
+        "independent_source_trace": "Opt-in test invokes fixtures.company_monitoring_stack.run_stack, waits naturally due300second monitor, restarts10services, compares jobs/source/doc/application inventory, observes new posting and2COMPLETEDattempt1 refreshes with predecessor, no duplicate after another actualscheduler tick. Separate smallprocess test uses fixtureclock; not the named stacktest.",
+        "raw_primary_limit": "Original private raw runner/artifacts not independently recovered by Lane A; sanitized historical execution record and exact frozen source reviewed. No newcurrentPASS inferred."
+      },
+      "remaining": "Complete60 criteria remain unproven; current generic recovery55 gap does not erase historicalc8 inventory proof."
+    }
+  ],
+  "source_identities": [
+    {
+      "path": ".github/workflows/connected-acceptance.yml",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "7bf1d776d8c18ea4908178a7a5a4336518c06000",
+      "sha256": "3d2edd87cb6812ee60fcda53bf9cec1f6653952954201f617795f9e2e40cdda1"
+    },
+    {
+      "path": "apps/api/main.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "91f3088665f26b4505c1d621eed5a5725558c45b",
+      "sha256": "dda2aacd78e6bfe13f51d5332414096dac63f3486ddf052dc9231aff890426ee"
+    },
+    {
+      "path": "apps/web/src/main.tsx",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "cbac9d7c5d436f3fe73b71a84b9bef8761e3568d",
+      "sha256": "22e505aff1a4d91a1cb2e8806d75985d6f00bd976c75b82eb3c8dafea242c53f"
+    },
+    {
+      "path": "cli/compose_recovery.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "53a99815c8e1bb1822691a252b60d00e05349ba5",
+      "sha256": "53e407ad224cd40bc3ea931825ee1f192297593921e5636af7439b9df425ed73"
+    },
+    {
+      "path": "cli/local_persistence_acceptance.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "7a06d484cbcfa6f6418a01630bbe245877819878",
+      "sha256": "e5fc03d33ac6be2f7ae6940332829adfecf13da879ec84d705d197f30c642a7f"
+    },
+    {
+      "path": "cli/mock_e2e.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "41d6f820b6520893cfbcd885052030614d5321cd",
+      "sha256": "ab16795b05762c932f98334cd07693bfd9e33bc722abea324832b9accf1c3aee"
+    },
+    {
+      "path": "cli/ui_e2e.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "2d22a5c389d289f8ac542a79858d9f6737b95072",
+      "sha256": "6686bb896f423504603185fc87d5b504ffc725780b23d5ff92e981e8ce27b9be"
+    },
+    {
+      "path": "compose.yml",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "c93a7e2b7bc5b3e794300cc3fa6725ffec72556a",
+      "sha256": "b5e1c11b2362edbaf0f3c7780708f5da2bd5768e3164023135178446712aab4d"
+    },
+    {
+      "path": "packages/persistence/store.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "8579c488be0f6ff27cd4660c751fdf5d8ab28375",
+      "sha256": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78"
+    },
+    {
+      "path": "services/ai/durable_evaluation.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "86d4cda70fc4cbfe77535e5f0791cb68624ce4f1",
+      "sha256": "540748c23019bbae9f0a119808189c32297d3a68de6d5c926632c791d2638580"
+    },
+    {
+      "path": "services/ai/tasks.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "1db14b09746e1fe552ba008b4a3b18d2b237eb3e",
+      "sha256": "7f9c99fc4351a11d733876c8d6b49e49fcbbf5cebb91164f945b7356cb7d4069"
+    },
+    {
+      "path": "services/applications/mock_adapter.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "f3114cb5254002b05d735274c6706ff5b9cd09dc",
+      "sha256": "5400a1acc0d69108f0a721830dcca3113d5603a644ded91c1c94b0f83bd99853"
+    },
+    {
+      "path": "services/company_discovery/flywheel.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "f8048c1acbcdc96f41efd25f04511a6e73b733f8",
+      "sha256": "060e28b796596b6947e847aefae66702af527e5e95cd4444e1f17914d7d784be"
+    },
+    {
+      "path": "services/company_discovery/resolution.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "afa1f1a1aa44c87e04d7b959317ccd5ffe918ab1",
+      "sha256": "60213d176d37dfee0120ecedfcdea10a21c79bdb9e47ace9e8a34dfcdf574736"
+    },
+    {
+      "path": "services/discovery/pipeline.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "e5952c56c11d6b5618e0ae36b1522b84f179ef5f",
+      "sha256": "22824eacf1904a4bccea690fc7990af41196b4891105ff902b113eb294c076b2"
+    },
+    {
+      "path": "services/discovery/search_semantics.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "7e38d8248e1188c6d38a1edfe2cd2532dfc916ab",
+      "sha256": "68a746d8f7b7d5384d631d12e5a5187ad3aaa01cae7a9ba2df5e7ffbbd674516"
+    },
+    {
+      "path": "services/discovery/sources/collect.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "07ef8ce7a59f5810d339fc34d2b08a74345075cc",
+      "sha256": "0e510b33ae2ca5e2c44c5e8c0056bad186f407686ceec6dbad5d9b927a956cba"
+    },
+    {
+      "path": "services/discovery/sources/remotive.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "dfde8082809e74f86edc2a9a9aabdd32eebf8abf",
+      "sha256": "1c6257aedc66bfb2f57e6a81ff7f2e0627413832edc5d342dc9a770d4e38e915"
+    },
+    {
+      "path": "services/documents/generate.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "99c6363e2d79a3ebd7e2010c81c3bd2e29633b5c",
+      "sha256": "30a0f4237f0dfc3ab2b3355832f832518d435ec428a2881a018c6ad6173d594e"
+    },
+    {
+      "path": "workers/operations.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "9cb230ee62eaf59e1ad334bcc6ddfc6b7bc91c3a",
+      "sha256": "4c4f2e0050f2af01543845e85628d1b18056abe3f7456205bd88fb2017733c6d"
+    },
+    {
+      "path": "workers/tasks.py",
+      "source_revision": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+      "git_blob": "b22ed55b937f0c5a6dbdb1180a31f7afd02af5fe",
+      "sha256": "34cd1197a9aecc0c55b189b9b94146e7c24c8f8fbefd1ab0858175c4d74ed033"
+    },
+    {
+      "path": "tests/integration/test_primary_product_ai_rq_flow.py",
+      "source_revision": "df4ca3267de8a1ba698d4316867971c16336bdcf",
+      "git_blob": "fc049fc6e4e25a3aadbc4a9f06bcb9df63a2a9fa",
+      "sha256": "f1d52a9ba640a3ea32a5d564d0645d1cf8a596c1e3dd79c386ef029ad3c3561b"
+    }
+  ],
+  "provider_tracking_changes": "None by Lane A; Root owns official issue/Project adjudication.",
+  "six_provider_tracking_readbacks": {
+    "captured_at": "2026-10-18T21:32:46.069848+00:00",
+    "merged_record": "e6b9e702e160e035a1a81b99cf37df26cf44ead9",
+    "rows": [
+      {
+        "id": "MJ-REQ-119",
+        "issue": 120,
+        "issue_state": "CLOSED",
+        "close_reason": "COMPLETED",
+        "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhABPCA",
+        "project_status": "Done",
+        "project_acceptance": "PASS",
+        "root_comment": "https://github.com/MulattoTech/MJobs/issues/120#issuecomment-6255391540",
+        "adjudication": "ROOT_COMPLETED_HISTORICAL_RETENTION_TRACKING_ONLY",
+        "limits": "Historical proof; no fresh runtime. MJ-REQ-166 private native raw manifest/runner not recovered; prior declared limitation retained."
+      },
+      {
+        "id": "MJ-REQ-156",
+        "issue": 157,
+        "issue_state": "CLOSED",
+        "close_reason": "COMPLETED",
+        "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhABO6Q",
+        "project_status": "Done",
+        "project_acceptance": "PASS",
+        "root_comment": "https://github.com/MulattoTech/MJobs/issues/157#issuecomment-6255391740",
+        "adjudication": "ROOT_COMPLETED_HISTORICAL_RETENTION_TRACKING_ONLY",
+        "limits": "Historical proof; no fresh runtime. MJ-REQ-166 private native raw manifest/runner not recovered; prior declared limitation retained."
+      },
+      {
+        "id": "MJ-REQ-158",
+        "issue": 159,
+        "issue_state": "CLOSED",
+        "close_reason": "COMPLETED",
+        "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhABO58",
+        "project_status": "Done",
+        "project_acceptance": "PASS",
+        "root_comment": "https://github.com/MulattoTech/MJobs/issues/159#issuecomment-6255391897",
+        "adjudication": "ROOT_COMPLETED_HISTORICAL_RETENTION_TRACKING_ONLY",
+        "limits": "Historical proof; no fresh runtime. MJ-REQ-166 private native raw manifest/runner not recovered; prior declared limitation retained."
+      },
+      {
+        "id": "MJ-REQ-166",
+        "issue": 167,
+        "issue_state": "CLOSED",
+        "close_reason": "COMPLETED",
+        "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhABO3o",
+        "project_status": "Done",
+        "project_acceptance": "PASS",
+        "root_comment": "https://github.com/MulattoTech/MJobs/issues/167#issuecomment-6255392287",
+        "adjudication": "ROOT_COMPLETED_HISTORICAL_RETENTION_TRACKING_ONLY",
+        "limits": "Historical proof; no fresh runtime. MJ-REQ-166 private native raw manifest/runner not recovered; prior declared limitation retained."
+      },
+      {
+        "id": "MJ-REQ-169",
+        "issue": 170,
+        "issue_state": "CLOSED",
+        "close_reason": "COMPLETED",
+        "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhABO3I",
+        "project_status": "Done",
+        "project_acceptance": "PASS",
+        "root_comment": "https://github.com/MulattoTech/MJobs/issues/170#issuecomment-6255392468",
+        "adjudication": "ROOT_COMPLETED_HISTORICAL_RETENTION_TRACKING_ONLY",
+        "limits": "Historical proof; no fresh runtime. MJ-REQ-166 private native raw manifest/runner not recovered; prior declared limitation retained."
+      },
+      {
+        "id": "MJ-REQ-176",
+        "issue": 177,
+        "issue_state": "CLOSED",
+        "close_reason": "COMPLETED",
+        "project_item_id": "PVTI_lAHOAFoJWM4BmlXWzhABO1o",
+        "project_status": "Done",
+        "project_acceptance": "PASS",
+        "root_comment": "https://github.com/MulattoTech/MJobs/issues/177#issuecomment-6255392676",
+        "adjudication": "ROOT_COMPLETED_HISTORICAL_RETENTION_TRACKING_ONLY",
+        "limits": "Historical proof; no fresh runtime. MJ-REQ-166 private native raw manifest/runner not recovered; prior declared limitation retained."
+      }
+    ],
+    "issue120_closure_cause": "Root reports actor MulattoTech at21:31:40, no PR closer, coincident Project Done change. Exact cause not independently established; no causal assertion.",
+    "scope": "Root completed these six historical retention corrections after mergedPR729 and independent review. No currentruntime promotion or Lane A provider mutation. Private166rawlimits retained."
+  },
+  "expected_result_deltas": {
+    "MJ-REQ-010": [
+      "PARTIAL",
+      "PASS"
+    ],
+    "MJ-REQ-030": [
+      "PASS",
+      "PARTIAL"
+    ],
+    "MJ-REQ-292": [
+      "PARTIAL",
+      "PARTIAL"
+    ]
+  },
+  "expected_counts": {
+    "original": {
+      "denominator": 366,
+      "PASS": 125,
+      "PARTIAL": 98,
+      "NOT_RUN": 143
+    },
+    "reference": {
+      "denominator": 59,
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    },
+    "original_P0": {
+      "denominator": 26,
+      "PASS": 12,
+      "PARTIAL": 4,
+      "NOT_RUN": 10
+    }
+  }
+}
