@@ -580,6 +580,10 @@ class CompanyMonitoringInput(BaseModel):
     source_version: str = Field(pattern=r"^[0-9a-f]{64}$")
     revision: int = Field(ge=0)
     poll_interval: int = Field(ge=300, le=604800)
+    request_timeout: int = Field(default=10, ge=2, le=10)
+    rate_limit: int = Field(default=60, ge=1, le=60)
+    concurrency: int = Field(default=1, ge=1, le=8)
+    jitter_seconds: int = Field(default=0, ge=0, le=300)
 
 
 class CompanyRefreshInput(BaseModel):
@@ -1393,7 +1397,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     def company_source_monitoring(source_id: str, value: CompanyMonitoringInput):
         from services.company_discovery.monitoring import configure_monitoring
         return review_request_action(configure_monitoring, source_id,
-            expected_source_version=value.source_version, revision=value.revision, poll_interval=value.poll_interval)
+            **value.model_dump(exclude_unset=True, exclude={"source_version"}),
+            expected_source_version=value.source_version)
 
     @app.post('/company-sources/{source_id}/refresh', status_code=202)
     def company_source_refresh(source_id: str, value: CompanyRefreshInput):

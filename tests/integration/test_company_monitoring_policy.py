@@ -60,3 +60,19 @@ class CompanyMonitoringPolicyTests(unittest.TestCase):
             response = client.put("/sources", json={"provider": "remotive", "tenant": "default",
                                   "poll_interval": 900, **POLICY})
             self.assertEqual(response.status_code, 200, response.text)
+
+    def test_strict_policy_rejection_and_partial_legacy_update_preserves_review(self):
+        self.review(POLICY)
+        with self.client(self.fixture.store) as client:
+            path = f"/company-sources/{self.fixture.source['id']}/monitoring"
+            base = dict(source_version=source_version(self.fixture.source), revision=1, poll_interval=900)
+            for key, value in [('request_timeout', 1), ('request_timeout', 11), ('request_timeout', True),
+                               ('request_timeout', None), ('rate_limit', 0), ('rate_limit', 61),
+                               ('concurrency', 9), ('jitter_seconds', -1), ('jitter_seconds', 301)]:
+                with self.subTest(key=key, value=value):
+                    self.assertEqual(client.put(path, json={**base, key: value}).status_code, 422)
+            saved = client.put(path, json=base)
+            self.assertEqual(saved.status_code, 200, saved.text)
+            for key, value in POLICY.items():
+                self.assertEqual(saved.json()[key], value)
+            self.assertEqual(client.put(path, json=base).status_code, 409, 'stale CAS must fail')

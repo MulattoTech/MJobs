@@ -95,7 +95,7 @@ class PublicCompanyClient:
     fixture_only = False
     bounded_redirects = True
 
-    def __init__(self, website, check=None, total_timeout=90):
+    def __init__(self, website, check=None, total_timeout=90, *, policy=None, reserve_rate=None):
         parsed = _parse_url(website)
         if parsed is None:
             raise PublicFetchError("URL_NOT_ALLOWED")
@@ -106,6 +106,14 @@ class PublicCompanyClient:
         self.check = check or (lambda: None)
         self._parsed, self._host, self._port = parsed
         self._origin = _origin(self._parsed, self._host, self._port)
+        self._policy = policy
+        self.concurrency = policy.concurrency if policy is not None else 1
+        self._request_timeout = policy.request_timeout if policy is not None else REQUEST_TIMEOUT
+        self._reserve_rate = reserve_rate
+        self._rate_lock = threading.Lock()
+        self._robots_lock = threading.Lock()
+        self._resources_lock = threading.RLock()
+        self._capacity = threading.BoundedSemaphore(self.concurrency)
         self._requests = 0
         self._last_request = None
         self._robots_loaded = False
@@ -133,17 +141,16 @@ class PublicCompanyClient:
 
     def _resolve(self, host, port, timeout=REQUEST_TIMEOUT):
         self._check()
-        timeout = max(0.01, min(REQUEST_TIMEOUT, timeout))
-        acquired = _DNS_SLOTS.acquire(timeout=timeout)
-        if not acquired:
-            raise PublicFetchError("DNS_BUSY")
+        timeout = max(0.01, min(self._request_timeout, timeout))
+        deadline = min(self._deadline, time.monotonic() + timeout)
+        slots = _DNS_SLOTS
+        self._acquire(slots, deadline, "DNS_BUSY")
         try:
             future = _DNS_EXECUTOR.submit(socket.getaddrinfo, host, port, type=socket.SOCK_STREAM)
-        except OSError:
-            _DNS_SLOTS.release()
+        except Exception:
+            slots.release()
             raise PublicFetchError("DNS_FAILED")
-        future.add_done_callback(lambda _: _DNS_SLOTS.release())
-        deadline = time.monotonic() + timeout
+        future.add_done_callback(lambda _: slots.release())
         try:
             while True:
                 self._check()
@@ -185,27 +192,55 @@ class PublicCompanyClient:
             raise PublicFetchError("DNS_EMPTY")
         return addresses
 
-    def _wait(self, deadline):
-        self._check()
-        delay = max(self._robots_delay, MIN_REQUEST_INTERVAL)
-        if self._last_request is not None:
-            remaining = delay - (time.monotonic() - self._last_request)
-            if remaining > 0:
-                if time.monotonic() + remaining > deadline:
-                    raise PublicFetchError("FETCH_DEADLINE")
-                end = time.monotonic() + remaining
-                while True:
+    def _acquire(self, lock, deadline, code="FETCH_DEADLINE"):
+        while True:
+            self._check()
+            remaining = min(deadline, self._deadline) - time.monotonic()
+            if remaining <= 0:
+                raise PublicFetchError(code)
+            if lock.acquire(timeout=min(DNS_POLL_INTERVAL, remaining)):
+                try:
                     self._check()
-                    left = end - time.monotonic()
-                    if left <= 0:
-                        break
-                    time.sleep(min(left, 0.1))
-        self._last_request = time.monotonic()
+                except BaseException:
+                    lock.release()
+                    raise
+                return
+
+    def _wait(self, deadline):
+        self._acquire(self._rate_lock, deadline)
+        try:
+            delay = max(self._robots_delay, MIN_REQUEST_INTERVAL,
+                        60. / self._policy.rate_limit if self._policy else 0.)
+            local_wait = max(0., delay - (time.monotonic() - self._last_request)) if self._last_request else 0.
+            if self._reserve_rate:
+                remaining = self._reserve_rate(delay, deadline, local_wait)
+            else:
+                remaining = local_wait
+            end = time.monotonic() + remaining
+            if end >= deadline:
+                raise PublicFetchError("FETCH_DEADLINE")
+            while True:
+                self._check()
+                left = end - time.monotonic()
+                if left <= 0:
+                    break
+                time.sleep(min(left, DNS_POLL_INTERVAL))
+            self._last_request = time.monotonic()
+        finally:
+            self._rate_lock.release()
 
     def _budget(self):
-        if self._requests >= MAX_REQUESTS:
-            raise PublicFetchError("REQUEST_BUDGET")
-        self._requests += 1
+        with self._resources_lock:
+            if self._requests >= MAX_REQUESTS:
+                raise PublicFetchError("REQUEST_BUDGET")
+            self._requests += 1
+
+    def _track(self, sock):
+        with self._resources_lock:
+            if self._closed:
+                sock.close()
+                raise PublicFetchError("CLIENT_CLOSED")
+            self._sockets.add(sock)
 
     def _request_once(self, url, deadline):
         parsed = _parse_url(url)
@@ -215,6 +250,7 @@ class PublicCompanyClient:
         self._check()
         self._wait(deadline)
         self._budget()
+        deadline = min(deadline, time.monotonic() + self._request_timeout)
         addresses = self._resolve(host, port, timeout=max(0.01, deadline - time.monotonic()))[:1]
         last_error = None
         for family, sockaddr in addresses:
@@ -225,6 +261,7 @@ class PublicCompanyClient:
             sock = None
             tls = None
             deadline_timer = None
+            response = None
             cancellation_stop = threading.Event()
             cancellation_error = []
 
@@ -244,6 +281,8 @@ class PublicCompanyClient:
                 while not cancellation_stop.wait(DNS_POLL_INTERVAL):
                     try:
                         self._check()
+                        if time.monotonic() >= deadline:
+                            raise PublicFetchError("FETCH_DEADLINE")
                     except BaseException as error:
                         cancellation_error.append(error)
                         abort_request()
@@ -256,17 +295,24 @@ class PublicCompanyClient:
             )
             try:
                 sock = socket.socket(family, socket.SOCK_STREAM)
-                sock.settimeout(min(REQUEST_TIMEOUT, remaining))
-                self._sockets.add(sock)
+                sock.settimeout(min(self._request_timeout, remaining))
+                self._track(sock)
                 cancellation_watcher.start()
                 sock.connect(sockaddr)
                 context = ssl.create_default_context()
-                tls = context.wrap_socket(sock, server_hostname=host)
-                self._sockets.add(tls)
+                if self._policy is None:
+                    tls = context.wrap_socket(sock, server_hostname=host)
+                else:
+                    # Retain the SSLSocket before handshake detaches the raw FD.
+                    # The owned cancellation watcher can then interrupt TLS too.
+                    tls = context.wrap_socket(sock, server_hostname=host, do_handshake_on_connect=False)
+                self._track(tls)
+                if self._policy is not None:
+                    tls.do_handshake()
                 tls_remaining = deadline - time.monotonic()
                 if tls_remaining <= 0:
                     raise PublicFetchError("FETCH_DEADLINE")
-                tls.settimeout(min(REQUEST_TIMEOUT, tls_remaining))
+                tls.settimeout(min(self._request_timeout, tls_remaining))
                 def abort_at_deadline():
                     for active in (tls, sock):
                         if active is not None:
@@ -309,7 +355,7 @@ class PublicCompanyClient:
                     remaining = deadline - time.monotonic()
                     if remaining <= 0:
                         raise PublicFetchError("FETCH_DEADLINE")
-                    tls.settimeout(min(REQUEST_TIMEOUT, remaining))
+                    tls.settimeout(min(self._request_timeout, remaining))
                     chunk = response.read(min(65536, MAX_RESPONSE_BYTES + 1 - len(body)))
                     if not chunk:
                         break
@@ -339,9 +385,13 @@ class PublicCompanyClient:
                     cancellation_watcher.join(timeout=1)
                 if deadline_timer is not None:
                     deadline_timer.cancel()
+                    deadline_timer.join()
+                if self._policy is not None and response is not None:
+                    response.close()
                 for item in (tls, sock):
                     if item is not None:
-                        self._sockets.discard(item)
+                        with self._resources_lock:
+                            self._sockets.discard(item)
                         try:
                             item.close()
                         except OSError:
@@ -349,6 +399,13 @@ class PublicCompanyClient:
         raise last_error or PublicFetchError("NETWORK_FAILED")
 
     def _load_robots(self, deadline):
+        self._acquire(self._robots_lock, deadline)
+        try:
+            return self._load_robots_locked(deadline)
+        finally:
+            self._robots_lock.release()
+
+    def _load_robots_locked(self, deadline):
         if self._robots_loaded:
             if not self._robots_allowed:
                 raise PublicFetchError(self._robots_error or "ROBOTS_UNAVAILABLE")
@@ -358,7 +415,11 @@ class PublicCompanyClient:
         robots_url = urlunsplit(("https", robots_host if self._port == 443 else f"{robots_host}:{self._port}", "/robots.txt", "", ""))
         try:
             response = self._request_once(robots_url, deadline)
-        except PublicFetchError:
+        except PublicFetchError as error:
+            if error.code == "MONITOR_RATE_DEFERRED":
+                self._robots_allowed = False
+                self._robots_error = error.code
+                raise
             self._robots_allowed = False
             self._robots_error = "ROBOTS_UNAVAILABLE"
             raise PublicFetchError("ROBOTS_UNAVAILABLE")
@@ -385,6 +446,13 @@ class PublicCompanyClient:
         return self._robots
 
     def get(self, url):
+        self._acquire(self._capacity, self._deadline)
+        try:
+            return self._get(url)
+        finally:
+            self._capacity.release()
+
+    def _get(self, url):
         self._check()
         if not self.allowed(url):
             raise PublicFetchError("URL_NOT_ALLOWED")
@@ -419,10 +487,16 @@ class PublicCompanyClient:
         raise PublicFetchError("REDIRECT_LIMIT")
 
     def close(self):
-        self._closed = True
-        for sock in list(self._sockets):
+        with self._resources_lock:
+            self._closed = True
+            sockets = list(self._sockets)
+            self._sockets.clear()
+        for sock in sockets:
+            try:
+                sock.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
             try:
                 sock.close()
             except OSError:
                 pass
-        self._sockets.clear()

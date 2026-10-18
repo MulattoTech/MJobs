@@ -1,6 +1,7 @@
 """Durable schedules for exact, reviewed public employer feeds."""
 import hashlib
 import json
+import time
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
@@ -9,6 +10,7 @@ from sqlalchemy import select, update
 
 from packages.persistence import models as m
 from packages.persistence.store import now, upsert
+from services.company_discovery.monitoring_policy import MonitoringPolicy, next_due
 from services.company_discovery.domains import VERIFIED_METHODS
 from services.company_discovery.endpoints import machine_readable_job_endpoints, parse_public_job_feed
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError, HTTPStatusError
@@ -114,16 +116,18 @@ def _active(connection, operation_id):
         m.operations.c.id == operation_id)).scalar_one_or_none() in ACTIVE)
 
 
-def _create(connection, source, authorization, proof, interval, timestamp):
+def _create(connection, source, authorization, proof, interval, timestamp, policy=None):
     due = _instant(source['last_success']) + timedelta(seconds=interval) if source['last_success'] else _instant(timestamp)
     row = dict(id=source['id'], source_id=source['id'], source_snapshot=_snapshot(source),
         authorization=authorization, domain_evidence=proof, revision=1, enabled=True, poll_interval=interval,
         status='IDLE', next_due=due.isoformat(), failure_count=0, created_at=timestamp, updated_at=timestamp)
+    row.update((policy or MonitoringPolicy()).as_dict())
+    row['next_due'] = next_due(row, due, interval=0).isoformat()
     upsert(connection, m.company_source_monitoring, row)
     return _monitor(connection, source['id'], lock=True)
 
 
-def configure_monitoring(store, source_id, expected_source_version, revision, poll_interval):
+def configure_monitoring(store, source_id, expected_source_version, revision, poll_interval, **policy_values):
     if type(poll_interval) is not int or not 300 <= poll_interval <= 604800:
         raise ValueError('MONITOR_INTERVAL_INVALID')
     with store.engine.begin() as c:
@@ -136,6 +140,7 @@ def configure_monitoring(store, source_id, expected_source_version, revision, po
             raise ValueError('MONITOR_REVISION_CONFLICT')
         if current and (_active(c, current['operation_id']) or _active(c, current['rediscovery_operation_id'])):
             raise ValueError('MONITOR_ACTIVE_OPERATION')
+        policy = MonitoringPolicy(**{**MonitoringPolicy.from_row(current or {}).as_dict(), **policy_values})
         proof = _authority(c, source, 'USER_REVIEWED')
         authorization = 'VERIFIED_DOMAIN' if proof else 'USER_REVIEWED'
         stamp = now()
@@ -143,11 +148,14 @@ def configure_monitoring(store, source_id, expected_source_version, revision, po
             c.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.id == current['id'])
                 .values(source_snapshot=_snapshot(source), authorization=authorization, domain_evidence=proof,
                     revision=revision + 1, enabled=True, poll_interval=poll_interval, status='IDLE',
-                    next_due=stamp, last_error=None, failure_count=0, updated_at=stamp))
+                    next_due=max(_instant(current['next_due']) if current['next_due'] else _instant(stamp),
+                                 _instant(stamp)).isoformat(), last_error=None, failure_count=0,
+                    **policy.as_dict(), updated_at=stamp))
         else:
-            _create(c, source, authorization, proof, poll_interval, stamp)
+            _create(c, source, authorization, proof, poll_interval, stamp, policy)
         store._audit(c, source_id, 'COMPANY_SOURCE_MONITORING_REVIEWED', dict(company_source_id=source_id,
-            source_version=expected_source_version, authorization=authorization, poll_interval=poll_interval))
+            source_version=expected_source_version, authorization=authorization, poll_interval=poll_interval,
+            monitoring_policy=policy.as_dict()))
         return _monitor(c, source_id)
 
 
@@ -162,7 +170,7 @@ def _validate(connection, source, monitor):
 def _enqueue(connection, source, monitor, profiles, at, manual):
     params = dict(source_id=source['id'], monitoring_revision=monitor['revision'],
                   scheduled_for=monitor['next_due'], profile_ids=profiles, manual=manual,
-                  predecessor_operation_id=monitor['operation_id'])
+                  predecessor_operation_id=monitor['operation_id'], monitoring_policy=MonitoringPolicy.from_row(monitor).as_dict())
     operation_id = enqueue_operation(None, 'COMPANY_SOURCE_REFRESH', source['id'], params, connection=connection)
     connection.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.id == monitor['id'])
         .values(status='SCHEDULED', operation_id=operation_id, updated_at=at.isoformat()))
@@ -236,7 +244,7 @@ def schedule_company_sources(store, at=None):
                     m.operations.c.id == monitor['operation_id'])).scalar_one()
                 c.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.id == source_id)
                     .values(status='IDLE', last_error='OPERATION_' + terminal,
-                        next_due=(at+timedelta(seconds=monitor['poll_interval'])).isoformat(), updated_at=at.isoformat()))
+                        next_due=next_due(monitor, at).isoformat(), updated_at=at.isoformat()))
                 continue
             profiles = _profiles(c)
             if not profiles:
@@ -293,6 +301,32 @@ def authorize_rediscovery(store, operation, *, connection=None):
         raise PublicFetchError(str(failure)) from None
 
 
+def reserve_request(store, operation, delay, deadline, local_wait=0.):
+    """Reserve one request start durably; no sleeping or network under row locks.
+
+    Reservations survive replacement, cancellation and policy review. Unused slots
+    are intentionally conservative; a worker may never refund another attempt.
+    """
+    with store.engine.begin() as c:
+        _begin(c)
+        _source(c, operation['entity_id'], lock=True)
+        _monitor(c, operation['entity_id'], lock=True)
+        _, monitor = _authorize(c, operation, lock_operation=True)
+        policy = MonitoringPolicy.from_row(monitor)
+        if operation['params'].get('monitoring_policy', policy.as_dict()) != policy.as_dict():
+            raise PublicFetchError('MONITOR_POLICY_CHANGED')
+        stamp = datetime.now(timezone.utc)
+        start = max(stamp + timedelta(seconds=local_wait),
+                    _instant(monitor['request_not_before']) if monitor['request_not_before'] else stamp)
+        wait = max(0., (start - stamp).total_seconds())
+        if wait >= deadline - time.monotonic():
+            raise PublicFetchError('MONITOR_RATE_DEFERRED')
+        spacing = max(delay, 60. / policy.rate_limit)
+        c.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.id == monitor['id'])
+                  .values(request_not_before=(start + timedelta(seconds=spacing)).isoformat()))
+        return wait
+
+
 def refresh_company_source(store, operation, check=None):
     check = check or (lambda: None)
     source_id = operation['entity_id']
@@ -327,7 +361,11 @@ def refresh_company_source(store, operation, check=None):
             _authorize(c, operation)
             c.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.id == source_id)
                 .values(last_attempt=now(), updated_at=now()))
-        with closing(PublicCompanyClient(source['career_url'], check=authorized, total_timeout=min(90, timeout()-5))) as client:
+        policy = MonitoringPolicy.from_row(monitor)
+        if params.get('monitoring_policy', policy.as_dict()) != policy.as_dict():
+            raise PublicFetchError('MONITOR_POLICY_CHANGED')
+        with closing(PublicCompanyClient(source['career_url'], check=authorized, total_timeout=min(90, timeout()-5),
+                     policy=policy, reserve_rate=lambda delay, deadline, wait: reserve_request(store, operation, delay, deadline, wait))) as client:
             network_started = True
             careers = client.get(source['career_url'])
             if _url(str(careers.url), 'CAREER_URL') != source['career_url']:
@@ -364,7 +402,7 @@ def refresh_company_source(store, operation, check=None):
         def imported_receipt(connection):
             stamp = now()
             c_values = dict(status='HEALTHY', last_error=None, failure_count=0,
-                completed_operation_id=operation['id'], next_due=(_instant(stamp) + timedelta(seconds=monitor['poll_interval'])).isoformat(), updated_at=stamp)
+                completed_operation_id=operation['id'], next_due=next_due(monitor, _instant(stamp)).isoformat(), updated_at=stamp)
             connection.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.id == source_id).values(**c_values))
             connection.execute(update(m.company_sources).where(m.company_sources.c.id == source_id).values(last_validation=stamp))
             store._audit(connection, source_id, 'COMPANY_SOURCE_REFRESHED', dict(company_source_id=source_id, operation_id=operation['id'], jobs_enumerated=len(items)))
@@ -389,8 +427,9 @@ def refresh_company_source(store, operation, check=None):
                 if (current and current['operation_id'] == operation['id'] and current['revision'] == params.get('monitoring_revision')
                         and live['attempt_count'] == operation['attempt_count'] and live['state'] == 'RUNNING'):
                     cancelled = isinstance(failure, OperationCancelled) or live['cancel_requested']
-                    failures = current['failure_count'] + (0 if cancelled else 1)
-                    if cancelled:
+                    deferred = code == 'MONITOR_RATE_DEFERRED'
+                    failures = current['failure_count'] + (0 if cancelled or deferred else 1)
+                    if cancelled or deferred:
                         state = 'IDLE'
                     elif structural:
                         state = 'REDISCOVERY_REQUIRED'
@@ -416,7 +455,8 @@ def refresh_company_source(store, operation, check=None):
                     c.execute(update(m.company_source_monitoring).where(m.company_source_monitoring.c.id == source_id).values(
                         status=state, last_error=code[:128], failure_count=failures,
                         rediscovery_operation_id=rediscovery,
-                        next_due=(_instant(stamp)+timedelta(seconds=min(86400,current['poll_interval']*2**min(failures,5)))).isoformat(), updated_at=stamp))
+                        next_due=max(next_due(current, _instant(stamp), failures=failures),
+                                     _instant(current['request_not_before']) if current['request_not_before'] else _instant(stamp)).isoformat(), updated_at=stamp))
                     store._audit(c, source_id, 'COMPANY_SOURCE_REFRESH_FAILED', dict(company_source_id=source_id,
                         operation_id=operation['id'], error_code=code, status=state, rediscovery_operation_id=rediscovery))
         if isinstance(failure, ValueError):
