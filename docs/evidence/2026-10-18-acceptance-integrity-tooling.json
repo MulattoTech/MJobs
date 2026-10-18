@@ -62,5 +62,35 @@
     "Whole60-step MJ-REQ-292 and definition-of-done MJ-REQ-293 are not accepted by this work; no real external submission or paid provider call.",
     "Hosted candidate checks and independent review pending at recording. No frontend/product runtime changes; browser/product acceptance NOT_RUN."
   ],
-  "anti_recurrence": "Use Refs for incomplete requirements. GitHub parsed does not close #349 in PR686 as a closing reference despite the negation; issue closure cannot substitute for literal acceptance."
+  "anti_recurrence": "Use Refs for incomplete requirements. GitHub parsed does not close #349 in PR686 as a closing reference despite the negation; issue closure cannot substitute for literal acceptance.",
+  "review_follow_up": {
+    "native_run_id": "e53b7799-25b0-4e8a-8c5b-91e75be733b7",
+    "github_review_id": 5564744009,
+    "github_inline_comment_id": 4308552405,
+    "comment_url": "https://github.com/MulattoTech/MJobs/pull/726#discussion_r4308552405",
+    "recorded_at": "2026-10-18T20:15:37.969417+00:00",
+    "source_revision": "36a5920e6bc7e1c0698c14564bf8ab6fcec4c44e",
+    "source_sha256": {
+      "tools/verification/acceptance_integrity.py": "c381034b6558189bd77598c8ed46d9e4241543d02b3cf76a8b80a375c2ff53b2",
+      "tests/unit/test_acceptance_integrity.py": "99a7ef1786dd6ac9e69082d8b572502f7c7b0f560afe688f9d67e3741ad6eca0"
+    },
+    "defect": "An untracked linked-worktree .git marker and administrative destinations outside the checkout escaped the output guard.",
+    "fix": "Reject the resolved .git marker and any destination within resolved git-dir/common-dir before writing. Retain planning and tracked-source guards.",
+    "red": "Four administrative write cases unexpectedly succeeded; two marker cases reached write and Windows denied access rather than the application rejecting them. One allowed-output control passed; three symlink cases skipped for absent Windows privilege. All reproduction targets were disposable fixture repositories/worktrees.",
+    "green": "60 passed,3 skipped on source revision above. Linked marker, git-dir/common-dir, ordinary repository metadata, new administrative file, Windows case alias, and both Windows junction aliases rejected before writes; metadata byte preservation and usable Git status verified. Legitimate external AO-style and untracked workspace outputs accepted. Full425 census test passed.",
+    "checks": [
+      "catalogue PASS",
+      "progress validation PASS",
+      "dashboard CURRENT",
+      "read-only generation425",
+      "diff check PASS",
+      "source commit provenance PASS"
+    ],
+    "limits": [
+      "Three symlink fixtures require unavailable Windows privilege and are SKIPPED, not passed. Windows directory-junction alias coverage passed.",
+      "Broad suite was not rerun for this focused guard change. Prior broad result remains historical; exact affected source regression is above.",
+      "Native refresh and hosted checks required on new PR head; Root allocates reviewer and integrates.",
+      "No real current/historical Git administrative file was a reproduction write target; no canonical acceptance change."
+    ]
+  }
 }
