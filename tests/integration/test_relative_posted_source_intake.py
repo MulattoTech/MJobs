@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from apps.api.main import create_app
 from packages.persistence.store import Store
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
+from tests.integration.test_remoteok import RAW_REMOTEOK_PAYLOAD
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
 
@@ -31,6 +32,7 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         self.store.bind_workspace_mode('PERSONAL')
         self.collected_at = datetime.now(timezone.utc) - timedelta(minutes=30)
         self.requests = []
+        self.expected_host, self.expected_path = 'remotive.com', '/api/remote-jobs'
         self.payload = deepcopy(RAW_REMOTIVE_PAYLOAD)
         self.payload['jobs'] = self.payload['jobs'][:1]
         self.payload['jobs'][0]['publication_date'] = '2 hours ago'
@@ -60,7 +62,7 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         identifier = admitted.json()['operation_id']
         def boundary(_transport, request):
             self.assertEqual((request.method, request.url.host, request.url.path),
-                             ('GET', 'remotive.com', '/api/remote-jobs'))
+                             ('GET', self.expected_host, self.expected_path))
             self.requests.append(str(request.url))
             return httpx.Response(200, json=self.payload)
         with patch('httpx.HTTPTransport.handle_request', boundary), patch(
@@ -170,3 +172,38 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         corrected_attrs = self._filtered('LAST_24_HOURS')[0]['attributes']
         self.assertEqual(corrected_attrs['reported_posted_at'], corrected)
         self.assertEqual(corrected_attrs['reported_posted_at_precision'], 'SOURCE')
+
+    def test_remoteok_missing_or_invalid_date_retains_valid_epoch_after_public_collection(self):
+        source = self.client.put('/sources', json={'provider': 'remoteok', 'tenant': 'default',
+            'poll_interval': 300, 'request_timeout': 8, 'rate_limit': 60, 'jitter_seconds': 0})
+        self.assertEqual(source.status_code, 200, source.text)
+        self.source_id = source.json()['id']
+        self.expected_host, self.expected_path = 'remoteok.com', '/api'
+        self.payload = deepcopy(RAW_REMOTEOK_PAYLOAD)
+        self.payload[1].pop('date')
+        self.payload[2]['date'] = 'not a source date'
+        expected = {}
+        for row in self.payload[1:]:
+            row['epoch'] = int((self.collected_at - timedelta(days=2)).timestamp())
+            expected[row['id']] = datetime.fromtimestamp(row['epoch'], timezone.utc).isoformat()
+        identifier = self._collect(request_id='remoteok-epoch-intake')
+        self._reopen()
+        response = self.client.get('/jobs', params={'profile_id': 'fixture'})
+        self.assertEqual(response.status_code, 200)
+        rows = response.json()['jobs']
+        self.assertEqual(len(rows), 2)
+        for row in rows:
+            with self.subTest(native_id=row['requisition']):
+                attrs = row['attributes']
+                self.assertEqual(attrs['reported_posted_at'], expected[row['requisition']])
+                self.assertEqual(attrs['reported_posted_at_precision'], 'SOURCE')
+                self.assertEqual(attrs['reported_posted_at_raw'], None if row['requisition'] == '2001'
+                                 else 'not a source date')
+                detail = self.client.get('/jobs/' + row['id'], params={'profile_id': 'fixture'}).json()
+                raw = detail['postings'][0]['raw']
+                self.assertEqual(datetime.fromtimestamp(raw['epoch'], timezone.utc).isoformat(),
+                                 attrs['reported_posted_at'])
+        self.assertEqual(len(self._filtered('LAST_HOUR')), 0)
+        self.assertEqual(len(self._filtered('LAST_3_DAYS')), 2)
+        self.assertEqual(execute_operation(identifier)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
+        self.assertEqual(len(self.requests), 1)

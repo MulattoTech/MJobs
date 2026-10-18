@@ -21,7 +21,7 @@ from services.dedupe.ingestion_identity import canonical_ingestion_job, lock_com
 from services.discovery.sources.contract import SourceAdapter, SourceCapability
 from services.discovery.sources.greenhouse import SourceError, tenant_identifier
 from services.discovery.sources.registry import source_adapter
-from services.discovery.search_semantics import normalize_reported_timestamp
+from services.discovery.search_semantics import normalize_reported_timestamp, parse_timestamp
 
 
 def configure_source(store, tenant, provider="greenhouse", enabled=True, poll_interval=300, concurrency=1,
@@ -255,9 +255,17 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 previous_dates = (prior_values or {}).get('attributes') or (
                     existing_attributes if existing_attributes.get('source_id') == source_id else {})
                 attrs = job['attributes']
-                attrs.update(normalize_reported_timestamp(
-                    attrs.get('reported_posted_at_raw', attrs.get('reported_posted_at')),
-                    reference_at=timestamp, previous=previous_dates))
+                raw_date = attrs.get('reported_posted_at_raw', attrs.get('reported_posted_at'))
+                # Adapters may validate another native field (RemoteOK epoch).
+                # A missing/malformed display date must not erase that absolute
+                # timestamp; keep the display claim and raw posting as provenance.
+                absolute_date = parse_timestamp(attrs.get('reported_posted_at'))
+                dates = normalize_reported_timestamp(
+                    absolute_date.isoformat() if absolute_date else raw_date,
+                    reference_at=timestamp, previous=previous_dates)
+                if absolute_date:
+                    dates['reported_posted_at_raw'] = raw_date
+                attrs.update(dates)
                 job["attributes"].update(
                     provider=source['provider'], tenant=source['tenant'],
                     source_id=source_id,
