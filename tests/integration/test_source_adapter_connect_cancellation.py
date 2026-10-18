@@ -19,6 +19,7 @@ from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
+import httpx
 from sqlalchemy import select
 
 from apps.api.main import create_app
@@ -27,6 +28,7 @@ from packages.persistence.store import Store
 from tests.integration.test_source_http_socket_budget import tcp_connect_stall
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
+from services.discovery.sources.registry import source_adapter
 
 
 ENDPOINTS = {"greenhouse": "HOST", "remoteok": "API_URL", "wwr": "FEED_URL"}
@@ -72,6 +74,33 @@ def empty_source(provider):
 
 
 class SourceAdapterConnectCancellationTests(unittest.TestCase):
+    def test_injected_transports_keep_control_even_when_falsey(self):
+        class FalseyTransport(httpx.MockTransport):
+            def __bool__(self):
+                return False
+
+        for provider in ENDPOINTS:
+            with self.subTest(provider=provider):
+                requests = []
+
+                def handler(request):
+                    requests.append(request)
+                    self.assertEqual(request.url.scheme, "https")
+                    self.assertEqual(request.method, "GET")
+                    if provider == "wwr":
+                        return httpx.Response(200, content=b"<rss><channel/></rss>")
+                    payload = [] if provider == "remoteok" else {"jobs": []} if (
+                        request.url.path.endswith("/jobs")) else {"name": "Synthetic empty board"}
+                    return httpx.Response(200, json=payload)
+
+                with patch(f"services.discovery.sources.{provider}.SourceTransport",
+                           side_effect=AssertionError("Injected transport must remain authoritative")):
+                    adapter = source_adapter({"provider": provider,
+                        "tenant": "synthetic" if provider == "greenhouse" else "default"},
+                        transport=FalseyTransport(handler))
+                    self.assertEqual(adapter.search().items, ())
+                self.assertEqual(len(requests), 2 if provider == "greenhouse" else 1)
+
     def run_source(self, provider, mode):
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
@@ -82,6 +111,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             cleanup.callback(store.engine.dispose)  # Release Windows SQLite handles before deleting the directory.
             source = empty_source(provider) if mode == "positive" else tcp_connect_stall()
             original_connect = socket.socket.connect
+            original_connect_ex = socket.socket.connect_ex
             errors, outcome = [], []
             worker = None
 
@@ -92,10 +122,19 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     engaged.set()
                 return original_connect(connection, address)
 
+            def observe_connect_ex(connection, address):
+                status = original_connect_ex(connection, address)
+                if mode != "positive" and address[:2] == state["address"]:
+                    state["connects"] += 1
+                    state["connecting_socket"] = connection
+                    engaged.set()
+                return status
+
             with source as (endpoint, engaged, state), patch.dict(os.environ, {
                     "MJOBS_DATABASE_URL": url, "MJOBS_OPERATION_MODE": "FIXTURE",
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
             }), patch("socket.socket.connect", new=observe_connect), patch(
+                    "socket.socket.connect_ex", new=observe_connect_ex), patch(
                     f"services.discovery.sources.{provider}.{ENDPOINTS[provider]}", endpoint), patch(
                     "workers.tasks.timeout", return_value=.8 if mode == "deadline" else 30):
                 with TestClient(create_app(store, "http://127.0.0.1:1", root,

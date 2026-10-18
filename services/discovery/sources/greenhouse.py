@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
@@ -108,7 +109,8 @@ class Greenhouse:
         request_timeout = self.request_timeout
         if callable(remaining_budget):
             request_timeout = min(request_timeout, remaining_budget())
-        with httpx.Client(timeout=request_timeout, follow_redirects=False, trust_env=False, transport=self.transport,
+        with httpx.Client(timeout=request_timeout, follow_redirects=False, trust_env=False,
+                          transport=self.transport if self.transport is not None else SourceTransport(self.check),
                           headers={"User-Agent": "MJobs/0.1 public-read-only", "Accept": "application/json"}) as client:
             stop_watcher = threading.Event()
             cancellation_errors = []

@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
@@ -111,7 +112,7 @@ class RemoteOK:
         if callable(remaining_budget):
             request_timeout = min(request_timeout, remaining_budget())
 
-        with httpx.Client(transport=self.transport, timeout=request_timeout,
+        with httpx.Client(transport=self.transport if self.transport is not None else SourceTransport(self.check), timeout=request_timeout,
                           follow_redirects=False, trust_env=False,
                           headers={"User-Agent": "MJobs-Discovery/1.0", "Accept": "application/json"}) as client:
             stop_watcher = threading.Event()
