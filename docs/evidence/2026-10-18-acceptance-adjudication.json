@@ -38,7 +38,7 @@
       "NOT_RUN": 10
     }
   },
-  "fresh_whole_contract_acceptance": "NOT_RUN_FOR_ALL_425",
+  "fresh_whole_contract_acceptance": "NOT_RUN_BY_THIS_LANE_FOR_ALL_425",
   "census": {
     "source_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48",
     "captured_at": "2026-10-18T20:32:58.898782+00:00",
@@ -80,7 +80,6 @@
       "source_identity": {
         "requirement": "MJ-REQ-119",
         "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
-        "evidence_sha256": "1c94577055263e90d1b76a114fb6118a091cfbd554c37558fbf8f9cf2fd75b6a",
         "tested_revision": "5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35",
         "tested_tree": "dceb0da2ca4e90560ccee0ee8a0444a1a9e4b2ba",
         "ancestor_of_baseline": true,
@@ -192,7 +191,10 @@
             "unchanged": true,
             "baseline_identity": "SAME_AS_TESTED"
           }
-        }
+        },
+        "evidence_working_copy_sha256": "1c94577055263e90d1b76a114fb6118a091cfbd554c37558fbf8f9cf2fd75b6a",
+        "evidence_git_sha256": "1c94577055263e90d1b76a114fb6118a091cfbd554c37558fbf8f9cf2fd75b6a",
+        "evidence_hash_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48"
       },
       "fresh_acceptance": "NOT_RUN",
       "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
@@ -230,7 +232,6 @@
       "source_identity": {
         "requirement": "MJ-REQ-156",
         "evidence": "docs/evidence/2026-10-17-operation-recovery-progress.json",
-        "evidence_sha256": "99d7718264a0b175875e43577a695820d4be15b71b9d2ca0b2fd40d25cc1571e",
         "tested_revision": "fadea2dbc96f8a1549d8eff8d5108a0029f19206",
         "tested_tree": "9f7f2966863abdd1bdb6549963ed8c4ca163622c",
         "ancestor_of_baseline": true,
@@ -328,7 +329,10 @@
             "baseline_identity": "SAME_AS_TESTED",
             "recorded_identity_verified": true
           }
-        }
+        },
+        "evidence_working_copy_sha256": "99d7718264a0b175875e43577a695820d4be15b71b9d2ca0b2fd40d25cc1571e",
+        "evidence_git_sha256": "99d7718264a0b175875e43577a695820d4be15b71b9d2ca0b2fd40d25cc1571e",
+        "evidence_hash_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48"
       },
       "fresh_acceptance": "NOT_RUN",
       "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
@@ -375,7 +379,6 @@
       "source_identity": {
         "requirement": "MJ-REQ-158",
         "evidence": "docs/evidence/2026-10-17-operation-recovery-acceptance.json",
-        "evidence_sha256": "497103d9920c85c2e51c3dab52f968a136a329a6b093e3b9482266d1c4282320",
         "tested_revision": "0770573fea6fc8ac553d9c530d52e87d58bbef38",
         "tested_tree": "3a27621b05774d39e0ea36cb26a797f6c5c4c88b",
         "ancestor_of_baseline": true,
@@ -481,7 +484,10 @@
             "unchanged": true,
             "baseline_identity": "SAME_AS_TESTED"
           }
-        }
+        },
+        "evidence_working_copy_sha256": "497103d9920c85c2e51c3dab52f968a136a329a6b093e3b9482266d1c4282320",
+        "evidence_git_sha256": "497103d9920c85c2e51c3dab52f968a136a329a6b093e3b9482266d1c4282320",
+        "evidence_hash_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48"
       },
       "fresh_acceptance": "NOT_RUN",
       "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
@@ -528,7 +534,6 @@
       "source_identity": {
         "requirement": "MJ-REQ-166",
         "evidence": "docs/evidence/2026-10-17-guarded-data-migration-acceptance.json",
-        "evidence_sha256": "383e19c84308432454e93e7df955b36b38a72a2e18df0981df8eee8efe3bf332",
         "tested_revision": "e067e7315406d8bf42f69ea1d80fbca95970bb2b",
         "tested_tree": "33b6ebfa4b24bc48bf25cdec010ffc0bdf0347d5",
         "ancestor_of_baseline": true,
@@ -582,7 +587,10 @@
             "baseline_identity": "SAME_AS_TESTED",
             "recorded_identity_verified": true
           }
-        }
+        },
+        "evidence_working_copy_sha256": "383e19c84308432454e93e7df955b36b38a72a2e18df0981df8eee8efe3bf332",
+        "evidence_git_sha256": "383e19c84308432454e93e7df955b36b38a72a2e18df0981df8eee8efe3bf332",
+        "evidence_hash_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48"
       },
       "fresh_acceptance": "NOT_RUN",
       "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
@@ -628,7 +636,6 @@
       "source_identity": {
         "requirement": "MJ-REQ-169",
         "evidence": "docs/evidence/2026-10-17-data-export-acceptance.json",
-        "evidence_sha256": "aa47fb423e0d608f5f194baf3ebcb9a4d5113d035fe8ad5462df2ac8252ac760",
         "tested_revision": "5cb233eb159d355ed4667b6ae9ad2c26c6266659",
         "tested_tree": "e3e8ba81052d6c10e7da4cbc05a23be5ffea19f2",
         "ancestor_of_baseline": true,
@@ -695,7 +702,10 @@
             "baseline_identity": "SAME_AS_TESTED",
             "recorded_identity_verified": true
           }
-        }
+        },
+        "evidence_working_copy_sha256": "aa47fb423e0d608f5f194baf3ebcb9a4d5113d035fe8ad5462df2ac8252ac760",
+        "evidence_git_sha256": "aa47fb423e0d608f5f194baf3ebcb9a4d5113d035fe8ad5462df2ac8252ac760",
+        "evidence_hash_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48"
       },
       "fresh_acceptance": "NOT_RUN",
       "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
@@ -741,7 +751,6 @@
       "source_identity": {
         "requirement": "MJ-REQ-176",
         "evidence": "docs/evidence/2026-10-17-audit-history-acceptance.json",
-        "evidence_sha256": "e8b49258d587a2acd2d7f3d9eb41162bd8d2c3b5b8d5c51ebc825d89b24c75e9",
         "tested_revision": "b931425e58ab3a0b3679a41eb340ab76be000e6d",
         "tested_tree": "f958c3dc7eaea3049a18cd58d59e1e4ae7683959",
         "ancestor_of_baseline": true,
@@ -786,7 +795,10 @@
             "unchanged": true,
             "baseline_identity": "SAME_AS_TESTED"
           }
-        }
+        },
+        "evidence_working_copy_sha256": "e8b49258d587a2acd2d7f3d9eb41162bd8d2c3b5b8d5c51ebc825d89b24c75e9",
+        "evidence_git_sha256": "e8b49258d587a2acd2d7f3d9eb41162bd8d2c3b5b8d5c51ebc825d89b24c75e9",
+        "evidence_hash_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48"
       },
       "fresh_acceptance": "NOT_RUN",
       "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
@@ -807,17 +819,17 @@
     },
     {
       "id": "MJ-REQ-010",
-      "classification": "PARTIAL_WITH_STALE_EVIDENCE_WORDING",
-      "finding": "PR674 added and executed PostgreSQL and Redis/RQ cases, but the full connected architecture and durable multiprocess flow is not established by those two tests.",
+      "classification": "PARTIAL_SCOPED_HISTORY_WITH_BROADER_COMPOSE_REVIEW_PENDING",
+      "finding": "PR674 added and executed PostgreSQL and Redis/RQ cases. Those narrow cases alone do not adjudicate the full connected architecture; broader existing Compose evidence remains under separate review.",
       "criteria_proof": [
         "The live literal diagram includes dashboard/API, global and company sources through normalization/resolution/dedupe/scoring to PostgreSQL; application/automation/Playwright and profile/AI/document branches; durable background operations.",
         "PR674 run38856819318 actual checkout3182f11 has the exact tree of head49f80860. Artifact12027209303 contains4 SQLite +1 PostgreSQL +1 Redis/RQ architecture test PASS. Architecture test source is byte-identical at baseline3cf.",
         "PostgreSQL case invokes discover/prepare directly in process and reopens Store. Redis case dispatches to a real Redis queue but calls execute_operation directly against SQLite, without a separate RQ consumer. API checks exercise GET surfaces; web build is not mounted diagram flow.",
-        "The separate connected-readiness record reports12 synthetic checks, but PR674 evidence does not bind an exact source identity for that invocation or show one connected PostgreSQL/Redis/RQ/Playwright/AI-document flow. Readiness200-or503 assertion alone is not healthy-service proof."
+        "The separate connected-readiness record reports12 synthetic checks, but that PR674 record does not bind an exact source identity for its invocation. Readiness200-or503 assertion alone is not healthy-service proof. Existing cli.mock_e2e and cli.ui_e2e can exercise public HTTP/mounted browser flows with real workers; their broader Compose artifacts were not adjudicated in this narrow PR674 review."
       ],
-      "proposal": "Retain canonical PARTIAL, issue11 OPEN, Project In Progress/PARTIAL. Root may revise only the stale note to acknowledge executed PG and Redis/RQ scoped cases while naming missing integrated proof; do not promote from merged tests or aggregate green CI.",
+      "proposal": "Retain canonical PARTIAL, issue11 OPEN, Project In Progress/PARTIAL. Correct stale wording to acknowledge executed scoped PG and Redis/RQ cases. Whole-contract adjudication remains pending broader existing Compose artifact/source review; no repository-wide absence of separate RQ execution or public admission is asserted.",
       "limits": [
-        "Required next proof: public admission through real independently running RQ worker with PostgreSQL persistence, named search/company and application/document/AI branches, API/browser readback, durable restart/recovery and negative duplicate/safety controls. Evidence should bind source and artifact identities.",
+        "Next adjudication step: correlate existing cli.mock_e2e/cli.ui_e2e Compose results, actual checkout/tree and synthetic-acceptance artifacts across diagram branches, including public admission, separate worker execution, PostgreSQL persistence/readback and restart/recovery/duplicate controls. Root assigned broader PR725 Compose run39163795912 review to another lane; this record neither credits nor rejects that unreviewed result.",
         "Do not invent mandatory live-employer, paid-AI, host-reboot or every-source breadth criteria from a conceptual architecture diagram. Synthetic controlled services may satisfy connected proof.",
         "No fresh architecture execution was performed by this lane; all historical evidence remains source-qualified."
       ],
@@ -833,7 +845,6 @@
       "source_identity": {
         "requirement": "MJ-REQ-010",
         "evidence": "docs/evidence/2026-10-16-primary-product-architecture.json",
-        "evidence_sha256": "cf373f6ab06adf3cc04d59cca2cabcc4e069914f449fafa6e670e513e6c7d3f6",
         "tested_revision": "49f80860182fb5a0dda4330c4f6b1db13802aaa5",
         "tested_tree": "f3e6d936580688cd5e68a8bd5b2256b319b451a6",
         "ancestor_of_baseline": true,
@@ -845,7 +856,10 @@
             "unchanged": true,
             "baseline_identity": "SAME_AS_TESTED"
           }
-        }
+        },
+        "evidence_working_copy_sha256": "cf373f6ab06adf3cc04d59cca2cabcc4e069914f449fafa6e670e513e6c7d3f6",
+        "evidence_git_sha256": "cf373f6ab06adf3cc04d59cca2cabcc4e069914f449fafa6e670e513e6c7d3f6",
+        "evidence_hash_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48"
       },
       "fresh_acceptance": "NOT_RUN",
       "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
@@ -854,7 +868,12 @@
       "recorded_result": "PARTIAL",
       "proposed_canonical_result": "PARTIAL",
       "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
-      "historical_ci_ref": 38856819318
+      "historical_ci_ref": 38856819318,
+      "broader_evidence_review_pending": {
+        "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/39163795912",
+        "scope": "Root-coordinated review of PR725 synthetic-acceptance-json and exact checkout/tree; this lane did not retrieve/adjudicate it",
+        "status": "PENDING_SEPARATE_REVIEW"
+      }
     }
   ],
   "historical_ci": [
