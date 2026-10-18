@@ -8,6 +8,28 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PLAN = ROOT / "planning"
+RESULTS = {"PASS", "FAIL", "PARTIAL", "BLOCKED_EXTERNAL", "BLOCKED_ENVIRONMENT",
+           "NOT_RUN", "NOT_APPLICABLE"}
+
+
+def _unique_ids(identifiers: list[str], label: str) -> set[str]:
+    counts = Counter(identifiers)
+    duplicates = sorted(identifier for identifier, count in counts.items() if count > 1)
+    if duplicates:
+        raise ValueError(f"Duplicate {label}: {', '.join(duplicates)}")
+    return set(identifiers)
+
+
+def _validate_result(identifier: str, entry: dict) -> None:
+    if not isinstance(entry, dict) or entry.get("result") not in RESULTS:
+        raise ValueError(f"Invalid acceptance result: {identifier}")
+    evidence = entry.get("evidence")
+    if not isinstance(evidence, list) or any(
+        not isinstance(item, str) or not item.strip() for item in evidence
+    ):
+        raise ValueError(f"Invalid acceptance evidence: {identifier}")
+    if entry["result"] == "PASS" and not evidence:
+        raise ValueError(f"PASS requires evidence: {identifier}")
 
 def load(name: str) -> dict:
     return json.loads((PLAN / name).read_text(encoding="utf-8-sig"))
@@ -22,11 +44,28 @@ def compile_index() -> dict:
     issue_map = load("GITHUB_ISSUE_MAP.json")
     reference = load("REFERENCE_GAP_MATRIX.json")
     ref_issue_map = load("REFERENCE_GAP_ISSUE_MAP.json")
-    by_id = {entry["requirement_id"]: entry for entry in matrix["requirements"]}
-    if len(seeds) != len(by_id) or set(by_id) != {s["id"] for s in seeds}:
+    seed_ids = _unique_ids([seed["id"] for seed in seeds], "seed requirement")
+    matrix_ids = _unique_ids([entry["requirement_id"] for entry in matrix["requirements"]],
+                             "capability requirement")
+    # Original IDs include 000 and dotted subrequirements; the seed is authority.
+    if len(seed_ids) != 366 or matrix_ids != seed_ids:
         raise ValueError("Seed/catalogue identifier coverage mismatch")
+    by_id = {entry["requirement_id"]: entry for entry in matrix["requirements"]}
     if set(issue_map["issues"]) != set(by_id):
         raise ValueError("Original issue map coverage mismatch")
+    expected_reference = {f"MJ-REF-{number:03d}" for number in range(1, 60)}
+    reference_ids = _unique_ids(reference["canonical_ids"], "reference requirement")
+    if (reference_ids != expected_reference
+            or set(reference["result_by_id"]) != expected_reference
+            or set(ref_issue_map["issues"]) != expected_reference
+            or reference.get("reference_gap_count") != 59
+            or reference.get("original_catalogue_count") != 366):
+        raise ValueError("Reference catalogue/map/result coverage mismatch")
+    for identifier, entry in {**by_id, **reference["result_by_id"]}.items():
+        _validate_result(identifier, entry)
+    for identifier, number in {**issue_map["issues"], **ref_issue_map["issues"]}.items():
+        if type(number) is not int or number <= 0:
+            raise ValueError(f"Invalid issue mapping: {identifier}")
 
     rows = []
     meta = {}
