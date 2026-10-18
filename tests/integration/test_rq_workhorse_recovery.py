@@ -157,7 +157,10 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
             with self.subTest(terminal=terminal):
                 self.cleanup_scenario(horse_exit=terminal)
 
-    def cleanup_scenario(self, *, horse_exit=None):
+    def test_already_orphaned_retained_browser_is_stopped_before_tree_is_sealed(self):
+        self.cleanup_scenario(already_orphaned=True)
+
+    def cleanup_scenario(self, *, horse_exit=None, already_orphaned=False):
         fixture = OwnedWorker(None, None, "redis://127.0.0.1:6379/0", "http://127.0.0.1:1", Path("."), "failure")
         parent = ProcessIdentity(100, 50, 100, 100, 1000)
         horse = ProcessIdentity(123, 100, 123, 100, 1001)
@@ -167,6 +170,8 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
 
         def send(owned, sig):
             sent.append((owned.pid, sig))
+            if owned.pid not in live:
+                return False
             if sig == 9:
                 live.pop(owned.pid, None)
             elif sig == 19:
@@ -206,10 +211,18 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
         # capture_horse() has never run, so both fields are initially empty.
         self.assertIsNone(fixture.horse)
         self.assertEqual(fixture.children, [])
+        if already_orphaned:
+            live.pop(123)
+            live[234] = replace(browser, parent=1)
+            fixture.remember([horse, browser])
         with patch("signal.SIGKILL", 9, create=True), patch("signal.SIGSTOP", 19, create=True), patch(
                 "tests.integration.rq_workhorse_fixture.signal_owned", side_effect=send), patch(
                 "tests.integration.rq_workhorse_fixture.descendants", side_effect=inventory), patch(
                 "tests.integration.rq_workhorse_fixture.process_identity", side_effect=identity):
+            if already_orphaned:
+                fixture.freeze_tree()
+                self.assertTrue(fixture.tree_sealed)
+                self.assertEqual(live[234].state, "T", "A retained orphan can still fork after sealing")
             fixture.__exit__(AssertionError, AssertionError("synthetic early failure"), None)
             fixture.assert_stopped()
         self.assertEqual(live, {}, "Failure cleanup leaked an uncaptured workhorse/browser")

@@ -170,7 +170,10 @@ class OwnedWorker:
                 if running(owned):
                     found.extend(descendants(owned.pid))
             self.remember(found)
-            new = [owned for owned in found if (owned.pid, owned.started) not in frozen]
+            # Retained orphans themselves must stop too, not just the children
+            # found beneath them. Rescan only after every retained identity is
+            # settled, so none can fork between the final inventory and kill.
+            new = [owned for owned in self.owned.values() if (owned.pid, owned.started) not in frozen]
             if not new:
                 self.tree_sealed = True
                 return
