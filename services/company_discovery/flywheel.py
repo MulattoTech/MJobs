@@ -32,6 +32,7 @@ _LEGAL_NAME_WORDS = {"inc", "incorporated", "corp", "corporation", "llc", "ltd",
 _MAX_SITEMAP_FETCHES = 5
 _MAX_CHILD_SITEMAPS = 3
 _MAX_SITEMAP_CAREER_PAGES = 10
+_MAX_LINKED_CAREER_PAGES = 5
 
 
 def _same_origin(left, right):
@@ -230,17 +231,25 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     if homepage is None:
         homepage = bounded_get(client, website)
     careers_links = internal_career_links(str(homepage.url), homepage.text)
-    careers = None
-    careers_url = careers_links[0] if careers_links else ""
-    if careers_url:
+    # A supplied/search-selected URL may already be the recruiting page. Do
+    # not discard its proven ATS/feed evidence or replace it with a guessed URL.
+    careers = homepage if _career_page_is_corroborated(homepage, fixture) else None
+    careers_url = str(homepage.url) if careers is not None else ""
+    for linked_url in careers_links[:_MAX_LINKED_CAREER_PAGES]:
+        if careers is not None and _career_page_is_corroborated(careers, fixture):
+            break
         check()
         try:
-            careers = bounded_get(client, careers_url, str(homepage.url))
+            linked_page = bounded_get(client, linked_url, str(homepage.url))
         except (httpx.HTTPStatusError, PublicHTTPStatusError) as error:
             status = error.status_code if isinstance(error, PublicHTTPStatusError) else error.response.status_code
             if status not in {404, 410}:
                 raise
-            careers_url = ""
+            continue
+        # Keep an uncorroborated linked page for the existing review outcome,
+        # but allow a later official navigation link to supply usable evidence.
+        if careers is None or _career_page_is_corroborated(linked_page, fixture):
+            careers_url, careers = linked_url, linked_page
     # A linked careers page remains authoritative when its content exposes an ATS or
     # supported public feed. If it is absent or too thin to identify either, inspect
     # a small same-origin sitemap chain before trying low-confidence common routes.
