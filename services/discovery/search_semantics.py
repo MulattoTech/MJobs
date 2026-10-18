@@ -334,46 +334,119 @@ def parse_education_requirement(text):
                         r"\b(?:college\s+|university\s+)?degree\b", re.I)
     negation = re.compile(r"(?:\b(?:not|never|no\s+longer)|n't)\s+"
                           r"(?:(?:strictly|necessarily|always|required|mandatory|preferred|and|or)\s+)*$", re.I)
+    qualification = re.compile(r"\b(?:required|mandatory|preferred|optional)\b", re.I)
+    qualifier_prefix = re.compile(r"\s*(?:(?:is|are|also|still)\s+)*"
+                                  r"(?:(?:not|never|no longer)\s+)?"
+                                  r"(?:(?:strictly|necessarily|always)\s+)*"
+                                  r"(?:required|mandatory|preferred)\b", re.I)
+    other_subject = re.compile(r"\b(?:clearance|certifications?|experience|skills?|proficiency)\b", re.I)
+    alternative = re.compile(r"\s*(?:(?:or|and/or)\s+)?(?:an?\s+)?"
+                             r"equivalent\s+(?:experience|combination)\b", re.I)
+
+    # Record bracket depth once. Sentence punctuation and list punctuation inside
+    # a balanced descriptor belong to its subject, including nested descriptors.
+    levels, statements, stack = [], [], []
+    closing = {'(': ')', '[': ']', '{': '}'}
+    start, valid = 0, True
+    for position, character in enumerate(folded):
+        levels.append(len(stack))
+        if character in closing:
+            stack.append(closing[character])
+        elif character in closing.values():
+            if not stack or stack.pop() != character:
+                valid = False
+                stack.clear()
+        elif character in '.;\n!?' and not stack:
+            if valid:
+                statements.append((start, position))
+            start, valid = position + 1, True
+    if valid and not stack:
+        statements.append((start, len(folded)))
+
+    def subject_scopes(suffix, offset, level):
+        first_qualifier = qualification.search(suffix)
+        subject_end = first_qualifier.start() if first_qualifier else len(suffix)
+        equivalent_subject = re.search(r"\b(?:or|and/or)\s+(?:an?\s+)?"
+                                       r"equivalent\s+(?:experience|combination)\b", suffix, re.I)
+        if equivalent_subject:
+            subject_end = min(subject_end, equivalent_subject.start())
+        if other_subject.search(suffix[:subject_end]):
+            return ['']
+        candidates = list(re.finditer(
+            r"[;,]|\b(?:and/or|and|or|but|while|whereas|however)\b", suffix, re.I))
+        separators = []
+        for index, candidate in enumerate(candidates):
+            end = candidates[index + 1].start() if index + 1 < len(candidates) else len(suffix)
+            # Brackets protect fields, not an explicit change to a non-degree
+            # subject such as '(not required; security clearance required)'.
+            if (levels[offset + candidate.start()] <= level or
+                    (other_subject.search(suffix[candidate.end():end])
+                     and not alternative.match(suffix[candidate.end():]))):
+                separators.append(candidate)
+        scopes, start, field_list = [], 0, False
+        for index, separator in enumerate(separators):
+            left = suffix[start:separator.start()]
+            rest = suffix[separator.end():]
+            end = separators[index + 1].start() if index + 1 < len(separators) else len(suffix)
+            right = suffix[separator.end():end]
+            word = separator.group().lower()
+            if alternative.match(rest) and word in {',', 'or', 'and/or'}:
+                continue
+            continuation = re.match(r"\s*(?:but|while|whereas|however|and|or)\b", rest, re.I)
+            if word == ',' and continuation and qualifier_prefix.match(rest[continuation.end():]):
+                # Let the conjunction decide whether polarity continues or a
+                # contrast starts; its preceding comma is not a new subject.
+                continue
+            # Explicit non-education subjects cannot borrow the degree's scope.
+            if other_subject.search(right):
+                scopes.append(left)
+                return scopes
+            qualified = qualification.search(left)
+            if not qualified and not field_list:
+                outside = ''.join(character for character_index, character in
+                    enumerate(suffix[start:separator.start()], start)
+                    if levels[offset + character_index] <= level)
+                descriptor = re.sub(r"\b(?:is|are|also|still|not|never|no|longer|"
+                                    r"strictly|necessarily|always)\b", '', outside, flags=re.I)
+                field_list = bool(re.search(r"\w", descriptor))
+                if not descriptor.strip(' :—–-') and word == ',':
+                    # A bare comma can introduce an enumerated degree subject,
+                    # but a lone new subject (', Python required') cannot.
+                    first_qualifier = qualification.search(rest)
+                    subject_end = separator.end() + first_qualifier.start() if first_qualifier else len(suffix)
+                    field_list = any(separator.end() <= item.start() < subject_end
+                                     and item.group().lower() in {',', 'and', 'or', 'and/or'}
+                                     and re.search(r"\w", suffix[separator.end():item.start()])
+                                     for item in separators[index + 1:])
+            if word in {'but', 'while', 'whereas', 'however'}:
+                if qualifier_prefix.match(rest):
+                    scopes.append(left)
+                    start, field_list = separator.end(), False
+                    continue
+            elif qualifier_prefix.match(rest):
+                if word != ',' or not qualified:
+                    continue
+                scopes.append(left)
+                start, field_list = separator.end(), False
+                continue
+            elif field_list and not qualified:
+                continue
+            scopes.append(left)
+            return scopes
+        scopes.append(suffix[start:])
+        return scopes
+
     claims = []
-    for clause in re.finditer(r"[^.;\n!?]+", folded):
-        mentions = list(degree.finditer(clause.group()))
+    for clause_start, clause_end in statements:
+        clause = folded[clause_start:clause_end]
+        mentions = list(degree.finditer(clause))
         for index, mention in enumerate(mentions):
-            prefix = clause.group()[:mention.start()]
+            prefix = clause[:mention.start()]
             negated_mention = re.search(r"\b(?:no|without|not)\s+(?:a\s+)?$", prefix, re.I)
-            end = mentions[index + 1].start() if index + 1 < len(mentions) else len(clause.group())
-            suffix = clause.group()[mention.end():end]
-            # Coordinated fields belong to the degree subject: "in Computer
-            # Science, Engineering, or a related field required". Keep that
-            # subject together, then resume ordinary clause boundaries after it.
-            qualifier = re.search(r"\b(?:required|mandatory|preferred)\b", suffix, re.I)
-            subject_end = qualifier.start() if qualifier else len(suffix)
-            subject = suffix[:subject_end]
-            coordination = list(re.finditer(r"\b(?:or|and(?:/or)?)\b", subject, re.I))
-            field_subject = re.sub(r"\bequivalent\s+(?:experience|combination)\b", '', subject, flags=re.I)
-            if (re.match(r"\s+in\s+", subject, re.I) and coordination
-                    and ',' not in subject[coordination[-1].end():]
-                    and not re.search(r"\b(?:but|while|whereas|however|clearance|"
-                                      r"certifications?|experience|skills?|proficiency)\b", field_subject, re.I)):
-                protected_end = subject_end
-            else:
-                protected_end = 0
-            pieces = re.split(r",(?!\s*(?:or|and/or)\s+equivalent\s+(?:experience|combination)\b)|"
-                              r"\bor(?=\s+(?:security\s+)?(?:clearance|certifications?|experience|skills?|proficiency)\b)|"
-                              r"\b(?:but|while|whereas|however|"
-                              r"and(?!/or|\s+(?:not\s+)?(?:required|mandatory|preferred)\b))\b",
-                              suffix[protected_end:], flags=re.I)
-            pieces[0] = suffix[:protected_end] + pieces[0]
-            # A short continuation such as ', but preferred' retains its subject.
-            # A new subject such as 'and Python required' cannot qualify a degree.
-            scopes = [pieces[0]]
-            for piece in pieces[1:]:
-                if re.fullmatch(r"\s*(?:(?:is|are|also|still)\s+)*"
-                                r"(?:(?:not|never|no longer)\s+)?"
-                                r"(?:(?:strictly|necessarily|always)\s+)*"
-                                r"(?:required|mandatory|preferred)\s*", piece, re.I):
-                    scopes.append(piece)
-                elif piece.strip():
-                    break
+            level = levels[clause_start + mention.start()]
+            end = next((item.start() for item in mentions[index + 1:]
+                        if levels[clause_start + item.start()] <= level), len(clause))
+            scopes = subject_scopes(clause[mention.end():end], clause_start + mention.end(), level)
             strengths = set()
             for scope_index, scope in enumerate(scopes):
                 if negated_mention and scope_index == 0:
@@ -389,7 +462,7 @@ def parse_education_requirement(text):
                                    preceding[1].lower(), preceding[1].lower()))
             equivalent = re.search(r"\b(?:or|and/or)\s+(?:an?\s+)?equivalent\s+"
                                    r"(?:experience|combination)\b", scopes[0], re.I) if not negated_mention else None
-            if equivalent and re.match(r"\s+(?:(?:is|are)\s+)?(?:not|never)\s+"
+            if equivalent and re.match(r"[\s)\]}]+(?:(?:is|are)\s+)?(?:not|never)\s+"
                                        r"(?:accepted|considered|allowed)\b",
                                        scopes[0][equivalent.end():], re.I):
                 equivalent = None
@@ -404,7 +477,7 @@ def parse_education_requirement(text):
             elif 'preferred' in strengths:
                 classification = 'DEGREE_PREFERRED'
             if classification:
-                claims.append((classification, ' '.join(value[clause.start():clause.end()].split())))
+                claims.append((classification, ' '.join(value[clause_start:clause_end].split())))
     # An explicit mandatory claim is not erased by a preferred or alternative
     # claim in another clause. An alternative within the same claim stays distinct.
     priority = ('BACHELORS_REQUIRED', 'BACHELORS_OR_EQUIVALENT_EXPERIENCE',

@@ -188,3 +188,20 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
         self.assertEqual(operation.json()['state'], 'COMPLETED')
         self.assertEqual(len(self.requests), request_count)
         self.assertEqual(len(self._jobs()), len(examples))
+
+    def test_bracketed_and_comma_only_subjects_survive_intake_filter_and_matching(self):
+        examples = (
+            (4401, "Bachelor's degree (Computer Science, Engineering, or related field) required.", 'BACHELORS_REQUIRED'),
+            (4402, "Bachelor's degree (Computer Science, Engineering, or related field) preferred.", 'BACHELORS_PREFERRED'),
+            (4403, "Bachelor's degree in Computer Science, Engineering required.", 'BACHELORS_REQUIRED'),
+            (4404, "Bachelor's degree in Computer Science, Engineering preferred.", 'BACHELORS_PREFERRED'),
+            (4405, "Bachelor's degree (Computer Science, Engineering), or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            (4406, "Bachelor's degree Computer Science, Engineering or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            (4407, "Bachelor's degree (Computer Science, Engineering) not required.", 'NONE_SPECIFIED'),
+            (4408, "Bachelor's degree (Computer Science, Engineering), Python required.", 'NONE_SPECIFIED'),
+            (4409, "Degree (Computer Science, Engineering) preferred.", 'DEGREE_PREFERRED'),
+            (4410, "Bachelor's degree in Computer Science, Engineering not required, security clearance mandatory.", 'NONE_SPECIFIED'),
+            (4411, "Bachelor's degree, Computer Science, Engineering required.", 'BACHELORS_REQUIRED'),
+            (4412, "Bachelor's degree (Computer Science, Engineering) optional, Python required.", 'NONE_SPECIFIED'),
+        )
+        self._assert_categories_and_matching(examples)

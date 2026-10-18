@@ -1,10 +1,91 @@
 """Education claims must retain their own strength and polarity."""
 import unittest
+import re
 
 from services.discovery.search_semantics import parse_education_requirement
 
 
 class EducationRequirementTests(unittest.TestCase):
+    def test_positive_subject_corpus_retains_base_categories_under_list_wrappers(self):
+        # Frozen positive recognition contract from main37ea5e95, before this PR.
+        # Compare the independent span parser with that baseline on ordinary
+        # unnegated claims; negative controls below deliberately improve it.
+        baseline = (
+            ('BACHELORS_OR_EQUIVALENT_EXPERIENCE', r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\b(?:or|and/or)\b[^.;\n]{0,60}\bequivalent\s+(?:experience|combination)\b"),
+            ('BACHELORS_PREFERRED', r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\bpreferred\b"),
+            ('BACHELORS_REQUIRED', r"\bbachelor(?:'s|s)?(?:\s+degree)?\b[^.;\n]{0,80}\b(?:required|mandatory)\b"),
+            ('DEGREE_PREFERRED', r"\b(?:college\s+|university\s+)?degree\b[^.;\n]{0,60}\bpreferred\b"),
+        )
+        descriptors = (
+            '', ' in Computer Science',
+            ' in Computer Science, Engineering',
+            ' in Computer Science, Engineering, or related field',
+            ' (Computer Science, Engineering, or related field)',
+            ' (Computer Science, Engineering)',
+            ' [Computer Science, Engineering]',
+            ' {Computer Science, Engineering}',
+            ' (Computer Science [Systems, Engineering])',
+            ' Computer Science, Engineering',
+            ', Computer Science, Engineering',
+            ' in Computer Science and Engineering',
+            ' in Computer Science or Engineering',
+            ' — Computer Science, Engineering —',
+            ': Computer Science, Engineering',
+        )
+        categories = (
+            (' required', 'BACHELORS_REQUIRED'),
+            (' mandatory', 'BACHELORS_REQUIRED'),
+            (' preferred', 'BACHELORS_PREFERRED'),
+            (' or equivalent experience required', 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+        )
+        for prefix in ("Bachelor's degree", 'Bachelors degree', 'Bachelor degree'):
+            for descriptor in descriptors:
+                for suffix, category in categories:
+                    original = prefix + descriptor + suffix
+                    expected = next((label for label, pattern in baseline if re.search(pattern, original, re.I)), 'NONE_SPECIFIED')
+                    self.assertEqual(expected, category, original)
+                    for text in dict.fromkeys((original, original.replace("'", '’'))):
+                        with self.subTest(text=text):
+                            result = parse_education_requirement(text)
+                            self.assertEqual(result['classification'], expected)
+                            self.assertEqual(result['raw'], ' '.join(text.split()))
+        for descriptor in descriptors:
+            text = 'Degree' + descriptor + ' preferred'
+            with self.subTest(text=text):
+                expected = next((label for label, pattern in baseline if re.search(pattern, text, re.I)), 'NONE_SPECIFIED')
+                self.assertEqual(expected, 'DEGREE_PREFERRED')
+                self.assertEqual(parse_education_requirement(text)['classification'], expected)
+
+    def test_bracketed_subjects_preserve_polarity_and_unrelated_subject_boundaries(self):
+        cases = (
+            ("Bachelor's degree (Computer Science, Engineering) not required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (Computer Science, Engineering), Python required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree [Computer Science, Engineering], security clearance required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree, and Python required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree, but Python required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (Computer Science, Engineering), and security clearance required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (Computer Science, Engineering) not required, but preferred.", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree (Computer Science; Engineering) required.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree (Computer Science [Systems, Engineering]) preferred.", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree (Computer Science, Engineering), or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            ("Bachelor's degree (Computer Science, Engineering, or equivalent experience) required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            ("Bachelor's degree required (or equivalent experience) not accepted.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree (Computer Science, Engineering, or equivalent experience) not accepted.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree optional, Python required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (Computer Science, Engineering) optional, Python required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (security clearance required).", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (not required; security clearance required).", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (Computer Science preferred; security clearance required).", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree (required).", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree in Computer Science, Engineering not required, Python mandatory.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree (Computer Science, Engineering) required; Python preferred.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree (Computer Science, Engineering required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree [Computer Science, Engineering) required.", 'NONE_SPECIFIED'),
+        )
+        for text, category in cases:
+            with self.subTest(text=text):
+                self.assertEqual(parse_education_requirement(text)['classification'], category)
+
     def test_supported_categories_negation_and_clause_conflicts(self):
         cases = (
             ("Bachelor's required", "BACHELORS_REQUIRED"),
