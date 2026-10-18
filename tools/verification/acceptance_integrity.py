@@ -102,6 +102,59 @@ def lifecycle_flags(row: dict, issue: dict | None, project: dict | None) -> list
     return flags
 
 
+def compare_issue_contract(seed: str, body: str | None, identifier: str) -> dict:
+    """Compare the entire seeded contract, allowing only bounded dated context.
+
+    Never compare just the authoritative prose: identity, metadata, delivery
+    clauses and traceability must all survive byte-for-byte after CRLF
+    normalization. A recognized implementation preface is informational only.
+    Unknown Markdown/HTML wrappers or ambiguous sections remain discrepancies.
+    """
+    result = {"matches": False, "basis": "DIFFERS_OR_AMBIGUOUS",
+              "issue_body_sha256": hashlib.sha256(body.encode()).hexdigest()
+              if isinstance(body, str) else None}
+    if not isinstance(seed, str) or not isinstance(body, str):
+        return result
+    seed, body = (value.replace("\r\n", "\n").strip() for value in (seed, body))
+    marker = f"<!-- mj-requirement:{identifier} -->"
+    identity = f"Requirement-ID: `{identifier}`"
+    sections = re.findall(r"^## .+$", seed, re.MULTILINE)
+    required = {"## Child requirement", "## Acceptance"} if "## Child requirement" in sections else {
+        "## Requirement", "## Authoritative requirement text", "## Delivery contract", "## Traceability"}
+    if (not seed.startswith(marker + "\n") or not required.issubset(sections)
+            or len(sections) != len(set(sections))):
+        return result
+    for text in (seed, body):
+        if (len(re.findall(r"mj-requirement\s*:", text, re.IGNORECASE)) != 1
+                or len(re.findall(rf"^{re.escape(marker)}$", text, re.MULTILINE)) != 1
+                or len(re.findall(r"^[ \t]*Requirement-ID\s*:", text, re.MULTILINE | re.IGNORECASE)) != 1
+                or len(re.findall(rf"^{re.escape(identity)}$", text, re.MULTILINE)) != 1):
+            return result
+    start = body.index(marker)
+    if body[start:] != seed:
+        return result
+    prefix = body[:start].strip()
+    if not prefix:
+        return {**result, "matches": True, "basis": "EXACT_SEED"}
+    # Intentionally narrow: the known dated implementation-note format, with
+    # a separator before the seed. More formats require explicit reviewed tests.
+    heading = re.fullmatch(r"## Current implementation \u2014 (\d{4}-\d{2}-\d{2})", prefix.splitlines()[0])
+    if not heading or not prefix.endswith("\n\n---"):
+        return result
+    try:
+        datetime.strptime(heading.group(1), "%Y-%m-%d")
+    except ValueError:
+        return result
+    prose = "\n".join(prefix.splitlines()[1:-2])
+    if (not prose.strip() or re.search(r"^[ \t]*#{1,6}[ \t]", prose, re.MULTILINE)
+            or re.search(r"^[ \t]*(?:`{3,}|~{3,})", prose, re.MULTILINE)
+            or "<" in prose or ">" in prose):
+        return result
+    return {**result, "matches": True, "basis": "SEED_WITH_DATED_CONTEXT",
+            "context_date": heading.group(1),
+            "normalized_context_sha256": hashlib.sha256(prefix.encode()).hexdigest()}
+
+
 def _walk(value):
     yield value
     if isinstance(value, dict):
@@ -277,8 +330,11 @@ def build_census(root: Path, snapshot: dict | None = None) -> dict:
             flags.append("CONTRACT_NOT_CAPTURED")
         if issue:
             row["issue_state"] = {k: issue.get(k) for k in ("state", "state_reason", "closed_at")}
-            if seed and contract.replace("\r\n", "\n").strip() != issue.get("body", "").replace("\r\n", "\n").strip():
-                flags.append("ISSUE_CONTRACT_DIFFERS")
+            if seed:
+                comparison = compare_issue_contract(contract, issue.get("body"), rid)
+                row["contract"]["issue_comparison"] = comparison
+                if not comparison["matches"]:
+                    flags.append("ISSUE_CONTRACT_DIFFERS")
             row["issue_labels"] = sorted(label["name"] for label in issue.get("labels", [])
                                          if label["name"].startswith(("acceptance:", "priority:")))
         row["project"] = {key: project.get(key) for key in ("Status", "Acceptance", "Priority")} if project else None
