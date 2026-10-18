@@ -116,6 +116,12 @@ tasks.execute_operation(sys.argv[1])
         with self.store.engine.begin() as connection:
             connection.execute(update(m.operations).where(m.operations.c.id==queued['operation_id']).values(lease_expires_at='2000-01-01T00:00:00+00:00'))
         recover_expired(self.store)
+        recovered = self.client.get(path).json()
+        self.assertEqual(recovered['state'], 'COMPLETED')
+        self.assertEqual(recovered['receipt'], saved['receipt'])
+        with self.store.engine.connect() as connection:
+            self.assertEqual(connection.execute(select(m.operations.c.attempt_count).where(
+                m.operations.c.id == queued['operation_id'])).scalar_one(), 1)
         resume="""import json,sys
 from unittest.mock import patch
 from workers.tasks import execute_operation
@@ -124,7 +130,7 @@ with patch('services.applications.controlled_dry_run.run_browser',side_effect=As
 """
         result=subprocess.run([sys.executable,'-c',resume,queued['operation_id']],env=environment,capture_output=True,text=True,timeout=60)
         self.assertEqual(result.returncode,0,result.stderr)
-        self.assertEqual(json.loads(result.stdout)['status'],'COMPLETED')
+        self.assertEqual(json.loads(result.stdout)['status'],'ALREADY_CLAIMED_OR_CAPACITY')
         self.assertEqual(self.client.get(path).json()['receipt'],saved['receipt'])
 
 
