@@ -62,7 +62,7 @@ jobs:
         run: |
           npm ci --prefix apps/web --no-audit --no-fund
           npm run build --prefix apps/web
-          python -m pytest -q tests/browser/test_settings_transfer_recovery.py tests/browser/test_theme.py tests/browser/test_document_generation_failure.py --junitxml=outputs/ci-settings-browser.xml
+          python -m pytest -q tests/browser/test_settings_transfer_recovery.py tests/browser/test_theme.py tests/browser/test_document_generation_failure.py tests/browser/test_ui_e2e_onboarding_controls.py --junitxml=outputs/ci-settings-browser.xml
       - name: Restart and persistence recovery
         run: python -m cli.compose_recovery --baseline outputs/ci-ui-onboarding.json --evidence outputs/ci-recovery.json --project-name "$COMPOSE_PROJECT_NAME" --port "$MJOBS_PORT"
       - name: Fresh-project backup restore and independent receipt replay

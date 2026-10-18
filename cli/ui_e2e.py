@@ -114,6 +114,25 @@ def assert_search_scoped_discovery(request_payload, operation, jobs, *, profile_
         raise AssertionError("search-filtered job readback differs from the reviewed criteria")
 
 
+def assert_discovery_request_operation_pair(request_payload, operation, *, profile_id,
+                                            search_profile_id, expected_operation_id):
+    """Tie a submitted discovery request to the matching persisted operation."""
+    params = operation.get("params") if isinstance(operation, dict) else None
+    if (not isinstance(request_payload, dict) or not isinstance(params, dict)
+            or not isinstance(request_payload.get("request_id"), str)
+            or not request_payload["request_id"]
+            or not isinstance(operation.get("id"), str) or not operation["id"]
+            or operation["id"] != expected_operation_id
+            or request_payload.get("profile_id") != profile_id
+            or params.get("profile_id") != profile_id
+            or operation.get("entity_id") != profile_id
+            or request_payload.get("search_profile_id") != search_profile_id
+            or params.get("search_profile_id") != search_profile_id
+            or params.get("request_id") != request_payload["request_id"]):
+        raise AssertionError("discovery request and persisted operation do not match")
+    return operation["id"], request_payload["request_id"]
+
+
 def assert_supported_fixture_search(search, *, profile_id, include_titles, remote):
     """Require a Sources-tab discovery search, never a Jobs filter snapshot."""
     criteria = search.get("criteria") if isinstance(search, dict) else None
@@ -393,6 +412,8 @@ def run(base_url, evidence_path, onboarding=False):
                     return search
 
                 def collect_sources_fixture_search(search, expected_titles):
+                    # Search selection happens in Jobs; the collection control is in Sources.
+                    navigation("Sources")
                     with page.expect_response(lambda response:
                             response.request.method == "POST"
                             and urlsplit(response.url).path == "/discovery") as discovery_response:
@@ -409,7 +430,9 @@ def run(base_url, evidence_path, onboarding=False):
                             break
                         time.sleep(0.5)
                     assert operation["state"] == "COMPLETED", operation
-                    assert operation["params"]["request_id"] == discovery_request["request_id"]
+                    operation_id, request_id = assert_discovery_request_operation_pair(
+                        discovery_request, operation, profile_id=profile_id,
+                        search_profile_id=search["id"], expected_operation_id=operation_id)
                     jobs = request("/jobs?profile_id=" + profile_id
                                    + "&search_profile_id=" + search["id"])["jobs"]
                     assert_search_scoped_discovery(
@@ -419,6 +442,7 @@ def run(base_url, evidence_path, onboarding=False):
                     discovery_search_proofs.append({
                         "search_profile_id": search["id"],
                         "operation_id": operation_id,
+                        "request_id": request_id,
                         "profile_id": profile_id,
                         "filtered_titles": [row["title"] for row in jobs],
                         "result": "PASS",
@@ -438,40 +462,10 @@ def run(base_url, evidence_path, onboarding=False):
 
                 matching_search = save_sources_fixture_search(
                     "Synthetic remote data engineering onboarding search", "Data Engineer")
-                with page.expect_response(lambda candidate:
-                        candidate.request.method == "POST"
-                        and urlsplit(candidate.url).path == "/discovery") as matching_response:
-                    page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
-                response = matching_response.value
-                assert response.status == 202, response.text()
-                matching_request = response.request.post_data_json
-                assert matching_request["search_profile_id"] == matching_search["id"]
-                matching_request_id = matching_request["request_id"]
-                discovery_operation_id = response.json()["operation_id"]
-                discovery_deadline = time.monotonic() + 120
-                while time.monotonic() < discovery_deadline:
-                    discovery_operation = request("/operations/" + discovery_operation_id)
-                    if discovery_operation["state"] in ("COMPLETED", "FAILED", "BLOCKED", "CANCELLED"):
-                        break
-                    time.sleep(0.5)
-                assert discovery_operation["state"] == "COMPLETED", discovery_operation
-                assert discovery_operation["params"]["request_id"] == matching_request_id
-                matching_jobs = request("/jobs?profile_id=" + profile_id
-                                         + "&search_profile_id=" + matching_search["id"])["jobs"]
-                assert_search_scoped_discovery(
-                    matching_request, discovery_operation, matching_jobs,
-                    profile_id=profile_id, search_profile_id=matching_search["id"],
-                    expected_titles={"Data Engineer"},
-                )
+                discovery_operation_id, discovery_request_id, matching_jobs = (
+                    collect_sources_fixture_search(matching_search, {"Data Engineer"}))
                 discovery_job_ids = {row["id"] for row in matching_jobs}
                 assert discovery_job_ids, "matching saved search returned no fixture jobs"
-                discovery_search_proofs.append({
-                    "search_profile_id": matching_search["id"],
-                    "operation_id": discovery_operation_id,
-                    "profile_id": profile_id,
-                    "filtered_titles": [row["title"] for row in matching_jobs],
-                    "result": "PASS",
-                })
                 actions.append({"action": "Selected a matching remote Data Engineer search; actual fixture worker completed and only the matching job appeared in same-profile filtered readback", "result": "PASS", "boundary": "Jobs UI → Sources UI → queued /discovery → Compose source worker → selected-search jobs API"})
                 history = request("/profiles/" + profile_id + "/search-history")
                 assert history["profile_id"] == profile_id
@@ -481,6 +475,15 @@ def run(base_url, evidence_path, onboarding=False):
                 assert history_item["profile_id"] == profile_id
                 assert history_item["source"] == "mock-fixture"
                 assert history_item["results"] and history_item["results"] > 0
+                persisted_operation = request("/operations/" + discovery_operation_id)
+                assert history_item["id"] == (discovery_operation_id + ":"
+                                               + str(persisted_operation["attempt_count"]))
+                assert_discovery_request_operation_pair(
+                    {"request_id": discovery_request_id, "profile_id": profile_id,
+                     "search_profile_id": matching_search["id"]},
+                    persisted_operation, profile_id=profile_id,
+                    search_profile_id=matching_search["id"],
+                    expected_operation_id=discovery_operation_id)
                 search_after_discovery = next(row for row in request(
                     "/search-profiles?profile_id=" + profile_id)["search_profiles"]
                     if row["id"] == matching_search["id"])

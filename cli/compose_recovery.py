@@ -29,13 +29,14 @@ RECOVERY_RESTART_SERVICES = (
 )
 RECOVERY_MUTATION_SERVICES = RECOVERY_RESTART_SERVICES
 REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
-JOB_INVENTORY_VERSION = 1
+JOB_INVENTORY_VERSION = 2
 CANONICAL_JOB_FIELDS = (
     "company_id", "requisition", "title", "description", "skills", "location",
     "remote_type", "attributes", "company",
 )
 JOB_ROUTE_FIELDS = ("id", "company_id", "provider", "tenant", "requisition", "url")
 SOURCE_COPY_FIELDS = ("source", "source_job_id", "source_url", "application_url")
+VOLATILE_JOB_OBSERVATION_FIELDS = frozenset({"last_seen_at"})
 
 
 def _run_bounded(command, *, timeout, action, environment=None):
@@ -375,6 +376,16 @@ def _inventory_digest(value):
     ).encode("utf-8")).hexdigest()
 
 
+def _stable_job_projection(value):
+    """Retain substantive job/source-copy content while excluding recollection time."""
+    if isinstance(value, dict):
+        return {key: _stable_job_projection(item) for key, item in value.items()
+                if key not in VOLATILE_JOB_OBSERVATION_FIELDS}
+    if isinstance(value, list):
+        return [_stable_job_projection(item) for item in value]
+    return value
+
+
 def validate_public_job_inventory(inventory):
     if (not isinstance(inventory, dict)
             or set(inventory) != {"schema_version", "profile_id", "job_count",
@@ -436,7 +447,8 @@ def collect_public_job_inventory(get_json, profile_id):
         if not isinstance(routes, list) or not routes or not isinstance(postings, list) or not postings:
             raise ValueError("Public job is missing application routes or source copies")
         canonical = {"job_id": job_id,
-                     "fields": {field: detail[field] for field in CANONICAL_JOB_FIELDS},
+                     "fields": _stable_job_projection(
+                         {field: detail[field] for field in CANONICAL_JOB_FIELDS}),
                      "routes": sorted(({field: route.get(field) for field in JOB_ROUTE_FIELDS}
                                        for route in routes),
                                       key=lambda route: (str(route["provider"]), str(route["tenant"]),
@@ -446,7 +458,8 @@ def collect_public_job_inventory(get_json, profile_id):
             if not isinstance(posting, dict) or any(field not in posting for field in SOURCE_COPY_FIELDS):
                 raise ValueError("Public posting source copy is missing stable identity fields")
             source_copies.append({**{field: posting[field] for field in SOURCE_COPY_FIELDS},
-                                  "raw_sha256": _inventory_digest(posting.get("raw"))})
+                                  "raw_sha256": _inventory_digest(
+                                      _stable_job_projection(posting.get("raw")))})
         source_copies.sort(key=lambda row: (str(row["source"]), str(row["source_job_id"]),
                                             str(row["source_url"])))
         inventory_rows.append({"job_id": job_id,

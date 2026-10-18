@@ -34,6 +34,69 @@ class _Response:
 
 
 class ComposeRecoveryTargetTests(unittest.TestCase):
+    def test_public_job_inventory_ignores_only_volatile_last_seen_timestamps(self):
+        from cli import compose_recovery
+
+        detail = {"id": "job-a", "company_id": "company-a", "company": "Example",
+                  "requisition": "A", "title": "Python Developer", "description": "Synthetic A",
+                  "skills": ["Python"], "location": "US", "remote_type": "REMOTE",
+                  "attributes": {"last_seen_at": "2026-10-18T20:00:00Z", "level": "senior"},
+                  "routes": [{"id": "route-a", "company_id": "company-a", "provider": "mock-ats",
+                              "tenant": "example", "requisition": "A", "url": "http://mock/apply/A"}],
+                  "postings": [{"source": "mock-fixture", "source_job_id": "employer-A",
+                                "source_url": "http://mock/jobs/A", "application_url": "http://mock/apply/A",
+                                "raw": {"title": "Python Developer", "last_seen_at": "2026-10-18T20:00:00Z",
+                                        "description": "Synthetic A"}}]}
+        state = {"rows": [{"id": "job-a", "title": "Python Developer"}], "detail": detail}
+
+        def collect():
+            return compose_recovery.collect_public_job_inventory(
+                lambda path: {"jobs": state["rows"]} if path == "/jobs?profile_id=profile-fixture-1"
+                else state["detail"], "profile-fixture-1")
+
+        baseline = collect()
+        state["detail"]["attributes"]["last_seen_at"] = "2026-10-18T20:05:00Z"
+        state["detail"]["postings"][0]["raw"]["last_seen_at"] = "2026-10-18T20:05:00Z"
+        self.assertEqual(collect()["sha256"], baseline["sha256"])
+
+        changed_attributes = json.loads(json.dumps(state["detail"]))
+        changed_attributes["attributes"]["level"] = "junior"
+        original_detail = state["detail"]
+        state["detail"] = changed_attributes
+        with self.assertRaisesRegex(ValueError, "job/source inventory changed"):
+            compose_recovery.compare_public_job_inventory(
+                {"job_inventory": baseline}, baseline, collect())
+        state["detail"] = original_detail
+
+        changed_copy = json.loads(json.dumps(state["detail"]))
+        changed_copy["postings"][0]["raw"]["description"] = "Changed substantive source copy"
+        state["detail"] = changed_copy
+        with self.assertRaisesRegex(ValueError, "job/source inventory changed"):
+            compose_recovery.compare_public_job_inventory(
+                {"job_inventory": baseline}, baseline, collect())
+        state["detail"] = original_detail
+
+        changed_route = json.loads(json.dumps(state["detail"]))
+        changed_route["routes"][0]["url"] = "http://mock/apply/changed"
+        state["detail"] = changed_route
+        with self.assertRaisesRegex(ValueError, "job/source inventory changed"):
+            compose_recovery.compare_public_job_inventory(
+                {"job_inventory": baseline}, baseline, collect())
+        state["detail"] = original_detail
+
+        state["detail"] = json.loads(json.dumps(original_detail))
+        state["detail"]["routes"] = []
+        with self.assertRaisesRegex(ValueError, "missing application routes or source copies"):
+            collect()
+        state["detail"] = json.loads(json.dumps(original_detail))
+        state["detail"]["postings"] = []
+        with self.assertRaisesRegex(ValueError, "missing application routes or source copies"):
+            collect()
+        state["detail"] = original_detail
+        state["rows"] = []
+        with self.assertRaisesRegex(ValueError, "at least one profile-scoped job"):
+            collect()
+
     def test_public_job_inventory_records_canonical_and_source_copy_identity(self):
         from cli import compose_recovery
 

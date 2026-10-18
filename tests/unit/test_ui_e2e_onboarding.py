@@ -78,26 +78,36 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
             with self.subTest(method=method, path=path):
                 self.assertFalse(ui_e2e.is_allowed_onboarding_application_write(method, path))
 
-    def test_answer_bank_confirmation_locator_targets_aria_labeled_div(self):
-        from playwright.sync_api import sync_playwright
-
-        with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
-            page = browser.new_page()
-            page.set_content("""
-              <fieldset role="group" aria-label="Question 1">
-                <div class="provenance" aria-label="Answer Bank confirmation for question 1">
-                  <label><input type="checkbox" aria-label="I confirm this answer is accurate and may be reused"></label>
-                </div>
-              </fieldset>
-            """)
-            group = page.get_by_role("group", name="Question 1")
-            confirmation = ui_e2e.answer_bank_confirmation_locator(group, 1)
-            self.assertEqual(confirmation.count(), 1)
-            self.assertEqual(group.get_by_role("region", name="Answer Bank confirmation for question 1").count(), 0)
-            browser.close()
-
     def test_discovery_oracle_requires_selected_search_and_exact_filtered_readback(self):
+        ui_e2e.assert_discovery_request_operation_pair(
+            {"request_id": "matching-request", "profile_id": "synthetic-profile",
+             "search_profile_id": "matching-search"},
+            {"id": "matching-operation", "entity_id": "synthetic-profile",
+             "params": {"request_id": "matching-request", "profile_id": "synthetic-profile",
+                        "search_profile_id": "matching-search"}},
+            profile_id="synthetic-profile", search_profile_id="matching-search",
+            expected_operation_id="matching-operation",
+        )
+        with self.assertRaisesRegex(AssertionError, "request.*operation"):
+            ui_e2e.assert_discovery_request_operation_pair(
+                {"request_id": "nonmatching-request", "profile_id": "synthetic-profile",
+                 "search_profile_id": "matching-search"},
+                {"id": "matching-operation", "entity_id": "synthetic-profile",
+                 "params": {"request_id": "matching-request", "profile_id": "synthetic-profile",
+                            "search_profile_id": "matching-search"}},
+                profile_id="synthetic-profile", search_profile_id="matching-search",
+                expected_operation_id="matching-operation",
+            )
+        with self.assertRaisesRegex(AssertionError, "request.*operation"):
+            ui_e2e.assert_discovery_request_operation_pair(
+                {"request_id": "matching-request", "profile_id": "synthetic-profile",
+                 "search_profile_id": "matching-search"},
+                {"id": "older-operation", "entity_id": "synthetic-profile",
+                 "params": {"request_id": "matching-request", "profile_id": "synthetic-profile",
+                            "search_profile_id": "matching-search"}},
+                profile_id="synthetic-profile", search_profile_id="matching-search",
+                expected_operation_id="matching-operation",
+            )
         request_payload = {
             "profile_id": "synthetic-profile",
             "search_profile_id": "matching-search",
