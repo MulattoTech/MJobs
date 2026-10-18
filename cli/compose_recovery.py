@@ -37,6 +37,7 @@ CANONICAL_JOB_FIELDS = (
 JOB_ROUTE_FIELDS = ("id", "company_id", "provider", "tenant", "requisition", "url")
 SOURCE_COPY_FIELDS = ("source", "source_job_id", "source_url", "application_url")
 VOLATILE_JOB_OBSERVATION_FIELDS = frozenset({"last_seen_at"})
+VOLATILE_LIFECYCLE_FIELDS = frozenset({"observation_id", "observed_at"})
 
 
 def _run_bounded(command, *, timeout, action, environment=None):
@@ -377,10 +378,21 @@ def _inventory_digest(value):
 
 
 def _stable_job_projection(value):
-    """Retain substantive job/source-copy content while excluding recollection time."""
+    """Retain stable content while excluding collection-specific lifecycle identity/time."""
     if isinstance(value, dict):
-        return {key: _stable_job_projection(item) for key, item in value.items()
-                if key not in VOLATILE_JOB_OBSERVATION_FIELDS}
+        projection = {}
+        for key, item in value.items():
+            if key in VOLATILE_JOB_OBSERVATION_FIELDS:
+                continue
+            if key == "lifecycle" and isinstance(item, dict):
+                projection[key] = {
+                    field: _stable_job_projection(field_value)
+                    for field, field_value in item.items()
+                    if field not in VOLATILE_LIFECYCLE_FIELDS
+                }
+            else:
+                projection[key] = _stable_job_projection(item)
+        return projection
     if isinstance(value, list):
         return [_stable_job_projection(item) for item in value]
     return value

@@ -116,7 +116,7 @@ def assert_search_scoped_discovery(request_payload, operation, jobs, *, profile_
 
 def assert_discovery_request_operation_pair(request_payload, operation, *, profile_id,
                                             search_profile_id, expected_operation_id):
-    """Tie a submitted discovery request to the matching persisted operation."""
+    """Tie a submitted request to its operation; entity_id owns the profile scope."""
     params = operation.get("params") if isinstance(operation, dict) else None
     if (not isinstance(request_payload, dict) or not isinstance(params, dict)
             or not isinstance(request_payload.get("request_id"), str)
@@ -124,7 +124,6 @@ def assert_discovery_request_operation_pair(request_payload, operation, *, profi
             or not isinstance(operation.get("id"), str) or not operation["id"]
             or operation["id"] != expected_operation_id
             or request_payload.get("profile_id") != profile_id
-            or params.get("profile_id") != profile_id
             or operation.get("entity_id") != profile_id
             or request_payload.get("search_profile_id") != search_profile_id
             or params.get("search_profile_id") != search_profile_id

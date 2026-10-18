@@ -34,13 +34,134 @@ class _Response:
 
 
 class ComposeRecoveryTargetTests(unittest.TestCase):
+    def test_public_inventory_digest_survives_two_real_fixture_lifecycle_observations(self):
+        from fastapi.testclient import TestClient
+
+        from apps.api.main import create_app
+        from cli.compose_recovery import collect_public_job_inventory
+        from fixtures.mock_server import fixture_server
+        from packages.persistence.store import Store
+        from services.discovery.search_profiles import save_search_profile
+        from tests.integration.test_spine import PROFILE
+        from workers.tasks import execute_operation
+
+        with tempfile.TemporaryDirectory(prefix="mjobs-public-job-lifecycle-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'fixture.db').as_posix()}")
+            try:
+                store.migrate()
+                store.bind_workspace_mode("FIXTURE")
+                store.save_profile(dict(PROFILE))
+                save_search_profile(store, {
+                    "id": "lifecycle-search", "profile_id": PROFILE["id"],
+                    "name": "Synthetic Data Engineer search", "include_titles": ["Data Engineer"],
+                    "enabled": True,
+                })
+                with fixture_server() as origin:
+                    app = create_app(store, origin, root,
+                                     "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+                    inventories = []
+                    lifecycle_observations = []
+                    for index in range(2):
+                        request_id = f"lifecycle-collection-{index}"
+                        with TestClient(app) as client:
+                            queued = client.post("/discovery", json={
+                                "profile_id": PROFILE["id"],
+                                "search_profile_id": "lifecycle-search",
+                                "request_id": request_id,
+                            })
+                        self.assertEqual(queued.status_code, 202, queued.text)
+                        with patch.dict(os.environ, {
+                            "MJOBS_DATABASE_URL": store.url,
+                            "MJOBS_MOCK_ORIGIN": origin,
+                            "MJOBS_OUTPUT_DIR": str(root),
+                            "MJOBS_OPERATION_MODE": "FIXTURE",
+                        }):
+                            result = execute_operation(queued.json()["operation_id"])
+                        self.assertEqual(result["status"], "COMPLETED", result)
+
+                        with TestClient(app) as client:
+                            def get_json(path):
+                                response = client.get(path)
+                                self.assertEqual(response.status_code, 200, response.text)
+                                return response.json()
+
+                            inventories.append(collect_public_job_inventory(get_json, PROFILE["id"]))
+                            detail = get_json(
+                                "/jobs/" + inventories[-1]["jobs"][0]["job_id"]
+                                + "?profile_id=" + PROFILE["id"])
+                        self.assertIn("lifecycle", detail["attributes"])
+                        self.assertIn("observation_id", detail["attributes"]["lifecycle"])
+                        self.assertIn("observed_at", detail["attributes"]["lifecycle"])
+                        lifecycle_observations.append(detail["attributes"]["lifecycle"])
+
+                self.assertGreaterEqual(len(inventories[0]["jobs"]), 1)
+                self.assertEqual(inventories[1]["sha256"], inventories[0]["sha256"])
+                self.assertNotEqual(lifecycle_observations[0]["observation_id"],
+                                    lifecycle_observations[1]["observation_id"])
+                self.assertNotEqual(lifecycle_observations[0]["observed_at"],
+                                    lifecycle_observations[1]["observed_at"])
+                self.assertEqual(lifecycle_observations[0]["authority"],
+                                 lifecycle_observations[1]["authority"])
+                self.assertEqual(lifecycle_observations[0]["evidence"],
+                                 lifecycle_observations[1]["evidence"])
+            finally:
+                store.engine.dispose()
+
+    def test_public_discovery_operation_binds_request_and_search_without_duplicate_profile_param(self):
+        from fastapi.testclient import TestClient
+
+        from apps.api.main import create_app
+        from packages.persistence.store import Store
+        from services.discovery.search_profiles import save_search_profile
+        from tests.integration.test_spine import PROFILE
+
+        with tempfile.TemporaryDirectory(prefix="mjobs-public-discovery-operation-") as directory:
+            root = Path(directory)
+            store = Store(f"sqlite:///{(root / 'fixture.db').as_posix()}")
+            try:
+                store.migrate()
+                store.bind_workspace_mode("FIXTURE")
+                store.save_profile(dict(PROFILE))
+                save_search_profile(store, {
+                    "id": "selected-search", "profile_id": PROFILE["id"],
+                    "name": "Synthetic selected search", "include_titles": ["Data Engineer"],
+                    "enabled": True,
+                })
+                app = create_app(store, "http://127.0.0.1:1", root,
+                                 "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+                request_id = "public-discovery-pair-request"
+                with TestClient(app) as client:
+                    queued = client.post("/discovery", json={
+                        "profile_id": PROFILE["id"], "search_profile_id": "selected-search",
+                        "request_id": request_id,
+                    })
+                    self.assertEqual(queued.status_code, 202, queued.text)
+                    operation_id = queued.json()["operation_id"]
+                    persisted = client.get("/operations/" + operation_id)
+                    self.assertEqual(persisted.status_code, 200, persisted.text)
+                    public_operation = persisted.json()
+                self.assertEqual(public_operation["id"], operation_id)
+                self.assertEqual(public_operation["entity_id"], PROFILE["id"])
+                self.assertEqual(public_operation["params"]["request_id"], request_id)
+                self.assertEqual(public_operation["params"]["search_profile_id"], "selected-search")
+                self.assertNotIn("profile_id", public_operation["params"])
+            finally:
+                store.engine.dispose()
+
     def test_public_job_inventory_ignores_only_volatile_last_seen_timestamps(self):
         from cli import compose_recovery
 
         detail = {"id": "job-a", "company_id": "company-a", "company": "Example",
                   "requisition": "A", "title": "Python Developer", "description": "Synthetic A",
                   "skills": ["Python"], "location": "US", "remote_type": "REMOTE",
-                  "attributes": {"last_seen_at": "2026-10-18T20:00:00Z", "level": "senior"},
+                  "attributes": {"last_seen_at": "2026-10-18T20:00:00Z", "level": "senior",
+                                  "status": "ACTIVE", "lifecycle": {
+                                      "observation_id": "fixture-observation-old",
+                                      "authority": "DIRECT_EMPLOYER",
+                                      "observed_at": "2026-10-18T20:00:00Z",
+                                      "evidence": {"kind": "FICTIONAL_LOCAL_SOURCE",
+                                                   "snapshot_id": "stable-source-snapshot"}}},
                   "routes": [{"id": "route-a", "company_id": "company-a", "provider": "mock-ats",
                               "tenant": "example", "requisition": "A", "url": "http://mock/apply/A"}],
                   "postings": [{"source": "mock-fixture", "source_job_id": "employer-A",
@@ -56,6 +177,8 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
 
         baseline = collect()
         state["detail"]["attributes"]["last_seen_at"] = "2026-10-18T20:05:00Z"
+        state["detail"]["attributes"]["lifecycle"]["observed_at"] = "2026-10-18T20:05:00Z"
+        state["detail"]["attributes"]["lifecycle"]["observation_id"] = "fixture-observation-new"
         state["detail"]["postings"][0]["raw"]["last_seen_at"] = "2026-10-18T20:05:00Z"
         self.assertEqual(collect()["sha256"], baseline["sha256"])
 
@@ -63,6 +186,14 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         changed_attributes["attributes"]["level"] = "junior"
         original_detail = state["detail"]
         state["detail"] = changed_attributes
+        with self.assertRaisesRegex(ValueError, "job/source inventory changed"):
+            compose_recovery.compare_public_job_inventory(
+                {"job_inventory": baseline}, baseline, collect())
+        state["detail"] = original_detail
+
+        changed_lifecycle_authority = json.loads(json.dumps(state["detail"]))
+        changed_lifecycle_authority["attributes"]["lifecycle"]["authority"] = "AGGREGATOR"
+        state["detail"] = changed_lifecycle_authority
         with self.assertRaisesRegex(ValueError, "job/source inventory changed"):
             compose_recovery.compare_public_job_inventory(
                 {"job_inventory": baseline}, baseline, collect())
