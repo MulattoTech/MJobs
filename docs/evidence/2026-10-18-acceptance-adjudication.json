@@ -1,0 +1,1787 @@
+{
+  "schema_version": 1,
+  "record_type": "historical_acceptance_adjudication",
+  "recorded_at_utc": "2026-10-18T20:37:47.874285+00:00",
+  "audit_source_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48",
+  "audit_source_tree": "9cdafebedc3d9a74be326f5cadd65d4589e1918f",
+  "original_sprint_baseline": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+  "requirement_ids": [
+    "MJ-REQ-119",
+    "MJ-REQ-156",
+    "MJ-REQ-158",
+    "MJ-REQ-166",
+    "MJ-REQ-169",
+    "MJ-REQ-176",
+    "MJ-REQ-010"
+  ],
+  "scope": "Root-authorized serialized evidence preparation: only MJ-REQ-010 canonical note/evidence changes; six historical PASS records/results and all priorities unchanged. Provider corrections are proposals pending independent review and Root execution. No new acceptance promotion.",
+  "denominators": {
+    "original": 366,
+    "supplemental": 59,
+    "total": 425,
+    "original_p0": 26
+  },
+  "recorded_counts": {
+    "original": {
+      "PARTIAL": 98,
+      "PASS": 125,
+      "NOT_RUN": 143
+    },
+    "supplemental": {
+      "PARTIAL": 4,
+      "PASS": 19,
+      "NOT_RUN": 36
+    },
+    "p0": {
+      "PARTIAL": 5,
+      "PASS": 11,
+      "NOT_RUN": 10
+    }
+  },
+  "fresh_whole_contract_acceptance": "NOT_RUN_FOR_ALL_425",
+  "census": {
+    "source_revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48",
+    "captured_at": "2026-10-18T20:32:58.898782+00:00",
+    "unique_requirement_ids": 425,
+    "unique_mapped_issues": 425,
+    "evidence_identities_before_this_record": 341,
+    "owner_kind": "USER",
+    "project_number": 1,
+    "project_items": 459,
+    "project_pages": 5,
+    "missing_or_duplicate_mappings": 0,
+    "non_catalogue_issue_count": 34,
+    "non_catalogue_qualification": "Extra provider records are outside catalogue membership; not automatically orphans."
+  },
+  "adjudications": [
+    {
+      "id": "MJ-REQ-119",
+      "classification": "SUPPORTED_HISTORICAL_PASS_TRACKING_STALE",
+      "finding": "Fresh excellent matches overtake stale work through durable preparation priority. PR616 historically demonstrated real PostgreSQL/Redis FIFO delivery and cold production worker execution, not only helper ordering. Current Project Todo/NOT_RUN and open issue120 lag that accepted slice.",
+      "criteria_proof": [
+        "Literal contract requires new excellent matches before stale lower-quality jobs using queue priorities.",
+        "PR616 retained JUnit: PreparationPriorityTests12 PASS and PostgreSQLPreparationPriorityTests14 PASS, including real Redis FIFO worker priority/lost-queue recovery and cold workers.main startup.",
+        "At baseline-equivalent PR724 tree, same priority suite30 PASS (14 SQLite +16 PostgreSQL), including both real process cases. Core services/matching/preparation_priority.py is unchanged; 8 of14 older referenced files drifted, so older evidence is not blindly transferred."
+      ],
+      "proposal": "Retain canonical PASS. Root may set Project Acceptance PASS and Status Done, and close issue120 as COMPLETED after serialized adjudication. Do not rewrite PR616 or claim a fresh current-run PASS.",
+      "limits": [
+        "The priority implementation applies to admitted PREPARE work; no claim every scheduler uses the same priority scheme.",
+        "Historical PR616/724 executions are distinct; no new worker/database/browser execution in this lane."
+      ],
+      "pr": 616,
+      "contract": {
+        "id": "MJ-REQ-119",
+        "issue": 120,
+        "seed_sha256": "ff72956ec82ac6708aff5b118657406f1a13855a5568a9d6a63559344e32de62",
+        "live_body_sha256": "18afc5c1a80868e66a4b74d3f38e495a11e4c09a467b56a945e6f8fc97299ce6",
+        "normalized_equal": true,
+        "literal_contract": "New excellent matches should be processed before stale lower-quality jobs.\n\nUse queue priorities.\n"
+      },
+      "source_identity": {
+        "requirement": "MJ-REQ-119",
+        "evidence": "docs/evidence/2026-10-13-durable-preparation-priority.json",
+        "evidence_sha256": "1c94577055263e90d1b76a114fb6118a091cfbd554c37558fbf8f9cf2fd75b6a",
+        "tested_revision": "5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35",
+        "tested_tree": "dceb0da2ca4e90560ccee0ee8a0444a1a9e4b2ba",
+        "ancestor_of_baseline": true,
+        "pr": 616,
+        "files": {
+          "services/matching/preparation_priority.py": {
+            "sha256": "0b3c9b25f49cf17a84d791e560184f7d344089ba84097ea985b630d3366a74a2",
+            "tested_sha256": "0b3c9b25f49cf17a84d791e560184f7d344089ba84097ea985b630d3366a74a2",
+            "tested_blob": "2343d36d946a6ab9eb69ba2922a68fb8bbc516b9",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_preparation_priority.py": {
+            "sha256": "b0e7f91084dd23d656e46fbdf231dbeaf051ff86002375b06f37a9c636c7b4f0",
+            "tested_sha256": "b0e7f91084dd23d656e46fbdf231dbeaf051ff86002375b06f37a9c636c7b4f0",
+            "tested_blob": "1b9420dddb5ef195207ca3be896947a7560bbfb7",
+            "baseline_sha256": "88b86f698fa19fae39b942845b850bc3467600d47b58909d6f6961560b8df9d6",
+            "baseline_blob": "ba52de4893b00dae99e81a0619913843ef94be6b",
+            "unchanged": false
+          },
+          ".github/workflows/integration.yml": {
+            "sha256": "c93daa066dc04354c5a1d3f8e95addccc2e939b08650366f064274d3ebc482d4",
+            "tested_sha256": "c93daa066dc04354c5a1d3f8e95addccc2e939b08650366f064274d3ebc482d4",
+            "tested_blob": "3dddfbd0c2c52f80af06b27093a13a9a2e3ff0d2",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "apps/api/main.py": {
+            "sha256": "dcff107382e2a969929b9994be0304f9d078e94000dfc3bd8b84389bb6439810",
+            "tested_sha256": "dcff107382e2a969929b9994be0304f9d078e94000dfc3bd8b84389bb6439810",
+            "tested_blob": "8bbca46f1e6cd8b97c8962ebdc3c0ffbe0772f7e",
+            "baseline_sha256": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00",
+            "baseline_blob": "d8339b0db876b0869dbed92f80e58a997ce84451",
+            "unchanged": false
+          },
+          "apps/api/operation_progress.py": {
+            "sha256": "e578e2a27f43275b246c44526137c332b862a213d897901108f9cd62dc0cd726",
+            "tested_sha256": "e578e2a27f43275b246c44526137c332b862a213d897901108f9cd62dc0cd726",
+            "tested_blob": "3c4046314d1c8094ce0ea0d2be5e34cff9d2f826",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "apps/web/src/operation-progress.test.tsx": {
+            "sha256": "e764a5b055bcec69f89f98dee8c1f410a09950e15da87c8c2c0b6becb82ce842",
+            "tested_sha256": "92dc50563fa33d5b99873072644fec3d13525c13f498579d85d9ad7e12cc0648",
+            "tested_blob": "87f8ec5b3da0ac9ecb66ae801f6a1cb0d363fa2c",
+            "baseline_sha256": "16a8cc79e4a00a56254218dda52267cc26c3a6084cd005795ce7d48431b376f1",
+            "baseline_blob": "396da7e7e0be4bc6951cefc834d5ee924a44a06a",
+            "unchanged": false
+          },
+          "apps/web/src/operation-progress.tsx": {
+            "sha256": "33c1f830119ad967d82886e4a526cb855953c3e5194153d438795e72d560a255",
+            "tested_sha256": "8b22ffa2a82467ead32e5a6f81940506812133b6c4f0d3333ba59fe6c248b528",
+            "tested_blob": "0c76c67f3f5cd670280707250e5a3d9e77f8a4c9",
+            "baseline_sha256": "90a4e020e0848eec27a8afcdfabd714ffdc9d5a90acae8545f05b329c48c763e",
+            "baseline_blob": "1fe180ea219ff365ca263144c011f52b64dee9d7",
+            "unchanged": false
+          },
+          "services/documents/generate.py": {
+            "sha256": "951a0a6e51b568258bf01f70e3fef743cce379304f99171284d71fabe2586d60",
+            "tested_sha256": "951a0a6e51b568258bf01f70e3fef743cce379304f99171284d71fabe2586d60",
+            "tested_blob": "0dec3f29e58a3e68506c3372badd8ab788389f92",
+            "baseline_sha256": "8dad588c9e2246001236dca57837e14fba3489e8ed0fe676efedf7544d169334",
+            "baseline_blob": "92394a696b71c18bc236311cba9ee06082b638c8",
+            "unchanged": false
+          },
+          "services/operations/progress.py": {
+            "sha256": "ae83130461b4811fc3103e6fbf3397eec4a7408d35bf5e170fdb307d75e570d4",
+            "tested_sha256": "ae83130461b4811fc3103e6fbf3397eec4a7408d35bf5e170fdb307d75e570d4",
+            "tested_blob": "60110a29e56bf892e9cd635be5f3cf653bccbdfa",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/browser/test_preparation_priority.py": {
+            "sha256": "055b8c8957fb0e82089bfdf4bac09f6ff535de95e0cb1db021f4c23bc07adfb2",
+            "tested_sha256": "055b8c8957fb0e82089bfdf4bac09f6ff535de95e0cb1db021f4c23bc07adfb2",
+            "tested_blob": "4058a53f79a4fd05950ab6a896e0508d1f1d404c",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "workers/dispatch.py": {
+            "sha256": "091e9cab00ad70cb5f714d8a039acef9b1ea085b2b7787033ab63a4a07d5b128",
+            "tested_sha256": "091e9cab00ad70cb5f714d8a039acef9b1ea085b2b7787033ab63a4a07d5b128",
+            "tested_blob": "0a88ca206cb8458b950a461702f1c38d749380fe",
+            "baseline_sha256": "938da5e0a1b3b45397d98aafcf95be72b3a03634f231c6cbfe45b28219d0881c",
+            "baseline_blob": "00c7f6ef369ac19d5856d5be66d572392d43a1b9",
+            "unchanged": false
+          },
+          "workers/operations.py": {
+            "sha256": "7bc5a33e28ac2043317ab5df4f1f8749c5ca6857fa2c6c5e13ac0173a8b7f5b1",
+            "tested_sha256": "7bc5a33e28ac2043317ab5df4f1f8749c5ca6857fa2c6c5e13ac0173a8b7f5b1",
+            "tested_blob": "53f07aff773f592a73ce2eb3a119c26d967b4667",
+            "baseline_sha256": "5452d690c72c640ed027be38f30aeba7e720f1f3d738d5a8fa708c651ec13ed7",
+            "baseline_blob": "8f5694a117bfccce1e5f279881dea1dc09731559",
+            "unchanged": false
+          },
+          "workers/tasks.py": {
+            "sha256": "dc2f4cb37c2a323cf1f5df671e5312cb174ecfaa3ee8d8775aedcb4c10a2411c",
+            "tested_sha256": "dc2f4cb37c2a323cf1f5df671e5312cb174ecfaa3ee8d8775aedcb4c10a2411c",
+            "tested_blob": "d766e6b273ec01a7cf68b6c58beec8e9141a6be5",
+            "baseline_sha256": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+            "baseline_blob": "e5aef48846f1dce5d062c03eb70285829ee0fd82",
+            "unchanged": false
+          },
+          "workers/main.py": {
+            "sha256": "0116d6c279b56d1af78586b8eb60c471092f55c0329812d22b53e62e1c479f43",
+            "tested_sha256": "0116d6c279b56d1af78586b8eb60c471092f55c0329812d22b53e62e1c479f43",
+            "tested_blob": "b40c1a702318337226fcdebb195697911b05b192",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          }
+        }
+      },
+      "fresh_acceptance": "NOT_RUN",
+      "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+      "source_transfer_note": "Integrated57414 adds only acceptance tooling/tests/evidence to baseline3cf; no audited product/test source bytes changed. Historical executions remain named original revisions.",
+      "lifecycle": [],
+      "recorded_result": "PASS",
+      "proposed_canonical_result": "PASS",
+      "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
+      "historical_ci_ref": 38437021856
+    },
+    {
+      "id": "MJ-REQ-156",
+      "classification": "SUPPORTED_HISTORICAL_PASS_TRACKING_STALE",
+      "finding": "Persistent operation fields and HTTP lifetime independence are supported; worker/container restart is a separate contract. Project Acceptance PARTIAL remained after PR720 acceptance and subsequent issue closure.",
+      "criteria_proof": [
+        "Literal12 fields persist in operation/progress storage; public projection intentionally withholds raw error and recovery payloads.",
+        "Named AI test closes an actual HTTP connection and stops API before worker execution. Uploaded comparison closes its client, executes durable work, then reopens Store/API and preserves saved result and idempotent replay.",
+        "PR720 JUnit includes both exact HTTP lifetime selectors,6 persistent projection cases,1 lifecycle case and2 real recovery/retry cases PASS. Evidence records16 local integration tests and2 mounted browser cases at fadea2d.",
+        "14 enumerated source/test identities are byte-identical from executed fadea2d to baseline3cf. All7 live issue contracts match authoritative seed text."
+      ],
+      "proposal": "Retain canonical PASS and issue157 CLOSED/COMPLETED with Project Done. Root may correct only Project Acceptance PARTIAL to PASS, citing literal contract and execution identities.",
+      "limits": [
+        "Browser execution is corroborated by its committed historical evidence; raw private browser run artifacts were not independently recovered in this audit.",
+        "No physical worker/container/host restart or MJ-REQ-008/158 credit is inferred."
+      ],
+      "pr": 720,
+      "contract": {
+        "id": "MJ-REQ-156",
+        "issue": 157,
+        "seed_sha256": "13642e5e2a5ae62c29eea6346f75964fa3e454dca2fada666658e23b0c4c33fc",
+        "live_body_sha256": "2b143f02aa3bbe831ed33f183ce230bea2a03d1b435572cdfe2f4377d1edeb12",
+        "normalized_equal": true,
+        "literal_contract": "Long-running actions must not depend on one HTTP request remaining open.\n\nRepresent operations:\n\n```text\noperation_id\noperation_type\nentity_id\nstate\ncurrent_step\nprogress\nstarted_at\nupdated_at\ncompleted_at\nerror\nretry_count\nrecovery_metadata\n```\n"
+      },
+      "source_identity": {
+        "requirement": "MJ-REQ-156",
+        "evidence": "docs/evidence/2026-10-17-operation-recovery-progress.json",
+        "evidence_sha256": "99d7718264a0b175875e43577a695820d4be15b71b9d2ca0b2fd40d25cc1571e",
+        "tested_revision": "fadea2dbc96f8a1549d8eff8d5108a0029f19206",
+        "tested_tree": "9f7f2966863abdd1bdb6549963ed8c4ca163622c",
+        "ancestor_of_baseline": true,
+        "pr": 720,
+        "files": {
+          "tests/integration/test_persistent_operation_progress.py": {
+            "tested_sha256": "edf6ebc53926a83d12c80f245cc0fa3da278350218e501999bed4bb59c5536f4",
+            "tested_blob": "46b606bd8715e7c195428d077828c416429f0c8d",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_fleet_t11_operation_recovery_progress.py": {
+            "tested_sha256": "2654fe58f9efe3c9b500a09b5caa2c07932130eec6123df9ef8962cc9637a37e",
+            "tested_blob": "13b37cd96a8d078c872b527e9c463cb1204e7c96",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/browser/test_fleet_t11_operation_recovery_progress.py": {
+            "tested_sha256": "43b6256b58590e9a72b033eb481cca8782733dcade715b77ddf52a93d9952236",
+            "tested_blob": "75bd29ea66f1bc45408095270c1d59250b3492c3",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "packages/persistence/models.py": {
+            "tested_sha256": "5c928e8ce49220bb586e0c0485a488189c42384bd1b79cef209b17205d6d3fb6",
+            "tested_blob": "9df4ad74e9259966115d1f8b558e7f31446f0612",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "apps/api/operation_progress.py": {
+            "tested_sha256": "e578e2a27f43275b246c44526137c332b862a213d897901108f9cd62dc0cd726",
+            "tested_blob": "3c4046314d1c8094ce0ea0d2be5e34cff9d2f826",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "services/operations/progress.py": {
+            "tested_sha256": "ae83130461b4811fc3103e6fbf3397eec4a7408d35bf5e170fdb307d75e570d4",
+            "tested_blob": "60110a29e56bf892e9cd635be5f3cf653bccbdfa",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_durable_ai_evaluation.py": {
+            "tested_sha256": "273050beca9d3954afae96dc9c222b2425dae57d178c32ffdd7d7654c962bbd2",
+            "tested_blob": "eff6ee92aefdcdddb1b4b8e70b9c6e6be6b01638",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "tests/integration/test_durable_uploaded_comparison.py": {
+            "tested_sha256": "09aa8bb03460aac8ac94ec4a2528f9daa6cf7b4b0ed792bfe10bdbb4f55e2c33",
+            "tested_blob": "85a1ef8cba392af88fecda43d86fc57e77fc9d03",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/ai/durable_evaluation.py": {
+            "tested_sha256": "540748c23019bbae9f0a119808189c32297d3a68de6d5c926632c791d2638580",
+            "tested_blob": "86d4cda70fc4cbfe77535e5f0791cb68624ce4f1",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/documents/durable_comparison.py": {
+            "tested_sha256": "37d7cf3efd1076472df17fc9361129e5e167c4840457e9ea2568ee572e56be10",
+            "tested_blob": "8f791b412cb4b703afaf3f1dfd1ba0643ba43f36",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "workers/tasks.py": {
+            "tested_sha256": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+            "tested_blob": "e5aef48846f1dce5d062c03eb70285829ee0fd82",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "workers/operations.py": {
+            "tested_sha256": "5452d690c72c640ed027be38f30aeba7e720f1f3d738d5a8fa708c651ec13ed7",
+            "tested_blob": "8f5694a117bfccce1e5f279881dea1dc09731559",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "apps/api/main.py": {
+            "tested_sha256": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00",
+            "tested_blob": "d8339b0db876b0869dbed92f80e58a997ce84451",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "packages/persistence/store.py": {
+            "tested_sha256": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78",
+            "tested_blob": "8579c488be0f6ff27cd4660c751fdf5d8ab28375",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          }
+        }
+      },
+      "fresh_acceptance": "NOT_RUN",
+      "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+      "source_transfer_note": "Integrated57414 adds only acceptance tooling/tests/evidence to baseline3cf; no audited product/test source bytes changed. Historical executions remain named original revisions.",
+      "lifecycle": [
+        {
+          "event": "closed",
+          "created_at": "2026-10-17T08:43:19Z",
+          "state_reason": null,
+          "commit_id": null,
+          "commit_url": null
+        }
+      ],
+      "recorded_result": "PASS",
+      "proposed_canonical_result": "PASS",
+      "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
+      "historical_ci_ref": 39017608308
+    },
+    {
+      "id": "MJ-REQ-158",
+      "classification": "SUPPORTED_HISTORICAL_PASS_TRACKING_STALE",
+      "finding": "Five literal restart-recovery outcomes have scoped worker-crash and receipt-reconciliation proof. Generic RQ/PG history must remain separately qualified.",
+      "criteria_proof": [
+        "A real owned child exits73 after fixture ATS submit and before durable acknowledgement. Reopened Store observes RUNNING; lease recovery and execution reconcile verified receipt without reopening Chromium or submitting again.",
+        "Actual receipt503 leaves BLOCKED/SUBMISSION_UNCONFIRMED; subsequent receipt-only API check confirms while review/submit counts stay1/1 and attempt history/idempotency remain stable.",
+        "PR721 retained JUnit shows3 PostgreSQL application-worker-crash cases PASS, including the two named PG05 cases;2 PostgreSQL generic crash cases PASS. Seven PostgreSQL retry cases are SKIP, not green proof.",
+        "15 enumerated source/test identities match executed077 to baseline3cf. Older c31 genericPG9/freshRQ execution remains c31-only, with disclosed operations.py drift and branch qualification."
+      ],
+      "proposal": "Retain canonical PASS and issue159 CLOSED/COMPLETED, Project Done. Root may correct Project Acceptance PARTIAL to PASS with the five-criterion mapping and historical/current-source distinction.",
+      "limits": [
+        "No actual RQ work-horse death plus maintenance-driven stale STARTED redelivery proof is claimed.",
+        "AI ambiguous provider outcomes fail closed without replay; physical host/container recovery and live employers are outside this acceptance.",
+        "Private PG05 runner and historical fresh-RQ script were not re-executed or independently recovered; named hosted PG crash cases provide independent primary corroboration."
+      ],
+      "pr": 721,
+      "contract": {
+        "id": "MJ-REQ-158",
+        "issue": 159,
+        "seed_sha256": "8c53a4e29f870858d4d219726721e87fa3e9769eddcffc2235e887bcd1bac664",
+        "live_body_sha256": "bf19fe458ad44aef25cdebd8b4f518dd87255c1768c514a3507475a6a8685e9c",
+        "normalized_equal": true,
+        "literal_contract": "After worker restart:\n\n```text\ninspect persisted state\ndetermine whether operation completed\nreconcile external state\nresume safe operations\navoid duplicate submission\n```\n"
+      },
+      "source_identity": {
+        "requirement": "MJ-REQ-158",
+        "evidence": "docs/evidence/2026-10-17-operation-recovery-acceptance.json",
+        "evidence_sha256": "497103d9920c85c2e51c3dab52f968a136a329a6b093e3b9482266d1c4282320",
+        "tested_revision": "0770573fea6fc8ac553d9c530d52e87d58bbef38",
+        "tested_tree": "3a27621b05774d39e0ea36cb26a797f6c5c4c88b",
+        "ancestor_of_baseline": true,
+        "pr": 721,
+        "files": {
+          "tests/integration/test_worker_lifecycle.py": {
+            "tested_sha256": "e5ccc992bc2688b09e2e5bfb7c7260cfe21d6921bab1592458fece30cacd352d",
+            "tested_blob": "bd573e96145703dfc2c0c69441d5f4a55f7a7c4b",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_application_worker_crash_postgres.py": {
+            "tested_sha256": "b5bc631c78683d12f4a2e9cbfd7ee13a7bf934fb8c4e7e6572b7cd311671c94b",
+            "tested_blob": "8b5e6edb0689e2d50348e2d6180dad1250396180",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "workers/operations.py": {
+            "tested_sha256": "5452d690c72c640ed027be38f30aeba7e720f1f3d738d5a8fa708c651ec13ed7",
+            "tested_blob": "8f5694a117bfccce1e5f279881dea1dc09731559",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "workers/tasks.py": {
+            "tested_sha256": "cbf4d4530f686fe93324857abf340be2d5bb5fd3ff1eaead45e44e30e0d33801",
+            "tested_blob": "e5aef48846f1dce5d062c03eb70285829ee0fd82",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/applications/mock_adapter.py": {
+            "tested_sha256": "5400a1acc0d69108f0a721830dcca3113d5603a644ded91c1c94b0f83bd99853",
+            "tested_blob": "f3114cb5254002b05d735274c6706ff5b9cd09dc",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/applications/attempt_history.py": {
+            "tested_sha256": "ef352502a27b9b220908d167f3f7ce3da48dbffc679ebade9f2f09dd7a9f0868",
+            "tested_blob": "f173bb46c28a0fe045d5157e1c825fb5ff4a10a6",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/applications/run_requests.py": {
+            "tested_sha256": "f3ddd3c192444c2e4b3e9dc9cf1a4c321ccb3d4b97dc8a81e2b58ae2610ae776",
+            "tested_blob": "b6347ff0d70621f8e207a1bddebb432eb58df968",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/applications/confirmation_recovery.py": {
+            "tested_sha256": "1c681a69ecb81512ed738241f06b4dfe9a238f0580aa09eadbe64d3b00c500eb",
+            "tested_blob": "96fd5585114e80e6d7de450f8323634f2644951b",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "packages/persistence/store.py": {
+            "tested_sha256": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78",
+            "tested_blob": "8579c488be0f6ff27cd4660c751fdf5d8ab28375",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "migrations/env.py": {
+            "tested_sha256": "b0e2bf861bb0e279140a0bf4db1a5afa5e169d77541e564796caf9b5b87da48b",
+            "tested_blob": "d0ae06ceb0120bf5d78a23d3bc17b92b3cd220a5",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "fixtures/mock_server.py": {
+            "tested_sha256": "01f324fd616e0e02b95c93c4cbec874a78bdb0ea361df76324d50675df6995ec",
+            "tested_blob": "a60c96417b93e48eb48d6ecc1f9efa6fef3e57b7",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "workers/dispatch.py": {
+            "tested_sha256": "938da5e0a1b3b45397d98aafcf95be72b3a03634f231c6cbfe45b28219d0881c",
+            "tested_blob": "00c7f6ef369ac19d5856d5be66d572392d43a1b9",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_operation_retries.py": {
+            "tested_sha256": "1e32a182e8853851c47ecd1bcc14d5b6abd9a11b9b96dc97923cdc7a824f58b0",
+            "tested_blob": "aa9b0a6e9d0a6623afae04a8c088f175a9cded25",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "workers/retries.py": {
+            "tested_sha256": "e5fc2da7b25f0bab9a136d2dd5fef2574bdd1578c596ca99332f466764cf6694",
+            "tested_blob": "39d47b42cbc8310f2d4dbae9ae4fe53aeb07b357",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "services/discovery/pipeline.py": {
+            "tested_sha256": "22824eacf1904a4bccea690fc7990af41196b4891105ff902b113eb294c076b2",
+            "tested_blob": "e5952c56c11d6b5618e0ae36b1522b84f179ef5f",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          }
+        }
+      },
+      "fresh_acceptance": "NOT_RUN",
+      "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+      "source_transfer_note": "Integrated57414 adds only acceptance tooling/tests/evidence to baseline3cf; no audited product/test source bytes changed. Historical executions remain named original revisions.",
+      "lifecycle": [
+        {
+          "event": "closed",
+          "created_at": "2026-10-17T09:04:27Z",
+          "state_reason": null,
+          "commit_id": null,
+          "commit_url": null
+        }
+      ],
+      "recorded_result": "PASS",
+      "proposed_canonical_result": "PASS",
+      "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
+      "historical_ci_ref": 39018889335
+    },
+    {
+      "id": "MJ-REQ-166",
+      "classification": "HISTORICAL_PASS_NATIVE_RECORD_WITH_AUDIT_LIMIT",
+      "finding": "Historical Native10 records the literal backup-migrate-validate sequence on PostgreSQL17 with14 oracles. Hosted migration tests are policy/SQLite checks and must not be substituted for that native execution.",
+      "criteria_proof": [
+        "Actual guarded CLI requires stopped writers, new verified full backup, source/target-bound one-use receipt, Alembic upgrade and fresh schema/workspace validation before credential publication.",
+        "Native record binds tested e067e731, source archive SHA256 f4dac5b81f0a05d103b9185819a0aec05c677233c586532606f44c164287b673 and runner SHA2562ca1643eb4cd325f9eaafb7587ca6f827f2fd999c16a1e866bdec6bccf35bd28.",
+        "Native14 recorded PASS includes actual destructive obsolete-column drop preserving data/encrypted/workspace sentinels and native restore into a NEW database; original source database retained.",
+        "All7 declared owned Git blobs match tested e067 and baseline3cf. PR724 JUnit separately confirms3 mocked guarded-entrypoint cases +1 real SQLite migration/restore rehearsal; no native PG implication."
+      ],
+      "proposal": "Retain historically adjudicated canonical PASS and issue167 CLOSED/COMPLETED, Project Done. Root may correct Project Acceptance to PASS using Native10 as historical evidence, with this audit limitation attached.",
+      "limits": [
+        "The private Native10 runner/manifest/raw14-oracle output is referenced by digest but not independently recovered or re-executed here. This lane does not certify a fresh native PASS.",
+        "Native validator-refusal checks are not full CLI injected-failure proof; operator-stopped scope and synthetic data remain explicit.",
+        "No source database recreation, production migration, disaster recovery, or MJ-REQ-162 credit."
+      ],
+      "pr": 724,
+      "contract": {
+        "id": "MJ-REQ-166",
+        "issue": 167,
+        "seed_sha256": "8c6b754313d4dd63e399679177fd2914f3b0c7f40fd9330348d6b1baef59dcc8",
+        "live_body_sha256": "70570cc395690031d192a9b13bf6053b09981b6af62bdd9c3a75c8f9d9e4b61f",
+        "normalized_equal": true,
+        "literal_contract": "Use Alembic or equivalent.\n\nBefore destructive migrations:\n\n```text\nback up\nmigrate\nvalidate\n```\n\nDo not delete/recreate the database to make schema changes easier.\n"
+      },
+      "source_identity": {
+        "requirement": "MJ-REQ-166",
+        "evidence": "docs/evidence/2026-10-17-guarded-data-migration-acceptance.json",
+        "evidence_sha256": "383e19c84308432454e93e7df955b36b38a72a2e18df0981df8eee8efe3bf332",
+        "tested_revision": "e067e7315406d8bf42f69ea1d80fbca95970bb2b",
+        "tested_tree": "33b6ebfa4b24bc48bf25cdec010ffc0bdf0347d5",
+        "ancestor_of_baseline": true,
+        "pr": 724,
+        "files": {
+          "cli/guarded_migration.py": {
+            "tested_sha256": "4de5fcd2e4ab755c6d8a4a7578ebfd006dc0c7997e6dbcb5502d16ec982eeb07",
+            "tested_blob": "958ac43dc082b669f657c2016cba6274b83ca231",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "cli/migration_precondition.py": {
+            "tested_sha256": "65798383a40580c03f0d1ad62a24ea08238505988e4f3b3739f3e4f3a6f626b6",
+            "tested_blob": "57e6f5cb300b49b30f4fd8ca12d900b913267e64",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "cli/provision_database.py": {
+            "tested_sha256": "f781dfbc18b6a3db18b736888dfeed9f41f36728ca3befe8b09dc20afcf307f8",
+            "tested_blob": "6613459c88a90d2ae24f96734554a4885ddd4f76",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "compose.yml": {
+            "tested_sha256": "b5e1c11b2362edbaf0f3c7780708f5da2bd5768e3164023135178446712aab4d",
+            "tested_blob": "c93a7e2b7bc5b3e794300cc3fa6725ffec72556a",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/unit/test_database_provisioning.py": {
+            "tested_sha256": "04b894ac699a89f6e329c91c3203b81c1108806e4a8446b0144d9ba92cb80d71",
+            "tested_blob": "5cb3384519ddefd8759db3a26a8c3c1543181b41",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "tests/unit/test_fleet_t11_guarded_migration.py": {
+            "tested_sha256": "ab06ce1ad8dc5a969fb25f14453b8690e95d2298bf76d860d4edb23871e09a67",
+            "tested_blob": "3ba6229c9fe45ebff9f1344e6032770a88d8d197",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "tests/integration/test_fleet_t11_guarded_migration.py": {
+            "tested_sha256": "75535a0ff3e21ab0023dad8b8b454175a55a45a27e70a4a7e7cfd8580609efd7",
+            "tested_blob": "f8fbc862cb827374a9ac7a0be9e8eaf290cfe708",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          }
+        }
+      },
+      "fresh_acceptance": "NOT_RUN",
+      "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+      "source_transfer_note": "Integrated57414 adds only acceptance tooling/tests/evidence to baseline3cf; no audited product/test source bytes changed. Historical executions remain named original revisions.",
+      "lifecycle": [
+        {
+          "event": "closed",
+          "created_at": "2026-10-17T16:17:02Z",
+          "state_reason": null,
+          "commit_id": null,
+          "commit_url": null
+        }
+      ],
+      "recorded_result": "PASS",
+      "proposed_canonical_result": "PASS",
+      "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
+      "historical_ci_ref": 39047529681
+    },
+    {
+      "id": "MJ-REQ-169",
+      "classification": "SUPPORTED_HISTORICAL_PASS_TRACKING_STALE",
+      "finding": "Four literal export outputs have historical mounted-download/readback proof and independent retained API/snapshot evidence. Project Acceptance remained PARTIAL after the explicit PR721 acceptance.",
+      "criteria_proof": [
+        "Browser25 at5cb233e parses jobs.csv, applications.csv, profile.json and backup.json, validates selected-profile isolation/privacy and empty-category behavior, with six actual downloads/eight GET requests.",
+        "The browser fixture uses real discovery/prepare to create records; exports are actual mounted UI/API responses. Complete backup is a safe profile snapshot with verified generated/uploaded document bytes, not raw credentials/browser sessions.",
+        "PR721 JUnit:8 DataExportFlow tests PASS including verified document bytes;4 snapshot-recovery cases PASS including public PostgreSQL concurrent snapshot/restore. Snapshot-fencing7 cases include6 PASS/1 SKIP; preserve that skip.",
+        "9 enumerated source/test identities are unchanged from executed5cb233e to baseline3cf. Prior71663PASS/8PGskip remains historical; later hosted evidence is separately identified."
+      ],
+      "proposal": "Retain canonical PASS and issue170 CLOSED/COMPLETED, Project Done. Root may correct Project Acceptance to PASS for the accepted privacy-bounded export contract.",
+      "limits": [
+        "Browser25 raw private execution/build manifest not independently recovered; committed exact-revision record and named hosted API/snapshot results are separately labeled.",
+        "Do not call the profile export a complete host image or infer full disaster/migration/filesystem-atomicity acceptance. Database/configuration full backup and restore have separate167/168 contracts."
+      ],
+      "pr": 721,
+      "contract": {
+        "id": "MJ-REQ-169",
+        "issue": 170,
+        "seed_sha256": "60fbe81019a0b74997af887160d321bc0c5bb8af11a13d5556b1978be15cd587",
+        "live_body_sha256": "8525399bbc531154b523db70f1f5e6ec6998045c03392443469f4f77ffc1135f",
+        "normalized_equal": true,
+        "literal_contract": "Support:\n\n```text\nCSV jobs\nCSV applications\nJSON export\ncomplete backup\n```\n"
+      },
+      "source_identity": {
+        "requirement": "MJ-REQ-169",
+        "evidence": "docs/evidence/2026-10-17-data-export-acceptance.json",
+        "evidence_sha256": "aa47fb423e0d608f5f194baf3ebcb9a4d5113d035fe8ad5462df2ac8252ac760",
+        "tested_revision": "5cb233eb159d355ed4667b6ae9ad2c26c6266659",
+        "tested_tree": "e3e8ba81052d6c10e7da4cbc05a23be5ffea19f2",
+        "ancestor_of_baseline": true,
+        "pr": 721,
+        "files": {
+          "tests/browser/test_data_export.py": {
+            "tested_sha256": "f06717cf7c9b4bc1fea6c37b33c3994e38fad2d92f14de703d67ab8d2c737cf8",
+            "tested_blob": "578cf25ce2d54480b6e77a00006397ed8875f9a4",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/data_export.py": {
+            "tested_sha256": "d26e5b5284a3ad194041f7c79a16f9fa4db7ef29b871e51a2008ff6fc2f02958",
+            "tested_blob": "1e5136462952dc23be4d7efb4a86b52eaa334147",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "packages/persistence/store.py": {
+            "tested_sha256": "864cba2066640b687263f2b17d886f22f91afd8cb037c34ac0173dd1ca14ed78",
+            "tested_blob": "8579c488be0f6ff27cd4660c751fdf5d8ab28375",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "services/documents/uploads.py": {
+            "tested_sha256": "54b142fefb49dddcb3b6c80dcde3d80deb82f4cf0586a6987299af91e8d8680e",
+            "tested_blob": "7c6fc9ade3fd22b1bbd465ff3e5485a0b3bbf7df",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "tests/integration/test_fleet_t18_snapshot_fencing.py": {
+            "tested_sha256": "9910305bab43642bbc30416350da9281b8d79859546e61d01f1c778123d84880",
+            "tested_blob": "a29be9d3f351547b1a3a6bc4c079af0c0dab7d20",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_fleet_t18_snapshot_recovery.py": {
+            "tested_sha256": "34e6e3a86a3b2e887ddb9d1941199c74ba8d4db85b994196027683d3ea9efe41",
+            "tested_blob": "4d725e874c9601ab27d93e10d35d30052228ca45",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "apps/api/main.py": {
+            "tested_sha256": "939ca8bef069824f4d4be2435122455bb34f772256f493ba9cfc1bb9bbf95f00",
+            "tested_blob": "d8339b0db876b0869dbed92f80e58a997ce84451",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "fixtures/mock_server.py": {
+            "tested_sha256": "01f324fd616e0e02b95c93c4cbec874a78bdb0ea361df76324d50675df6995ec",
+            "tested_blob": "a60c96417b93e48eb48d6ecc1f9efa6fef3e57b7",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          },
+          "fixtures/browser_ports.py": {
+            "tested_sha256": "d9173c06b82d35069c99bb11d6fe80d7f75de196dc4e48db7cb983bc568748a7",
+            "tested_blob": "70b8d4c8d641f358ec5e604b7264f894df21bf95",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED",
+            "recorded_identity_verified": true
+          }
+        }
+      },
+      "fresh_acceptance": "NOT_RUN",
+      "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+      "source_transfer_note": "Integrated57414 adds only acceptance tooling/tests/evidence to baseline3cf; no audited product/test source bytes changed. Historical executions remain named original revisions.",
+      "lifecycle": [
+        {
+          "event": "closed",
+          "created_at": "2026-10-17T09:04:30Z",
+          "state_reason": null,
+          "commit_id": null,
+          "commit_url": null
+        }
+      ],
+      "recorded_result": "PASS",
+      "proposed_canonical_result": "PASS",
+      "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
+      "historical_ci_ref": 39018889335
+    },
+    {
+      "id": "MJ-REQ-176",
+      "classification": "SUPPORTED_HISTORICAL_PASS_WITH_COMPOSED_PRODUCER_AND_UI_PROOF",
+      "finding": "All13 literal event families have historical UI/history coverage; producer proof must be joined explicitly rather than inferred from seeded browser rows.",
+      "criteria_proof": [
+        "B26 atb931425e records2 browser tests PASS. Actual PREPARE failure/retry produces APPLICATION_FAILED then real document-generated events; local MOCK produces submitted/fictional confirmed; Activity reload and fresh Store/API preserve scoped history.",
+        "CompanyDiscoveryActivity browser seeds COMPANY_DISCOVERED and COMPANY_SOURCE_ENROLLED, so that case alone proves display/privacy only. Separate public-company discovery test performs real public API admission and production worker with deterministic network responses; asserts exactly one of each event, replay suppression and profile isolation.",
+        "PR724 artifact12106711457 independently records test_public_worker_imports_feed_without_claiming_verified_identity_or_ats PASS. Older2026-10-07 company-audit evidence also records connected public-company browser execution, distinct from seeded UI case.",
+        "PR723 retained JUnit:1 real audit failure/retry case,11 audit API cases,5 SQLite and5 PostgreSQL document-audit cases PASS.7 enumerated audit/producer/test identities are unchanged fromb931 to baseline3cf."
+      ],
+      "proposal": "Retain canonical PASS and issue177 CLOSED/COMPLETED, Project Done. Root may correct Project Acceptance to PASS, explicitly citing composed producer + display evidence and synthetic submission limits.",
+      "limits": [
+        "No real employer submission/confirmation or host/container recovery credit.",
+        "Raw private B26 browser artifacts were not independently recovered. Seeded company events must never be described as current production producer execution."
+      ],
+      "pr": 723,
+      "contract": {
+        "id": "MJ-REQ-176",
+        "issue": 177,
+        "seed_sha256": "9bf8b93bba1c51257a992a02ff1dfb3febd63119d5121a1c50b260e9443a38ba",
+        "live_body_sha256": "a46a0a07dfb7dab1beb738eb1dae3029ee30579d63e585041d982f5c7f0fd5eb",
+        "normalized_equal": true,
+        "literal_contract": "Maintain user-facing audit history.\n\nEvents:\n\n```text\nJOB_DISCOVERED\nCOMPANY_DISCOVERED\nCOMPANY_SOURCE_ENROLLED\nJOB_MERGED\nMATCH_SCORED\nRESUME_GENERATED\nCOVER_LETTER_GENERATED\nAPPLICATION_QUEUED\nAPPLICATION_STARTED\nAPPLICATION_SUBMITTED\nAPPLICATION_CONFIRMED\nAPPLICATION_FAILED\nSETTING_CHANGED\n```\n"
+      },
+      "source_identity": {
+        "requirement": "MJ-REQ-176",
+        "evidence": "docs/evidence/2026-10-17-audit-history-acceptance.json",
+        "evidence_sha256": "e8b49258d587a2acd2d7f3d9eb41162bd8d2c3b5b8d5c51ebc825d89b24c75e9",
+        "tested_revision": "b931425e58ab3a0b3679a41eb340ab76be000e6d",
+        "tested_tree": "f958c3dc7eaea3049a18cd58d59e1e4ae7683959",
+        "ancestor_of_baseline": true,
+        "pr": 723,
+        "files": {
+          "tests/browser/test_audit_history.py": {
+            "tested_sha256": "c0e403358557584a61cb65e71ed231c459603d7cac8e87891fd6058b9a6c43a2",
+            "tested_blob": "d106c199275bc5684c559c40cff518df9ea733ac",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/browser/test_company_discovery_activity.py": {
+            "tested_sha256": "0e208c0c524b9c3da3783adc90481bdcd4693d0f2cce91b0b315f9a81b027ee9",
+            "tested_blob": "ea6404bacbb2e0b617ad10e0f768c464566c424c",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_fleet_t11_audit_failure_recovery.py": {
+            "tested_sha256": "3a3617fed93370c2463a52eaf9c0038b89e49c4fc59650de0d6fcb5de01507e0",
+            "tested_blob": "c839a81c4d9ababe8425174593e16c7e414831db",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "services/audit_history.py": {
+            "tested_sha256": "2cb14c631319d70afe57fd6f3fffdc699c39dd3bccf8ba8a1a31bce16192fe48",
+            "tested_blob": "0fda6ba7cf824fcdd52c1bf97f17b9025f64659b",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/integration/test_public_company_discovery.py": {
+            "tested_sha256": "0c207acf8c1e5636b2b1b467755fe6d683d507f402fa95f2066f1a27c79b8e79",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "tests/browser/test_public_company_discovery.py": {
+            "tested_sha256": "cfcaa373d24764d2c9e16625cdb9f7fbdf993e029bb41387628a559c7e45c239",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          },
+          "services/company_discovery/sources.py": {
+            "tested_sha256": "85df7540ce086bc9946a1050bb072228b0d5572bd032eb31298870985822c6a1",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          }
+        }
+      },
+      "fresh_acceptance": "NOT_RUN",
+      "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+      "source_transfer_note": "Integrated57414 adds only acceptance tooling/tests/evidence to baseline3cf; no audited product/test source bytes changed. Historical executions remain named original revisions.",
+      "lifecycle": [
+        {
+          "event": "closed",
+          "created_at": "2026-10-17T10:44:36Z",
+          "state_reason": null,
+          "commit_id": null,
+          "commit_url": null
+        }
+      ],
+      "recorded_result": "PASS",
+      "proposed_canonical_result": "PASS",
+      "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
+      "historical_ci_ref": 39025271299
+    },
+    {
+      "id": "MJ-REQ-010",
+      "classification": "PARTIAL_WITH_STALE_EVIDENCE_WORDING",
+      "finding": "PR674 added and executed PostgreSQL and Redis/RQ cases, but the full connected architecture and durable multiprocess flow is not established by those two tests.",
+      "criteria_proof": [
+        "The live literal diagram includes dashboard/API, global and company sources through normalization/resolution/dedupe/scoring to PostgreSQL; application/automation/Playwright and profile/AI/document branches; durable background operations.",
+        "PR674 run38856819318 actual checkout3182f11 has the exact tree of head49f80860. Artifact12027209303 contains4 SQLite +1 PostgreSQL +1 Redis/RQ architecture test PASS. Architecture test source is byte-identical at baseline3cf.",
+        "PostgreSQL case invokes discover/prepare directly in process and reopens Store. Redis case dispatches to a real Redis queue but calls execute_operation directly against SQLite, without a separate RQ consumer. API checks exercise GET surfaces; web build is not mounted diagram flow.",
+        "The separate connected-readiness record reports12 synthetic checks, but PR674 evidence does not bind an exact source identity for that invocation or show one connected PostgreSQL/Redis/RQ/Playwright/AI-document flow. Readiness200-or503 assertion alone is not healthy-service proof."
+      ],
+      "proposal": "Retain canonical PARTIAL, issue11 OPEN, Project In Progress/PARTIAL. Root may revise only the stale note to acknowledge executed PG and Redis/RQ scoped cases while naming missing integrated proof; do not promote from merged tests or aggregate green CI.",
+      "limits": [
+        "Required next proof: public admission through real independently running RQ worker with PostgreSQL persistence, named search/company and application/document/AI branches, API/browser readback, durable restart/recovery and negative duplicate/safety controls. Evidence should bind source and artifact identities.",
+        "Do not invent mandatory live-employer, paid-AI, host-reboot or every-source breadth criteria from a conceptual architecture diagram. Synthetic controlled services may satisfy connected proof.",
+        "No fresh architecture execution was performed by this lane; all historical evidence remains source-qualified."
+      ],
+      "pr": 674,
+      "contract": {
+        "id": "MJ-REQ-010",
+        "issue": 11,
+        "seed_sha256": "35fc664a4a1934a8aa6f90e256026d000cdf14e25e7891d7c0c20b48fe22410f",
+        "live_body_sha256": "bfd549b6b49b952aa843d67168083fa576dcf6a1173c07207804e4967617049d",
+        "normalized_equal": true,
+        "literal_contract": "The product should conceptually resemble:\n\n```text\n                    WEB DASHBOARD\n                          │\n                          ▼\n                    APPLICATION API\n                          │\n      ┌───────────────────┼────────────────────┐\n      │                   │                    │\n      ▼                   ▼                    ▼\n SEARCH SERVICE     APPLICATION SERVICE   PROFILE/DOC SERVICE\n      │                   │                    │\n      ▼                   ▼                    ▼\n SOURCE SYSTEM       AUTOMATION ENGINE      AI ENGINE\n      │                   │                    │\n      ├─────────┐         │                    │\n      ▼         ▼         ▼                    ▼\n GLOBAL      COMPANY    PLAYWRIGHT        DOCUMENT ENGINE\n SOURCES     SOURCES    WORKERS\n      │         │\n      └────┬────┘\n           ▼\n     NORMALIZATION\n           │\n           ▼\n      COMPANY RESOLUTION\n           │\n           ▼\n      DEDUPLICATION\n           │\n           ▼\n       JOB SCORING\n           │\n           ▼\n        POSTGRES\n```\n\nBackground operations must be durable.\n"
+      },
+      "source_identity": {
+        "requirement": "MJ-REQ-010",
+        "evidence": "docs/evidence/2026-10-16-primary-product-architecture.json",
+        "evidence_sha256": "cf373f6ab06adf3cc04d59cca2cabcc4e069914f449fafa6e670e513e6c7d3f6",
+        "tested_revision": "49f80860182fb5a0dda4330c4f6b1db13802aaa5",
+        "tested_tree": "f3e6d936580688cd5e68a8bd5b2256b319b451a6",
+        "ancestor_of_baseline": true,
+        "pr": 674,
+        "files": {
+          "tests/integration/test_primary_product_architecture.py": {
+            "tested_sha256": "8c98f53ff3e557cb99910912c0526c7c35cd4849964b45e951952e6a3d4bdfca",
+            "tested_blob": "73498c695bac6c80812ffdac6e180dd1b7e0e52f",
+            "unchanged": true,
+            "baseline_identity": "SAME_AS_TESTED"
+          }
+        }
+      },
+      "fresh_acceptance": "NOT_RUN",
+      "baseline_identity_revision": "3cfb556fcc09b3eb0f233998c7a11544c42273e6",
+      "source_transfer_note": "Integrated57414 adds only acceptance tooling/tests/evidence to baseline3cf; no audited product/test source bytes changed. Historical executions remain named original revisions.",
+      "lifecycle": [],
+      "recorded_result": "PARTIAL",
+      "proposed_canonical_result": "PARTIAL",
+      "proposal_authority": "ROOT_SERIALIZED_ADJUDICATION_PENDING_INDEPENDENT_REVIEW",
+      "historical_ci_ref": 38856819318
+    }
+  ],
+  "historical_ci": [
+    {
+      "pr": 616,
+      "run": 38437021856,
+      "head_sha": "5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35",
+      "conclusion": "success",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856",
+      "execution": "HISTORICAL_RETRIEVED_JUNIT_NOT_FRESH_EXECUTION",
+      "checkout_identity": {
+        "pr": 616,
+        "job": 115433566460,
+        "checkout_sha": [
+          "429fa485225b56d4bf95b52434bfcd7fba02db91"
+        ],
+        "workflow_head": "5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35",
+        "checkout_tree": "dceb0da2ca4e90560ccee0ee8a0444a1a9e4b2ba",
+        "checkout_parents": [
+          "1f8f868601d7d5bd71eb134e09d20b2612c9ef27",
+          "5c5c39bbe56f0d09cf2f35d6e3b25e0a06ce4f35"
+        ],
+        "head_tree": "dceb0da2ca4e90560ccee0ee8a0444a1a9e4b2ba",
+        "head_parents": [
+          "f0c00408e2480e5303ea9ad42b6c1fb495864b8b"
+        ],
+        "tree_equal": true,
+        "shards": [
+          {
+            "job_id": 115433566460,
+            "name": "Integration / shard 0",
+            "checkout_sha": "429fa485225b56d4bf95b52434bfcd7fba02db91",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856/job/115433566460"
+          },
+          {
+            "job_id": 115433566711,
+            "name": "Integration / shard 2",
+            "checkout_sha": "429fa485225b56d4bf95b52434bfcd7fba02db91",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856/job/115433566711"
+          },
+          {
+            "job_id": 115433566747,
+            "name": "Integration / shard 1",
+            "checkout_sha": "429fa485225b56d4bf95b52434bfcd7fba02db91",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38437021856/job/115433566747"
+          }
+        ]
+      },
+      "artifacts": [
+        {
+          "id": 11833737700,
+          "name": "integration-results-0",
+          "sha256": "8efd88e21146c7739cbfe0855a48b5a525503e5388fa1deda0e541f44129ba18",
+          "xml_sha256": "86300a0c71aeb32094ede13a5602b544378ccaedd67e42c98749114afc8c6471",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/11833737700/zip",
+          "counts": {
+            "PASS": 26,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_preparation_priority.PreparationPriorityTests": {
+              "PASS": [
+                "test_admission_snapshot_replay_reopen_and_scoped_readback",
+                "test_aging_and_stable_ties_do_not_reset_on_redispatch",
+                "test_cancelled_high_priority_does_not_block_and_duplicate_never_reopens",
+                "test_changed_input_during_admission_does_not_create_a_queue_row",
+                "test_concurrent_admission_and_claims_across_independent_store_engines",
+                "test_equal_tier_uses_enqueue_time_then_id_even_when_delivery_is_reversed",
+                "test_job_change_after_admission_blocks_document_generation",
+                "test_late_fresh_match_overtakes_older_delivery_and_both_generate_documents",
+                "test_profile_change_after_admission_blocks_before_documents",
+                "test_profile_isolation_and_conflicting_request_identity",
+                "test_retry_due_and_expired_lease_preserve_priority_without_duplicate_output",
+                "test_unknown_evidence_is_background_and_priority_cannot_be_supplied_by_client"
+              ]
+            },
+            "tests.integration.test_preparation_priority.PostgreSQLPreparationPriorityTests": {
+              "PASS": [
+                "test_admission_snapshot_replay_reopen_and_scoped_readback",
+                "test_aging_and_stable_ties_do_not_reset_on_redispatch",
+                "test_cancelled_high_priority_does_not_block_and_duplicate_never_reopens",
+                "test_changed_input_during_admission_does_not_create_a_queue_row",
+                "test_cold_worker_start_does_not_inherit_dispatcher_import_lock",
+                "test_concurrent_admission_and_claims_across_independent_store_engines",
+                "test_equal_tier_uses_enqueue_time_then_id_even_when_delivery_is_reversed",
+                "test_job_change_after_admission_blocks_document_generation",
+                "test_late_fresh_match_overtakes_older_delivery_and_both_generate_documents",
+                "test_profile_change_after_admission_blocks_before_documents",
+                "test_profile_isolation_and_conflicting_request_identity",
+                "test_real_redis_fifo_worker_processes_choose_priority_and_rebuild_lost_queue",
+                "test_retry_due_and_expired_lease_preserve_priority_without_duplicate_output",
+                "test_unknown_evidence_is_background_and_priority_cannot_be_supplied_by_client"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pr": 674,
+      "run": 38856819318,
+      "head_sha": "49f80860182fb5a0dda4330c4f6b1db13802aaa5",
+      "conclusion": "success",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/38856819318",
+      "execution": "HISTORICAL_RETRIEVED_JUNIT_NOT_FRESH_EXECUTION",
+      "checkout_identity": {
+        "pr": 674,
+        "job": 116830043275,
+        "checkout_sha": [
+          "3182f11a4c9516001d44933565924de8e3ffb761"
+        ],
+        "workflow_head": "49f80860182fb5a0dda4330c4f6b1db13802aaa5",
+        "checkout_tree": "f3e6d936580688cd5e68a8bd5b2256b319b451a6",
+        "checkout_parents": [
+          "464a773b2f479e2212fed876cb8d683dbb569782",
+          "49f80860182fb5a0dda4330c4f6b1db13802aaa5"
+        ],
+        "head_tree": "f3e6d936580688cd5e68a8bd5b2256b319b451a6",
+        "head_parents": [
+          "2bd8728004c0c088b0391cd1d9d68d11c49dd363"
+        ],
+        "tree_equal": true,
+        "shards": [
+          {
+            "job_id": 116830043275,
+            "name": "Integration / shard 0",
+            "checkout_sha": "3182f11a4c9516001d44933565924de8e3ffb761",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38856819318/job/116830043275"
+          },
+          {
+            "job_id": 116830043558,
+            "name": "Integration / shard 2",
+            "checkout_sha": "3182f11a4c9516001d44933565924de8e3ffb761",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38856819318/job/116830043558"
+          },
+          {
+            "job_id": 116830043660,
+            "name": "Integration / shard 1",
+            "checkout_sha": "3182f11a4c9516001d44933565924de8e3ffb761",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/38856819318/job/116830043660"
+          }
+        ]
+      },
+      "artifacts": [
+        {
+          "id": 12027209303,
+          "name": "integration-results-2",
+          "sha256": "d3def0fcfb8161ea928ee712b7b9fe5e6110de6732f63ef37dff16f62d3e30ce",
+          "xml_sha256": "d50a075ed76c3bc3d50ebed5c237020a03fcf8b24d849b73fa5405261d60fe18",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12027209303/zip",
+          "counts": {
+            "PASS": 6,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_primary_product_architecture.PrimaryProductArchitectureTests": {
+              "PASS": [
+                "test_01_application_api_surface_and_subsystem_mounting",
+                "test_02_search_service_normalization_resolution_dedup_and_scoring",
+                "test_03_profile_doc_service_ai_engine_and_truth_preservation",
+                "test_04_application_service_route_selection_and_idempotent_readback"
+              ]
+            },
+            "tests.integration.test_primary_product_architecture.PrimaryProductArchitecturePostgreSQLTests": {
+              "PASS": [
+                "test_01_postgresql_primary_pipeline_discovery_dedup_scoring_and_documents"
+              ]
+            },
+            "tests.integration.test_primary_product_architecture.PrimaryProductArchitectureRedisRQTests": {
+              "PASS": [
+                "test_01_durable_background_operations_lifecycle_on_redis_and_store"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pr": 720,
+      "run": 39017608308,
+      "head_sha": "27a6e0e94ac9c9ce151255930736f888e83626ae",
+      "conclusion": "success",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/39017608308",
+      "execution": "HISTORICAL_RETRIEVED_JUNIT_NOT_FRESH_EXECUTION",
+      "checkout_identity": {
+        "pr": 720,
+        "job": 117352829865,
+        "checkout_sha": [
+          "50c7c14fb136824204237e01a803452177de0a2f"
+        ],
+        "workflow_head": "27a6e0e94ac9c9ce151255930736f888e83626ae",
+        "checkout_tree": "abffb0b93cd3e95b15fcf9454b2cb82e3c64df7f",
+        "checkout_parents": [
+          "0770573fea6fc8ac553d9c530d52e87d58bbef38",
+          "27a6e0e94ac9c9ce151255930736f888e83626ae"
+        ],
+        "head_tree": "abffb0b93cd3e95b15fcf9454b2cb82e3c64df7f",
+        "head_parents": [
+          "5931c4a1e28b346094de734bb461c79b9cfcd7d2"
+        ],
+        "tree_equal": true,
+        "shards": [
+          {
+            "job_id": 117352829685,
+            "name": "Integration / shard 1",
+            "checkout_sha": "50c7c14fb136824204237e01a803452177de0a2f",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39017608308/job/117352829685"
+          },
+          {
+            "job_id": 117352829865,
+            "name": "Integration / shard 0",
+            "checkout_sha": "50c7c14fb136824204237e01a803452177de0a2f",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39017608308/job/117352829865"
+          },
+          {
+            "job_id": 117352829866,
+            "name": "Integration / shard 2",
+            "checkout_sha": "50c7c14fb136824204237e01a803452177de0a2f",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39017608308/job/117352829866"
+          }
+        ]
+      },
+      "artifacts": [
+        {
+          "id": 12095811854,
+          "name": "integration-results-2",
+          "sha256": "d9d2a8dc1576fd30bf43558c5ba2825e1c8dc4ea510445a89c51e39048e65f85",
+          "xml_sha256": "98d54c85741b00b8ae11560d8dc4175db41390170d45fa39ec458c5b8d892ee7",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12095811854/zip",
+          "counts": {
+            "PASS": 1,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_durable_uploaded_comparison.DurableUploadedComparisonTests": {
+              "PASS": [
+                "test_admit_disconnect_execute_reopen_and_replay_preserves_result"
+              ]
+            }
+          }
+        },
+        {
+          "id": 12095772168,
+          "name": "integration-results-1",
+          "sha256": "0a2127ab4c3e6157624906e5e25740298190d2f90fa0e9d52f0ccf4922934c82",
+          "xml_sha256": "6ec5eef13fcc868225a00c14c5a2a3718f7c293b58564eea36465bf24806535a",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12095772168/zip",
+          "counts": {
+            "PASS": 10,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_durable_ai_evaluation.DurableAIEvaluationTests": {
+              "PASS": [
+                "test_real_api_connection_close_does_not_cancel_admitted_evaluation"
+              ]
+            },
+            "tests.integration.test_fleet_t11_operation_recovery_progress": {
+              "PASS": [
+                "test_real_recovery_and_worker_retry_project_durable_vocabulary_after_reopen",
+                "test_public_projection_excludes_private_payloads_and_expired_owner_cannot_continue"
+              ]
+            },
+            "tests.integration.test_operation_progress_lifecycle.OperationProgressLifecycleTests": {
+              "PASS": [
+                "test_queued_worker_records_start_and_inline_completion_readback"
+              ]
+            },
+            "tests.integration.test_persistent_operation_progress.PersistentOperationProgressApiTests": {
+              "PASS": [
+                "test_invalid_progress_update_is_rejected_without_changing_readback",
+                "test_profile_progress_exposes_retry_deadline_without_internal_payloads",
+                "test_profile_progress_is_durable_and_exposes_only_the_safe_read_model",
+                "test_progress_listing_is_profile_scoped_and_hides_foreign_operations",
+                "test_queued_operations_without_progress_return_safe_defaults",
+                "test_unknown_profile_returns_not_found"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pr": 721,
+      "run": 39018889335,
+      "head_sha": "ce5ec9f83575c201168a398d7cb1162e48acf821",
+      "conclusion": "success",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/39018889335",
+      "execution": "HISTORICAL_RETRIEVED_JUNIT_NOT_FRESH_EXECUTION",
+      "checkout_identity": {
+        "pr": 721,
+        "job": 117356541079,
+        "checkout_sha": [
+          "1180e87d73d5caef7050d8137ac80cc6e5a9e59b"
+        ],
+        "workflow_head": "ce5ec9f83575c201168a398d7cb1162e48acf821",
+        "checkout_tree": "9553bc2e7cdbd8887b37c4483e0af23fd7f9c04c",
+        "checkout_parents": [
+          "095b15bd547816296eecb0cd1e917f6421d70207",
+          "ce5ec9f83575c201168a398d7cb1162e48acf821"
+        ],
+        "head_tree": "9553bc2e7cdbd8887b37c4483e0af23fd7f9c04c",
+        "head_parents": [
+          "5cb233eb159d355ed4667b6ae9ad2c26c6266659"
+        ],
+        "tree_equal": true,
+        "shards": [
+          {
+            "job_id": 117356540785,
+            "name": "Integration / shard 1",
+            "checkout_sha": "1180e87d73d5caef7050d8137ac80cc6e5a9e59b",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39018889335/job/117356540785"
+          },
+          {
+            "job_id": 117356541031,
+            "name": "Integration / shard 2",
+            "checkout_sha": "1180e87d73d5caef7050d8137ac80cc6e5a9e59b",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39018889335/job/117356541031"
+          },
+          {
+            "job_id": 117356541079,
+            "name": "Integration / shard 0",
+            "checkout_sha": "1180e87d73d5caef7050d8137ac80cc6e5a9e59b",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39018889335/job/117356541079"
+          }
+        ]
+      },
+      "artifacts": [
+        {
+          "id": 12096246727,
+          "name": "integration-results-2",
+          "sha256": "7173927f92c6c8994fd230b40c3f935065e3381e1c801f3edeb67de31beea423",
+          "xml_sha256": "c680f8b4f0781a084b24fb278530e2f2231dc615e318f0982ce02dbc762210b7",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12096246727/zip",
+          "counts": {
+            "PASS": 12,
+            "FAIL": 0,
+            "SKIP": 8
+          },
+          "test_classes": {
+            "tests.integration.test_fleet_t18_snapshot_fencing.ProfileReadSnapshotTests": {
+              "PASS": [
+                "test_cancelled_error_releases_snapshot_before_next_save_and_readback",
+                "test_exception_releases_snapshot_before_later_save_and_fresh_readback",
+                "test_in_memory_shared_transaction_fails_closed_before_begin",
+                "test_nested_snapshot_exception_does_not_end_outer_read_scope",
+                "test_snapshot_exception_does_not_commit_or_rollback_independent_writer",
+                "test_snapshot_keeps_profile_version_and_facts_consistent_across_commit"
+              ]
+            },
+            "tests.integration.test_fleet_t18_snapshot_fencing.ProfileReadSnapshotPostgresTests": {
+              "PASS": [
+                "test_cancelled_error_releases_snapshot_before_next_save_and_readback",
+                "test_exception_releases_snapshot_before_later_save_and_fresh_readback",
+                "test_nested_snapshot_exception_does_not_end_outer_read_scope",
+                "test_snapshot_exception_does_not_commit_or_rollback_independent_writer",
+                "test_snapshot_keeps_profile_version_and_facts_consistent_across_commit",
+                "test_snapshot_scope_does_not_leak_repeatable_read_to_pool"
+              ],
+              "SKIP": [
+                "test_in_memory_shared_transaction_fails_closed_before_begin"
+              ]
+            },
+            "tests.integration.test_operation_retries.PostgreSQLOperationRetryTests": {
+              "SKIP": [
+                "test_cancellation_during_provider_failure_cannot_schedule_a_retry",
+                "test_cancellation_during_retry_wait_is_terminal",
+                "test_nontransient_failures_never_schedule_automatic_retry",
+                "test_provider_backoff_and_poll_interval_prevent_an_early_retry",
+                "test_real_source_timeout_policy_survives_restart_and_collects_once_on_retry",
+                "test_retry_limit_and_exponential_delay_are_bounded_without_reopening_terminal_work",
+                "test_transient_failure_persists_backoff_and_completes_same_operation_after_restart"
+              ]
+            }
+          }
+        },
+        {
+          "id": 12095744452,
+          "name": "integration-results-1",
+          "sha256": "82f7b5b25e642c7cc1542631c55b7455025fbf5aec2a83b1df2745c4ef9e44b6",
+          "xml_sha256": "904c296d98920a3e3e2516aeb141dd3c0720f9f2ca9fc0c5b14ee8891ffec34b",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12095744452/zip",
+          "counts": {
+            "PASS": 13,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_application_worker_crash_postgres.PostgreSQLApplicationWorkerCrashTests": {
+              "PASS": [
+                "test_ambiguous_post_crash_receipt_check_resolves_without_browser_or_resubmit",
+                "test_confirmed_submit_crash_before_worker_ack_replays_completed_attempt",
+                "test_post_submit_worker_crash_recovers_from_receipt_without_second_browser_or_submit"
+              ]
+            },
+            "tests.integration.test_data_export_flow.DataExportFlowTests": {
+              "PASS": [
+                "test_complete_backup_contains_verified_document_bytes_without_private_state",
+                "test_csv_exports_are_profile_scoped_attachments",
+                "test_download_redacts_nested_auth_fields_after_database_reopen",
+                "test_growing_backup_file_returns_fixed_error_and_safe_retry",
+                "test_json_export_reads_back_persisted_profile_jobs_and_applications",
+                "test_json_service_scope_mismatch_fails_closed",
+                "test_missing_profile_is_rejected_before_export",
+                "test_session_path_exports_survive_reopen_and_public_route_recovery"
+              ]
+            },
+            "tests.integration.test_worker_lifecycle.PostgreSQLWorkerCrashRecoveryTests": {
+              "PASS": [
+                "test_postgresql_reclaimed_attempt_fences_original_worker_side_effect",
+                "test_postgresql_worker_process_crash_recovers_and_reclaims_durable_operation"
+              ]
+            }
+          }
+        },
+        {
+          "id": 12095623025,
+          "name": "integration-results-0",
+          "sha256": "844dc36ff980770b7c596f09e5dc99e11431f5652177ae99e3aa2af7b243b535",
+          "xml_sha256": "e59c32fb9b55a21d313741da9528c199c7fcb3fd03a298e3b71464a663150c03",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12095623025/zip",
+          "counts": {
+            "PASS": 4,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_fleet_t18_snapshot_recovery.FleetT18SnapshotRecoveryTests": {
+              "PASS": [
+                "test_backup_rejects_upload_metadata_that_changes_during_file_read",
+                "test_backup_upload_read_reuses_live_snapshot_connection",
+                "test_postgres_public_backup_is_consistent_during_concurrent_profile_update",
+                "test_public_backup_is_consistent_during_concurrent_profile_update"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pr": 723,
+      "run": 39025271299,
+      "head_sha": "4f88266da2ac3c94db776a17591c1e623cdf7ca4",
+      "conclusion": "success",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/39025271299",
+      "execution": "HISTORICAL_RETRIEVED_JUNIT_NOT_FRESH_EXECUTION",
+      "checkout_identity": {
+        "pr": 723,
+        "job": 117374912627,
+        "checkout_sha": [
+          "6451363d1f955f3bb16d41cb48aade9916d4663a"
+        ],
+        "workflow_head": "4f88266da2ac3c94db776a17591c1e623cdf7ca4",
+        "checkout_tree": "ca85e6f6c60274471bebced86728453a3e22a1b0",
+        "checkout_parents": [
+          "6594890f6d088db30c69d911f688813b1d00519d",
+          "4f88266da2ac3c94db776a17591c1e623cdf7ca4"
+        ],
+        "head_tree": "ca85e6f6c60274471bebced86728453a3e22a1b0",
+        "head_parents": [
+          "0c9d29e90403a188e2393ff0636be9b8a6e94698"
+        ],
+        "tree_equal": true,
+        "shards": [
+          {
+            "job_id": 117374912627,
+            "name": "Integration / shard 0",
+            "checkout_sha": "6451363d1f955f3bb16d41cb48aade9916d4663a",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39025271299/job/117374912627"
+          },
+          {
+            "job_id": 117374912763,
+            "name": "Integration / shard 1",
+            "checkout_sha": "6451363d1f955f3bb16d41cb48aade9916d4663a",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39025271299/job/117374912763"
+          },
+          {
+            "job_id": 117374912825,
+            "name": "Integration / shard 2",
+            "checkout_sha": "6451363d1f955f3bb16d41cb48aade9916d4663a",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39025271299/job/117374912825"
+          }
+        ]
+      },
+      "artifacts": [
+        {
+          "id": 12098905510,
+          "name": "integration-results-0",
+          "sha256": "34ceab7baf65e6693a5554886bf1149bfcd05ff3db9df81fb49fe97cf920ccbc",
+          "xml_sha256": "048673896633b92fea9bb39eabd6aeff637736568109f4038348cacab83604e5",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12098905510/zip",
+          "counts": {
+            "PASS": 11,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_document_generation_audit.DocumentGenerationAuditTests": {
+              "PASS": [
+                "test_document_mutation_and_removal_cannot_change_committed_history",
+                "test_failure_after_audit_insert_rolls_back_artifacts_and_history",
+                "test_legacy_unknown_snapshot_keeps_generic_event_without_guessing_kinds",
+                "test_preparation_commits_exact_kinds_and_displays_both_documents",
+                "test_repreparation_does_not_rewrite_prior_snapshot_or_duplicate_reads"
+              ]
+            },
+            "tests.integration.test_document_generation_audit.DocumentGenerationAuditPostgresTests": {
+              "PASS": [
+                "test_document_mutation_and_removal_cannot_change_committed_history",
+                "test_failure_after_audit_insert_rolls_back_artifacts_and_history",
+                "test_legacy_unknown_snapshot_keeps_generic_event_without_guessing_kinds",
+                "test_preparation_commits_exact_kinds_and_displays_both_documents",
+                "test_repreparation_does_not_rewrite_prior_snapshot_or_duplicate_reads"
+              ]
+            },
+            "tests.integration.test_fleet_t11_audit_failure_recovery.AuditFailureRecoveryTests": {
+              "PASS": [
+                "test_public_prepare_failure_retry_and_fresh_api_history_are_safe_and_idempotent"
+              ]
+            }
+          }
+        },
+        {
+          "id": 12098387802,
+          "name": "integration-results-1",
+          "sha256": "7984c338b7eea7816d205b7cb2cdc353d510ef490ab028188ab47c8bd503df0e",
+          "xml_sha256": "cbd0cef7106f7d3b62279a3542136c4aa923eada95329ba1f6ce4045d618b06b",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12098387802/zip",
+          "counts": {
+            "PASS": 11,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_audit_history.AuditHistoryApiTests": {
+              "PASS": [
+                "test_changed_search_profile_appends_generic_setting_event_once",
+                "test_company_source_changes_append_setting_events_to_enrolled_profiles_only",
+                "test_company_source_watch_changes_append_setting_events_only_when_origin_changes",
+                "test_discovery_events_survive_scoring_recalculation_without_mutation",
+                "test_new_feed_posting_attached_to_existing_job_records_profile_merge_once",
+                "test_preparation_queue_and_start_are_idempotent_profile_owned_job_events",
+                "test_profile_preference_change_appends_value_free_setting_event_once",
+                "test_recalculation_records_first_profile_discovery_then_stays_idempotent",
+                "test_timeline_is_safe_scoped_and_persistent_across_store_reopen",
+                "test_unknown_profile_does_not_receive_an_empty_success_timeline",
+                "test_user_reported_application_history_appears_without_exposing_note_or_claiming_receipt"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "pr": 724,
+      "run": 39047529681,
+      "head_sha": "9b5d4703c70f14b79624c981c910161cafe3778f",
+      "conclusion": "success",
+      "run_url": "https://github.com/MulattoTech/MJobs/actions/runs/39047529681",
+      "execution": "HISTORICAL_RETRIEVED_JUNIT_NOT_FRESH_EXECUTION",
+      "checkout_identity": {
+        "pr": 724,
+        "job": 117439165896,
+        "checkout_sha": [
+          "e8ac86985cb97e4414ffaba492605c39d9f14775"
+        ],
+        "workflow_head": "9b5d4703c70f14b79624c981c910161cafe3778f",
+        "checkout_tree": "0c9975f1ae9ef4eda68e354e222cad3e89be5a9c",
+        "checkout_parents": [
+          "0c9657445b9e79619fdd8e281ec0e6bef47dc64a",
+          "9b5d4703c70f14b79624c981c910161cafe3778f"
+        ],
+        "head_tree": "0c9975f1ae9ef4eda68e354e222cad3e89be5a9c",
+        "head_parents": [
+          "e067e7315406d8bf42f69ea1d80fbca95970bb2b"
+        ],
+        "tree_equal": true,
+        "shards": [
+          {
+            "job_id": 117439165896,
+            "name": "Integration / shard 0",
+            "checkout_sha": "e8ac86985cb97e4414ffaba492605c39d9f14775",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39047529681/job/117439165896"
+          },
+          {
+            "job_id": 117439166152,
+            "name": "Integration / shard 1",
+            "checkout_sha": "e8ac86985cb97e4414ffaba492605c39d9f14775",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39047529681/job/117439166152"
+          },
+          {
+            "job_id": 117439166219,
+            "name": "Integration / shard 2",
+            "checkout_sha": "e8ac86985cb97e4414ffaba492605c39d9f14775",
+            "conclusion": "success",
+            "url": "https://github.com/MulattoTech/MJobs/actions/runs/39047529681/job/117439166219"
+          }
+        ]
+      },
+      "artifacts": [
+        {
+          "id": 12106711457,
+          "name": "integration-results-0",
+          "sha256": "da1c077dfae2237dcbae189eeab0a8c383c8abc4c8d93c07ac7967857f2095c4",
+          "xml_sha256": "6d369722fcebd7025c7e455fdc72282893e5a1d9a5f2a7c10ffac47cbb0b5d4d",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12106711457/zip",
+          "counts": {
+            "PASS": 31,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_preparation_priority.PreparationPriorityTests": {
+              "PASS": [
+                "test_admission_snapshot_replay_reopen_and_scoped_readback",
+                "test_aging_and_stable_ties_do_not_reset_on_redispatch",
+                "test_cancelled_high_priority_does_not_block_and_duplicate_never_reopens",
+                "test_changed_input_during_admission_does_not_create_a_queue_row",
+                "test_concurrent_admission_and_claims_across_independent_store_engines",
+                "test_concurrent_profile_scoring_and_preparation_admit_only_one_kind",
+                "test_distinct_score_requests_cannot_overlap_for_one_profile",
+                "test_equal_tier_uses_enqueue_time_then_id_even_when_delivery_is_reversed",
+                "test_job_change_after_admission_blocks_document_generation",
+                "test_late_fresh_match_overtakes_older_delivery_and_both_generate_documents",
+                "test_profile_change_after_admission_blocks_before_documents",
+                "test_profile_isolation_and_conflicting_request_identity",
+                "test_retry_due_and_expired_lease_preserve_priority_without_duplicate_output",
+                "test_unknown_evidence_is_background_and_priority_cannot_be_supplied_by_client"
+              ]
+            },
+            "tests.integration.test_preparation_priority.PostgreSQLPreparationPriorityTests": {
+              "PASS": [
+                "test_admission_snapshot_replay_reopen_and_scoped_readback",
+                "test_aging_and_stable_ties_do_not_reset_on_redispatch",
+                "test_cancelled_high_priority_does_not_block_and_duplicate_never_reopens",
+                "test_changed_input_during_admission_does_not_create_a_queue_row",
+                "test_cold_worker_start_does_not_inherit_dispatcher_import_lock",
+                "test_concurrent_admission_and_claims_across_independent_store_engines",
+                "test_concurrent_profile_scoring_and_preparation_admit_only_one_kind",
+                "test_distinct_score_requests_cannot_overlap_for_one_profile",
+                "test_equal_tier_uses_enqueue_time_then_id_even_when_delivery_is_reversed",
+                "test_job_change_after_admission_blocks_document_generation",
+                "test_late_fresh_match_overtakes_older_delivery_and_both_generate_documents",
+                "test_profile_change_after_admission_blocks_before_documents",
+                "test_profile_isolation_and_conflicting_request_identity",
+                "test_real_redis_fifo_worker_processes_choose_priority_and_rebuild_lost_queue",
+                "test_retry_due_and_expired_lease_preserve_priority_without_duplicate_output",
+                "test_unknown_evidence_is_background_and_priority_cannot_be_supplied_by_client"
+              ]
+            },
+            "tests.integration.test_public_company_discovery.PublicCompanyDiscoveryTests": {
+              "PASS": [
+                "test_public_worker_imports_feed_without_claiming_verified_identity_or_ats"
+              ]
+            }
+          }
+        },
+        {
+          "id": 12106187794,
+          "name": "integration-results-1",
+          "sha256": "5d66aa2093bd480ca2173b074223d30fd11f7bb1e768aeb8690b864cf195109c",
+          "xml_sha256": "764eabccc552eda07496f86736e32663c306586a9f38a7860b1b8fcf3407bf76",
+          "archive_url": "https://api.github.com/repos/MulattoTech/MJobs/actions/artifacts/12106187794/zip",
+          "counts": {
+            "PASS": 4,
+            "FAIL": 0,
+            "SKIP": 0
+          },
+          "test_classes": {
+            "tests.integration.test_fleet_t11_guarded_migration.GuardedEntryPointTests": {
+              "PASS": [
+                "test_schema_or_workspace_validation_failure_never_provisions",
+                "test_validated_authorized_entrypoint_provisions_after_one_use_upgrade",
+                "test_wrong_target_or_corrupt_backup_blocks_upgrade_and_preserves_credentials"
+              ]
+            },
+            "tests.integration.test_fleet_t11_guarded_migration.SyntheticSQLiteMigrationRehearsalTests": {
+              "PASS": [
+                "test_drop_obsolete_column_preserves_sentinel_anchor_ciphertext_and_separate_backup"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "proposed_provider_corrections": [
+    {
+      "requirement_id": "MJ-REQ-119",
+      "issue": 120,
+      "observed": {
+        "issue": {
+          "number": 120,
+          "state": "OPEN",
+          "stateReason": null,
+          "url": "https://github.com/MulattoTech/MJobs/issues/120"
+        },
+        "project": {
+          "Status": "Todo",
+          "Priority": "P3",
+          "Acceptance": "NOT_RUN"
+        }
+      },
+      "proposed_project_fields": {
+        "Acceptance": "PASS",
+        "Status": "Done"
+      },
+      "execution_state": "PROPOSED_ONLY_NOT_APPLIED",
+      "root_review_required": true,
+      "proposed_issue_state": "CLOSED",
+      "proposed_issue_state_reason": "COMPLETED"
+    },
+    {
+      "requirement_id": "MJ-REQ-156",
+      "issue": 157,
+      "observed": {
+        "issue": {
+          "number": 157,
+          "state": "CLOSED",
+          "stateReason": "COMPLETED",
+          "url": "https://github.com/MulattoTech/MJobs/issues/157"
+        },
+        "project": {
+          "Status": "Done",
+          "Priority": "P1",
+          "Acceptance": "PARTIAL"
+        }
+      },
+      "proposed_project_fields": {
+        "Acceptance": "PASS"
+      },
+      "execution_state": "PROPOSED_ONLY_NOT_APPLIED",
+      "root_review_required": true
+    },
+    {
+      "requirement_id": "MJ-REQ-158",
+      "issue": 159,
+      "observed": {
+        "issue": {
+          "number": 159,
+          "state": "CLOSED",
+          "stateReason": "COMPLETED",
+          "url": "https://github.com/MulattoTech/MJobs/issues/159"
+        },
+        "project": {
+          "Status": "Done",
+          "Priority": "P1",
+          "Acceptance": "PARTIAL"
+        }
+      },
+      "proposed_project_fields": {
+        "Acceptance": "PASS"
+      },
+      "execution_state": "PROPOSED_ONLY_NOT_APPLIED",
+      "root_review_required": true
+    },
+    {
+      "requirement_id": "MJ-REQ-166",
+      "issue": 167,
+      "observed": {
+        "issue": {
+          "number": 167,
+          "state": "CLOSED",
+          "stateReason": "COMPLETED",
+          "url": "https://github.com/MulattoTech/MJobs/issues/167"
+        },
+        "project": {
+          "Status": "Done",
+          "Priority": "P1",
+          "Acceptance": "PARTIAL"
+        }
+      },
+      "proposed_project_fields": {
+        "Acceptance": "PASS"
+      },
+      "execution_state": "PROPOSED_ONLY_NOT_APPLIED",
+      "root_review_required": true
+    },
+    {
+      "requirement_id": "MJ-REQ-169",
+      "issue": 170,
+      "observed": {
+        "issue": {
+          "number": 170,
+          "state": "CLOSED",
+          "stateReason": "COMPLETED",
+          "url": "https://github.com/MulattoTech/MJobs/issues/170"
+        },
+        "project": {
+          "Status": "Done",
+          "Priority": "P1",
+          "Acceptance": "PARTIAL"
+        }
+      },
+      "proposed_project_fields": {
+        "Acceptance": "PASS"
+      },
+      "execution_state": "PROPOSED_ONLY_NOT_APPLIED",
+      "root_review_required": true
+    },
+    {
+      "requirement_id": "MJ-REQ-176",
+      "issue": 177,
+      "observed": {
+        "issue": {
+          "number": 177,
+          "state": "CLOSED",
+          "stateReason": "COMPLETED",
+          "url": "https://github.com/MulattoTech/MJobs/issues/177"
+        },
+        "project": {
+          "Status": "Done",
+          "Priority": "P1",
+          "Acceptance": "PARTIAL"
+        }
+      },
+      "proposed_project_fields": {
+        "Acceptance": "PASS"
+      },
+      "execution_state": "PROPOSED_ONLY_NOT_APPLIED",
+      "root_review_required": true
+    }
+  ],
+  "repaired_readbacks": [
+    {
+      "requirement_id": "MJ-REQ-292",
+      "issue": 293,
+      "issue_state": {
+        "state": "open",
+        "state_reason": "reopened",
+        "closed_at": null
+      },
+      "project": {
+        "Status": "In Progress",
+        "Acceptance": "PARTIAL",
+        "Priority": "P0"
+      },
+      "readback_at": "2026-10-18T20:32:58.898782+00:00",
+      "root_correction_comment": "https://github.com/MulattoTech/MJobs/issues/293#issuecomment-6254464704",
+      "canonical_result_unchanged": "PARTIAL"
+    },
+    {
+      "requirement_id": "MJ-REQ-122.A04",
+      "issue": 349,
+      "issue_state": {
+        "state": "open",
+        "state_reason": "reopened",
+        "closed_at": null
+      },
+      "project": {
+        "Status": "In Progress",
+        "Acceptance": "NOT_RUN",
+        "Priority": "P4"
+      },
+      "readback_at": "2026-10-18T20:32:58.898782+00:00",
+      "root_correction_comment": "https://github.com/MulattoTech/MJobs/issues/349#issuecomment-6254554903",
+      "canonical_result_unchanged": "NOT_RUN"
+    }
+  ],
+  "scope_limits": [
+    "All runtime outcomes in this record are historical, bound to listed source revisions and retained artifacts; this audit did not run product tests.",
+    "All18 integration shard checkout hashes were read from existing logs. Each three-shard set matches the listed actual checkout; provider commit-tree readback equals its PR head tree. PR head SHA alone was not treated as executed checkout identity.",
+    "Private Native10 runner/manifest/raw14-oracle output and private local browser artifacts were not independently recovered or re-executed. Their committed historical records remain distinct from hosted JUnit corroboration.",
+    "Seven skipped PostgreSQL retry cases and the snapshot-fencing skip remain SKIP; aggregate successful jobs do not turn them into PASS.",
+    "Source drift is historical scope qualification, not blanket disproof or acceptance transfer. No fresh complete425 acceptance or whole-release claim.",
+    "Real employer submission, paid AI, production data migration and host/container restart are not executed. Submission/confirmation examples use controlled MOCK fixtures.",
+    "PR text such as a negative does-not-close sentence can still match GitHub closing-keyword parsing. Incomplete umbrellas use neutral Refs references.",
+    "Canonical original/reference matrices remain separate. Only the010 note and appended evidence pointer are authorized here; no generator --apply, dashboard/status/priority change or provider mutation."
+  ],
+  "post_merge_read_only_validation": {
+    "at": "2026-10-18T20:33:50.065008+00:00",
+    "revision": "57414f8ae977c65f6bd54458bc23dd8dd3de4c48",
+    "working_tree": "clean",
+    "branch": "ao/mjobs-rebuilt-3/acceptance-integrity",
+    "catalogue": "PASS",
+    "progress_validate": "PASS",
+    "progress_dashboard": "CURRENT",
+    "read_only_generator": "425 requirements;57825 bytes",
+    "diff_check": "PASS",
+    "provider_census": "Fully refreshed github census;425 unique IDs/425 unique mapped issues;341 evidence identities;459 user Project items. No missing issues/cards, duplicate mappings, or closed-without-PASS flags.",
+    "census_counts": {
+      "original": {
+        "PARTIAL": 98,
+        "PASS": 125,
+        "NOT_RUN": 143
+      },
+      "supplemental": {
+        "PARTIAL": 4,
+        "PASS": 19,
+        "NOT_RUN": 36
+      },
+      "p0": {
+        "PARTIAL": 5,
+        "PASS": 11,
+        "NOT_RUN": 10
+      },
+      "flags": {
+        "HISTORICAL_SOURCE_DRIFT": 92,
+        "INFERRED_PRIORITY_DIFFERS_FROM_PROJECT": 33,
+        "TEST_IDENTITY_NOT_EXTRACTED": 36,
+        "PROJECT_ACCEPTANCE_DRIFT": 6,
+        "ISSUE_CONTRACT_DIFFERS": 1
+      }
+    },
+    "approved_and_integrated_tree": "9cdafebedc3d9a74be326f5cadd65d4589e1918f",
+    "focused_regression": "NOT_RERUN: whole tree8512 equals57414;7 tool/test inputs equal executed36a5920e. Historical60PASS/3symlinkSKIP retained; no current-execution relabeling.",
+    "full_suite": "NOT_RUN; no duplicate broad run requested."
+  }
+}
