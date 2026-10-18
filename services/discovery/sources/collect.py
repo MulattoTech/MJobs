@@ -246,14 +246,17 @@ def collect_source(store, source_id, profile_id, profile_version=None, check=Non
                 # The anchor belongs to this posting, not another canonical source
                 # or a later poll. Prior valid snapshots carry the stable reference
                 # while still allowing an explicit absolute source correction.
-                prior_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
+                prior_values = connection.execute(select(m.posting_value_candidates.c.normalized,
+                    m.posting_value_candidates.c.observed_at).where(
                     m.posting_value_candidates.c.posting_id == posting_id,
                     m.posting_value_candidates.c.normalized['attributes']['reported_posted_at']
                         .as_string().is_not(None)).order_by(
                         m.posting_value_candidates.c.observed_at.desc(), m.posting_value_candidates.c.id.desc())
-                    .limit(1)).scalar_one_or_none()
-                previous_dates = (prior_values or {}).get('attributes') or (
+                    .limit(1)).mappings().one_or_none()
+                previous_dates = ((prior_values or {}).get('normalized') or {}).get('attributes') or (
                     existing_attributes if existing_attributes.get('source_id') == source_id else {})
+                if prior_values:
+                    previous_dates = {**previous_dates, 'observed_at': prior_values['observed_at']}
                 attrs = job['attributes']
                 raw_date = attrs.get('reported_posted_at_raw', attrs.get('reported_posted_at'))
                 # Adapters may validate another native field (RemoteOK epoch).

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from math import asin, cos, radians, sin, sqrt
 import re
 
@@ -124,6 +125,10 @@ def parse_salary(text, source="UNKNOWN"):
 
 
 _RELATIVE_TIMESTAMP = re.compile(r"(\d{1,6})\s+(minute|hour|day)s?\s+ago", re.I)
+_RSS_TIMESTAMP = re.compile(
+    r'(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),\s+)?\d{1,2}\s+'
+    r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}\s+'
+    r'\d{2}:\d{2}(?::\d{2})?\s+(?:[+-]\d{4}|GMT|UT)', re.I)
 
 
 def parse_timestamp(value, *, reference_at=None):
@@ -136,14 +141,24 @@ def parse_timestamp(value, *, reference_at=None):
         try:
             parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
         except (ValueError, TypeError):
-            match = _RELATIVE_TIMESTAMP.fullmatch(str(value).strip())
-            reference = parse_timestamp(reference_at) if reference_at is not None else None
-            if not match or reference is None:
-                return None
-            try:
-                return reference - timedelta(**{match[2].lower() + 's': int(match[1])})
-            except (ValueError, OverflowError):
-                return None
+            if _RSS_TIMESTAMP.fullmatch(str(value).strip()):
+                try:
+                    parsed = parsedate_to_datetime(str(value).strip())
+                except (ValueError, TypeError, OverflowError):
+                    return None
+                # RSS must supply a known offset; do not assign a local zone to
+                # an absent/unknown timezone such as RFC's -0000 convention.
+                if parsed.tzinfo is None:
+                    return None
+            else:
+                match = _RELATIVE_TIMESTAMP.fullmatch(str(value).strip())
+                reference = parse_timestamp(reference_at) if reference_at is not None else None
+                if not match or reference is None:
+                    return None
+                try:
+                    return reference - timedelta(**{match[2].lower() + 's': int(match[1])})
+                except (ValueError, OverflowError):
+                    return None
     try:
         if parsed.tzinfo is None:
             parsed = parsed.replace(tzinfo=timezone.utc)
@@ -156,16 +171,33 @@ def normalize_reported_timestamp(value, *, reference_at, previous=None):
     """Retain the source claim and its first observation, never a moving now()."""
     previous = previous or {}
     relative = _RELATIVE_TIMESTAMP.fullmatch(str(value or '').strip())
-    if relative and previous.get('reported_posted_at_precision') in {'MINUTE', 'HOUR', 'DAY', 'SOURCE'}:
+    if relative:
         # A mutable age label is not proof of republication. Retain the first
         # normalized claim and its original reference; latest wording remains
         # available in the immutable source posting snapshots.
-        if parse_timestamp(previous.get('reported_posted_at')):
-            return {key: previous.get(key) for key in (
-                'reported_posted_at', 'reported_posted_at_raw',
-                'reported_posted_at_precision', 'reported_posted_at_reference_at')}
-    reference = (parse_timestamp(previous.get('reported_posted_at_reference_at'))
-                 or parse_timestamp(reference_at)) if relative else None
+        prior_value = previous.get('reported_posted_at')
+        prior_relative = _RELATIVE_TIMESTAMP.fullmatch(str(prior_value or '').strip())
+        prior_reference = (parse_timestamp(previous.get('reported_posted_at_reference_at'))
+            or parse_timestamp(previous.get('observed_at'))
+            or parse_timestamp(previous.get('last_collected_at'))
+            or parse_timestamp(previous.get('first_seen_at')))
+        prior = parse_timestamp(prior_value, reference_at=prior_reference)
+        if prior is not None:
+            precision = previous.get('reported_posted_at_precision')
+            if precision not in {'MINUTE', 'HOUR', 'DAY', 'SOURCE'}:
+                precision = prior_relative[2].upper() if prior_relative else 'SOURCE'
+            return {
+                'reported_posted_at': prior.isoformat(),
+                # Legacy relative text is the prior claim itself. A saved
+                # absolute UTC value does not reveal its original source words;
+                # immutable posting snapshots retain those when raw is unknown.
+                'reported_posted_at_raw': previous.get('reported_posted_at_raw',
+                    prior_value if prior_relative else None),
+                'reported_posted_at_precision': precision,
+                'reported_posted_at_reference_at': prior_reference.isoformat() if prior_relative else
+                    previous.get('reported_posted_at_reference_at'),
+            }
+    reference = parse_timestamp(reference_at) if relative else None
     parsed = parse_timestamp(value, reference_at=reference)
     return {
         'reported_posted_at': parsed.isoformat() if parsed else None,

@@ -11,11 +11,14 @@ from unittest.mock import patch
 
 import httpx
 from fastapi.testclient import TestClient
+from sqlalchemy import select, update
 
 from apps.api.main import create_app
+from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration.test_remotive import RAW_REMOTIVE_PAYLOAD
 from tests.integration.test_remoteok import RAW_REMOTEOK_PAYLOAD
+from tests.integration.test_wwr import RAW_WWR_RSS
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
 
@@ -64,6 +67,9 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
             self.assertEqual((request.method, request.url.host, request.url.path),
                              ('GET', self.expected_host, self.expected_path))
             self.requests.append(str(request.url))
+            if isinstance(self.payload, bytes):
+                return httpx.Response(200, content=self.payload,
+                    headers={'content-type': 'application/rss+xml'})
             return httpx.Response(200, json=self.payload)
         with patch('httpx.HTTPTransport.handle_request', boundary), patch(
                 'services.discovery.sources.collect.now', return_value=collected_at.isoformat()), patch(
@@ -207,3 +213,94 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         self.assertEqual(len(self._filtered('LAST_3_DAYS')), 2)
         self.assertEqual(execute_operation(identifier)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
         self.assertEqual(len(self.requests), 1)
+
+    def test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen(self):
+        source = self.client.put('/sources', json={'provider': 'wwr', 'tenant': 'default',
+            'poll_interval': 300, 'request_timeout': 8, 'rate_limit': 60, 'jitter_seconds': 0})
+        self.assertEqual(source.status_code, 200, source.text)
+        self.source_id = source.json()['id']
+        self.expected_host, self.expected_path = 'weworkremotely.com', '/remote-jobs.rss'
+        self.payload = RAW_WWR_RSS
+        identifier = self._collect(request_id='wwr-rfc2822')
+        self._reopen()
+        rows = self._filtered('LAST_30_DAYS')
+        self.assertEqual(len(rows), 3)
+        first = next(row for row in rows if row['requisition'] == 'acme-cloud-senior-python-engineer')
+        self.assertEqual(first['attributes']['reported_posted_at'], '2026-10-06T12:00:00+00:00')
+        self.assertEqual(first['attributes']['reported_posted_at_raw'], 'Tue, 06 Oct 2026 12:00:00 +0000')
+        self.assertEqual(first['attributes']['reported_posted_at_precision'], 'SOURCE')
+        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
+        detail = self.client.get('/jobs/' + first['id'], params={'profile_id': 'fixture'}).json()
+        self.assertEqual(detail['postings'][0]['raw']['pubDate'], first['attributes']['reported_posted_at_raw'])
+        self.assertEqual(execute_operation(identifier)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
+        self.assertEqual(len(self.requests), 1)
+
+    def _emulate_preupgrade_dates(self, reported, *, first_seen=None):
+        # Persist the legacy shape that predates precision/raw/reference fields.
+        # New observations still enter through the actual public producer/worker.
+        metadata = ('reported_posted_at_raw', 'reported_posted_at_precision',
+                    'reported_posted_at_reference_at')
+        with self.store.engine.begin() as connection:
+            for row in connection.execute(select(m.jobs)).mappings():
+                attrs = deepcopy(row['attributes'])
+                for key in metadata:
+                    attrs.pop(key, None)
+                attrs['reported_posted_at'] = reported
+                if first_seen:
+                    attrs['first_seen_at'] = first_seen
+                connection.execute(update(m.jobs).where(m.jobs.c.id == row['id']).values(attributes=attrs))
+            for row in connection.execute(select(m.posting_value_candidates)).mappings():
+                values = deepcopy(row['normalized'])
+                for key in metadata:
+                    values['attributes'].pop(key, None)
+                values['attributes']['reported_posted_at'] = reported
+                connection.execute(update(m.posting_value_candidates).where(
+                    m.posting_value_candidates.c.id == row['id']).values(normalized=values))
+
+    def test_preupgrade_absolute_date_without_precision_is_not_refreshed_by_relative_recollection(self):
+        original = (self.collected_at - timedelta(days=10)).isoformat()
+        self.payload['jobs'][0]['publication_date'] = original
+        self._collect(request_id='legacy-absolute')
+        self._emulate_preupgrade_dates(original)
+        self._reopen()
+        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
+        self.payload['jobs'][0]['publication_date'] = '2 hours ago'
+        self._collect(self.collected_at + timedelta(hours=1), 'relative-after-legacy-absolute')
+        self._reopen()
+        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
+        job = self._filtered('LAST_30_DAYS')[0]
+        self.assertEqual(job['attributes']['reported_posted_at'], original)
+        self.assertIsNone(job['attributes']['reported_posted_at_raw'])
+        self.assertEqual(job['attributes']['reported_posted_at_precision'], 'SOURCE')
+        self.assertIsNone(job['attributes']['reported_posted_at_reference_at'])
+        detail = self.client.get('/jobs/' + job['id'], params={'profile_id': 'fixture'}).json()
+        self.assertEqual(detail['postings'][0]['raw']['publication_date'], '2 hours ago')
+        with self.store.engine.connect() as connection:
+            snapshots = list(connection.execute(select(m.posting_snapshots)).mappings())
+        self.assertEqual({snapshot['raw']['publication_date'] for snapshot in snapshots},
+                         {original, '2 hours ago'})
+        self.assertEqual({snapshot['sha256'] for snapshot in snapshots},
+                         {snapshot['sha256'] for snapshot in detail['postings'][0]['snapshots']})
+
+    def test_preupgrade_relative_claim_uses_its_candidate_observation_and_remains_stable(self):
+        self._collect(request_id='legacy-relative')
+        self._emulate_preupgrade_dates('2 hours ago',
+            first_seen=(self.collected_at - timedelta(hours=5)).isoformat())
+        self._reopen()
+        self.payload['jobs'][0]['publication_date'] = '3 hours ago'
+        self._collect(self.collected_at + timedelta(hours=1), 'changed-age-after-legacy-relative')
+        self._reopen()
+        first = self._filtered('LAST_24_HOURS')[0]
+        expected = (self.collected_at - timedelta(hours=2)).isoformat()
+        self.assertEqual(first['attributes']['reported_posted_at'], expected)
+        self.assertEqual(first['attributes']['reported_posted_at_reference_at'], self.collected_at.isoformat())
+        self.assertEqual(first['attributes']['reported_posted_at_raw'], '2 hours ago')
+        self.payload['jobs'][0]['publication_date'] = '2 hours ago'
+        identifier = self._collect(self.collected_at + timedelta(days=2), 'stale-age-after-legacy-relative')
+        self._reopen()
+        job = self._filtered('LAST_24_HOURS')[0]
+        self.assertEqual(job['attributes']['reported_posted_at'], expected)
+        self.assertEqual(job['attributes']['reported_posted_at_reference_at'], self.collected_at.isoformat())
+        self.assertEqual(job['attributes']['last_seen_at'], (self.collected_at + timedelta(days=2)).isoformat())
+        self.assertEqual(execute_operation(identifier)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
+        self.assertEqual(len(self.requests), 3)

@@ -134,14 +134,17 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 batch_identities.setdefault(job_id, []).append((provider, tenant, requisition))
                 previous = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 previous = dict(previous or {})
-                prior_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
+                prior_values = connection.execute(select(m.posting_value_candidates.c.normalized,
+                    m.posting_value_candidates.c.observed_at).where(
                     m.posting_value_candidates.c.posting_id == posting_id,
                     m.posting_value_candidates.c.normalized['attributes']['reported_posted_at']
                         .as_string().is_not(None)).order_by(
                         m.posting_value_candidates.c.observed_at.desc(), m.posting_value_candidates.c.id.desc())
-                    .limit(1)).scalar_one_or_none()
-                previous_dates = (prior_values or {}).get('attributes') or (
+                    .limit(1)).mappings().one_or_none()
+                previous_dates = ((prior_values or {}).get('normalized') or {}).get('attributes') or (
                     previous if previous.get('source_id') == source_id else {})
+                if prior_values:
+                    previous_dates = {**previous_dates, 'observed_at': prior_values['observed_at']}
                 attributes = {
                 "lifecycle_claim": status_claim(item.get('status')),
                 "provider": provider, "tenant": tenant, "source_id": source_id,

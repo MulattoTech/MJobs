@@ -74,3 +74,56 @@ class RelativePostedTimestampTests(unittest.TestCase):
                     'first_seen_at': '2026-10-18T20:00:00Z'}}
                 self.assertIn('DATE_UNKNOWN', evaluate_search({'date_window': 'LAST_HOUR'}, job,
                     at='2026-10-18T20:30:00Z')['reasons'])
+
+    def test_supported_rss_dates_require_a_valid_known_timezone_and_normalize_to_utc(self):
+        for raw in ('Tue, 06 Oct 2026 12:00:00 +0000', '06 Oct 2026 17:30:00 +0530',
+                    'Tue, 06 Oct 2026 12:00:00 GMT', 'Tue, 06 Oct 2026 12:00 UT'):
+            with self.subTest(raw=raw):
+                normalized = normalize_reported_timestamp(raw, reference_at='2026-10-18T20:00:00Z')
+                self.assertEqual(normalized['reported_posted_at'], '2026-10-06T12:00:00+00:00')
+                self.assertEqual(normalized['reported_posted_at_raw'], raw)
+                self.assertEqual(normalized['reported_posted_at_precision'], 'SOURCE')
+                self.assertIsNone(normalized['reported_posted_at_reference_at'])
+        for raw in ('Tue, 32 Oct 2026 12:00:00 +0000', 'Tue, 06 Oct 2026 25:00:00 +0000',
+                    'Tue, 06 Oct 2026 12:00:00 +2500', 'Tue, 06 Oct 2026 12:00:00',
+                    'Tue, 06 Oct 2026 12:00:00 -0000', 'Tue, 06 Oct 2026 12:00:00 UNKNOWN',
+                    'not-a-date Tue, 06 Oct 2026 12:00:00 +0000'):
+            with self.subTest(raw=raw):
+                self.assertIsNone(parse_timestamp(raw))
+        future = {'attributes': {'reported_posted_at': 'Tue, 06 Oct 2099 12:00:00 +0000'}}
+        self.assertFalse(evaluate_search({'date_window': 'LAST_30_DAYS'}, future,
+                                        at='2026-10-18T20:00:00Z')['matched'])
+
+    def test_preupgrade_absolute_date_needs_no_precision_to_override_a_relative_claim(self):
+        previous = {'reported_posted_at': '2026-10-01T12:00:00Z'}
+        result = normalize_reported_timestamp('2 hours ago',
+            reference_at='2026-10-18T20:00:00Z', previous=previous)
+        self.assertEqual(result['reported_posted_at'], '2026-10-01T12:00:00+00:00')
+        self.assertEqual(result['reported_posted_at_precision'], 'SOURCE')
+        self.assertIsNone(result['reported_posted_at_reference_at'])
+        self.assertIsNone(result['reported_posted_at_raw'])
+
+    def test_preupgrade_relative_date_uses_recorded_observation_before_older_first_seen(self):
+        previous = {'reported_posted_at': '2 hours ago', 'observed_at': '2026-10-18T20:00:00Z',
+            'first_seen_at': '2026-10-18T15:00:00Z', 'last_seen_at': '2026-10-21T20:00:00Z'}
+        result = normalize_reported_timestamp('3 hours ago',
+            reference_at='2026-10-18T21:00:00Z', previous=previous)
+        self.assertEqual(result['reported_posted_at'], '2026-10-18T18:00:00+00:00')
+        self.assertEqual(result['reported_posted_at_raw'], '2 hours ago')
+        self.assertEqual(result['reported_posted_at_reference_at'], '2026-10-18T20:00:00+00:00')
+        self.assertEqual(result['reported_posted_at_precision'], 'HOUR')
+        self.assertEqual(normalize_reported_timestamp('2 hours ago',
+            reference_at='2026-10-28T20:00:00Z', previous=result), result)
+        fallback = {**previous, 'last_collected_at': previous['observed_at']}
+        fallback.pop('observed_at')
+        self.assertEqual(normalize_reported_timestamp('3 hours ago',
+            reference_at='2026-10-18T21:00:00Z', previous=fallback), result)
+
+    def test_invalid_previous_claim_cannot_anchor_a_first_valid_relative_observation(self):
+        previous = {'reported_posted_at': None, 'reported_posted_at_raw': 'not a date',
+            'reported_posted_at_reference_at': '2026-10-01T20:00:00Z',
+            'reported_posted_at_precision': 'UNKNOWN'}
+        result = normalize_reported_timestamp('2 hours ago',
+            reference_at='2026-10-18T20:00:00Z', previous=previous)
+        self.assertEqual(result['reported_posted_at'], '2026-10-18T18:00:00+00:00')
+        self.assertEqual(result['reported_posted_at_reference_at'], '2026-10-18T20:00:00+00:00')
