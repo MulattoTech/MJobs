@@ -420,4 +420,3 @@ class OfficialDomainAcquisitionTests(unittest.TestCase):
         outcome = self._run_company(request)
         self.assertEqual(outcome['error_category'], 'DISCOVERY_SOURCE_CHANGED', outcome)
         self.assertEqual(self.employer_requests, [])
-

@@ -44,4 +44,3 @@ class NativeJobPageCorroborationTests(unittest.TestCase):
         for name, value, links, final in variants:
             with self.subTest(name=name):
                 self.assertFalse(corroborated_job_page(proof, 'Example Employer', response(value, links, final)))
-
