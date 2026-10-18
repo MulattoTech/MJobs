@@ -223,13 +223,22 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         self.payload = RAW_WWR_RSS
         identifier = self._collect(request_id='wwr-rfc2822')
         self._reopen()
-        rows = self._filtered('LAST_30_DAYS')
+        # Keep the existing RSS fixture literal and its bounded windows stable
+        # when this test is rerun after the fixture's publication month.
+        query_at = datetime(2026, 10, 18, 20, tzinfo=timezone.utc)
+        class RssQueryClock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return query_at.astimezone(tz) if tz else query_at.replace(tzinfo=None)
+        with patch('services.discovery.search_semantics.datetime', RssQueryClock):
+            rows = self._filtered('LAST_30_DAYS')
+            recent = self._filtered('LAST_24_HOURS')
         self.assertEqual(len(rows), 3)
         first = next(row for row in rows if row['requisition'] == 'acme-cloud-senior-python-engineer')
         self.assertEqual(first['attributes']['reported_posted_at'], '2026-10-06T12:00:00+00:00')
         self.assertEqual(first['attributes']['reported_posted_at_raw'], 'Tue, 06 Oct 2026 12:00:00 +0000')
         self.assertEqual(first['attributes']['reported_posted_at_precision'], 'SOURCE')
-        self.assertEqual(len(self._filtered('LAST_24_HOURS')), 0)
+        self.assertEqual(len(recent), 0)
         detail = self.client.get('/jobs/' + first['id'], params={'profile_id': 'fixture'}).json()
         self.assertEqual(detail['postings'][0]['raw']['pubDate'], first['attributes']['reported_posted_at_raw'])
         self.assertEqual(execute_operation(identifier)['status'], 'ALREADY_CLAIMED_OR_CAPACITY')
