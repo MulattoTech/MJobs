@@ -349,6 +349,17 @@ def wait_for_ui_action_idle(page, button_name):
     expect(page.get_by_role("button", name=button_name, exact=True)).to_be_enabled()
 
 
+def wait_for_fixture_collection_ui_idle(page):
+    """Wait until fixture collection, its UI refresh, and the shared busy gate finish."""
+    expect(page.get_by_role("status").filter(
+        has_text="Local fixture jobs collected for your saved profile. No employer was contacted."
+    )).to_be_visible()
+    # The collection action navigates back to Jobs before action() completes its
+    # final refresh/readback. This stable Jobs control remains mounted through
+    # that transition and is disabled by the same busy gate as the Sources form.
+    wait_for_ui_action_idle(page, "Refresh matches")
+
+
 def _source_binding():
     def git_value(*args):
         result = subprocess.run(
@@ -607,6 +618,9 @@ def run(base_url, evidence_path, onboarding=False):
                         discovery_request, operation, jobs,
                         profile_id=profile_id, search_profile_id=search["id"],
                         expected_titles=set(expected_titles))
+                    # Operation completion and filtered readback can precede the
+                    # UI action's own refresh/loadJobs and busy-gate release.
+                    wait_for_fixture_collection_ui_idle(page)
                     discovery_search_proofs.append({
                         "search_profile_id": search["id"],
                         "operation_id": operation_id,
