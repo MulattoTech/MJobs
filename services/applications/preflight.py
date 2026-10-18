@@ -712,6 +712,7 @@ def persist_preflight(store, application_id: str, result: dict) -> None:
 
 
 def latest_preflight(store, application_id: str) -> dict | None:
+    application = store.application(application_id)
     with store.engine.connect() as connection:
         row = connection.execute(select(m.audit).where(
             m.audit.c.entity_id == application_id,
@@ -719,4 +720,12 @@ def latest_preflight(store, application_id: str) -> dict | None:
         ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1)).mappings().one_or_none()
     if row is None:
         return None
-    return {**row["payload"], "event_id": row["id"]}
+    payload = row["payload"]
+    # A review is approval for one immutable preparation snapshot only. Keep the
+    # audit record, but never show or reuse it after a new profile/document/route
+    # revision becomes current.
+    if (payload.get("profile_version") != application["profile_version"]
+            or payload.get("document_version") != application["document_version"]
+            or payload.get("route_id") != application["route_id"]):
+        return None
+    return {**payload, "event_id": row["id"]}

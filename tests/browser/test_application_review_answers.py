@@ -1,5 +1,6 @@
 """Connected local-browser acceptance for manually reviewed application answers."""
 from copy import deepcopy
+from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
 import tempfile
@@ -10,12 +11,15 @@ from urllib.parse import urlsplit
 
 from playwright.sync_api import expect, sync_playwright
 import uvicorn
+from sqlalchemy import select
 
 from apps.api.main import create_app
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
+from packages.persistence import models as m
 from packages.persistence.store import Store
-from services.applications.preflight import persist_preflight
+from services.applications.preflight import latest_preflight, persist_preflight
+from services.applications.mock_adapter import apply_mock
 from services.discovery.pipeline import discover
 from services.documents.generate import prepare
 from tests.integration.test_spine import PROFILE
@@ -42,7 +46,21 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
             store.migrate()
             store.bind_workspace_mode("FIXTURE")
             profile = deepcopy(PROFILE)
-            profile["answers"] = []
+            # Keep only already-approved synthetic ATS answers so the resumed
+            # revision can pass the fixture form after the newly reviewed answer
+            # is saved. The user-reviewed Azure answer remains the new change.
+            profile["answers"] = [
+                {"id": "synthetic-country", "question": "Country",
+                 "text": "United States", "source": "User-reviewed fixture",
+                 "verified": True, "user_approved": True, "confidence": 95},
+                {"id": "synthetic-remote", "question": "Remote role",
+                 "text": "yes", "source": "User-reviewed fixture",
+                 "verified": True, "user_approved": True, "confidence": 95},
+                {"id": "synthetic-fixture-answer", "question": "Approved fixture answer",
+                 "text": "Controlled fictional test application.",
+                 "source": "User-reviewed fixture", "verified": True,
+                 "user_approved": True, "confidence": 95},
+            ]
             store.save_profile(profile)
             other_profile = deepcopy(PROFILE)
             other_profile.update(id="other-profile", name="Other synthetic applicant",
@@ -51,9 +69,11 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
 
             # The fixture server is loopback-only and serves synthetic postings; the
             # browser below blocks every origin other than its isolated local API.
-            with fixture_server() as fixture:
-                discover(store, fixture, "fixture")
-                discover(store, fixture, "other-profile")
+            fixture_context = fixture_server()
+            fixture = fixture_context.__enter__()
+            self.addCleanup(fixture_context.__exit__, None, None, None)
+            discover(store, fixture, "fixture")
+            discover(store, fixture, "other-profile")
             job = next(row for row in store.jobs("fixture") if row["requisition"] == "B")
             other_job = next(row for row in store.jobs("other-profile")
                              if row["requisition"] == "B")
@@ -281,6 +301,57 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(len(writes), 2,
                                      "Readback and selection must not write application state")
 
+                    # A reviewed answer changes the profile version, so the old
+                    # application snapshot needs an explicit, audited resume.
+                    resume = page.get_by_role(
+                        "region", name="Resume application preparation")
+                    expect(resume).to_contain_text("current approved facts and answers")
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path.endswith("/reprepare")) as reprepare:
+                        resume.get_by_role(
+                            "button", name="Resume and prepare current revision").click()
+                    self.assertEqual(reprepare.value.status, 200, reprepare.value.text())
+                    prepared = reprepare.value.json()
+                    self.assertEqual(prepared["id"], application_ids["fixture"])
+                    self.assertEqual(prepared["profile_version"], saved_profile["version"])
+                    self.assertEqual(prepared["document_version"],
+                                     applications_before[0]["document_version"] + 1)
+                    expect(page.get_by_role("status").filter(has_text=
+                        "Run a local dry run to create a fresh ATS question preflight")).to_be_visible()
+                    refreshed_documents = page.request.get(
+                        f"{origin}/profiles/fixture/applications/"
+                        f"{application_ids['fixture']}/documents")
+                    self.assertEqual(refreshed_documents.status, 200)
+                    revisions = refreshed_documents.json()["documents"]
+                    self.assertTrue(any(row["version"] == applications_before[0]["document_version"]
+                                        and row["profile_version"] == applications_before[0]["profile_version"]
+                                        for row in revisions))
+                    self.assertTrue(any(row["version"] == prepared["document_version"]
+                                        and row["profile_version"] == saved_profile["version"]
+                                        for row in revisions))
+                    durable = store.application(application_ids["fixture"])
+                    self.assertEqual(durable["document_version"], prepared["document_version"])
+                    self.assertEqual(durable["profile_version"], saved_profile["version"])
+                    with store.engine.connect() as connection:
+                        audit_rows = list(connection.execute(select(m.audit).where(
+                            m.audit.c.entity_id == application_ids["fixture"],
+                            m.audit.c.action == "DOCUMENTS_PREPARED",
+                        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings())
+                    reprepare_event = next(row for row in audit_rows
+                                           if row["payload"].get("reprepare"))
+                    self.assertEqual(reprepare_event["payload"]["reprepare"]["prior"]["document_version"],
+                                     applications_before[0]["document_version"])
+                    self.assertIsNone(prepared["question_preflight"],
+                                      "The old preflight must not be reused for current documents")
+                    refreshed_answer = page.get_by_role(
+                        "region", name="Application answers", exact=True).get_by_role(
+                            "group", name="Question 1")
+                    expect(refreshed_answer.get_by_role(
+                        "textbox", name="Answer", exact=True)).to_have_value(MANUAL_ANSWER)
+                    expect(refreshed_answer.get_by_label(
+                        "I reviewed this exact answer for this job", exact=True)).not_to_be_checked()
+
                     # A browser reload followed by the profile-scoped answers read
                     # route proves that the exact user text survived the page lifecycle.
                     page.reload(wait_until="domcontentloaded")
@@ -295,6 +366,34 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         for item in readback_answers), readback_answers)
                     settings = page.request.get(f"{origin}/settings")
                     self.assertFalse(settings.json()["external_submission_enabled"])
+
+                    # Finish the current revision's local synthetic ATS dry-run
+                    # through the same browser adapter used by the worker. The
+                    # public queue requires Redis, which this isolated fixture
+                    # server intentionally does not start.
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        local_run = executor.submit(
+                            apply_mock, store, application_ids["fixture"], fixture, root,
+                            request_id="review-resume-browser-dryrun",
+                        ).result(timeout=45)
+                    self.assertEqual(
+                        local_run["state"], "DRY_RUN_COMPLETE",
+                        f"mock run stopped safely: {local_run}; "
+                        f"preflight={latest_preflight(store, application_ids['fixture'])}",
+                    )
+                    completed = page.request.get(
+                        f"{origin}/profiles/fixture/applications/"
+                        f"{application_ids['fixture']}")
+                    self.assertEqual(completed.status, 200)
+                    completed_app = completed.json()
+                    self.assertEqual(completed_app["state"], "DRY_RUN_COMPLETE")
+                    self.assertEqual(completed_app["document_version"],
+                                     prepared["document_version"])
+                    self.assertEqual(completed_app["question_preflight"]["document_version"],
+                                     prepared["document_version"])
+                    self.assertEqual(completed_app["question_preflight"]["profile_version"],
+                                     saved_profile["version"])
+                    self.assertFalse(completed_app["question_preflight"]["missing"])
 
                     # A different profile sees no answer from profile A.
                     page.get_by_label("Active profile", exact=True).select_option(
@@ -354,15 +453,16 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(writes, [
                         ("PUT", "/profiles"),
                         ("PUT", "/profiles"),
+                        ("POST", f"/profiles/fixture/applications/{application_ids['fixture']}/reprepare"),
                     ])
-                    self.assertEqual(len(request_bodies), 2)
+                    self.assertEqual(len(request_bodies), 3)
                     for profile_id in ("fixture", "other-profile"):
                         self.assertFalse(any(
                             item.get("text") == "Synthetic application-only answer"
                             for item in store.profile(profile_id)["answers"]))
                     self.assertTrue(any(item.get("id") == CONCURRENT_ANSWER_ID
-                                        for item in request_bodies[-1]["answers"]))
-                    for body in request_bodies:
+                                        for item in request_bodies[1]["answers"]))
+                    for body in request_bodies[:2]:
                         self.assertEqual(body["id"], "fixture")
                         self.assertTrue(body["expected_version"])
                         self.assertFalse(any(
@@ -372,10 +472,18 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                             item.get("question") == QUESTION
                             and item.get("text") == MANUAL_ANSWER
                             for item in body["answers"]))
-                    self.assertEqual(store.count("documents"), documents_before)
-                    self.assertEqual(store.count("application_attempts"), attempts_before)
-                    for before in applications_before:
-                        self.assertEqual(store.application(before["id"]), before)
+                    self.assertEqual(set(request_bodies[2]), {
+                        "expected_document_version", "expected_application_profile_version",
+                        "expected_profile_version", "expected_state",
+                    })
+                    self.assertGreater(store.count("documents"), documents_before)
+                    self.assertEqual(store.count("application_attempts"), attempts_before + 1)
+                    self.assertEqual(store.application(applications_before[0]["id"])["state"],
+                                     "DRY_RUN_COMPLETE")
+                    self.assertEqual(store.application(applications_before[0]["id"])["document_version"],
+                                     prepared["document_version"])
+                    self.assertEqual(store.application(applications_before[1]["id"]),
+                                     applications_before[1])
                     self.assertFalse(external, external)
                     self.assertFalse(errors, errors)
                     browser.close()

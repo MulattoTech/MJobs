@@ -349,7 +349,7 @@ def _resolved_role_lens(store, profile, job, profile_id, role_lens_id,
     }
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None, reprepare_expected=None):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
@@ -497,6 +497,38 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             cover_letter_context["role_lens"] = role_lens
             cover_letter_context["job_snapshot"]["role_lens"] = role_lens
         prior = connection.execute(select(m.applications).where(m.applications.c.job_id == job_id, m.applications.c.profile_id == profile_id).with_for_update()).mappings().one_or_none()
+        reprepare_audit = None
+        if reprepare_expected is not None:
+            if not isinstance(reprepare_expected, dict) or prior is None:
+                raise PreparationError("APPLICATION_REPREPARE_STALE", "Reload the saved application before preparing it again")
+            expected = reprepare_expected
+            if (prior["id"] != expected.get("application_id")
+                    or prior["document_version"] != expected.get("document_version")
+                    or prior["profile_version"] != expected.get("application_profile_version")
+                    or prior["state"] != expected.get("state")
+                    or profile["version"] != expected.get("profile_version")):
+                raise PreparationError("APPLICATION_REPREPARE_STALE", "Application or approved profile changed; reload before preparing it again")
+            if prior["state"] not in ("PREPARED", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED"):
+                raise PreparationError("APPLICATION_REPREPARE_STATE_BLOCKED", "This application state cannot be safely prepared again")
+            active_attempt = connection.execute(select(m.attempts.c.id).where(
+                m.attempts.c.application_id == prior["id"], m.attempts.c.state == "RUNNING"
+            ).limit(1)).first()
+            if active_attempt:
+                raise PreparationError("APPLICATION_REPREPARE_IN_PROGRESS", "An application attempt is still in progress; reconcile it before preparing again")
+            active_operation = connection.execute(select(m.operations.c.id).where(
+                m.operations.c.entity_id == prior["id"],
+                m.operations.c.kind.in_(("PREPARE", "APPLY_MOCK", "MANUAL_AUTH")),
+                m.operations.c.state.in_(("QUEUED", "RUNNING")),
+            ).limit(1)).first()
+            if active_operation:
+                raise PreparationError("APPLICATION_REPREPARE_IN_PROGRESS", "An application action is still in progress; reconcile it before preparing again")
+            reprepare_audit = {
+                "prior": {"application_id": prior["id"], "job_id": prior["job_id"],
+                          "profile_id": prior["profile_id"],
+                          "profile_version": prior["profile_version"],
+                          "document_version": prior["document_version"],
+                          "route_id": prior["route_id"], "state": prior["state"]},
+            }
         if prior:
             prior_resume=connection.execute(select(m.documents).where(m.documents.c.application_id==prior['id'],
                 m.documents.c.version==prior['document_version'],m.documents.c.kind=='resume')).mappings().one_or_none()
@@ -665,6 +697,25 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         check()
         publish_directory(staging, root)
         staged.append(root)
+        if reprepare_audit is not None:
+            reprepare_audit["current"] = {
+                "application_id": application_id, "job_id": job_id,
+                "profile_id": profile_id, "profile_version": profile["version"],
+                "document_version": revision, "route_id": route["id"],
+                "document_ids": sorted(record["id"] for record in records),
+                "state": "PREPARED",
+            }
+            # Record the exact old pin set before changing the mutable application
+            # row. Both this event and the new pins commit atomically.
+            store._audit(connection, application_id, "DOCUMENTS_PREPARED", {
+                "fact_ids": fact_ids, "profile_version": profile["version"],
+                "route_ids": [option["preferred_route"]["id"]
+                              for option in route_plan["selected"]],
+                "route_mode": route_plan["mode"],
+                "document_kinds": sorted({record["kind"] for record in records}),
+                "adapter_knowledge": application_adapter_knowledge(connection, route["id"]),
+                "reprepare": reprepare_audit,
+            })
         upsert(connection, m.applications, {"id": application_id, "job_id": job_id, "route_id": route["id"], "profile_id": profile_id,
             "profile_version": profile["version"], "document_version": revision, "state": "PREPARED", "target": "MOCK" if route["provider"] == "mock-ats" else "REAL", "fact_ids": fact_ids,
             "trace": [*(prior["trace"] if prior else []), "GENERATE_DOCUMENTS", "PREPARE_APPLICATION"], "confirmation": None, "created_at": prior["created_at"] if prior else now()}, replace=bool(prior))
@@ -676,7 +727,9 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 {'id': r['id'], 'fact_ids': r['fact_ids'], 'sha256': r['sha256'],
                  'claim_validation': r['generation_context']['claim_validation']}
                 for r in records]})
-        store._audit(connection, application_id, "DOCUMENTS_PREPARED", {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"],
+        prepared_payload = {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"],
             "document_kinds": sorted({record["kind"] for record in records}),
-            "adapter_knowledge": application_adapter_knowledge(connection, route["id"])})
+            "adapter_knowledge": application_adapter_knowledge(connection, route["id"])}
+        if reprepare_audit is None:
+            store._audit(connection, application_id, "DOCUMENTS_PREPARED", prepared_payload)
         return application_id
