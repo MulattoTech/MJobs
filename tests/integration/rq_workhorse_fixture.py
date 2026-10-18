@@ -9,6 +9,48 @@ import time
 from urllib.parse import urlsplit
 
 from rq import Worker
+from rq.executions import Execution
+
+
+def redelivery_seconds(redis, job):
+    """RQ 2.12 retains execution references for heartbeat TTL + 60 seconds.
+
+    With the fixture's default 30-second monitor, heartbeat TTL is at most 90
+    seconds. Read the remaining registry TTL; never shorten it to aid recovery.
+    Allow another 30 seconds for the production two-second outbox and workhorse.
+    """
+    remaining = redis.pttl(job.execution_registry.key)
+    if remaining == -2:  # Naturally absent; no reference grace remains.
+        remaining = 0
+    if not 0 <= remaining <= 150000:
+        raise RuntimeError("Unexpected owned execution registry TTL; refusing unbounded wait")
+    return remaining / 1000 + 30
+
+
+def delete_owned_job(job, captured, workers):
+    """Teardown only: remove exact captured references whose hashes expired.
+
+    RQ 2.12 Job.delete() otherwise raises ValueError during its reference grace.
+    No runtime repair is permitted. Unknown identities preserve the fixture.
+    """
+    for worker in workers:
+        worker.assert_stopped()
+    redis = job.connection
+    key = job.execution_registry.key
+    members = [value.decode() if isinstance(value, bytes) else value
+               for value in redis.zrange(key, 0, -1)]
+    if not set(members) <= captured:
+        raise RuntimeError("Unknown owned-job execution reference; preserve fixture")
+    expired = []
+    for identifier in members:
+        ttl = redis.pttl(Execution(identifier, job.id, redis).key)
+        if ttl == -2:
+            expired.append(identifier)
+        elif ttl < 0:
+            raise RuntimeError("Unexpected owned execution TTL; preserve fixture")
+    for identifier in expired:
+        redis.zrem(key, identifier)
+    job.delete()
 
 
 def admit_redis(url):
