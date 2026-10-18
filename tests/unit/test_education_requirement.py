@@ -6,6 +6,44 @@ from services.discovery.search_semantics import parse_education_requirement
 
 
 class EducationRequirementTests(unittest.TestCase):
+    def test_completed_subject_never_borrows_arbitrary_unrelated_qualifiers(self):
+        subjects = ('Python', 'Zorblatt tooling', 'incident response', 'French')
+        separators = (', ', ', and ', ': ', ' — ')
+        for conjunction in ('or', 'and'):
+            fields = 'Computer Science ' + conjunction + ' Engineering'
+            contexts = (
+                "Bachelor's degree in " + fields,
+                'Bachelor’s degree (' + fields + ')',
+                'Degree [Computer Science [Systems, Networks] ' + conjunction + ' Engineering]',
+            )
+            for context in contexts:
+                for separator in separators:
+                    for subject in subjects:
+                        for qualifier in ('required', 'preferred'):
+                            text = context + separator + subject + ' ' + qualifier + '.'
+                            with self.subTest(text=text):
+                                result = parse_education_requirement(text)
+                                self.assertEqual(result['classification'], 'NONE_SPECIFIED')
+                                self.assertIsNone(result['raw'])
+
+    def test_terminal_subject_still_accepts_its_own_qualification_and_alternative(self):
+        cases = (
+            ("Bachelor's degree in Computer Science or Engineering required, Python preferred.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree in Computer Science or Engineering preferred, Python required.", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree in Computer Science or Engineering, required.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree in Computer Science or Engineering, preferred.", 'BACHELORS_PREFERRED'),
+            ("Bachelor's degree in Computer Science or Engineering, or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            ("Bachelor's degree (Computer Science [Systems or Networking] or Engineering) required.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree in Computer Science or Engineering: required.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree in Computer Science or Engineering — preferred.", 'BACHELORS_PREFERRED'),
+            ("Required: a bachelor's degree in Computer Science or Engineering, Zorblatt tooling preferred.", 'BACHELORS_REQUIRED'),
+            ("Bachelor's degree in Computer Science or Engineering, not required.", 'NONE_SPECIFIED'),
+            ("Bachelor's degree in Computer Science or Engineering, not required, but preferred.", 'BACHELORS_PREFERRED'),
+        )
+        for text, category in cases:
+            with self.subTest(text=text):
+                self.assertEqual(parse_education_requirement(text)['classification'], category)
+
     def test_positive_subject_corpus_retains_base_categories_under_list_wrappers(self):
         # Frozen positive recognition contract from main37ea5e95, before this PR.
         # Compare the independent span parser with that baseline on ordinary

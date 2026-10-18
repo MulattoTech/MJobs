@@ -373,13 +373,35 @@ def parse_education_requirement(text):
         if other_subject.search(suffix[:subject_end]):
             return ['']
         candidates = list(re.finditer(
-            r"[;,]|\b(?:and/or|and|or|but|while|whereas|however)\b", suffix, re.I))
+            r"[;,:]|(?<!\S)[—–](?!\S)|\b(?:and/or|and|or|but|while|whereas|however)\b", suffix, re.I))
+        # A coordinated field subject has one final item after its terminal
+        # conjunction. Its next separator cannot introduce another subject that
+        # lends a qualifier back to the degree. Find that boundary at the field's
+        # own bracket depth so a nested subfield list cannot end its parent list.
+        descriptor_words = [word for word in re.finditer(r"\b\w+\b", suffix[:subject_end])
+                            if word.group().lower() not in {
+                                'in', 'of', 'a', 'an', 'the', 'is', 'are', 'also',
+                                'still', 'not', 'never', 'no', 'longer', 'strictly',
+                                'necessarily', 'always', 'and', 'or'}]
+        terminal_end = len(suffix)
+        if descriptor_words:
+            first_field = descriptor_words[0]
+            field_level = levels[offset + first_field.start()]
+            terminal = next((item for item in candidates
+                             if first_field.end() <= item.start() < subject_end
+                             and item.group().lower() in {'and', 'or', 'and/or'}
+                             and levels[offset + item.start()] == field_level), None)
+            if terminal:
+                terminal_end = next((item.start() for item in candidates
+                                     if item.start() > terminal.end()
+                                     and levels[offset + item.start()] <= field_level), len(suffix))
         separators = []
         for index, candidate in enumerate(candidates):
             end = candidates[index + 1].start() if index + 1 < len(candidates) else len(suffix)
             # Brackets protect fields, not an explicit change to a non-degree
             # subject such as '(not required; security clearance required)'.
             if (levels[offset + candidate.start()] <= level or
+                    candidate.start() == terminal_end or
                     (other_subject.search(suffix[candidate.end():end])
                      and not alternative.match(suffix[candidate.end():]))):
                 separators.append(candidate)
@@ -390,7 +412,7 @@ def parse_education_requirement(text):
             end = separators[index + 1].start() if index + 1 < len(separators) else len(suffix)
             right = suffix[separator.end():end]
             word = separator.group().lower()
-            if alternative.match(rest) and word in {',', 'or', 'and/or'}:
+            if alternative.match(rest) and word in {',', ':', '—', '–', 'or', 'and/or'}:
                 continue
             continuation = re.match(r"\s*(?:but|while|whereas|however|and|or)\b", rest, re.I)
             if word == ',' and continuation and qualifier_prefix.match(rest[continuation.end():]):
@@ -402,6 +424,10 @@ def parse_education_requirement(text):
                 scopes.append(left)
                 return scopes
             qualified = qualification.search(left)
+            if word in {':', '—', '–'} and not suffix[:separator.start()].strip(' :—–-'):
+                # Leading punctuation introduces the degree's descriptor;
+                # punctuation after a completed descriptor is a clause boundary.
+                continue
             if not qualified and not field_list:
                 outside = ''.join(character for character_index, character in
                     enumerate(suffix[start:separator.start()], start)
@@ -429,7 +455,7 @@ def parse_education_requirement(text):
                 scopes.append(left)
                 start, field_list = separator.end(), False
                 continue
-            elif field_list and not qualified:
+            elif field_list and not qualified and separator.start() < terminal_end and word not in {':', '—', '–'}:
                 continue
             scopes.append(left)
             return scopes

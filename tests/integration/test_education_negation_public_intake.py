@@ -205,3 +205,18 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
             (4412, "Bachelor's degree (Computer Science, Engineering) optional, Python required.", 'NONE_SPECIFIED'),
         )
         self._assert_categories_and_matching(examples)
+
+    def test_completed_field_subject_cannot_import_an_unrelated_qualification(self):
+        examples = (
+            (4501, "Bachelor's degree in Computer Science or Engineering, Python required.", 'NONE_SPECIFIED'),
+            (4502, "Bachelor's degree in Computer Science or Engineering, Python preferred.", 'NONE_SPECIFIED'),
+            (4503, "Bachelor's degree in Computer Science and Engineering, Zorblatt tooling required.", 'NONE_SPECIFIED'),
+            (4504, "Bachelor’s degree (Computer Science or Engineering), incident response preferred.", 'NONE_SPECIFIED'),
+            (4505, "Degree [Computer Science [Systems, Networks] or Engineering]: French preferred.", 'NONE_SPECIFIED'),
+            (4506, "Bachelor's degree in Computer Science or Engineering — Kubernetes operations required.", 'NONE_SPECIFIED'),
+            (4507, "Bachelor's degree in Computer Science or Engineering preferred, Python required.", 'BACHELORS_PREFERRED'),
+            (4508, "Bachelor's degree in Computer Science or Engineering required, Zorblatt tooling preferred.", 'BACHELORS_REQUIRED'),
+            (4509, "Bachelor's degree in Computer Science or Engineering, or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            (4510, "Degree in Computer Science or Engineering, French preferred.", 'NONE_SPECIFIED'),
+        )
+        self._assert_categories_and_matching(examples)
