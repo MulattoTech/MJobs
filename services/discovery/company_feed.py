@@ -134,13 +134,13 @@ def import_company_feed_jobs(store, *, company_id, source_id, provider, tenant,
                 batch_identities.setdefault(job_id, []).append((provider, tenant, requisition))
                 previous = connection.execute(select(m.jobs.c.attributes).where(m.jobs.c.id == job_id)).scalar_one_or_none()
                 previous = dict(previous or {})
-                first_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
+                prior_values = connection.execute(select(m.posting_value_candidates.c.normalized).where(
                     m.posting_value_candidates.c.posting_id == posting_id,
                     m.posting_value_candidates.c.normalized['attributes']['reported_posted_at']
                         .as_string().is_not(None)).order_by(
-                        m.posting_value_candidates.c.observed_at, m.posting_value_candidates.c.id)
+                        m.posting_value_candidates.c.observed_at.desc(), m.posting_value_candidates.c.id.desc())
                     .limit(1)).scalar_one_or_none()
-                previous_dates = (first_values or {}).get('attributes') or (
+                previous_dates = (prior_values or {}).get('attributes') or (
                     previous if previous.get('source_id') == source_id else {})
                 attributes = {
                 "lifecycle_claim": status_claim(item.get('status')),

@@ -159,3 +159,14 @@ class RelativePostedSourceIntakeTests(unittest.TestCase):
         self._collect(self.collected_at + timedelta(days=2), 'later-stale-relative')
         self._reopen()
         self.assertEqual(self._filtered('LAST_24_HOURS')[0]['attributes']['reported_posted_at'], first_valid)
+        # An explicit absolute source correction is stronger than another mutable
+        # age label and must survive subsequent relative observations.
+        corrected = (self.collected_at - timedelta(hours=3)).isoformat()
+        self.payload['jobs'][0]['publication_date'] = corrected
+        self._collect(self.collected_at + timedelta(days=3), 'explicit-date-correction')
+        self.payload['jobs'][0]['publication_date'] = '2 hours ago'
+        self._collect(self.collected_at + timedelta(days=4), 'relative-after-correction')
+        self._reopen()
+        corrected_attrs = self._filtered('LAST_24_HOURS')[0]['attributes']
+        self.assertEqual(corrected_attrs['reported_posted_at'], corrected)
+        self.assertEqual(corrected_attrs['reported_posted_at_precision'], 'SOURCE')
