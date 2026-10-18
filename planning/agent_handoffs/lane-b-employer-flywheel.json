@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "task_id": "lane-b-employer-flywheel",
+  "objective": "Refs #293/#11/#294 partial slice; PR725 inline4308545993 homepage RSS/job selection correction",
+  "owner": "Lane B / mjobs-rebuilt-4 / gpt-6.1-sol high",
+  "branch": "ao/mjobs-rebuilt-4/career-candidates",
+  "head_sha": "80102b58577986ed608d81a6d2f3810b5f4f1248",
+  "routing_state": "VERIFY",
+  "next_action": "Complete exact-head focused regression, ordinary push, then Root schedules fresh native independent review; leave finding open pending verification",
+  "created_at": "2026-10-18T20:15:21.223188+00:00",
+  "requirements": [],
+  "tests": [
+    {
+      "command": "python -m pytest -q tests/integration/test_company_career_candidates.py:26 passed after redirect hardening; external responses synthetic; real PERSONAL API/worker",
+      "result": "PASS"
+    },
+    {
+      "command": "Seven-file discovery/feed regression:76 passed and3 subtests before final redirect hardening; generic homepage/news cases demonstrated red/green; diff/provenance passed",
+      "result": "PASS"
+    },
+    {
+      "command": "Final revised-head13-file targeted regression pending; prior-head119 passed/33subtests is historical only",
+      "result": "NOT_RUN"
+    },
+    {
+      "command": "Broad catalogue/progress/dashboard/full unit checks reserved to Astra; local PG/Redis/Compose/browser/live providers and fresh native review NOT_RUN here",
+      "result": "NOT_RUN"
+    }
+  ],
+  "blockers": [],
+  "milestone_id": "PR725-inline4308545993"
+}
