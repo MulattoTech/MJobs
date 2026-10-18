@@ -432,6 +432,33 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(completed_app["question_preflight"]["profile_version"],
                                      saved_profile["version"])
                     self.assertFalse(completed_app["question_preflight"]["missing"])
+                    history_response = page.request.get(
+                        f"{origin}/profiles/fixture/applications/"
+                        f"{application_ids['fixture']}/attempt-history")
+                    self.assertEqual(history_response.status, 200)
+                    history = history_response.json()
+                    self.assertFalse(history["external_submission_enabled"])
+                    self.assertEqual(len(history["attempts"]), 2)
+                    self.assertTrue(any(
+                        row["document_version"] == applications_before[0]["document_version"]
+                        and row["state"] == "DRY_RUN_COMPLETE"
+                        for row in history["attempts"]))
+                    self.assertTrue(any(
+                        row["document_version"] == prepared["document_version"]
+                        and row["profile_version"] == saved_profile["version"]
+                        and row["state"] == "DRY_RUN_COMPLETE"
+                        for row in history["attempts"]))
+                    page.get_by_role("button", name="Applications", exact=False).click()
+                    pipeline = page.get_by_role("region", name="Application pipeline")
+                    pipeline.get_by_role("button", name=job["title"], exact=False).click()
+                    expect(page.get_by_role(
+                        "status", name="Application state", exact=True)).to_have_text(
+                            "DRY_RUN_COMPLETE")
+                    history_panel = page.get_by_role(
+                        "region", name="Durable attempt history", exact=True)
+                    for attempt in history["attempts"]:
+                        expect(history_panel).to_contain_text(attempt["attempt_id"])
+                    expect(history_panel).to_contain_text("Frozen inputs: profile version")
 
                     # A different profile sees no answer from profile A.
                     page.get_by_label("Active profile", exact=True).select_option(
