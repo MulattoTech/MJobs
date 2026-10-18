@@ -167,12 +167,14 @@
     },
     {
       "requirement_id": "MJ-REQ-010",
-      "result": "PARTIAL",
+      "result": "PASS",
       "evidence": [
         "docs/evidence/2026-09-30-architecture-stack-reconciliation.json",
-        "docs/evidence/2026-10-16-primary-product-architecture.json"
+        "docs/evidence/2026-10-16-primary-product-architecture.json",
+        "docs/evidence/2026-10-18-acceptance-adjudication.json",
+        "docs/evidence/2026-10-18-acceptance-status-correction.json"
       ],
-      "note": "Primary product architecture verification: Web Dashboard/FastAPI surface, Search Service pipeline (normalization, deduplication, scoring), and Profile/Doc Service truthful tailoring verified by tests/integration/test_primary_product_architecture.py (4 tests PASS) under SQLite. Whole-parent requirement remains PARTIAL pending live multi-service Compose PostgreSQL/Redis/RQ durable worker process isolation and global source breadth; issue #11 remains open.",
+      "note": "Root adjudicated the literal conceptual architecture and durable background operations PASS at integrated df4ca326. PR730 run 39168221938 executed nine named AI cases with zero skips/errors/failures at checkout 86f6b65e, whose full tree equals reviewed 5ae48174 and merged df4ca326. Public HTTP admission reaches actual PostgreSQL/Redis/RQ AI and document workers, explicit review, cancellation/stale-input negatives and restart/readback. Retained Compose run 39166062535 at checkout 743979b (tree-identical to fe78667a) proves dashboard/API, global/company discovery, normalization/resolution/deduplication/scoring/PostgreSQL, Playwright mock application, document generation and outage/restart durability. Its executable inputs remain byte-identical at df4ca326: intervening changes contain only evidence/matrix updates and the added AI test. This does not claim a new Compose execution. Synthetic model and employer boundaries remain explicit. Full MJ-REQ-292, live employers, paid AI, every provider and host reboot are not added criteria. Exact test/source/artifact identities are in the scoped evidence; historical PR674 evidence remains preserved.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
@@ -419,11 +421,12 @@
     },
     {
       "requirement_id": "MJ-REQ-030",
-      "result": "PASS",
+      "result": "PARTIAL",
       "evidence": [
-        "docs/evidence/2026-10-01-experience-salary-date.json"
+        "docs/evidence/2026-10-01-experience-salary-date.json",
+        "docs/evidence/2026-10-18-acceptance-status-correction.json"
       ],
-      "note": "Verified deterministic experience, salary, and date semantics in MJ-PR-008",
+      "note": "Corrected unsupported historical PASS: the literal relative-timestamp clause has an independently reproduced public intake counterexample on integrated e6b9e702 source, unchanged by the test-only PR730 merge. A synthetic Remotive posting reported as 2 hours ago persists reported_posted_at=null; the LAST_HOUR saved search incorrectly returns it using recent first_seen. Existing absolute-date/window behavior remains proven within its scope. PR734 is an unmerged fix candidate, not whole-contract acceptance. The original acceptance record and false-PASS interval are preserved; the scoped evidence contains the exact public regression source, execution, failing assertion and source hashes.",
       "priority": "P1",
       "area": "core_search_model",
       "category": "major-feature"
@@ -3386,9 +3389,10 @@
       "evidence": [
         "docs/evidence/2026-10-11-six-team-integration.json",
         "docs/evidence/2026-10-11-durable-onboarding.json",
-        "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json"
+        "docs/evidence/2026-10-17-company-monitoring-stack-recovery.json",
+        "docs/evidence/2026-10-18-acceptance-status-correction.json"
       ],
-      "note": "Historical same-profile onboarding/dry-run/mock evidence remains scope-qualified. The current saved-search filter consumer exists. Scoped synthetic c8e53ab6 evidence verifies actual ten-service restart, jobs/source/documents/application persistence, scheduler and company-monitoring recovery at natural due times with no duplicate refresh (steps54-60). Host-loopback/UI and host restart are NOT_RUN; full automatic employer flywheel, steps24-28/31 and the complete60-step contract remain unproven. PARTIAL.",
+      "note": "PARTIAL. Retain historical c8e53ab6 scoped steps 54-60 proof, including actual naturally due scheduler/RQ monitoring and jobs/source/documents/application persistence. Independently traced connected run 39166062535 at checkout 743979b is tree-identical to merged fe78667a: fixture criteria 1, 2, 54, 56, 57 and 58 PASS. Its generic recovery did not compare canonical same-profile jobs/source-copy inventory (criterion 55 PARTIAL); this narrower proof does not erase earlier c8e53ab6 inventory evidence. The complete 60-step contract remains unproven. Synthetic fixture boundaries and exact artifacts are recorded; no live employer, full UI onboarding or new current monitoring proof is inferred.",
       "priority": "P0",
       "area": "delivery_control",
       "category": "bookkeeping"
