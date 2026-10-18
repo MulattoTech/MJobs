@@ -91,6 +91,21 @@ def _authority(connection, source):
                 and source['company_id'] == identity('greenhouse', source['tenant'])):
             return 'VERIFIED_ATS', ['Collected from the configured native Greenhouse API and matching board tenant.',
                                     'This verifies the ATS feed origin, not the employer domain or identity.']
+        if (collector['enabled'] and tenant and tenant['company_id'] == source['company_id']
+                and tenant['provider'] == 'greenhouse' and tenant['tenant_identifier'] == source['tenant']):
+            from services.company_discovery.ats_enrollment import bound_company_source
+            from services.company_discovery.public_client import PublicFetchError
+            try:
+                # The collector may deliberately retain an aggregator's employer
+                # ID. Reuse its live domain/review authorization, then bind the
+                # historical candidate to this exact source and endpoint.
+                bound = bound_company_source(None, connection, collector)
+            except (ValueError, PublicFetchError):
+                bound = None
+            if bound and all(bound[key] == source[key] for key in (
+                    'id', 'company_id', 'provider', 'tenant', 'endpoint', 'collector_source_id')):
+                return 'VERIFIED_ATS', ['Collected from the exact Greenhouse inventory bound to this employer.',
+                                        'The official-domain or user-reviewed binding is currently authorized.']
     domain = normalize_domain(source['endpoint'])
     verified = connection.execute(select(m.company_domains).where(
         m.company_domains.c.company_id == source['company_id'], m.company_domains.c.domain == domain,
