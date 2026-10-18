@@ -458,6 +458,12 @@ def create_dynamic_application_fields_router(store) -> APIRouter:
                 "fields": [],
             }
 
+        # Historical preflight metadata remains readable from the audit, but a
+        # field snapshot for an older application/profile revision is never a
+        # current public result.
+        if report.get("is_current") is not True:
+            raise HTTPException(409, {"code": "DYNAMIC_FIELDS_STALE"})
+
         snapshot = _snapshot(report)
         fingerprint = snapshot["metadata_fingerprint"]
         if (not isinstance(fingerprint, str)

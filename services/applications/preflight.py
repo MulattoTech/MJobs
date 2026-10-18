@@ -6,6 +6,7 @@ import json
 import re
 
 from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from packages.persistence.store import now
@@ -719,4 +720,25 @@ def latest_preflight(store, application_id: str) -> dict | None:
         ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc()).limit(1)).mappings().one_or_none()
     if row is None:
         return None
-    return {**row["payload"], "event_id": row["id"]}
+    payload = row["payload"]
+    # This API is also the safe historical audit readback path, including legacy
+    # synthetic records which intentionally have no application row. Preserve
+    # the record and report currentness separately; consumers that authorize a
+    # current action must require is_current is True.
+    try:
+        application = store.application(application_id)
+    except NoResultFound:
+        return {**payload, "event_id": row["id"], "is_current": None}
+
+    try:
+        profile = store.profile(application["profile_id"])
+    except NoResultFound:
+        profile = None
+    is_current = bool(
+        profile is not None
+        and profile.get("version") == application["profile_version"]
+        and payload.get("profile_version") == application["profile_version"]
+        and payload.get("document_version") == application["document_version"]
+        and payload.get("route_id") == application["route_id"]
+    )
+    return {**payload, "event_id": row["id"], "is_current": is_current}

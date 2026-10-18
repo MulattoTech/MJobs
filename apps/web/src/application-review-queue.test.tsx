@@ -20,6 +20,7 @@ describe('application review queue',()=>{
         }],
       }}),
       application({id:'app-pass',question_preflight:{result:'PASS',reason:null,missing:[]}}),
+      application({id:'app-stale',title:'Historical result',question_preflight:{result:'FAIL',reason:'OLD_REVISION',is_current:false,missing:[]}}),
       application({id:'other-profile',profile_id:'profile-b'}),
     ]} onReview={vi.fn()}/>);
     expect(html).toContain('Acme');
@@ -28,6 +29,8 @@ describe('application review queue',()=>{
     expect(html).toContain('Describe your experience managing Azure subscriptions.');
     expect(html).toContain('Persisted preflight is missing answers: azure-proof; profile: facts.azure.');
     expect(html).not.toContain('app-pass');
+    expect(html).not.toContain('Historical result');
+    expect(html).not.toContain('app-stale');
     expect(html).not.toContain('other-profile');
     expect(html).not.toContain('suggested answer');
   });
