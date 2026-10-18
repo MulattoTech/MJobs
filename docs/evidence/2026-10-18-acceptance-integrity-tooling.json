@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "requirement_id": "MJ-REQ-293",
+  "issue": 294,
+  "recorded_at": "2026-10-18T20:07:45.497127+00:00",
+  "result": "PARTIAL",
+  "scope": "Read-only425-item acceptance census and fail-closed reconciliation; not whole-product definition-of-done acceptance.",
+  "source_revision": "e8d25799a72b5d6e0f38e201754de98f6aa4f608",
+  "source_sha256": {
+    "tools/mjobs_reconcile_planning.py": "02f4553eeb2d8b24cd3cc6008e78537c18f9efc8389d3b2d0f635fb61245f6c3",
+    "tools/verification/acceptance_integrity.py": "713a77a7cdbf930f2d681a8b70d11f89283543f9bd66c3db6dc3687c8c6840c1",
+    "tests/unit/test_reconcile_planning.py": "cf993566f7af23b1fcdb3c9989a45293b282a52540d738ec0a2605e51af46337",
+    "tests/unit/test_acceptance_integrity.py": "a51edc7fe80138fa394040e4eb5dee203d049cc77fd9ee0c7da3afed13d49905"
+  },
+  "observations": [
+    {
+      "command": "python -m pytest -q tests/unit/test_reconcile_planning.py (before fix)",
+      "result": "Five regression failures: duplicate original row, missing/duplicate reference IDs, extra reference status, invalid DONE result; one control passed."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest -q tests/unit/test_acceptance_integrity.py tests/unit/test_reconcile_planning.py tests/unit/test_catalogue.py tests/unit/test_progress_journal.py tests/unit/test_progress_dashboard.py -p no:cacheprovider",
+      "result": "51 passed on committed source revision."
+    },
+    {
+      "command": "C:/Tools/Dev/MJobs/.venv/Scripts/python.exe -m pytest -q tests/unit -p no:cacheprovider",
+      "result": "2474 passed,11 skipped,1745 subtests passed in424.07s. Broad run started before final census-only refinements; unchanged product baseline3cfb556fcc09b3eb0f233998c7a11544c42273e6. Final touched scope rechecked separately above; this broad result is not represented as an exact-final-head full-suite run."
+    },
+    {
+      "command": "python -m tools.verification.catalogue; python -m tools.verification.progress validate; python -m tools.verification.progress_dashboard --check; python tools/mjobs_reconcile_planning.py; git diff --check",
+      "result": "PASS; PASS; CURRENT;425 indexed; PASS. No --apply used on canonical repository."
+    }
+  ],
+  "census": {
+    "original": {
+      "PASS": 125,
+      "PARTIAL": 98,
+      "NOT_RUN": 143
+    },
+    "supplemental": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    },
+    "original_p0": {
+      "PASS": 11,
+      "PARTIAL": 5,
+      "NOT_RUN": 10
+    },
+    "provider_project_pages": 5,
+    "provider_project_items": 459,
+    "provider_issues": 459,
+    "distinct_mapped_issues": 425,
+    "referenced_evidence_records": 341,
+    "status": "Recorded counts only; fresh requirement acceptance NOT_RUN."
+  },
+  "limitations": [
+    "The initial system-Python broad run failed collection: psycopg and markdown absent. Existing project virtualenv resolved dependencies without installation.",
+    "Two sandbox-only pytest attempts hit Windows temp/cache ACL failures; subsequent explicitly elevated deterministic tests passed. Protected temp directories were preserved.",
+    "PR/commit text correlation and CI URLs are historical pointers. Matching test/source bytes do not prove execution or full contract coverage.",
+    "Historical source drift is not automatically a regression or a reason to lower acceptance. Six canonical/Project acceptance mismatches remain for Root adjudication.",
+    "No canonical matrices/index/dashboard/shared planning or issue/Project fields changed by this lane. Original366 and supplemental59 remain separate.",
+    "Whole60-step MJ-REQ-292 and definition-of-done MJ-REQ-293 are not accepted by this work; no real external submission or paid provider call.",
+    "Hosted candidate checks and independent review pending at recording. No frontend/product runtime changes; browser/product acceptance NOT_RUN."
+  ],
+  "anti_recurrence": "Use Refs for incomplete requirements. GitHub parsed does not close #349 in PR686 as a closing reference despite the negation; issue closure cannot substitute for literal acceptance."
+}
