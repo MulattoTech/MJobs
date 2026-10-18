@@ -34,8 +34,86 @@ class _Response:
 
 
 class ComposeRecoveryTargetTests(unittest.TestCase):
+    def test_public_job_inventory_records_canonical_and_source_copy_identity(self):
+        from cli import compose_recovery
+
+        calls = []
+        rows = [{"id": "job-b", "title": "Data Engineer"},
+                {"id": "job-a", "title": "Python Developer"}]
+        details = {
+            "job-a": {"id": "job-a", "company_id": "company-a", "company": "Example",
+                      "requisition": "A", "title": "Python Developer", "description": "Synthetic A",
+                      "skills": ["Python"], "location": "US", "remote_type": "REMOTE",
+                      "attributes": {}, "routes": [{"id": "route-a", "provider": "mock-ats",
+                          "tenant": "example", "requisition": "A", "url": "http://mock/apply/A"}],
+                      "postings": [{"source": "mock-fixture", "source_job_id": "employer-A",
+                          "source_url": "http://mock/jobs/A", "application_url": "http://mock/apply/A",
+                          "raw": {"title": "Python Developer"}}]},
+            "job-b": {"id": "job-b", "company_id": "company-a", "company": "Example",
+                      "requisition": "B", "title": "Data Engineer", "description": "Synthetic B",
+                      "skills": ["Python", "SQL"], "location": "US", "remote_type": "REMOTE",
+                      "attributes": {}, "routes": [{"id": "route-b", "provider": "mock-ats",
+                          "tenant": "example", "requisition": "B", "url": "http://mock/apply/B"}],
+                      "postings": [{"source": "mock-fixture", "source_job_id": "employer-B",
+                          "source_url": "http://mock/jobs/B", "application_url": "http://mock/apply/B",
+                          "raw": {"title": "Data Engineer"}}]},
+        }
+
+        def get_json(path):
+            calls.append(path)
+            if path == "/jobs?profile_id=profile-fixture-1":
+                return {"jobs": rows}
+            return details[path.split("/jobs/", 1)[1].split("?", 1)[0]]
+
+        inventory = compose_recovery.collect_public_job_inventory(
+            get_json, "profile-fixture-1")
+        self.assertEqual(inventory["job_count"], 2)
+        self.assertEqual(inventory["source_copy_count"], 2)
+        self.assertEqual({row["job_id"] for row in inventory["jobs"]}, {"job-a", "job-b"})
+        self.assertEqual(len(calls), 3)
+        baseline = {"job_inventory": inventory}
+        self.assertEqual(compose_recovery.compare_public_job_inventory(
+            baseline, inventory, inventory)["result"], "PASS")
+
+        changed = json.loads(json.dumps(inventory))
+        changed["jobs"][0]["source_copies_sha256"] = "0" * 64
+        changed["sha256"] = compose_recovery._inventory_digest(changed["jobs"])
+        with self.assertRaisesRegex(ValueError, "job/source inventory changed"):
+            compose_recovery.compare_public_job_inventory(baseline, inventory, changed)
+
+    def test_legacy_baseline_does_not_infer_job_inventory_from_other_domains(self):
+        from cli import compose_recovery
+
+        self.assertEqual(compose_recovery.compare_public_job_inventory(
+            {}, {"profile_id": BASELINE["profile_id"]},
+            {"profile_id": BASELINE["profile_id"]}), {
+                "result": "NOT_RUN",
+                "reason": "Baseline has no canonical public job/source-copy inventory",
+            })
+
     def test_recovery_uses_one_explicit_fixture_project_and_loopback_port(self):
         from cli import compose_recovery
+
+        job_details = {"id": "profile-job-1", "company_id": "company-fixture-1",
+                       "company": "Example Fixture", "requisition": "B",
+                       "title": "Data Engineer", "description": "Synthetic fixture job",
+                       "skills": ["Python", "SQL"], "location": "US", "remote_type": "REMOTE",
+                       "attributes": {}, "routes": [{"id": "route-fixture-1",
+                           "company_id": "company-fixture-1", "provider": "mock-ats",
+                           "tenant": "example", "requisition": "B",
+                           "url": "http://mock/ats/apply/B"}],
+                       "postings": [{"source": "mock-fixture", "source_job_id": "employer-B",
+                           "source_url": "http://mock/jobs/B", "application_url": "http://mock/ats/apply/B",
+                           "raw": {"title": "Data Engineer", "skills": ["Python", "SQL"]}}]}
+        job_list = {"jobs": [{"id": "profile-job-1", "title": "Data Engineer"}]}
+        def public_jobs(path):
+            if path == "/jobs?profile_id=profile-fixture-1":
+                return job_list
+            if path == "/jobs/profile-job-1?profile_id=profile-fixture-1":
+                return job_details
+            raise AssertionError("unexpected public inventory route: " + path)
+        inventory = compose_recovery.collect_public_job_inventory(public_jobs, "profile-fixture-1")
+        baseline = {**BASELINE, "job_inventory": inventory}
 
         compose_calls = []
         http_calls = []
@@ -49,6 +127,10 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         def request(method, path, **kwargs):
             http_calls.append((method, path, kwargs))
             events.append(("http", method, path))
+            if method == "GET" and path == "/jobs?profile_id=profile-fixture-1":
+                return _Response(job_list)
+            if method == "GET" and path == "/jobs/profile-job-1?profile_id=profile-fixture-1":
+                return _Response(job_details)
             if method == "POST" and path == "/discovery":
                 return _Response({"state": "QUEUED", "operation_id": "operation-recovery-1"})
             if method == "GET" and path == "/operations/operation-recovery-1":
@@ -124,7 +206,7 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
             config_paths = (str((root / "compose.yml").resolve()), str(override_path.resolve()))
             baseline_path = Path(temporary) / "baseline.json"
             evidence_path = Path(temporary) / "evidence.json"
-            baseline_path.write_text(json.dumps(BASELINE), encoding="utf-8")
+            baseline_path.write_text(json.dumps(baseline), encoding="utf-8")
 
             with patch.dict(os.environ, {"COMPOSE_FILE": os.pathsep.join(config_paths)}), \
                     patch.object(compose_recovery.httpx, "Client", return_value=client) as http_client, \
@@ -173,6 +255,9 @@ class ComposeRecoveryTargetTests(unittest.TestCase):
         self.assertTrue(any('stop' in command and 'ai-worker' in command for command, _ in compose_calls))
         self.assertTrue(any('start' in command and 'ai-worker' in command for command, _ in compose_calls))
         self.assertEqual(evidence["result"], "PASS")
+        self.assertEqual(evidence["public_job_inventory_recovery"]["result"], "PASS")
+        self.assertEqual(evidence["public_job_inventory_recovery"]["job_count"], 1)
+        self.assertEqual(evidence["public_job_inventory_recovery"]["source_copy_count"], 1)
         self.assertIn("container_health", evidence)
         health = evidence["container_health"]
         self.assertEqual(set(health["before"]), set(compose_recovery.RECOVERY_RESTART_SERVICES))

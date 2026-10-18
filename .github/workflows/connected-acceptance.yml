@@ -51,6 +51,8 @@ jobs:
         run: python -m cli.mock_e2e --evidence outputs/ci-mock-e2e.json
       - name: Browser-integrated UI acceptance
         run: python -m cli.ui_e2e --evidence outputs/ci-ui.json
+      - name: Same-profile onboarding and saved-search UI acceptance
+        run: python -m cli.ui_e2e --onboarding --evidence outputs/ci-ui-onboarding.json
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
@@ -62,7 +64,7 @@ jobs:
           npm run build --prefix apps/web
           python -m pytest -q tests/browser/test_settings_transfer_recovery.py tests/browser/test_theme.py tests/browser/test_document_generation_failure.py --junitxml=outputs/ci-settings-browser.xml
       - name: Restart and persistence recovery
-        run: python -m cli.compose_recovery --baseline outputs/ci-ui.json --evidence outputs/ci-recovery.json --project-name "$COMPOSE_PROJECT_NAME" --port "$MJOBS_PORT"
+        run: python -m cli.compose_recovery --baseline outputs/ci-ui-onboarding.json --evidence outputs/ci-recovery.json --project-name "$COMPOSE_PROJECT_NAME" --port "$MJOBS_PORT"
       - name: Fresh-project backup restore and independent receipt replay
         run: python -m cli.backup_acceptance --baseline outputs/ci-ui.json --evidence outputs/ci-backup.json --archive "$RUNNER_TEMP/mjobs-fixture-backup" --source-project "$COMPOSE_PROJECT_NAME" --target-project "$BACKUP_TARGET_PROJECT" --port "$MJOBS_PORT"
       - name: Upload bounded fictional result summaries

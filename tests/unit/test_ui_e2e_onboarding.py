@@ -6,6 +6,46 @@ from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_discovery_oracle_requires_selected_search_and_exact_filtered_readback(self):
+        request_payload = {
+            "profile_id": "synthetic-profile",
+            "search_profile_id": "matching-search",
+        }
+        operation = {
+            "entity_id": "synthetic-profile",
+            "params": {
+                "profile_id": "synthetic-profile",
+                "search_profile_id": "matching-search",
+            },
+        }
+
+        ui_e2e.assert_search_scoped_discovery(
+            request_payload, operation,
+            [{"id": "data-job", "title": "Data Engineer", "profile_id": "synthetic-profile"}],
+            profile_id="synthetic-profile", search_profile_id="matching-search",
+            expected_titles={"Data Engineer"},
+        )
+        ui_e2e.assert_search_scoped_discovery(
+            request_payload, operation, [],
+            profile_id="synthetic-profile", search_profile_id="matching-search",
+            expected_titles=set(),
+        )
+
+        for bad_payload, bad_operation, rows in (
+            ({**request_payload, "search_profile_id": None}, operation, []),
+            (request_payload, {**operation, "entity_id": "another-profile"}, []),
+            (request_payload, operation, [
+                {"id": "python-job", "title": "Python Developer", "profile_id": "synthetic-profile"},
+            ]),
+        ):
+            with self.subTest(payload=bad_payload, operation=bad_operation, rows=rows):
+                with self.assertRaises(AssertionError):
+                    ui_e2e.assert_search_scoped_discovery(
+                        bad_payload, bad_operation, rows,
+                        profile_id="synthetic-profile", search_profile_id="matching-search",
+                        expected_titles={"Data Engineer"},
+                    )
+
     def test_preflight_rejects_nonfixture_external_or_degraded_runtime(self):
         settings = {"operation_mode": "FIXTURE", "external_submission_enabled": False}
         health = {"operation_mode": "FIXTURE", "external_submission_enabled": False}
