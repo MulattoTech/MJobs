@@ -170,9 +170,10 @@
       "result": "PARTIAL",
       "evidence": [
         "docs/evidence/2026-09-30-architecture-stack-reconciliation.json",
-        "docs/evidence/2026-10-16-primary-product-architecture.json"
+        "docs/evidence/2026-10-16-primary-product-architecture.json",
+        "docs/evidence/2026-10-18-acceptance-adjudication.json"
       ],
-      "note": "Primary product architecture verification: Web Dashboard/FastAPI surface, Search Service pipeline (normalization, deduplication, scoring), and Profile/Doc Service truthful tailoring verified by tests/integration/test_primary_product_architecture.py (4 tests PASS) under SQLite. Whole-parent requirement remains PARTIAL pending live multi-service Compose PostgreSQL/Redis/RQ durable worker process isolation and global source breadth; issue #11 remains open.",
+      "note": "Retain PARTIAL. Merged PR674's retained CI JUnit verifies four SQLite architecture cases, one PostgreSQL pipeline case and one Redis/RQ dispatch case at the exact historical checkout recorded in the adjudication evidence. The PostgreSQL case calls discovery/preparation in process; the Redis case dispatches work but invokes execute_operation directly against SQLite. PR674 alone does not establish the whole connected architecture. Whole-contract adjudication remains pending correlation with broader existing cli.mock_e2e and cli.ui_e2e Compose artifacts and their exact source identities, including public admission, separate durable workers, PostgreSQL readback and restart/recovery controls across the diagram's branches. This is a limit of the reviewed evidence, not a repository-wide assertion that those flows are untested. Controlled synthetic services are appropriate; live employer submission, paid AI and every global provider are not added criteria. Issue #11 remains open; no acceptance result changes.",
       "priority": "P0",
       "area": "governance_safety",
       "category": "major-feature"
