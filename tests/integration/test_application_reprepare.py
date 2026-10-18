@@ -62,6 +62,18 @@ class ApplicationReprepareTests(unittest.TestCase):
             "expected_state": app["state"],
         }
 
+    def _operation(self, operation_id, profile_id, job_id, state="QUEUED"):
+        with self.store.engine.begin() as connection:
+            connection.execute(m.operations.insert().values(
+                id=operation_id, kind="PREPARE", entity_id=profile_id,
+                params={"job_id": job_id, "profile_version": self.store.profile(profile_id)["version"],
+                        "route_mode": "THIS_ROUTE", "route_id": self.store.application(
+                            self.application_id)["route_id"], "tailor_resume": True,
+                        "include_resume_contact": True, "cover_letter_style": "warm",
+                        "cover_letter_length": "detailed", "request_id": operation_id},
+                state=state, updated_at="2026-10-18T00:00:00Z",
+            ))
+
     def test_explicit_reprepare_keeps_old_revision_audits_transition_and_is_idempotent(self):
         old_app = self.store.application(self.application_id)
         old_documents = application_documents(self.store, self.application_id, self.root)
@@ -75,7 +87,11 @@ class ApplicationReprepareTests(unittest.TestCase):
             "mappings": [], "missing": [],
         })
         current = self.store.profile("fixture")
-        self.store.save_profile({**current, "answers": [{
+        self.store.save_profile({**current, "facts": [*current["facts"], {
+            "id": "newly-approved-fact", "text": "A newly approved synthetic fact.",
+            "kind": "experience", "source": "User-reviewed fixture",
+            "verified": True, "user_approved": True, "confidence": 95,
+        }], "answers": [{
             "id": "reviewed-answer", "question": "Describe a synthetic review.",
             "text": "Reviewed synthetic answer.", "source": "User-reviewed fixture",
             "verified": True, "user_approved": True, "confidence": 90,
@@ -88,7 +104,12 @@ class ApplicationReprepareTests(unittest.TestCase):
         self.assertEqual(refreshed["id"], self.application_id)
         self.assertEqual(refreshed["profile_version"], latest["version"])
         self.assertEqual(refreshed["document_version"], old_app["document_version"] + 1)
-        self.assertIsNone(refreshed["question_preflight"])
+        self.assertEqual(refreshed["question_preflight"]["result"], "FAIL")
+        self.assertFalse(refreshed["question_preflight"]["is_current"])
+        current_resume = next(row for row in application_documents(
+            self.store, self.application_id, self.root
+        ) if row["version"] == refreshed["document_version"] and row["kind"] == "resume")
+        self.assertNotIn("A newly approved synthetic fact.", str(current_resume["facts_used"]))
 
         all_documents = application_documents(self.store, self.application_id, self.root)
         self.assertTrue(set(row["id"] for row in old_documents) <=
@@ -154,6 +175,86 @@ class ApplicationReprepareTests(unittest.TestCase):
         self.assertEqual(self.store.application(self.application_id)["document_version"],
                          app["document_version"])
 
+    def test_queued_prepare_is_scoped_to_profile_and_job(self):
+        app = self.store.application(self.application_id)
+        profile = self.store.profile("fixture")
+        self._operation("queued-same-application", "fixture", self.job["id"])
+        active = self.client.post(self.url, json=self._payload(app=app, profile=profile))
+        self.assertEqual(active.status_code, 409, active.text)
+        self.assertEqual(active.json()["detail"]["code"],
+                         "APPLICATION_REPREPARE_IN_PROGRESS")
+
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == "queued-same-application").values(state="CANCELLED"))
+        self._operation("queued-different-job", "fixture", "f" * 64)
+        self._operation("queued-different-profile", "other-profile", self.job["id"])
+        allowed = self.client.post(self.url, json=self._payload(app=app, profile=profile))
+        self.assertEqual(allowed.status_code, 200, allowed.text)
+
+    def test_nondefault_preparation_options_are_preserved_on_reprepare(self):
+        profile = self.store.profile("fixture")
+        profile["facts"].append({
+            "id": "synthetic-experience", "text": "Built a synthetic review workflow.",
+            "kind": "experience", "source": "User-reviewed fixture",
+            "verified": True, "user_approved": True, "confidence": 95,
+        })
+        self.store.save_profile(profile)
+        profile = self.store.profile("fixture")
+        fact = next(row for row in profile["facts"] if row["fact_id"] == "synthetic-experience")
+        application_id = prepare(
+            self.store, self.job["id"], "fixture", self.root,
+            profile_version=profile["version"], route_mode="THIS_ROUTE",
+            route_id=self.store.application(self.application_id)["route_id"],
+            tailor_resume=True, tailor_fact_ids=[fact["fact_id"]],
+            tailor_fact_rewrites=[{"fact_id": fact["fact_id"],
+                                   "text": "Reviewed synthetic rewrite of an approved fact.",
+                                   "reviewed": True}],
+            include_resume_contact=True, cover_letter_style="warm",
+            cover_letter_length="detailed",
+        )
+        original_documents = application_documents(self.store, application_id, self.root)
+        original_resume = next(row for row in original_documents if row["kind"] == "resume")
+        app = self.store.application(application_id)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.applications).where(
+                m.applications.c.id == application_id
+            ).values(state="REVIEW_REQUIRED"))
+        response = self.client.post(self.url, json=self._payload(app=self.store.application(application_id),
+                                                                 profile=profile))
+        self.assertEqual(response.status_code, 200, response.text)
+        documents = application_documents(self.store, application_id, self.root)
+        current_revision = [row for row in documents
+                            if row["version"] == response.json()["document_version"]]
+        resume = next(row for row in current_revision if row["kind"] == "resume")
+        letter = next(row for row in current_revision if row["kind"] == "cover-letter")
+        self.assertEqual(resume["template"], original_resume["template"])
+        self.assertEqual(resume["fact_ids"], [fact["fact_id"]])
+        self.assertEqual(resume["generation_context"]["fact_rephrases"][0]["text"],
+                         "Reviewed synthetic rewrite of an approved fact.")
+        self.assertIn("contact_header", resume["generation_context"])
+        self.assertEqual(letter["generation_context"]["style"], "warm")
+        self.assertEqual(letter["generation_context"]["length"], "detailed")
+
+        unchanged_repeat = self.client.post(
+            self.url, json=self._payload(app=self.store.application(application_id),
+                                         profile=profile))
+        self.assertEqual(unchanged_repeat.status_code, 200, unchanged_repeat.text)
+        self.assertEqual(unchanged_repeat.json()["document_version"],
+                         response.json()["document_version"])
+
+        latest = self.store.profile("fixture")
+        self.store.save_profile({**latest, "name": "Updated synthetic applicant"})
+        changed_profile = self.store.profile("fixture")
+        stale_rewrite = self.client.post(
+            self.url, json=self._payload(app=self.store.application(application_id),
+                                         profile=changed_profile))
+        self.assertEqual(stale_rewrite.status_code, 409, stale_rewrite.text)
+        self.assertEqual(stale_rewrite.json()["detail"]["code"],
+                         "APPLICATION_REPREPARE_REVIEW_REQUIRED")
+        self.assertEqual(self.store.application(application_id)["document_version"],
+                         response.json()["document_version"])
+
     def test_completed_old_run_receipt_cannot_certify_reprepared_revision(self):
         old_app = self.store.application(self.application_id)
         persist_preflight(self.store, self.application_id, {
@@ -197,7 +298,8 @@ class ApplicationReprepareTests(unittest.TestCase):
         self.assertEqual(current_app["state"], "PREPARED")
         self.assertGreater(current_app["document_version"], old_app["document_version"])
         self.assertEqual(current_app["profile_version"], latest["version"])
-        self.assertIsNone(current_app["question_preflight"])
+        self.assertEqual(current_app["question_preflight"]["result"], "PASS")
+        self.assertFalse(current_app["question_preflight"]["is_current"])
 
         # The terminal old receipt remains readable with its original fingerprint,
         # while replaying that identity against new pins is rejected.
@@ -230,9 +332,11 @@ class ApplicationReprepareTests(unittest.TestCase):
                          current_app["document_version"])
         validate_run_operation(self.store, dict(new_operation))
         self.assertIsNone(self.store.application(self.application_id)["confirmation"])
-        self.assertIsNone(self.client.get(
+        historical_preflight = self.client.get(
             f"/profiles/fixture/applications/{self.application_id}"
-        ).json()["question_preflight"])
+        ).json()["question_preflight"]
+        self.assertEqual(historical_preflight["result"], "PASS")
+        self.assertFalse(historical_preflight["is_current"])
 
     def test_generation_failure_keeps_old_pins_documents_and_audit(self):
         old_app = self.store.application(self.application_id)
@@ -252,6 +356,25 @@ class ApplicationReprepareTests(unittest.TestCase):
         self.assertEqual(application_documents(self.store, self.application_id, self.root),
                          old_documents)
         self.assertEqual(self.store.count("audit_events"), old_audits)
+
+    def test_legacy_snapshot_without_saved_options_requires_review(self):
+        app = self.store.application(self.application_id)
+        with self.store.engine.begin() as connection:
+            event = connection.execute(select(m.audit).where(
+                m.audit.c.entity_id == self.application_id,
+                m.audit.c.action == "DOCUMENTS_PREPARED",
+            ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings().first()
+            payload = dict(event["payload"])
+            payload.pop("preparation_config", None)
+            connection.execute(update(m.audit).where(
+                m.audit.c.id == event["id"],
+            ).values(payload=payload))
+        response = self.client.post(self.url, json=self._payload(app=app))
+        self.assertEqual(response.status_code, 409, response.text)
+        self.assertEqual(response.json()["detail"]["code"],
+                         "APPLICATION_REPREPARE_CONFIG_REQUIRED")
+        self.assertEqual(self.store.application(self.application_id)["document_version"],
+                         app["document_version"])
 
 
 if __name__ == "__main__":

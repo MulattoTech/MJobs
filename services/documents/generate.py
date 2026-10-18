@@ -10,7 +10,7 @@ from uuid import uuid4
 from docx import Document
 from docx.shared import Pt, RGBColor
 from pypdf import PdfReader
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 
 from packages.domain.safety import Fact, select_verified_facts
 from packages.persistence import models as m
@@ -31,6 +31,107 @@ from services.documents.page_fit import fit_to_page_target
 from services.documents.render import render_pdf
 from services.documents.validation import VALIDATOR, validate_assertions
 from services.documents.templates import BASE_TEMPLATE, resume_layout, template_pair, contact_header, RESPONSIBILITY_EMPHASIS_TEMPLATES
+
+
+PREPARATION_CONFIG_KEYS = (
+    "route_mode", "route_id", "tailor_resume", "tailor_fact_ids",
+    "tailor_fact_rewrites", "include_resume_contact", "cover_letter_style",
+    "cover_letter_length", "resume_page_target",
+    "resume_page_fit_job_fingerprint", "role_lens_id",
+    "expected_role_lens_version", "cover_letter_story_ids",
+    "cover_letter_story_job_fingerprint", "resume_story_ids",
+    "resume_story_job_fingerprint", "expected_job_fingerprint",
+    "ai_evaluation_run_id", "preserve_fact_ids",
+)
+
+
+def application_preparation_config(store, application):
+    """Load the exact persisted preparation inputs for the current document pin."""
+    def current_pins():
+        saved_ids = set(application.get("fact_ids") or [])
+        if application["profile_version"] == store.profile(application["profile_id"])["version"]:
+            return list(saved_ids)
+        prior_profile = store.profile(application["profile_id"], application["profile_version"])
+        current_profile = store.profile(application["profile_id"])
+        current_by_content = {}
+        for row in tailor.eligible_rows(current_profile):
+            content = (row.get("kind"), row.get("text"), row.get("source"),
+                       row.get("verified"), row.get("user_approved"), row.get("confidence"))
+            current_by_content.setdefault(content, []).append(row["fact_id"])
+        mapped = []
+        for row in prior_profile.get("facts", []):
+            if row.get("fact_id", row.get("id")) not in saved_ids:
+                continue
+            content = (row.get("kind"), row.get("text"), row.get("source"),
+                       row.get("verified"), row.get("user_approved"), row.get("confidence"))
+            matches = current_by_content.get(content, [])
+            if len(matches) != 1:
+                raise PreparationError(
+                    "APPLICATION_REPREPARE_FACTS_STALE",
+                    "Previously prepared facts changed or are no longer approved; review the current profile before continuing",
+                )
+            mapped.append(matches[0])
+        if len(mapped) != len(saved_ids):
+            raise PreparationError(
+                "APPLICATION_REPREPARE_FACTS_STALE",
+                "Previously prepared facts changed or are no longer approved; review the current profile before continuing",
+            )
+        return mapped
+
+    resolved = None
+    with store.engine.connect() as connection:
+        events = connection.execute(select(m.audit).where(
+            m.audit.c.entity_id == application["id"],
+            m.audit.c.action == "DOCUMENTS_PREPARED",
+        ).order_by(m.audit.c.timestamp.desc(), m.audit.c.id.desc())).mappings().all()
+        for event in events:
+            payload = event["payload"] if isinstance(event["payload"], dict) else {}
+            config = payload.get("preparation_config")
+            if (isinstance(config, dict)
+                    and payload.get("document_version") == application["document_version"]
+                    and payload.get("profile_version") == application["profile_version"]):
+                resolved = {key: config[key] for key in PREPARATION_CONFIG_KEYS
+                            if key in config}
+                break
+
+        # Older queued preparations already keep their complete inputs in the
+        # durable PREPARE outbox row. Resolve only the exact job/profile snapshot.
+        if resolved is None:
+            operations = connection.execute(select(m.operations).where(
+                m.operations.c.kind == "PREPARE",
+                m.operations.c.entity_id == application["profile_id"],
+                m.operations.c.state == "COMPLETED",
+            ).order_by(m.operations.c.updated_at.desc(), m.operations.c.id.desc())).mappings().all()
+            for operation in operations:
+                params = operation["params"] if isinstance(operation["params"], dict) else {}
+                if (params.get("job_id") != application["job_id"]
+                        or params.get("profile_version") != application["profile_version"]):
+                    continue
+                resolved = {key: params[key] for key in PREPARATION_CONFIG_KEYS if key in params}
+                priority = params.get("preparation_priority")
+                if isinstance(priority, dict) and isinstance(priority.get("job_fingerprint"), str):
+                    resolved["expected_job_fingerprint"] = priority["job_fingerprint"]
+                break
+    if resolved is not None:
+        resolved["preserve_fact_ids"] = current_pins()
+        return resolved
+    raise PreparationError(
+        "APPLICATION_REPREPARE_CONFIG_REQUIRED",
+        "The original preparation choices are unavailable. Review and prepare this application again.",
+    )
+
+
+def preparation_config(*, route_mode, route_id, tailor_resume, tailor_fact_ids,
+                       tailor_fact_rewrites, include_resume_contact,
+                       cover_letter_style, cover_letter_length,
+                       resume_page_target, resume_page_fit_job_fingerprint,
+                       role_lens_id, expected_role_lens_version,
+                       cover_letter_story_ids, cover_letter_story_job_fingerprint,
+                       resume_story_ids, resume_story_job_fingerprint,
+                       expected_job_fingerprint, ai_evaluation_run_id,
+                       preserve_fact_ids=None):
+    values = locals()
+    return {key: values[key] for key in PREPARATION_CONFIG_KEYS}
 
 
 def compose_paragraphs(profile, job, resume_rows, texts, template=BASE_TEMPLATE):
@@ -349,7 +450,7 @@ def _resolved_role_lens(store, profile, job, profile_id, role_lens_id,
     }
 
 
-def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None, reprepare_expected=None):
+def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=None, route_mode="DEFAULT", route_id=None, tailor_resume=False, tailor_fact_ids=None, tailor_fact_rewrites=None, include_resume_contact=False, cover_letter_style="professional", cover_letter_length="normal", resume_page_target=None, resume_page_fit_job_fingerprint=None, role_lens_id=None, expected_role_lens_version=None, cover_letter_story_ids=None, cover_letter_story_job_fingerprint=None, resume_story_ids=None, resume_story_job_fingerprint=None, expected_job_fingerprint=None, ai_evaluation_run_id=None, reprepare_expected=None, preserve_fact_ids=None):
     if type(tailor_resume) is not bool:
         raise ValueError('tailor_resume must be a boolean')
     if type(include_resume_contact) is not bool:
@@ -365,6 +466,23 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
         raise ValueError('resume_page_fit_job_fingerprint must be a nonempty string')
     resume_template,resume_model=template_pair(tailor_resume,tailor_fact_ids is not None,include_resume_contact,
         user_rephrase=tailor_fact_rewrites is not None)
+    saved_preparation_config = preparation_config(
+        route_mode=route_mode, route_id=route_id, tailor_resume=tailor_resume,
+        tailor_fact_ids=tailor_fact_ids, tailor_fact_rewrites=tailor_fact_rewrites,
+        include_resume_contact=include_resume_contact,
+        cover_letter_style=cover_letter_style, cover_letter_length=cover_letter_length,
+        resume_page_target=resume_page_target,
+        resume_page_fit_job_fingerprint=resume_page_fit_job_fingerprint,
+        role_lens_id=role_lens_id,
+        expected_role_lens_version=expected_role_lens_version,
+        cover_letter_story_ids=cover_letter_story_ids,
+        cover_letter_story_job_fingerprint=cover_letter_story_job_fingerprint,
+        resume_story_ids=resume_story_ids,
+        resume_story_job_fingerprint=resume_story_job_fingerprint,
+        expected_job_fingerprint=expected_job_fingerprint,
+        ai_evaluation_run_id=ai_evaluation_run_id,
+        preserve_fact_ids=preserve_fact_ids,
+    )
     check = check or (lambda: None)
     with uncommitted_files() as staged, store.engine.begin() as connection:
         # A profile row serializes preparation and submission reservations.
@@ -376,6 +494,17 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             raise PreparationError("DOCUMENT_PROFILE_CHANGED", "Profile changed; prepare documents using its current version")
         profile = store.profile(profile_id, profile_version)
         eligible = tailor.eligible_rows(profile)
+        if preserve_fact_ids is not None:
+            if (not isinstance(preserve_fact_ids, list)
+                    or len(set(preserve_fact_ids)) != len(preserve_fact_ids)
+                    or any(not isinstance(value, str) for value in preserve_fact_ids)):
+                raise PreparationError("APPLICATION_REPREPARE_FACTS_STALE",
+                    "Reload and review the approved facts before preparing this application again")
+            eligible_by_id = {row["fact_id"]: row for row in eligible}
+            if not set(preserve_fact_ids).issubset(eligible_by_id):
+                raise PreparationError("APPLICATION_REPREPARE_FACTS_STALE",
+                    "Previously prepared facts are no longer approved; review the current profile before continuing")
+            eligible = [eligible_by_id[fact_id] for fact_id in preserve_fact_ids]
         if not eligible:
             raise PreparationError("DOCUMENT_NO_APPROVED_FACTS", "Approve and verify at least one sourced career fact before generating documents")
         resume_rows = tailor.select_resume_rows(eligible, tailor_resume, tailor_fact_ids)
@@ -516,9 +645,15 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             if active_attempt:
                 raise PreparationError("APPLICATION_REPREPARE_IN_PROGRESS", "An application attempt is still in progress; reconcile it before preparing again")
             active_operation = connection.execute(select(m.operations.c.id).where(
-                m.operations.c.entity_id == prior["id"],
                 m.operations.c.kind.in_(("PREPARE", "APPLY_MOCK", "MANUAL_AUTH")),
                 m.operations.c.state.in_(("QUEUED", "RUNNING")),
+                or_(
+                    and_(m.operations.c.kind == "PREPARE",
+                         m.operations.c.entity_id == profile_id,
+                         m.operations.c.params["job_id"].as_string() == job_id),
+                    and_(m.operations.c.kind.in_(("APPLY_MOCK", "MANUAL_AUTH")),
+                         m.operations.c.entity_id == prior["id"]),
+                ),
             ).limit(1)).first()
             if active_operation:
                 raise PreparationError("APPLICATION_REPREPARE_IN_PROGRESS", "An application action is still in progress; reconcile it before preparing again")
@@ -709,9 +844,11 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
             # row. Both this event and the new pins commit atomically.
             store._audit(connection, application_id, "DOCUMENTS_PREPARED", {
                 "fact_ids": fact_ids, "profile_version": profile["version"],
+                "document_version": revision,
                 "route_ids": [option["preferred_route"]["id"]
                               for option in route_plan["selected"]],
                 "route_mode": route_plan["mode"],
+                "preparation_config": saved_preparation_config,
                 "document_kinds": sorted({record["kind"] for record in records}),
                 "adapter_knowledge": application_adapter_knowledge(connection, route["id"]),
                 "reprepare": reprepare_audit,
@@ -727,7 +864,10 @@ def prepare(store, job_id, profile_id, output_dir, check=None, profile_version=N
                 {'id': r['id'], 'fact_ids': r['fact_ids'], 'sha256': r['sha256'],
                  'claim_validation': r['generation_context']['claim_validation']}
                 for r in records]})
-        prepared_payload = {"fact_ids": fact_ids, "profile_version": profile["version"], "route_ids": selected_route_ids, "route_mode": route_plan["mode"],
+        prepared_payload = {"fact_ids": fact_ids, "profile_version": profile["version"],
+            "document_version": revision, "route_ids": selected_route_ids,
+            "route_mode": route_plan["mode"],
+            "preparation_config": saved_preparation_config,
             "document_kinds": sorted({record["kind"] for record in records}),
             "adapter_knowledge": application_adapter_knowledge(connection, route["id"])}
         if reprepare_audit is None:

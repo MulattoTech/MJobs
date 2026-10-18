@@ -2091,7 +2091,7 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
     @app.post("/profiles/{profile_id}/applications/{application_id}/reprepare")
     def application_reprepare(profile_id: str, application_id: str,
                               value: ApplicationReprepareInput):
-        from services.documents.generate import prepare
+        from services.documents.generate import application_preparation_config, prepare
         from services.documents.errors import PreparationError
         application_row = store.application(application_id)
         if application_row["profile_id"] != profile_id:
@@ -2105,10 +2105,18 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         if profile["version"] != value.expected_profile_version:
             raise HTTPException(409, {"code": "APPLICATION_REPREPARE_STALE"})
         try:
+            config = application_preparation_config(store, application_row)
+            if (application_row["profile_version"] != profile["version"]
+                    and config.get("tailor_fact_rewrites")):
+                raise PreparationError(
+                    "APPLICATION_REPREPARE_REVIEW_REQUIRED",
+                    "Reviewed resume rewrites are tied to the previous profile. Review their wording again before preparing this revision.",
+                )
             prepare(
                 store, application_row["job_id"], profile_id, output_dir,
                 profile_version=value.expected_profile_version,
-                route_mode="THIS_ROUTE", route_id=application_row["route_id"],
+                preserve_fact_ids=config.pop("preserve_fact_ids", None),
+                **config,
                 reprepare_expected={
                     "application_id": application_id,
                     "document_version": value.expected_document_version,

@@ -80,8 +80,12 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                              if row["requisition"] == "B")
             self.assertEqual(job["id"], other_job["id"])
             application_ids = {
-                "fixture": prepare(store, job["id"], "fixture", root),
-                "other-profile": prepare(store, other_job["id"], "other-profile", root),
+                "fixture": prepare(store, job["id"], "fixture", root,
+                                    tailor_resume=True, include_resume_contact=True,
+                                    cover_letter_style="warm", cover_letter_length="detailed"),
+                "other-profile": prepare(store, other_job["id"], "other-profile", root,
+                                          tailor_resume=True, include_resume_contact=True,
+                                          cover_letter_style="warm", cover_letter_length="detailed"),
             }
             for profile_id, application_id in application_ids.items():
                 application = store.application(application_id)
@@ -275,7 +279,45 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     context.unroute("**/profiles", concurrent_profile_change)
 
                     # Reload obtains the current profile version. Saving now must
-                    # return the persisted text before reporting a successful bank save.
+                    # first expose the stale application revision explicitly. The
+                    # old preflight must not put that application back in the review
+                    # queue until the user resumes it and a new preflight is created.
+                    page.reload(wait_until="domcontentloaded")
+                    page.get_by_role("navigation", name="Main navigation").get_by_role(
+                        "button", name="Applications", exact=False).click()
+                    pipeline = page.get_by_role("region", name="Application pipeline")
+                    pipeline.locator(".job-card").filter(has_text=job["title"]).click()
+                    stale_notice = page.get_by_role("region", name="ATS question preflight")
+                    expect(stale_notice).to_contain_text(
+                        "older profile or document revision")
+                    expect(page.get_by_role("region", name="Application review queue")).to_have_count(0)
+                    page.get_by_role("button", name="Resume and prepare current revision").click()
+                    expect(page.get_by_text("Current application documents are revision", exact=False)).to_contain_text(
+                        "Run a local dry run to create a fresh ATS question preflight")
+                    with ThreadPoolExecutor(max_workers=1) as executor:
+                        refreshed_run = executor.submit(
+                            apply_mock, store, application_ids["fixture"], fixture, root,
+                            request_id="resume-stale-preflight",
+                        ).result(timeout=45)
+                    self.assertEqual(refreshed_run["state"], "DRY_RUN_COMPLETE")
+                    resumed_application = store.application(application_ids["fixture"])
+                    # This question is a synthetic UI review fixture outside the
+                    # local ATS questionnaire. Bind it to the resumed pins after
+                    # the current dry run so the queue proves only current
+                    # unresolved metadata can reopen question review.
+                    persist_preflight(store, application_ids["fixture"], {
+                        "result": "FAIL", "reason": "UNRESOLVED_REQUIRED_QUESTIONS",
+                        "observed_at": "2026-10-18T00:02:00Z",
+                        "profile_version": resumed_application["profile_version"],
+                        "document_version": resumed_application["document_version"],
+                        "route_id": resumed_application["route_id"], "provider": "mock-ats",
+                        "tenant": "example", "requisition": "B",
+                        "metadata_fingerprint": "d" * 64, "mappings": [], "missing": [
+                            {"question_id": QUESTION_ID, "question": QUESTION,
+                             "fact_ids": [], "answer_ids": [], "profile_paths": [],
+                             "document_kinds": []},
+                        ],
+                    })
                     page.reload(wait_until="domcontentloaded")
                     page.get_by_role("navigation", name="Main navigation").get_by_role(
                         "button", name="Review Queue", exact=False).click()
@@ -336,14 +378,43 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                         "Reviewed answer saved to this profile's Answer Bank")
                     expect(confirm_save).to_be_disabled()
                     expect(editor).to_contain_text("Selected draft only")
-                    self.assertEqual(len(writes), 2,
-                                     "Readback and selection must not write application state")
+                    self.assertEqual(sum(method == "PUT" and path == "/profiles"
+                                         for method, path in writes), 2,
+                                     "Only the rejected save and explicit confirmed save may update the profile")
+                    self.assertEqual(sum(method == "POST" and path.endswith("/reprepare")
+                                         for method, path in writes), 1,
+                                     "The browser must record exactly one explicit reprepare")
 
                     # A reviewed answer changes the profile version, so the old
                     # application snapshot needs an explicit, audited resume.
                     resume = page.get_by_role(
                         "region", name="Resume application preparation")
                     expect(resume).to_contain_text("current approved facts and answers")
+                    with store.engine.begin() as connection:
+                        connection.execute(m.operations.insert().values(
+                            id="queued-review-resume-prepare", kind="PREPARE",
+                            entity_id="fixture",
+                            params={"job_id": job["id"],
+                                    "profile_version": saved_profile["version"],
+                                    "request_id": "queued-review-resume-prepare"},
+                            state="QUEUED", updated_at="2026-10-18T00:00:00Z",
+                        ))
+                    old_document_version = store.application(
+                        application_ids["fixture"])["document_version"]
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path.endswith("/reprepare")) as blocked:
+                        resume.get_by_role(
+                            "button", name="Resume and prepare current revision").click()
+                    self.assertEqual(blocked.value.status, 409, blocked.value.text())
+                    expect(page.get_by_role("alert").filter(
+                        has_text="An application action is still in progress")).to_be_visible()
+                    self.assertEqual(store.application(application_ids["fixture"])["document_version"],
+                                     old_document_version)
+                    with store.engine.begin() as connection:
+                        connection.execute(m.operations.update().where(
+                            m.operations.c.id == "queued-review-resume-prepare"
+                        ).values(state="CANCELLED"))
                     with page.expect_response(lambda response:
                             response.request.method == "POST"
                             and urlsplit(response.url).path.endswith("/reprepare")) as reprepare:
@@ -354,7 +425,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(prepared["id"], application_ids["fixture"])
                     self.assertEqual(prepared["profile_version"], saved_profile["version"])
                     self.assertEqual(prepared["document_version"],
-                                     applications_before[0]["document_version"] + 1)
+                                     old_document_version + 1)
                     expect(page.get_by_role("status").filter(has_text=
                         "Run a local dry run to create a fresh ATS question preflight")).to_be_visible()
                     refreshed_documents = page.request.get(
@@ -368,6 +439,15 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertTrue(any(row["version"] == prepared["document_version"]
                                         and row["profile_version"] == saved_profile["version"]
                                         for row in revisions))
+                    revised_documents = [row for row in revisions
+                                         if row["version"] == prepared["document_version"]]
+                    revised_resume = next(row for row in revised_documents
+                                          if row["kind"] == "resume")
+                    revised_letter = next(row for row in revised_documents
+                                          if row["kind"] == "cover-letter")
+                    self.assertIn("contact_header", revised_resume["generation_context"])
+                    self.assertEqual(revised_letter["generation_context"]["style"], "warm")
+                    self.assertEqual(revised_letter["generation_context"]["length"], "detailed")
                     durable = store.application(application_ids["fixture"])
                     self.assertEqual(durable["document_version"], prepared["document_version"])
                     self.assertEqual(durable["profile_version"], saved_profile["version"])
@@ -379,9 +459,9 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     reprepare_event = next(row for row in audit_rows
                                            if row["payload"].get("reprepare"))
                     self.assertEqual(reprepare_event["payload"]["reprepare"]["prior"]["document_version"],
-                                     applications_before[0]["document_version"])
-                    self.assertIsNone(prepared["question_preflight"],
-                                      "The old preflight must not be reused for current documents")
+                                     old_document_version)
+                    self.assertFalse(prepared["question_preflight"]["is_current"],
+                                     "The old preflight must remain historical for current documents")
                     refreshed_answer = page.get_by_role(
                         "region", name="Application answers", exact=True).get_by_role(
                             "group", name="Question 1")
@@ -438,7 +518,7 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                     self.assertEqual(history_response.status, 200)
                     history = history_response.json()
                     self.assertFalse(history["external_submission_enabled"])
-                    self.assertEqual(len(history["attempts"]), 2)
+                    self.assertEqual(len(history["attempts"]), 3)
                     self.assertTrue(any(
                         row["document_version"] == applications_before[0]["document_version"]
                         and row["state"] == "DRY_RUN_COMPLETE"
@@ -517,17 +597,19 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
 
                     self.assertEqual(writes, [
                         ("PUT", "/profiles"),
+                        ("POST", f"/profiles/fixture/applications/{application_ids['fixture']}/reprepare"),
                         ("PUT", "/profiles"),
                         ("POST", f"/profiles/fixture/applications/{application_ids['fixture']}/reprepare"),
+                        ("POST", f"/profiles/fixture/applications/{application_ids['fixture']}/reprepare"),
                     ])
-                    self.assertEqual(len(request_bodies), 3)
+                    self.assertEqual(len(request_bodies), 5)
                     for profile_id in ("fixture", "other-profile"):
                         self.assertFalse(any(
                             item.get("text") == "Synthetic application-only answer"
                             for item in store.profile(profile_id)["answers"]))
                     self.assertTrue(any(item.get("id") == CONCURRENT_ANSWER_ID
-                                        for item in request_bodies[1]["answers"]))
-                    for body in request_bodies[:2]:
+                                        for item in request_bodies[2]["answers"]))
+                    for body in (request_bodies[0], request_bodies[2]):
                         self.assertEqual(body["id"], "fixture")
                         self.assertTrue(body["expected_version"])
                         self.assertFalse(any(
@@ -537,12 +619,13 @@ class ApplicationReviewAnswersBrowserTests(unittest.TestCase):
                             item.get("question") == QUESTION
                             and item.get("text") == MANUAL_ANSWER
                             for item in body["answers"]))
-                    self.assertEqual(set(request_bodies[2]), {
+                    self.assertEqual(set(request_bodies[3]), {
                         "expected_document_version", "expected_application_profile_version",
                         "expected_profile_version", "expected_state",
                     })
+                    self.assertEqual(request_bodies[3], request_bodies[4])
                     self.assertGreater(store.count("documents"), documents_before)
-                    self.assertEqual(store.count("application_attempts"), attempts_before + 1)
+                    self.assertEqual(store.count("application_attempts"), attempts_before + 2)
                     self.assertEqual(store.application(applications_before[0]["id"])["state"],
                                      "DRY_RUN_COMPLETE")
                     self.assertEqual(store.application(applications_before[0]["id"])["document_version"],

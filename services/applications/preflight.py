@@ -6,6 +6,7 @@ import json
 import re
 
 from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
 
 from packages.persistence import models as m
 from packages.persistence.store import now
@@ -712,7 +713,6 @@ def persist_preflight(store, application_id: str, result: dict) -> None:
 
 
 def latest_preflight(store, application_id: str) -> dict | None:
-    application = store.application(application_id)
     with store.engine.connect() as connection:
         row = connection.execute(select(m.audit).where(
             m.audit.c.entity_id == application_id,
@@ -721,11 +721,24 @@ def latest_preflight(store, application_id: str) -> dict | None:
     if row is None:
         return None
     payload = row["payload"]
-    # A review is approval for one immutable preparation snapshot only. Keep the
-    # audit record, but never show or reuse it after a new profile/document/route
-    # revision becomes current.
-    if (payload.get("profile_version") != application["profile_version"]
-            or payload.get("document_version") != application["document_version"]
-            or payload.get("route_id") != application["route_id"]):
-        return None
-    return {**payload, "event_id": row["id"]}
+    # This API is also the safe historical audit readback path, including legacy
+    # synthetic records which intentionally have no application row. Preserve
+    # the record and report currentness separately; consumers that authorize a
+    # current action must require is_current is True.
+    try:
+        application = store.application(application_id)
+    except NoResultFound:
+        return {**payload, "event_id": row["id"], "is_current": None}
+
+    try:
+        profile = store.profile(application["profile_id"])
+    except NoResultFound:
+        profile = None
+    is_current = bool(
+        profile is not None
+        and profile.get("version") == application["profile_version"]
+        and payload.get("profile_version") == application["profile_version"]
+        and payload.get("document_version") == application["document_version"]
+        and payload.get("route_id") == application["route_id"]
+    )
+    return {**payload, "event_id": row["id"], "is_current": is_current}
