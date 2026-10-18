@@ -44,27 +44,33 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
             self.fail(f"demo run requested onboarding-only operation history: {path}")
 
         ui_e2e.assert_previous_review_operation(
-            unexpected_request, onboarding=False, operation_id=None)
+            unexpected_request, onboarding=False, operation_id=None, application_id=None)
 
     def test_onboarding_recovery_requires_prior_operation_to_remain_blocked(self):
         calls = []
 
         def request(path):
             calls.append(path)
-            return {"state": "BLOCKED"}
+            return {"kind": "APPLY_MOCK", "entity_id": "application-1", "state": "BLOCKED"}
 
         ui_e2e.assert_previous_review_operation(
-            request, onboarding=True, operation_id="prior-operation")
+            request, onboarding=True, operation_id="prior-operation", application_id="application-1")
         self.assertEqual(calls, ["/operations/prior-operation"])
 
         with self.assertRaisesRegex(AssertionError, "prior blocked operation"):
             ui_e2e.assert_previous_review_operation(
-                request, onboarding=True, operation_id=None)
+                request, onboarding=True, operation_id=None, application_id="application-1")
 
-        with self.assertRaises(AssertionError):
-            ui_e2e.assert_previous_review_operation(
-                lambda _path: {"state": "COMPLETED"},
-                onboarding=True, operation_id="prior-operation")
+        for invalid in (
+            {"kind": "DISCOVER", "entity_id": "application-1", "state": "BLOCKED"},
+            {"kind": "APPLY_MOCK", "entity_id": "another-application", "state": "BLOCKED"},
+            {"kind": "APPLY_MOCK", "entity_id": "application-1", "state": "COMPLETED"},
+            {"operation_type": "APPLY_MOCK", "entity_id": "application-1", "state": "BLOCKED"},
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(AssertionError):
+                ui_e2e.assert_previous_review_operation(
+                    lambda _path, record=invalid: record,
+                    onboarding=True, operation_id="prior-operation", application_id="application-1")
 
     def test_fixture_discovery_accepts_only_supported_sources_tab_search_contract(self):
         search = {

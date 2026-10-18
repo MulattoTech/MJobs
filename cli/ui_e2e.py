@@ -247,13 +247,20 @@ def assert_reprepared_profile_pins(*, previous_profile_version, old_application_
         raise AssertionError("reprepared application is not pinned to the approved current profile")
 
 
-def assert_previous_review_operation(request, *, onboarding, operation_id):
+def assert_blocked_mock_operation(operation, *, application_id):
+    """Validate the legacy public operation record used by onboarding recovery."""
+    assert operation.get("kind") == "APPLY_MOCK", operation
+    assert operation.get("entity_id") == application_id, operation
+    assert operation.get("state") == "BLOCKED", operation
+
+
+def assert_previous_review_operation(request, *, onboarding, operation_id, application_id):
     """Keep the onboarding-only blocked receipt check out of the demo flow."""
     if not onboarding:
         return
     assert operation_id, "onboarding recovery requires the prior blocked operation"
     operation = request("/operations/" + operation_id)
-    assert operation["state"] == "BLOCKED", operation
+    assert_blocked_mock_operation(operation, application_id=application_id)
 
 
 def is_allowed_onboarding_application_write(method, path):
@@ -907,9 +914,8 @@ def run(base_url, evidence_path, onboarding=False):
                 assert previous_receipt["error_code"] == "REVIEW_REQUIRED"
                 previous_operation_id = previous_receipt["operation_id"]
                 previous_operation = request("/operations/" + previous_operation_id)
-                assert previous_operation["operation_type"] == "APPLY_MOCK"
-                assert previous_operation["entity_id"] == identifier
-                assert previous_operation["state"] == "BLOCKED"
+                assert_blocked_mock_operation(previous_operation, application_id=identifier)
+                assert "operation_type" not in previous_operation, previous_operation
                 assert resumed["question_preflight"]["is_current"] is False
 
                 # Reprepare preserves the old terminal intent and durable receipt.
@@ -936,7 +942,8 @@ def run(base_url, evidence_path, onboarding=False):
             assert dry["question_preflight"]["is_current"] is True
             assert_previous_review_operation(
                 request, onboarding=onboarding,
-                operation_id=previous_operation_id if onboarding else None)
+                operation_id=previous_operation_id if onboarding else None,
+                application_id=identifier if onboarding else None)
             page.get_by_role("button", name="Start a new reviewed run", exact=True).click()
             page.get_by_label("I approve one fictional mock submission").check()
             mock_run_path = f"/profiles/{profile_id}/applications/{identifier}/mock-run"
