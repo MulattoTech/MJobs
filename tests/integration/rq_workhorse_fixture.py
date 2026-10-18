@@ -85,22 +85,21 @@ def until(predicate, message, *, seconds=20):
 
 
 def freeze_process(owned):
-    if not signal_owned(owned, signal.SIGSTOP):
-        raise RuntimeError("Process exited before tree freeze; cleanup is unverified")
+    signal_owned(owned, signal.SIGSTOP)
 
     def stopped():
         try:
             current = process_identity(owned.pid)
-        except FileNotFoundError as error:
-            raise RuntimeError("Process vanished during tree freeze") from error
+        except FileNotFoundError:
+            return "DEAD"
         if ((current.pid, current.group, current.session, current.started)
                 != (owned.pid, owned.group, owned.session, owned.started)):
             raise RuntimeError("Process identity changed during tree freeze")
         if current.state in {"Z", "X"}:
-            raise RuntimeError("Process exited during tree freeze")
-        return current.state in {"T", "t"}
+            return "DEAD"
+        return "STOPPED" if current.state in {"T", "t"} else None
 
-    until(stopped, "Owned process did not stop before tree inventory", seconds=2)
+    return until(stopped, "Owned process did not stop before tree inventory", seconds=2) == "STOPPED"
 
 
 def descendants(parent):
@@ -155,20 +154,29 @@ class OwnedWorker:
             self.remember([self.horse, *self.children])
         if self.tree_sealed:
             return
-        freeze_process(self.identity)
+        if not freeze_process(self.identity):
+            raise RuntimeError("Worker exited before its complete tree could be verified")
         frozen = {(self.identity.pid, self.identity.started)}
         # The root cannot fork while stopped. Freeze each discovered descendant
         # and rescan until every descendant is stopped too. Retain identities
         # before signals, including pre-capture and replacement-worker paths.
         deadline = time.monotonic() + 3
         while time.monotonic() < deadline:
-            found = descendants(self.identity.pid)
+            # A horse may normally exit between inventory and SIGSTOP. Its
+            # retained children can then be orphaned. Rescan every retained
+            # live identity, including those no longer beneath the root.
+            found = []
+            for owned in list(self.owned.values()):
+                if running(owned):
+                    found.extend(descendants(owned.pid))
             self.remember(found)
             new = [owned for owned in found if (owned.pid, owned.started) not in frozen]
             if not new:
                 self.tree_sealed = True
                 return
             for owned in new:
+                # STOPPED and DEAD both cannot fork. Terminal descendants are
+                # not failures, and their retained live children remain fenced.
                 freeze_process(owned)
                 frozen.add((owned.pid, owned.started))
         raise RuntimeError("Owned process tree did not quiesce within the fixture bound")

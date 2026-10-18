@@ -150,6 +150,14 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
                         fixture.capture_horse(job)
 
     def test_busy_worker_failure_before_horse_capture_stops_all_owned_processes(self):
+        self.cleanup_scenario()
+
+    def test_horse_exits_between_inventory_and_freeze_without_losing_live_orphan(self):
+        for terminal in ("Z", "gone"):
+            with self.subTest(terminal=terminal):
+                self.cleanup_scenario(horse_exit=terminal)
+
+    def cleanup_scenario(self, *, horse_exit=None):
         fixture = OwnedWorker(None, None, "redis://127.0.0.1:6379/0", "http://127.0.0.1:1", Path("."), "failure")
         parent = ProcessIdentity(100, 50, 100, 100, 1000)
         horse = ProcessIdentity(123, 100, 123, 100, 1001)
@@ -162,7 +170,17 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
             if sig == 9:
                 live.pop(owned.pid, None)
             elif sig == 19:
-                live[owned.pid] = replace(live[owned.pid], state="T")
+                if owned.pid == 123 and horse_exit:
+                    if horse_exit == "gone":
+                        live.pop(123)
+                    else:
+                        live[123] = replace(live[123], state=horse_exit)
+                    # A child can outlive its terminal horse. Preserve its
+                    # identity even though it is now outside the root's tree.
+                    live[234] = replace(live[234], parent=1)
+                    live[345] = ProcessIdentity(345, 234, 123, 100, 1003)
+                else:
+                    live[owned.pid] = replace(live[owned.pid], state="T")
             return True
 
         def wait(**_kwargs):
@@ -175,6 +193,12 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
                 raise FileNotFoundError
             return live[pid]
 
+        def inventory(pid):
+            found = [owned for owned in live.values() if owned.parent == pid]
+            for child in list(found):
+                found.extend(inventory(child.pid))
+            return found
+
         fixture.identity, fixture.log = parent, Mock()
         fixture.process = SimpleNamespace(pid=100, poll=lambda: None if 100 in live else -9, wait=wait)
         fixture.worker = Mock()
@@ -184,7 +208,7 @@ class WorkhorseFixtureAdmissionTests(unittest.TestCase):
         self.assertEqual(fixture.children, [])
         with patch("signal.SIGKILL", 9, create=True), patch("signal.SIGSTOP", 19, create=True), patch(
                 "tests.integration.rq_workhorse_fixture.signal_owned", side_effect=send), patch(
-                "tests.integration.rq_workhorse_fixture.descendants", return_value=[horse, browser]), patch(
+                "tests.integration.rq_workhorse_fixture.descendants", side_effect=inventory), patch(
                 "tests.integration.rq_workhorse_fixture.process_identity", side_effect=identity):
             fixture.__exit__(AssertionError, AssertionError("synthetic early failure"), None)
             fixture.assert_stopped()
