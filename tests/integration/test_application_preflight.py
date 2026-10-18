@@ -153,6 +153,7 @@ class ApplicationPreflightTests(unittest.TestCase):
                 m.audit.c.entity_id == application_id,
                 m.audit.c.action == "APPLICATION_QUESTION_PREFLIGHT")).mappings().one()
         self.assertEqual(stored["result"], "UNKNOWN")
+        self.assertFalse(stored["is_current"])
         self.assertEqual(stored["reason"], "UNEXPECTED_SENSITIVE_REQUIRED_QUESTION")
         self.assertEqual(stored["missing"][0]["question_id"], "gender")
         self.assertNotIn(sensitive_answer, str(stored))
@@ -207,6 +208,7 @@ class ApplicationPreflightTests(unittest.TestCase):
 
         stored = latest_preflight(self.store, application_id)
         self.assertEqual(stored["result"], "FAIL")
+        self.assertFalse(stored["is_current"])
         self.assertEqual(stored["missing"][0]["answer_ids"], ["remote"])
         self.assertNotIn("Controlled fictional", str(stored))
         with self.store.engine.connect() as connection:
