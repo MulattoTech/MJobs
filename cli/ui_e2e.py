@@ -114,6 +114,59 @@ def assert_search_scoped_discovery(request_payload, operation, jobs, *, profile_
         raise AssertionError("search-filtered job readback differs from the reviewed criteria")
 
 
+def assert_supported_fixture_search(search, *, profile_id, include_titles, remote):
+    """Require a Sources-tab discovery search, never a Jobs filter snapshot."""
+    criteria = search.get("criteria") if isinstance(search, dict) else None
+    if not isinstance(criteria, dict):
+        raise AssertionError("saved fixture search has no criteria")
+    if search.get("profile_id") != profile_id or search.get("enabled") is not True:
+        raise AssertionError("fixture search is disabled or belongs to another profile")
+    if search.get("source_ids") != []:
+        raise AssertionError("fixture discovery requires the all-sources search scope")
+    if (criteria.get("include_titles") != include_titles or criteria.get("remote") != remote
+            or criteria.get("employment_types") != []):
+        raise AssertionError("saved fixture search differs from the reviewed Sources criteria")
+    if "job_filters" in criteria:
+        raise AssertionError("Jobs-tab filters cannot be used as provider discovery criteria")
+    scheduler = criteria.get("scheduler")
+    if not isinstance(scheduler, dict) or scheduler.get("enabled") is not False:
+        raise AssertionError("fixture search must keep its background scheduler disabled")
+
+
+def assert_reprepared_profile_pins(*, previous_profile_version, old_application_profile_version,
+                                   current_profile_version, resumed_application_profile_version):
+    """Compare opaque profile-version identities by equality, not lexical order."""
+    versions = (previous_profile_version, old_application_profile_version,
+                current_profile_version, resumed_application_profile_version)
+    if any(not isinstance(version, str) or not version for version in versions):
+        raise AssertionError("reprepare profile versions must be nonempty identities")
+    if previous_profile_version == current_profile_version:
+        raise AssertionError("reviewed profile edit did not produce a new profile version")
+    if old_application_profile_version != previous_profile_version:
+        raise AssertionError("application did not retain its old profile-version pin before reprepare")
+    if resumed_application_profile_version != current_profile_version:
+        raise AssertionError("reprepared application is not pinned to the approved current profile")
+
+
+def is_allowed_onboarding_application_write(method, path):
+    """Allow only explicit prepare, version-fenced reprepare, and local mock writes."""
+    if method != "POST":
+        return False
+    if path == "/applications":
+        return True
+    parts = path.strip("/").split("/")
+    return (len(parts) == 5 and parts[0] == "profiles" and bool(parts[1])
+            and parts[2] == "applications" and bool(parts[3])
+            and parts[4] in {"reprepare", "mock-run"})
+
+
+def answer_bank_confirmation_locator(answer_group, question_number):
+    """Locate the confirmation div by its aria-label (it is not a region role)."""
+    return answer_group.locator(
+        f'[aria-label="Answer Bank confirmation for question {question_number}"]'
+    )
+
+
 def _onboarding_fixture_pdf():
     stream = io.BytesIO()
     pdf = canvas.Canvas(stream)
@@ -162,8 +215,8 @@ def run(base_url, evidence_path, onboarding=False):
                                 or path in {"/apply", "/submit"}
                                 or "/external-application" in path)
                 application_write = (current.method != "GET" and "/applications/" in path)
-                explicit_mock = path.endswith("/mock-run")
-                allowed_application_write = path == "/applications" or explicit_mock
+                allowed_application_write = is_allowed_onboarding_application_write(
+                    current.method, path)
                 if (parsed.netloc != allowed_origin or blocked_path
                         or application_write and not allowed_application_write):
                     unsafe_requests.append({"method": current.method, "url": current.url})
@@ -316,94 +369,75 @@ def run(base_url, evidence_path, onboarding=False):
                 sql_fact_id = skill_fact_ids["SQL"]
                 actions.append({"action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved", "result": "PASS"})
 
-                navigation("Jobs")
-                page.get_by_label("Search jobs").fill("IT")
-                page.get_by_label("Job title", exact=True).fill("IT Support Specialist")
-                page.get_by_label("Work location", exact=True).select_option("REMOTE")
-                page.get_by_label("Saved search name", exact=True).fill("Synthetic remote IT onboarding search")
-                page.get_by_role("button", name="Save current filters", exact=True).click()
-                expect(page.get_by_role("status").filter(has_text="Saved Jobs filters")).to_be_visible()
-                saved_searches = request("/search-profiles?profile_id=" + profile_id)["search_profiles"]
-                saved_search = next(row for row in saved_searches
-                                    if row["name"] == "Synthetic remote IT onboarding search")
-                assert saved_search["profile_id"] == profile_id
-                assert saved_search["criteria"]["job_filters"]["remote_type"] == "REMOTE"
-                assert saved_search["criteria"]["job_filters"]["q"] == "IT"
-                assert saved_search["criteria"]["job_filters"]["title"] == "IT Support Specialist"
-                assert saved_search["source_ids"] == []
-                assert saved_search["enabled"] is False
-                expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(saved_search["id"])
+                def save_sources_fixture_search(name, title):
+                    navigation("Sources")
+                    page.get_by_label("Search name", exact=True).fill(name)
+                    page.get_by_label("Remote preference").select_option("REQUIRED")
+                    page.get_by_label("Employment type").select_option("")
+                    page.get_by_label("Include titles", exact=True).fill(title)
+                    with page.expect_response(lambda candidate:
+                            candidate.request.method == "PUT"
+                            and urlsplit(candidate.url).path == "/search-profiles") as saved:
+                        page.get_by_role("button", name="Save search", exact=True).click()
+                    assert saved.value.status == 200, saved.value.text()
+                    expect(page.get_by_role("status").filter(
+                        has_text="Search saved. Its schedule is off")).to_be_visible()
+                    search = next(row for row in request(
+                        "/search-profiles?profile_id=" + profile_id)["search_profiles"]
+                        if row["name"] == name)
+                    assert_supported_fixture_search(
+                        search, profile_id=profile_id, include_titles=[title], remote="REQUIRED")
+                    navigation("Jobs")
+                    page.get_by_label("Saved search profile", exact=True).last.select_option(search["id"])
+                    expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(search["id"])
+                    return search
 
-                # Resume the disabled saved search through the public Sources control.
-                navigation("Sources")
-                with page.expect_response(lambda candidate:
-                        candidate.request.method == "PUT"
-                        and urlsplit(candidate.url).path == "/search-profiles") as resumed_search_response:
-                    page.get_by_role("button", name="Resume search", exact=True).click()
-                assert resumed_search_response.value.status == 200
-                saved_search = request("/search-profiles/" + saved_search["id"])
-                assert saved_search["profile_id"] == profile_id and saved_search["enabled"] is True
-                with page.expect_response(lambda response:
-                        response.request.method == "POST"
-                        and urlsplit(response.url).path == "/discovery") as discovery_response:
-                    page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
-                response = discovery_response.value
-                assert response.status == 202, response.text()
-                discovery_request = response.request.post_data_json
-                discovery_request_id = discovery_request["request_id"]
-                assert discovery_request["search_profile_id"] == saved_search["id"]
-                discovery_operation_id = response.json()["operation_id"]
-                discovery_deadline = time.monotonic() + 120
-                while time.monotonic() < discovery_deadline:
-                    discovery_operation = request("/operations/" + discovery_operation_id)
-                    if discovery_operation["state"] in ("COMPLETED", "FAILED", "BLOCKED", "CANCELLED"):
-                        break
-                    time.sleep(0.5)
-                assert discovery_operation["state"] == "COMPLETED", discovery_operation
-                assert discovery_operation["params"]["request_id"] == discovery_request_id
-                nonmatching_jobs = request("/jobs?profile_id=" + profile_id
-                                            + "&search_profile_id=" + saved_search["id"])["jobs"]
-                assert_search_scoped_discovery(
-                    discovery_request, discovery_operation, nonmatching_jobs,
-                    profile_id=profile_id, search_profile_id=saved_search["id"],
-                    expected_titles=set(),
-                )
-                assert {row["title"] for row in request("/jobs?profile_id=" + profile_id)["jobs"]} >= {
-                    "Python Developer", "Data Engineer"}
-                discovery_search_proofs.append({
-                    "search_profile_id": saved_search["id"],
-                    "operation_id": discovery_operation_id,
-                    "profile_id": profile_id,
-                    "filtered_titles": [],
-                    "result": "PASS",
-                })
-                actions.append({"action": "Resumed the saved remote IT search in Sources; actual fixture discovery completed for its selected same-profile scope and returned an empty filtered result because neither fixture job matches IT Support", "result": "PASS", "boundary": "Sources UI → queued /discovery → Compose source worker → selected-search jobs API"})
+                def collect_sources_fixture_search(search, expected_titles):
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path == "/discovery") as discovery_response:
+                        page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
+                    response = discovery_response.value
+                    assert response.status == 202, response.text()
+                    discovery_request = response.request.post_data_json
+                    assert discovery_request["search_profile_id"] == search["id"]
+                    operation_id = response.json()["operation_id"]
+                    deadline = time.monotonic() + 120
+                    while time.monotonic() < deadline:
+                        operation = request("/operations/" + operation_id)
+                        if operation["state"] in ("COMPLETED", "FAILED", "BLOCKED", "CANCELLED"):
+                            break
+                        time.sleep(0.5)
+                    assert operation["state"] == "COMPLETED", operation
+                    assert operation["params"]["request_id"] == discovery_request["request_id"]
+                    jobs = request("/jobs?profile_id=" + profile_id
+                                   + "&search_profile_id=" + search["id"])["jobs"]
+                    assert_search_scoped_discovery(
+                        discovery_request, operation, jobs,
+                        profile_id=profile_id, search_profile_id=search["id"],
+                        expected_titles=set(expected_titles))
+                    discovery_search_proofs.append({
+                        "search_profile_id": search["id"],
+                        "operation_id": operation_id,
+                        "profile_id": profile_id,
+                        "filtered_titles": [row["title"] for row in jobs],
+                        "result": "PASS",
+                    })
+                    return operation_id, discovery_request["request_id"], jobs
 
-                # Use the actual matching synthetic fixture for a positive filter result.
-                navigation("Jobs")
-                page.get_by_label("Search jobs").fill("data")
-                page.get_by_label("Job title", exact=True).fill("Data Engineer")
-                page.get_by_label("Work location", exact=True).select_option("REMOTE")
-                page.get_by_label("Saved search name", exact=True).fill(
-                    "Synthetic remote data engineering onboarding search")
-                page.get_by_role("button", name="Save current filters", exact=True).click()
-                expect(page.get_by_role("status").filter(has_text="Saved Jobs filters")).to_be_visible()
-                matching_search = next(row for row in request(
-                    "/search-profiles?profile_id=" + profile_id)["search_profiles"]
-                    if row["name"] == "Synthetic remote data engineering onboarding search")
-                assert matching_search["profile_id"] == profile_id
-                assert matching_search["criteria"]["job_filters"]["q"] == "data"
-                assert matching_search["criteria"]["job_filters"]["title"] == "Data Engineer"
-                assert matching_search["criteria"]["job_filters"]["remote_type"] == "REMOTE"
-                expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(matching_search["id"])
-                navigation("Sources")
-                with page.expect_response(lambda candidate:
-                        candidate.request.method == "PUT"
-                        and urlsplit(candidate.url).path == "/search-profiles") as matching_resume_response:
-                    page.get_by_role("button", name="Resume search", exact=True).click()
-                assert matching_resume_response.value.status == 200
-                matching_search = request("/search-profiles/" + matching_search["id"])
-                assert matching_search["profile_id"] == profile_id and matching_search["enabled"] is True
+                # Create searches through the product's supported Sources form.
+                # Jobs-tab filter snapshots are intentionally disabled for scheduling
+                # and cannot be resumed as provider discovery criteria.
+                nonmatching_search = save_sources_fixture_search(
+                    "Synthetic remote IT onboarding search", "IT Support Specialist")
+                discovery_operation_id, discovery_request_id, nonmatching_jobs = (
+                    collect_sources_fixture_search(nonmatching_search, set()))
+                assert {row["title"] for row in request(
+                    "/jobs?profile_id=" + profile_id)["jobs"]} >= {"Python Developer", "Data Engineer"}
+                actions.append({"action": "Created a remote IT title search in the Sources UI; actual fixture discovery completed and the selected same-profile filter returned no matching jobs", "result": "PASS", "boundary": "Sources search form → Jobs saved-search selection → queued /discovery → Compose source worker → selected-search jobs API"})
+
+                matching_search = save_sources_fixture_search(
+                    "Synthetic remote data engineering onboarding search", "Data Engineer")
                 with page.expect_response(lambda candidate:
                         candidate.request.method == "POST"
                         and urlsplit(candidate.url).path == "/discovery") as matching_response:
@@ -450,7 +484,9 @@ def run(base_url, evidence_path, onboarding=False):
                 search_after_discovery = next(row for row in request(
                     "/search-profiles?profile_id=" + profile_id)["search_profiles"]
                     if row["id"] == matching_search["id"])
-                assert search_after_discovery["criteria"]["job_filters"]["remote_type"] == "REMOTE"
+                assert search_after_discovery["criteria"]["include_titles"] == ["Data Engineer"]
+                assert search_after_discovery["criteria"]["remote"] == "REQUIRED"
+                assert "job_filters" not in search_after_discovery["criteria"]
                 assert search_after_discovery["source_ids"] == []
             else:
                 page.get_by_role("button", name="Load fictional demo", exact=True).click()
@@ -608,63 +644,65 @@ def run(base_url, evidence_path, onboarding=False):
             assert request('/profiles/'+profile_id)==saved_contact_profile
             actions.append({'action':'Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged','result':'PASS'})
 
-            # Deliberately leave one synthetic required answer uncertain through
-            # preparation. The public dry-run must surface it for review before
-            # this same application can be resumed and prepared at new profile pins.
-            page.get_by_role("button", name="Run dry-run", exact=True).click()
-            expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
-                "REVIEW_REQUIRED", timeout=30000)
-            preflight = page.get_by_role("region", name="ATS question preflight", exact=True)
-            expect(preflight.get_by_role("list", name="Unresolved required questions")).to_contain_text(
-                "Approved fixture answer")
-            previous_profile = request("/profiles/" + profile_id)
-            review_row = preflight.get_by_role("list", name="Unresolved required questions").locator(
-                "li").filter(has_text="Approved fixture answer")
-            review_row.get_by_role("button", name="Review this question", exact=True).click()
-            answer_group = page.get_by_role("region", name="Application answers", exact=True).get_by_role(
-                "group", name="Question 1")
-            answer_group.get_by_role("textbox", name="Answer", exact=True).fill(
-                "Controlled fictional test application, reviewed for this job.")
-            answer_group.get_by_label("I reviewed this exact answer for this job", exact=True).check()
-            answer_group.get_by_role("button", name="Save to Answer Bank", exact=True).click()
-            answer_confirmation = answer_group.get_by_role(
-                "region", name="Answer Bank confirmation for question 1", exact=True)
-            answer_confirmation.get_by_label(
-                "I confirm this answer is accurate and may be reused", exact=True).check()
-            with page.expect_response(lambda response:
-                    response.request.method == "PUT"
-                    and urlsplit(response.url).path == "/profiles") as reviewed_answer_save:
-                answer_confirmation.get_by_role(
-                    "button", name="Confirm and save to Answer Bank", exact=True).click()
-            assert reviewed_answer_save.value.status == 200, reviewed_answer_save.value.text()
-            updated_profile = request("/profiles/" + profile_id)
-            reviewed_answer = next(row for row in updated_profile["answers"]
-                                   if row["question"] == "Approved fixture answer")
-            assert reviewed_answer["text"] == "Controlled fictional test application, reviewed for this job."
-            assert reviewed_answer["verified"] and reviewed_answer["user_approved"]
-            assert updated_profile["version"] > previous_profile["version"]
-            old_pins = request("/profiles/" + profile_id + "/applications/" + identifier)
-            assert old_pins["profile_version"] < updated_profile["version"]
-            old_document_version = old_pins["document_version"]
-            with page.expect_response(lambda candidate:
-                    candidate.request.method == "POST"
-                    and urlsplit(candidate.url).path.endswith("/reprepare")) as reprepare_response:
-                page.get_by_role("button", name="Resume and prepare current revision", exact=True).click()
-            assert reprepare_response.value.status == 200, reprepare_response.value.text()
-            expect(page.get_by_role("status").filter(
-                has_text="Run a local dry run to create a fresh ATS question preflight")).to_be_visible()
-            resumed = request("/profiles/" + profile_id + "/applications/" + identifier)
-            assert resumed["profile_version"] == updated_profile["version"]
-            assert resumed["document_version"] == old_document_version + 1
-            assert resumed["id"] == identifier and resumed["profile_id"] == profile_id
-            revised_documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
-            assert any(row["version"] == old_document_version for row in revised_documents)
-            assert any(row["version"] == resumed["document_version"]
-                       and row["profile_version"] == updated_profile["version"]
-                       for row in revised_documents)
-            assert resumed.get("question_preflight") is not None
-            assert resumed["question_preflight"]["is_current"] is False
-            actions.append({"action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history", "result": "PASS", "boundary": "Connected React UI → public profile/reprepare APIs → actual document worker"})
+            if onboarding:
+                # Keep the uncertain-answer recovery journey specific to the onboarding fixture.
+                page.get_by_role("button", name="Run dry-run", exact=True).click()
+                expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
+                    "REVIEW_REQUIRED", timeout=30000)
+                preflight = page.get_by_role("region", name="ATS question preflight", exact=True)
+                expect(preflight.get_by_role("list", name="Unresolved required questions")).to_contain_text(
+                    "Approved fixture answer")
+                previous_profile = request("/profiles/" + profile_id)
+                review_row = preflight.get_by_role("list", name="Unresolved required questions").locator(
+                    "li").filter(has_text="Approved fixture answer")
+                review_row.get_by_role("button", name="Review this question", exact=True).click()
+                answer_group = page.get_by_role("region", name="Application answers", exact=True).get_by_role(
+                    "group", name="Question 1")
+                answer_group.get_by_role("textbox", name="Answer", exact=True).fill(
+                    "Controlled fictional test application, reviewed for this job.")
+                answer_group.get_by_label("I reviewed this exact answer for this job", exact=True).check()
+                answer_group.get_by_role("button", name="Save to Answer Bank", exact=True).click()
+                answer_confirmation = answer_bank_confirmation_locator(answer_group, 1)
+                answer_confirmation.get_by_label(
+                    "I confirm this answer is accurate and may be reused", exact=True).check()
+                with page.expect_response(lambda response:
+                        response.request.method == "PUT"
+                        and urlsplit(response.url).path == "/profiles") as reviewed_answer_save:
+                    answer_confirmation.get_by_role(
+                        "button", name="Confirm and save to Answer Bank", exact=True).click()
+                assert reviewed_answer_save.value.status == 200, reviewed_answer_save.value.text()
+                updated_profile = request("/profiles/" + profile_id)
+                reviewed_answer = next(row for row in updated_profile["answers"]
+                                       if row["question"] == "Approved fixture answer")
+                assert reviewed_answer["text"] == "Controlled fictional test application, reviewed for this job."
+                assert reviewed_answer["verified"] and reviewed_answer["user_approved"]
+                old_pins = request("/profiles/" + profile_id + "/applications/" + identifier)
+                assert old_pins["profile_version"] == previous_profile["version"]
+                old_document_version = old_pins["document_version"]
+                with page.expect_response(lambda candidate:
+                        candidate.request.method == "POST"
+                        and urlsplit(candidate.url).path.endswith("/reprepare")) as reprepare_response:
+                    page.get_by_role("button", name="Resume and prepare current revision", exact=True).click()
+                assert reprepare_response.value.status == 200, reprepare_response.value.text()
+                expect(page.get_by_role("status").filter(
+                    has_text="Run a local dry run to create a fresh ATS question preflight")).to_be_visible()
+                resumed = request("/profiles/" + profile_id + "/applications/" + identifier)
+                assert_reprepared_profile_pins(
+                    previous_profile_version=previous_profile["version"],
+                    old_application_profile_version=old_pins["profile_version"],
+                    current_profile_version=updated_profile["version"],
+                    resumed_application_profile_version=resumed["profile_version"],
+                )
+                assert resumed["document_version"] == old_document_version + 1
+                assert resumed["id"] == identifier and resumed["profile_id"] == profile_id
+                revised_documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
+                assert any(row["version"] == old_document_version for row in revised_documents)
+                assert any(row["version"] == resumed["document_version"]
+                           and row["profile_version"] == updated_profile["version"]
+                           for row in revised_documents)
+                assert resumed.get("question_preflight") is not None
+                assert resumed["question_preflight"]["is_current"] is False
+                actions.append({"action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history", "result": "PASS", "boundary": "Connected React UI → public profile/reprepare APIs → actual document worker"})
 
             page.get_by_role("button", name="Run dry-run", exact=True).click()
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(

@@ -6,6 +6,97 @@ from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_fixture_discovery_accepts_only_supported_sources_tab_search_contract(self):
+        search = {
+            "id": "data-search", "profile_id": "synthetic-profile", "enabled": True,
+            "source_ids": [],
+            "criteria": {
+                "include_titles": ["Data Engineer"], "remote": "REQUIRED",
+                "employment_types": [],
+                "scheduler": {"enabled": False, "interval_seconds": 3600},
+            },
+        }
+        ui_e2e.assert_supported_fixture_search(
+            search, profile_id="synthetic-profile", include_titles=["Data Engineer"],
+            remote="REQUIRED",
+        )
+
+        for invalid in (
+            {**search, "profile_id": "another-profile"},
+            {**search, "enabled": False},
+            {**search, "criteria": {**search["criteria"], "include_titles": ["IT Support"]}},
+            {**search, "criteria": {**search["criteria"], "job_filters": {"q": "data"}}},
+            {**search, "source_ids": ["employer-board"]},
+        ):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(AssertionError):
+                    ui_e2e.assert_supported_fixture_search(
+                        invalid, profile_id="synthetic-profile", include_titles=["Data Engineer"],
+                        remote="REQUIRED",
+                    )
+
+    def test_reprepare_profile_pins_use_opaque_hash_equality_not_order(self):
+        previous = "f" * 64
+        current = "0" * 64
+        ui_e2e.assert_reprepared_profile_pins(
+            previous_profile_version=previous,
+            old_application_profile_version=previous,
+            current_profile_version=current,
+            resumed_application_profile_version=current,
+        )
+        with self.assertRaises(AssertionError):
+            ui_e2e.assert_reprepared_profile_pins(
+                previous_profile_version=previous,
+                old_application_profile_version="e" * 64,
+                current_profile_version=current,
+                resumed_application_profile_version=current,
+            )
+        with self.assertRaises(AssertionError):
+            ui_e2e.assert_reprepared_profile_pins(
+                previous_profile_version=previous,
+                old_application_profile_version=previous,
+                current_profile_version=current,
+                resumed_application_profile_version=previous,
+            )
+
+    def test_onboarding_write_firewall_allows_only_local_prepare_reprepare_and_mock_run(self):
+        allowed = (
+            ("POST", "/applications"),
+            ("POST", "/profiles/p1/applications/a1/reprepare"),
+            ("POST", "/profiles/p1/applications/a1/mock-run"),
+        )
+        blocked = (
+            ("PUT", "/profiles/p1/applications/a1/reprepare"),
+            ("POST", "/profiles/p1/applications/a1/submit"),
+            ("POST", "/profiles/p1/applications/a1/mock-run/extra"),
+            ("POST", "/profiles/p1/applications/a1/external-application"),
+        )
+        for method, path in allowed:
+            with self.subTest(method=method, path=path):
+                self.assertTrue(ui_e2e.is_allowed_onboarding_application_write(method, path))
+        for method, path in blocked:
+            with self.subTest(method=method, path=path):
+                self.assertFalse(ui_e2e.is_allowed_onboarding_application_write(method, path))
+
+    def test_answer_bank_confirmation_locator_targets_aria_labeled_div(self):
+        from playwright.sync_api import sync_playwright
+
+        with sync_playwright() as playwright:
+            browser = playwright.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.set_content("""
+              <fieldset role="group" aria-label="Question 1">
+                <div class="provenance" aria-label="Answer Bank confirmation for question 1">
+                  <label><input type="checkbox" aria-label="I confirm this answer is accurate and may be reused"></label>
+                </div>
+              </fieldset>
+            """)
+            group = page.get_by_role("group", name="Question 1")
+            confirmation = ui_e2e.answer_bank_confirmation_locator(group, 1)
+            self.assertEqual(confirmation.count(), 1)
+            self.assertEqual(group.get_by_role("region", name="Answer Bank confirmation for question 1").count(), 0)
+            browser.close()
+
     def test_discovery_oracle_requires_selected_search_and_exact_filtered_readback(self):
         request_payload = {
             "profile_id": "synthetic-profile",
