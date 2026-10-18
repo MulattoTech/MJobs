@@ -6,6 +6,33 @@ from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_default_demo_does_not_require_onboarding_blocked_operation(self):
+        def unexpected_request(path):
+            self.fail(f"demo run requested onboarding-only operation history: {path}")
+
+        ui_e2e.assert_previous_review_operation(
+            unexpected_request, onboarding=False, operation_id=None)
+
+    def test_onboarding_recovery_requires_prior_operation_to_remain_blocked(self):
+        calls = []
+
+        def request(path):
+            calls.append(path)
+            return {"state": "BLOCKED"}
+
+        ui_e2e.assert_previous_review_operation(
+            request, onboarding=True, operation_id="prior-operation")
+        self.assertEqual(calls, ["/operations/prior-operation"])
+
+        with self.assertRaisesRegex(AssertionError, "prior blocked operation"):
+            ui_e2e.assert_previous_review_operation(
+                request, onboarding=True, operation_id=None)
+
+        with self.assertRaises(AssertionError):
+            ui_e2e.assert_previous_review_operation(
+                lambda _path: {"state": "COMPLETED"},
+                onboarding=True, operation_id="prior-operation")
+
     def test_fixture_discovery_accepts_only_supported_sources_tab_search_contract(self):
         search = {
             "id": "data-search", "profile_id": "synthetic-profile", "enabled": True,

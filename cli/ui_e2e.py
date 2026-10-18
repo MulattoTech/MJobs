@@ -166,6 +166,15 @@ def assert_reprepared_profile_pins(*, previous_profile_version, old_application_
         raise AssertionError("reprepared application is not pinned to the approved current profile")
 
 
+def assert_previous_review_operation(request, *, onboarding, operation_id):
+    """Keep the onboarding-only blocked receipt check out of the demo flow."""
+    if not onboarding:
+        return
+    assert operation_id, "onboarding recovery requires the prior blocked operation"
+    operation = request("/operations/" + operation_id)
+    assert operation["state"] == "BLOCKED", operation
+
+
 def is_allowed_onboarding_application_write(method, path):
     """Allow only the explicit local application operations used by onboarding."""
     if method != "POST":
@@ -684,6 +693,7 @@ def run(base_url, evidence_path, onboarding=False):
 
             if onboarding:
                 # Keep the uncertain-answer recovery journey specific to the onboarding fixture.
+                previous_operation_id = None
                 page.get_by_role("button", name="Run dry-run", exact=True).click()
                 expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
                     "REVIEW_REQUIRED", timeout=30000)
@@ -785,7 +795,9 @@ def run(base_url, evidence_path, onboarding=False):
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
             assert dry["question_preflight"]["result"] == "PASS"
             assert dry["question_preflight"]["is_current"] is True
-            assert request("/operations/" + previous_operation_id)["state"] == "BLOCKED"
+            assert_previous_review_operation(
+                request, onboarding=onboarding,
+                operation_id=previous_operation_id if onboarding else None)
             page.get_by_role("button", name="Start a new reviewed run", exact=True).click()
             page.get_by_label("I approve one fictional mock submission").check()
             mock_run_path = f"/profiles/{profile_id}/applications/{identifier}/mock-run"
