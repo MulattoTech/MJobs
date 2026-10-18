@@ -44,11 +44,13 @@ def main():
                 logging.warning("Outbox dispatch will retry: %s", type(error).__name__)
             stopped.wait(2)
 
+    # The first recovery sweep can finish before RQ startup continues. Its
+    # committed terminal event needs the INFO sink installed before it runs.
+    configure_operation_logger()
     thread = threading.Thread(target=dispatch, daemon=True)
     thread.start()
     redis = Redis.from_url(redis_url, socket_connect_timeout=5, socket_timeout=10)
     try:
-        configure_operation_logger()
         Worker([queue], connection=redis).work(logging_level="WARNING")
     finally:
         stopped.set()
