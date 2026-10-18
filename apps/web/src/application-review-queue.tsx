@@ -18,6 +18,7 @@ export type ReviewQueueApplication = {
   question_preflight?:{
     result:'PASS'|'FAIL'|'UNKNOWN';
     reason:string|null;
+    is_current?:boolean|null;
     missing:MissingQuestion[];
   }|null;
 };
@@ -31,7 +32,7 @@ function unresolvedDetails(question:MissingQuestion):string {
 }
 
 export function ApplicationReviewQueue({applications,profileId,onReview,loading=false,loadError=false}:{applications:ReviewQueueApplication[];profileId:string;onReview:(applicationId:string)=>void;loading?:boolean;loadError?:boolean}) {
-  const pending=profileId?applications.filter(application=>application.profile_id===profileId&&(application.question_preflight?.result==='UNKNOWN'||application.question_preflight?.result==='FAIL')):[];
+  const pending=profileId?applications.filter(application=>application.profile_id===profileId&&application.question_preflight?.is_current!==false&&(application.question_preflight?.result==='UNKNOWN'||application.question_preflight?.result==='FAIL')):[];
   const emptyMessage=loading?null:loadError?<p>No successfully read applications currently need question review; the queue is incomplete, and unread applications may still need review.</p>:<p>No saved applications currently need question review.</p>;
   return <section className="panel" aria-label="Application review queue">
     <div className="toolbar"><div><h2>Applications needing question review</h2><p>Persisted question preflight is UNKNOWN or FAIL. Select an item to inspect its existing application review.</p></div><span className="tag">{pending.length} known blocker{pending.length===1?'':'s'}</span></div>
