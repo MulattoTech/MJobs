@@ -1,4 +1,6 @@
 """Bind supported public ATS inventories to verified official employer evidence."""
+from datetime import datetime, timezone
+
 from sqlalchemy import or_, select, update
 
 from packages.persistence import models as m
@@ -134,6 +136,88 @@ def collector_view(store, connection, source):
             'identity_basis': 'USER_CONFIRMED_DOMAIN' if source['identity_authorization'] is not None else 'VERIFIED_DOMAIN'}
 
 
+def _retained_native_inventory(store, collector_id, source_id, authorization, enrollment_guard):
+    """Retain named observations while leaving fresh refresh to source policy.
+
+    Retained counts never assert complete/current inventory. Refresh remains
+    governed by collector cadence and the configured saved-search schedule.
+    """
+    if not authorization or authorization.get('authorization') != 'ATS_JOB_LINK_VERIFIED':
+        return None
+    from services.discovery.scheduler import source_due_at, _has_saved_search_scheduler, _scheduler_criteria
+    proof = authorization['native_job_link']
+    if proof['collector_source_id'] != collector_id:
+        raise PublicFetchError('DISCOVERY_SOURCE_CHANGED')
+    with store.engine.begin() as connection:
+        if connection.dialect.name == 'sqlite':
+            connection.exec_driver_sql('BEGIN IMMEDIATE')
+        collector = connection.execute(select(m.job_sources).where(
+            m.job_sources.c.id == collector_id)).mappings().one()
+        bound = bound_company_source(store, connection, collector, lock=True)
+        collector = connection.execute(select(m.job_sources).where(
+            m.job_sources.c.id == collector_id)).mappings().one()
+        if not collector['enabled'] or not bound or bound['id'] != source_id:
+            raise PublicFetchError('COMPANY_SOURCE_DISABLED')
+        if enrollment_guard(connection) != authorization:
+            raise PublicFetchError('DISCOVERY_DOMAIN_AUTHORIZATION_CHANGED')
+        at = datetime.now(timezone.utc)
+        due = source_due_at(collector)
+        if due <= at:
+            return None
+        profiles = connection.execute(select(m.search_profiles).where(
+            m.search_profiles.c.enabled.is_(True))).mappings()
+        scheduled = any((not profile['source_ids'] or collector_id in profile['source_ids'])
+            and (not _has_saved_search_scheduler(profile) or _scheduler_criteria(profile) is not None)
+            for profile in profiles)
+        result = dict(inventory_status='DEFERRED', inventory_scope='NOT_ESTABLISHED',
+            jobs_enumerated=None, jobs_imported=0, jobs_retained=None,
+            inventory_observed_at=None, inventory_receipt=None,
+            refresh_status='DEFERRED_SOURCE_POLICY', refresh_due_at=due.isoformat(),
+            refresh_dispatch='EXISTING_SOURCE_SCHEDULER' if scheduled else 'SEARCH_PROFILE_REQUIRED')
+        observation = connection.execute(select(m.source_quality_observations).where(
+            m.source_quality_observations.c.id == proof['quality_observation_id'])).mappings().one_or_none()
+        candidate = connection.execute(select(m.posting_value_candidates).where(
+            m.posting_value_candidates.c.id == proof['candidate_id'])).mappings().one()
+        posting = connection.execute(select(m.postings).where(
+            m.postings.c.id == candidate['posting_id'])).mappings().one()
+        operations = []
+        if observation:
+            operations = connection.execute(select(m.operations).where(
+                m.operations.c.kind == 'DISCOVER', m.operations.c.state == 'COMPLETED',
+                m.operations.c.entity_id == proof['profile_id'],
+                m.operations.c.params['source_id'].as_string() == collector_id,
+                m.operations.c.started_at <= observation['observed_at'],
+                m.operations.c.completed_at >= observation['observed_at'])
+                .order_by(m.operations.c.completed_at.desc()).limit(1)).mappings()
+        receipt = next((operation for operation in operations
+            if operation['params'].get('source_id') == collector_id
+            and operation['entity_id'] == proof['profile_id']
+            and operation['params'].get('profile_version') == proof['profile_version']
+            and not any(key in operation['params'] for key in ('search_profile_id', 'query', 'filters'))
+            and operation['started_at'] and operation['completed_at'] and observation
+            and operation['started_at'] <= observation['observed_at'] <= operation['completed_at']), None)
+        # A successful operation alone does not prove every returned posting was
+        # accepted, nor does an accepted count establish provider completeness.
+        fresh = False
+        if observation:
+            observed = datetime.fromisoformat(observation['observed_at'])
+            fresh = 0 <= (at - observed).total_seconds() <= min(collector['poll_interval'], 900)
+        if (receipt and observation and fresh and collector['health_status'] == 'HEALTHY'
+                and collector['last_attempt'] == collector['last_success'] == posting['fetched_at']
+                and observation['configured_source_id'] == collector_id
+                and observation['source_endpoint'] == proof['endpoint']
+                and observation['succeeded'] and observation['available']
+                and observation['enumerated'] == observation['accepted'] == collector['jobs_seen']):
+            result.update(inventory_status='RETAINED_OBSERVATIONS', inventory_scope='OBSERVED_NATIVE_POSTINGS',
+                jobs_enumerated=observation['enumerated'], jobs_retained=observation['accepted'],
+                inventory_observed_at=observation['observed_at'], inventory_receipt=dict(
+                    operation_id=receipt['id'], quality_observation_id=observation['id'],
+                    source_id=collector_id, endpoint=proof['endpoint']))
+        store._audit(connection, bound['company_id'], 'COMPANY_ATS_INVENTORY_DEFERRED', dict(
+            company_source_id=source_id, request_id=authorization['request_id'], **result))
+        return result
+
+
 def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_id,
                       profile_version=None, check, enrollment_guard=None, preserve_source_id=None,
                       identity_confirmation=None, provider='greenhouse'):
@@ -217,6 +301,10 @@ def enroll_public_ats(store, candidate, resolved, career_url, html, *, profile_i
             'independent_verification': not bool(identity_confirmation), 'collection_strategy': 'API'})
     check()
     # Recurrence uses this same persisted binding; no parallel importer or job schema.
+    retained = _retained_native_inventory(store, collector_id, source['id'], authorization, enrollment_guard)
+    if retained is not None:
+        return {'company': fresh, 'company_source_id': source['id'], 'provider': provider,
+            'tenant': tenant, 'careers_url': career_url, 'endpoint': endpoint, **retained}
     result = collect_source(store, collector_id, profile_id, profile_version, check=check,
                             import_guard=enrollment_guard)
     return {'company': fresh, 'company_source_id': source['id'], 'provider': provider,
