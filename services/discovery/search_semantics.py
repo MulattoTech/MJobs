@@ -326,22 +326,38 @@ def normalize_title(value):
 
 
 def parse_education_requirement(text):
+    """Attach strengths to complete degree subjects, not adjacent requirements.
+
+    A small positive field vocabulary disambiguates lists; explicit single-field
+    ``in/of`` descriptors and closed single-field wrappers remain unrestricted.
+    Unknown lists/attachments are unclassified. Never classify a truncated input:
+    the whole input is limited to 64 KiB, 4096 tokens and eight bracket levels.
+    """
+    from bisect import bisect_left
+
     value = str(text or "")
+    unknown = {"classification": "NONE_SPECIFIED", "raw": None}
+    if len(value) > 65536:
+        return unknown
     # Normalize apostrophes only for recognition; offsets and returned evidence
     # still refer to the original source wording and typography.
     folded = value.translate(str.maketrans({"’": "'", "‘": "'", "ʼ": "'"}))
+    tokens = list(re.finditer(r"and/or|\w+(?:'\w+)?|[^\w\s]", folded, re.I))
+    if len(tokens) > 4096:
+        return unknown
+    token_positions = [token.start() for token in tokens]
     degree = re.compile(r"\b(bachelor(?:'s|s)?)(?:\s+degree)?\b|"
                         r"\b(?:college\s+|university\s+)?degree\b", re.I)
     negation = re.compile(r"(?:\b(?:not|never|no\s+longer)|n't)\s+"
                           r"(?:(?:strictly|necessarily|always|required|mandatory|preferred|and|or)\s+)*$", re.I)
-    qualification = re.compile(r"\b(?:required|mandatory|preferred|optional)\b", re.I)
-    qualifier_prefix = re.compile(r"\s*(?:(?:is|are|also|still)\s+)*"
+    qualifier_prefix = re.compile(r"(?:(?:is|are|also|still|isn't|aren't)\s+)*"
                                   r"(?:(?:not|never|no longer)\s+)?"
                                   r"(?:(?:strictly|necessarily|always)\s+)*"
-                                  r"(?:required|mandatory|preferred)\b", re.I)
-    other_subject = re.compile(r"\b(?:clearance|certifications?|experience|skills?|proficiency)\b", re.I)
-    alternative = re.compile(r"\s*(?:(?:or|and/or)\s+)?(?:an?\s+)?"
+                                  r"(?:required|mandatory|preferred|optional)\b", re.I)
+    alternative = re.compile(r"(?:or|and/or)\s+(?:an?\s+)?"
                              r"equivalent\s+(?:experience|combination)\b", re.I)
+    rejected = re.compile(r"(?:(?:is|are)\s+)?(?:not|never)\s+"
+                          r"(?:accepted|considered|allowed)\b", re.I)
 
     # Record bracket depth once. Sentence punctuation and list punctuation inside
     # a balanced descriptor belong to its subject, including nested descriptors.
@@ -352,6 +368,8 @@ def parse_education_requirement(text):
         levels.append(len(stack))
         if character in closing:
             stack.append(closing[character])
+            if len(stack) > 8:
+                return unknown
         elif character in closing.values():
             if not stack or stack.pop() != character:
                 valid = False
@@ -364,102 +382,182 @@ def parse_education_requirement(text):
         statements.append((start, len(folded)))
 
     def subject_scopes(suffix, offset, level):
-        first_qualifier = qualification.search(suffix)
-        subject_end = first_qualifier.start() if first_qualifier else len(suffix)
-        equivalent_subject = re.search(r"\b(?:or|and/or)\s+(?:an?\s+)?"
-                                       r"equivalent\s+(?:experience|combination)\b", suffix, re.I)
-        if equivalent_subject:
-            subject_end = min(subject_end, equivalent_subject.start())
-        if other_subject.search(suffix[:subject_end]):
+        # Tokens retain original offsets. First locate typed qualification or
+        # equivalent evidence, then validate the ENTIRE descriptor before it.
+        # A partial descriptor can never lend a later subject's qualifier back.
+        selected = tokens[bisect_left(token_positions, offset):
+                          bisect_left(token_positions, offset + len(suffix))]
+        parts = [(token.group().lower(), token.start() - offset, token.end() - offset)
+                 for token in selected]
+        positions = [part[1] for part in parts]
+
+        def entry_at(index):
+            if index >= len(parts):
+                return None
+            for kind, pattern in (('qualifier', qualifier_prefix), ('alternative', alternative)):
+                match = pattern.match(suffix, parts[index][1])
+                if match:
+                    return kind, bisect_left(positions, match.end()), match.end()
+            return None
+
+        first = next((index for index in range(len(parts)) if entry_at(index)), None)
+        if first is None:
             return ['']
-        candidates = list(re.finditer(
-            r"[;,:]|(?<!\S)[—–](?!\S)|\b(?:and/or|and|or|but|while|whereas|however)\b", suffix, re.I))
-        # A coordinated field subject has one final item after its terminal
-        # conjunction. Its next separator cannot introduce another subject that
-        # lends a qualifier back to the degree. Find that boundary at the field's
-        # own bracket depth so a nested subfield list cannot end its parent list.
-        descriptor_words = [word for word in re.finditer(r"\b\w+\b", suffix[:subject_end])
-                            if word.group().lower() not in {
-                                'in', 'of', 'a', 'an', 'the', 'is', 'are', 'also',
-                                'still', 'not', 'never', 'no', 'longer', 'strictly',
-                                'necessarily', 'always', 'and', 'or'}]
-        terminal_end = len(suffix)
-        if descriptor_words:
-            first_field = descriptor_words[0]
-            field_level = levels[offset + first_field.start()]
-            terminal = next((item for item in candidates
-                             if first_field.end() <= item.start() < subject_end
-                             and item.group().lower() in {'and', 'or', 'and/or'}
-                             and levels[offset + item.start()] == field_level), None)
-            if terminal:
-                terminal_end = next((item.start() for item in candidates
-                                     if item.start() > terminal.end()
-                                     and levels[offset + item.start()] <= field_level), len(suffix))
-        separators = []
-        for index, candidate in enumerate(candidates):
-            end = candidates[index + 1].start() if index + 1 < len(candidates) else len(suffix)
-            # Brackets protect fields, not an explicit change to a non-degree
-            # subject such as '(not required; security clearance required)'.
-            if (levels[offset + candidate.start()] <= level or
-                    candidate.start() == terminal_end or
-                    (other_subject.search(suffix[candidate.end():end])
-                     and not alternative.match(suffix[candidate.end():]))):
-                separators.append(candidate)
-        scopes, start, field_list = [], 0, False
-        for index, separator in enumerate(separators):
-            left = suffix[start:separator.start()]
-            rest = suffix[separator.end():]
-            end = separators[index + 1].start() if index + 1 < len(separators) else len(suffix)
-            right = suffix[separator.end():end]
-            word = separator.group().lower()
-            if alternative.match(rest) and word in {',', ':', '—', '–', 'or', 'and/or'}:
+
+        def descriptor_nodes(index, expected=None):
+            nodes = []
+            while index < first:
+                word, position, _end = parts[index]
+                if word in closing:
+                    children, index, closed = descriptor_nodes(index + 1, closing[word])
+                    if children is None:
+                        return None, index, False
+                    nodes.append((children, closed))
+                elif word in closing.values():
+                    if word == expected:
+                        return nodes, index + 1, True
+                    # A wrapper surrounding the degree head itself is outside
+                    # this descriptor (e.g. '(bachelor's degree) required').
+                    if expected is None and levels[offset + position] <= level:
+                        index += 1
+                    else:
+                        return None, index, False
+                else:
+                    nodes.append(word)
+                    index += 1
+            return nodes, index, expected is None
+
+        fields = {('computer', 'science'), ('engineering',), ('mathematics',),
+                  ('systems',), ('networks',), ('networking',)}
+        punctuation = {',', ';', ':', '—', '–'}
+        joins = {',', ';', 'and', 'or', 'and/or'}
+
+        def descriptor_valid(nodes, allow_unknown=False):
+            if nodes is None:
+                return False
+            nodes = list(nodes)
+            # Only qualifier-only punctuation is removed here. A noun after
+            # such punctuation remains part of the validation and must attach.
+            while nodes and isinstance(nodes[-1], str) and nodes[-1] in punctuation:
+                nodes.pop()
+            while nodes and isinstance(nodes[0], str) and nodes[0] in {',', ':', '—', '–'}:
+                nodes.pop(0)
+            introduced = bool(nodes and nodes[0] in ('in', 'of'))
+            if introduced:
+                nodes.pop(0)
+                if not nodes:
+                    return False
+            if not nodes:
+                return True
+            if isinstance(nodes[0], tuple):
+                # A closed descriptor is complete: a following fresh noun
+                # cannot become another field outside its wrapper.
+                if len(nodes) != 1:
+                    return False
+                children, closed = nodes[0]
+                return bool(children or not closed) and descriptor_valid(
+                    children, allow_unknown=allow_unknown or introduced or closed)
+
+            items, connectors = [[]], []
+            for node in nodes:
+                if isinstance(node, str) and node in joins:
+                    if items[-1]:
+                        connectors.append([node])
+                        items.append([])
+                    elif connectors:
+                        connectors[-1].append(node)
+                    else:
+                        return False
+                else:
+                    items[-1].append(node)
+            if not items[-1]:
+                return False
+            coordinated = False
+            for connector in connectors:
+                explicit = any(word in {'and', 'or', 'and/or'} for word in connector)
+                if connector not in ([','], [';'], ['and'], ['or'], ['and/or'],
+                                      [',', 'and'], [',', 'or'], [',', 'and/or']):
+                    return False
+                if coordinated and not explicit:
+                    # An unjoined fresh item after a coordinated subject is
+                    # ambiguous, even if that item could itself name a field.
+                    return False
+                coordinated = coordinated or explicit
+            for index, item in enumerate(items):
+                words = []
+                for node in item:
+                    if isinstance(node, tuple):
+                        children, closed = node
+                        if not words or not children or not descriptor_valid(children, allow_unknown=closed):
+                            return False
+                    elif re.fullmatch(r"\w+(?:'\w+)?", node):
+                        words.append(node)
+                    else:
+                        return False
+                phrase = tuple(words)
+                tail = phrase[1:] if phrase[:1] in (('a',), ('an',)) else phrase
+                related = tail in {('related', 'field'), ('related', 'discipline')}
+                known = phrase in fields or related
+                if related and index != len(items) - 1:
+                    return False
+                if not known and not (len(items) == 1 and (allow_unknown or introduced)):
+                    return False
+            return True
+
+        nodes, _end, _closed = descriptor_nodes(0)
+        if not descriptor_valid(nodes):
+            return ['']
+
+        # After a validated subject, accept only typed qualifier groups or the
+        # explicit experience alternative. Unknown nouns terminate attachment;
+        # contrast resets polarity, while and/or qualification stays grouped.
+        scopes, scope_start, accepted_end = [], 0, 0
+        cursor, has_alternative = first, False
+        separators = punctuation | {'and', 'or', 'and/or', 'but', 'however', 'whereas', 'while'}
+        contrasts = {'but', 'however', 'whereas', 'while'}
+        while cursor < len(parts):
+            word, position, end = parts[cursor]
+            entry = entry_at(cursor)
+            if entry:
+                kind, cursor, accepted_end = entry
+                has_alternative = has_alternative or kind == 'alternative'
                 continue
-            continuation = re.match(r"\s*(?:but|while|whereas|however|and|or)\b", rest, re.I)
-            if word == ',' and continuation and qualifier_prefix.match(rest[continuation.end():]):
-                # Let the conjunction decide whether polarity continues or a
-                # contrast starts; its preceding comma is not a new subject.
+            if word in closing.values():
+                accepted_end = end
+                cursor += 1
                 continue
-            # Explicit non-education subjects cannot borrow the degree's scope.
-            if other_subject.search(right):
-                scopes.append(left)
-                return scopes
-            qualified = qualification.search(left)
-            if word in {':', '—', '–'} and not suffix[:separator.start()].strip(' :—–-'):
-                # Leading punctuation introduces the degree's descriptor;
-                # punctuation after a completed descriptor is a clause boundary.
-                continue
-            if not qualified and not field_list:
-                outside = ''.join(character for character_index, character in
-                    enumerate(suffix[start:separator.start()], start)
-                    if levels[offset + character_index] <= level)
-                descriptor = re.sub(r"\b(?:is|are|also|still|not|never|no|longer|"
-                                    r"strictly|necessarily|always)\b", '', outside, flags=re.I)
-                field_list = bool(re.search(r"\w", descriptor))
-                if not descriptor.strip(' :—–-') and word == ',':
-                    # A bare comma can introduce an enumerated degree subject,
-                    # but a lone new subject (', Python required') cannot.
-                    first_qualifier = qualification.search(rest)
-                    subject_end = separator.end() + first_qualifier.start() if first_qualifier else len(suffix)
-                    field_list = any(separator.end() <= item.start() < subject_end
-                                     and item.group().lower() in {',', 'and', 'or', 'and/or'}
-                                     and re.search(r"\w", suffix[separator.end():item.start()])
-                                     for item in separators[index + 1:])
-            if word in {'but', 'while', 'whereas', 'however'}:
-                if qualifier_prefix.match(rest):
-                    scopes.append(left)
-                    start, field_list = separator.end(), False
+            if has_alternative:
+                rejection = rejected.match(suffix, position)
+                if rejection:
+                    accepted_end = rejection.end()
+                    break
+            if word in closing:
+                lookahead = cursor
+                while lookahead < len(parts) and parts[lookahead][0] in closing:
+                    lookahead += 1
+                if entry_at(lookahead):
+                    cursor += 1
+                    accepted_end = end
                     continue
-            elif qualifier_prefix.match(rest):
-                if word != ',' or not qualified:
-                    continue
-                scopes.append(left)
-                start, field_list = separator.end(), False
+                break
+            if word in separators:
+                following, connector = cursor, []
+                while following < len(parts) and parts[following][0] in separators:
+                    connector.append(parts[following][0])
+                    following += 1
+                lookahead = following
+                while lookahead < len(parts) and parts[lookahead][0] in closing:
+                    lookahead += 1
+                if not entry_at(lookahead):
+                    break
+                if (contrasts.intersection(connector) or
+                        (',' in connector and not {'and', 'or', 'and/or'}.intersection(connector))):
+                    scopes.append(suffix[scope_start:accepted_end])
+                    scope_start = parts[following][1]
+                cursor = following
                 continue
-            elif field_list and not qualified and separator.start() < terminal_end and word not in {':', '—', '–'}:
-                continue
-            scopes.append(left)
-            return scopes
-        scopes.append(suffix[start:])
+            break
+        scopes.append(suffix[scope_start:accepted_end])
         return scopes
 
     claims = []
