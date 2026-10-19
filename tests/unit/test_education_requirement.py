@@ -6,6 +6,83 @@ from services.discovery.search_semantics import parse_education_requirement
 
 
 class EducationRequirementTests(unittest.TestCase):
+    def test_multiple_join_subjects_keep_their_own_typed_qualifiers(self):
+        descriptors = (
+            'in Computer Science and Engineering, or a related field',
+            'in Computer Science or Engineering or Mathematics',
+            'in Computer Science and Engineering or Mathematics',
+            'in Computer Science and/or Engineering and/or Mathematics',
+            'in Computer Science, Engineering and Mathematics, or a related discipline',
+            '(Computer Science and Engineering, or a related field)',
+            '[Computer Science or Engineering or Mathematics]',
+            '(Computer Science [Systems or Networking] and Engineering, or related field)',
+            'in Computer Science, Engineering, Mathematics',
+            'in Computer Science or Engineering, or Mathematics',
+        )
+        strengths = (
+            ('required', 'BACHELORS_REQUIRED'),
+            ('preferred', 'BACHELORS_PREFERRED'),
+            ('or equivalent experience required', 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+        )
+        for descriptor in descriptors:
+            for strength, category in strengths:
+                for head in ("Bachelor's degree", 'Bachelor’s degree'):
+                    text = head + ' ' + descriptor + ' ' + strength + '.'
+                    with self.subTest(text=text):
+                        result = parse_education_requirement(text)
+                        self.assertEqual(result['classification'], category)
+                        self.assertEqual(result['raw'], text.rstrip('.'))
+
+    def test_single_field_claims_are_not_limited_to_the_attachment_ontology(self):
+        for field in ('Xenobiology', 'Comparative Literature', 'Food Science', 'Clinical Psychology'):
+            for descriptor in ('in ' + field, '(' + field + ')'):
+                for strength, category in (('required', 'BACHELORS_REQUIRED'),
+                                           ('preferred', 'BACHELORS_PREFERRED')):
+                    text = "Bachelor's degree " + descriptor + ' ' + strength + '.'
+                    with self.subTest(text=text):
+                        self.assertEqual(parse_education_requirement(text)['classification'], category)
+            with self.subTest(generic_field=field):
+                self.assertEqual(parse_education_requirement('Degree in ' + field + ' preferred')['classification'],
+                                 'DEGREE_PREFERRED')
+
+    def test_unknown_list_attachments_cannot_lend_a_qualifier_backwards(self):
+        subjects = ('Python', 'Zorblatt tooling', 'incident response', 'French')
+        descriptors = (
+            'in Computer Science and Engineering, or a related field',
+            'in Computer Science or Engineering or Mathematics',
+            '(Computer Science [Systems or Networking] or Engineering)',
+            'in Xenobiology',
+        )
+        for descriptor in descriptors:
+            for separator in (', ', ', and ', ': ', ' — '):
+                for subject in subjects:
+                    for qualifier in ('required', 'preferred'):
+                        text = "Bachelor's degree " + descriptor + separator + subject + ' ' + qualifier + '.'
+                        with self.subTest(text=text):
+                            self.assertEqual(parse_education_requirement(text),
+                                             {'classification': 'NONE_SPECIFIED', 'raw': None})
+        for descriptor in ('in Xenobiology, Marmalade Studies',
+                           'in Xenobiology or Marmalade Studies',
+                           '(Computer Science or Engineering), Mathematics'):
+            for strength in ('required', 'preferred'):
+                with self.subTest(descriptor=descriptor, strength=strength):
+                    self.assertEqual(parse_education_requirement("Bachelor's degree " + descriptor + ' ' + strength),
+                                     {'classification': 'NONE_SPECIFIED', 'raw': None})
+
+    def test_bounded_parser_does_not_promote_a_truncated_claim(self):
+        claim = "Bachelor's degree required"
+        for text in (claim + ' ' * (65536 - len(claim)),
+                     'note ' * 4093 + claim,
+                     "Bachelor's degree " + '(' * 8 + 'Computer Science' + ')' * 8 + ' required'):
+            with self.subTest(boundary=len(text)):
+                self.assertEqual(parse_education_requirement(text)['classification'], 'BACHELORS_REQUIRED')
+        for text in (claim + ' ' * (65537 - len(claim)),
+                     'note ' * 4094 + claim,
+                     "Bachelor's degree " + '(' * 9 + 'Computer Science' + ')' * 9 + ' required'):
+            with self.subTest(over_boundary=len(text)):
+                self.assertEqual(parse_education_requirement(text),
+                                 {'classification': 'NONE_SPECIFIED', 'raw': None})
+
     def test_completed_subject_never_borrows_arbitrary_unrelated_qualifiers(self):
         subjects = ('Python', 'Zorblatt tooling', 'incident response', 'French')
         separators = (', ', ', and ', ': ', ' — ')

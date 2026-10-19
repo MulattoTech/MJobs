@@ -220,3 +220,23 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
             (4510, "Degree in Computer Science or Engineering, French preferred.", 'NONE_SPECIFIED'),
         )
         self._assert_categories_and_matching(examples)
+
+    def test_multiple_join_subjects_and_attachment_limits_survive_public_readback(self):
+        examples = (
+            (4601, "Bachelor's degree in Computer Science and Engineering, or a related field required.", 'BACHELORS_REQUIRED'),
+            (4602, "Bachelor's degree in Computer Science and Engineering, or a related field preferred.", 'BACHELORS_PREFERRED'),
+            (4603, "Bachelor's degree in Computer Science or Engineering or Mathematics required.", 'BACHELORS_REQUIRED'),
+            (4604, "Bachelor's degree in Computer Science or Engineering or Mathematics preferred.", 'BACHELORS_PREFERRED'),
+            (4605, "Bachelor's degree (Computer Science [Systems or Networking] and Engineering, or related field) or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            (4606, "Bachelor's degree in Computer Science and Engineering, or a related field, Python required.", 'NONE_SPECIFIED'),
+            (4607, "Bachelor's degree in Computer Science or Engineering or Mathematics, Zorblatt tooling preferred.", 'NONE_SPECIFIED'),
+            (4608, "Bachelor's degree (Computer Science or Engineering), Mathematics required.", 'NONE_SPECIFIED'),
+            (4609, "Bachelor's degree in Xenobiology required.", 'BACHELORS_REQUIRED'),
+            (4610, "Bachelor's degree in Comparative Literature preferred.", 'BACHELORS_PREFERRED'),
+            (4611, "Degree in Food Science preferred.", 'DEGREE_PREFERRED'),
+            (4612, "Bachelor's degree in Xenobiology, Marmalade Studies required.", 'NONE_SPECIFIED'),
+            (4613, "Bachelor's degree in Computer Science or Engineering or Mathematics not required, but preferred.", 'BACHELORS_PREFERRED'),
+            (4614, "Bachelor's degree in Computer Science or Engineering or Mathematics not required or mandatory.", 'NONE_SPECIFIED'),
+            (4615, "Bachelor's degree in Computer Science and Engineering required or equivalent experience not accepted.", 'BACHELORS_REQUIRED'),
+        )
+        self._assert_categories_and_matching(examples)
