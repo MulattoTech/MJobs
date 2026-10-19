@@ -274,14 +274,41 @@ def start_attempt(store, application, route, documents, *, submit=False, request
     return {"id": attempt_id, "replayed": False}
 
 
+def timeout_failure_code(error):
+    """Return a safe code only for exact, known timeout exception classes.
+
+    The class name ``TimeoutError`` is shared by unrelated providers and the
+    built-in type, so name-only classification must remain explicitly
+    ambiguous. Module names and exception messages are never persisted.
+    """
+    if error is None or type(error).__name__ != "TimeoutError":
+        return None
+    error_type = type(error)
+    try:
+        from sqlalchemy.exc import TimeoutError as SQLAlchemyTimeoutError
+    except ImportError:
+        SQLAlchemyTimeoutError = None
+    if error_type is SQLAlchemyTimeoutError:
+        return "DATABASE_POOL_TIMEOUT"
+    try:
+        from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
+    except ImportError:
+        PlaywrightTimeoutError = None
+    if error_type is PlaywrightTimeoutError:
+        return "PLAYWRIGHT_TIMEOUT"
+    return "TIMEOUT_UNCLASSIFIED"
+
+
 def failure_code(error):
     if error is None:
         return None
     # Do not persist error messages: browser exceptions can contain user values,
     # local paths, query strings, or credentials.
+    timeout_code = timeout_failure_code(error)
+    if timeout_code is not None:
+        return timeout_code
     return {"OperationCancelled": "OPERATION_CANCELLED",
             "OperationTimedOut": "OPERATION_TIMEOUT",
-            "TimeoutError": "BROWSER_TIMEOUT",
             "UploadIntegrityError": "UPLOAD_INTEGRITY_FAILED"}.get(type(error).__name__,
                                                    "APPLICATION_EXECUTION_FAILED")
 
