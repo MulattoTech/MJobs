@@ -53,6 +53,8 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
                 "request_id": "synthetic-request-1",
                 "state": "DEAD_LETTERED",
                 "error_code": "APPLICATION_REVIEW_REQUIRED",
+                "error_present": True,
+                "error_redacted": False,
                 "expected_profile_version": "d" * 64,
                 "expected_document_version": 7,
                 "application_state": "PREPARED",
@@ -61,6 +63,59 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
                 "submit": False,
             })
             self.assertNotIn("must never be included", target.read_text(encoding="utf-8"))
+
+    def test_camel_case_builtin_error_is_saved_as_category_not_raw_type(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Submit to local mock")
+            operation_id = "e" * 64
+            with self.assertRaises(RuntimeError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {
+                        "operation_id": operation_id,
+                        "state": "DEAD_LETTERED",
+                        "error_code": "TypeError",
+                    },
+                    "/mock-runs/synthetic-request",
+                    operation_id,
+                    failure_context={
+                        "application_id": "f" * 64,
+                        "request_id": "synthetic-request",
+                        "submit": True,
+                    },
+                )
+
+            journal.fail(caught.exception)
+            encoded = target.read_text(encoding="utf-8")
+            terminal = json.loads(encoded)["failure"]["terminal_operation"]
+            self.assertEqual(terminal["error_category"], "BUILTIN_TYPE_ERROR")
+            self.assertTrue(terminal["error_present"])
+            self.assertTrue(terminal["error_redacted"])
+            self.assertNotIn("error_code", terminal)
+            self.assertNotIn("TypeError", encoded)
+
+    def test_known_internal_error_type_is_saved_as_allowlisted_category(self):
+        operation_id = "1" * 64
+        with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+            ui_e2e.wait_for_mock_run(
+                lambda _path: {
+                    "operation_id": operation_id,
+                    "state": "DEAD_LETTERED",
+                    "error_code": "OperationTimedOut",
+                },
+                "/mock-runs/synthetic-request",
+                operation_id,
+            )
+        summary = caught.exception.terminal_summary
+        self.assertEqual(summary["error_category"], "INTERNAL_OPERATION_TIMEOUT")
+        self.assertTrue(summary["error_present"])
+        self.assertTrue(summary["error_redacted"])
+        self.assertNotIn("error_code", summary)
+        self.assertNotIn("OperationTimedOut", json.dumps(summary))
 
     def test_dead_letter_journal_drops_untrusted_error_code_text(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -95,12 +150,18 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
             journal.fail(caught.exception)
             encoded = target.read_text(encoding="utf-8")
             saved = json.loads(encoded)
-            self.assertNotIn("error_code", saved["failure"])
+            terminal = saved["failure"]["terminal_operation"]
+            self.assertTrue(terminal["error_present"])
+            self.assertTrue(terminal["error_redacted"])
+            self.assertNotIn("error_code", terminal)
+            self.assertNotIn("error_category", terminal)
             self.assertNotIn("private synthetic payload", encoded)
             self.assertEqual(saved["failure"]["terminal_operation"], {
                 "kind": "APPLY_MOCK",
                 "state": "DEAD_LETTERED",
                 "operation_id": operation_id,
+                "error_present": True,
+                "error_redacted": True,
             })
 
     def test_partial_evidence_keeps_completed_checks_and_sanitizes_injected_failure(self):

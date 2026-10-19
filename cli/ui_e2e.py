@@ -27,6 +27,27 @@ from cli import local_persistence_acceptance as persistence
 _SAFE_OPERATION_ID = re.compile(r"[a-f0-9]{64}\Z")
 _SAFE_OPERATION_ERROR = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
 _SAFE_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
+_SAFE_ERROR_TYPE_CATEGORIES = {
+    "AssertionError": "BUILTIN_ASSERTION_ERROR",
+    "AttributeError": "BUILTIN_ATTRIBUTE_ERROR",
+    "ConnectionError": "BUILTIN_CONNECTION_ERROR",
+    "FileNotFoundError": "BUILTIN_FILE_NOT_FOUND",
+    "IndexError": "BUILTIN_INDEX_ERROR",
+    "KeyError": "BUILTIN_KEY_ERROR",
+    "OSError": "BUILTIN_OS_ERROR",
+    "PermissionError": "BUILTIN_PERMISSION_ERROR",
+    "RuntimeError": "BUILTIN_RUNTIME_ERROR",
+    "TimeoutError": "BUILTIN_TIMEOUT_ERROR",
+    "TypeError": "BUILTIN_TYPE_ERROR",
+    "ValueError": "BUILTIN_VALUE_ERROR",
+    "AttemptConflict": "INTERNAL_ATTEMPT_CONFLICT",
+    "ControlledDryRunError": "INTERNAL_CONTROLLED_DRY_RUN",
+    "FormReviewError": "INTERNAL_FORM_REVIEW",
+    "OperationCancelled": "INTERNAL_OPERATION_CANCELLED",
+    "OperationTimedOut": "INTERNAL_OPERATION_TIMEOUT",
+    "PreparationError": "INTERNAL_PREPARATION",
+    "SourceError": "INTERNAL_SOURCE",
+}
 _APPLICATION_STATES = {
     "PREPARED", "REVIEW_REQUIRED", "AUTH_REQUIRED", "DRY_RUN_COMPLETE",
     "SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED",
@@ -39,10 +60,18 @@ def _terminal_operation_summary(*, operation_id, state, error_code, context):
         "COMPLETED", "FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED", "UNKNOWN",
     } else "UNKNOWN"
     summary = {"kind": "APPLY_MOCK", "state": safe_state}
+    error_present = error_code is not None
+    summary["error_present"] = error_present
+    summary["error_redacted"] = False
     if isinstance(operation_id, str) and _SAFE_OPERATION_ID.fullmatch(operation_id):
         summary["operation_id"] = operation_id
     if isinstance(error_code, str) and _SAFE_OPERATION_ERROR.fullmatch(error_code):
         summary["error_code"] = error_code
+    elif error_present:
+        summary["error_redacted"] = True
+        category = _SAFE_ERROR_TYPE_CATEGORIES.get(error_code) if isinstance(error_code, str) else None
+        if category is not None:
+            summary["error_category"] = category
     if not isinstance(context, dict):
         return summary
     application_id = context.get("application_id")

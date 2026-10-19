@@ -203,6 +203,8 @@ class ApplicationRunRequestTests(unittest.TestCase):
             "state": "DEAD_LETTERED",
             "operation_id": queued["operation_id"],
             "error_code": "RETRY_LIMIT",
+            "error_present": True,
+            "error_redacted": False,
             "application_id": self.app_id,
             "request_id": "diagnostic-run",
             "expected_profile_version": "a" * 64,
@@ -213,6 +215,82 @@ class ApplicationRunRequestTests(unittest.TestCase):
             "submit": False,
         })
         self.assertNotIn("unapproved_answer", journal_path.read_text(encoding="utf-8"))
+
+    def test_public_run_receipt_classifies_builtin_error_type_without_leaking_it(self):
+        queued = self.queue(request="diagnostic-type-error", submit=True)
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == queued["operation_id"]).values(
+                    state="DEAD_LETTERED", error="TypeError"))
+
+        app = create_app(self.store, "http://127.0.0.1:8090", self.root, operation_mode="FIXTURE")
+        endpoint = f"/profiles/fixture/applications/{self.app_id}/mock-runs/diagnostic-type-error"
+        journal_path = self.root / "type-error-evidence.json"
+        journal = ui_e2e.EvidenceJournal(
+            journal_path,
+            {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "fixture-source"}},
+        )
+        journal.begin("Submit to local mock")
+        with TestClient(app) as client:
+            receipt = client.get(endpoint)
+            self.assertEqual(receipt.status_code, 200, receipt.text)
+            self.assertEqual(receipt.json()["error_code"], "TypeError")
+            with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda path: client.get(path).json(),
+                    endpoint,
+                    queued["operation_id"],
+                    failure_context={
+                        "application_id": self.app_id,
+                        "request_id": "diagnostic-type-error",
+                        "submit": True,
+                    },
+                )
+
+        journal.fail(caught.exception)
+        encoded = journal_path.read_text(encoding="utf-8")
+        terminal = json.loads(encoded)["failure"]["terminal_operation"]
+        self.assertEqual(terminal["error_category"], "BUILTIN_TYPE_ERROR")
+        self.assertTrue(terminal["error_present"])
+        self.assertTrue(terminal["error_redacted"])
+        self.assertNotIn("error_code", terminal)
+        self.assertNotIn("TypeError", encoded)
+        self.assertEqual(json.loads(encoded)["overall_state"], "FAIL")
+        self.assertEqual(json.loads(encoded)["remaining_state"], "NOT_RUN")
+
+    def test_public_submit_request_runs_real_worker_against_local_mock_fixture(self):
+        from workers.tasks import execute_operation
+
+        with fixture_server() as origin:
+            application = self.store.application(self.app_id)
+            with self.store.engine.begin() as connection:
+                connection.execute(update(m.routes).where(
+                    m.routes.c.id == application["route_id"],
+                ).values(url=f"{origin}/ats/apply/{self.store.job(application['job_id'])['requisition']}"))
+
+            app = create_app(self.store, origin, self.root, operation_mode="FIXTURE")
+            endpoint = f"/profiles/fixture/applications/{self.app_id}/mock-run"
+            with TestClient(app) as client:
+                queued = client.post(endpoint, json={
+                    "submit": True,
+                    "request_id": "local-worker-diagnostic",
+                })
+                self.assertEqual(queued.status_code, 202, queued.text)
+                operation_id = queued.json()["operation_id"]
+                with patch.dict("os.environ", {
+                    "MJOBS_DATABASE_URL": self.store.url,
+                    "MJOBS_OUTPUT_DIR": str(self.root),
+                    "MJOBS_MOCK_ORIGIN": origin,
+                    "MJOBS_OPERATION_MODE": "FIXTURE",
+                }):
+                    worker_result = execute_operation(operation_id)
+                self.assertEqual(worker_result["status"], "COMPLETED", worker_result)
+
+                receipt = client.get(endpoint + "s/local-worker-diagnostic")
+                self.assertEqual(receipt.status_code, 200, receipt.text)
+                self.assertEqual(receipt.json()["state"], "COMPLETED")
+                self.assertIsNone(receipt.json()["error_code"])
+                self.assertFalse(receipt.json()["external_submission_enabled"])
 
     def test_personal_mode_rejects_explicit_admission_and_recovery(self):
         personal=Store(f"sqlite:///{(self.root / 'personal.db').as_posix()}")
