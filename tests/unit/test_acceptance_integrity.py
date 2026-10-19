@@ -10,6 +10,108 @@ import pytest
 from tools.verification import acceptance_integrity as audit
 
 
+# Exact public issue175 dated context captured2026-10-18; never acceptance proof.
+ISSUE175_PREFIX = (
+    '## Current implementation — 2026-10-12\n\n[PR #586](https://github.com/MulattoTech/MJobs/p'
+    'ull/586), current candidate `ae04e3704c0e60e36ad4223d8be12e917ba0218c`, separates runtim'
+    'e PostgreSQL credentials from the preserved bootstrap administrator. API/scheduler/four '
+    'workers receive only a read-only generated URL file; migrations and backup/restore retai'
+    'n the original administrator. Provisioning works after migration on fresh/populated data'
+    'bases, grants application DML/sequences/locks, excludes migration metadata and persisten'
+    't/temporary DDL, and fails closed for privileged or mismatched existing roles. An indepe'
+    'ndent versioned HMAC credential can be reconstructed from original protected configurati'
+    'on; no `.env`, administrator password, encryption key or personal volume was changed.\n\nR'
+    'endered-Compose regression RED demonstrated all six services receiving the administrator'
+    ' URL. Local focused/adjacent62tests+77subtests PASS; syntax/catalogue/progress/dashboard'
+    '/diff/provenance PASS. Fresh local Luna review identified inherited PUBLIC TEMP privileg'
+    'e; explicit revocation and live negative assertion added. PostgreSQL permission tests re'
+    'quire SQLSTATE42501 under autocommit, avoiding a false pass from CREATE DATABASE transac'
+    'tion restrictions. Actual hosted integration/Compose checks are still running on the exa'
+    'ct candidate; **whole requirement NOT_RUN/PARTIAL, not PASS**. No ORM/query acceptance i'
+    'nferred from this single correction.\n\nThe disposable PostgreSQL test covers persisted pr'
+    'ofile/ciphertext/document-hash preservation and original-key decryption, repeated provis'
+    'ioning, DML/sequences/locks, denied privilege operations, future migration grants, missi'
+    'ng generated-file recovery and wrong/overprivileged existing-role rejection. Local Docke'
+    'r daemon is unavailable, so this live acceptance has not been claimed locally. Real exte'
+    'rnal submissions remain OFF.\n\n---\n\n'
+)
+
+
+def issue175_seed():
+    root = Path(__file__).resolve().parents[2]
+    return next(json.loads(line)["body"] for line in
+                (root / "planning/ISSUE_SEED.jsonl").read_text(encoding="utf-8-sig").splitlines()
+                if json.loads(line)["id"] == "MJ-REQ-174")
+
+
+@pytest.mark.parametrize("newline", ["\n", "\r\n"])
+@pytest.mark.parametrize("prefix", ["", ISSUE175_PREFIX])
+def test_seed_contract_matches_exact_or_dated_context_with_crlf(newline, prefix):
+    seed = issue175_seed()
+    body = (prefix + seed).replace("\r\n", "\n").replace("\n", newline)
+    result = audit.compare_issue_contract(seed, body, "MJ-REQ-174")
+    assert result["matches"] is True
+    assert result["basis"] == ("EXACT_SEED" if not prefix else "SEED_WITH_DATED_CONTEXT")
+    assert result["issue_body_sha256"] == hashlib.sha256(body.encode()).hexdigest()
+
+
+@pytest.mark.parametrize("change", [
+    lambda s: s.replace("least-privileged credentials", "administrator credentials"),
+    lambda s: s.replace("- If blocked, classify the blocker rather than weakening the requirement.\n", ""),
+    lambda s: s.replace("MJ-REQ-174", "MJ-REQ-175", 1),
+    lambda s: s.replace("Requirement-ID: `MJ-REQ-174`", "Requirement-ID: `MJ-REQ-175`"),
+    lambda s: s.replace("- Priority: `P1`", "- Priority: `P0`"),
+    lambda s: s.replace("lines 5059-5072", "lines 1-2"),
+    lambda s: s.replace("## Delivery contract\n", ""),
+    lambda s: s.replace("## Delivery contract\n", "## Delivery contract\n## Delivery contract\n"),
+    lambda s: s.replace("<!-- mj-requirement:MJ-REQ-174 -->\n", ""),
+    lambda s: "<!-- mj-requirement:MJ-REQ-174 -->\n" + s,
+    lambda s: s + "\n## Authoritative requirement text\nReplacement contract\n",
+    lambda s: s + "\nRequirement-ID: `MJ-REQ-174`\n",
+])
+def test_changed_missing_duplicate_contract_content_fails_closed(change):
+    seed = issue175_seed()
+    assert audit.compare_issue_contract(seed, ISSUE175_PREFIX + change(seed), "MJ-REQ-174")["matches"] is False
+
+
+@pytest.mark.parametrize("prefix", [
+    "Undated arbitrary preface\n\n",
+    ISSUE175_PREFIX.replace("2026-10-12", "2026-99-99"),
+    ISSUE175_PREFIX + "## Requirement\nAmbiguous replacement\n\n",
+    ISSUE175_PREFIX + "<!-- mj-requirement:MJ-REQ-175 -->\n",
+    ISSUE175_PREFIX + "<!-- MJ-REQUIREMENT:MJ-REQ-174 -->\n",
+    ISSUE175_PREFIX + "Requirement-ID: `MJ-REQ-174`\n",
+    ISSUE175_PREFIX + "```text\n",
+    ISSUE175_PREFIX + "~~~text\n",
+    ISSUE175_PREFIX + "<!-- hidden contract\n",
+    ISSUE175_PREFIX + "<details>\n",
+    ISSUE175_PREFIX + "> quoted contract\n",
+    ISSUE175_PREFIX.replace("\n---\n", "\n"),
+])
+def test_unrecognized_or_ambiguous_preface_cannot_hide_drift(prefix):
+    seed = issue175_seed()
+    assert audit.compare_issue_contract(seed, prefix + seed, "MJ-REQ-174")["matches"] is False
+
+
+def test_invalid_seed_or_missing_issue_structure_never_matches_itself():
+    seed = issue175_seed()
+    for broken in ("", seed.replace("## Delivery contract\n", ""),
+                   seed.replace("<!-- mj-requirement:MJ-REQ-174 -->", "")):
+        assert audit.compare_issue_contract(broken, broken, "MJ-REQ-174")["matches"] is False
+    assert audit.compare_issue_contract(seed, None, "MJ-REQ-174")["matches"] is False
+
+
+def test_all366_original_seed_shapes_keep_exact_matching_without_promotion():
+    root = Path(__file__).resolve().parents[2]
+    seeds = [json.loads(line) for line in (root / "planning/ISSUE_SEED.jsonl").read_text(
+        encoding="utf-8-sig").splitlines()]
+    assert len(seeds) == 366
+    for seed in seeds:
+        comparison = audit.compare_issue_contract(seed["body"], seed["body"], seed["id"])
+        assert comparison["matches"] is True, seed["id"]
+        assert comparison["basis"] == "EXACT_SEED"
+
+
 def page(nodes, total, more=False, cursor="one"):
     return {"data": {"user": {"projectV2": {"items": {
         "totalCount": total, "nodes": nodes,
@@ -84,6 +186,73 @@ def test_matching_test_bytes_still_do_not_prove_execution_or_full_scope():
 def test_missing_hash_target_remains_missing():
     result = audit.evidence_identity({"source_sha256": {"tests/absent.py": "a" * 64}}, {})
     assert result["source_hashes"]["missing"] == 1
+
+
+def test_retained_ci370_uppercase_digests_match_all_three_git_artifacts():
+    root = Path(__file__).resolve().parents[2]
+    document = audit.read_evidence(root, "docs/evidence/2026-09-30-ci-370.json")
+    before = json.dumps(document, sort_keys=True)
+    sources = {row["path"]: subprocess.check_output(["git", "show", f"HEAD:{row['path']}"], cwd=root)
+               for row in document["artifacts"]}
+    assert len(sources) == 3
+    assert all(hashlib.sha256(sources[row["path"]]).hexdigest() == row["sha256"].lower()
+               for row in document["artifacts"])
+    result = audit.evidence_identity(document, sources)
+    assert result["source_hashes"] == {"matched": 3, "drifted": 0, "missing": 0}
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+    assert json.dumps(document, sort_keys=True) == before
+
+
+@pytest.mark.parametrize("case", ["lower", "upper", "mixed"])
+@pytest.mark.parametrize("shape", ["path_record", "path_mapping"])
+def test_hex_digest_case_is_normalized_without_mutating_evidence(case, shape):
+    path = "tests/unit/test_example.py"
+    digest = hashlib.sha256(b"historical bytes").hexdigest()
+    recorded = digest if case == "lower" else digest.upper() if case == "upper" else "".join(
+        c.upper() if i % 2 else c for i, c in enumerate(digest))
+    document = {"files": [{"path": path, "sha256": recorded}]} if shape == "path_record" else {
+        "source_sha256": {path: recorded}}
+    before = json.dumps(document, sort_keys=True)
+    result = audit.evidence_identity(document, {path: b"historical bytes"})
+    assert result["source_hashes"] == {"matched": 1, "drifted": 0, "missing": 0}
+    assert result["tests"] == [{"path": path, "recorded_sha256": [digest], "current_sha256": digest}]
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+    assert json.dumps(document, sort_keys=True) == before
+
+
+def test_equivalent_digest_cases_deduplicate_but_different_digests_keep_drift():
+    path = "tests/unit/test_example.py"
+    digest = hashlib.sha256(b"test").hexdigest()
+    other = hashlib.sha256(b"other").hexdigest()
+    document = {"files": [{"path": path, "sha256": digest.upper()},
+                          {"path": path, "sha256": other.upper()}],
+                "source_sha256": {path: digest}}
+    result = audit.evidence_identity(document, {path: b"test"})
+    assert result["source_hashes"] == {"matched": 1, "drifted": 1, "missing": 0}
+    assert result["tests"][0]["recorded_sha256"] == sorted([digest, other])
+    assert result["changed_or_missing_paths"] == [path]
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+
+
+@pytest.mark.parametrize("digest", ["a" * 63, "A" * 65, "G" * 64, "A" * 63 + "z",
+    " " + "a" * 64, "a" * 64 + "\n", "0x" + "a" * 64, None, 1, int("1" * 64), ["a" * 64], "\uff21" * 64])
+@pytest.mark.parametrize("shape", ["path_record", "path_mapping"])
+def test_malformed_digest_never_becomes_a_source_identity(digest, shape):
+    path = "services/example.py"
+    document = {"files": [{"path": path, "sha256": digest}]} if shape == "path_record" else {
+        "source_sha256": {path: digest}}
+    result = audit.evidence_identity(document, {path: b"test"})
+    assert result["source_hashes"] == {"matched": 0, "drifted": 0, "missing": 0}
+    assert result["changed_or_missing_paths"] == []
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
+
+
+def test_uppercase_digest_missing_target_remains_missing_not_pass():
+    result = audit.evidence_identity({"source_sha256": {"tests/absent.py": "A" * 64}}, {})
+    assert result["source_hashes"] == {"matched": 0, "drifted": 0, "missing": 1}
+    assert result["tests"][0]["recorded_sha256"] == ["a" * 64]
+    assert result["tests"][0]["current_sha256"] is None
+    assert result["proof"] == "HISTORICAL_POINTERS_ONLY"
 
 
 def test_markdown_evidence_is_supported_without_claiming_machine_verified_proof(tmp_path):
@@ -203,7 +372,18 @@ def test_lineage_does_not_confuse_parent_with_dotted_child_or_infer_acceptance()
 
 def test_census_covers_all425_without_promoting_historical_results():
     from pathlib import Path
-    report = audit.build_census(Path(__file__).resolve().parents[2])
+    seed = issue175_seed()
+    provider_body = ISSUE175_PREFIX + seed.replace("\n", "\r\n")
+    project_item = item(175)
+    for field, value in zip(project_item["fieldValues"]["nodes"], ("Todo", "NOT_RUN", "P1")):
+        field["name"] = value
+    report = audit.build_census(Path(__file__).resolve().parents[2], {
+        "issues": [{"number": 175, "body": provider_body, "state": "open", "labels": []}],
+        "project_pages": [page([project_item], 1)], "pulls": [],
+    })
+    row = next(row for row in report["requirements"] if row["id"] == "MJ-REQ-174")
+    assert "ISSUE_CONTRACT_DIFFERS" not in row["flags"]
+    assert row["status"] == row["proposed_state"] == "NOT_RUN"
     assert len(report["requirements"]) == 425
     assert sum(report["summary"]["original"].values()) == 366
     assert sum(report["summary"]["supplemental"].values()) == 59
