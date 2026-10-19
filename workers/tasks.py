@@ -9,7 +9,7 @@ from packages.domain.operation_mode import operation_mode_from_env
 from packages.persistence import models as m
 from packages.persistence.store import Store, identity, now
 from services.applications.mock_adapter import apply_mock
-from services.applications.attempt_history import AttemptConflict
+from services.applications.attempt_history import AttemptConflict, timeout_failure_code
 from services.applications.run_requests import validate_run_operation
 from services.discovery.pipeline import discover, MockClient
 from services.company_discovery.flywheel import discover_company_source
@@ -47,6 +47,11 @@ from services.applications.controlled_dry_run import ControlledDryRunError, exec
 
 class FixtureOperationDisabled(Exception):
     """A queued fixture task must not run after switching to personal mode."""
+
+
+def _classify_unexpected_failure(error):
+    """Persist only fixed timeout categories; keep legacy names ambiguous."""
+    return timeout_failure_code(error) or type(error).__name__
 
 
 def _profile_job_ids(store, profile_id):
@@ -440,7 +445,7 @@ def execute_operation(operation_id):
             retry_failure = failure
             state, error = "FAILED", failure.code if isinstance(
                 failure, (SourceError, PreparationError, FormReviewError)
-            ) else type(failure).__name__
+            ) else _classify_unexpected_failure(failure)
             history_counts = {}
         with store.engine.begin() as connection:
             if connection.dialect.name == "sqlite":
