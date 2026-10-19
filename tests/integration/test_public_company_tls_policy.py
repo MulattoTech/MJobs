@@ -1,8 +1,10 @@
 """Actual public-fetch TLS handshakes; no public traffic or retained keys."""
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+import shutil
 import socket
 import ssl
+import subprocess
 import tempfile
 import threading
 import time
@@ -16,6 +18,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.x509.oid import NameOID
 
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
+from services.company_discovery.monitoring_policy import MonitoringPolicy
 
 
 class PublicCompanyTlsPolicyTests(unittest.TestCase):
@@ -42,9 +45,10 @@ class PublicCompanyTlsPolicyTests(unittest.TestCase):
                                               serialization.NoEncryption()))
 
     def handshake(self, version, *, degraded_control=False, trust=True,
-                  hostname="fixture.example.com"):
+                  hostname="fixture.example.com", policy=None):
         # Legacy server/control settings intentionally model the claimed vulnerability.
-        # The actual production client context keeps all protocol/verification defaults.
+        # Production always enforces its TLS floor; a separate cached CLI proves
+        # that these deliberately obsolete loopback endpoints actually work.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", DeprecationWarning)
             server = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -83,31 +87,47 @@ class PublicCompanyTlsPolicyTests(unittest.TestCase):
             result = original_context()
             if trust:
                 result.load_verify_locations(cafile=str(self.certificate))
-            if degraded_control:
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore", DeprecationWarning)
-                    result.minimum_version = version
-                result.set_ciphers("ALL:@SECLEVEL=0")
             return result
 
-        client = PublicCompanyClient(f"https://{hostname}/jobs")
+        client = None
         try:
-            # Bypass only public-address resolution to reach an isolated loopback server.
-            # Socket creation, hostname verification, TLS and HTTP parsing remain real.
-            with patch.object(client, "_resolve", return_value=[(socket.AF_INET, address)]), patch(
-                    "services.company_discovery.public_client.ssl.create_default_context",
-                    side_effect=context):
-                try:
-                    response = client._request_once(client.website, time.monotonic() + 5)
-                except PublicFetchError as error:
-                    self.assertEqual(error.code, "NETWORK_FAILED")
-                    accepted = False
-                else:
-                    self.assertEqual(response.status_code, 200)
-                    self.assertEqual(response.content, b"OK")
-                    accepted = True
+            if degraded_control:
+                openssl = shutil.which('openssl')
+                if not openssl:
+                    git = shutil.which('git')
+                    bundled = Path(git).resolve().parents[1] / 'usr' / 'bin' / 'openssl.exe' if git else None
+                    if bundled and bundled.is_file():
+                        openssl = str(bundled)
+                self.assertIsNotNone(openssl, 'Cached OpenSSL is required for the independent legacy-runtime control')
+                self.assertEqual(address[0], '127.0.0.1')
+                protocol_flag = {ssl.TLSVersion.TLSv1: '-tls1', ssl.TLSVersion.TLSv1_1: '-tls1_1'}[version]
+                result = subprocess.run([openssl, 's_client', '-connect', f'{address[0]}:{address[1]}',
+                    '-servername', hostname, '-CAfile', str(self.certificate), '-verify_return_error',
+                    '-quiet', '-ignore_unexpected_eof', '-cipher', 'ALL:@SECLEVEL=0', protocol_flag],
+                    input=b'GET /jobs HTTP/1.1\r\nHost: fixture.example.com\r\nConnection: close\r\n\r\n',
+                    capture_output=True, timeout=6)
+                self.assertEqual(result.returncode, 0, result.stderr[-500:].decode(errors='replace'))
+                self.assertTrue(result.stdout.endswith(b'OK'))
+                accepted = True
+            else:
+                client = PublicCompanyClient(f"https://{hostname}/jobs", policy=policy)
+                # Only resolution and the fixture trust anchor are seams. Socket
+                # creation, hostname verification, TLS and HTTP parsing stay real.
+                with patch.object(client, "_resolve", return_value=[(socket.AF_INET, address)]), patch(
+                        "services.company_discovery.public_client.ssl.create_default_context",
+                        side_effect=context):
+                    try:
+                        response = client._request_once(client.website, time.monotonic() + 5)
+                    except PublicFetchError as error:
+                        self.assertEqual(error.code, "NETWORK_FAILED")
+                        accepted = False
+                    else:
+                        self.assertEqual(response.status_code, 200)
+                        self.assertEqual(response.content, b"OK")
+                        accepted = True
         finally:
-            client.close()
+            if client is not None:
+                client.close()
             thread.join(timeout=5)
         self.assertFalse(thread.is_alive(), "Controlled TLS server did not terminate")
         if accepted:
@@ -123,11 +143,13 @@ class PublicCompanyTlsPolicyTests(unittest.TestCase):
                 accepted, observed = self.handshake(version, degraded_control=True)
                 self.assertTrue(accepted, "Legacy endpoint must work before rejection proves policy")
                 self.assertEqual(observed["protocol"], protocol)
-                accepted, observed = self.handshake(version)
-                self.assertFalse(accepted)
-                self.assertIn(observed.get("error_reason"),
-                              {"UNSUPPORTED_PROTOCOL", "TLSV1_ALERT_PROTOCOL_VERSION"},
-                              "Rejection must be a protocol failure, not an unrelated network error")
+                for policy in (None, MonitoringPolicy(request_timeout=2)):
+                    with self.subTest(policy=policy):
+                        accepted, observed = self.handshake(version, policy=policy)
+                        self.assertFalse(accepted)
+                        self.assertIn(observed.get("error_reason"),
+                                      {"UNSUPPORTED_PROTOCOL", "TLSV1_ALERT_PROTOCOL_VERSION"},
+                                      "Rejection must be a protocol failure, not an unrelated network error")
 
     def test_tls12_trusted_hostname_succeeds(self):
         accepted, observed = self.handshake(ssl.TLSVersion.TLSv1_2)
