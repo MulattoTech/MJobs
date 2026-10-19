@@ -1,0 +1,304 @@
+"""Owned stalled DNS must not exhaust future public-company HTTPS reads."""
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import socket
+import ssl
+import os
+import signal
+import threading
+import time
+import unittest
+from unittest.mock import patch
+
+from services.company_discovery import public_client
+from services.company_discovery import dns_resolver
+from services.company_discovery.monitoring_policy import MonitoringPolicy
+from tests.fixtures.company_dns import owned_resolvers
+from tests.integration import test_public_company_tls_policy as tls_fixture
+from workers.operations import OperationCancelled
+
+
+@contextmanager
+def owned_https():
+    fixture = tls_fixture.PublicCompanyTlsPolicyTests()
+    fixture.setUp()
+    server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    server_context.minimum_version = ssl.TLSVersion.TLSv1_2
+    server_context.load_cert_chain(str(fixture.certificate), str(fixture.key))
+    client_context = ssl.create_default_context(cafile=str(fixture.certificate))
+    client_context.minimum_version = ssl.TLSVersion.TLSv1_2
+    requests = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            pass
+
+        def do_GET(self):
+            requests.append(self.path)
+            body = b"User-agent: *\nAllow: /\n" if self.path == "/robots.txt" else b"healthy"
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server.daemon_threads = True
+    server.socket = server_context.wrap_socket(server.socket, server_side=True)
+    thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": .02},
+                              name="mjobs-owned-dns-https", daemon=True)
+    thread.start()
+    original_connect = socket.socket.connect
+
+    def connect(connection, address):
+        if address != ("8.8.8.8", 443):
+            raise AssertionError("Refusing unexpected test egress")
+        return original_connect(connection, server.server_address)
+
+    try:
+        with patch.object(socket.socket, "connect", connect), patch.object(
+                public_client.ssl, "create_default_context", return_value=client_context):
+            yield requests
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join(1)
+        fixture.doCleanups()
+        if thread.is_alive():
+            raise AssertionError("Owned HTTPS listener leaked")
+
+
+def available_slots():
+    count = 0
+    try:
+        while public_client._DNS_SLOTS.acquire(blocking=False):
+            count += 1
+    finally:
+        for _ in range(count):
+            public_client._DNS_SLOTS.release()
+    return count
+
+
+class PublicCompanyDnsRecoveryTests(unittest.TestCase):
+    def starvation(self, mode):
+        callers, clients, errors = [], [], []
+        cancelled = threading.Event()
+
+        def check():
+            if cancelled.is_set():
+                raise OperationCancelled()
+
+        def call(client):
+            try:
+                client.get(client.website)
+            except BaseException as error:
+                errors.append(error)
+
+        with owned_https() as requests, owned_resolvers(stall_prefix="stall-") as resolver:
+            try:
+                for index in range(4):
+                    client = public_client.PublicCompanyClient(f"https://stall-{index}.example/jobs",
+                        check=check, policy=MonitoringPolicy(request_timeout=2))
+                    clients.append(client)
+                    thread = threading.Thread(target=call, args=(client,), daemon=True,
+                                              name=f"mjobs-owned-dns-caller-{index}")
+                    callers.append(thread)
+                    thread.start()
+                self.assertTrue(resolver.wait_started(4),
+                                "All four owned native lookup owners must actually be running")
+                self.assertTrue(all(process.poll() is None for process in resolver.processes))
+                if mode == "cancel":
+                    waiting = threading.Event()
+                    extra = public_client.PublicCompanyClient("https://stall-fifth.example/jobs", check=check,
+                        policy=MonitoringPolicy(request_timeout=2))
+                    clients.append(extra)
+                    original_acquire = extra._acquire
+
+                    def observe_acquire(lock, deadline, code="FETCH_DEADLINE"):
+                        if lock is public_client._DNS_SLOTS:
+                            waiting.set()
+                        return original_acquire(lock, deadline, code)
+
+                    extra._acquire = observe_acquire
+                    thread = threading.Thread(target=call, args=(extra,), daemon=True,
+                                              name="mjobs-owned-dns-capacity-waiter")
+                    callers.append(thread)
+                    thread.start()
+                    self.assertTrue(waiting.wait(1))
+                    self.assertEqual(len(resolver.processes), 4, "Capacity waiter must not start a fifth child")
+                started = time.monotonic()
+                if mode == "cancel":
+                    cancelled.set()
+                for thread in callers:
+                    thread.join(.5 if mode == "cancel" else 3)
+                self.assertFalse(any(thread.is_alive() for thread in callers))
+                self.assertEqual(len(errors), len(callers))
+                if mode == "cancel":
+                    self.assertTrue(all(isinstance(error, OperationCancelled) for error in errors))
+                    self.assertLess(time.monotonic() - started, .5)
+                else:
+                    self.assertTrue(all(isinstance(error, public_client.PublicFetchError)
+                                        and error.code == "ROBOTS_UNAVAILABLE"
+                                        and isinstance(error.__context__, public_client.PublicFetchError)
+                                        and error.__context__.code == "DNS_TIMEOUT" for error in errors))
+                slots = available_slots()
+                alive = sum(process.poll() is None for process in resolver.processes)
+                resolver.assert_reaped()
+                followon = public_client.PublicCompanyClient("https://fixture.example.com/jobs", total_timeout=3)
+                try:
+                    try:
+                        result = followon.get(followon.website).status_code
+                    except public_client.PublicFetchError as error:
+                        result = error.code
+                finally:
+                    followon.close()
+                print(f"DNS_RECOVERY mode={mode} released_slots={slots} live_owned_helpers={alive} "
+                      f"followon={result} HTTP={requests}")
+                self.assertEqual(result, 200, f"Abandoned DNS retained capacity: slots={slots}, "
+                                 f"owned_helpers={alive}, followon={result}, HTTP={requests}")
+                self.assertEqual(slots, 4)
+                self.assertEqual(alive, 0)
+                self.assertEqual(requests, ["/robots.txt", "/jobs"])
+                self.assertLessEqual(resolver.peak, 4)
+                resolver.assert_reaped()
+                self.assertFalse(any(thread.name.startswith("mjobs-public-dns")
+                                     for thread in threading.enumerate()))
+            finally:
+                cancelled.set()
+                for client in clients:
+                    client.close()
+                for thread in callers:
+                    thread.join(1)
+                    self.assertFalse(thread.is_alive(), "Owned caller leaked")
+                until = time.monotonic() + 1
+                while available_slots() != 4 and time.monotonic() < until:
+                    time.sleep(.01)
+                self.assertEqual(available_slots(), 4, "Test must restore native slots without resetting them")
+
+    def test_cancelled_dns_owners_release_all_four_slots_for_healthy_https(self):
+        self.starvation("cancel")
+
+    def test_timed_out_dns_owners_release_all_four_slots_for_healthy_https(self):
+        self.starvation("timeout")
+
+    def test_real_native_numeric_lookup_and_parent_private_rejection(self):
+        client = public_client.PublicCompanyClient("https://8.8.8.8/jobs")
+        try:
+            self.assertEqual(client._resolve("8.8.8.8", 443), [(socket.AF_INET, ("8.8.8.8", 443))])
+            with self.assertRaisesRegex(public_client.PublicFetchError, "DNS_PRIVATE"):
+                client._resolve("127.0.0.1", 443)
+            self.assertEqual(available_slots(), 4)
+        finally:
+            client.close()
+
+    def test_all_answers_are_validated_before_any_connection(self):
+        public = [socket.AF_INET, socket.SOCK_STREAM, 6, "", ["8.8.8.8", 443]]
+        private = [socket.AF_INET, socket.SOCK_STREAM, 6, "", ["127.0.0.1", 443]]
+        cases = (([public] * 9 + [private], "DNS_PRIVATE"),
+                 ([public] * 65, "DNS_INVALID"),
+                 ([], "DNS_EMPTY"),
+                 ([[socket.AF_INET, socket.SOCK_STREAM, 6, "", ["8.8.8.8", 80]]], "DNS_INVALID"),
+                 ([[socket.AF_INET, socket.SOCK_STREAM, 6, "", ["invalid", 443]]], "DNS_INVALID"))
+        for answers, expected in cases:
+            with self.subTest(expected=expected, count=len(answers)), owned_resolvers(answers=answers) as resolver:
+                client = public_client.PublicCompanyClient("https://fixture.example.com/jobs")
+                try:
+                    with patch.object(socket.socket, "connect", side_effect=AssertionError("No egress")):
+                        with self.assertRaisesRegex(public_client.PublicFetchError, expected):
+                            client._resolve("fixture.example.com", 443)
+                    resolver.assert_reaped()
+                    self.assertEqual(available_slots(), 4)
+                finally:
+                    client.close()
+
+    def test_invalid_or_oversized_child_output_is_reaped_and_never_connected(self):
+        for output in (b"not-json", b"\xff", b"x" * (dns_resolver.MAX_OUTPUT + 1)):
+            code = (f"import sys; sys.stdout.buffer.write(b'x'*{len(output)})" if len(output) > 100
+                    else f"import sys; sys.stdout.buffer.write({output!r})")
+            with self.subTest(bytes=len(output)), owned_resolvers(
+                    code=code) as resolver:
+                client = public_client.PublicCompanyClient("https://fixture.example.com/jobs")
+                try:
+                    with patch.object(socket.socket, "connect", side_effect=AssertionError("No egress")):
+                        with self.assertRaisesRegex(public_client.PublicFetchError, "DNS_INVALID"):
+                            client._resolve("fixture.example.com", 443)
+                    resolver.assert_reaped()
+                    self.assertEqual(available_slots(), 4)
+                finally:
+                    client.close()
+
+    def test_pending_child_preserves_one_shot_caller_exception_and_reaps(self):
+        failure = ValueError("owned caller interruption")
+        raised = False
+        with owned_resolvers(stall_prefix="stall-") as resolver:
+            def check():
+                nonlocal raised
+                if list(resolver.root.glob("*.ready")) and not raised:
+                    raised = True
+                    raise failure
+            client = public_client.PublicCompanyClient("https://stall-interruption.example/jobs", check=check)
+            try:
+                with self.assertRaises(ValueError) as caught:
+                    client._resolve("stall-interruption.example", 443)
+                self.assertIs(caught.exception, failure)
+                resolver.assert_reaped()
+                self.assertEqual(available_slots(), 4)
+            finally:
+                client.close()
+
+    def test_client_close_reaps_pending_owned_lookup_before_returning_capacity(self):
+        self.pending_close(False)
+
+    @unittest.skipUnless(os.name == "posix", "POSIX termination escalation requires owned Linux process")
+    def test_uncooperative_owned_lookup_is_killed_and_reaped_before_capacity_returns(self):
+        self.pending_close(True)
+
+    def pending_close(self, ignore_terminate):
+        errors = []
+        with owned_resolvers(stall_prefix="stall-", ignore_terminate=ignore_terminate) as resolver:
+            client = public_client.PublicCompanyClient("https://stall-close.example/jobs")
+            original_release = public_client._DNS_SLOTS.release
+            def release():
+                resolver.assert_reaped()
+                original_release()
+            def lookup():
+                try:
+                    client._resolve("stall-close.example", 443)
+                except BaseException as error:
+                    errors.append(error)
+            thread = threading.Thread(target=lookup, name="mjobs-owned-close-dns", daemon=True)
+            try:
+                with patch.object(public_client._DNS_SLOTS, "release", side_effect=release):
+                    thread.start()
+                    self.assertTrue(resolver.wait_started(1))
+                    client.close()
+                    thread.join(1)
+                    self.assertFalse(thread.is_alive())
+                    self.assertEqual(len(errors), 1)
+                    self.assertIsInstance(errors[0], public_client.PublicFetchError)
+                    self.assertEqual(errors[0].code, "CLIENT_CLOSED")
+                    resolver.assert_reaped()
+                    if ignore_terminate:
+                        self.assertEqual(resolver.processes[0].returncode, -signal.SIGKILL)
+                self.assertEqual(available_slots(), 4)
+            finally:
+                client.close()
+                thread.join(2)
+
+    def test_failed_child_start_closes_output_and_releases_slot(self):
+        created = []
+        original = public_client.ResolverProcess
+        def factory():
+            resolver = original()
+            created.append(resolver)
+            return resolver
+        client = public_client.PublicCompanyClient("https://fixture.example.com/jobs")
+        try:
+            with patch.object(public_client, "ResolverProcess", side_effect=factory), patch.object(
+                    dns_resolver.subprocess, "Popen", side_effect=OSError("owned fixture start failure")):
+                with self.assertRaisesRegex(public_client.PublicFetchError, "DNS_FAILED"):
+                    client._resolve("fixture.example.com", 443)
+            self.assertEqual(len(created), 1)
+            self.assertTrue(created[0].output.closed)
+            self.assertEqual(available_slots(), 4)
+        finally:
+            client.close()

@@ -10,6 +10,7 @@ import httpx
 from services.company_discovery.public_client import (
     MAX_RESPONSE_BYTES, HTTPStatusError, PublicCompanyClient, PublicFetchError,
 )
+from tests.fixtures.company_dns import owned_resolvers
 
 
 def response(status, *, headers=None, url="https://example.test/jobs"):
@@ -62,17 +63,17 @@ class PublicCompanyClientTests(unittest.TestCase):
         client = PublicCompanyClient("https://example.test/jobs")
         records = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", 443))]
         try:
-            with patch("services.company_discovery.public_client.socket.getaddrinfo",
-                       side_effect=[records, [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 443))]]) as lookup:
+            with owned_resolvers(answers=records) as lookup:
                 self.assertEqual(client._resolve("example.test", 443)[0][1][0], "8.8.8.8")
-                self.assertEqual(lookup.call_count, 1)
+                self.assertEqual(len(lookup.processes), 1)
+                lookup.assert_reaped()
         finally:
             client.close()
 
     def test_private_dns_answer_is_fail_closed(self):
         client = PublicCompanyClient("https://example.test/jobs")
         try:
-            with patch("services.company_discovery.public_client.socket.getaddrinfo", return_value=[
+            with owned_resolvers(answers=[
                 (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.2", 443))]):
                 with self.assertRaisesRegex(PublicFetchError, "DNS_PRIVATE"):
                     client._resolve("example.test", 443)
@@ -81,15 +82,8 @@ class PublicCompanyClientTests(unittest.TestCase):
 
     def test_dns_resolution_observes_operation_cancellation_while_lookup_is_pending(self):
         client = PublicCompanyClient("https://example.test/jobs")
-        lookup_started = threading.Event()
-        finish_lookup = threading.Event()
         cancelled = threading.Event()
         errors = []
-
-        def blocked_lookup(*_args, **_kwargs):
-            lookup_started.set()
-            finish_lookup.wait(timeout=2)
-            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", 443))]
 
         def check_cancelled():
             if cancelled.is_set():
@@ -105,17 +99,17 @@ class PublicCompanyClientTests(unittest.TestCase):
 
         thread = threading.Thread(target=resolve)
         try:
-            with patch("services.company_discovery.public_client.socket.getaddrinfo", side_effect=blocked_lookup):
+            with owned_resolvers(stall_prefix="example.test") as lookup:
                 thread.start()
-                self.assertTrue(lookup_started.wait(timeout=1), "DNS lookup did not start")
+                self.assertTrue(lookup.wait_started(1), "DNS lookup did not start")
                 cancelled.set()
                 thread.join(timeout=0.3)
                 self.assertFalse(thread.is_alive(), "DNS wait ignored operation cancellation")
+                lookup.assert_reaped()
             self.assertEqual(len(errors), 1)
             self.assertIsInstance(errors[0], RuntimeError)
             self.assertEqual(str(errors[0]), "operation cancelled")
         finally:
-            finish_lookup.set()
             thread.join(timeout=1)
             client.close()
 
@@ -132,7 +126,7 @@ class PublicCompanyClientTests(unittest.TestCase):
         client = PublicCompanyClient("https://example.test/jobs", check=check_deadline)
         answer = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("8.8.8.8", 443))]
         try:
-            with patch("services.company_discovery.public_client.socket.getaddrinfo", return_value=answer):
+            with owned_resolvers(answers=answer):
                 with self.assertRaises(TimeoutError) as caught:
                     client._resolve("example.test", 443)
             self.assertIs(caught.exception, deadline_error)
@@ -210,7 +204,7 @@ class PublicCompanyClientTests(unittest.TestCase):
     def test_cgnat_dns_answer_is_not_global(self):
         client = PublicCompanyClient("https://example.test/jobs")
         try:
-            with patch("services.company_discovery.public_client.socket.getaddrinfo", return_value=[
+            with owned_resolvers(answers=[
                 (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("100.64.0.1", 443))]):
                 with self.assertRaisesRegex(PublicFetchError, "DNS_NOT_GLOBAL"):
                     client._resolve("example.test", 443)
