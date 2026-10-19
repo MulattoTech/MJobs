@@ -32,6 +32,11 @@ from services.discovery.sources.registry import source_adapter
 
 
 ENDPOINTS = {"greenhouse": "HOST", "remoteok": "API_URL", "wwr": "FEED_URL"}
+LEVER_TENANTS = ("global:synthetic", "eu:synthetic")
+
+
+def source_tenant(provider):
+    return "synthetic" if provider == "greenhouse" else "default"
 
 
 @contextmanager
@@ -45,7 +50,7 @@ def empty_source(provider):
             if provider == "wwr":
                 body, content_type = b"<rss><channel><title>Synthetic empty feed</title></channel></rss>", "application/rss+xml"
             else:
-                payload = [] if provider == "remoteok" else {"jobs": []} if (
+                payload = [] if provider in ("remoteok", "lever") else {"jobs": []} if (
                     urlsplit(self.path).path.endswith("/jobs")) else {"name": "Synthetic empty board"}
                 body, content_type = json.dumps(payload).encode(), "application/json"
             self.send_response(200)
@@ -79,8 +84,10 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
             def __bool__(self):
                 return False
 
-        for provider in ENDPOINTS:
-            with self.subTest(provider=provider):
+        sources = [(provider, source_tenant(provider)) for provider in ENDPOINTS]
+        sources += [("lever", tenant) for tenant in LEVER_TENANTS]
+        for provider, tenant in sources:
+            with self.subTest(provider=provider, tenant=tenant):
                 requests = []
 
                 def handler(request):
@@ -89,19 +96,25 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     self.assertEqual(request.method, "GET")
                     if provider == "wwr":
                         return httpx.Response(200, content=b"<rss><channel/></rss>")
-                    payload = [] if provider == "remoteok" else {"jobs": []} if (
+                    payload = [] if provider in ("remoteok", "lever") else {"jobs": []} if (
                         request.url.path.endswith("/jobs")) else {"name": "Synthetic empty board"}
+                    if provider == "lever":
+                        instance = "api.eu.lever.co" if tenant.startswith("eu:") else "api.lever.co"
+                        self.assertEqual(request.url.host, instance)
+                        self.assertEqual(request.url.path, "/v0/postings/synthetic")
+                        self.assertEqual(request.url.params["mode"], "json")
                     return httpx.Response(200, json=payload)
 
-                with patch(f"services.discovery.sources.{provider}.SourceTransport",
+                transport_module = "greenhouse" if provider == "lever" else provider
+                with patch(f"services.discovery.sources.{transport_module}.SourceTransport",
                            side_effect=AssertionError("Injected transport must remain authoritative")):
-                    adapter = source_adapter({"provider": provider,
-                        "tenant": "synthetic" if provider == "greenhouse" else "default"},
+                    adapter = source_adapter({"provider": provider, "tenant": tenant},
                         transport=FalseyTransport(handler))
                     self.assertEqual(adapter.search().items, ())
                 self.assertEqual(len(requests), 2 if provider == "greenhouse" else 1)
 
-    def run_source(self, provider, mode):
+    def run_source(self, provider, mode, *, tenant=None):
+        tenant = tenant or source_tenant(provider)
         with tempfile.TemporaryDirectory(prefix="mjobs-other-source-tcp-") as directory, ExitStack() as cleanup:
             root = Path(directory)
             url = f"sqlite:///{(root / 'source.db').as_posix()}"
@@ -130,18 +143,29 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                     engaged.set()
                 return status
 
-            with source as (endpoint, engaged, state), patch.dict(os.environ, {
+            with source as (endpoint, engaged, state), ExitStack() as endpoints, patch.dict(os.environ, {
                     "MJOBS_DATABASE_URL": url, "MJOBS_OPERATION_MODE": "FIXTURE",
                     "MJOBS_OUTPUT_DIR": directory, "MJOBS_MOCK_ORIGIN": "http://127.0.0.1:1",
             }), patch("socket.socket.connect", new=observe_connect), patch(
                     "socket.socket.connect_ex", new=observe_connect_ex), patch(
-                    f"services.discovery.sources.{provider}.{ENDPOINTS[provider]}", endpoint), patch(
                     "workers.tasks.timeout", return_value=.8 if mode == "deadline" else 30):
+                if provider == "lever":
+                    from services.discovery.sources.lever import endpoint as production_endpoint
+                    # Resolve the real regional endpoint first; only replace its origin.
+                    path = urlsplit(production_endpoint(tenant)).path
+                    def owned_endpoint(actual_tenant):
+                        self.assertEqual(actual_tenant, tenant)
+                        return endpoint + path
+                    endpoints.enter_context(patch("services.discovery.sources.lever.endpoint",
+                                                  side_effect=owned_endpoint))
+                else:
+                    endpoints.enter_context(patch(
+                        f"services.discovery.sources.{provider}.{ENDPOINTS[provider]}", endpoint))
                 with TestClient(create_app(store, "http://127.0.0.1:1", root,
                         "redis://127.0.0.1:1/0", operation_mode="FIXTURE")) as client:
                     self.assertEqual(client.put("/profiles", json=PROFILE).status_code, 200)
                     response = client.put("/sources", json={"provider": provider,
-                                          "tenant": "synthetic" if provider == "greenhouse" else "default",
+                                          "tenant": tenant,
                                           "request_timeout": 2, "rate_limit": 600})
                     self.assertEqual(response.status_code, 200, response.text)
                     source_id = response.json()["id"]
@@ -190,6 +214,12 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                                 self.assertEqual(saved["attempt_count"], 1)
                                 if mode != "positive":
                                     self.assertEqual(saved["error"], "CANCEL_REQUESTED" if mode == "cancel" else "OPERATION_TIMEOUT")
+                                public_source = next(row for row in fresh.get("/sources").json()["sources"]
+                                                     if row["id"] == source_id)
+                                self.assertEqual(public_source["provider"], provider)
+                                self.assertEqual(public_source["tenant"], tenant)
+                                self.assertEqual(public_source["health_status"],
+                                                 "HEALTHY" if mode == "positive" else "NOT_CHECKED")
                             with reopened.engine.connect() as connection:
                                 health = connection.execute(select(m.job_sources).where(
                                     m.job_sources.c.id == source_id)).mappings().one()
@@ -203,7 +233,7 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
                         if mode != "positive":
                             self.assertEqual(state["connects"], 1)
                             self.assertEqual(state["connecting_socket"].fileno(), -1)
-                        print(f"OWNED_ADAPTER_CONNECT provider={provider} mode={mode} latency={elapsed:.3f}s")
+                        print(f"OWNED_ADAPTER_CONNECT provider={provider} tenant={tenant} mode={mode} latency={elapsed:.3f}s")
                         if mode == "cancel":
                             self.assertLess(elapsed, .35, f"{provider}: public cancel blocked {elapsed:.3f}s; "
                                 f"pending={pending and (pending['state'], pending['cancel_requested'])}; "
@@ -230,3 +260,21 @@ class SourceAdapterConnectCancellationTests(unittest.TestCase):
         for provider in ENDPOINTS:
             with self.subTest(provider=provider):
                 self.run_source(provider, "deadline")
+
+    def test_lever_global_public_cancel_during_real_tcp_connect(self):
+        self.run_source("lever", "cancel", tenant="global:synthetic")
+
+    def test_lever_eu_public_cancel_during_real_tcp_connect(self):
+        self.run_source("lever", "cancel", tenant="eu:synthetic")
+
+    def test_lever_global_finite_deadline_during_real_tcp_connect(self):
+        self.run_source("lever", "deadline", tenant="global:synthetic")
+
+    def test_lever_eu_finite_deadline_during_real_tcp_connect(self):
+        self.run_source("lever", "deadline", tenant="eu:synthetic")
+
+    def test_lever_global_healthy_worker_and_fresh_source_readback(self):
+        self.run_source("lever", "positive", tenant="global:synthetic")
+
+    def test_lever_eu_healthy_worker_and_fresh_source_readback(self):
+        self.run_source("lever", "positive", tenant="eu:synthetic")
