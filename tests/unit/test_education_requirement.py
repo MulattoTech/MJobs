@@ -6,6 +6,34 @@ from services.discovery.search_semantics import parse_education_requirement
 
 
 class EducationRequirementTests(unittest.TestCase):
+    def test_explicit_field_lists_outside_fixture_vocabulary_keep_categories(self):
+        disciplines = (
+            ('Accounting', 'Finance'),
+            ('Electrical Engineering', 'Physics'),
+            ('Comparative Literature', 'Food Science'),
+            ('Linguistics', 'Economics'),
+            ('Cybernetics', 'Public Administration'),
+            ('Asterian Studies', 'Boreal Studies'),
+        )
+        for left, right in disciplines:
+            for descriptor in ('in ' + left + ' or ' + right,
+                               'in ' + left + ' and ' + right,
+                               'in ' + left + ' or ' + right + ' or Cygnian Studies',
+                               'in ' + left + ' and ' + right + ', or a related field',
+                               '(' + left + ' or ' + right + ')',
+                               '[' + left + ', ' + right + ']',
+                               'in ' + left + ' or a related field'):
+                for suffix, category in (
+                    ('required', 'BACHELORS_REQUIRED'),
+                    ('preferred', 'BACHELORS_PREFERRED'),
+                    ('or equivalent experience required', 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+                ):
+                    text = "Bachelor's degree " + descriptor + ' ' + suffix + '.'
+                    with self.subTest(text=text):
+                        result = parse_education_requirement(text)
+                        self.assertEqual(result['classification'], category)
+                        self.assertEqual(result['raw'], text.rstrip('.'))
+
     def test_multiple_join_subjects_keep_their_own_typed_qualifiers(self):
         descriptors = (
             'in Computer Science and Engineering, or a related field',
@@ -32,6 +60,20 @@ class EducationRequirementTests(unittest.TestCase):
                         result = parse_education_requirement(text)
                         self.assertEqual(result['classification'], category)
                         self.assertEqual(result['raw'], text.rstrip('.'))
+
+    def test_new_field_lists_do_not_borrow_unrelated_subject_qualifiers(self):
+        for left, right in (('Accounting', 'Finance'),
+                            ('Electrical Engineering', 'Physics'),
+                            ('Asterian Studies', 'Boreal Studies')):
+            for descriptor in ('in ' + left + ' or ' + right,
+                               '(' + left + ' and ' + right + ')'):
+                for separator in (', ', ', and ', ': ', ' — '):
+                    for subject in ('Python', 'Zorblatt tooling', 'incident response', 'French'):
+                        for qualifier in ('required', 'preferred'):
+                            text = "Bachelor's degree " + descriptor + separator + subject + ' ' + qualifier
+                            with self.subTest(text=text):
+                                self.assertEqual(parse_education_requirement(text),
+                                                 {'classification': 'NONE_SPECIFIED', 'raw': None})
 
     def test_single_field_claims_are_not_limited_to_the_attachment_ontology(self):
         for field in ('Xenobiology', 'Comparative Literature', 'Food Science', 'Clinical Psychology'):
@@ -62,12 +104,19 @@ class EducationRequirementTests(unittest.TestCase):
                             self.assertEqual(parse_education_requirement(text),
                                              {'classification': 'NONE_SPECIFIED', 'raw': None})
         for descriptor in ('in Xenobiology, Marmalade Studies',
-                           'in Xenobiology or Marmalade Studies',
                            '(Computer Science or Engineering), Mathematics'):
             for strength in ('required', 'preferred'):
                 with self.subTest(descriptor=descriptor, strength=strength):
                     self.assertEqual(parse_education_requirement("Bachelor's degree " + descriptor + ' ' + strength),
                                      {'classification': 'NONE_SPECIFIED', 'raw': None})
+        # Corrected contract: this retained former NONE oracle explicitly claims
+        # coordinated degree fields. Parsing is not academic-registry validation.
+        for strength, category in (('required', 'BACHELORS_REQUIRED'),
+                                   ('preferred', 'BACHELORS_PREFERRED')):
+            text = "Bachelor's degree in Xenobiology or Marmalade Studies " + strength
+            with self.subTest(corrected_explicit_claim=text):
+                self.assertEqual(parse_education_requirement(text),
+                                 {'classification': category, 'raw': text})
 
     def test_bounded_parser_does_not_promote_a_truncated_claim(self):
         claim = "Bachelor's degree required"

@@ -244,3 +244,21 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
             (4619, "Bachelor's degree in Xenobiology preferred however Python required.", 'BACHELORS_PREFERRED'),
         )
         self._assert_categories_and_matching(examples)
+
+    def test_explicit_field_lists_outside_fixture_vocabulary_survive_public_readback(self):
+        examples = (
+            (4701, "Bachelor's degree in Accounting or Finance required.", 'BACHELORS_REQUIRED'),
+            (4702, "Bachelor's degree in Electrical Engineering or Physics preferred.", 'BACHELORS_PREFERRED'),
+            (4703, "Bachelor's degree (Accounting, Finance) required.", 'BACHELORS_REQUIRED'),
+            (4704, "Bachelor's degree [Electrical Engineering or Physics] preferred.", 'BACHELORS_PREFERRED'),
+            (4705, "Bachelor's degree in Xenobiology or a related field required.", 'BACHELORS_REQUIRED'),
+            (4706, "Bachelor's degree in Asterian Studies or Boreal Studies or equivalent experience required.", 'BACHELORS_OR_EQUIVALENT_EXPERIENCE'),
+            (4707, "Degree in Accounting or Finance preferred.", 'DEGREE_PREFERRED'),
+            (4708, "Bachelor's degree (Accounting or Finance), Python required.", 'NONE_SPECIFIED'),
+            (4709, "Bachelor's degree in Electrical Engineering or Physics preferred, Python required.", 'BACHELORS_PREFERRED'),
+            (4710, "Bachelor's degree in Accounting or Finance not required.", 'NONE_SPECIFIED'),
+            (4711, "Bachelor's degree in Accounting or Finance, Python required.", 'NONE_SPECIFIED'),
+            (4712, "Bachelor's degree in Electrical Engineering or Physics, and Zorblatt tooling preferred.", 'NONE_SPECIFIED'),
+            (4713, "Bachelor's degree in Xenobiology or Marmalade Studies required.", 'BACHELORS_REQUIRED'),
+        )
+        self._assert_categories_and_matching(examples)
