@@ -23,6 +23,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.company_discovery.public_client import PublicCompanyClient
 from services.discovery.scheduler import schedule_due_sources, source_due_at
+from tests.fixtures.company_dns import owned_resolvers
 from tests.integration.test_greenhouse import RAW
 from tests.integration.test_spine import PROFILE
 from workers.tasks import execute_operation
@@ -283,12 +284,17 @@ class OfficialDomainAcquisitionTests(unittest.TestCase):
 
     def test_candidate_dns_resolving_private_address_is_rejected_before_connect(self):
         request = self._collect()
-        with patch('socket.getaddrinfo', return_value=[(
-                socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, '', ('127.0.0.1', 443))]) as dns, patch(
-                    'socket.socket', side_effect=AssertionError('Private candidate must never connect')) as sockets:
+        private_answers = [(
+            socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP, '', ('127.0.0.1', 443))]
+        # DNS now runs in an isolated, request-owned child. Inject the child's
+        # synthetic answer while retaining the parent-side no-connect guard.
+        with owned_resolvers(answers=private_answers) as resolver, patch(
+                'socket.socket', side_effect=AssertionError(
+                    'Private candidate must never connect')) as sockets:
             outcome = execute_operation(request['operation_id'])
         self.assertEqual(outcome['error_category'], 'ROBOTS_UNAVAILABLE', outcome)
-        dns.assert_called_once()
+        self.assertEqual(len(resolver.processes), 1, 'Expected one owned DNS lookup')
+        resolver.assert_reaped()
         sockets.assert_not_called()
         self.assertEqual(self.store.count('company_domains'), 0)
 
