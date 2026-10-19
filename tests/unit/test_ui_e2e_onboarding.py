@@ -8,6 +8,89 @@ from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_terminal_failure_captures_only_bounded_public_attempt_history(self):
+        operation_id = "a" * 64
+        history = {
+            "profile_id": "private-profile",
+            "application_id": "private-application",
+            "attempts": [
+                {"state": "FAILED", "current_step": "NAVIGATE",
+                 "error_code": "PLAYWRIGHT_TIMEOUT",
+                 "steps": ["NAVIGATE:STARTED", "private-value=secret"]},
+                *[{"state": "CONFIRMED", "current_step": "VERIFY_CONFIRMATION",
+                   "error_code": None, "steps": ["VERIFY_CONFIRMATION:COMPLETED"],
+                   "browser_session": "private-session"} for _ in range(8)],
+            ],
+            "has_more": True,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target, {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}})
+            journal.complete({"action": "Earlier synthetic checks", "result": "PASS"})
+            journal.begin("Submit to local mock")
+            with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {"operation_id": operation_id,
+                                   "state": "DEAD_LETTERED",
+                                   "error_code": "DATABASE_POOL_TIMEOUT"},
+                    "/mock-runs/synthetic-request", operation_id,
+                    attempt_history_reader=lambda: history,
+                )
+            journal.fail(caught.exception)
+            saved = json.loads(target.read_text(encoding="utf-8"))
+        summary = saved["failure"]["terminal_operation"]["attempt_history"]
+        self.assertEqual(saved["checks"][0]["result"], "PASS")
+        self.assertEqual(saved["checks"][1]["result"], "FAIL")
+        self.assertEqual(saved["remaining_state"], "NOT_RUN")
+        self.assertEqual(summary["attempt_count"], 9)
+        self.assertTrue(summary["has_more"])
+        self.assertEqual(len(summary["attempts"]), 5)
+        self.assertEqual(summary["attempts"][0], {
+            "state": "FAILED", "current_step": "NAVIGATE",
+            "error_code": "PLAYWRIGHT_TIMEOUT",
+            "steps": ["NAVIGATE:STARTED"],
+        })
+        encoded = json.dumps(summary)
+        for private in ("private-profile", "private-application", "private-session",
+                        "private-value", "secret"):
+            self.assertNotIn(private, encoded)
+        self.assertLessEqual(len(encoded.encode("utf-8")), ui_e2e._ATTEMPT_HISTORY_MAX_BYTES)
+
+    def test_attempt_history_reader_runs_only_after_terminal_failure(self):
+        calls = []
+        result = ui_e2e.wait_for_mock_run(
+            lambda _path: {"operation_id": "c" * 64, "state": "COMPLETED"},
+            "/mock-runs/synthetic-request", "c" * 64,
+            attempt_history_reader=lambda: calls.append("read"),
+        )
+        self.assertEqual(result["state"], "COMPLETED")
+        self.assertEqual(calls, [])
+
+    def test_attempt_history_capture_fail_closed_and_redacts_untrusted_fields(self):
+        operation_id = "b" * 64
+        for history in (
+            {"attempts": [{"state": "PRIVATE STATE", "current_step": "secret/path",
+                           "error_code": "SECRET_TOKEN", "steps": ["password:secret"]}]},
+            {"attempts": "not-a-list", "profile_id": "private-profile"},
+        ):
+            with self.subTest(history=history), self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {"operation_id": operation_id,
+                                   "state": "DEAD_LETTERED",
+                                   "error_code": "TIMEOUT_UNCLASSIFIED"},
+                    "/mock-runs/synthetic-request", operation_id,
+                    attempt_history_reader=lambda: history,
+                )
+            summary = caught.exception.terminal_summary["attempt_history"]
+            encoded = json.dumps(summary)
+            self.assertNotIn("SECRET_TOKEN", encoded)
+            self.assertNotIn("private-profile", encoded)
+            self.assertNotIn("password", encoded)
+            if summary.get("read_state") == "AVAILABLE" and summary["attempt_count"]:
+                self.assertEqual(summary["attempts"][0]["state"], "UNKNOWN")
+                self.assertNotIn("error_code", summary["attempts"][0])
+
     def test_dead_letter_journal_keeps_safe_terminal_operation_identity(self):
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory) / "evidence.json"

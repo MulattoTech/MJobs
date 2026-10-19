@@ -53,9 +53,71 @@ _APPLICATION_STATES = {
     "SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED",
 }
 _PREFLIGHT_RESULTS = {"PASS", "FAIL", "BLOCKED", "NOT_RUN", "UNKNOWN"}
+_ATTEMPT_STATES = {"RUNNING", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "AUTH_REQUIRED",
+                   "USER_INTERVENTION_REQUIRED", "SUBMISSION_UNCONFIRMED", "CONFIRMED", "FAILED"}
+_ATTEMPT_PHASES = {
+    "NAVIGATE", "DETECT_FORM", "UPLOAD_RESUME", "UPLOAD_SUPPORTING_DOCUMENTS",
+    "FILL_CONTACT", "FILL_LOCATION", "ANSWER_STANDARD", "ANSWER_CUSTOM", "VALIDATE",
+    "SUBMIT", "VERIFY_CONFIRMATION",
+}
+_ATTEMPT_STEP_STATES = {"STARTED", "COMPLETED", "FAILED", "BLOCKED"}
+_SAFE_ATTEMPT_ERROR_CODES = {
+    "APPLICATION_EXECUTION_FAILED", "OPERATION_CANCELLED", "OPERATION_TIMEOUT",
+    "UPLOAD_INTEGRITY_FAILED", "TIMEOUT_UNCLASSIFIED", "DATABASE_POOL_TIMEOUT",
+    "PLAYWRIGHT_TIMEOUT", "REVIEW_REQUIRED", "AUTH_REQUIRED",
+    "USER_INTERVENTION_REQUIRED", "SUBMISSION_UNCONFIRMED",
+    "APPLICATION_REVIEW_REQUIRED", "APPLICATION_AUTH_REQUIRED",
+}
+_ATTEMPT_HISTORY_MAX_ENTRIES = 5
+_ATTEMPT_HISTORY_MAX_STEPS = 20
+_ATTEMPT_HISTORY_MAX_BYTES = 8 * 1024
 
 
-def _terminal_operation_summary(*, operation_id, state, error_code, context):
+def _attempt_history_summary(history):
+    """Project the public history DTO onto a bounded set of fixed safe fields."""
+    if not isinstance(history, dict) or not isinstance(history.get("attempts"), list):
+        return {"read_state": "UNAVAILABLE"}
+    rows = history["attempts"]
+    summary = {
+        "read_state": "AVAILABLE",
+        "attempt_count": min(len(rows), 100),
+        "has_more": history.get("has_more") is True or len(rows) > 100,
+        "truncated": len(rows) > _ATTEMPT_HISTORY_MAX_ENTRIES,
+        "attempts": [],
+    }
+    for row in rows[:_ATTEMPT_HISTORY_MAX_ENTRIES]:
+        if not isinstance(row, dict):
+            continue
+        state = row.get("state")
+        attempt = {"state": state if isinstance(state, str) and state in _ATTEMPT_STATES else "UNKNOWN"}
+        phase = row.get("current_step")
+        if isinstance(phase, str) and phase in _ATTEMPT_PHASES:
+            attempt["current_step"] = phase
+        error_code = row.get("error_code")
+        if error_code is not None:
+            if isinstance(error_code, str) and error_code in _SAFE_ATTEMPT_ERROR_CODES:
+                attempt["error_code"] = error_code
+            else:
+                attempt["error_redacted"] = True
+        safe_steps = []
+        steps = row.get("steps")
+        if isinstance(steps, list):
+            for step in steps[-_ATTEMPT_HISTORY_MAX_STEPS:]:
+                if not isinstance(step, str) or step.count(":") != 1:
+                    continue
+                phase_name, step_state = step.split(":", 1)
+                if phase_name in _ATTEMPT_PHASES and step_state in _ATTEMPT_STEP_STATES:
+                    safe_steps.append(f"{phase_name}:{step_state}")
+        if safe_steps:
+            attempt["steps"] = safe_steps
+        summary["attempts"].append(attempt)
+    encoded = json.dumps(summary, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    if len(encoded) > _ATTEMPT_HISTORY_MAX_BYTES:
+        return {"read_state": "UNAVAILABLE"}
+    return summary
+
+
+def _terminal_operation_summary(*, operation_id, state, error_code, context, attempt_history=None):
     safe_state = state if state in {
         "COMPLETED", "FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED", "UNKNOWN",
     } else "UNKNOWN"
@@ -73,6 +135,8 @@ def _terminal_operation_summary(*, operation_id, state, error_code, context):
         if category is not None:
             summary["error_category"] = category
     if not isinstance(context, dict):
+        if attempt_history is not None:
+            summary["attempt_history"] = _attempt_history_summary(attempt_history)
         return summary
     application_id = context.get("application_id")
     if isinstance(application_id, str) and _SAFE_OPERATION_ID.fullmatch(application_id):
@@ -96,18 +160,20 @@ def _terminal_operation_summary(*, operation_id, state, error_code, context):
         value = context.get(key)
         if isinstance(value, bool):
             summary[key] = value
+    if attempt_history is not None:
+        summary["attempt_history"] = _attempt_history_summary(attempt_history)
     return summary
 
 
 class MockRunTerminalError(RuntimeError):
     """A terminal operation failure with only bounded public identifiers."""
 
-    def __init__(self, *, operation_id, state, error_code, context=None):
+    def __init__(self, *, operation_id, state, error_code, context=None, attempt_history=None):
         safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
         super().__init__(f"mock run did not complete: {safe_state}")
         self.terminal_summary = _terminal_operation_summary(
             operation_id=operation_id, state=safe_state,
-            error_code=error_code, context=context,
+            error_code=error_code, context=context, attempt_history=attempt_history,
         )
 
 
@@ -190,7 +256,8 @@ class EvidenceJournal:
                 temporary.unlink()
 
 
-def wait_for_mock_run(request, path, operation_id, *, failure_context=None, timeout_seconds=210,
+def wait_for_mock_run(request, path, operation_id, *, failure_context=None,
+                      attempt_history_reader=None, timeout_seconds=210,
                       clock=time.monotonic, sleep=time.sleep):
     """Wait for this reviewed intent, without resubmitting or hiding worker failure."""
     deadline = clock() + timeout_seconds
@@ -205,11 +272,18 @@ def wait_for_mock_run(request, path, operation_id, *, failure_context=None, time
         if state not in {"QUEUED", "RUNNING"}:
             # Do not publish arbitrary worker diagnostics or untrusted state text.
             safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
+            attempt_history = None
+            if attempt_history_reader is not None:
+                try:
+                    attempt_history = attempt_history_reader()
+                except Exception:
+                    attempt_history = {"read_state": "UNAVAILABLE"}
             raise MockRunTerminalError(
                 operation_id=operation_id,
                 state=safe_state,
                 error_code=result.get("error_code"),
                 context=failure_context,
+                attempt_history=attempt_history,
             )
         remaining = deadline - clock()
         if remaining <= 0:
@@ -1066,6 +1140,9 @@ def run(base_url, evidence_path, onboarding=False):
                 mock_run_path + "s/" + admitted_intent["requestId"],
                 admitted["operation_id"],
                 failure_context=failure_context,
+                attempt_history_reader=(lambda: request(
+                    f"/profiles/{profile_id}/applications/{identifier}/attempt-history"))
+                if onboarding else None,
             )
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
             confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
