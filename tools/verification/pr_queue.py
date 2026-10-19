@@ -2,6 +2,15 @@
 
 Snapshot input is GitHub REST /pulls data, not gh's display-oriented author shape.
 Offline snapshots and reviewed metadata are trusted operator inputs, not signed proofs.
+
+Existing-PR updates require --live --candidate FILE --metadata FILE --update-pr N.
+The candidate additionally names previous_head_sha, base_repo and base_ref. The
+separate operator review for N binds head_sha (the OLD live head), head_repo,
+head_ref, base_repo, base_ref, owner (AO/session owner), work_id, publisher_id and
+publisher_login, plus reviewed_by/review_reference. Never derive this review from
+PR bodies/labels or candidate assertions. The tool checks consistency, not the
+authenticity of an operator's review or Git ancestry. Recheck immediately before
+an ordinary same-branch push; this read-only check is not an atomic reservation.
 """
 from __future__ import annotations
 
@@ -69,7 +78,56 @@ def classify(pr, metadata):
             "category": entry.get("category") if isinstance(entry.get("category"), str) and entry["category"] in CATEGORIES else "unknown"}
 
 
-def assess(prs, policy, metadata=None, candidate=None):
+def validate_update(open_prs, metadata, candidate, update_pr):
+    """Bind one existing development PR to an independently reviewed owner.
+
+    Only same-repository human-published PRs are supported. Fork/bot updates need
+    a separately reviewed workflow; an update never exempts another PR.
+    """
+    if not positive(update_pr):
+        return ["update requires a positive integer PR number"]
+    if not isinstance(candidate, dict):
+        return ["update requires candidate evidence"]
+    matches = [pr for pr in open_prs if pr.get("number") == update_pr]
+    if len(matches) != 1:
+        return ["update requires exactly one existing open PR"]
+    pr = matches[0]
+    entry = reviewed(pr, metadata)
+    if not entry:
+        return ["update requires separate operator-reviewed metadata at the live old head"]
+    errors = []
+    head = pr.get("head") if isinstance(pr.get("head"), dict) else {}
+    base = pr.get("base") if isinstance(pr.get("base"), dict) else {}
+    actor = pr.get("user") if isinstance(pr.get("user"), dict) else {}
+    if pr.get("merged_at") is not None or pr.get("merged") is True:
+        errors.append("update target must be unmerged")
+    old_sha = candidate.get("previous_head_sha")
+    if not SHA.fullmatch(str(old_sha or "")) or old_sha != head.get("sha"):
+        errors.append("update previous_head_sha must match the live old head")
+    if candidate.get("head_sha") == head.get("sha"):
+        errors.append("update requires a new candidate head")
+    for key in ("owner", "work_id"):
+        if not nonempty(entry.get(key)) or entry[key] != candidate.get(key):
+            errors.append(f"update requires reviewed matching {key}")
+    for name, section in (("head", head), ("base", base)):
+        source = section.get("repo") if isinstance(section.get("repo"), dict) else {}
+        repo_key, ref_key = f"{name}_repo", f"{name}_ref"
+        if any(repository(value) != repository(REPOSITORY) for value in
+               (source.get("full_name"), entry.get(repo_key), candidate.get(repo_key))):
+            errors.append(f"update requires matching same-repository {repo_key}")
+        ref = section.get("ref")
+        if not nonempty(ref) or entry.get(ref_key) != ref or candidate.get(ref_key) != ref:
+            errors.append(f"update requires reviewed matching {ref_key}")
+    if (actor.get("type") != "User" or not positive(actor.get("id"))
+            or not positive(entry.get("publisher_id"))
+            or entry["publisher_id"] != actor.get("id")
+            or not nonempty(actor.get("login"))
+            or entry.get("publisher_login") != actor.get("login")):
+        errors.append("update requires reviewed matching human publisher identity")
+    return errors
+
+
+def assess(prs, policy, metadata=None, candidate=None, *, update_pr=None):
     errors = validate_policy(policy)
     if not isinstance(policy, dict):
         policy = {}
@@ -95,7 +153,13 @@ def assess(prs, policy, metadata=None, candidate=None):
         open_prs.append(pr)
     classified = [(pr, classify(pr, metadata)) for pr in open_prs]
     development = [(pr, info) for pr, info in classified if not info["dependency_automation"]]
-    projected = len(development) + (1 if candidate is not None else 0)
+    validated_update = None
+    if update_pr is not None:
+        update_errors = validate_update(open_prs, metadata, candidate, update_pr)
+        errors.extend(update_errors)
+        if not update_errors:
+            validated_update = update_pr
+    projected = len(development) + (1 if candidate is not None and validated_update is None else 0)
     limit = policy.get("max_active_prs", 32) if isinstance(policy, dict) else 32
     valid_limit = positive(limit)
     capacity = "WARNING" if valid_limit and projected >= limit else "OK"
@@ -120,6 +184,8 @@ def assess(prs, policy, metadata=None, candidate=None):
         if candidate.get("meaningful_change") is not True:
             errors.append("candidate requires reviewed meaningful_change")
         for pr in open_prs:
+            if pr.get("number") == validated_update:
+                continue
             head = pr.get("head") if isinstance(pr.get("head"), dict) else {}
             source = head.get("repo") if isinstance(head.get("repo"), dict) else {}
             source_repo = repository(source.get("full_name"))
@@ -144,7 +210,9 @@ def assess(prs, policy, metadata=None, candidate=None):
             "backlog": [pr.get("number") for pr, _ in development], "conflicts": conflicts,
             "ci": "NOT_QUERIED", "projected_development_open": projected,
             "capacity": capacity, "errors": errors, "allowed": not errors,
-            "publication_checked": candidate is not None}
+            "publication_checked": candidate is not None,
+            "publication_mode": "update" if update_pr is not None else "new" if candidate is not None else "inventory",
+            "validated_update_pr": validated_update}
 
 
 def github_pulls():
@@ -166,14 +234,17 @@ def main():
     source.add_argument("--snapshot", type=Path)
     parser.add_argument("--metadata", type=Path, help="operator-reviewed head-bound metadata")
     parser.add_argument("--candidate", type=Path, help="reviewed publication evidence (never publishes)")
+    parser.add_argument("--update-pr", type=int, help="existing owned PR number; requires live inventory and separate reviewed metadata")
     args = parser.parse_args()
+    if args.update_pr is not None and not (args.live and args.candidate and args.metadata):
+        parser.error("--update-pr requires --live, --candidate and --metadata")
     try:
         read = lambda path: json.loads(path.read_text(encoding="utf-8"))
         candidate = read(args.candidate) if args.candidate else None
         if args.candidate and not isinstance(candidate, dict):
             raise ValueError("candidate must be an object")
         result = assess(github_pulls() if args.live else read(args.snapshot), read(args.queue)["policy"],
-                        read(args.metadata) if args.metadata else {}, candidate)
+                        read(args.metadata) if args.metadata else {}, candidate, update_pr=args.update_pr)
         result["source"] = "authenticated GitHub REST" if args.live else "offline operator snapshot; freshness unverified"
         print(json.dumps(result, indent=2))
         return int(not result["allowed"])

@@ -425,6 +425,7 @@ class RemoteOK:
                 "salary_source": salary["salary_source"],
                 "salary_raw": salary["salary_raw"],
                 "reported_posted_at": reported.isoformat() if reported else None,
+                "reported_posted_at_raw": raw.get("date"),
                 "remote_regions": location_facts["remote_regions"],
                 "remote_indicated": True,
                 "country": location_facts["country"],

@@ -13,6 +13,7 @@ from services.discovery.sources.collect import persist_posting
 from services.discovery.search_semantics import (
     classify_location, normalize_employment_type, normalize_experience_level, normalize_title,
     parse_education_requirement,
+    normalize_reported_timestamp,
 )
 from services.discovery.skill_taxonomy import canonical_skill_id, extract_skills, skill_label
 from services.discovery.requirement_parsers import parse_job_requirements
@@ -264,7 +265,9 @@ def discover(store, mock_origin, profile_id, check=None, profile_version=None, *
                            "salary_period": salary_period, "salary_currency": row.get("salary_currency"),
                            "salary_source": "SOURCE_PROVIDED" if row.get("salary_min") is not None or row.get("salary_max") is not None else "UNKNOWN",
                            "salary_raw": {key: row.get(key) for key in ("salary_min", "salary_max", "salary_currency", "salary_period")},
-                           "reported_posted_at": row.get("reported_posted_at"),
+                           **normalize_reported_timestamp(row.get('reported_posted_at'),
+                               reference_at=now(),
+                               previous=existing_attributes),
                            "first_seen_at": existing_attributes.get("first_seen_at") or now(), "last_seen_at": now(),
                            "remote_regions": location_facts["remote_regions"], "remote_indicated": location_facts["remote_indicated"],
                            "country": location_facts["country"], "state": location_facts["state"], "city": location_facts["city"]}}

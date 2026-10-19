@@ -505,6 +505,7 @@ class WeWorkRemotely:
                 "salary_source": salary["salary_source"],
                 "salary_raw": salary["salary_raw"],
                 "reported_posted_at": reported.isoformat() if reported else None,
+                "reported_posted_at_raw": raw.get("pubDate"),
                 "expires_at": expires_at.isoformat() if expires_at else None,
                 "remote_regions": location_facts["remote_regions"],
                 "remote_indicated": True,

@@ -317,6 +317,7 @@ class Greenhouse:
                     "salary_max": salary["salary_max"], "salary_period": salary["salary_period"],
                     "salary_currency": salary["currency"], "salary_source": salary["salary_source"],
                     "salary_raw": salary["salary_raw"], "reported_posted_at": reported.isoformat() if reported else None,
+                    "reported_posted_at_raw": raw.get("first_published_at") or raw.get("published_at"),
                     "remote_regions": location_facts["remote_regions"],
                     "remote_indicated": location_facts["remote_indicated"], "country": location_facts["country"],
                     "state": location_facts["state"], "city": location_facts["city"],
