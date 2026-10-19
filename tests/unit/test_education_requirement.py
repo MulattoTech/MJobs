@@ -6,6 +6,21 @@ from services.discovery.search_semantics import parse_education_requirement
 
 
 class EducationRequirementTests(unittest.TestCase):
+    def test_typed_clearance_alternatives_are_not_academic_field_lists(self):
+        for field in ('Accounting', 'Asterian Studies'):
+            for clearance in ('security clearance', 'Public Trust', 'Top Secret'):
+                for qualifier in ('required', 'preferred'):
+                    text = "Bachelor's degree in " + field + ' or ' + clearance + ' ' + qualifier
+                    with self.subTest(text=text):
+                        self.assertEqual(parse_education_requirement(text),
+                                         {'classification': 'NONE_SPECIFIED', 'raw': None})
+        for qualifier, category in (('required', 'BACHELORS_REQUIRED'),
+                                    ('preferred', 'BACHELORS_PREFERRED')):
+            text = "Bachelor's degree in Security Studies or Public Trust Administration " + qualifier
+            with self.subTest(academic_phrase=text):
+                self.assertEqual(parse_education_requirement(text),
+                                 {'classification': category, 'raw': text})
+
     def test_explicit_field_lists_outside_fixture_vocabulary_keep_categories(self):
         disciplines = (
             ('Accounting', 'Finance'),
@@ -19,8 +34,10 @@ class EducationRequirementTests(unittest.TestCase):
             for descriptor in ('in ' + left + ' or ' + right,
                                'in ' + left + ' and ' + right,
                                'in ' + left + ' or ' + right + ' or Cygnian Studies',
+                               'in ' + left + ' or ' + right + ', or Cygnian Studies',
                                'in ' + left + ' and ' + right + ', or a related field',
                                '(' + left + ' or ' + right + ')',
+                               '(' + left + ' and ' + right + ', and Cygnian Studies)',
                                '[' + left + ', ' + right + ']',
                                'in ' + left + ' or a related field'):
                 for suffix, category in (

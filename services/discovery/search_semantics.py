@@ -328,12 +328,13 @@ def normalize_title(value):
 def parse_education_requirement(text):
     """Attach strengths to complete degree subjects, not adjacent requirements.
 
-    A small positive field vocabulary disambiguates lists; explicit single-field
-    ``in/of`` descriptors and closed single-field wrappers remain unrestricted.
-    Unknown lists/attachments are unclassified. Never classify a truncated input:
-    the whole input is limited to 65,536 characters, 4096 tokens and eight levels.
+    Explicit ``in/of`` coordination and fully closed field wrappers accept
+    arbitrary discipline names; this is not academic-registry validation.
+    Unknown unwrapped comma-only attachments remain ambiguous. Never classify a
+    truncated input: limits are 65,536 characters, 4096 tokens and eight levels.
     """
     from bisect import bisect_left
+    from services.discovery.requirement_parsers import parse_clearance
 
     value = str(text or "")
     unknown = {"classification": "NONE_SPECIFIED", "raw": None}
@@ -427,13 +428,15 @@ def parse_education_requirement(text):
                     index += 1
             return nodes, index, expected is None
 
-        fields = {('computer', 'science'), ('engineering',), ('mathematics',),
-                  ('systems',), ('networks',), ('networking',)}
+        # Preserve established unmarked/comma-only forms. This fallback is not a
+        # vocabulary gate on explicit coordinated or closed-wrapper subjects.
+        legacy_unmarked_fields = {('computer', 'science'), ('engineering',), ('mathematics',),
+                                  ('systems',), ('networks',), ('networking',)}
         contrasts = {'but', 'however', 'whereas', 'while'}
         punctuation = {',', ';', ':', '—', '–'}
         joins = {',', ';', 'and', 'or', 'and/or'}
 
-        def descriptor_valid(nodes, allow_unknown=False):
+        def descriptor_valid(nodes, allow_unknown=False, introduced_context=False):
             if nodes is None:
                 return False
             nodes = list(nodes)
@@ -443,8 +446,9 @@ def parse_education_requirement(text):
                 nodes.pop()
             while nodes and isinstance(nodes[0], str) and nodes[0] in {',', ':', '—', '–'}:
                 nodes.pop(0)
-            introduced = bool(nodes and nodes[0] in ('in', 'of'))
-            if introduced:
+            local_intro = bool(nodes and nodes[0] in ('in', 'of'))
+            introduced = introduced_context or local_intro
+            if local_intro:
                 nodes.pop(0)
                 if not nodes:
                     return False
@@ -457,7 +461,8 @@ def parse_education_requirement(text):
                     return False
                 children, closed = nodes[0]
                 return bool(children or not closed) and descriptor_valid(
-                    children, allow_unknown=allow_unknown or introduced or closed)
+                    children, allow_unknown=allow_unknown or closed,
+                    introduced_context=introduced)
 
             items, connectors = [[]], []
             for node in nodes:
@@ -479,29 +484,51 @@ def parse_education_requirement(text):
                 if connector not in ([','], [';'], ['and'], ['or'], ['and/or'],
                                       [',', 'and'], [',', 'or'], [',', 'and/or']):
                     return False
-                if coordinated and not explicit:
+                if coordinated and not explicit and not allow_unknown:
                     # An unjoined fresh item after a coordinated subject is
                     # ambiguous, even if that item could itself name a field.
                     return False
                 coordinated = coordinated or explicit
+            tail = items[-1][1:] if items[-1][:1] in (['a'], ['an']) else items[-1]
+            related_tail = tail in (['related', 'field'], ['related', 'discipline'])
+            # Coordination after an explicit field introducer supplies the
+            # subject relationship, without looking discipline names up. A
+            # comma-and fresh subject remains ambiguous; an explicit related
+            # tail can still finish the degree descriptor. Closed wrappers
+            # independently delimit the complete field subject.
+            explicit_list = bool(introduced and connectors) and all(
+                connector in (['and'], ['or'], ['and/or'], [',', 'or'], [',', 'and/or'])
+                or (index == len(connectors) - 1 and related_tail
+                    and connector == [',', 'and'])
+                for index, connector in enumerate(connectors))
+            arbitrary_fields = allow_unknown or explicit_list
             for index, item in enumerate(items):
                 words = []
                 for node in item:
                     if isinstance(node, tuple):
                         children, closed = node
-                        if not words or not children or not descriptor_valid(children, allow_unknown=closed):
+                        if not words or not children or not descriptor_valid(
+                                children, allow_unknown=closed, introduced_context=introduced):
                             return False
                     elif re.fullmatch(r"\w+(?:'\w+)?", node) and node not in contrasts:
                         words.append(node)
                     else:
                         return False
                 phrase = tuple(words)
+                # A complete typed clearance alternative is a separate job
+                # qualification. Reuse that parser instead of maintaining an
+                # unrelated-noun blacklist; longer academic names still attach.
+                phrase_text = ' '.join(words)
+                clearance = parse_clearance(phrase_text)
+                if (clearance['level'] != 'NONE_STATED' and
+                        str(clearance['raw']).casefold() == phrase_text.casefold()):
+                    return False
                 tail = phrase[1:] if phrase[:1] in (('a',), ('an',)) else phrase
                 related = tail in {('related', 'field'), ('related', 'discipline')}
-                known = phrase in fields or related
+                known = phrase in legacy_unmarked_fields or related
                 if related and index != len(items) - 1:
                     return False
-                if not known and not (len(items) == 1 and (allow_unknown or introduced)):
+                if not known and not (arbitrary_fields or (len(items) == 1 and introduced)):
                     return False
             return True
 

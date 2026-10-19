@@ -260,5 +260,7 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
             (4711, "Bachelor's degree in Accounting or Finance, Python required.", 'NONE_SPECIFIED'),
             (4712, "Bachelor's degree in Electrical Engineering or Physics, and Zorblatt tooling preferred.", 'NONE_SPECIFIED'),
             (4713, "Bachelor's degree in Xenobiology or Marmalade Studies required.", 'BACHELORS_REQUIRED'),
+            (4714, "Bachelor's degree in Accounting or security clearance required.", 'NONE_SPECIFIED'),
+            (4715, "Bachelor's degree in Security Studies or Public Trust Administration preferred.", 'BACHELORS_PREFERRED'),
         )
         self._assert_categories_and_matching(examples)
