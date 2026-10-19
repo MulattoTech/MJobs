@@ -18,6 +18,7 @@ from services.company_discovery.monitoring import (configure_monitoring, queue_r
     reserve_request, schedule_company_sources, source_version)
 from services.company_discovery.public_client import PublicCompanyClient, PublicFetchError
 from tests.integration.test_company_monitoring_recovery import MonitoringFixture
+from tests.fixtures.company_dns import owned_resolvers
 from workers.operations import claim, request_cancel
 from workers.tasks import execute_operation
 
@@ -415,41 +416,41 @@ class MonitoringTransportWaitTests(unittest.TestCase):
                         thread.join(2)
                         client.close()
 
-    def test_owned_pending_dns_future_releases_capacity_after_cancel(self):
-        from concurrent.futures import ThreadPoolExecutor
+    def test_owned_pending_dns_process_releases_capacity_after_cancel(self):
         from workers.operations import OperationCancelled
-        entered, release, cancelled = threading.Event(), threading.Event(), threading.Event()
-        slots = threading.BoundedSemaphore(1)
+        from services.company_discovery import public_client
+        cancelled = threading.Event()
         errors = []
         def check():
             if cancelled.is_set():
                 raise OperationCancelled()
-        def lookup(*_args, **_kwargs):
-            entered.set()
-            if not release.wait(3):
-                raise AssertionError('owned resolver not released')
-            return []
         client = PublicCompanyClient('https://employer.example', check=check, policy=MonitoringPolicy(request_timeout=2))
         def run():
             try:
                 client._resolve('employer.example', 443)
             except BaseException as error:
                 errors.append(error)
-        with ThreadPoolExecutor(max_workers=1) as executor, patch(
-                'services.company_discovery.public_client._DNS_EXECUTOR', executor), patch(
-                'services.company_discovery.public_client._DNS_SLOTS', slots), patch(
-                'services.company_discovery.public_client.socket.getaddrinfo', lookup):
+        with owned_resolvers(stall_prefix='employer.example') as lookup:
             thread = threading.Thread(target=run)
             thread.start()
             try:
-                self.assertTrue(entered.wait(2))
+                self.assertTrue(lookup.wait_started(1))
                 cancelled.set()
                 thread.join(1)
                 self.assertFalse(thread.is_alive())
                 self.assertIsInstance(errors[0], OperationCancelled)
+                lookup.assert_reaped()
+                # Native DNS never finishes voluntarily: cancellation must
+                # reap its process and reclaim capacity before returning.
+                acquired = []
+                try:
+                    for _ in range(4):
+                        self.assertTrue(public_client._DNS_SLOTS.acquire(blocking=False))
+                        acquired.append(True)
+                finally:
+                    for _ in acquired:
+                        public_client._DNS_SLOTS.release()
             finally:
-                release.set()
+                cancelled.set()
                 thread.join(3)
                 client.close()
-        self.assertTrue(slots.acquire(blocking=False), 'finished native lookup returns its bounded slot')
-        slots.release()
