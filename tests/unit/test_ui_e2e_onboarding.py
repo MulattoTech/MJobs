@@ -8,6 +8,30 @@ from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_terminal_application_readback_requires_exact_profile_and_application(self):
+        current = {
+            "id": "application-1",
+            "profile_id": "profile-1",
+            "state": "SUBMISSION_UNCONFIRMED",
+            "profile_version": "a" * 64,
+            "document_version": 6,
+            "private_payload": "must not be copied",
+        }
+        projected = ui_e2e._terminal_application_context(
+            current, profile_id="profile-1", application_id="application-1")
+        self.assertEqual(projected, {
+            "read_state": "CURRENT",
+            "application_state": "SUBMISSION_UNCONFIRMED",
+            "profile_version": "a" * 64,
+            "document_version": 6,
+        })
+        self.assertEqual(ui_e2e._terminal_application_context(
+            current, profile_id="other-profile", application_id="application-1"),
+            {"read_state": "MISMATCH"})
+        self.assertEqual(ui_e2e._terminal_application_context(
+            current, profile_id="profile-1", application_id="other-application"),
+            {"read_state": "MISMATCH"})
+
     def test_terminal_failure_captures_only_bounded_public_attempt_history(self):
         operation_id = "a" * 64
         history = {
@@ -66,6 +90,53 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
         )
         self.assertEqual(result["state"], "COMPLETED")
         self.assertEqual(calls, [])
+
+    def test_terminal_failure_uses_fresh_application_state_readback(self):
+        operation_id = "c" * 64
+        with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+            ui_e2e.wait_for_mock_run(
+                lambda _path: {
+                    "operation_id": operation_id,
+                    "state": "DEAD_LETTERED",
+                    "error_code": "PLAYWRIGHT_TIMEOUT",
+                },
+                "/mock-runs/synthetic-request",
+                operation_id,
+                failure_context={
+                    "application_id": "a" * 64,
+                    "application_state": "DRY_RUN_COMPLETE",
+                    "expected_document_version": 6,
+                },
+                failure_context_reader=lambda: {
+                    "read_state": "CURRENT",
+                    "application_state": "SUBMISSION_UNCONFIRMED",
+                    "document_version": 6,
+                },
+            )
+
+        summary = caught.exception.terminal_summary
+        self.assertEqual(summary["application_read_state"], "CURRENT")
+        self.assertEqual(summary["application_state"], "SUBMISSION_UNCONFIRMED")
+        self.assertEqual(summary["expected_document_version"], 6)
+
+    def test_failed_current_application_readback_does_not_reuse_old_state(self):
+        operation_id = "d" * 64
+        with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+            ui_e2e.wait_for_mock_run(
+                lambda _path: {
+                    "operation_id": operation_id,
+                    "state": "DEAD_LETTERED",
+                    "error_code": "PLAYWRIGHT_TIMEOUT",
+                },
+                "/mock-runs/synthetic-request",
+                operation_id,
+                failure_context={"application_state": "DRY_RUN_COMPLETE"},
+                failure_context_reader=lambda: {"read_state": "MISMATCH"},
+            )
+
+        summary = caught.exception.terminal_summary
+        self.assertEqual(summary["application_read_state"], "MISMATCH")
+        self.assertNotIn("application_state", summary)
 
     def test_attempt_history_capture_fail_closed_and_redacts_untrusted_fields(self):
         operation_id = "b" * 64
@@ -140,7 +211,7 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
                 "error_redacted": False,
                 "expected_profile_version": "d" * 64,
                 "expected_document_version": 7,
-                "application_state": "PREPARED",
+                "application_read_state": "UNAVAILABLE",
                 "preflight_result": "PASS",
                 "preflight_is_current": False,
                 "submit": False,
@@ -245,6 +316,7 @@ class UIE2EOnboardingGuardTests(unittest.TestCase):
                 "operation_id": operation_id,
                 "error_present": True,
                 "error_redacted": True,
+                "application_read_state": "UNAVAILABLE",
             })
 
     def test_partial_evidence_keeps_completed_checks_and_sanitizes_injected_failure(self):

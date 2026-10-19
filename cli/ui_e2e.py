@@ -52,6 +52,7 @@ _APPLICATION_STATES = {
     "PREPARED", "REVIEW_REQUIRED", "AUTH_REQUIRED", "DRY_RUN_COMPLETE",
     "SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED",
 }
+REVIEWED_FIXTURE_ANSWER = "Controlled fictional test application."
 _PREFLIGHT_RESULTS = {"PASS", "FAIL", "BLOCKED", "NOT_RUN", "UNKNOWN"}
 _ATTEMPT_STATES = {"RUNNING", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "AUTH_REQUIRED",
                    "USER_INTERVENTION_REQUIRED", "SUBMISSION_UNCONFIRMED", "CONFIRMED", "FAILED"}
@@ -71,6 +72,7 @@ _SAFE_ATTEMPT_ERROR_CODES = {
 _ATTEMPT_HISTORY_MAX_ENTRIES = 5
 _ATTEMPT_HISTORY_MAX_STEPS = 20
 _ATTEMPT_HISTORY_MAX_BYTES = 8 * 1024
+_APPLICATION_READ_STATES = {"CURRENT", "UNAVAILABLE", "MISMATCH"}
 
 
 def _attempt_history_summary(history):
@@ -117,7 +119,22 @@ def _attempt_history_summary(history):
     return summary
 
 
-def _terminal_operation_summary(*, operation_id, state, error_code, context, attempt_history=None):
+def _terminal_application_context(application, *, profile_id, application_id):
+    """Project a post-terminal application read only when its ownership matches."""
+    if (not isinstance(application, dict)
+            or application.get("id") != application_id
+            or application.get("profile_id") != profile_id):
+        return {"read_state": "MISMATCH"}
+    return {
+        "read_state": "CURRENT",
+        "application_state": application.get("state"),
+        "profile_version": application.get("profile_version"),
+        "document_version": application.get("document_version"),
+    }
+
+
+def _terminal_operation_summary(*, operation_id, state, error_code, context,
+                                terminal_context=None, attempt_history=None):
     safe_state = state if state in {
         "COMPLETED", "FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED", "UNKNOWN",
     } else "UNKNOWN"
@@ -135,9 +152,7 @@ def _terminal_operation_summary(*, operation_id, state, error_code, context, att
         if category is not None:
             summary["error_category"] = category
     if not isinstance(context, dict):
-        if attempt_history is not None:
-            summary["attempt_history"] = _attempt_history_summary(attempt_history)
-        return summary
+        context = {}
     application_id = context.get("application_id")
     if isinstance(application_id, str) and _SAFE_OPERATION_ID.fullmatch(application_id):
         summary["application_id"] = application_id
@@ -150,9 +165,6 @@ def _terminal_operation_summary(*, operation_id, state, error_code, context, att
     document_version = context.get("expected_document_version")
     if isinstance(document_version, int) and not isinstance(document_version, bool) and document_version >= 0:
         summary["expected_document_version"] = document_version
-    application_state = context.get("application_state")
-    if isinstance(application_state, str) and application_state in _APPLICATION_STATES:
-        summary["application_state"] = application_state
     preflight_result = context.get("preflight_result")
     if isinstance(preflight_result, str) and preflight_result in _PREFLIGHT_RESULTS:
         summary["preflight_result"] = preflight_result
@@ -160,6 +172,20 @@ def _terminal_operation_summary(*, operation_id, state, error_code, context, att
         value = context.get(key)
         if isinstance(value, bool):
             summary[key] = value
+    read_state = terminal_context.get("read_state") if isinstance(terminal_context, dict) else None
+    if not isinstance(read_state, str) or read_state not in _APPLICATION_READ_STATES:
+        read_state = "UNAVAILABLE"
+    summary["application_read_state"] = read_state
+    if read_state == "CURRENT":
+        application_state = terminal_context.get("application_state")
+        if isinstance(application_state, str) and application_state in _APPLICATION_STATES:
+            summary["application_state"] = application_state
+        current_profile_version = terminal_context.get("profile_version")
+        if isinstance(current_profile_version, str) and _SAFE_OPERATION_ID.fullmatch(current_profile_version):
+            summary["current_profile_version"] = current_profile_version
+        current_document_version = terminal_context.get("document_version")
+        if isinstance(current_document_version, int) and not isinstance(current_document_version, bool) and current_document_version >= 0:
+            summary["current_document_version"] = current_document_version
     if attempt_history is not None:
         summary["attempt_history"] = _attempt_history_summary(attempt_history)
     return summary
@@ -168,12 +194,14 @@ def _terminal_operation_summary(*, operation_id, state, error_code, context, att
 class MockRunTerminalError(RuntimeError):
     """A terminal operation failure with only bounded public identifiers."""
 
-    def __init__(self, *, operation_id, state, error_code, context=None, attempt_history=None):
+    def __init__(self, *, operation_id, state, error_code, context=None,
+                 terminal_context=None, attempt_history=None):
         safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
         super().__init__(f"mock run did not complete: {safe_state}")
         self.terminal_summary = _terminal_operation_summary(
             operation_id=operation_id, state=safe_state,
-            error_code=error_code, context=context, attempt_history=attempt_history,
+            error_code=error_code, context=context, terminal_context=terminal_context,
+            attempt_history=attempt_history,
         )
 
 
@@ -257,7 +285,7 @@ class EvidenceJournal:
 
 
 def wait_for_mock_run(request, path, operation_id, *, failure_context=None,
-                      attempt_history_reader=None, timeout_seconds=210,
+                      failure_context_reader=None, attempt_history_reader=None, timeout_seconds=210,
                       clock=time.monotonic, sleep=time.sleep):
     """Wait for this reviewed intent, without resubmitting or hiding worker failure."""
     deadline = clock() + timeout_seconds
@@ -278,11 +306,18 @@ def wait_for_mock_run(request, path, operation_id, *, failure_context=None,
                     attempt_history = attempt_history_reader()
                 except Exception:
                     attempt_history = {"read_state": "UNAVAILABLE"}
+            terminal_context = None
+            if failure_context_reader is not None:
+                try:
+                    terminal_context = failure_context_reader()
+                except Exception:
+                    terminal_context = {"read_state": "UNAVAILABLE"}
             raise MockRunTerminalError(
                 operation_id=operation_id,
                 state=safe_state,
                 error_code=result.get("error_code"),
                 context=failure_context,
+                terminal_context=terminal_context,
                 attempt_history=attempt_history,
             )
         remaining = deadline - clock()
@@ -1023,7 +1058,7 @@ def run(base_url, evidence_path, onboarding=False):
                 answer_group = page.get_by_role("region", name="Application answers", exact=True).get_by_role(
                     "group", name="Question 1")
                 answer_group.get_by_role("textbox", name="Answer", exact=True).fill(
-                    "Controlled fictional test application, reviewed for this job.")
+                    REVIEWED_FIXTURE_ANSWER)
                 answer_group.get_by_label("I reviewed this exact answer for this job", exact=True).check()
                 answer_group.get_by_role("button", name="Save to Answer Bank", exact=True).click()
                 answer_confirmation = answer_bank_confirmation_locator(answer_group, 1)
@@ -1038,7 +1073,7 @@ def run(base_url, evidence_path, onboarding=False):
                 updated_profile = request("/profiles/" + profile_id)
                 reviewed_answer = next(row for row in updated_profile["answers"]
                                        if row["question"] == "Approved fixture answer")
-                assert reviewed_answer["text"] == "Controlled fictional test application, reviewed for this job."
+                assert reviewed_answer["text"] == REVIEWED_FIXTURE_ANSWER
                 assert reviewed_answer["verified"] and reviewed_answer["user_approved"]
                 old_pins = request("/profiles/" + profile_id + "/applications/" + identifier)
                 assert old_pins["profile_version"] == previous_profile["version"]
@@ -1130,16 +1165,22 @@ def run(base_url, evidence_path, onboarding=False):
                 "request_id": admitted_intent.get("requestId"),
                 "expected_profile_version": dry.get("profile_version"),
                 "expected_document_version": dry.get("document_version"),
-                "application_state": dry.get("state"),
                 "preflight_result": (dry.get("question_preflight") or {}).get("result"),
                 "preflight_is_current": (dry.get("question_preflight") or {}).get("is_current"),
                 "submit": admitted_intent.get("submit"),
             }
+
+            def read_current_failure_context():
+                current = request(f"/profiles/{profile_id}/applications/{identifier}")
+                return _terminal_application_context(
+                    current, profile_id=profile_id, application_id=identifier)
+
             wait_for_mock_run(
                 request,
                 mock_run_path + "s/" + admitted_intent["requestId"],
                 admitted["operation_id"],
                 failure_context=failure_context,
+                failure_context_reader=read_current_failure_context,
                 attempt_history_reader=(lambda: request(
                     f"/profiles/{profile_id}/applications/{identifier}/attempt-history"))
                 if onboarding else None,
