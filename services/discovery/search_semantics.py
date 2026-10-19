@@ -331,7 +331,7 @@ def parse_education_requirement(text):
     A small positive field vocabulary disambiguates lists; explicit single-field
     ``in/of`` descriptors and closed single-field wrappers remain unrestricted.
     Unknown lists/attachments are unclassified. Never classify a truncated input:
-    the whole input is limited to 64 KiB, 4096 tokens and eight bracket levels.
+    the whole input is limited to 65,536 characters, 4096 tokens and eight levels.
     """
     from bisect import bisect_left
 
