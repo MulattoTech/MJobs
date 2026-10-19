@@ -1,4 +1,5 @@
 """Bounded, evidence-only checks for sampled public application links."""
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from dataclasses import dataclass, replace
 from datetime import datetime, timezone
 import hashlib
@@ -183,6 +184,49 @@ def sample_feed_links(items, strategy, endpoint, client, *, at=None, check=None)
         accepted[feed.external_key] = feed
     selected = sorted(accepted.values(), key=lambda feed: hashlib.sha256(
         f"{reference.date().isoformat()}:{feed.external_key}:{feed.raw_sha256}".encode()).hexdigest())[:MAX_SAMPLE]
+    concurrency = min(MAX_SAMPLE, getattr(client, 'concurrency', 1))
+    if concurrency == 1:
+        return _sample_selected(selected, endpoint, client, reference, fixed_observed, check)
+    # Only link probes fan out. Imports and the terminal receipt remain serial.
+    reports = {}
+    pending = {}
+    cursor = 0
+    halted = False
+    executor = ThreadPoolExecutor(max_workers=concurrency, thread_name_prefix='mjobs-monitor-link')
+    try:
+        while pending or cursor < len(selected):
+            check()
+            while not halted and cursor < len(selected) and len(pending) < concurrency:
+                future = executor.submit(_sample_selected, [selected[cursor]], endpoint, client,
+                                         reference, fixed_observed, check)
+                pending[future] = cursor
+                cursor += 1
+            if not pending:
+                break
+            ready, _ = wait(pending, timeout=.05, return_when=FIRST_COMPLETED)
+            for future in ready:
+                index = pending.pop(future)
+                reports[index] = future.result()[0]
+                halted = halted or reports[index].reason == 'PUBLIC_FETCH_BLOCKED'
+        for index in range(cursor, len(selected)):
+            feed = selected[index]
+            reports[index] = _report(feed, endpoint, fixed_observed or _time(None).isoformat(),
+                final_url=None, result='UNKNOWN', reason='PUBLIC_FETCH_BLOCKED', response_status=None,
+                response_sha256=None, identity_evidence=(*_evidence(), 'Sampling UTC day: ' + reference.date().isoformat()))
+        return [reports[index] for index in range(len(selected))]
+    except BaseException:
+        # Close only this operation's client, unblock owned sockets/limiter waits,
+        # then join every submitted probe before any caller can save a receipt.
+        client.close()
+        for future in pending:
+            future.cancel()
+        raise
+    finally:
+        executor.shutdown(wait=True, cancel_futures=True)
+
+
+def _sample_selected(selected, endpoint, client, reference, fixed_observed, check):
+    endpoint_origin = _origin(endpoint)
     reports = []
     halted = None
     for feed in selected:
@@ -212,6 +256,8 @@ def sample_feed_links(items, strategy, endpoint, client, *, at=None, check=None)
                 halted = "PUBLIC_FETCH_BLOCKED"
             continue
         except PublicFetchError as error:
+            if error.code == 'MONITOR_RATE_DEFERRED':
+                raise
             observed = fixed_observed or _time(None).isoformat()
             reports.append(_report(feed, endpoint, observed, final_url=None, result="UNKNOWN",
                                    reason="PUBLIC_FETCH_BLOCKED", response_status=None, response_sha256=None,
