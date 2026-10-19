@@ -2,7 +2,7 @@
 import base64
 import copy
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import select
@@ -12,6 +12,7 @@ import time
 from unittest.mock import patch
 
 import httpx
+import pytest
 from fastapi.testclient import TestClient
 
 from apps.api.main import create_app
@@ -178,7 +179,8 @@ def api_client(store, root):
                                 "redis://127.0.0.1:1/0", operation_mode="PERSONAL"))
 
 
-def test_actual_socket_probe_outcomes_persist_after_api_and_sqlite_reopen(caplog):
+@pytest.mark.parametrize("setup_delay", [0, .3])
+def test_actual_socket_probe_outcomes_persist_after_api_and_sqlite_reopen(caplog, setup_delay):
     with profile_api() as (root, url, store):
         for mode, status, expected in (("body", 200, None),
                                        ("body", 401, "CREDENTIAL_REJECTED"),
@@ -188,19 +190,38 @@ def test_actual_socket_probe_outcomes_persist_after_api_and_sqlite_reopen(caplog
                                    json={"secret": SECRET})
                 assert saved.status_code == 200
 
-                def invoke(provider, secret):
-                    return PROBE(provider, secret, client_factory=server.client_factory)
+                def client_factory(**kwargs):
+                    # Deterministically exercise cold client/CA setup latency.
+                    time.sleep(setup_delay)
+                    return server.client_factory(**kwargs)
 
-                # Reduced budget for this API repetition; the separate socket
-                # test above executes the unmodified production eight-second cap.
-                with patch.object(connection, "_PROBE_TIMEOUT_SECONDS", .25, create=True), \
-                        patch.object(connection, "test_provider_connection", side_effect=invoke):
+                with ExitStack() as controls:
+                    selected_factory = client_factory
+                    assert connection._PROBE_TIMEOUT_SECONDS == 8.0
+                    if mode == "headers":
+                        # Only the deliberate network-timeout negative gets a
+                        # short budget. Finish cold CA/client setup first so it
+                        # cannot satisfy this oracle without touching a socket.
+                        prepared = client_factory(
+                            trust_env=False, timeout=httpx.Timeout(8.0), follow_redirects=False)
+                        controls.callback(prepared.close)
+                        selected_factory = lambda **_kwargs: prepared
+                        controls.enter_context(patch.object(connection, "_PROBE_TIMEOUT_SECONDS", .25))
+                    # Positive/rejected API cases use the production eight-second
+                    # budget, including client initialization. The independent
+                    # default-cap socket test still executes that actual deadline.
+                    def invoke(provider, secret):
+                        return PROBE(provider, secret, client_factory=selected_factory)
+
+                    controls.enter_context(patch.object(
+                        connection, "test_provider_connection", side_effect=invoke))
                     response = client.post("/profiles/fixture/provider-credentials/openai/test")
                 assert response.status_code == 200
                 result = response.json()
                 assert result["code"] == expected
                 assert result["status"] == ("CONNECTED" if expected is None else "FAILED")
                 assert result["last_tested_at"]
+                assert server.started.is_set(), "Outcome must exercise actual response headers"
                 assert_clean(result, server)
             store.engine.dispose()
             reopened = Store(url)
