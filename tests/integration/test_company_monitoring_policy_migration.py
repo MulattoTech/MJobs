@@ -43,7 +43,7 @@ class CompanyMonitoringPolicyMigrationTests(unittest.TestCase):
                     connection.execute(m.operations.insert().values(id='finished-refresh',kind='COMPANY_SOURCE_REFRESH',
                         entity_id='source',params={},state='COMPLETED',updated_at='2026-10-18T12:00:00Z'))
                     connection.execute(text("INSERT INTO company_source_monitoring "
-                        "(id,source_id,source_snapshot,authorization,domain_evidence,revision,poll_interval,status,"
+                        '(id,source_id,source_snapshot,"authorization",domain_evidence,revision,poll_interval,status,'
                         "next_due,last_attempt,operation_id,completed_operation_id,created_at,updated_at) VALUES "
                         "('monitor','source','{}','USER_REVIEWED','[]',7,604800,'HEALTHY','2026-10-25T12:00:00Z',"
                         "'2026-10-18T12:00:00Z','finished-refresh','finished-refresh',"
