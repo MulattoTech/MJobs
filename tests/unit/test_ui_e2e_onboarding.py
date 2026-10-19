@@ -8,6 +8,101 @@ from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_dead_letter_journal_keeps_safe_terminal_operation_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Run dry-run")
+            operation_id = "a" * 64
+            with self.assertRaises(RuntimeError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {
+                        "operation_id": operation_id,
+                        "state": "DEAD_LETTERED",
+                        "error_code": "APPLICATION_REVIEW_REQUIRED",
+                    },
+                    "/mock-runs/request-1",
+                    operation_id,
+                    failure_context={
+                        "application_id": "c" * 64,
+                        "request_id": "synthetic-request-1",
+                        "expected_profile_version": "d" * 64,
+                        "expected_document_version": 7,
+                        "application_state": "PREPARED",
+                        "preflight_result": "PASS",
+                        "preflight_is_current": False,
+                        "submit": False,
+                        "profile_text": "must never be included",
+                    },
+                )
+
+            journal.fail(caught.exception)
+            saved = json.loads(target.read_text(encoding="utf-8"))
+            self.assertEqual(saved["overall_state"], "FAIL")
+            self.assertEqual(saved["remaining_state"], "NOT_RUN")
+            self.assertEqual(saved["checks"], [
+                {"action": "Run dry-run", "result": "FAIL"},
+            ])
+            self.assertEqual(saved["failure"]["terminal_operation"], {
+                "kind": "APPLY_MOCK",
+                "operation_id": operation_id,
+                "application_id": "c" * 64,
+                "request_id": "synthetic-request-1",
+                "state": "DEAD_LETTERED",
+                "error_code": "APPLICATION_REVIEW_REQUIRED",
+                "expected_profile_version": "d" * 64,
+                "expected_document_version": 7,
+                "application_state": "PREPARED",
+                "preflight_result": "PASS",
+                "preflight_is_current": False,
+                "submit": False,
+            })
+            self.assertNotIn("must never be included", target.read_text(encoding="utf-8"))
+
+    def test_dead_letter_journal_drops_untrusted_error_code_text(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Run dry-run")
+            operation_id = "b" * 64
+            with self.assertRaises(RuntimeError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {
+                        "operation_id": operation_id,
+                        "state": "DEAD_LETTERED",
+                        "error_code": "private synthetic payload",
+                    },
+                    "/mock-runs/request-2",
+                    operation_id,
+                    failure_context={
+                        "application_id": "not-a-synthetic-id",
+                        "request_id": "private synthetic payload",
+                        "expected_profile_version": "untrusted version",
+                        "expected_document_version": "7",
+                        "application_state": "private synthetic payload",
+                        "preflight_result": "private synthetic payload",
+                        "preflight_is_current": "yes",
+                        "submit": "true",
+                    },
+                )
+
+            journal.fail(caught.exception)
+            encoded = target.read_text(encoding="utf-8")
+            saved = json.loads(encoded)
+            self.assertNotIn("error_code", saved["failure"])
+            self.assertNotIn("private synthetic payload", encoded)
+            self.assertEqual(saved["failure"]["terminal_operation"], {
+                "kind": "APPLY_MOCK",
+                "state": "DEAD_LETTERED",
+                "operation_id": operation_id,
+            })
+
     def test_partial_evidence_keeps_completed_checks_and_sanitizes_injected_failure(self):
         with tempfile.TemporaryDirectory() as directory:
             target = Path(directory) / "evidence.json"

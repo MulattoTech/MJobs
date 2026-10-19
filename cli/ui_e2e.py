@@ -7,6 +7,7 @@ import ipaddress
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -21,6 +22,64 @@ from reportlab.pdfgen import canvas
 from cli.live_feedback import capture_redacted_screenshot
 from cli.compose_recovery import collect_public_job_inventory
 from cli import local_persistence_acceptance as persistence
+
+
+_SAFE_OPERATION_ID = re.compile(r"[a-f0-9]{64}\Z")
+_SAFE_OPERATION_ERROR = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
+_SAFE_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
+_APPLICATION_STATES = {
+    "PREPARED", "REVIEW_REQUIRED", "AUTH_REQUIRED", "DRY_RUN_COMPLETE",
+    "SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED",
+}
+_PREFLIGHT_RESULTS = {"PASS", "FAIL", "BLOCKED", "NOT_RUN", "UNKNOWN"}
+
+
+def _terminal_operation_summary(*, operation_id, state, error_code, context):
+    safe_state = state if state in {
+        "COMPLETED", "FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED", "UNKNOWN",
+    } else "UNKNOWN"
+    summary = {"kind": "APPLY_MOCK", "state": safe_state}
+    if isinstance(operation_id, str) and _SAFE_OPERATION_ID.fullmatch(operation_id):
+        summary["operation_id"] = operation_id
+    if isinstance(error_code, str) and _SAFE_OPERATION_ERROR.fullmatch(error_code):
+        summary["error_code"] = error_code
+    if not isinstance(context, dict):
+        return summary
+    application_id = context.get("application_id")
+    if isinstance(application_id, str) and _SAFE_OPERATION_ID.fullmatch(application_id):
+        summary["application_id"] = application_id
+    request_id = context.get("request_id")
+    if isinstance(request_id, str) and _SAFE_REQUEST_ID.fullmatch(request_id):
+        summary["request_id"] = request_id
+    profile_version = context.get("expected_profile_version")
+    if isinstance(profile_version, str) and _SAFE_OPERATION_ID.fullmatch(profile_version):
+        summary["expected_profile_version"] = profile_version
+    document_version = context.get("expected_document_version")
+    if isinstance(document_version, int) and not isinstance(document_version, bool) and document_version >= 0:
+        summary["expected_document_version"] = document_version
+    application_state = context.get("application_state")
+    if isinstance(application_state, str) and application_state in _APPLICATION_STATES:
+        summary["application_state"] = application_state
+    preflight_result = context.get("preflight_result")
+    if isinstance(preflight_result, str) and preflight_result in _PREFLIGHT_RESULTS:
+        summary["preflight_result"] = preflight_result
+    for key in ("preflight_is_current", "submit"):
+        value = context.get(key)
+        if isinstance(value, bool):
+            summary[key] = value
+    return summary
+
+
+class MockRunTerminalError(RuntimeError):
+    """A terminal operation failure with only bounded public identifiers."""
+
+    def __init__(self, *, operation_id, state, error_code, context=None):
+        safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
+        super().__init__(f"mock run did not complete: {safe_state}")
+        self.terminal_summary = _terminal_operation_summary(
+            operation_id=operation_id, state=safe_state,
+            error_code=error_code, context=context,
+        )
 
 
 class EvidenceJournal:
@@ -57,6 +116,8 @@ class EvidenceJournal:
         stage = (self.attempted or {}).get("action", "Connected UI workflow")
         self.attempted = {"action": stage, "result": "FAIL"}
         self.failure = {"type": type(error).__name__, "stage": stage}
+        if isinstance(error, MockRunTerminalError):
+            self.failure["terminal_operation"] = error.terminal_summary
         self.overall_state = "FAIL"
         self.remaining_state = "NOT_RUN"
         self.persist()
@@ -100,7 +161,7 @@ class EvidenceJournal:
                 temporary.unlink()
 
 
-def wait_for_mock_run(request, path, operation_id, *, timeout_seconds=210,
+def wait_for_mock_run(request, path, operation_id, *, failure_context=None, timeout_seconds=210,
                       clock=time.monotonic, sleep=time.sleep):
     """Wait for this reviewed intent, without resubmitting or hiding worker failure."""
     deadline = clock() + timeout_seconds
@@ -108,13 +169,19 @@ def wait_for_mock_run(request, path, operation_id, *, timeout_seconds=210,
         result = request(path)
         if result.get("operation_id") != operation_id:
             raise RuntimeError("mock run identity changed")
-        state = result.get("state")
+        state_value = result.get("state")
+        state = state_value if isinstance(state_value, str) else "UNKNOWN"
         if state == "COMPLETED":
             return result
         if state not in {"QUEUED", "RUNNING"}:
             # Do not publish arbitrary worker diagnostics or untrusted state text.
             safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
-            raise RuntimeError(f"mock run did not complete: {safe_state}")
+            raise MockRunTerminalError(
+                operation_id=operation_id,
+                state=safe_state,
+                error_code=result.get("error_code"),
+                context=failure_context,
+            )
         remaining = deadline - clock()
         if remaining <= 0:
             raise TimeoutError(f"mock run completion timed out: {state}")
@@ -949,13 +1016,28 @@ def run(base_url, evidence_path, onboarding=False):
             mock_run_path = f"/profiles/{profile_id}/applications/{identifier}/mock-run"
             with page.expect_response(lambda response: response.request.method == "POST"
                                       and response.url == base_url + mock_run_path) as admission:
+                journal.begin("Submit to local mock")
                 page.get_by_role("button", name="Submit to local mock", exact=True).click()
             assert admission.value.status == 202
             admitted = admission.value.json()
             admitted_intent = page.evaluate("([profile, application]) => JSON.parse(localStorage.getItem('mjobs-mock-run-v1:' + encodeURIComponent(profile) + ':' + encodeURIComponent(application)))", [profile_id, identifier])
             assert admitted_intent["submit"] is True
-            wait_for_mock_run(request, mock_run_path + "s/" + admitted_intent["requestId"],
-                              admitted["operation_id"])
+            failure_context = {
+                "application_id": identifier,
+                "request_id": admitted_intent.get("requestId"),
+                "expected_profile_version": dry.get("profile_version"),
+                "expected_document_version": dry.get("document_version"),
+                "application_state": dry.get("state"),
+                "preflight_result": (dry.get("question_preflight") or {}).get("result"),
+                "preflight_is_current": (dry.get("question_preflight") or {}).get("is_current"),
+                "submit": admitted_intent.get("submit"),
+            }
+            wait_for_mock_run(
+                request,
+                mock_run_path + "s/" + admitted_intent["requestId"],
+                admitted["operation_id"],
+                failure_context=failure_context,
+            )
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
             confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert confirmed["target"] == "MOCK" and confirmed["confirmation"]["submission_count"] == 1

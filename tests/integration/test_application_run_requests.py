@@ -1,5 +1,6 @@
 """Durable user run admission: no browser, queue server, or external provider."""
 from concurrent.futures import ThreadPoolExecutor
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -8,6 +9,7 @@ from unittest.mock import patch
 from fastapi.testclient import TestClient
 from sqlalchemy import select, update
 
+from cli import ui_e2e
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
@@ -150,6 +152,67 @@ class ApplicationRunRequestTests(unittest.TestCase):
             self.assertEqual(client.get(endpoint + "s/unknown").status_code, 404)
             self.assertEqual(client.post(endpoint, json={"submit": False, "request_id": "bad id"}).status_code, 422)
         self.assertEqual(self.store.count("worker_operations"), 1)
+
+    def test_terminal_public_run_receipt_is_journaled_with_allowlisted_context(self):
+        queued = self.queue(request="diagnostic-run")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == queued["operation_id"]).values(
+                    state="DEAD_LETTERED", error="RETRY_LIMIT"))
+
+        app = create_app(self.store, "http://127.0.0.1:8090", self.root, operation_mode="FIXTURE")
+        endpoint = f"/profiles/fixture/applications/{self.app_id}/mock-runs/diagnostic-run"
+        journal_path = self.root / "terminal-evidence.json"
+        journal = ui_e2e.EvidenceJournal(
+            journal_path,
+            {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "fixture-source"}},
+        )
+        journal.begin("Run dry-run")
+        with TestClient(app) as client:
+            response = client.get(endpoint)
+            self.assertEqual(response.status_code, 200, response.text)
+            self.assertEqual(response.json()["operation_id"], queued["operation_id"])
+            self.assertEqual(response.json()["state"], "DEAD_LETTERED")
+            self.assertEqual(response.json()["error_code"], "RETRY_LIMIT")
+
+            with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda path: client.get(path).json(),
+                    endpoint,
+                    queued["operation_id"],
+                    failure_context={
+                        "application_id": self.app_id,
+                        "request_id": "diagnostic-run",
+                        "expected_profile_version": "a" * 64,
+                        "expected_document_version": 3,
+                        "application_state": "PREPARED",
+                        "preflight_result": "PASS",
+                        "preflight_is_current": False,
+                        "submit": False,
+                        "unapproved_answer": "excluded from diagnostics",
+                    },
+                )
+
+        journal.fail(caught.exception)
+        saved = json.loads(journal_path.read_text(encoding="utf-8"))
+        self.assertEqual(saved["overall_state"], "FAIL")
+        self.assertEqual(saved["remaining_state"], "NOT_RUN")
+        self.assertEqual(saved["checks"][-1], {"action": "Run dry-run", "result": "FAIL"})
+        self.assertEqual(saved["failure"]["terminal_operation"], {
+            "kind": "APPLY_MOCK",
+            "state": "DEAD_LETTERED",
+            "operation_id": queued["operation_id"],
+            "error_code": "RETRY_LIMIT",
+            "application_id": self.app_id,
+            "request_id": "diagnostic-run",
+            "expected_profile_version": "a" * 64,
+            "expected_document_version": 3,
+            "application_state": "PREPARED",
+            "preflight_result": "PASS",
+            "preflight_is_current": False,
+            "submit": False,
+        })
+        self.assertNotIn("unapproved_answer", journal_path.read_text(encoding="utf-8"))
 
     def test_personal_mode_rejects_explicit_admission_and_recovery(self):
         personal=Store(f"sqlite:///{(self.root / 'personal.db').as_posix()}")
