@@ -1,0 +1,1398 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-18T23:09:22.167062+00:00",
+  "recording_state": "ROOT_AUTHORIZED_CORRECTIONS_PENDING_INDEPENDENT_REVIEW_AND_PROTECTED_MERGE",
+  "base_revision": "9557ab728844800b930290eb0281e44106c6e303",
+  "scope": "Four original PASS-to-PARTIAL corrections, plus030 note/evidence only. No product/schema/UI/provider changes.",
+  "populations": {
+    "original": 366,
+    "supplemental": 59,
+    "original_P0": 26
+  },
+  "expected_counts": {
+    "original": {
+      "PASS": 121,
+      "PARTIAL": 102,
+      "NOT_RUN": 143
+    },
+    "supplemental": {
+      "PASS": 19,
+      "PARTIAL": 4,
+      "NOT_RUN": 36
+    },
+    "original_P0": {
+      "PASS": 12,
+      "PARTIAL": 4,
+      "NOT_RUN": 10
+    }
+  },
+  "literal_contracts": {
+    "MJ-REQ-019": "Each source must declare capabilities similar to:\r\n\r\n```text\r\nDISCOVERY\r\nJOB_DETAIL\r\nSALARY\r\nREMOTE_METADATA\r\nAPPLICATION_REDIRECT\r\nDIRECT_APPLICATION\r\nAPPLICATION_STATUS\r\n```\r\n\r\nand collection strategy:\r\n\r\n```text\r\nAPI\r\nFEED\r\nPUBLIC_JSON\r\nPUBLIC_HTML\r\nBROWSER\r\nASSISTED\r\nMANUAL\r\nDISABLED\r\n```\r\n\r\n---",
+    "MJ-REQ-020": "Maintain configurable per-source policy:\r\n\r\n```text\r\nenabled\r\npoll_interval\r\nconcurrency\r\nrequest_timeout\r\nrate_limit\r\nlast_attempt\r\nlast_success\r\nconsecutive_failures\r\nbackoff_until\r\nhealth_status\r\ncollection_strategy\r\n```\r\n\r\nOne failed source must not stop the pipeline.\r\n\r\n---",
+    "MJ-REQ-021": "Support search intervals such as:\r\n\r\n```text\r\n15 minutes\r\n30 minutes\r\n1 hour\r\n2 hours\r\n6 hours\r\n12 hours\r\ndaily\r\ncustom\r\n```\r\n\r\nDo not require all sources to use the same cadence.\r\n\r\nUse:\r\n\r\n```text\r\nretry\r\nbackoff\r\njitter\r\nrate limiting\r\n```\r\n\r\n---",
+    "MJ-REQ-034": "Differentiate:\r\n\r\n```text\r\nBachelor's required\r\nBachelor's preferred\r\nBachelor's or equivalent experience\r\nDegree preferred\r\nNo degree specified\r\n```\r\n\r\nThese are materially different.\r\n\r\n---",
+    "MJ-REQ-030": "Support last hour, today,24 hours,3 days,7 days,30 days,custom. Normalize relative timestamps. Store reported_posted_at,first_seen_at,last_seen_at."
+  },
+  "corrections": {
+    "MJ-REQ-019": {
+      "before": "PASS",
+      "after": "PARTIAL",
+      "gap": "Active company RSS/JSON source path has collection strategy but no typed supported/unsupported capabilities declaration or linked collector. Global/enrolled ATS declarations do not cover every source.",
+      "public_oracle": {
+        "checkout": "41d3b637b9c31e12fc2fc8b48a584f085272222c",
+        "product_base": "43af22a4659c47fda7a22500abb7b97cdcd47608",
+        "company_feed": {
+          "provider": "json_feed",
+          "strategy": "PUBLIC_JSON",
+          "capabilities_key_present": false,
+          "monitoring_supported": true,
+          "collector": null,
+          "monitoring_keys": [
+            "authorization",
+            "enabled",
+            "failure_count",
+            "last_attempt",
+            "last_error",
+            "next_due",
+            "operation_id",
+            "poll_interval",
+            "rediscovery_operation_id",
+            "revision",
+            "status"
+          ],
+          "db_capabilities_key_present": false,
+          "collector_source_id": null
+        },
+        "positive_global_source": {
+          "provider": "greenhouse",
+          "capabilities": {
+            "strategy": "API",
+            "capabilities": [
+              "APPLICATION_REDIRECT",
+              "DISCOVERY",
+              "JOB_DETAIL",
+              "REMOTE_METADATA",
+              "SALARY"
+            ],
+            "discovery": true,
+            "job_detail": true,
+            "salary": true,
+            "remote_metadata": true,
+            "application_redirect": true,
+            "direct_application": false,
+            "application_status": false
+          }
+        },
+        "limits": "synthetic temporarySQLite/TestClient configuration/readback; no network fetch/real provider; absence correlated to no company-feed capability declaration in code, not inability to discover jobs"
+      },
+      "oracle_source": "import os,sys,json,subprocess\nfrom pathlib import Path\nsys.path.insert(0,os.getcwd())\nfrom fastapi.testclient import TestClient\nfrom apps.api.main import create_app\nfrom tests.integration.test_company_source_monitoring import CompanySourceMonitoringTests\nfrom services.discovery.sources.collect import configure_source\nfrom services.discovery.sources.registry import source_adapter\nfrom packages.persistence import models as m\nfrom sqlalchemy import select\nx=CompanySourceMonitoringTests('test_legacy_enabled_flag_does_not_authorize_but_explicit_review_schedules_and_imports')\ntry:\n x.setUp();x.configure()\n with TestClient(create_app(x.store,'',x.root,operation_mode='PERSONAL')) as client:\n  r=client.get('/company-sources/view');assert r.status_code==200,r.text\n  data=r.json(); rows=data if isinstance(data,list) else data.get('company_sources',data.get('sources',[]))\n  target=next(row for row in rows if row['id']==x.source['id'])\n  identifier=configure_source(x.store,'capability-positive',provider='greenhouse')\n  with x.store.engine.connect() as c:\n   source=dict(c.execute(select(m.job_sources).where(m.job_sources.c.id==identifier)).mappings().one())\n   company=dict(c.execute(select(m.company_sources).where(m.company_sources.c.id==x.source['id'])).mappings().one())\n  proof={'checkout':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'product_base':'43af22a4659c47fda7a22500abb7b97cdcd47608','company_feed':{'provider':target['provider'],'strategy':target['collection_strategy'],'capabilities_key_present':'capabilities' in target,'monitoring_supported':target['monitoring_supported'],'collector':target['collector'],'monitoring_keys':sorted(target['monitoring']),'db_capabilities_key_present':'capabilities' in company,'collector_source_id':company['collector_source_id']},'positive_global_source':{'provider':source['provider'],'capabilities':source['capabilities']},'limits':'synthetic temporarySQLite/TestClient configuration/readback; no network fetch/real provider; absence correlated to no company-feed capability declaration in code, not inability to discover jobs'}\n  print(json.dumps(proof,indent=2))\nfinally:x.tearDown()\n",
+      "oracle_source_sha256": "d445662df6f05b576410c7a3c011b30bbb8281f25fa969bd781e9642f27f3577"
+    },
+    "MJ-REQ-020": {
+      "before": "PASS",
+      "after": "PARTIAL",
+      "gap": "CompanyMonitoringInput exposes poll_interval but rejects per-source request_timeout,rate_limit,concurrency. Fixed PublicCompanyClient budgets do not satisfy configurable per-source policy.",
+      "public_oracle": {
+        "utc": "2026-10-18T22:48:51.095887+00:00",
+        "product_source": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+        "checkout": "5e53def6e760111abff3acf88c38ebbef96dc1c2 (data-only differences)",
+        "scope": "Synthetic existing company-monitor fixture; public TestClient policy requests andSQLite; no network/provider execution",
+        "company_feed_policy_requests": [
+          {
+            "field": "request_timeout",
+            "requested": 17,
+            "status": 422,
+            "errors": [
+              {
+                "type": "extra_forbidden",
+                "loc": [
+                  "body",
+                  "request_timeout"
+                ]
+              }
+            ]
+          },
+          {
+            "field": "rate_limit",
+            "requested": 3,
+            "status": 422,
+            "errors": [
+              {
+                "type": "extra_forbidden",
+                "loc": [
+                  "body",
+                  "rate_limit"
+                ]
+              }
+            ]
+          },
+          {
+            "field": "concurrency",
+            "requested": 2,
+            "status": 422,
+            "errors": [
+              {
+                "type": "extra_forbidden",
+                "loc": [
+                  "body",
+                  "concurrency"
+                ]
+              }
+            ]
+          },
+          {
+            "field": "jitter_seconds",
+            "requested": 19,
+            "status": 422,
+            "errors": [
+              {
+                "type": "extra_forbidden",
+                "loc": [
+                  "body",
+                  "jitter_seconds"
+                ]
+              }
+            ]
+          }
+        ],
+        "company_poll_interval_control_status": 200,
+        "global_same_policy_control_status": 200,
+        "conclusion": "Company JSON-feed monitoring public API rejects individually valid configurable timeout/rate/concurrency/jitter fields as extra_forbidden; global source API accepts samevalues. Company worker uses fixedclientbudgets/no persistedjitter, so per-source configuration breadth differs. This is not evidence of unsafe egress or crosssource failure leakage."
+      },
+      "oracle_source": "import json,os,hashlib,datetime\nfrom pathlib import Path\nfrom fastapi.testclient import TestClient\nfrom apps.api.main import create_app\nfrom services.company_discovery.monitoring import source_version\nfrom tests.integration.test_company_monitoring_recovery import MonitoringFixture\nf=MonitoringFixture()\ntry:\n with TestClient(create_app(f.store,'',f.root,operation_mode='PERSONAL')) as c:\n  source=f.source['id'];base={'source_version':source_version(f.source),'revision':0,'poll_interval':3600}\n  fields={'request_timeout':17,'rate_limit':3,'concurrency':2,'jitter_seconds':19}\n  observed=[]\n  for key,value in fields.items():\n   r=c.put('/company-sources/'+source+'/monitoring',json={**base,key:value})\n   observed.append({'field':key,'requested':value,'status':r.status_code,'errors':[{'type':x.get('type'),'loc':x.get('loc')} for x in r.json().get('detail',[])]})\n  control=c.put('/company-sources/'+source+'/monitoring',json=base)\n  assert control.status_code==200,control.text\n  global_control=c.put('/sources',json={'provider':'greenhouse','tenant':'policy-audit-control','poll_interval':3600,**fields})\n  assert global_control.status_code==200,global_control.text\n  result={'utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'product_source':'37ea5e95073a0716614c8e53a2ae418bf302ec42','checkout':'5e53def6e760111abff3acf88c38ebbef96dc1c2 (data-only differences)','scope':'Synthetic existing company-monitor fixture; public TestClient policy requests andSQLite; no network/provider execution','company_feed_policy_requests':observed,'company_poll_interval_control_status':control.status_code,'global_same_policy_control_status':global_control.status_code,'conclusion':'Company JSON-feed monitoring public API rejects individually valid configurable timeout/rate/concurrency/jitter fields as extra_forbidden; global source API accepts samevalues. Company worker uses fixedclientbudgets/no persistedjitter, so per-source configuration breadth differs. This is not evidence of unsafe egress or crosssource failure leakage.'}\n  assert all(x['status']==422 and x['errors'][0]['type']=='extra_forbidden' for x in observed)\n  (Path(os.environ['TEMP'])/'lane-a-company-policy-gap.json').write_text(json.dumps(result,indent=2),encoding='utf-8');print(json.dumps(result))\nfinally:f.close()\n",
+      "oracle_source_sha256": "b47656da19a5a66a7357e6f1bd7d81a46d0070cae83a4ce464b749df21b029c5"
+    },
+    "MJ-REQ-021": {
+      "before": "PASS",
+      "after": "PARTIAL",
+      "gap": "Company monitor independently persists cadence and retry/backoff but computes next_due without jitter. The global collector scheduler jitter does not cover this distinct producer.",
+      "source_symbols": [
+        "services/company_discovery/monitoring.py::schedule_company_sources",
+        "services/company_discovery/monitoring.py::refresh_company_source",
+        "services/discovery/scheduler.py::source_due_at"
+      ],
+      "source_trace": {
+        "producer": "schedule_company_sources iterateseligiblecompanysources with a separate transactionper source; verifiesrevieweddomain/origin and enabledstate; default3600 orconfiguredpoll300..604800; max20scheduled per tick.",
+        "worker": "COMPANY_SOURCE_REFRESH onmjobs-company-discovery; PublicCompanyClient fixedREQUEST_TIMEOUT10s,MAX_REQUESTS20,MIN_REQUEST_INTERVAL1s plusrobotscrawl/request-rate constraints,totalbudgetmin90/workerremaining. Importreceipt persists next_due=completion+poll, failurecountreset.",
+        "failure": "Transient5xx/network failures exponential next_due=poll*2**failures capped86400;bounded failures thenrediscovery/manual recovery.403/429 areblocked fail-closed rather thanautomaticallyretrying. Explicitmanualrefresh has300s cooldown. No claim429blockitself isabug.",
+        "policy_gap": "CompanyMonitoringInput accepts onlysource_version/revision/poll_interval; no configurableper-source timeout/rate/concurrency/jitter. Monitor next_due has no jitter. Global safe defaults do not satisfy literal per-source configurability for thisdifferentpath."
+      }
+    },
+    "MJ-REQ-034": {
+      "before": "PASS",
+      "after": "PARTIAL",
+      "gap": "Public ingestion persists Bachelor's degree not required as BACHELORS_REQUIRED, and the public required-education filter includes that job after database reopen.",
+      "historical_public_red": {
+        "schema_version": 1,
+        "recorded_at_utc": "2026-10-18T22:40:03.734956+00:00",
+        "recording_state": "ROOT_ACCEPTED_COUNTEREXAMPLE_PENDING_INDEPENDENT_REVIEW_AND_PROTECTED_MERGE",
+        "base_revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+        "requirement_id": "MJ-REQ-034",
+        "issue": 35,
+        "literal_contract": "Differentiate Bachelor's required, Bachelor's preferred, Bachelor's or equivalent experience, Degree preferred, No degree specified. These are materially different.",
+        "change": {
+          "before": "PASS",
+          "proposed": "PARTIAL",
+          "reason": "Public ingestion persists Bachelor's degree not required as BACHELORS_REQUIRED, and the public required-education filter includes that job after database reopen.",
+          "scope": "Acceptance correction only. No implementation repair, historical snapshot rewrite or provider field mutation."
+        },
+        "populations": {
+          "original": 366,
+          "supplemental": 59,
+          "original_P0": 26
+        },
+        "expected_counts": {
+          "original": {
+            "PASS": 124,
+            "PARTIAL": 99,
+            "NOT_RUN": 143
+          },
+          "supplemental": {
+            "PASS": 19,
+            "PARTIAL": 4,
+            "NOT_RUN": 36
+          },
+          "original_P0": {
+            "PASS": 12,
+            "PARTIAL": 4,
+            "NOT_RUN": 10
+          }
+        },
+        "historical_record": {
+          "path": "docs/evidence/2026-10-01-skill-title-education.json",
+          "sha256": "6fb1a21f02687fa204d87c06bb1ce38f90cac54dd2ef1d5354080fe3d102a41e",
+          "original_claim": "41 focused /133 full tests PASS for031-034; original record preserved unchanged.",
+          "limitation": "Aggregate record has no exact executed source/JUnit binding. Named education tests cover positive required/preferred/equivalent/unspecified phrases; the current negative clause exposes insufficient whole-contract acceptance. This does not erase earlier positive executions."
+        },
+        "execution": {
+          "tested_product_revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+          "test_only_commit": "d25d94826a6b1cdf0a1ae5c88495aca48978bcde",
+          "test_path": "tests/integration/test_education_negation_public_intake.py",
+          "test_source_sha256": "8249190b09bcb349e7eea2faebb0716f78476e582a224242e8e298c7caacb7fe",
+          "command": "python -m pytest -q -p no:cacheprovider tests/integration/test_education_negation_public_intake.py --junitxml=<temp>/lane-a-034-public-red.xml --basetemp=<temp>/lane-a-034-public-red-temp --tb=short",
+          "result": {
+            "passed": 1,
+            "failed": 1,
+            "errors": 0,
+            "skipped": 0,
+            "seconds": 6.19,
+            "exit_code": 1
+          },
+          "failure_expected": "The negative oracle intentionally fails on integrated product37ea; not a green test result or fixed feature.",
+          "named_cases": [
+            {
+              "classname": "tests.integration.test_education_negation_public_intake.EducationNegationPublicIntakeTests",
+              "name": "test_negated_degree_is_not_returned_by_required_education_filter",
+              "seconds": 2.409,
+              "result": "FAIL"
+            },
+            {
+              "classname": "tests.integration.test_education_negation_public_intake.EducationNegationPublicIntakeTests",
+              "name": "test_positive_required_control_survives_public_readback",
+              "seconds": 2.433,
+              "result": "PASS"
+            }
+          ],
+          "junit_sha256": "93f0b775bcc762aab0fc2055c6780c96361db3b03b3ee6bc6ab0de8ec18032a4",
+          "junit_pointer": "AO Lane A consolidated acceptance-integrity-register.html / education034_independent_public_RED; raw local temporary JUnit retained there as sanitized synthetic evidence.",
+          "runtime": "Windows Python; ASGI TestClient, disposable SQLite, production direct execute_operation; HTTPTransport.handle_request replaced with deterministic Greenhouse GET responses.",
+          "test_source": "\"\"\"MJ-REQ-034 public ingestion oracle; only provider HTTP is synthetic.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport tempfile\nimport unittest\nfrom unittest.mock import patch\n\nimport httpx\nfrom fastapi.testclient import TestClient\n\nfrom apps.api.main import create_app\nfrom packages.persistence.store import Store\nfrom tests.integration.test_spine import PROFILE\nfrom workers.tasks import execute_operation\n\n\nclass EducationNegationPublicIntakeTests(unittest.TestCase):\n    def setUp(self):\n        directory = tempfile.TemporaryDirectory(prefix=\"mjobs-education-intake-\")\n        self.addCleanup(directory.cleanup)\n        self.root = Path(directory.name)\n        self.url = \"sqlite:///\" + (self.root / \"education.db\").as_posix()\n        self.store = Store(self.url)\n        self.addCleanup(lambda: self.store.engine.dispose())\n        self.store.migrate()\n        self.store.bind_workspace_mode(\"PERSONAL\")\n        self.enterContext(patch.dict(os.environ, {\n            \"MJOBS_DATABASE_URL\": self.url,\n            \"MJOBS_OPERATION_MODE\": \"PERSONAL\",\n            \"MJOBS_REDIS_URL\": \"redis://127.0.0.1:1/0\",\n            \"MJOBS_OUTPUT_DIR\": str(self.root),\n        }))\n        self.client = self.enterContext(TestClient(self._app()))\n        self.assertEqual(self.client.put(\"/profiles\", json=PROFILE).status_code, 200)\n        response = self.client.put(\"/sources\", json={\n            \"provider\": \"greenhouse\", \"tenant\": \"education-fixture\",\n            \"poll_interval\": 300, \"request_timeout\": 8,\n            \"rate_limit\": 60, \"jitter_seconds\": 0,\n        })\n        self.assertEqual(response.status_code, 200, response.text)\n        self.source_id = response.json()[\"id\"]\n        self.requests = []\n\n    def _app(self):\n        return create_app(self.store, \"\", self.root, operation_mode=\"PERSONAL\")\n\n    def _collect_and_reopen(self):\n        rows = [{\n            \"id\": identifier,\n            \"title\": \"Synthetic Education Control \" + str(identifier),\n            \"location\": {\"name\": \"Remote - United States\"},\n            \"content\": \"<p>\" + clause + \"</p>\",\n            \"absolute_url\": (\n                \"https://job-boards.greenhouse.io/education-fixture/jobs/\"\n                + str(identifier)\n            ),\n        } for identifier, clause in (\n            (4101, \"Bachelor's degree required.\"),\n            (4102, \"Bachelor's degree not required.\"),\n        )]\n        response = self.client.post(\"/sources/\" + self.source_id + \"/collect\", json={\n            \"profile_id\": \"fixture\", \"request_id\": \"education-negation-public\",\n        })\n        self.assertEqual(response.status_code, 202, response.text)\n        operation = response.json()[\"operation_id\"]\n\n        def boundary(_transport, request):\n            self.assertEqual((request.method, request.url.host),\n                             (\"GET\", \"boards-api.greenhouse.io\"))\n            self.requests.append(request.url.path)\n            if request.url.path == \"/v1/boards/education-fixture/jobs\":\n                return httpx.Response(200, json={\"jobs\": rows, \"meta\": {\"total\": 2}})\n            self.assertEqual(request.url.path, \"/v1/boards/education-fixture\")\n            return httpx.Response(200, json={\"name\": \"Synthetic Education Employer\"})\n\n        with patch(\"httpx.HTTPTransport.handle_request\", boundary):\n            result = execute_operation(operation)\n        self.assertEqual(result[\"status\"], \"COMPLETED\", result)\n        self.assertIn(\"/v1/boards/education-fixture/jobs\", self.requests)\n        self.client.close()\n        self.store.engine.dispose()\n        self.store = Store(self.url)\n        self.client = self.enterContext(TestClient(self._app()))\n        return self._jobs()\n\n    def _jobs(self, **filters):\n        response = self.client.get(\"/jobs\", params={\"profile_id\": \"fixture\", **filters})\n        self.assertEqual(response.status_code, 200, response.text)\n        return response.json()[\"jobs\"]\n\n    def test_positive_required_control_survives_public_readback(self):\n        jobs = self._collect_and_reopen()\n        self.assertEqual(len(jobs), 2)\n        positive = next(j for j in jobs if j[\"attributes\"][\"native_posting_id\"] == 4101)\n        self.assertEqual(positive[\"attributes\"][\"education_requirement\"], \"BACHELORS_REQUIRED\")\n        self.assertIn(4101, [j[\"attributes\"][\"native_posting_id\"] for j in\n                            self._jobs(education_requirement=\"BACHELORS_REQUIRED\")])\n\n    def test_negated_degree_is_not_returned_by_required_education_filter(self):\n        jobs = self._collect_and_reopen()\n        self.assertEqual(len(jobs), 2)\n        negated = next(j for j in jobs if j[\"attributes\"][\"native_posting_id\"] == 4102)\n        detail_response = self.client.get(\"/jobs/\" + negated[\"id\"], params={\"profile_id\": \"fixture\"})\n        self.assertEqual(detail_response.status_code, 200, detail_response.text)\n        detail = detail_response.json()\n        self.assertIn(\"not required\", detail[\"description\"])\n        self.assertTrue(any(\"not required\" in p[\"raw\"][\"content\"] for p in detail[\"postings\"]))\n        filtered = self._jobs(education_requirement=\"BACHELORS_REQUIRED\")\n        identifiers = sorted(j[\"attributes\"][\"native_posting_id\"] for j in filtered)\n        observation = {\n            \"source_clause\": \"Bachelor's degree not required.\",\n            \"persisted_classification\": negated[\"attributes\"][\"education_requirement\"],\n            \"public_detail_classification\": detail[\"attributes\"][\"education_requirement\"],\n            \"required_filter_native_ids\": identifiers,\n            \"expected_required_filter_native_ids\": [4101],\n            \"database_reopened\": True,\n        }\n        print(json.dumps(observation, sort_keys=True))\n        self.assertEqual(identifiers, [4101], observation)\n        self.assertNotEqual(negated[\"attributes\"][\"education_requirement\"], \"BACHELORS_REQUIRED\")\n"
+        },
+        "fixture": {
+          "tenant": "education-fixture",
+          "provider": "greenhouse",
+          "positive": {
+            "native_posting_id": 4101,
+            "content": "<p>Bachelor's degree required.</p>"
+          },
+          "negative": {
+            "native_posting_id": 4102,
+            "content": "<p>Bachelor's degree not required.</p>"
+          },
+          "profile": "Existing fictional PROFILE fixture; no personal data or credentials"
+        },
+        "executed_path": [
+          "PUT /profiles",
+          "PUT /sources",
+          "POST /sources/{id}/collect returns202",
+          "direct workers.tasks.execute_operation completes against synthetic provider HTTP",
+          "dispose database Store and close APIclient; reopen same SQLite database/new APIclient",
+          "GET /jobs and /jobs/{id} retain source description and raw posting with not required",
+          "GET /jobs?education_requirement=BACHELORS_REQUIRED returns both4101 and4102"
+        ],
+        "observed": {
+          "persisted_classification": "BACHELORS_REQUIRED",
+          "public_detail_classification": "BACHELORS_REQUIRED",
+          "actual_required_filter_native_ids": [
+            4101,
+            4102
+          ],
+          "expected_required_filter_native_ids": [
+            4101
+          ],
+          "reopened_database": true
+        },
+        "cause": {
+          "path": "services/discovery/search_semantics.py",
+          "symbol": "parse_education_requirement",
+          "description": "Required classification regex permits arbitrary intervening words between bachelor/degree and required, including not. Greenhouse normalization persists this result; public query filtering trusts the canonical attribute."
+        },
+        "source_identities": {
+          "services/discovery/search_semantics.py": {
+            "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+            "git_blob": "7e38d8248e1188c6d38a1edfe2cd2532dfc916ab",
+            "sha256": "68a746d8f7b7d5384d631d12e5a5187ad3aaa01cae7a9ba2df5e7ffbbd674516"
+          },
+          "services/discovery/sources/greenhouse.py": {
+            "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+            "git_blob": "3b002eaa44ffa2fe35549cbcf7e9ca1fa2c576c5",
+            "sha256": "e895f84ef585986f280ab779915dfa523117e48727d3e03b894b281283b1690c"
+          },
+          "services/discovery/sources/collect.py": {
+            "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+            "git_blob": "07ef8ce7a59f5810d339fc34d2b08a74345075cc",
+            "sha256": "0e510b33ae2ca5e2c44c5e8c0056bad186f407686ceec6dbad5d9b927a956cba"
+          },
+          "apps/api/main.py": {
+            "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+            "git_blob": "91f3088665f26b4505c1d621eed5a5725558c45b",
+            "sha256": "dda2aacd78e6bfe13f51d5332414096dac63f3486ddf052dc9231aff890426ee"
+          },
+          "workers/tasks.py": {
+            "revision": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+            "git_blob": "b22ed55b937f0c5a6dbdb1180a31f7afd02af5fe",
+            "sha256": "34cd1197a9aecc0c55b189b9b94146e7c24c8f8fbefd1ab0858175c4d74ed033"
+          }
+        },
+        "limits": [
+          "No adapter/runtime fix in this candidate. Product source remains unchanged from37ea.",
+          "Direct execute_operation is not a separate RQ worker or Redis queue proof.",
+          "SQLite/TestClient is not PostgreSQL, Compose, real network server or browser execution.",
+          "Only provider HTTP is synthetic; no live employer/provider requests or external submissions.",
+          "No paid AI or private credential/environment access.",
+          "Original/reference denominators stay separate;034P1 correction leaves26P0 totals unchanged.",
+          "Later product repair must reuse the reserved test and earn independent acceptance; retain this historical counterexample even if PASS is restored.",
+          "Canonical data is proposed locally only; publication held for Root queue and independent review."
+        ]
+      },
+      "current_counterexample": {
+        "checkout": "d857a2242c632ba526c64029f5246578f0b6d99f",
+        "tested_product_revision": "9557ab728844800b930290eb0281e44106c6e303",
+        "test_source": "\"\"\"MJ-REQ-034 public ingestion oracle; only provider HTTP is synthetic.\"\"\"\nimport json\nimport os\nfrom pathlib import Path\nimport tempfile\nimport unittest\nfrom unittest.mock import patch\n\nimport httpx\nfrom fastapi.testclient import TestClient\n\nfrom apps.api.main import create_app\nfrom packages.persistence.store import Store\nfrom tests.integration.test_spine import PROFILE\nfrom workers.tasks import execute_operation\n\n\nclass EducationNegationPublicIntakeTests(unittest.TestCase):\n    def setUp(self):\n        directory = tempfile.TemporaryDirectory(prefix=\"mjobs-education-intake-\")\n        self.addCleanup(directory.cleanup)\n        self.root = Path(directory.name)\n        self.url = \"sqlite:///\" + (self.root / \"education.db\").as_posix()\n        self.store = Store(self.url)\n        self.addCleanup(lambda: self.store.engine.dispose())\n        self.store.migrate()\n        self.store.bind_workspace_mode(\"PERSONAL\")\n        self.enterContext(patch.dict(os.environ, {\n            \"MJOBS_DATABASE_URL\": self.url,\n            \"MJOBS_OPERATION_MODE\": \"PERSONAL\",\n            \"MJOBS_REDIS_URL\": \"redis://127.0.0.1:1/0\",\n            \"MJOBS_OUTPUT_DIR\": str(self.root),\n        }))\n        self.client = self.enterContext(TestClient(self._app()))\n        self.assertEqual(self.client.put(\"/profiles\", json=PROFILE).status_code, 200)\n        response = self.client.put(\"/sources\", json={\n            \"provider\": \"greenhouse\", \"tenant\": \"education-fixture\",\n            \"poll_interval\": 300, \"request_timeout\": 8,\n            \"rate_limit\": 60, \"jitter_seconds\": 0,\n        })\n        self.assertEqual(response.status_code, 200, response.text)\n        self.source_id = response.json()[\"id\"]\n        self.requests = []\n\n    def _app(self):\n        return create_app(self.store, \"\", self.root, operation_mode=\"PERSONAL\")\n\n    def _collect_and_reopen(self):\n        rows = [{\n            \"id\": identifier,\n            \"title\": \"Synthetic Education Control \" + str(identifier),\n            \"location\": {\"name\": \"Remote - United States\"},\n            \"content\": \"<p>\" + clause + \"</p>\",\n            \"absolute_url\": (\n                \"https://job-boards.greenhouse.io/education-fixture/jobs/\"\n                + str(identifier)\n            ),\n        } for identifier, clause in (\n            (4101, \"Bachelor's degree required.\"),\n            (4102, \"Bachelor's degree not required.\"),\n        )]\n        response = self.client.post(\"/sources/\" + self.source_id + \"/collect\", json={\n            \"profile_id\": \"fixture\", \"request_id\": \"education-negation-public\",\n        })\n        self.assertEqual(response.status_code, 202, response.text)\n        operation = response.json()[\"operation_id\"]\n\n        def boundary(_transport, request):\n            self.assertEqual((request.method, request.url.host),\n                             (\"GET\", \"boards-api.greenhouse.io\"))\n            self.requests.append(request.url.path)\n            if request.url.path == \"/v1/boards/education-fixture/jobs\":\n                return httpx.Response(200, json={\"jobs\": rows, \"meta\": {\"total\": 2}})\n            self.assertEqual(request.url.path, \"/v1/boards/education-fixture\")\n            return httpx.Response(200, json={\"name\": \"Synthetic Education Employer\"})\n\n        with patch(\"httpx.HTTPTransport.handle_request\", boundary):\n            result = execute_operation(operation)\n        self.assertEqual(result[\"status\"], \"COMPLETED\", result)\n        self.assertIn(\"/v1/boards/education-fixture/jobs\", self.requests)\n        self.client.close()\n        self.store.engine.dispose()\n        self.store = Store(self.url)\n        self.client = self.enterContext(TestClient(self._app()))\n        return self._jobs()\n\n    def _jobs(self, **filters):\n        response = self.client.get(\"/jobs\", params={\"profile_id\": \"fixture\", **filters})\n        self.assertEqual(response.status_code, 200, response.text)\n        return response.json()[\"jobs\"]\n\n    def test_positive_required_control_survives_public_readback(self):\n        jobs = self._collect_and_reopen()\n        self.assertEqual(len(jobs), 2)\n        positive = next(j for j in jobs if j[\"attributes\"][\"native_posting_id\"] == 4101)\n        self.assertEqual(positive[\"attributes\"][\"education_requirement\"], \"BACHELORS_REQUIRED\")\n        self.assertIn(4101, [j[\"attributes\"][\"native_posting_id\"] for j in\n                            self._jobs(education_requirement=\"BACHELORS_REQUIRED\")])\n\n    def test_negated_degree_is_not_returned_by_required_education_filter(self):\n        jobs = self._collect_and_reopen()\n        self.assertEqual(len(jobs), 2)\n        negated = next(j for j in jobs if j[\"attributes\"][\"native_posting_id\"] == 4102)\n        detail_response = self.client.get(\"/jobs/\" + negated[\"id\"], params={\"profile_id\": \"fixture\"})\n        self.assertEqual(detail_response.status_code, 200, detail_response.text)\n        detail = detail_response.json()\n        self.assertIn(\"not required\", detail[\"description\"])\n        self.assertTrue(any(\"not required\" in p[\"raw\"][\"content\"] for p in detail[\"postings\"]))\n        filtered = self._jobs(education_requirement=\"BACHELORS_REQUIRED\")\n        identifiers = sorted(j[\"attributes\"][\"native_posting_id\"] for j in filtered)\n        observation = {\n            \"source_clause\": \"Bachelor's degree not required.\",\n            \"persisted_classification\": negated[\"attributes\"][\"education_requirement\"],\n            \"public_detail_classification\": detail[\"attributes\"][\"education_requirement\"],\n            \"required_filter_native_ids\": identifiers,\n            \"expected_required_filter_native_ids\": [4101],\n            \"database_reopened\": True,\n        }\n        print(json.dumps(observation, sort_keys=True))\n        self.assertEqual(identifiers, [4101], observation)\n        self.assertNotEqual(negated[\"attributes\"][\"education_requirement\"], \"BACHELORS_REQUIRED\")\n",
+        "test_source_sha256": "8249190b09bcb349e7eea2faebb0716f78476e582a224242e8e298c7caacb7fe",
+        "command": "python -m pytest -q -p no:cacheprovider --rootdir=$TEMP/lane-a-034-isolated955 --confcutdir=$TEMP/lane-a-034-isolated955 $TEMP/lane-a-034-isolated955/test_public_education.py --junitxml=outputs/lane-a-verification/034-current-red-isolated.xml --basetemp=$TEMP/lane-a-034-current955-isolated-temp --tb=short",
+        "result": "1 expected FAIL,1PASS,0skip/error;5.77s;exit1",
+        "named_cases": [
+          {
+            "name": "test_public_education.EducationNegationPublicIntakeTests::test_negated_degree_is_not_returned_by_required_education_filter",
+            "state": "FAIL",
+            "seconds": "2.373"
+          },
+          {
+            "name": "test_public_education.EducationNegationPublicIntakeTests::test_positive_required_control_survives_public_readback",
+            "state": "PASS",
+            "seconds": "2.172"
+          }
+        ],
+        "junit_sha256": "738fb6ecf3ecc38e278314a91cf0047606841a83d220441cfdf842fe0cba4719",
+        "log": "outputs/lane-a-verification/034-current-red-isolated.log",
+        "environment_attempt": "Initial broad temporary-file collection failed with transient unrelated Windows temp FileNotFoundError; exit2 is environmental collection failure, not acceptance. Retained outputs/lane-a-verification/034-current-red.log. Isolated root/confcutdir reproduced actual assertion above; no temp cleanup."
+      }
+    }
+  },
+  "MJ-REQ-030_note_only": {
+    "before": "PARTIAL",
+    "after": "PARTIAL",
+    "adjudication": "Root whole gate remains PARTIAL: last-hour/today/custom UI creation controls absent. Executed API/storage PASS is scoped, not whole-contract PASS.",
+    "source_revision": "43af22a4659c47fda7a22500abb7b97cdcd47608",
+    "clause_mappings": [
+      {
+        "clause": "LAST_HOUR",
+        "proof": "public collect/direct production worker/SQLite reopen/saved search PUT+GET/jobs readback; explicit inclusive lower and outside controls",
+        "result": "PASS",
+        "expected_native_ids": [
+          3000,
+          3001
+        ],
+        "actual_native_ids": [
+          3000,
+          3001
+        ]
+      },
+      {
+        "clause": "TODAY",
+        "proof": "public collect/direct production worker/SQLite reopen/saved search PUT+GET/jobs readback; explicit inclusive lower and outside controls",
+        "result": "PASS",
+        "expected_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003
+        ],
+        "actual_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003
+        ]
+      },
+      {
+        "clause": "LAST_24_HOURS",
+        "proof": "public collect/direct production worker/SQLite reopen/saved search PUT+GET/jobs readback; explicit inclusive lower and outside controls",
+        "result": "PASS",
+        "expected_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005
+        ],
+        "actual_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005
+        ]
+      },
+      {
+        "clause": "LAST_3_DAYS",
+        "proof": "public collect/direct production worker/SQLite reopen/saved search PUT+GET/jobs readback; explicit inclusive lower and outside controls",
+        "result": "PASS",
+        "expected_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007
+        ],
+        "actual_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007
+        ]
+      },
+      {
+        "clause": "LAST_7_DAYS",
+        "proof": "public collect/direct production worker/SQLite reopen/saved search PUT+GET/jobs readback; explicit inclusive lower and outside controls",
+        "result": "PASS",
+        "expected_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007,
+          3008,
+          3009
+        ],
+        "actual_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007,
+          3008,
+          3009
+        ]
+      },
+      {
+        "clause": "LAST_30_DAYS",
+        "proof": "public collect/direct production worker/SQLite reopen/saved search PUT+GET/jobs readback; explicit inclusive lower and outside controls",
+        "result": "PASS",
+        "expected_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007,
+          3008,
+          3009,
+          3010,
+          3011
+        ],
+        "actual_native_ids": [
+          3000,
+          3001,
+          3002,
+          3003,
+          3004,
+          3005,
+          3006,
+          3007,
+          3008,
+          3009,
+          3010,
+          3011
+        ]
+      },
+      {
+        "clause": "CUSTOM",
+        "proof": "public collect/direct production worker/SQLite reopen/saved search PUT+GET/jobs readback; explicit inclusive lower and outside controls",
+        "result": "PASS",
+        "expected_native_ids": [
+          3005,
+          3006,
+          3007
+        ],
+        "actual_native_ids": [
+          3005,
+          3006,
+          3007
+        ]
+      },
+      {
+        "clause": "Normalize relative timestamps",
+        "proof": "minute/hour/day explicit-reference tests + public2hoursago, changed-age replay, unknown-to-valid, preupgrade relative, valid absolute precedence, RSS and invalid/future controls",
+        "result": "PASS for supported minute/hour/day grammar; arbitrary relative language is not claimed"
+      },
+      {
+        "clause": "Store reported_posted_at, first_seen_at, last_seen_at",
+        "proof": "test_reopen_replay_and_updated_age_label_preserve_first_normalized_claim asserts original reported time/first_seen unchanged, last_seen advances aftercollection, raw source and immutable snapshots retained across Store/API reopen",
+        "result": "PASS"
+      }
+    ],
+    "targeted_execution": {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_relative_posted_timestamp.py tests/integration/test_relative_posted_source_intake.py tests/unit/test_search_semantics.py::SearchSemanticsTests::test_experience_salary_and_date_filters_are_deterministic tests/unit/test_search_semantics.py::SearchSemanticsTests::test_date_filter_falls_back_to_first_seen_without_fabricating_posted_time --junitxml=$TEMP/lane-a-030-main43-targeted.xml --basetemp=$TEMP/lane-a-030-main43-targeted",
+      "result": "20 PASS +42subtests PASS;0skip/fail/error;17.91s",
+      "junit_sha256": "4d7730f6de60b86f688f66cef9926d695a8f60cc9ca3ca87d2470d0300b48563",
+      "junit_source": "C:\\Users\\Dylan\\AppData\\Local\\Temp\\lane-a-030-main43-targeted.xml",
+      "cases": [
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_changed_age_label_does_not_double_age_or_refresh_the_same_posting",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_invalid_claim_is_unknown_instead_of_falling_back_to_recent_first_seen",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_invalid_overflow_and_future_wording_do_not_become_posting_dates",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_invalid_previous_claim_cannot_anchor_a_first_valid_relative_observation",
+          "seconds": "0.000",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_legacy_relative_claim_uses_first_observation_not_query_time",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_preupgrade_absolute_date_needs_no_precision_to_override_a_relative_claim",
+          "seconds": "0.000",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_preupgrade_relative_date_uses_recorded_observation_before_older_first_seen",
+          "seconds": "0.000",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_relative_units_need_explicit_utc_reference_and_keep_granularity",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_supported_rss_dates_require_a_valid_known_timezone_and_normalize_to_utc",
+          "seconds": "0.002",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_relative_posted_timestamp.RelativePostedTimestampTests::test_valid_absolute_dates_are_unchanged_and_future_dates_do_not_match",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_absolute_invalid_unknown_and_future_claims_keep_raw_source_evidence",
+          "seconds": "2.803",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_first_valid_date_after_unknown_is_not_reanchored_on_later_polls",
+          "seconds": "3.013",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_preupgrade_absolute_date_without_precision_is_not_refreshed_by_relative_recollection",
+          "seconds": "1.797",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_preupgrade_relative_claim_uses_its_candidate_observation_and_remains_stable",
+          "seconds": "2.413",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_public_intake_excludes_two_hours_ago_from_last_hour",
+          "seconds": "1.200",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_remoteok_missing_or_invalid_date_retains_valid_epoch_after_public_collection",
+          "seconds": "1.423",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_reopen_replay_and_updated_age_label_preserve_first_normalized_claim",
+          "seconds": "2.482",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen",
+          "seconds": "1.420",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_search_semantics.SearchSemanticsTests::test_experience_salary_and_date_filters_are_deterministic",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        },
+        {
+          "name": "tests.unit.test_search_semantics.SearchSemanticsTests::test_date_filter_falls_back_to_first_seen_without_fabricating_posted_time",
+          "seconds": "0.001",
+          "failed": false,
+          "error": false,
+          "skipped": false
+        }
+      ]
+    },
+    "public_all_windows": {
+      "result": {
+        "source": "43af22a4659c47fda7a22500abb7b97cdcd47608",
+        "utc": "2026-10-18T22:54:33.636271+00:00",
+        "fixture_claims": [
+          "30 minutes ago",
+          "2026-10-18T19:30:00+00:00",
+          "2026-10-18T19:29:59+00:00",
+          "2026-10-18T00:00:00+00:00",
+          "2026-10-17T23:59:59+00:00",
+          "2026-10-17T20:30:00+00:00",
+          "2026-10-17T20:29:59+00:00",
+          "2026-10-15T20:30:00+00:00",
+          "2026-10-15T20:29:59+00:00",
+          "2026-10-11T20:30:00+00:00",
+          "2026-10-11T20:29:59+00:00",
+          "2026-09-18T20:30:00+00:00",
+          "2026-09-18T20:29:59+00:00",
+          "2026-10-19T20:30:00+00:00",
+          "not a date"
+        ],
+        "reference": "2026-10-18T20:30:00+00:00",
+        "checks": [
+          {
+            "window": "LAST_HOUR",
+            "expected": [
+              3000,
+              3001
+            ],
+            "actual": [
+              3000,
+              3001
+            ],
+            "pass": true
+          },
+          {
+            "window": "TODAY",
+            "expected": [
+              3000,
+              3001,
+              3002,
+              3003
+            ],
+            "actual": [
+              3000,
+              3001,
+              3002,
+              3003
+            ],
+            "pass": true
+          },
+          {
+            "window": "LAST_24_HOURS",
+            "expected": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005
+            ],
+            "actual": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005
+            ],
+            "pass": true
+          },
+          {
+            "window": "LAST_3_DAYS",
+            "expected": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005,
+              3006,
+              3007
+            ],
+            "actual": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005,
+              3006,
+              3007
+            ],
+            "pass": true
+          },
+          {
+            "window": "LAST_7_DAYS",
+            "expected": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005,
+              3006,
+              3007,
+              3008,
+              3009
+            ],
+            "actual": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005,
+              3006,
+              3007,
+              3008,
+              3009
+            ],
+            "pass": true
+          },
+          {
+            "window": "LAST_30_DAYS",
+            "expected": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005,
+              3006,
+              3007,
+              3008,
+              3009,
+              3010,
+              3011
+            ],
+            "actual": [
+              3000,
+              3001,
+              3002,
+              3003,
+              3004,
+              3005,
+              3006,
+              3007,
+              3008,
+              3009,
+              3010,
+              3011
+            ],
+            "pass": true
+          },
+          {
+            "window": "CUSTOM",
+            "expected": [
+              3005,
+              3006,
+              3007
+            ],
+            "actual": [
+              3005,
+              3006,
+              3007
+            ],
+            "pass": true
+          }
+        ],
+        "inverted_custom_status": 422,
+        "limits": "synthetic HTTP boundary; production direct execute_operation; SQLite reopen/public saved search+GET; fixed query clock; no RQ/browser/live provider"
+      },
+      "script_sha256": "4357119b083312aa1c59b2af595e6f34cf6f7ae2363db6446f8c5bc3c645a484",
+      "script_source": "import sys,json,hashlib,subprocess,os\nfrom pathlib import Path\nfrom datetime import datetime,timezone,timedelta\nfrom copy import deepcopy\nfrom unittest.mock import patch\nsys.path.insert(0,os.getcwd())\nfrom tests.integration.test_relative_posted_source_intake import RelativePostedSourceIntakeTests\nat=datetime(2026,10,18,20,30,tzinfo=timezone.utc)\nclass QueryClock(datetime):\n @classmethod\n def now(cls,tz=None): return at.astimezone(tz) if tz else at.replace(tzinfo=None)\nt=RelativePostedSourceIntakeTests('test_public_intake_excludes_two_hours_ago_from_last_hour')\nresults=[]\ntry:\n t.setUp();t.collected_at=at\n template=t.payload['jobs'][0]\n claims=['30 minutes ago',(at-timedelta(hours=1)).isoformat(),(at-timedelta(hours=1,seconds=1)).isoformat(),at.replace(hour=0,minute=0).isoformat(),(at.replace(hour=0,minute=0)-timedelta(seconds=1)).isoformat(),(at-timedelta(days=1)).isoformat(),(at-timedelta(days=1,seconds=1)).isoformat(),(at-timedelta(days=3)).isoformat(),(at-timedelta(days=3,seconds=1)).isoformat(),(at-timedelta(days=7)).isoformat(),(at-timedelta(days=7,seconds=1)).isoformat(),(at-timedelta(days=30)).isoformat(),(at-timedelta(days=30,seconds=1)).isoformat(),(at+timedelta(days=1)).isoformat(),'not a date']\n t.payload['jobs']=[]\n for i,claim in enumerate(claims):\n  row=deepcopy(template);row.update(id=3000+i,publication_date=claim,url=f'https://remotive.com/remote-jobs/it/{3000+i}')\n  t.payload['jobs'].append(row)\n t.payload['job-count']=len(claims)\n t._collect();t._reopen()\n cases=[('LAST_HOUR',list(range(2)),{}),('TODAY',list(range(4)),{}),('LAST_24_HOURS',list(range(6)),{}),('LAST_3_DAYS',list(range(8)),{}),('LAST_7_DAYS',list(range(10)),{}),('LAST_30_DAYS',list(range(12)),{}),('CUSTOM',[5,6,7],{'date_start':(at-timedelta(days=3)).isoformat(),'date_end':(at-timedelta(days=1)).isoformat()})]\n with patch('services.discovery.search_semantics.datetime',QueryClock):\n  for window,ids,bounds in cases:\n   body={'id':'date-all-windows','profile_id':'fixture','name':'Synthetic independent date boundaries','date_window':window,'enabled':False,**bounds}\n   response=t.client.put('/search-profiles',json=body);assert response.status_code==200,response.text\n   saved=t.client.get('/search-profiles',params={'profile_id':'fixture'}).json()['search_profiles']\n   persisted=next(x for x in saved if x['id']==body['id']);assert persisted['criteria']['date_window']==window\n   response=t.client.get('/jobs',params={'profile_id':'fixture','search_profile_id':body['id']});assert response.status_code==200,response.text\n   actual=sorted(x['attributes']['native_posting_id'] for x in response.json()['jobs']);expected=[3000+i for i in ids]\n   results.append({'window':window,'expected':expected,'actual':actual,'pass':actual==expected});assert actual==expected,results[-1]\n  bad=t.client.put('/search-profiles',json={**body,'date_start':at.isoformat(),'date_end':(at-timedelta(days=1)).isoformat()});assert bad.status_code==422,bad.text\n print(json.dumps({'source':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'utc':datetime.now(timezone.utc).isoformat(),'fixture_claims':claims,'reference':at.isoformat(),'checks':results,'inverted_custom_status':bad.status_code,'limits':'synthetic HTTP boundary; production direct execute_operation; SQLite reopen/public saved search+GET; fixed query clock; no RQ/browser/live provider'},indent=2))\nfinally: t.doCleanups()\n",
+      "exit_code": 0
+    },
+    "ui_gap": {
+      "path": "apps/web/src/main.tsx:1509",
+      "fact": "Posted within editor exposes1/3/7/14/30days; no last-hour/today/custom creation controls. Selected saved API-created criteria survive UI saves and apply via search_profile_id (static source trace only).",
+      "scope": "Root explicitly adjudicated whole030 PARTIAL for missing last-hour/today/custom UI controls. API/storage proof remains scoped; no browser/UI completeness claim."
+    },
+    "hosted_lineage": {
+      "root_record_path": "C:/Users/Dylan/.ao/data/artifacts/mjobs-rebuilt-1/p0-sprint-report.json#root_current_date_intake_readback",
+      "root_record": {
+        "reviewed_at_utc": "2026-10-18T22:50:32.666352+00:00",
+        "run": 39173100092,
+        "job": 117810088837,
+        "artifact": 12153293623,
+        "xml": "integration-2.xml",
+        "xml_sha256": "9c6055dfd65d98cbe80e82a853208b70ddeae1b2bab5fd55f1860b3523bf2848",
+        "named_cases": [
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_absolute_invalid_unknown_and_future_claims_keep_raw_source_evidence",
+            "state": "PASS",
+            "skip": false
+          },
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_first_valid_date_after_unknown_is_not_reanchored_on_later_polls",
+            "state": "PASS",
+            "skip": false
+          },
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_preupgrade_absolute_date_without_precision_is_not_refreshed_by_relative_recollection",
+            "state": "PASS",
+            "skip": false
+          },
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_preupgrade_relative_claim_uses_its_candidate_observation_and_remains_stable",
+            "state": "PASS",
+            "skip": false
+          },
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_public_intake_excludes_two_hours_ago_from_last_hour",
+            "state": "PASS",
+            "skip": false
+          },
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_remoteok_missing_or_invalid_date_retains_valid_epoch_after_public_collection",
+            "state": "PASS",
+            "skip": false
+          },
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_reopen_replay_and_updated_age_label_preserve_first_normalized_claim",
+            "state": "PASS",
+            "skip": false
+          },
+          {
+            "test": "tests.integration.test_relative_posted_source_intake.RelativePostedSourceIntakeTests::test_wwr_rfc2822_pubdate_survives_public_collection_search_and_reopen",
+            "state": "PASS",
+            "skip": false
+          }
+        ],
+        "named_count": 8,
+        "actual_checkout": "bdb7483adbf691bd5a5dab19b053e1f21a717982",
+        "reviewed_head": "9feaabb10107509d470672c00fa4185feb4bcfb7",
+        "merged_main": "43af22a4659c47fda7a22500abb7b97cdcd47608",
+        "tree": "e5ed8856ee25a514a04b3e7778f64b1a14d6d8f1",
+        "full_tree_equal": true,
+        "local_command": "python -m pytest -q tests/unit/test_relative_posted_timestamp.py tests/unit/test_search_semantics.py tests/integration/test_relative_posted_source_intake.py tests/integration/test_remotive.py tests/integration/test_remoteok.py tests/integration/test_greenhouse.py tests/integration/test_wwr.py tests/integration/test_company_feed_quality.py tests/integration/test_spine.py tests/integration/test_fixture_saved_search_discovery.py tests/integration/test_source_value_resolution.py tests/integration/test_source_value_integrity.py tests/integration/test_source_http_socket_budget.py -rs -o cache_dir=$env:TEMP/mjobs-relative-rss-legacy-merged-cache --junitxml=C:\\Users\\Dylan\\.ao\\data\\artifacts\\mjobs-rebuilt-4\\relative-posted-merged-37ea5e95\\targeted.xml",
+        "local_results": "147 passed, 90 subtests passed in96.72s",
+        "source_manifest": [
+          {
+            "path": "services/discovery/company_feed.py",
+            "blob": "6c258cf9208a1bde3324f656b30816dd0ccc3eeb",
+            "sha256": "48d94481b17be7a23c87b97906d1d45da88960136fe0c90e52091841e4cf78da"
+          },
+          {
+            "path": "services/discovery/pipeline.py",
+            "blob": "b1b9601617d81397cf34c4a23de2b2b7d50f31a6",
+            "sha256": "88861a97329fabe9e763d4a880f407a56d1f3ed4ba6cd003470e2991c9f4e54a"
+          },
+          {
+            "path": "services/discovery/search_semantics.py",
+            "blob": "0e939f5cc7bd133c712b52812887841370406c12",
+            "sha256": "dcb4c74033be9c8b79c9b64fa31085556ee5337f5960590795fb03e4c5959794"
+          },
+          {
+            "path": "services/discovery/sources/collect.py",
+            "blob": "48f9ce80f8e76c44a01908abf0659502513b8c44",
+            "sha256": "6a86d8e60b7f5904fbc5c7acf6dc11fea87094235d56b389d3c79279d024875f"
+          },
+          {
+            "path": "services/discovery/sources/greenhouse.py",
+            "blob": "befa76d1d9014624cbac8f998be658a68f3924d2",
+            "sha256": "b40513a646acc685daeb4ad98e2a7cdeb0cc72d1bc22141d710960a1a5634151"
+          },
+          {
+            "path": "services/discovery/sources/remoteok.py",
+            "blob": "9c17246cd132fc2e04d4580cc5e3c862dfbaf9de",
+            "sha256": "3c426ae41bf020b314318c2c7209cd133c071b50d9fd29bd93157209d96353b5"
+          },
+          {
+            "path": "services/discovery/sources/remotive.py",
+            "blob": "d25ebe9a6f8dcbca2042e8a6010b1d52456c42a3",
+            "sha256": "ab4c49b1ef37de56c1f8c976ccd678acc180130b0c58420757d0e5f252700ba7"
+          },
+          {
+            "path": "services/discovery/sources/wwr.py",
+            "blob": "f8f5c7478779ab73a9c0a12f66907668a98364dc",
+            "sha256": "a4d4b1b712400e5fa55ffb6bac00adbbaa9086e709b5d22a641ab74de120d782"
+          },
+          {
+            "path": "tests/integration/test_relative_posted_source_intake.py",
+            "blob": "8aa9ef649521deb8cdc7cdfa8d0c730d144b3cfc",
+            "sha256": "916101033a00e5ae6dc2cda91d44234594c809744aafc65f83f9e46b69814887"
+          },
+          {
+            "path": "tests/unit/test_relative_posted_timestamp.py",
+            "blob": "b856253440955ee657e35a9cc2f0f480e84f9240",
+            "sha256": "0a86a01e84e06ba98faf8af2be72e1f69a412c004f7cca4e9de1359f00fa81e3"
+          }
+        ],
+        "boundary": "Public API source admission/production execute_operation, synthetic HTTP, temporary SQLite persist/reopen/search; hosted integration suite includes PostgreSQL/Redis separately, not proof that these eight cases use PG/RQ. Live provider/browser NOT_RUN for the new cases.",
+        "whole_MJ030": "Independent literal adjudication pending; canonicalPARTIAL retained."
+      },
+      "A_direct_local_JUnit_readback": {
+        "path": "C:/Users/Dylan/.ao/data/artifacts/mjobs-rebuilt-4/relative-posted-merged-37ea5e95/targeted.xml",
+        "sha256": "38986500cddf46513730b98e82e72ba91d521ab8e2e50f5548d9ff4b2f078837",
+        "cases": 147,
+        "failures": 0,
+        "errors": 0,
+        "skips": 0,
+        "all10_manifest_Git_blobs_equal_integrated43af": true
+      },
+      "A_tree_readback": "Reviewed9fea and merged43af locally resolve identical fulltreee5ed8856ee25a514a04b3e7778f64b1a14d6d8f1; hosted actualbdb object absent locally. Actual checkout equality remains Root primary readback, not independently fetched by A.",
+      "A_hosted_raw_XML_readback": "NOT_RUN: retained raw path requested; no redownload. Root summary inspected with eight namedPASS0skip and XML hash. No claim summary substitutes for primary XML."
+    },
+    "historical_false_PASS": "Original unsupported PASS and public2hoursago/LAST_HOUR RED preserved in2026-10-18-acceptance-status-correction.json. Merged734 repairs API/storage; it does not erase the false-PASS interval or supply missing UI controls."
+  },
+  "historical_scope": {
+    "source_policy": "2026-10-01 source-policy evidence and PR431 describe global job_sources/Greenhouse contract and execution. Preserve17/114 historical claims and live schedule timestamps with their original source limits. Later active company-source path lacks parts of whole-source contract. Do not infer those gaps existed at the original closure or invent why an issue closed.",
+    "education": "Historical positive required/preferred/equivalent clauses remain evidence at their recorded scope; negation false filtering exposes incomplete current acceptance.",
+    "original_evidence_identities": {
+      "docs/evidence/2026-10-01-source-policy-scheduler.json": {
+        "revision": "9557ab728844800b930290eb0281e44106c6e303",
+        "git_blob": "55f62903c49a03415c0a92e66df4ed2f646bb820",
+        "sha256_git_bytes": "776eccdfb67002ef6eca4d19898a9ca255b9b48bc38798cfeee67d867827ced7"
+      },
+      "docs/evidence/2026-10-01-skill-title-education.json": {
+        "revision": "9557ab728844800b930290eb0281e44106c6e303",
+        "git_blob": "bc88101a71ca836a6a518f4326f988f63e8656a8",
+        "sha256_git_bytes": "6fb1a21f02687fa204d87c06bb1ce38f90cac54dd2ef1d5354080fe3d102a41e"
+      },
+      "docs/evidence/2026-10-01-experience-salary-date.json": {
+        "revision": "9557ab728844800b930290eb0281e44106c6e303",
+        "git_blob": "bcf598a0e4fe2b74459e0bce7a94495f205c8afb",
+        "sha256_git_bytes": "1410f93a4d1ffeb3471724414eaab2eb44af194d4ed512df0607542181b5df52"
+      },
+      "docs/evidence/2026-10-18-acceptance-status-correction.json": {
+        "revision": "9557ab728844800b930290eb0281e44106c6e303",
+        "git_blob": "7955bee4ec05c5bd43e5a2324859e294d7eb89cc",
+        "sha256_git_bytes": "4edbadc45e1bd2794932c2b36ead1528fb7f6ef516b1c74eb36667c6d7d0e5e9"
+      }
+    }
+  },
+  "provider_readback": {
+    "retrieved_at_utc": "2026-10-18T23:06:25.568931+00:00",
+    "issues": [
+      {
+        "number": 20,
+        "state": "closed",
+        "state_reason": "completed",
+        "closed_at": "2026-10-01T17:30:52Z",
+        "timeline": [
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-09-30T13:21:52Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/pull/370",
+              "number": 370,
+              "title": "Deliver connected local user testing and public read-only job discovery"
+            },
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T08:19:18Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/pull/431",
+              "number": 431,
+              "title": "Implement source capability policy, scheduling, and search profiles"
+            },
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T17:30:52Z",
+            "event": "closed",
+            "source_issue": null,
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-07T16:10:24Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/issues/517",
+              "number": 517,
+              "title": "[Feature] Catalogue discovered job sites and queue source integrations"
+            },
+            "state_reason": null
+          }
+        ]
+      },
+      {
+        "number": 21,
+        "state": "closed",
+        "state_reason": "completed",
+        "closed_at": "2026-10-01T17:30:53Z",
+        "timeline": [
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-09-30T13:21:52Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/pull/370",
+              "number": 370,
+              "title": "Deliver connected local user testing and public read-only job discovery"
+            },
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T08:19:18Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/pull/431",
+              "number": 431,
+              "title": "Implement source capability policy, scheduling, and search profiles"
+            },
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T17:30:53Z",
+            "event": "closed",
+            "source_issue": null,
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-07T16:10:24Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/issues/517",
+              "number": 517,
+              "title": "[Feature] Catalogue discovered job sites and queue source integrations"
+            },
+            "state_reason": null
+          }
+        ]
+      },
+      {
+        "number": 22,
+        "state": "closed",
+        "state_reason": "completed",
+        "closed_at": "2026-10-01T17:30:53Z",
+        "timeline": [
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T08:19:18Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/pull/431",
+              "number": 431,
+              "title": "Implement source capability policy, scheduling, and search profiles"
+            },
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T17:30:53Z",
+            "event": "closed",
+            "source_issue": null,
+            "state_reason": null
+          }
+        ]
+      },
+      {
+        "number": 35,
+        "state": "closed",
+        "state_reason": "completed",
+        "closed_at": "2026-10-01T18:32:42Z",
+        "timeline": [
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T18:27:25Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/pull/436",
+              "number": 436,
+              "title": "Implement skill taxonomy, title normalization, and education parsing"
+            },
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-01T18:32:42Z",
+            "event": "closed",
+            "source_issue": null,
+            "state_reason": null
+          },
+          {
+            "actor": "MulattoTech",
+            "commit_id": null,
+            "created_at": "2026-10-18T22:53:55Z",
+            "event": "cross-referenced",
+            "source_issue": {
+              "html_url": "https://github.com/MulattoTech/MJobs/pull/740",
+              "number": 740,
+              "title": "fix(discovery): preserve education clause polarity and strength"
+            },
+            "state_reason": null
+          }
+        ]
+      }
+    ],
+    "causality_limit": "Cross-referenced PR431/436 and closure timestamps are facts; timeline closed events have null commit_id/source_issue. No automated or manual closure cause inferred. Provider mutations remain Root-only after reviewed merge."
+  },
+  "source_manifest": {
+    "apps/api/main.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "91f3088665f26b4505c1d621eed5a5725558c45b",
+      "sha256_git_bytes": "dda2aacd78e6bfe13f51d5332414096dac63f3486ddf052dc9231aff890426ee"
+    },
+    "apps/web/src/main.tsx": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "cbac9d7c5d436f3fe73b71a84b9bef8761e3568d",
+      "sha256_git_bytes": "22e505aff1a4d91a1cb2e8806d75985d6f00bd976c75b82eb3c8dafea242c53f"
+    },
+    "packages/persistence/models.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "9df4ad74e9259966115d1f8b558e7f31446f0612",
+      "sha256_git_bytes": "5c928e8ce49220bb586e0c0485a488189c42384bd1b79cef209b17205d6d3fb6"
+    },
+    "services/company_discovery/sources.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "3ea534f456d6aab7a4e58eab2af744133bbfa29f",
+      "sha256_git_bytes": "85df7540ce086bc9946a1050bb072228b0d5572bd032eb31298870985822c6a1"
+    },
+    "services/company_discovery/monitoring.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "990dafc2f7cf42042b87eb9d93e2f415d22efebd",
+      "sha256_git_bytes": "c252bcf7c118374936e7f3bd999ee360890d7b94ca121773fb9aa34df78ad319"
+    },
+    "services/company_discovery/public_client.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "a9ccd5a39ae0334ddc098423ca985aeee4a19a88",
+      "sha256_git_bytes": "213b27fb6aa118b011bcfad43a59aa2a05688f927a0595d03f2b8c8c2e254a88"
+    },
+    "services/discovery/scheduler.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "57df217238c3006eaa001ff2aaba079fc0a80fc4",
+      "sha256_git_bytes": "48c48ae7aa21496ee1ae24bfec5ea4f36766368a391229dce1efa78eae88f5a5"
+    },
+    "services/discovery/sources/contract.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "41442dd8fa4bcebcf01763d85923ab1d10061a94",
+      "sha256_git_bytes": "e3fa8444cabb26ba0db329e6e63312dc67e68d5d70b842d462a73a30d359ddf1"
+    },
+    "services/discovery/sources/collect.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "48f9ce80f8e76c44a01908abf0659502513b8c44",
+      "sha256_git_bytes": "6a86d8e60b7f5904fbc5c7acf6dc11fea87094235d56b389d3c79279d024875f"
+    },
+    "services/discovery/search_semantics.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "0e939f5cc7bd133c712b52812887841370406c12",
+      "sha256_git_bytes": "dcb4c74033be9c8b79c9b64fa31085556ee5337f5960590795fb03e4c5959794"
+    },
+    "services/discovery/sources/greenhouse.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "befa76d1d9014624cbac8f998be658a68f3924d2",
+      "sha256_git_bytes": "b40513a646acc685daeb4ad98e2a7cdeb0cc72d1bc22141d710960a1a5634151"
+    },
+    "workers/tasks.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "b22ed55b937f0c5a6dbdb1180a31f7afd02af5fe",
+      "sha256_git_bytes": "34cd1197a9aecc0c55b189b9b94146e7c24c8f8fbefd1ab0858175c4d74ed033"
+    },
+    "tests/integration/test_company_source_monitoring.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "1da401d4a97c45767226940cf68a3b175f2b3839",
+      "sha256_git_bytes": "fdce7641c57cbbcfccd4d659a9bb1888f40289359b8726bb0fd1be61cd769248"
+    },
+    "tests/integration/test_company_monitoring_recovery.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "87b957467445a6d508b0ebc4fd39bcdc16111fcb",
+      "sha256_git_bytes": "69843f856545a3beb742ed76dd25e7d6bf408ef0e7c8a2ae9a2bce8cf29dfe0e"
+    },
+    "tests/integration/test_relative_posted_source_intake.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "8aa9ef649521deb8cdc7cdfa8d0c730d144b3cfc",
+      "sha256_git_bytes": "916101033a00e5ae6dc2cda91d44234594c809744aafc65f83f9e46b69814887"
+    },
+    "tests/unit/test_relative_posted_timestamp.py": {
+      "revision": "9557ab728844800b930290eb0281e44106c6e303",
+      "git_blob": "b856253440955ee657e35a9cc2f0f480e84f9240",
+      "sha256_git_bytes": "0a86a01e84e06ba98faf8af2be72e1f69a412c004f7cca4e9de1359f00fa81e3"
+    }
+  },
+  "input_equivalence": {
+    "date_and_capability": "All16 listed product/test blobs identical at executed43af and base955;731 adds queue tooling only. Prior execution dates/SHA retained, not relabeled as955 runs.",
+    "company_policy": "Six listed policy API/schema/client/scheduler/fixture blobs match37ea and955; configure_source AST also matches. Existing37ea public policy execution remains historical with explicit exact input equivalence.",
+    "company_policy_equal_paths": [
+      "apps/api/main.py",
+      "packages/persistence/models.py",
+      "services/company_discovery/monitoring.py",
+      "services/company_discovery/public_client.py",
+      "services/discovery/scheduler.py",
+      "tests/integration/test_company_monitoring_recovery.py"
+    ]
+  },
+  "supporting_execution": {
+    "result": "7PASS0skip/fail/error5.91s",
+    "source": "37ea5e95073a0716614c8e53a2ae418bf302ec42",
+    "named_cases": [
+      {
+        "classname": "tests.unit.test_saved_search_scheduler.SavedSearchSchedulerTests",
+        "name": "test_source_poll_interval_is_a_lower_bound_even_when_search_is_due",
+        "seconds": 0.465,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.unit.test_saved_search_scheduler.SavedSearchSchedulerTests",
+        "name": "test_shared_source_serializes_due_searches_and_serves_the_next_overdue_profile",
+        "seconds": 0.454,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_source_monitoring.CompanySourceMonitoringTests",
+        "name": "test_retryable_failures_degrade_then_stop_until_successful_manual_recovery",
+        "seconds": 0.851,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_company_source_monitoring.CompanySourceMonitoringTests",
+        "name": "test_forbidden_feed_stays_blocked_without_automatic_retry",
+        "seconds": 0.635,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_lever_autodiscovery.LeverAutodiscoveryTests",
+        "name": "test_later_inventory_failure_preserves_existing_jobs_and_recovery_imports_once",
+        "seconds": 0.766,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_lever_autodiscovery.LeverAutodiscoveryTests",
+        "name": "test_review_revocation_blocks_scheduler_and_fetch",
+        "seconds": 0.656,
+        "result": "PASS"
+      },
+      {
+        "classname": "tests.integration.test_reviewed_greenhouse_enrollment.ReviewedGreenhouseEnrollmentTests",
+        "name": "test_review_revocation_during_fetch_prevents_import_without_provider_backoff",
+        "seconds": 0.73,
+        "result": "PASS"
+      }
+    ],
+    "junit_sha256": "e0f043676e842ca00b60df911d8a6d48084b0884476303212c4fdfd0c412851c",
+    "limits": "SyntheticSQLite/helper/TestClient/directworker and HTTPfixtures; no newRQ/PG/Compose orwallclockcadence execution. Existing tests only; no shippingtest/sourceedits."
+  },
+  "failure_isolation_limit": "No demonstratedcross-source failureleak. Source-specificoutboxoperations andscopederrorupdates isolateknownproviderfailurepaths; newtestsproveone-sourceinventorypreservation/recovery, authorityrevocationandblockedfeedbehavior. Simultaneousmulti-source outage plushealthysourcecompletion was notexecuted inthisincrement, so do not claim completepipelineisolation proof. UnexpectedDB/programmingerrors mayabortaschedulertick; outerloop retries; notclassifiedasprovideroutage.",
+  "limits": [
+    "Synthetic temporarySQLite/TestClient/provider responses/direct execute_operation; not freshRQ/PostgreSQL/browser/live providers.",
+    "No observed runtime credential leak or unsafe egress claim.",
+    "No current whole010/292 promotion, reference-result or priority changes.",
+    "Current issue/Project contradictions do not determine original closure causality.",
+    "Local ignored logs are not committed artifacts; public evidence includes sanitized oracle source, named results and hashes.",
+    "C owns separate policy RED/design; A owns no scheduler or migration implementation.",
+    "PR733 and runbook remain held."
+  ],
+  "validation_log_directory": "outputs/lane-a-verification/",
+  "local_canonical_validation": {
+    "scope_invariants": {
+      "base": "9557ab728844800b930290eb0281e44106c6e303",
+      "passed": 23,
+      "checks": [
+        "exact366unique_original_membership",
+        "exact_five_changed_records",
+        "exact_four_PASS_to_PARTIAL",
+        "030_result_remains_PARTIAL",
+        "original_counts121_102_143",
+        "all_priorities_and_metadata_unchanged",
+        "all26P0_records_unchanged",
+        "P0_counts12_4_10",
+        "historical_notes_preserved",
+        "historical_evidence_paths_preserved",
+        "matrix_top_level_metadata_unchanged",
+        "unchanged_planning/REFERENCE_GAP_MATRIX.json",
+        "unchanged_planning/ISSUE_SEED.jsonl",
+        "unchanged_planning/PR_QUEUE.json",
+        "unchanged_planning/IMPLEMENTATION_STATE.json",
+        "index425_unique_366plus59",
+        "reference_counts19_4_36",
+        "all_evidence_source_hashes_match955",
+        "historical_evidence_files_unchanged",
+        "four_closed_completed_readbacks",
+        "030_scoped_not_wholePASS",
+        "034_one_expectedRED_one_controlPASS",
+        "29planning_pass_no_skip"
+      ]
+    },
+    "scope_oracle_sha256": "70cef1fee264e059e61833ce06a0f1ceac3b8c44f51b0c530635130c017f0c0d",
+    "planning_tests": {
+      "command": "python -m pytest -q -p no:cacheprovider tests/unit/test_catalogue.py tests/unit/test_reconcile_planning.py tests/unit/test_progress_dashboard.py tests/unit/test_progress_card.py",
+      "result": "29PASS0skip/error/failure",
+      "junit": "outputs/lane-a-verification/planning-tests-final.xml",
+      "log": "outputs/lane-a-verification/planning-tests-final.log"
+    },
+    "validators": [
+      "catalogue",
+      "progress validate",
+      "progress_dashboard --check",
+      "agent_skills",
+      "mjobs_reconcile_planning read-only425",
+      "git diff --check"
+    ],
+    "full_logs": "outputs/lane-a-verification/ (ignored per-worktree working logs; not public GitHub artifacts)",
+    "execution_limits": "No duplicate138 queue suite, full suite, Docker, browser, source/UI fix, provider mutation or self-review certification."
+  }
+}

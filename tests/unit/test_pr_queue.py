@@ -180,3 +180,190 @@ def test_catalogue_consumes_policy_validation():
         errors = validate_catalogue(Path(__file__).resolve().parents[2])
     validator.assert_called_once()
     assert "policy sentinel" in errors
+
+
+def owned_update():
+    """Reviewed operator input, independently bound to the old provider head."""
+    pr = pull()
+    pr["base"] = {"ref": "main", "repo": {"full_name": "MulattoTech/MJobs"}}
+    item = dict(candidate(), head_ref=pr["head"]["ref"],
+                previous_head_sha=pr["head"]["sha"], base_ref="main",
+                base_repo="MulattoTech/MJobs")
+    metadata = {"1": {"head_sha": pr["head"]["sha"], "reviewed_by": "integrator",
+                      "review_reference": "owned-update-review/1", "owner": item["owner"],
+                      "work_id": item["work_id"], "head_ref": item["head_ref"],
+                      "head_repo": item["head_repo"], "base_ref": item["base_ref"],
+                      "base_repo": item["base_repo"], "publisher_id": pr["user"]["id"],
+                      "publisher_login": pr["user"]["login"]}}
+    return pr, item, metadata
+
+
+def test_existing_owned_update_reproduces_new_candidate_duplicate_rejection():
+    pr, item, metadata = owned_update()
+    result = assess([pr], POLICY, metadata, item)
+    assert "duplicate open PR scope/identity: 1" in result["errors"]
+    assert result["projected_development_open"] == 2
+
+
+def test_explicit_owned_update_admits_same_branch_without_adding_capacity():
+    pr, item, metadata = owned_update()
+    result = assess([pr], {"max_active_prs": 1}, metadata, item, update_pr=1)
+    assert result["allowed"], result["errors"]
+    assert result["development_open"] == result["projected_development_open"] == 1
+    assert result["backlog"] == [1]
+    assert result["publication_mode"] == "update"
+    assert result["validated_update_pr"] == 1
+    assert result["publication_checked"]
+
+
+@pytest.mark.parametrize("number", [True, 0, -1, "1", 2])
+def test_update_requires_known_positive_integer_pr_number(number):
+    pr, item, metadata = owned_update()
+    assert not assess([pr], POLICY, metadata, item, update_pr=number)["allowed"]
+
+
+@pytest.mark.parametrize("field,value", [
+    ("owner", "other-session"), ("work_id", "different-work"),
+    ("head_ref", "Feature/1"), ("head_repo", "external/MJobs"),
+    ("base_ref", "release"), ("base_repo", "external/MJobs"),
+    ("previous_head_sha", "a" * 40), ("previous_head_sha", None),
+    ("head_sha", "1".zfill(40)), ("local_validation", []),
+    ("meaningful_change", False), ("changed_files", 0),
+])
+def test_update_rejects_candidate_identity_drift_and_unqualified_change(field, value):
+    pr, item, metadata = owned_update()
+    item[field] = value
+    assert not assess([pr], POLICY, metadata, item, update_pr=1)["allowed"]
+
+
+@pytest.mark.parametrize("field", ["head_sha", "reviewed_by", "review_reference", "owner",
+    "work_id", "head_ref", "head_repo", "base_ref", "base_repo", "publisher_id", "publisher_login"])
+def test_update_requires_complete_head_bound_operator_review(field):
+    pr, item, metadata = owned_update()
+    del metadata["1"][field]
+    assert not assess([pr], POLICY, metadata, item, update_pr=1)["allowed"]
+
+
+@pytest.mark.parametrize("field,value", [
+    ("head_sha", "a" * 40), ("owner", "other-session"), ("work_id", "other-work"),
+    ("head_ref", "other-branch"), ("head_repo", "external/MJobs"),
+    ("base_ref", "release"), ("base_repo", "external/MJobs"),
+    ("publisher_id", True), ("publisher_id", 7), ("publisher_login", "someone-else"),
+])
+def test_update_rejects_inconsistent_operator_review(field, value):
+    pr, item, metadata = owned_update()
+    metadata["1"][field] = value
+    assert not assess([pr], POLICY, metadata, item, update_pr=1)["allowed"]
+
+
+@pytest.mark.parametrize("change", ["closed", "merged", "head_sha", "head_ref", "head_repo",
+    "base_ref", "base_repo", "missing_base", "missing_source", "publisher", "bot", "duplicate"])
+def test_update_rejects_provider_identity_changes(change):
+    pr, item, metadata = owned_update()
+    if change == "closed":
+        pr["state"] = "closed"
+    elif change == "merged":
+        pr["merged_at"] = "2026-10-18T20:00:00Z"
+    elif change in ("head_sha", "head_ref", "head_repo", "base_ref", "base_repo"):
+        section, key = change.split("_")
+        pr[section][key] = {"full_name": "external/MJobs"} if key == "repo" else "a" * 40
+    elif change == "missing_base":
+        del pr["base"]
+    elif change == "missing_source":
+        pr["head"]["repo"] = None
+    elif change == "publisher":
+        pr["user"]["id"] = 7
+    elif change == "bot":
+        pr["user"]["type"] = "Bot"
+    prs = [pr, pr] if change == "duplicate" else [pr]
+    assert not assess(prs, POLICY, metadata, item, update_pr=1)["allowed"]
+
+
+def test_update_preserves_other_duplicate_guards_and_over_capacity_block():
+    pr, item, metadata = owned_update()
+    for other in [pull(2, head=dict(pr["head"])),
+                  pull(2, head={"sha": item["head_sha"], "ref": "other"})]:
+        result = assess([pr, other], POLICY, metadata, item, update_pr=1)
+        assert "duplicate open PR scope/identity: 2" in result["errors"]
+    other = pull(2)
+    metadata["2"] = dict(metadata["1"], head_sha=other["head"]["sha"])
+    assert not assess([pr, other], POLICY, metadata, item, update_pr=1)["allowed"]
+    result = assess([pr, pull(2)], {"max_active_prs": 1}, metadata, item, update_pr=1)
+    assert "projected development PR capacity exceeded" in result["errors"]
+    assert result["projected_development_open"] == 2
+
+
+def test_update_requires_candidate_and_does_not_trust_pr_authored_identity():
+    pr, item, metadata = owned_update()
+    pr["body"] = json.dumps(metadata["1"])
+    assert not assess([pr], POLICY, {}, item, update_pr=1)["allowed"]
+    assert not assess([pr], POLICY, metadata, update_pr=1)["allowed"]
+
+
+def test_update_repository_case_is_insensitive_but_refs_and_owner_are_exact():
+    pr, item, metadata = owned_update()
+    item["head_repo"] = item["base_repo"] = "MULATTOTECH/mjobs"
+    assert assess([pr], POLICY, metadata, item, update_pr=1)["allowed"]
+
+
+@pytest.mark.parametrize("section", ["head", "base"])
+def test_update_rejects_external_repository_even_when_all_claims_agree(section):
+    pr, item, metadata = owned_update()
+    pr[section]["repo"]["full_name"] = "external/MJobs"
+    item[f"{section}_repo"] = metadata["1"][f"{section}_repo"] = "external/MJobs"
+    assert not assess([pr], POLICY, metadata, item, update_pr=1)["allowed"]
+
+
+@pytest.mark.parametrize("metadata", [None, [], {}, {"1": []}])
+def test_update_cannot_use_unreviewed_or_malformed_metadata(metadata):
+    pr, item, _ = owned_update()
+    assert not assess([pr], POLICY, metadata, item, update_pr=1)["allowed"]
+
+
+def test_invalid_update_cannot_exclude_target_or_hide_added_capacity():
+    pr, item, metadata = owned_update()
+    item["owner"] = "unowned"
+    result = assess([pr], {"max_active_prs": 1}, metadata, item, update_pr=1)
+    assert result["validated_update_pr"] is None
+    assert result["projected_development_open"] == 2
+    assert "duplicate open PR scope/identity: 1" in result["errors"]
+    assert "projected development PR capacity exceeded" in result["errors"]
+
+
+def test_valid_update_retains_soft_capacity_warning_without_changing_inventory():
+    pr, item, metadata = owned_update()
+    prs = [pr, pull(2, draft=True)]
+    inventory = assess(prs, dict(POLICY, max_active_prs=1), metadata)
+    result = assess(prs, dict(POLICY, max_active_prs=1), metadata, item, update_pr=1)
+    assert result["allowed"]
+    assert result["capacity"] == "WARNING"
+    for field in ("development_open", "dependency_open", "drafts", "authorship", "categories", "backlog", "conflicts"):
+        assert result[field] == inventory[field]
+    assert result["projected_development_open"] == 2
+
+
+def test_cli_update_uses_live_inventory_and_reviewed_metadata(monkeypatch, capsys):
+    pr, item, metadata = owned_update()
+    data = {"candidate.json": item, "metadata.json": metadata, "planning/PR_QUEUE.json": {"policy": POLICY}}
+    monkeypatch.setattr("sys.argv", ["pr_queue", "--live", "--candidate", "candidate.json",
+                                    "--metadata", "metadata.json", "--update-pr", "1"])
+    monkeypatch.setattr("pathlib.Path.read_text", lambda path, **kwargs: json.dumps(data[path.as_posix()]))
+    calls = []
+    monkeypatch.setattr("tools.verification.pr_queue.github_pulls", lambda: calls.append(1) or [pr])
+    assert main() == 0
+    result = json.loads(capsys.readouterr().out)
+    assert calls == [1]
+    assert result["source"] == "authenticated GitHub REST"
+    assert result["validated_update_pr"] == 1
+
+
+@pytest.mark.parametrize("args", [
+    ["--live", "--update-pr", "1"],
+    ["--live", "--candidate", "c.json", "--update-pr", "1"],
+    ["--snapshot", "s.json", "--candidate", "c.json", "--metadata", "m.json", "--update-pr", "1"],
+])
+def test_cli_update_requires_live_candidate_and_separate_review(monkeypatch, args):
+    monkeypatch.setattr("sys.argv", ["pr_queue", *args])
+    with pytest.raises(SystemExit) as exc:
+        main()
+    assert exc.value.code == 2

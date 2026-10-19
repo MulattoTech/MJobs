@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 import httpx
 
 from services.discovery.sources.errors import SourceError
+from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.sources.structured_text import structured_text
 
 from services.discovery.sources.contract import (
@@ -106,7 +107,7 @@ class Remotive:
         if callable(remaining_budget):
             request_timeout = min(request_timeout, remaining_budget())
 
-        with httpx.Client(transport=self.transport, timeout=request_timeout,
+        with httpx.Client(transport=self.transport if self.transport is not None else SourceTransport(self.check), timeout=request_timeout,
                           follow_redirects=False, trust_env=False,
                           headers={"User-Agent": "MJobs-Discovery/1.0", "Accept": "application/json"}) as client:
             stop_watcher = threading.Event()
@@ -363,6 +364,7 @@ class Remotive:
                 "salary_source": salary["salary_source"],
                 "salary_raw": salary["salary_raw"],
                 "reported_posted_at": reported.isoformat() if reported else None,
+                "reported_posted_at_raw": raw.get("publication_date"),
                 "remote_regions": location_facts["remote_regions"],
                 "remote_indicated": True,
                 "country": location_facts["country"],
