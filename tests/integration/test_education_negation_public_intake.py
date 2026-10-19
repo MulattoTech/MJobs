@@ -238,5 +238,9 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
             (4613, "Bachelor's degree in Computer Science or Engineering or Mathematics not required, but preferred.", 'BACHELORS_PREFERRED'),
             (4614, "Bachelor's degree in Computer Science or Engineering or Mathematics not required or mandatory.", 'NONE_SPECIFIED'),
             (4615, "Bachelor's degree in Computer Science and Engineering required or equivalent experience not accepted.", 'BACHELORS_REQUIRED'),
+            (4616, "Bachelor's degree in Computer Science however Python required.", 'NONE_SPECIFIED'),
+            (4617, "Bachelor's degree in Xenobiology whereas incident response preferred.", 'NONE_SPECIFIED'),
+            (4618, "Bachelor's degree in Food Science but French required.", 'NONE_SPECIFIED'),
+            (4619, "Bachelor's degree in Xenobiology preferred however Python required.", 'BACHELORS_PREFERRED'),
         )
         self._assert_categories_and_matching(examples)

@@ -429,6 +429,7 @@ def parse_education_requirement(text):
 
         fields = {('computer', 'science'), ('engineering',), ('mathematics',),
                   ('systems',), ('networks',), ('networking',)}
+        contrasts = {'but', 'however', 'whereas', 'while'}
         punctuation = {',', ';', ':', '—', '–'}
         joins = {',', ';', 'and', 'or', 'and/or'}
 
@@ -490,7 +491,7 @@ def parse_education_requirement(text):
                         children, closed = node
                         if not words or not children or not descriptor_valid(children, allow_unknown=closed):
                             return False
-                    elif re.fullmatch(r"\w+(?:'\w+)?", node):
+                    elif re.fullmatch(r"\w+(?:'\w+)?", node) and node not in contrasts:
                         words.append(node)
                     else:
                         return False
@@ -514,7 +515,6 @@ def parse_education_requirement(text):
         scopes, scope_start, accepted_end = [], 0, 0
         cursor, has_alternative = first, False
         separators = punctuation | {'and', 'or', 'and/or', 'but', 'however', 'whereas', 'while'}
-        contrasts = {'but', 'however', 'whereas', 'while'}
         while cursor < len(parts):
             word, position, end = parts[cursor]
             entry = entry_at(cursor)

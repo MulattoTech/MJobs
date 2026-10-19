@@ -54,7 +54,7 @@ class EducationRequirementTests(unittest.TestCase):
             'in Xenobiology',
         )
         for descriptor in descriptors:
-            for separator in (', ', ', and ', ': ', ' — '):
+            for separator in (', ', ', and ', ': ', ' — ', ' but ', ' however ', ' whereas ', ' while '):
                 for subject in subjects:
                     for qualifier in ('required', 'preferred'):
                         text = "Bachelor's degree " + descriptor + separator + subject + ' ' + qualifier + '.'
