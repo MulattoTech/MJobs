@@ -262,5 +262,9 @@ class EducationNegationPublicIntakeTests(unittest.TestCase):
             (4713, "Bachelor's degree in Xenobiology or Marmalade Studies required.", 'BACHELORS_REQUIRED'),
             (4714, "Bachelor's degree in Accounting or security clearance required.", 'NONE_SPECIFIED'),
             (4715, "Bachelor's degree in Security Studies or Public Trust Administration preferred.", 'BACHELORS_PREFERRED'),
+            (4716, "Bachelor's degree in Accounting, Finance or Economics required.", 'BACHELORS_REQUIRED'),
+            (4717, "Bachelor's degree in Electrical Engineering, Physics, or a related field preferred.", 'BACHELORS_PREFERRED'),
+            (4718, "Bachelor's degree in Accounting, Finance or Economics, Python required.", 'NONE_SPECIFIED'),
+            (4719, "Bachelor's degree in Accounting, Finance or Economics preferred, Python required.", 'BACHELORS_PREFERRED'),
         )
         self._assert_categories_and_matching(examples)

@@ -479,7 +479,9 @@ def parse_education_requirement(text):
             if not items[-1]:
                 return False
             coordinated = False
+            coordinated_before = []
             for connector in connectors:
+                coordinated_before.append(coordinated)
                 explicit = any(word in {'and', 'or', 'and/or'} for word in connector)
                 if connector not in ([','], [';'], ['and'], ['or'], ['and/or'],
                                       [',', 'and'], [',', 'or'], [',', 'and/or']):
@@ -493,11 +495,13 @@ def parse_education_requirement(text):
             related_tail = tail in (['related', 'field'], ['related', 'discipline'])
             # Coordination after an explicit field introducer supplies the
             # subject relationship, without looking discipline names up. A
+            # comma prefix completed by an Oxford join is one field list. A
             # comma-and fresh subject remains ambiguous; an explicit related
             # tail can still finish the degree descriptor. Closed wrappers
             # independently delimit the complete field subject.
-            explicit_list = bool(introduced and connectors) and all(
-                connector in (['and'], ['or'], ['and/or'], [',', 'or'], [',', 'and/or'])
+            explicit_list = bool(introduced and coordinated) and all(
+                connector != [',', 'and']
+                or (index > 0 and not coordinated_before[index])
                 or (index == len(connectors) - 1 and related_tail
                     and connector == [',', 'and'])
                 for index, connector in enumerate(connectors))

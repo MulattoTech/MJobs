@@ -33,6 +33,8 @@ class EducationRequirementTests(unittest.TestCase):
         for left, right in disciplines:
             for descriptor in ('in ' + left + ' or ' + right,
                                'in ' + left + ' and ' + right,
+                               'in ' + left + ', ' + right + ' or Cygnian Studies',
+                               'in ' + left + ', ' + right + ', and Cygnian Studies',
                                'in ' + left + ' or ' + right + ' or Cygnian Studies',
                                'in ' + left + ' or ' + right + ', or Cygnian Studies',
                                'in ' + left + ' and ' + right + ', or a related field',
@@ -83,6 +85,7 @@ class EducationRequirementTests(unittest.TestCase):
                             ('Electrical Engineering', 'Physics'),
                             ('Asterian Studies', 'Boreal Studies')):
             for descriptor in ('in ' + left + ' or ' + right,
+                               'in ' + left + ', ' + right + ' or Cygnian Studies',
                                '(' + left + ' and ' + right + ')'):
                 for separator in (', ', ', and ', ': ', ' — '):
                     for subject in ('Python', 'Zorblatt tooling', 'incident response', 'French'):
