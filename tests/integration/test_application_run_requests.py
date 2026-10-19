@@ -209,12 +209,61 @@ class ApplicationRunRequestTests(unittest.TestCase):
             "request_id": "diagnostic-run",
             "expected_profile_version": "a" * 64,
             "expected_document_version": 3,
-            "application_state": "PREPARED",
             "preflight_result": "PASS",
             "preflight_is_current": False,
             "submit": False,
+            "application_read_state": "UNAVAILABLE",
         })
         self.assertNotIn("unapproved_answer", journal_path.read_text(encoding="utf-8"))
+
+    def test_terminal_public_run_receipt_journals_owner_matched_current_application_read(self):
+        queued = self.queue(request="current-read-run")
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == queued["operation_id"]).values(
+                    state="DEAD_LETTERED", error="RETRY_LIMIT"))
+
+        app = create_app(self.store, "http://127.0.0.1:8090", self.root, operation_mode="FIXTURE")
+        endpoint = f"/profiles/fixture/applications/{self.app_id}/mock-runs/current-read-run"
+        journal_path = self.root / "current-read-evidence.json"
+        journal = ui_e2e.EvidenceJournal(
+            journal_path,
+            {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "fixture-source"}},
+        )
+        journal.begin("Run dry-run")
+        with TestClient(app) as client:
+            current_application = {}
+
+            def read_current_application():
+                response = client.get(f"/profiles/fixture/applications/{self.app_id}")
+                self.assertEqual(response.status_code, 200, response.text)
+                current_application.update(response.json())
+                self.assertEqual(current_application["profile_id"], "fixture")
+                self.assertEqual(current_application["id"], self.app_id)
+                return ui_e2e._terminal_application_context(
+                    current_application, profile_id="fixture", application_id=self.app_id)
+
+            with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda path: client.get(path).json(),
+                    endpoint,
+                    queued["operation_id"],
+                    failure_context={
+                        "application_id": self.app_id,
+                        "request_id": "current-read-run",
+                        "application_state": "SUBMISSION_UNCONFIRMED",
+                        "submit": False,
+                    },
+                    failure_context_reader=read_current_application,
+                )
+
+        journal.fail(caught.exception)
+        terminal = json.loads(journal_path.read_text(encoding="utf-8"))["failure"]["terminal_operation"]
+        self.assertEqual(terminal["application_read_state"], "CURRENT")
+        self.assertEqual(terminal["application_state"], current_application["state"])
+        self.assertEqual(terminal["current_profile_version"], current_application["profile_version"])
+        self.assertEqual(terminal["current_document_version"], current_application["document_version"])
+        self.assertNotEqual(terminal["application_state"], "SUBMISSION_UNCONFIRMED")
 
     def test_public_run_receipt_classifies_builtin_error_type_without_leaking_it(self):
         queued = self.queue(request="diagnostic-type-error", submit=True)
