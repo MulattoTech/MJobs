@@ -162,6 +162,11 @@ def discover_company_source(store, candidate, client, check=None, search_provide
     check = check or (lambda: None)
     fixture = bool(getattr(client, "fixture_only", False))
     initial_authorization = check()
+    acquired_page = None
+    if not fixture and initial_authorization and initial_authorization.get('authorization') == 'ATS_JOB_LINK_CANDIDATE':
+        from services.company_discovery.domain_acquisition import acquire_official_domain
+        acquired_page = acquire_official_domain(store, initial_authorization, client, check, enrollment_guard)
+        initial_authorization = check()
     identity_confirmation = (initial_authorization if initial_authorization and
         initial_authorization.get('authorization') == 'USER_CONFIRMED_DOMAIN' else None)
     website = str(candidate.get("company_website") or candidate.get("website_url") or "").strip()
@@ -189,7 +194,7 @@ def discover_company_source(store, candidate, client, check=None, search_provide
                     resolved_without_website)
     search_context = None
     rejected_search_candidates = []
-    homepage = None
+    homepage = acquired_page
     search_attempted = False
     if not website:
         search_attempted = True
