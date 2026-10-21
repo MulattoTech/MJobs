@@ -1,3 +1,7 @@
+# Temporary clean-main development baseline (2026-10-20).
+# Pause routine Dependabot version-update PRs while retaining security-update
+# capability. Restore previous limits (npm/pip 3, test/action/docker 2)
+# after the Luna-focused MJobs sprint when ready to resume version upgrades.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -5,7 +9,7 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     groups:
       frontend-minor-patch:
         update-types: [minor, patch]
@@ -14,7 +18,7 @@ updates:
     schedule:
       interval: weekly
       day: tuesday
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 0
     groups:
       runtime-minor-patch:
         update-types: [minor, patch]
@@ -23,7 +27,7 @@ updates:
     schedule:
       interval: weekly
       day: tuesday
-    open-pull-requests-limit: 2
+    open-pull-requests-limit: 0
     groups:
       test-and-docs-tooling:
         update-types: [minor, patch]
@@ -32,7 +36,7 @@ updates:
     schedule:
       interval: weekly
       day: wednesday
-    open-pull-requests-limit: 2
+    open-pull-requests-limit: 0
     groups:
       action-updates:
         update-types: [minor, patch]
@@ -46,4 +50,4 @@ updates:
     schedule:
       interval: weekly
       day: thursday
-    open-pull-requests-limit: 2
+    open-pull-requests-limit: 0
