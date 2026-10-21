@@ -69,7 +69,7 @@ jobs:
         run: python -m cli.backup_acceptance --baseline outputs/ci-ui.json --evidence outputs/ci-backup.json --archive "$RUNNER_TEMP/mjobs-fixture-backup" --source-project "$COMPOSE_PROJECT_NAME" --target-project "$BACKUP_TARGET_PROJECT" --port "$MJOBS_PORT"
       - name: Upload bounded fictional result summaries
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: synthetic-acceptance-json
           path: outputs/ci-*.json
@@ -77,7 +77,7 @@ jobs:
           retention-days: 3
       - name: Upload settings browser acceptance
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: settings-browser-results
           path: outputs/ci-settings-browser.xml
