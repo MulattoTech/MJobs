@@ -1208,6 +1208,8 @@ class Store:
             row = connection.execute(select(m.applications).where(m.applications.c.id == application_id).with_for_update()).mappings().one()
             if row["state"] not in expected:
                 raise ValueError(f"Unsafe application transition from {row['state']}")
+            if row["state"] == "SUBMISSION_UNCONFIRMED" and state != "CONFIRMED":
+                raise ValueError("Unsafe application transition from SUBMISSION_UNCONFIRMED; reconcile before retry")
             trace = [*row["trace"], *([step] if step else [])]
             values = {"state": state, "trace": trace}
             if confirmation is not None:

@@ -59,6 +59,18 @@ class ConfirmationRecoveryTests(unittest.TestCase):
         self.assertEqual(self.store.application(self.app_id)["state"], "SUBMISSION_UNCONFIRMED")
         self.assertEqual(httpx.get(self.origin + "/_test/request-counts", trust_env=False).json(), {"review": 0, "submit": 0})
 
+    def test_uncertain_submission_cannot_transition_back_to_submitting(self):
+        before = self.store.count("audit_events")
+
+        for _ in range(2):
+            with self.assertRaisesRegex(ValueError, "SUBMISSION_UNCONFIRMED"):
+                self.store.transition(self.app_id, ["SUBMISSION_UNCONFIRMED"], "SUBMITTING", "RETRY")
+
+        self.assertEqual(self.store.application(self.app_id)["state"], "SUBMISSION_UNCONFIRMED")
+        self.assertEqual(self.store.count("audit_events"), before)
+        self.assertEqual(httpx.get(self.origin + "/_test/request-counts", trust_env=False).json(),
+                         {"review": 0, "submit": 0})
+
     def test_parallel_identical_checks_have_one_durable_check_identity(self):
         with ThreadPoolExecutor(max_workers=2) as pool:
             results = list(pool.map(lambda _: self.check(), range(2)))
