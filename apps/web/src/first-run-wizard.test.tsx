@@ -51,3 +51,49 @@ it('renders all ten setup steps and keeps external submission unavailable', asyn
   expect(html).not.toContain('Submit application');
   expect(html).not.toContain('Automatic applications');
 });
+
+it('keeps first-run controls keyboard-native and gives each control an accessible name', async () => {
+  const { FirstRunWizard } = await modules['./first-run-wizard.tsx']!();
+  vi.stubGlobal('localStorage', { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() });
+  const html = renderToStaticMarkup(<FirstRunWizard
+    profileId="profile-1"
+    steps={[
+      { id: 'profile', label: 'Create profile', description: 'Add profile details.', complete: false,
+        action: 'navigate', actionLabel: 'Open profile', skipLabel: 'Skip profile setup' },
+      { id: 'review', label: 'Review facts', description: 'Acknowledge the facts.', complete: false,
+        action: 'acknowledge', actionLabel: 'Confirm local review' },
+      { id: 'search', label: 'Run first search', description: 'Choose saved search and source.', complete: false,
+        action: 'search', actionLabel: 'Run first search' },
+    ]}
+    sources={[{ id: 'source-1', name: 'Example source', provider: 'Greenhouse' }]}
+    searches={[{ id: 'search-1', name: 'Systems Administrator' }]}
+    selectedSourceId="source-1" selectedSearchId="search-1" canRunSearch={true} busy={false}
+    onNavigate={vi.fn()} onAcknowledge={vi.fn()} onSelectSource={vi.fn()} onSelectSearch={vi.fn()}
+    onRunSearch={vi.fn()}
+  />);
+
+  const buttons = [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)];
+  expect(buttons.length).toBeGreaterThan(0);
+  for (const [, attributes, content] of buttons) {
+    expect(attributes).toContain('type="button"');
+    expect(content.replace(/<[^>]*>/g, '').trim()).not.toBe('');
+  }
+  expect(html).toContain('<label for="first-run-search-profile">First-run saved search profile</label>');
+  expect(html).toContain('<label for="first-run-source">Enabled source for this search</label>');
+  expect(html).not.toMatch(/<(?:div|span)[^>]*role="button"/);
+  expect(html).not.toMatch(/<(?:button|select)[^>]*tabindex="-1"/i);
+});
+
+it('keeps the collapsed first-run resume action a named, keyboard-native button', async () => {
+  const { FirstRunWizard } = await modules['./first-run-wizard.tsx']!();
+  vi.stubGlobal('localStorage', { getItem: () => '1', setItem: vi.fn(), removeItem: vi.fn() });
+  const html = renderToStaticMarkup(<FirstRunWizard
+    profileId="profile-1" steps={[]} sources={[]} searches={[]}
+    selectedSourceId="" selectedSearchId="" canRunSearch={false} busy={false}
+    onNavigate={vi.fn()} onAcknowledge={vi.fn()} onSelectSource={vi.fn()} onSelectSearch={vi.fn()}
+    onRunSearch={vi.fn()}
+  />);
+
+  expect(html).toContain('<button type="button" class="quiet">Resume first-run setup (0/0)</button>');
+  expect(html).not.toContain('role="button"');
+});
