@@ -24,8 +24,8 @@ def test_provider_connection(provider: str, secret: str,
     """Check authentication with one fixed GET, discarding its unused body.
 
     The owned transport shares one monotonic deadline across DNS, connect, TLS
-    and headers. Cancellation is available to direct callers; the synchronous
-    API currently supplies no cancellation event. No raw response is retained.
+    and headers. The API supplies a cancellation event so request disconnects
+    close the in-flight transport. No raw response is retained.
     """
     configured = _ENDPOINTS.get(provider)
     if configured is None:

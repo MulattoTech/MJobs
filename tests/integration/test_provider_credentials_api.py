@@ -1,9 +1,11 @@
 """Encrypted, profile-scoped provider credential API behavior."""
+import asyncio
 import base64
 import copy
 from pathlib import Path
 import shutil
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 
@@ -88,10 +90,87 @@ class ProviderCredentialApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         self.assertEqual(response.json()["status"], "CONNECTED")
         self.assertNotIn("synthetic-never-return-this", response.text)
-        check.assert_called_once_with("openai", "synthetic-never-return-this")
+        check.assert_called_once()
+        args, kwargs = check.call_args
+        self.assertEqual(args, ("openai", "synthetic-never-return-this"))
+        self.assertIsInstance(kwargs.get("cancellation_event"), threading.Event)
+        self.assertFalse(kwargs["cancellation_event"].is_set())
         metadata = self.client.get("/profiles/fixture/provider-credentials").json()["credentials"][0]
         self.assertEqual(metadata["last_test_status"], "CONNECTED")
         self.assertIsNotNone(metadata["last_tested_at"])
+
+    def test_request_disconnect_cancels_inflight_probe_and_persists_safe_classification(self):
+        self.client.put("/profiles/fixture/provider-credentials/openai",
+                        json={"secret": "synthetic-disconnect-secret"})
+        started = threading.Event()
+        completed = threading.Event()
+
+        def blocked_probe(provider, secret, *, cancellation_event=None):
+            self.assertEqual(provider, "openai")
+            self.assertEqual(secret, "synthetic-disconnect-secret")
+            self.assertIsInstance(cancellation_event, threading.Event)
+            started.set()
+            if not cancellation_event.wait(2):
+                raise AssertionError("request disconnect did not cancel the provider probe")
+            completed.set()
+            return {"status": "FAILED", "code": "CREDENTIAL_PROVIDER_CANCELLED"}
+
+        async def send_disconnected_request():
+            request_sent = False
+            disconnected = asyncio.Event()
+            messages = []
+
+            async def receive():
+                nonlocal request_sent
+                if not request_sent:
+                    request_sent = True
+                    return {"type": "http.request", "body": b"", "more_body": False}
+                await disconnected.wait()
+                return {"type": "http.disconnect"}
+
+            async def send(message):
+                messages.append(message)
+
+            scope = {
+                "type": "http", "asgi": {"version": "3.0", "spec_version": "2.3"},
+                "http_version": "1.1", "method": "POST", "scheme": "http",
+                "path": "/profiles/fixture/provider-credentials/openai/test",
+                "raw_path": b"/profiles/fixture/provider-credentials/openai/test",
+                "query_string": b"", "root_path": "", "headers": [(b"host", b"testserver")],
+                "client": ("127.0.0.1", 12345), "server": ("testserver", 80),
+                "state": {},
+            }
+            task = asyncio.create_task(self.client.app(scope, receive, send))
+            try:
+                for _ in range(200):
+                    if started.is_set():
+                        break
+                    await asyncio.sleep(0.01)
+                self.assertTrue(started.is_set(), "probe did not start")
+                disconnected.set()
+                await asyncio.wait_for(task, timeout=2)
+                return messages
+            finally:
+                disconnected.set()
+                if not task.done():
+                    task.cancel()
+                try:
+                    await task
+                except (asyncio.CancelledError, Exception):
+                    pass
+
+        with patch("services.credentials.connection.test_provider_connection",
+                   side_effect=blocked_probe):
+            messages = asyncio.run(send_disconnected_request())
+
+        self.assertTrue(completed.is_set())
+        response_body = b"".join(message.get("body", b"") for message in messages)
+        self.assertIn(b"CREDENTIAL_PROVIDER_CANCELLED", response_body)
+        self.assertNotIn(b"synthetic-disconnect-secret", response_body)
+        metadata = self.client.get("/profiles/fixture/provider-credentials").json()["credentials"][0]
+        self.assertEqual(metadata["last_test_status"], "FAILED")
+        self.assertIsNotNone(metadata["last_tested_at"])
+        self.assertNotIn("synthetic-disconnect-secret", repr(metadata))
 
     def test_missing_encryption_key_fails_closed_and_validation_never_echoes_secret(self):
         self.client.close()
@@ -125,7 +204,10 @@ class ProviderCredentialApiTests(unittest.TestCase):
         self.assertEqual(tested.status_code, 200, tested.text)
         self.assertEqual(tested.json()["status"], "CONNECTED")
         self.assertNotIn(secret, tested.text)
-        check.assert_called_once_with("anthropic", secret)
+        check.assert_called_once()
+        args, kwargs = check.call_args
+        self.assertEqual(args, ("anthropic", secret))
+        self.assertIsInstance(kwargs.get("cancellation_event"), threading.Event)
         listed = self.client.get("/profiles/fixture/provider-credentials")
         self.assertEqual(listed.json()["credentials"][0]["last_test_status"], "CONNECTED")
         self.assertNotIn(secret, listed.text)
