@@ -1,4 +1,5 @@
 """Connected, local-fixture acceptance for the first-run search workflow."""
+import asyncio
 import os
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
@@ -15,6 +16,7 @@ from playwright.sync_api import expect, sync_playwright
 import uvicorn
 
 from apps.api.main import create_app
+from cli.ui_e2e import wait_for_fixture_collection_ui_idle, wait_for_ui_action_idle
 from fixtures.browser_ports import bound_browser_socket
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
@@ -40,16 +42,37 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                 origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
                 app = create_app(store, source_origin, root,
                                  "redis://127.0.0.1:1/0", operation_mode="FIXTURE")
+
+                @app.middleware("http")
+                async def delay_profile_refresh(request, call_next):
+                    if request.method == "GET" and request.url.path == "/applications":
+                        await asyncio.sleep(0.75)
+                    if request.method == "GET" and request.url.path == "/jobs":
+                        with collection_refresh_lock:
+                            should_delay = (
+                                collection_refresh_state["delayed"]
+                                < collection_refresh_state["scheduled"]
+                            )
+                            if should_delay:
+                                collection_refresh_state["delayed"] += 1
+                        if should_delay:
+                            await asyncio.sleep(0.4)
+                    return await call_next(request)
+
                 server = uvicorn.Server(uvicorn.Config(app, log_level="error"))
                 server_thread = threading.Thread(target=server.run,
                                                  kwargs={"sockets": [sock]}, daemon=True)
                 external_requests = []
                 application_requests = []
                 collect_bodies = []
+                discovery_bodies = []
                 worker_results = []
+                discovery_worker_results = []
                 scored_candidates = []
                 source_requests = []
                 page_errors = []
+                collection_refresh_state = {"scheduled": 0, "delayed": 0}
+                collection_refresh_lock = threading.Lock()
 
                 synthetic_job = {
                     "id": 82021,
@@ -123,8 +146,31 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                                                                  for call in scoring.call_args_list)
                             route.fulfill(response=response)
 
+                        def run_fixture_discovery(route):
+                            discovery_bodies.append(route.request.post_data_json)
+                            response = route.fetch()
+                            if response.status == 202:
+                                with collection_refresh_lock:
+                                    collection_refresh_state["scheduled"] += 1
+                                operation_id = response.json()["operation_id"]
+
+                                def synthetic_discovery(*args, **kwargs):
+                                    if kwargs.get("capture_only"):
+                                        return {"postings_captured": 0, "job_ids": []}
+                                    return []
+
+                                with patch.dict(os.environ, {
+                                    "MJOBS_DATABASE_URL": store.url,
+                                    "MJOBS_MOCK_ORIGIN": source_origin,
+                                    "MJOBS_OUTPUT_DIR": str(root),
+                                    "MJOBS_OPERATION_MODE": "FIXTURE",
+                                }), patch("workers.tasks.discover", side_effect=synthetic_discovery):
+                                    discovery_worker_results.append(execute_operation(operation_id))
+                            route.fulfill(response=response)
+
                         context.route("**/*", local_only)
                         context.route(origin + "/sources/**/collect", run_fixture_collection)
+                        context.route(origin + "/discovery", run_fixture_discovery)
                         page = context.new_page()
                         page.set_default_timeout(12000)
                         page.on("pageerror", lambda error: page_errors.append(str(error)))
@@ -144,6 +190,71 @@ class FirstRunWizardBrowserTests(unittest.TestCase):
                         profile_id = page.get_by_label("Active profile", exact=True).input_value()
                         self.assertTrue(profile_id)
                         self.assertEqual(store.profile(profile_id)["facts"], [])
+
+                        # The success notice precedes action()'s refresh/readback.
+                        # Keep an actual Sources submission from racing that busy window.
+                        page.get_by_role("button", name="Sources", exact=True).click()
+                        save_search = page.get_by_role("button", name="Save search", exact=True)
+                        self.assertFalse(save_search.is_enabled())
+                        wait_for_ui_action_idle(page, "Save search")
+                        page.get_by_label("Search name", exact=True).fill("Busy state readiness probe")
+                        page.get_by_label("Include titles", exact=True).fill("Synthetic Engineer")
+                        with page.expect_response(lambda response:
+                                response.request.method == "PUT"
+                                and response.url == origin + "/search-profiles") as readiness_search:
+                            save_search.click()
+                        self.assertEqual(readiness_search.value.status, 200,
+                                         readiness_search.value.text())
+                        expect(page.get_by_role("status").filter(
+                            has_text="Search saved. Its schedule is off")).to_be_visible()
+
+                        def collect_saved_search(name):
+                            page.get_by_role("navigation").get_by_role(
+                                "button", name="Jobs", exact=False).click()
+                            search = next(row for row in page.request.get(
+                                origin + "/search-profiles?profile_id=" + profile_id
+                            ).json()["search_profiles"] if row["name"] == name)
+                            search_filter = page.get_by_label("Saved search profile", exact=True).last
+                            search_filter.select_option(search["id"])
+                            expect(search_filter).to_have_value(search["id"])
+                            page.get_by_role("button", name="Sources", exact=True).click()
+                            with page.expect_response(lambda response:
+                                    response.request.method == "POST"
+                                    and response.url == origin + "/discovery") as discovery:
+                                page.get_by_role(
+                                    "button", name="Collect local fixture jobs", exact=True
+                                ).click()
+                            self.assertEqual(discovery.value.status, 202, discovery.value.text())
+                            operation_id = discovery.value.json()["operation_id"]
+                            operation = page.request.get(
+                                origin + "/operations/" + operation_id).json()
+                            self.assertEqual(operation["state"], "COMPLETED", operation)
+                            started = time.monotonic()
+                            wait_for_fixture_collection_ui_idle(page)
+                            self.assertGreaterEqual(time.monotonic() - started, 0.3)
+                            expect(page.get_by_role("navigation").get_by_role(
+                                "button", name="Jobs", exact=False)).to_have_attribute(
+                                "aria-current", "page")
+                            with collection_refresh_lock:
+                                self.assertEqual(collection_refresh_state["delayed"],
+                                                 collection_refresh_state["scheduled"])
+                            return search
+
+                        collect_saved_search("Busy state readiness probe")
+                        page.get_by_role("button", name="Sources", exact=True).click()
+                        page.get_by_label("Search name", exact=True).fill(
+                            "Second delayed refresh collection")
+                        page.get_by_label("Include titles", exact=True).fill("Synthetic Analyst")
+                        with page.expect_response(lambda response:
+                                response.request.method == "PUT"
+                                and response.url == origin + "/search-profiles") as second_search:
+                            page.get_by_role("button", name="Save search", exact=True).click()
+                        self.assertEqual(second_search.value.status, 200, second_search.value.text())
+                        expect(page.get_by_role("status").filter(
+                            has_text="Search saved. Its schedule is off")).to_be_visible()
+                        collect_saved_search("Second delayed refresh collection")
+                        self.assertEqual(len(discovery_bodies), 2)
+                        self.assertEqual(len(discovery_worker_results), 2)
 
                         wizard.get_by_role("button", name="Open resume library", exact=True).click()
                         page.get_by_label("Choose a resume (up to 10 MiB)").set_input_files({

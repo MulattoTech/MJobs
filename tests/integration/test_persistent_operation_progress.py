@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import update
 
 from apps.api.main import create_app
+from cli.ui_e2e import assert_blocked_mock_operation
 from fixtures.mock_server import fixture_server
 from packages.persistence.store import Store
 from packages.persistence import models as m
@@ -19,6 +20,24 @@ from workers.dispatch import enqueue_operation
 
 
 class PersistentOperationProgressApiTests(unittest.TestCase):
+    def test_legacy_operation_endpoint_matches_onboarding_blocked_mock_contract(self):
+        application_id = "synthetic-application"
+        operation_id = enqueue_operation(
+            self.store, "APPLY_MOCK", application_id, {"submit": False})
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(m.operations.c.id == operation_id).values(
+                state="BLOCKED"))
+
+        response = self.client.get(f"/operations/{operation_id}")
+
+        self.assertEqual(response.status_code, 200, response.text)
+        record = response.json()
+        self.assertEqual(record["kind"], "APPLY_MOCK")
+        self.assertEqual(record["entity_id"], application_id)
+        self.assertEqual(record["state"], "BLOCKED")
+        self.assertNotIn("operation_type", record)
+        assert_blocked_mock_operation(record, application_id=application_id)
+
     def test_profile_progress_exposes_retry_deadline_without_internal_payloads(self):
         identifier = self._operation("fixture", "PRIVATE_OPERATION_PARAMS_SENTINEL")
         with self.store.engine.begin() as connection:

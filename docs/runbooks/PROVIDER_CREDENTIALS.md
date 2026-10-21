@@ -1,8 +1,12 @@
 # Provider credential storage
 
-MJobs currently supports saved credential records and explicit connection checks
-for OpenAI and Anthropic. These keys are not yet consumed by the AI task router,
-which remains disabled by default and currently supports local Ollama only.
+MJobs supports saved OpenAI and Anthropic provider tokens and explicit connection
+checks. An explicitly admitted AI job-scoring operation can use its bound saved
+OpenAI token: the AI worker decrypts that token and sends it only to the validated
+OpenAI destination (`https://api.openai.com/v1`), without using a runtime endpoint
+override. Saved Anthropic tokens support connection checks, not this scoring
+path. Saving a token does not enable AI or start inference; other supported AI
+providers use their configured runtime credentials.
 
 ## Encryption key boundary
 
@@ -12,11 +16,18 @@ provider name are authenticated as associated data, so moving ciphertext to a
 different profile or provider makes it undecryptable.
 
 `MJOBS_CREDENTIAL_ENCRYPTION_KEY` is a URL-safe base64 encoding of 32 random
-bytes. The server reads it from its environment. `python -m cli.init_env` adds a
-new key to the ignored, private project `.env`; Compose passes it only to the API
-container. Workers, migrations, the browser, database rows, and portable database
-backups do not receive the key. Existing `.env` files are preserved; add a new
-key to an existing private `.env` before using credential storage:
+bytes used to encrypt and decrypt saved provider tokens. This master encryption
+key is distinct from the provider tokens used to authenticate requests.
+`python -m cli.init_env` adds a new master key to the ignored, private project
+`.env`. The API and AI worker need this key, and Compose supplies it to both:
+the API manages encrypted credentials and connection checks; the AI worker
+decrypts the saved OpenAI token bound to an explicitly admitted operation.
+Other workers and migrations do not receive this variable through the checked-in
+Compose configuration. The master key is not returned to the browser or stored
+in database rows or portable database backups. Backup restore verifies saved
+credentials using an API-service command with the same master key. Existing
+`.env` files are preserved; add a new key to an existing private `.env` before
+using credential storage:
 
 ```powershell
 $credentialKey = python -c "import base64,secrets; print(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())"

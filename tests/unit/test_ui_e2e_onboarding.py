@@ -1,11 +1,549 @@
+import json
 import unittest
 from pathlib import Path
+import tempfile
 from unittest.mock import patch
 
 from cli import ui_e2e
 
 
 class UIE2EOnboardingGuardTests(unittest.TestCase):
+    def test_terminal_application_readback_requires_exact_profile_and_application(self):
+        current = {
+            "id": "application-1",
+            "profile_id": "profile-1",
+            "state": "SUBMISSION_UNCONFIRMED",
+            "profile_version": "a" * 64,
+            "document_version": 6,
+            "private_payload": "must not be copied",
+        }
+        projected = ui_e2e._terminal_application_context(
+            current, profile_id="profile-1", application_id="application-1")
+        self.assertEqual(projected, {
+            "read_state": "CURRENT",
+            "application_state": "SUBMISSION_UNCONFIRMED",
+            "profile_version": "a" * 64,
+            "document_version": 6,
+        })
+        self.assertEqual(ui_e2e._terminal_application_context(
+            current, profile_id="other-profile", application_id="application-1"),
+            {"read_state": "MISMATCH"})
+        self.assertEqual(ui_e2e._terminal_application_context(
+            current, profile_id="profile-1", application_id="other-application"),
+            {"read_state": "MISMATCH"})
+
+    def test_terminal_failure_captures_only_bounded_public_attempt_history(self):
+        operation_id = "a" * 64
+        history = {
+            "profile_id": "private-profile",
+            "application_id": "private-application",
+            "attempts": [
+                {"state": "FAILED", "current_step": "NAVIGATE",
+                 "error_code": "PLAYWRIGHT_TIMEOUT",
+                 "steps": ["NAVIGATE:STARTED", "private-value=secret"]},
+                *[{"state": "CONFIRMED", "current_step": "VERIFY_CONFIRMATION",
+                   "error_code": None, "steps": ["VERIFY_CONFIRMATION:COMPLETED"],
+                   "browser_session": "private-session"} for _ in range(8)],
+            ],
+            "has_more": True,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target, {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}})
+            journal.complete({"action": "Earlier synthetic checks", "result": "PASS"})
+            journal.begin("Submit to local mock")
+            with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {"operation_id": operation_id,
+                                   "state": "DEAD_LETTERED",
+                                   "error_code": "DATABASE_POOL_TIMEOUT"},
+                    "/mock-runs/synthetic-request", operation_id,
+                    attempt_history_reader=lambda: history,
+                )
+            journal.fail(caught.exception)
+            saved = json.loads(target.read_text(encoding="utf-8"))
+        summary = saved["failure"]["terminal_operation"]["attempt_history"]
+        self.assertEqual(saved["checks"][0]["result"], "PASS")
+        self.assertEqual(saved["checks"][1]["result"], "FAIL")
+        self.assertEqual(saved["remaining_state"], "NOT_RUN")
+        self.assertEqual(summary["attempt_count"], 9)
+        self.assertTrue(summary["has_more"])
+        self.assertEqual(len(summary["attempts"]), 5)
+        self.assertEqual(summary["attempts"][0], {
+            "state": "FAILED", "current_step": "NAVIGATE",
+            "error_code": "PLAYWRIGHT_TIMEOUT",
+            "steps": ["NAVIGATE:STARTED"],
+        })
+        encoded = json.dumps(summary)
+        for private in ("private-profile", "private-application", "private-session",
+                        "private-value", "secret"):
+            self.assertNotIn(private, encoded)
+        self.assertLessEqual(len(encoded.encode("utf-8")), ui_e2e._ATTEMPT_HISTORY_MAX_BYTES)
+
+    def test_attempt_history_reader_runs_only_after_terminal_failure(self):
+        calls = []
+        result = ui_e2e.wait_for_mock_run(
+            lambda _path: {"operation_id": "c" * 64, "state": "COMPLETED"},
+            "/mock-runs/synthetic-request", "c" * 64,
+            attempt_history_reader=lambda: calls.append("read"),
+        )
+        self.assertEqual(result["state"], "COMPLETED")
+        self.assertEqual(calls, [])
+
+    def test_terminal_failure_uses_fresh_application_state_readback(self):
+        operation_id = "c" * 64
+        with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+            ui_e2e.wait_for_mock_run(
+                lambda _path: {
+                    "operation_id": operation_id,
+                    "state": "DEAD_LETTERED",
+                    "error_code": "PLAYWRIGHT_TIMEOUT",
+                },
+                "/mock-runs/synthetic-request",
+                operation_id,
+                failure_context={
+                    "application_id": "a" * 64,
+                    "application_state": "DRY_RUN_COMPLETE",
+                    "expected_document_version": 6,
+                },
+                failure_context_reader=lambda: {
+                    "read_state": "CURRENT",
+                    "application_state": "SUBMISSION_UNCONFIRMED",
+                    "document_version": 6,
+                },
+            )
+
+        summary = caught.exception.terminal_summary
+        self.assertEqual(summary["application_read_state"], "CURRENT")
+        self.assertEqual(summary["application_state"], "SUBMISSION_UNCONFIRMED")
+        self.assertEqual(summary["expected_document_version"], 6)
+
+    def test_failed_current_application_readback_does_not_reuse_old_state(self):
+        operation_id = "d" * 64
+        with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+            ui_e2e.wait_for_mock_run(
+                lambda _path: {
+                    "operation_id": operation_id,
+                    "state": "DEAD_LETTERED",
+                    "error_code": "PLAYWRIGHT_TIMEOUT",
+                },
+                "/mock-runs/synthetic-request",
+                operation_id,
+                failure_context={"application_state": "DRY_RUN_COMPLETE"},
+                failure_context_reader=lambda: {"read_state": "MISMATCH"},
+            )
+
+        summary = caught.exception.terminal_summary
+        self.assertEqual(summary["application_read_state"], "MISMATCH")
+        self.assertNotIn("application_state", summary)
+
+    def test_attempt_history_capture_fail_closed_and_redacts_untrusted_fields(self):
+        operation_id = "b" * 64
+        for history in (
+            {"attempts": [{"state": "PRIVATE STATE", "current_step": "secret/path",
+                           "error_code": "SECRET_TOKEN", "steps": ["password:secret"]}]},
+            {"attempts": "not-a-list", "profile_id": "private-profile"},
+        ):
+            with self.subTest(history=history), self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {"operation_id": operation_id,
+                                   "state": "DEAD_LETTERED",
+                                   "error_code": "TIMEOUT_UNCLASSIFIED"},
+                    "/mock-runs/synthetic-request", operation_id,
+                    attempt_history_reader=lambda: history,
+                )
+            summary = caught.exception.terminal_summary["attempt_history"]
+            encoded = json.dumps(summary)
+            self.assertNotIn("SECRET_TOKEN", encoded)
+            self.assertNotIn("private-profile", encoded)
+            self.assertNotIn("password", encoded)
+            if summary.get("read_state") == "AVAILABLE" and summary["attempt_count"]:
+                self.assertEqual(summary["attempts"][0]["state"], "UNKNOWN")
+                self.assertNotIn("error_code", summary["attempts"][0])
+
+    def test_dead_letter_journal_keeps_safe_terminal_operation_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Run dry-run")
+            operation_id = "a" * 64
+            with self.assertRaises(RuntimeError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {
+                        "operation_id": operation_id,
+                        "state": "DEAD_LETTERED",
+                        "error_code": "APPLICATION_REVIEW_REQUIRED",
+                    },
+                    "/mock-runs/request-1",
+                    operation_id,
+                    failure_context={
+                        "application_id": "c" * 64,
+                        "request_id": "synthetic-request-1",
+                        "expected_profile_version": "d" * 64,
+                        "expected_document_version": 7,
+                        "application_state": "PREPARED",
+                        "preflight_result": "PASS",
+                        "preflight_is_current": False,
+                        "submit": False,
+                        "profile_text": "must never be included",
+                    },
+                )
+
+            journal.fail(caught.exception)
+            saved = json.loads(target.read_text(encoding="utf-8"))
+            self.assertEqual(saved["overall_state"], "FAIL")
+            self.assertEqual(saved["remaining_state"], "NOT_RUN")
+            self.assertEqual(saved["checks"], [
+                {"action": "Run dry-run", "result": "FAIL"},
+            ])
+            self.assertEqual(saved["failure"]["terminal_operation"], {
+                "kind": "APPLY_MOCK",
+                "operation_id": operation_id,
+                "application_id": "c" * 64,
+                "request_id": "synthetic-request-1",
+                "state": "DEAD_LETTERED",
+                "error_code": "APPLICATION_REVIEW_REQUIRED",
+                "error_present": True,
+                "error_redacted": False,
+                "expected_profile_version": "d" * 64,
+                "expected_document_version": 7,
+                "application_read_state": "UNAVAILABLE",
+                "preflight_result": "PASS",
+                "preflight_is_current": False,
+                "submit": False,
+            })
+            self.assertNotIn("must never be included", target.read_text(encoding="utf-8"))
+
+    def test_camel_case_builtin_error_is_saved_as_category_not_raw_type(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Submit to local mock")
+            operation_id = "e" * 64
+            with self.assertRaises(RuntimeError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {
+                        "operation_id": operation_id,
+                        "state": "DEAD_LETTERED",
+                        "error_code": "TypeError",
+                    },
+                    "/mock-runs/synthetic-request",
+                    operation_id,
+                    failure_context={
+                        "application_id": "f" * 64,
+                        "request_id": "synthetic-request",
+                        "submit": True,
+                    },
+                )
+
+            journal.fail(caught.exception)
+            encoded = target.read_text(encoding="utf-8")
+            terminal = json.loads(encoded)["failure"]["terminal_operation"]
+            self.assertEqual(terminal["error_category"], "BUILTIN_TYPE_ERROR")
+            self.assertTrue(terminal["error_present"])
+            self.assertTrue(terminal["error_redacted"])
+            self.assertNotIn("error_code", terminal)
+            self.assertNotIn("TypeError", encoded)
+
+    def test_known_internal_error_type_is_saved_as_allowlisted_category(self):
+        operation_id = "1" * 64
+        with self.assertRaises(ui_e2e.MockRunTerminalError) as caught:
+            ui_e2e.wait_for_mock_run(
+                lambda _path: {
+                    "operation_id": operation_id,
+                    "state": "DEAD_LETTERED",
+                    "error_code": "OperationTimedOut",
+                },
+                "/mock-runs/synthetic-request",
+                operation_id,
+            )
+        summary = caught.exception.terminal_summary
+        self.assertEqual(summary["error_category"], "INTERNAL_OPERATION_TIMEOUT")
+        self.assertTrue(summary["error_present"])
+        self.assertTrue(summary["error_redacted"])
+        self.assertNotIn("error_code", summary)
+        self.assertNotIn("OperationTimedOut", json.dumps(summary))
+
+    def test_dead_letter_journal_drops_untrusted_error_code_text(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Run dry-run")
+            operation_id = "b" * 64
+            with self.assertRaises(RuntimeError) as caught:
+                ui_e2e.wait_for_mock_run(
+                    lambda _path: {
+                        "operation_id": operation_id,
+                        "state": "DEAD_LETTERED",
+                        "error_code": "private synthetic payload",
+                    },
+                    "/mock-runs/request-2",
+                    operation_id,
+                    failure_context={
+                        "application_id": "not-a-synthetic-id",
+                        "request_id": "private synthetic payload",
+                        "expected_profile_version": "untrusted version",
+                        "expected_document_version": "7",
+                        "application_state": "private synthetic payload",
+                        "preflight_result": "private synthetic payload",
+                        "preflight_is_current": "yes",
+                        "submit": "true",
+                    },
+                )
+
+            journal.fail(caught.exception)
+            encoded = target.read_text(encoding="utf-8")
+            saved = json.loads(encoded)
+            terminal = saved["failure"]["terminal_operation"]
+            self.assertTrue(terminal["error_present"])
+            self.assertTrue(terminal["error_redacted"])
+            self.assertNotIn("error_code", terminal)
+            self.assertNotIn("error_category", terminal)
+            self.assertNotIn("private synthetic payload", encoded)
+            self.assertEqual(saved["failure"]["terminal_operation"], {
+                "kind": "APPLY_MOCK",
+                "state": "DEAD_LETTERED",
+                "operation_id": operation_id,
+                "error_present": True,
+                "error_redacted": True,
+                "application_read_state": "UNAVAILABLE",
+            })
+
+    def test_partial_evidence_keeps_completed_checks_and_sanitizes_injected_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "evidence.json"
+            journal = ui_e2e.EvidenceJournal(
+                target,
+                {"mode": "ONBOARDING_FIXTURE", "source": {"commit": "abc123"}},
+            )
+            journal.begin("Save synthetic profile")
+            journal.complete({"action": "Synthetic profile saved", "result": "PASS"})
+
+            journal.begin("Save selected Sources search")
+            with self.assertRaisesRegex(ValueError, "private synthetic payload"):
+                try:
+                    raise ValueError("private synthetic payload")
+                except ValueError as error:
+                    journal.fail(error)
+                    raise
+
+            evidence = json.loads(target.read_text(encoding="utf-8"))
+            self.assertEqual(evidence["overall_state"], "FAIL")
+            self.assertEqual(evidence["checks"], [
+                {"action": "Synthetic profile saved", "result": "PASS"},
+                {"action": "Save selected Sources search", "result": "FAIL"},
+            ])
+            self.assertEqual(evidence["failure"], {
+                "type": "ValueError", "stage": "Save selected Sources search"})
+            self.assertEqual(evidence["remaining_state"], "NOT_RUN")
+            serialized = target.read_text(encoding="utf-8")
+            self.assertNotIn("private synthetic payload", serialized)
+            self.assertEqual(list(Path(directory).iterdir()), [target])
+
+    def test_default_demo_does_not_require_onboarding_blocked_operation(self):
+        def unexpected_request(path):
+            self.fail(f"demo run requested onboarding-only operation history: {path}")
+
+        ui_e2e.assert_previous_review_operation(
+            unexpected_request, onboarding=False, operation_id=None, application_id=None)
+
+    def test_onboarding_recovery_requires_prior_operation_to_remain_blocked(self):
+        calls = []
+
+        def request(path):
+            calls.append(path)
+            return {"kind": "APPLY_MOCK", "entity_id": "application-1", "state": "BLOCKED"}
+
+        ui_e2e.assert_previous_review_operation(
+            request, onboarding=True, operation_id="prior-operation", application_id="application-1")
+        self.assertEqual(calls, ["/operations/prior-operation"])
+
+        with self.assertRaisesRegex(AssertionError, "prior blocked operation"):
+            ui_e2e.assert_previous_review_operation(
+                request, onboarding=True, operation_id=None, application_id="application-1")
+
+        for invalid in (
+            {"kind": "DISCOVER", "entity_id": "application-1", "state": "BLOCKED"},
+            {"kind": "APPLY_MOCK", "entity_id": "another-application", "state": "BLOCKED"},
+            {"kind": "APPLY_MOCK", "entity_id": "application-1", "state": "COMPLETED"},
+            {"operation_type": "APPLY_MOCK", "entity_id": "application-1", "state": "BLOCKED"},
+        ):
+            with self.subTest(invalid=invalid), self.assertRaises(AssertionError):
+                ui_e2e.assert_previous_review_operation(
+                    lambda _path, record=invalid: record,
+                    onboarding=True, operation_id="prior-operation", application_id="application-1")
+
+    def test_fixture_discovery_accepts_only_supported_sources_tab_search_contract(self):
+        search = {
+            "id": "data-search", "profile_id": "synthetic-profile", "enabled": True,
+            "source_ids": [],
+            "criteria": {
+                "include_titles": ["Data Engineer"], "remote": "REQUIRED",
+                "employment_types": [],
+                "scheduler": {"enabled": False, "interval_seconds": 3600},
+            },
+        }
+        ui_e2e.assert_supported_fixture_search(
+            search, profile_id="synthetic-profile", include_titles=["Data Engineer"],
+            remote="REQUIRED",
+        )
+
+        for invalid in (
+            {**search, "profile_id": "another-profile"},
+            {**search, "enabled": False},
+            {**search, "criteria": {**search["criteria"], "include_titles": ["IT Support"]}},
+            {**search, "criteria": {**search["criteria"], "job_filters": {"q": "data"}}},
+            {**search, "source_ids": ["employer-board"]},
+        ):
+            with self.subTest(invalid=invalid):
+                with self.assertRaises(AssertionError):
+                    ui_e2e.assert_supported_fixture_search(
+                        invalid, profile_id="synthetic-profile", include_titles=["Data Engineer"],
+                        remote="REQUIRED",
+                    )
+
+    def test_reprepare_profile_pins_use_opaque_hash_equality_not_order(self):
+        previous = "f" * 64
+        current = "0" * 64
+        ui_e2e.assert_reprepared_profile_pins(
+            previous_profile_version=previous,
+            old_application_profile_version=previous,
+            current_profile_version=current,
+            resumed_application_profile_version=current,
+        )
+        with self.assertRaises(AssertionError):
+            ui_e2e.assert_reprepared_profile_pins(
+                previous_profile_version=previous,
+                old_application_profile_version="e" * 64,
+                current_profile_version=current,
+                resumed_application_profile_version=current,
+            )
+        with self.assertRaises(AssertionError):
+            ui_e2e.assert_reprepared_profile_pins(
+                previous_profile_version=previous,
+                old_application_profile_version=previous,
+                current_profile_version=current,
+                resumed_application_profile_version=previous,
+            )
+
+    def test_onboarding_write_firewall_allows_only_local_prepare_reprepare_and_mock_run(self):
+        allowed = (
+            ("POST", "/applications"),
+            ("POST", "/profiles/p1/applications/a1/reprepare"),
+            ("POST", "/profiles/p1/applications/a1/mock-run"),
+            ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
+            ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel"),
+        )
+        blocked = (
+            ("PUT", "/profiles/p1/applications/a1/reprepare"),
+            ("GET", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations"),
+            ("POST", "/profiles/p1/applications/a1/uploaded-resume-comparison/operations/op1/cancel/extra"),
+            ("POST", "/profiles/p1/applications/a1/submit"),
+            ("POST", "/profiles/p1/applications/a1/mock-run/extra"),
+            ("POST", "/profiles/p1/applications/a1/external-application"),
+        )
+        for method, path in allowed:
+            with self.subTest(method=method, path=path):
+                self.assertTrue(ui_e2e.is_allowed_onboarding_application_write(method, path))
+        for method, path in blocked:
+            with self.subTest(method=method, path=path):
+                self.assertFalse(ui_e2e.is_allowed_onboarding_application_write(method, path))
+
+    def test_onboarding_request_firewall_keeps_comparison_local_and_submission_blocked(self):
+        origin = "127.0.0.1:18700"
+        comparison = "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/" \
+                    "uploaded-resume-comparison/operations?request_id=private-query"
+        self.assertTrue(ui_e2e.is_allowed_onboarding_request("POST", comparison, origin))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "POST", comparison, "employer.example"))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "POST", "http://127.0.0.1:18700/profiles/private-profile/applications/private-app/submit", origin))
+        self.assertFalse(ui_e2e.is_allowed_onboarding_request(
+            "POST", "http://127.0.0.1:18700/apply", origin))
+        self.assertEqual(ui_e2e.sanitized_onboarding_request("POST", comparison), {
+            "method": "POST",
+            "path": "/profiles/<profile>/applications/<application>/uploaded-resume-comparison/operations",
+        })
+
+    def test_discovery_oracle_requires_selected_search_and_exact_filtered_readback(self):
+        ui_e2e.assert_discovery_request_operation_pair(
+            {"request_id": "matching-request", "profile_id": "synthetic-profile",
+             "search_profile_id": "matching-search"},
+            {"id": "matching-operation", "entity_id": "synthetic-profile",
+             "params": {"request_id": "matching-request",
+                        "search_profile_id": "matching-search"}},
+            profile_id="synthetic-profile", search_profile_id="matching-search",
+            expected_operation_id="matching-operation",
+        )
+        with self.assertRaisesRegex(AssertionError, "request.*operation"):
+            ui_e2e.assert_discovery_request_operation_pair(
+                {"request_id": "nonmatching-request", "profile_id": "synthetic-profile",
+                 "search_profile_id": "matching-search"},
+                {"id": "matching-operation", "entity_id": "synthetic-profile",
+                 "params": {"request_id": "matching-request",
+                            "search_profile_id": "matching-search"}},
+                profile_id="synthetic-profile", search_profile_id="matching-search",
+                expected_operation_id="matching-operation",
+            )
+        with self.assertRaisesRegex(AssertionError, "request.*operation"):
+            ui_e2e.assert_discovery_request_operation_pair(
+                {"request_id": "matching-request", "profile_id": "synthetic-profile",
+                 "search_profile_id": "matching-search"},
+                {"id": "older-operation", "entity_id": "synthetic-profile",
+                 "params": {"request_id": "matching-request",
+                            "search_profile_id": "matching-search"}},
+                profile_id="synthetic-profile", search_profile_id="matching-search",
+                expected_operation_id="matching-operation",
+            )
+        request_payload = {
+            "profile_id": "synthetic-profile",
+            "search_profile_id": "matching-search",
+        }
+        operation = {
+            "entity_id": "synthetic-profile",
+            "params": {
+                "profile_id": "synthetic-profile",
+                "search_profile_id": "matching-search",
+            },
+        }
+
+        ui_e2e.assert_search_scoped_discovery(
+            request_payload, operation,
+            [{"id": "data-job", "title": "Data Engineer", "profile_id": "synthetic-profile"}],
+            profile_id="synthetic-profile", search_profile_id="matching-search",
+            expected_titles={"Data Engineer"},
+        )
+        ui_e2e.assert_search_scoped_discovery(
+            request_payload, operation, [],
+            profile_id="synthetic-profile", search_profile_id="matching-search",
+            expected_titles=set(),
+        )
+
+        for bad_payload, bad_operation, rows in (
+            ({**request_payload, "search_profile_id": None}, operation, []),
+            (request_payload, {**operation, "entity_id": "another-profile"}, []),
+            (request_payload, operation, [
+                {"id": "python-job", "title": "Python Developer", "profile_id": "synthetic-profile"},
+            ]),
+        ):
+            with self.subTest(payload=bad_payload, operation=bad_operation, rows=rows):
+                with self.assertRaises(AssertionError):
+                    ui_e2e.assert_search_scoped_discovery(
+                        bad_payload, bad_operation, rows,
+                        profile_id="synthetic-profile", search_profile_id="matching-search",
+                        expected_titles={"Data Engineer"},
+                    )
+
     def test_preflight_rejects_nonfixture_external_or_degraded_runtime(self):
         settings = {"operation_mode": "FIXTURE", "external_submission_enabled": False}
         health = {"operation_mode": "FIXTURE", "external_submission_enabled": False}

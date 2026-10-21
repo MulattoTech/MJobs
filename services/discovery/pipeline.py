@@ -10,6 +10,7 @@ from sqlalchemy import select
 from packages.persistence import models as m
 from packages.persistence.store import identity, now, upsert
 from services.discovery.sources.collect import persist_posting
+from services.discovery.sources.http_transport import SourceTransport
 from services.discovery.search_semantics import (
     classify_location, normalize_employment_type, normalize_experience_level, normalize_title,
     parse_education_requirement,
@@ -43,8 +44,11 @@ class MockClient:
                 or parsed.username or parsed.password or parsed.path not in ("", "/")):
             raise ValueError("Mock origin must be an explicit local fixture server")
         self.origin = origin.rstrip("/")
-        self.client = httpx.Client(timeout=10, follow_redirects=False, trust_env=False)
         self.check = check or (lambda: None)
+        # Own connect/read sockets before a response exists so the worker check
+        # also bounds DNS, pending connects, and response headers.
+        self.client = httpx.Client(transport=SourceTransport(self.check), timeout=10,
+                                   follow_redirects=False, trust_env=False)
 
     def allowed(self, url):
         parsed = urlsplit(url)

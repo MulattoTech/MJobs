@@ -1,5 +1,6 @@
 """Built UI -> scoped API -> durable outbox -> real Chromium mock worker acceptance."""
 from pathlib import Path
+import copy
 import json
 import os
 import subprocess
@@ -99,7 +100,8 @@ class MockRunBrowserHarness(unittest.TestCase):
     def counts(self):
         return httpx.get(self.fixture+"/_test/request-counts", trust_env=False).json()
 
-    def run_worker(self, operation_id, expected_status="COMPLETED", refresh_panel=True):
+    def run_worker(self, operation_id, expected_status="COMPLETED", refresh_panel=True,
+                   expected_receipt_state=None):
         env={**os.environ, "MJOBS_DATABASE_URL":self.store.url, "MJOBS_OUTPUT_DIR":str(self.root),
              "MJOBS_MOCK_ORIGIN":self.fixture, "MJOBS_OPERATION_MODE":"FIXTURE", "PYTHONUTF8":"1"}
         code="import json,sys;from workers.tasks import execute_operation;print(json.dumps(execute_operation(sys.argv[1])))"
@@ -111,11 +113,132 @@ class MockRunBrowserHarness(unittest.TestCase):
             return result
         expect(self.panel.get_by_role("button",name="Refresh run status",exact=True)).to_be_enabled()
         self.panel.get_by_role("button",name="Refresh run status",exact=True).click()
-        expect(self.panel).to_contain_text("COMPLETED")
+        expect(self.panel).to_contain_text(expected_receipt_state or expected_status)
 
 
 
 class MockRunControlsBrowserTests(MockRunBrowserHarness):
+    def test_reviewed_answer_reprepare_requires_explicit_fresh_run_after_terminal_dry_run(self):
+        # Mirror the connected onboarding case: the first dry-run discovers an
+        # unanswered required question, then an explicit reviewed profile save
+        # and reprepare make a fresh dry-run possible. The old request remains
+        # durable until the user explicitly starts a new reviewed run.
+        profile = copy.deepcopy(PROFILE)
+        uncertain = next(row for row in profile["answers"] if row["id"] == "fixture_question")
+        uncertain["question"] = "Approved fixture answer"
+        uncertain["verified"] = False
+        uncertain["user_approved"] = False
+        self.store.save_profile(profile)
+        self.seed_workflow()
+
+        initial_run = self.panel.get_by_role("button", name="Run dry-run", exact=True)
+        expect(initial_run).to_be_enabled()
+        initial_run.click()
+        expect(self.panel).to_contain_text("QUEUED")
+        first_operation = self.operations()[0]
+        self.run_worker(first_operation["id"], expected_status="BLOCKED",
+                        expected_receipt_state="BLOCKED")
+        expect(self.page.get_by_role("status", name="Application state", exact=True)).to_have_text(
+            "REVIEW_REQUIRED")
+        first_receipt = self.client_receipt(self.posts[0]["request_id"])
+        self.assertEqual(first_receipt["state"], "BLOCKED")
+        self.assertEqual(first_receipt["error_code"], "REVIEW_REQUIRED")
+        first_application = self.client_application()
+        self.assertEqual(first_application["question_preflight"]["result"], "UNKNOWN")
+        self.assertTrue(first_application["question_preflight"]["is_current"])
+        self.assertEqual(len(self.operations()), 1)
+        self.assertEqual(self.posts, [{"request_id": self.posts[0]["request_id"], "submit": False}])
+
+        preflight = self.page.get_by_role("region", name="ATS question preflight", exact=True)
+        preflight.get_by_role("button", name="Review this question", exact=True).click()
+        answers = self.page.get_by_role("region", name="Application answers", exact=True)
+        question = answers.get_by_role("group", name="Question 1")
+        question.get_by_role("textbox", name="Answer", exact=True).fill(
+            "Controlled fictional test application, reviewed for this job.")
+        question.get_by_label("I reviewed this exact answer for this job", exact=True).check()
+        question.get_by_role("button", name="Save to Answer Bank", exact=True).click()
+        confirmation = self.page.locator(
+            '[aria-label="Answer Bank confirmation for question 1"]')
+        confirmation.get_by_label("I confirm this answer is accurate and may be reused", exact=True).check()
+        with self.page.expect_response(lambda response:
+                response.request.method == "PUT" and urlsplit(response.url).path == "/profiles") as saved:
+            confirmation.get_by_role(
+                "button", name="Confirm and save to Answer Bank", exact=True).click()
+        self.assertEqual(saved.value.status, 200, saved.value.text())
+        saved_profile = self.client_profile()
+        reviewed = next(row for row in saved_profile["answers"]
+                        if row["text"] == "Controlled fictional test application, reviewed for this job.")
+        self.assertTrue(reviewed["verified"] and reviewed["user_approved"])
+        self.assertEqual(reviewed["text"], "Controlled fictional test application, reviewed for this job.")
+        prior_pins = self.client_application()
+        prior_documents = self.client_documents()
+
+        with self.page.expect_response(lambda response:
+                response.request.method == "POST" and urlsplit(response.url).path.endswith("/reprepare")) as resumed:
+            self.page.get_by_role("button", name="Resume and prepare current revision", exact=True).click()
+        self.assertEqual(resumed.value.status, 200, resumed.value.text())
+        current = resumed.value.json()
+        self.assertEqual(current["profile_version"], saved_profile["version"])
+        self.assertEqual(current["document_version"], prior_pins["document_version"] + 1)
+        self.assertEqual(current["id"], self.app_id)
+        self.assertEqual(current["question_preflight"]["is_current"], False)
+        self.assertEqual(len(self.operations()), 1)
+        self.assertEqual(self.operations()[0]["state"], "BLOCKED")
+        self.assertGreaterEqual(len(self.client_documents()), len(prior_documents) + 2)
+
+        # The previous terminal intent is still visible and cannot be silently
+        # reused for this new preparation. Only the explicit user action clears it.
+        expect(self.panel.get_by_role("button", name="Run dry-run", exact=True)).to_have_count(0)
+        start_new = self.panel.get_by_role("button", name="Start a new reviewed run", exact=True)
+        expect(start_new).to_be_enabled()
+        start_new.click()
+        expect(self.panel.get_by_role("button", name="Run dry-run", exact=True)).to_be_enabled()
+        storage_key = f"mjobs-mock-run-v1:fixture:{self.app_id}"
+        self.assertIsNone(self.page.evaluate("key => localStorage.getItem(key)", storage_key))
+        self.assertEqual(len(self.operations()), 1, "Clearing a terminal UI intent changed durable history")
+        self.assertEqual(self.client_application()["question_preflight"]["is_current"], False)
+        expect(self.panel.get_by_role("button", name="Submit to local mock", exact=True)).to_be_disabled()
+
+        with self.page.expect_response(lambda response:
+                response.request.method == "POST" and urlsplit(response.url).path.endswith("/mock-run")) as fresh:
+            self.panel.get_by_role("button", name="Run dry-run", exact=True).click()
+        self.assertEqual(fresh.value.status, 202, fresh.value.text())
+        self.assertFalse(fresh.value.json().get("submit", False))
+        self.assertEqual(len(self.operations()), 2)
+        self.assertEqual(sorted(row["state"] for row in self.operations()), ["BLOCKED", "QUEUED"])
+        self.run_worker(fresh.value.json()["operation_id"])
+        self.assertEqual(sorted(row["state"] for row in self.operations()), ["BLOCKED", "COMPLETED"])
+        final = self.client_application()
+        self.assertEqual(final["state"], "DRY_RUN_COMPLETE")
+        self.assertEqual(final["question_preflight"]["result"], "PASS")
+        self.assertTrue(final["question_preflight"]["is_current"])
+        self.assertIsNone(final["confirmation"])
+        self.assertEqual(self.counts()["submit"], 0)
+        self.assertFalse(self.external)
+
+    def client_application(self):
+        response = self.context.request.get(
+            f"{self.origin}/profiles/fixture/applications/{self.app_id}")
+        self.assertEqual(response.status, 200, response.text())
+        return response.json()
+
+    def client_documents(self):
+        response = self.context.request.get(
+            f"{self.origin}/profiles/fixture/applications/{self.app_id}/documents")
+        self.assertEqual(response.status, 200, response.text())
+        return response.json()["documents"]
+
+    def client_profile(self):
+        response = self.context.request.get(f"{self.origin}/profiles/fixture")
+        self.assertEqual(response.status, 200, response.text())
+        return response.json()
+
+    def client_receipt(self, request_id):
+        response = self.context.request.get(
+            f"{self.origin}/profiles/fixture/applications/{self.app_id}/mock-runs/{request_id}")
+        self.assertEqual(response.status, 200, response.text())
+        return response.json()
+
     def test_acceptance_waits_for_owned_delayed_worker_and_real_receipt(self):
         from cli.ui_e2e import wait_for_mock_run
 
