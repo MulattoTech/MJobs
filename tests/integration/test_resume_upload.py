@@ -1,6 +1,7 @@
 """Uploaded resumes stay local, bounded, unreviewed, and integrity checked."""
 from io import BytesIO
 from pathlib import Path
+import struct
 import tempfile
 import unittest
 
@@ -69,6 +70,22 @@ class ResumeUploadTests(unittest.TestCase):
                 response = self.upload(content, name, media)
                 self.assertEqual(response.status_code, 201, response.text)
                 self.assertEqual(self.client.get("/profiles/fixture/resumes/" + response.json()["id"]).content, content)
+
+    def test_pdf_upload_rejects_embedded_windows_executable_but_accepts_normal_pdf(self):
+        # A PE image can be appended to an otherwise PDF-looking file and still
+        # pass the current header/EOF-only check. Keep the PE header internally
+        # consistent so this exercises executable detection, not a raw MZ prefix.
+        dos_header = bytearray(64)
+        dos_header[:2] = b"MZ"
+        struct.pack_into("<I", dos_header, 0x3C, 0x40)
+        executable = bytes(dos_header) + b"PE\0\0" + b"\0" * 24
+        polyglot = b"%PDF-1.4\nSynthetic document\n" + executable + b"\n%%EOF\n"
+
+        ordinary = self.upload(b"%PDF-1.4\nSynthetic document\n%%EOF\n", "plain.pdf", "application/pdf")
+        self.assertEqual(ordinary.status_code, 201, ordinary.text)
+        rejected = self.upload(polyglot, "polyglot.pdf", "application/pdf")
+        self.assertIn(rejected.status_code, (400, 415, 422), rejected.text)
+        self.assertEqual(len(self.client.get("/profiles/fixture/resumes").json()["resumes"]), 1)
 
     def test_duplicate_bytes_keep_first_authoritative_extension_and_metadata(self):
         for first_name, first_media, second_name, second_media in (
