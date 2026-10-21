@@ -7,6 +7,7 @@ recovery is covered by the existing worker lifecycle acceptance suite.
 import os
 import ipaddress
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from urllib.parse import urlparse
@@ -16,8 +17,9 @@ from uuid import uuid4
 from redis import Redis
 from fastapi.testclient import TestClient
 from rq import Queue
-from rq.job import Job
+from rq.job import Job, JobStatus
 from rq.exceptions import NoSuchJobError
+from rq.registry import FailedJobRegistry, StartedJobRegistry
 from sqlalchemy import select, update
 
 from packages.persistence import models as m
@@ -25,7 +27,7 @@ from packages.persistence.store import Store
 from apps.api.main import create_app
 from tests.integration.test_spine import PROFILE
 from workers.dispatch import dispatch_pending, enqueue_operation
-from workers.operations import QUEUES, recover_expired
+from workers.operations import QUEUES, claim, recover_expired
 from workers.tasks import execute_operation
 
 
@@ -276,14 +278,16 @@ class FleetT11RqRecoveryTests(unittest.TestCase):
         self.operation_id = enqueue_operation(self.store, "DISCOVER", entity_id, {})
 
     def tearDown(self):
-        # Remove only this test's UUID-keyed RQ job from the shared test queue.
-        queue = Queue(QUEUES["DISCOVER"], connection=self.redis)
-        try:
-            job = Job.fetch(self.operation_id, connection=self.redis)
-        except NoSuchJobError:
-            return
-        queue.remove(self.operation_id)
-        job.delete()
+        # Remove only UUID-keyed RQ jobs created by this test.
+        for job_id in (self.operation_id, getattr(self, "unrelated_job_id", None)):
+            if not job_id:
+                continue
+            try:
+                job = Job.fetch(job_id, connection=self.redis)
+            except NoSuchJobError:
+                continue
+            Queue(job.origin, connection=self.redis).remove(job_id)
+            job.delete()
 
     def test_queued_rq_job_survives_dispatcher_interruption_after_redis_write(self):
         original_enqueue = Queue.enqueue
@@ -323,6 +327,89 @@ class FleetT11RqRecoveryTests(unittest.TestCase):
                 persisted = connection.execute(select(m.operations.c.attempt_count).where(
                     m.operations.c.id == self.operation_id)).scalar_one()
             self.assertEqual(persisted, 0)
+        finally:
+            reopened.engine.dispose()
+
+    def test_rq_stale_started_maintenance_allows_stable_id_redelivery(self):
+        queue = Queue(QUEUES["DISCOVER"], connection=self.redis)
+        started = StartedJobRegistry(queue=queue)
+        failed = FailedJobRegistry(queue=queue)
+
+        # Start with a real queued RQ job and a durable claimed operation.
+        self.assertEqual(dispatch_pending(self.store, REDIS_URL),
+                         {"status": "DISPATCHED", "count": 1})
+        self.assertEqual(claim(self.store, self.operation_id)["attempt_count"], 1)
+        job = Job.fetch(self.operation_id, connection=self.redis)
+        queue.remove(job.id)
+        job.set_status(JobStatus.STARTED)
+        job.save()
+        started.add(job)
+
+        # Age only our StartedJobRegistry member. Keep a second, fresh started
+        # job as a negative control; RQ maintenance must not clean it.
+        cutoff = time.time() - 60
+        self.unrelated_job_id = "t11-rq-unrelated-" + uuid4().hex
+        unrelated = queue.enqueue(
+            "workers.tasks.execute_operation", self.unrelated_job_id,
+            job_id=self.unrelated_job_id)
+        queue.remove(unrelated.id)
+        unrelated.set_status(JobStatus.STARTED)
+        unrelated.save()
+        started.add(unrelated)
+        self.redis.zadd(started.key, {job.id: cutoff - 1})
+        self.redis.zadd(started.key, {unrelated.id: cutoff + 60})
+
+        # Mark the SQL lease expired, as after a worker crash. The RQ cleanup
+        # call below is the actual maintenance API, not a mocked transition.
+        with self.store.engine.begin() as connection:
+            connection.execute(update(m.operations).where(
+                m.operations.c.id == self.operation_id).values(
+                    lease_expires_at="2000-01-01T00:00:00+00:00"))
+
+        stale_members = self.redis.zrangebyscore(started.key, "-inf", cutoff)
+        self.assertEqual(stale_members, [self.operation_id.encode()])
+        started.cleanup(timestamp=cutoff)
+
+        self.assertEqual(Job.fetch(self.operation_id, connection=self.redis).get_status(), "failed")
+        self.assertNotIn(self.operation_id, started.get_job_ids(cleanup=False))
+        self.assertIn(self.operation_id, failed.get_job_ids(cleanup=False))
+        self.assertIn(self.unrelated_job_id, started.get_job_ids(cleanup=False))
+        self.assertEqual(Job.fetch(self.unrelated_job_id, connection=self.redis).get_status(), "started")
+
+        # The production dispatcher observes expired SQL ownership, recovers
+        # the durable row, removes the failed RQ record, and redelivers exactly
+        # once using the original stable operation ID.
+        reopened = Store(self.database_url)
+        try:
+            self.assertEqual(dispatch_pending(reopened, REDIS_URL),
+                             {"status": "DISPATCHED", "count": 1})
+            redelivered = Job.fetch(self.operation_id, connection=self.redis)
+            self.assertEqual(redelivered.id, self.operation_id)
+            self.assertEqual(redelivered.get_status(), "queued")
+            self.assertEqual(redelivered.origin, QUEUES["DISCOVER"])
+            self.assertEqual(redelivered.args, (self.operation_id,))
+            self.assertNotIn(self.operation_id, failed.get_job_ids(cleanup=False))
+            self.assertNotIn(self.operation_id, started.get_job_ids(cleanup=False))
+            self.assertIn(self.unrelated_job_id, started.get_job_ids(cleanup=False))
+            self.assertEqual(queue.get_job_ids().count(self.operation_id), 1)
+
+            with reopened.engine.connect() as connection:
+                row = connection.execute(select(m.operations).where(
+                    m.operations.c.id == self.operation_id)).mappings().one()
+            self.assertEqual(row["state"], "QUEUED")
+            self.assertEqual(row["attempt_count"], 1)
+            self.assertEqual(row["retry_count"], 1)
+
+            self.assertEqual(dispatch_pending(reopened, REDIS_URL),
+                             {"status": "DISPATCHED", "count": 0})
+            self.assertEqual(queue.get_job_ids().count(self.operation_id), 1)
+            with reopened.engine.connect() as connection:
+                final = connection.execute(select(
+                    m.operations.c.state, m.operations.c.attempt_count,
+                    m.operations.c.retry_count).where(
+                        m.operations.c.id == self.operation_id)).one()
+            self.assertEqual((final.state, final.attempt_count, final.retry_count),
+                             ("QUEUED", 1, 1))
         finally:
             reopened.engine.dispose()
 
