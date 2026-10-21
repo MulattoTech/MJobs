@@ -1,6 +1,7 @@
 """Controlled outage/restart proof for this project's fictional Compose stack."""
 import argparse
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -10,6 +11,7 @@ import sys
 import threading
 import time
 from uuid import uuid4
+from urllib.parse import quote
 
 import httpx
 
@@ -27,6 +29,15 @@ RECOVERY_RESTART_SERVICES = (
 )
 RECOVERY_MUTATION_SERVICES = RECOVERY_RESTART_SERVICES
 REQUEST_ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
+JOB_INVENTORY_VERSION = 2
+CANONICAL_JOB_FIELDS = (
+    "company_id", "requisition", "title", "description", "skills", "location",
+    "remote_type", "attributes", "company",
+)
+JOB_ROUTE_FIELDS = ("id", "company_id", "provider", "tenant", "requisition", "url")
+SOURCE_COPY_FIELDS = ("source", "source_job_id", "source_url", "application_url")
+VOLATILE_JOB_OBSERVATION_FIELDS = frozenset({"last_seen_at"})
+VOLATILE_LIFECYCLE_FIELDS = frozenset({"observation_id", "observed_at"})
 
 
 def _run_bounded(command, *, timeout, action, environment=None):
@@ -345,6 +356,10 @@ def validate_baseline(baseline):
             raise ValueError("Baseline is missing or has an invalid recovery identifier: " + key)
     if baseline.get("external_submission_enabled") is not False:
         raise ValueError("Baseline must prove external submission is disabled")
+    if "job_inventory" in baseline:
+        validate_public_job_inventory(baseline["job_inventory"])
+        if baseline["job_inventory"]["profile_id"] != baseline["profile_id"]:
+            raise ValueError("Baseline job inventory must match its profile")
     confirmation = baseline.get("confirmation")
     if (not isinstance(confirmation, dict)
             or confirmation.get("application_id") != baseline["application_id"]
@@ -354,6 +369,140 @@ def validate_baseline(baseline):
             or confirmation["submission_count"] != 1):
         raise ValueError("Baseline must contain the matching single mock confirmation")
     return baseline
+
+
+def _inventory_digest(value):
+    return hashlib.sha256(json.dumps(
+        value, sort_keys=True, separators=(",", ":"), ensure_ascii=True,
+    ).encode("utf-8")).hexdigest()
+
+
+def _stable_job_projection(value):
+    """Retain stable content while excluding collection-specific lifecycle identity/time."""
+    if isinstance(value, dict):
+        projection = {}
+        for key, item in value.items():
+            if key in VOLATILE_JOB_OBSERVATION_FIELDS:
+                continue
+            if key == "lifecycle" and isinstance(item, dict):
+                projection[key] = {
+                    field: _stable_job_projection(field_value)
+                    for field, field_value in item.items()
+                    if field not in VOLATILE_LIFECYCLE_FIELDS
+                }
+            else:
+                projection[key] = _stable_job_projection(item)
+        return projection
+    if isinstance(value, list):
+        return [_stable_job_projection(item) for item in value]
+    return value
+
+
+def validate_public_job_inventory(inventory):
+    if (not isinstance(inventory, dict)
+            or set(inventory) != {"schema_version", "profile_id", "job_count",
+                                  "source_copy_count", "jobs", "sha256"}
+            or type(inventory["schema_version"]) is not int
+            or inventory["schema_version"] != JOB_INVENTORY_VERSION
+            or not isinstance(inventory["profile_id"], str) or not inventory["profile_id"]
+            or type(inventory["job_count"]) is not int or inventory["job_count"] < 1
+            or type(inventory["source_copy_count"]) is not int or inventory["source_copy_count"] < 1
+            or not isinstance(inventory["jobs"], list)
+            or len(inventory["jobs"]) != inventory["job_count"]
+            or not isinstance(inventory["sha256"], str)
+            or re.fullmatch(r"[a-f0-9]{64}", inventory["sha256"]) is None):
+        raise ValueError("Invalid public job/source-copy inventory")
+    ids = set()
+    total_sources = 0
+    for row in inventory["jobs"]:
+        if (not isinstance(row, dict)
+                or set(row) != {"job_id", "canonical_sha256", "source_copy_count",
+                                "source_copies_sha256"}
+                or not isinstance(row["job_id"], str) or not row["job_id"]
+                or row["job_id"] in ids
+                or type(row["source_copy_count"]) is not int or row["source_copy_count"] < 1
+                or any(not isinstance(row[key], str)
+                       or re.fullmatch(r"[a-f0-9]{64}", row[key]) is None
+                       for key in ("canonical_sha256", "source_copies_sha256"))):
+            raise ValueError("Invalid public job/source-copy inventory row")
+        ids.add(row["job_id"])
+        total_sources += row["source_copy_count"]
+    if (total_sources != inventory["source_copy_count"]
+            or _inventory_digest(inventory["jobs"]) != inventory["sha256"]):
+        raise ValueError("Public job/source-copy inventory checksum mismatch")
+    return inventory
+
+
+def collect_public_job_inventory(get_json, profile_id):
+    """Hash canonical jobs and their source copies through public profile-scoped read routes."""
+    if not isinstance(profile_id, str) or not profile_id:
+        raise ValueError("Job inventory requires a profile ID")
+    encoded_profile = quote(profile_id, safe="")
+    listed = get_json("/jobs?profile_id=" + encoded_profile)
+    rows = listed.get("jobs") if isinstance(listed, dict) else None
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("Public job inventory requires at least one profile-scoped job")
+    job_ids = [row.get("id") for row in rows if isinstance(row, dict)]
+    if len(job_ids) != len(rows) or any(not isinstance(value, str) or not value for value in job_ids):
+        raise ValueError("Public job listing contains an invalid job identity")
+    if len(set(job_ids)) != len(job_ids):
+        raise ValueError("Public job listing contains duplicate canonical identities")
+    inventory_rows = []
+    for job_id in sorted(job_ids):
+        detail = get_json("/jobs/" + quote(job_id, safe="") + "?profile_id=" + encoded_profile)
+        if not isinstance(detail, dict) or detail.get("id") != job_id:
+            raise ValueError("Public canonical job detail changed identity")
+        if any(field not in detail for field in CANONICAL_JOB_FIELDS):
+            raise ValueError("Public canonical job detail is missing stable fields")
+        routes = detail.get("routes")
+        postings = detail.get("postings")
+        if not isinstance(routes, list) or not routes or not isinstance(postings, list) or not postings:
+            raise ValueError("Public job is missing application routes or source copies")
+        canonical = {"job_id": job_id,
+                     "fields": _stable_job_projection(
+                         {field: detail[field] for field in CANONICAL_JOB_FIELDS}),
+                     "routes": sorted(({field: route.get(field) for field in JOB_ROUTE_FIELDS}
+                                       for route in routes),
+                                      key=lambda route: (str(route["provider"]), str(route["tenant"]),
+                                                         str(route["requisition"]), str(route["id"])))}
+        source_copies = []
+        for posting in postings:
+            if not isinstance(posting, dict) or any(field not in posting for field in SOURCE_COPY_FIELDS):
+                raise ValueError("Public posting source copy is missing stable identity fields")
+            source_copies.append({**{field: posting[field] for field in SOURCE_COPY_FIELDS},
+                                  "raw_sha256": _inventory_digest(
+                                      _stable_job_projection(posting.get("raw")))})
+        source_copies.sort(key=lambda row: (str(row["source"]), str(row["source_job_id"]),
+                                            str(row["source_url"])))
+        inventory_rows.append({"job_id": job_id,
+                               "canonical_sha256": _inventory_digest(canonical),
+                               "source_copy_count": len(source_copies),
+                               "source_copies_sha256": _inventory_digest(source_copies)})
+    result = {"schema_version": JOB_INVENTORY_VERSION, "profile_id": profile_id,
+              "job_count": len(inventory_rows),
+              "source_copy_count": sum(row["source_copy_count"] for row in inventory_rows),
+              "jobs": inventory_rows, "sha256": _inventory_digest(inventory_rows)}
+    return validate_public_job_inventory(result)
+
+
+def compare_public_job_inventory(baseline, before_restart, after_restart):
+    """Compare an explicit UI baseline with public readbacks around service restart."""
+    if "job_inventory" not in baseline:
+        return {"result": "NOT_RUN",
+                "reason": "Baseline has no canonical public job/source-copy inventory"}
+    expected = validate_public_job_inventory(baseline["job_inventory"])
+    before = validate_public_job_inventory(before_restart)
+    after = validate_public_job_inventory(after_restart)
+    if not (expected["profile_id"] == before["profile_id"] == after["profile_id"]):
+        raise ValueError("Public job/source inventory profile changed across restart")
+    if expected["sha256"] != before["sha256"]:
+        raise ValueError("Pre-restart public job/source inventory differs from UI baseline")
+    if before["sha256"] != after["sha256"]:
+        raise ValueError("Public job/source inventory changed across restart")
+    return {"result": "PASS", "profile_id": before["profile_id"],
+            "job_count": before["job_count"], "source_copy_count": before["source_copy_count"],
+            "sha256": before["sha256"],
+            "scope": "Same-profile canonical jobs, application routes, posting source identities and source-copy payload hashes via public GET /jobs readback"}
 
 
 def verify_recovered_application(request, baseline):
@@ -383,6 +532,8 @@ def run(baseline_path, evidence_path, project_name, port):
     initial_targets = preflight_recovery_targets(project_name, port, config_files=config_files)
     api = f"http://127.0.0.1:{port}"
     actions = []
+    job_inventory_result = ({"result": "PENDING"} if "job_inventory" in baseline
+                            else compare_public_job_inventory(baseline, None, None))
     with httpx.Client(base_url=api, timeout=15, trust_env=False) as client:
         def request(method, path, **kwargs):
             response = client.request(method, path, **kwargs)
@@ -403,6 +554,11 @@ def run(baseline_path, evidence_path, project_name, port):
 
         # Validate supplied UI evidence and durable caller identity before stopping anything.
         application_path = verify_recovered_application(request, baseline)
+        job_inventory_before = None
+        if "job_inventory" in baseline:
+            job_inventory_before = collect_public_job_inventory(
+                lambda path: request("GET", path), baseline["profile_id"])
+            compare_public_job_inventory(baseline, job_inventory_before, job_inventory_before)
         health_before = until(lambda: healthy_containers(initial_targets))
         services_to_restore = tuple(
             service for service in RECOVERY_RESTART_SERVICES
@@ -437,6 +593,19 @@ def run(baseline_path, evidence_path, project_name, port):
             restart_recovery_services(project_name, port, config_files=config_files)
             until(lambda: client.get("/readiness").status_code == 200)
             application_path = verify_recovered_application(request, baseline)
+            if job_inventory_before is not None:
+                job_inventory_after = collect_public_job_inventory(
+                    lambda path: request("GET", path), baseline["profile_id"])
+                job_inventory_result = compare_public_job_inventory(
+                    baseline, job_inventory_before, job_inventory_after)
+                actions.append({"action": "Same-profile canonical jobs, application routes, posting source identities and source-copy payload hashes matched UI baseline and post-restart public readback",
+                                "result": "PASS", "job_count": job_inventory_result["job_count"],
+                                "source_copy_count": job_inventory_result["source_copy_count"],
+                                "sha256": job_inventory_result["sha256"]})
+            else:
+                actions.append({"action": "Canonical public jobs/source-copy persistence across restart",
+                                "result": "NOT_RUN",
+                                "reason": job_inventory_result["reason"]})
             again = request("POST", application_path + "/mock-run", json={
                 "submit": True, "request_id": baseline["request_id"],
             })
@@ -482,6 +651,7 @@ def run(baseline_path, evidence_path, project_name, port):
         "target": "Project-only PostgreSQL/Redis/RQ/mock persistence and outage recovery", "actions": actions,
         "application_id": baseline["application_id"], "external_submission_enabled": False,
         "local_persistence": persistence_result,
+        "public_job_inventory_recovery": job_inventory_result,
         "implementation_progress": (
             validate_implementation_progress(baseline["implementation_progress"])
             if "implementation_progress" in baseline else None

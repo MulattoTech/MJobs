@@ -5,7 +5,12 @@ import hashlib
 import io
 import ipaddress
 import json
+import os
 from pathlib import Path
+import re
+import subprocess
+import sys
+import tempfile
 import time
 from urllib.parse import urlsplit
 
@@ -15,10 +20,272 @@ from playwright.sync_api import sync_playwright, expect
 from reportlab.pdfgen import canvas
 
 from cli.live_feedback import capture_redacted_screenshot
+from cli.compose_recovery import collect_public_job_inventory
 from cli import local_persistence_acceptance as persistence
 
 
-def wait_for_mock_run(request, path, operation_id, *, timeout_seconds=210,
+_SAFE_OPERATION_ID = re.compile(r"[a-f0-9]{64}\Z")
+_SAFE_OPERATION_ERROR = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
+_SAFE_REQUEST_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}\Z")
+_SAFE_ERROR_TYPE_CATEGORIES = {
+    "AssertionError": "BUILTIN_ASSERTION_ERROR",
+    "AttributeError": "BUILTIN_ATTRIBUTE_ERROR",
+    "ConnectionError": "BUILTIN_CONNECTION_ERROR",
+    "FileNotFoundError": "BUILTIN_FILE_NOT_FOUND",
+    "IndexError": "BUILTIN_INDEX_ERROR",
+    "KeyError": "BUILTIN_KEY_ERROR",
+    "OSError": "BUILTIN_OS_ERROR",
+    "PermissionError": "BUILTIN_PERMISSION_ERROR",
+    "RuntimeError": "BUILTIN_RUNTIME_ERROR",
+    "TimeoutError": "BUILTIN_TIMEOUT_ERROR",
+    "TypeError": "BUILTIN_TYPE_ERROR",
+    "ValueError": "BUILTIN_VALUE_ERROR",
+    "AttemptConflict": "INTERNAL_ATTEMPT_CONFLICT",
+    "ControlledDryRunError": "INTERNAL_CONTROLLED_DRY_RUN",
+    "FormReviewError": "INTERNAL_FORM_REVIEW",
+    "OperationCancelled": "INTERNAL_OPERATION_CANCELLED",
+    "OperationTimedOut": "INTERNAL_OPERATION_TIMEOUT",
+    "PreparationError": "INTERNAL_PREPARATION",
+    "SourceError": "INTERNAL_SOURCE",
+}
+_APPLICATION_STATES = {
+    "PREPARED", "REVIEW_REQUIRED", "AUTH_REQUIRED", "DRY_RUN_COMPLETE",
+    "SUBMITTING", "SUBMISSION_UNCONFIRMED", "CONFIRMED",
+}
+REVIEWED_FIXTURE_ANSWER = "Controlled fictional test application."
+_PREFLIGHT_RESULTS = {"PASS", "FAIL", "BLOCKED", "NOT_RUN", "UNKNOWN"}
+_ATTEMPT_STATES = {"RUNNING", "DRY_RUN_COMPLETE", "REVIEW_REQUIRED", "AUTH_REQUIRED",
+                   "USER_INTERVENTION_REQUIRED", "SUBMISSION_UNCONFIRMED", "CONFIRMED", "FAILED"}
+_ATTEMPT_PHASES = {
+    "NAVIGATE", "DETECT_FORM", "UPLOAD_RESUME", "UPLOAD_SUPPORTING_DOCUMENTS",
+    "FILL_CONTACT", "FILL_LOCATION", "ANSWER_STANDARD", "ANSWER_CUSTOM", "VALIDATE",
+    "SUBMIT", "VERIFY_CONFIRMATION",
+}
+_ATTEMPT_STEP_STATES = {"STARTED", "COMPLETED", "FAILED", "BLOCKED"}
+_SAFE_ATTEMPT_ERROR_CODES = {
+    "APPLICATION_EXECUTION_FAILED", "OPERATION_CANCELLED", "OPERATION_TIMEOUT",
+    "UPLOAD_INTEGRITY_FAILED", "TIMEOUT_UNCLASSIFIED", "DATABASE_POOL_TIMEOUT",
+    "PLAYWRIGHT_TIMEOUT", "REVIEW_REQUIRED", "AUTH_REQUIRED",
+    "USER_INTERVENTION_REQUIRED", "SUBMISSION_UNCONFIRMED",
+    "APPLICATION_REVIEW_REQUIRED", "APPLICATION_AUTH_REQUIRED",
+}
+_ATTEMPT_HISTORY_MAX_ENTRIES = 5
+_ATTEMPT_HISTORY_MAX_STEPS = 20
+_ATTEMPT_HISTORY_MAX_BYTES = 8 * 1024
+_APPLICATION_READ_STATES = {"CURRENT", "UNAVAILABLE", "MISMATCH"}
+
+
+def _attempt_history_summary(history):
+    """Project the public history DTO onto a bounded set of fixed safe fields."""
+    if not isinstance(history, dict) or not isinstance(history.get("attempts"), list):
+        return {"read_state": "UNAVAILABLE"}
+    rows = history["attempts"]
+    summary = {
+        "read_state": "AVAILABLE",
+        "attempt_count": min(len(rows), 100),
+        "has_more": history.get("has_more") is True or len(rows) > 100,
+        "truncated": len(rows) > _ATTEMPT_HISTORY_MAX_ENTRIES,
+        "attempts": [],
+    }
+    for row in rows[:_ATTEMPT_HISTORY_MAX_ENTRIES]:
+        if not isinstance(row, dict):
+            continue
+        state = row.get("state")
+        attempt = {"state": state if isinstance(state, str) and state in _ATTEMPT_STATES else "UNKNOWN"}
+        phase = row.get("current_step")
+        if isinstance(phase, str) and phase in _ATTEMPT_PHASES:
+            attempt["current_step"] = phase
+        error_code = row.get("error_code")
+        if error_code is not None:
+            if isinstance(error_code, str) and error_code in _SAFE_ATTEMPT_ERROR_CODES:
+                attempt["error_code"] = error_code
+            else:
+                attempt["error_redacted"] = True
+        safe_steps = []
+        steps = row.get("steps")
+        if isinstance(steps, list):
+            for step in steps[-_ATTEMPT_HISTORY_MAX_STEPS:]:
+                if not isinstance(step, str) or step.count(":") != 1:
+                    continue
+                phase_name, step_state = step.split(":", 1)
+                if phase_name in _ATTEMPT_PHASES and step_state in _ATTEMPT_STEP_STATES:
+                    safe_steps.append(f"{phase_name}:{step_state}")
+        if safe_steps:
+            attempt["steps"] = safe_steps
+        summary["attempts"].append(attempt)
+    encoded = json.dumps(summary, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    if len(encoded) > _ATTEMPT_HISTORY_MAX_BYTES:
+        return {"read_state": "UNAVAILABLE"}
+    return summary
+
+
+def _terminal_application_context(application, *, profile_id, application_id):
+    """Project a post-terminal application read only when its ownership matches."""
+    if (not isinstance(application, dict)
+            or application.get("id") != application_id
+            or application.get("profile_id") != profile_id):
+        return {"read_state": "MISMATCH"}
+    return {
+        "read_state": "CURRENT",
+        "application_state": application.get("state"),
+        "profile_version": application.get("profile_version"),
+        "document_version": application.get("document_version"),
+    }
+
+
+def _terminal_operation_summary(*, operation_id, state, error_code, context,
+                                terminal_context=None, attempt_history=None):
+    safe_state = state if state in {
+        "COMPLETED", "FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED", "UNKNOWN",
+    } else "UNKNOWN"
+    summary = {"kind": "APPLY_MOCK", "state": safe_state}
+    error_present = error_code is not None
+    summary["error_present"] = error_present
+    summary["error_redacted"] = False
+    if isinstance(operation_id, str) and _SAFE_OPERATION_ID.fullmatch(operation_id):
+        summary["operation_id"] = operation_id
+    if isinstance(error_code, str) and _SAFE_OPERATION_ERROR.fullmatch(error_code):
+        summary["error_code"] = error_code
+    elif error_present:
+        summary["error_redacted"] = True
+        category = _SAFE_ERROR_TYPE_CATEGORIES.get(error_code) if isinstance(error_code, str) else None
+        if category is not None:
+            summary["error_category"] = category
+    if not isinstance(context, dict):
+        context = {}
+    application_id = context.get("application_id")
+    if isinstance(application_id, str) and _SAFE_OPERATION_ID.fullmatch(application_id):
+        summary["application_id"] = application_id
+    request_id = context.get("request_id")
+    if isinstance(request_id, str) and _SAFE_REQUEST_ID.fullmatch(request_id):
+        summary["request_id"] = request_id
+    profile_version = context.get("expected_profile_version")
+    if isinstance(profile_version, str) and _SAFE_OPERATION_ID.fullmatch(profile_version):
+        summary["expected_profile_version"] = profile_version
+    document_version = context.get("expected_document_version")
+    if isinstance(document_version, int) and not isinstance(document_version, bool) and document_version >= 0:
+        summary["expected_document_version"] = document_version
+    preflight_result = context.get("preflight_result")
+    if isinstance(preflight_result, str) and preflight_result in _PREFLIGHT_RESULTS:
+        summary["preflight_result"] = preflight_result
+    for key in ("preflight_is_current", "submit"):
+        value = context.get(key)
+        if isinstance(value, bool):
+            summary[key] = value
+    read_state = terminal_context.get("read_state") if isinstance(terminal_context, dict) else None
+    if not isinstance(read_state, str) or read_state not in _APPLICATION_READ_STATES:
+        read_state = "UNAVAILABLE"
+    summary["application_read_state"] = read_state
+    if read_state == "CURRENT":
+        application_state = terminal_context.get("application_state")
+        if isinstance(application_state, str) and application_state in _APPLICATION_STATES:
+            summary["application_state"] = application_state
+        current_profile_version = terminal_context.get("profile_version")
+        if isinstance(current_profile_version, str) and _SAFE_OPERATION_ID.fullmatch(current_profile_version):
+            summary["current_profile_version"] = current_profile_version
+        current_document_version = terminal_context.get("document_version")
+        if isinstance(current_document_version, int) and not isinstance(current_document_version, bool) and current_document_version >= 0:
+            summary["current_document_version"] = current_document_version
+    if attempt_history is not None:
+        summary["attempt_history"] = _attempt_history_summary(attempt_history)
+    return summary
+
+
+class MockRunTerminalError(RuntimeError):
+    """A terminal operation failure with only bounded public identifiers."""
+
+    def __init__(self, *, operation_id, state, error_code, context=None,
+                 terminal_context=None, attempt_history=None):
+        safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
+        super().__init__(f"mock run did not complete: {safe_state}")
+        self.terminal_summary = _terminal_operation_summary(
+            operation_id=operation_id, state=safe_state,
+            error_code=error_code, context=context, terminal_context=terminal_context,
+            attempt_history=attempt_history,
+        )
+
+
+class EvidenceJournal:
+    """Atomically checkpoint only bounded, sanitized named UI evidence."""
+
+    MAX_CHECKS = 80
+    MAX_BYTES = 512 * 1024
+
+    def __init__(self, path, binding):
+        self.path = Path(path)
+        self.binding = binding
+        self.checks = []
+        self.attempted = None
+        self.failure = None
+        self.overall_state = "IN_PROGRESS"
+        self.remaining_state = "NOT_RUN"
+
+    def begin(self, name):
+        self.attempted = {"action": str(name)[:200], "result": "IN_PROGRESS"}
+        self.persist()
+
+    def complete(self, check):
+        if len(self.checks) >= self.MAX_CHECKS:
+            raise ValueError("evidence check limit exceeded")
+        safe_check = {"action": str(check.get("action", "unnamed check"))[:300],
+                      "result": "PASS"}
+        if check.get("boundary"):
+            safe_check["boundary"] = str(check["boundary"])[:500]
+        self.checks.append(safe_check)
+        self.attempted = None
+        self.persist()
+
+    def fail(self, error):
+        stage = (self.attempted or {}).get("action", "Connected UI workflow")
+        self.attempted = {"action": stage, "result": "FAIL"}
+        self.failure = {"type": type(error).__name__, "stage": stage}
+        if isinstance(error, MockRunTerminalError):
+            self.failure["terminal_operation"] = error.terminal_summary
+        self.overall_state = "FAIL"
+        self.remaining_state = "NOT_RUN"
+        self.persist()
+
+    def finish(self, evidence):
+        self.binding.update(evidence)
+        self.overall_state = evidence.get("result", "PARTIAL")
+        self.remaining_state = "NONE"
+        self.attempted = None
+        self.persist()
+
+    def payload(self):
+        checks = list(self.checks)
+        if self.attempted:
+            checks.append(dict(self.attempted))
+        return {
+            **self.binding,
+            "overall_state": self.overall_state,
+            "checks": checks,
+            "remaining_state": self.remaining_state,
+            **({"failure": self.failure} if self.failure else {}),
+        }
+
+    def persist(self):
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        encoded = json.dumps(self.payload(), indent=2, sort_keys=True) + "\n"
+        if len(encoded.encode("utf-8")) > self.MAX_BYTES:
+            raise ValueError("evidence size limit exceeded")
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                    mode="w", encoding="utf-8", dir=self.path.parent,
+                    prefix=f".{self.path.name}.", suffix=".tmp", delete=False) as stream:
+                temporary = Path(stream.name)
+                stream.write(encoded)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, self.path)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
+
+
+def wait_for_mock_run(request, path, operation_id, *, failure_context=None,
+                      failure_context_reader=None, attempt_history_reader=None, timeout_seconds=210,
                       clock=time.monotonic, sleep=time.sleep):
     """Wait for this reviewed intent, without resubmitting or hiding worker failure."""
     deadline = clock() + timeout_seconds
@@ -26,13 +293,33 @@ def wait_for_mock_run(request, path, operation_id, *, timeout_seconds=210,
         result = request(path)
         if result.get("operation_id") != operation_id:
             raise RuntimeError("mock run identity changed")
-        state = result.get("state")
+        state_value = result.get("state")
+        state = state_value if isinstance(state_value, str) else "UNKNOWN"
         if state == "COMPLETED":
             return result
         if state not in {"QUEUED", "RUNNING"}:
             # Do not publish arbitrary worker diagnostics or untrusted state text.
             safe_state = state if state in {"FAILED", "CANCELLED", "BLOCKED", "DEAD_LETTERED"} else "UNKNOWN"
-            raise RuntimeError(f"mock run did not complete: {safe_state}")
+            attempt_history = None
+            if attempt_history_reader is not None:
+                try:
+                    attempt_history = attempt_history_reader()
+                except Exception:
+                    attempt_history = {"read_state": "UNAVAILABLE"}
+            terminal_context = None
+            if failure_context_reader is not None:
+                try:
+                    terminal_context = failure_context_reader()
+                except Exception:
+                    terminal_context = {"read_state": "UNAVAILABLE"}
+            raise MockRunTerminalError(
+                operation_id=operation_id,
+                state=safe_state,
+                error_code=result.get("error_code"),
+                context=failure_context,
+                terminal_context=terminal_context,
+                attempt_history=attempt_history,
+            )
         remaining = deadline - clock()
         if remaining <= 0:
             raise TimeoutError(f"mock run completion timed out: {state}")
@@ -92,6 +379,158 @@ def assert_no_pending_facts_in_documents(documents, pending_fact_ids, approved_f
             raise AssertionError("pending or unsupported facts reached generated documents")
 
 
+def assert_search_scoped_discovery(request_payload, operation, jobs, *, profile_id,
+                                   search_profile_id, expected_titles):
+    """Check queued fixture discovery and durable readback for a selected saved search."""
+    if request_payload.get("profile_id") != profile_id:
+        raise AssertionError("discovery request changed the active profile")
+    if request_payload.get("search_profile_id") != search_profile_id:
+        raise AssertionError("discovery request omitted or changed the selected saved search")
+    if operation.get("entity_id") != profile_id:
+        raise AssertionError("discovery operation changed the active profile")
+    params = operation.get("params") or {}
+    if params.get("profile_id", profile_id) != profile_id:
+        raise AssertionError("discovery operation parameters changed the active profile")
+    if params.get("search_profile_id") != search_profile_id:
+        raise AssertionError("discovery operation did not retain the selected saved search")
+    if any(row.get("profile_id", profile_id) != profile_id for row in jobs):
+        raise AssertionError("search-filtered readback included another profile's job")
+    titles = [row.get("title") for row in jobs]
+    if set(titles) != set(expected_titles) or len(titles) != len(expected_titles):
+        raise AssertionError("search-filtered job readback differs from the reviewed criteria")
+
+
+def assert_discovery_request_operation_pair(request_payload, operation, *, profile_id,
+                                            search_profile_id, expected_operation_id):
+    """Tie a submitted request to its operation; entity_id owns the profile scope."""
+    params = operation.get("params") if isinstance(operation, dict) else None
+    if (not isinstance(request_payload, dict) or not isinstance(params, dict)
+            or not isinstance(request_payload.get("request_id"), str)
+            or not request_payload["request_id"]
+            or not isinstance(operation.get("id"), str) or not operation["id"]
+            or operation["id"] != expected_operation_id
+            or request_payload.get("profile_id") != profile_id
+            or operation.get("entity_id") != profile_id
+            or request_payload.get("search_profile_id") != search_profile_id
+            or params.get("search_profile_id") != search_profile_id
+            or params.get("request_id") != request_payload["request_id"]):
+        raise AssertionError("discovery request and persisted operation do not match")
+    return operation["id"], request_payload["request_id"]
+
+
+def assert_supported_fixture_search(search, *, profile_id, include_titles, remote):
+    """Require a Sources-tab discovery search, never a Jobs filter snapshot."""
+    criteria = search.get("criteria") if isinstance(search, dict) else None
+    if not isinstance(criteria, dict):
+        raise AssertionError("saved fixture search has no criteria")
+    if search.get("profile_id") != profile_id or search.get("enabled") is not True:
+        raise AssertionError("fixture search is disabled or belongs to another profile")
+    if search.get("source_ids") != []:
+        raise AssertionError("fixture discovery requires the all-sources search scope")
+    if (criteria.get("include_titles") != include_titles or criteria.get("remote") != remote
+            or criteria.get("employment_types") != []):
+        raise AssertionError("saved fixture search differs from the reviewed Sources criteria")
+    if "job_filters" in criteria:
+        raise AssertionError("Jobs-tab filters cannot be used as provider discovery criteria")
+    scheduler = criteria.get("scheduler")
+    if not isinstance(scheduler, dict) or scheduler.get("enabled") is not False:
+        raise AssertionError("fixture search must keep its background scheduler disabled")
+
+
+def assert_reprepared_profile_pins(*, previous_profile_version, old_application_profile_version,
+                                   current_profile_version, resumed_application_profile_version):
+    """Compare opaque profile-version identities by equality, not lexical order."""
+    versions = (previous_profile_version, old_application_profile_version,
+                current_profile_version, resumed_application_profile_version)
+    if any(not isinstance(version, str) or not version for version in versions):
+        raise AssertionError("reprepare profile versions must be nonempty identities")
+    if previous_profile_version == current_profile_version:
+        raise AssertionError("reviewed profile edit did not produce a new profile version")
+    if old_application_profile_version != previous_profile_version:
+        raise AssertionError("application did not retain its old profile-version pin before reprepare")
+    if resumed_application_profile_version != current_profile_version:
+        raise AssertionError("reprepared application is not pinned to the approved current profile")
+
+
+def assert_blocked_mock_operation(operation, *, application_id):
+    """Validate the legacy public operation record used by onboarding recovery."""
+    assert operation.get("kind") == "APPLY_MOCK", operation
+    assert operation.get("entity_id") == application_id, operation
+    assert operation.get("state") == "BLOCKED", operation
+
+
+def assert_previous_review_operation(request, *, onboarding, operation_id, application_id):
+    """Keep the onboarding-only blocked receipt check out of the demo flow."""
+    if not onboarding:
+        return
+    assert operation_id, "onboarding recovery requires the prior blocked operation"
+    operation = request("/operations/" + operation_id)
+    assert_blocked_mock_operation(operation, application_id=application_id)
+
+
+def is_allowed_onboarding_application_write(method, path):
+    """Allow only the explicit local application operations used by onboarding."""
+    if method != "POST":
+        return False
+    if path == "/applications":
+        return True
+    parts = path.strip("/").split("/")
+    if (len(parts) == 5 and parts[0] == "profiles" and bool(parts[1])
+            and parts[2] == "applications" and bool(parts[3])
+            and parts[4] in {"reprepare", "mock-run"}):
+        return True
+    comparison_path = (len(parts) == 6 and parts[0] == "profiles" and bool(parts[1])
+                       and parts[2] == "applications" and bool(parts[3])
+                       and parts[4:] == ["uploaded-resume-comparison", "operations"])
+    comparison_cancel_path = (len(parts) == 8 and parts[0] == "profiles" and bool(parts[1])
+                              and parts[2] == "applications" and bool(parts[3])
+                              and parts[4:6] == ["uploaded-resume-comparison", "operations"]
+                              and bool(parts[6]) and parts[7] == "cancel")
+    return comparison_path or comparison_cancel_path
+
+
+def is_allowed_onboarding_request(method, url, allowed_origin):
+    """Enforce same-origin, no employer submission, and exact local write routes."""
+    parsed = urlsplit(url)
+    path = parsed.path.lower()
+    blocked_path = (path.rstrip("/").endswith(("/apply", "/submit"))
+                    or path in {"/apply", "/submit"}
+                    or "/external-application" in path)
+    application_write = method != "GET" and "/applications/" in path
+    return (parsed.netloc == allowed_origin and not blocked_path
+            and (not application_write
+                 or is_allowed_onboarding_application_write(method, path)))
+
+
+def sanitized_onboarding_request(method, url):
+    """Return method and a query-free route path with profile/application IDs hidden."""
+    parts = urlsplit(url).path.strip("/").split("/")
+    if len(parts) >= 4 and parts[0].lower() == "profiles" and parts[2].lower() == "applications":
+        parts[1] = "<profile>"
+        parts[3] = "<application>"
+    path = "/" + "/".join(parts) if parts and parts != [""] else "/"
+    return {"method": method.upper(), "path": path}
+
+
+def expect_visible_with_onboarding_diagnostics(locator, blocked_requests, **kwargs):
+    """Keep local browser failures actionable without recording request payloads."""
+    try:
+        expect(locator).to_be_visible(**kwargs)
+    except AssertionError as error:
+        if blocked_requests:
+            raise AssertionError(
+                f"{error}\nBlocked onboarding requests (method/path only): {blocked_requests}"
+            ) from error
+        raise
+
+
+def answer_bank_confirmation_locator(answer_group, question_number):
+    """Locate the confirmation div by its aria-label (it is not a region role)."""
+    return answer_group.locator(
+        f'[aria-label="Answer Bank confirmation for question {question_number}"]'
+    )
+
+
 def _onboarding_fixture_pdf():
     stream = io.BytesIO()
     pdf = canvas.Canvas(stream)
@@ -117,13 +556,64 @@ def _onboarding_preflight(base_url):
     validate_onboarding_preflight(settings.json(), health.json(), readiness.json())
 
 
+def wait_for_ui_action_idle(page, button_name):
+    """Wait for the shared UI busy gate to release a form action."""
+    expect(page.get_by_role("button", name=button_name, exact=True)).to_be_enabled()
+
+
+def wait_for_fixture_collection_ui_idle(page):
+    """Wait until fixture collection, its UI refresh, and the shared busy gate finish."""
+    expect(page.get_by_role("status").filter(
+        has_text="Local fixture jobs collected for your saved profile. No employer was contacted."
+    )).to_be_visible()
+    # The collection action navigates back to Jobs before action() completes its
+    # final refresh/readback. This stable Jobs control remains mounted through
+    # that transition and is disabled by the same busy gate as the Sources form.
+    wait_for_ui_action_idle(page, "Refresh matches")
+
+
+def _source_binding():
+    def git_value(*args):
+        result = subprocess.run(
+            ["git", *args], capture_output=True, text=True, timeout=5, check=True)
+        return result.stdout.strip()
+
+    try:
+        return {"commit": git_value("rev-parse", "HEAD"),
+                "tree": git_value("rev-parse", "HEAD^{tree}"),
+                "working_tree_diff_sha256": hashlib.sha256(
+                    git_value("diff", "--binary", "HEAD").encode("utf-8")
+                ).hexdigest(),
+                "working_tree_status_sha256": hashlib.sha256(
+                    git_value("status", "--porcelain=v1", "--untracked-files=all").encode("utf-8")
+                ).hexdigest()}
+    except (OSError, subprocess.SubprocessError):
+        return {"commit": None, "tree": None, "state": "UNAVAILABLE"}
+
+
 def run(base_url, evidence_path, onboarding=False):
     if onboarding:
         # This read-only gate runs before output creation, Chromium launch, or any UI write.
         _onboarding_preflight(base_url)
     artifacts = Path("outputs/ui-e2e") / str(urlsplit(base_url).port)
     artifacts.mkdir(parents=True, exist_ok=True)
-    actions = []
+    parsed_target = urlsplit(base_url)
+    journal = EvidenceJournal(evidence_path, {
+        "schema_version": 1,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
+        "target_origin": f"{parsed_target.scheme}://{parsed_target.netloc}",
+        "source": _source_binding(),
+    })
+
+    class CheckpointActions(list):
+        def append(self, value):
+            if value.get("result") == "PASS":
+                journal.complete(value)
+            super().append(value)
+
+    actions = CheckpointActions()
+    job_inventory = None
     with sync_playwright() as browser_api:
         browser = browser_api.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1440, "height": 1050}, accept_downloads=True)
@@ -133,17 +623,8 @@ def run(base_url, evidence_path, onboarding=False):
 
             def local_fixture_route(route):
                 current = route.request
-                parsed = urlsplit(current.url)
-                path = parsed.path.lower()
-                blocked_path = (path.rstrip("/").endswith(("/apply", "/submit"))
-                                or path in {"/apply", "/submit"}
-                                or "/external-application" in path)
-                application_write = (current.method != "GET" and "/applications/" in path)
-                explicit_mock = path.endswith("/mock-run")
-                allowed_application_write = path == "/applications" or explicit_mock
-                if (parsed.netloc != allowed_origin or blocked_path
-                        or application_write and not allowed_application_write):
-                    unsafe_requests.append({"method": current.method, "url": current.url})
+                if not is_allowed_onboarding_request(current.method, current.url, allowed_origin):
+                    unsafe_requests.append(sanitized_onboarding_request(current.method, current.url))
                     route.abort()
                     return
                 route.continue_()
@@ -169,8 +650,12 @@ def run(base_url, evidence_path, onboarding=False):
             return response.body()
 
         def save_profile():
-            page.get_by_role("button", name="Save profile", exact=True).click()
+            save_button = page.get_by_role("button", name="Save profile", exact=True)
+            save_button.click()
             expect(page.get_by_role("status").filter(has_text="Profile saved")).to_be_visible()
+            # The notice is set before action() finishes its refresh and jobs readback.
+            # Wait for the actual shared busy gate to clear before continuing to another form.
+            wait_for_ui_action_idle(page, "Save profile")
 
         def fact_editor(text):
             for fieldset in page.locator("fieldset.fact").all():
@@ -203,6 +688,7 @@ def run(base_url, evidence_path, onboarding=False):
             page.goto(base_url, wait_until="domcontentloaded")
             expect(page.get_by_role("heading", name="Find your next opportunity.")).to_be_visible()
             pending_fact_ids = set()
+            discovery_search_proofs = []
             if onboarding:
                 page.get_by_role("button", name="New profile", exact=True).click()
                 page.get_by_label("Full name", exact=True).fill("Synthetic Onboarding Applicant")
@@ -271,62 +757,110 @@ def run(base_url, evidence_path, onboarding=False):
                     answer_editor.get_by_role("textbox", name="Answer text", exact=True).fill(answer_text)
                     answer_editor.get_by_label("Provenance", exact=True).fill("Explicit synthetic mock-form review")
                     answer_editor.get_by_label("Confidence (0–100)", exact=True).fill("100")
-                    answer_editor.get_by_label("I reviewed and verified this answer", exact=True).check()
-                    answer_editor.get_by_label("I approve exact reuse for this question", exact=True).check()
+                    if question != "Approved fixture answer":
+                        answer_editor.get_by_label("I reviewed and verified this answer", exact=True).check()
+                        answer_editor.get_by_label("I approve exact reuse for this question", exact=True).check()
                 save_profile()
                 profile = request("/profiles/" + profile_id)
                 assert len(profile["answers"]) == 3
-                assert all(row["verified"] and row["user_approved"] and row["confidence"] == 100
-                           and row["question"] for row in profile["answers"])
+                answer_by_question = {row["question"]: row for row in profile["answers"]}
+                assert {"Country", "Remote role", "Approved fixture answer"} == set(answer_by_question)
+                assert all(answer_by_question[question]["verified"]
+                           and answer_by_question[question]["user_approved"]
+                           and answer_by_question[question]["confidence"] == 100
+                           for question in ("Country", "Remote role"))
+                assert not answer_by_question["Approved fixture answer"]["verified"]
+                assert not answer_by_question["Approved fixture answer"]["user_approved"]
                 assert not {row["id"] for row in profile["answers"]} & {"country", "remote", "fixture_question"}
-                actions.append({"action": "Explicit UI review saves question-specific synthetic mock answers under normal generated IDs", "result": "PASS"})
+                actions.append({"action": "UI saves two explicitly approved synthetic answers and keeps the required mock-form answer unreviewed for later question review", "result": "PASS"})
                 skill_fact_ids = assert_onboarding_profile_facts(profile, pending_fact_ids)
                 python_fact_id = skill_fact_ids["Python"]
                 sql_fact_id = skill_fact_ids["SQL"]
                 actions.append({"action": "Only explicitly entered and reviewed Python and SQL facts are verified and approved", "result": "PASS"})
 
-                navigation("Jobs")
-                page.get_by_label("Search jobs").fill("IT")
-                page.get_by_label("Job title", exact=True).fill("IT Support Specialist")
-                page.get_by_label("Work location", exact=True).select_option("REMOTE")
-                page.get_by_label("Saved search name", exact=True).fill("Synthetic remote IT onboarding search")
-                page.get_by_role("button", name="Save current filters", exact=True).click()
-                expect(page.get_by_role("status").filter(has_text="Saved Jobs filters")).to_be_visible()
-                saved_searches = request("/search-profiles?profile_id=" + profile_id)["search_profiles"]
-                saved_search = next(row for row in saved_searches
-                                    if row["name"] == "Synthetic remote IT onboarding search")
-                assert saved_search["profile_id"] == profile_id
-                assert saved_search["criteria"]["job_filters"]["remote_type"] == "REMOTE"
-                assert saved_search["criteria"]["job_filters"]["q"] == "IT"
-                assert saved_search["criteria"]["job_filters"]["title"] == "IT Support Specialist"
-                assert saved_search["source_ids"] == []
-                assert saved_search["enabled"] is False
-                navigation("Sources")
-                with page.expect_response(lambda response:
-                        response.request.method == "POST"
-                        and urlsplit(response.url).path == "/discovery") as discovery_response:
-                    page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
-                response = discovery_response.value
-                assert response.status == 202, response.text()
-                discovery_request = response.request.post_data_json
-                discovery_request_id = discovery_request["request_id"]
-                assert discovery_request["profile_id"] == profile_id
-                assert "search_profile_id" not in discovery_request
-                discovery_operation_id = response.json()["operation_id"]
-                discovery_deadline = time.monotonic() + 120
-                while time.monotonic() < discovery_deadline:
-                    discovery_operation = request("/operations/" + discovery_operation_id)
-                    if discovery_operation["state"] in ("COMPLETED", "FAILED", "BLOCKED", "CANCELLED"):
-                        break
-                    time.sleep(0.5)
-                assert discovery_operation["state"] == "COMPLETED", discovery_operation
-                assert discovery_operation["params"]["request_id"] == discovery_request_id
-                assert discovery_operation["entity_id"] == profile_id
-                assert saved_search["source_ids"] == []
-                discovery_jobs = request("/jobs?profile_id=" + profile_id)["jobs"]
-                assert discovery_jobs, "fixture discovery produced no profile-scoped job results"
-                discovery_job_ids = {row["id"] for row in discovery_jobs}
-                assert any(row["title"] == "Data Engineer" for row in discovery_jobs)
+                def save_sources_fixture_search(name, title):
+                    navigation("Sources")
+                    page.get_by_label("Search name", exact=True).fill(name)
+                    page.get_by_label("Remote preference").select_option("REQUIRED")
+                    page.get_by_label("Employment type").select_option("")
+                    page.get_by_label("Include titles", exact=True).fill(title)
+                    with page.expect_response(lambda candidate:
+                            candidate.request.method == "PUT"
+                            and urlsplit(candidate.url).path == "/search-profiles") as saved:
+                        journal.begin("Save selected Sources search")
+                        page.get_by_role("button", name="Save search", exact=True).click()
+                    assert saved.value.status == 200, saved.value.text()
+                    expect(page.get_by_role("status").filter(
+                        has_text="Search saved. Its schedule is off")).to_be_visible()
+                    search = next(row for row in request(
+                        "/search-profiles?profile_id=" + profile_id)["search_profiles"]
+                        if row["name"] == name)
+                    assert_supported_fixture_search(
+                        search, profile_id=profile_id, include_titles=[title], remote="REQUIRED")
+                    navigation("Jobs")
+                    page.get_by_label("Saved search profile", exact=True).last.select_option(search["id"])
+                    expect(page.get_by_label("Saved search profile", exact=True).last).to_have_value(search["id"])
+                    return search
+
+                def collect_sources_fixture_search(search, expected_titles):
+                    # Search selection happens in Jobs; the collection control is in Sources.
+                    navigation("Sources")
+                    with page.expect_response(lambda response:
+                            response.request.method == "POST"
+                            and urlsplit(response.url).path == "/discovery") as discovery_response:
+                        page.get_by_role("button", name="Collect local fixture jobs", exact=True).click()
+                    response = discovery_response.value
+                    assert response.status == 202, response.text()
+                    discovery_request = response.request.post_data_json
+                    assert discovery_request["search_profile_id"] == search["id"]
+                    operation_id = response.json()["operation_id"]
+                    deadline = time.monotonic() + 120
+                    while time.monotonic() < deadline:
+                        operation = request("/operations/" + operation_id)
+                        if operation["state"] in ("COMPLETED", "FAILED", "BLOCKED", "CANCELLED"):
+                            break
+                        time.sleep(0.5)
+                    assert operation["state"] == "COMPLETED", operation
+                    operation_id, request_id = assert_discovery_request_operation_pair(
+                        discovery_request, operation, profile_id=profile_id,
+                        search_profile_id=search["id"], expected_operation_id=operation_id)
+                    jobs = request("/jobs?profile_id=" + profile_id
+                                   + "&search_profile_id=" + search["id"])["jobs"]
+                    assert_search_scoped_discovery(
+                        discovery_request, operation, jobs,
+                        profile_id=profile_id, search_profile_id=search["id"],
+                        expected_titles=set(expected_titles))
+                    # Operation completion and filtered readback can precede the
+                    # UI action's own refresh/loadJobs and busy-gate release.
+                    wait_for_fixture_collection_ui_idle(page)
+                    discovery_search_proofs.append({
+                        "search_profile_id": search["id"],
+                        "operation_id": operation_id,
+                        "request_id": request_id,
+                        "profile_id": profile_id,
+                        "filtered_titles": [row["title"] for row in jobs],
+                        "result": "PASS",
+                    })
+                    return operation_id, discovery_request["request_id"], jobs
+
+                # Create searches through the product's supported Sources form.
+                # Jobs-tab filter snapshots are intentionally disabled for scheduling
+                # and cannot be resumed as provider discovery criteria.
+                nonmatching_search = save_sources_fixture_search(
+                    "Synthetic remote IT onboarding search", "IT Support Specialist")
+                discovery_operation_id, discovery_request_id, nonmatching_jobs = (
+                    collect_sources_fixture_search(nonmatching_search, set()))
+                assert {row["title"] for row in request(
+                    "/jobs?profile_id=" + profile_id)["jobs"]} >= {"Python Developer", "Data Engineer"}
+                actions.append({"action": "Created a remote IT title search in the Sources UI; actual fixture discovery completed and the selected same-profile filter returned no matching jobs", "result": "PASS", "boundary": "Sources search form → Jobs saved-search selection → queued /discovery → Compose source worker → selected-search jobs API"})
+
+                matching_search = save_sources_fixture_search(
+                    "Synthetic remote data engineering onboarding search", "Data Engineer")
+                discovery_operation_id, discovery_request_id, matching_jobs = (
+                    collect_sources_fixture_search(matching_search, {"Data Engineer"}))
+                discovery_job_ids = {row["id"] for row in matching_jobs}
+                assert discovery_job_ids, "matching saved search returned no fixture jobs"
+                actions.append({"action": "Selected a matching remote Data Engineer search; actual fixture worker completed and only the matching job appeared in same-profile filtered readback", "result": "PASS", "boundary": "Jobs UI → Sources UI → queued /discovery → Compose source worker → selected-search jobs API"})
                 history = request("/profiles/" + profile_id + "/search-history")
                 assert history["profile_id"] == profile_id
                 history_item = next(item for item in history["items"]
@@ -335,12 +869,22 @@ def run(base_url, evidence_path, onboarding=False):
                 assert history_item["profile_id"] == profile_id
                 assert history_item["source"] == "mock-fixture"
                 assert history_item["results"] and history_item["results"] > 0
+                persisted_operation = request("/operations/" + discovery_operation_id)
+                assert history_item["id"] == (discovery_operation_id + ":"
+                                               + str(persisted_operation["attempt_count"]))
+                assert_discovery_request_operation_pair(
+                    {"request_id": discovery_request_id, "profile_id": profile_id,
+                     "search_profile_id": matching_search["id"]},
+                    persisted_operation, profile_id=profile_id,
+                    search_profile_id=matching_search["id"],
+                    expected_operation_id=discovery_operation_id)
                 search_after_discovery = next(row for row in request(
                     "/search-profiles?profile_id=" + profile_id)["search_profiles"]
-                    if row["id"] == saved_search["id"])
-                assert search_after_discovery["criteria"]["job_filters"]["remote_type"] == "REMOTE"
+                    if row["id"] == matching_search["id"])
+                assert search_after_discovery["criteria"]["include_titles"] == ["Data Engineer"]
+                assert search_after_discovery["criteria"]["remote"] == "REQUIRED"
+                assert "job_filters" not in search_after_discovery["criteria"]
                 assert search_after_discovery["source_ids"] == []
-                actions.append({"action": "Saved remote IT search before local fixture collection; user-triggered Sources control completed discovery and profile-scoped jobs/history read back for the same profile", "result": "PASS", "boundary": "UI button → HTTP API /discovery", "request_id": discovery_request_id, "operation_id": discovery_operation_id, "saved_search_id": saved_search["id"]})
             else:
                 page.get_by_role("button", name="Load fictional demo", exact=True).click()
                 expect(page.get_by_role("status").filter(has_text="Fictional demo loaded")).to_be_visible()
@@ -439,7 +983,8 @@ def run(base_url, evidence_path, onboarding=False):
             comparison.get_by_role('button',name='Refresh base resumes',exact=True).click()
             comparison.get_by_label('Base resume',exact=True).select_option('u:'+uploaded_original['revision_id'])
             comparison.get_by_role('button',name='Compare selected resumes',exact=True).click()
-            expect(result.get_by_role('heading',name='Uploaded base · v1',exact=True)).to_be_visible()
+            expect_visible_with_onboarding_diagnostics(
+                result.get_by_role('heading',name='Uploaded base · v1',exact=True), unsafe_requests)
             expect(result.get_by_role('region',name='Summary changes',exact=True)).to_contain_text('Original synthetic summary')
             expect(result.get_by_role('region',name='Content omitted',exact=True)).to_contain_text('Maintained synthetic servers')
             expect(result.get_by_role('region',name='Original extraction provenance',exact=True)).to_contain_text('Native extracted text')
@@ -497,22 +1042,149 @@ def run(base_url, evidence_path, onboarding=False):
             assert request('/profiles/'+profile_id)==saved_contact_profile
             actions.append({'action':'Explicit saved contact header reaches real document worker, history and download while prior revision and profile remain unchanged','result':'PASS'})
 
+            if onboarding:
+                # Keep the uncertain-answer recovery journey specific to the onboarding fixture.
+                previous_operation_id = None
+                page.get_by_role("button", name="Run dry-run", exact=True).click()
+                expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
+                    "REVIEW_REQUIRED", timeout=30000)
+                preflight = page.get_by_role("region", name="ATS question preflight", exact=True)
+                expect(preflight.get_by_role("list", name="Unresolved required questions")).to_contain_text(
+                    "Approved fixture answer")
+                previous_profile = request("/profiles/" + profile_id)
+                review_row = preflight.get_by_role("list", name="Unresolved required questions").locator(
+                    "li").filter(has_text="Approved fixture answer")
+                review_row.get_by_role("button", name="Review this question", exact=True).click()
+                answer_group = page.get_by_role("region", name="Application answers", exact=True).get_by_role(
+                    "group", name="Question 1")
+                answer_group.get_by_role("textbox", name="Answer", exact=True).fill(
+                    REVIEWED_FIXTURE_ANSWER)
+                answer_group.get_by_label("I reviewed this exact answer for this job", exact=True).check()
+                answer_group.get_by_role("button", name="Save to Answer Bank", exact=True).click()
+                answer_confirmation = answer_bank_confirmation_locator(answer_group, 1)
+                answer_confirmation.get_by_label(
+                    "I confirm this answer is accurate and may be reused", exact=True).check()
+                with page.expect_response(lambda response:
+                        response.request.method == "PUT"
+                        and urlsplit(response.url).path == "/profiles") as reviewed_answer_save:
+                    answer_confirmation.get_by_role(
+                        "button", name="Confirm and save to Answer Bank", exact=True).click()
+                assert reviewed_answer_save.value.status == 200, reviewed_answer_save.value.text()
+                updated_profile = request("/profiles/" + profile_id)
+                reviewed_answer = next(row for row in updated_profile["answers"]
+                                       if row["question"] == "Approved fixture answer")
+                assert reviewed_answer["text"] == REVIEWED_FIXTURE_ANSWER
+                assert reviewed_answer["verified"] and reviewed_answer["user_approved"]
+                old_pins = request("/profiles/" + profile_id + "/applications/" + identifier)
+                assert old_pins["profile_version"] == previous_profile["version"]
+                old_document_version = old_pins["document_version"]
+                with page.expect_response(lambda candidate:
+                        candidate.request.method == "POST"
+                        and urlsplit(candidate.url).path.endswith("/reprepare")) as reprepare_response:
+                    page.get_by_role("button", name="Resume and prepare current revision", exact=True).click()
+                assert reprepare_response.value.status == 200, reprepare_response.value.text()
+                expect(page.get_by_role("status").filter(
+                    has_text="Run a local dry run to create a fresh ATS question preflight")).to_be_visible()
+                resumed = request("/profiles/" + profile_id + "/applications/" + identifier)
+                assert_reprepared_profile_pins(
+                    previous_profile_version=previous_profile["version"],
+                    old_application_profile_version=old_pins["profile_version"],
+                    current_profile_version=updated_profile["version"],
+                    resumed_application_profile_version=resumed["profile_version"],
+                )
+                assert resumed["document_version"] == old_document_version + 1
+                assert resumed["id"] == identifier and resumed["profile_id"] == profile_id
+                revised_documents = request("/profiles/" + profile_id + "/applications/" + identifier + "/documents")["documents"]
+                assert any(row["version"] == old_document_version for row in revised_documents)
+                assert any(row["version"] == resumed["document_version"]
+                           and row["profile_version"] == updated_profile["version"]
+                           for row in revised_documents)
+                assert resumed.get("question_preflight") is not None
+                assert resumed["question_preflight"]["is_current"] is False
+                actions.append({"action": "Unknown required answer stopped dry-run; explicit question review changed approved profile facts, then explicit Resume prepared a new immutable document revision and retained old history", "result": "PASS", "boundary": "Connected React UI → public profile/reprepare APIs → actual document worker"})
+
+            if onboarding:
+                mock_controls = page.get_by_role("region", name="Recoverable mock run", exact=True)
+                run_storage_key = f"mjobs-mock-run-v1:{profile_id}:{identifier}"
+                previous_intent = page.evaluate(
+                    "key => {const saved=localStorage.getItem(key);return saved?JSON.parse(saved):null}",
+                    run_storage_key,
+                )
+                assert previous_intent and previous_intent["submit"] is False, (
+                    "The initial review-blocked dry-run intent was not preserved for explicit resolution")
+                previous_receipt = request(
+                    f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
+                    + previous_intent["requestId"])
+                assert previous_receipt["state"] == "BLOCKED"
+                assert previous_receipt["error_code"] == "REVIEW_REQUIRED"
+                previous_operation_id = previous_receipt["operation_id"]
+                previous_operation = request("/operations/" + previous_operation_id)
+                assert_blocked_mock_operation(previous_operation, application_id=identifier)
+                assert "operation_type" not in previous_operation, previous_operation
+                assert resumed["question_preflight"]["is_current"] is False
+
+                # Reprepare preserves the old terminal intent and durable receipt.
+                # Require the UI's explicit user action before another run can start.
+                new_run = mock_controls.get_by_role(
+                    "button", name="Start a new reviewed run", exact=True)
+                expect(new_run).to_be_enabled()
+                new_run.click()
+                assert page.evaluate("key => localStorage.getItem(key)", run_storage_key) is None
+                assert request("/operations/" + previous_operation_id)["state"] == "BLOCKED"
+                assert request(
+                    f"/profiles/{profile_id}/applications/{identifier}/mock-runs/"
+                    + previous_intent["requestId"])["operation_id"] == previous_operation_id
+                expect(mock_controls.get_by_role("button", name="Run dry-run", exact=True)).to_be_enabled()
+                expect(mock_controls.get_by_role("button", name="Submit to local mock", exact=True)).to_be_disabled()
+                actions.append({"action": "Explicit new reviewed run clears only the prior terminal browser intent; blocked operation and stale preflight remain readable", "result": "PASS", "boundary": "Connected React UI → public run receipt/operation APIs"})
+
             page.get_by_role("button", name="Run dry-run", exact=True).click()
-            expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("DRY_RUN_COMPLETE", timeout=15000)
+            expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text(
+                "DRY_RUN_COMPLETE", timeout=30000)
             dry = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert "STOP_BEFORE_SUBMIT" in dry["trace"] and "SUBMIT" not in dry["trace"]
+            assert dry["question_preflight"]["result"] == "PASS"
+            assert dry["question_preflight"]["is_current"] is True
+            assert_previous_review_operation(
+                request, onboarding=onboarding,
+                operation_id=previous_operation_id if onboarding else None,
+                application_id=identifier if onboarding else None)
             page.get_by_role("button", name="Start a new reviewed run", exact=True).click()
             page.get_by_label("I approve one fictional mock submission").check()
             mock_run_path = f"/profiles/{profile_id}/applications/{identifier}/mock-run"
             with page.expect_response(lambda response: response.request.method == "POST"
                                       and response.url == base_url + mock_run_path) as admission:
+                journal.begin("Submit to local mock")
                 page.get_by_role("button", name="Submit to local mock", exact=True).click()
             assert admission.value.status == 202
             admitted = admission.value.json()
             admitted_intent = page.evaluate("([profile, application]) => JSON.parse(localStorage.getItem('mjobs-mock-run-v1:' + encodeURIComponent(profile) + ':' + encodeURIComponent(application)))", [profile_id, identifier])
             assert admitted_intent["submit"] is True
-            wait_for_mock_run(request, mock_run_path + "s/" + admitted_intent["requestId"],
-                              admitted["operation_id"])
+            failure_context = {
+                "application_id": identifier,
+                "request_id": admitted_intent.get("requestId"),
+                "expected_profile_version": dry.get("profile_version"),
+                "expected_document_version": dry.get("document_version"),
+                "preflight_result": (dry.get("question_preflight") or {}).get("result"),
+                "preflight_is_current": (dry.get("question_preflight") or {}).get("is_current"),
+                "submit": admitted_intent.get("submit"),
+            }
+
+            def read_current_failure_context():
+                current = request(f"/profiles/{profile_id}/applications/{identifier}")
+                return _terminal_application_context(
+                    current, profile_id=profile_id, application_id=identifier)
+
+            wait_for_mock_run(
+                request,
+                mock_run_path + "s/" + admitted_intent["requestId"],
+                admitted["operation_id"],
+                failure_context=failure_context,
+                failure_context_reader=read_current_failure_context,
+                attempt_history_reader=(lambda: request(
+                    f"/profiles/{profile_id}/applications/{identifier}/attempt-history"))
+                if onboarding else None,
+            )
             expect(page.get_by_role("status", name="Application state", exact=True)).to_have_text("CONFIRMED")
             confirmed = request("/profiles/" + profile_id + "/applications/" + identifier)
             assert confirmed["target"] == "MOCK" and confirmed["confirmation"]["submission_count"] == 1
@@ -579,10 +1251,29 @@ def run(base_url, evidence_path, onboarding=False):
             assert next(row for row in request('/company-sources')['company_sources']
                         if row['id'] == sources[0]['id'])['priority'] == 'USER_PINNED'
             local_persistence = persistence.collect(request, read_bytes, profile_id, identifier)
-        except BaseException:
-            capture_redacted_screenshot(page, artifacts / "failure.png")
+            if onboarding:
+                # Capture the public same-profile jobs/source-copy baseline while
+                # the Playwright API request context is still open. The connected
+                # recovery workflow compares this exact inventory after restart.
+                job_inventory = collect_public_job_inventory(request, profile_id)
+        except BaseException as error:
+            try:
+                journal.fail(error)
+            except Exception:
+                # Evidence I/O must not replace the UI failure being diagnosed.
+                pass
+            try:
+                capture_redacted_screenshot(page, artifacts / "failure.png")
+            except Exception:
+                # The primary UI exception remains the failure reported to the caller.
+                pass
             raise
         finally:
+            try:
+                journal.persist()
+            except Exception:
+                if sys.exc_info()[0] is None:
+                    raise
             context.close()
             browser.close()
     evidence = {"result": "PARTIAL" if onboarding else "PASS", "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -590,14 +1281,16 @@ def run(base_url, evidence_path, onboarding=False):
         "profile_id": profile_id, "application_id": identifier, "operation_id": repeated["operation_id"], "request_id": intent['requestId'], "confirmation": confirmed["confirmation"], "external_submission_enabled": False,
         "mode": "ONBOARDING_FIXTURE" if onboarding else "FICTIONAL_DEMO",
         "local_persistence": local_persistence,
+        **({"job_inventory": job_inventory} if onboarding else {}),
         "discovery_operation_id": discovery_operation_id if onboarding else None,
         "discovery_request_id": discovery_request_id if onboarding else None,
+        "discovery_search_proofs": discovery_search_proofs if onboarding else [],
         "limitations": ([
-            "The remote IT search is persisted separately; the Sources fixture collection performs general profile-scoped discovery without applying saved-search filters.",
+            "This onboarding journey uses synthetic fixture jobs and does not prove real-provider browser discovery (criterion 11).",
             "Source identity/deduplication and live public-source proof are outside this local fixture run.",
         ] if onboarding else []),
         "actions": actions, "artifacts": [str(path) for path in artifacts.glob("*") if path.name != "failure.png"]}
-    Path(evidence_path).write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+    journal.finish(evidence)
     print(json.dumps(evidence, indent=2))
 
 
