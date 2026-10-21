@@ -1,10 +1,22 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { JSDOM } from 'jsdom';
 import { afterEach, expect, it, vi } from 'vitest';
 
 afterEach(() => vi.unstubAllGlobals());
 
 const modules = import.meta.glob<{ FirstRunWizard: React.ComponentType<any> }>('./first-run-wizard.tsx');
+
+function expectButtonsToHaveAccessibleNames(html: string) {
+  const Parser = new JSDOM('').window.DOMParser;
+  const document = new Parser().parseFromString(html, 'text/html');
+  const buttons = [...document.querySelectorAll('button')];
+  expect(buttons.length).toBeGreaterThan(0);
+  for (const button of buttons) {
+    const ariaLabel = button.getAttribute('aria-label')?.trim() ?? '';
+    expect(ariaLabel || button.textContent?.trim()).toBeTruthy();
+  }
+}
 
 it('renders all ten setup steps and keeps external submission unavailable', async () => {
   const module = modules['./first-run-wizard.tsx'];
@@ -72,16 +84,21 @@ it('keeps first-run controls keyboard-native and gives each control an accessibl
     onRunSearch={vi.fn()}
   />);
 
-  const buttons = [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)];
-  expect(buttons.length).toBeGreaterThan(0);
-  for (const [, attributes, content] of buttons) {
-    expect(attributes).toContain('type="button"');
-    expect(content.trim()).not.toBe('');
+  const Parser = new JSDOM('').window.DOMParser;
+  const document = new Parser().parseFromString(html, 'text/html');
+  expectButtonsToHaveAccessibleNames(html);
+  for (const button of document.querySelectorAll('button')) {
+    expect(button.getAttribute('type')).toBe('button');
   }
   expect(html).toContain('<label for="first-run-search-profile">First-run saved search profile</label>');
   expect(html).toContain('<label for="first-run-source">Enabled source for this search</label>');
   expect(html).not.toMatch(/<(?:div|span)[^>]*role="button"/);
   expect(html).not.toMatch(/<(?:button|select)[^>]*tabindex="-1"/i);
+});
+
+it('rejects buttons whose markup has no accessible name', () => {
+  expect(() => expectButtonsToHaveAccessibleNames('<button type="button"><span></span></button>'))
+    .toThrow();
 });
 
 it('keeps the collapsed first-run resume action a named, keyboard-native button', async () => {
