@@ -5,7 +5,6 @@ validated once and the resulting numeric address can be used for the connection.
 """
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
 import hashlib
 import http.client
 import ipaddress
@@ -18,6 +17,8 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 import httpx
 
+from services.company_discovery.dns_resolver import ResolverFailure, ResolverProcess
+
 
 MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 MAX_HEADER_BYTES = 64 * 1024
@@ -29,7 +30,6 @@ DEADLINE = 30.0
 DNS_POLL_INTERVAL = 0.05
 MIN_REQUEST_INTERVAL = 1.0
 USER_AGENT = "MJobs/1.0 (+public-company-discovery)"
-_DNS_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="mjobs-public-dns")
 _DNS_SLOTS = threading.BoundedSemaphore(4)
 
 
@@ -145,31 +145,14 @@ class PublicCompanyClient:
         deadline = min(self._deadline, time.monotonic() + timeout)
         slots = _DNS_SLOTS
         self._acquire(slots, deadline, "DNS_BUSY")
+        resolver = ResolverProcess()
         try:
-            future = _DNS_EXECUTOR.submit(socket.getaddrinfo, host, port, type=socket.SOCK_STREAM)
-        except Exception:
-            slots.release()
-            raise PublicFetchError("DNS_FAILED")
-        future.add_done_callback(lambda _: slots.release())
-        try:
-            while True:
-                self._check()
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    future.cancel()
-                    raise PublicFetchError("DNS_TIMEOUT")
-                try:
-                    answers = future.result(timeout=min(DNS_POLL_INTERVAL, remaining))
-                    break
-                except FutureTimeout:
-                    if future.done():
-                        raise PublicFetchError("DNS_TIMEOUT")
-                except OSError as error:
-                    raise PublicFetchError("DNS_FAILED") from error
-            self._check()
-        except Exception:
-            future.cancel()
-            raise
+            answers = resolver.resolve(host, port, self._check, deadline)
+        except ResolverFailure as error:
+            raise PublicFetchError(error.code) from error
+        finally:
+            if resolver.stopped:
+                slots.release()
         addresses = []
         seen = set()
         for answer in answers:

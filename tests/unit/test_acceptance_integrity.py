@@ -390,3 +390,209 @@ def test_census_covers_all425_without_promoting_historical_results():
     assert len(report["baseline_p0_ids"]) == 26
     assert {r["fresh_acceptance"] for r in report["requirements"]} == {"NOT_RUN"}
     assert report["requirements"][0]["id"].startswith("MJ-")
+
+@pytest.fixture
+def owned_git_child(monkeypatch):
+    """Replace only this test process's Git launch with finite owned children."""
+    import sys
+    real_popen = subprocess.Popen
+    children = []
+    behavior = {'mode': 'before'}
+    oid = b'a' * 40
+
+    def launch(args, *positional, **kwargs):
+        if args[0] == 'git':
+            if 'ls-tree' in args:
+                script = "import sys;sys.stdout.buffer.write(" + repr(b'100644 blob ' + oid + b'\tfixture.py\0') + ")"
+            elif '--batch' in args:
+                script = "import sys,time;sys.stdin.buffer.read();"
+                if behavior['mode'] == 'mid':
+                    script += "sys.stdout.buffer.write(" + repr(oid + b' blob 10\npart') + ");sys.stdout.flush();"
+                script += 'time.sleep(1)'
+            else:
+                script = 'import time;time.sleep(1)'
+            args = [sys.executable, '-I', '-c', script]
+        child = real_popen(args, *positional, **kwargs)
+        children.append(child)
+        return child
+
+    monkeypatch.setattr(audit.subprocess, 'Popen', launch)
+    monkeypatch.setattr(audit, 'COMMAND_TIMEOUT_SECONDS', .2, raising=False)
+    yield behavior, children
+    for child in children:
+        if child.poll() is None:
+            child.kill()
+            child.wait(timeout=2)
+        for stream in (child.stdin, child.stdout, child.stderr):
+            if stream is not None:
+                stream.close()
+
+
+def assert_reaped_and_follow_on(children):
+    import sys
+    assert children and all(child.poll() is not None for child in children)
+    assert all(stream is None or stream.closed for child in children
+               for stream in (child.stdin, child.stdout, child.stderr))
+    assert audit._run([sys.executable, '-I', '-c', "import sys;sys.stdout.buffer.write(b'healthy\\n')"]) == b'healthy\n'
+
+
+def test_git_command_deadline_reaps_owned_child_and_allows_follow_on(owned_git_child, tmp_path):
+    import time
+    _, children = owned_git_child
+    started = time.monotonic()
+    with pytest.raises(RuntimeError, match='COMMAND_TIMEOUT'):
+        audit._run(['git', 'rev-parse', 'HEAD'], tmp_path)
+    assert time.monotonic() - started < .8
+    assert_reaped_and_follow_on(children)
+
+
+@pytest.mark.parametrize('mode', ['before', 'mid'])
+def test_git_batch_deadline_before_or_inside_response_fails_closed(owned_git_child, tmp_path, mode):
+    import time
+    behavior, children = owned_git_child
+    behavior['mode'] = mode
+    started = time.monotonic()
+    with pytest.raises(RuntimeError, match='COMMAND_TIMEOUT'):
+        audit.git_sources(tmp_path, 'HEAD')
+    assert time.monotonic() - started < .9
+    assert_reaped_and_follow_on(children)
+
+
+def test_command_timeout_never_replaces_previous_report(owned_git_child, tmp_path, monkeypatch):
+    import sys
+    output = tmp_path / 'prior-report.json'
+    output.write_bytes(b'prior immutable evidence')
+    monkeypatch.setattr(sys, 'argv', ['acceptance_integrity', '--root', str(tmp_path), '--output', str(output)])
+    with pytest.raises(RuntimeError, match='COMMAND_TIMEOUT'):
+        audit.main()
+    assert output.read_bytes() == b'prior immutable evidence'
+
+@pytest.mark.parametrize('stream', ['stdout', 'stderr'])
+def test_command_output_cap_is_combined_and_reaps_flooding_child(owned_git_child, monkeypatch, stream):
+    import sys
+    _, children = owned_git_child
+    monkeypatch.setattr(audit, 'MAX_COMMAND_OUTPUT_BYTES', 8192)
+    script = f'import sys\nwhile True: sys.{stream}.buffer.write(b"x"*4096);sys.{stream}.flush()'
+    with pytest.raises(audit.AuditCommandError, match='COMMAND_OUTPUT_LIMIT'):
+        audit._run([sys.executable, '-I', '-c', script])
+    assert_reaped_and_follow_on(children)
+
+
+def test_stalled_child_cannot_block_batch_stdin_writer(owned_git_child):
+    import sys
+    _, children = owned_git_child
+    with pytest.raises(audit.AuditCommandError, match='COMMAND_TIMEOUT'):
+        audit._run([sys.executable, '-I', '-c', 'import time;time.sleep(1)'], input_data=b'x' * 1_000_000)
+    assert_reaped_and_follow_on(children)
+
+
+def test_stdout_stderr_and_input_share_one_bounded_exchange(owned_git_child, monkeypatch):
+    import sys
+    _, children = owned_git_child
+    monkeypatch.setattr(audit, 'COMMAND_TIMEOUT_SECONDS', 2)
+    payload = bytes(range(256)) * 1000
+    script = ('import sys;sys.stderr.buffer.write(b"d"*70000);sys.stderr.flush();'
+              'data=sys.stdin.buffer.read();sys.stdout.buffer.write(data)')
+    assert audit._run([sys.executable, '-I', '-c', script], input_data=payload) == payload
+    assert_reaped_and_follow_on(children)
+
+
+def test_input_limit_rejects_before_any_child_launch(owned_git_child, monkeypatch):
+    import sys
+    _, children = owned_git_child
+    monkeypatch.setattr(audit, 'MAX_COMMAND_INPUT_BYTES', 4)
+    with pytest.raises(audit.AuditCommandError, match='COMMAND_INPUT_LIMIT'):
+        audit._run([sys.executable, '-I', '-c', 'pass'], input_data=b'too long')
+    assert children == []
+
+
+def test_nonzero_exit_is_explicit_without_echoing_child_diagnostics(owned_git_child):
+    import sys
+    _, children = owned_git_child
+    with pytest.raises(audit.AuditCommandError, match=r'COMMAND_FAILED \(exit=7\)') as error:
+        audit._run([sys.executable, '-I', '-c', 'import sys;sys.stderr.write("fictional-private-diagnostic");sys.exit(7)'])
+    assert 'fictional-private-diagnostic' not in str(error.value)
+    assert_reaped_and_follow_on(children)
+
+
+@pytest.mark.parametrize('response', [
+    b'', b'a'*40 + b' blob 4\nab', b'a'*40 + b' blob 4\nabcd',
+    b'a'*40 + b' blob -1\n\n', b'a'*40 + b' tree 0\n\n',
+    b'b'*40 + b' blob 0\n\n', b'a'*40 + b' blob 0\n\nextra',
+    b'a'*40 + b' blob nope\n', b'a'*40 + b' missing\n',
+])
+def test_incomplete_or_malformed_batch_is_never_hashed(response, monkeypatch, tmp_path):
+    tree = b'100644 blob ' + b'a'*40 + b'\tfixture.bin\0'
+    monkeypatch.setattr(audit, '_run', lambda args, root, **kw: tree if 'ls-tree' in args else response)
+    with pytest.raises(audit.AuditCommandError, match='GIT_BATCH_MALFORMED'):
+        audit.git_sources(tmp_path, 'HEAD')
+
+
+@pytest.mark.parametrize('tree', [b'not a tree', b'100644 blob bad\tfile\0',
+                                  b'100644 blob ' + b'a'*40 + b'\tfile'])
+def test_malformed_tree_cannot_produce_partial_source_inventory(tree, monkeypatch, tmp_path):
+    monkeypatch.setattr(audit, '_run', lambda *args, **kw: tree)
+    with pytest.raises(audit.AuditCommandError, match='GIT_TREE_MALFORMED'):
+        audit.git_sources(tmp_path, 'HEAD')
+
+
+def test_complete_binary_batch_preserves_all_bytes_and_duplicate_object_paths(monkeypatch, tmp_path):
+    oid = b'a'*40
+    content = bytes(range(256)) * 300
+    tree = b''.join(b'100644 blob ' + oid + b'\t' + p + b'\0' for p in [b'first.bin', b'second.bin'])
+    response = oid + b' blob ' + str(len(content)).encode() + b'\n' + content + b'\n'
+    def run(args, root, **kwargs):
+        if 'ls-tree' in args:
+            return tree
+        assert kwargs['input_data'] == oid + b'\n'
+        return response
+    monkeypatch.setattr(audit, '_run', run)
+    result = audit.git_sources(tmp_path, 'HEAD')
+    assert result == {'first.bin': content, 'second.bin': content}
+    assert hashlib.sha256(result['first.bin']).digest() == hashlib.sha256(content).digest()
+
+
+def test_exited_child_with_owned_pipe_still_open_has_finite_deadline(monkeypatch):
+    """An owned fixture writer keeps EOF away after the actual child exits."""
+    import sys
+    real_popen = subprocess.Popen
+    read_fd, write_fd = os.pipe()
+    children = []
+
+    def launch(*args, **kwargs):
+        child = real_popen([sys.executable, '-I', '-c', 'pass'], **kwargs)
+        child.stdout.close()
+        child.stdout = os.fdopen(read_fd, 'rb', buffering=0)
+        children.append(child)
+        return child
+
+    monkeypatch.setattr(audit.subprocess, 'Popen', launch)
+    monkeypatch.setattr(audit, 'COMMAND_TIMEOUT_SECONDS', .3)
+    try:
+        with pytest.raises(audit.AuditCommandError, match='COMMAND_TIMEOUT'):
+            audit._run(['owned-git-like-pipe-fixture'])
+        assert children[0].returncode == 0
+        assert children[0].stdout.closed and children[0].stderr.closed
+    finally:
+        os.close(write_fd)
+        for child in children:
+            if child.poll() is None:
+                child.kill()
+                child.wait(timeout=2)
+            child.stdout.close()
+            child.stderr.close()
+    monkeypatch.undo()
+    assert audit._run([sys.executable, '-I', '-c', "import sys;sys.stdout.buffer.write(b'ok')"]) == b'ok'
+
+@pytest.mark.parametrize('extra', [0, 1])
+def test_combined_output_limit_accepts_exact_boundary_only(owned_git_child, monkeypatch, extra):
+    import sys
+    _, children = owned_git_child
+    monkeypatch.setattr(audit, 'MAX_COMMAND_OUTPUT_BYTES', 8192)
+    script = f'import sys;sys.stdout.buffer.write(b"o"*4096);sys.stdout.flush();sys.stderr.buffer.write(b"e"*{4096+extra});sys.stderr.flush()'
+    if extra:
+        with pytest.raises(audit.AuditCommandError, match='COMMAND_OUTPUT_LIMIT'):
+            audit._run([sys.executable, '-I', '-c', script])
+    else:
+        assert audit._run([sys.executable, '-I', '-c', script]) == b'o'*4096
+    assert_reaped_and_follow_on(children)

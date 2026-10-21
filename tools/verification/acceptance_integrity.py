@@ -11,9 +11,11 @@ from collections import Counter
 from datetime import datetime, timezone
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+import time
 
 REPOSITORY = "MulattoTech/MJobs"
 PROJECT_QUERY = '''query($endCursor:String){user(login:"MulattoTech"){
@@ -207,29 +209,148 @@ def evidence_identity(document: dict, sources: dict[str, bytes]) -> dict:
     }
 
 
-def _run(args: list[str], root: Path | None = None) -> bytes:
-    return subprocess.run(args, cwd=root, check=True, capture_output=True).stdout
+# Local baseline: ~0.20s / 21.4MB for all Git blobs, ~0.06s for history.
+# Allow substantial cold-disk/provider headroom without an unbounded census.
+COMMAND_TIMEOUT_SECONDS = 60.0
+MAX_COMMAND_OUTPUT_BYTES = 128 * 1024 * 1024
+MAX_COMMAND_INPUT_BYTES = 8 * 1024 * 1024
+_COMMAND_POLL_SECONDS = .001
+
+
+class AuditCommandError(RuntimeError):
+    """Explicitly incomplete census; never evidence of acceptance or absence."""
+
+
+def _run(args: list[str], root: Path | None = None, *, input_data: bytes | None = None) -> bytes:
+    """Own nonblocking pipes and child lifetime under one monotonic deadline.
+
+    No reader/writer threads can remain blocked after the child exits. Python
+    3.12 supports nonblocking anonymous pipes on Windows as well as POSIX.
+    Command output is bounded in memory and never included in error messages.
+    """
+    if input_data is not None and len(input_data) > MAX_COMMAND_INPUT_BYTES:
+        raise AuditCommandError("COMMAND_INPUT_LIMIT")
+    deadline = time.monotonic() + COMMAND_TIMEOUT_SECONDS
+    try:
+        process = subprocess.Popen(args, cwd=root,
+                                   stdin=subprocess.PIPE if input_data is not None else subprocess.DEVNULL,
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                   creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    except OSError:
+        raise AuditCommandError("COMMAND_START_FAILED") from None
+    buffers = {process.stdout: bytearray(), process.stderr: bytearray()}
+    readers = set(buffers)
+    written, captured = 0, 0
+
+    def check_deadline():
+        if time.monotonic() >= deadline:
+            raise AuditCommandError("COMMAND_TIMEOUT")
+
+    try:
+        try:
+            for stream in (*readers, process.stdin):
+                if stream is not None:
+                    os.set_blocking(stream.fileno(), False)
+        except OSError:
+            raise AuditCommandError("COMMAND_PIPE_SETUP_FAILED") from None
+        while True:
+            check_deadline()
+            progress = False
+            if process.stdin is not None and not process.stdin.closed:
+                if written == len(input_data):
+                    process.stdin.close()
+                else:
+                    try:
+                        written += os.write(process.stdin.fileno(), input_data[written:written + 65536])
+                        progress = True
+                    except BlockingIOError:
+                        pass
+                    except OSError:
+                        raise AuditCommandError("COMMAND_INPUT_INCOMPLETE") from None
+            for stream in tuple(readers):
+                # Bounded draining prevents one noisy pipe from starving the
+                # other pipe, stdin, or the total deadline.
+                for _ in range(16):
+                    check_deadline()
+                    try:
+                        chunk = os.read(stream.fileno(), min(65536, MAX_COMMAND_OUTPUT_BYTES - captured + 1))
+                    except BlockingIOError:
+                        break
+                    except OSError:
+                        raise AuditCommandError("COMMAND_PIPE_FAILED") from None
+                    if not chunk:
+                        readers.remove(stream)
+                        stream.close()
+                        break
+                    captured += len(chunk)
+                    if captured > MAX_COMMAND_OUTPUT_BYTES:
+                        raise AuditCommandError("COMMAND_OUTPUT_LIMIT")
+                    buffers[stream].extend(chunk)
+                    progress = True
+            if process.poll() is not None and not readers:
+                if input_data is not None and written != len(input_data):
+                    raise AuditCommandError("COMMAND_INPUT_INCOMPLETE")
+                if process.returncode:
+                    raise AuditCommandError(f"COMMAND_FAILED (exit={process.returncode})")
+                return bytes(buffers[process.stdout])
+            if not progress:
+                time.sleep(min(_COMMAND_POLL_SECONDS, max(0, deadline - time.monotonic())))
+    finally:
+        # Reap only the subprocess created by this invocation, never shared Git.
+        try:
+            if process.poll() is None:
+                process.kill()
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            raise AuditCommandError("COMMAND_REAP_FAILED") from None
+        finally:
+            for stream in (process.stdin, process.stdout, process.stderr):
+                if stream is not None:
+                    stream.close()
 
 
 def git_sources(root: Path, revision: str) -> dict[str, bytes]:
-    """Read Git blob bytes, avoiding Windows checkout newline conversions."""
+    """Read complete Git blob bytes, avoiding checkout newline conversions."""
     tree = _run(["git", "ls-tree", "-rz", revision], root)
     entries = {}
-    for line in tree.split(b"\0"):
-        if line:
-            meta, path = line.split(b"\t", 1)
-            mode, kind, oid = meta.split()
-            if kind == b"blob":
-                entries[path.decode("utf-8")] = oid
+    try:
+        if tree and not tree.endswith(b"\0"):
+            raise ValueError("truncated tree")
+        for line in tree.split(b"\0"):
+            if line:
+                meta, path = line.split(b"\t", 1)
+                mode, kind, oid = meta.split()
+                if not re.fullmatch(rb"[0-9a-f]{40}|[0-9a-f]{64}", oid):
+                    raise ValueError("invalid object identity")
+                if kind == b"blob":
+                    name = path.decode("utf-8")
+                    if not name or name in entries:
+                        raise ValueError("ambiguous path")
+                    entries[name] = oid
+    except (ValueError, UnicodeError):
+        raise AuditCommandError("GIT_TREE_MALFORMED") from None
     oids = list(dict.fromkeys(entries.values()))
-    response = subprocess.run(["git", "cat-file", "--batch"], cwd=root,
-                              input=b"\n".join(oids) + b"\n", capture_output=True, check=True).stdout
+    if not oids:
+        return {}
+    response = _run(["git", "cat-file", "--batch"], root,
+                    input_data=b"\n".join(oids) + b"\n")
     blobs, offset = {}, 0
-    for oid in oids:
-        end = response.index(b"\n", offset)
-        size = int(response[offset:end].split()[-1])
-        blobs[oid] = response[end + 1:end + 1 + size]
-        offset = end + size + 2
+    try:
+        for oid in oids:
+            end = response.index(b"\n", offset)
+            returned_oid, kind, raw_size = response[offset:end].split()
+            if returned_oid != oid or kind != b"blob" or not raw_size.isdigit():
+                raise ValueError("invalid batch identity")
+            size = int(raw_size)
+            stop = end + 1 + size
+            if stop >= len(response) or response[stop:stop + 1] != b"\n":
+                raise ValueError("truncated batch body")
+            blobs[oid] = response[end + 1:stop]
+            offset = stop + 1
+        if offset != len(response):
+            raise ValueError("unexpected trailing batch output")
+    except ValueError:
+        raise AuditCommandError("GIT_BATCH_MALFORMED") from None
     return {path: blobs[oid] for path, oid in entries.items()}
 
 

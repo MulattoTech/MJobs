@@ -29,7 +29,9 @@ class MockDiscoveryClientTests(unittest.TestCase):
         transport = httpx.MockTransport(lambda _: response)
 
         def local_client(*args, **kwargs):
-            return real_client(*args, transport=transport, **kwargs)
+            kwargs["transport"].close()
+            kwargs["transport"] = transport
+            return real_client(*args, **kwargs)
 
         with patch("services.discovery.pipeline.httpx.Client", side_effect=local_client):
             client = MockClient("http://127.0.0.1:8090")
@@ -65,7 +67,9 @@ class MockDiscoveryClientTests(unittest.TestCase):
         transport = httpx.MockTransport(lambda _: httpx.Response(200, stream=StalledBody()))
 
         def local_client(*args, **kwargs):
-            return real_client(*args, transport=transport, **kwargs)
+            kwargs["transport"].close()
+            kwargs["transport"] = transport
+            return real_client(*args, **kwargs)
 
         with patch("services.discovery.pipeline.httpx.Client", side_effect=local_client):
             client = MockClient("http://127.0.0.1:8090", check=check)
