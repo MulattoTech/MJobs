@@ -17,8 +17,9 @@ from uuid import uuid4
 from redis import Redis
 from fastapi.testclient import TestClient
 from rq import Queue
-from rq.job import Job, JobStatus
+from rq.job import Job
 from rq.exceptions import NoSuchJobError
+from rq.executions import Execution
 from rq.registry import FailedJobRegistry, StartedJobRegistry
 from sqlalchemy import select, update
 
@@ -341,9 +342,20 @@ class FleetT11RqRecoveryTests(unittest.TestCase):
         self.assertEqual(claim(self.store, self.operation_id)["attempt_count"], 1)
         job = Job.fetch(self.operation_id, connection=self.redis)
         queue.remove(job.id)
-        job.set_status(JobStatus.STARTED)
-        job.save()
-        started.add(job)
+
+        def create_started_execution(started_job):
+            # Mirror RQ 2.12's parent-side execution setup: persist an
+            # Execution record and add its job_id:execution_id registry entry.
+            with self.redis.pipeline() as pipeline:
+                execution = Execution.create(
+                    started_job, ttl=300, pipeline=pipeline,
+                    worker_name="t11-maintenance-test-worker")
+                started_job.prepare_for_execution(
+                    "t11-maintenance-test-worker", pipeline=pipeline)
+                pipeline.execute()
+            return execution
+
+        execution = create_started_execution(job)
 
         # Age only our StartedJobRegistry member. Keep a second, fresh started
         # job as a negative control; RQ maintenance must not clean it.
@@ -353,11 +365,9 @@ class FleetT11RqRecoveryTests(unittest.TestCase):
             "workers.tasks.execute_operation", self.unrelated_job_id,
             job_id=self.unrelated_job_id)
         queue.remove(unrelated.id)
-        unrelated.set_status(JobStatus.STARTED)
-        unrelated.save()
-        started.add(unrelated)
-        self.redis.zadd(started.key, {job.id: cutoff - 1})
-        self.redis.zadd(started.key, {unrelated.id: cutoff + 60})
+        unrelated_execution = create_started_execution(unrelated)
+        self.redis.zadd(started.key, {execution.composite_key: cutoff - 1})
+        self.redis.zadd(started.key, {unrelated_execution.composite_key: cutoff + 60})
 
         # Mark the SQL lease expired, as after a worker crash. The RQ cleanup
         # call below is the actual maintenance API, not a mocked transition.
@@ -367,7 +377,7 @@ class FleetT11RqRecoveryTests(unittest.TestCase):
                     lease_expires_at="2000-01-01T00:00:00+00:00"))
 
         stale_members = self.redis.zrangebyscore(started.key, "-inf", cutoff)
-        self.assertEqual(stale_members, [self.operation_id.encode()])
+        self.assertEqual(stale_members, [execution.composite_key.encode()])
         started.cleanup(timestamp=cutoff)
 
         self.assertEqual(Job.fetch(self.operation_id, connection=self.redis).get_status(), "failed")
@@ -375,6 +385,12 @@ class FleetT11RqRecoveryTests(unittest.TestCase):
         self.assertIn(self.operation_id, failed.get_job_ids(cleanup=False))
         self.assertIn(self.unrelated_job_id, started.get_job_ids(cleanup=False))
         self.assertEqual(Job.fetch(self.unrelated_job_id, connection=self.redis).get_status(), "started")
+        self.assertEqual(
+            started.get_job_and_execution_ids(cleanup=False),
+            [(self.unrelated_job_id, unrelated_execution.id)],
+        )
+        self.assertEqual(Job.fetch(self.operation_id, connection=self.redis).get_executions()[0].id,
+                         execution.id)
 
         # The production dispatcher observes expired SQL ownership, recovers
         # the durable row, removes the failed RQ record, and redelivers exactly
@@ -392,6 +408,8 @@ class FleetT11RqRecoveryTests(unittest.TestCase):
             self.assertNotIn(self.operation_id, started.get_job_ids(cleanup=False))
             self.assertIn(self.unrelated_job_id, started.get_job_ids(cleanup=False))
             self.assertEqual(queue.get_job_ids().count(self.operation_id), 1)
+            self.assertFalse(self.redis.exists(execution.key),
+                             "redelivery must clean the abandoned execution record")
 
             with reopened.engine.connect() as connection:
                 row = connection.execute(select(m.operations).where(
