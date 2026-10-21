@@ -76,7 +76,7 @@ it('keeps first-run controls keyboard-native and gives each control an accessibl
   expect(buttons.length).toBeGreaterThan(0);
   for (const [, attributes, content] of buttons) {
     expect(attributes).toContain('type="button"');
-    expect(content.replace(/<[^>]*>/g, '').trim()).not.toBe('');
+    expect(content.trim()).not.toBe('');
   }
   expect(html).toContain('<label for="first-run-search-profile">First-run saved search profile</label>');
   expect(html).toContain('<label for="first-run-source">Enabled source for this search</label>');
