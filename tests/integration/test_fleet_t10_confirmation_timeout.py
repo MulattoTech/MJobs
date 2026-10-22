@@ -130,7 +130,10 @@ class FleetT10ConfirmationTimeoutTests(unittest.TestCase):
 
     def test_timeout_preserves_prior_confirmation_but_marks_lookup_unavailable(self):
         self.store.transition(self.application_id, ["SUBMISSION_UNCONFIRMED"], "CONFIRMED",
-                              confirmation={"reference_number": "MOCK-prior", "timestamp": "test"})
+                              confirmation={
+                                  "receipt": "MOCK-prior", "reference_number": "MOCK-prior",
+                                  "timestamp": "test",
+                              })
         with TestClient(create_app(
             self.store, self.origin, self.root, operation_mode="FIXTURE"
         )) as client, patch(
