@@ -97,6 +97,8 @@ BROWSER_SECURITY_HEADERS = {
     ),
 }
 
+CREDENTIAL_PROBE_MAX_IN_FLIGHT = 4
+
 
 class LocalOriginMiddleware:
     """Apply local-origin guards without wrapping the request receive channel."""
@@ -680,6 +682,8 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
         guard.close()
     store.bind_workspace_mode(operation_mode)
     app = FastAPI(title="MJobs", description="Local job discovery, factual preparation and tracking. External submission disabled.")
+    app.state.credential_probe_slots = threading.BoundedSemaphore(
+        CREDENTIAL_PROBE_MAX_IN_FLIGHT)
     from apps.api.search_history import create_search_history_router
     app.include_router(create_search_history_router(store))
     from apps.api.resume_workspace_editor import create_resume_workspace_editor_router
@@ -970,10 +974,17 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
             secret = CredentialCipher.from_environment().decrypt(profile_id, provider, encrypted)
         except CredentialConfigurationError as error:
             raise HTTPException(503, {"code": error.code}) from None
-        from services.credentials.connection import test_provider_connection
+        from services.credentials.connection import (
+            provider_connection_deadline, test_provider_connection,
+        )
+
+        probe_slots = app.state.credential_probe_slots
+        if not probe_slots.acquire(blocking=False):
+            raise HTTPException(503, {"code": "CREDENTIAL_PROVIDER_BUSY"})
 
         cancellation_event = threading.Event()
         watcher_stopping = asyncio.Event()
+        probe_deadline = provider_connection_deadline()
 
         async def watch_disconnect():
             while not cancellation_event.is_set() and not watcher_stopping.is_set():
@@ -982,9 +993,16 @@ def create_app(store, mock_origin, output_dir, redis_url="redis://127.0.0.1:6379
                     return
                 await asyncio.sleep(0.025)
 
-        probe = asyncio.create_task(asyncio.to_thread(
-            test_provider_connection, provider, secret,
-            cancellation_event=cancellation_event))
+        try:
+            probe = asyncio.create_task(asyncio.to_thread(
+                test_provider_connection, provider, secret,
+                cancellation_event=cancellation_event, deadline=probe_deadline))
+        except BaseException:
+            probe_slots.release()
+            raise
+        # Keep capacity reserved through worker-thread cleanup even if the
+        # ASGI task is cancelled while awaiting the shielded probe.
+        probe.add_done_callback(lambda _completed: probe_slots.release())
         disconnect_watcher = asyncio.create_task(watch_disconnect())
         request_cancelled = False
         try:

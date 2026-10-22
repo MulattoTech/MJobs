@@ -62,9 +62,9 @@ class ProviderCredentialTimeoutApiTests(unittest.TestCase):
 
         actual_check = connection.test_provider_connection
 
-        def invoke_actual_check(provider, credential, *, cancellation_event=None):
+        def invoke_actual_check(provider, credential, *, cancellation_event=None, deadline=None):
             return actual_check(provider, credential, client_factory=client_factory,
-                                cancellation_event=cancellation_event)
+                                cancellation_event=cancellation_event, deadline=deadline)
 
         # Route the API's normal call through the actual check function with a
         # synthetic transport; every attempted request is intercepted locally.

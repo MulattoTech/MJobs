@@ -18,14 +18,21 @@ _ENDPOINTS = {
 }
 
 
+def provider_connection_deadline() -> float:
+    """Capture the absolute probe deadline before executor scheduling."""
+    return time.monotonic() + _PROBE_TIMEOUT_SECONDS
+
+
 def test_provider_connection(provider: str, secret: str,
                              client_factory: Callable[..., httpx.Client] = httpx.Client,
-                             *, cancellation_event: threading.Event | None = None) -> dict[str, str | None]:
+                             *, cancellation_event: threading.Event | None = None,
+                             deadline: float | None = None) -> dict[str, str | None]:
     """Check authentication with one fixed GET, discarding its unused body.
 
     The owned transport shares one monotonic deadline across DNS, connect, TLS
-    and headers. The API supplies a cancellation event so request disconnects
-    close the in-flight transport. No raw response is retained.
+    and headers. The API captures that deadline before executor scheduling and
+    supplies it with a cancellation event so request disconnects close the
+    in-flight transport. No raw response is retained.
     """
     configured = _ENDPOINTS.get(provider)
     if configured is None:
@@ -34,7 +41,8 @@ def test_provider_connection(provider: str, secret: str,
     headers = {auth_header: f"Bearer {secret}" if provider == "openai" else secret}
     if provider == "anthropic":
         headers["anthropic-version"] = "2023-06-01"
-    deadline = time.monotonic() + _PROBE_TIMEOUT_SECONDS
+    if deadline is None:
+        deadline = provider_connection_deadline()
     try:
         with client_factory(trust_env=False, timeout=httpx.Timeout(_PROBE_TIMEOUT_SECONDS),
                             follow_redirects=False) as client, request_guard(
