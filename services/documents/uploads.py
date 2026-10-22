@@ -46,6 +46,8 @@ def validate_resume(filename: str, media_type: str, data: bytes) -> str:
     if extension == "pdf":
         if not data.startswith(b"%PDF-") or b"%%EOF" not in data[-1024:]:
             raise ValueError("PDF signature or end marker is invalid")
+        if _contains_embedded_pe(data):
+            raise ValueError("PDF contains an embedded Windows executable")
     elif extension == "docx":
         try:
             with ZipFile(BytesIO(data)) as archive:
@@ -74,6 +76,24 @@ def validate_resume(filename: str, media_type: str, data: bytes) -> str:
         if any(ord(character) < 32 and character not in "\r\n\t" for character in text):
             raise ValueError("TXT resume contains binary control characters")
     return extension
+
+
+def _contains_embedded_pe(data: bytes) -> bool:
+    """Reject a Windows PE image hidden inside an otherwise PDF-looking upload."""
+    offset = 0
+    while True:
+        dos = data.find(b"MZ", offset)
+        if dos < 0:
+            return False
+        offset = dos + 2
+        if dos + 0x40 > len(data):
+            continue
+        pe_offset = int.from_bytes(data[dos + 0x3C:dos + 0x40], "little")
+        pe = dos + pe_offset
+        # A PE signature plus its 20-byte COFF header is enough to distinguish
+        # an executable image from incidental "MZ" text in a document.
+        if pe_offset >= 0x40 and pe + 24 <= len(data) and data[pe:pe + 4] == b"PE\0\0":
+            return True
 
 
 def _uploads_root(output_dir: str | Path, *, create: bool) -> Path:
