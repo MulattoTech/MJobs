@@ -5,10 +5,13 @@ import tempfile
 import unittest
 from unittest.mock import patch, Mock
 
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 import httpx
 from sqlalchemy import select, update
 
+from apps.api.application_confirmation_recovery import create_application_confirmation_recovery_router
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
@@ -59,6 +62,33 @@ class ConfirmationRecoveryTests(unittest.TestCase):
         self.assertEqual(self.store.application(self.app_id)["state"], "SUBMISSION_UNCONFIRMED")
         self.assertEqual(httpx.get(self.origin + "/_test/request-counts", trust_env=False).json(), {"review": 0, "submit": 0})
 
+    def test_uncertain_submission_cannot_transition_back_to_submitting(self):
+        before = self.store.count("audit_events")
+
+        for _ in range(2):
+            with self.assertRaisesRegex(ValueError, "SUBMISSION_UNCONFIRMED"):
+                self.store.transition(self.app_id, ["SUBMISSION_UNCONFIRMED"], "SUBMITTING", "RETRY")
+
+        self.assertEqual(self.store.application(self.app_id)["state"], "SUBMISSION_UNCONFIRMED")
+        self.assertEqual(self.store.count("audit_events"), before)
+        self.assertEqual(httpx.get(self.origin + "/_test/request-counts", trust_env=False).json(),
+                         {"review": 0, "submit": 0})
+
+    def test_uncertain_submission_cannot_be_confirmed_without_receipt(self):
+        before = self.store.count("audit_events")
+
+        for confirmation in (None, {}, {"reference_number": "MOCK-no-receipt"}):
+            with self.subTest(confirmation=confirmation):
+                kwargs = {} if confirmation is None else {"confirmation": confirmation}
+                with self.assertRaisesRegex(ValueError, "receipt-bearing confirmation"):
+                    self.store.transition(
+                        self.app_id, ["SUBMISSION_UNCONFIRMED"], "CONFIRMED", **kwargs)
+
+        application = self.store.application(self.app_id)
+        self.assertEqual(application["state"], "SUBMISSION_UNCONFIRMED")
+        self.assertIsNone(application["confirmation"])
+        self.assertEqual(self.store.count("audit_events"), before)
+
     def test_parallel_identical_checks_have_one_durable_check_identity(self):
         with ThreadPoolExecutor(max_workers=2) as pool:
             results = list(pool.map(lambda _: self.check(), range(2)))
@@ -70,9 +100,22 @@ class ConfirmationRecoveryTests(unittest.TestCase):
         with patch("services.applications.confirmation_recovery.MockClient", side_effect=AssertionError("No provider access")):
             self.assertEqual(self.client.post(self.path.replace("/fixture/", "/other/"), json={"request_id": "x"}).status_code, 404)
             self.assertEqual(self.client.post(self.path.replace(self.app_id, "missing"), json={"request_id": "x"}).status_code, 404)
-            # The application SPA fallback rejects an unknown GET with 404.
-            self.assertEqual(self.client.get(self.path).status_code, 404)
+            # This is a known POST-only route, so GET is a method error rather
+            # than an unknown SPA route.
+            self.assertEqual(self.client.get(self.path).status_code, 405)
         self.assertFalse(self.events())
+
+    def test_post_only_confirmation_route_precedes_static_fallback(self):
+        app = FastAPI()
+        app.include_router(create_application_confirmation_recovery_router(
+            self.store, self.origin, "FIXTURE"))
+        app.mount("/", StaticFiles(directory=self.root, html=True), name="web")
+
+        with TestClient(app) as client:
+            response = client.get(self.path)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertIn("POST", response.headers["allow"])
 
     def test_personal_mode_and_external_targets_fail_before_provider_access(self):
         with patch("services.applications.confirmation_recovery.MockClient", side_effect=AssertionError("No provider access")):
@@ -137,7 +180,9 @@ class ConfirmationRecoveryTests(unittest.TestCase):
         self.assertIsNone(result["confirmation"])
 
     def test_later_outage_does_not_masquerade_as_fresh_verification_or_downgrade(self):
-        receipt = {"reference_number": "MOCK-existing", "timestamp": now()}
+        receipt = {
+            "receipt": "MOCK-existing", "reference_number": "MOCK-existing", "timestamp": now()
+        }
         self.store.transition(self.app_id, ["SUBMISSION_UNCONFIRMED"], "CONFIRMED", confirmation=receipt)
         result = self.check()
         self.assertEqual(result["status"], "CONFIRMED")
