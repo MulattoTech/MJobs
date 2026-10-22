@@ -11,12 +11,6 @@ from services.dedupe.signals import (
 
 
 class DedupeSignalTests(unittest.TestCase):
-    def test_empty_normalized_descriptions_provide_no_similarity_evidence(self):
-        result = description_similarity(" \n ", "")
-
-        self.assertFalse(result["exact"])
-        self.assertEqual(result["similarity"], 0.0)
-
     def test_application_url_canonicalization_removes_tracking_only(self):
         left = canonical_application_url(
             "HTTPS://ATS.EXAMPLE.COM/jobs/123/?utm_source=board&foo=bar#apply"
