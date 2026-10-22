@@ -129,7 +129,10 @@ def _career_page_is_corroborated(page, fixture, *, homepage_url=None):
         str(page.url), html,
         redirect_chain=[str(response.url) for response in getattr(page, "history", ())],
     )
-    return ((fixture and fixture_ats is not None) or detected.status == "MATCH"
+    # Ambiguous but structurally supported ATS evidence still establishes that
+    # this is a career page. Preserve it for the explicit review outcome below;
+    # otherwise an earlier thin/culture link can mask the ambiguous careers page.
+    return ((fixture and fixture_ats is not None) or detected.status in {"MATCH", "AMBIGUOUS"}
             or bool(_career_feed_candidates(page, homepage_url)))
 
 
