@@ -1,5 +1,6 @@
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { within } from '@testing-library/dom';
 import { JSDOM } from 'jsdom';
 import { afterEach, expect, it, vi } from 'vitest';
 
@@ -7,15 +8,11 @@ afterEach(() => vi.unstubAllGlobals());
 
 const modules = import.meta.glob<{ FirstRunWizard: React.ComponentType<any> }>('./first-run-wizard.tsx');
 
-function expectButtonsToHaveAccessibleNames(html: string) {
-  const Parser = new JSDOM('').window.DOMParser;
-  const document = new Parser().parseFromString(html, 'text/html');
+function expectButtonsToHaveAccessibleNames(document: Document) {
   const buttons = [...document.querySelectorAll('button')];
   expect(buttons.length).toBeGreaterThan(0);
-  for (const button of buttons) {
-    const ariaLabel = button.getAttribute('aria-label')?.trim() ?? '';
-    expect(ariaLabel || button.textContent?.trim()).toBeTruthy();
-  }
+  const namedButtons = within(document.body).queryAllByRole('button', { name: /\S/ });
+  expect(namedButtons).toHaveLength(buttons.length);
 }
 
 it('renders all ten setup steps and keeps external submission unavailable', async () => {
@@ -84,9 +81,8 @@ it('keeps first-run controls keyboard-native and gives each control an accessibl
     onRunSearch={vi.fn()}
   />);
 
-  const Parser = new JSDOM('').window.DOMParser;
-  const document = new Parser().parseFromString(html, 'text/html');
-  expectButtonsToHaveAccessibleNames(html);
+  const document = new JSDOM(html).window.document;
+  expectButtonsToHaveAccessibleNames(document);
   for (const button of document.querySelectorAll('button')) {
     expect(button.getAttribute('type')).toBe('button');
   }
@@ -96,9 +92,15 @@ it('keeps first-run controls keyboard-native and gives each control an accessibl
   expect(html).not.toMatch(/<(?:button|select)[^>]*tabindex="-1"/i);
 });
 
-it('rejects buttons whose markup has no accessible name', () => {
-  expect(() => expectButtonsToHaveAccessibleNames('<button type="button"><span></span></button>'))
-    .toThrow();
+it('rejects buttons whose content does not provide an accessible name', () => {
+  const unnamedMarkup = [
+    '<button type="button"><span></span></button>',
+    '<button type="button"><span aria-hidden="true">Hidden label</span></button>',
+  ];
+  for (const markup of unnamedMarkup) {
+    const document = new JSDOM(markup).window.document;
+    expect(() => expectButtonsToHaveAccessibleNames(document)).toThrow();
+  }
 });
 
 it('keeps the collapsed first-run resume action a named, keyboard-native button', async () => {
