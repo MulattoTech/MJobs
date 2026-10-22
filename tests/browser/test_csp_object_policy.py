@@ -1,4 +1,5 @@
 """Chromium proves the API CSP blocks embedded objects without blocking local images."""
+import os
 import re
 import threading
 import time
@@ -54,7 +55,10 @@ def test_same_origin_object_is_blocked_but_same_origin_image_loads():
 
         external = []
         with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
+            launch_options = {"headless": True}
+            if executable := os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE"):
+                launch_options["executable_path"] = executable
+            browser = pw.chromium.launch(**launch_options)
             try:
                 context = browser.new_context()
                 context.route(
