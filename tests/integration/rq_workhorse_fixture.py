@@ -112,7 +112,7 @@ def signal_owned(owned, sig):
     try:
         try:
             current = process_identity(owned.pid)
-        except FileNotFoundError:
+        except (FileNotFoundError, ProcessLookupError):
             return False
         # Parent changes after our parent worker dies. Session, group and
         # starttime must retain their verified values. pidfd binds this signal
