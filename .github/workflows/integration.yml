@@ -43,6 +43,7 @@ jobs:
       MJOBS_WORKER_RECOVERY_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_worker_recovery
       MJOBS_APPLICATION_CRASH_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_application_crash
       MJOBS_REDIS_URL: redis://127.0.0.1:6379/0
+      MJOBS_T11_REDIS_URL: redis://127.0.0.1:6379/14
       MJOBS_OPERATION_MODE: FIXTURE
       MJOBS_DURABLE_COMPARISON_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test
       MJOBS_BACKUP_CREDENTIAL_TEST_POSTGRES_URL: postgresql+psycopg://mjobs:synthetic-test-only@127.0.0.1:5432/mjobs_test_backup_credentials
