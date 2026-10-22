@@ -96,6 +96,7 @@ it('rejects buttons whose content does not provide an accessible name', () => {
   const unnamedMarkup = [
     '<button type="button"><span></span></button>',
     '<button type="button"><span aria-hidden="true">Hidden label</span></button>',
+    '<button type="button"><span hidden>Hidden label</span></button>',
   ];
   for (const markup of unnamedMarkup) {
     const document = new JSDOM(markup).window.document;
