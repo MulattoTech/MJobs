@@ -138,6 +138,10 @@ class OfficialDomainAcquisitionTests(unittest.TestCase):
             return execute_operation(request['operation_id'])
 
     def test_reciprocal_native_job_page_enrolls_and_survives_reopen_and_replay(self):
+        # The first aggregator job must be able to bootstrap an employer that
+        # has no company identity or direct source recorded yet.
+        self.assertEqual(self.store.count('companies'), 0)
+        self.assertEqual(self.store.count('company_job_sources'), 0)
         response = self.client.put('/search-profiles', json={'id': 'native-schedule',
             'profile_id': 'fixture', 'name': 'Synthetic native schedule',
             'source_ids': [self.source_id], 'enabled': True})
