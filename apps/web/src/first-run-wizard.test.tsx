@@ -86,8 +86,9 @@ it('keeps first-run controls keyboard-native and gives each control an accessibl
   for (const button of document.querySelectorAll('button')) {
     expect(button.getAttribute('type')).toBe('button');
   }
-  expect(html).toContain('<label for="first-run-search-profile">First-run saved search profile</label>');
-  expect(html).toContain('<label for="first-run-source">Enabled source for this search</label>');
+  const controls = within(document.body);
+  controls.getByRole('combobox', { name: 'First-run saved search profile' });
+  controls.getByRole('combobox', { name: 'Enabled source for this search' });
   expect(html).not.toMatch(/<(?:div|span)[^>]*role="button"/);
   expect(html).not.toMatch(/<(?:button|select)[^>]*tabindex="-1"/i);
 });
