@@ -6,8 +6,10 @@ import unittest
 from unittest.mock import Mock, patch
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from apps.api.main import create_app, create_from_env
+from cli.compose_recovery import collect_public_job_inventory, compare_public_job_inventory
 from packages.persistence import models as m
 from packages.persistence.store import Store
 from tests.integration.test_spine import PROFILE
@@ -211,6 +213,64 @@ class ApiQueueTests(unittest.TestCase):
                     m.career_stories.c.id == story["story_id"],
                 ).values(text="Changed story source must fail closed."))
             self.assertEqual(client.get(download_path).status_code, 409)
+
+    def test_ui_job_inventory_survives_worker_and_store_reopen_and_rejects_source_copy_change(self):
+        """The public UI inventory stays stable through durable discovery and reopen."""
+        with fixture_server() as origin:
+            self.store.bind_workspace_mode("FIXTURE")
+            store_url = self.store.url
+            with TestClient(create_app(
+                    self.store, origin, self.root, operation_mode="FIXTURE")) as client:
+                self.assertEqual(client.put("/profiles", json=PROFILE).status_code, 200)
+                queued = client.post("/discovery", json={"profile_id": "fixture"})
+                self.assertEqual(queued.status_code, 202, queued.text)
+                operation_id = queued.json()["operation_id"]
+                with patch.dict("os.environ", MJOBS_DATABASE_URL=store_url,
+                                MJOBS_MOCK_ORIGIN=origin, MJOBS_OUTPUT_DIR=str(self.root),
+                                MJOBS_OPERATION_MODE="FIXTURE"):
+                    self.assertEqual(execute_operation(operation_id)["status"], "COMPLETED")
+
+                def public_json(path):
+                    response = client.get(path)
+                    self.assertEqual(response.status_code, 200, response.text)
+                    return response.json()
+
+                ui_baseline = collect_public_job_inventory(public_json, "fixture")
+                self.assertEqual(ui_baseline["job_count"], 2)
+                self.assertEqual(ui_baseline["source_copy_count"], 4)
+
+            self.store.engine.dispose()
+            self.store = Store(store_url)
+            with TestClient(create_app(
+                    self.store, origin, self.root, operation_mode="FIXTURE")) as reopened_client:
+                def reopened_public_json(path):
+                    response = reopened_client.get(path)
+                    self.assertEqual(response.status_code, 200, response.text)
+                    return response.json()
+
+                after_reopen = collect_public_job_inventory(reopened_public_json, "fixture")
+                result = compare_public_job_inventory(
+                    {"job_inventory": ui_baseline}, ui_baseline, after_reopen)
+                self.assertEqual(result["result"], "PASS")
+                self.assertEqual(result["sha256"], ui_baseline["sha256"])
+
+                # A persisted source-copy payload change must be visible through the
+                # reopened public API and rejected against the original UI baseline.
+                with self.store.engine.begin() as connection:
+                    posting = connection.execute(
+                        select(m.postings).order_by(m.postings.c.id).limit(1)
+                    ).mappings().one()
+                    changed_raw = dict(posting["raw"])
+                    changed_raw["criterion_55_fixture_mutation"] = "changed"
+                    connection.execute(m.postings.update().where(
+                        m.postings.c.id == posting["id"],
+                    ).values(raw=changed_raw))
+
+                changed_inventory = collect_public_job_inventory(
+                    reopened_public_json, "fixture")
+                with self.assertRaisesRegex(ValueError, "Public job/source inventory changed"):
+                    compare_public_job_inventory(
+                        {"job_inventory": ui_baseline}, ui_baseline, changed_inventory)
 
 
 if __name__ == "__main__":
