@@ -1,5 +1,6 @@
 """Boundary cases supplementing the real socket credential probe regressions."""
 import threading
+import time
 from unittest.mock import patch
 
 import httpx
@@ -17,6 +18,18 @@ def test_pre_cancelled_probe_never_sends_authentication():
         "openai", "fictional-probe-secret", client_factory=lambda **_kwargs: client,
         cancellation_event=cancelled)
     assert result == {"status": "FAILED", "code": "CREDENTIAL_PROVIDER_CANCELLED"}
+    assert calls == []
+    assert client.is_closed
+
+
+def test_deadline_expired_before_worker_start_never_sends_authentication():
+    calls = []
+    client = httpx.Client(transport=httpx.MockTransport(
+        lambda request: calls.append(request) or httpx.Response(200)))
+    result = connection.test_provider_connection(
+        "openai", "fictional-probe-secret", client_factory=lambda **_kwargs: client,
+        deadline=time.monotonic() - 1)
+    assert result == {"status": "FAILED", "code": "CREDENTIAL_PROVIDER_TIMEOUT"}
     assert calls == []
     assert client.is_closed
 
