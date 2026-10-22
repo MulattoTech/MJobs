@@ -94,8 +94,10 @@ class ResumeUploadTests(unittest.TestCase):
             "<8sIIIIIIHHI", b".text", 0x200, 0x1000, 0x200, 0x200,
             0, 0, 0, 0, 0x60000020,
         )
+        section_raw_padding = 0x90
         executable = (bytes(dos_header) + b"PE\0\0" + coff_header +
-                      bytes(optional_header) + section_header + b"\xC3" + b"\0" * 0x1FF)
+                      bytes(optional_header) + section_header + b"\0" * section_raw_padding +
+                      b"\xC3" + b"\0" * 0x1FF)
 
         pe_offset = struct.unpack_from("<I", executable, 0x3C)[0]
         machine, section_count, _, _, _, optional_size, _ = struct.unpack_from(
@@ -104,6 +106,10 @@ class ResumeUploadTests(unittest.TestCase):
         self.assertEqual(section_count, 1)
         self.assertEqual(optional_size, 0xF0)
         self.assertEqual(struct.unpack_from("<H", executable, pe_offset + 24)[0], 0x020B)
+        section_table_offset = pe_offset + 4 + 20 + optional_size
+        raw_offset = struct.unpack_from("<I", executable, section_table_offset + 20)[0]
+        self.assertEqual(raw_offset, 0x200)
+        self.assertEqual(raw_offset, section_table_offset + 40 + section_raw_padding)
         polyglot = b"%PDF-1.4\nSynthetic document\n" + executable + b"\n%%EOF\n"
 
         ordinary = self.upload(b"%PDF-1.4\nSynthetic document\n%%EOF\n", "plain.pdf", "application/pdf")
