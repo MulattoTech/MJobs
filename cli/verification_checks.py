@@ -105,7 +105,10 @@ def _corroborate(report, expected):
         raise ValueError("connected observations missing or workspace mismatch")
     checks = report["checks"]
     passed = lambda name: checks[name]["status"] == "PASS"
-    if passed("adapter registry"):
+    # A PASS from the global source probe depends on the registry's selected
+    # source identity too; do not let downstream success bypass that evidence
+    # when the registry row is FAIL or NOT_RUN.
+    if passed("adapter registry") or passed("mock global source"):
         if observed.get("registry_requests") != [
                 "/v1/boards/fixture", "/v1/boards/fixture/jobs"]:
             raise ValueError("registry request evidence missing")

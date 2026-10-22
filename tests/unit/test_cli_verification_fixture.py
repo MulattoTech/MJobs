@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 import unittest
 
-from cli.verification_checks import _corroborate
+from cli.verification_checks import CHECKS, _corroborate
 from cli.verification_fixture import validate_registry_probe
 from services.discovery.sources.contract import SearchBatch, SourceCompany, SourceItem
 from services.discovery.sources.greenhouse import Greenhouse
@@ -95,6 +95,36 @@ class RegistryProbeTests(unittest.TestCase):
             with self.subTest(global_status=global_status), self.assertRaisesRegex(
                     ValueError, "registry source identity corroboration"):
                 _corroborate(report, expected)
+
+    def test_global_source_pass_requires_registry_identity_even_without_registry_pass(self):
+        for registry_status in ("NOT_RUN", "FAIL"):
+            with self.subTest(registry_status=registry_status), tempfile.TemporaryDirectory() as directory:
+                workspace = Path(directory)
+                with closing(sqlite3.connect(workspace / "fixture.db")) as db:
+                    db.execute("CREATE TABLE job_postings (id INTEGER)")
+                    db.executemany("INSERT INTO job_postings VALUES (?)", [(1,), (2,), (3,), (4,)])
+                    db.commit()
+
+                expected = {"invocation_id": "test", "workspace": str(workspace)}
+                checks = {name: {"status": "NOT_RUN"} for name in CHECKS}
+                checks["adapter registry"]["status"] = registry_status
+                checks["mock global source"]["status"] = "PASS"
+                report = {
+                    "workspace": str(workspace),
+                    "checks": checks,
+                    "observations": {
+                        "registry_requests": ["/v1/boards/fixture", "/v1/boards/fixture/jobs"],
+                        "registry_company": "Synthetic employer",
+                        "registry_job_requisition": "288",
+                        "registry_provider": "greenhouse",
+                        "registry_tenant": "mutated-tenant",
+                        "profile_id": "verification-test",
+                        "canonical_jobs": 2,
+                    },
+                }
+
+                with self.assertRaisesRegex(ValueError, "registry source identity corroboration"):
+                    _corroborate(report, expected)
 
 
 if __name__ == "__main__":
