@@ -17,7 +17,7 @@ from fixtures.browser_ports import bound_browser_socket
 def test_same_origin_object_is_blocked_but_same_origin_image_loads():
     sock = bound_browser_socket()
     origin = f"http://127.0.0.1:{sock.getsockname()[1]}"
-    requests = {"object": 0, "image": 0}
+    requests = {"object": 0, "embed": 0, "image": 0}
     lock = threading.Lock()
     app = FastAPI()
     app.add_middleware(LocalOriginMiddleware)
@@ -25,13 +25,20 @@ def test_same_origin_object_is_blocked_but_same_origin_image_loads():
     @app.get("/probe", response_class=HTMLResponse)
     def probe():
         return ("<!doctype html><img id='control' src='/image-marker'>"
-                "<object id='blocked' data='/object-marker' type='text/html'></object>")
+                "<object id='blocked-object' data='/object-marker' type='text/html'></object>"
+                "<embed id='blocked-embed' src='/embed-marker' type='text/html'>")
 
     @app.get("/object-marker", response_class=HTMLResponse)
     def object_marker():
         with lock:
             requests["object"] += 1
         return "<p>Object endpoint must not be reached</p>"
+
+    @app.get("/embed-marker", response_class=HTMLResponse)
+    def embed_marker():
+        with lock:
+            requests["embed"] += 1
+        return "<p>Embed endpoint must not be reached</p>"
 
     @app.get("/image-marker")
     def image_marker():
@@ -74,15 +81,20 @@ def test_same_origin_object_is_blocked_but_same_origin_image_loads():
 
                 # A same-origin non-object request is allowed by img-src 'self'.
                 expect(page.locator("#control")).to_have_js_property("naturalWidth", 1)
-                # The object element is present but cannot load its same-origin URL.
-                expect(page.locator("#blocked")).to_have_js_property("contentDocument", None)
+                # Both object and embed are present but cannot load same-origin URLs.
+                expect(page.locator("#blocked-object")).to_have_js_property("contentDocument", None)
+                expect(page.locator("#blocked-embed")).to_have_count(1)
+                page.wait_for_function(
+                    "window.__cspViolations.filter(item => item.directive === 'object-src').length === 2"
+                )
                 violations = page.evaluate("window.__cspViolations")
-                assert any(item["directive"] == "object-src" and
-                           item["blocked"].endswith("/object-marker") for item in violations), violations
+                blocked_paths = {item["blocked"].rsplit("/", 1)[-1] for item in violations
+                                 if item["directive"] == "object-src"}
+                assert {"object-marker", "embed-marker"} <= blocked_paths, violations
             finally:
                 browser.close()
 
-        assert requests == {"object": 0, "image": 1}
+        assert requests == {"object": 0, "embed": 0, "image": 1}
         assert external == []
     finally:
         server.should_exit = True
