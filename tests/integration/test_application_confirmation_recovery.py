@@ -5,10 +5,13 @@ import tempfile
 import unittest
 from unittest.mock import patch, Mock
 
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 import httpx
 from sqlalchemy import select, update
 
+from apps.api.application_confirmation_recovery import create_application_confirmation_recovery_router
 from apps.api.main import create_app
 from fixtures.mock_server import fixture_server
 from packages.persistence import models as m
@@ -101,6 +104,18 @@ class ConfirmationRecoveryTests(unittest.TestCase):
             # than an unknown SPA route.
             self.assertEqual(self.client.get(self.path).status_code, 405)
         self.assertFalse(self.events())
+
+    def test_post_only_confirmation_route_precedes_static_fallback(self):
+        app = FastAPI()
+        app.include_router(create_application_confirmation_recovery_router(
+            self.store, self.origin, "FIXTURE"))
+        app.mount("/", StaticFiles(directory=self.root, html=True), name="web")
+
+        with TestClient(app) as client:
+            response = client.get(self.path)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertIn("POST", response.headers["allow"])
 
     def test_personal_mode_and_external_targets_fail_before_provider_access(self):
         with patch("services.applications.confirmation_recovery.MockClient", side_effect=AssertionError("No provider access")):
