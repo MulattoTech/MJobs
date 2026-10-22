@@ -83,7 +83,7 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
 
                         page.route("**/*", local_only)
                         page.goto(origin, wait_until="domcontentloaded")
-                        page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                        page.get_by_label("Active profile", exact=True).select_option("fixture")
                         page.reload(wait_until="domcontentloaded")
                         expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
                         page.get_by_role("button", name="Profile", exact=True).click()
