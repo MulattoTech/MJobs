@@ -16,7 +16,9 @@ from packages.persistence.store import Store
 from workers.transient_retention import CONFIG_ENV, run_with_config
 
 
-NOW = datetime(2026, 10, 11, 12, 0, tzinfo=timezone.utc)
+# Retention preview evaluates ages against wall-clock UTC; keep fixture times
+# aligned with the test run rather than a fixed calendar date.
+NOW = datetime.now(timezone.utc)
 
 
 class RetentionPolicyIntegrationTests(unittest.TestCase):
