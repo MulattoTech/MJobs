@@ -73,12 +73,37 @@ class ResumeUploadTests(unittest.TestCase):
 
     def test_pdf_upload_rejects_embedded_windows_executable_but_accepts_normal_pdf(self):
         # A PE image can be appended to an otherwise PDF-looking file and still
-        # pass the current header/EOF-only check. Keep the PE header internally
-        # consistent so this exercises executable detection, not a raw MZ prefix.
+        # pass the current header/EOF-only check. Use a minimally valid PE32+
+        # image so executable detection is tested against more than an MZ/PE
+        # signature-shaped byte sequence.
         dos_header = bytearray(64)
         dos_header[:2] = b"MZ"
         struct.pack_into("<I", dos_header, 0x3C, 0x40)
-        executable = bytes(dos_header) + b"PE\0\0" + b"\0" * 24
+        coff_header = struct.pack("<HHIIIHH", 0x8664, 1, 0, 0, 0, 0xF0, 0x0022)
+        optional_header = bytearray(0xF0)
+        struct.pack_into("<H", optional_header, 0, 0x020B)  # PE32+
+        struct.pack_into("<I", optional_header, 20, 0x1000)  # BaseOfCode
+        struct.pack_into("<Q", optional_header, 24, 0x140000000)  # ImageBase
+        struct.pack_into("<II", optional_header, 32, 0x1000, 0x200)  # alignments
+        struct.pack_into("<I", optional_header, 56, 0x2000)  # SizeOfImage
+        struct.pack_into("<I", optional_header, 60, 0x200)  # SizeOfHeaders
+        struct.pack_into("<HH", optional_header, 68, 3, 0x8160)  # subsystem, DLL flags
+        struct.pack_into("<QQQQ", optional_header, 72, 0x100000, 0x1000, 0x100000, 0x1000)
+        struct.pack_into("<I", optional_header, 108, 16)  # NumberOfRvaAndSizes
+        section_header = struct.pack(
+            "<8sIIIIIIHHI", b".text", 0x200, 0x1000, 0x200, 0x200,
+            0, 0, 0, 0, 0x60000020,
+        )
+        executable = (bytes(dos_header) + b"PE\0\0" + coff_header +
+                      bytes(optional_header) + section_header + b"\xC3" + b"\0" * 0x1FF)
+
+        pe_offset = struct.unpack_from("<I", executable, 0x3C)[0]
+        machine, section_count, _, _, _, optional_size, _ = struct.unpack_from(
+            "<HHIIIHH", executable, pe_offset + 4)
+        self.assertEqual(machine, 0x8664)
+        self.assertEqual(section_count, 1)
+        self.assertEqual(optional_size, 0xF0)
+        self.assertEqual(struct.unpack_from("<H", executable, pe_offset + 24)[0], 0x020B)
         polyglot = b"%PDF-1.4\nSynthetic document\n" + executable + b"\n%%EOF\n"
 
         ordinary = self.upload(b"%PDF-1.4\nSynthetic document\n%%EOF\n", "plain.pdf", "application/pdf")
