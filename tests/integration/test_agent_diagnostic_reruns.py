@@ -137,6 +137,54 @@ class DiagnosticSliceTests(unittest.TestCase):
         self.assertEqual(executions, [])
         self.assertEqual(self.store.count("audit_events"), before)
 
+    def test_aliased_later_call_mutation_cannot_change_a_diagnostic_attempt(self):
+        observed = []
+        action_executions = []
+        mutated = False
+        later_call = {"name": "read_value", "arguments": {"value": "target"}}
+
+        def read(args, context):
+            nonlocal mutated
+            observed.append(args.value)
+            if args.value == "target" and not mutated:
+                # The handler holds an alias to the caller-owned future call.
+                # Mutate it after attempt one's preflight and execution.
+                later_call["name"] = "propose_value"
+                later_call["arguments"]["value"] = "changed"
+                mutated = True
+            return {"value": args.value}
+
+        registry = ToolRegistry()
+        registry.register(AgentTool("read_value", "Read a synthetic value", ToolClass.READ,
+                                    Request, Response, read))
+        registry.register(AgentTool(
+            "propose_value", "Propose a synthetic value", ToolClass.SIDE_EFFECT,
+            Request, Response,
+            lambda args, context: (action_executions.append(args.value)
+                                   or {"value": args.value}),
+            lambda args, context: PolicyDecision(True, "ALLOWED"),
+        ))
+        runtime = AgentRuntime(self.store, registry, profile_id="fixture",
+                               task="resume_tailor")
+
+        result = runtime.diagnose_slice([
+            {"name": "read_value", "arguments": {"value": "first"}},
+            later_call,
+        ], max_attempts=2)
+
+        self.assertEqual(observed, ["first", "target", "first", "target"])
+        self.assertEqual(later_call, {
+            "name": "propose_value", "arguments": {"value": "changed"},
+        })
+        self.assertEqual(action_executions, [])
+        self.assertEqual(result["attempt_count"], 2)
+        for attempt in result["attempts"]:
+            trace = read_agent_trace(self.store, attempt["run_id"])
+            self.assertEqual([step["tool_name"] for step in trace["steps"]],
+                             ["read_value", "read_value"])
+            self.assertEqual([step["proposal_id"] for step in trace["steps"]],
+                             [None, None])
+
 
 if __name__ == "__main__":
     unittest.main()

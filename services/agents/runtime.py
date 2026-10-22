@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from hashlib import sha256
+import json
 import re
 import time
 from typing import Any
@@ -67,8 +68,12 @@ class AgentRuntime:
                 and not isinstance(collection_contract, CollectionContract)):
             raise ValueError("Agent collection success contract is invalid")
 
-        # Validate the whole slice before starting any attempt. Replaying a
-        # proposal or side effect, even once, is not a diagnostic read.
+        # Snapshot the complete, validated slice before any attempt. Store
+        # arguments as canonical JSON text so a read handler holding an alias
+        # to the caller's input cannot change later-attempt dispatch or data.
+        # Replaying a proposal or side effect, even once, is not a diagnostic
+        # read.
+        validated_calls = []
         for call in calls:
             if not isinstance(call, dict) or set(call) != {"name", "arguments"}:
                 raise ValueError("Diagnostic slices require registered read-only tool calls")
@@ -79,18 +84,22 @@ class AgentRuntime:
             if tool.classification != ToolClass.READ:
                 raise ValueError("Diagnostic slices support read-only tools only")
             try:
-                self.registry.parse(tool, call["arguments"])
+                _, canonical_arguments = self.registry.parse(tool, call["arguments"])
             except AgentToolError:
                 raise ValueError(
                     "Diagnostic slices require valid registered read-only tool arguments"
                 ) from None
+            validated_calls.append((tool.name, canonical_arguments))
+        validated_calls = tuple(validated_calls)
 
         diagnostic_id = new_run_id()
         attempts = []
         signatures = []
         for attempt_number in range(1, max_attempts + 1):
             run_result = self.run(
-                calls, max_duration_ms=max_duration_ms, max_pages=max_pages,
+                [{"name": name, "arguments": json.loads(arguments)}
+                 for name, arguments in validated_calls],
+                max_duration_ms=max_duration_ms, max_pages=max_pages,
                 collection_contract=collection_contract,
                 _diagnostic_id=diagnostic_id, _diagnostic_attempt=attempt_number,
             )
@@ -116,7 +125,7 @@ class AgentRuntime:
             "diagnostic_id": diagnostic_id,
             "attempt_count": len(attempts),
             "max_attempts": max_attempts,
-            "max_tool_calls_per_attempt": len(calls),
+            "max_tool_calls_per_attempt": len(validated_calls),
             "duration_budget_per_attempt_ms": max_duration_ms,
             "total_declared_duration_budget_ms": max_attempts * max_duration_ms,
             "max_pages_per_attempt": max_pages,
