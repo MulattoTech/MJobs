@@ -94,7 +94,7 @@ def _trigrams(value):
 def description_similarity(left, right):
     left_norm, right_norm = normalize_description(left), normalize_description(right)
     if not left_norm and not right_norm:
-        return {"exact": True, "similarity": 1.0, "method": "NORMALIZED_HASH"}
+        return {"exact": False, "similarity": 0.0, "method": "NO_CONTENT"}
     if not left_norm or not right_norm:
         return {"exact": False, "similarity": 0.0, "method": "TRIGRAM_JACCARD"}
     if description_hash(left_norm) == description_hash(right_norm):

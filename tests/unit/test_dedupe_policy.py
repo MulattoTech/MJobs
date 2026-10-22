@@ -57,12 +57,15 @@ class DedupePolicyTests(unittest.TestCase):
         self.assertEqual(reduce_boilerplate(right["description"])["comparison_text"], "")
         result = duplicate_confidence(left, right)
 
-        # Empty post-stripping descriptions are not enough for an automatic merge;
-        # absent strong identity, the conservative policy can only request review.
-        self.assertEqual(result["confidence"], 0.94)
-        self.assertEqual(result["disposition"], "DUPLICATE_REVIEW_REQUIRED")
-        self.assertEqual(result["reason"], "SAME_COMPANY_TITLE_EXACT_DESCRIPTION")
+        # Boilerplate-only text supplies no positive description identity evidence.
+        self.assertLessEqual(result["confidence"], 0.64)
+        self.assertEqual(result["disposition"], "SEPARATE")
+        self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
         self.assertEqual(result["signals"]["strong_signals"], [])
+        self.assertFalse(result["signals"]["description"]["exact"])
+        self.assertEqual(result["signals"]["description"]["similarity"], 0.0)
+        self.assertGreaterEqual(result["boilerplate"]["left_removed"], 1)
+        self.assertGreaterEqual(result["boilerplate"]["right_removed"], 1)
 
     def test_boilerplate_is_removed_before_similarity(self):
         left = weak_identity_job(description=(
