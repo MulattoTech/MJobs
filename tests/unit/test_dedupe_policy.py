@@ -148,6 +148,33 @@ class DedupePolicyTests(unittest.TestCase):
         self.assertEqual(result["reason"], "INSUFFICIENT_EVIDENCE")
         self.assertEqual(result["signals"]["strong_signals"], [])
 
+    def test_same_ats_requisition_with_changed_salary_remains_exact_duplicate(self):
+        left = job(
+            application_url="https://board-a.example/posting/one",
+            attributes={
+                "country": "US", "state": "TX", "city": "Dallas",
+                "salary_min": 100_000, "salary_max": 120_000,
+                "salary_currency": "USD", "salary_period": "YEAR",
+            },
+        )
+        right = job(
+            application_url="https://board-b.example/posting/two",
+            attributes={
+                "country": "US", "state": "TX", "city": "Dallas",
+                "salary_min": 130_000, "salary_max": 150_000,
+                "salary_currency": "USD", "salary_period": "YEAR",
+            },
+        )
+
+        result = duplicate_confidence(left, right)
+
+        self.assertNotEqual(left["attributes"]["salary_min"], right["attributes"]["salary_min"])
+        self.assertTrue(result["signals"]["company"]["same_company"])
+        self.assertEqual(result["signals"]["strong_signals"], ["ATS_TENANT_REQUISITION"])
+        self.assertEqual(result["confidence"], 1.0)
+        self.assertEqual(result["disposition"], "AUTO_MERGE_ELIGIBLE")
+        self.assertEqual(result["reason"], "EXACT_REQUISITION")
+
     def test_salary_only_change_without_strong_id_still_requires_review(self):
         left = weak_identity_job(attributes={
             "country": "US", "state": "TX", "city": "Dallas",
