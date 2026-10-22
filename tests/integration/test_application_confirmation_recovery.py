@@ -82,8 +82,9 @@ class ConfirmationRecoveryTests(unittest.TestCase):
         with patch("services.applications.confirmation_recovery.MockClient", side_effect=AssertionError("No provider access")):
             self.assertEqual(self.client.post(self.path.replace("/fixture/", "/other/"), json={"request_id": "x"}).status_code, 404)
             self.assertEqual(self.client.post(self.path.replace(self.app_id, "missing"), json={"request_id": "x"}).status_code, 404)
-            # The application SPA fallback rejects an unknown GET with 404.
-            self.assertEqual(self.client.get(self.path).status_code, 404)
+            # This is a known POST-only route, so GET is a method error rather
+            # than an unknown SPA route.
+            self.assertEqual(self.client.get(self.path).status_code, 405)
         self.assertFalse(self.events())
 
     def test_personal_mode_and_external_targets_fail_before_provider_access(self):
