@@ -75,6 +75,27 @@ class RegistryProbeTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "registry source identity corroboration"):
                 _corroborate(report, expected)
 
+    def test_parent_checks_registry_identity_when_global_source_did_not_pass(self):
+        expected = {"workspace": "unused synthetic workspace"}
+        for global_status in ("NOT_RUN", "FAIL"):
+            report = {
+                "workspace": expected["workspace"],
+                "checks": {
+                    "adapter registry": {"status": "PASS"},
+                    "mock global source": {"status": global_status},
+                },
+                "observations": {
+                    "registry_requests": ["/v1/boards/fixture", "/v1/boards/fixture/jobs"],
+                    "registry_company": "Synthetic employer",
+                    "registry_job_requisition": "288",
+                    "registry_provider": "greenhouse",
+                    "registry_tenant": "mutated-tenant",
+                },
+            }
+            with self.subTest(global_status=global_status), self.assertRaisesRegex(
+                    ValueError, "registry source identity corroboration"):
+                _corroborate(report, expected)
+
 
 if __name__ == "__main__":
     unittest.main()

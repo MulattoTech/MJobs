@@ -105,19 +105,20 @@ def _corroborate(report, expected):
         raise ValueError("connected observations missing or workspace mismatch")
     checks = report["checks"]
     passed = lambda name: checks[name]["status"] == "PASS"
-    if passed("adapter registry") and observed.get("registry_requests") != [
-            "/v1/boards/fixture", "/v1/boards/fixture/jobs"]:
-        raise ValueError("registry request evidence missing")
+    if passed("adapter registry"):
+        if observed.get("registry_requests") != [
+                "/v1/boards/fixture", "/v1/boards/fixture/jobs"]:
+            raise ValueError("registry request evidence missing")
+        expected_source = {
+            "registry_company": "Synthetic employer",
+            "registry_job_requisition": "288",
+            "registry_provider": "greenhouse",
+            "registry_tenant": "fixture",
+        }
+        if any(observed.get(name) != value for name, value in expected_source.items()):
+            raise ValueError("registry source identity corroboration missing")
     if not passed("mock global source"):
         return
-    expected_source = {
-        "registry_company": "Synthetic employer",
-        "registry_job_requisition": "288",
-        "registry_provider": "greenhouse",
-        "registry_tenant": "fixture",
-    }
-    if any(observed.get(name) != value for name, value in expected_source.items()):
-        raise ValueError("registry source identity corroboration missing")
     profile_id = "verification-" + expected["invocation_id"]
     if observed.get("profile_id") != profile_id or observed.get("canonical_jobs") != 2:
         raise ValueError("discovery identity mismatch")
