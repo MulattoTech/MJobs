@@ -71,6 +71,21 @@ class ConfirmationRecoveryTests(unittest.TestCase):
         self.assertEqual(httpx.get(self.origin + "/_test/request-counts", trust_env=False).json(),
                          {"review": 0, "submit": 0})
 
+    def test_uncertain_submission_cannot_be_confirmed_without_receipt(self):
+        before = self.store.count("audit_events")
+
+        for confirmation in (None, {}, {"reference_number": "MOCK-no-receipt"}):
+            with self.subTest(confirmation=confirmation):
+                kwargs = {} if confirmation is None else {"confirmation": confirmation}
+                with self.assertRaisesRegex(ValueError, "receipt-bearing confirmation"):
+                    self.store.transition(
+                        self.app_id, ["SUBMISSION_UNCONFIRMED"], "CONFIRMED", **kwargs)
+
+        application = self.store.application(self.app_id)
+        self.assertEqual(application["state"], "SUBMISSION_UNCONFIRMED")
+        self.assertIsNone(application["confirmation"])
+        self.assertEqual(self.store.count("audit_events"), before)
+
     def test_parallel_identical_checks_have_one_durable_check_identity(self):
         with ThreadPoolExecutor(max_workers=2) as pool:
             results = list(pool.map(lambda _: self.check(), range(2)))
@@ -150,7 +165,9 @@ class ConfirmationRecoveryTests(unittest.TestCase):
         self.assertIsNone(result["confirmation"])
 
     def test_later_outage_does_not_masquerade_as_fresh_verification_or_downgrade(self):
-        receipt = {"reference_number": "MOCK-existing", "timestamp": now()}
+        receipt = {
+            "receipt": "MOCK-existing", "reference_number": "MOCK-existing", "timestamp": now()
+        }
         self.store.transition(self.app_id, ["SUBMISSION_UNCONFIRMED"], "CONFIRMED", confirmation=receipt)
         result = self.check()
         self.assertEqual(result["status"], "CONFIRMED")
