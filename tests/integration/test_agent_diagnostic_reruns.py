@@ -119,6 +119,24 @@ class DiagnosticSliceTests(unittest.TestCase):
         self.assertEqual(executions, [])
         self.assertEqual(self.store.count("audit_events"), before)
 
+    def test_invalid_later_arguments_are_rejected_before_any_attempt(self):
+        executions = []
+        runtime = self.runtime(
+            ToolClass.READ,
+            lambda args, context: (executions.append(args.value)
+                                   or {"value": args.value}),
+        )
+        before = self.store.count("audit_events")
+
+        with self.assertRaisesRegex(ValueError, "valid.*arguments"):
+            runtime.diagnose_slice([
+                {"name": "read_value", "arguments": {"value": "synthetic"}},
+                {"name": "read_value", "arguments": {"value": "invalid", "extra": "nope"}},
+            ], max_attempts=3)
+
+        self.assertEqual(executions, [])
+        self.assertEqual(self.store.count("audit_events"), before)
+
 
 if __name__ == "__main__":
     unittest.main()

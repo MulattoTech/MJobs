@@ -78,6 +78,12 @@ class AgentRuntime:
                 raise ValueError("Diagnostic slices require registered read-only tool calls") from None
             if tool.classification != ToolClass.READ:
                 raise ValueError("Diagnostic slices support read-only tools only")
+            try:
+                self.registry.parse(tool, call["arguments"])
+            except AgentToolError:
+                raise ValueError(
+                    "Diagnostic slices require valid registered read-only tool arguments"
+                ) from None
 
         diagnostic_id = new_run_id()
         attempts = []
