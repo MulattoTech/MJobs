@@ -210,8 +210,9 @@ def test_actual_socket_probe_outcomes_persist_after_api_and_sqlite_reopen(caplog
                     # Positive/rejected API cases use the production eight-second
                     # budget, including client initialization. The independent
                     # default-cap socket test still executes that actual deadline.
-                    def invoke(provider, secret):
-                        return PROBE(provider, secret, client_factory=selected_factory)
+                    def invoke(provider, secret, *, cancellation_event=None, deadline=None):
+                        return PROBE(provider, secret, client_factory=selected_factory,
+                                     cancellation_event=cancellation_event, deadline=deadline)
 
                     controls.enter_context(patch.object(
                         connection, "test_provider_connection", side_effect=invoke))
