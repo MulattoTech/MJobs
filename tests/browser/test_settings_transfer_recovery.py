@@ -83,9 +83,12 @@ class SettingsTransferRecoveryBrowserTests(unittest.TestCase):
 
                         page.route("**/*", local_only)
                         page.goto(origin, wait_until="domcontentloaded")
-                        page.evaluate("localStorage.setItem('mjobs-profile', 'fixture')")
+                        profile_select = page.get_by_label("Active profile", exact=True)
+                        profile_select.locator('option[value="fixture"]').wait_for(state="attached")
+                        profile_select.select_option("fixture")
+                        page.wait_for_function("localStorage.getItem('mjobs-profile') === 'fixture'")
                         page.reload(wait_until="domcontentloaded")
-                        expect(page.get_by_label("Active profile", exact=True)).to_have_value("fixture")
+                        expect(profile_select).to_have_value("fixture")
                         page.get_by_role("button", name="Profile", exact=True).click()
                         panel = page.get_by_role("region", name="Settings transfer", exact=True)
                         with page.expect_download() as captured_download:

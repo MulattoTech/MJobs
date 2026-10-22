@@ -132,6 +132,40 @@ class CompanyCareerCandidateTests(unittest.TestCase):
         self.assert_enrolled(ORIGIN + '/team/openings')
         self.assertNotIn(ORIGIN + '/sitemap.xml', self.seen)
 
+    def test_ambiguous_ats_on_discovered_career_page_is_reviewed_without_enrollment(self):
+        self.pages['/team/openings'] = (
+            '<a href="https://boards.greenhouse.io/example">Greenhouse jobs</a>'
+            '<a href="https://jobs.lever.co/example">Lever jobs</a>')
+
+        _, result = self.run_discovery()
+
+        self.assertEqual(result['status'], 'BLOCKED', result)
+        self.assertEqual(result['error_category'], 'COMPANY_ATS_REVIEW_REQUIRED', result)
+        self.assertEqual(self.store.count('company_job_sources'), 0)
+        self.assertEqual(self.store.count('job_sources'), 0)
+        with self.store.engine.connect() as connection:
+            review = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.action == 'COMPANY_ATS_DETECTION_REVIEW')).mappings().one()
+        self.assertEqual(review['payload']['status'], 'AMBIGUOUS')
+        self.assertIsNone(review['payload']['provider'])
+
+    def test_unsupported_detected_ats_is_not_enrolled(self):
+        self.pages['/team/openings'] = (
+            '<script src="https://wd5.myworkdayjobs.com/Example/jobboard.js"></script>')
+
+        _, result = self.run_discovery()
+
+        self.assertEqual(result['status'], 'BLOCKED', result)
+        self.assertEqual(result['error_category'], 'COMPANY_ATS_ENUMERATION_UNSUPPORTED', result)
+        self.assertEqual(self.store.count('company_job_sources'), 0)
+        self.assertEqual(self.store.count('job_sources'), 0)
+        with self.store.engine.connect() as connection:
+            review = connection.execute(select(m.audit.c.payload).where(
+                m.audit.c.action == 'COMPANY_ATS_DETECTION_REVIEW')).mappings().one()
+        self.assertEqual(review['payload']['status'], 'MATCH')
+        self.assertEqual(review['payload']['provider'], 'workday')
+        self.assertFalse(review['payload']['application_supported'])
+
     def test_generic_homepage_rss_does_not_hide_career_ats_or_import_news(self):
         self.pages['/'] = ('<link rel="alternate" type="application/rss+xml" href="/feed/">'
                            '<a href="/careers">Careers</a>')
