@@ -175,7 +175,11 @@ class Remotive:
                         if callable(remaining_budget):
                             body_budget = min(body_budget, remaining_budget())
                         deadline = time.monotonic() + body_budget
-                        for chunk in response.iter_bytes(chunk_size=65536):
+                        # Do not let HTTPX aggregate a 64 KiB body chunk before
+                        # observing cancellation/deadline checks. Slow-drip
+                        # responses may otherwise postpone the worker check for
+                        # many seconds while yielding individually small parts.
+                        for chunk in response.iter_bytes(chunk_size=None):
                             self.check()
                             content.extend(chunk)
                             if len(content) > 5_000_000:
