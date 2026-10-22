@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import re
+from math import isfinite
 from uuid import UUID
 
 from sqlalchemy import select
@@ -55,9 +56,10 @@ def _is_denied(path: tuple[str, ...], denied: tuple[tuple[str, ...], ...]) -> bo
 
 
 def _eligible_fact(row: dict) -> bool:
+    confidence = row.get("confidence")
     return (row.get("verified") is True and row.get("user_approved") is True
-            and type(row.get("confidence")) in (int, float)
-            and row["confidence"] >= 80 and isinstance(row.get("source"), str)
+            and type(confidence) in (int, float) and isfinite(confidence)
+            and 80 <= confidence <= 100 and isinstance(row.get("source"), str)
             and bool(row["source"].strip()) and isinstance(row.get("text"), str)
             and bool(row["text"].strip()))
 
