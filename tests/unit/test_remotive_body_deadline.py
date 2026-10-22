@@ -121,5 +121,54 @@ class RemotiveBodyDeadlineTests(unittest.TestCase):
         self.assertEqual(adapter.health(), "HEALTHY")
 
 
+    def test_cancellation_closes_client_before_blocked_response_cleanup(self):
+        release_body = threading.Event()
+        body_read_waiting = threading.Event()
+        response_close_started = threading.Event()
+        client_closed = threading.Event()
+        close_order = []
+        deadline = time.monotonic() + 0.15
+
+        class BlockingBody(httpx.SyncByteStream):
+            def __iter__(self):
+                yield b'{"jobs":'
+                body_read_waiting.set()
+                release_body.wait(1.5)
+                yield b'[]}'
+
+            def close(self):
+                close_order.append("response")
+                response_close_started.set()
+                release_body.wait(1.5)
+
+        class BlockingTransport(httpx.BaseTransport):
+            def handle_request(self, _request):
+                return httpx.Response(200, stream=BlockingBody())
+
+            def close(self):
+                close_order.append("client")
+                client_closed.set()
+                release_body.set()
+
+        def check():
+            if time.monotonic() >= deadline:
+                raise OperationTimedOut("OPERATION_TIMEOUT")
+
+        check.remaining_seconds = lambda: max(0.001, deadline - time.monotonic())
+        adapter = Remotive(transport=BlockingTransport(), check=check, request_timeout=2)
+
+        with patch("services.discovery.sources.remotive.CANCELLATION_POLL_INTERVAL", 0.01):
+            started = time.monotonic()
+            with self.assertRaisesRegex(OperationTimedOut, "OPERATION_TIMEOUT"):
+                adapter.search()
+            elapsed = time.monotonic() - started
+
+        self.assertTrue(body_read_waiting.is_set())
+        self.assertTrue(response_close_started.is_set())
+        self.assertTrue(client_closed.is_set())
+        self.assertEqual(close_order[:2], ["client", "response"])
+        self.assertLess(elapsed, 0.4, "response cleanup delayed cancellation past the deadline")
+
+
 if __name__ == "__main__":
     unittest.main()

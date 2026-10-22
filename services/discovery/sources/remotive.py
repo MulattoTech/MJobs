@@ -115,15 +115,17 @@ class Remotive:
             active_response = []
 
             def interrupt_request():
+                # Close the transport first so a blocked body read is woken
+                # before response cleanup can wait on that same stream.
+                try:
+                    client.close()
+                except Exception:
+                    pass
                 if active_response:
                     try:
                         active_response[0].close()
                     except Exception:
                         pass
-                try:
-                    client.close()
-                except Exception:
-                    pass
 
             def watch_cancellation():
                 while not stop_watcher.wait(CANCELLATION_POLL_INTERVAL):
