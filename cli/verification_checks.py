@@ -110,6 +110,14 @@ def _corroborate(report, expected):
         raise ValueError("registry request evidence missing")
     if not passed("mock global source"):
         return
+    expected_source = {
+        "registry_company": "Synthetic employer",
+        "registry_job_requisition": "288",
+        "registry_provider": "greenhouse",
+        "registry_tenant": "fixture",
+    }
+    if any(observed.get(name) != value for name, value in expected_source.items()):
+        raise ValueError("registry source identity corroboration missing")
     profile_id = "verification-" + expected["invocation_id"]
     if observed.get("profile_id") != profile_id or observed.get("canonical_jobs") != 2:
         raise ValueError("discovery identity mismatch")
