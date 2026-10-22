@@ -8,6 +8,7 @@ from packages.persistence import models as m
 from packages.persistence.store import Store
 from services.career_profile.profile_access import (
     ProfileAccessDenied,
+    _eligible_fact,
     build_profile_context,
 )
 from tests.integration.test_spine import PROFILE
@@ -62,6 +63,52 @@ class LeastDataProfileAccessTests(unittest.TestCase):
             ).mappings().one()
         self.assertEqual(denied["payload"]["task"], "UNAPPROVED")
         self.assertNotIn(PROFILE["facts"][0]["text"], str(denied["payload"]))
+
+    def test_profile_context_accepts_confidence_bounds_inclusively(self):
+        version = self.store.profile("fixture")["version"]
+        for confidence in (80.0, 100.0):
+            with self.subTest(confidence=confidence):
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.facts.update().where(
+                        m.facts.c.profile_id == "fixture",
+                        m.facts.c.version == version,
+                        m.facts.c.fact_id == "python",
+                    ).values(confidence=confidence))
+
+                result = build_profile_context(
+                    self.store, "fixture", "resume_tailor", str(uuid4()),
+                    ["facts.python.text"],
+                )
+                self.assertIn("Python", result["context"]["facts.python.text"])
+
+    def test_profile_fact_gate_rejects_nan_confidence(self):
+        # SQLite stores NaN as NULL, so exercise the access predicate directly.
+        fact = dict(PROFILE["facts"][0], confidence=float("nan"))
+        self.assertFalse(_eligible_fact(fact))
+
+    def test_profile_context_rejects_corrupt_nonfinite_or_out_of_range_fact_confidence(self):
+        version = self.store.profile("fixture")["version"]
+        for confidence in (float("inf"), float("-inf"), 79.99, 100.01):
+            with self.subTest(confidence=confidence):
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.facts.update().where(
+                        m.facts.c.profile_id == "fixture",
+                        m.facts.c.version == version,
+                        m.facts.c.fact_id == "python",
+                    ).values(confidence=confidence))
+
+                with self.assertRaises(ProfileAccessDenied):
+                    build_profile_context(
+                        self.store, "fixture", "resume_tailor", str(uuid4()),
+                        ["facts.python.text"],
+                    )
+
+                with self.store.engine.begin() as connection:
+                    connection.execute(m.facts.update().where(
+                        m.facts.c.profile_id == "fixture",
+                        m.facts.c.version == version,
+                        m.facts.c.fact_id == "python",
+                    ).values(confidence=100.0))
 
     def test_task_denylist_wins_over_an_otherwise_approved_path(self):
         with self.assertRaises(ProfileAccessDenied):
