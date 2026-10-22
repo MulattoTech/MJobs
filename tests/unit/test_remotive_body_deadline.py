@@ -1,4 +1,6 @@
 """Small response fragments must not delay Remotive deadline checks."""
+import threading
+import time
 import unittest
 from unittest.mock import patch
 
@@ -9,6 +11,47 @@ from workers.operations import OperationTimedOut
 
 
 class RemotiveBodyDeadlineTests(unittest.TestCase):
+    def test_deadline_does_not_wait_for_blocked_cancellation_watcher_close(self):
+        watcher_close_started = threading.Event()
+        release_watcher_close = threading.Event()
+        deadline = time.monotonic() + 0.15
+
+        class SlowCloseBody(httpx.SyncByteStream):
+            def __iter__(self):
+                while True:
+                    yield b" " * 8
+
+            def close(self):
+                if threading.current_thread().name == "mjobs-remotive-cancellation":
+                    watcher_close_started.set()
+                    release_watcher_close.wait(2)
+
+        body = SlowCloseBody()
+
+        def check():
+            if time.monotonic() >= deadline:
+                if threading.current_thread().name != "mjobs-remotive-cancellation":
+                    watcher_close_started.wait(0.1)
+                raise OperationTimedOut("OPERATION_TIMEOUT")
+
+        check.remaining_seconds = lambda: 2.0
+        adapter = Remotive(
+            transport=httpx.MockTransport(lambda _request: httpx.Response(200, stream=body)),
+            check=check,
+            request_timeout=2,
+        )
+
+        with patch("services.discovery.sources.remotive.CANCELLATION_POLL_INTERVAL", 0.01):
+            started = time.monotonic()
+            try:
+                with self.assertRaisesRegex(OperationTimedOut, "OPERATION_TIMEOUT"):
+                    adapter.search()
+                elapsed = time.monotonic() - started
+                self.assertTrue(watcher_close_started.wait(0.1))
+                self.assertLess(elapsed, 0.4, "deadline cleanup waited on the watcher close")
+            finally:
+                release_watcher_close.set()
+
     def test_worker_cancellation_is_checked_between_small_body_fragments(self):
         class FragmentedBody(httpx.SyncByteStream):
             def __init__(self):
